@@ -62,6 +62,12 @@ class SpikeBus:
         self._thread: Optional[threading.Thread] = None
         self._admission_lock = threading.Lock()
         self._accepting = True
+        # Save-time cooperative park (GL: seal full-save raced this
+        # thread's neuron mutations -- "deque mutated during iteration").
+        # pause() parks the delivery loop between spikes; no spikes are
+        # lost, the queue simply holds until resume().
+        self._pause_req = threading.Event()
+        self._pause_ack = threading.Event()
         # Observability -- read by health checks / harness event-driven
         # verification (queue depth over time, delivered/dropped counts).
         self.delivered_count = 0
@@ -87,6 +93,20 @@ class SpikeBus:
 
     def qsize(self) -> int:
         return self._queue.qsize()
+
+    def pause(self, timeout: float = 5.0) -> bool:
+        """Park the delivery thread between spikes so the neuron object
+        graph is quiescent (save-time pickling). Returns True once the
+        loop acknowledges the park (immediately if it never started).
+        Admission stays open; queued spikes deliver after resume()."""
+        if self._thread is None or not self._thread.is_alive():
+            return True
+        self._pause_req.set()
+        return self._pause_ack.wait(timeout)
+
+    def resume(self) -> None:
+        """Release a pause(); the delivery loop clears its own ack."""
+        self._pause_req.clear()
 
     def inject(self, target_id: str, source_id: str, weight: float,
                arrival_delay_ms: float = 0.0, metadata: Optional[dict] = None) -> None:
@@ -122,6 +142,12 @@ class SpikeBus:
 
     def _delivery_loop(self) -> None:
         while not self._stopping.is_set():
+            if self._pause_req.is_set():
+                self._pause_ack.set()
+                while self._pause_req.is_set() and not self._stopping.is_set():
+                    time.sleep(self._QUEUE_POLL_TIMEOUT_S)
+                self._pause_ack.clear()
+                continue
             try:
                 spike = self._queue.get(timeout=self._QUEUE_POLL_TIMEOUT_S)
             except queue.Empty:

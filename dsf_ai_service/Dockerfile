@@ -94,6 +94,15 @@ ENV EMISSION_STRUCTURED_NOISE=0
 # executor in this process.  Revert by setting 0 and redeploying.
 ENV VOICE_WHISPER=1
 ENV WHISPER_MODEL_PATH=tiny
+# STT staging (GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3, acceptance
+# criterion 7): when VOICE_WHISPER=1 the out-of-process worker is the
+# DEFAULT lane -- whisper never loads inside the uvicorn process, spawns at
+# steady state only (post-ready, never boot), and lives under an RSS
+# watchdog (SPEECH_WORKER_RSS_BUDGET_MB, default 1024) whose breach kills
+# the worker, never the substrate; respawn-with-backoff recovers the sense.
+# VOICE_WHISPER_WORKER=0 is the explicit embedded escape hatch (P5 staging
+# flag, not an architecture flag).
+ENV VOICE_WHISPER_WORKER=1
 # GL-CMD-EMISSION-COST-SAMPLE-87: dynamics window 40→80 (rider condition MET, cost CLEAN)
 ENV EMISSION_DYNAMICS_TICKS=80
 

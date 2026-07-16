@@ -163,14 +163,16 @@ def get_speech_recognizer():
 def _speech_worker_enabled():
     """True when whisper inference must run in its own OS process.
 
-    Off by default so the embedded (in-process) path — and every existing
-    caller and test — is byte-for-byte unchanged.  Turned on in production by
-    setting VOICE_WHISPER_WORKER=1 alongside VOICE_WHISPER=1 once the worker
-    code is in the image, moving whisper's GIL-heavy CTranslate2 inference out
-    of the shared uvicorn process (the tick-starvation / health-probe story).
+    ON by default (GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3, STT
+    staging / acceptance criterion 7): whenever VOICE_WHISPER=1, the
+    out-of-process worker is the lane — whisper's GIL-heavy CTranslate2
+    inference never runs inside the shared uvicorn process (the
+    tick-starvation / health-probe story, and the 2026-07-16 boot OOM).
+    VOICE_WHISPER_WORKER=0 is the explicit embedded escape hatch, kept as a
+    staging flag per P5 — same mechanism both sides, one faculty.
     Read live (never cached) so config changes take effect without a restart.
     """
-    return os.environ.get("VOICE_WHISPER_WORKER", "0") == "1"
+    return os.environ.get("VOICE_WHISPER_WORKER", "1") == "1"
 
 
 def require_speech_recognizer():
@@ -274,12 +276,36 @@ def spoken_word_transduction_status(status, *, transcript=None):
 #   - Lifecycle: shutdown_speech_worker() terminates and joins the child on
 #     deploy seal, following the _curriculum_process terminate/join precedent.
 
+import math as _math
 import multiprocessing as _multiprocessing
 import queue as _queue
 import time as _time
 
 _WORKER_STARTUP_TAG = "__startup__"
 _WORKER_SHUTDOWN = "__shutdown__"
+
+
+def _read_process_rss_bytes(pid):
+    """Resident-set size of `pid` in bytes, or None when unreadable.
+
+    psutil when the image carries it; otherwise /proc/<pid>/status VmRSS
+    (always present on the Linux production image).  Telemetry-only reader:
+    never raises.
+    """
+    try:
+        import psutil
+        return int(psutil.Process(pid).memory_info().rss)
+    except Exception:
+        pass
+    try:
+        with open(f"/proc/{pid}/status", encoding="ascii",
+                  errors="replace") as handle:
+            for line in handle:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1]) * 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
 
 
 def _speech_worker_main(request_q, response_q, model_path):
@@ -331,7 +357,8 @@ class _SpeechWorkerManager:
 
     def __init__(self, model_path="tiny", *, worker_target=_speech_worker_main,
                  mp_context=None, startup_timeout=None, request_timeout=None,
-                 respawn_backoff=None):
+                 respawn_backoff=None, rss_budget_mb=None,
+                 rss_poll_interval=None):
         self._model_path = model_path
         self._worker_target = worker_target
         # Spawn, never fork — see module header.
@@ -345,6 +372,11 @@ class _SpeechWorkerManager:
         self._respawn_backoff = float(
             respawn_backoff if respawn_backoff is not None
             else os.environ.get("SPEECH_WORKER_RESPAWN_BACKOFF_S", "5"))
+        # RSS watchdog knobs (acceptance criterion 7): explicit ctor override
+        # wins (tests); otherwise the env is read live per poll so the budget
+        # is tunable without a restart.
+        self._rss_budget_mb_override = rss_budget_mb
+        self._rss_poll_interval_override = rss_poll_interval
         self._lock = threading.Lock()
         self._proc = None
         self._request_q = None
@@ -352,6 +384,10 @@ class _SpeechWorkerManager:
         self._req_counter = 0
         self._last_spawn_at = None
         self._starts = 0
+        self._rss_breaches = 0
+        self._last_rss_bytes = None
+        self._last_breach_rss_bytes = None
+        self._last_breach_at = None
 
     # -- lifecycle -----------------------------------------------------------
     @property
@@ -362,6 +398,59 @@ class _SpeechWorkerManager:
     def starts(self):
         """How many times a worker process was successfully started (respawns)."""
         return self._starts
+
+    @property
+    def rss_breaches(self):
+        """How many workers the RSS watchdog has killed for exceeding budget."""
+        return self._rss_breaches
+
+    @staticmethod
+    def _sane_positive(raw, default, floor, ceiling):
+        """Parse a knob crash-safely: garbage, nan, inf, and non-positive
+        values fall back to the default; the result is clamped to
+        [floor, ceiling] so no downstream int()/sleep() can ever raise
+        (adversarial-review hardening: "inf"/"1e309" used to OverflowError
+        at int(), "nan" ValueError'd, "-5" fed sleep(-5) — all of which
+        died inside the watchdog loop and left the worker unwatched)."""
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            value = float(default)
+        if not _math.isfinite(value) or value <= 0:
+            value = float(default)
+        return min(max(value, float(floor)), float(ceiling))
+
+    def _rss_budget_bytes(self):
+        raw = (self._rss_budget_mb_override
+               if self._rss_budget_mb_override is not None
+               else os.environ.get("SPEECH_WORKER_RSS_BUDGET_MB", "1024"))
+        budget_mb = self._sane_positive(raw, default=1024.0,
+                                        floor=1.0, ceiling=1048576.0)
+        return int(budget_mb * 1024 * 1024)
+
+    def _rss_poll_interval(self):
+        if self._rss_poll_interval_override is not None:
+            # Ctor override (tests) may poll sub-second.
+            return self._sane_positive(self._rss_poll_interval_override,
+                                       default=5.0, floor=0.01, ceiling=3600.0)
+        return self._sane_positive(
+            os.environ.get("SPEECH_WORKER_RSS_POLL_SEC", "5"),
+            default=5.0, floor=1.0, ceiling=3600.0)
+
+    def status(self):
+        """Honest telemetry for the transducer status surface (lock-free)."""
+        proc = self._proc
+        alive = proc is not None and proc.is_alive()
+        return {
+            "state": "running" if alive else "down",
+            "pid": proc.pid if alive else None,
+            "starts": self._starts,
+            "rss_breaches": self._rss_breaches,
+            "last_rss_bytes": self._last_rss_bytes,
+            "last_breach_rss_bytes": self._last_breach_rss_bytes,
+            "last_breach_at": self._last_breach_at,
+            "rss_budget_bytes": self._rss_budget_bytes(),
+        }
 
     def ensure_ready(self):
         """Start the worker (respecting backoff) and wait for model readiness."""
@@ -408,12 +497,102 @@ class _SpeechWorkerManager:
         self._request_q = request_q
         self._response_q = response_q
         self._starts += 1
+        # RSS watchdog (acceptance criterion 7): one daemon thread per
+        # spawned worker; it dies with its worker.  Breach kills the WORKER,
+        # never the substrate — the existing respawn-with-backoff machinery
+        # recovers on the next demand.
+        threading.Thread(
+            target=self._rss_watchdog_loop, args=(proc,),
+            name="speech-worker-rss-watchdog", daemon=True,
+        ).start()
+
+    def _rss_watchdog_loop(self, proc):
+        """Poll the worker's RSS; kill it (never the parent) over budget.
+
+        Runs OUTSIDE the manager lock: an in-flight transcribe holds the
+        lock for its whole round-trip, so the kill happens first (lock-free,
+        the in-flight request then observes the death and raises its typed
+        error) and the manager-state reap takes the lock afterwards, guarded
+        against a newer worker having already replaced this one.
+
+        Exception-walled (adversarial-review hardening, world-feed-loop
+        precedent): the watchdog must NEVER die while its worker lives —
+        a dead watchdog is exactly the unwatched-worker condition
+        acceptance criterion 7 exists to prevent.
+        """
+        while proc.is_alive():
+            try:
+                rss = _read_process_rss_bytes(proc.pid)
+                if rss is not None:
+                    self._last_rss_bytes = rss
+                    budget = self._rss_budget_bytes()
+                    if rss > budget:
+                        self._rss_breaches += 1
+                        self._last_breach_rss_bytes = rss
+                        self._last_breach_at = _time.time()
+                        print(
+                            "[voice-whisper] RSS watchdog: worker "
+                            f"pid={proc.pid} rss={rss / 1048576:.0f}MB > "
+                            f"budget={budget / 1048576:.0f}MB — killing the "
+                            f"worker (breach #{self._rss_breaches}); the "
+                            "sense degrades until respawn, the substrate "
+                            "never dies")
+                        self._force_kill(proc)
+                        if proc.is_alive():  # pragma: no cover - stuck TERM
+                            try:
+                                proc.kill()
+                                proc.join(timeout=5)
+                            except Exception:
+                                pass
+                        with self._lock:
+                            if self._proc is proc:
+                                self._reap_locked()
+                        return
+            except Exception as error:
+                print("[voice-whisper] RSS watchdog error (non-fatal): "
+                      f"{type(error).__name__}: {error}")
+            try:
+                _time.sleep(self._rss_poll_interval())
+            except Exception:  # pragma: no cover - clamped getter
+                _time.sleep(5.0)
+
+    @staticmethod
+    def _teardown_queue(q):
+        """Detach a dead worker's queue without EVER blocking the parent.
+
+        Adversarial-review hardening (2026-07-16): a worker that dies
+        between our is_alive() check and its get() can leave a >64KB
+        pickled audio payload sitting in the pipe — the parent-side feeder
+        thread then blocks forever in the pipe write, and
+        Queue._finalize_join does an unbounded thread.join() in whichever
+        thread garbage-collects the queue (verified Python 3.11 semantics).
+        In practice that is the executor thread holding a deployment-
+        lifecycle mutation admit: hearing goes permanently silent and the
+        next deploy seal's wait_for_mutations(120) fails.
+        cancel_join_thread() BEFORE close() makes the GC-time join a no-op;
+        best-effort on both calls because the queue may already be broken.
+        """
+        if q is None:
+            return
+        try:
+            q.cancel_join_thread()
+        except Exception:  # pragma: no cover - teardown is best effort
+            pass
+        try:
+            q.close()
+        except Exception:  # pragma: no cover - teardown is best effort
+            pass
 
     def _reap_locked(self):
         proc = self._proc
+        request_q = self._request_q
+        response_q = self._response_q
         self._proc = None
         self._request_q = None
         self._response_q = None
+        # Tear down BOTH queues before the refs drop — see _teardown_queue.
+        self._teardown_queue(request_q)
+        self._teardown_queue(response_q)
         if proc is not None and proc.is_alive():
             self._force_kill(proc)
 
@@ -469,10 +648,13 @@ class _SpeechWorkerManager:
         with self._lock:
             proc = self._proc
             request_q = self._request_q
+            response_q = self._response_q
             self._proc = None
             self._request_q = None
             self._response_q = None
         if proc is None:
+            self._teardown_queue(request_q)
+            self._teardown_queue(response_q)
             return {"speech_worker": "not_running"}
         if proc.is_alive():
             try:
@@ -484,6 +666,10 @@ class _SpeechWorkerManager:
             if proc.is_alive():
                 proc.terminate()
                 proc.join(timeout=float(timeout))
+        # Tear down BOTH queues after the child is gone so the seal path can
+        # never block on a queue feeder thread — see _teardown_queue.
+        self._teardown_queue(request_q)
+        self._teardown_queue(response_q)
         return {"speech_worker": "stopped", "exitcode": proc.exitcode}
 
 
@@ -500,6 +686,27 @@ def _get_speech_worker():
                 _speech_worker = _SpeechWorkerManager(
                     model_path=os.environ.get("WHISPER_MODEL_PATH", "tiny"))
     return _speech_worker
+
+
+def speech_transducer_status():
+    """Telemetry snapshot for the boundary transducer (never constructs).
+
+    Reads the existing singletons only — calling this can NEVER spawn a
+    worker or load a model, so it is safe from any health/status path.
+    RSS-watchdog breach counts are exposed here (acceptance criterion 7).
+    """
+    status = {
+        "worker_mode": _speech_worker_enabled(),
+        "worker": {"state": "never_started", "starts": 0, "rss_breaches": 0},
+    }
+    manager = _speech_worker
+    if manager is not None:
+        status["worker"] = manager.status()
+    recognizer = _speech_recognizer
+    if recognizer is not None:
+        status["embedded_recognizer"] = {
+            "constructed": True, "available": bool(recognizer.available)}
+    return status
 
 
 def shutdown_speech_worker(timeout=10.0):

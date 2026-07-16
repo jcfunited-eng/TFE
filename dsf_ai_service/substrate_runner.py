@@ -402,7 +402,7 @@ def _lookup_once():
 
 
 # ── world feeds (Khan Academy + YouTube): she reads beyond her books ──
-_WORLD_FEED_STATE = {"feed_idx": 0, "query_idx": 0, "last_status": {}}
+_WORLD_FEED_STATE = {"feed_idx": 0, "last_status": {}}
 
 
 def _world_feed_once():
@@ -416,10 +416,14 @@ def _world_feed_once():
             return {"state": "no_feeds", "feed_status": availability}
         fi = _WORLD_FEED_STATE["feed_idx"] % len(feeds)
         feed = feeds[fi]
-        qi = _WORLD_FEED_STATE["query_idx"] % len(feed["queries"])
-        query = feed["queries"][qi]
         _WORLD_FEED_STATE["feed_idx"] += 1
-        _WORLD_FEED_STATE["query_idx"] += 1
+        # REBUILD (spec v3, Environment table): rotating topic pools — the
+        # query comes from world_feeds.next_query, which guarantees no
+        # repeat within WORLD_FEED_NO_REPEAT_CYCLES fetches (default 50)
+        # from a ~80-query pool per feed.  Every registered feed (YouTube
+        # included, once its key exists in the task env) alternates through
+        # feed_idx exactly as before; only query selection changed.
+        query = wf.next_query(feed["name"])
         # GL-CMD-CROSS-MODAL-STRENGTHEN B1.a: bundle feed text to sensory item if attending
         feed_bundle_id = _activity_bundle_id()
         # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: 10s timeout on network fetch.
@@ -460,7 +464,8 @@ def _world_feed_once():
             pass
         st = {"state": "studied", "feed": feed["name"], "query": query,
               "n_fed": n_fed, "organ_tokens": learned,
-              "feed_status": availability}
+              "feed_status": availability,
+              "rotation": wf.rotation_status()}
         _WORLD_FEED_STATE["last_status"] = st
         print(f"[worldfeed] {feed['name']} {query!r}: n_fed={n_fed} organ+={learned}")
         return st
