@@ -217,11 +217,18 @@ def test_assemblage_release_is_voiced_through_the_same_tts_boundary(
 
 
 def test_engine_and_runner_share_one_voiced_release_authority():
-    """One mouth means ONE gate definition — no forked label lists."""
+    """One mouth means ONE gate definition — no forked label lists.
+
+    GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): the tuple gained
+    'organism_attempt' — the organism's honestly-labeled babble releases
+    through the same mouth. Certification gates stay pinned to
+    fact_strand_commit only (see tests/test_autonomous_organism_attempt.py).
+    """
     import dsf_ai_service.substrate_runner as runner
 
     assert VOICED_RELEASE_SOURCES == ("fact_strand_commit",
-                                      "assemblage_commit")
+                                      "assemblage_commit",
+                                      "organism_attempt")
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(Guala._self_hear)
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(
         runner._cmd_converse)
