@@ -1993,6 +1993,33 @@ def _cmd_converse(text, source, emission_mode=None):
         organ_candidates=_organ_refs if _organ_refs else None)
     response = turn_result.response
     response_source = turn_result.response_source
+    # All-at-once doctrine (Joe 2026-07-16, "gibberish if that is what it
+    # only knows"): when a HUMAN turn ends in silence, attempt an honest
+    # organism babble before answering with nothing. Seeds are the turn's
+    # own just-lived words (never atlas dumps); recall runs LOCK-FREE via
+    # the two-phase precompute; the in-lock half is assembly only and the
+    # conversation barrier is skipped because this IS the pending turn
+    # (conversational=True). Label stays organism_attempt end-to-end.
+    if (not response and response_source == "silence_no_commit"
+            and os.environ.get("CONVERSE_BABBLE_FALLTHROUGH", "1") != "0"):
+        try:
+            _turn_seeds = [{"words": text.split()[:6],
+                            "provenance": "conversation_turn_words"}]
+            _votes = _guala.precompute_organism_attempt(_turn_seeds)
+            if _votes is not None:
+                import time as _bt
+                with _guala.lock:
+                    _babble = _guala._compose_organism_attempt(
+                        _turn_seeds, _bt.monotonic() + 0.25,
+                        organism_votes=_votes, conversational=True)
+                if _babble is not None:
+                    response = _babble["content"]
+                    response_source = "organism_attempt"
+                    turn_result.response = response
+                    turn_result.response_source = response_source
+        except Exception as _bab_e:
+            print(f"[converse-babble] fall-through failed (honest silence "
+                  f"kept): {_bab_e}", flush=True)
     committed_sections_out = list(turn_result.committed_sections)
     emission_id = turn_result.emission_id
     # GL-FIX-LOG-EFS-LATENCY: log_event writes to EFS (events.jsonl). On EFS

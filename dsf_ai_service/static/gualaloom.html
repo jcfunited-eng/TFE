@@ -936,7 +936,9 @@ async function _converseAndRender(text,source){
     if(d._terminal_reason){addMsg(resp,'system');}
     else if(resp&&d.response_source==='fact_strand_commit'){
       addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-    }else if(resp){addMsg(resp,'system');}
+    }else if(resp&&d.response_source==='organism_attempt'){
+      addEmissionMsg(resp+'  (attempt)',d.emission_id||null);gualaSpeak(resp);
+    }else if(resp){addMsg(resp,'system');gualaSpeak(resp);}
     else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);
   }else{
@@ -1002,10 +1004,14 @@ async function pollStatus(){
     // CHANGE 1: Render SUBSTRATE panel from real cognition atlas
     const sub=document.getElementById('sp-substrate');
     const nBindings=ah.n_live_bindings;
+    const og=d.organism_growth||{};
+    const nNeurons=og.total_neurons, nDiv=og.total_divisions, dPool=og.division_pool;
     if(nBindings!=null)sub.innerHTML=
       `<div class="ps-row"><span class="l">vocab</span><span class="v">${vocab||'?'}</span></div>`+
       `<div class="ps-row"><span class="l">atlas</span><span class="v">${nBindings.toLocaleString()} bindings</span></div>`+
-      `<div class="ps-row"><span class="l">strength</span><span class="v">${atlas||'?'}</span></div>`;
+      `<div class="ps-row"><span class="l">strength</span><span class="v">${atlas||'?'}</span></div>`+
+      (nNeurons!=null?`<div class="ps-row"><span class="l">neurons</span><span class="v" style="color:${nDiv>0?'#3fb950':'inherit'}">${nNeurons} (${nDiv||0} divisions)</span></div>`:'')+
+      (dPool!=null?`<div class="ps-row"><span class="l">growth pool</span><span class="v">${Number(dPool).toFixed(2)}</span></div>`:'');
     // CHANGE 4: Render PERSISTENCE panel
     const ph2=d.persistence_health||{};
     const persDiv=document.getElementById('sp-persistence');
@@ -1378,7 +1384,7 @@ const COGMETER_ROWS=[
     firing:'real _word_order_relation() reader compares real recorded commit ticks for two words, returns before/after/same/unknown (never a guess) -- wired into _form_reflection\'s context_then comparison, shipped and end-to-end verified live 2026-07-11 (a real reflection just now carried context_order: {"beach":"before","whiskers":"before"})',
     impact:'FIX SHIPPED 2026-07-11: the prior "no code path for this yet" is closed -- confirmed firing on real production data, not a test fixture'},
   {name:'imagination',connected:'severed',pointer:'-164',
-    firing:'the daydream thread itself is real, complete code (chi-neighborhood associative walk) -- was orphaned by a 2026-07-01 boot-path refactor (traced precisely: accidental, not a deliberate safety block) and has been reconnected into the real boot path 2026-07-11. Currently gated OFF by default (DAYDREAM_LOOP_ENABLED) pending lock-contention conditions improving -- still severed in practice, but now a flag flip away, not a missing wire',
+    firing:'the daydream thread itself is real, complete code (chi-neighborhood associative walk) -- was orphaned by a 2026-07-01 boot-path refactor (traced precisely: accidental, not a deliberate safety block) and has been reconnected into the real boot path 2026-07-11. LIVE as of 2026-07-16 (all-at-once campaign): DAYDREAM_LOOP_ENABLED default ON with lock-wait p95 + tick-rate telemetry and loud alerts; env var is an emergency-off only',
     impact:'PARTIAL FIX 2026-07-11: reconnected and verified thread-safe, deliberately left off by default given this week\'s own lock-contention incidents -- flip DAYDREAM_LOOP_ENABLED=1 with tick_rate/lock-wait telemetry open when conditions allow, don\'t flip it blind'},
   {name:'hearing-her-own-voice',connected:'yes',pointer:'-164',
     firing:'fires on every real reply to Joe/wc/c1, weighted well below a real conversation partner',
@@ -1452,7 +1458,7 @@ const COGMETER_ROWS=[
   // process) this same dispatch -- c1b's deploy report is the row's
   // next update, not this one.
   {name:'brain: organism live (P1)',connected:'watch',pointer:'-175',
-    firing:'8-hemisphere organism instantiated inside Guala, real identity synced, every word she reads/hears feeds it -- but real learning barely takes: only ~7 connections formed across 3+ hours of real conversation as of 2026-07-12',
+    firing:'8-hemisphere organism instantiated inside Guala, real identity synced, every word she reads/hears feeds it -- FIXED 2026-07-16: the division-pool flux law was unsatisfiable from birth (growth was mathematically impossible); new law funds growth from novel coherent experience -- 8 real divisions (64->72 neurons, em hemisphere doubled) within the first half hour live',
     impact:'CORRECTED 2026-07-12: previously marked yes without checking whether this actually matters -- it runs, it is fed real data, but it is not meaningfully learning yet, separate from the deeper P3 problem below'},
   {name:'brain: voice / emission (P3)',connected:'severed',pointer:'-175',
     firing:'the organism-brain has no real effect on what she says or remembers -- one setting (RECALL_BACKEND) decides which system produces her real voice, and it still points at the OLD (legacy v5-engine) system, 100% of the time',
@@ -1461,10 +1467,10 @@ const COGMETER_ROWS=[
     firing:'the individual seams (recall, recognition, association, habituation) are real, built code paths -- but see "brain: voice/emission" above: none of it is what actually produces her real replies or memory today',
     impact:'CORRECTED 2026-07-12: real code, not fake -- but "built" is not "in use." Same root cause as P3: the voice/memory switch still points at the old system'},
   {name:'brain: imagination',connected:'watch',pointer:'-175',
-    firing:'real Embryo.imagine() (loom_model/embryo.py:709) -- genuinely built, tested, callable. But nothing in the live production path calls it: the only real call site found anywhere in the codebase is inside a diagnostic test file (whole_brain_168v3.py), not the real conversation loop',
+    firing:'real Embryo.imagine() (loom_model/embryo.py:709) -- genuinely built, tested, callable. But nothing in the live production path calls it: WIRED LIVE 2026-07-16: imagine() runs in PLAYING (every 500 ticks) and every dream cycle; imagined content re-enters as origin='imagined' experience, loudly excluded from certification',
     impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it. The code is real and correct, but it never runs during real conversation, so it has zero observable effect on anything she does. Distinct from the OLD shell\'s "imagination" row above (the daydream thread), which genuinely is wired into her real activity loop'},
   {name:'brain: reflection',connected:'watch',pointer:'-175',
-    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- genuinely built, tested, callable, same situation as brain: imagination above: no live call site outside a diagnostic test file',
+    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- WIRED LIVE 2026-07-16: reflect() fires at every activity boundary as organism_reflection events',
     impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it, same correction as brain: imagination'},
   {name:'brain: theory-of-mind',connected:'absent',pointer:'-175',
     firing:'no code path in loom_model -- explicitly out of scope per -168-v3\'s own A5 table',

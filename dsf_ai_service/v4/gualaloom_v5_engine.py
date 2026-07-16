@@ -12727,7 +12727,7 @@ class Guala:
         return {"queries": queries, "merged": merged}
 
     def _compose_organism_attempt(self, seed_attempts, compose_deadline,
-                                  organism_votes=None):
+                                  organism_votes=None, conversational=False):
         """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): the organism
         voice, partial-and-honest version.  Queries organism.recall_fast
         (population vote over HER OWN binding atlases — every returned
@@ -12780,13 +12780,16 @@ class Guala:
             return None
         content = " ".join(w for w, _v in top)
         # Conversation barrier re-check (same F2 rule as tier 1): a human
-        # turn counted while recall ran still wins.
-        with self._live_converse_state_lock:
-            if self._live_converse_pending > 0:
-                self._log_substrate_event(
-                    "autonomous_organism_attempt", released=False,
-                    stop_reason="conversation_arrived")
-                return None
+        # turn counted while recall ran still wins. Skipped when this
+        # attempt IS the reply to the pending turn (conversational
+        # fall-through, Joe's babble-over-silence doctrine).
+        if not conversational:
+            with self._live_converse_state_lock:
+                if self._live_converse_pending > 0:
+                    self._log_substrate_event(
+                        "autonomous_organism_attempt", released=False,
+                        stop_reason="conversation_arrived")
+                    return None
         # Repeat-suppression window — same deque as every other authority.
         if content in self._recent_autonomous_releases:
             self._log_substrate_event(
