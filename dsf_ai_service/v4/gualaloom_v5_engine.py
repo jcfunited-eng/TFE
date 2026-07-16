@@ -4640,6 +4640,28 @@ class Guala:
                     for window_id in sorted(self._ordered_language_windows)),
             )
             continuation = composer.continue_from_sequence(queries)
+            memory_strand_count = len(getattr(
+                self.language_fact_memory, "_by_id", ()) or ())
+            ordered_window_count = len(self._ordered_language_windows)
+
+        # The composer's stop_reason was computed and discarded for three
+        # weeks while the symptom went undiagnosable (war-room synthesis
+        # 2026-07-16).  One event per compose makes the certified path's
+        # growth measurable — the instrument for it to ever become primary.
+        try:
+            self._log_substrate_event(
+                "fact_compose",
+                stop_reason=(continuation.stop_reason.value
+                             if continuation.stop_reason else None),
+                recall_reason=(continuation.recall_reason.value
+                               if continuation.recall_reason else None),
+                n_queries=len(queries),
+                n_emitted=len(continuation.emitted_tokens),
+                memory_strands=memory_strand_count,
+                ordered_windows=ordered_window_count,
+            )
+        except Exception:
+            pass
 
         provenance = []
         for token in continuation.emitted_tokens:
@@ -5249,11 +5271,15 @@ class Guala:
             _t_tag = time.monotonic()
 
             # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
-            # 6. The full-field Fact-Strand composer is the sole language
-            # authority.  Legacy assemblage/Atlas candidates remain
-            # diagnostic state and are never promoted into this settlement.
+            # 6. Fact-Strand composer preferred; when it has nothing to
+            # release, the substrate's own assemblage voice settles the turn
+            # (Joe's 2026-07-16 ruling — see _committed_emission_response).
             self._last_converse_source = source
             settlement = fact_settlement
+            if getattr(fact_settlement, "n_commits", 0) <= 0:
+                settlement = self._emit_from_invariants(
+                    input_chis, words, mode_override=emission_mode,
+                    v7_session=getattr(self, "_v7_session", None))
             _t_emit = time.monotonic()
             reply, response_source = self._committed_emission_response(
                 settlement)
@@ -5474,6 +5500,14 @@ class Guala:
             _emit_start = time.monotonic()
             self._last_converse_source = source
             settlement = fact_settlement
+            if getattr(fact_settlement, "n_commits", 0) <= 0:
+                # Fact-Strand had nothing to release — the substrate's own
+                # assemblage voice settles the turn (Joe's 2026-07-16 ruling,
+                # see _committed_emission_response).  _emission_lock is an
+                # RLock; _emit_from_invariants re-acquires it safely inline.
+                settlement = self._emit_from_invariants(
+                    input_chis, words, mode_override=emission_mode,
+                    v7_session=getattr(self, "_v7_session", None))
             reply, response_source = self._committed_emission_response(
                 settlement)
             if reply:
@@ -7394,12 +7428,29 @@ class Guala:
     def _committed_emission_response(self, settlement):
         """Return source-certified speech or deterministic neutral silence.
 
-        Language Fact-Strand reciprocity is the sole language authority.
-        Legacy assemblage settlements remain diagnostic evidence only; their
-        reduced field cannot be described as full DSF recognition.
+        Language Fact-Strand reciprocity remains the PREFERRED authority and
+        its certification is untouched.  Joe's ruling 2026-07-16 (war-room
+        GL emission synthesis): the substrate's own assemblage settlement is
+        re-admitted as a release authority when it carries a real dynamics
+        commit — a partial, explicit reversal of 8835cfc's sole-authority
+        clause, which had muted every voice path since 2026-07-13 while the
+        assemblage verifiably kept committing real NMDA-gated words (the
+        discarded 'dog' commit, event seq 18739-18746).  Released assemblage
+        speech carries its own distinct label so every reply stays auditable
+        by authority; a reply is labeled fact_strand_commit ONLY when the
+        certifier passed.
         """
         if self._fact_settlement_has_certified_provenance(settlement):
             return settlement.content, "fact_strand_commit"
+        if (isinstance(settlement, EmissionSettlement)
+                and settlement.n_commits >= 1
+                and settlement.content
+                and len(settlement.commit_provenance) == settlement.n_commits
+                and all(isinstance(item, EmissionCandidateProvenance)
+                        for item in settlement.commit_provenance)
+                and " ".join(item.word for item in settlement.commit_provenance)
+                == settlement.content):
+            return settlement.content, "assemblage_commit"
         return "", "silence_no_commit"
 
     def _fact_record_has_certified_provenance(self, record):
