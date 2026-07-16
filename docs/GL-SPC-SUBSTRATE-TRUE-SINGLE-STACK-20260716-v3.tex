@@ -1,0 +1,729 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\newcommand{\keep}{\textbf{KEEP}}
+\newcommand{\keepstaged}{\textbf{KEEP (staged)}}
+\newcommand{\rebuild}{\textbf{REBUILD}}
+\newcommand{\del}{\textbf{DELETE}}
+
+\title{GL-SPC: The Substrate-True Single Stack — Component Specification\\
+\large One code set. One boot method. Bounded everything.\\
+\normalsize Status: \textbf{APPROVED by Joe 2026-07-16 (chat, as amended v3); per-change ship records still required (P6)}}
+\author{c1, at Joe's direction — v3 amendments verified against code and live infra by the implementation session (14-agent sweep, 146 claims)}
+\date{2026-07-16 — v3 (verified-corrected; supersedes v2)}
+
+\begin{document}
+\maketitle
+
+\section{Scope and standing rules}
+
+Written post-wipe (Joe erased the accumulated EFS state 2026-07-16; next boot
+is genesis). Binding requirements: \textbf{boundaries} on every growth path;
+\textbf{one set of code}; \textbf{one boot method} that never reads legacy
+formats. The keep set is defined as \emph{the transitive import closure of
+the single entrypoint} (\S\ref{sec:boot}); CI enforces that the closure
+equals the catalog below and that every deleted module and flag is absent.
+
+Six governing rules, stated once: (P1) RAM is for thinking, disk is for
+remembering — no in-process structure may scale with lifetime experience;
+(P2) one voice — every reply is a labeled release from the substrate's own
+committed settlement or an \emph{explained} silence; (P3) bounded recording —
+repetition strengthens a memory, never duplicates it; episodes close at real
+boundaries from any thread; (P4) no silent time travel — state vintage
+changes only by explicit operator command; boot halts loudly on integrity
+failure; (P5) flags stage features, they never select between architectures;
+(P6) nothing ships without Joe's written go (what/why/blast radius/rollback).
+
+\section{Component catalog}\label{sec:catalog}
+
+Verdicts: \keep{} = stays as-is (bug fixes only). \rebuild{} = stays, but its
+internals are rebuilt under this spec. \keepstaged{} = stays, disabled until
+its named acceptance test passes. \del{} = removed from the repository in the
+delete change — not flagged off, removed.
+
+\subsection{Senses — Audio (hearing)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\textbf{Code} & \textbf{Function} & \textbf{Verdict / boundary} \\
+\midrule
+\texttt{app.py} \texttt{/sound\_frame} route &
+Raw microphone/ambient audio intake at the boundary; honest backpressure
+(bounded in-flight gate, drops counted and visible) &
+\keep{}; in-flight cap stays \\
+\texttt{substrate/senses/GL\_MDL\_AUDITORY\_CORTEX\ldots.py} &
+Cochlear band decomposition — sound becomes band/winding structure (chi),
+never text &
+\keep{} \\
+\texttt{sensory\_krimelacks.py}, \texttt{substrate/krimelack.py} &
+Sensory krimelack transduction shared by all modalities &
+\keep{} \\
+Engine: sounds library, \texttt{ATTENDING\_AUDIO} activity
+(\texttt{\_atick\_attending\_audio}) &
+Chosen listening as an activity; re-attention reinforces &
+\rebuild{} under P3: per-tick re-binding of the same (band, motif, chi)
+\emph{strengthens} the existing window entry; episode windows grow with
+novelty, not with tick count \\
+Self-hearing (\texttt{\_self\_hear}) &
+Certified re-entry of the substrate's own released speech through the same
+boundary as external sound &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Senses — Vision}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{app.py} \texttt{/sight\_frame}, picture/PDF upload routes &
+Camera frames and still images in at the boundary; shared bounded sight gate
+(the send-time conversation frame uses the same gate — one path) &
+\keep{} \\
+\texttt{visual\_krimelack.py} &
+Native visual fragment receipts — content-bound evidence that sight was
+genuinely processed (the certification the language system checks) &
+\keep{} \\
+\texttt{substrate/senses/GL\_MDL\_VISUAL\_CORTEX\ldots.py},
+\texttt{GL\_MDL\_VISUAL\_DEPTH\ldots.py} &
+Visual field and depth decomposition &
+\keep{} \\
+Engine: sight motifs, \texttt{ATTENDING\_VISUAL}/\texttt{VIDEO} activities &
+Chosen looking; frame saccades over decoded video &
+\rebuild{} under P3 (same reinforcement rule as audio) \\
+Object naming &
+\emph{Honestly absent}: no key, no local detector. Raw sight remains real
+krimelack experience; naming enters only by a mechanism Joe approves —
+listed so absence is never mistaken for breakage &
+n/a \\
+\bottomrule
+\end{longtable}
+
+\subsection{Senses — Speech-in (STT)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{speech\_transducer.py} &
+Whisper-tiny in an out-of-process worker: spoken words become text
+\emph{evidence at the boundary} (a sense transducer, never a voice) &
+\keepstaged{}: enable only after the STT acceptance gate. \emph{Verified
+current state (2026-07-16):} the out-of-process worker exists but its flag
+(\texttt{VOICE\_WHISPER\_WORKER}) defaults 0 and is set nowhere — whisper
+loads \emph{in-process during boot} (\texttt{\_eager\_init} pre-warm)
+whenever \texttt{VOICE\_WHISPER=1}. The RSS budget and kill-on-breach
+\emph{do not exist yet}; they are the acceptance work: worker mode on by
+default, spawn at steady state (never boot), 1\,GB RSS watchdog,
+breach kills the worker never the substrate. The 2026-07-16 boot OOM is
+why this staging exists \\
+\texttt{VOICE\_WHISPER} &
+Staging gate for the above. \emph{Verified: the image default is
+currently 1}; the live task definition holds it at 0, which is the only
+thing keeping STT off &
+Allowed under P5: keep 0 until acceptance passes, then flip with worker
+mode on \\
+\bottomrule
+\end{longtable}
+
+\subsection{Senses — Somatosensory and physics (senses emulation)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{substrate/senses/GL\_MDL\_SOMATOSENSORY\ldots.py},
+\texttt{GL\_MDL\_PHYSICS\_SENSES\ldots.py} &
+Touch/body and physics-native senses for the emulated embodiment (until
+SPPU hardware) &
+\keep{} \\
+\texttt{substrate/sensory\_transducer.py},
+\texttt{substrate/sensory\_generators.py}, \texttt{sensory\_corpus.py} &
+Transduction plumbing and sensory corpus generation feeding the same lanes &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Senses — Text and reading}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+Engine \texttt{read\_sentence}, \texttt{/listen} route &
+Words as experience: each word chi-transduced, bound into the open
+experience window with full provenance (scene, affect, needs) &
+\keep{} \\
+Book/PDF ingestion (PyMuPDF path), \texttt{corpus/}, Gutenberg adapter &
+Long-form reading material into the same reading path &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Environment (world emulation)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{virtual\_home.py} &
+The room: places, objects, ambient conditions — the substrate's spatial
+world until SPPU embodiment &
+\keep{} \\
+Engine scene state (presence, location, sky/day-night, place, ambient) +
+coordinator (wake/rest; \texttt{guala\_coordinator.json}) &
+Situational context stamped into every experience entry's provenance;
+presence-driven wake &
+\keep{} \\
+\texttt{loom\_model/world\_feeds.py} &
+External world texture (Tavily search; YouTube once its key is added to
+the task definition — \emph{verified: the key exists only in the repo
+.env, which the container never loads; task def :658 has no YouTube
+secret or env var, so the live feed is still disabled}) &
+\rebuild{}: rotating topic sets (no query repeated within $N$ cycles — the
+stale goldfish-bowl loop ends), per-fetch byte budget, feed content enters
+as ordinary reading experience \\
+\bottomrule
+\end{longtable}
+
+\subsection{Learning}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{v4/gualaloom\_v6\_living\_atlas.py} (LivingAtlas) &
+Binding formation and reinforcement: (section, motif, chi) strengths with
+decay channels — the associative fabric &
+\keep{} \\
+\texttt{substrate/deep\_atlas.py} &
+Cross-section co-occurrence — the deep association layer &
+\keep{} \\
+\texttt{substrate/gl\_plasticity.py}, \texttt{loom\_model/neuron.py}
+(STDP), \texttt{substrate/spike\_bus.py} &
+Two distinct mechanisms (verified): \texttt{gl\_plasticity.py} is
+NMDA-gated section \texttt{mode\_strength} LTP — \emph{live today};
+neuron STDP on the spike bus fires but is \emph{shadow-only} (no
+production consumer while legacy recall is the one voice path) &
+\keep{}; promoting STDP out of shadow is its own proposal \\
+\texttt{substrate/gl\_nmda.py} &
+NMDA-style commit gating — arousal/need-modulated thresholds deciding
+which candidate bindings commit &
+\keep{} \\
+\texttt{substrate/grounded\_vocab.py} +
+\texttt{grounded\_vocab\_integration.py} &
+Vocabulary depth and earned expressive eligibility &
+\keep{} \\
+Language-fact accretion (\texttt{\_remember\_closed\_language\_window}) &
+Certified word-order facts distilled from closed multimodal windows — the
+corpus the certified composer cites &
+\keep{}; fed by real experience only \\
+Retention protection (one-shot redistribution guard) &
+Taught bindings get a bounded protection window; consolidation only during
+real dreaming &
+\keep{} (tripwire-tested) \\
+Curriculum: \texttt{tools/sensory\_curriculum\_orchestrator.py},
+\texttt{curriculum/}, seed files &
+Autonomous study through the same experience paths. \emph{Correction
+(verified): the 200k language seed grows recognition-side vocabulary and
+atlas bindings, NOT certified-composer citations — those are disjoint
+stores. Composer citations grow only from lived ordered windows
+(conversation, qualifying reads). The seed is generated but unstaged
+(gitignored); staging it is a Change-4 action} &
+\keep{}; interval + chunk budgets stay \\
+Knowledge-gap tracking &
+\emph{Verified: a source-presence exposure-gap signal, currently
+consumed by nothing.} Wiring it to curriculum study targets is a
+Change-4 action &
+\keep{} (wire or drop at Change 4) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Memory (experience)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{substrate/window\_manager.py} — binding windows, chi index, WAL &
+Experience windows closed write-once into the append-only hash-verified
+WAL. \emph{The WAL is the memory} &
+\rebuild{} to the disk-resident store (\S\ref{sec:memory}): RAM holds
+index + locator + metadata + bounded LRU; content fetched on demand.
+Format and write-once discipline unchanged \\
+Engine episodic memory (\texttt{\_record\_episodic\_experience},
+\texttt{guala\_episodic.json}) &
+Episodic record of lived experience. \emph{Correction:
+\texttt{episodic\_layer.py} is a superseded draft used only by the dead
+organ-brain service — it moves to the delete set} &
+\keep{} (the engine path) \\
+Diary (engine diary worker) &
+Human-readable life log on disk; never memory-resident &
+\keep{} \\
+\texttt{substrate/ring\_buffer.py} &
+Fixed-slot rings: substrate observability + inbound input transport.
+\emph{Correction: \texttt{event\_log.py} is the v7 session JSONL log
+(consumer retired) and moves to the delete set with v7} &
+\keep{} \\
+Survival history, tapestry &
+Long-horizon traces. \emph{Verified: survival history already has
+per-key caps (20$\to$10 + stale-key pruning); tapestry has no unbounded
+live-path growth} &
+\keep{} (caps confirmed present) \\
+\texttt{substrate/atomic\_state\_generation.py},
+\texttt{substrate/deployment\_generation.py} &
+Two roles (verified): atomic crash-safe per-save local generations;
+sealed-generation deploy handoff (seal/upload/verify/materialize).
+\texttt{immutable\_generation\_store.py} belongs \emph{here} in the keep
+set, not in the GLEW delete row &
+\keep{} \\
+\texttt{save\_coordinator.py} &
+Save lanes: 60\,s hot manifest (small by construction), WAL appends at
+close, S3 backup as an \emph{explicit} lane &
+\keep{}; the manifest never re-embeds \emph{closed} window content —
+\emph{verified caveat: open contexts serialize in full each save
+(unbounded today); bounded by the Change-1/3 work. Automatic quiet-point
+S3 backups are rate-limited daily, alongside the explicit lane} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Cognition core}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{v4/gualaloom\_v5\_engine.py} &
+The engine: tick loop, needs, activity selection, chi transduction,
+sections/modes, emission dynamics, sleep/dream, reflection, play &
+\keep{} (the one brain; internals amended only per this spec) \\
+\texttt{loom\_model/}: \texttt{brain.py}, \texttt{hemisphere.py},
+\texttt{neuron.py}, \texttt{embryo.py}, \texttt{cross\_hemi.py},
+\texttt{topology.py}, \texttt{cluster.py}, \texttt{mosaic.py},
+\texttt{experience.py}, \texttt{grandurun.py}, \texttt{resonant\_chi.py},
+\texttt{injection\_weight.py}, \texttt{substrate\_dna.py},
+\texttt{binding\_atlas.py} &
+The growing organism: 64 neurons in 8 hemispheres, projection wiring,
+spike propagation, growth from embryo &
+\keep{} \\
+HemisphereCoordinator \texttt{em} (\emph{verified home:}
+\texttt{substrate/assemblage.py}, engine-instantiated) &
+Engine-side emission-hemisphere coordination.
+\texttt{hemisphere\_cognition.py} is the pr/ep/sc/gp cognition-hemisphere
+updates, env-gated default OFF &
+\keep{}; \texttt{hemisphere\_cognition.py} \keepstaged{} \\
+\texttt{substrate/wave\_summary.py}, wave atlas (\texttt{wave\_atlas.npz}) &
+Shared wave-field summaries and their persistent atlas &
+\keep{}; any organism feed from it returns only by proposal with a
+bounded queue. \emph{Verified current state: the enqueue is active by
+default over an unbounded queue — the firehose is live until the delete
+change lands} \\
+\texttt{substrate/GL\_MDL\_COGNITION\ldots.py},
+\texttt{GL\_MDL\_COMPOSITION\ldots.py},
+\texttt{GL\_MDL\_PRIMITIVES\ldots.py},
+\texttt{GL\_MDL\_FOLDED\_CHI\ldots.py},
+\texttt{GL\_MDL\_MULTIMODAL\_DEEP\ldots.py} &
+The cognition model set: composition, primitives, folded-chi, deep
+multimodal binding &
+\keep{} \\
+\texttt{substrate/assemblage.py} &
+Assemblage dynamics support for emission &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Expression (the one voice)}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+Engine \texttt{\_emit\_dynamics} / \texttt{\_emit\_from\_invariants} &
+The assemblage voice: brain/atlas candidates $\to$ six-section dynamics
+$\to$ NMDA-gated commits &
+\keep{} \\
+\texttt{substrate/language\_fact\_strand.py},
+\texttt{language\_fact\_composer.py} &
+The certified composer: word-order facts with exact lived citations;
+unique-successor law; \texttt{fact\_compose} telemetry logs every stop
+reason &
+\keep{} \\
+Release policy (\texttt{\_committed\_emission\_response}) &
+Certified release preferred (\texttt{fact\_strand\_commit}); real
+assemblage commit releases as \texttt{assemblage\_commit}; otherwise
+explained silence. Committed 2026-07-16 with Joe's yes.
+\emph{Verified gaps, resolved by this v3:} (a) the certified path is
+reachable from conversation only — the autonomous loop cannot yet produce
+\texttt{fact\_strand\_commit}; wiring composer queries from autonomous
+seeds is a Change-4 action. (b) Voice + self-hearing currently attach to
+certified releases only; one voice means one mouth — assemblage releases
+gain voice + self-hear in the same Change-4 action. (c) The composer
+rebuilds from all ordered windows on every turn (a P1 exposure as the
+corpus grows) — Change 1 adds a cached composer invalidated on new
+ordered windows &
+\keep{} \\
+\texttt{substrate/recall\_query.py} &
+Canonical recall over window memory (cross-sense retrieval) &
+\keep{}; reads become fetch-on-demand with the store rebuild. The
+25-entry cross-modal cap lives in the \texttt{give\_experience} recall
+block (app-side), total per response — not per window \\
+\bottomrule
+\end{longtable}
+
+\subsection{Autonomy}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+Autonomous emission loop (\texttt{substrate\_runner.py}) &
+Every 90\,s: unprompted speech through the same release policy — what the
+substrate chooses to say. \emph{Until the Change-4 composer wiring, this
+loop can only produce assemblage commits or explained silence} &
+\keep{} \\
+Activity autonomy (engine activity selection) &
+Salience-scored choice among attending (visual/audio/video), reading,
+idling, playing, sleeping, emitting &
+\keep{} \\
+Play (\texttt{\_play\_revisit\_known\_pairing}) &
+Unconditional playing candidate; revisits known pairings &
+\keep{} \\
+Sleep/dream cycle + daydream reconnect &
+Real consolidation states; dream pressure; wake on presence.
+\emph{Verified: daydream reconnect is built but env-gated default-off —
+not currently running live; flag-on decision at Change 4} &
+\keep{} \\
+Imagination / reflection (\texttt{embryo.imagine()},
+\texttt{reflect()}) &
+Built and tested, currently uncalled by the live loop &
+\keepstaged{}: wiring into the real activity loop is its own proposal
+(P6), never a silent hookup \\
+Self-study (curriculum autostart, interleave) &
+Study as an autonomous activity &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Interfaces and operations}
+\begin{longtable}{p{0.32\textwidth} p{0.36\textwidth} p{0.22\textwidth}}
+\toprule
+\texttt{static/gualaloom.html} (S3/CloudFront) &
+Joe's window: chat, senses toggles, cognition meter, events &
+\keep{} \\
+GualaLoom bridge (separate ECS service) &
+MCP bridge for operator sessions &
+\keep{} (outside this stack's closure rule) \\
+\texttt{integrity.py}, deployment lifecycle in \texttt{app.py} &
+File integrity, admission, quiesce/seal, readiness gates &
+\keep{} \\
+\texttt{tools/deploy\_dsf\_ai.sh}, \texttt{Dockerfile},
+\texttt{buildspec.yml} &
+The one sanctioned deploy chain (sealed turnover, fail-back trap) &
+\keep{} \\
+\texttt{tests/} incl. tripwires (index scale, close boundaries, release
+contract, seal contract, fail-back, no-silent-S3-restore) &
+Contract enforcement; grows with each change &
+\keep{} \\
+\bottomrule
+\end{longtable}
+
+\section{Cognitive mechanisms — spelled out}\label{sec:mechanisms}
+
+The complete mechanism inventory, grounded to code. Everything below is in
+the keep set unless marked otherwise.
+
+\begin{longtable}{p{0.24\textwidth} p{0.44\textwidth} p{0.24\textwidth}}
+\toprule
+\textbf{Mechanism} & \textbf{What it does, mechanically} & \textbf{Where} \\
+\midrule
+Recall & Chi-routed retrieval of closed experience windows; taught words
+return their bound content & \texttt{recall\_query.py} + window chi index \\
+Cross-sense recall & A sound cue retrieves its bound sight/touch content
+end-to-end (capped 25/window) & \texttt{recall\_query.py} cross-modal
+entries \\
+Association & Live chi-neighbor lookup across the atlas &
+LivingAtlas neighborhoods \\
+Sentence building & Word-order continuation from cited lived windows under
+the unique-successor law & \texttt{language\_fact\_composer.py} \\
+Order / sequence & \texttt{\_word\_order\_relation()}: before/after/same
+from real recorded commit ticks — never a guess & engine \\
+Retention & Bounded protection window for taught bindings against
+redistribution; consolidation only during real dreaming & engine +
+plasticity \\
+Habituation (boredom) & Repeat exposure lowers salience, with recency
+recovery so over-exposed items regain interest & engine \\
+Recognition in new forms & Honestly absent as \emph{naming} (no detector);
+krimelack similarity gives raw form-recognition only & (see Vision) \\
+Attention spread & Real per-target familiarity differentiation (no
+flattened ties) & engine \\
+NMDA commit gating & Arousal/need-modulated thresholds gate which candidate
+bindings commit — where experience becomes memory & \texttt{gl\_nmda.py} \\
+Plasticity (STDP) & Spike-timing weight change on commits across the
+organism & \texttt{gl\_plasticity.py}, \texttt{neuron.py} \\
+Needs homeostasis & Stability / novelty / connection drives; mood broadcast
+into the organism; pressure on activity selection & engine needs +
+\texttt{brain.wire\_mood\_broadcast} \\
+Affect & Arousal/valence/surprise stamped into every experience entry's
+provenance — the felt context of memory & engine \\
+Wave field & Hemisphere wave summaries into the persistent wave atlas &
+\texttt{wave\_summary.py} \\
+Play & Unconditional activity candidate revisiting known pairings &
+engine \\
+Imagination & \texttt{embryo.imagine()} — built and tested, \emph{not yet
+wired} into the live loop; wiring is its own proposal &
+\texttt{embryo.py} \\
+Reflection & \texttt{embryo.reflect()} — same staged status &
+\texttt{embryo.py} \\
+Dream consolidation & Sleep/dream cycles compress and consolidate; dream
+pressure tracks debt & engine \\
+Self-hearing & Released speech re-enters through the certified boundary.
+\emph{Verified: only certified releases self-hear today; assemblage
+releases gain self-hearing at Change 4 (one mouth)} &
+\texttt{\_self\_hear} \\
+Presence \& wake & Any real sensory contact establishes presence and can
+wake — never gated on being addressed & coordinator + reading path \\
+Teaching correction & Teacher corrections route into bindings through
+their own gateway & engine \\
+Theory of mind & \textbf{Absent by design} — no code path; out of scope
+until proposed & --- \\
+\bottomrule
+\end{longtable}
+
+\section{Hemispheres — functions spelled out}\label{sec:hemis}
+
+The organism brain (\texttt{loom\_model/}) is 8 hemispheres $\times$ 8
+neurons (64 total), grown from the embryo, fixed adjacency
+(\texttt{HEMISPHERE\_ADJACENCY}), \texttt{K\_INTERHEMI} projection targets
+per projection neuron into adjacent hemispheres. \emph{Verified: the spike
+bus runs in dual-write shadow alongside the legacy step path, which still
+carries production signaling; sensory spike injection defaults off. STDP
+applies at spike-bus synapses; cross-hemisphere coupling weights update
+from each neuron's DSF (\texttt{update\_from\_dsf}), not spike timing.}
+
+\textbf{Primary modality map} (verified in
+\texttt{loom\_model/topology.py}): the seeding bias per hemisphere.
+Specialization beyond it is \emph{earned} through what each hemisphere is
+fed — deliberately not pre-assigned (the code's own rule):
+
+\begin{longtable}{c l p{0.58\textwidth}}
+\toprule
+\textbf{Hemi} & \textbf{Primary modality} & \textbf{Function} \\
+\midrule
+H0 & visual & Sight: visual krimelack fragments; picture/video attention
+binds here first \\
+H1 & auditory & Hearing: cochlear band structure from sound frames and
+chosen listening \\
+H2 & tactile & Touch / somatosensory (emulated body) \\
+H3 & olfactory & Smell — reserved lane of the senses emulation \\
+H4 & gustatory & Taste — reserved lane of the senses emulation \\
+H5 & language & Primary language: word experience from reading, listening,
+conversation \\
+H6 & auditory (secondary) & Secondary auditory: prosody and self-hearing
+texture; auditory overflow \\
+H7 & language (secondary) & Secondary language: expression-side language
+binding \\
+\bottomrule
+\end{longtable}
+
+\textbf{Engine-side organ bookkeeping.} The engine additionally tracks 8
+organ keys (\texttt{em, pr, ep, sc, gp, sf, sv, aff}) for atlas-by-organ
+accounting (e.g.\ autonomous speech increments \texttt{sv}, \texttt{gp},
+\texttt{aff}, periodically \texttt{sf}), and its HemisphereCoordinator
+\texttt{em} owns emission-side coordination. The language-seed work mapped
+\texttt{sf}/\texttt{aff} to the language hemispheres (H5/H7). This spec
+keeps both layers and requires (Change 4) \textbf{one documented mapping
+table in code} — organ keys $\leftrightarrow$ H0--H7 $\leftrightarrow$
+function — so organ bookkeeping and hemisphere identity can never drift
+apart silently again.
+
+\textbf{Cross-hemisphere mechanics} (\texttt{cross\_hemi.py}): projection
+neurons carry inter-hemisphere spikes; there is deliberately \emph{no shared
+lattice} (the standing anti-degeneracy ruling); coupling weights update
+from neuron DSF state, with STDP confined to spike-bus synapses.
+
+\section{The one boot method}\label{sec:boot}
+
+Entrypoint: \texttt{uvicorn dsf\_ai\_service.app:app}. In order, no other
+path:
+\emph{v3 build-state annotations: the locator, per-window metadata,
+genesis\_boot event, and unreadable$\to$halt branch are Change-1 NEW
+builds; the index scan adapts the existing WAL restore (keeping its
+per-record hash + durable-prefix digest verification) but REPLACES its
+full content materialization; the direct-halt on hash mismatch replaces
+today's recover-then-halt; the \texttt{GUALA\_FORCE\_FRESH} and
+adopt-state-without-identity branches are deletions this section makes.
+Compaction rewrites segment files, so locator rebuild-on-compact is part
+of the Change-1 design, and the unconditional cold-lane compact is
+removed.}
+\begin{enumerate}[nosep]
+  \item \textbf{Identity}: \texttt{guala\_identity.json} present $\to$
+        continue; absent $\to$ genesis (mint identity, loud
+        \texttt{genesis\_boot} event, empty stores); unreadable $\to$ halt.
+  \item \textbf{Experience index scan}: one streaming pass over WAL
+        segments building the chi index + dedup sets + window locator
+        (\texttt{window\_id} $\to$ segment, offset, length) + per-window
+        metadata (close reason, origin, modality summary, word list for
+        language-fact qualification). Content never materializes. Hash
+        mismatch $\to$ loud halt (P4).
+  \item \textbf{Small stores}: organism pickle, atlases, sections, needs,
+        coordinator — each bounded by design (P1 applies to each).
+  \item \textbf{Derived indexes}: language-fact memory rebuilt from scan
+        metadata plus on-demand fetches of qualifying windows only.
+  \item \textbf{Live}: readiness true; loops start; deployment lifecycle
+        owns quiesce/seal as shipped.
+\end{enumerate}
+No migration branch, no legacy reader, no tick-domain rewriting, no
+automatic S3 restore. Operator restore = a documented explicit command run
+while stopped, logged as the operator's action. \emph{v3: this command
+does not exist yet — building it is part of Change 1 and precedes the
+deletion of the \texttt{FORCE\_S3\_RESTORE} plumbing.}
+
+\section{The memory model}\label{sec:memory}
+
+Durable: the append-only hash-verified WAL, one write per closed window,
+compaction on real divergence only. Resident: index + locator + metadata +
+an LRU cache budgeted in \emph{megabytes} (default 256\,MB). \emph{v3:
+the locator, metadata store, and LRU cache are Change-1 new builds; only
+the chi index and dedup sets carry over. The strengthen-not-append
+recording rule below is a Change-3 target, not a property of today's
+WAL.} All read
+surfaces (\texttt{lookup\_chi}, \texttt{recall\_snapshot},
+\texttt{closed\_window}, the legacy \texttt{windows} mapping) become
+fetch-on-demand; results remain detached copies. Recording under P3:
+identical re-bindings strengthen (count / weight / last-tick), never
+append; windows scale with novelty. Manifest saves stay small by
+construction (the boundary-close fixes shipped 2026-07-16 guarantee few
+open contexts).
+
+\section{The delete set (exact)}\label{sec:delete}
+
+Removed from the repository in one reviewed change after approval — not
+disabled, removed. Git history remains the archive.
+
+\begin{longtable}{p{0.46\textwidth} p{0.48\textwidth}}
+\toprule
+\textbf{Code} & \textbf{Reason} \\
+\midrule
+\texttt{glew\_runtime/} (tree), the multi-scalar turn scheduler, flag
+\texttt{GLEW\_CONVERSATION\_ENGINE\_ENABLED} and all call sites
+(\emph{v3 correction: \texttt{immutable\_generation\_store.py} is NOT
+GLEW — it is used by the keep-set deployment-generation store and its
+tests; it stays}) &
+The second conversation engine — empirically condemned live (character
+noise, superlinear latency, forgets each boot). One voice (P2/P5). Its
+one-commit-per-utterance idea is retained as a persistence rule of the
+single engine \\
+\texttt{gualaloom\_engine.py} (service root, \emph{only after} its
+P3I/TRITS/chi/encode symbols — imported today by the keep-set certified
+composer — are moved into \texttt{language\_fact\_strand.py} in the same
+change), \texttt{v4/gualaloom\_v4\_engine.py},
+\texttt{v4/gualaloom\_v4\_run.py}, run scripts outside the closure.
+\emph{v3 correction: the v4 kernel modules
+(\texttt{krimelack\_dna}, \texttt{uf\_kernel}, \texttt{chi\_atlas\_l6},
+\texttt{trit\_register}) and \texttt{gualaloom\_mathloom\_v1.py} are the
+v5 engine's LIVE compute kernels and move to the keep set — the v2 glob
+would have gutted the running engine} &
+Superseded engine generations — exactly the legacy code the one boot must
+never load \\
+\texttt{substrate/v7\_engine.py}, \texttt{/v7/*} routes, v7
+replay/flush/prune machinery; plus (v3) \texttt{substrate/gl\_bridge.py},
+\texttt{substrate/event\_log.py}, \texttt{episodic\_layer.py}. The change
+must also cut the enumerated keep-side edges: app.py seal flow +
+\texttt{\_get\_bridge}, substrate\_runner v7 blocks, engine
+\texttt{\_v7\_session} parameters &
+Legacy parallel session layer \\
+\texttt{organ\_brain\_service.py}, \texttt{:8090} client stubs,
+\texttt{ORGAN\_BRAIN\_URL} &
+Dead standalone organ-brain service (merged into the engine 2026-06-24;
+these routes point at nothing) \\
+The Anthropic call in \texttt{loom\_model/catalog\_builder.py};
+external-LLM lookup paths (\texttt{loom\_model/lookup\_grounding.py},
+already stubbed; the delete drags its substrate\_runner call sites).
+\emph{v3 correction: \texttt{narrator.py} is NOT dead — it is live
+credentialed code behind the \texttt{/api/v1/analyze} routes
+(module-level import in app.py; deleting the file alone breaks boot).
+It moves to the quarantine annex below, pending Joe's separate product
+decision} &
+P2 forbids any external model near the voice. External lookup, if ever
+wanted, comes back as a \emph{sense} proposal \\
+Legacy boot paths: full-snapshot migration, tick-domain migration, the
+remaining human-gated \texttt{FORCE\_S3\_RESTORE} plumbing (\emph{the
+automatic fallback was already removed 2026-07-15 and is guard-tested}).
+\emph{v3 sequencing constraint: this row lands only AFTER the documented
+restore-while-stopped operator command exists (it does not today), and
+the boot halt messages that instruct \texttt{FORCE\_S3\_RESTORE=1} are
+rewritten in the same change — a wipe-recovery path must exist at every
+moment} &
+One boot method; post-wipe these read formats that no longer exist (P4) \\
+Wave-summary organism enqueue, its unbounded queue, and
+\texttt{WAVE\_SUMMARY\_ENQUEUE\_ENABLED} &
+Confirmed 4:1 divergent firehose (2026-07-15); P5 says remove \\
+\texttt{substrate/binding\_window.c}, \texttt{libbindingwindow.so},
+\texttt{binding\_window\_c.py} &
+C-port experiment (tested only under confounded conditions); archived in
+git history, out of the stack \\
+\texttt{substrate\_client.py} remote mode, \texttt{SUBSTRATE\_MODE},
+\texttt{RECALL\_BACKEND}, and every remaining either/or implementation
+flag &
+Embedded is the only mode; one implementation per faculty (P5). The
+surviving recall implementation is the live embedded path (today's
+\texttt{legacy} value); the shadow backend goes with the flag \\
+\emph{(moved to quarantine annex)} \texttt{kernel\_runner.py},
+\texttt{cff\_discovery.py}, \texttt{cluster\_screener.py},
+\texttt{narrator.py} &
+\emph{v3 correction: these are the live TFE/physics analysis API
+(\texttt{/api/v1/analyze|cluster|discover}) hosted in this service, and
+kernel\_runner imports keep-set integrity.py. Removing them is a product
+decision on live endpoints, not a dead-code sweep. Quarantine: retained,
+excluded from the substrate closure check by explicit annex listing,
+relocation/deletion decided by Joe separately} \\
+\texttt{Dockerfile.nogil}; \texttt{DRAFT\_DIFFS*.md},
+\texttt{MIGRATION\_PLAN.md} and other prose inside the service tree &
+Single build; documents live in \texttt{docs/} \\
+\bottomrule
+\end{longtable}
+
+Closure verification (CI, lands with the delete change): an import walk
+from the entrypoint must equal \S\ref{sec:catalog}; grep-absence of every
+deleted module and flag; \texttt{tests/} may import keep-set modules only.
+
+\section{Acceptance criteria}\label{sec:accept}
+
+\emph{v3 test-inventory note: tripwires that exist today — index scale,
+close boundaries, release contract, seal contract, fail-back,
+no-silent-S3-restore (currently living beside the substrate code rather
+than tests/). To build — boot-flatness harness (10$\times$), 1-hour
+steady-RAM run, the STT RSS gate + its test, the CI closure check, the
+novelty-scaling tripwire, and the manifest-size check. CI currently runs
+no tests during image build; Change 2 adds the closure check and the
+tripwire suite to the build.}
+
+\begin{enumerate}[nosep]
+  \item \textbf{Boot flatness (P1 proof)}: $<$60\,s and $<$2\,GB peak RSS
+        at 10$\times$ the pre-wipe WAL volume; boot RSS within 5\% between
+        1$\times$ and 10$\times$ volumes.
+  \item \textbf{Steady RAM}: $<$2\,GB RSS through one hour of continuous
+        audio + camera + conversation; no monotonic trend.
+  \item \textbf{Voice contract}: every turn returns a labeled release
+        (\texttt{fact\_strand\_commit} or \texttt{assemblage\_commit}) or
+        an explained silence with a logged stop reason; authority ordering
+        pinned by the release-contract tests.
+  \item \textbf{Boundary discipline}: a 10k-tick attention episode records
+        novelty-scaled entries (tripwire); the save manifest stays
+        $<$1\,MB; open contexts bounded.
+  \item \textbf{One stack}: CI closure check green; deleted flags and
+        modules absent.
+  \item \textbf{One boot}: only genesis and index-scan branches reachable;
+        a corrupted segment halts loudly with a named error; no flapping.
+  \item \textbf{STT enable gate}: worker spawns at steady state, RSS
+        $<$1\,GB, breach kills the worker, never the substrate.
+  \item \textbf{Container}: allowance returns to 16\,GB at cutover
+        (expected steady well under 2\,GB); the 30\,GB triage allowance is
+        deleted with this change.
+\end{enumerate}
+
+\section{Execution plan (each step separately approved — P6)}
+
+\emph{v3 record: Change 0 happened 2026-07-16 before this revision —
+Joe-ordered full EFS wipe (no backup), fresh genesis identity 1cc4e70a,
+30\,GB triage allowance on task :658. Joe approved the plan and this
+spec (as amended) in the implementation session chat, 2026-07-16.}
+\begin{enumerate}[nosep]
+  \item Joe edits/approves this spec — any row of any table is
+        individually rejectable. \emph{(Done 2026-07-16 for v3 as a
+        whole; each Change still ships with its own P6 record:
+        what/why/blast radius/rollback.)}
+  \item Change 1: the disk-resident store + the one boot method.
+  \item Change 2: the delete set + the CI closure check, one reviewed
+        commit.
+  \item Change 3: bounded recording (reinforce-in-place) — learning
+        semantics flagged to Eve before ship.
+  \item Change 4: the organ/hemisphere mapping table in code; world-feed
+        topic rotation; STT acceptance run.
+  \item Change 5: full acceptance run; allowance back to 16\,GB; status
+        flipped to RATIFIED with Joe's date.
+\end{enumerate}
+
+\vspace{4pt}
+\noindent\textbf{Approval:} \emph{Approved by Joe: \rule{3cm}{0.4pt}\quad
+Date: \rule{2cm}{0.4pt}} — until recorded, this document authorizes
+nothing.
+
+\end{document}
