@@ -116,6 +116,21 @@ TAVILY_SECRET_ARN=$(require_secret_arn "${TAVILY_SECRET_ID}") || exit 1
 ANTHROPIC_SECRET_ARN=$(require_secret_arn "${ANTHROPIC_SECRET_ID}") || exit 1
 export GUALALOOM_SECRET_ARN TAVILY_SECRET_ARN ANTHROPIC_SECRET_ARN
 
+# YouTube is an OPTIONAL world feed (spec v3 Environment row): inject its key
+# when the secret exists, otherwise the feed stays honestly disabled — its
+# absence must never fail a deploy.
+YOUTUBE_SECRET_ID="gualaloom/youtube-api-key/prod"
+if YOUTUBE_SECRET_ARN=$(aws secretsmanager describe-secret \
+        --secret-id "${YOUTUBE_SECRET_ID}" --query ARN --output text 2>/dev/null) \
+        && [ -n "${YOUTUBE_SECRET_ARN}" ] && [ "${YOUTUBE_SECRET_ARN}" != "None" ]; then
+    export YOUTUBE_SECRET_ARN
+    echo "YouTube feed key: present (${YOUTUBE_SECRET_ID}) — feed will register"
+else
+    YOUTUBE_SECRET_ARN=""
+    export YOUTUBE_SECRET_ARN
+    echo "YouTube feed key: absent — feed stays disabled (this is not an error)"
+fi
+
 # The deploy control credential is held only in this process and sent only over
 # verified TLS.  It is never copied into task-definition environment plaintext.
 if ! DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
@@ -551,6 +566,11 @@ out = {
                 {'name': 'GUALA_OWNER_LOCK_PATH', 'value': '/app/guala/.guala-owner.lock'},
                 {'name': 'GUALA_REQUIRE_SEALED_STATE', 'value': '1'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
+                # Spec v3 STT staging: the image defaults VOICE_WHISPER=1
+                # (+ worker lane), but the sense stays OFF until the STT
+                # acceptance gate (criterion 7) passes live. Enable by
+                # deleting this line, never by editing the image.
+                {'name': 'VOICE_WHISPER', 'value': '0'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
@@ -715,7 +735,9 @@ out = {
                  'valueFrom': os.environ['TAVILY_SECRET_ARN'] + ':TAVILY_API_KEY::'},
                 {'name': 'ANTHROPIC_API_KEY',
                  'valueFrom': os.environ['ANTHROPIC_SECRET_ARN']},
-            ],
+            ] + ([{'name': 'YOUTUBE_API_KEY',
+                   'valueFrom': os.environ['YOUTUBE_SECRET_ARN']}]
+                 if os.environ.get('YOUTUBE_SECRET_ARN') else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/guala',
                  'readOnly': False}
