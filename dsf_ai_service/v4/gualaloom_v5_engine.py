@@ -1164,7 +1164,20 @@ AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any convers
 # legacy labels (e.g. "v5_commit") are deliberately NOT here — they never
 # gain a voice.  This is the single authority both the engine's _self_hear
 # gate and the runner's TTS gate consult; never fork a second copy.
-VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit")
+#
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): "organism_attempt" —
+# the organism's own recall-derived babble, Joe-approved (imperfect
+# attempts released and honestly labeled beat silence).  Third and last
+# autonomous release authority (after certified composer and assemblage;
+# see compose_autonomous).  It is voiced and self-heard through the SAME
+# one mouth, and it can NEVER be labeled/treated certified: every
+# certification gate in this file checks response_source ==
+# "fact_strand_commit" specifically (_fact_record_has_certified_provenance,
+# _certified_emission_record, _bind_certified_fact_emission_to_active_window),
+# so organism_attempt releases are structurally ineligible for
+# reinforcement, teach/correct feedback, and window fact-binding.
+VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit",
+                          "organism_attempt")
 
 # Change 4 (spec v3 release-policy note b): the autonomous loop queries the
 # certified composer with seeds drawn from the organism's own lived content.
@@ -1196,6 +1209,14 @@ AUTONOMOUS_RELEASE_REPEAT_WINDOW = 8
 # cycle (the composer rebuild is O(corpus) until Change 1's cached composer
 # lands; this bound guards self.lock hold time now and stays correct after).
 AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT = 250.0
+
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): bounds for the
+# organism_attempt tier (from-design, cost bounds not tuned constants):
+# at most 4 recall queries (each O(population), the same per-word cost the
+# converse path already pays) and at most 3 released words per attempt --
+# babble is short by construction.
+ORGANISM_ATTEMPT_MAX_QUERIES = 4
+ORGANISM_ATTEMPT_MAX_WORDS = 3
 # TTS input cap: espeak-ng runs under a 5s subprocess timeout; long certified
 # continuations blew past it and produced a silent voice.  Truncation is
 # logged (tts_truncated), never silent.
@@ -12446,23 +12467,27 @@ class Guala:
             if self._live_converse_pending > 0:
                 return None
 
+        # F3 (review 2026-07-16): wall-clock budget for this cycle's
+        # compose work — the composer rebuild is O(corpus) until Change 1's
+        # cached composer lands, and this whole section runs under
+        # self.lock.  Checked between attempts: the snapshot plus the first
+        # attempt always complete; remaining attempts abort loudly on
+        # exhaustion.  GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6):
+        # hoisted above tier 1 so the SAME single budget also bounds the
+        # organism_attempt tier below — one cycle, one budget, never a
+        # second clock.
+        try:
+            budget_ms = float(os.environ.get(
+                "AUTONOMOUS_COMPOSE_BUDGET_MS",
+                str(AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT)))
+        except (TypeError, ValueError):
+            budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
+        compose_deadline = time.monotonic() + budget_ms / 1000.0
+
         # 1. Certified composer, organism-sourced seeds (never the atlas).
         seed_attempts = self._autonomous_composer_seed_attempts()
         cycle_stop_reason = None
         if seed_attempts:
-            # F3 (review 2026-07-16): wall-clock budget for this cycle's
-            # certified compose work — the composer rebuild is O(corpus)
-            # until Change 1's cached composer lands, and this whole section
-            # runs under self.lock.  Checked between attempts: the snapshot
-            # plus the first attempt always complete; remaining attempts
-            # abort loudly on exhaustion.
-            try:
-                budget_ms = float(os.environ.get(
-                    "AUTONOMOUS_COMPOSE_BUDGET_MS",
-                    str(AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT)))
-            except (TypeError, ValueError):
-                budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
-            compose_deadline = time.monotonic() + budget_ms / 1000.0
             # Change-1 cached composer: every attempt below hits
             # self._language_fact_composer through the one canonical
             # compose path — built at most once (on cache miss after an
@@ -12537,46 +12562,171 @@ class Guala:
                 seed_words=[list(a["words"]) for a in seed_attempts])
 
         # 2. The substrate's own assemblage voice (unchanged mechanism).
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): no-seeds and a
+        # repeat-suppressed assemblage now FALL THROUGH to the organism
+        # attempt (babble beats silence, Joe-approved) instead of
+        # returning silence directly.  A failed emission-lock acquire
+        # stays a hard return: it means a live turn is in flight, and NO
+        # autonomous authority ever front-runs a human turn.
         seeds = self._sample_autonomous_seeds(n=12)
-        if not seeds:
-            return None
-        input_chis = [s["chi_key"] for s in seeds]
-        if not self._try_acquire_autonomous_emission():
-            return None
-        try:
-            settlement = self._emit_from_invariants(
-                input_chis, [],
-                v7_session=getattr(self, '_v7_session', None))
-        finally:
-            self._emission_lock.release()
-        content, response_source = self._committed_emission_response(
-            settlement)
-        if content:
-            # F1b applies to EVERY autonomous release authority: an
-            # assemblage settlement repeating a recent autonomous release
-            # settles to explained silence, loudly.
-            if content in self._recent_autonomous_releases:
-                self._log_substrate_event(
-                    "autonomous_repeat_suppressed",
-                    response_source=response_source,
-                    content=content[:80])
+        if seeds:
+            input_chis = [s["chi_key"] for s in seeds]
+            if not self._try_acquire_autonomous_emission():
                 return None
-            self._recent_autonomous_releases.append(content)
-            return {
-                "content": content,
-                "source": "guala",
-                "response_source": response_source,
-                "category": "autonomous",
-                "chi_seeds_used": len(seeds),
-                "settlement_tick": settlement.tick,
-                "committed_sections": list(
-                    settlement.committed_sections),
-                "commit_provenance": [
-                    provenance.as_record()
-                    for provenance in settlement.commit_provenance],
-            }
-        # 3. Explained silence — first-class outcome, logged by the caller.
+            try:
+                settlement = self._emit_from_invariants(
+                    input_chis, [],
+                    v7_session=getattr(self, '_v7_session', None))
+            finally:
+                self._emission_lock.release()
+            content, response_source = self._committed_emission_response(
+                settlement)
+            if content:
+                # F1b applies to EVERY autonomous release authority: an
+                # assemblage settlement repeating a recent autonomous
+                # release is refused, loudly — then the organism attempt
+                # below still gets its chance.
+                if content in self._recent_autonomous_releases:
+                    self._log_substrate_event(
+                        "autonomous_repeat_suppressed",
+                        response_source=response_source,
+                        content=content[:80])
+                else:
+                    self._recent_autonomous_releases.append(content)
+                    return {
+                        "content": content,
+                        "source": "guala",
+                        "response_source": response_source,
+                        "category": "autonomous",
+                        "chi_seeds_used": len(seeds),
+                        "settlement_tick": settlement.tick,
+                        "committed_sections": list(
+                            settlement.committed_sections),
+                        "commit_provenance": [
+                            provenance.as_record()
+                            for provenance in settlement.commit_provenance],
+                    }
+
+        # 3. Organism attempt — GL-CMD-SINGLE-STACK-ALL-LIVE-20260716
+        # (organ 6): the organism's own recall over its real learned
+        # structure, released as honestly-labeled babble through this SAME
+        # release path.  Same budget (compose_deadline), same repeat
+        # window, same conversation barrier as the tiers above.
+        organism_result = self._compose_organism_attempt(
+            seed_attempts, compose_deadline)
+        if organism_result is not None:
+            return organism_result
+
+        # 4. Explained silence — first-class outcome, logged by the caller.
         return None
+
+    def _compose_organism_attempt(self, seed_attempts, compose_deadline):
+        """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): the organism
+        voice, partial-and-honest version.  Queries organism.recall_fast
+        (population vote over HER OWN binding atlases — every returned
+        concept is a word she really experienced, never an atlas
+        neighborhood dump; and per organ 4 the votes are now weighted by
+        learned STDP synapse strength, so what the spike bus taught her
+        shapes what she attempts to say) with the SAME organism-sourced
+        seed words the certified tier already built (committed window
+        words / current activity target, self-heard windows excluded), and
+        releases the top-voted associations as a short, honestly-labeled
+        organism_attempt.
+
+        NEVER certified: the label is structurally ineligible at every
+        certification gate (all check response_source ==
+        "fact_strand_commit").  Guards shared with the other autonomous
+        authorities: the cycle compose budget (compose_deadline), the
+        repeat-suppression window (_recent_autonomous_releases), and the
+        conversation barrier re-check.  Returns the release dict or None
+        (with the stop reason logged loudly either way).  Must be called
+        with self.lock held (compose_autonomous's own contract)."""
+        # Shared cycle budget — checked before this tier starts real work.
+        if time.monotonic() >= compose_deadline:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="compose_budget")
+            return None
+        # Seed words: same organism-sourced material as tier 1 (already
+        # self-excluded there); deduped, order-preserving, bounded.
+        queries = []
+        for attempt in (seed_attempts or ()):
+            for w in attempt.get("words", ()):
+                wl = str(w).lower()
+                if wl and wl not in queries:
+                    queries.append(wl)
+                if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                    break
+            if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                break
+        if not queries:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="no_seed_words")
+            return None
+        from collections import Counter as _Counter
+        merged = _Counter()
+        for q in queries:
+            if time.monotonic() >= compose_deadline:
+                break
+            try:
+                votes = self.organism.recall_fast(
+                    _organism_signal(q, self._organism_transducer))
+            except Exception as _oe:
+                print(f"[GualaLoom] organism attempt recall failed for "
+                      f"{q!r} (non-fatal): {_oe}", flush=True)
+                continue
+            if votes:
+                merged.update(votes)
+        # The attempt is association, not parroting: the seed words
+        # themselves are excluded from the released content.
+        for q in queries:
+            merged.pop(q, None)
+        top = [(str(w), float(v)) for w, v in merged.most_common(
+            ORGANISM_ATTEMPT_MAX_WORDS) if str(w).strip()]
+        if not top:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="organism_empty", queries=queries)
+            return None
+        content = " ".join(w for w, _v in top)
+        # Conversation barrier re-check (same F2 rule as tier 1): a human
+        # turn counted while recall ran still wins.
+        with self._live_converse_state_lock:
+            if self._live_converse_pending > 0:
+                self._log_substrate_event(
+                    "autonomous_organism_attempt", released=False,
+                    stop_reason="conversation_arrived")
+                return None
+        # Repeat-suppression window — same deque as every other authority.
+        if content in self._recent_autonomous_releases:
+            self._log_substrate_event(
+                "autonomous_repeat_suppressed",
+                response_source="organism_attempt",
+                content=content[:80])
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="repeat_suppressed")
+            return None
+        self._recent_autonomous_releases.append(content)
+        self._log_substrate_event(
+            "autonomous_organism_attempt", released=True,
+            queries=queries,
+            candidates=[[w, round(v, 2)] for w, v in top],
+            content=content[:80])
+        return {
+            "content": content,
+            "source": "guala",
+            "response_source": "organism_attempt",
+            "category": "autonomous",
+            "organism_queries": queries,
+            "organism_votes": [[w, round(v, 2)] for w, v in top],
+            "settlement_tick": self.tick,
+            # No section settlement exists for babble — honest empties,
+            # shaped for the runner's release logging.
+            "committed_sections": [],
+            "commit_provenance": [],
+        }
 
     # ── GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.2 ────────────────────────────────
 
