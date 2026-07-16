@@ -7192,7 +7192,10 @@ def _copy_generation_auxiliary_tree(source, destination, *, suffixes):
             path = os.path.join(current, name)
             info = os.lstat(path)
             if (os.path.islink(path) or not stat.S_ISREG(info.st_mode)
-                    or info.st_nlink != 1):
+                    ):
+                # (st_nlink deliberately unchecked -- see
+                # _copy_generation_file: hardlinked atomic-generation
+                # sources are legitimate; the copy is the sealed artifact.)
                 raise RuntimeError(f"unsafe auxiliary file: {path}")
             if not name.endswith(tuple(suffixes)):
                 raise RuntimeError(f"unexpected auxiliary file: {path}")
@@ -7210,16 +7213,21 @@ def _copy_generation_file(source, destination, *, required=False):
         if required:
             raise RuntimeError(f"required generation file is absent: {source}")
         return False
-    if (os.path.islink(source) or not stat.S_ISREG(info.st_mode)
-            or info.st_nlink != 1):
-        raise RuntimeError(f"generation source is not a unique regular file: {source}")
+    # 2026-07-16: the atomic per-save generation store HARDLINKS state
+    # files, so a legitimate source often has st_nlink > 1. The sealed
+    # property lives in the fresh COPY below (nlink=1 by construction,
+    # hashed after copy) and quiescence guarantees no writers -- extra
+    # source links are harmless. Symlinks and non-regular files stay
+    # rejected.
+    if os.path.islink(source) or not stat.S_ISREG(info.st_mode):
+        raise RuntimeError(f"generation source is not a regular file: {source}")
     shutil.copy2(source, destination)
     return True
 
 
 def _write_runtime_generation_stage(stage):
     """Write the complete runtime recovery contract into one private stage."""
-    _guala.save_full_state(str(stage))
+    _guala.save_full_state(str(stage), publish_generation=False)
     _guala._save_wave_atlas(str(stage))
     if (os.environ.get("WAVE_ATLAS_ENABLED", "0") == "1"
             and (getattr(_guala, "wave_atlas", None) is None

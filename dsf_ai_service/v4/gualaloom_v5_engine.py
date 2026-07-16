@@ -14392,12 +14392,14 @@ class Guala:
         self._raise_persistence_failures("hot save", _failures)
         return results
 
-    def save_full_state(self, state_dir="state"):
+    def save_full_state(self, state_dir="state", *, publish_generation=True):
         """Persist the full lane as one serialized multi-file generation."""
         with self.persistence_transaction():
-            return self._save_full_state_locked(state_dir)
+            return self._save_full_state_locked(
+                state_dir, publish_generation=publish_generation)
 
-    def _save_full_state_locked(self, state_dir="state"):
+    def _save_full_state_locked(self, state_dir="state", *,
+                                publish_generation=True):
         """Round-trip every mutable attribute. Atomic writes. Identity-stamped.
         GL-FIX-SAVE-LOCK: snapshot data under lock (fast), write to disk outside
         lock (slow). Lock hold time drops from ~20s to milliseconds."""
@@ -14833,7 +14835,13 @@ class Guala:
         # just-written flat set as a recoverable generation. Only on full
         # success (every file landed); best-effort, never raises here.
         if not _save_failures:
-            self._publish_state_generation(state_dir, save_tick)
+            if publish_generation:
+                # 2026-07-16 seal: a save into a PRIVATE STAGE must not
+                # hardlink itself into the generation store -- the stage
+                # IS the snapshot, and an outside link would be a real
+                # post-seal mutation path (stage validator rightly
+                # rejects it).
+                self._publish_state_generation(state_dir, save_tick)
 
         return results
 
