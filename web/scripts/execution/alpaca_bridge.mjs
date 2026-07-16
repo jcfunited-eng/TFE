@@ -59,6 +59,21 @@ const MIN_SHARE_PRICE      = 5.0;   // reject penny stocks
 const MIN_SHARES           = 1;     // minimum viable position
 const MAX_SINGLE_TRADE_PCT = 5.0;   // hard cap: never risk > 5% in one trade
 
+// CH3 entry slippage cap. A market entry into a fast mover fills above the
+// submit-time quote while the brackets stay anchored to it — 2026-07-16 AMAL
+// filled +1.27% over quote, compressing the +1.5% take-profit to +0.23%
+// against a -2.24% effective stop. Entry is therefore a marketable limit at
+// quote×(1+cap), and brackets anchor to that worst-case fill so the designed
+// TP/SL distances survive any fill the order can legally receive.
+const CH3_ENTRY_SLIPPAGE_CAP = 0.003;
+
+export function computeCh3EntryPrices(quote, tpPct, slPct) {
+  const limitPrice      = parseFloat((quote * (1 + CH3_ENTRY_SLIPPAGE_CAP)).toFixed(2));
+  const takeProfitPrice = parseFloat((limitPrice * (1 + tpPct)).toFixed(2));
+  const stopLossPrice   = parseFloat((limitPrice * (1 - slPct)).toFixed(2));
+  return { limitPrice, takeProfitPrice, stopLossPrice };
+}
+
 // ── DB pool ───────────────────────────────────────────────────────────────
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -883,31 +898,30 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, `atr_fetch_failed: ${err.message}`);
   }
 
-  const shares = Math.floor(tradeAmount / currentPrice);
-  if (shares < MIN_SHARES) {
-    return rejectSignal(signal, `shares_below_minimum: amount=${tradeAmount} price=${currentPrice} shares=${shares}`);
-  }
-
-  // Cash ceiling — position cost must not exceed available cash
-  const ch3PositionCost = shares * currentPrice;
-  if (ch3PositionCost > ch3Cash) {
-    return rejectSignal(signal, `insufficient_cash: cost=$${ch3PositionCost.toFixed(2)} cash=$${ch3Cash.toFixed(2)}`);
-  }
-
-  const entryPrice      = parseFloat(currentPrice.toFixed(2));
+  const entryQuote = parseFloat(currentPrice.toFixed(2));
   // Percentage-based exits from structural register forensics:
   //   Stop: -5% hard stop (profit factor 3.81 across 1832 trades)
   //   TP: +50% wide ceiling (sentinel manages trailing)
   const slPct = signal.ch3_stop_loss_pct ?? 0.05;
   const tpPct = signal.ch3_take_profit_pct ?? 0.50;
-  const takeProfitPrice = parseFloat((entryPrice * (1 + tpPct)).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice * (1 - slPct)).toFixed(2));
+  const { limitPrice, takeProfitPrice, stopLossPrice } = computeCh3EntryPrices(entryQuote, tpPct, slPct);
+
+  // Shares and cash ceiling sized against the worst-case fill (the limit)
+  const shares = Math.floor(tradeAmount / limitPrice);
+  if (shares < MIN_SHARES) {
+    return rejectSignal(signal, `shares_below_minimum: amount=${tradeAmount} price=${limitPrice} shares=${shares}`);
+  }
+
+  const ch3PositionCost = shares * limitPrice;
+  if (ch3PositionCost > ch3Cash) {
+    return rejectSignal(signal, `insufficient_cash: cost=$${ch3PositionCost.toFixed(2)} cash=$${ch3Cash.toFixed(2)}`);
+  }
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
   }
 
-  console.log(`[CH3-BRIDGE] ${ticker} | shares=${shares} | entry≈${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | ATR=${atr.toFixed(4)} | amount=$${tradeAmount}`);
+  console.log(`[CH3-BRIDGE] ${ticker} | shares=${shares} | quote=${entryQuote} limit=${limitPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | ATR=${atr.toFixed(4)} | amount=$${tradeAmount}`);
 
   let ledgerId;
   try {
@@ -926,7 +940,7 @@ export async function executeCh3MarketOrder(signal) {
       dollar_allocation: tradeAmount,
       shares,
       atr_14:            atr,
-      entry_limit_price: entryPrice,
+      entry_limit_price: limitPrice,
       take_profit_price: takeProfitPrice,
       stop_loss_price:   stopLossPrice,
       status:            "pending",
@@ -954,12 +968,17 @@ export async function executeCh3MarketOrder(signal) {
 
   let order;
   try {
-    // Bracket order: market buy + ATR-based TP/SL enforced by Alpaca in real-time
+    // Bracket order: marketable-limit buy (slippage-capped) + TP/SL enforced
+    // by Alpaca in real-time. If price runs past the cap before we fill, the
+    // day order rests at the cap — chasing a runaway open is exactly the fill
+    // this cap exists to refuse. A resting order can only ever fill at ≤ the
+    // cap (brackets stay valid), and the CH3 EOD close still flattens it.
     order = await alpacaPost("/v2/orders", {
       symbol:          ticker,
       qty:             shares,
       side:            "buy",
-      type:            "market",
+      type:            "limit",
+      limit_price:     limitPrice,
       time_in_force:   "day",
       client_order_id: dedupeKey,
       order_class:     "bracket",
@@ -1000,7 +1019,8 @@ export async function executeCh3MarketOrder(signal) {
     orderId,
     ledgerId,
     shares,
-    entryPrice,
+    entryPrice:  entryQuote,
+    limitPrice,
     takeProfitPrice,
     stopLossPrice,
     tradeAmount,
