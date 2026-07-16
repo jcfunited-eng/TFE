@@ -199,3 +199,53 @@ def test_closed_windows_stay_write_once_when_a_context_id_recurs():
     assert second is not None and second != first
     assert manager.windows[first] == frozen
     assert len(manager.lookup_chi(61)) == 2
+
+
+def test_explicit_entry_routing_never_steals_the_callers_bound_context():
+    """2026-07-16 observed-conversation empty-window root cause.
+
+    An explicit ``context_id`` on ``add_entry`` is ROUTING, not a binding
+    claim.  Before this contract, routing an entry to a different context
+    (a per-frame sense context) rebound the caller's contextvar; the frame
+    context's close then reset the binding to None, so every later
+    unqualified entry of the SAME experience minted fresh implicit
+    contexts and the caller's window closed empty -- which made its
+    BindingWindowCitation uncitable (no modalities) and broke the
+    teach-a-phrase -> speak-the-continuation loop.
+    """
+    manager, _tick, _mirror, _events, _calls = _manager()
+    caller_context = contextvars.copy_context()
+
+    def turn():
+        # The caller owns one experience context (the observed turn).
+        manager.begin_context(
+            "live-conversation:t1",
+            trigger_reason="live_observed_conversation",
+            context_detail={"experience_origin": "observed"})
+        # A send-time targeted write routes to ANOTHER context (the
+        # per-frame sense shape) and that context closes at its boundary.
+        manager.add_entry(
+            modality="sight", section="sight_fragment", motif_id=1, chi=71,
+            tick=1, source_tag="cam:live", trigger_reason="sight",
+            context_id="sense:sight:camera_stream:abc")
+        manager.end_context(
+            "sense:sight:camera_stream:abc", "sight_frame_complete")
+        # The caller's binding survived: this unqualified entry lands in
+        # the caller's experience window, not a fresh implicit context.
+        assert manager.active_context_id == "live-conversation:t1"
+        manager.add_entry(
+            modality="word", section="language_fact", motif_id=2, chi=72,
+            tick=2, source_tag="joe", trigger_reason="language_fact")
+        return manager.end_context(
+            "live-conversation:t1", "context_complete")
+
+    window_id = caller_context.run(turn)
+    assert window_id is not None
+    assert manager.open_context_ids("implicit:") == ()
+    window = manager.windows[window_id]
+    assert [entry["modality"] for entry in window["entries"]] == ["word"]
+    # And the routed frame window closed as its own record.
+    frame_windows = [record for record in manager.windows.values()
+                     if record["context_id"].startswith("sense:sight:")]
+    assert len(frame_windows) == 1
+    assert frame_windows[0]["close_reason"] == "sight_frame_complete"

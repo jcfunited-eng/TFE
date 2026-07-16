@@ -11380,7 +11380,20 @@ class Guala:
         # fallback leaked one never-closable open context per camera-frame
         # job (app.py's per-job contextvar isolation discards the only
         # binding that could have closed it).
-        _frame_context_id = f"sense:sight:camera_stream:{time.time_ns():x}"
+        # 2026-07-16 correction: the per-frame context applies ONLY when no
+        # caller-owned experience context is bound.  A send-time frame that
+        # arrives INSIDE a bound experience (the observed-conversation turn
+        # in app._run_embedded_observed_conversation) is part of THAT lived
+        # experience -- its fragments must bind into the caller's window,
+        # exactly as the pre-F2 implicit fallback did, or the observed
+        # window closes word-only and its BindingWindowCitation can never
+        # certify a multimodal language experience (the teach->cite bug).
+        # The frame path only closes contexts it created itself.
+        _bound_experience = self.window_manager.active_context_id
+        _frame_context_id = (
+            _bound_experience if _bound_experience is not None
+            else f"sense:sight:camera_stream:{time.time_ns():x}")
+        _frame_owns_context = _bound_experience is None
         _frame_entries_bound = 0
         try:
             with self.lock:
@@ -11426,7 +11439,9 @@ class Guala:
                                               is_new=is_new)
         finally:
             # Close OUTSIDE self.lock (WAL fsync; see process_sound_frame).
-            if _frame_entries_bound > 0:
+            # Never close a caller-owned bound experience -- its owner ends
+            # it at the experience's real boundary.
+            if _frame_owns_context and _frame_entries_bound > 0:
                 self.window_manager.end_context(
                     _frame_context_id, "sight_frame_complete")
 
@@ -11492,7 +11507,16 @@ class Guala:
         # binding could never be resolved by any later close.  Same entries,
         # same provenance, same per-job window grouping as before -- the
         # window simply closes at its real boundary now.
-        _frame_context_id = f"sense:sound:{source}:{time.time_ns():x}"
+        # 2026-07-16 correction (same as process_sight_frame above): the
+        # per-frame context applies ONLY when no caller-owned experience
+        # context is bound; a frame arriving inside a bound experience binds
+        # into the caller's window, and only self-created contexts are
+        # closed here.
+        _bound_experience = self.window_manager.active_context_id
+        _frame_context_id = (
+            _bound_experience if _bound_experience is not None
+            else f"sense:sound:{source}:{time.time_ns():x}")
+        _frame_owns_context = _bound_experience is None
         n_bands_fired = 0
         try:
             with self.lock:
@@ -11520,7 +11544,8 @@ class Guala:
             # ride under the engine lock (GL-CMD-LOCK-CONTENTION-FIX-182
             # discipline).  In finally so a mid-loop error still closes the
             # partially-bound frame at its boundary instead of leaking it.
-            if n_bands_fired > 0:
+            # Never close a caller-owned bound experience (see sight above).
+            if _frame_owns_context and n_bands_fired > 0:
                 self.window_manager.end_context(
                     _frame_context_id, "sound_frame_complete")
 

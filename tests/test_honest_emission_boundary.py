@@ -80,7 +80,10 @@ def _fact_transport_provenance(word="warm", trace_id="trace-transport"):
     )
 
 
-def test_only_verified_fact_strand_commits_surface(monkeypatch):
+def test_only_labeled_commits_surface(monkeypatch):
+    """Release policy per the ratified spec v3 Expression table: certified
+    preferred, real assemblage commits release second under their own label,
+    everything else is explained silence."""
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     g = Guala()
