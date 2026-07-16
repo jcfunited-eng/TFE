@@ -53,28 +53,34 @@ def _clear_sensory_gate_env():
 
 
 # ---------------------------------------------------------------------
-# Sensory branch: default off
+# Sensory branch: default ON (GL-CMD-SINGLE-STACK-ALL-LIVE-20260716,
+# organ 3 -- the 2026-07-09 incident is fixed at the mechanism: wave
+# decay zero-clamp + per-band skip + injection weight floor; the env var
+# survives as an emergency-off only). This test tracked "default off"
+# before that ruling; it now tracks the ratified default-on reality.
 # ---------------------------------------------------------------------
 
-def test_sensory_branch_does_not_inject_when_flag_unset():
+def test_sensory_branch_injects_when_flag_unset_default_on():
     _clear_sensory_gate_env()  # confirm the true default (nothing set)
-    g = _fresh_guala(event_driven=True)  # spike bus present -- only the new gate should suppress
+    g = _fresh_guala(event_driven=True)
     try:
         stub = _CallCounter()
         g.organism.brain._inject_input_as_spikes = stub
         hemi_id = g.organism.brain.hemispheres[0].hemi_id
         g._enqueue_organism_sensory(hemi_id, [0.1, 0.2, 0.3, 0.4], tick=1, input_chi=5)
         g._organism_sensory_queue.join()  # deterministic: waits for task_done()
-        assert stub.call_count == 0, (
-            "sensory branch called _inject_input_as_spikes with "
-            "SENSORY_SPIKE_INJECTION_ENABLED unset (must default off)")
-        print("test_sensory_branch_does_not_inject_when_flag_unset: PASS")
+        assert stub.call_count == 1, (
+            "sensory branch did not inject with SENSORY_SPIKE_INJECTION_"
+            "ENABLED unset -- the 2026-07-16 ruling makes ON the default "
+            f"(got {stub.call_count} calls)")
+        print("test_sensory_branch_injects_when_flag_unset_default_on: PASS")
     finally:
         g.shutdown()
         _clear_sensory_gate_env()
 
 
 def test_sensory_branch_does_not_inject_when_flag_explicitly_zero():
+    """The emergency-off must still work."""
     os.environ["SENSORY_SPIKE_INJECTION_ENABLED"] = "0"
     g = _fresh_guala(event_driven=True)
     try:
@@ -193,7 +199,7 @@ def test_word_branch_injects_regardless_of_sensory_flag_one():
 
 
 if __name__ == "__main__":
-    test_sensory_branch_does_not_inject_when_flag_unset()
+    test_sensory_branch_injects_when_flag_unset_default_on()
     test_sensory_branch_does_not_inject_when_flag_explicitly_zero()
     test_sensory_branch_injects_when_flag_set_to_one()
     test_sensory_branch_still_noop_when_spike_bus_absent_even_if_flag_set()
