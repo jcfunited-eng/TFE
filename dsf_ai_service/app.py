@@ -5800,6 +5800,31 @@ async def v6_events_histogram(source: str = "diary"):
 
 _init_complete = False  # V2: health gate
 _init_error = None
+# GL-SPC-SUBSTRATE-TRUE Change 1 review (2026-07-16): a NAMED boot halt
+# (integrity failure, P4) must be externally visible — before this, the halt
+# was caught by _eager_init and /ready kept answering 200, leaving a
+# healthy-looking zombie serving no substrate.  When set, /ready and
+# /ready/guala answer 503 with the halt reason.
+_boot_halted = None
+
+
+def _classify_boot_halt(error):
+    """Return the named-halt label for a P4 boot-halt exception, else None."""
+    try:
+        from dsf_ai_service.substrate.window_manager import (
+            WindowStoreIntegrityHalt,
+        )
+        from dsf_ai_service.v4.gualaloom_v5_engine import (
+            GualaBootIdentityUnreadableHalt,
+            GualaBootStateIntegrityHalt,
+        )
+    except ImportError:
+        return None
+    named = (WindowStoreIntegrityHalt, GualaBootIdentityUnreadableHalt,
+             GualaBootStateIntegrityHalt)
+    if isinstance(error, named):
+        return f"{type(error).__name__}: {error}"
+    return None
 _BOOT_START = time.time()   # module load time — for elapsed_ms in readiness responses
 _LIFESPAN_STARTED = False   # set True as soon as startup event fires
 
@@ -5833,7 +5858,7 @@ async def startup():
     # V2 EAGER INIT: initialize in background so health check passes immediately
     import asyncio
     async def _eager_init():
-        global _init_complete, _init_error
+        global _init_complete, _init_error, _boot_halted
         t0 = time.time()
         try:
             await _run_lifecycle_executor(_boot_generation_and_guala)
@@ -5867,6 +5892,12 @@ async def startup():
                 await _run_lifecycle_executor(_boot_glew_conversation_engine)
         except Exception as error:
             _init_error = str(error)
+            halt = _classify_boot_halt(error)
+            if halt is not None:
+                # NAMED P4 boot halt: flip the readiness surface so the
+                # halt is externally visible (503, never a healthy zombie).
+                _boot_halted = halt
+                print(f"[DSF-AI] BOOT HALTED (named, readiness now 503): {halt}")
             print(f"[DSF-AI] Guala initialization FAILED: {error}")
             raise
         else:
@@ -6811,6 +6842,18 @@ async def health():
 async def ready():
     """Container readiness; sealed production never reports shallow success."""
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _boot_halted is not None:
+        # A NAMED P4 boot halt is never a healthy container.  503 makes the
+        # orchestrator recycle/hold the task — the crash-loop IS the signal.
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "boot_halted": _boot_halted,
+                "elapsed_ms": elapsed_ms,
+            },
+            headers={"Retry-After": "30"},
+        )
     if _REQUIRE_SEALED_STATE:
         try:
             proof = _production_runtime_proof()
@@ -6952,6 +6995,16 @@ async def ready_guala(request: Request):
     Returns 503 with Retry-After during boot.
     """
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _boot_halted is not None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "boot_halted": _boot_halted,
+                "elapsed_ms": elapsed_ms,
+            },
+            headers={"Retry-After": "30"},
+        )
     if _REQUIRE_SEALED_STATE:
         nonce = _require_readiness_control(request)
         try:

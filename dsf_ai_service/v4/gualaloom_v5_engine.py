@@ -14489,6 +14489,22 @@ class Guala:
         has_identity = os.path.exists(identity_path)
         present = [f for f in self.STATE_FILES
                    if os.path.exists(os.path.join(state_dir, f))]
+        # Review 2026-07-16: leftover WAL segments are state evidence too.
+        # Without this, a dir holding window memory but no flat files would
+        # sail into genesis and orphan (then interleave generations with)
+        # real experience.
+        from dsf_ai_service.substrate.window_manager import (
+            WAL_DIRNAME as _WAL_DIRNAME,
+            WAL_SEGMENT_PREFIX as _WAL_SEG_PREFIX,
+            WAL_SEGMENT_SUFFIX as _WAL_SEG_SUFFIX,
+        )
+        _wal_dir_path = os.path.join(state_dir, _WAL_DIRNAME)
+        wal_segments_present = False
+        if os.path.isdir(_wal_dir_path):
+            wal_segments_present = any(
+                name.startswith(_WAL_SEG_PREFIX)
+                and name.endswith(_WAL_SEG_SUFFIX)
+                for name in os.listdir(_wal_dir_path))
 
         # ── The one boot method (GL-SPC-SUBSTRATE-TRUE §boot, Change 1) ──
         # Identity: present -> continue; absent -> genesis (loud genesis_boot
@@ -14498,7 +14514,7 @@ class Guala:
         # recovery from an inconsistent state dir is the operator's explicit
         # restore command run while the service is stopped (P4).
 
-        if not has_identity and not present:
+        if not has_identity and not present and not wal_segments_present:
             # Genesis: mint identity, loud genesis_boot event, empty stores.
             self._generate_genesis_identity(state_dir)
             self.window_manager.configure_wal_under(state_dir)
@@ -14534,13 +14550,15 @@ class Guala:
             self._load_successful = False
             raise GualaBootStateIntegrityHalt(msg)
 
-        if not has_identity and present:
-            # State files without an identity: the pre-v5.5 adopt-and-migrate
-            # branch is DELETED (one boot method; no legacy reader).  Genesis
-            # here would orphan-overwrite real experience on the next save —
-            # NAMED loud halt instead.
+        if not has_identity and (present or wal_segments_present):
+            # State evidence (flat files OR window-WAL segments) without an
+            # identity: the pre-v5.5 adopt-and-migrate branch is DELETED
+            # (one boot method; no legacy reader).  Genesis here would
+            # orphan-overwrite real experience on the next save — NAMED
+            # loud halt instead.
+            _evidence = present or [f"{_WAL_DIRNAME}/ segments"]
             msg = (f"[GualaLoom] BOOT HALT (GualaBootStateIntegrityHalt): "
-                   f"state files {present} exist without "
+                   f"state files {_evidence} exist without "
                    f"{self.IDENTITY_FILE}. The legacy adopt-without-identity "
                    f"migration is removed. STOP the service and either "
                    f"restore a named S3 backup (python -m tools."
