@@ -15259,6 +15259,10 @@ class Guala:
                           "receipt -- this life has not written a wave "
                           "atlas yet; starting fresh (accepted, loud)",
                           flush=True)
+                    # Legitimately-fresh counts as its restore proof: the
+                    # downstream required-proof gate must not re-reject
+                    # what this branch just loudly accepted.
+                    self._binary_restore_status["wave_atlas"] = True
 
                 if not _wave_loaded and os.path.exists(_wave_json):
                     try:
