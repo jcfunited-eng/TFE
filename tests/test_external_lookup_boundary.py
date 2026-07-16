@@ -58,11 +58,18 @@ def test_deployment_has_no_openai_lookup_or_youtube_secret_requirement():
         "OPENAI_SECRET",
         "LOOKUP_AUTONOMOUS",
         "LOOKUP_INTERVAL_SEC",
-        "YOUTUBE_SECRET",
     ):
         assert token not in DEPLOY_SOURCE
+    # Spec v3 (2026-07-16): the YouTube feed key is an OPTIONAL injection —
+    # present in Secrets Manager -> injected; absent -> the deploy proceeds
+    # and the feed stays honestly disabled. The boundary this tripwire
+    # guards is REQUIREMENT: a deploy must never fail on the YouTube key,
+    # and no plaintext variant may appear.
+    assert 'require_secret_arn "${YOUTUBE_SECRET_ID}"' not in DEPLOY_SOURCE
+    assert "this is not an error" in DEPLOY_SOURCE  # absent-key path is loud + non-fatal
     secrets = DEPLOY_SOURCE.split("'secrets': [", 1)[1].split("'mountPoints': [", 1)[0]
-    assert "YOUTUBE_API_KEY" not in secrets
+    assert "if os.environ.get('YOUTUBE_SECRET_ARN')" in secrets  # conditional, never unconditional
+    assert "YOUTUBE_API_KEY_PLAINTEXT" not in DEPLOY_SOURCE
 
 
 def test_optional_youtube_feed_is_unregistered_and_truthful_without_key(monkeypatch):
