@@ -2952,6 +2952,14 @@ class Guala:
         self._organism_worker_thread = None
         self._organism_worker_start_lock = threading.Lock()
         self._organism_lock = threading.Lock()
+        # Save-time cooperative park for the organism worker (2026-07-16
+        # seal incident: the full save pickled the organism while this
+        # worker's lock-free experience_word() mutated its deques --
+        # "deque mutated during iteration" -> seal 503 -> deploy fail-back).
+        # The worker parks BETWEEN items; cognition resumes the moment the
+        # pickle is done. Same pattern as SpikeBus.pause().
+        self._organism_pause_req = threading.Event()
+        self._organism_pause_ack = threading.Event()
         # GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere wave-
         # summary pushes (see wave_summary.py), drained by the same worker
         # thread as the word queue below. Eagerly created (unlike the word
@@ -6036,6 +6044,15 @@ class Guala:
         priority weight, just how two queues share one consumer without
         polling in a hot loop."""
         while True:
+            if self._organism_pause_req.is_set():
+                # Save-time park: acknowledge, hold between items, resume
+                # the instant the save clears the request. Never parks
+                # mid-item, so no fold is ever half-applied.
+                self._organism_pause_ack.set()
+                while self._organism_pause_req.is_set():
+                    time.sleep(0.02)
+                self._organism_pause_ack.clear()
+                continue
             try:
                 item = self._organism_queue.get_nowait()
                 source = "word"
@@ -14227,18 +14244,66 @@ class Guala:
         try:
             # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: the one legitimate
             # synchronization point Joe's no-locks ruling allows --
-            # snapshot-for-save, brief, never holding her cognition. This
-            # is the only remaining _organism_lock acquisition anywhere;
-            # every read path and the writer's own per-item work above are
-            # lock-free now.
-            with self._organism_lock:
+            # snapshot-for-save, brief, never holding her cognition.
+            #
+            # 2026-07-16 seal incident: _organism_lock alone does NOT
+            # exclude the worker's lock-free experience_word() (W3 made it
+            # lock-free) nor the spike-bus delivery thread -- under a deep
+            # queue the pickle raced live deque mutations and the seal's
+            # full save failed ("deque mutated during iteration"),
+            # refusing deploy turnover. Park BOTH mutators between items
+            # for the duration of the pickle; they resume immediately
+            # after. Parks are bounded and honest: if a mutator does not
+            # acknowledge in time we log loudly and still attempt the
+            # save with a bounded retry on the mutation race.
+            _worker_parked = True
+            if self._organism_worker_thread is not None:
+                self._organism_pause_req.set()
+                _worker_parked = self._organism_pause_ack.wait(10.0)
+                if not _worker_parked:
+                    print("[GualaLoom] organism worker did not park within "
+                          "10s (mid-item); saving with retry fallback")
+            _bus = getattr(getattr(self.organism, "brain", None),
+                           "_spike_bus", None)
+            _bus_parked = True
+            if _bus is not None:
+                try:
+                    _bus_parked = _bus.pause(5.0)
+                except Exception:
+                    _bus_parked = False
+                if not _bus_parked:
+                    print("[GualaLoom] spike bus did not park within 5s; "
+                          "saving with retry fallback")
+            try:
                 organism_path = os.path.join(
                     state_dir, "guala_organism.pkl.gz")
-                self.organism.save_full_state(organism_path)
+                _pickle_attempt = 0
+                while True:
+                    _pickle_attempt += 1
+                    try:
+                        with self._organism_lock:
+                            self.organism.save_full_state(organism_path)
+                        break
+                    except RuntimeError as _re:
+                        _racey = ("mutated during iteration" in str(_re)
+                                  or "changed size during" in str(_re))
+                        if not _racey or _pickle_attempt >= 4:
+                            raise
+                        print(f"[GualaLoom] organism pickle hit live "
+                              f"mutation (attempt {_pickle_attempt}/4), "
+                              f"retrying: {_re}")
+                        time.sleep(0.25)
                 organism_binding = self._write_binary_binding(
                     organism_path, save_tick)
                 results[os.path.basename(organism_binding)] = os.path.getsize(
                     organism_binding)
+            finally:
+                if _bus is not None:
+                    try:
+                        _bus.resume()
+                    except Exception:
+                        pass
+                self._organism_pause_req.clear()
         except Exception as _oe:
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
             print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
