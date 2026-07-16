@@ -2090,6 +2090,26 @@ def _gl_init():
         raise RuntimeError(
             "sealed-state owner boot is not complete; direct initialization refused")
 
+    # All-at-once doctrine (Joe 2026-07-16): the native Rust kernels run by
+    # default when the wheel is present -- bit-identical ports (see
+    # native/guala_core/tests/test_differential.py), 2.8-7.5x, GIL released
+    # per kernel. NATIVE_CORE_ENABLED=0 is an emergency-off, never staging.
+    # Must install BEFORE Guala() so every kernel call from first tick is
+    # native; loud either way, silent never.
+    if os.environ.get("NATIVE_CORE_ENABLED", "1") != "0":
+        try:
+            from dsf_ai_service.substrate import native_core
+            if native_core.HAVE_NATIVE:
+                native_core.install()
+                print("[native-core] Rust kernels INSTALLED "
+                      "(guala_core wheel present)", flush=True)
+            else:
+                print("[native-core] wheel absent -- pure-Python kernels "
+                      "(build-time fallback, not a staging gate)", flush=True)
+        except Exception as _nc_e:
+            print(f"[native-core] install failed (pure-Python fallback): "
+                  f"{_nc_e}", flush=True)
+
     os.makedirs(STATE_DIR, exist_ok=True)
     # CRITICAL: build into local var — only set _guala AFTER successful load.
     # If load_full_state fails (e.g. lock timeout), _guala stays None so the

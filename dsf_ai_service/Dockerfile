@@ -1,3 +1,17 @@
+# ── Native core builder (GL native-core track, 2026-07-16) ──────────────
+# Rust kernels for the organism hot path: 2.8-7.5x, bit-identical
+# (native/guala_core/tests/test_differential.py). Built here, installed
+# into the runtime stage below; NATIVE_CORE_ENABLED=0 is the emergency-off.
+FROM public.ecr.aws/docker/library/python:3.11-slim AS native-builder
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl build-essential && rm -rf /var/lib/apt/lists/*
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | sh -s -- -y --profile minimal
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN pip install --no-cache-dir maturin
+COPY native/guala_core/ /build/guala_core/
+RUN cd /build/guala_core && maturin build --release -o /build/dist
+
 FROM public.ecr.aws/docker/library/python:3.11-slim
 
 # GL-CMD-HOTFIX-BUNDLE-95 item 4: build identity. Source arrives via
@@ -31,6 +45,9 @@ RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cry
 # runtime, av, tokenizers, huggingface-hub — several hundred MB installed)
 # stay one visible, revertable line.
 RUN pip install --no-cache-dir faster-whisper==1.2.1
+# Native organism kernels (see native-builder stage above)
+COPY --from=native-builder /build/dist/*.whl /tmp/wheels/
+RUN pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels
 # Bake whisper-tiny at BUILD time so boot needs no network and the first
 # real spoken frame never pays a model download.  Fail-closed on purpose:
 # a build that cannot fetch the model must fail loudly here, not ship an
@@ -93,6 +110,9 @@ ENV EMISSION_STRUCTURED_NOISE=0
 # tagged sources only; transcription runs on a dedicated single-worker
 # executor in this process.  Revert by setting 0 and redeploying.
 ENV VOICE_WHISPER=1
+# All-at-once doctrine (Joe 2026-07-16): the native core runs by default;
+# env is an emergency-off only, never a staging gate.
+ENV NATIVE_CORE_ENABLED=1
 ENV WHISPER_MODEL_PATH=tiny
 # STT staging (GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3, acceptance
 # criterion 7): when VOICE_WHISPER=1 the out-of-process worker is the
