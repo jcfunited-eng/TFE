@@ -90,16 +90,20 @@ def test_only_verified_fact_strand_commits_surface(monkeypatch):
             content="manufactured", sections=[], n_commits=0)) == (
             "", "silence_no_commit")
 
-        # Both legacy candidate routes stay silent even when their old
-        # provenance objects are internally self-consistent.
+        # Joe's 2026-07-16 ruling (spec v3 release-policy row): a REAL
+        # assemblage settlement — a genuine dynamics commit whose complete
+        # candidate provenance matches its content exactly — releases again,
+        # under its own distinct label, never as fact_strand_commit.  This
+        # partially reverses 8835cfc's sole-authority clause, which this
+        # test previously enforced.
         assert g._committed_emission_response(_settlement(
             content="warm", sections=["modifier"], n_commits=1,
-            commit_provenance=(lived,))) == ("", "silence_no_commit")
+            commit_provenance=(lived,))) == ("warm", "assemblage_commit")
         organ = _lived_provenance(source="organ", origin="organ")
         assert g._committed_emission_response(_settlement(
             content="warm", sections=["modifier"], n_commits=1,
             organ=True, commit_provenance=(organ,))) == (
-                "", "silence_no_commit")
+                "warm", "assemblage_commit")
 
         g.read_sentence("red fox runs warm", source="corpus")
         fact = g._compose_language_fact_settlement(("red", "fox"))
