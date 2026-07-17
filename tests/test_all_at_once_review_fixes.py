@@ -225,3 +225,30 @@ def test_teaching_outranks_conflicting_history(engine):
     settlement = g._compose_language_fact_settlement(["who", "are", "you"])
     content = getattr(settlement, "content", "") or ""
     assert "guala" in content.lower(), repr(content)
+
+
+def test_conversational_repeat_shifts_votes_autonomous_stays_strict(engine):
+    """GL-FIX-REPEAT-GUARD-20260717: same votes twice conversationally must
+    NOT repeat verbatim (shift down her own ranked votes); the autonomous
+    path keeps plain refusal once its composition is in the repeat window."""
+    from collections import Counter
+
+    votes = {"queries": ["sun"],
+             "merged": Counter({"sun": 9.0, "warm": 8.0, "morning": 7.0,
+                                "rises": 6.0, "light": 5.0, "sky": 4.0})}
+    deadline = time.monotonic() + 5.0
+    with engine.lock:
+        first = engine._compose_organism_attempt(
+            [{"words": ["sun"], "provenance": "test"}], deadline,
+            organism_votes=votes, conversational=True)
+        second = engine._compose_organism_attempt(
+            [{"words": ["sun"], "provenance": "test"}], deadline,
+            organism_votes=votes, conversational=True)
+        third = engine._compose_organism_attempt(
+            [{"words": ["sun"], "provenance": "test"}], deadline,
+            organism_votes=votes, conversational=False)
+    assert first is not None and first["content"] == "sun warm morning"
+    assert second is not None, "conversational repeat must shift, not refuse"
+    assert second["content"] != first["content"]
+    assert second["content"] == "warm morning rises"
+    assert third is None, "autonomous repeat must still refuse"

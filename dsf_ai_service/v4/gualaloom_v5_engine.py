@@ -12818,14 +12818,37 @@ class Guala:
                 "autonomous_organism_attempt", released=False,
                 stop_reason="no_seed_words")
             return None
-        top = [(str(w), float(v)) for w, v in merged.most_common(
-            ORGANISM_ATTEMPT_MAX_WORDS) if str(w).strip()]
+        ranked = [(str(w), float(v)) for w, v in merged.most_common(
+            ORGANISM_ATTEMPT_MAX_WORDS * 3) if str(w).strip()]
+        top = ranked[:ORGANISM_ATTEMPT_MAX_WORDS]
         if not top:
             self._log_substrate_event(
                 "autonomous_organism_attempt", released=False,
                 stop_reason="organism_empty", queries=queries)
             return None
         content = " ".join(w for w, _v in top)
+        # GL-FIX-REPEAT-GUARD-20260717 (conversational only): identical
+        # seeds vote deterministically, so the same question kept getting
+        # the same babble verbatim once the 8-deep window aged it out —
+        # or silence while it hadn't.  When the top composition would
+        # repeat a recent release, shift down her OWN ranked votes (drop
+        # the lead word, re-render from the next-strongest associations)
+        # up to twice.  Every variant is still her own vote result —
+        # variety pressure, not manufactured speech.  The autonomous path
+        # keeps plain refusal: broadcast spam suppression stays strict.
+        if conversational and content in self._recent_autonomous_releases:
+            for skip in range(1, 3):
+                alt = ranked[skip:skip + ORGANISM_ATTEMPT_MAX_WORDS]
+                if not alt:
+                    break
+                alt_content = " ".join(w for w, _v in alt)
+                if alt_content not in self._recent_autonomous_releases:
+                    top = alt
+                    content = alt_content
+                    self._log_substrate_event(
+                        "organism_attempt_vote_shift", skipped=skip,
+                        content=content[:80])
+                    break
         # Conversation barrier re-check (same F2 rule as tier 1): a human
         # turn counted while recall ran still wins. Skipped when this
         # attempt IS the reply to the pending turn (conversational
