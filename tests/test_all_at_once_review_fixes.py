@@ -207,3 +207,21 @@ def test_taught_correction_answers_the_question_next_time(engine):
         if hasattr(settlement, "content") else None
     content = getattr(settlement, "content", None) or text
     assert content and "guala" in str(content).lower(), content
+
+
+def test_teaching_outranks_conflicting_history(engine):
+    """2026-07-17: when lived history conflicts about a continuation, the
+    teacher's correction wins (a parent's correction outranks overheard
+    noise). Reproduces Joe's 'who are you' case: a historical window gives
+    a different continuation than the taught exchange."""
+    g = engine
+    # Historical conflicting testimony: sensory-bearing so it accretes.
+    g.read_sentence("who are you warm sun", source="corpus",
+                    experience_origin="observed")
+    # Teaching: the exchange through the correction gateway.
+    g.apply_teacher_correction(
+        original_input="who are you", her_emission="warm sun",
+        correct=False, corrected_text="i am guala", source="joe")
+    settlement = g._compose_language_fact_settlement(["who", "are", "you"])
+    content = getattr(settlement, "content", "") or ""
+    assert "guala" in content.lower(), repr(content)

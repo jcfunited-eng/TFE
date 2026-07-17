@@ -348,10 +348,32 @@ class DeterministicWindowComposer:
 
             successor_classes = {item[2] for item in recognized}
             if len(successor_classes) != 1:
-                return ContinuationResult(
-                    emitted_tokens=tuple(emitted),
-                    stop_reason=ContinuationStopReason.AMBIGUOUS_SUCCESSOR_CLASSES,
-                )
+                # 2026-07-17 (teaching authority): when lived history
+                # genuinely conflicts, the TEACHER'S testimony wins -- a
+                # correction-taught window carries the "teacher" modality
+                # in its citation, and successors cited by teacher windows
+                # override ambient conflicting continuations (a parent's
+                # correction outranks overheard noise). If the teacher-
+                # cited successors themselves agree on one class, the walk
+                # proceeds on them alone; a conflict AMONG teachings, or
+                # no teaching at all, still stops honestly.
+                teacher_recognized = [
+                    item for item in recognized
+                    if any(
+                        "teacher" in getattr(w, "modalities", ())
+                        for w in getattr(
+                            item[0].fact.provenance, "windows", ())
+                    )
+                ]
+                teacher_classes = {item[2] for item in teacher_recognized}
+                if len(teacher_classes) == 1:
+                    recognized = teacher_recognized
+                else:
+                    return ContinuationResult(
+                        emitted_tokens=tuple(emitted),
+                        stop_reason=(
+                            ContinuationStopReason.AMBIGUOUS_SUCCESSOR_CLASSES),
+                    )
 
             recognized_strands: dict[str, LanguageFactStrand] = {}
             provenances: dict[tuple[str, int], TokenEntryProvenance] = {}
