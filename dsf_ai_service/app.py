@@ -2512,6 +2512,17 @@ def _embedded_post_boot(g):
         _interleave = []
         if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
             _interleave.append(("worldfeed", _sr._world_feed_once))
+        # GL-CMD-AUTOMATED-TEACHING-20260717: gap study + tutor share the
+        # same study windows.  Registered HERE because _gl_init is the live
+        # boot path (boot_substrate() is the dead duplicate — same lesson
+        # as the babble fall-through: every runner feature must be wired
+        # on BOTH paths or it silently never runs in-process).  The slot
+        # functions operate on the live organism through the _sr._guala
+        # alias, exactly like _world_feed_once above.
+        if os.environ.get("GAP_STUDY_ENABLED", "1").strip() != "0":
+            _interleave.append(("gap_study", _sr._gap_study_once))
+        if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() != "0":
+            _interleave.append(("tutor", _sr._tutor_once))
         _sr._curriculum = CurriculumScheduler(
             state_dir=STATE_DIR,
             feed_chunk=_sr._curriculum_feed_chunk,
