@@ -123,7 +123,11 @@ def test_torn_file_wrong_tick_rejected():
     _hotcold_state(tmp)
     p = os.path.join(tmp, "guala_atlas.json")
     raw = json.load(open(p))
-    raw["saved_at_tick"] = raw["saved_at_tick"] + 7  # not the manifest value
+    # GL-FIXTURE-20260717: +7 falls inside the bounded intra-cycle write
+    # skew the validator now accepts as REAL same-save-cycle data
+    # (_INTRA_CYCLE_TICK_SKEW=1200, shipped 2026-07-16).  A torn/mixed
+    # save set means a tick from a DIFFERENT cycle — beyond the window.
+    raw["saved_at_tick"] = raw["saved_at_tick"] + 5000  # not the manifest value
     json.dump(raw, open(p, "w"))
     assert not _load(tmp)._load_successful
 
