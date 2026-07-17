@@ -395,3 +395,30 @@ def test_legacy_intra_cycle_forward_skew_accepted_but_mixed_eras_rejected():
     with pytest.raises(ValueError, match="more than one save cycle"):
         validate(_Legacy(), dict(envelope, saved_at_tick=3375632 + 1201),
                  "guala_teaching.json", 3375632)
+
+
+def test_prune_removes_invalid_generations_with_age_guard(tmp_path):
+    """GL-FIX-PRUNE-INVALID-GENERATIONS-20260717: a generation that fails
+    validation (mutated hard-linked files) is invisible to keep-N pruning
+    and to recovery — it must be removed once old enough, while a fresh
+    unlisted dir (a publish possibly racing us) survives."""
+    import os
+    import time as _time
+    from dsf_ai_service.substrate import atomic_state_generation as asg
+
+    state_dir = str(tmp_path)
+    gen_root = os.path.join(state_dir, "generations")
+    os.makedirs(gen_root)
+
+    old_bad = os.path.join(gen_root, "00000000-dead-beef-0000-000000000000")
+    os.makedirs(old_bad)  # no manifest -> never validates
+    two_hours_ago = _time.time() - 7200
+    os.utime(old_bad, (two_hours_ago, two_hours_ago))
+
+    fresh_bad = os.path.join(gen_root, "11111111-dead-beef-0000-000000000001")
+    os.makedirs(fresh_bad)  # also invalid, but too fresh to touch
+
+    asg.prune_generations(state_dir, keep=3, log=lambda *a, **k: None)
+
+    assert not os.path.exists(old_bad), "aged invalid generation must go"
+    assert os.path.exists(fresh_bad), "fresh dir must survive the age guard"

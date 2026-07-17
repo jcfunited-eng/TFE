@@ -326,6 +326,31 @@ def prune_generations(state_dir: str, keep: int = 3, log=print) -> None:
     gens = list_generations(state_dir)
     for gen_dir, _man in gens[keep:]:
         shutil.rmtree(gen_dir, ignore_errors=True)
+    # GL-FIX-PRUNE-INVALID-GENERATIONS-20260717: a generation whose
+    # hard-linked files were later mutated in place (appended WAL/segment
+    # stores share inodes with the flat set) fails _validate_generation,
+    # which made it invisible to BOTH the keep-N prune above and recovery
+    # — unrestorable disk garbage that accumulated forever (live: 14 of
+    # 17 generations, ~15GB pinned).  Anything unlisted, non-staging, and
+    # older than an hour is terminal: recovery can never use it (it only
+    # walks the validated list), so remove it.  The age guard protects a
+    # publish racing this prune from another process.
+    recognized = {os.path.basename(gen_dir) for gen_dir, _man in gens}
+    now = time.time()
+    for name in os.listdir(gen_root):
+        if name.startswith(STAGING_PREFIX) or name.startswith("."):
+            continue
+        path = os.path.join(gen_root, name)
+        if not os.path.isdir(path) or name in recognized:
+            continue
+        try:
+            age_s = now - os.path.getmtime(path)
+        except OSError:
+            continue
+        if age_s > 3600.0:
+            log(f"[gen] pruning invalid/unrestorable generation {name} "
+                f"(age {age_s / 3600.0:.1f}h)")
+            shutil.rmtree(path, ignore_errors=True)
 
 
 def _materialize_into(gen_dir: str, manifest: dict, state_dir: str,

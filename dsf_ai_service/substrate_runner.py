@@ -3052,6 +3052,34 @@ def _start_autonomous_emission_loop():
                             result = _guala.compose_autonomous(
                                 seed_attempts=seed_attempts,
                                 organism_votes=organism_votes)
+                        # GL-FIX-SECOND-CHANCE-SEEDS-20260717: live histogram
+                        # showed 7/8 autonomous attempts dying organism_empty —
+                        # window-derived seeds are sensory-frame dominated now
+                        # (5823 organism_experience_bound vs a handful of word
+                        # events in the same span), so the vote merge finds
+                        # nothing.  When the whole compose refused AND the
+                        # organism voted empty, retry ONCE with her most
+                        # recent READ sentence — her own reading life, not an
+                        # atlas dump (the documented regression class).
+                        if result is None:
+                            try:
+                                _m = (organism_votes or {}).get("merged")
+                                if (_m is None or not _m) and len(_GAP_ARCHIVE):
+                                    _fb = [{"words": list(_GAP_ARCHIVE)[-1]
+                                            .split()[:6],
+                                            "provenance":
+                                                "recent_reading_fallback"}]
+                                    _fb_votes = (
+                                        _guala.precompute_organism_attempt(_fb))
+                                    if _fb_votes and _fb_votes.get("merged"):
+                                        with _guala.lock:
+                                            result = _guala.compose_autonomous(
+                                                seed_attempts=_fb,
+                                                organism_votes=_fb_votes)
+                            except Exception as _sc_e:
+                                print(f"[autonomous] second-chance seeds "
+                                      f"failed (non-fatal): {_sc_e}",
+                                      flush=True)
                         if result is not None:
                             content = result["content"]
                             _guala.autonomous_emissions_count += 1

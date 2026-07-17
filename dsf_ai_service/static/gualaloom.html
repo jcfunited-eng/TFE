@@ -262,7 +262,7 @@ function _sendMicChunk(blob){
   const reader=new FileReader();
   reader.onload=()=>{
     const b64=reader.result.split(',')[1];
-    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000)
+    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},25000)
       .then(r=>r.json())
       .then(d=>{
         const status=document.getElementById('mic-status');
@@ -833,7 +833,7 @@ async function submitCorrection(){
     sensory_freetext:document.getElementById('cm-sensory').value.trim()||undefined};
   try{
     const r=await fetchT(`${API}/api/v1/teacher/correction`,{method:'POST',
-      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},10000);
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},30000);
     // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: same fix as
     // sendFeedback -- inspect the body, not just HTTP status, so a soft
     // {"error":...} response (emission_id didn't resolve) shows up honestly
