@@ -252,3 +252,28 @@ def test_conversational_repeat_shifts_votes_autonomous_stays_strict(engine):
     assert second["content"] != first["content"]
     assert second["content"] == "warm morning rises"
     assert third is None, "autonomous repeat must still refuse"
+
+
+def test_save_completes_when_picture_original_missing(engine, tmp_path):
+    """GL-FIX-SAVE-MISSING-ORIGINAL-20260717: one lost picture .jpg froze
+    EVERY full save live (15:07 incident). A missing ORIGINAL (display
+    artifact) must drop loudly and let the save complete — grid retained,
+    in-memory pointer cleared so the next save never re-references it.
+    Video assets stay strict."""
+    import numpy as np
+    from dsf_ai_service.v4.gualaloom_v5_engine import PictureItem
+
+    state_dir = str(tmp_path / "state")
+    pic = PictureItem(item_id="pmiss", title="lost original",
+                      intensity_grid=np.zeros((4, 4)))
+    pic.original_path = str(tmp_path / "gone.jpg")  # never created
+    with engine.lock:
+        engine._pictures["pmiss"] = pic
+
+    engine.save_full_state(state_dir)  # must not raise
+
+    assert pic.original_path == "", "dead reference must self-heal"
+    grid_dir = os.path.join(state_dir, "assets", "pictures")
+    assert os.path.isdir(grid_dir) and os.listdir(grid_dir), \
+        "grid (her actual visual experience) must persist"
+    engine.save_full_state(state_dir)  # second save also clean

@@ -14627,8 +14627,9 @@ class Guala:
         previous = os.path.join(state_dir, f".assets.{token}.previous")
         os.makedirs(staging)
         moved_previous = False
+        dropped_originals = []
         try:
-            for spec in picture_assets.values():
+            for pid, spec in picture_assets.items():
                 if spec["grid_path"]:
                     grid_target = os.path.join(staging, *spec["grid_path"].split("/")[1:])
                     os.makedirs(os.path.dirname(grid_target), exist_ok=True)
@@ -14637,6 +14638,26 @@ class Guala:
                         fh.flush()
                         os.fsync(fh.fileno())
                 if spec["original_path"]:
+                    # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: a picture
+                    # ORIGINAL lost from disk (live incident: one missing
+                    # .jpg aborted EVERY full save from 15:07 on, freezing
+                    # her durable state while runtime life accumulated
+                    # unsaved).  The original is a display artifact — her
+                    # actual visual experience is the grid, serialized
+                    # above from memory.  Drop the dead reference loudly
+                    # and let the save COMPLETE; the in-memory pointer is
+                    # cleared below so the next snapshot never re-references
+                    # it.  Video frames/audio stay strict: those ARE
+                    # experience content, and losing them must still fail
+                    # the save rather than pass silently.
+                    src = spec["source_original"]
+                    if not os.path.isfile(src) or os.path.islink(src):
+                        print(f"[save] WARNING: picture original missing, "
+                              f"dropping reference (grid retained): {src}",
+                              flush=True)
+                        dropped_originals.append(pid)
+                        spec["original_path"] = None
+                        continue
                     original_target = os.path.join(
                         staging, *spec["original_path"].split("/")[1:])
                     self._copy_regular_file(
@@ -14686,6 +14707,13 @@ class Guala:
                     if picture is not None and spec["original_path"]:
                         picture.original_path = os.path.join(
                             state_dir, *spec["original_path"].split("/"))
+                # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: dead references
+                # are cleared in memory too, so the next snapshot cannot
+                # re-reference a file that no longer exists.
+                for pid in dropped_originals:
+                    picture = self._pictures.get(pid)
+                    if picture is not None:
+                        picture.original_path = ""
                 for vid, spec in video_assets.items():
                     video = self._videos.get(vid)
                     if video is not None:
@@ -14712,6 +14740,7 @@ class Guala:
             elif moved_previous:
                 shutil.rmtree(previous, ignore_errors=True)
             raise
+        return dropped_originals
 
     def _media_assets_are_current(
             self, state_dir, picture_assets, video_assets):
@@ -14949,8 +14978,13 @@ class Guala:
 
         if not self._media_assets_are_current(
                 state_dir, picture_assets, video_assets):
-            self._materialize_media_assets(
+            _dropped = self._materialize_media_assets(
                 state_dir, picture_assets, video_assets)
+            # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: this cycle's records
+            # must not reference an original that was just dropped.
+            for _pid in _dropped or ():
+                if _pid in pictures_ser:
+                    pictures_ser[_pid]["original_path"] = None
 
         # GL-CMD-HOTLANE-DIET-102: survival history is cold-only; hot save skips it.
         # snap_core["data"]["deep_survival_history"] remains None (backward-compat field).
@@ -15248,8 +15282,13 @@ class Guala:
                 self.window_manager.snapshot_incremental())
         # ── lock released ──
 
-        self._materialize_media_assets(
+        _dropped = self._materialize_media_assets(
             state_dir, picture_assets, video_assets)
+        # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: this cycle's records
+        # must not reference an original that was just dropped.
+        for _pid in _dropped or ():
+            if _pid in pictures_ser:
+                pictures_ser[_pid]["original_path"] = None
 
         # ── T1.2: Regression sanity check — refuse to overwrite richer state ──
         # GL-CMD-HOTLANE-DIET-102: read vocab_count from guala_bucket.json (~1KB)
