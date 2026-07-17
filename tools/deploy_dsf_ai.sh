@@ -953,6 +953,31 @@ if [ "${SLEEP_HTTP}" != "200" ]; then
     # The 503 body carries the runtime's actual refusal reason and lifecycle
     # snapshot; without it a failed seal is undiagnosable (2026-07-15).
     echo "       seal response body: ${SLEEP_BODY}"
+    # GL-FIX-SEAL-REFUSAL-NOT-AMBIGUOUS-20260717: the fail-closed trap exists
+    # for AMBIGUOUS outcomes (timeout, dropped connection — "did the runtime
+    # cross its irreversible boundary?").  A parsed refusal that proves the
+    # runtime is still RUNNING with no certificate is the opposite of
+    # ambiguous: nothing sealed, the owner is untouched and healthy.  Tonight
+    # this trap stopped a healthy owner twice on clean refusals (once mid-
+    # restore), each time forcing a full fail-back + ~35-minute re-init.
+    # Explicit refusal -> leave the live owner alone.  Anything that does not
+    # parse to that exact proof stays fail-closed.
+    if printf '%s' "${SLEEP_BODY}" | python3 -c '
+import json, sys
+try:
+    v = json.load(sys.stdin)
+except Exception:
+    raise SystemExit(1)
+clean_refusal = (v.get("ok") is False
+                 and isinstance(v.get("lifecycle"), dict)
+                 and v["lifecycle"].get("state") == "RUNNING"
+                 and not v["lifecycle"].get("certificate"))
+raise SystemExit(0 if clean_refusal else 1)
+' 2>/dev/null; then
+        echo "[turnover] Clean refusal proven (owner RUNNING, no certificate);"
+        echo "           leaving the live owner untouched."
+        OWNER_FAIL_CLOSED=0
+    fi
     exit 1
 fi
 
