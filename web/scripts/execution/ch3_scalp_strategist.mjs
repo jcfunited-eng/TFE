@@ -42,6 +42,18 @@ const ALPACA_DATA = "https://data.alpaca.markets";
 
 // ── CH3 constants ─────────────────────────────────────────────────────────
 const CH3_BAR_COUNT_MIN    = 21;
+// Safety backstop well above the ~2,100-ticker Accumulate universe; if it
+// ever binds the hunter logs it loudly instead of silently truncating.
+const CH3_CANDIDATE_POOL_CAP = 4000;
+// Alpaca snapshot endpoint: symbols ride in the URL, so batch to keep each
+// request comfortably under URL-length limits.
+export const CH3_SNAPSHOT_BATCH_SIZE = 100;
+
+export function chunkSymbols(tickers, size = CH3_SNAPSHOT_BATCH_SIZE) {
+  const out = [];
+  for (let i = 0; i < tickers.length; i += size) out.push(tickers.slice(i, i + size));
+  return out;
+}
 const CH3_POOL_TOTAL       = 5000;
 const CH3_MAX_PER_TRADE    = 2500;
 const CH3_DAILY_LOSS_LIMIT = 1000;
@@ -151,9 +163,18 @@ async function fetchCandidateRows() {
        AND r.ticker NOT LIKE 'X:%'
        AND r.decision_label = 'Accumulate'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
-     LIMIT 100`,
-    [CH3_BAR_COUNT_MIN - 1]
+     ORDER BY r.ticker
+     LIMIT $2`,
+    [CH3_BAR_COUNT_MIN - 1, CH3_CANDIDATE_POOL_CAP]
   );
+  // The old LIMIT 100 (no ORDER BY) fed the hunter an arbitrary ~alphabetical
+  // 100 of 2,118 eligible tickers — every entry ever taken was an A-name.
+  // The cap is now a loud safety backstop, not a silent selector.
+  if (res.rows.length >= CH3_CANDIDATE_POOL_CAP) {
+    console.warn(
+      `[CH3-HUNTER] POOL CAP BOUND — universe exceeds ${CH3_CANDIDATE_POOL_CAP} rows, tail dropped alphabetically. Raise CH3_CANDIDATE_POOL_CAP.`
+    );
+  }
   return res.rows;
 }
 
@@ -222,18 +243,26 @@ async function fetchIntradayMomentum(tickers) {
   const openMins   = 13 * 60 + 30;  // 13:30 UTC = 9:30 AM ET
   const elapsed    = Math.max(1, utcMins - openMins);
 
-  // Batch snapshot — one call for all candidates
-  const url = `${ALPACA_DATA}/v2/stocks/snapshots?symbols=${encodeURIComponent(tickers.join(","))}&feed=iex`;
-  let snapshots;
-  try {
-    const res = await fetch(url, { headers: alpacaHeaders() });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+  // Batched snapshots — a failed batch drops only its own tickers
+  const snapshots = {};
+  let failedBatches = 0;
+  const batches = chunkSymbols(tickers);
+  for (let b = 0; b < batches.length; b++) {
+    const url = `${ALPACA_DATA}/v2/stocks/snapshots?symbols=${encodeURIComponent(batches[b].join(","))}&feed=iex`;
+    try {
+      const res = await fetch(url, { headers: alpacaHeaders() });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+      }
+      Object.assign(snapshots, await res.json());
+    } catch (err) {
+      failedBatches++;
+      console.error(`[CH3-HUNTER] Snapshot batch ${b + 1}/${batches.length} failed (${batches[b].length} tickers): ${err.message}`);
     }
-    snapshots = await res.json();
-  } catch (err) {
-    console.error(`[CH3-HUNTER] Snapshot fetch failed: ${err.message}`);
+  }
+  if (failedBatches === batches.length && batches.length > 0) {
+    console.error(`[CH3-HUNTER] All ${batches.length} snapshot batches failed — no momentum data this pass`);
     return new Map();
   }
 
@@ -349,16 +378,20 @@ export async function getCh3Signals() {
   // Step 3: live intraday momentum scoring via Alpaca snapshot
   const momentumMap = await fetchIntradayMomentum(available.map(s => s.ticker));
 
+  // Per-ticker lines only for HOT — a full-universe pass (~2k tickers)
+  // would otherwise print thousands of COLD lines per day.
   const hot = [];
+  let coldCount = 0;
+  let noSnapCount = 0;
   for (const s of available) {
     const m = momentumMap.get(s.ticker);
     if (!m) {
-      console.log(`[CH3-HUNTER]   ${s.ticker} — skip (no snapshot data)`);
+      noSnapCount++;
       continue;
     }
     const tag = `day=${(m.day_pct*100).toFixed(2)}% open_mom=${(m.momentum_pct*100).toFixed(2)}% rvol=${m.rvol.toFixed(2)}x gap=${(m.gap_pct*100).toFixed(2)}%`;
     if (!m.passes) {
-      console.log(`[CH3-HUNTER]   ${s.ticker} — COLD: ${tag}`);
+      coldCount++;
       continue;
     }
     console.log(`[CH3-HUNTER]   ${s.ticker} — HOT:  ${tag} score=${m.score.toFixed(4)}`);
@@ -366,6 +399,7 @@ export async function getCh3Signals() {
     s.price    = m.current_price;  // use live price, not stale snapshot
     hot.push(s);
   }
+  console.log(`[CH3-HUNTER] Scored ${available.length}: ${hot.length} HOT | ${coldCount} COLD | ${noSnapCount} no-snapshot`);
 
   if (!hot.length) {
     console.log("[CH3-HUNTER] No stocks passing momentum gates today");
