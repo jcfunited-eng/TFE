@@ -3869,6 +3869,14 @@ class Guala:
             if self._recognition_call_count % RECOGNITION_EVERY_N_WORDS == 0:
                 surprise = self._recognition_from_organism(word)
                 self._last_surprise = surprise
+                # GL-CMD-AUTOMATED-TEACHING-20260717: only FRESH recognition
+                # measurements record gaps — never the carried-over value.
+                try:
+                    from dsf_ai_service.substrate.knowledge_gap_ledger import (
+                        record_recognition_miss)
+                    record_recognition_miss(word, surprise)
+                except Exception:
+                    pass
             else:
                 surprise = self._last_surprise
             _prof_t0 = _prof_mark("recognition", _prof_t0)
@@ -4800,6 +4808,18 @@ class Guala:
                 memory_strands=memory_strand_count,
                 ordered_windows=ordered_window_count,
             )
+        except Exception:
+            pass
+        # GL-CMD-AUTOMATED-TEACHING-20260717: a refusal here is the honest
+        # knowledge-GAP signal — she reached to speak and a word/path was
+        # missing.  The ledger feeds the gap-study + tutor slots.
+        try:
+            from dsf_ai_service.substrate.knowledge_gap_ledger import (
+                record_compose_refusal)
+            record_compose_refusal(
+                continuation.stop_reason.value
+                if continuation.stop_reason else None,
+                list(words))
         except Exception:
             pass
 

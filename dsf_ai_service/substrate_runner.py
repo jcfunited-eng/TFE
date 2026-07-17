@@ -371,6 +371,13 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
                 _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
                 _rate_window.append(time.time())
+                # GL-CMD-AUTOMATED-TEACHING-20260717: tee what she actually
+                # read into the bounded concordance archive — the material
+                # pool for gap-study and tutor items.  Environment
+                # bookkeeping (her library's recent pages), not her memory.
+                # Gap-study re-feeds are not teed back (no self-echo).
+                if event_type != "gap_study":
+                    _GAP_ARCHIVE.append(sent)
             except Exception:
                 pass
     finally:
@@ -468,6 +475,114 @@ def _world_feed_once():
               "rotation": wf.rotation_status()}
         _WORLD_FEED_STATE["last_status"] = st
         print(f"[worldfeed] {feed['name']} {query!r}: n_fed={n_fed} organ+={learned}")
+        return st
+    except Exception as e:
+        return {"state": "error", "error": str(e)}
+
+
+# ── GL-CMD-AUTOMATED-TEACHING-20260717: gap study + autonomous tutor ──
+# Joe's order ("there is supposed to be automated teaching and it should
+# study gaps").  Two new interleave slots in the one study scheduler:
+#   gap_study — the ledger's top reached-for-and-missing words, re-studied
+#     through real sentences from her own recent reading (concordance),
+#     fed through the SAME gated path as books (block schedule + rate cap).
+#   tutor — teach → ask → correct: present a stem from a real sentence,
+#     take her REAL answer (converse, source="curriculum"), grade against
+#     the sentence's actual continuation, correct through the one real
+#     teacher gateway.  Exactly Joe's manual flow, automated.
+from collections import deque as _deque
+_GAP_ARCHIVE = _deque(maxlen=int(
+    os.environ.get("GAP_ARCHIVE_SENTENCES", "4000") or 4000))
+_TUTOR_STATE = {"rotation": 0, "last_status": {}}
+
+
+def _gap_study_once():
+    """Study the top knowledge gaps via concordance over her own reading."""
+    if os.environ.get("GAP_STUDY_ENABLED", "1").strip() == "0":
+        return {"state": "off"}
+    try:
+        from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
+        ledger = get_ledger(STATE_DIR)
+        gaps = ledger.top_gaps(6)
+        if not gaps:
+            return {"state": "no_gaps"}
+        material, covered = [], []
+        for gw in gaps:
+            hits = [s for s in _GAP_ARCHIVE
+                    if gw in s.lower().split()][:4]
+            if hits:
+                material.extend(hits)
+                covered.append(gw)
+        if not material:
+            return {"state": "no_material", "gaps": gaps}
+        n_fed, _ = _curriculum_feed_chunk(
+            material[:20], event_type="gap_study",
+            event_key=",".join(covered[:4]))
+        for gw in covered:
+            ledger.mark_addressed(gw)
+        try:
+            _guala._log_substrate_event("gap_study", words=covered,
+                                        n_fed=n_fed, n_gaps_open=len(gaps))
+        except Exception:
+            pass
+        st = {"state": "studied", "words": covered, "n_fed": n_fed}
+        print(f"[gap-study] words={covered} n_fed={n_fed}")
+        return st
+    except Exception as e:
+        return {"state": "error", "error": str(e)}
+
+
+def _tutor_once():
+    """One automated teach → ask → correct exchange."""
+    if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() == "0":
+        return {"state": "off"}
+    try:
+        if _current_block() in _SUPPRESSED_BLOCKS:
+            return {"state": "block_suppressed", "block": _current_block()}
+        # Never collide with an in-flight human turn — Joe's conversation
+        # always outranks the tutor's quiz.
+        if getattr(_guala, "_live_converse_pending", 0):
+            return {"state": "deferred_live_turn"}
+        from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
+        from dsf_ai_service.substrate.autonomous_tutor import (
+            pick_tutor_item, judge_attempt)
+        ledger = get_ledger(STATE_DIR)
+        cap = int(os.environ.get("TUTOR_MAX_TEACHES_PER_DAY", "40") or 40)
+        if ledger.tutor_teaches_today() >= cap:
+            return {"state": "daily_cap", "cap": cap}
+        item = pick_tutor_item(ledger.top_gaps(8), list(_GAP_ARCHIVE),
+                               rotation=_TUTOR_STATE["rotation"])
+        _TUTOR_STATE["rotation"] += 1
+        if item is None:
+            return {"state": "no_material"}
+        # Her REAL answer: same path as a typed question (certified strand
+        # first, honest babble fall-through, or silence).
+        r = _cmd_converse(item["stem"], source="curriculum")
+        attempt = (r or {}).get("response", "") or ""
+        correct = judge_attempt(attempt, item["expected"])
+        _guala.apply_teacher_correction(
+            original_input=item["stem"],
+            her_emission=attempt,
+            correct=correct,
+            expected_response=None if correct else item["expected"],
+            source="curriculum")
+        ledger.record_tutor_teach()
+        if item.get("gap_word"):
+            ledger.mark_addressed(item["gap_word"])
+        try:
+            _guala._log_substrate_event(
+                "tutor_exchange", stem=item["stem"], attempt=attempt,
+                expected=item["expected"], correct=correct,
+                gap_word=item.get("gap_word"),
+                teaches_today=ledger.tutor_teaches_today())
+        except Exception:
+            pass
+        st = {"state": "exchange", "stem": item["stem"], "attempt": attempt,
+              "expected": item["expected"], "correct": correct,
+              "gap_word": item.get("gap_word")}
+        _TUTOR_STATE["last_status"] = st
+        print(f"[tutor] stem={item['stem']!r} attempt={attempt!r} "
+              f"expected={item['expected']!r} correct={correct}")
         return st
     except Exception as e:
         return {"state": "error", "error": str(e)}
@@ -840,6 +955,12 @@ def boot_substrate():
         _interleave = []
         if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
             _interleave.append(("worldfeed", _world_feed_once))
+        # GL-CMD-AUTOMATED-TEACHING-20260717: gap study + tutor share the
+        # same reliable study windows (all-at-once doctrine: ON by default).
+        if os.environ.get("GAP_STUDY_ENABLED", "1").strip() != "0":
+            _interleave.append(("gap_study", _gap_study_once))
+        if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() != "0":
+            _interleave.append(("tutor", _tutor_once))
         _curriculum = CurriculumScheduler(
             state_dir=STATE_DIR,
             feed_chunk=_curriculum_feed_chunk,
@@ -1203,7 +1324,17 @@ def handle_gualaloom_post(args):
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}
-        return {"response": json.dumps(_curriculum.status()), "curriculum": _curriculum.status()}
+        _cur_st = _curriculum.status()
+        # GL-CMD-AUTOMATED-TEACHING-20260717: surface the gap ledger and
+        # tutor state alongside the study schedule — one honest window
+        # into what she's being taught and what she's missing.
+        try:
+            from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
+            _cur_st["knowledge_gaps"] = get_ledger(STATE_DIR).status()
+            _cur_st["tutor_last"] = _TUTOR_STATE.get("last_status", {})
+        except Exception:
+            pass
+        return {"response": json.dumps(_cur_st), "curriculum": _cur_st}
     elif command == "/curriculum_now":
         # force one study step now (validation aid); ignores the interval gate
         if _curriculum is None:
@@ -1963,7 +2094,11 @@ def _cmd_converse(text, source, emission_mode=None):
     if not text:
         return {"response": "", "motifs": _guala.introspect()["vocab"],
                 "response_source": "silence_empty_input"}
-    if source not in {"joe", "wc", "c1"}:
+    # GL-CMD-AUTOMATED-TEACHING-20260717: "curriculum" is the tutor's own
+    # honest identity — presence-exempt (engine keepalive no-ops for it),
+    # background dwell, teacher weight 0.7 vs joe's 1.6.  It must never
+    # masquerade as joe: coercing it would fake Joe's presence.
+    if source not in {"joe", "wc", "c1", "curriculum"}:
         source = "joe"
     # GL-CMD-CROSS-MODAL-BUNDLE: auto-bundle words spoken while attending a sensory item.
     # Uses // 100 windowing so words close in time at the same target share one bundle.
