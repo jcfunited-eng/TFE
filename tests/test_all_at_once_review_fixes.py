@@ -300,3 +300,24 @@ def test_healed_oob_prune_accepts_small_rejects_mass(engine):
         engine.atlas.entries[0].append(
             {"section": sec, "motif": n_modes + 1000 + i, "strength": 0.5})
     assert not engine._validate_integrity(), "mass overflow must stay fatal"
+
+
+def test_present_cadence_speaks_despite_railed_needs(engine):
+    """GL-CMD-PRESENT-CADENCE-20260718: with a human present, the cadence
+    speaks on wall-clock regardless of valence sign — the flourish-only
+    urgency was structurally false with railed meters (valence pinned
+    negative, connection zero). Min-gap still throttles."""
+    import time as _t
+    engine.coordinator._presence["joe"] = True
+    engine.needs.valence = lambda: -0.1  # railed negative, as live
+    engine._last_autonomous_emission_wall = 0.0
+    engine._last_converse_wall = 0.0
+    assert engine._should_attempt_autonomous_emission(), \
+        "presence + elapsed cadence must open the gate"
+    engine._last_autonomous_emission_wall = _t.monotonic()
+    assert not engine._should_attempt_autonomous_emission(), \
+        "min-gap must still throttle right after an emission"
+    engine.coordinator._presence["joe"] = False
+    engine._last_autonomous_emission_wall = 0.0
+    assert not engine._should_attempt_autonomous_emission(), \
+        "nobody present -> no autonomous speech (unchanged)"
