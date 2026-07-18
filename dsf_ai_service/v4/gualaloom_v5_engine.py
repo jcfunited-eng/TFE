@@ -1272,6 +1272,28 @@ TTS_MAX_CHARS = 200
 NOVELTY_HISTORY_MAX = 20
 NOVELTY_RISE_MIN = 0.003
 
+# GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 Step 4 (curiosity):
+# the emission gate's derivative branch now differentiates the reading-
+# prediction ledger's accuracy_when_covered daily curve — her own
+# next-word predictor graded against genuinely held-out ground truth,
+# the quantity class Schmidhuber/Oudeyer's formal models actually
+# describe — instead of needs.novelty (a Berlyne stimulus-exposure
+# rate, which keeps its honest homeostat role but was the wrong class
+# to carry those citations). Day bins are created only by real graded
+# predictions (no zero-fill, no calendar motion), so the guard below
+# is an event-count guard: the gate stays closed — honest cold-start
+# silence — until the curve holds LPROG_MIN_DAYS recorded days.
+LPROG_MIN_DAYS = 4
+# LIVE-CALIBRATE: one percentage point of 2-day-vs-2-day accuracy rise;
+# each daily point aggregates thousands of real gradings (6,501 on
+# day one, live), so 1pp is far above bin noise. The inverted-U band
+# (Loewenstein 1994 / Berlyne 1960, applied to the accuracy axis)
+# keeps the gate closed at both extremes: no gap formed / unlearnable
+# at the bottom, mastered at the top.
+LPROG_RISE_MIN = 0.01
+LPROG_LOW_MASTERY = 0.15
+LPROG_HIGH_MASTERY = 0.90
+
 # GL-CMD-TEACHER-SUBSTRATE-TRUE: tick-window cap for emission records
 # = ln(1/FORGETTING_THRESHOLD) / (DECAY_LAMBDA / SLOW_DIV)
 # = ln(50) / 8.33e-6 ≈ 469_443 ticks (≈ 48h at current tick rate)
@@ -12590,22 +12612,45 @@ class Guala:
 
         # 2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT (Schmidhuber
         # 1991/2010 compression-progress; Oudeyer & Kaplan 2007 learning-
-        # progress intrinsic motivation): a sustained novelty LEVEL just
-        # means "under-stimulated" -- indistinguishable from idle chatbot
-        # filler. The real trigger is the RATE novelty is moving. Record
-        # this check's sample, then require a real net rise across the
-        # recent bounded window (see NOVELTY_HISTORY_MAX/NOVELTY_RISE_MIN
-        # above) instead of a flat >0.85 threshold. tick_drift() pulls
-        # novelty DOWN every autonomy-loop iteration absent real
-        # reinforcement, so any real net rise here already means
-        # something genuinely counteracted that drift.
-        self._novelty_history.append((self.tick, needs.get("novelty", 0.0)))
-        novelty_rising = False
-        if len(self._novelty_history) >= 2:
-            oldest_tick, oldest_novelty = self._novelty_history[0]
-            newest_tick, newest_novelty = self._novelty_history[-1]
-            if newest_tick > oldest_tick:
-                novelty_rising = (newest_novelty - oldest_novelty) >= NOVELTY_RISE_MIN
+        # progress intrinsic motivation): the trigger is a RATE, never a
+        # level. GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 Step 4:
+        # the differentiated quantity is now the reading-prediction
+        # ledger's accuracy_when_covered daily curve — a real predictor
+        # graded against held-out ground truth, which is what those
+        # citations formally describe — replacing needs.novelty (a
+        # Berlyne stimulus-exposure rate; it keeps its homeostat role).
+        # Oudeyer's two-adjacent-sub-window learning progress, sign-
+        # flipped to an accuracy rise, on a 7-day window with 2-day
+        # smoothing: fewer but far higher-N samples than Oudeyer's
+        # per-action tau~15 (each day aggregates thousands of real
+        # gradings). Inverted-U band per Loewenstein/Berlyne on the
+        # accuracy axis. Closed until >= LPROG_MIN_DAYS recorded days
+        # exist (event-count guard; days form only from real gradings).
+        # Tick-bounded cache: the curve is DAY-granular, so re-reading the
+        # ledger (a lock + file-backed singleton) on every gate call buys
+        # nothing and costs real time on the hot path — the exact per-tick
+        # cost class that caused the 2026-07-07 wave-summary tick-rate
+        # collapse. Recompute at most every 1000 ticks; a failed read also
+        # caches False for the window instead of retrying every call.
+        _lp = getattr(self, "_lprog_cache", None)
+        if _lp is not None and self.tick - _lp[0] < 1000:
+            learning_progress_rising = _lp[1]
+        else:
+            learning_progress_rising = False
+            try:
+                from dsf_ai_service.substrate.reading_prediction_ledger import (
+                    get_ledger)
+                _acc = [d.get("accuracy_when_covered", 0.0)
+                        for d in get_ledger().status().get("curve", [])]
+                if len(_acc) >= LPROG_MIN_DAYS:
+                    _recent = sum(_acc[-2:]) / 2.0
+                    _prior = sum(_acc[-4:-2]) / 2.0
+                    learning_progress_rising = (
+                        (_recent - _prior) >= LPROG_RISE_MIN
+                        and LPROG_LOW_MASTERY < _recent < LPROG_HIGH_MASTERY)
+            except Exception:
+                learning_progress_rising = False
+            self._lprog_cache = (self.tick, learning_progress_rising)
 
         # Valence/stability gates (Sterling 2012 allostasis; Berridge &
         # Robinson 1998 incentive salience): rising novelty under negative
@@ -12618,7 +12663,7 @@ class Guala:
         urgency = (
             needs.get("dream_pressure", 0) > 0.30 or
             needs.get("connection", 0) > 0.70 or
-            (novelty_rising and needs.get("arousal", 0) > 0.50
+            (learning_progress_rising and needs.get("arousal", 0) > 0.50
              and valence_ok and stability_ok)
         )
         return urgency
