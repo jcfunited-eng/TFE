@@ -1084,6 +1084,17 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
+# GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-1 backstop: two
+# candidates whose salience differs by less than this express no real
+# scored preference, so the tie may be broken by recency instead of
+# letting descending tuple comparison pick the same (kind, target)
+# forever (the -181 failure class, 590+ consecutive identical picks).
+# 0.005 sits below the smallest deliberate score separation in the
+# tables (ATTENDING presence boost 0.015; EMITTING presence boost 0.05;
+# baseline 0.01) so a genuine preference is never treated as a tie, and
+# far above the 4-dp metadata rounding.
+SALIENCE_TIE_EPSILON = 0.005
+
 # GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: how often, within a single
 # PLAYING activity, _atick_playing checks for a real, already-known
 # picture+word pairing to revisit (see docs/GL-DES-ENGINE-PLAY-WORLD-V0-
@@ -10735,6 +10746,23 @@ class Guala:
             fresh = self._reading_freshness_from_organism(c)
             if fresh is None:
                 fresh = 0.5  # neutral: no organism signal available yet
+            # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-1: the
+            # organism sample judges a whole corpus by 3 words of its
+            # first 5 lines and can be confidently WRONG (seam-3 risk,
+            # named in its own docstring) — and it carries no per-corpus
+            # repeat penalty at all, which is how one corpus was read
+            # 2,347+ consecutive times while still scoring fresh. Blend
+            # in the still-live times_read_through/last_read_tick record
+            # through the same _habituation_freshness curve every
+            # ATTENDING_* kind already uses: repeat exposure genuinely
+            # lowers a corpus's freshness, disuse lets it recover, and
+            # because the counters differ per corpus the bit-for-bit tie
+            # the 3-word sample can produce is structurally broken.
+            # Blended HERE (the caller), not inside _reading_freshness_
+            # from_organism, so the repeat term also covers the no-text
+            # None→0.5 edge and the organism signal stays pure.
+            fresh *= self._habituation_freshness(
+                c.times_read_through, self.tick - c.last_read_tick)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"] * (1.0 - fresh))
         elif kind == "ATTENDING" and target in self._sensory_items:
@@ -10881,6 +10909,27 @@ class Guala:
         score += 0.01  # baseline
         return score
 
+    def _lru_recency_tick(self, kind, target):
+        """GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-1 backstop:
+        the last tick this specific target was genuinely read/attended,
+        or None for targetless kinds (IDLE/PLAYING/SLEEPING/EMITTING) and
+        unknown targets. Per-kind field dispatch mirrors the exact access
+        patterns _action_salience already uses (sounds are dicts, the
+        rest are attribute-bearing)."""
+        if target is None:
+            return None
+        if kind == "READING" and target in self._corpora:
+            return self._corpora[target].last_read_tick
+        if kind == "ATTENDING" and target in self._sensory_items:
+            return self._sensory_items[target].last_attended_tick
+        if kind == "ATTENDING_VISUAL" and target in self._pictures:
+            return self._pictures[target].last_attended_tick
+        if kind == "ATTENDING_AUDIO" and target in self._sounds:
+            return self._sounds[target].get("last_attended_tick", 0)
+        if kind == "ATTENDING_VIDEO" and target in self._videos:
+            return self._videos[target].last_attended_tick
+        return None
+
     def _select_next_activity(self):
         # UNPAUSE: forced activity override (used by force_dream endpoint)
         if hasattr(self, '_force_next_activity') and self._force_next_activity:
@@ -10917,6 +10966,25 @@ class Guala:
         scored = [(self._action_salience(k, t), k, t) for k, t in candidates]
         scored.sort(reverse=True)
         score, kind, target = scored[0]
+        # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-1 backstop:
+        # scored.sort(reverse=True) breaks exact ties by descending tuple
+        # comparison on (kind, target) — deterministically the same pick
+        # forever (the -181 failure class). Within SALIENCE_TIE_EPSILON
+        # of the top, salience expresses no real preference, so prefer
+        # the least-recently-touched real target instead. Targetless
+        # kinds never win a tie-break (rotating real content is the
+        # point, and SLEEPING's genuinely-urgent case never rides a tie:
+        # dream_pressure adds up to +0.15 and the 1.0 ceiling bypasses
+        # scoring entirely above); if every tied candidate is targetless,
+        # scored[0] stands unchanged.
+        _tied = [(s, k, t) for s, k, t in scored
+                 if score - s <= SALIENCE_TIE_EPSILON]
+        if len(_tied) > 1:
+            _lru = [(self._lru_recency_tick(k, t), s, k, t)
+                    for s, k, t in _tied]
+            _lru = [e for e in _lru if e[0] is not None]
+            if _lru:
+                _, score, kind, target = min(_lru, key=lambda e: e[0])
         budget = ACTIVITY_TICK_BUDGETS.get(kind, 500)
         # GL-CMD-ATTEND-GROOVE-107 Part A: read-only evidence capture only —
         # no change to candidates, scoring, or selection.
