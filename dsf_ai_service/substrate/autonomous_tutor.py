@@ -79,11 +79,17 @@ def pick_tutor_item(gap_words, archive_sentences, rotation=0):
     if not eligible:
         return None
     sent = eligible[rotation % len(eligible)]
-    split = split_stem(_words(sent))
-    if not split:
+    sw = _words(sent)
+    # GL-CMD-SYNTAX-TUTOR-20260718: rotate the stem CUT as well as the
+    # sentence, so successor statistics get teaching pressure at every
+    # position — order drilling, not just first-word recall.
+    n = len(sw)
+    lo, hi = 2, min(MAX_STEM_WORDS, n - 1)
+    cut = lo + (rotation // max(1, len(eligible))) % max(1, hi - lo + 1)
+    if cut >= n:
         return None
-    return {"stem": " ".join(split[0]),
-            "expected": " ".join(split[1]),
+    return {"stem": " ".join(sw[:cut]),
+            "expected": " ".join(sw[cut:]),
             "sentence": sent, "gap_word": None}
 
 
@@ -99,3 +105,31 @@ def judge_attempt(attempt_text, expected_text):
     if not expected:
         return False
     return bool(attempt) and expected[0] in attempt[:3]
+
+
+def judge_attempt_detail(attempt_text, expected_text):
+    """GL-CMD-SYNTAX-TUTOR-20260718 (Joe: "syntax guidance as well as
+    grading"): classify the attempt so the correction can target WORD
+    ORDER, not just word choice.
+
+    verdicts:
+      correct           — began the true continuation
+      wrong_order       — she has the right words but scrambled: half or
+                          more of the expected words appear in her attempt,
+                          yet it does not begin correctly.  This is a
+                          SYNTAX failure, not a vocabulary failure.
+      wrong             — everything else (silence included)
+    """
+    attempt = _words(attempt_text)
+    expected = _words(expected_text)
+    if not expected or not attempt:
+        return {"verdict": "wrong", "overlap": 0}
+    overlap = len(set(attempt) & set(expected))
+    # Position-exact for syntax: "correct" means the continuation BEGINS
+    # correctly — stricter than judge_attempt's vocabulary-era leniency
+    # (expected word merely somewhere in her first three).
+    if attempt[0] == expected[0]:
+        return {"verdict": "correct", "overlap": overlap}
+    if expected[0] in attempt[:3] or overlap * 2 >= len(expected):
+        return {"verdict": "wrong_order", "overlap": overlap}
+    return {"verdict": "wrong", "overlap": overlap}

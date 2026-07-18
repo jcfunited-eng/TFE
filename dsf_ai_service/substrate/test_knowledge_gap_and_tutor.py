@@ -190,3 +190,32 @@ def test_tutor_exchange_wires_gateway_like_manual_flow(tmp_path, monkeypatch):
     assert kw["original_input"] == "a little fish"
     assert ledger.tutor_teaches_today() == 1
     assert "swims" not in ledger.top_gaps(5)
+
+
+def test_judge_attempt_detail_classifies_syntax_failures():
+    """GL-CMD-SYNTAX-TUTOR-20260718: right-words-wrong-order is a SYNTAX
+    verdict, distinct from plain wrong."""
+    from dsf_ai_service.substrate.autonomous_tutor import judge_attempt_detail
+
+    assert judge_attempt_detail("sails on water",
+                                "sails on water")["verdict"] == "correct"
+    assert judge_attempt_detail("water on sails",
+                                "sails on water")["verdict"] == "wrong_order"
+    assert judge_attempt_detail("boat boat boat",
+                                "sails on water")["verdict"] == "wrong"
+    assert judge_attempt_detail("", "sails on water")["verdict"] == "wrong"
+
+
+def test_fallback_stem_cut_rotates_positions():
+    """Order drilling: repeated passes over the same archive quiz the same
+    sentence at DIFFERENT stem positions."""
+    from dsf_ai_service.substrate.autonomous_tutor import pick_tutor_item
+
+    archive = ["the little boat sails on the water"]
+    cuts = set()
+    for rotation in range(0, 6):
+        item = pick_tutor_item([], archive, rotation=rotation)
+        cuts.add(len(item["stem"].split()))
+        assert (item["stem"] + " " + item["expected"]).split() == \
+            "the little boat sails on the water".split()
+    assert len(cuts) >= 3, f"stem positions must rotate, got {cuts}"

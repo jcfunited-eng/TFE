@@ -4964,6 +4964,68 @@ class Guala:
                 verified_words.append(item.word)
         return settlement.content == " ".join(verified_words)
 
+    _READING_PREDICTION_SOURCES = frozenset(
+        {"corpus", "curriculum", "worldfeed", "gap_study"})
+
+    def _maybe_reading_prediction(self, text, source, teaching):
+        """GL-CMD-SYNTAX-ARC-20260718 Piece 1: the syntax-fuel instrument.
+
+        Every sentence she reads is free ground truth.  Every Nth eligible
+        background-reading sentence (READING_PREDICTION_SAMPLE, default 4),
+        take a stem, ask the CACHED certified composer for the continuation
+        she would produce, and grade it against the sentence's actual next
+        word.  The daily curve (reading_prediction_ledger) is the go/no-go
+        evidence for the proposal composer: climbing = recombination has
+        fuel; flat = falsified cheaply.  Measurement ONLY — no learning,
+        no emission, no gap records (a reading-prediction miss is not
+        "she reached to speak and lacked"), cold cache skips honestly.
+        """
+        try:
+            if teaching or source not in self._READING_PREDICTION_SOURCES:
+                return
+            sample = int(os.environ.get("READING_PREDICTION_SAMPLE", "4") or 4)
+            self._reading_prediction_counter = getattr(
+                self, "_reading_prediction_counter", 0) + 1
+            if self._reading_prediction_counter % max(1, sample):
+                return
+            with self._live_converse_state_lock:
+                if self._live_converse_pending > 0:
+                    return  # a human turn outranks a measurement
+            words = _normalize_text(text)
+            if len(words) < 4:
+                return
+            stem_len = 2 + (self.tick % (len(words) - 3))
+            actual = str(words[stem_len]).lower()
+            from dsf_ai_service.substrate.language_fact_strand import (
+                construct_language_fact_strand)
+            from dsf_ai_service.substrate.reading_prediction_ledger import (
+                record_prediction)
+            try:
+                queries = tuple(construct_language_fact_strand(w)
+                                for w in words[:stem_len])
+            except (TypeError, ValueError):
+                return
+            with self._language_fact_lock:
+                composer = self._language_fact_composer
+                if composer is None:
+                    return  # cold cache: never build one on the read path
+                continuation = composer.continue_from_sequence(queries)
+            predicted = None
+            if continuation.emitted_tokens:
+                strands = continuation.emitted_tokens[0].recognized_strands
+                if strands:
+                    predicted = str(strands[0].language_form).lower()
+            record_prediction(covered=predicted is not None,
+                              hit=predicted == actual)
+            if self._reading_prediction_counter % (max(1, sample) * 25) == 0:
+                self._log_substrate_event(
+                    "reading_prediction_sample",
+                    stem=" ".join(words[:stem_len])[-60:],
+                    predicted=predicted, actual=actual,
+                    hit=predicted == actual)
+        except Exception:
+            pass  # measurement must never disturb reading
+
     @_engine_mutation_entry
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
                       teaching=False,
@@ -5053,6 +5115,13 @@ class Guala:
                     f"outer BindingWindow {_existing_context_id!r} lacks an "
                     "approved experience_origin")
             experience_origin = _existing_origin
+        # GL-CMD-SYNTAX-ARC-20260718 Piece 1 (Joe: "make it happen"):
+        # sampled next-word prediction from her OWN certified strand
+        # statistics, graded by the actual sentence she is reading.
+        # Measurement only — runs BEFORE self.lock (uses only the
+        # composer's own _language_fact_lock), samples background reading
+        # sources, and never raises into the read path.
+        self._maybe_reading_prediction(text, source, teaching)
         with self.lock:
             words = _normalize_text(text)
             if not words:

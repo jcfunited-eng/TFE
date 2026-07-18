@@ -545,7 +545,7 @@ def _tutor_once():
             return {"state": "deferred_live_turn"}
         from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
         from dsf_ai_service.substrate.autonomous_tutor import (
-            pick_tutor_item, judge_attempt)
+            pick_tutor_item, judge_attempt_detail)
         ledger = get_ledger(STATE_DIR)
         cap = int(os.environ.get("TUTOR_MAX_TEACHES_PER_DAY", "40") or 40)
         if ledger.tutor_teaches_today() >= cap:
@@ -559,13 +559,25 @@ def _tutor_once():
         # first, honest babble fall-through, or silence).
         r = _cmd_converse(item["stem"], source="curriculum")
         attempt = (r or {}).get("response", "") or ""
-        correct = judge_attempt(attempt, item["expected"])
+        detail = judge_attempt_detail(attempt, item["expected"])
+        correct = detail["verdict"] == "correct"
         _guala.apply_teacher_correction(
             original_input=item["stem"],
             her_emission=attempt,
             correct=correct,
             expected_response=None if correct else item["expected"],
             source="curriculum")
+        # GL-CMD-SYNTAX-TUTOR-20260718 (Joe: "syntax guidance as well as
+        # grading"): when she had the right words in the wrong ORDER, the
+        # failure is syntax — model the whole correct sentence back as one
+        # taught, order-preserving window (a parent saying the full
+        # sentence back), on top of the correction above.
+        if detail["verdict"] == "wrong_order":
+            try:
+                _guala.read_sentence(item["sentence"], source="curriculum",
+                                     teaching=True)
+            except Exception:
+                pass
         ledger.record_tutor_teach()
         if item.get("gap_word"):
             ledger.mark_addressed(item["gap_word"])
@@ -573,12 +585,14 @@ def _tutor_once():
             _guala._log_substrate_event(
                 "tutor_exchange", stem=item["stem"], attempt=attempt,
                 expected=item["expected"], correct=correct,
+                verdict=detail["verdict"],
                 gap_word=item.get("gap_word"),
                 teaches_today=ledger.tutor_teaches_today())
         except Exception:
             pass
         st = {"state": "exchange", "stem": item["stem"], "attempt": attempt,
               "expected": item["expected"], "correct": correct,
+              "verdict": detail["verdict"],
               "gap_word": item.get("gap_word")}
         _TUTOR_STATE["last_status"] = st
         print(f"[tutor] stem={item['stem']!r} attempt={attempt!r} "
@@ -1332,6 +1346,14 @@ def handle_gualaloom_post(args):
             from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
             _cur_st["knowledge_gaps"] = get_ledger(STATE_DIR).status()
             _cur_st["tutor_last"] = _TUTOR_STATE.get("last_status", {})
+        except Exception:
+            pass
+        # GL-CMD-SYNTAX-ARC-20260718: the daily prediction curve — the
+        # instrument Joe's syntax decision rides on.
+        try:
+            from dsf_ai_service.substrate.reading_prediction_ledger import (
+                get_ledger as _rp_ledger)
+            _cur_st["reading_predictions"] = _rp_ledger(STATE_DIR).status()
         except Exception:
             pass
         return {"response": json.dumps(_cur_st), "curriculum": _cur_st}
