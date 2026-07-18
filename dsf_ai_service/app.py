@@ -1544,6 +1544,17 @@ GENERATION_STORE_ROOT = os.environ.get(
         os.path.basename(os.path.abspath(STATE_DIR)) + "-sealed",
     ),
 )
+def _safe_ledger_status(module_name):
+    """Best-effort status from a schooling ledger; never raises into /status."""
+    try:
+        import importlib
+        mod = importlib.import_module(
+            f"dsf_ai_service.substrate.{module_name}")
+        return mod.get_ledger(STATE_DIR).status()
+    except Exception:
+        return {}
+
+
 OWNER_LOCK_PATH = os.environ.get(
     "GUALA_OWNER_LOCK_PATH",
     os.path.join(os.path.dirname(GENERATION_STORE_ROOT), ".guala-owner.lock"),
@@ -3217,6 +3228,14 @@ async def gualaloom_chat(msg: GLMessage):
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
+            # GL-CMD-SYNTAX-ARC-20260718: the daily prediction curve and
+            # schooling ledgers, surfaced on the LIVE status handler (the
+            # runner's /curriculum dispatcher is dead in embedded mode —
+            # the same forgot-the-live-path mistake as organism_growth
+            # above, caught same-day this time).
+            "reading_predictions": _safe_ledger_status(
+                "reading_prediction_ledger"),
+            "knowledge_gaps": _safe_ledger_status("knowledge_gap_ledger"),
             # GL-CMD-SCENE-LANES-B1-188 V5: THIS is the live /status handler
             # in embedded mode (SUBSTRATE_MODE=embedded, the production
             # config) -- substrate_runner.py's _cmd_status() is a dead,

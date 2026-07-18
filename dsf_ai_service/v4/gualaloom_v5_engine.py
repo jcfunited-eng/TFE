@@ -4996,25 +4996,28 @@ class Guala:
                 return
             stem_len = 2 + (self.tick % (len(words) - 3))
             actual = str(words[stem_len]).lower()
-            from dsf_ai_service.substrate.language_fact_strand import (
-                construct_language_fact_strand)
             from dsf_ai_service.substrate.reading_prediction_ledger import (
                 record_prediction)
-            try:
-                queries = tuple(construct_language_fact_strand(w)
-                                for w in words[:stem_len])
-            except (TypeError, ValueError):
-                return
+            # Successor vote over her most recent ordered windows — a
+            # bounded direct scan of lived word sequences.  (v1 used the
+            # cached certified composer, but every sentence she reads
+            # invalidates that cache, so during background reading it was
+            # always cold and the meter starved.  This measures the same
+            # underlying capacity — can her lived sequences predict the
+            # next word — and is the exact statistic the Piece-2 proposal
+            # composer will draw on.  Measurement only: never emits.)
+            prev_word = str(words[stem_len - 1]).lower()
+            counts = {}
             with self._language_fact_lock:
-                composer = self._language_fact_composer
-                if composer is None:
-                    return  # cold cache: never build one on the read path
-                continuation = composer.continue_from_sequence(queries)
-            predicted = None
-            if continuation.emitted_tokens:
-                strands = continuation.emitted_tokens[0].recognized_strands
-                if strands:
-                    predicted = str(strands[0].language_form).lower()
+                recent_ids = sorted(self._ordered_language_windows)[-200:]
+                for wid in recent_ids:
+                    forms = [str(occ.fact.language_form).lower()
+                             for occ in
+                             self._ordered_language_windows[wid].tokens]
+                    for a, b in zip(forms, forms[1:]):
+                        if a == prev_word:
+                            counts[b] = counts.get(b, 0) + 1
+            predicted = max(counts, key=counts.get) if counts else None
             record_prediction(covered=predicted is not None,
                               hit=predicted == actual)
             if self._reading_prediction_counter % (max(1, sample) * 25) == 0:
