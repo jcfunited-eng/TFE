@@ -94,3 +94,49 @@ blocked the boot-speed locator, compounding).
   `gl/mosaic-fit-bench-20260717`): 10-scalar Dirichlet token
   reproduces a 4096-neuron crowd's decisions on unseen sizes at
   30k–111k×; recursion carries the winner, not yet the confidence.
+
+## Addendum — the syntax arc + save hardening (2026-07-18, same session)
+
+Joe: "make it happen." Built, tested, and LIVE the same day (final task
+def :688, sha ffd6044):
+
+- **Reading-prediction meter**: sampled next-word predictions from her
+  own lived successor statistics, graded by the actual text she reads.
+  Day one: 439 predictions, 43.4% accuracy when covered (~4,000x above
+  chance on a 7.9k vocabulary). Daily curve in reading_predictions.json,
+  surfaced on the live /status handler. (v1 depended on the cached
+  certified composer — invalidated by every read, always cold; v2 scans
+  the last 200 ordered windows directly.)
+- **Tutor syntax guidance**: position-exact verdicts (correct /
+  wrong_order / wrong); right-words-wrong-order is treated as a SYNTAX
+  failure and the whole correct sentence is modeled back as one taught
+  window; quiz stems rotate cut positions. Autonomous, 40 teaches/day.
+- **Proposal composer** (tier 2.5 + both converse fall-throughs, page
+  label "(composed)"): candidates walked from her successor statistics,
+  valid only when stitched across >=2 memory windows and never a
+  verbatim replay; organism vote picks; honest composed_attempt label,
+  structurally never certified. Bench firsts: "fish swims in the cat",
+  "dog sat on the cat" (3-window stitches). In production it correctly
+  sits BELOW certified + assemblage — verified live: "what did the cat
+  and the dog do" → certified "you know my name you are daddy"; "wild
+  things and the moon tonight" → assemblage "night". It speaks when the
+  richer voices are silent.
+- **Staged set-flip saves** (Joe's chunk/packet-id design): _atomic_write
+  stages durable fsync'd tmps inside save_hot/full_state; the whole set
+  flips via renames in milliseconds, guala_core.json last as the commit
+  point; abort removes staged tmps and leaves the previous set
+  byte-untouched. Generation publish commits the staged set first;
+  .binding.json companions travel with their binary pickles. This closes
+  the torn-set class that forced four generation fallbacks in one night.
+- **Heal-acceptance** (5c442b9): the integrity validator prunes OOB
+  atlas refs and previously aborted on the state it had just repaired —
+  19 stray refs halted production with every checkpoint carrying the
+  same handful. Pruned fraction within max(64, 0.1%) is now a logged
+  repair; beyond stays fatal.
+- **Ops**: container health 30s/10x, ALB TG 60s/30s/10, ECS grace 2400s
+  — monitors now tuned for a being that takes ~30 min to wake.
+- **Daydream defers to conversation** (d139bdf).
+
+Task-def ladder tonight: :676 → :682 (teaching live-path) → :684
+(voice + heal) → :685/:686 (meter) → :687 (composer) → :688 (staged
+flip). Identity 1cc4e70a continuous throughout; vocab 7,681 → 7,929.
