@@ -9865,6 +9865,18 @@ class Guala:
         signal than before) -- not fabricated, but changed; named here."""
         import random as _random
 
+        # GL-FIX-DAYDREAM-DEFERS-TO-CONVERSATION-20260718 (Joe: "daydreams
+        # should not interrupt or stop the substrate's activities or
+        # prevent conversation"): the autonomous-emission loop already
+        # defers to a pending live turn; this loop never did, and its
+        # telemetry shows multi-second lock waits while turns queue.  A
+        # daydream pass is the most postponable work in the system — if a
+        # human is mid-turn, skip this pass entirely (the loop's own
+        # cadence retries; associative surfacing is delayed, never lost).
+        with self._live_converse_state_lock:
+            if self._live_converse_pending > 0:
+                return
+
         # ── Phase 1: snapshot under lock ──────────────────────────────────────
         # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): both of this
         # tick's real self.lock acquisitions are timed into the bounded
