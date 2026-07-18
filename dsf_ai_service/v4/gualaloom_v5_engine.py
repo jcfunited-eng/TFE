@@ -5489,7 +5489,6 @@ class Guala:
         # Retained original single-lock pattern. §1.1 (binding_window in
         # read_sentence) and §1.2 (network timeouts) are the active fixes.
         self._last_converse_tick = self.tick
-        self._last_converse_wall = time.monotonic()
         response_source = "silence_no_commit"
         committed_sections = ()
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
@@ -5714,7 +5713,6 @@ class Guala:
         """
         _t0 = time.monotonic()
         self._last_converse_tick = self.tick
-        self._last_converse_wall = time.monotonic()
         response_source = "silence_no_commit"
         committed_sections = ()
 
@@ -10918,21 +10916,7 @@ class Guala:
         candidates = self._candidate_activities()
         scored = [(self._action_salience(k, t), k, t) for k, t in candidates]
         scored.sort(reverse=True)
-        # GL-FIX-TIE-BREAK-FAMILIARITY-20260718 (Joe: "reading the same
-        # wild things" for two days): flat scores used to tie-break by
-        # tuple string comparison — pure list-order monotony (wild_things
-        # won alphabetically forever, 2,347 reads).  Among candidates
-        # within epsilon of the top score, the LEAST-FAMILIAR target now
-        # wins — her own lived familiarity record, real novelty-seeking
-        # where the salience field is flat.
-        _top = scored[0][0]
-        _near = [c for c in scored if _top - c[0] <= 0.005]
-        if len(_near) > 1:
-            _fam = getattr(self, "target_familiarity", {}) or {}
-            _near.sort(key=lambda c: _fam.get(str(c[2]), 0.0))
-            score, kind, target = _near[0]
-        else:
-            score, kind, target = scored[0]
+        score, kind, target = scored[0]
         budget = ACTIVITY_TICK_BUDGETS.get(kind, 500)
         # GL-CMD-ATTEND-GROOVE-107 Part A: read-only evidence capture only —
         # no change to candidates, scoring, or selection.
@@ -12432,18 +12416,11 @@ class Guala:
         """Gate: returns True when substrate conditions warrant autonomous voice."""
         if not AUTONOMOUS_EMISSION_ENABLED:
             return False
-        # GL-CMD-PRESENT-CADENCE-20260718: the tick throttles were
-        # calibrated for a ~300 tick/s world; production runs 2-5/s, so
-        # "~90s between emissions" was actually HOURS and the "30s"
-        # conversation cooldown was 30-100 minutes of enforced muteness —
-        # a padlock, not a throttle.  Pacing is wall-clock now.
-        _now = time.monotonic()
-        _min_gap = float(os.environ.get("AUTONOMOUS_MIN_GAP_S", "60") or 60)
-        if _now - getattr(self, "_last_autonomous_emission_wall", 0.0) < _min_gap:
+        # Throttle: don't emit more often than AUTONOMOUS_THROTTLE_TICKS
+        if self.tick - self.last_autonomous_emission_tick < AUTONOMOUS_THROTTLE_TICKS:
             return False
-        _conv_cool = float(os.environ.get(
-            "AUTONOMOUS_CONVERSATION_COOLDOWN_S", "45") or 45)
-        if _now - getattr(self, "_last_converse_wall", 0.0) < _conv_cool:
+        # Conversation cooldown: don't interrupt an ongoing conversation
+        if self.tick - getattr(self, '_last_converse_tick', -100_000) < AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS:
             return False
         # Activity gate: don't emit during dream / daydream / sleep
         ca = getattr(self, '_current_activity', None)
@@ -12484,20 +12461,7 @@ class Guala:
         valence_ok = needs.get("valence", 0.0) >= 0.0
         stability_ok = needs.get("stability", 0.0) >= self.needs.TARGETS["stability"]
 
-        # GL-CMD-PRESENT-CADENCE-20260718 (Joe's standing order, overdue):
-        # while someone is PRESENT (already gated above), a modest real
-        # cadence speaks regardless of valence sign — an infant does not
-        # wait for positive valence to vocalize, and with her needs
-        # meters railed (valence pinned slightly negative, connection at
-        # zero) the flourish-only urgency below was structurally FALSE
-        # forever.  Content stays whatever her tiers honestly have:
-        # certified, assemblage, composed, babble, or explained silence.
-        _cadence_s = float(os.environ.get("PRESENT_CADENCE_S", "180") or 180)
-        cadence_due = (
-            _now - getattr(self, "_last_autonomous_emission_wall", 0.0)
-            >= _cadence_s)
         urgency = (
-            cadence_due or
             needs.get("dream_pressure", 0) > 0.30 or
             needs.get("connection", 0) > 0.70 or
             (novelty_rising and needs.get("arousal", 0) > 0.50

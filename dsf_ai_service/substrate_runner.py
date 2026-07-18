@@ -3141,8 +3141,6 @@ def _start_autonomous_emission_loop():
                                 f"autonomous:{_guala.autonomous_emissions_count}:"
                                 f"{result['settlement_tick']}")
                             _guala.last_autonomous_emission_tick = _guala.tick
-                            _guala._last_autonomous_emission_wall = (
-                                time.monotonic())
                             _guala._log_substrate_event(
                                 "autonomous_emission",
                                 content=content,
