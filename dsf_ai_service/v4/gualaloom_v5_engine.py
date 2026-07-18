@@ -17398,7 +17398,18 @@ class Guala:
             if count < 0:
                 errors.append(f"Source {src} negative count: {count}")
         # 3. (Bucket removed — Phase E)
-        # 4. Atlas motif IDs reference existing modes — prune OOB entries
+        # 4. Atlas motif IDs reference existing modes — prune OOB entries.
+        # GL-FIX-HEALED-PRUNE-ACCEPTANCE-20260718: this block PRUNES the
+        # dead references (physically healing the atlas), but then counted
+        # every pruned entry as a fatal integrity error — the load aborted
+        # on the state it had just repaired.  Live incident: 19 stray refs
+        # out of 136k+ bindings (a torn save-cycle artifact) halted the
+        # substrate entirely — every checkpoint carried the same handful,
+        # so recovery had nowhere to go and production stopped.  A TINY
+        # pruned fraction is a logged repair (same bounded-acceptance
+        # precedent as the manifest write-skew window); a LARGE one is
+        # still mass corruption and still fatal.
+        heal_notes = []
         pruned = 0
         sample_count = 0
         for chi_val in list(self.atlas.entries.keys()):
@@ -17410,17 +17421,35 @@ class Guala:
                 if sec_name in self.sections and motif_id is not None:
                     if motif_id >= len(self.sections[sec_name].modes):
                         if sample_count < 10:
-                            errors.append(f"Atlas refs motif {motif_id} in {sec_name} "
-                                          f"(has {len(self.sections[sec_name].modes)})")
+                            heal_notes.append(
+                                f"Atlas refs motif {motif_id} in {sec_name} "
+                                f"(has {len(self.sections[sec_name].modes)})")
                         sample_count += 1
                         pruned += 1
                         continue  # drop this entry
                 valid.append(e)
             self.atlas.entries[chi_val] = valid
         if sample_count >= 10:
-            errors.append(f"(... and {sample_count - 10} more OOB entries, {pruned} total pruned)")
+            heal_notes.append(f"(... and {sample_count - 10} more OOB entries, "
+                              f"{pruned} total pruned)")
         elif pruned > 0:
-            errors.append(f"({pruned} OOB atlas entries pruned)")
+            heal_notes.append(f"({pruned} OOB atlas entries pruned)")
+        if pruned:
+            total_entries = sum(
+                len(v) for v in self.atlas.entries.values()) + pruned
+            oob_heal_bound = max(64, total_entries // 1000)
+            if pruned > oob_heal_bound:
+                errors.append(
+                    f"{pruned} OOB atlas entries exceeds heal bound "
+                    f"{oob_heal_bound} (of {total_entries}) -- mass "
+                    f"corruption, not a torn-cycle artifact")
+                errors.extend(heal_notes)
+            else:
+                for note in heal_notes:
+                    print(f"[GualaLoom] INTEGRITY-HEALED: {note}")
+                print(f"[GualaLoom] INTEGRITY-HEALED: {pruned} OOB atlas "
+                      f"entries pruned and accepted (bound "
+                      f"{oob_heal_bound} of {total_entries})")
         self._integrity_errors = errors
         if errors:
             for e in errors:

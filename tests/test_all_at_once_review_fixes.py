@@ -277,3 +277,26 @@ def test_save_completes_when_picture_original_missing(engine, tmp_path):
     assert os.path.isdir(grid_dir) and os.listdir(grid_dir), \
         "grid (her actual visual experience) must persist"
     engine.save_full_state(state_dir)  # second save also clean
+
+
+def test_healed_oob_prune_accepts_small_rejects_mass(engine):
+    """GL-FIX-HEALED-PRUNE-ACCEPTANCE-20260718: a handful of pruned
+    out-of-bounds atlas refs (torn-cycle artifact) is a logged repair and
+    the load proceeds; a mass of them is still fatal corruption."""
+    sec = next(iter(engine.sections))
+    n_modes = len(engine.sections[sec].modes)
+
+    engine.atlas.entries.setdefault(0, [])
+    for i in range(5):  # tiny overflow: heal and accept
+        engine.atlas.entries[0].append(
+            {"section": sec, "motif": n_modes + i, "strength": 0.5})
+    assert engine._validate_integrity(), "small pruned overflow must accept"
+    assert all(e.get("motif", 0) < n_modes
+               for e in engine.atlas.entries.get(0, [])), "healed"
+
+    total = sum(len(v) for v in engine.atlas.entries.values())
+    flood = max(65, total // 1000 + 1)
+    for i in range(flood):  # mass overflow: still fatal
+        engine.atlas.entries[0].append(
+            {"section": sec, "motif": n_modes + 1000 + i, "strength": 0.5})
+    assert not engine._validate_integrity(), "mass overflow must stay fatal"
