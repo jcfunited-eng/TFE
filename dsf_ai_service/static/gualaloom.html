@@ -941,6 +941,9 @@ async function _converseAndRender(text,source){
     }else if(resp&&d.response_source==='organism_attempt'){
       window._lastAttemptText=resp;
       addEmissionMsg(resp+'  (attempt)',d.emission_id||null);gualaSpeak(resp);
+    }else if(resp&&d.response_source==='composed_attempt'){
+      window._lastAttemptText=resp;
+      addEmissionMsg(resp+'  (composed)',d.emission_id||null);gualaSpeak(resp);
     }else if(resp){addMsg(resp,'system');gualaSpeak(resp);}
     else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);

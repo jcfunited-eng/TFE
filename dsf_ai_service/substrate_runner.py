@@ -2162,18 +2162,33 @@ def _cmd_converse(text, source, emission_mode=None):
         try:
             _turn_seeds = [{"words": text.split()[:6],
                             "provenance": "conversation_turn_words"}]
-            _votes = _guala.precompute_organism_attempt(_turn_seeds)
-            if _votes is not None:
-                import time as _bt
-                with _guala.lock:
-                    _babble = _guala._compose_organism_attempt(
-                        _turn_seeds, _bt.monotonic() + 0.25,
-                        organism_votes=_votes, conversational=True)
-                if _babble is not None:
-                    response = _babble["content"]
-                    response_source = "organism_attempt"
-                    turn_result.response = response
-                    turn_result.response_source = response_source
+            # GL-CMD-SYNTAX-ARC-20260718 Piece 2: composed attempt
+            # (novel recombination) beats raw babble when it exists —
+            # candidates + scores precomputed lock-free.
+            _released = None
+            try:
+                _cands = _guala.build_proposal_candidates(_turn_seeds)
+                if _cands:
+                    _scores = _guala.precompute_proposal_votes(_cands)
+                    with _guala.lock:
+                        _released = _guala._release_proposal_attempt(
+                            _cands, _scores, conversational=True)
+            except Exception as _pr_e:
+                print(f"[converse-proposal] failed (fall through to "
+                      f"babble): {_pr_e}", flush=True)
+            if _released is None:
+                _votes = _guala.precompute_organism_attempt(_turn_seeds)
+                if _votes is not None:
+                    import time as _bt
+                    with _guala.lock:
+                        _released = _guala._compose_organism_attempt(
+                            _turn_seeds, _bt.monotonic() + 0.25,
+                            organism_votes=_votes, conversational=True)
+            if _released is not None:
+                response = _released["content"]
+                response_source = _released["response_source"]
+                turn_result.response = response
+                turn_result.response_source = response_source
         except Exception as _bab_e:
             print(f"[converse-babble] fall-through failed (honest silence "
                   f"kept): {_bab_e}", flush=True)
@@ -3069,11 +3084,26 @@ def _start_autonomous_emission_loop():
                                 _guala._autonomous_composer_seed_attempts())
                         organism_votes = _guala.precompute_organism_attempt(
                             seed_attempts)
+                        # GL-CMD-SYNTAX-ARC-20260718 Piece 2: proposal
+                        # candidates + organism scores, both LOCK-FREE,
+                        # handed to the release policy as tier 2.5.
+                        _prop = None
+                        try:
+                            _cands = _guala.build_proposal_candidates(
+                                seed_attempts)
+                            if _cands:
+                                _prop = (_cands,
+                                         _guala.precompute_proposal_votes(
+                                             _cands))
+                        except Exception as _pe:
+                            print(f"[autonomous] proposal precompute failed "
+                                  f"(non-fatal): {_pe}", flush=True)
                         result = None
                         with _guala.lock:
                             result = _guala.compose_autonomous(
                                 seed_attempts=seed_attempts,
-                                organism_votes=organism_votes)
+                                organism_votes=organism_votes,
+                                proposal=_prop)
                         # GL-FIX-SECOND-CHANCE-SEEDS-20260717: live histogram
                         # showed 7/8 autonomous attempts dying organism_empty —
                         # window-derived seeds are sensory-frame dominated now

@@ -754,22 +754,47 @@ async def _run_converse(
                 try:
                     _turn_seeds = [{"words": text.split()[:6],
                                     "provenance": "conversation_turn_words"}]
-                    _votes = await _run_lifecycle_executor(
-                        lambda: _guala.precompute_organism_attempt(
-                            _turn_seeds))
-                    if _votes is not None:
-                        def _babble_assemble():
-                            import time as _bt
-                            with _guala.lock:
-                                return _guala._compose_organism_attempt(
-                                    _turn_seeds, _bt.monotonic() + 0.25,
-                                    organism_votes=_votes,
-                                    conversational=True)
-                        _babble = await _run_lifecycle_executor(
-                            _babble_assemble)
-                        if _babble is not None:
-                            response = _babble["content"]
-                            response_source = "organism_attempt"
+                    # GL-CMD-SYNTAX-ARC-20260718 Piece 2: composed
+                    # attempt (novel recombination) beats raw babble —
+                    # wired on BOTH converse paths, per the live-path
+                    # lesson.
+                    _released = None
+                    try:
+                        _cands = await _run_lifecycle_executor(
+                            lambda: _guala.build_proposal_candidates(
+                                _turn_seeds))
+                        if _cands:
+                            _scores = await _run_lifecycle_executor(
+                                lambda: _guala.precompute_proposal_votes(
+                                    _cands))
+
+                            def _proposal_release():
+                                with _guala.lock:
+                                    return _guala._release_proposal_attempt(
+                                        _cands, _scores,
+                                        conversational=True)
+                            _released = await _run_lifecycle_executor(
+                                _proposal_release)
+                    except Exception as _pr_e:
+                        print(f"[converse-proposal] failed (fall through "
+                              f"to babble): {_pr_e}", flush=True)
+                    if _released is None:
+                        _votes = await _run_lifecycle_executor(
+                            lambda: _guala.precompute_organism_attempt(
+                                _turn_seeds))
+                        if _votes is not None:
+                            def _babble_assemble():
+                                import time as _bt
+                                with _guala.lock:
+                                    return _guala._compose_organism_attempt(
+                                        _turn_seeds, _bt.monotonic() + 0.25,
+                                        organism_votes=_votes,
+                                        conversational=True)
+                            _released = await _run_lifecycle_executor(
+                                _babble_assemble)
+                    if _released is not None:
+                        response = _released["content"]
+                        response_source = _released["response_source"]
                 except Exception as _bab_e:
                     print(f"[converse-babble] fall-through failed (honest "
                           f"silence kept): {_bab_e}", flush=True)

@@ -12637,7 +12637,8 @@ class Guala:
         return attempts[:AUTONOMOUS_COMPOSER_SEED_ATTEMPTS]
 
     @_engine_mutation_entry
-    def compose_autonomous(self, seed_attempts=None, organism_votes=None):
+    def compose_autonomous(self, seed_attempts=None, organism_votes=None,
+                           proposal=None):
         """One autonomous release attempt through the one release policy.
         Returns dict with content/metadata if a release fires; None
         otherwise (explained silence — the caller logs the no-commit event,
@@ -12804,6 +12805,19 @@ class Guala:
                             for provenance in settlement.commit_provenance],
                     }
 
+        # 2.5 Proposal composer — GL-CMD-SYNTAX-ARC-20260718 Piece 2:
+        # novel recombination from her OWN lived successions, stitched
+        # across ≥2 distinct memory windows (verbatim replay stays the
+        # certified tier's job), organism-scored, honestly labeled
+        # composed_attempt.  Candidates + scores were precomputed
+        # LOCK-FREE by the caller; the in-lock work here is selection
+        # and release only — same contract as the organism tier below.
+        if proposal:
+            prop_result = self._release_proposal_attempt(
+                proposal[0], proposal[1], conversational=False)
+            if prop_result is not None:
+                return prop_result
+
         # 3. Organism attempt — GL-CMD-SINGLE-STACK-ALL-LIVE-20260716
         # (organ 6): the organism's own recall over its real learned
         # structure, released as honestly-labeled babble through this SAME
@@ -12856,6 +12870,152 @@ class Guala:
         for q in queries:
             merged.pop(q, None)
         return {"queries": queries, "merged": merged}
+
+    # ── GL-CMD-SYNTAX-ARC-20260718 Piece 2: the proposal composer ──────
+    # Statistics propose, the organism disposes.  Candidates are walks
+    # over her OWN lived successor statistics, valid only when stitched
+    # across >=2 distinct memory windows and reproducing no single lived
+    # sequence verbatim — recombination by construction.  Never certified;
+    # released as composed_attempt through the same release policy,
+    # graded by the tutor, by Joe's thumbs, and by the daily reading
+    # curve that measures the same underlying statistics.
+
+    def build_proposal_candidates(self, seed_attempts, max_candidates=3):
+        """Phase A (lock-free wrt self.lock; brief _language_fact_lock):
+        assemble candidate continuations from lived successions."""
+        scan = int(os.environ.get("PROPOSAL_WINDOW_SCAN", "300") or 300)
+        max_words = int(os.environ.get("PROPOSAL_MAX_WORDS", "7") or 7)
+        seed_words = []
+        for attempt in (seed_attempts or ()):
+            for w in attempt.get("words", ()):
+                wl = str(w).lower().strip()
+                if wl and wl not in seed_words:
+                    seed_words.append(wl)
+        if not seed_words:
+            return []
+        with self._language_fact_lock:
+            wids = sorted(self._ordered_language_windows)[-scan:]
+            seqs = []
+            for wid in wids:
+                forms = [str(o.fact.language_form).lower()
+                         for o in self._ordered_language_windows[wid].tokens]
+                if len(forms) >= 2:
+                    seqs.append((wid, forms))
+        if len(seqs) < 2:
+            return []  # recombination needs at least two lived windows
+        succ = {}
+        sources = {}
+        trigrams = set()
+        for wid, forms in seqs:
+            for a, b in zip(forms, forms[1:]):
+                succ.setdefault(a, {}).setdefault(b, 0)
+                succ[a][b] += 1
+                sources.setdefault((a, b), set()).add(wid)
+            for a, b, c in zip(forms, forms[1:], forms[2:]):
+                trigrams.add((a, b, c))
+        candidates = []
+        for seed in seed_words[:max_candidates * 3]:
+            if seed not in succ:
+                continue
+            walk = [seed]
+            used_windows = set()
+            while len(walk) < max_words:
+                options = sorted(succ.get(walk[-1], {}).items(),
+                                 key=lambda kv: -kv[1])
+                if not options:
+                    break
+                chosen = None
+                for word, _cnt in options[:3]:
+                    # Prefer a NON-verbatim continuation when one exists:
+                    # if extending with this word replays a lived trigram
+                    # and an alternative is available, take the alternative
+                    # — this is where recombination happens.
+                    if (len(walk) >= 2 and len(options) > 1
+                            and (walk[-2], walk[-1], word) in trigrams):
+                        continue
+                    chosen = word
+                    break
+                if chosen is None:
+                    chosen = options[0][0]
+                used_windows |= sources.get((walk[-1], chosen), set())
+                walk.append(chosen)
+                if len(walk) >= 5 and len(used_windows) >= 2:
+                    break
+            text = " ".join(walk)
+            padded = f" {text} "
+            verbatim = any(padded in f" {' '.join(forms)} "
+                           for _wid, forms in seqs)
+            if len(walk) >= 3 and len(used_windows) >= 2 and not verbatim:
+                candidates.append({
+                    "words": walk,
+                    "text": text,
+                    "n_source_windows": len(used_windows),
+                    "seed": seed,
+                })
+            if len(candidates) >= max_candidates:
+                break
+        return candidates
+
+    def precompute_proposal_votes(self, candidates):
+        """Phase B (NO locks): organism scores each candidate — the sum of
+        its population vote mass over the candidate's words.  Same
+        recall_fast contract as the organism-attempt tier."""
+        scores = []
+        for cand in (candidates or ()):
+            total = 0.0
+            for w in set(cand["words"]):
+                try:
+                    votes = self.organism.recall_fast(
+                        _organism_signal(w, self._organism_transducer))
+                    total += float(sum(votes.values()))
+                except Exception:
+                    pass
+            scores.append(total)
+        return scores
+
+    def _release_proposal_attempt(self, candidates, scores,
+                                  conversational=False):
+        """Phase C (self.lock held by caller): pick the organism's
+        top-scored candidate, honor the conversation barrier and the
+        shared repeat window, release as composed_attempt.  Never
+        certified — structurally ineligible at every certification gate."""
+        if not candidates or not scores:
+            return None
+        if not conversational:
+            with self._live_converse_state_lock:
+                if self._live_converse_pending > 0:
+                    self._log_substrate_event(
+                        "composed_attempt", released=False,
+                        stop_reason="conversation_arrived")
+                    return None
+        ranked = sorted(zip(candidates, scores),
+                        key=lambda cs: -cs[1])
+        for cand, score in ranked:
+            content = cand["text"]
+            if content in self._recent_autonomous_releases:
+                continue
+            self._recent_autonomous_releases.append(content)
+            self._log_substrate_event(
+                "composed_attempt", released=True,
+                content=content[:80], seed=cand.get("seed"),
+                n_source_windows=cand["n_source_windows"],
+                organism_score=round(float(score), 3),
+                n_candidates=len(candidates))
+            return {
+                "content": content,
+                "source": "guala",
+                "response_source": "composed_attempt",
+                "category": "autonomous",
+                "proposal_seed": cand.get("seed"),
+                "n_source_windows": cand["n_source_windows"],
+                "settlement_tick": self.tick,
+                "committed_sections": [],
+                "commit_provenance": [],
+            }
+        self._log_substrate_event(
+            "composed_attempt", released=False,
+            stop_reason="repeat_suppressed")
+        return None
 
     def _compose_organism_attempt(self, seed_attempts, compose_deadline,
                                   organism_votes=None, conversational=False):
