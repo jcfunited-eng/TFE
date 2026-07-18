@@ -1177,7 +1177,7 @@ AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any convers
 # so organism_attempt releases are structurally ineligible for
 # reinforcement, teach/correct feedback, and window fact-binding.
 VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit",
-                          "organism_attempt")
+                          "organism_attempt", "composed_attempt")
 
 # Change 4 (spec v3 release-policy note b): the autonomous loop queries the
 # certified composer with seeds drawn from the organism's own lived content.

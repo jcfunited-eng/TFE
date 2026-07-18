@@ -2185,10 +2185,12 @@ def _cmd_converse(text, source, emission_mode=None):
                             _turn_seeds, _bt.monotonic() + 0.25,
                             organism_votes=_votes, conversational=True)
             if _released is not None:
+                # GL-FIX-FROZEN-TURNRESULT-20260718: the return dict below
+                # is built from these LOCALS; TurnResult is frozen and the
+                # old field assignments silently killed the whole
+                # fall-through (live: every typed turn empty this morning).
                 response = _released["content"]
                 response_source = _released["response_source"]
-                turn_result.response = response
-                turn_result.response_source = response_source
         except Exception as _bab_e:
             print(f"[converse-babble] fall-through failed (honest silence "
                   f"kept): {_bab_e}", flush=True)
