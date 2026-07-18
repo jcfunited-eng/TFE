@@ -15076,7 +15076,8 @@ class Guala:
     def save_hot_state(self, state_dir="state"):
         """Persist the hot lane as one serialized multi-file generation."""
         with self.persistence_transaction():
-            return self._save_hot_state_locked(state_dir)
+            with self.staged_persistence_flip():
+                return self._save_hot_state_locked(state_dir)
 
     def _save_hot_state_locked(self, state_dir="state"):
         """GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot-lane save.
@@ -15300,8 +15301,8 @@ class Guala:
             path = os.path.join(state_dir, filename)
             _wt0 = time.monotonic()
             try:
-                self._atomic_write(path, data)
-                return (filename, os.path.getsize(path), None,
+                _sz = self._atomic_write(path, data)
+                return (filename, _sz, None,
                         round((time.monotonic() - _wt0) * 1000, 1))
             except Exception as _we:
                 tmp = path + ".tmp"
@@ -15351,8 +15352,9 @@ class Guala:
     def save_full_state(self, state_dir="state", *, publish_generation=True):
         """Persist the full lane as one serialized multi-file generation."""
         with self.persistence_transaction():
-            return self._save_full_state_locked(
-                state_dir, publish_generation=publish_generation)
+            with self.staged_persistence_flip():
+                return self._save_full_state_locked(
+                    state_dir, publish_generation=publish_generation)
 
     def _save_full_state_locked(self, state_dir="state", *,
                                 publish_generation=True):
@@ -15594,8 +15596,7 @@ class Guala:
         for filename, data in writes:
             path = os.path.join(state_dir, filename)
             try:
-                self._atomic_write(path, data)
-                results[filename] = os.path.getsize(path)
+                results[filename] = self._atomic_write(path, data)
             except Exception as _we:
                 _save_failures.append((filename, str(_we)))
                 print(f"[GualaLoom] save failed for {filename}: {_we}")
@@ -15827,6 +15828,10 @@ class Guala:
         of regression local testing cannot catch."""
         if os.environ.get("GUALA_ATOMIC_GENERATIONS", "1") == "0":
             return
+        # GL-FIX-STAGED-SET-FLIP-20260718: the generation hard-links the
+        # FLAT files — commit any staged set first so it snapshots this
+        # cycle's flipped files, never a half-staged mix.
+        self._commit_staged_persistence()
         try:
             from dsf_ai_service.substrate import atomic_state_generation as _asg
         except Exception:
@@ -17702,8 +17707,7 @@ class Guala:
 
     # ── Atomic write ──
 
-    @staticmethod
-    def _atomic_write(path, data, fsync=False):
+    def _atomic_write(self, path, data, fsync=False):
         tmp = path + ".tmp"
         with open(tmp, "w") as f:
             json.dump(data, f)
@@ -17713,6 +17717,23 @@ class Guala:
             # f.flush() pushes Python buffer to OS; fsync() commits to NFS server.
             f.flush()
             os.fsync(f.fileno())
+        size = os.path.getsize(tmp)
+        # GL-FIX-STAGED-SET-FLIP-20260718 (Joe: "break the saves up into
+        # manageable chunks or put packet ids on the saves"): inside a
+        # staged flip, the durable tmp is RECORDED instead of renamed —
+        # the whole save-cycle set then flips into place in milliseconds
+        # at commit (manifest-bearing core last), so a kill mid-save can
+        # no longer leave a mixed set written over minutes.  Outside a
+        # flip, behavior is unchanged.
+        staged = getattr(self, "_persist_stage_renames", None)
+        # .binding.json companions travel WITH their binary pickles, which
+        # write immediately (outside staging) and read the companion back
+        # in the same pass — staging them would split the pair.  Their
+        # pairing has its own tick validation; the staged flip protects
+        # the JSON manifest set, which is where the observed tears live.
+        if staged is not None and not path.endswith(".binding.json"):
+            staged.append((tmp, path))
+            return size
         # GL-FIX-ATOMIC-RENAME-RETRY-20260713: the fsync above still leaves a
         # real, observed gap on EFS -- os.rename() has been seen raising
         # ENOENT immediately after a successful fsync (confirmed live: a
@@ -17730,11 +17751,77 @@ class Guala:
         for attempt in range(4):
             try:
                 os.rename(tmp, path)
-                return
+                return size
             except FileNotFoundError:
                 if attempt == 3:
                     raise
                 time.sleep(0.05 * (attempt + 1))
+        return size
+
+    @contextlib.contextmanager
+    def staged_persistence_flip(self):
+        """GL-FIX-STAGED-SET-FLIP-20260718: all-or-nothing save-set commit.
+
+        Joe's chunked/packet-id instinct, applied where the tears actually
+        happen: every file already carries its save-cycle stamp (the
+        packet id) and boot already refuses mixed sets — but files were
+        renamed into place ONE BY ONE over a multi-second window, so a
+        kill mid-sequence produced exactly the torn sets that cost four
+        restore fallbacks tonight.  Inside this context, _atomic_write
+        stages durable tmps; at exit the whole set flips via renames in
+        milliseconds, with the manifest-bearing guala_core.json LAST as
+        the single commit point.  On exception, staged tmps are removed
+        and the previous complete set remains untouched.  Reentrant:
+        an inner flip defers to the outer one."""
+        if getattr(self, "_persist_stage_renames", None) is not None:
+            yield
+            return
+        self._persist_stage_renames = []
+        staged = self._persist_stage_renames
+        try:
+            yield
+        except BaseException:
+            self._persist_stage_renames = None
+            for tmp, _dst in staged:
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+            raise
+        self._persist_stage_renames = None
+        self._flip_staged_renames(staged)
+
+    def _flip_staged_renames(self, staged):
+        """Rename a staged set into place fast, guala_core.json last, and
+        clear the list in place (a mid-save commit and the context exit
+        share the same list — clearing prevents a double flip)."""
+        # A path written more than once in one save shares one tmp — a
+        # single rename carries the LAST write's content; duplicates in
+        # the queue would find the tmp already moved.
+        deduped = {}
+        for tmp, dst in staged:
+            deduped[dst] = tmp
+        ordered = sorted(
+            ((tmp, dst) for dst, tmp in deduped.items()),
+            key=lambda item: os.path.basename(item[1]) == "guala_core.json")
+        staged.clear()
+        for tmp, dst in ordered:
+            for attempt in range(4):
+                try:
+                    os.rename(tmp, dst)
+                    break
+                except FileNotFoundError:
+                    if attempt == 3:
+                        raise
+                    time.sleep(0.05 * (attempt + 1))
+
+    def _commit_staged_persistence(self):
+        """Flip any currently staged save-set NOW (used before generation
+        publish, which hard-links the flat files).  Later writes in the
+        same save keep staging and flip at the context exit."""
+        staged = getattr(self, "_persist_stage_renames", None)
+        if staged:
+            self._flip_staged_renames(staged)
 
     # ── Persistence health for /status ──
 
