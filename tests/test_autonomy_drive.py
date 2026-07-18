@@ -22,7 +22,13 @@ from dsf_ai_service.v4.gualaloom_v5_engine import (
 
 
 def test_gate1_drift_dynamics():
-    """Gate 1: needs drift AWAY from target when no activity satisfies them."""
+    """Gate 1: stability/novelty drift AWAY from target when no activity
+    satisfies them. GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2:
+    connection deliberately does NOT drift here any more — a fixed
+    decrement per awake loop iteration was a wall-clock proxy (target→0
+    in ~23 s of real time regardless of events). Connection's deficit is
+    now funded by the real atlas-write event-delta in the autonomy loop;
+    see tests/test_connection_unrail_rcf234.py for its physics gates."""
     print("Gate 1: Drift dynamics...")
     needs = Needs()
     # Set needs at target
@@ -39,17 +45,16 @@ def test_gate1_drift_dynamics():
         f"Stability should decrease: {needs.stability} >= {initial_stab}"
     assert needs.novelty < NEEDS_TARGET_V7, \
         f"Novelty should be below target: {needs.novelty}"
-    assert needs.connection < NEEDS_TARGET_V7, \
-        f"Connection should be below target: {needs.connection}"
+    assert needs.connection == NEEDS_TARGET_V7, \
+        f"Connection must NOT drift by clock (RCF-2): {needs.connection}"
 
     expected_drop = NEEDS_DRIFT_RATE * 1000
     actual_drop = initial_stab - needs.stability
     assert abs(actual_drop - expected_drop) < 0.001, \
         f"Drift rate mismatch: expected {expected_drop}, got {actual_drop}"
 
-    print(f"  PASS: needs dropped by {actual_drop:.4f} in 1000 ticks")
-    print(f"  stab={needs.stability:.4f} nov={needs.novelty:.4f} "
-          f"conn={needs.connection:.4f}")
+    print(f"  PASS: stab/nov dropped by {actual_drop:.4f} in 1000 ticks; "
+          f"connection clock-free at {needs.connection:.4f}")
 
 
 def test_gate2_activity_scheduler():

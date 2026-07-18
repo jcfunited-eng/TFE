@@ -67,6 +67,21 @@ def saturate(current, gain):
     return max(0.0, min(1.0, current + gain * (1.0 - current)))
 
 
+def _desaturate(current, gain, floor=0.05):
+    """GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-4: exact mirror
+    of saturate() for the downward direction. As current → floor the
+    effective decrement → 0, so a need can decay low under real sustained
+    deprivation but never pin flush at 0.0 — the flush pin is what forced
+    valence and arousal into their railed arithmetic corners. gain is the
+    positive decrement fraction (a negative step() nudge is passed as
+    -nudge). A value already at or below the floor is returned unchanged
+    rather than lifted: only real positive acts (contact nudge, discharge,
+    wake) may raise a need."""
+    if gain <= 0.0 or current <= floor:
+        return current
+    return current - gain * (current - floor)
+
+
 class GualaBootIdentityUnreadableHalt(RuntimeError):
     """NAMED loud halt (P4): guala_identity.json exists but cannot be read/
     parsed.  The one boot method (GL-SPC-SUBSTRATE-TRUE §boot) has exactly
@@ -1014,6 +1029,17 @@ def _organism_query_signal_auditory(sound_signal):
 # ============================================================
 
 NEEDS_DRIFT_RATE = 0.0001   # per tick — needs fall from 1.0 to 0 in ~10K ticks
+
+# GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2: connection erosion
+# per real atlas write while awake with no bonded companion present.
+# LIVE-CALIBRATE: no in-code atlas-write-rate measurement exists yet (the
+# DP_RATE_MULTIPLIER derivation below is explicitly a zero-write window),
+# so this provisional value is a pure design target — ~250k solo-reading
+# writes to reach deficit ~0.4 — not a measured rate. Rollout Step 3 reads
+# dream_pressure_check's write_delta telemetry (the first real measurement)
+# and finalizes this constant against a chosen sustained-deprivation
+# interval.
+CONN_EROSION_PER_WRITE = 1.6e-6
 NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 
 # Grandurun tuning constants (GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01)
@@ -2083,10 +2109,21 @@ class Needs:
     def tick_drift(self):
         """v7: Needs drift AWAY from target toward unsatisfied (low).
         This is what creates drive — without it, she has no reason to act.
-        Called once per autonomy loop iteration."""
+        Called once per autonomy loop iteration.
+
+        GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2: connection
+        no longer drifts here. A fixed decrement per awake loop iteration
+        (~hundreds/sec) is a wall-clock proxy — it emptied connection from
+        target in ~23 s of real time regardless of any real event, faster
+        than the already-rejected 180 s timer. Connection's deficit is now
+        funded by the real atlas-write event-delta in the autonomy loop
+        (zero writes ⇒ zero erosion; bonded companion present ⇒ zero),
+        the same off-state physics as dream_pressure. stability/novelty
+        keep this decrement for now: neither is railed and neither is a
+        drive accumulation source; if a future drive sources them they
+        need the same event-delta retiming."""
         self.stability = max(0.0, self.stability - NEEDS_DRIFT_RATE)
         self.novelty = max(0.0, self.novelty - NEEDS_DRIFT_RATE)
-        self.connection = max(0.0, self.connection - NEEDS_DRIFT_RATE)
 
     def step(self, signals):
         """Additive nudge from substrate signals (coordinator regulation).
@@ -2099,6 +2136,13 @@ class Needs:
             nudge = signal * self.DECAY[k]
             if nudge > 0:
                 new = saturate(current, nudge)
+            elif k == "connection":
+                # GL-SPC-DRIVE-PHYSICS RCF-4: symmetric asymptotic floor —
+                # connection only (stability/novelty keep the bare clamp;
+                # neither is railed, and silently changing their floor
+                # physics would shift valence/arousal arithmetic this fix
+                # deliberately leaves alone).
+                new = _desaturate(current, -nudge)
             else:
                 new = max(0.0, current + nudge)
             setattr(self, k, new)
@@ -2500,14 +2544,23 @@ class Coordinator:
         else:
             novelty_sig = 0.0
 
-        # Connection: cross-modal binding density + pair-bond boost
-        n_cross = len(atlas.cross_modal_bindings())
-        n_atlas = _n_total
-        cross_density = n_cross / max(n_atlas, 1) * 20  # scaled
-        # Pair-bond boost from recent sourced input
-        pair_boost = guala.recent_connection_boost
-        guala.recent_connection_boost *= 0.85  # decay each tick
-        connection_sig = min(0.3, cross_density + pair_boost - 0.3)
+        # Connection: consumed contact-only event-delta.
+        # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-3 Change C:
+        # cross_density is DROPPED — n_cross/n_atlas*20 is a property of
+        # accumulated atlas structure, contact-independent and nonzero
+        # with nobody present, so it can only bias connection toward a
+        # rail (the old min(0.3, ... - 0.3) form railed it at 0.0; bare
+        # removal of the -0.3 would have railed it at the ceiling).
+        # recent_connection_boost is set only on a real receive event
+        # from a genuinely pair-bonded human (see the gated set-site in
+        # read_sentence) and is CONSUMED here rather than decayed on a
+        # fixed x0.85-per-pass cadence: baseline with no new bonded
+        # contact since the last regulate pass is exactly 0 — a genuine
+        # off-state — and the signal can never climb into a standing
+        # bias, so the connection>0.70 gate branch cannot become
+        # permanently true.
+        connection_sig = guala.recent_connection_boost
+        guala.recent_connection_boost = 0.0
 
         return {
             "stability":  stability_sig,
@@ -5144,8 +5197,22 @@ class Guala:
                 place, ambient = scene_tags_from_words(words)
             # 60-M: connection weight earned from relationship, not configured
             # 0.15 was Joe's peak; sources earn up to it via pair_bond_strength
-            weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
-            self.recent_connection_boost = max(self.recent_connection_boost, weight)
+            # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-3 Change A:
+            # bonded humans only. This set was unconditional, so every
+            # corpus/curriculum sentence refreshed "recent contact" — and
+            # because _record_interaction below is also unconditional, the
+            # corpus channel had EARNED pair_bond_strength 1.0 by sheer
+            # reading density (verified live 2026-07-18), pumping connection
+            # upward at reading cadence and inverting the companionship
+            # deficit. Gate on the _pair_bond authority via _bond_identity
+            # (NOT PAIR_BOND_SOURCES: that raw-string set omits joe_voice —
+            # the passive-mic path — and includes the non-bonded c1); it is
+            # the same authority the emission discharge gate,
+            # _pair_bond_active, and wake() already consult.
+            if self.coordinator._pair_bond.get(
+                    self.coordinator._bond_identity(source), False):
+                weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
+                self.recent_connection_boost = max(self.recent_connection_boost, weight)
             self.source_history[source] += 1
             source_turn_index = self.source_history[source]
 
@@ -10518,6 +10585,25 @@ class Guala:
 
                 self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
 
+                # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2:
+                # the companionship deficit is funded by the SAME real
+                # event-delta as dream_pressure — experiences processed
+                # without social contact. Off-state is genuine: zero atlas
+                # writes this tick ⇒ zero erosion; bonded companion
+                # present ⇒ zero (contact is exactly what the deficit
+                # measures — the x0.3 push-through above taken to its
+                # limit). Replaces tick_drift's per-awake-tick constant
+                # decrement, which was a wall-clock proxy. NON-PHASED-ONLY
+                # like the dream-pressure accumulation beside it (the -68
+                # precedent: phased duplication doubled the effective
+                # rate).
+                _conn_erosion = CONN_EROSION_PER_WRITE * _write_delta
+                if _pair_bond_active:
+                    _conn_erosion = 0.0
+                if _conn_erosion > 0.0:
+                    self.needs.connection = _desaturate(
+                        self.needs.connection, _conn_erosion)
+
                 # GL-CMD-SLEEP-RATE-68 (retained): periodic pressure telemetry (~every 10 min)
                 if self.tick % 3000 == 0:
                     self._log_substrate_event(
@@ -13257,6 +13343,12 @@ class Guala:
             # _autonomy_tick. _autonomy_tick_phased used to duplicate this
             # accumulation, doubling effective rate when AUTONOMY_PHASED=1.
             # Accumulation now lives only in _autonomy_tick (L4069-4096).
+            # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2: the
+            # connection-erosion event-delta (_conn_erosion) deliberately
+            # lives solely in _autonomy_tick as well, for this exact -68
+            # reason — do NOT duplicate it here. If AUTONOMY_PHASED is ever
+            # enabled, erosion goes quiet in the fail-safe direction (no
+            # deficit forms) and rollout Step 3's balance check exposes it.
 
             # GL-BUG-QUIESCENT-BOOT: same gate as _autonomy_tick (this
             # function's non-phased sibling) -- see that comment for why.
