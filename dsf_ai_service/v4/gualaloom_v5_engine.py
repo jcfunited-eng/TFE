@@ -873,7 +873,23 @@ SENSE_BINDING_WINDOW_SEC = 3.0
 # (app.py's /bundle: give_experience handler -- a human deliberately
 # asserting a real sensory quality for an actual experience, run through
 # sensory_generators.py's real waveform-shape physics, never automatic).
-REAL_GROUNDING_SECTION_PREFIXES = ("audio_", "touch_", "smell_", "taste_")
+#
+# 2026-07-19 (Joe, live, direct): the July-9 comment above only ever
+# covered the /bundle: path -- it never addressed _add_canonical_
+# emulator_entries (called from read_sentence, so EVERY corpus READING
+# sentence containing a descriptor word already runs it), because that
+# writer uses "emulator_{modality}" naming, not "{modality}_", and was
+# never reconciled with this list. It runs the exact same real physics
+# this comment already trusts (generate_sensory_signals -> a real
+# Krimelack transduction of an actual generated waveform, never a fixed
+# lookup value) -- the only thing wrong was that its output was
+# unrecognized by either list here, not fake or excluded, just invisible.
+# Joe confirmed directly: reading was always supposed to count too, not
+# only an explicit /bundle: upload. Adding the prefix is a pure
+# recognition fix; _add_canonical_emulator_entries already ran on every
+# sentence before this change, so this adds no new computation.
+REAL_GROUNDING_SECTION_PREFIXES = ("audio_", "touch_", "smell_", "taste_",
+                                    "emulator_")
 REAL_GROUNDING_EXACT_SECTIONS = {"sight"}
 FAKE_MODAL_SECTIONS = {"modal_sight", "modal_sound", "modal_touch",
                         "modal_smell", "modal_taste"}
