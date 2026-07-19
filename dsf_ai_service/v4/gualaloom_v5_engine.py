@@ -3790,81 +3790,6 @@ class Guala:
                 return True
         return False
 
-    def _forget_stale_sensory_items(self):
-        """2026-07-09 bloat fix: real uploaded pictures/sounds/videos had
-        NO forgetting at all -- every item stayed in memory (and, for
-        pictures/videos, on real EFS disk) forever, regardless of whether
-        she'd attended it in months. Reuses Section.MODE_FORGET_TICKS
-        (already derived from LivingAtlas's own real decay constants:
-        ln(0.02)/-0.0001 ticks) as the same "how long unattended before
-        forgotten" window a word mode uses -- a picture she hasn't
-        attended in that long is exactly as forgotten as a word would be.
-        Deliberately NOT a count-based cap (unlike window_manager's
-        MAX_CLOSED_WINDOWS, pure bookkeeping with no meaning of its own)
-        -- this is real content, so it decays on the same real attention-
-        recency physics as anything else she remembers, per Joe's ruling
-        2026-07-09 ("decay and forgetting properly utilized where it
-        makes sense"), not an arbitrary ceiling.
-
-        Grace period: a just-created, never-yet-attended item is judged
-        from its OWN creation tick (shown_at_tick for pictures/videos,
-        created_tick for sounds -- added alongside this fix since sounds
-        never tracked one before), not tick 0 -- else everything freshly
-        added would look infinitely stale before the attention loop ever
-        reaches it. Missing created_tick on pre-existing sound records
-        (saved before this fix) defaults to "now," not 0 -- an unknown
-        creation time must never look ancient by default; that would mass-
-        forget a whole category of real content the first time this runs.
-
-        Best-effort file cleanup for pictures/videos (their real EFS
-        artifacts) -- swallows errors, never crashes the substrate, same
-        convention as S3Consumer._delete_object."""
-        threshold = Section.MODE_FORGET_TICKS
-        forgotten = {"pictures": 0, "sounds": 0, "videos": 0}
-
-        for pid in list(self._pictures.keys()):
-            pic = self._pictures[pid]
-            last_active = max(pic.last_attended_tick, pic.shown_at_tick)
-            if self.tick - last_active <= threshold:
-                continue
-            orig_path = getattr(pic, "original_path", None)
-            if orig_path:
-                try:
-                    if os.path.exists(orig_path):
-                        os.remove(orig_path)
-                except Exception:
-                    pass
-            del self._pictures[pid]
-            forgotten["pictures"] += 1
-
-        for sid in list(self._sounds.keys()):
-            snd = self._sounds[sid]
-            last_active = max(snd.get("last_attended_tick", 0),
-                              snd.get("created_tick", self.tick))
-            if self.tick - last_active > threshold:
-                del self._sounds[sid]
-                forgotten["sounds"] += 1
-
-        for vid in list(self._videos.keys()):
-            vitem = self._videos[vid]
-            last_active = max(vitem.last_attended_tick, vitem.shown_at_tick)
-            if self.tick - last_active <= threshold:
-                continue
-            frame_dir = getattr(vitem, "frame_dir", None)
-            if frame_dir:
-                try:
-                    import shutil
-                    if os.path.isdir(frame_dir):
-                        shutil.rmtree(frame_dir, ignore_errors=True)
-                except Exception:
-                    pass
-            del self._videos[vid]
-            forgotten["videos"] += 1
-
-        if any(forgotten.values()):
-            self._log_substrate_event("sensory_items_forgotten", **forgotten)
-        return forgotten
-
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
@@ -4261,7 +4186,22 @@ class Guala:
                     forget_hemisphere_atlases(self)
                 for _sec in self.sections.values():
                     _sec.forget_stale_modes(self.tick)
-                self._forget_stale_sensory_items()
+                # GL-CMD-LIBRARY-PERMANENCE-JOE-20260719 (direct, live): the
+                # 2026-07-09 sensory-item forget/delete sweep that used to
+                # run here is REMOVED, not merely disabled. Joe: pictures,
+                # sounds, and videos are a personal library, the same
+                # category as books -- given once, available whenever she
+                # wants them, never silently deleted by a disuse timer.
+                # Confirmed live: real July-17 uploads (50+ pictures, 7
+                # sounds) were deleted -- including the only copy of the
+                # file on disk -- after ~27x this sweep's own forget window
+                # elapsed unattended. Corpora already had zero deletion
+                # code; this brings pictures/sounds/videos in line with
+                # that same permanent model instead of patching the decay
+                # rate. The July-9 ruling this sweep implemented is
+                # superseded by Joe's direct 2026-07-19 correction, not
+                # forgotten -- see _forget_stale_sensory_items in git
+                # history (removed this commit) for the prior mechanism.
 
             # 8b. V5: Generate questions from gaps in this word's bindings
             # 9. Coordinator regulation pass (homeostasis + awareness)
@@ -10768,7 +10708,11 @@ class Guala:
                         forget_hemisphere_atlases(self)
                     for _sec in self.sections.values():
                         _sec.forget_stale_modes(self.tick)
-                    self._forget_stale_sensory_items()
+                    # GL-CMD-LIBRARY-PERMANENCE-JOE-20260719: sensory-item
+                    # forget/delete sweep removed here too -- see the
+                    # non-phased sibling's comment (_autonomy_tick) for
+                    # the full reasoning; kept in sync per this file's own
+                    # convention for the phased duplicates.
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -13534,7 +13478,11 @@ class Guala:
                         forget_hemisphere_atlases(self)
                     for _sec in self.sections.values():
                         _sec.forget_stale_modes(self.tick)
-                    self._forget_stale_sensory_items()
+                    # GL-CMD-LIBRARY-PERMANENCE-JOE-20260719: sensory-item
+                    # forget/delete sweep removed here too -- see the
+                    # non-phased sibling's comment (_autonomy_tick) for
+                    # the full reasoning; kept in sync per this file's own
+                    # convention for the phased duplicates.
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
