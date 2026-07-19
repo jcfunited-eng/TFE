@@ -1230,6 +1230,30 @@ AUTONOMOUS_COMPOSER_SEED_WINDOWS = 6   # freshest committed windows considered
 AUTONOMOUS_COMPOSER_SEED_ATTEMPTS = 3  # composer queries per 90s cycle (cost bound)
 AUTONOMOUS_COMPOSER_SEED_PREFIX = 2    # lived-opening words used as one query
 
+# GL-FIX-ORDERED-WINDOW-UNBOUNDED-GROWTH-20260719: _ordered_language_windows
+# had NO eviction anywhere in this file — every
+# qualifying window (real reading/conversation sentence) was added and kept
+# for the entire process lifetime. Every real consumer only ever reads a
+# bounded RECENT slice (sorted(...)[-200:] in the reading-prediction
+# predictor, [-AUTONOMOUS_COMPOSER_SEED_WINDOWS:] for autonomous seeds,
+# [-PROPOSAL_WINDOW_SCAN(default 300):] for the proposal composer) — none
+# of the real call sites needed the full unbounded history. Worse: the
+# certified composer (DeterministicWindowComposer) is invalidated on EVERY
+# new window and, when rebuilt, precomputes successor maps over the WHOLE
+# dict (its own docstring: "per-turn reconstruction scaled with the whole
+# lived language corpus") — during continuous reading this cache almost
+# never stays warm, so nearly every compose attempt re-scanned an
+# ever-growing, never-shrinking structure. Confirmed live 2026-07-19: the
+# container OOM-killed on a ~90-minute cycle (silent kernel SIGKILL, no
+# app-level error) with organism/reading per-item cost climbing into
+# multi-second territory as the container aged — both consistent with this
+# structure's unbounded growth and unbounded rescans, not the previously-
+# diagnosed dream-cycle mechanism (the killed instance never ran a dream
+# cycle). 2000 is generous headroom over the largest real consumer slice
+# (300) while keeping the composer's full-rebuild cost, and the dict's
+# resident size, permanently bounded.
+ORDERED_LANGUAGE_WINDOW_MAX = 2000
+
 # Change 4 adversarial-review fixes (2026-07-16).  F1: without these two
 # gates the self-hear loop CLOSES — an autonomous release re-enters via
 # _self_hear as a fresh emulated window (touch/taste/smell emulator entries
@@ -4799,6 +4823,19 @@ class Guala:
                     experience_origin=origin,
                     tokens=tuple(occurrences),
                 )
+                # GL-FIX-ORDERED-WINDOW-UNBOUNDED-GROWTH-20260719: bound the
+                # dict to the most recent ORDERED_LANGUAGE_WINDOW_MAX
+                # windows. Dict insertion order is chronological (windows
+                # are only ever appended here, in close order), so the
+                # oldest entries are exactly the first keys — evicting them
+                # matches every real consumer's own "recent slice" contract
+                # (none reads more than the largest existing bound, 300).
+                # The underlying facts are NOT lost: they were already
+                # remembered into self.language_fact_memory above, which is
+                # the durable store; this dict is the recent-lookback index.
+                while len(self._ordered_language_windows) > ORDERED_LANGUAGE_WINDOW_MAX:
+                    self._ordered_language_windows.pop(
+                        next(iter(self._ordered_language_windows)))
                 # New ordered window: the cached composer's precomputed
                 # successor maps are stale — rebuild lazily on next compose.
                 # (Memory-only growth needs no invalidation: the composer
