@@ -1032,14 +1032,19 @@ NEEDS_DRIFT_RATE = 0.0001   # per tick — needs fall from 1.0 to 0 in ~10K tick
 
 # GL-SPC-DRIVE-PHYSICS-SUBSTRATE-TRUE-20260718-v1 RCF-2: connection erosion
 # per real atlas write while awake with no bonded companion present.
-# LIVE-CALIBRATE: no in-code atlas-write-rate measurement exists yet (the
-# DP_RATE_MULTIPLIER derivation below is explicitly a zero-write window),
-# so this provisional value is a pure design target — ~250k solo-reading
-# writes to reach deficit ~0.4 — not a measured rate. Rollout Step 3 reads
-# dream_pressure_check's write_delta telemetry (the first real measurement)
-# and finalizes this constant against a chosen sustained-deprivation
-# interval.
-CONN_EROSION_PER_WRITE = 1.6e-6
+# LIVE-CALIBRATED 2026-07-19 from the rollout Step-3 balance window
+# (needs_snapshot telemetry, 19:45–01:40 UTC, two multi-hour solo-reading
+# stretches on task :691): the provisional 1.6e-6 produced a measured
+# decline of ~0.003/h at connection≈0.28, i.e. an effective erosion
+# constant k = CONN_EROSION_PER_WRITE × live-write-rate ≈ 0.013/h under
+# _desaturate's (current − floor) scaling — a healthy-to-deprived
+# (0.7 → 0.3) horizon of ~73 h, an order of magnitude slower than the
+# design's sustained-deprivation target (order-of-hours; Tomova 2020's
+# canonical isolation window is 10 h). Raised ×6.25 to put that horizon
+# at ~12–15 h of continuous solo cognitive work with the same measured
+# write rate. Event-delta physics unchanged: zero writes ⇒ zero erosion;
+# bonded companion present ⇒ zero.
+CONN_EROSION_PER_WRITE = 1.0e-5
 NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 
 # Grandurun tuning constants (GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01)
@@ -10626,8 +10631,15 @@ class Guala:
                     self.needs.connection = _desaturate(
                         self.needs.connection, _conn_erosion)
 
-                # GL-CMD-SLEEP-RATE-68 (retained): periodic pressure telemetry (~every 10 min)
-                if self.tick % 3000 == 0:
+                # GL-CMD-SLEEP-RATE-68 (retained): periodic pressure telemetry.
+                # 2026-07-19: `% 3000 == 0` never fired in production — the
+                # tick advances in multi-tick strides inside _atick_reading
+                # (one per word), so exact multiples are skipped at the top
+                # of the body; zero dream_pressure_check events existed in
+                # ANY deploy era's logs. Elapsed-tick tracker instead — the
+                # cadence the -68 comment intended, robust to strides.
+                if self.tick - getattr(self, "_dp_check_last_tick", 0) >= 3000:
+                    self._dp_check_last_tick = self.tick
                     self._log_substrate_event(
                         "dream_pressure_check",
                         dp=round(self.needs.dream_pressure, 4),
