@@ -76,6 +76,9 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #cogmeter-head .n{color:var(--text-muted);font-size:8px}
 #cogmeter-body{max-height:280px;overflow-y:auto;padding:0 14px 6px}
 #cogmeter-body.collapsed{display:none}
+#cogmeter-archive{padding:0 14px 6px}
+#cogmeter-archive summary{cursor:pointer;color:var(--text-muted);font-size:8px;user-select:none}
+#cogmeter-archive-body{max-height:280px;overflow-y:auto;padding-top:4px}
 .cm-row{display:grid;grid-template-columns:170px 130px 1.3fr 1.3fr;gap:8px;padding:3px 0;border-bottom:1px solid #21262d;align-items:start}
 .cm-row.cm-hdr{color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-alt)}
 .cm-name{color:var(--text)}
@@ -124,6 +127,10 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <span class="n" id="cogmeter-count">—</span>
   </div>
   <div id="cogmeter-body"></div>
+  <details id="cogmeter-archive">
+    <summary id="cogmeter-archive-summary">past audit notes (archived — no live check exists, not current state)</summary>
+    <div id="cogmeter-archive-body"></div>
+  </details>
 </div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
@@ -1305,6 +1312,7 @@ async function pollAutonomousThought(){
     const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:'',command:'/thought'})},6000);
     const d=await r.json();
+    window._lastThought=d;
     if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
       _lastThoughtTick=d.tick;
       addEmissionMsg(d.speech,null);
@@ -1358,7 +1366,17 @@ function _cmAuditDate(pointer){
   for(const p of pointer.split('/'))if(POINTER_DATES[p])return POINTER_DATES[p];
   return null;
 }
-const COGMETER_ROWS=[
+// GL-FIX-COGMETER-REAL-OR-GONE-20260720: Joe, direct, after a stale "yes,
+// confirmed live 2026-07-04" voice-to-words row sat on this dashboard while
+// he personally spoke for a full minute and got no reply -- "that cognition
+// meter need to be real or be gone." An "(as of audit <date>)" footnote
+// was not enough; a confident YES/SEVERED label above a small gray date
+// stamp still reads as current status. Every row below that has no live()
+// check is now archive-only: real research, real fixes, real dates -- kept
+// for provenance, but never rendered in the main table as if it were true
+// right now. Only rows with a live() function that recomputes from a real
+// signal on every poll appear in COGMETER_ROWS below the archive.
+const COGMETER_AUDIT_ARCHIVE=[
   // The fifteen mechanisms (plain names per -166) -- v1.1, populated from
   // GL-RPT-WIRING-AUDIT-C1-20260704-164-v1's Part B (multi-session research,
   // cross-checked against LIVE telemetry, not just code reading -- two
@@ -1420,39 +1438,6 @@ const COGMETER_ROWS=[
   {name:'intro gate',connected:'yes',pointer:'-162',
     firing:'same real mechanism as "aware gate" above -- no longer fires inside a copy of a session Joe never talks to; fires from the organism\'s own real intro-section state on the real conversation path',
     impact:'FIX SHIPPED 2026-07-11 -- old intro_krimelack_count live-check dropped, same reasoning as aware gate'},
-  {name:'deliberation stage',connected:'yes',pointer:'-162',
-    firing:'real, live Coordinator.regulate() firing every 5th tick from _autonomy_tick, itself running in a background thread started by start_autonomy_loop from the real boot path (_gl_init)',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed wired and firing via direct code trace, not queued/off -- the live() check below (awareness_ratio) already showed this correctly whenever status data was fresh, only the static fallback text was wrong',
-    live:(status,v7)=>{
-      if(!status||!status.ladder)return null;
-      const ratio=status.ladder.awareness_ratio;
-      const fired=typeof ratio==='number'&&ratio>0;
-      return{connected:fired?'yes':'queued',
-        firing:fired?`LIVE -- awareness_ratio=${ratio} (deliberation_ticks nonzero)`
-                     :'awareness_ratio=0 this poll -- deliberation has not fired yet on this boot'};
-    }},
-  {name:'day-cycle / sleep trigger',connected:'yes',pointer:'-165',
-    firing:'real, load-driven (not wall-clock/circadian) trigger: dream_pressure accumulates from real read/write backlog, soft-competes at 0.7, hard-overrides at 1.0 ("physics-triggered instead of button-triggered"), wired into the live _autonomy_tick loop -- shipped and Joe-ratified',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live right now (current_activity.kind=DREAMING at time of this correction), not investigating -- this row\'s own live() check below already agrees when polled fresh',
-    live:(status)=>{
-      if(!status||!status.activity_history_summary)return null;
-      const kinds=Object.keys(status.activity_history_summary);
-      const sawSleep=kinds.includes('SLEEPING')||kinds.includes('DREAMING');
-      return{connected:sawSleep?'yes':'investigating',
-        firing:`kinds seen this window: ${kinds.join(', ')||'(none)'}`+
-               (sawSleep?'':' -- still no SLEEPING/DREAMING in the visible activity history')};
-    }},
-  {name:'curriculum feeders',connected:'yes',pointer:'-156',
-    firing:'real CurriculumScheduler.start() from _embedded_post_boot/_gl_init boot path, reconnected 2026-07-05 (cac6684); enabled=True by default',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace, not severed -- the live() check below never fires because /status does not expose a curriculum_status field yet, so this row always fell back to stale text regardless of real state',
-    live:(status)=>{
-      const cs=status&&status.curriculum_status;
-      if(cs===undefined)return null;  // field not present -- older deploy, fall back to audit text
-      if(cs===null)return{connected:'severed',firing:'scheduler not started this boot (still true as of this poll)'};
-      return{connected:cs.enabled?'yes':'queued',
-        firing:`LIVE -- book "${cs.current_book||'?'}" offset=${cs.offset||0}, `+
-               `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
-    }},
   {name:'play',connected:'yes',pointer:'-185',
     firing:'LIVE -- _atick_playing (gualaloom_v5_engine.py:9552) calls _play_revisit_known_pairing() (:9580) every 500 ticks, no flag gates it; PLAYING is an unconditional activity-selection candidate (:8498)',
     impact:'FIX SHIPPED 2026-07-11: real mechanic built per the standing Engine·Play·World design item (docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md, 8/8 tests pass), per Joe\'s explicit sign-off, not a shim. Caveat: honestly fires zero events until she has both attended a real picture AND holds a recent word sharing its chi -- true no-op on a substrate with little visual grounding yet, that\'s correct behavior, not a bug'},
@@ -1483,42 +1468,113 @@ const COGMETER_ROWS=[
     firing:'no code path in loom_model -- explicitly out of scope per -168-v3\'s own A5 table',
     impact:'none observed'},
 ];
+// The only rows shown as current state. Every entry here recomputes
+// {connected,firing} from a real signal on every single poll -- if the
+// live() check can't get a real answer it returns null and the row falls
+// back to its own honestly-worded "no signal yet" text, never a stale claim.
+const COGMETER_ROWS=[
+  {name:'deliberation stage',connected:'watch',pointer:'-162',
+    firing:'no /status poll observed yet this session',
+    impact:'real, live Coordinator.regulate() firing every 5th tick from _autonomy_tick, itself running in a background thread started by start_autonomy_loop from the real boot path (_gl_init) -- archived audit 2026-07-11',
+    live:(status,v7)=>{
+      if(!status||!status.ladder)return null;
+      const ratio=status.ladder.awareness_ratio;
+      const fired=typeof ratio==='number'&&ratio>0;
+      return{connected:fired?'yes':'queued',
+        firing:fired?`LIVE -- awareness_ratio=${ratio} (deliberation_ticks nonzero)`
+                     :'awareness_ratio=0 this poll -- deliberation has not fired yet on this boot'};
+    }},
+  {name:'day-cycle / sleep trigger',connected:'watch',pointer:'-165',
+    firing:'no /status poll observed yet this session',
+    impact:'real, load-driven (not wall-clock/circadian) trigger: dream_pressure accumulates from real read/write backlog, soft-competes at 0.7, hard-overrides at 1.0, wired into the live _autonomy_tick loop -- archived audit 2026-07-11',
+    live:(status)=>{
+      if(!status||!status.activity_history_summary)return null;
+      const kinds=Object.keys(status.activity_history_summary);
+      const sawSleep=kinds.includes('SLEEPING')||kinds.includes('DREAMING');
+      return{connected:sawSleep?'yes':'investigating',
+        firing:`kinds seen this window: ${kinds.join(', ')||'(none)'}`+
+               (sawSleep?'':' -- still no SLEEPING/DREAMING in the visible activity history')};
+    }},
+  {name:'curriculum feeders',connected:'watch',pointer:'-156',
+    firing:'no /status poll observed yet this session, or this deploy predates the curriculum_status field',
+    impact:'real CurriculumScheduler.start() from _embedded_post_boot/_gl_init boot path, reconnected 2026-07-05 (cac6684); enabled=True by default -- archived audit 2026-07-11',
+    live:(status)=>{
+      const cs=status&&status.curriculum_status;
+      if(cs===undefined)return null;  // field not present -- older deploy, fall back to watch text
+      if(cs===null)return{connected:'severed',firing:'scheduler not started this boot (still true as of this poll)'};
+      return{connected:cs.enabled?'yes':'queued',
+        firing:`LIVE -- book "${cs.current_book||'?'}" offset=${cs.offset||0}, `+
+               `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
+    }},
+  {name:'voice-to-words',connected:'watch',pointer:'GL-FIX-VOICE-REPLY-DOOR-20260720',
+    firing:'no /thought poll observed yet this session',
+    impact:'GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech now triggers a real converse() reply instead of silent read_sentence()-only intake -- this row reports exactly what the live poll has actually seen, nothing assumed',
+    live:(status,v7)=>{
+      const t=window._lastThought;
+      if(!t||!t.speech)return{connected:'watch',firing:'no autonomous-thought poll has returned real speech yet this session'};
+      const isVoice=t.category==='voice_reply';
+      const ageS=t.ts?Math.round(Date.now()/1000-t.ts):null;
+      if(!isVoice)return{connected:'watch',
+        firing:`last observed thought was category="${t.category||'unknown'}", not a voice reply -- no spoken utterance has produced a reply yet this poll`};
+      return{connected:'yes',
+        firing:`LIVE -- a real voice_reply surfaced${ageS!==null?' '+ageS+'s ago':''} (tick ${t.tick}, response_source=${t.response_source||'?'})`};
+    }},
+];
 function renderCogMeter(){
   const body=document.getElementById('cogmeter-body');
   if(!body)return;
-  // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: every row is now either
-  // (a) LIVE -- r.live(status,v7) returns a fresh {connected,firing},
-  // recomputed on every call (pollStatus()/pollV7State() call this on
-  // every poll, not just once at boot), or (b) audit-stamped -- the
-  // static text stays, but a visible "(as of audit <date>)" is appended
-  // so it can never again be mistaken for current state, per M1's own
-  // fallback rule ("no undated audit text ever renders as current again").
+  // GL-FIX-COGMETER-REAL-OR-GONE-20260720: the main table renders ONLY
+  // COGMETER_ROWS, and every row in that array has a live() function --
+  // r.live(status,v7) recomputes {connected,firing} from a real signal on
+  // every single poll. If live() can't get a real answer yet it returns a
+  // row-authored "watch" fallback (e.g. "no poll observed yet"), never a
+  // dated audit claim -- a row with no current signal says so plainly
+  // instead of showing old text next to a small date stamp. Historical
+  // audit rows with no live() check live in COGMETER_AUDIT_ARCHIVE and
+  // render separately, collapsed by default, never in this table.
   const status=window._lastStatus,v7=window._lastV7State;
-  let nLive=0;
   let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
   for(const r of COGMETER_ROWS){
-    let connected=r.connected,firing=r.firing,isLive=false;
+    let connected=r.connected,firing=r.firing;
     if(typeof r.live==='function'){
       try{
         const live=r.live(status,v7);
-        if(live){connected=live.connected;firing=live.firing;isLive=true;nLive++;}
-      }catch(e){/* fall through to static text on any live-check error */}
+        if(live){connected=live.connected;firing=live.firing;}
+      }catch(e){/* fall through to the row's own "watch" text on any live-check error */}
     }
     const lbl=CM_LABELS[connected]||connected;
     const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
-    const stamp=isLive
-      ? ' <span style="color:var(--ev-emission);opacity:.85">[LIVE]</span>'
-      : (()=>{const d=_cmAuditDate(r.pointer);
-              return d?` <span style="opacity:.5">(as of audit ${d})</span>`:'';})();
     h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
        `<div class="cm-conn ${connected}">${lbl}${ptr}</div>`+
-       `<div class="cm-firing">${firing}${stamp}</div>`+
+       `<div class="cm-firing">${firing}</div>`+
        `<div class="cm-impact">${r.impact}</div></div>`;
   }
   body.innerHTML=h;
-  const known=COGMETER_ROWS.filter(r=>r.connected!=='unknown').length;
   const cnt=document.getElementById('cogmeter-count');
-  if(cnt)cnt.textContent=`${known}/${COGMETER_ROWS.length} audited, ${nLive} live-checked this poll`;
+  if(cnt)cnt.textContent=`${COGMETER_ROWS.length}/${COGMETER_ROWS.length} live-checked this poll`;
+  renderCogMeterArchive();
+}
+let _archiveRendered=false;
+function renderCogMeterArchive(){
+  if(_archiveRendered)return;  // static rows, never change at runtime -- render once
+  const body=document.getElementById('cogmeter-archive-body');
+  const summary=document.getElementById('cogmeter-archive-summary');
+  if(!body)return;
+  let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
+  for(const r of COGMETER_AUDIT_ARCHIVE){
+    const lbl=CM_LABELS[r.connected]||r.connected;
+    const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
+    const d=_cmAuditDate(r.pointer);
+    const stamp=d?` <span style="opacity:.5">(as of audit ${d})</span>`
+                 :' <span style="opacity:.5">(undated audit note)</span>';
+    h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
+       `<div class="cm-conn ${r.connected}">${lbl}${ptr}</div>`+
+       `<div class="cm-firing">${r.firing}${stamp}</div>`+
+       `<div class="cm-impact">${r.impact}</div></div>`;
+  }
+  body.innerHTML=h;
+  if(summary)summary.textContent=`${COGMETER_AUDIT_ARCHIVE.length} past audit notes (archived — no live check exists, not current state)`;
+  _archiveRendered=true;
 }
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
