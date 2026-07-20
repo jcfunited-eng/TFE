@@ -9,7 +9,7 @@
 # Any of these failing means the deploy is partial. Future static-only
 # changes must still run steps 3-5.
 #
-# Usage: ./tools/deploy_dsf_ai.sh [--force-s3-restore]
+# Usage: ./tools/deploy_dsf_ai.sh [--force-s3-restore] [--build-only]
 #   --force-s3-restore  Inject FORCE_S3_RESTORE=1 for THIS deploy only.
 #                       Boot will download from most-recent S3 backup before
 #                       loading EFS state. Remove the flag for all subsequent
@@ -23,11 +23,17 @@ set -euo pipefail
 
 # Parse optional flags
 FORCE_S3_RESTORE_FLAG=""
+BUILD_ONLY_FLAG=""
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --force-s3-restore)
             FORCE_S3_RESTORE_FLAG="yes"
             echo "[deploy] --force-s3-restore: FORCE_S3_RESTORE=1 will be injected for this deploy only."
+            shift
+            ;;
+        --build-only)
+            BUILD_ONLY_FLAG="yes"
+            echo "[deploy] --build-only: image and task definition will be registered without runtime turnover."
             shift
             ;;
         *)
@@ -776,6 +782,11 @@ NEW_REV=$(aws ecs register-task-definition \
     --output text)
 
 echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
+
+if [ "${BUILD_ONLY_FLAG}" = "yes" ]; then
+    echo "[deploy] Build-only complete: image=${IMAGE_URI} task_definition=${TASK_FAMILY}:${NEW_REV}"
+    exit 0
+fi
 
 # ── Step 6: Authenticated seal + single-owner turnover ──
 echo ""
