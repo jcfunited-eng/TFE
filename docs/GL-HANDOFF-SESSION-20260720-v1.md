@@ -111,6 +111,63 @@ instead of broken. Worth checking current ECS CPU/memory pressure and
 `_run_lifecycle_executor`/`_speech_recognition_executor` pool sizes as the
 next diagnostic step before touching the timeout value.
 
+### 1b. Text-prompt replies taking up to ~1000s, added ~08:30 this morning
+
+**Symptom Joe reported**: typed prompts sometimes take up to 1000 seconds to
+get a response; Joe's own hypothesis was "parallelism is not happening."
+
+**Confirmed correct, evidence-backed**: it is genuinely single-threaded by
+design, not a bug in the sense of something accidentally missing. Every real
+conversational turn — text or voice — ultimately calls the substrate's
+`converse()`, which the code's own comments document as "genuinely slow
+(measured history: 49-94s for a full six-section compose)" (`app.py:743`
+area). Text prompts (`_run_converse`) and voice-triggered replies
+(`_maybe_trigger_voice_reply`) both serialize through the SAME engine lock
+(`self.lock`/`self._emission_lock`) as her own background autonomous reading
+(curriculum/worldfeed/lookup) — this is a **previously-known, previously-
+partially-mitigated** class of problem: see the `GL-BUG-CURRICULUM-LOCK-
+PRIORITY` (2026-07-06) and `GL-CMD-CONVERSE-FRAME-PRIORITY` comments already
+in `app.py`, which reference a still-earlier incident (Eve, 2026-06-30) where
+curriculum-reading lock contention made `/converse` time out at 5s+.
+
+This single-lock design is deliberate and correct per the project's own
+"one brain, one voice" principle — two things "thinking" at once through the
+same substrate state at the same time is not a valid target architecture, so
+the fix is not "add parallelism" to converse() itself. But: voice replies
+have an explicit skip-ahead guard (`_voice_reply_busy`) so a backlog of stale
+voice turns can never build up. **Typed text prompts have no equivalent
+guard** — each `/listen`-routed prompt spawns its own `asyncio.create_task`
+immediately (`_schedule_mutating_background`, unbounded), and each one then
+queues on the shared lock. If several prompts (or prompts overlapping with
+autonomous background activity) stack up, wait time is additive: at ~50-90s
+per turn, roughly 12-20 queued turns alone accounts for Joe's observed
+~1000s. **Not fixed.** Candidate: give typed converse the same kind of
+busy/skip-ahead or explicit queue-depth cap voice already has, so a pile-up
+degrades honestly (an explicit "busy, try again" state) instead of silently
+growing wait time per prompt.
+
+### 1c. Pictures appearing unprompted alongside text replies, "text un-correctable"
+
+Confirmed this is a **real, designed feature, not corruption**: a normal
+typed reply's task result can carry a `pictures` array
+(`task["pictures"] = picture_refs`, `app.py:942`), built from
+`turn_result.recalled_pictures` — associative recall surfacing up to 4
+stored pictures tied to whatever motifs the reply touches (same cross-modal-
+recall family as the sound→sight recall work referenced elsewhere in this
+codebase). The frontend renders these inline in the transcript
+(`renderPictures`, `static/gualaloom.html:672`), indistinguishable in
+placement from a normal reply — so if the matching that decides which
+pictures are "relevant enough" to surface is too loose, it reads exactly
+like Joe described: images showing up unbidden on ordinary text prompts.
+**Not investigated further** — have not looked at the actual recall/matching
+threshold that produces `turn_result.recalled_pictures`, so don't know yet
+whether it's newly over-triggering or was always this loose. The
+"un-correctable" text garbling Joe reported alongside this was NOT traced
+this session; worth checking whether it shares a cause with the pre-existing
+`test_teacher_correction_gateway_routing.py` failures already flagged
+elsewhere in this doc as pre-existing/unrelated — that's a guess, not
+confirmed, flagging the possible connection only.
+
 ### 2. Speech transcription accuracy (~87% per Joe's own estimate)
 
 Not investigated this session — flagged by Joe directly on 2026-07-20. This
