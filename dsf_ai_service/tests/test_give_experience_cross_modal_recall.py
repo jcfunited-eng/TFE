@@ -105,6 +105,8 @@ def test_curriculum_descriptor_preserves_full_field_without_closed_window(
 
 
 def test_engine_continuity_contract_has_no_verbatim_window_artifact():
+    guala = Guala()
+    assert guala.window_manager._retain_closed_windows is False
     assert "guala_windows.json" not in Guala.STATE_FILES
     assert "guala_windows.json" not in Guala.FULL_SAVE_MANIFEST_FILES
     assert "guala_windows.json" not in Guala.HOT_SAVE_MANIFEST_FILES

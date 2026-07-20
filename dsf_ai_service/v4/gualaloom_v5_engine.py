@@ -2823,6 +2823,10 @@ class Guala:
             atlas_windows=self.atlas.windows,
             retain_closed_windows=False,
         )
+        if self.window_manager._retain_closed_windows:
+            raise RuntimeError(
+                "production invariant violated: closed experience windows "
+                "must remain transient")
         # GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1: reads
         # atlas.windows live (no caching, no copy) -- never writes it.
         from dsf_ai_service.substrate.recall_query import RecallEngine
