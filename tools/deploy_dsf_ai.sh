@@ -523,26 +523,19 @@ NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "
 import sys, json, os
 td = json.load(sys.stdin)
 
-# Preserve infra fields from existing task def
-keep = ['executionRoleArn', 'taskRoleArn', 'runtimePlatform', 'cpu', 'memory']
+# Preserve identity/platform fields from the existing task definition.  CPU and
+# memory are deliberately not inherited: inheriting the emergency 8-vCPU/40-GiB
+# envelope made that bloat permanent across every later deployment.  The live
+# lossless-atlas build peaks below 9 GiB including page cache, so 16 GiB is the
+# production hard ceiling; ECS cannot let this task reach 26 GiB again.
+keep = ['executionRoleArn', 'taskRoleArn', 'runtimePlatform']
 infra = {k: td[k] for k in keep if k in td and td[k]}
-
-# GL-INCIDENT-DEPLOY-SCRIPT-MEMORY-UNDERSIZE-EVE-20260708-v1: cpu/memory
-# used to be hardcoded here (2048/4096 -- stale from an early version of
-# this script, long since outgrown), requiring a manual post-register
-# patch-task-def step every deploy (see prior session precedent: task
-# def revision 547 patched to 548 for correct cpu/memory, 4096/16384).
-# That manual step was missed on 2026-07-08's Phase 1 deploy attempt --
-# the resulting under-provisioned task (2048/4096, a quarter of the real
-# 4096/16384 requirement) OOM-killed ~48-53s after boot on EVERY attempt,
-# masquerading as a code-level regression until traced back here. Fixed
-# by inheriting cpu/memory from whatever's actually currently deployed
-# (via the keep list, above) instead of a hardcoded default that can go
-# stale -- self-correcting from here on, no more manual patch step needed.
 out = {
     'family': '${TASK_FAMILY}',
     'networkMode': 'awsvpc',
     'requiresCompatibilities': ['FARGATE'],
+    'cpu': '4096',
+    'memory': '16384',
     **infra,
     'volumes': [
         {
@@ -572,11 +565,10 @@ out = {
                 {'name': 'GUALA_OWNER_LOCK_PATH', 'value': '/app/guala/.guala-owner.lock'},
                 {'name': 'GUALA_REQUIRE_SEALED_STATE', 'value': '1'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
-                # Spec v3 STT staging: the image defaults VOICE_WHISPER=1
-                # (+ worker lane), but the sense stays OFF until the STT
-                # acceptance gate (criterion 7) passes live. Enable by
-                # deleting this line, never by editing the image.
-                {'name': 'VOICE_WHISPER', 'value': '0'},
+                # Spoken-word recognition is a boundary sense transducer.  It
+                # runs in the separately bounded worker lane after cognition
+                # is ready; it does not replace or approximate cognition.
+                {'name': 'VOICE_WHISPER', 'value': '1'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},

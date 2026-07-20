@@ -37,6 +37,9 @@ def test_release_must_be_a_clean_commit_and_one_archive():
 def test_efs_transport_and_fargate_shutdown_ceiling_are_explicit():
     assert "'transitEncryption': 'ENABLED'" in TEXT
     assert "'transitEncryption': 'DISABLED'" not in TEXT
+    assert "'cpu': '4096'" in TEXT
+    assert "'memory': '16384'" in TEXT
+    assert "'cpu', 'memory'" not in TEXT.split("keep =", 1)[1].split("\n", 1)[0]
     # AWS Fargate rejects values above 120; persistence must already be SEALED.
     assert "'stopTimeout': 120" in TEXT
     assert "shutdown save-free" in TEXT
