@@ -2821,6 +2821,7 @@ class Guala:
             get_presence_fn=lambda: dict(getattr(self.coordinator, "_presence", {})),
             get_affect_fn=self._affect_kwargs,
             atlas_windows=self.atlas.windows,
+            retain_closed_windows=False,
         )
         # GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1: reads
         # atlas.windows live (no caching, no copy) -- never writes it.
@@ -2831,9 +2832,10 @@ class Guala:
             get_tick_fn=lambda: self.tick,
             log_event_fn=self._log_substrate_event,
         )
-        # Language recognition authority.  This store is reconstructed from
-        # durable canonical BindingWindows on boot; legacy Atlas modes and
-        # compatibility Chi routing never populate it.
+        # Compatibility surface for the retired verbatim Fact-Strand path.
+        # Live cognition and speech are authoritative through krimelack ->
+        # explicit chi/DSF atlas structure -> section assemblage. Closed
+        # BindingWindows are not retained or replayed.
         from dsf_ai_service.substrate.language_fact_strand import LanguageFactMemory
         self.language_fact_memory = LanguageFactMemory()
         self._language_fact_lock = threading.RLock()
@@ -4519,7 +4521,6 @@ class Guala:
                     source_tag=source,
                     context_id=context_id,
                     trigger_reason="story_context",
-                    mirror_atlas=False,
                     structural_fact=fact.to_dict(),
                     detail={
                         "context_value": value,
@@ -4590,7 +4591,6 @@ class Guala:
                     source_tag=source,
                     context_id=context_id,
                     trigger_reason="experience_emulator",
-                    mirror_atlas=False,
                     structural_fact=sensory_fact,
                     sensory_refs=[f"{modality}:{descriptor}:{channel}"],
                     detail={
@@ -4627,7 +4627,6 @@ class Guala:
             context_id=context_id,
             trigger_reason="language_fact",
             language_position=language_position,
-            mirror_atlas=False,
             structural_fact=fact.to_dict(),
             detail={
                 "language_form": fact.language_form,
@@ -5424,8 +5423,11 @@ class Guala:
                     window_id=_closed_window_id,
                     words=" ".join(words)[:80])
             else:
-                self._remember_closed_language_window(
-                    _closed_window_id, teaching=teaching)
+                self._log_substrate_event(
+                    "binding_context_released_to_atlas",
+                    window_id=_closed_window_id,
+                    words=len(words),
+                    teaching=bool(teaching))
 
         with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
@@ -5629,7 +5631,7 @@ class Guala:
             # 3. RECALL from atlas BEFORE reading input — corpus-only bindings
             recalled, recalled_pictures = self._recall_response(
                 input_chis, input_word_chis, words)
-            fact_settlement = self._compose_language_fact_settlement(words)
+            fact_settlement = EmissionSettlement(tick=self.tick)
             _t_recall = time.monotonic()
 
             # 4. Read input into substrate (so she learns from this interaction)
@@ -5850,7 +5852,7 @@ class Guala:
         # Phase 3: recall (no lock — reads atlas, race-tolerant)
         recalled, recalled_pictures = self._recall_response(
             input_chis, input_word_chis, words)
-        fact_settlement = self._compose_language_fact_settlement(words)
+        fact_settlement = EmissionSettlement(tick=self.tick)
         _t_recall = time.monotonic()
 
         # Phase 4: read input (per-word self.lock internally via -46v2 §1.1)
@@ -12850,14 +12852,9 @@ class Guala:
                            proposal=None):
         """One autonomous release attempt through the one release policy.
         Returns dict with content/metadata if a release fires; None
-        otherwise (explained silence — the caller logs the no-commit event,
-        and fact_compose telemetry already recorded every composer stop
-        reason).  Must be called with self.lock held.
-
-        Change 4 (spec v3 release-policy note b): release ordering is the
-        SAME as conversation — certified composer preferred (queried with
-        organism-sourced seeds), the substrate's own assemblage commit
-        second, explained silence third.
+        otherwise. The first authority is the substrate's structural
+        assemblage over krimelack-derived chi/atlas state; organism recall is
+        the fallback. Must be called with self.lock held.
         """
         # A conversation counted first is a hard barrier for EVERY
         # autonomous release authority — the same rule
@@ -12885,90 +12882,10 @@ class Guala:
             budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
         compose_deadline = time.monotonic() + budget_ms / 1000.0
 
-        # 1. Certified composer, organism-sourced seeds (never the atlas).
-        # F3 (2026-07-16): the runner snapshots seeds under a SHORT lock
-        # hold, precomputes the organism votes OUTSIDE self.lock, then
-        # passes both in -- so tier 3 never runs recall under the lock.
-        # Direct callers (tests) may omit them; tier 3 then refuses
-        # loudly rather than ever recalling under the lock.
         if seed_attempts is None:
             seed_attempts = self._autonomous_composer_seed_attempts()
-        cycle_stop_reason = None
-        if seed_attempts:
-            # Change-1 cached composer: every attempt below hits
-            # self._language_fact_composer through the one canonical
-            # compose path — built at most once (on cache miss after an
-            # ordered-window invalidation), reused across attempts AND
-            # cycles.  The budget check between attempts still bounds the
-            # rebuild case.
-            for attempt_index, attempt in enumerate(seed_attempts):
-                if (attempt_index > 0
-                        and time.monotonic() >= compose_deadline):
-                    cycle_stop_reason = "compose_budget"
-                    break
-                settlement = self._compose_language_fact_settlement(
-                    attempt["words"])
-                content, response_source = self._committed_emission_response(
-                    settlement)
-                if not content or response_source != "fact_strand_commit":
-                    continue
-                # F2 (review 2026-07-16): the entry barrier only covers
-                # arrival BEFORE this cycle; a conversation counted while
-                # the composer was settling must still win.  Re-check after
-                # settlement, before any release: the human turn is never
-                # talked over.
-                with self._live_converse_state_lock:
-                    conversation_arrived = self._live_converse_pending > 0
-                if conversation_arrived:
-                    self._log_substrate_event(
-                        "autonomous_fact_seed",
-                        released=False,
-                        stop_reason="conversation_arrived",
-                        n_attempts=attempt_index + 1)
-                    return None
-                # F1b (review 2026-07-16): never re-release recent
-                # autonomous text — the second gate breaking the self-hear
-                # babble loop.  Suppressed certified text falls through to
-                # the remaining seeds, then assemblage, then silence.
-                if content in self._recent_autonomous_releases:
-                    cycle_stop_reason = "repeat_suppressed"
-                    self._log_substrate_event(
-                        "autonomous_repeat_suppressed",
-                        response_source=response_source,
-                        content=content[:80])
-                    continue
-                self._log_substrate_event(
-                    "autonomous_fact_seed",
-                    released=True,
-                    n_attempts=attempt_index + 1,
-                    seed_words=list(attempt["words"]),
-                    seed_provenance=attempt["provenance"])
-                self._recent_autonomous_releases.append(content)
-                return {
-                    "content": content,
-                    "source": "guala",
-                    "response_source": response_source,
-                    "category": "autonomous",
-                    "seed_words_used": len(attempt["words"]),
-                    "seed_provenance": attempt["provenance"],
-                    "settlement_tick": settlement.tick,
-                    "committed_sections": list(
-                        settlement.committed_sections),
-                    "commit_provenance": [
-                        provenance.as_record()
-                        for provenance in settlement.commit_provenance],
-                }
-            # Honest stop: every seed's stop reason is already in the
-            # per-query fact_compose events; this records the cycle summary
-            # (compose_budget / repeat_suppressed when those cut it short).
-            self._log_substrate_event(
-                "autonomous_fact_seed",
-                released=False,
-                stop_reason=cycle_stop_reason,
-                n_attempts=len(seed_attempts),
-                seed_words=[list(a["words"]) for a in seed_attempts])
 
-        # 2. The substrate's own assemblage voice (unchanged mechanism).
+        # 1. The substrate's own krimelack/chi/atlas assemblage voice.
         # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): no-seeds and a
         # repeat-suppressed assemblage now FALL THROUGH to the organism
         # attempt (babble beats silence, Joe-approved) instead of
@@ -13014,20 +12931,7 @@ class Guala:
                             for provenance in settlement.commit_provenance],
                     }
 
-        # 2.5 Proposal composer — GL-CMD-SYNTAX-ARC-20260718 Piece 2:
-        # novel recombination from her OWN lived successions, stitched
-        # across ≥2 distinct memory windows (verbatim replay stays the
-        # certified tier's job), organism-scored, honestly labeled
-        # composed_attempt.  Candidates + scores were precomputed
-        # LOCK-FREE by the caller; the in-lock work here is selection
-        # and release only — same contract as the organism tier below.
-        if proposal:
-            prop_result = self._release_proposal_attempt(
-                proposal[0], proposal[1], conversational=False)
-            if prop_result is not None:
-                return prop_result
-
-        # 3. Organism attempt — GL-CMD-SINGLE-STACK-ALL-LIVE-20260716
+        # 2. Organism attempt — GL-CMD-SINGLE-STACK-ALL-LIVE-20260716
         # (organ 6): the organism's own recall over its real learned
         # structure, released as honestly-labeled babble through this SAME
         # release path.  Same budget (compose_deadline), same repeat
@@ -13037,7 +12941,7 @@ class Guala:
         if organism_result is not None:
             return organism_result
 
-        # 4. Explained silence — first-class outcome, logged by the caller.
+        # 3. Explained silence — first-class outcome, logged by the caller.
         return None
 
     def precompute_organism_attempt(self, seed_attempts):
@@ -14327,11 +14231,10 @@ class Guala:
     # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
-    SCHEMA_VERSION = "v7.3.0"
+    SCHEMA_VERSION = "v7.4.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
-        "guala_windows.json",
     ]
     # GL-FIX-HOTCOLD-TICK-MANIFEST: which JSON state files each save lane
     # actually rewrites. The loader validates each of these by its own recorded
@@ -14345,12 +14248,12 @@ class Guala:
         "guala_sections.json", "guala_atlas.json", "guala_deep_atlas.json",
         "guala_survival.json", "guala_bucket.json", "guala_visual.json",
         "guala_sight_motifs.json", "guala_sounds.json", "guala_videos.json",
-        "guala_windows.json", "guala_teaching.json", "guala_episodic.json",
+        "guala_teaching.json", "guala_episodic.json",
     )
     HOT_SAVE_MANIFEST_FILES = (
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_bucket.json", "guala_visual.json", "guala_sounds.json",
-        "guala_videos.json", "guala_windows.json", "guala_teaching.json",
+        "guala_videos.json", "guala_teaching.json",
         "guala_episodic.json",
     )
     IDENTITY_FILE = "guala_identity.json"
@@ -14464,6 +14367,7 @@ class Guala:
     # Schema migrations
     COMPATIBLE_SCHEMAS = {
         "v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0", "v7.2.0", "v7.3.0",
+        "v7.4.0",
     }
 
     def _unwrap(self, raw, filename):
@@ -15430,14 +15334,6 @@ class Guala:
             save_tick = self.tick
             snap_vocab_len = len(self.vocab)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
-            # GL-WAL-INCREMENTAL: binding windows persist via an append-only
-            # write-ahead log. Closed windows were already appended once, at
-            # close time; the hot save writes only the small manifest (open
-            # contexts + counters + durable WAL marker) instead of
-            # re-serialising the whole ~220MB closed-window store every cycle.
-            self.window_manager.configure_wal_under(state_dir)
-            snap_windows = self._envelope(
-                self.window_manager.snapshot_incremental())
         # lock released
 
         if not self._media_assets_are_current(
@@ -15481,7 +15377,6 @@ class Guala:
             ("guala_visual.json", snap_visual),
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
-            ("guala_windows.json", snap_windows),
         ]
         if snap_sight_motifs is not None:
             # GL-194 one-time migration write (see snap_visual comment).
@@ -15735,16 +15630,6 @@ class Guala:
             snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
             # 7. Bucket (removed — Phase E; GL-102: carries vocab_count for guard diet)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
-            # GL-SPC-SUBSTRATE-TRUE Change 1: the unconditional cold-lane
-            # compact() is REMOVED. Compaction rewrites every segment file
-            # (and now also rebuilds the window locator), so it runs only on
-            # real divergence -- i.e. when the WAL does not reflect the store
-            # (legacy migration / closes before the WAL was configured), which
-            # snapshot_incremental() detects and folds itself. Steady-state
-            # cold saves write only the small manifest, same as the hot lane.
-            self.window_manager.configure_wal_under(state_dir)
-            snap_windows = self._envelope(
-                self.window_manager.snapshot_incremental())
         # ── lock released ──
 
         _dropped = self._materialize_media_assets(
@@ -15806,7 +15691,6 @@ class Guala:
             ("guala_sight_motifs.json", snap_sight_motifs),  # GL-194: cold, vocab-scaled
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
-            ("guala_windows.json", snap_windows),
         ]
         # GL-CMD-PERSIST-FIX-74: per-file error isolation. Prior to this fix, any
         # single atomic_write failure aborted the entire save loop, dropping every
@@ -16180,23 +16064,6 @@ class Guala:
         has_identity = os.path.exists(identity_path)
         present = [f for f in self.STATE_FILES
                    if os.path.exists(os.path.join(state_dir, f))]
-        # Review 2026-07-16: leftover WAL segments are state evidence too.
-        # Without this, a dir holding window memory but no flat files would
-        # sail into genesis and orphan (then interleave generations with)
-        # real experience.
-        from dsf_ai_service.substrate.window_manager import (
-            WAL_DIRNAME as _WAL_DIRNAME,
-            WAL_SEGMENT_PREFIX as _WAL_SEG_PREFIX,
-            WAL_SEGMENT_SUFFIX as _WAL_SEG_SUFFIX,
-        )
-        _wal_dir_path = os.path.join(state_dir, _WAL_DIRNAME)
-        wal_segments_present = False
-        if os.path.isdir(_wal_dir_path):
-            wal_segments_present = any(
-                name.startswith(_WAL_SEG_PREFIX)
-                and name.endswith(_WAL_SEG_SUFFIX)
-                for name in os.listdir(_wal_dir_path))
-
         # ── The one boot method (GL-SPC-SUBSTRATE-TRUE §boot, Change 1) ──
         # Identity: present -> continue; absent -> genesis (loud genesis_boot
         # event, empty stores); unreadable -> named halt.  The former
@@ -16205,10 +16072,9 @@ class Guala:
         # recovery from an inconsistent state dir is the operator's explicit
         # restore command run while the service is stopped (P4).
 
-        if not has_identity and not present and not wal_segments_present:
+        if not has_identity and not present:
             # Genesis: mint identity, loud genesis_boot event, empty stores.
             self._generate_genesis_identity(state_dir)
-            self.window_manager.configure_wal_under(state_dir)
             self._log_substrate_event(
                 "genesis_boot",
                 identity=self._guala_identity,
@@ -16241,15 +16107,14 @@ class Guala:
             self._load_successful = False
             raise GualaBootStateIntegrityHalt(msg)
 
-        if not has_identity and (present or wal_segments_present):
+        if not has_identity and present:
             # State evidence (flat files OR window-WAL segments) without an
             # identity: the pre-v5.5 adopt-and-migrate branch is DELETED
             # (one boot method; no legacy reader).  Genesis here would
             # orphan-overwrite real experience on the next save — NAMED
             # loud halt instead.
-            _evidence = present or [f"{_WAL_DIRNAME}/ segments"]
             msg = (f"[GualaLoom] BOOT HALT (GualaBootStateIntegrityHalt): "
-                   f"state files {_evidence} exist without "
+                   f"state files {present} exist without "
                    f"{self.IDENTITY_FILE}. The legacy adopt-without-identity "
                    f"migration is removed. STOP the service and either "
                    f"restore a named S3 backup (python -m tools."
@@ -16275,18 +16140,7 @@ class Guala:
             raise GualaBootIdentityUnreadableHalt(msg) from identity_error
         self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
         missing = [f for f in self.STATE_FILES if f not in present]
-        _window_migration = False
-        if missing == ["guala_windows.json"]:
-            # v7.3 introduces first-class BindingWindow persistence.  An
-            # older core may honestly migrate with empty canonical memory;
-            # a v7.3 core missing this file is a partial generation and must
-            # fail closed rather than silently erase recognition history.
-            with open(os.path.join(state_dir, "guala_core.json")) as _core_fh:
-                _prior_core = json.load(_core_fh)
-            _prior_schema = _prior_core.get("schema_version", "unknown")
-            _window_migration = _prior_schema in (
-                self.COMPATIBLE_SCHEMAS - {"v7.3.0"})
-        if missing and not _window_migration:
+        if missing:
             msg = f"[GualaLoom] ABORT: partial state. Missing: {missing}"
             print(msg)
             self._load_errors.append(msg)
@@ -16386,29 +16240,14 @@ class Guala:
                     self._migrate_tick_domain()
                 self._apply_bucket(data["guala_bucket.json"])
 
-            if "guala_windows.json" in data:
-                # GL-WAL-INCREMENTAL: dispatches to WAL replay (new manifest
-                # format) or the legacy full-snapshot restore, configuring the
-                # WAL directory either way.
-                # GL-FIX-CHI-INDEX-ELIMINATION-20260720: populate_chi_index=
-                # False -- chi routing lives on the atlas now (restored just
-                # above, _apply_atlas), which already carries window_id on
-                # every binding for exactly this. The window store no longer
-                # needs to rebuild its own separate copy of the same
-                # cross-reference from her entire history at every boot.
-                self.window_manager.restore_persisted(
-                    data["guala_windows.json"], state_dir,
-                    populate_chi_index=False)
-            else:
-                # Explicit one-time migration from pre-v7.3: no canonical
-                # window history existed, so recognition begins honestly
-                # empty rather than being fabricated from legacy Atlas rows.
-                # Configure the WAL now so closes are durable from first tick.
-                self.window_manager.configure_wal_under(state_dir)
-                self._log_substrate_event(
-                    "binding_window_state_migrated_empty",
-                    prior_schema=_prior_schema)
-            self._rebuild_language_fact_memory_from_windows()
+            # Closed BindingWindows are deliberately not boot state. The
+            # durable structural authority was restored above: explicit atlas
+            # fields and section modes generated by krimelack/DSF physics.
+            # Replaying a verbatim lifetime ledger here duplicated that state
+            # and made boot cost grow with every experience ever recorded.
+            self._log_substrate_event(
+                "verbatim_window_replay_retired",
+                authority="krimelack_chi_atlas_sections")
 
             # Load deep atlas if present (GL-BRIEF-032 — separate table)
             # GL-CMD-DEEP-ATLAS-PERSIST: load first, then run loss alarm
@@ -17319,6 +17158,10 @@ class Guala:
                             or not isinstance(entry["hemisphere_id"], str)):
                         raise ValueError(
                             f"{label} section/hemisphere must be strings")
+                    if ("structural_fact" in entry
+                            and not isinstance(entry["structural_fact"], dict)):
+                        raise ValueError(
+                            f"{label}.structural_fact must be an object")
                     self._exact_int(entry["motif"], f"{label}.motif")
                     self._exact_int(
                         entry["chi"], f"{label}.chi", minimum=-2**63)
@@ -17342,6 +17185,7 @@ class Guala:
                     commit_counts[(e.get("section", ""), e.get("motif", 0))] += 1
         if needs_migration:
             print("[GualaLoom] Migrating atlas v5.5 → v6 (adding strength/decay fields)")
+        retired_window_refs = 0
         for k, v in entries.items():
             migrated = []
             for e in v:
@@ -17351,12 +17195,19 @@ class Guala:
                     e["strength"] = initial_strength
                     e["last_tick"] = self.tick or ad.get("tick", 0)
                     e["born_tick"] = e.get("tick", 0)
+                if "window_id" in e or "window_entry_index" in e:
+                    e.pop("window_id", None)
+                    e.pop("window_entry_index", None)
+                    retired_window_refs += 1
                 migrated.append(e)
             self.atlas.entries[int(k)] = migrated
         self.atlas.tick = ad.get("tick", 0)
         if needs_migration:
             n_live = self.atlas.n_live_bindings()
             print(f"[GualaLoom] Atlas migrated: {n_live} live bindings")
+        if retired_window_refs:
+            print(f"[GualaLoom] Retired {retired_window_refs} verbatim-window "
+                  "cross-references; atlas structure preserved")
 
         # GL-SPC-HEMISPHERE-ARCH: v7.0.0→v7.1.0 migration — tag existing bindings as "em"
         hemi_tagged = 0

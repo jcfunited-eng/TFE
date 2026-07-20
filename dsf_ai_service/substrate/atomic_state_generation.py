@@ -31,10 +31,9 @@ Design guarantees
   publish just means no new fallback point; the flat files are unaffected.
 * Files keep their exact on-disk bytes (hard-link, or copy fallback).  Every
   existing reader and the S3-backup path keep working unchanged.
-* The append-only binding-window WAL *directory* is intentionally NOT
-  snapshotted (window_manager owns it, per the save-lane contract); only its
-  small manifest ``guala_windows.json`` rides the generation like any other
-  flat file.
+* Retired verbatim BindingWindow WAL data is not part of a generation. The
+  atlas, sections, organism, and other structural stores are the durable
+  cognition state.
 """
 
 from __future__ import annotations
@@ -60,16 +59,10 @@ MANIFEST_SCHEMA = "atomic_state_generation_v1"
 # lane was optimized to avoid.
 _HASH_MAX_BYTES = 512 * 1024
 
-# The binding-window WAL segment directory (guala_windows_wal/) IS captured:
-# guala_windows.json references durable WAL records, so a generation that
-# dropped the WAL would leave a dangling manifest that fails to load. The WAL
-# is append-only -- closed segments are immutable and the single active segment
-# only grows -- and replay reads only up to the manifest's durable marker, so
-# hard-linking the segments is safe even if the active one is later appended to
-# (validation below tolerates that growth). Pure-scratch dirs are still skipped.
 WAL_DIRNAME = "guala_windows_wal"
+RETIRED_STATE_FILES = frozenset({"guala_windows.json"})
 _SKIP_DIRS = frozenset({
-    GENERATIONS_DIRNAME, "ring_events", "__pycache__",
+    GENERATIONS_DIRNAME, WAL_DIRNAME, "ring_events", "__pycache__",
 })
 
 
@@ -101,7 +94,8 @@ def _snapshot_relpaths(state_dir: str) -> list:
     """
     rels = []
     for name in sorted(os.listdir(state_dir)):
-        if name in _SKIP_DIRS or name in (CURRENT_GEN_NAME,):
+        if (name in _SKIP_DIRS or name in RETIRED_STATE_FILES
+                or name in (CURRENT_GEN_NAME,)):
             continue
         if name.endswith(".tmp") or name.startswith(STAGING_PREFIX):
             continue
@@ -110,20 +104,13 @@ def _snapshot_relpaths(state_dir: str) -> list:
             continue
         if os.path.isfile(full):
             rels.append(name)
-        elif os.path.isdir(full) and name in (
-                "pictures", "videos_assets", WAL_DIRNAME):
-            # media originals referenced by the visual/video stores, and the
-            # append-only binding-window WAL segments referenced by
-            # guala_windows.json (one directory level, regular files only)
+        elif os.path.isdir(full) and name in ("pictures", "videos_assets"):
+            # Media originals referenced by the visual/video stores.
             for sub in sorted(os.listdir(full)):
                 subfull = os.path.join(full, sub)
                 if os.path.isfile(subfull) and not os.path.islink(subfull):
                     rels.append(os.path.join(name, sub))
     return rels
-
-
-def _is_wal_file(rel: str) -> bool:
-    return rel.split("/", 1)[0] == WAL_DIRNAME
 
 
 def _link_or_copy(src: str, dst: str) -> None:
@@ -171,15 +158,11 @@ def publish_generation(state_dir: str, tick: int, identity: Optional[str],
                 continue
             _link_or_copy(src, dst)
             rec = {"path": rel, "size": size}
-            _wal = _is_wal_file(rel)
             # Per-file save tick, cheaply parsed from the envelope header for
             # JSON stores; used by recovery to reject a torn generation.
-            if rel.endswith(".json") and not _wal:
+            if rel.endswith(".json"):
                 rec["saved_at_tick"] = _read_saved_at_tick(dst)
-            # WAL segments are append-only and the active one keeps growing
-            # after this snapshot; they carry no exact hash and validation
-            # tolerates size growth (replay honors the durable marker instead).
-            if size <= _HASH_MAX_BYTES and not _wal:
+            if size <= _HASH_MAX_BYTES:
                 rec["sha256"] = _sha256_file(dst)
             records.append(rec)
 
@@ -277,13 +260,6 @@ def _validate_generation(gen_dir: str) -> Optional[dict]:
         if not os.path.isfile(full):
             return None
         actual = os.path.getsize(full)
-        if _is_wal_file(rel):
-            # Append-only WAL segment: the hard-linked active segment may have
-            # grown since the snapshot. Any size >= the captured size is valid;
-            # replay reads only up to the durable marker in guala_windows.json.
-            if actual < rec.get("size", 0):
-                return None
-            continue
         if actual != rec.get("size"):
             return None
         want = rec.get("sha256")

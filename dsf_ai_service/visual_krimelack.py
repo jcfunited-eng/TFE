@@ -295,6 +295,32 @@ class VisualMotif:
     source_history: list = field(default_factory=list)
     founded_at_tick: int = 0
 
+    def __post_init__(self):
+        """Keep source associations, never a lifetime encounter ledger.
+
+        Older saved motifs can contain the same source once per viewing
+        (especially millions of repeated ``camera_stream`` frames).  Preserve
+        every distinct source and its most-recent ordering while collapsing
+        those duplicate encounters.  ``n_firings`` remains the scalar exposure
+        count, so learning strength is not lost.
+        """
+        seen = set()
+        compacted_reversed = []
+        for source_id in reversed(self.source_history):
+            if source_id in seen:
+                continue
+            seen.add(source_id)
+            compacted_reversed.append(source_id)
+        self.source_history = list(reversed(compacted_reversed))
+
+    def observe_source(self, source_id):
+        """Associate this motif with a source and retain recency once."""
+        try:
+            self.source_history.remove(source_id)
+        except ValueError:
+            pass
+        self.source_history.append(source_id)
+
 
 # =========================================================================
 # View a picture — saccaded foveation producing fragments
@@ -382,7 +408,7 @@ class SightSection:
         if best_match is not None and best_overlap >= COFIRE_OVERLAP_THRESHOLD:
             # Fire existing motif
             best_match.n_firings += 1
-            best_match.source_history.append(source_id)
+            best_match.observe_source(source_id)
             # Cluster dynamics
             state = np.array(best_match.cluster_state)
             g = np.array(g_token[:len(state)])

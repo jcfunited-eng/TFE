@@ -459,6 +459,7 @@ class WindowManager:
         quiet_timeout_sec: Optional[float] = None,
         atlas_windows: Optional[dict] = None,
         get_needs_fn: Optional[Callable[[], dict]] = None,
+        retain_closed_windows: bool = True,
     ):
         # ``quiet_timeout_sec`` is accepted for constructor compatibility only.
         # It has no authority over an experience boundary.
@@ -469,6 +470,7 @@ class WindowManager:
         self._get_presence = get_presence_fn or (lambda: {})
         self._get_affect = get_affect_fn or (lambda: {})
         self._get_needs = get_needs_fn or (lambda: {})
+        self._retain_closed_windows = bool(retain_closed_windows)
         self._lock = threading.RLock()
         self._bound_context = contextvars.ContextVar(
             f"binding_window_context_{id(self)}", default=None)
@@ -1128,10 +1130,12 @@ class WindowManager:
     ) -> int:
         """Append one complete window fact and optionally mirror legacy Atlas.
 
-        ``mirror_atlas=False`` is the canonical-memory path.  It prevents a
-        first-class BindingWindow fact from being flattened into a legacy
-        section/motif Atlas record merely for compatibility.  The window and
-        its Chi index remain complete and authoritative either way.
+        ``mirror_atlas=False`` is valid only when another structural store
+        already receives the same event (for example the persisted visual
+        motif system). The production engine does not retain closed windows,
+        so a canonical fact with no other structural destination must mirror
+        into LivingAtlas, which preserves its explicit ``structural_fact`` at
+        the exact chi cell rather than flattening it into a score.
         """
         actual_tick = int(tick if tick is not None else self._get_tick())
         motif_id = int(motif_id)
@@ -1176,8 +1180,9 @@ class WindowManager:
                 mirror_kwargs["dwell_ticks"] = dwell_ticks
             if structural_fact is not None:
                 mirror_kwargs["structural_fact"] = structural_fact
-            mirror_kwargs["window_id"] = window.window_id
-            mirror_kwargs["window_entry_index"] = entry_index
+            if self._retain_closed_windows:
+                mirror_kwargs["window_id"] = window.window_id
+                mirror_kwargs["window_entry_index"] = entry_index
             if mirror_atlas:
                 self._atlas_record(
                     str(section), motif_id, chi, actual_tick, **mirror_kwargs)
@@ -1229,14 +1234,15 @@ class WindowManager:
             window.close_reason = str(reason)
             record = window.to_record()
             self._validate_window_record(record, closed=True)
-            # Disk-resident store: the record parks in _pending (readable
-            # immediately) and moves to the durable locator once its WAL
-            # append lands (_wal_on_close below, outside this lock).  RAM
-            # keeps only locator + metadata + chi index afterwards.
-            self._pending[window.window_id] = record
-            self._window_meta[window.window_id] = (
-                self._window_metadata_from_record(record))
-            self._index_closed_window(record)
+            if self._retain_closed_windows:
+                # Disk-resident store: the record parks in _pending (readable
+                # immediately) and moves to the durable locator once its WAL
+                # append lands (_wal_on_close below, outside this lock).  RAM
+                # keeps only locator + metadata + chi index afterwards.
+                self._pending[window.window_id] = record
+                self._window_meta[window.window_id] = (
+                    self._window_metadata_from_record(record))
+                self._index_closed_window(record)
             # GL-AUDIT-RAM-6GB / GL-RPT-WAL-BLOAT F1 (2026-07-15): the Atlas
             # compatibility mirror is no longer populated.  Its content was a
             # full deepcopy of every closed record (~1.7 GB at production
@@ -1261,11 +1267,13 @@ class WindowManager:
                 "affect_snapshot": copy.deepcopy(window.affect_snapshot),
             }
             window_id = window.window_id
-        # Durably append the just-closed record to the WAL outside ``self._lock``
-        # so its small fsync never blocks concurrent open-context work.  The
-        # record was fully built and validated (closed=True) inside the lock and
-        # closed windows are immutable, so serialising it here is race-free.
-        self._wal_on_close(record)
+        if self._retain_closed_windows:
+            # Durably append the just-closed record to the WAL outside
+            # ``self._lock`` so its small fsync never blocks concurrent
+            # open-context work. The production engine deliberately disables
+            # this closed-window retention: atlas/section physics is durable;
+            # the binding context exists only while the experience is forming.
+            self._wal_on_close(record)
         self._log_event("window_closed", **event)
         return window_id
 

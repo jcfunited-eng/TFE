@@ -597,7 +597,6 @@ def _run_embedded_observed_conversation(
         raise RuntimeError("observed conversation did not complete")
     if window_id is None:
         raise RuntimeError("observed conversation BindingWindow did not close")
-    _guala._remember_closed_language_window(window_id)
     return result
 
 
@@ -895,30 +894,7 @@ async def _run_converse(
                 try:
                     _turn_seeds = [{"words": text.split()[:6],
                                     "provenance": "conversation_turn_words"}]
-                    # GL-CMD-SYNTAX-ARC-20260718 Piece 2: composed
-                    # attempt (novel recombination) beats raw babble —
-                    # wired on BOTH converse paths, per the live-path
-                    # lesson.
                     _released = None
-                    try:
-                        _cands = await _run_lifecycle_executor(
-                            lambda: _guala.build_proposal_candidates(
-                                _turn_seeds))
-                        if _cands:
-                            _scores = await _run_lifecycle_executor(
-                                lambda: _guala.precompute_proposal_votes(
-                                    _cands))
-
-                            def _proposal_release():
-                                with _guala.lock:
-                                    return _guala._release_proposal_attempt(
-                                        _cands, _scores,
-                                        conversational=True)
-                            _released = await _run_lifecycle_executor(
-                                _proposal_release)
-                    except Exception as _pr_e:
-                        print(f"[converse-proposal] failed (fall through "
-                              f"to babble): {_pr_e}", flush=True)
                     if _released is None:
                         _votes = await _run_lifecycle_executor(
                             lambda: _guala.precompute_organism_attempt(
@@ -4024,35 +4000,6 @@ async def gualaloom_chat(msg: GLMessage):
                                         name=bundle_name, lanes=results,
                                         n_chis=len(bundle_chis), source=bundle_source)
 
-            # ── Recall query (GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1) ──
-            # "The sound cue came in -- here are the windows that had this
-            # sound." Runs BEFORE close() below so it searches only PRIOR,
-            # already-closed windows, not the one this call is still
-            # forming. Single-lane bundles (e.g. a bare sound_ref cue) get
-            # a section_hint from that lane; multi-lane bundles (a full
-            # picture+sound+word experience) get none -- there's no one
-            # cue to hint toward. Not wired into the live conversational
-            # emission/composition path -- see this dispatch's build
-            # report for why (_brain_emission_candidates/
-            # _emit_from_invariants source candidates from the organism,
-            # not the atlas, per the standing "one mind, one mouth"
-            # ruling; adding a second, atlas/window-sourced candidate feed
-            # there would be exactly the parallel-source regression that
-            # ruling shut down).
-            recall_result = None
-            if bundle_chis:
-                _lanes_present = [bool(caption), bool(bundle_data.get("image_b64") or bundle_data.get("picture_id")),
-                                  bool(bundle_data.get("sound_id") or bundle_data.get("sound_b64"))]
-                _lanes_present += [bool(bundle_data.get(s)) for s in ("touch", "smell", "taste")]
-                _section_hint = None
-                if sum(_lanes_present) == 1:
-                    _hint_names = ["word", "sight", "sound", "touch", "smell", "taste"]
-                    _section_hint = _hint_names[_lanes_present.index(True)]
-                from dsf_ai_service.substrate.recall_query import RecallQuery
-                recall_result = _guala.recall_engine.query(RecallQuery(
-                    chis=bundle_chis, section_hint=_section_hint,
-                    source_context={"bundle": bundle_name, "source": bundle_source}))
-
             # GL-CMD-EPISODIC-MEMORY: bind this real, curated experience to
             # its situation -- when, where, who was present, how she felt,
             # what else was active -- so it becomes a specific remembered
@@ -4075,8 +4022,6 @@ async def gualaloom_chat(msg: GLMessage):
                 if _closed_bundle_window is None:
                     raise RuntimeError(
                         "give_experience BindingWindow did not close")
-                _guala._remember_closed_language_window(
-                    _closed_bundle_window)
 
             # H5b: always structured JSON, never raw 500
             print(f"[decode-bundle] {time.time()-t0:.2f}s")
@@ -4087,47 +4032,6 @@ async def gualaloom_chat(msg: GLMessage):
                 "bundle": {"name": bundle_name, "lanes": results,
                            "n_chis": len(bundle_chis)},
             }
-            if recall_result is not None:
-                # GL-CMD-CROSS-SENSE-RECALL-EXPOSE: RecallEngine.query()
-                # already walks each returned window's real entries
-                # (recall_query.py's RecallResult.windows[i]['entries'] --
-                # the same modality/section/chi/source_tag dicts
-                # window_manager.close() recorded) -- this was computed
-                # every call and then discarded, leaving only window_ids/
-                # top_affect_strength observable. Surface the OTHER
-                # entries each retrieved window actually bound (excluding
-                # this same call's own chis -- those are the cue just
-                # given, not retrieved memory), so a sound-only cue's
-                # response can show the picture/word it was bound with,
-                # not just an opaque window id. Purely additive to the
-                # existing "recall" block; does not touch RecallEngine's
-                # own ranking/matching logic. NOT wired into conversational
-                # emission (see the note above on the standing "one mind,
-                # one mouth" ruling) -- give_experience's own response only.
-                _query_chis = set(bundle_chis)
-                _cross_modal_entries = []
-                for _w in recall_result.windows:
-                    for _e in (_w.get("entries") or []):
-                        if _e.get("chi") in _query_chis:
-                            continue  # the cue itself, not retrieved content
-                        _cross_modal_entries.append({
-                            "window_id": _w.get("window_id"),
-                            "modality": _e.get("modality"),
-                            "section": _e.get("section"),
-                            "chi": _e.get("chi"),
-                            "ref_or_text": _e.get("source_tag") or "",
-                        })
-                # A window can hold many entries (multi-lane bundles); cap
-                # so this response never balloons on a busy window. 25 is
-                # a judgment call, generous for any real bundle (touch/
-                # smell/taste each fire a handful of channels at most).
-                _CROSS_MODAL_ENTRIES_CAP = 25
-                response_payload["recall"] = {
-                    "query_id": recall_result.query_id,
-                    "windows_returned": recall_result.window_ids(),
-                    "top_affect_strength": round(recall_result.top_affect_strength(), 4),
-                    "cross_modal_entries": _cross_modal_entries[:_CROSS_MODAL_ENTRIES_CAP],
-                }
             return response_payload
         return await _run_lifecycle_executor(_decode_bundle)
 
@@ -7171,48 +7075,14 @@ async def debug_thread_dump():
 
 @app.post("/debug/wal_compact", dependencies=[Depends(_api_key_dep)])
 async def debug_wal_compact():
-    """GL-FIX-WAL-BOOT-CHECKPOINT-20260720: manually trigger one WAL
-    compaction, deliberately NOT wired to any automatic timer/cadence.
-
-    This is the other half of the boot-time fix: the checkpoint fast path
-    (restore_from_wal) does nothing until at least one compaction has run
-    to actually WRITE a checkpoint -- her only compaction to date was the
-    near-empty one at genesis. Compaction holds window_manager's main lock
-    for its full duration (same lock every open/close/recall goes through)
-    and re-streams her ENTIRE current closed-window history once -- at her
-    real current scale that is a genuinely long, one-time operation, not a
-    quick call. Deliberately a manual, watched trigger rather than an
-    automatic one: this codebase has a real history of exactly this shape
-    of incident (a long lock hold at real production scale, not caught by
-    local testing) — see the close-index stall and hemispheric wave-
-    summary regressions. Call this once, watching health/logs/tick_rate
-    live, not blind. Ongoing periodic re-compaction (so this never needs
-    manually re-triggering again) is a deliberate follow-up, not built
-    tonight."""
-    import asyncio
-
-    if _guala is None:
-        return JSONResponse(status_code=503, content={"error": "guala not loaded"})
-    wm = _guala.window_manager
-    if not getattr(wm, "_wal_enabled", False):
-        return JSONResponse(
-            status_code=409, content={"error": "WAL not configured yet"})
-
-    t0 = time.time()
-    loop = asyncio.get_event_loop()
-    try:
-        result = await loop.run_in_executor(None, wm.compact)
-    except Exception as error:
-        return JSONResponse(
-            status_code=500,
-            content={"error": f"{type(error).__name__}: {error}"})
-    elapsed_s = time.time() - t0
-    result = dict(result)
-    result["elapsed_s"] = round(elapsed_s, 3)
-    print(f"[wal-compact] generation={result.get('generation')} "
-          f"records={result.get('records')} bytes={result.get('bytes')} "
-          f"elapsed_s={elapsed_s:.1f}")
-    return result
+    """The verbatim lifetime-window store is retired from live cognition."""
+    return JSONResponse(
+        status_code=410,
+        content={
+            "error": "verbatim lifetime-window storage is retired",
+            "memory_authority": "atlas_chi_krimelack_sections_organism",
+        },
+    )
 
 
 @app.get("/health")

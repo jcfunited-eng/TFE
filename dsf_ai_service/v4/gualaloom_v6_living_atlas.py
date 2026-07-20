@@ -27,6 +27,7 @@ Backward compatibility: keeps ChiAtlas interface (record, match_score,
 cross_modal_bindings, query_associations) so v5 engine works without changes.
 """
 
+import copy
 import math
 import os
 from collections import defaultdict, Counter
@@ -142,13 +143,8 @@ class LivingAtlas:
         self.tick = 0
         # chi -> list of {section, motif, chi, strength, last_tick, born_tick}
         self.entries = defaultdict(list)
-        # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: window_id -> plain-
-        # dict snapshot of a closed BindingWindow (WindowManager writes this
-        # on close()). Entries in self.entries carry a window_id field
-        # pointing back here once tagged via record(). NOT wired into
-        # existing save/load persistence in this build (that's a separate,
-        # unverified subsystem this dispatch does not touch) -- honest
-        # limitation, not silently assumed handled; see the filed report.
+        # Compatibility object only. Production BindingWindows are transient
+        # experience boundaries and never populate a closed-window mirror.
         self.windows = {}
 
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
@@ -159,7 +155,8 @@ class LivingAtlas:
                place=None, ambient=None,
                polarity=1,
                function_score=0.0, phase_vec=None,
-               window_id=None, window_entry_index=None, **_extra):
+               window_id=None, window_entry_index=None,
+               structural_fact=None, **_extra):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -288,6 +285,9 @@ class LivingAtlas:
                 if window_id is not None:
                     existing["window_id"] = window_id
                     existing["window_entry_index"] = window_entry_index
+                if structural_fact is not None and d == 0:
+                    existing["structural_fact"] = copy.deepcopy(
+                        structural_fact)
                 # episode_ref: first-encounter canonical — only set if empty
                 if episode_ref is not None and existing.get("episode_ref") is None:
                     existing["episode_ref"] = episode_ref
@@ -352,7 +352,7 @@ class LivingAtlas:
             else:
                 # New binding — tag encoded_strength and dwell at write time
                 new_strength = min(STRENGTH_CAP, impulse)
-                entries.append({
+                new_entry = {
                     "section": section_name,
                     "motif": motif_id,
                     "chi": chi_value,
@@ -415,12 +415,16 @@ class LivingAtlas:
                     "polarity":   polarity,
                     # 60-C: substrate-derived function/content score (0=content, 1=function)
                     "function_score": function_score,
-                    # GL-CMD-BINDING-WINDOWS-BUILD: None when not routed through
-                    # WindowManager (dream/correction paths, untouched by this
-                    # dispatch) -- honest absence, not a placeholder.
-                    "window_id": window_id,
-                    "window_entry_index": window_entry_index,
-                })
+                }
+                if window_id is not None:
+                    new_entry["window_id"] = window_id
+                    new_entry["window_entry_index"] = window_entry_index
+                if structural_fact is not None and d == 0:
+                    # The exact chi cell retains the explicit full field.
+                    # Soft-band routing replicas do not repeat the payload.
+                    new_entry["structural_fact"] = copy.deepcopy(
+                        structural_fact)
+                entries.append(new_entry)
 
         # Wave atlas parallel write (WAVE_ATLAS_ENABLED=1)
         self._parallel_wave_write(

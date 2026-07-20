@@ -88,7 +88,6 @@ def test_runtime_generation_contains_complete_contract_and_excludes_transients(
     expected_engine = {
         "guala_identity.json",
         "guala_core.json",
-        "guala_windows.json",
         "guala_organism.pkl.gz",
         "guala_tapestry.pkl.gz",
     }
