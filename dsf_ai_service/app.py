@@ -116,6 +116,111 @@ def _speech_transduction_enabled():
     return os.environ.get("VOICE_WHISPER", "0") == "1"
 
 
+# GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech used to enter ONLY
+# through read_sentence() -- the same door as passive corpus reading. That
+# door updates memory/presence but has no step that ever composes a reply;
+# converse() (the door typed chat uses) is the one real mechanism that both
+# processes input AND generates a turn. A full minute of continuously
+# recognized speech (confirmed live: 7 consecutive real transcriptions)
+# produced zero replies because nothing on the voice path had ever called
+# converse() -- not a threshold to tune, a missing call.
+#
+# converse() is genuinely slow (measured history: 49-94s for a full
+# six-section compose, and a past incident where holding self.lock for that
+# long starved the container health check and got the task killed).
+# CONVERSE_PHASED=1 (confirmed set on the live task) already splits
+# self.lock from self._emission_lock for exactly this reason -- calling
+# converse() off the request thread, in a dedicated single-worker executor
+# (so a still-composing reply is never joined by a second overlapping one),
+# is safe under that split; it would not have been safe under the
+# unphased path.  A single worker means back-to-back recognized utterances
+# naturally queue instead of racing -- _voice_reply_busy additionally lets
+# a *new* utterance skip queuing entirely while one is still in flight,
+# so a long pause never composes a backlog of stale replies.
+_voice_reply_executor = _concurrent_futures.ThreadPoolExecutor(
+    max_workers=1,
+    thread_name_prefix="voice-reply",
+)
+_voice_reply_busy = threading.Event()
+
+
+def _run_voice_reply(spoken_text, tick_hint):
+    """Runs on the single voice-reply worker thread, never the request
+    thread. Mirrors substrate_runner's autonomous-emission loop's own
+    result contract (_last_autonomous_thought) so the existing /thought
+    poll surfaces a voice-triggered reply with zero new frontend work --
+    and self-hears on a real release, same as every other release
+    authority (one mouth, GL Change 4)."""
+    import dsf_ai_service.substrate_runner as _sr
+    t0 = time.time()
+    try:
+        if _guala is None:
+            return
+        turn_result = _guala.converse(spoken_text, source="joe")
+        content = (turn_result.response or "").strip()
+        print(f"[voice-reply] {time.time()-t0:.3f}s "
+              f"response_source={turn_result.response_source} "
+              f"committed={bool(content)}")
+        if not content:
+            return
+        with _sr._autonomous_thought_lock:
+            _sr._last_autonomous_thought = {
+                "speech": content,
+                "tick": _guala.tick,
+                "ts": time.time(),
+                "category": "voice_reply",
+                "source": "guala",
+                "response_source": turn_result.response_source,
+                "emission_id": turn_result.emission_id,
+                "committed_sections": list(turn_result.committed_sections),
+                "commit_provenance": [
+                    p.as_record() if hasattr(p, "as_record") else p
+                    for p in turn_result.commit_provenance],
+            }
+        try:
+            _guala._self_hear(
+                content, "guala",
+                emission_id=turn_result.emission_id,
+                response_source=turn_result.response_source)
+        except Exception as self_hear_error:
+            _guala._log_substrate_event(
+                "voice_reply_self_hear_error",
+                emission_id=turn_result.emission_id,
+                error=str(self_hear_error))
+    except Exception as error:
+        print(f"[voice-reply] error after {time.time()-t0:.3f}s: "
+              f"{type(error).__name__}: {error}")
+        try:
+            if _guala is not None:
+                _guala._log_substrate_event(
+                    "voice_reply_error", tick_hint=tick_hint,
+                    error=str(error))
+        except Exception:
+            pass
+    finally:
+        _voice_reply_busy.clear()
+
+
+def _maybe_trigger_voice_reply(spoken_text, tick_hint):
+    """Non-blocking: submits at most one converse() call at a time to the
+    dedicated voice-reply worker. Called right after a real transcript is
+    recognized; never called from read_sentence's own path (that would
+    double-process the same words -- converse() already reads its input
+    into the substrate as part of composing a reply)."""
+    if not spoken_text:
+        return False
+    if _voice_reply_busy.is_set():
+        return False
+    _voice_reply_busy.set()
+    try:
+        _voice_reply_executor.submit(
+            _run_voice_reply, spoken_text, tick_hint)
+        return True
+    except Exception:
+        _voice_reply_busy.clear()
+        return False
+
+
 def _speech_result_wall_timeout():
     """Belt-and-braces wall for awaiting the STT future (3x the worker's own
     per-request timeout).  Adversarial-review hardening: if the worker/queue
@@ -2897,12 +3002,20 @@ async def sound_frame(msg: GLMessage):
                     ) from stt_timeout
                 if spoken:
                     recognition_status = "recognized"
-                    # Full real transcript, never a vocab-filtered fragment
-                    # (c97927e's rule) — through the same door heard speech
-                    # uses.  read_sentence establishes presence itself.
-                    _guala.read_sentence(
-                        spoken, source="joe",
-                        bundle_id=f"sound_frame:{_guala.tick}")
+                    # GL-FIX-VOICE-REPLY-DOOR-20260720: converse(), not
+                    # read_sentence -- confirmed live 2026-07-20 that a full
+                    # minute of successfully-recognized speech (7 real
+                    # transcriptions) produced zero replies, because
+                    # read_sentence only ever updates memory/presence, it
+                    # never composes a turn. converse() does both (it reads
+                    # the input into the substrate itself, same as
+                    # read_sentence did, AND attempts a real reply) -- so
+                    # this REPLACES the old read_sentence call, it does not
+                    # run alongside it (that would process the same
+                    # transcript twice). Runs on its own dedicated worker,
+                    # never the request thread -- see
+                    # _maybe_trigger_voice_reply's own docstring for why.
+                    _maybe_trigger_voice_reply(spoken, _guala.tick)
             except Exception as recognition_error:
                 recognition_status = "error"
                 print("[voice-whisper] error="
@@ -7013,6 +7126,52 @@ async def debug_thread_dump():
             "stack": traceback.format_stack(frame),
         }
     return out
+
+
+@app.post("/debug/wal_compact", dependencies=[Depends(_api_key_dep)])
+async def debug_wal_compact():
+    """GL-FIX-WAL-BOOT-CHECKPOINT-20260720: manually trigger one WAL
+    compaction, deliberately NOT wired to any automatic timer/cadence.
+
+    This is the other half of the boot-time fix: the checkpoint fast path
+    (restore_from_wal) does nothing until at least one compaction has run
+    to actually WRITE a checkpoint -- her only compaction to date was the
+    near-empty one at genesis. Compaction holds window_manager's main lock
+    for its full duration (same lock every open/close/recall goes through)
+    and re-streams her ENTIRE current closed-window history once -- at her
+    real current scale that is a genuinely long, one-time operation, not a
+    quick call. Deliberately a manual, watched trigger rather than an
+    automatic one: this codebase has a real history of exactly this shape
+    of incident (a long lock hold at real production scale, not caught by
+    local testing) — see the close-index stall and hemispheric wave-
+    summary regressions. Call this once, watching health/logs/tick_rate
+    live, not blind. Ongoing periodic re-compaction (so this never needs
+    manually re-triggering again) is a deliberate follow-up, not built
+    tonight."""
+    import asyncio
+
+    if _guala is None:
+        return JSONResponse(status_code=503, content={"error": "guala not loaded"})
+    wm = _guala.window_manager
+    if not getattr(wm, "_wal_enabled", False):
+        return JSONResponse(
+            status_code=409, content={"error": "WAL not configured yet"})
+
+    t0 = time.time()
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(None, wm.compact)
+    except Exception as error:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"{type(error).__name__}: {error}"})
+    elapsed_s = time.time() - t0
+    result = dict(result)
+    result["elapsed_s"] = round(elapsed_s, 3)
+    print(f"[wal-compact] generation={result.get('generation')} "
+          f"records={result.get('records')} bytes={result.get('bytes')} "
+          f"elapsed_s={elapsed_s:.1f}")
+    return result
 
 
 @app.get("/health")

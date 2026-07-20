@@ -4,9 +4,10 @@ Port of tests/test_stt_runtime_ownership.py from stranded commit a8277fa
 ("fix(stt): own recognizer lifecycle and fail visibly") onto the live
 lineage, extended with real functional wiring proofs against the current
 /sound_frame handler: the transducer runs at the boundary, the FULL
-transcript enters through read_sentence(source="joe") — the same real door
-heard/typed speech uses — and every failure is loud, never fabricated or
-silently-empty words.
+transcript enters through converse(source="joe") -- GL-FIX-VOICE-REPLY-
+DOOR-20260720: was read_sentence() until confirmed live that path updates
+memory/presence but never composes a reply -- and every failure is loud,
+never fabricated or silently-empty words.
 
 Stubbing discipline: only the model-inference call (transcribe_sound /
 _run_transcription) is ever replaced, with a recorded known output; the
@@ -142,7 +143,7 @@ def test_unknown_transduction_status_fails_loudly():
         transducer.spoken_word_transduction_status("fabricated")
 
 
-# ── functional wiring: transcription -> read_sentence, through the real
+# ── functional wiring: transcription -> converse, through the real
 #    /sound_frame handler ────────────────────────────────────────────────────
 
 @pytest.fixture
@@ -166,8 +167,24 @@ def clean_frame_state(monkeypatch):
         appmod._converse_window_started_at = saved_started
 
 
-def _recording_guala():
+class _FakeTurnResult:
+    def __init__(self, response=""):
+        self.response = response
+        self.response_source = "assemblage_commit"
+        self.emission_id = "test-emission"
+        self.committed_sections = ()
+        self.commit_provenance = ()
+
+
+def _recording_guala(*, reply=""):
+    """GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech now enters
+    through converse() (composes a real reply), not read_sentence() (memory-
+    only, never replies) -- see test_voice_reply_door.py for the exhaustive
+    proof of that routing. read_sentence stays on the fake for callers
+    unrelated to voice (none remain in this file) and so a stray call is
+    still visible rather than an AttributeError."""
     sentences = []
+    converses = []
     frames = []
     guala = SimpleNamespace(
         tick=42,
@@ -175,8 +192,21 @@ def _recording_guala():
             (wav, source)),
         read_sentence=lambda text, source=None, bundle_id=None: sentences.append(
             {"text": text, "source": source, "bundle_id": bundle_id}),
+        converse=lambda text, source=None: (
+            converses.append({"text": text, "source": source}),
+            _FakeTurnResult(reply))[1],
+        _self_hear=lambda *a, **kw: None,
+        _log_substrate_event=lambda *a, **kw: None,
     )
-    return guala, sentences, frames
+    return guala, sentences, frames, converses
+
+
+def _wait_for_voice_reply_idle():
+    import time as _time
+    for _ in range(100):
+        if not appmod._voice_reply_busy.is_set():
+            return
+        _time.sleep(0.02)
 
 
 def _post_sound_frame(source="joe_voice"):
@@ -185,16 +215,25 @@ def _post_sound_frame(source="joe_voice"):
                          source=source)))
 
 
-def test_transcribed_speech_enters_through_read_sentence(
+def test_transcribed_speech_enters_through_converse(
         clean_frame_state, monkeypatch):
+    """GL-FIX-VOICE-REPLY-DOOR-20260720: renamed from ..._read_sentence --
+    confirmed live 2026-07-20 that read_sentence updates memory/presence
+    but never composes a reply, so a full minute of successfully
+    recognized speech produced zero replies. converse() is the one real
+    door that does both; see test_voice_reply_door.py for the exhaustive
+    proof of the trigger/busy-gate/self-hear contract this test doesn't
+    re-cover -- this test's job is only "does a real transcript reach it
+    through the real /sound_frame handler.\""""
     monkeypatch.setenv("VOICE_WHISPER", "1")
-    guala, sentences, frames = _recording_guala()
+    guala, sentences, frames, converses = _recording_guala(reply="hi joe")
     appmod._guala = guala
     # Stub ONLY at the model-inference call, with a recorded known output.
     monkeypatch.setattr(
         transducer, "transcribe_sound", lambda wav: "hello there guala")
 
     resp = _post_sound_frame()
+    _wait_for_voice_reply_idle()
 
     assert resp["ok"] is True
     assert resp["raw_sound"] == "accepted"
@@ -203,19 +242,19 @@ def test_transcribed_speech_enters_through_read_sentence(
     assert resp["spoken_word_recognition"]["available"] is True
     # Raw sound STILL reached the substrate (transducer is additive).
     assert frames == [(b"RIFFwav", "joe_voice")]
-    # The FULL transcript entered through the one real door heard speech
-    # uses, which itself establishes presence (GL-FIX-VOICE-PRESENCE).
-    assert sentences == [{
-        "text": "hello there guala",
-        "source": "joe",
-        "bundle_id": "sound_frame:42",
-    }]
+    # The FULL transcript entered through converse() -- the one real door
+    # that both establishes presence AND can compose a reply.
+    assert converses == [{"text": "hello there guala", "source": "joe"}]
+    # read_sentence is NOT also called -- that would process the same
+    # transcript twice (converse() reads its input into the substrate
+    # itself as part of composing a reply).
+    assert sentences == []
 
 
-def test_no_speech_is_honest_and_never_reaches_read_sentence(
+def test_no_speech_is_honest_and_never_reaches_converse(
         clean_frame_state, monkeypatch):
     monkeypatch.setenv("VOICE_WHISPER", "1")
-    guala, sentences, frames = _recording_guala()
+    guala, sentences, frames, converses = _recording_guala()
     appmod._guala = guala
     monkeypatch.setattr(transducer, "transcribe_sound", lambda wav: "")
 
@@ -225,13 +264,14 @@ def test_no_speech_is_honest_and_never_reaches_read_sentence(
     assert resp["spoken_word_recognition"]["status"] == "no_speech"
     assert "transcript" not in resp
     assert sentences == [], "no fabricated words from silent audio"
+    assert converses == [], "no fabricated reply attempt from silent audio"
     assert len(frames) == 1, "raw sound still processed"
 
 
 def test_transcription_error_is_loud_and_never_fabricates(
         clean_frame_state, monkeypatch):
     monkeypatch.setenv("VOICE_WHISPER", "1")
-    guala, sentences, frames = _recording_guala()
+    guala, sentences, frames, converses = _recording_guala()
     appmod._guala = guala
 
     def explode(_wav):
@@ -248,13 +288,14 @@ def test_transcription_error_is_loud_and_never_fabricates(
     assert resp["spoken_word_recognition"]["available"] is False
     assert "transcript" not in resp
     assert sentences == [], "an error NEVER becomes words"
+    assert converses == [], "an error NEVER becomes a reply attempt"
     assert len(frames) == 1, "raw sound experience survives an STT failure"
 
 
 def test_disabled_flag_keeps_the_honest_unavailable_report(
         clean_frame_state, monkeypatch):
     monkeypatch.delenv("VOICE_WHISPER", raising=False)
-    guala, sentences, _frames = _recording_guala()
+    guala, sentences, _frames, _converses = _recording_guala()
     guala._log_substrate_event = lambda *a, **k: None
     appmod._guala = guala
 
@@ -282,7 +323,7 @@ def test_wall_timeout_degrades_a_wedged_transducer_to_the_typed_error(
     monkeypatch.setenv("VOICE_WHISPER", "1")
     monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "0.2")
     assert appmod._speech_result_wall_timeout() == pytest.approx(0.6)
-    guala, sentences, frames = _recording_guala()
+    guala, sentences, frames, _converses = _recording_guala()
     appmod._guala = guala
 
     def _wedged(_wav):
@@ -320,7 +361,7 @@ def test_wall_timeout_parse_is_crash_safe(monkeypatch):
 
 def test_ambient_sources_are_never_transcribed(clean_frame_state, monkeypatch):
     monkeypatch.setenv("VOICE_WHISPER", "1")
-    guala, sentences, _frames = _recording_guala()
+    guala, sentences, _frames, _converses = _recording_guala()
     guala._log_substrate_event = lambda *a, **k: None
     appmod._guala = guala
 

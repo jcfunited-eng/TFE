@@ -1,0 +1,205 @@
+"""
+test_voice_reply_door.py — GL-FIX-VOICE-REPLY-DOOR-20260720: recognized
+speech triggers a real reply (converse()), not just passive memory intake
+(read_sentence()).
+
+Root incident, confirmed live 2026-07-20: a full minute of continuously
+recognized speech (7 consecutive successful transcriptions in the live
+[voice-whisper] log) produced zero replies, because the sound_frame path
+only ever called read_sentence() — which updates memory/presence but has
+no step that composes a turn. converse() (the door typed chat uses) does
+both. Fix replaces the read_sentence call on recognized speech with a
+non-blocking converse() call on a dedicated single-worker executor, so a
+slow (historically 49-94s) reply composition never blocks the live audio
+stream, and back-to-back recognized utterances can't stack up overlapping
+converse() calls.
+
+Gates:
+1. Recognized speech triggers exactly one converse() call, with the
+   transcript and source="joe" -- not read_sentence.
+2. While a reply is composing (busy flag set), a second recognized
+   utterance is silently skipped, not queued -- never two overlapping
+   converse() calls.
+3. The busy flag clears after completion, success or failure, so the
+   NEXT utterance after the current one finishes is not permanently
+   blocked.
+4. A real (non-empty) reply gets written to substrate_runner's
+   _last_autonomous_thought in the same shape the existing /thought
+   polling already expects, tagged category="voice_reply".
+5. A real reply self-hears (one mouth, GL Change 4) -- calls
+   _guala._self_hear with the reply content.
+6. An empty reply (real silence, a legitimate converse() outcome) does
+   NOT write to _last_autonomous_thought or self-hear -- only a genuine
+   commit does.
+"""
+
+import sys
+import os
+import threading
+import time
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import dsf_ai_service.app as appmod
+import dsf_ai_service.substrate_runner as srmod
+
+
+class _FakeTurnResult:
+    def __init__(self, response, response_source="assemblage_commit"):
+        self.response = response
+        self.response_source = response_source
+        self.emission_id = "test-emission-1"
+        self.committed_sections = ("subject", "verb")
+        self.commit_provenance = ()
+
+
+class _FakeGuala:
+    def __init__(self, reply="hello back", delay=0.0):
+        self.tick = 12345
+        self._reply = reply
+        self._delay = delay
+        self.converse_calls = []
+        self.self_hear_calls = []
+
+    def converse(self, text, source="unknown"):
+        self.converse_calls.append((text, source))
+        if self._delay:
+            time.sleep(self._delay)
+        return _FakeTurnResult(self._reply)
+
+    def _self_hear(self, content, who, **kw):
+        self.self_hear_calls.append((content, who, kw))
+
+    def _log_substrate_event(self, *a, **kw):
+        pass
+
+
+def _reset():
+    appmod._voice_reply_busy.clear()
+
+
+def test_gate1_recognized_speech_calls_converse_not_read_sentence():
+    print("Gate 1: converse() called with the transcript and source=joe...")
+    _reset()
+    fake = _FakeGuala(reply="")
+    appmod._guala = fake
+    ok = appmod._maybe_trigger_voice_reply("hello guala", fake.tick)
+    assert ok is True
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    assert fake.converse_calls == [("hello guala", "joe")], fake.converse_calls
+    print("  PASS: converse() called exactly once, correct args")
+
+
+def test_gate2_overlapping_utterance_is_skipped_not_queued():
+    print("Gate 2: a second utterance while busy is skipped...")
+    _reset()
+    fake = _FakeGuala(reply="reply one", delay=0.3)
+    appmod._guala = fake
+    first = appmod._maybe_trigger_voice_reply("first utterance", fake.tick)
+    assert first is True
+    assert appmod._voice_reply_busy.is_set()
+    second = appmod._maybe_trigger_voice_reply("second utterance", fake.tick)
+    assert second is False, "a second utterance must be skipped while busy"
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    assert fake.converse_calls == [("first utterance", "joe")], fake.converse_calls
+    print("  PASS: overlapping utterance skipped, only the first was composed")
+
+
+def test_gate3_busy_flag_clears_after_completion():
+    print("Gate 3: busy flag clears (success and failure)...")
+    _reset()
+    fake_ok = _FakeGuala(reply="")
+    appmod._guala = fake_ok
+    appmod._maybe_trigger_voice_reply("ok case", fake_ok.tick)
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    assert not appmod._voice_reply_busy.is_set()
+
+    class _RaisingGuala(_FakeGuala):
+        def converse(self, text, source="unknown"):
+            raise RuntimeError("simulated composition failure")
+
+    _reset()
+    fake_fail = _RaisingGuala()
+    appmod._guala = fake_fail
+    appmod._maybe_trigger_voice_reply("failure case", fake_fail.tick)
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    assert not appmod._voice_reply_busy.is_set(), \
+        "busy flag must clear even when converse() raises"
+    print("  PASS: busy flag clears after both success and failure")
+
+
+def test_gate4_real_reply_reaches_last_autonomous_thought():
+    print("Gate 4: a real reply surfaces via _last_autonomous_thought...")
+    _reset()
+    srmod._last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
+    fake = _FakeGuala(reply="a real committed reply")
+    appmod._guala = fake
+    appmod._maybe_trigger_voice_reply("say something", fake.tick)
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    with srmod._autonomous_thought_lock:
+        t = dict(srmod._last_autonomous_thought)
+    assert t["speech"] == "a real committed reply"
+    assert t["category"] == "voice_reply"
+    assert t["source"] == "guala"
+    assert t["response_source"] == "assemblage_commit"
+    print("  PASS: real reply written in the existing /thought poll shape")
+
+
+def test_gate5_real_reply_self_hears():
+    print("Gate 5: a real reply self-hears...")
+    _reset()
+    fake = _FakeGuala(reply="hear this")
+    appmod._guala = fake
+    appmod._maybe_trigger_voice_reply("prompt", fake.tick)
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    assert len(fake.self_hear_calls) == 1
+    assert fake.self_hear_calls[0][0] == "hear this"
+    assert fake.self_hear_calls[0][1] == "guala"
+    print("  PASS: self-hear fired with the real reply content")
+
+
+def test_gate6_empty_reply_does_not_surface_or_self_hear():
+    print("Gate 6: honest silence does not fabricate a surfaced reply...")
+    _reset()
+    srmod._last_autonomous_thought = {"speech": "sentinel-untouched", "tick": 0, "ts": 0.0}
+    fake = _FakeGuala(reply="")
+    appmod._guala = fake
+    appmod._maybe_trigger_voice_reply("unanswerable prompt", fake.tick)
+    for _ in range(50):
+        if not appmod._voice_reply_busy.is_set():
+            break
+        time.sleep(0.05)
+    with srmod._autonomous_thought_lock:
+        t = dict(srmod._last_autonomous_thought)
+    assert t["speech"] == "sentinel-untouched", \
+        "an empty (honest silence) reply must never overwrite the thought slot"
+    assert fake.self_hear_calls == [], \
+        "an empty reply must never self-hear"
+    print("  PASS: empty reply stays honestly silent, no fabricated surfacing")
+
+
+if __name__ == "__main__":
+    test_gate1_recognized_speech_calls_converse_not_read_sentence()
+    test_gate2_overlapping_utterance_is_skipped_not_queued()
+    test_gate3_busy_flag_clears_after_completion()
+    test_gate4_real_reply_reaches_last_autonomous_thought()
+    test_gate5_real_reply_self_hears()
+    test_gate6_empty_reply_does_not_surface_or_self_hear()
+    print("\nAll voice-reply-door gates pass.")
