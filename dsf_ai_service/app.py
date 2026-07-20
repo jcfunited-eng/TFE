@@ -3107,7 +3107,8 @@ async def gualaloom_chat(msg: GLMessage):
                 return result
             except Exception:
                 return {"speech": "", "tick": 0}
-        return {"speech": "", "tick": 0}
+        import dsf_ai_service.substrate_runner as _sr
+        return _sr._cmd_thought()
     # /where and /room now handled by the substrate directly (organ-brain container removed)
     # They fall through to the substrate client below
     # /mail, /sendmail, /experience, /tablet — all routed to dead :8090 container.
