@@ -743,7 +743,7 @@ out = {
             'healthCheck': {
                 'command': ['CMD-SHELL',
                     'python3 -c \"import urllib.request; '
-                    'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
+                    'urllib.request.urlopen(\\\\\"http://localhost:8080/health\\\\\")\"'
                     ' || exit 1'],
                 'interval': 10,
                 'timeout': 5,

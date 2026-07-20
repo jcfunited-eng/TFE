@@ -45,6 +45,13 @@ def test_efs_transport_and_fargate_shutdown_ceiling_are_explicit():
     assert "shutdown save-free" in TEXT
 
 
+def test_ecs_health_check_is_liveness_not_deep_readiness():
+    """Quiescence intentionally makes deep readiness false during sealing."""
+    health_check = _between("'healthCheck': {", "'stopTimeout': 120")
+    assert "http://localhost:8080/health" in health_check
+    assert "http://localhost:8080/ready" not in health_check
+
+
 def test_service_configuration_forbids_owner_overlap_and_arms_rollback():
     assert (
         'DEPLOY_CONFIG="maximumPercent=100,minimumHealthyPercent=0,'
