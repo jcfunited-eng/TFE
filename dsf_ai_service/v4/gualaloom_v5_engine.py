@@ -14614,7 +14614,8 @@ class Guala:
     def _validate_deep_atlas_payload(cls, data, engine_tick):
         if not isinstance(data, dict):
             raise ValueError("deep-atlas payload must be an object")
-        if data.get("schema") != "deep_atlas_v1":
+        schema = data.get("schema")
+        if schema not in {"deep_atlas_v1", "deep_atlas_v2"}:
             raise ValueError(f"unknown deep-atlas schema: {data.get('schema')!r}")
         cls._exact_int(data.get("tick"), "deep_atlas.tick", maximum=engine_tick)
         saved_count = cls._exact_int(
@@ -14625,6 +14626,28 @@ class Guala:
         entries = data.get("entries")
         if not isinstance(entries, dict):
             raise ValueError("deep_atlas.entries must be an object")
+        co_occurrence_tables = None
+        if schema == "deep_atlas_v2":
+            co_occurrence_tables = data.get("co_occurrence_tables")
+            if not isinstance(co_occurrence_tables, dict):
+                raise ValueError(
+                    "deep_atlas.co_occurrence_tables must be an object")
+            for reference, motifs in co_occurrence_tables.items():
+                if (not isinstance(reference, str) or len(reference) != 64
+                        or any(character not in "0123456789abcdef"
+                               for character in reference)
+                        or not isinstance(motifs, dict)):
+                    raise ValueError(
+                        "deep_atlas co-occurrence table is invalid")
+                for motif, weight in motifs.items():
+                    if (not isinstance(motif, str)
+                            or not motif.lstrip("-").isdigit()):
+                        raise ValueError(
+                            "deep_atlas co-occurrence table motif is invalid")
+                    cls._exact_number(
+                        weight,
+                        f"deep_atlas.co_occurrence_tables[{reference}][{motif}]",
+                        minimum=0.0)
         for chi_text, bucket in entries.items():
             if (not isinstance(chi_text, str)
                     or not chi_text.lstrip("-").isdigit()):
@@ -14636,13 +14659,16 @@ class Guala:
                 label = f"deep_atlas.entries[{chi_text}][{index}]"
                 if not isinstance(entry, dict):
                     raise ValueError(f"{label} must be an object")
-                required = (
+                required = [
                     "section", "motif", "chi", "strength", "last_tick",
                     "born_tick", "encoded_strength_at_write",
                     "dwell_at_write", "source_path", "promoted_at_tick",
                     "clarity", "initial_clarity", "arousal", "valence",
                     "surprise", "source", "polarity", "sensory_refs",
-                    "episode_refs", "co_occurrence")
+                    "episode_refs"]
+                required.append(
+                    "co_occurrence_refs"
+                    if schema == "deep_atlas_v2" else "co_occurrence")
                 missing = [name for name in required if name not in entry]
                 if missing:
                     raise ValueError(f"{label} is missing {missing}")
@@ -14671,14 +14697,24 @@ class Guala:
                             or any(not isinstance(item, str)
                                    for item in entry[field])):
                         raise ValueError(f"{label}.{field} must be a string list")
-                co_occurrence = entry["co_occurrence"]
+                co_occurrence = entry[required[-1]]
                 if not isinstance(co_occurrence, dict):
-                    raise ValueError(f"{label}.co_occurrence must be an object")
-                for section, motifs in co_occurrence.items():
-                    if not isinstance(section, str) or not isinstance(motifs, dict):
+                    raise ValueError(
+                        f"{label}.{required[-1]} must be an object")
+                for section, motifs_or_reference in co_occurrence.items():
+                    if not isinstance(section, str):
+                        raise ValueError(
+                            f"{label}.{required[-1]} has an invalid section")
+                    if schema == "deep_atlas_v2":
+                        if (not isinstance(motifs_or_reference, str)
+                                or motifs_or_reference not in co_occurrence_tables):
+                            raise ValueError(
+                                f"{label}.co_occurrence_refs has an invalid reference")
+                        continue
+                    if not isinstance(motifs_or_reference, dict):
                         raise ValueError(
                             f"{label}.co_occurrence has an invalid section")
-                    for motif, weight in motifs.items():
+                    for motif, weight in motifs_or_reference.items():
                         if (not isinstance(motif, str)
                                 or not motif.lstrip("-").isdigit()):
                             raise ValueError(

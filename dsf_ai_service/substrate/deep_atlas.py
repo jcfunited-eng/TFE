@@ -10,9 +10,13 @@ Persistence: separate table (guala_deep_atlas.json) for clean rollback.
 Kill switches: DEEP_ATLAS_ENABLED (promotions), DEEP_PRIOR_ENABLED (read path).
 """
 
+import hashlib
+import json
 import math
 import os
+import sys
 from collections import defaultdict
+from collections.abc import MutableMapping
 
 # Use same constants as working atlas
 DECAY_LAMBDA = 0.0001 / 25.0   # 1/25th of working (0.000004)
@@ -54,6 +58,141 @@ _CO_PRUNE_THRESH = FORGETTING_THRESHOLD ** 2  # 0.0004
 CHI_DISTANCE_DECAY = 0.5
 
 
+def _section_fingerprint(values):
+    """Return the content address for one exact motif-weight mapping."""
+    encoded = json.dumps(
+        dict(values), allow_nan=False, ensure_ascii=False,
+        separators=(",", ":"), sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+class _SectionView(MutableMapping):
+    """Dictionary-compatible copy-on-write view of one shared section."""
+
+    def __init__(self, owner, section):
+        self._owner = owner
+        self._section = section
+
+    def __getitem__(self, key):
+        return self._owner._section_values(self._section)[key]
+
+    def __setitem__(self, key, value):
+        self._owner._writable_section(self._section)[key] = value
+
+    def __delitem__(self, key):
+        del self._owner._writable_section(self._section)[key]
+
+    def __iter__(self):
+        return iter(self._owner._section_values(self._section))
+
+    def __len__(self):
+        return len(self._owner._section_values(self._section))
+
+
+class _CoOccurrenceMap(MutableMapping):
+    """Per-entry map whose unchanged section dictionaries are interned.
+
+    The public behavior remains ``section -> {motif: weight}``.  A section is
+    copied only when that particular deep entry mutates it, so sharing never
+    changes the physics or couples two memories together.
+    """
+
+    def __init__(self, registry, values=None, references=None):
+        self._registry = registry
+        self._owned = {}
+        self._references = {}
+        for section, motif_values in (values or {}).items():
+            self._owned[str(section)] = dict(motif_values)
+        for section, reference in (references or {}).items():
+            section = str(section)
+            reference = sys.intern(str(reference))
+            if reference not in registry:
+                raise ValueError(
+                    f"deep_atlas co-occurrence reference is missing: {reference}")
+            self._references[section] = reference
+
+    def _section_values(self, section):
+        if section in self._owned:
+            return self._owned[section]
+        reference = self._references[section]
+        return self._registry[reference]
+
+    def _writable_section(self, section):
+        section = str(section)
+        if section not in self._owned:
+            if section in self._references:
+                self._owned[section] = dict(
+                    self._registry[self._references.pop(section)])
+            else:
+                self._owned[section] = {}
+        return self._owned[section]
+
+    def __getitem__(self, section):
+        section = str(section)
+        if section not in self._owned and section not in self._references:
+            raise KeyError(section)
+        return _SectionView(self, section)
+
+    def __setitem__(self, section, values):
+        section = str(section)
+        if (isinstance(values, _SectionView)
+                and values._owner is self and values._section == section):
+            return
+        self._owned[section] = dict(values)
+        self._references.pop(section, None)
+
+    def __delitem__(self, section):
+        section = str(section)
+        if section in self._owned:
+            del self._owned[section]
+            return
+        if section in self._references:
+            del self._references[section]
+            return
+        raise KeyError(section)
+
+    def __iter__(self):
+        return iter(dict.fromkeys((*self._references, *self._owned)))
+
+    def __len__(self):
+        return len(set(self._references) | set(self._owned))
+
+    def setdefault(self, section, default=None):
+        section = str(section)
+        if section not in self:
+            self._owned[section] = dict(default or {})
+        return _SectionView(self, section)
+
+    def persistence_references(self, output_tables):
+        """Intern every section and return its exact persisted references."""
+        references = {}
+        for section in self:
+            if section in self._references:
+                reference = self._references[section]
+                values = self._registry[reference]
+            else:
+                values = self._owned[section]
+                reference = sys.intern(_section_fingerprint(values))
+                existing = self._registry.get(reference)
+                if existing is not None and existing != values:
+                    raise ValueError(
+                        "deep_atlas co-occurrence content-address collision")
+                if existing is None:
+                    self._registry[reference] = values
+                else:
+                    values = existing
+                self._references[section] = reference
+                self._owned.pop(section, None)
+            output_existing = output_tables.get(reference)
+            if output_existing is not None and output_existing != values:
+                raise ValueError(
+                    "deep_atlas output table content-address collision")
+            output_tables[reference] = values
+            references[section] = reference
+        return references
+
+
 def _deep_atlas_enabled():
     return os.environ.get("DEEP_ATLAS_ENABLED", "1") != "0"
 
@@ -67,6 +206,10 @@ class DeepAtlas:
     def __init__(self):
         # chi_value -> list of deep entries
         self.entries = defaultdict(list)
+        # Exact content-addressed section dictionaries shared by entries.
+        # Sharing is representation only; _CoOccurrenceMap detaches a section
+        # before any mutation.
+        self._co_occurrence_registry = {}
         self.tick = 0
         # Instrumentation
         self.promotions_survival = 0
@@ -131,7 +274,8 @@ class DeepAtlas:
             "polarity": 1.0,  # TODO: derive polarity from sentiment when grounded text pipeline available
             "sensory_refs": list(entry.get("sensory_refs", [])),
             "episode_refs": list(entry.get("episode_refs", [])),
-            "co_occurrence": {},  # section_name -> {motif_id: weight}
+            "co_occurrence": _CoOccurrenceMap(
+                self._co_occurrence_registry),
         }
         # Copy response link fields if present — Q&A pairs survive as pairs
         if entry.get("response_context"):
@@ -382,18 +526,35 @@ class DeepAtlas:
     # --- Persistence (separate table) ---
 
     def to_json(self):
-        """Serialize for guala_deep_atlas.json."""
+        """Serialize losslessly without repeating identical section maps."""
         live = self.live_count()
         entries_ser = {}
+        co_occurrence_tables = {}
         for chi_k, es in self.entries.items():
-            entries_ser[str(chi_k)] = [
-                {k: v for k, v in e.items()} for e in es
-            ]
+            serialized_entries = []
+            for entry in es:
+                co_occurrence = entry.get("co_occurrence", {})
+                if not isinstance(co_occurrence, _CoOccurrenceMap):
+                    co_occurrence = _CoOccurrenceMap(
+                        self._co_occurrence_registry,
+                        values=co_occurrence,
+                    )
+                    entry["co_occurrence"] = co_occurrence
+                serialized = {
+                    key: value for key, value in entry.items()
+                    if key != "co_occurrence"
+                }
+                serialized["co_occurrence_refs"] = (
+                    co_occurrence.persistence_references(
+                        co_occurrence_tables))
+                serialized_entries.append(serialized)
+            entries_ser[str(chi_k)] = serialized_entries
         return {
-            "schema": "deep_atlas_v1",
+            "schema": "deep_atlas_v2",
             "tick": self.tick,
             "saved_n_entries": live,           # GL-CMD-DEEP-ATLAS-PERSIST: count at save
             "entries": entries_ser,
+            "co_occurrence_tables": co_occurrence_tables,
             "promotions_survival": self.promotions_survival,
             "promotions_episodic": self.promotions_episodic,
             "reinstatements": self.reinstatements,
@@ -402,7 +563,8 @@ class DeepAtlas:
     def load_from_json(self, data):
         """Restore from guala_deep_atlas.json.
         Returns saved_n_entries so caller can run loss alarm."""
-        if data.get("schema") != "deep_atlas_v1":
+        schema = data.get("schema")
+        if schema not in {"deep_atlas_v1", "deep_atlas_v2"}:
             print("[deep_atlas] Unknown schema — starting fresh")
             return 0
         self.tick = data.get("tick", 0)
@@ -410,6 +572,47 @@ class DeepAtlas:
         self.promotions_episodic = data.get("promotions_episodic", 0)
         self.reinstatements = data.get("reinstatements", 0)
         self.entries = defaultdict(list)
-        for k, es in data.get("entries", {}).items():
-            self.entries[int(k)] = list(es)
+        self._co_occurrence_registry = {}
+        if schema == "deep_atlas_v2":
+            raw_tables = data.get("co_occurrence_tables")
+            if not isinstance(raw_tables, dict):
+                raise ValueError(
+                    "deep_atlas_v2 co_occurrence_tables must be an object")
+            for raw_reference, values in raw_tables.items():
+                reference = sys.intern(str(raw_reference))
+                if not isinstance(values, dict):
+                    raise ValueError(
+                        "deep_atlas_v2 co-occurrence table must be an object")
+                if _section_fingerprint(values) != reference:
+                    raise ValueError(
+                        "deep_atlas_v2 co-occurrence table hash mismatch")
+                self._co_occurrence_registry[reference] = values
+            for k, serialized_entries in data.get("entries", {}).items():
+                restored_entries = []
+                for serialized in serialized_entries:
+                    entry = dict(serialized)
+                    references = entry.pop("co_occurrence_refs", None)
+                    if not isinstance(references, dict):
+                        raise ValueError(
+                            "deep_atlas_v2 entry references must be an object")
+                    entry["co_occurrence"] = _CoOccurrenceMap(
+                        self._co_occurrence_registry,
+                        references=references,
+                    )
+                    restored_entries.append(entry)
+                self.entries[int(k)] = restored_entries
+        else:
+            # Backward-compatible exact migration for small/local v1 states.
+            # Production's multi-GB legacy state is migrated with the bounded
+            # streaming tool before boot so it is never expanded into RAM.
+            for k, serialized_entries in data.get("entries", {}).items():
+                restored_entries = []
+                for serialized in serialized_entries:
+                    entry = dict(serialized)
+                    entry["co_occurrence"] = _CoOccurrenceMap(
+                        self._co_occurrence_registry,
+                        values=entry.get("co_occurrence", {}),
+                    )
+                    restored_entries.append(entry)
+                self.entries[int(k)] = restored_entries
         return data.get("saved_n_entries", self.live_count())

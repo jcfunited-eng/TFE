@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-n
 # exact-rational certified-ball arithmetic (dsf_ai_service/glew_runtime/) --
 # absent from this image until GLEW existed. Pinned to the exact version
 # GLEW's own error messages name, matching the verified working dev version.
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets python-flint==0.9.0
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets ijson==3.4.0.post0 python-flint==0.9.0
 # STT boundary transducer (port of stranded a8277fa): faster-whisper is the
 # CPU-optimized CTranslate2 whisper runtime — a sense transducer at the
 # boundary (like ffmpeg above), never part of cognition (Fact-Strand

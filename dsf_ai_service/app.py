@@ -7443,6 +7443,11 @@ def _write_runtime_generation_stage(stage):
         os.path.join(stage, "v7_sessions"),
         suffixes=(".json", ".events.jsonl"),
     )
+    _copy_generation_auxiliary_tree(
+        os.path.join(STATE_DIR, "sounds"),
+        os.path.join(stage, "sounds"),
+        suffixes=(".audio",),
+    )
 
 
 def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
