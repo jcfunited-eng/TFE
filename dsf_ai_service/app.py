@@ -144,6 +144,29 @@ _voice_reply_executor = _concurrent_futures.ThreadPoolExecutor(
 _voice_reply_busy = threading.Event()
 
 
+def _compose_conversational_organism_fallthrough(text):
+    """Run the one existing typed-conversation organism attempt.
+
+    Both typed and spoken turns call this exact helper after a deterministic
+    ``silence_no_commit``.  It does not force speech: the organism may still
+    return None.  Keeping the mechanism shared prevents the voice door from
+    ending one structural stage earlier than the typed door.
+    """
+    if (_guala is None
+            or os.environ.get("CONVERSE_BABBLE_FALLTHROUGH", "1") == "0"):
+        return None
+    turn_seeds = [{"words": text.split()[:6],
+                   "provenance": "conversation_turn_words"}]
+    votes = _guala.precompute_organism_attempt(turn_seeds)
+    if votes is None:
+        return None
+    import time as _bt
+    with _guala.lock:
+        return _guala._compose_organism_attempt(
+            turn_seeds, _bt.monotonic() + 0.25,
+            organism_votes=votes, conversational=True)
+
+
 def _run_voice_reply(spoken_text, tick_hint):
     """Runs on the single voice-reply worker thread, never the request
     thread. Mirrors substrate_runner's autonomous-emission loop's own
@@ -158,8 +181,15 @@ def _run_voice_reply(spoken_text, tick_hint):
             return
         turn_result = _guala.converse(spoken_text, source="joe")
         content = (turn_result.response or "").strip()
+        response_source = turn_result.response_source
+        if not content and response_source == "silence_no_commit":
+            released = _compose_conversational_organism_fallthrough(
+                spoken_text)
+            if released is not None:
+                content = (released["content"] or "").strip()
+                response_source = released["response_source"]
         print(f"[voice-reply] {time.time()-t0:.3f}s "
-              f"response_source={turn_result.response_source} "
+              f"response_source={response_source} "
               f"committed={bool(content)}")
         if not content:
             return
@@ -170,7 +200,7 @@ def _run_voice_reply(spoken_text, tick_hint):
                 "ts": time.time(),
                 "category": "voice_reply",
                 "source": "guala",
-                "response_source": turn_result.response_source,
+                "response_source": response_source,
                 "emission_id": turn_result.emission_id,
                 "committed_sections": list(turn_result.committed_sections),
                 "commit_provenance": [
@@ -181,7 +211,7 @@ def _run_voice_reply(spoken_text, tick_hint):
             _guala._self_hear(
                 content, "guala",
                 emission_id=turn_result.emission_id,
-                response_source=turn_result.response_source)
+                response_source=response_source)
         except Exception as self_hear_error:
             _guala._log_substrate_event(
                 "voice_reply_self_hear_error",
@@ -892,23 +922,9 @@ async def _run_converse(
                     and os.environ.get(
                         "CONVERSE_BABBLE_FALLTHROUGH", "1") != "0"):
                 try:
-                    _turn_seeds = [{"words": text.split()[:6],
-                                    "provenance": "conversation_turn_words"}]
-                    _released = None
-                    if _released is None:
-                        _votes = await _run_lifecycle_executor(
-                            lambda: _guala.precompute_organism_attempt(
-                                _turn_seeds))
-                        if _votes is not None:
-                            def _babble_assemble():
-                                import time as _bt
-                                with _guala.lock:
-                                    return _guala._compose_organism_attempt(
-                                        _turn_seeds, _bt.monotonic() + 0.25,
-                                        organism_votes=_votes,
-                                        conversational=True)
-                            _released = await _run_lifecycle_executor(
-                                _babble_assemble)
+                    _released = await _run_lifecycle_executor(
+                        lambda: _compose_conversational_organism_fallthrough(
+                            text))
                     if _released is not None:
                         response = _released["content"]
                         response_source = _released["response_source"]
