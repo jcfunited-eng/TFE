@@ -12,6 +12,7 @@ Subdivision: trigger detection + log in Phase 1. Firing in Phase 1a.
 import os
 import sys
 import logging
+import threading
 
 import numpy as np
 
@@ -28,6 +29,26 @@ from wave_spillover import Cell, spill_write, _commit_cell  # noqa: F401
 _log = logging.getLogger("gualaloom")
 
 
+# A sensory write is an event; decay is not another sensory experience.
+# These names match the existing physical-sense section names written by
+# give_experience/process_*_frame and by ground_modal.  Language sections are
+# deliberately absent because words already have their own organism queue.
+_SENSORY_SECTION_PREFIXES = {
+    "sight": ("sight", "modal_sight"),
+    "sound": ("audio_", "modal_sound"),
+    "touch": ("touch_", "modal_touch"),
+    "smell": ("smell_", "modal_smell"),
+    "taste": ("taste_", "modal_taste"),
+}
+
+
+def _sensory_band_for_section(section_name: str):
+    for band, prefixes in _SENSORY_SECTION_PREFIXES.items():
+        if section_name.startswith(prefixes):
+            return band
+    return None
+
+
 class WaveAtlas:
     """Lock-free wave atlas. Parallel write target during Phase 1; read-only
     consumers migrate in Phase 2.
@@ -40,6 +61,33 @@ class WaveAtlas:
         # Lazy-allocated cell dict. Key = chi_value % N_CELLS.
         self.cells: dict = {}
         self._subdivision_count = 0
+        # Per-band Events are an idempotent, bounded write-notification
+        # surface.  Ten thousand writes before the autonomy loop consumes
+        # them still occupy five Events, never ten thousand queue entries.
+        # Clearing happens before sampling so a write concurrent with the
+        # sample remains set for the next pass and cannot be lost.
+        self._sensory_write_events = {
+            band: threading.Event() for band in _SENSORY_SECTION_PREFIXES
+        }
+
+    def _mark_sensory_write(self, section_name: str) -> None:
+        band = _sensory_band_for_section(section_name)
+        if band is not None:
+            self._sensory_write_events[band].set()
+
+    def consume_sensory_write_bands(self) -> tuple:
+        """Return physical-sense bands written since the prior consume.
+
+        This is a bounded notification receipt, not a sampled cadence and not
+        a reduction of the stored wave field.  The caller still reads the real
+        atlas after consuming it.  Decay never marks a write.
+        """
+        written = []
+        for band, event in self._sensory_write_events.items():
+            if event.is_set():
+                event.clear()
+                written.append(band)
+        return tuple(written)
 
     # ──────────────────────────────────────────────────────────────────────────
     # Write path
@@ -125,6 +173,7 @@ class WaveAtlas:
                             _nrm = np.linalg.norm(_cell.phase_vec)
                             if _nrm > 1e-12:
                                 _cell.phase_vec = _cell.phase_vec / _nrm
+                    self._mark_sensory_write(section_name)
                     return chi_value  # reinforced in place — no new binding
 
         final_chi, hops = spill_write(
@@ -141,6 +190,7 @@ class WaveAtlas:
                 hops, chi_value, final_chi, section_name,
             )
 
+        self._mark_sensory_write(section_name)
         return final_chi
 
     # ──────────────────────────────────────────────────────────────────────────

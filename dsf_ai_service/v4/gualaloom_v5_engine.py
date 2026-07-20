@@ -6709,8 +6709,8 @@ class Guala:
     # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): wave-field
     # proposal queue bound + drop-log cadence. 64 = one full 8-hemisphere
     # push cycle x 8 ticks of tolerated burst (from-design; the worker
-    # drains at its own pace, the field re-samples every tick anyway so a
-    # dropped-oldest proposal is superseded, not lost knowledge). Drops
+    # drains at its own pace, and a later real write for the same band
+    # supersedes an older queued state). Drops
     # are counted always, logged on the first and every 50th so the event
     # stream sees a sustained divergence loudly without itself becoming a
     # firehose.
@@ -6725,8 +6725,8 @@ class Guala:
         BOUNDED queue (maxsize=WAVE_PROPOSAL_QUEUE_MAX). put() here still
         never blocks the caller (the main autonomy tick): on overflow the
         OLDEST proposal is dropped to make room (a stale wave summary is
-        superseded by the newer one by construction -- the field is
-        re-sampled every tick), the drop is counted
+        superseded by a proposal caused by a newer physical-sense write),
+        the drop is counted
         (_organism_sensory_dropped_count, visible in /status) and logged
         as a wave_proposal_dropped event on the first and every 50th drop.
 
@@ -10478,9 +10478,9 @@ class Guala:
 
             # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
             # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
-            # every autonomy-tick, sample the shared wave field and
-            # ENQUEUE each hemisphere's assigned band for the organism
-            # worker thread to apply asynchronously (see wave_summary.py
+            # consume real WaveAtlas write notifications, then sample the
+            # shared wave field and ENQUEUE only each changed physical band
+            # for the organism worker to apply asynchronously (see wave_summary.py
             # and _organism_worker_loop) -- the synchronous 64x
             # neuron.step() call this used to make here cost 246-290ms/
             # call (measured, see GL-RPT-WAVE-ATLAS-DECAY-BUILD-C1-
@@ -10490,15 +10490,14 @@ class Guala:
             if (self.wave_atlas is not None
                     and os.environ.get("WAVE_SUMMARY_ENQUEUE_ENABLED", "1") == "1"):
                 from dsf_ai_service.substrate.wave_summary import (
-                    sample_wave_summary, push_wave_summary_to_organism)
-                _wave_summary = sample_wave_summary(self.wave_atlas)
-                _push_payload = push_wave_summary_to_organism(
-                    self, _wave_summary, self.tick)
+                    push_new_wave_writes_to_organism)
+                _push_payload = push_new_wave_writes_to_organism(
+                    self, self.wave_atlas, self.tick)
                 # F2 (2026-07-16): sampled to the same 500-tick cadence as
                 # the decay event -- an unconditional per-tick log was the
-                # other half of the ring flood. The push itself stays
-                # per-tick; only the telemetry is sampled.
-                if self.tick % 500 == 0:
+                # other half of the ring flood. A push now exists only when
+                # one or more physical-sense bands received a real write.
+                if _push_payload is not None and self.tick % 500 == 0:
                     self._log_substrate_event(
                         "wave_summary_pushed", **_push_payload)
 

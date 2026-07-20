@@ -120,7 +120,7 @@ def _band_signal(aggregate: float, top_chis: list) -> list:
 
 
 def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
-                                   tick: int) -> dict:
+                                   tick: int, changed_bands=None) -> dict:
     """Enqueue each non-word hemisphere's assigned band as a sensory work
     item, drained asynchronously by the organism worker thread (see
     Guala._organism_worker_loop). Returns the payload for the
@@ -129,11 +129,18 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
     processed fires later, from the worker thread, when that item is
     actually drained.
 
+    changed_bands is the exact set of physical-sense bands with one or more
+    real WaveAtlas writes since the previous sample.  When supplied, old
+    state in other bands is not replayed as a new experience.  None preserves
+    the direct-call behavior used by existing callers and tests.
+
     Skip-when-empty (unchanged from the wave-atlas-decay series): on a
     quiescent tick (every band's aggregate is 0) nothing is enqueued at
     all -- the event still fires (with an honest all-zero payload) from
     the caller in _autonomy_tick."""
     from dsf_ai_service.loom_model.topology import HEMISPHERE_PRIMARY_MODALITY
+
+    selected_bands = None if changed_bands is None else set(changed_bands)
 
     if not any(agg > 0.0 for agg, _ in summary.values()):
         return {"tick": tick, "bands": {b: {"aggregate_amplitude": 0.0, "top_chis": []} for b in BANDS}}
@@ -153,6 +160,10 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
             # Word hemispheres already receive real content through the
             # existing word queue (_enqueue_organism_remember et al.) --
             # not this new sensory path.
+            continue
+        if selected_bands is not None and band not in selected_bands:
+            # The field may still contain an older active value for this
+            # band, but no new physical input wrote it in this interval.
             continue
         aggregate, top_chis = summary.get(band, (0.0, []))
         if aggregate <= 0.0:
@@ -174,10 +185,27 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
         guala._enqueue_organism_sensory(hemi.hemi_id, input_signal, tick, input_chi)
         # F2 (2026-07-16): sampled to the 500-tick telemetry cadence --
         # per-tick-per-hemisphere events were the third contributor to the
-        # observability-ring flood. The enqueue itself stays per-tick.
+        # observability-ring flood. The enqueue now occurs only for a real
+        # physical-sense write when changed_bands is supplied.
         if tick % 500 == 0:
             guala._log_substrate_event(
                 "sensory_organism_enqueued", tick=tick, hemi_id=hemi.hemi_id,
                 band=band, aggregate_amplitude=round(aggregate, 4))
 
     return {"tick": tick, "bands": payload_bands}
+
+
+def push_new_wave_writes_to_organism(guala, wave_atlas, tick: int):
+    """Push exactly the physical-sense bands changed by real atlas writes.
+
+    Returns None when no physical-sense write occurred.  In that case the
+    atlas is not scanned and no organism work is generated.  This makes the
+    path event-driven without inventing a polling cadence or treating decay
+    as repeated experience.
+    """
+    changed_bands = wave_atlas.consume_sensory_write_bands()
+    if not changed_bands:
+        return None
+    summary = sample_wave_summary(wave_atlas)
+    return push_wave_summary_to_organism(
+        guala, summary, tick, changed_bands=changed_bands)
