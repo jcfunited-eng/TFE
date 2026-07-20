@@ -388,6 +388,42 @@ def _converse_turn_in_flight():
     return (time.time() - _converse_window_started_at) < _CONVERSE_PRIORITY_WINDOW_S
 
 
+def _converse_admission_busy():
+    """True while a text-driven conversational turn already occupies the
+    engine lock (GL-FIX-CONVERSE-ADMIT-GUARD-20260720).
+
+    Typed converse had no admission guard, unlike voice's own
+    _voice_reply_busy: every /listen or plain-text request immediately
+    created a new task and scheduled it, no matter how many turns were
+    already queued on the engine lock. Each turn is measured at 49-94s
+    (see _run_converse's own comments); a handful of prompts arriving
+    close together stacked additively and produced live-observed waits up
+    to ~1000s for the last one in line. Reuses _converse_inflight (already
+    incremented/decremented around the full body of _run_converse, always
+    cleared in a finally) rather than adding parallel bookkeeping.
+
+    Does NOT (yet) coordinate with voice's separate _voice_reply_busy flag
+    -- _run_voice_reply calls converse() directly, without going through
+    _run_converse, so a voice reply in flight does not set
+    _converse_inflight and is not caught by this check. A text prompt can
+    still be admitted while a voice reply is composing. That cross-path
+    case is a known gap, not addressed here.
+    """
+    return _converse_inflight > 0
+
+
+def _converse_admission_rejected_response():
+    """Honest, typed 409 instead of accepting a task that would just queue.
+    Existing frontend handling already renders `response` as a system
+    message for any non-202/500/503 status -- no frontend change needed."""
+    return JSONResponse(status_code=409, content={
+        "ok": False,
+        "busy": True,
+        "response": "still composing the last reply — try again in a moment",
+        "reason": "a conversational turn is already in progress",
+    })
+
+
 def _prune_stale_tasks():
     """Remove completed tasks older than TTL. Called opportunistically."""
     now = time.time()
@@ -3103,6 +3139,8 @@ async def gualaloom_chat(msg: GLMessage):
         return {"ok": True}
     if _cmd == "/listen":
         # Explicit text-listen route used by authenticated text callers.
+        if _converse_admission_busy():
+            return _converse_admission_rejected_response()
         import asyncio as _aio
         _prune_stale_tasks()
         tick = _guala.tick if _guala else 0
@@ -3164,6 +3202,8 @@ async def gualaloom_chat(msg: GLMessage):
     # SSE retired — it was theater (no incremental output from _guala.converse()).
     is_converse = not (msg.command or "").strip() and bool((msg.text or "").strip())
     if is_converse:
+        if _converse_admission_busy():
+            return _converse_admission_rejected_response()
         import asyncio as _aio
         _prune_stale_tasks()
         tick = _guala.tick if _guala else 0
