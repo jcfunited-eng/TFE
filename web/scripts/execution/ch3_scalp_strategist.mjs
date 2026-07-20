@@ -65,6 +65,26 @@ const RVOL_MIN      = 1.5;    // relative volume vs yesterday, annualized to ful
 const GAP_DOWN_MAX  = -0.01;  // reject gap-downs worse than -1%
 // must_be_green and must_be_up_from_open are implicit in the filter below
 
+// Tradability + rocket ceiling (2026-07-20: the full-universe scan's first
+// pass picked the market's two most extreme gappers — WAI +38% at $2.60
+// [bridge $5 floor refused it] and VACH +69%/+56% gap [broker refused the
+// order] — and both slots died while 173 sane HOT names went untaken).
+const CH3_MIN_PRICE = 5.0;    // keep in sync with alpaca_bridge MIN_SHARE_PRICE
+const GAP_UP_MAX    = 0.10;   // a +10% gap already happened without us
+const DAY_UP_MAX    = 0.15;   // +15% on the day is a missed move, not an entry
+
+export function ch3MomentumVerdict(m) {
+  const tooHot      = m.day_pct > DAY_UP_MAX || m.gap_pct > GAP_UP_MAX;
+  const subMinPrice = m.current_price < CH3_MIN_PRICE;
+  const passes =
+    m.day_pct      >  0            &&
+    m.momentum_pct >  0            &&
+    m.rvol         >= RVOL_MIN     &&
+    m.gap_pct      >= GAP_DOWN_MAX &&
+    !tooHot && !subMinPrice;
+  return { passes, tooHot, subMinPrice };
+}
+
 function toFloat(v) {
   const n = parseFloat(v);
   return isFinite(n) ? n : null;
@@ -289,14 +309,9 @@ async function fetchIntradayMomentum(tickers) {
     // Score: momentum × volume intensity
     const score = momentum_pct * Math.max(rvol, 1);
 
-    const passes = (
-      day_pct      >  0          &&   // green on the day
-      momentum_pct >  0          &&   // continuing up from open (not fading)
-      rvol         >= RVOL_MIN   &&   // elevated activity
-      gap_pct      >= GAP_DOWN_MAX    // not a falling knife gap-down
-    );
+    const verdict = ch3MomentumVerdict({ gap_pct, momentum_pct, day_pct, rvol, current_price: current });
 
-    results.set(ticker, { gap_pct, momentum_pct, day_pct, rvol, current_price: current, score, passes });
+    results.set(ticker, { gap_pct, momentum_pct, day_pct, rvol, current_price: current, score, ...verdict });
   }
 
   return results;
@@ -378,11 +393,15 @@ export async function getCh3Signals() {
   // Step 3: live intraday momentum scoring via Alpaca snapshot
   const momentumMap = await fetchIntradayMomentum(available.map(s => s.ticker));
 
-  // Per-ticker lines only for HOT — a full-universe pass (~2k tickers)
-  // would otherwise print thousands of COLD lines per day.
+  // Per-ticker lines only for HOT and named skips (rockets, sub-$5) — a
+  // full-universe pass (~2k tickers) would otherwise print thousands of
+  // COLD lines per day. Rockets are logged by name so "why didn't we take
+  // X?" is answerable straight from the pass log.
   const hot = [];
   let coldCount = 0;
   let noSnapCount = 0;
+  let rocketCount = 0;
+  let pennyCount = 0;
   for (const s of available) {
     const m = momentumMap.get(s.ticker);
     if (!m) {
@@ -391,7 +410,14 @@ export async function getCh3Signals() {
     }
     const tag = `day=${(m.day_pct*100).toFixed(2)}% open_mom=${(m.momentum_pct*100).toFixed(2)}% rvol=${m.rvol.toFixed(2)}x gap=${(m.gap_pct*100).toFixed(2)}%`;
     if (!m.passes) {
-      coldCount++;
+      if (m.tooHot) {
+        rocketCount++;
+        console.log(`[CH3-HUNTER]   ${s.ticker} — ROCKET SKIP: ${tag} price=${m.current_price} (move already happened)`);
+      } else if (m.subMinPrice) {
+        pennyCount++;
+      } else {
+        coldCount++;
+      }
       continue;
     }
     console.log(`[CH3-HUNTER]   ${s.ticker} — HOT:  ${tag} score=${m.score.toFixed(4)}`);
@@ -399,7 +425,7 @@ export async function getCh3Signals() {
     s.price    = m.current_price;  // use live price, not stale snapshot
     hot.push(s);
   }
-  console.log(`[CH3-HUNTER] Scored ${available.length}: ${hot.length} HOT | ${coldCount} COLD | ${noSnapCount} no-snapshot`);
+  console.log(`[CH3-HUNTER] Scored ${available.length}: ${hot.length} HOT | ${coldCount} COLD | ${rocketCount} rockets | ${pennyCount} sub-$${CH3_MIN_PRICE} | ${noSnapCount} no-snapshot`);
 
   if (!hot.length) {
     console.log("[CH3-HUNTER] No stocks passing momentum gates today");
