@@ -935,12 +935,45 @@ def materialize_verified_generation(
 
     exchanged = False
     moved_into_empty = False
+    retired_active = None
+    stale_retirements = tuple(
+        active_parent.glob(f".{active.name}.retired-*")
+    )
+    for stale in stale_retirements:
+        if stale.is_symlink() or not stale.is_dir():
+            raise MaterializationError(
+                f"stale active retirement is unsafe: {stale}")
     try:
         _write_materialization(candidate, expected)
         _verify_materialization(candidate, expected)
         if active.exists():
-            _rename_exchange(candidate, active)
-            exchanged = True
+            try:
+                _rename_exchange(candidate, active)
+                exchanged = True
+            except AtomicDirectorySwapUnsupported:
+                # EFS supports same-directory atomic rename but not Linux's
+                # renameat2(RENAME_EXCHANGE).  CURRENT is the immutable source
+                # of truth and this process owns the lifetime EFS lock, so a
+                # two-rename activation is restart-recoverable: if the process
+                # dies in the brief name gap, the next boot materializes the
+                # same verified CURRENT again.  Keep the prior active tree
+                # under a unique retirement name until post-activation
+                # verification succeeds, so an ordinary exception still rolls
+                # back exactly.
+                retired_active = active_parent / (
+                    f".{active.name}.retired-{generation.generation_uuid}-"
+                    f"{uuid.uuid4()}")
+                os.rename(active, retired_active)
+                _fsync_directory(active_parent)
+                try:
+                    os.rename(candidate, active)
+                    moved_into_empty = True
+                    _fsync_directory(active_parent)
+                except Exception:
+                    os.rename(retired_active, active)
+                    retired_active = None
+                    _fsync_directory(active_parent)
+                    raise
         else:
             os.rename(candidate, active)
             moved_into_empty = True
@@ -950,6 +983,13 @@ def materialize_verified_generation(
         try:
             if exchanged:
                 _rename_exchange(candidate, active)
+                _fsync_directory(active_parent)
+            elif retired_active is not None and retired_active.exists():
+                if active.exists() and not candidate.exists():
+                    os.rename(active, candidate)
+                os.rename(retired_active, active)
+                retired_active = None
+                moved_into_empty = False
                 _fsync_directory(active_parent)
             elif moved_into_empty and active.exists() and not candidate.exists():
                 os.rename(active, candidate)
@@ -963,6 +1003,13 @@ def materialize_verified_generation(
         if candidate.exists():
             _remove_private_tree(candidate)
             _fsync_directory(active_parent)
+
+    if retired_active is not None and retired_active.exists():
+        _remove_private_tree(retired_active)
+    for stale in stale_retirements:
+        if stale.exists() and stale != retired_active:
+            _remove_private_tree(stale)
+    _fsync_directory(active_parent)
 
     return MaterializedGeneration(
         schema=MATERIALIZATION_SCHEMA,

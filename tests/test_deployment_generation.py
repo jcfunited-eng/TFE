@@ -493,6 +493,63 @@ def test_materialization_rolls_back_existing_active_directory_on_post_swap_failu
     assert not list(active.parent.glob(f".{active.name}.materializing-*"))
 
 
+def test_materialization_uses_restart_recoverable_rename_when_exchange_unsupported(
+        tmp_path, monkeypatch):
+    store, generation = _committed_generation(tmp_path)
+    active = tmp_path / "active"
+    active.mkdir()
+    (active / "old-only.txt").write_text("old generation")
+
+    def exchange_unsupported(_first, _second):
+        raise deployment.AtomicDirectorySwapUnsupported(
+            "filesystem does not support atomic directory exchange")
+
+    monkeypatch.setattr(deployment, "_rename_exchange", exchange_unsupported)
+    result = materialize_current(
+        store_root=store.root,
+        active_directory=active,
+    )
+
+    assert result.generation_uuid == generation.generation_uuid
+    assert json.loads((active / "core.json").read_text()) == {
+        "marker": "one", "tick": 7,
+    }
+    assert not (active / "old-only.txt").exists()
+    assert not list(active.parent.glob(f".{active.name}.retired-*"))
+    assert not list(active.parent.glob(f".{active.name}.materializing-*"))
+
+
+def test_efs_rename_fallback_restores_prior_active_on_verification_failure(
+        tmp_path, monkeypatch):
+    store, _generation = _committed_generation(tmp_path)
+    active = tmp_path / "active"
+    active.mkdir()
+    (active / "old.json").write_text('{"old":true}')
+    real_verify = deployment._verify_materialization
+    calls = 0
+
+    def exchange_unsupported(_first, _second):
+        raise deployment.AtomicDirectorySwapUnsupported(
+            "filesystem does not support atomic directory exchange")
+
+    def fail_after_activation(directory, expected):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise MaterializationError("injected EFS verification failure")
+        return real_verify(directory, expected)
+
+    monkeypatch.setattr(deployment, "_rename_exchange", exchange_unsupported)
+    monkeypatch.setattr(
+        deployment, "_verify_materialization", fail_after_activation)
+    with pytest.raises(MaterializationError, match="EFS verification"):
+        materialize_current(store_root=store.root, active_directory=active)
+
+    assert json.loads((active / "old.json").read_text()) == {"old": True}
+    assert not list(active.parent.glob(f".{active.name}.retired-*"))
+    assert not list(active.parent.glob(f".{active.name}.materializing-*"))
+
+
 def test_materialization_rejects_active_path_inside_immutable_store(tmp_path):
     store, _generation = _committed_generation(tmp_path)
     with pytest.raises(MaterializationError, match="inside"):
