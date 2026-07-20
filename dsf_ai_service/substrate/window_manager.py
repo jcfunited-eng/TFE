@@ -102,6 +102,31 @@ WAL_SEGMENT_MAX_BYTES = 64 * 1024 * 1024
 # rather than a legacy full-snapshot payload.
 MANIFEST_FORMAT = "wal_manifest"
 
+# ── Boot-time checkpoint (GL-FIX-WAL-BOOT-CHECKPOINT-20260720) ─────────────
+# Compaction already streams and re-verifies every closed record once, to
+# rewrite them into one fresh base segment (see _compact_locked). Nothing
+# used to consume that work at boot: restore_from_wal re-parsed and
+# re-verified the base's records from scratch too, every single time, so
+# boot cost grew with her ENTIRE lifetime forever regardless of how often
+# compaction ran. A checkpoint written alongside each compaction's base
+# lets restore trust that base (one cheap whole-file digest check, no
+# per-record re-parse) and fully re-verify only what was appended SINCE
+# that compaction. Any checkpoint miss, corruption, or digest mismatch
+# falls back to the original full replay unchanged -- this can only make
+# boot faster, never less safe (see restore_from_wal's fast-path comment).
+# Scope, stated plainly: this removes per-record JSON-parse/schema-
+# validation/re-hash cost for the base (measured a real, constant-factor
+# speedup) -- it does NOT make boot cost independent of her total
+# lifetime. Loading the checkpoint is still one JSON parse sized by total
+# historical window count, because locator/window_meta/chi_index are
+# inherently per-window data the runtime needs fully resident for recall
+# regardless of how it was loaded. A complexity-class change would mean
+# keeping fewer old windows resident at all -- a bigger, separate decision
+# this fix deliberately does not make.
+WAL_CHECKPOINT_PREFIX = "ckpt-"
+WAL_CHECKPOINT_SUFFIX = ".json"
+CHECKPOINT_FORMAT = "wal_index_checkpoint"
+
 
 def _canonical_wal_bytes(value: Any) -> bytes:
     """Deterministic canonical JSON bytes for one persisted record/line.
@@ -1449,6 +1474,23 @@ class WindowManager:
             self._wal_dir,
             f"{WAL_SEGMENT_PREFIX}{generation:08d}-{index:08d}{WAL_SEGMENT_SUFFIX}")
 
+    def _wal_checkpoint_path(self, generation: int) -> str:
+        return os.path.join(
+            self._wal_dir,
+            f"{WAL_CHECKPOINT_PREFIX}{generation:08d}{WAL_CHECKPOINT_SUFFIX}")
+
+    @staticmethod
+    def _parse_checkpoint_name(name: str) -> Optional[int]:
+        """Return the generation for a checkpoint filename, else None."""
+        if (not name.startswith(WAL_CHECKPOINT_PREFIX)
+                or not name.endswith(WAL_CHECKPOINT_SUFFIX)):
+            return None
+        core = name[len(WAL_CHECKPOINT_PREFIX):-len(WAL_CHECKPOINT_SUFFIX)]
+        try:
+            return int(core)
+        except ValueError:
+            return None
+
     def _scan_wal_max_generation(self, wal_dir: str) -> int:
         max_gen = -1
         for name in os.listdir(wal_dir):
@@ -1469,15 +1511,17 @@ class WindowManager:
 
     def _delete_wal_generations(self, *, keep: Optional[int] = None,
                                 below: Optional[int] = None) -> None:
-        """Remove stale segment files (keep exactly one generation, or all
-        strictly below a bound).  Never removes the live generation's data."""
+        """Remove stale segment AND checkpoint files (keep exactly one
+        generation, or all strictly below a bound).  Never removes the live
+        generation's data."""
         if self._wal_dir is None:
             return
         for name in os.listdir(self._wal_dir):
             parsed = self._parse_segment_name(name)
-            if parsed is None:
+            gen = parsed[0] if parsed is not None else (
+                self._parse_checkpoint_name(name))
+            if gen is None:
                 continue
-            gen = parsed[0]
             drop = False
             if keep is not None and gen != keep:
                 drop = True
@@ -1722,8 +1766,11 @@ class WindowManager:
         tmp_path = self._wal_segment_path(new_generation, 0) + ".tmp"
         final_path = self._wal_segment_path(new_generation, 0)
         digest = hashlib.sha256()
+        raw_digest = hashlib.sha256()  # whole-file bytes -- checkpoint seal,
+                                        # completely separate from `digest`
         total_bytes = 0
         record_count = 0
+        record_hashes: list[str] = []
         new_locator: dict[str, WindowLocation] = {}
         new_meta: dict[str, dict] = {}
         with open(tmp_path, "wb") as handle:
@@ -1742,6 +1789,7 @@ class WindowManager:
                             else "window")
                 offset = total_bytes
                 handle.write(line)
+                raw_digest.update(line)
                 total_bytes += len(line)
                 record_count += 1
                 new_locator[window_id] = WindowLocation(
@@ -1754,6 +1802,7 @@ class WindowManager:
                     meta["last_fetched_tick"] = previous_meta.get(
                         "last_fetched_tick")
                 new_meta[window_id] = meta
+                record_hashes.append(record_hash)
                 digest.update(record_hash.encode("ascii"))
                 digest.update(b"\n")
             handle.flush()
@@ -1761,12 +1810,45 @@ class WindowManager:
         _fsync_dir(self._wal_dir)
         _atomic_rename_with_retry(tmp_path, final_path)
         _fsync_dir(self._wal_dir)
+        # Checkpoint the state this base now represents -- the fast-boot seam
+        # (restore_from_wal). Best-effort: a failure here loses only the fast
+        # path for THIS generation, never the compaction itself, so it must
+        # never raise past this point, and it changes nothing about how
+        # ``digest``/``self._wal_digest_hasher`` are computed -- that chain
+        # stays the exact, unmodified algorithm it always was (plain,
+        # zero-started, one record hash at a time). The checkpoint carries
+        # its own copy of those same per-record hashes (``record_hashes``)
+        # so a later fast-boot can feed them into a hasher itself and
+        # reproduce the IDENTICAL chain without re-parsing/re-validating
+        # each full record -- cheap because sha256("64 hex chars") costs
+        # nothing like re-verifying a whole JSON record does.
+        try:
+            self._write_wal_checkpoint_locked(
+                generation=new_generation, base_digest=raw_digest.hexdigest(),
+                base_bytes=total_bytes, record_count=record_count,
+                record_hashes=record_hashes,
+                locator=new_locator, window_meta=new_meta)
+        except Exception as checkpoint_error:
+            self._log_event(
+                "window_wal_checkpoint_write_failed",
+                generation=new_generation, error=str(checkpoint_error))
         with self._wal_lock:
             prev_generation = self._wal_generation
             self._wal_generation = new_generation
-            self._wal_segment_index = 0
-            self._wal_segment_records = record_count
-            self._wal_segment_bytes = total_bytes
+            # Force the NEXT append onto a fresh segment (index 1), never
+            # back into segment 0 (the base). Before this, a small compact
+            # left segment 0 under WAL_SEGMENT_MAX_RECORDS/BYTES, so new
+            # closes kept appending INTO the base file itself -- its bytes
+            # on disk no longer matched what was just checkpointed, so the
+            # fast-boot digest check (restore_from_wal) would mismatch and
+            # silently fall back on literally every boot after any activity,
+            # making the checkpoint dead weight. Sealing the base the moment
+            # it's written (same "start fresh, treat as empty" pattern
+            # restore_from_wal already uses for its own post-restore
+            # segment) is what makes segment 0 a true, stable base.
+            self._wal_segment_index = 1
+            self._wal_segment_records = 0
+            self._wal_segment_bytes = 0
             self._wal_record_count = record_count
             self._wal_digest_hasher = digest
             self._wal_base_written = True
@@ -1789,6 +1871,141 @@ class WindowManager:
             records=record_count, bytes=total_bytes)
         return {"generation": new_generation, "records": record_count,
                 "path": final_path, "bytes": total_bytes}
+
+    def _write_wal_checkpoint_locked(
+            self, *, generation: int, base_digest: str, base_bytes: int,
+            record_count: int, record_hashes: list[str],
+            locator: dict[str, WindowLocation],
+            window_meta: dict[str, dict]) -> None:
+        """Durably write the fast-boot checkpoint for a just-written base
+        segment.  Caller holds ``_lock`` (and is mid-``_compact_locked``,
+        so ``self._chi_index``/``self._chi_index_seen`` are read directly
+        here -- both are kept in lockstep with every closed window AT
+        CLOSE TIME, pending or durable (see ``_index_closed_window``), so
+        they already reflect exactly what ``locator``/``window_meta`` just
+        folded in.
+
+        Raises on any failure; the caller treats that as "no fast path
+        for this generation" and continues -- never as a compaction
+        failure.
+
+        Two deliberate space/parse-cost cuts (profiled 2026-07-20: JSON
+        parsing this file was the single biggest cost in the fast path,
+        bigger than the whole-file digest hash): ``chi_index_seen`` is NOT
+        stored -- it is a pure dedup helper, fully re-derivable from
+        ``chi_index`` alone in one cheap pass at load time, so storing it
+        separately only doubled that structure's bytes for free. Per-entry
+        chi_index dicts (``{"window_id":..,"entry_index":..}``) are stored
+        as plain ``[window_id, entry_index]`` pairs -- same information,
+        without repeating both key names on every single entry. And
+        ``record_hashes`` is one concatenated 64-char-per-hash string, not
+        a JSON array of N separate string objects -- parsing one long
+        string is far cheaper than constructing N of them."""
+        locator_payload = {
+            window_id: [loc.offset, loc.length, loc.kind]
+            for window_id, loc in locator.items()
+        }
+        chi_index_payload = {
+            str(chi): [[e["window_id"], e["entry_index"]] for e in entries]
+            for chi, entries in self._chi_index.items()
+        }
+        checkpoint = {
+            "format": CHECKPOINT_FORMAT,
+            "schema": SCHEMA_NAME,
+            "version": SCHEMA_VERSION,
+            "generation": generation,
+            "base_digest": base_digest,
+            "base_bytes": base_bytes,
+            "record_count": record_count,
+            "record_hashes_blob": "".join(record_hashes),
+            "window_meta": window_meta,
+            "locator": locator_payload,
+            "chi_index": chi_index_payload,
+            "window_sequence": self._window_sequence,
+            "context_sequence": self._context_sequence,
+        }
+        payload = json.dumps(
+            checkpoint, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=True, allow_nan=False).encode("ascii")
+        final_path = self._wal_checkpoint_path(generation)
+        tmp_path = final_path + ".tmp"
+        with open(tmp_path, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        _fsync_dir(self._wal_dir)
+        _atomic_rename_with_retry(tmp_path, final_path)
+        _fsync_dir(self._wal_dir)
+
+    def _read_wal_checkpoint(self, generation: int) -> Optional[dict]:
+        """Load and structurally validate the checkpoint for ``generation``.
+
+        Returns None for anything short of a well-formed checkpoint --
+        missing file, bad JSON, wrong format/schema/generation, or a
+        malformed field.  Never raises: every caller treats "no usable
+        checkpoint" as "fall back to full replay", so a checkpoint-reader
+        bug can only cost speed, never correctness."""
+        path = self._wal_checkpoint_path(generation)
+        try:
+            with open(path, "rb") as handle:
+                raw = handle.read()
+            data = json.loads(raw)
+        except (OSError, ValueError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        if (data.get("format") != CHECKPOINT_FORMAT
+                or data.get("schema") != SCHEMA_NAME
+                or data.get("version") != SCHEMA_VERSION
+                or data.get("generation") != generation):
+            return None
+        required = ("base_digest", "base_bytes", "record_count",
+                    "record_hashes_blob", "window_meta", "locator",
+                    "chi_index", "window_sequence", "context_sequence")
+        if not all(key in data for key in required):
+            return None
+        record_count = data["record_count"]
+        blob = data["record_hashes_blob"]
+        if (not isinstance(data["base_digest"], str)
+                or not isinstance(data["locator"], dict)
+                or not isinstance(data["window_meta"], dict)
+                or not isinstance(data["chi_index"], dict)
+                or not isinstance(record_count, int)
+                or not isinstance(blob, str)
+                or len(blob) != 64 * record_count):
+            return None
+        return data
+
+    def _verified_checkpoint_for_generation(
+            self, generation: int, segments: list[tuple[int, str]]
+    ) -> tuple[Optional[dict], Optional[str]]:
+        """Shared by restore_from_wal's fast path and bootstrap_minimal_
+        from_checkpoint: find generation's checkpoint, confirm segment 0
+        is really its base (index 0, present), and confirm a fresh
+        whole-file hash of that base's ACTUAL bytes on disk right now
+        matches what the checkpoint sealed at compaction time.
+
+        Returns (checkpoint, base_path) only when every check passes;
+        (None, None) otherwise -- callers treat that uniformly as "no
+        fast path available for this generation", never an error."""
+        if not segments or segments[0][0] != 0:
+            return None, None
+        checkpoint = self._read_wal_checkpoint(generation)
+        if checkpoint is None:
+            return None, None
+        base_path = segments[0][1]
+        try:
+            if os.path.getsize(base_path) != checkpoint["base_bytes"]:
+                return None, None
+            base_hasher = hashlib.sha256()
+            with open(base_path, "rb") as handle:
+                for chunk in iter(lambda: handle.read(4 * 1024 * 1024), b""):
+                    base_hasher.update(chunk)
+            if base_hasher.hexdigest() != checkpoint["base_digest"]:
+                return None, None
+        except OSError:
+            return None, None
+        return checkpoint, base_path
 
     @classmethod
     def _verify_wal_line(cls, raw: bytes) -> tuple[dict, str]:
@@ -1859,7 +2076,8 @@ class WindowManager:
                     return -1
         return -1
 
-    def restore_from_wal(self, manifest: Mapping[str, Any], wal_dir: str) -> None:
+    def restore_from_wal(self, manifest: Mapping[str, Any], wal_dir: str,
+                          *, populate_chi_index: bool = True) -> None:
         """Boot index scan: ONE streaming pass over the WAL segments of the
         manifest's generation, verifying every record hash, and atomically
         install the reconstructed indexes.
@@ -1878,6 +2096,22 @@ class WindowManager:
         ever possible as the very last line) is discarded, never accepted.
         Any other verification failure is a NAMED loud halt
         (WindowStoreIntegrityHalt) — never recover-and-continue (P4).
+
+        ``populate_chi_index=False`` (GL-FIX-BOOT-READY-DECOUPLE-20260720):
+        skip building chi_index/chi_index_seen (installed empty instead).
+        Confirmed by tracing every real caller in the codebase: chi_index's
+        ONLY consumer is give_experience's occasional cross-modal bundle
+        recall (recall_snapshot/lookup_chi) — real conversation composes
+        entirely from the organism/atlas and never reads it (a standing
+        "one mind, one mouth" architectural ruling already in place). Real
+        cognition needs locator+meta (feeds language-fact-memory) but never
+        chi_index, so it is the one piece of "materialize her whole history"
+        boot cost with zero benefit to anything on the critical path. This
+        does NOT skip verification of the records themselves (every hash
+        still checked, exactly as always) — only the chi-bucket bookkeeping
+        those already-verified records would otherwise also feed. Caller
+        (bootstrap_minimal_then_background) is responsible for later
+        running a full restore_from_wal to backfill the real index.
         """
         if not isinstance(manifest, Mapping):
             raise WindowIntegrityError("WAL manifest must be a mapping")
@@ -1906,9 +2140,108 @@ class WindowManager:
         torn_truncation: Optional[tuple[str, int]] = None
         max_window_seq = -1
         max_context_seq = -1
+        checkpoint_window_sequence = 0
+        checkpoint_context_sequence = 0
         verify_prefix = hashlib.sha256()   # first durable_count record hashes
         rolling = hashlib.sha256()         # every valid record hash
-        for seg_pos, (_, path) in enumerate(segments):
+        replay_start = 0
+
+        # ── Fast path: trust a compaction checkpoint, replay only the delta
+        # appended since (GL-FIX-WAL-BOOT-CHECKPOINT-20260720). Engaged only
+        # when a checkpoint for THIS generation exists, is well-formed, and
+        # its base_digest matches a fresh whole-file hash of segment 0's
+        # actual bytes on disk right now -- proof the base has not changed
+        # since compaction verified every record in it. The digest CHAIN
+        # algorithm itself never changes: the checkpoint carries the base's
+        # own per-record hashes (in original order), and the fast path
+        # feeds those into verify_prefix/rolling exactly as the real loop
+        # below would -- cheap (no JSON parse, no record validation, just
+        # hashing short hex strings) but bit-for-bit the same chain a full
+        # replay produces. ANY miss below falls through to the untouched
+        # full replay, starting at segment 0 exactly as before this change
+        # existed -- this can only make boot faster, never less safe.
+        checkpoint, base_path = self._verified_checkpoint_for_generation(
+            generation, segments)
+        if checkpoint is not None:
+            try:
+                fast_locator = {
+                    window_id: WindowLocation(
+                        base_path, loc[0], loc[1], loc[2])
+                    for window_id, loc in checkpoint["locator"].items()
+                }
+                # JSON has no tuple type -- _window_metadata_from_
+                # record's "modalities" is a tuple in every OTHER
+                # code path (fresh compute, legacy snapshot()), so
+                # restore it here too rather than silently handing
+                # back a list where every other caller expects a
+                # tuple.
+                fast_meta = {
+                    window_id: {
+                        **meta,
+                        "modalities": tuple(meta.get("modalities") or ()),
+                    }
+                    for window_id, meta in
+                    checkpoint["window_meta"].items()
+                }
+                # chi_index pairs -> the {"window_id":..,
+                # "entry_index":..} dict shape every OTHER writer
+                # of this structure uses; chi_index_seen is not
+                # stored at all (redundant with chi_index) so it is
+                # rebuilt here in the same pass, at no extra cost.
+                # Skipped entirely when populate_chi_index=False (the
+                # confirmed-unused-by-real-cognition boot-ready-decouple
+                # path) -- installed empty, no reason to even parse it.
+                fast_chi_index: dict[int, list[dict]] = {}
+                fast_chi_seen: dict[int, set] = {}
+                if populate_chi_index:
+                    for chi, pairs in checkpoint["chi_index"].items():
+                        chi_int = int(chi)
+                        entries = [
+                            {"window_id": wid, "entry_index": idx}
+                            for wid, idx in pairs
+                        ]
+                        fast_chi_index[chi_int] = entries
+                        fast_chi_seen[chi_int] = {
+                            (wid, idx) for wid, idx in pairs}
+                blob = checkpoint["record_hashes_blob"]
+                fast_record_hashes = [
+                    blob[i:i + 64] for i in range(0, len(blob), 64)]
+                fast_window_sequence = int(checkpoint["window_sequence"])
+                fast_context_sequence = int(checkpoint["context_sequence"])
+            except Exception:
+                # Any malformed checkpoint field, however unlikely
+                # (disk corruption, a future writer bug): this whole
+                # block is a pure optimization, so anything going
+                # wrong here must degrade to the full replay below,
+                # never propagate past this point.
+                pass
+            else:
+                locator = fast_locator
+                window_meta = fast_meta
+                chi_index = fast_chi_index
+                chi_seen = fast_chi_seen
+                checkpoint_window_sequence = fast_window_sequence
+                checkpoint_context_sequence = fast_context_sequence
+                # Replay the base's own per-record hashes through
+                # the SAME accounting the real loop below uses --
+                # identical verify_prefix/rolling/record_count
+                # bookkeeping, just skipping the expensive parse.
+                for record_hash in fast_record_hashes:
+                    if record_count < durable_count:
+                        verify_prefix.update(record_hash.encode("ascii"))
+                        verify_prefix.update(b"\n")
+                    rolling.update(record_hash.encode("ascii"))
+                    rolling.update(b"\n")
+                    record_count += 1
+                replay_start = 1
+        self._log_event(
+            "window_wal_restore_fast_path",
+            generation=generation, engaged=(replay_start == 1),
+            segments_total=len(segments),
+            segments_replayed=max(0, len(segments) - replay_start))
+
+        for seg_pos in range(replay_start, len(segments)):
+            _, path = segments[seg_pos]
             is_last_segment = seg_pos == len(segments) - 1
             segment_size = os.path.getsize(path)
             with open(path, "rb") as handle:
@@ -1964,17 +2297,18 @@ class WindowManager:
                     max_context_seq = max(
                         max_context_seq,
                         self._parse_context_sequence(record.get("context_id")))
-                    for entry in record.get("entries") or []:
-                        chi = int(entry["chi"])
-                        entry_index = int(entry["entry_index"])
-                        seen = chi_seen.setdefault(chi, set())
-                        key = (window_id, entry_index)
-                        if key in seen:
-                            continue
-                        seen.add(key)
-                        chi_index.setdefault(chi, []).append(
-                            {"window_id": window_id,
-                             "entry_index": entry_index})
+                    if populate_chi_index:
+                        for entry in record.get("entries") or []:
+                            chi = int(entry["chi"])
+                            entry_index = int(entry["entry_index"])
+                            seen = chi_seen.setdefault(chi, set())
+                            key = (window_id, entry_index)
+                            if key in seen:
+                                continue
+                            seen.add(key)
+                            chi_index.setdefault(chi, []).append(
+                                {"window_id": window_id,
+                                 "entry_index": entry_index})
                     if record_count < durable_count:
                         verify_prefix.update(record_hash.encode("ascii"))
                         verify_prefix.update(b"\n")
@@ -2039,10 +2373,12 @@ class WindowManager:
         next_window_sequence = max(
             int(manifest["next_window_sequence"]),
             len(locator),
-            max_window_seq + 1)
+            max_window_seq + 1,
+            checkpoint_window_sequence)
         next_context_sequence = max(
             int(manifest["next_context_sequence"]),
-            max_context_seq + 1)
+            max_context_seq + 1,
+            checkpoint_context_sequence)
 
         last_index = segments[-1][0] if segments else -1
 
@@ -2084,13 +2420,20 @@ class WindowManager:
             recovered=record_count - durable_count,
             torn_discarded=torn_discarded, generation=generation)
 
-    def restore_persisted(self, data: Mapping[str, Any], state_dir: str) -> None:
+    def restore_persisted(self, data: Mapping[str, Any], state_dir: str,
+                           *, populate_chi_index: bool = True) -> None:
         """Restore window state from either a WAL manifest (new format) or a
-        legacy full snapshot, configuring the WAL either way."""
+        legacy full snapshot, configuring the WAL either way.
+
+        ``populate_chi_index=False`` forwards to restore_from_wal (see its
+        own docstring, GL-FIX-CHI-INDEX-ELIMINATION-20260720) -- the real
+        boot path passes this, since chi routing now lives on the atlas,
+        not a second copy here."""
         wal_dir = os.path.join(state_dir, WAL_DIRNAME)
         self.configure_wal(wal_dir)
         if isinstance(data, Mapping) and data.get("format") == MANIFEST_FORMAT:
-            self.restore_from_wal(data, wal_dir)
+            self.restore_from_wal(
+                data, wal_dir, populate_chi_index=populate_chi_index)
         else:
             # Legacy full snapshot; the next save folds it into a WAL base.
             self.restore(data)

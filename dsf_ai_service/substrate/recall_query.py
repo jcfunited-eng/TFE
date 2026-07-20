@@ -18,6 +18,7 @@ from typing import Optional
 
 from dsf_ai_service.substrate.window_manager import (
     WindowManager,
+    WindowStoreIntegrityHalt,
     _json_safe,
     manager_for_compatibility_mirror,
 )
@@ -130,10 +131,13 @@ def _resolve(candidates: list[dict]) -> tuple[str, Optional[str], Optional[str]]
 
 
 class RecallEngine:
-    """Reads only WindowManager's canonical memory and per-Chi index."""
+    """Routes chi -> window_id through the atlas's own cross-reference
+    (GL-FIX-CHI-INDEX-ELIMINATION-20260720); fetches full window content
+    from WindowManager, which stays the sole content authority."""
 
     def __init__(self, atlas_windows_fn=None, get_tick_fn=None,
-                 log_event_fn=None, *, window_manager: Optional[WindowManager] = None):
+                 log_event_fn=None, *, window_manager: Optional[WindowManager] = None,
+                 atlas=None):
         # Current engine wiring passes only lambda: atlas.windows.  Resolve that
         # compatibility mirror to its owner once; query() never scans the mirror.
         if window_manager is None and atlas_windows_fn is not None:
@@ -143,7 +147,13 @@ class RecallEngine:
             raise ValueError(
                 "RecallEngine requires canonical WindowManager memory; an "
                 "unregistered Atlas windows mapping cannot be recall authority")
+        if atlas is None or not hasattr(atlas, "window_ids_for_chis"):
+            raise ValueError(
+                "RecallEngine requires the living atlas (window_ids_for_chis) "
+                "as its chi routing authority -- the window store no longer "
+                "maintains its own separate chi index")
         self._window_manager = window_manager
+        self._atlas = atlas
         self._get_tick = get_tick_fn or (lambda: 0)
         self._log_event = log_event_fn or (lambda *_args, **_kwargs: None)
         self._query_lock = threading.Lock()
@@ -169,7 +179,20 @@ class RecallEngine:
             request.source_context or {}, "recall.source_context")
         query_id = self._next_query_id(query_chis, source_context)
 
-        windows = list(self._window_manager.recall_snapshot(list(query_chis)))
+        # GL-FIX-CHI-INDEX-ELIMINATION-20260720: chi -> window_id routes
+        # through the atlas's own cross-reference (record()'s window_id
+        # field), not a second, separate index the window store used to
+        # maintain purely for this one caller. Content fetch stays with
+        # WindowManager, already fetch-on-demand (never a boot cost).
+        window_ids = self._atlas.window_ids_for_chis(query_chis)
+        windows = []
+        for window_id in window_ids:
+            window = self._window_manager.closed_window(window_id)
+            if window is None:
+                raise WindowStoreIntegrityHalt(
+                    f"atlas references closed window {window_id!r} but no "
+                    f"durable content exists for it.")
+            windows.append(window)
         windows.sort(key=lambda window: window["window_id"])
         candidates = [
             _candidate_for(window, query_chis, request.section_hint)

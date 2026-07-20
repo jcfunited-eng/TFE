@@ -183,7 +183,25 @@ def test_full_save_restart_restores_windows_facts_and_composition(
         second = Guala()
         second.load_full_state(str(tmp_path))
         assert second._load_successful
-        assert second.window_manager.snapshot() == expected
+        # GL-FIX-CHI-INDEX-ELIMINATION-20260720: chi_index is deliberately
+        # NOT restored at boot anymore -- chi routing lives on the atlas
+        # now, and nothing else reads the window store's own copy, so
+        # rebuilding it from her whole history at every boot was pure cost
+        # with no reader. window_manager.snapshot() (unlike the real WAL
+        # boot path) still self-validates that chi_index exactly derives
+        # from window content -- a real, still-correct invariant for that
+        # LEGACY full-snapshot format, just no longer true immediately
+        # after a real boot, so it can't be called here anymore. Compare
+        # windows/open_contexts/sequences directly instead -- everything
+        # actually restored, and the only things save/restart ever
+        # promised to preserve going forward.
+        first_window_ids = tuple(expected["windows"])
+        assert set(second.window_manager.window_ids()) == set(first_window_ids)
+        for window_id in first_window_ids:
+            assert (second.window_manager.closed_window(window_id)
+                    == expected["windows"][window_id])
+        assert (second.window_manager.snapshot_incremental()["open_contexts"]
+                == expected["open_contexts"])
         assert len(second.language_fact_memory) == 4
         settlement = second._compose_language_fact_settlement(("red", "fox"))
         assert second._committed_emission_response(settlement) == (

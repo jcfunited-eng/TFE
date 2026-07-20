@@ -18,6 +18,32 @@ from dsf_ai_service.substrate.window_manager import (
 )
 
 
+class _FakeAtlasChiRouter:
+    """GL-FIX-CHI-INDEX-ELIMINATION-20260720: minimal stand-in for
+    LivingAtlas.window_ids_for_chis, reading from the SAME atlas_calls
+    log _manager()'s atlas_record_fn already records -- window_id and
+    window_entry_index are always present in kwargs there (WindowManager.
+    add_entry always sets mirror_kwargs["window_id"] before calling the
+    atlas callback), the same field record() uses in production."""
+
+    def __init__(self, atlas_calls):
+        self._atlas_calls = atlas_calls
+
+    def window_ids_for_chis(self, chis):
+        chis = set(int(chi) for chi in chis)
+        seen = set()
+        window_ids = []
+        for _section, _motif, chi, _tick, kwargs in self._atlas_calls:
+            if chi not in chis:
+                continue
+            window_id = kwargs.get("window_id")
+            if window_id is None or window_id in seen:
+                continue
+            seen.add(window_id)
+            window_ids.append(window_id)
+        return window_ids
+
+
 def _manager(*, tick=None, mirror=None, events=None, atlas_calls=None):
     tick = tick if tick is not None else {"value": 0}
     mirror = mirror if mirror is not None else {}
@@ -232,7 +258,7 @@ def test_snapshot_restore_is_atomic_and_rejects_index_corruption():
 
 
 def test_recall_returns_all_windows_without_mislabeling_chi_routing_as_recognition():
-    manager, _tick, mirror, events, _calls = _manager()
+    manager, _tick, mirror, events, atlas_calls = _manager()
 
     _add(manager, "full", 51, fact={"kind": "fact", "name": "full"})
     _add(manager, "full", 52, section="subject", source_tag="second", tick=2)
@@ -246,6 +272,7 @@ def test_recall_returns_all_windows_without_mislabeling_chi_routing_as_recogniti
     # Legacy constructor wiring resolves the mirror to its canonical owner.
     recall = RecallEngine(
         atlas_windows_fn=lambda: mirror,
+        atlas=_FakeAtlasChiRouter(atlas_calls),
         get_tick_fn=lambda: 100,
         log_event_fn=lambda kind, **detail: events.append((kind, detail)),
     )

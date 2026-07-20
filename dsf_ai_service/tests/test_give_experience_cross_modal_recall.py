@@ -52,7 +52,14 @@ def _bundle_post(client, name, bundle_dict):
 
 
 def _establish_observed_ball_window(g, extra_modal_entries=0):
-    """Create one explicit observed fixture without semantic recognition."""
+    """Create one explicit observed fixture without semantic recognition.
+
+    mirror_atlas defaults to True here (not the False this fixture used
+    before GL-FIX-CHI-INDEX-ELIMINATION-20260720) to match the real bundle-
+    upload path in app.py, which never sets mirror_atlas=False -- recall
+    now routes chi -> window_id through the atlas's own cross-reference,
+    so a fixture that skipped the atlas write would be testing a shape of
+    data real uploads never actually produce."""
     g.window_manager.open(
         "test_observed_experience", experience_origin="observed")
     for modality, chi in (("sight", 31), ("sound", 16), ("touch", 25)):
@@ -63,7 +70,6 @@ def _establish_observed_ball_window(g, extra_modal_entries=0):
             chi=chi,
             tick=g.tick,
             source_tag="test_observed_fixture",
-            mirror_atlas=False,
         )
     for index in range(extra_modal_entries):
         g.window_manager.add_entry(
@@ -73,7 +79,6 @@ def _establish_observed_ball_window(g, extra_modal_entries=0):
             chi=1000 + index,
             tick=g.tick,
             source_tag="test_observed_fixture",
-            mirror_atlas=False,
         )
     g.read_sentence("ball", source="joe")
     window_id = g.window_manager.close("give_experience_complete")

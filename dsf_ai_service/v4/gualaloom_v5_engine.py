@@ -2827,6 +2827,7 @@ class Guala:
         from dsf_ai_service.substrate.recall_query import RecallEngine
         self.recall_engine = RecallEngine(
             window_manager=self.window_manager,
+            atlas=self.atlas,
             get_tick_fn=lambda: self.tick,
             log_event_fn=self._log_substrate_event,
         )
@@ -16389,8 +16390,15 @@ class Guala:
                 # GL-WAL-INCREMENTAL: dispatches to WAL replay (new manifest
                 # format) or the legacy full-snapshot restore, configuring the
                 # WAL directory either way.
+                # GL-FIX-CHI-INDEX-ELIMINATION-20260720: populate_chi_index=
+                # False -- chi routing lives on the atlas now (restored just
+                # above, _apply_atlas), which already carries window_id on
+                # every binding for exactly this. The window store no longer
+                # needs to rebuild its own separate copy of the same
+                # cross-reference from her entire history at every boot.
                 self.window_manager.restore_persisted(
-                    data["guala_windows.json"], state_dir)
+                    data["guala_windows.json"], state_dir,
+                    populate_chi_index=False)
             else:
                 # Explicit one-time migration from pre-v7.3: no canonical
                 # window history existed, so recognition begins honestly

@@ -578,6 +578,32 @@ class LivingAtlas:
                     result.append(e)
         return result
 
+    def window_ids_for_chis(self, chis):
+        """GL-FIX-CHI-INDEX-ELIMINATION-20260720: ordered, deduplicated
+        window_ids for a list of EXACT chi values (no neighborhood band
+        expansion -- a faithful replacement for the window-store's own
+        verbatim chi_index, which cross-referenced the exact same thing
+        via a second, separate, boot-eager structure).
+
+        record() has carried window_id/window_entry_index as an explicit
+        cross-reference field on every binding since GL-CMD-BINDING-
+        WINDOWS-BUILD-EVE-20260706-v1 specifically so "a future recall
+        mechanism can retrieve window siblings" from here -- this is that
+        mechanism. The atlas is the one structure real cognition already
+        needs resident; a caller wanting which window(s) touched a chi no
+        longer needs the window store to maintain its own parallel copy
+        of the same cross-reference."""
+        seen = set()
+        window_ids = []
+        for chi in chis:
+            for entry in self.entries.get(int(chi), ()):
+                window_id = entry.get("window_id")
+                if window_id is None or window_id in seen:
+                    continue
+                seen.add(window_id)
+                window_ids.append(window_id)
+        return window_ids
+
     def amnesty(self, current_tick):
         """UNPAUSE: reset last_tick on every entry to current_tick.
         Prevents mass extinction on first decay after long pause.
