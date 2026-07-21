@@ -110,6 +110,23 @@ export function shouldCh3StallExit(entryFilledAt, plPct, nowMs = Date.now()) {
   return plPct > -0.01 && plPct < 0.005;
 }
 
+// ── CH2 profit protection (free-fall guard for big winners) ───────────────
+// Engages ONLY after +25% unrealized gain — normal positions are never
+// touched, so EXIT-A's winner-capping sin (GL-BRIEF-039) stays dead. Tracks
+// the position's peak price (persisted in rationale_json across restarts)
+// and exits if price gives back more than a third of the peak gain: a +90%
+// peak ratchets a floor at +60%. 2026-07-21 UTZ sat at +90% ($2,204) with
+// zero resting orders and only the -10%-from-entry floor ($6.66) beneath it.
+export const PROFIT_PROTECT_ENGAGE   = 0.25;
+export const PROFIT_PROTECT_GIVEBACK = 1 / 3;
+export function profitProtectFloor(entryPrice, peakPrice) {
+  if (!Number.isFinite(entryPrice) || !Number.isFinite(peakPrice)) return null;
+  if (entryPrice <= 0 || peakPrice <= entryPrice) return null;
+  const peakGain = peakPrice / entryPrice - 1;
+  if (peakGain < PROFIT_PROTECT_ENGAGE) return null;
+  return entryPrice * (1 + peakGain * (1 - PROFIT_PROTECT_GIVEBACK));
+}
+
 // ── Phantom cleanup grace period (prevents killing orders still filling) ──
 // GENB was submitted at 13:34, zombie check at 13:39 (5 min) declared it
 // phantom because Alpaca hadn't filled yet. Grace period: 30 minutes.
@@ -938,6 +955,8 @@ export async function runSentinel() {
 
     // Pre-check current P&L (used by minimum hold guard AND structural exit assessment)
     let currentPnlPct = null;
+    let livePosEntry = null;
+    let livePosPrice = null;
     try {
       const alpacaPosCheck = await alpacaGet(
         `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
@@ -947,6 +966,8 @@ export async function runSentinel() {
         const checkCurrent = parseFloat(alpacaPosCheck.current_price ?? "0");
         if (checkEntry > 0 && checkCurrent > 0) {
           currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
+          livePosEntry = checkEntry;
+          livePosPrice = checkCurrent;
         }
       }
     } catch { /* non-fatal */ }
@@ -961,6 +982,29 @@ export async function runSentinel() {
     if (signalClass === "CH2") {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
+
+      // ── PROFIT PROTECT: free-fall guard (engages only above +25%) ────
+      if (livePosEntry !== null && livePosPrice !== null) {
+        const peakStored = parseFloat(pos.rationale_json?.peak_price ?? "") || 0;
+        const peakNow = Math.max(peakStored, livePosPrice);
+        if (peakNow > peakStored) {
+          const nextRationale = { ...(pos.rationale_json ?? {}), peak_price: peakNow };
+          await pool.query(
+            `UPDATE personal_trade_ledger SET rationale_json = $1 WHERE id = $2`,
+            [JSON.stringify(nextRationale), pos.id]
+          ).catch(() => {});
+        }
+        const floor = profitProtectFloor(livePosEntry, peakNow);
+        if (floor !== null && livePosPrice <= floor && isMarketHoursForExitF()) {
+          console.log(
+            `[SENTINEL] CH2 ${pos.ticker} PROFIT PROTECT | peak=${peakNow.toFixed(2)} ` +
+            `floor=${floor.toFixed(2)} price=${livePosPrice.toFixed(2)} ` +
+            `(P&L=${currentPnlPct?.toFixed(1) ?? "?"}%) — banking the win`
+          );
+          await killPosition(pos, "ch2_profit_protect", ALPACA_BASE);
+          continue;
+        }
+      }
 
       // EXIT-A REMOVED. S_UF >= 0.75 trigger had no derivation. Capped winners
       // at +3.25% avg / 4.4 days vs April's +12.34% / 23-30 days. Same class
