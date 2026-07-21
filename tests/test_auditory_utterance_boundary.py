@@ -221,15 +221,10 @@ def test_http_reply_door_is_closed_for_ambient_and_open_for_utterance(
     assert [value[0] for value in reply_calls] == ["hello guala"]
 
 
-def test_browser_has_separate_ambient_and_explicit_utterance_controls() -> None:
+def test_browser_has_no_manual_utterance_control_or_labeling_path() -> None:
     html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert 'id="speak-utterance"' in html
-    assert "_cycleSightPromise,'ambient')" in html
-    assert "sightPromise,'utterance')" in html
+    assert 'id="speak-utterance"' not in html
+    assert "toggleUtterance" not in html
+    assert "utteranceRecorder" not in html
+    assert "capture_purpose:'ambient'" in html
     assert "source:'browser_microphone'" in html
-    assert "if(_utteranceTransitioning)return;" in html
-    assert "_utteranceTransitioning=true;btn.disabled=true;" in html
-    assert (
-        "if(micCycleActive||_utteranceTransitioning||_utteranceActive)return;"
-        in html
-    )
