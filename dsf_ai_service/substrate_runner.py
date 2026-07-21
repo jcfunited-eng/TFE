@@ -1093,7 +1093,10 @@ def _start_input_ring_consumer():
                             import io as _sio
                             _img = _PIL_Image.open(_sio.BytesIO(img_bytes)).convert('L').resize((64, 64))
                             grid = __import__('numpy').array(_img, dtype=__import__('numpy').float64) / 255.0
-                            _guala.process_sight_frame(grid)
+                            _guala.process_sight_frame(
+                                grid,
+                                source_anchor_ns=data.get("source_anchor_ns"),
+                            )
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 object_name_recognition_unavailable)
                             object_name_recognition_unavailable(
@@ -1113,7 +1116,74 @@ def _start_input_ring_consumer():
                                     source=ev.get("source", "ambient"))
                                 continue
                             source = ev.get("source", "ambient")
-                            _guala.process_sound_frame(_wav, source=source)
+                            paired_sight = data.get("sight_b64")
+                            source_start_ns = data.get("source_time_start_ns")
+                            source_end_ns = data.get("source_time_end_ns")
+                            sight_anchor_ns = data.get("sight_source_anchor_ns")
+                            if paired_sight:
+                                context_id = (
+                                    f"sense:av:{source}:ring:{ev.get('seq', 0)}")
+                                _guala.window_manager.begin_context(
+                                    context_id,
+                                    "audiovisual_capture",
+                                    context_detail={
+                                        "experience_origin": (
+                                            "remote_live_audiovisual"),
+                                        "source": source,
+                                        "source_time_start_ns": source_start_ns,
+                                        "source_time_end_ns": source_end_ns,
+                                        "sensor_unavailable": [
+                                            "touch", "smell", "taste", "body"],
+                                    },
+                                )
+                                try:
+                                    try:
+                                        sight_bytes = _b64.b64decode(
+                                            paired_sight, validate=True)
+                                        from PIL import Image as _PIL_Image
+                                        import io as _sio
+                                        import numpy as _np
+                                        image = _PIL_Image.open(
+                                            _sio.BytesIO(sight_bytes)
+                                        ).convert("L").resize((64, 64))
+                                        grid = _np.array(
+                                            image, dtype=_np.float64) / 255.0
+                                        _guala.process_sight_frame(
+                                            grid,
+                                            source_anchor_ns=sight_anchor_ns,
+                                        )
+                                    except Exception as sight_error:
+                                        _guala._log_substrate_event(
+                                            "sight_frame_failed_in_causal_window",
+                                            source=source,
+                                            error_type=type(sight_error).__name__,
+                                            error=str(sight_error),
+                                        )
+                                    try:
+                                        _guala.process_sound_frame(
+                                            _wav,
+                                            source=source,
+                                            source_anchor_ns=source_start_ns,
+                                        )
+                                    except Exception as sound_error:
+                                        _guala._log_substrate_event(
+                                            "sound_frame_failed_in_causal_window",
+                                            source=source,
+                                            error_type=type(sound_error).__name__,
+                                            error=str(sound_error),
+                                        )
+                                finally:
+                                    _guala.window_manager.end_context(
+                                        context_id,
+                                        "audiovisual_capture_complete",
+                                    )
+                            else:
+                                _guala.process_sound_frame(
+                                    _wav,
+                                    source=source,
+                                    source_anchor_ns=source_start_ns,
+                                    source_time_end_ns=source_end_ns,
+                                )
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 spoken_word_recognition_unavailable)
                             spoken_word_recognition_unavailable(

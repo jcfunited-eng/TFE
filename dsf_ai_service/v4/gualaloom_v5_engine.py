@@ -2822,6 +2822,7 @@ class Guala:
             get_affect_fn=self._affect_kwargs,
             atlas_windows=self.atlas.windows,
             retain_closed_windows=False,
+            settle_window_fn=self._settle_causal_window,
         )
         if self.window_manager._retain_closed_windows:
             raise RuntimeError(
@@ -3207,6 +3208,16 @@ class Guala:
         self._organism_sensory_queue = _queue.Queue(
             maxsize=self.WAVE_PROPOSAL_QUEUE_MAX)
         self._organism_sensory_dropped_count = 0
+        self._causal_settlement_accepted = 0
+        self._causal_settlement_failed = 0
+        self._latest_causal_settlement = None
+        from dsf_ai_service.substrate.exact_causal_experience import (
+            ExactCausalExperienceOwner as _ExactCausalExperienceOwner)
+        self._causal_experience_owner = _ExactCausalExperienceOwner(
+            on_settlement=self._accept_causal_settlement,
+            log_event=self._log_substrate_event,
+            max_transitions=1024,
+        )
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -6438,6 +6449,144 @@ class Guala:
             pass
         except Exception:
             pass
+
+    def _settle_causal_window(self, record):
+        try:
+            return self._build_causal_window_settlement(record)
+        except Exception:
+            self._causal_settlement_failed += 1
+            raise
+
+    def _build_causal_window_settlement(self, record):
+        """Build and settle one exact six-sense field from transient inputs."""
+        owner = getattr(self, "_causal_experience_owner", None)
+        if owner is None:
+            raise RuntimeError("causal experience owner is not initialized")
+        native_inputs = []
+        for entry in record.get("entries") or ():
+            provenance = entry.get("provenance") or {}
+            detail = provenance.get("detail") or {}
+            value = detail.get("native_full_field_input")
+            if value is not None:
+                native_inputs.append(value)
+        if not native_inputs:
+            return None
+
+        from fractions import Fraction
+        from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+            NativeSensorySubstreamInput, build_six_sense_full_field)
+        from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+            NativeAxisCoordinate, PhysicalSense, SENSE_ORDER,
+            SenseBoundaryState)
+
+        context_detail = record.get("context_detail") or {}
+        start_ns = context_detail.get("source_time_start_ns")
+        end_ns = context_detail.get("source_time_end_ns")
+        if start_ns is None or end_ns is None:
+            raise RuntimeError("causal sensory window has no authoritative source interval")
+        if (isinstance(start_ns, bool) or not isinstance(start_ns, int)
+                or isinstance(end_ns, bool) or not isinstance(end_ns, int)
+                or end_ns <= start_ns):
+            raise RuntimeError("causal sensory window has an invalid source interval")
+        start = Fraction(start_ns, 1_000_000_000)
+        end = Fraction(end_ns, 1_000_000_000)
+        duration = end - start
+
+        observed = {}
+        for value in native_inputs:
+            if value.get("schema") != "guala.native_sensory_input.v1":
+                raise RuntimeError("native sensory input has the wrong schema")
+            sense = PhysicalSense(str(value["sense"]))
+            signals = tuple(float(item) for item in value["normalized_signal"])
+            phases = tuple(Fraction(int(item)) for item in value["phase_turns"])
+            offsets_ns = tuple(int(item) for item in value["causal_offsets_ns"])
+            anchor_ns = value.get("source_anchor_ns")
+            if (isinstance(anchor_ns, bool)
+                    or not isinstance(anchor_ns, int)):
+                raise RuntimeError("native sensory source anchor is invalid")
+            if not (len(signals) == len(phases) == len(offsets_ns)):
+                raise RuntimeError("native sensory sample timing is incomplete")
+            if (offsets_ns[0] < 0
+                    or any(right <= left for left, right in zip(
+                        offsets_ns, offsets_ns[1:]))):
+                raise RuntimeError("native sensory causal offsets are invalid")
+            source_times = tuple(
+                Fraction(anchor_ns + value, 1_000_000_000)
+                for value in offsets_ns
+            )
+            native = NativeSensorySubstreamInput(
+                sense=sense,
+                sensor_id=str(value["sensor_id"]),
+                substream_id=str(value["substream_id"]),
+                topology_index=int(value["topology_index"]),
+                coordinates=tuple(
+                    NativeAxisCoordinate(str(axis), str(coordinate))
+                    for axis, coordinate in value["coordinates"]
+                ),
+                physical_quantity=str(value["physical_quantity"]),
+                physical_unit=str(value["physical_unit"]),
+                source_times=source_times,
+                normalized_signal=signals,
+                phase_turns=phases,
+            )
+            observed.setdefault(sense, []).append(native)
+        ordered_observed = {
+            sense: tuple(sorted(values, key=lambda item: item.topology_index))
+            for sense, values in observed.items()
+        }
+        unavailable = {
+            PhysicalSense(str(value))
+            for value in context_detail.get("sensor_unavailable", ())
+        }
+        states = {
+            sense: (
+                SenseBoundaryState.OBSERVED
+                if sense in ordered_observed
+                else SenseBoundaryState.SENSOR_UNAVAILABLE
+                if sense in unavailable
+                else SenseBoundaryState.UNKNOWN
+            )
+            for sense in SENSE_ORDER
+        }
+        built = build_six_sense_full_field(
+            assembly_id=f"causal-{record['window_id']}",
+            source_time_start=start,
+            source_time_end=end,
+            observed_substreams=ordered_observed,
+            states=states,
+        )
+        return owner.settle(
+            built,
+            routing_chis=tuple(
+                int(entry["chi"]) for entry in record.get("entries") or ()
+                if "chi" in entry),
+            source_tags=tuple(
+                str(entry["source_tag"])
+                for entry in record.get("entries") or ()
+                if entry.get("source_tag")),
+        )
+
+    def _accept_causal_settlement(self, settlement):
+        """Accept one structured settlement without a second work queue.
+
+        Only the latest compact settlement is retained.  No numeric vector is
+        manufactured for the legacy organism because that would erase sense,
+        substream, and DSF-field relationships.  A later perception-to-action
+        consumer must accept this structured type directly.
+        """
+        if self._engine_quiesced:
+            raise RuntimeError("causal settlement rejected after quiescence")
+        self._latest_causal_settlement = settlement
+        self._causal_settlement_accepted += 1
+        self._log_substrate_event(
+            "causal_experience_accepted",
+            event_id=settlement.event_id,
+            structural_fingerprint=settlement.structural_fingerprint,
+            observed_senses=[
+                item.sense for item in settlement.interpretations
+                if item.state == "observed"
+            ],
+        )
 
     def _organism_worker_loop(self):
         """GL-CMD-175 window-2 perf fix, upgraded per
@@ -10476,31 +10625,6 @@ class Guala:
                     )
                     self._wa_pruned_accum = 0
 
-            # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
-            # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
-            # consume real WaveAtlas write notifications, then sample the
-            # shared wave field and ENQUEUE only each changed physical band
-            # for the organism worker to apply asynchronously (see wave_summary.py
-            # and _organism_worker_loop) -- the synchronous 64x
-            # neuron.step() call this used to make here cost 246-290ms/
-            # call (measured, see GL-RPT-WAVE-ATLAS-DECAY-BUILD-C1-
-            # 20260707-v3), off the critical path entirely now. Mid-flight
-            # disable: WAVE_SUMMARY_ENQUEUE_ENABLED=0 on a new task-def
-            # revision, no code change needed.
-            if (self.wave_atlas is not None
-                    and os.environ.get("WAVE_SUMMARY_ENQUEUE_ENABLED", "1") == "1"):
-                from dsf_ai_service.substrate.wave_summary import (
-                    push_new_wave_writes_to_organism)
-                _push_payload = push_new_wave_writes_to_organism(
-                    self, self.wave_atlas, self.tick)
-                # F2 (2026-07-16): sampled to the same 500-tick cadence as
-                # the decay event -- an unconditional per-tick log was the
-                # other half of the ring flood. A push now exists only when
-                # one or more physical-sense bands received a real write.
-                if _push_payload is not None and self.tick % 500 == 0:
-                    self._log_substrate_event(
-                        "wave_summary_pushed", **_push_payload)
-
             # 1. Needs drift AWAY from target (once per iteration) -- paused
             # during SLEEPING/DREAMING (Change A: reuses dream_pressure's own
             # sleep-gate, GL-CMD-CREDO-LOOP-REPAIR-167 Change 2). She cannot
@@ -12192,7 +12316,7 @@ class Guala:
             si.last_attended_tick = self.tick
 
     @_engine_mutation_entry
-    def process_sight_frame(self, grid):
+    def process_sight_frame(self, grid, source_anchor_ns=None):
         """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
         sight krimelack. No PictureItem, no storage. Just krimelack + atlas.
 
@@ -12205,6 +12329,12 @@ class Guala:
         actual state write (process_viewing's motif update/commit,
         _atlas_record, the event log) stays inside, and that lock is now
         bounded to just that write."""
+        if source_anchor_ns is None:
+            source_anchor_ns = time.time_ns()
+        if (isinstance(source_anchor_ns, bool)
+                or not isinstance(source_anchor_ns, int)):
+            raise ValueError("sight source anchor must be integer nanoseconds")
+        _source_started_ns = source_anchor_ns
         _tick_snapshot = self.tick
         self._last_frame_tick = _tick_snapshot
         # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal, not
@@ -12261,13 +12391,28 @@ class Guala:
             _bound_experience if _bound_experience is not None
             else f"sense:sight:camera_stream:{time.time_ns():x}")
         _frame_owns_context = _bound_experience is None
+        if _frame_owns_context:
+            self.window_manager.begin_context(
+                _frame_context_id,
+                "sight",
+                context_detail={
+                    "experience_origin": "live_sight",
+                    "source_time_start_ns": _source_started_ns,
+                    "source_time_end_ns": (
+                        _source_started_ns
+                        + sum(len(value.signal_records) for value in fragments)
+                        * 20_000_000),
+                    "sensor_unavailable": [
+                        "sound", "touch", "smell", "taste", "body"],
+                },
+            )
         _frame_entries_bound = 0
         try:
             with self.lock:
                 motif, is_new, overlap = self.sight.process_viewing(
                     fragments, "camera_stream", self.tick)
-                if motif:
-                    derived_transition = {
+                derived_transition = (
+                    {
                         "motif": {
                             "motif_id": motif.motif_id,
                             "section": motif.section,
@@ -12283,27 +12428,65 @@ class Guala:
                             "overlap": float(overlap),
                         },
                     }
-                    for fragment in fragments:
-                        receipt = visual_fragment_receipt(fragment)
-                        self.window_manager.add_entry(
-                            modality="sight", section="sight_fragment",
-                            motif_id=int(receipt["receipt_sha256"][:16], 16),
-                            chi=int(fragment.winding_count), tick=self.tick,
-                            source_tag="cam:live", trigger_reason="sight",
-                            context_id=_frame_context_id,
-                            salience=0.8, mirror_atlas=False,
-                            structural_fact=receipt,
-                            sensory_refs=["cam:live"],
-                            detail={
-                                "source_tick": _tick_snapshot,
-                                "derived_visual_transition": derived_transition,
+                    if motif is not None else None
+                )
+                for topology_index, fragment in enumerate(fragments):
+                    receipt = visual_fragment_receipt(fragment)
+                    self.window_manager.add_entry(
+                        modality="sight", section="sight_fragment",
+                        motif_id=int(receipt["receipt_sha256"][:16], 16),
+                        chi=int(fragment.winding_count), tick=self.tick,
+                        source_tag="cam:live", trigger_reason="sight",
+                        context_id=_frame_context_id,
+                        salience=0.8, mirror_atlas=False,
+                        structural_fact=receipt,
+                        sensory_refs=["cam:live"],
+                        detail={
+                            "source_tick": _tick_snapshot,
+                            "derived_visual_transition": derived_transition,
+                            "native_full_field_input": {
+                                "schema": "guala.native_sensory_input.v1",
+                                "sense": "sight",
+                                "sensor_id": "camera-fovea",
+                                "substream_id": f"fixation-{topology_index}",
+                                "topology_index": topology_index,
+                                "coordinates": [
+                                    ["fixation-row", str(int(
+                                        fragment.fixation_coord[0]))],
+                                    ["fixation-column", str(int(
+                                        fragment.fixation_coord[1]))],
+                                ],
+                                "physical_quantity": "light-intensity",
+                                "physical_unit": "normalized-intensity",
+                                "source_anchor_ns": source_anchor_ns,
+                                "causal_offsets_ns": [
+                                    int(item["t"] - _tick_snapshot) * 20_000_000
+                                    for item in fragment.signal_records
+                                ],
+                                "normalized_signal": [
+                                    float(item["s"])
+                                    for item in fragment.signal_records
+                                ],
+                                "phase_turns": [
+                                    int(item["phase_turns"])
+                                    for item in fragment.signal_records
+                                ],
                             },
-                            **self._affect_kwargs())
-                        _frame_entries_bound += 1
+                        },
+                        **self._affect_kwargs())
+                    _frame_entries_bound += 1
+                if motif:
                     self._log_substrate_event("sight_frame_bound",
                                               motif_id=motif.motif_id,
                                               fragment_count=len(fragments),
                                               is_new=is_new)
+                else:
+                    self._log_substrate_event(
+                        "sight_frame_bound",
+                        motif_id=None,
+                        fragment_count=len(fragments),
+                        is_new=False,
+                    )
         finally:
             # Close OUTSIDE self.lock (WAL fsync; see process_sound_frame).
             # Never close a caller-owned bound experience -- its owner ends
@@ -12314,11 +12497,28 @@ class Guala:
             # context forever under the entries>0 gate.  end_context on a
             # context that was never created is a benign no-op (None).
             if _frame_owns_context:
-                self.window_manager.end_context(
-                    _frame_context_id, "sight_frame_complete")
+                _closed_window_id, _settlement = (
+                    self.window_manager.end_context(
+                        _frame_context_id,
+                        "sight_frame_complete",
+                        return_settlement=True,
+                    )
+                )
+            else:
+                _closed_window_id = None
+                _settlement = None
+        return {
+            "accepted": _frame_entries_bound > 0,
+            "entries_bound": _frame_entries_bound,
+            "context_id": _frame_context_id,
+            "closed_window_id": _closed_window_id,
+            "settlement": _settlement,
+        }
 
     @_engine_mutation_entry
-    def process_sound_frame(self, audio_bytes, source="mic:live"):
+    def process_sound_frame(
+            self, audio_bytes, source="mic:live", source_anchor_ns=None,
+            source_time_end_ns=None):
         """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
         sound krimelack. No _sounds entry, no storage. Just cochlear + atlas.
         GL-CMD-SELFVOICE-TAGGING-152: source tags the binding (default
@@ -12332,6 +12532,17 @@ class Guala:
         ~93s/call while streaming continuously. Only the atlas writes
         + event log stay inside, bounded to just that write."""
         import struct, wave, io, numpy as np
+        if source_anchor_ns is None:
+            source_anchor_ns = time.time_ns()
+        if (isinstance(source_anchor_ns, bool)
+                or not isinstance(source_anchor_ns, int)):
+            raise ValueError("sound source anchor must be integer nanoseconds")
+        if source_time_end_ns is not None and (
+                isinstance(source_time_end_ns, bool)
+                or not isinstance(source_time_end_ns, int)
+                or source_time_end_ns <= source_anchor_ns):
+            raise ValueError("sound source end must follow its source anchor")
+        _source_started_ns = source_anchor_ns
         try:
             # Try reading as WAV first
             wf = wave.open(io.BytesIO(audio_bytes), 'rb')
@@ -12351,10 +12562,13 @@ class Guala:
         if len(samples) < 10:
             return
         # Downsample to 200 Hz for cochlear (same as /addsound)
-        from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import cochlear_transduce
+        from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+            COCHLEAR_BANDS, cochlear_transduce)
         target_sr = 200
         step = max(1, sr // target_sr)
         downsampled = samples[::step]
+        if len(downsampled) > 1600:
+            raise ValueError("live sound exceeds the eight-second causal capture boundary")
         # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal cache,
         # same convention as process_sight_frame above -- already-
         # downsampled REAL audio (200Hz, no further reduction needed --
@@ -12366,6 +12580,24 @@ class Guala:
         except Exception:
             pass
         cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
+        from dsf_ai_service.glew_runtime.auditory_fragment_receipt import (
+            AuditoryPerceptFragment,
+            auditory_fragment_receipt,
+        )
+        auditory_receipt = auditory_fragment_receipt(AuditoryPerceptFragment(
+            source_id=str(source),
+            born_tick=int(self.tick),
+            sample_rate_hz=int(target_sr),
+            input_sample_count=int(len(downsampled)),
+            bands={
+                bn: {
+                    "winding": int(c["winding"]),
+                    "n_events": int(c["n_events"]),
+                    "events": list(c["events"]),
+                }
+                for bn, c in cochlear.items()
+            },
+        ))
         # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
         # speech-vs-silence discrimination gate. Remove after gate is closed.
         print(f"[cochlear-debug] n_events_by_band="
@@ -12389,27 +12621,87 @@ class Guala:
             _bound_experience if _bound_experience is not None
             else f"sense:sound:{source}:{time.time_ns():x}")
         _frame_owns_context = _bound_experience is None
+        if _frame_owns_context:
+            self.window_manager.begin_context(
+                _frame_context_id,
+                "sound",
+                context_detail={
+                    "experience_origin": "live_sound",
+                    "source_time_start_ns": _source_started_ns,
+                    "source_time_end_ns": (
+                        source_time_end_ns
+                        if source_time_end_ns is not None
+                        else _source_started_ns + len(downsampled) * 5_000_000),
+                    "sensor_unavailable": [
+                        "sight", "touch", "smell", "taste", "body"],
+                },
+            )
         n_bands_fired = 0
+        n_bands_observed = 0
+        band_profile = {band["name"]: band for band in COCHLEAR_BANDS}
         try:
             with self.lock:
-                for bn, c in cochlear.items():
+                for topology_index, (bn, c) in enumerate(cochlear.items()):
+                    cumulative = 0
+                    event_index = 0
+                    events = list(c["events"])
+                    phase_turns = []
+                    for sample_index in range(len(c["filtered"])):
+                        sample_time = (sample_index + 1) * 0.04
+                        while (event_index < len(events)
+                               and float(events[event_index]["t"])
+                               <= sample_time + 1e-12):
+                            cumulative += int(events[event_index]["dw"])
+                            event_index += 1
+                        phase_turns.append(cumulative)
+                    chi = c["winding"] % 100
+                    self.window_manager.add_entry(
+                        modality="sound", section=f"audio_{bn}",
+                        motif_id=deterministic_motif_id("mic_stream"),
+                        chi=chi, tick=self.tick,
+                        source_tag=source, trigger_reason="sound",
+                        context_id=_frame_context_id,
+                        salience=0.6, dwell_ticks=2,
+                        sensory_refs=[source],
+                        mirror_atlas=bool(c["n_events"] > 0),
+                        detail={
+                            "native_auditory_receipt_sha256": (
+                                auditory_receipt.receipt_sha256),
+                            "native_full_field_input": {
+                                "schema": "guala.native_sensory_input.v1",
+                                "sense": "sound",
+                                "sensor_id": "microphone-cochlea",
+                                "substream_id": str(bn),
+                                "topology_index": topology_index,
+                                "coordinates": [
+                                    ["frequency-band", str(bn)],
+                                    ["center-hz", str(
+                                        band_profile[bn]["freq"])],
+                                    ["bandwidth-hz", str(
+                                        band_profile[bn]["bandwidth"])],
+                                ],
+                                "physical_quantity": "sound-pressure",
+                                "physical_unit": "normalized-amplitude",
+                                "source_anchor_ns": source_anchor_ns,
+                                "causal_offsets_ns": [
+                                    sample_index * 5_000_000
+                                    for sample_index in range(len(c["filtered"]))
+                                ],
+                                "normalized_signal": [
+                                    float(value) for value in c["filtered"]
+                                ],
+                                "phase_turns": phase_turns,
+                            },
+                        },
+                        **self._affect_kwargs())
+                    n_bands_observed += 1
                     if c["n_events"] > 0:
-                        chi = c["winding"] % 100
-                        self.window_manager.add_entry(
-                            modality="sound", section=f"audio_{bn}",
-                            motif_id=deterministic_motif_id("mic_stream"),
-                            chi=chi, tick=self.tick,
-                            source_tag=source, trigger_reason="sound",
-                            context_id=_frame_context_id,
-                            salience=0.6, dwell_ticks=2,
-                            sensory_refs=[source],
-                            **self._affect_kwargs())
                         n_bands_fired += 1
-                if n_bands_fired > 0:
-                    self._log_substrate_event("sound_frame_bound",
-                        n_bands=n_bands_fired,
-                        duration_s=round(len(samples)/sr, 2),
-                        source=source)
+                self._log_substrate_event("sound_frame_bound",
+                    n_bands=n_bands_fired,
+                    n_bands_observed=n_bands_observed,
+                    duration_s=round(len(samples)/sr, 2),
+                    source=source)
         finally:
             # Close OUTSIDE self.lock: end_context durably appends the closed
             # record to the WAL with an fsync, and EFS latency must never
@@ -12421,8 +12713,23 @@ class Guala:
             # a first-entry validation raise has already created the
             # context; end_context on a never-created one is a no-op.
             if _frame_owns_context:
-                self.window_manager.end_context(
-                    _frame_context_id, "sound_frame_complete")
+                _closed_window_id, _settlement = (
+                    self.window_manager.end_context(
+                        _frame_context_id,
+                        "sound_frame_complete",
+                        return_settlement=True,
+                    )
+                )
+            else:
+                _closed_window_id = None
+                _settlement = None
+        return {
+            "accepted": n_bands_observed > 0,
+            "entries_bound": n_bands_observed,
+            "context_id": _frame_context_id,
+            "closed_window_id": _closed_window_id,
+            "settlement": _settlement,
+        }
 
     def _atick_attending_visual(self, a):
         """Phase 2: Attend to a picture — saccaded foveation through krimelack."""
@@ -18042,6 +18349,10 @@ class Guala:
                 "wave_proposals_queued": self._organism_sensory_queue.qsize(),
                 "wave_proposals_dropped": getattr(
                     self, '_organism_sensory_dropped_count', 0),
+                "causal_settlements_accepted": self._causal_settlement_accepted,
+                "causal_settlements_failed": self._causal_settlement_failed,
+                "causal_settlement_backlog": 0,
+                "causal_experience_owner": self._causal_experience_owner.status(),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost
                 # that used to climb unbounded with lifetime history.

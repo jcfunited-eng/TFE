@@ -344,6 +344,7 @@ class BindingWindow:
     closed_tick: Optional[int] = None
     closed_wall_clock: Optional[float] = None
     close_reason: Optional[str] = None
+    _settlement_in_progress: bool = field(default=False, repr=False)
     _language_positions: dict = field(default_factory=dict, repr=False)
     _next_language_position: int = field(default=0, repr=False)
 
@@ -364,6 +365,8 @@ class BindingWindow:
         return position
 
     def add_entry(self, entry: WindowEntry) -> int:
+        if self.closed_tick is not None or self.closed_wall_clock is not None:
+            raise WindowIntegrityError("cannot mutate a closed binding window")
         self.entries.append(entry)
         return len(self.entries) - 1
 
@@ -460,6 +463,7 @@ class WindowManager:
         atlas_windows: Optional[dict] = None,
         get_needs_fn: Optional[Callable[[], dict]] = None,
         retain_closed_windows: bool = True,
+        settle_window_fn: Optional[Callable[[Mapping[str, Any]], Any]] = None,
     ):
         # ``quiet_timeout_sec`` is accepted for constructor compatibility only.
         # It has no authority over an experience boundary.
@@ -471,6 +475,7 @@ class WindowManager:
         self._get_affect = get_affect_fn or (lambda: {})
         self._get_needs = get_needs_fn or (lambda: {})
         self._retain_closed_windows = bool(retain_closed_windows)
+        self._settle_window = settle_window_fn
         self._lock = threading.RLock()
         self._bound_context = contextvars.ContextVar(
             f"binding_window_context_{id(self)}", default=None)
@@ -1223,17 +1228,57 @@ class WindowManager:
             })
 
     def end_context(self, context_id: str,
-                    reason: str = "context_complete") -> Optional[str]:
-        """Close exactly ``context_id``; all other contexts remain untouched."""
+                    reason: str = "context_complete",
+                    *,
+                    return_settlement: bool = False):
+        """Close and settle one immutable context without holding the global lock."""
         with self._lock:
-            window = self._contexts.pop(context_id, None)
+            window = self._contexts.get(context_id)
             if window is None:
                 return None
-            window.closed_tick = int(self._get_tick())
-            window.closed_wall_clock = time.time()
-            window.close_reason = str(reason)
+            if window._settlement_in_progress:
+                raise WindowIntegrityError(
+                    "binding context settlement is already in progress")
+            if window.closed_tick is None:
+                window.closed_tick = int(self._get_tick())
+                window.closed_wall_clock = time.time()
+                window.close_reason = str(reason)
             record = window.to_record()
             self._validate_window_record(record, closed=True)
+            window_id = window.window_id
+            window._settlement_in_progress = True
+
+        settlement_result = None
+        if self._settle_window is not None:
+            try:
+                settlement_result = self._settle_window(record)
+            except Exception as exc:
+                with self._lock:
+                    current = self._contexts.get(context_id)
+                    if current is window:
+                        window._settlement_in_progress = False
+                self._log_event(
+                    "window_settlement_failed",
+                    window_id=window_id,
+                    context_id=context_id,
+                    error_type=type(exc).__name__,
+                    error=str(exc),
+                )
+                raise
+
+        with self._lock:
+            current = self._contexts.get(context_id)
+            if current is not window or not window._settlement_in_progress:
+                raise WindowIntegrityError(
+                    "binding context changed during atomic settlement")
+            if window.to_record() != record:
+                window._settlement_in_progress = False
+                raise WindowIntegrityError(
+                    "closed binding context mutated during settlement")
+            removed = self._contexts.pop(context_id, None)
+            if removed is not window:
+                raise WindowIntegrityError(
+                    "binding context changed during atomic settlement")
             if self._retain_closed_windows:
                 # Disk-resident store: the record parks in _pending (readable
                 # immediately) and moves to the durable locator once its WAL
@@ -1266,7 +1311,6 @@ class WindowManager:
                 "tick_span": window.closed_tick - window.opened_tick,
                 "affect_snapshot": copy.deepcopy(window.affect_snapshot),
             }
-            window_id = window.window_id
         if self._retain_closed_windows:
             # Durably append the just-closed record to the WAL outside
             # ``self._lock`` so its small fsync never blocks concurrent
@@ -1275,6 +1319,8 @@ class WindowManager:
             # the binding context exists only while the experience is forming.
             self._wal_on_close(record)
         self._log_event("window_closed", **event)
+        if return_settlement:
+            return window_id, settlement_result
         return window_id
 
     def close(self, reason: str, context_id: Optional[str] = None) -> Optional[str]:

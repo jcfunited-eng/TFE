@@ -618,6 +618,17 @@ def _port_kernel_basin(
     )
 
 
+def port_kernel_basin_from_trace_record(
+    *, lane_id: str, port_id: str, trace_record: ReceiptRecord,
+) -> tuple[PortKernelBasinSignature, tuple[bytes, ...]]:
+    """Bind one canonical native L0--L4 trace to its exact port basin."""
+    raw = json.loads(trace_record.payload)
+    if raw.get("lane_id") != lane_id or raw.get("port_id") != port_id:
+        raise ReceiptError("canonical L0-L4 trace belongs to another native port")
+    return _port_kernel_basin(
+        lane_id=lane_id, port_id=port_id, raw_record=trace_record)
+
+
 def _ball_bounds(value: CertifiedBall) -> tuple[Fraction, Fraction]:
     return (
         Fraction(value.lower_mantissa) * Fraction(2) ** value.lower_exponent,
@@ -1339,5 +1350,6 @@ __all__ = (
     "StoryReplayExpressionFacts",
     "evaluate_story_global_uf",
     "prepare_story_global_uf",
+    "port_kernel_basin_from_trace_record",
     "story_global_uf_basin_profile_receipt_payload",
 )

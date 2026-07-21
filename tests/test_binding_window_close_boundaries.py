@@ -26,12 +26,18 @@ import sys
 import threading
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from dsf_ai_service.substrate.window_manager import WindowManager
+from dsf_ai_service.substrate.window_manager import (
+    WindowIntegrityError,
+    WindowManager,
+)
 
 
-def _manager(*, tick=None, mirror=None, events=None, atlas_calls=None):
+def _manager(*, tick=None, mirror=None, events=None, atlas_calls=None,
+             settle=None):
     tick = tick if tick is not None else {"value": 0}
     mirror = mirror if mirror is not None else {}
     events = events if events is not None else []
@@ -48,8 +54,126 @@ def _manager(*, tick=None, mirror=None, events=None, atlas_calls=None):
         get_affect_fn=lambda: {"arousal": 0.7, "valence": -0.2},
         get_needs_fn=lambda: {"stability": 0.6, "connection": 0.8},
         atlas_windows=mirror,
+        settle_window_fn=settle,
     )
     return manager, tick, mirror, events, atlas_calls
+
+
+def test_failed_settlement_leaves_context_retryable_and_unindexed():
+    attempts = []
+
+    def settle(record):
+        attempts.append(record)
+        if len(attempts) == 1:
+            raise RuntimeError("injected settlement failure")
+
+    manager, _tick, _mirror, events, _calls = _manager(settle=settle)
+    manager.begin_context("causal:test", "test")
+    manager.add_entry(
+        modality="sound", section="audio_low", motif_id=7, chi=31,
+        tick=1, source_tag="mic:live", trigger_reason="sound",
+        context_id="causal:test")
+
+    try:
+        manager.end_context("causal:test", "context_complete")
+    except RuntimeError as exc:
+        assert str(exc) == "injected settlement failure"
+    else:
+        raise AssertionError("settlement failure was not propagated")
+
+    assert manager.open_context_ids() == ("causal:test",)
+    assert manager.window_ids() == ()
+    assert manager.lookup_chi(31) == ()
+    assert events[-1][0] == "window_settlement_failed"
+
+    window_id = manager.end_context("causal:test", "context_complete")
+    assert window_id is not None
+    assert manager.open_context_ids() == ()
+    assert manager.lookup_chi(31)[0]["window_id"] == window_id
+    assert attempts[0] == attempts[1]
+
+
+def test_settlement_releases_manager_lock_and_closed_record_cannot_mutate():
+    settling = threading.Event()
+    release = threading.Event()
+
+    def settle(_record):
+        settling.set()
+        assert release.wait(5)
+
+    manager, _tick, _mirror, _events, _calls = _manager(settle=settle)
+    manager.begin_context("causal:test", "test")
+    manager.add_entry(
+        modality="sound", section="audio_low", motif_id=7, chi=31,
+        tick=1, source_tag="mic:live", trigger_reason="sound",
+        context_id="causal:test")
+
+    close_errors = []
+    def close_context():
+        try:
+            manager.end_context("causal:test", "complete")
+        except BaseException as error:
+            close_errors.append(error)
+    closer = threading.Thread(target=close_context)
+    closer.start()
+    assert settling.wait(5)
+
+    probe_done = threading.Event()
+    probe = threading.Thread(target=lambda: (
+        manager.begin_context("independent:test", "test"), probe_done.set()))
+    probe.start()
+    assert probe_done.wait(1), "settlement held the manager-wide lock"
+    with pytest.raises(WindowIntegrityError, match="closed binding window"):
+        manager.add_entry(
+            modality="sound", section="audio_low", motif_id=8, chi=32,
+            tick=2, source_tag="mic:live", trigger_reason="sound",
+            context_id="causal:test")
+
+    release.set()
+    closer.join(5)
+    probe.join(5)
+    assert not close_errors
+    assert "causal:test" not in manager.open_context_ids()
+
+
+def test_concurrent_closes_return_each_windows_exact_settlement():
+    barrier = threading.Barrier(2)
+
+    def settle(record):
+        barrier.wait(timeout=5)
+        return {"settled_context_id": record["context_id"]}
+
+    manager, _tick, _mirror, _events, _calls = _manager(settle=settle)
+    for index in range(2):
+        context_id = f"causal:{index}"
+        manager.begin_context(context_id, "test")
+        manager.add_entry(
+            modality="sound", section="audio_low", motif_id=index, chi=31,
+            tick=index + 1, source_tag="mic:live", trigger_reason="sound",
+            context_id=context_id)
+
+    results = {}
+    errors = []
+    def close_context(context_id):
+        try:
+            results[context_id] = manager.end_context(
+                context_id, "complete", return_settlement=True)
+        except BaseException as error:
+            errors.append(error)
+
+    threads = [
+        threading.Thread(target=close_context, args=(f"causal:{index}",))
+        for index in range(2)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(5)
+
+    assert not errors
+    for context_id, (window_id, settlement) in results.items():
+        assert window_id
+        assert settlement == {"settled_context_id": context_id}
 
 
 def test_cross_thread_boundary_close_succeeds_with_explicit_id():

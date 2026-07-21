@@ -188,8 +188,7 @@ def _recording_guala(*, reply=""):
     frames = []
     guala = SimpleNamespace(
         tick=42,
-        process_sound_frame=lambda wav, source=None: frames.append(
-            (wav, source)),
+        _latest_causal_settlement=None,
         read_sentence=lambda text, source=None, bundle_id=None: sentences.append(
             {"text": text, "source": source, "bundle_id": bundle_id}),
         converse=lambda text, source=None: (
@@ -198,6 +197,17 @@ def _recording_guala(*, reply=""):
         _self_hear=lambda *a, **kw: None,
         _log_substrate_event=lambda *a, **kw: None,
     )
+    def process_sound_frame(wav, source=None, **_kwargs):
+        frames.append((wav, source))
+        window_id = "test-sound-window"
+        guala._latest_causal_settlement = SimpleNamespace(
+            assembly_id=f"causal-{window_id}",
+            interpretations=(SimpleNamespace(sense="sound", state="observed"),),
+            verify=lambda: None,
+        )
+        return {"accepted": True, "closed_window_id": window_id,
+                "settlement": guala._latest_causal_settlement}
+    guala.process_sound_frame = process_sound_frame
     return guala, sentences, frames, converses
 
 
@@ -212,7 +222,9 @@ def _wait_for_voice_reply_idle():
 def _post_sound_frame(source="joe_voice"):
     return asyncio.run(appmod.sound_frame(
         appmod.GLMessage(text=base64.b64encode(b"webm").decode(),
-                         source=source)))
+                         source=source,
+                         capture_started_ms=1_000,
+                         capture_ended_ms=6_000)))
 
 
 def test_transcribed_speech_enters_through_converse(

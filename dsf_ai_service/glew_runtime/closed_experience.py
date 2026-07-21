@@ -774,6 +774,8 @@ def _trace_payload(
             "binary64_receipt_encoding": "exact_Fraction.from_float",
             "kernel_input_map": "F=1+s/2;inverse_s=2*(F-1)",
             "kernel_provider": KERNEL_PROVIDER_ID,
+            "lane_id": stream.lane_id,
+            "port_id": stream.port_id,
             "L0_SEV": [
                 {
                     "F_norm": _binary_text(value.F_norm, "L0.F_norm"),
@@ -876,6 +878,31 @@ def _run_kernel(
             raise ReceiptError("frozen L0-L4 gate identities diverged")
     raw = _trace_payload(stream, adapter, sev, l1, l2, l3, l4)
     return _KernelTrace(stream, adapter, sev, l1, l2, l3, l4, raw)
+
+
+def run_ratified_native_l0_l4_trace(
+    *,
+    stream: EvidenceStream,
+    adapter: KernelNativeInputStream,
+    receipt_registry: ReceiptRegistry,
+) -> ReceiptRecord:
+    """Run the frozen canonical kernel for one verified native port.
+
+    This is the public, receipt-bearing seam for non-language domains.  It
+    neither changes L0--L4 nor interprets their result.
+    """
+    if stream.profile_binding_sha256 != receipt_registry.profile_binding_sha256:
+        raise ReceiptError("native stream profile binding differs from active registry")
+    receipt_registry.resolve(
+        stream.calibration_receipt_sha256, "calibration receipt")
+    receipt_registry.resolve(
+        stream.relevance_receipt_sha256, "relevance receipt")
+    adapter.verify(stream, receipt_registry)
+    trace = _run_kernel(stream, adapter)
+    return ReceiptRecord(
+        digest=receipt_sha256(trace.raw_payload),
+        payload=trace.raw_payload,
+    )
 
 
 def _support_payload(value: SupportFloor) -> bytes:
@@ -1861,6 +1888,7 @@ __all__ = (
     "kernel_native_input_receipt_payload",
     "l5_governance_profile_receipt_payload",
     "prepare_closed_experience_evidence",
+    "run_ratified_native_l0_l4_trace",
     "seal_closed_experience",
     "source_evidence_stream_receipt_payload",
 )

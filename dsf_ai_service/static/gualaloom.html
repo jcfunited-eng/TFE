@@ -263,13 +263,23 @@ async function triggerSleep(){
 // cluster continuation ffmpeg can't parse alone (G-110-2's finding). Cycling
 // a fresh MediaRecorder every ~5s means every stop() delivers one complete,
 // independently-decodable WebM file. Server is untouched — stateless either way.
-let micStream=null,micRecorder=null,micCycleActive=false,_micCycleTimer=null,_micLastCycleEndTs=0;
-function _sendMicChunk(blob){
+let micStream=null,micRecorder=null,micCycleActive=false,_micCycleTimer=null,_micLastCycleEndTs=0,_micRequestInFlight=false,_micChunksDropped=0;
+function _sendMicChunk(blob,captureStartedMs,captureEndedMs,sightCapturedMs,sightPromise){
   if(blob.size<100)return;
+  if(_micRequestInFlight){
+    _micChunksDropped+=1;
+    const status=document.getElementById('mic-status');
+    status.textContent='listening — one earlier experience is still settling; '+_micChunksDropped+' later chunk(s) not admitted';
+    status.style.color='#d29922';
+    return;
+  }
+  _micRequestInFlight=true;
   const reader=new FileReader();
-  reader.onload=()=>{
-    const b64=reader.result.split(',')[1];
-    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},25000)
+  reader.onload=async()=>{
+    try{
+      const b64=reader.result.split(',')[1];
+      const sight_b64=await sightPromise;
+      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice',sight_b64,capture_started_ms:captureStartedMs,capture_ended_ms:captureEndedMs,sight_captured_ms:sight_b64?sightCapturedMs:null})},25000)
       .then(r=>r.json())
       .then(d=>{
         const status=document.getElementById('mic-status');
@@ -284,7 +294,16 @@ function _sendMicChunk(blob){
         if(rec.status==='not_attempted'){status.textContent='raw sound active — speech recognition pending';status.style.color='var(--text-muted)';return}
         status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
       })
-      .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'});
+      .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'})
+      .finally(()=>{_micRequestInFlight=false});
+    }catch(e){
+      _micRequestInFlight=false;
+      const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149';
+    }
+  };
+  reader.onerror=()=>{
+    _micRequestInFlight=false;
+    const status=document.getElementById('mic-status');status.textContent='raw sound failed: microphone chunk could not be read';status.style.color='#f85149';
   };
   reader.readAsDataURL(blob);
 }
@@ -296,16 +315,19 @@ function _startOneMicCycle(stream){
     micCycleActive=false;return
   }}
   const _cycleStartTs=Date.now();
+  const _sightCapturedTs=_cycleStartTs;
+  const _cycleSightPromise=camStream?captureConversationSight():Promise.resolve(null);
+  let _cycleEndTs=null;
   if(_micLastCycleEndTs){
     console.log('[mic-cycle] inter-cycle gap ms:', _cycleStartTs-_micLastCycleEndTs);
   }
-  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data);
+  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data,_cycleStartTs,_cycleEndTs||Date.now(),_sightCapturedTs,_cycleSightPromise);
   micRecorder.onstop=()=>{
     _micLastCycleEndTs=Date.now();
     if(micCycleActive)_startOneMicCycle(stream);
   };
   micRecorder.start(); // no timeslice -> one complete blob, delivered on stop()
-  _micCycleTimer=setTimeout(()=>{try{micRecorder.stop()}catch(e){}},5000);
+  _micCycleTimer=setTimeout(()=>{_cycleEndTs=Date.now();try{micRecorder.stop()}catch(e){}},5000);
 }
 function startMicSoundStream(stream){
   if(micCycleActive)return;
@@ -353,14 +375,16 @@ function startSightStream(){
   if(sightStreamTimer)clearInterval(sightStreamTimer);
   sightStreamTimer=setInterval(async()=>{
     if(!camStream)return;
+    if(micCycleActive)return; // mic chunks carry the contemporaneous frame
     try{
+      const sightCapturedMs=Date.now();
       const c=document.createElement('canvas');c.width=128;c.height=128;
       c.getContext('2d').drawImage(vid,0,0,128,128);
       const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.5));
       const reader=new FileReader();
       reader.onload=async()=>{
         const b64=reader.result.replace(/^data:image\/jpeg;base64,/,'');
-        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000)
+        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',sight_captured_ms:sightCapturedMs})},4000)
           .then(r=>r.json())
           .then(d=>{
             const status=document.getElementById('cam-status');

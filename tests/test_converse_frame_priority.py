@@ -178,9 +178,19 @@ def test_sound_frame_processed_when_no_turn_in_flight(clean_converse_flag):
     through the real handler (decode + process). Only the substrate decode
     collaborators are stubbed -- the gate/handler flow is real."""
     processed = []
-    appmod._guala = SimpleNamespace(
-        tick=9,
-        process_sound_frame=lambda wav, source=None: processed.append(source))
+    fake = SimpleNamespace(tick=9, _latest_causal_settlement=None)
+    def process_sound_frame(wav, source=None, **_kwargs):
+        processed.append(source)
+        window_id = "priority-sound-window"
+        fake._latest_causal_settlement = SimpleNamespace(
+            assembly_id=f"causal-{window_id}",
+            interpretations=(SimpleNamespace(sense="sound", state="observed"),),
+            verify=lambda: None,
+        )
+        return {"accepted": True, "closed_window_id": window_id,
+                "settlement": fake._latest_causal_settlement}
+    fake.process_sound_frame = process_sound_frame
+    appmod._guala = fake
 
     # Stub only the UNRELATED heavy collaborators (webm decoder + the vocab
     # recognition-availability helper) so the handler's OWN flow -- the priority
@@ -194,7 +204,9 @@ def test_sound_frame_processed_when_no_turn_in_flight(clean_converse_flag):
     try:
         assert appmod._converse_turn_in_flight() is False
         resp = asyncio.run(appmod.sound_frame(
-            appmod.GLMessage(text="Zm9v", source="ambient")))
+            appmod.GLMessage(
+                text="Zm9v", source="ambient",
+                capture_started_ms=1_000, capture_ended_ms=6_000)))
     finally:
         sr._webm_to_wav_bytes = saved_webm
         gvi.spoken_word_recognition_unavailable = saved_reco

@@ -135,6 +135,7 @@ class VisualPerceptFragment:
     winding_count: int
     source_id: str       # label only, NOT identity
     born_tick: int
+    signal_records: list = field(default_factory=list)
 
 
 VISUAL_FRAGMENT_RECEIPT_SCHEMA = "guala.native_sight_fragment.v1"
@@ -340,6 +341,7 @@ def view_picture(image, source_id, born_tick, seed=None,
             break
         krim.reset()
         start_t = t
+        signal_records = []
         for _ in range(ticks_per_fixation):
             jitter_r = sacc.rng.integers(-1, 2)
             jitter_c = sacc.rng.integers(-1, 2)
@@ -347,6 +349,11 @@ def view_picture(image, source_id, born_tick, seed=None,
             c = max(0, min(image.shape[1] - 1, fixation[1] + jitter_c))
             intensity = float(image[r, c])
             krim.tick(intensity, t)
+            signal_records.append({
+                "t": t,
+                "s": intensity,
+                "phase_turns": krim.winding_count,
+            })
             t += 1
 
         frag = VisualPerceptFragment(
@@ -363,6 +370,7 @@ def view_picture(image, source_id, born_tick, seed=None,
             winding_count=krim.winding_count,
             source_id=source_id,
             born_tick=start_t,
+            signal_records=signal_records,
         )
         fragments.append(frag)
 
