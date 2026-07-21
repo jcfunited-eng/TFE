@@ -7390,6 +7390,22 @@ async def ready():
             headers={"Retry-After": "30"},
         )
     if _REQUIRE_SEALED_STATE:
+        lifecycle_state = _deployment_lifecycle.snapshot()["state"]
+        if lifecycle_state in {"QUIESCING", "SEALED"}:
+            # The ALB uses this route as its target-health probe.  A
+            # controlled deployment drain must remain process-alive long
+            # enough to finish already-admitted neuron work and return its
+            # signed seal, while ordinary mutation admission is already
+            # closed by the lifecycle owner.  Returning HTTP 200 here keeps
+            # ECS from killing that sole state owner mid-seal; ready=False
+            # remains explicit, and deep readiness still fails because it
+            # requires RUNNING.
+            return {
+                "ready": False,
+                "draining": True,
+                "lifecycle": lifecycle_state,
+                "elapsed_ms": elapsed_ms,
+            }
         try:
             proof = _production_runtime_proof()
         except Exception as error:

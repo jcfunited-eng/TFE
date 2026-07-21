@@ -269,6 +269,32 @@ def test_engine_drain_failure_stays_quiescing_and_never_stages(
     assert "sealed" not in ordered_handoff.events
 
 
+@pytest.mark.parametrize("state", ["QUIESCING", "SEALED"])
+def test_shallow_ready_keeps_controlled_drain_alive_for_alb(
+        monkeypatch, state):
+    lifecycle = appmod._DeploymentLifecycle()
+    lifecycle.begin_quiescence("nonce-ready")
+    if state == "SEALED":
+        lifecycle.seal(_certificate())
+    monkeypatch.setattr(appmod, "_deployment_lifecycle", lifecycle)
+    monkeypatch.setattr(appmod, "_REQUIRE_SEALED_STATE", True)
+    monkeypatch.setattr(appmod, "_boot_halted", None)
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.get("/ready")
+
+    response = _run(scenario())
+
+    assert response.status_code == 200
+    assert response.json()["ready"] is False
+    assert response.json()["draining"] is True
+    assert response.json()["lifecycle"] == state
+
+
 @pytest.mark.parametrize("value", ["not-a-number", "-1", "nan", "inf"])
 def test_invalid_settle_budget_fails_closed_before_engine_drain(
         ordered_handoff, monkeypatch, value):
