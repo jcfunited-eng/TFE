@@ -99,7 +99,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <div id="perm-strip">
   <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
   <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">auditory L5 ready — no sound observed</span>
-  <button class="perm-btn" id="speak-utterance" disabled onclick="toggleUtterance()">Speak to Guala</button>
   <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
   <span id="cam-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sight only — object naming unavailable</span>
   <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
@@ -262,8 +261,7 @@ async function triggerSleep(){
 // a fresh MediaRecorder every ~5s means every stop() delivers one complete,
 // independently-decodable WebM file. Server is untouched — stateless either way.
 let micStream=null,micRecorder=null,micCycleActive=false,_micCycleTimer=null,_micLastCycleEndTs=0,_micRequestInFlight=false,_micChunksDropped=0;
-let utteranceRecorder=null,_utteranceTimer=null,_utteranceActive=false,_utteranceTransitioning=false,_stopCurrentUtterance=null;
-function _sendMicChunk(blob,captureStartedMs,captureEndedMs,sightCapturedMs,sightPromise,capturePurpose){
+function _sendMicChunk(blob,captureStartedMs,captureEndedMs,sightCapturedMs,sightPromise){
   if(blob.size<100)return;
   if(_micRequestInFlight){
     _micChunksDropped+=1;
@@ -278,21 +276,12 @@ function _sendMicChunk(blob,captureStartedMs,captureEndedMs,sightCapturedMs,sigh
     try{
       const b64=reader.result.split(',')[1];
       const sight_b64=await sightPromise;
-      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'browser_microphone',capture_purpose:capturePurpose,sight_b64,capture_started_ms:captureStartedMs,capture_ended_ms:captureEndedMs,sight_captured_ms:sight_b64?sightCapturedMs:null})},25000)
+      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'browser_microphone',capture_purpose:'ambient',sight_b64,capture_started_ms:captureStartedMs,capture_ended_ms:captureEndedMs,sight_captured_ms:sight_b64?sightCapturedMs:null})},25000)
       .then(r=>r.json())
       .then(d=>{
         const status=document.getElementById('mic-status');
         if(!d.ok){status.textContent='raw sound failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
-        // Render deterministic auditory L5 recognition. Optional boundary
-        // transcription is display-only and never drives cognition.
-        const rec=d.spoken_word_recognition||{};
-        if(capturePurpose==='ambient'){status.textContent='raw sound active — bounded ambient experience settled';status.style.color='var(--text-muted)';return}
-        if(rec.status==='unique'&&d.transcript){status.textContent='heard and recognized: "'+d.transcript+'"';status.style.color='var(--text-muted)';return}
-        if(rec.status==='ambiguous'){status.textContent='heard — learned forms are ambiguous';status.style.color='#d29922';return}
-        if(rec.status==='indeterminate'){status.textContent='heard — recognition stopped at its processing boundary; this is not an unknown sound';status.style.color='#f85149';return}
-        if(rec.status==='unknown'){status.textContent='heard — auditory L5 has not learned this form; authenticated tutoring is required';status.style.color='var(--text-muted)';return}
-        if(rec.status==='not_attempted'){status.textContent='raw sound active — speech recognition pending';status.style.color='var(--text-muted)';return}
-        status.textContent='raw sound active — auditory L5 state unavailable';status.style.color='var(--text-muted)';
+        status.textContent='raw sound active — bounded ambient experience settled';status.style.color='var(--text-muted)';
       })
       .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'})
       .finally(()=>{_micRequestInFlight=false});
@@ -321,7 +310,7 @@ function _startOneMicCycle(stream){
   if(_micLastCycleEndTs){
     console.log('[mic-cycle] inter-cycle gap ms:', _cycleStartTs-_micLastCycleEndTs);
   }
-  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data,_cycleStartTs,_cycleEndTs||Date.now(),_sightCapturedTs,_cycleSightPromise,'ambient');
+  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data,_cycleStartTs,_cycleEndTs||Date.now(),_sightCapturedTs,_cycleSightPromise);
   micRecorder.onstop=()=>{
     _micLastCycleEndTs=Date.now();
     if(micCycleActive)_startOneMicCycle(stream);
@@ -337,60 +326,8 @@ function startMicSoundStream(stream){
 function stopMicSoundStream(){
   micCycleActive=false;
   if(_micCycleTimer){clearTimeout(_micCycleTimer);_micCycleTimer=null}
-  if(_stopCurrentUtterance)_stopCurrentUtterance();
   if(micRecorder){try{micRecorder.stop()}catch(e){}micRecorder=null}
   if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
-}
-
-async function _pauseAmbientForUtterance(){
-  micCycleActive=false;
-  if(_micCycleTimer){clearTimeout(_micCycleTimer);_micCycleTimer=null}
-  if(!micRecorder||micRecorder.state==='inactive'){micRecorder=null;return}
-  await new Promise(resolve=>{
-    micRecorder.ondataavailable=()=>{};
-    micRecorder.onstop=()=>{micRecorder=null;resolve()};
-    try{micRecorder.stop()}catch(e){micRecorder=null;resolve()}
-  });
-}
-
-async function toggleUtterance(){
-  const btn=document.getElementById('speak-utterance');
-  const status=document.getElementById('mic-status');
-  if(_utteranceActive){if(_stopCurrentUtterance)_stopCurrentUtterance();return}
-  if(_utteranceTransitioning)return;
-  if(!micGranted||!micStream){status.textContent='enable the microphone before speaking';status.style.color='#d29922';return}
-  if(_micRequestInFlight){status.textContent='wait for the current sensory experience to settle';status.style.color='#d29922';return}
-  _utteranceTransitioning=true;btn.disabled=true;
-  try{
-    await _pauseAmbientForUtterance();
-    if(!micGranted||!micStream)return;
-    try{utteranceRecorder=new MediaRecorder(micStream,{mimeType:'audio/webm'})}
-    catch(e){try{utteranceRecorder=new MediaRecorder(micStream)}catch(e2){status.textContent='utterance recorder unavailable: '+e2.message;status.style.color='#f85149';startMicSoundStream(micStream);return}}
-    const startedMs=Date.now();
-    const sightCapturedMs=startedMs;
-    const sightPromise=camStream?captureConversationSight():Promise.resolve(null);
-    let endedMs=null;
-    _utteranceActive=true;
-    btn.textContent='Stop and send';btn.className='perm-btn granted';
-    status.textContent='listening to this utterance…';status.style.color='#3fb950';
-    utteranceRecorder.ondataavailable=(e)=>_sendMicChunk(e.data,startedMs,endedMs||Date.now(),sightCapturedMs,sightPromise,'utterance');
-    utteranceRecorder.onstop=()=>{
-      if(_utteranceTimer){clearTimeout(_utteranceTimer);_utteranceTimer=null}
-      _utteranceActive=false;_stopCurrentUtterance=null;utteranceRecorder=null;
-      btn.textContent='Speak to Guala';btn.className='perm-btn';
-      if(micGranted&&micStream)startMicSoundStream(micStream);
-    };
-    _stopCurrentUtterance=()=>{
-      if(!_utteranceActive||!utteranceRecorder)return;
-      endedMs=Date.now();
-      try{utteranceRecorder.stop()}catch(e){}
-    };
-    utteranceRecorder.start();
-    _utteranceTimer=setTimeout(()=>{if(_stopCurrentUtterance)_stopCurrentUtterance()},7900);
-  }finally{
-    _utteranceTransitioning=false;
-    btn.disabled=!(micGranted&&micStream);
-  }
 }
 
 async function requestMic(){
@@ -400,7 +337,6 @@ async function requestMic(){
     micGranted=false;
     stopMicSoundStream();
     btn.textContent='Enable Microphone';btn.className='perm-btn';
-    document.getElementById('speak-utterance').disabled=true;
     const status=document.getElementById('mic-status');
     status.textContent='auditory L5 idle — microphone off';status.style.color='var(--text-muted)';
     return;
@@ -412,7 +348,6 @@ async function requestMic(){
       autoGainControl:false     // preserve physical cross-capture amplitude
     }});
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
-    document.getElementById('speak-utterance').disabled=false;
     const status=document.getElementById('mic-status');
     status.textContent='raw sound active — auditory L5 listening';status.style.color='var(--text-muted)';
     startMicSoundStream(micStream);
@@ -428,7 +363,7 @@ function startSightStream(){
   if(sightStreamTimer)clearInterval(sightStreamTimer);
   sightStreamTimer=setInterval(async()=>{
     if(!camStream)return;
-    if(micCycleActive||_utteranceTransitioning||_utteranceActive)return; // mic/utterance chunks carry the contemporaneous frame
+    if(micCycleActive)return; // microphone chunks carry the contemporaneous frame
     try{
       const sightCapturedMs=Date.now();
       const c=document.createElement('canvas');c.width=128;c.height=128;
