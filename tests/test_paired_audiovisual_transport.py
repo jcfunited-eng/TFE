@@ -214,5 +214,7 @@ def test_browser_suppresses_duplicate_camera_stream_during_mic_capture() -> None
     assert "utteranceTransitioning" not in html
     assert "utteranceActive" not in html
     assert "const _cycleSightPromise=camStream?captureConversationSight()" in html
+    assert "JSON.stringify({text,source,sight_b64})" not in html
+    assert "JSON.stringify({text,source})" in html
     assert "capture_started_ms:captureStartedMs" in html
     assert "if(_micRequestInFlight)" in html

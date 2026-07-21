@@ -8,6 +8,7 @@ import wave
 from fractions import Fraction
 
 import numpy as np
+import pytest
 
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
@@ -16,11 +17,13 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
 
-def _tone_wav(frequency_hz: float = 440.0, amplitude: int = 12_000) -> bytes:
+def _tone_wav(
+        frequency_hz: float = 440.0, amplitude: int = 12_000,
+        duration_seconds: int = 1) -> bytes:
     sample_rate = 16_000
     samples = [
         int(amplitude * math.sin(2 * math.pi * frequency_hz * index / sample_rate))
-        for index in range(sample_rate)
+        for index in range(sample_rate * duration_seconds)
     ]
     payload = io.BytesIO()
     with wave.open(payload, "wb") as stream:
@@ -109,6 +112,100 @@ def test_real_audiovisual_capture_produces_one_queue_free_settlement(
         assert engine._causal_experience_owner.status()["tracked_senses"] == [
             "sight", "sound"
         ]
+    finally:
+        engine.shutdown()
+
+
+def test_five_second_full_field_settles_before_next_capture(
+        monkeypatch) -> None:
+    """One real five-second audiovisual field finishes inside its cadence.
+
+    The outer interaction scope mirrors the app handler: autonomy may already
+    be alive, but it cannot enter and split the still-settling physical event.
+    """
+    engine = _configure_embedded_engine(monkeypatch)
+    context_id = "test:av:five-second-cadence"
+    source_start_ns = 1_000_000_000_000
+    engine.start_autonomy_loop(interval=0.2)
+    engine._enter_live_interaction()
+    started = time.perf_counter()
+    try:
+        engine.window_manager.begin_context(
+            context_id,
+            "audiovisual_capture",
+            context_detail={
+                "source_time_start_ns": source_start_ns,
+                "source_time_end_ns": source_start_ns + 5_000_000_000,
+                "sensor_unavailable": ["touch", "smell", "taste", "body"],
+            },
+        )
+        engine.process_sight_frame(
+            _sight_grid(),
+            source_anchor_ns=source_start_ns,
+            source_time_start_ns=source_start_ns,
+            source_time_end_ns=source_start_ns + 5_000_000_000,
+        )
+        engine.process_sound_frame(
+            _tone_wav(duration_seconds=5),
+            source="browser_microphone",
+            source_anchor_ns=source_start_ns,
+            source_time_end_ns=source_start_ns + 5_000_000_000,
+            auditory_event_boundary="ambient",
+        )
+        _window_id, settlement = engine.window_manager.end_context(
+            context_id,
+            "audiovisual_capture_complete",
+            return_settlement=True,
+        )
+        settlement.verify()
+    finally:
+        elapsed = time.perf_counter() - started
+        engine._exit_live_interaction()
+        engine.shutdown()
+
+    assert elapsed < 5.0, (
+        f"five-second audiovisual settlement took {elapsed:.3f}s and would "
+        "overrun the next browser capture"
+    )
+    assert engine._live_interaction_pending == 0
+
+
+def test_visual_producer_rejects_out_of_interval_before_mutation(
+        monkeypatch) -> None:
+    engine = _configure_embedded_engine(monkeypatch)
+    context_id = "test:av:short"
+    source_start_ns = 1_000_000_000_000
+    try:
+        engine.window_manager.begin_context(
+            context_id,
+            "audiovisual_capture",
+            context_detail={
+                "source_time_start_ns": source_start_ns,
+                "source_time_end_ns": source_start_ns + 1_000_000_000,
+                "sensor_unavailable": ["sound", "touch", "smell", "taste", "body"],
+            },
+        )
+        previous_frame_tick = getattr(engine, "_last_frame_tick", None)
+        previous_signal = getattr(engine, "_last_sight_signal", None)
+
+        with pytest.raises(
+                ValueError,
+                match="sight foveation falls outside"):
+            engine.process_sight_frame(
+                _sight_grid(),
+                source_anchor_ns=source_start_ns + 500_000_000,
+                source_time_start_ns=source_start_ns,
+                source_time_end_ns=source_start_ns + 1_000_000_000,
+            )
+
+        open_record = engine.window_manager.snapshot()["open_contexts"][
+            context_id]
+        assert open_record["entries"] == []
+        assert getattr(engine, "_last_frame_tick", None) == previous_frame_tick
+        assert getattr(engine, "_last_sight_signal", None) is previous_signal
+        engine.window_manager.discard_unsettled_context(
+            context_id, "invalid_visual_interval")
+        assert engine.window_manager.open_context_ids() == ()
     finally:
         engine.shutdown()
 

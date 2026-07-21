@@ -827,7 +827,8 @@ def boot_substrate():
     # With 38K+ atlas entries, decay sweeps take >50ms and starve
     # the socket server. 200ms gives 5 ticks/sec (was 20).
     g.start_autonomy_loop(interval=0.2)
-    g.start_daydream_loop()  # GL-CMD-DAYDREAM-PARALLEL-42: parallel chi-walk thread
+    # 2026-07-21 architecture ruling: the periodic chi-walk is not the
+    # intended sense-triggered background-memory mechanism and remains off.
     s = g.introspect()
     print(f"[substrate] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={g.tick} atlas={s['atlas_entries']}")
@@ -1218,6 +1219,7 @@ def _start_input_ring_consumer():
                         except Exception as _e:
                             print(f"[sight] frame error: {_e}")
                     elif kind == "sound_window":
+                        _guala._enter_live_interaction()
                         try:
                             audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
                             if not audio_bytes:
@@ -1277,6 +1279,8 @@ def _start_input_ring_consumer():
                                         _guala.process_sight_frame(
                                             grid,
                                             source_anchor_ns=sight_anchor_ns,
+                                            source_time_start_ns=source_start_ns,
+                                            source_time_end_ns=source_end_ns,
                                         )
                                     except Exception as sight_error:
                                         _guala._log_substrate_event(
@@ -1290,6 +1294,7 @@ def _start_input_ring_consumer():
                                             _wav,
                                             source=source,
                                             source_anchor_ns=source_start_ns,
+                                            source_time_end_ns=source_end_ns,
                                             auditory_event_boundary=(
                                                 auditory_event_boundary),
                                         )
@@ -1301,10 +1306,17 @@ def _start_input_ring_consumer():
                                             error=str(sound_error),
                                         )
                                 finally:
-                                    _guala.window_manager.end_context(
-                                        context_id,
-                                        "audiovisual_capture_complete",
-                                    )
+                                    try:
+                                        _guala.window_manager.end_context(
+                                            context_id,
+                                            "audiovisual_capture_complete",
+                                        )
+                                    except Exception:
+                                        _guala.window_manager.discard_unsettled_context(
+                                            context_id,
+                                            "remote_live_audiovisual_settlement_failed",
+                                        )
+                                        raise
                             else:
                                 _guala.process_sound_frame(
                                     _wav,
@@ -1320,6 +1332,8 @@ def _start_input_ring_consumer():
                                 _guala, source=source)
                         except Exception as _e:
                             print(f"[sound] frame error: {_e}")
+                        finally:
+                            _guala._exit_live_interaction()
             except Exception as _drain_error:
                 print(f"[input-ring] drain error: {_drain_error}")
             if _shutdown_event.wait(0.5):
@@ -3273,8 +3287,8 @@ def _start_autonomous_emission_loop():
                 # start a fresh long lock-hold in front of the waiting turn.
                 # The loop already retries on its own 90s cadence, so a
                 # deferred cycle simply runs next time -- background emission
-                # is never dropped, only postponed, and the safety valve in
-                # _defer_for_live_interaction guarantees it can't be starved.
+                # is never dropped, only postponed until the exact end of the
+                # balanced live-interaction scope.
                 if (_guala is not None
                         and not _guala._defer_for_live_interaction(
                             "autonomous_emission")):

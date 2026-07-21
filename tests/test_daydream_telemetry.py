@@ -1,8 +1,5 @@
 """
-GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): the daydream loop's
-demanded telemetry (the 2026-07-11 reconnect note's own enablement
-condition: "flip DAYDREAM_LOOP_ENABLED=1 only with tick_rate/lock-wait
-telemetry open").
+Telemetry tests for the dormant legacy periodic-daydream implementation.
 
 Proves:
   - daydream self.lock waits are recorded into a bounded window from the
@@ -12,8 +9,7 @@ Proves:
     loud daydream_telemetry_alert;
   - healthy numbers raise nothing (no alert spam).
 
-The boot-wiring default (on unless DAYDREAM_LOOP_ENABLED=0) is covered in
-tests/test_daydream_loop_reconnect.py.
+Production boot-disable is covered in tests/test_daydream_loop_reconnect.py.
 """
 
 import os

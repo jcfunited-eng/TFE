@@ -1,6 +1,5 @@
 """
-test_daydream_loop_reconnect.py -- functional (single-threaded) tests for
-GL-FIX-DAYDREAM-RECONNECT-C1-20260711.
+Functional tests for the dormant legacy periodic-daydream implementation.
 
 start_daydream_loop()/_daydream_tick() (GL-CMD-DAYDREAM-PARALLEL-EVE-
 20260629-42) was a real, complete mechanism whose only call site was
@@ -8,11 +7,10 @@ substrate_runner.boot_substrate() -- itself dead code with zero callers
 since the GL-CMD-PROCESS-COLLAPSE-61 refactor (2026-07-01) moved the real
 boot path to app.py's _gl_init()/_embedded_post_boot() without porting the
 g.start_daydream_loop() call that sat next to g.start_autonomy_loop() in
-boot_substrate(). This file tests the reconnection: the new conditional
-in _gl_init() (gated on DAYDREAM_LOOP_ENABLED, default "0"), and re-proves
-the mechanism's own two documented safety properties (T7 "does not trigger
-emission" from the original dispatch, and the 2026-07-10 reorganize_
-hypothesis exclusion) still hold on the exact code now being wired live.
+boot_substrate(). The 2026-07-21 architecture ruling disables every
+production boot call, including when the obsolete environment switch is 1.
+The remaining direct-method tests preserve evidence about the dormant code;
+they do not claim it is live or architecturally accepted.
 
 Matches this repo's established split: this file is the single-threaded
 functional half (mirrors tests/test_read_sentence_lock_granularity.py's
@@ -262,41 +260,25 @@ def _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env):
     return fake
 
 
-def test_gl_init_starts_daydream_loop_by_default(monkeypatch, tmp_path):
-    """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): the ratified
-    default is now ON -- unset means the loop runs; the env var survives
-    only as an emergency-off. This test tracks that ruling (it used to
-    assert the opposite, pre-ratification default-off)."""
-    print("Boot-wiring test: _gl_init() DOES call start_daydream_loop() "
-          "when DAYDREAM_LOOP_ENABLED is unset (ratified default: on)...")
+def test_gl_init_keeps_daydream_disabled_by_default(monkeypatch, tmp_path):
+    """The obsolete periodic daydream mechanism must not start at boot."""
     fake = _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env=None)
     assert ("start_autonomy_loop", 0.2) in fake.calls, (
         "start_autonomy_loop must still be called unconditionally -- "
         "this change must not touch that")
-    assert any(c[0] == "start_daydream_loop" for c in fake.calls), (
-        "REGRESSION: daydream loop did NOT start with DAYDREAM_LOOP_ENABLED "
-        "unset -- the 2026-07-16 default-on ruling requires it to run")
-    print("  OK: autonomy loop started, daydream loop correctly on by default")
+    assert not any(c[0] == "start_daydream_loop" for c in fake.calls)
 
 
-def test_gl_init_does_not_start_daydream_loop_when_explicitly_zero(monkeypatch, tmp_path):
-    """The emergency-off: DAYDREAM_LOOP_ENABLED=0 must still stop the loop."""
+def test_gl_init_keeps_daydream_disabled_when_explicitly_zero(monkeypatch, tmp_path):
     fake = _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env="0")
     assert not any(c[0] == "start_daydream_loop" for c in fake.calls)
-    print("  OK: DAYDREAM_LOOP_ENABLED=0 correctly keeps daydream loop off")
 
 
-def test_gl_init_starts_daydream_loop_when_enabled(monkeypatch, tmp_path):
-    print("Boot-wiring test: _gl_init() DOES call start_daydream_loop() "
-          "when DAYDREAM_LOOP_ENABLED=1 -- proves the reconnection is real, "
-          "not just present-but-unreachable like the old boot_substrate() "
-          "call site was...")
+def test_gl_init_ignores_obsolete_daydream_enable_switch(monkeypatch, tmp_path):
+    """An old task definition cannot reactivate the rejected mechanism."""
     fake = _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env="1")
     assert ("start_autonomy_loop", 0.2) in fake.calls
-    assert any(c[0] == "start_daydream_loop" for c in fake.calls), (
-        "start_daydream_loop was never called with DAYDREAM_LOOP_ENABLED=1 "
-        "-- the reconnection did not actually wire the call in")
-    print("  OK: daydream loop started exactly when the flag says it should")
+    assert not any(c[0] == "start_daydream_loop" for c in fake.calls)
 
 
 if __name__ == "__main__":

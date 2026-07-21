@@ -408,9 +408,9 @@ def _frame_backpressure_release(kind):
 # is the first few seconds -- the real quiet-turn compute is ~1.7-2.7s -- so
 # shedding is now bounded: frames are shed only within the first
 # _CONVERSE_PRIORITY_WINDOW_S of the OLDEST in-flight turn, then flow again
-# even while it is still settling. This reuses the codebase's own max-defer
-# safety-valve pattern (see autonomous_emission's live-priority defer). The
-# deadline doubles as the stuck-counter watchdog: a hung turn's window simply
+# even while it is still settling. This is a distinct frame-admission window,
+# not the causal scheduling owner used by sensory settlement. The deadline
+# doubles as the stuck-counter watchdog: a hung turn's window simply
 # expires, so a never-returning await can no longer blind the process.
 _converse_inflight_lock = threading.Lock()
 _converse_inflight = 0
@@ -535,44 +535,6 @@ def _fail_inflight_converse_tasks(reason):
     return n_failed
 
 
-def _process_observed_sight_frame(sight_b64):
-    """GL-CMD-CAMERA-TURN-LATENCY dedup fix: route the send-time,
-    utterance-co-occurring conversation camera frame through the SAME bounded
-    sight backpressure gate the continuous /sight_frame stream already uses
-    (_frame_backpressure_acquire('sight')), instead of calling
-    _guala.process_sight_frame() directly and UNPROTECTED.
-
-    Before this, a conversation-with-camera turn processed its attached frame
-    on a second, ungated path while the 5s /sight_frame stream processed its
-    own frames on the gated path -- two paths for sight, one of them with no
-    backpressure at all. Now there is exactly one ordered, capacity-limited
-    sight path. The send-time frame is still processed when there is capacity
-    (it carries information the up-to-5s-stale streamed frame does not: it is
-    captured exactly at the utterance, so process_sight_frame's cached
-    _last_sight_signal is fresh inside SENSE_BINDING_WINDOW_SEC of the words),
-    but when the shared cap is already full it is DROPPED -- honestly, counted
-    in _frame_dropped['sight'] by the gate, never a second unprotected call.
-    The word binding then falls back to the most recent streamed sight still
-    in window.
-
-    Returns a small outcome dict; never silent. base64/decode errors
-    propagate unchanged (same strict contract the observed path had before)."""
-    import base64
-    if not isinstance(sight_b64, str) or not sight_b64:
-        return {"processed": False, "reason": "no_frame"}
-    if not _frame_backpressure_acquire("sight"):
-        return {"processed": False, "dropped": True,
-                "reason": "backpressure — sight-frame processing at capacity",
-                "n_dropped": _frame_dropped["sight"]}
-    try:
-        image_bytes = base64.b64decode(sight_b64, validate=True)
-        _image, grid, _width, _height = decode_image_bytes(image_bytes)
-        _guala.process_sight_frame(grid)
-        return {"processed": True}
-    finally:
-        _frame_backpressure_release("sight")
-
-
 class _live_interaction_scope:
     """GL-CMD-CAMERA-TURN-LATENCY priority gate (caller side). Context manager
     that marks a live human interaction (a converse turn, or a real sight/
@@ -605,60 +567,6 @@ class _live_interaction_scope:
             except Exception:
                 pass
         return False
-
-
-def _run_embedded_observed_conversation(
-        *, task_id: str, text: str, source: str, sight_b64: str):
-    """Bind one send-time camera event and its words as one experience."""
-    if _guala is None:
-        raise RuntimeError("guala_not_ready")
-    if not isinstance(sight_b64, str) or not sight_b64:
-        raise ValueError("observed conversation requires camera bytes")
-    context_id = f"live-conversation:{task_id}"
-    if _guala.window_manager.active_context_id is not None:
-        raise RuntimeError("observed conversation inherited another BindingWindow")
-    _guala.window_manager.begin_context(
-        context_id,
-        trigger_reason="live_observed_conversation",
-        context_detail={
-            "experience_origin": "observed",
-            "source": source,
-            "task_id": task_id,
-        },
-    )
-    complete = False
-    result = None
-    try:
-        sight_outcome = _process_observed_sight_frame(sight_b64)
-        if sight_outcome.get("dropped"):
-            # Honest, counted degradation: the send-time frame hit the shared
-            # sight backpressure cap (the continuous stream already has frames
-            # in flight). Do NOT process it a second time on an unprotected
-            # path; the word binding falls back to the most recent streamed
-            # sight still within SENSE_BINDING_WINDOW_SEC. Non-silent: counted
-            # by the gate (_frame_dropped) and logged to the event stream here.
-            print(f"[observed-sight] dropped: {sight_outcome.get('reason')} "
-                  f"(n_dropped={sight_outcome.get('n_dropped')})")
-            try:
-                _guala._log_substrate_event(
-                    "observed_sight_frame_dropped",
-                    reason=sight_outcome.get("reason"),
-                    n_dropped=sight_outcome.get("n_dropped"))
-            except Exception:
-                pass
-        result = _guala.converse(text, source=source)
-        _guala._bind_certified_fact_emission_to_active_window(result)
-        complete = True
-    finally:
-        window_id = _guala.window_manager.end_context(
-            context_id,
-            "context_complete" if complete else "context_failed",
-        )
-    if not complete or result is None:
-        raise RuntimeError("observed conversation did not complete")
-    if window_id is None:
-        raise RuntimeError("observed conversation BindingWindow did not close")
-    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -837,8 +745,7 @@ async def _run_glew_converse_turn(task, task_id, text, source):
 
 
 async def _run_converse(
-        task_id: str, text: str, source: str, emission_mode=None,
-        sight_b64: Optional[str] = None):
+        task_id: str, text: str, source: str, emission_mode=None):
     """Run substrate converse in executor, write result to task registry."""
     task = _converse_tasks.get(task_id)
     if task is None:
@@ -929,17 +836,8 @@ async def _run_converse(
             # the executor thread runs converse (which takes self.lock),
             # released after it completes OR raises (see _live_interaction_scope).
             with _live_interaction_scope():
-                if sight_b64:
-                    turn_result = await _run_lifecycle_executor(
-                        lambda: _run_embedded_observed_conversation(
-                            task_id=task_id,
-                            text=text,
-                            source=source,
-                            sight_b64=sight_b64,
-                        ))
-                else:
-                    turn_result = await _run_lifecycle_executor(
-                        lambda: _guala.converse(text, source=source))
+                turn_result = await _run_lifecycle_executor(
+                    lambda: _guala.converse(text, source=source))
             response = turn_result.response
             response_source = turn_result.response_source
             # All-at-once doctrine (Joe 2026-07-16, "gibberish if that is
@@ -2513,51 +2411,13 @@ def _gl_init():
     # v7: Start autonomy loop. 0.2s per GL-BRIEF-NEEDS-PHYSICS (not 0.05).
     g.start_autonomy_loop(interval=0.2)
 
-    # GL-FIX-DAYDREAM-RECONNECT-C1-20260711: start_daydream_loop() (added
-    # GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42) was only ever called from
-    # substrate_runner.boot_substrate() -- which the GL-CMD-PROCESS-COLLAPSE-61
-    # refactor (2026-07-01, ~36h after daydream shipped) superseded with this
-    # function (_gl_init) without porting the direct g.start_daydream_loop()
-    # call sitting right next to g.start_autonomy_loop() above (the same line
-    # THIS call mirrors). Confirmed accidental, not deliberate: no HALT-style
-    # doc or comment anywhere says daydream should stay off; the opposite --
-    # the original dispatch specified it should run unconditionally from
-    # __init__, and five follow-on commits since (through 2026-07-10) kept
-    # investing real correctness work in _daydream_tick/_update_invariant
-    # "because it feeds live daydream/novel-jump writes," and two unrelated
-    # audit reports (GL-RPT-QUEUE-RUNAWAY-ROOT-CAUSE-C1-20260707,
-    # GL-RPT-MULTIPROCESS-DESIGN-C1-20260710) both inventory it as an
-    # already-running thread. It never was. Locking verified compatible with
-    # tonight's read_sentence per-word lock fix (5fd8cca): _daydream_tick's
-    # three-phase pattern (snapshot under self.lock / associate+select with
-    # no lock / write under self.lock) never touches _current_episode or
-    # _prev_phase_vec (the two attributes that fix made call-local), and its
-    # unlocked deep_atlas/organism reads already match this codebase's
-    # existing accepted pattern (the live emission candidate path reads the
-    # same structures the same way). reorganize_hypothesis entries are still
-    # excluded from daydream's novel-jump surfacing (verified current,
-    # dated 2026-07-10 in the code itself) and daydream's own writes are
-    # excluded from _imagination_candidates by its source_path filter, so
-    # there is no "one mind, one mouth" collision either direction.
-    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): default flipped ON.
-    # The 2026-07-11 reconnect kept this OFF because the substrate was
-    # under measured lock contention (tick_rate 0.04/s vs 5/s nominal,
-    # 12-93s stalls) and the note demanded "live tick_rate/lock-wait
-    # telemetry open" before enabling. Both preconditions have since been
-    # met: the read-word coarse lock was narrowed (2026-07-10, 7037371
-    # series) and the O(n^2) close-index stall was fixed (2026-07-15,
-    # ccf2abf -- turn settle 5+min -> 0.4s); and the demanded telemetry
-    # now EXISTS and runs with the loop itself
-    # (Guala._daydream_telemetry_check: daydream self.lock-wait p95 > 50ms
-    # or tick_rate dropping >30% below the daydream-enabled baseline both
-    # raise a loud daydream_telemetry_alert event + stderr line). Per the
-    # 2026-07-16 all-at-once ruling there are no default-off cognitive
-    # gates: DAYDREAM_LOOP_ENABLED remains as an EMERGENCY-OFF only
-    # (set to 0 to stop the loop at next boot).
-    if os.environ.get("DAYDREAM_LOOP_ENABLED", "1") != "0":
-        g.start_daydream_loop()
-        print("[GualaLoom] daydream loop started (default-on; "
-              "DAYDREAM_LOOP_ENABLED=0 is the emergency off)")
+    # 2026-07-21 architecture ruling: the periodic 0.5-second chi-walk is not
+    # the intended daydream mechanism. Daydream must eventually be rebuilt as
+    # bounded, sense-triggered background memory that cannot interrupt a live
+    # perception, conversation, or action. Keep the existing implementation
+    # dormant; do not start it from production boot or honor the obsolete
+    # DAYDREAM_LOOP_ENABLED switch.
+    print("[GualaLoom] daydream loop disabled by architecture ruling")
 
     s = g.introspect()
     print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
@@ -3165,6 +3025,10 @@ async def sound_frame(msg: GLMessage):
                             sight_grid,
                             source_anchor_ns=capture_times[
                                 "sight_source_anchor_ns"],
+                            source_time_start_ns=capture_times[
+                                "source_time_start_ns"],
+                            source_time_end_ns=capture_times[
+                                "source_time_end_ns"],
                         )
                         if sight_receipt and sight_receipt.get("accepted"):
                             observed_senses.append("sight")
@@ -3182,6 +3046,8 @@ async def sound_frame(msg: GLMessage):
                             source=src,
                             source_anchor_ns=capture_times[
                                 "source_time_start_ns"],
+                            source_time_end_ns=capture_times[
+                                "source_time_end_ns"],
                             auditory_event_boundary=auditory_event_boundary,
                         )
                         if sound_receipt and sound_receipt.get("accepted"):
@@ -3218,6 +3084,10 @@ async def sound_frame(msg: GLMessage):
                         sensory_errors["settlement"] = (
                             f"{type(settlement_error).__name__}: "
                             f"{settlement_error}")
+                        _guala.window_manager.discard_unsettled_context(
+                            context_id,
+                            "live_audiovisual_settlement_failed",
+                        )
             else:
                 try:
                     sound_receipt = _guala.process_sound_frame(
@@ -3507,7 +3377,7 @@ async def gualaloom_chat(msg: GLMessage):
         _schedule_mutating_background(
             lambda: _run_converse(
                 task_id, msg.text or "", msg.source or "joe",
-                msg.emission_mode, msg.sight_b64),
+                msg.emission_mode),
             name=f"converse-{task_id}",
         )
         return JSONResponse(

@@ -1,16 +1,13 @@
 """
-test_daydream_loop_reconnect_concurrency.py -- real-threading adversarial
-tests for GL-FIX-DAYDREAM-RECONNECT-C1-20260711.
+Real-threading adversarial tests for the dormant legacy daydream loop.
 
 Matches the established pattern in tests/test_presence_keepalive_
 concurrency.py and tests/test_read_sentence_lock_granularity_concurrency.py
 (see those files' own docstrings): real Guala() instances, real
 threading.Thread, real self.lock -- no mocks of the locking mechanism
-itself. This file proves the newly-reconnected start_daydream_loop()
-background thread does not crash, deadlock, or meaningfully degrade a real
-in-flight conversation turn when it is running concurrently with real
-conversational activity -- the actual condition it will be running under
-once wired live (gated by DAYDREAM_LOOP_ENABLED).
+itself. Production boot no longer calls start_daydream_loop(); these tests
+exercise the retained method directly only so dormant code cannot silently
+rot before the planned sense-triggered redesign replaces it.
 
 _daydream_tick() already wraps ALL exceptions in the background loop
 itself (try/except: pass in start_daydream_loop's _loop closure) so a

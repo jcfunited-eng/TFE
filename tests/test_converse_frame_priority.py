@@ -190,6 +190,10 @@ def test_sound_frame_processed_when_no_turn_in_flight(clean_converse_flag):
         return {"accepted": True, "closed_window_id": window_id,
                 "settlement": fake._latest_causal_settlement}
     fake.process_sound_frame = process_sound_frame
+    fake.auditory_l5_status = lambda: {
+        "recognition_attempted": False,
+        "status": "not_attempted",
+    }
     appmod._guala = fake
 
     # Stub only the UNRELATED heavy collaborators (webm decoder + the vocab

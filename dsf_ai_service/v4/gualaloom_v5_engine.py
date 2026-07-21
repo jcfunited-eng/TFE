@@ -110,6 +110,18 @@ def _engine_mutation_entry(method):
     return guarded
 
 
+def _live_sensory_entry(method):
+    """Give one physical sensory mutation uninterrupted causal ownership."""
+    @functools.wraps(method)
+    def guarded(self, *args, **kwargs):
+        self._enter_live_interaction()
+        try:
+            return method(self, *args, **kwargs)
+        finally:
+            self._exit_live_interaction()
+    return guarded
+
+
 def saturate(current, gain):
     """Asymptotic receptor saturation. As current → 1.0, effective gain → 0.
     GL-BRIEF-NEEDS-PHYSICS: prevents needs from pinning at ceiling."""
@@ -2834,12 +2846,9 @@ class Guala:
     # gets the lock after at most the one already-in-progress background
     # iteration -- never an unbounded run of them. This is a real DEFERRAL
     # (the background work still happens, just not WHILE a live turn waits),
-    # never a permanent skip. This cap is the starvation safety valve: no
-    # single background site defers longer than this many seconds of
-    # CONTINUOUS deferral, so even under sustained back-to-back live use --
-    # or a leaked pending counter -- background work still gets a slice and
-    # can never be starved forever. See _defer_for_live_interaction.
-    _LIVE_INTERACTION_MAX_DEFER_SEC = 2.0
+    # never a permanent skip. The balanced live-interaction scope is the
+    # causal owner of the deferral boundary: background work resumes at its
+    # exact exit and must not interrupt a still-settling physical event.
 
     def __init__(self):
         self._identity_record = None
@@ -2946,8 +2955,7 @@ class Guala:
         self._read_count_compat = 0  # kept for load compatibility only; superseded by property
         self.dream_log = []
         self.lock = threading.RLock()
-        # GL-CMD-CAMERA-TURN-LATENCY: live-interaction priority gate (see the
-        # _LIVE_INTERACTION_MAX_DEFER_SEC class constant above and
+        # GL-CMD-CAMERA-TURN-LATENCY: live-interaction priority gate (see
         # _defer_for_live_interaction below). A plain int counter guarded by a
         # dedicated micro-lock -- held only for the ~microsecond of an
         # increment/decrement, never during real work, so it introduces no
@@ -2958,10 +2966,6 @@ class Guala:
         # micro-lock.
         self._live_interaction_pending = 0
         self._live_interaction_lock = threading.Lock()
-        # Per background-site monotonic timestamp of when it FIRST started
-        # deferring in the current contention episode; used by the starvation
-        # safety valve. Guarded by _live_interaction_lock.
-        self._live_interaction_defer_since = {}
         # Persistence is a separate state domain from cognition.  Every
         # multi-file save, WaveAtlas write, event compaction, and snapshot
         # enters this one reentrant boundary so two generations can never
@@ -10759,22 +10763,15 @@ class Guala:
     def _defer_for_live_interaction(self, site):
         """Return True if this background site (identified by `site`) should
         SKIP acquiring self.lock this cycle to let a pending live interaction
-        through first; False if it should proceed normally.
-
-        Starvation-free by construction: while a live interaction is pending,
-        a site defers only up to _LIVE_INTERACTION_MAX_DEFER_SEC of CONTINUOUS
-        deferral, then the safety valve forces it to proceed (and re-arms), so
-        background work always gets a slice even under sustained live use or a
-        leaked pending counter. When nothing is pending, deferral state for
-        the site is cleared so the next contention episode starts fresh."""
+        through first; False if it should proceed normally. The interaction's
+        balanced try/finally scope is the exact end condition; a timer cannot
+        split one physical experience into competing scheduler intervals."""
         lock = getattr(self, "_live_interaction_lock", None)
         if lock is None:
             return False
         # Defer if EITHER "live interaction" counter is positive:
-        #  - _live_interaction_pending: app-level marks for the paths engine
-        #    converse() does not itself cover -- the /sight_frame and
-        #    /sound_frame routes, and the observed-conversation sight window
-        #    that runs BEFORE converse() is entered.
+        #  - _live_interaction_pending: physical /sight_frame and /sound_frame
+        #    work, plus app-level scopes enclosing a whole audiovisual event.
         #  - _live_converse_pending: the PRE-EXISTING per-turn counter that
         #    converse() self-increments (under _live_converse_state_lock; see
         #    line ~5120) and that _try_acquire_autonomous_emission already
@@ -10782,29 +10779,9 @@ class Guala:
         #    it -- so this self.lock priority gate mirrors/extends that
         #    existing attribute without changing its semantics or its
         #    underflow-checked write path.
-        pending = (getattr(self, "_live_interaction_pending", 0)
-                   + getattr(self, "_live_converse_pending", 0))
         with lock:
-            since_map = getattr(self, "_live_interaction_defer_since", None)
-            if since_map is None:
-                since_map = self._live_interaction_defer_since = {}
-            if pending <= 0:
-                since_map.pop(site, None)
-                return False
-            now = time.monotonic()
-            since = since_map.get(site)
-            if since is None:
-                since_map[site] = now
-                return True
-            if now - since >= self._LIVE_INTERACTION_MAX_DEFER_SEC:
-                # Safety valve: this site has yielded long enough. Proceed and
-                # re-arm so the next contention episode gets its own full
-                # window rather than firing the valve on every subsequent call.
-                since_map.pop(site, None)
-                print(f"[live-priority] {site}: max-defer reached, proceeding "
-                      f"(pending={pending})")
-                return False
-            return True
+            return (getattr(self, "_live_interaction_pending", 0)
+                    + getattr(self, "_live_converse_pending", 0)) > 0
 
     def _autonomy_tick(self):
         """One iteration of the autonomy loop."""
@@ -10812,8 +10789,8 @@ class Guala:
         # before taking self.lock. The tick body is entirely under self.lock
         # (and can hold it for a long EMITTING compute), so deferring the
         # WHOLE tick is exactly what frees the lock for a waiting live turn.
-        # Bounded by the safety valve in _defer_for_live_interaction, so her
-        # background cognition can never be permanently frozen by this gate.
+        # The balanced live-interaction scope releases this gate at the exact
+        # end of the physical or conversational event.
         if self._defer_for_live_interaction("autonomy_tick"):
             return
         # GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.1: env-var gate.
@@ -12577,7 +12554,10 @@ class Guala:
             si.last_attended_tick = self.tick
 
     @_engine_mutation_entry
-    def process_sight_frame(self, grid, source_anchor_ns=None):
+    @_live_sensory_entry
+    def process_sight_frame(
+            self, grid, source_anchor_ns=None, source_time_start_ns=None,
+            source_time_end_ns=None):
         """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
         sight krimelack. No PictureItem, no storage. Just krimelack + atlas.
 
@@ -12595,35 +12575,20 @@ class Guala:
         if (isinstance(source_anchor_ns, bool)
                 or not isinstance(source_anchor_ns, int)):
             raise ValueError("sight source anchor must be integer nanoseconds")
+        interval_supplied = (
+            source_time_start_ns is not None or source_time_end_ns is not None)
+        if interval_supplied:
+            if (isinstance(source_time_start_ns, bool)
+                    or not isinstance(source_time_start_ns, int)
+                    or isinstance(source_time_end_ns, bool)
+                    or not isinstance(source_time_end_ns, int)
+                    or source_time_end_ns <= source_time_start_ns
+                    or source_anchor_ns < source_time_start_ns
+                    or source_anchor_ns >= source_time_end_ns):
+                raise ValueError(
+                    "sight source interval must contain its source anchor")
         _source_started_ns = source_anchor_ns
         _tick_snapshot = self.tick
-        self._last_frame_tick = _tick_snapshot
-        # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal, not
-        # synthesized -- a bounded subsample of her ACTUAL camera frame
-        # (real pixel intensities), cached with a wall-clock timestamp so
-        # _enqueue_organism_remember can bind it to a co-occurring word IF
-        # it's still recent (SENSE_BINDING_WINDOW_SEC). Subsampled (not the
-        # full grid) for the same reason -177/-178 reduced touch/smell/
-        # taste to 20 samples/channel: VisualKrimelack.feed_signal() costs
-        # O(len(signal)), and a full raw frame (e.g. 64x64=4096 px) would
-        # be far outside every other modality's ~20-160 sample range for
-        # no measured benefit -- not yet re-measured at this exact size,
-        # named honestly in the N5 cost report rather than assumed free.
-        try:
-            # GL-CMD-ORGANISM-WAVE-MEMORY-207 RIDER: np.asarray first --
-            # grid.ravel() silently swallowed any input that wasn't already
-            # a numpy array (§9.2, a silent fallback), which meant
-            # _last_sight_signal never got set and every READING word's
-            # organism_experience_bound event showed senses=[] even while
-            # sight_frame_bound kept firing (07-05 live log). Any remaining
-            # exception is now logged, not swallowed.
-            _flat = np.asarray(grid).ravel()
-            _step = max(1, len(_flat) // 100)
-            self._last_sight_signal = _flat[::_step][:100].copy()
-            self._last_sight_wall_time = time.time()
-        except Exception as _sfe:
-            print(f"[GualaLoom] process_sight_frame: sight signal cache failed "
-                  f"(non-fatal, senses stay honestly absent): {_sfe}")
         from dsf_ai_service.visual_krimelack import (
             view_picture,
             visual_fragment_receipt,
@@ -12633,20 +12598,39 @@ class Guala:
                                  n_fixations=3, ticks_per_fixation=50)
         if not fragments:
             return
+        visual_offsets_ns = tuple(
+            int(item["t"] - _tick_snapshot) * 20_000_000
+            for fragment in fragments for item in fragment.signal_records)
+        if interval_supplied and (
+                source_anchor_ns + min(visual_offsets_ns)
+                < source_time_start_ns
+                or source_anchor_ns + max(visual_offsets_ns)
+                > source_time_end_ns):
+            raise ValueError(
+                "sight foveation falls outside the authoritative causal interval")
+
+        self._last_frame_tick = _tick_snapshot
+        # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal, not
+        # synthesized -- a bounded subsample of her ACTUAL camera frame
+        # (real pixel intensities), cached only after the producer proves its
+        # full unmodified foveation timeline fits the causal interval.
+        try:
+            _flat = np.asarray(grid).ravel()
+            _step = max(1, len(_flat) // 100)
+            self._last_sight_signal = _flat[::_step][:100].copy()
+            self._last_sight_wall_time = time.time()
+        except Exception as _sfe:
+            print(f"[GualaLoom] process_sight_frame: sight signal cache failed "
+                  f"(non-fatal, senses stay honestly absent): {_sfe}")
         # GL-RPT-WAL-BLOAT F2 (2026-07-15): explicit per-frame context, same
         # reasoning as process_sound_frame below -- the implicit-context
         # fallback leaked one never-closable open context per camera-frame
         # job (app.py's per-job contextvar isolation discards the only
         # binding that could have closed it).
-        # 2026-07-16 correction: the per-frame context applies ONLY when no
-        # caller-owned experience context is bound.  A send-time frame that
-        # arrives INSIDE a bound experience (the observed-conversation turn
-        # in app._run_embedded_observed_conversation) is part of THAT lived
-        # experience -- its fragments must bind into the caller's window,
-        # exactly as the pre-F2 implicit fallback did, or the observed
-        # window closes word-only and its BindingWindowCitation can never
-        # certify a multimodal language experience (the teach->cite bug).
-        # The frame path only closes contexts it created itself.
+        # A per-frame context applies only when no caller-owned causal
+        # experience is bound. A timed audiovisual capture owns one enclosing
+        # context, so its sight fragments and sound ports settle together.
+        # The frame path closes only contexts it created itself.
         _bound_experience = self.window_manager.active_context_id
         _frame_context_id = (
             _bound_experience if _bound_experience is not None
@@ -12965,6 +12949,7 @@ class Guala:
             }
 
     @_engine_mutation_entry
+    @_live_sensory_entry
     def process_sound_frame(
             self, audio_bytes, source="mic:live", source_anchor_ns=None,
             source_time_end_ns=None, auditory_event_boundary="ambient"):
