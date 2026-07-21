@@ -294,6 +294,18 @@ def test_teaching_state_refuses_oversize_before_json_parse(
         Guala._load_teaching_state_file(str(teaching_path))
 
 
+def test_verified_exact_state_can_enter_finite_legacy_migration_wall(
+        tmp_path, monkeypatch):
+    teaching_path = tmp_path / "guala_teaching.json"
+    with teaching_path.open("wb") as output:
+        output.truncate(engine_module.TEACHING_STATE_MAX_BYTES + 1)
+
+    monkeypatch.setattr(engine_module.json, "load", lambda _stream: {})
+
+    assert Guala._load_teaching_state_file(
+        str(teaching_path), allow_legacy_migration=True) == {}
+
+
 def test_current_teaching_state_restores_inside_preparse_boundary(
         tmp_path, monkeypatch):
     state_dir = tmp_path / "state"

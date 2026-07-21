@@ -83,6 +83,13 @@ SOUNDS_STATE_MAX_BYTES = 16 * 1024 * 1024
 # resource admission boundary, not a semantic limit or a truncation rule:
 # oversized state fails closed before json.load can allocate it.
 TEACHING_STATE_MAX_BYTES = AUDITORY_SNAPSHOT_MAX_DECODED_BYTES
+# One already-sealed production generation predates the bounded causal
+# provenance schema and contains 1,164,724 repeated recognized-strand IDs in
+# only 37 emission records (97,963,119 encoded bytes).  Admit that exact class
+# of legacy artifact through a finite 128 MiB migration wall, validate it, and
+# immediately normalize each record to its bounded causal citations.  Every
+# new save remains governed by TEACHING_STATE_MAX_BYTES above.
+LEGACY_TEACHING_STATE_MIGRATION_MAX_BYTES = 128 * 1024 * 1024
 # Historical records used a 200 Hz compatibility waveform.  Preserve up to
 # ten minutes per record for restore honesty; it is never replay authority.
 # The independent 16 MiB file wall bounds aggregate legacy retention.
@@ -230,19 +237,17 @@ class FactEmissionSupport:
 
 @dataclass(frozen=True)
 class FactEmissionTokenProvenance:
-    """Full structural class and every exact occurrence behind one token."""
+    """Structural class and bounded causal citations behind one token."""
 
     word: str
     structural_fingerprint: str
-    recognized_strand_ids: tuple
     supports: tuple
 
     def as_record(self):
         return {
-            "authority": "language_fact_strand_reciprocity_v1",
+            "authority": "language_fact_strand_reciprocity_v2",
             "word": self.word,
             "structural_fingerprint": self.structural_fingerprint,
-            "recognized_strand_ids": list(self.recognized_strand_ids),
             "supports": [support.as_record() for support in self.supports],
         }
 
@@ -5000,8 +5005,6 @@ class Guala:
             provenance.append(FactEmissionTokenProvenance(
                 word=token.language_form,
                 structural_fingerprint=token.structural_fingerprint,
-                recognized_strand_ids=tuple(
-                    strand.strand_id for strand in token.recognized_strands),
                 supports=supports,
             ))
         if not provenance:
@@ -5052,10 +5055,7 @@ class Guala:
                     for strand in recall.matched_strands}
                 recalled_ids = {
                     strand.strand_id for strand in recall.matched_strands}
-                if (recalled_classes != {item.structural_fingerprint}
-                        or not item.recognized_strand_ids
-                        or not set(item.recognized_strand_ids).issubset(
-                            recalled_ids)):
+                if recalled_classes != {item.structural_fingerprint}:
                     return False
 
                 for support in item.supports:
@@ -8382,7 +8382,7 @@ class Guala:
         try:
             items = []
             for raw in record.get("commit_provenance") or []:
-                if raw.get("authority") != "language_fact_strand_reciprocity_v1":
+                if raw.get("authority") != "language_fact_strand_reciprocity_v2":
                     return False
                 supports = tuple(FactEmissionSupport(
                     window_id=support["window_id"],
@@ -8396,7 +8396,6 @@ class Guala:
                 items.append(FactEmissionTokenProvenance(
                     word=raw["word"],
                     structural_fingerprint=raw["structural_fingerprint"],
-                    recognized_strand_ids=tuple(raw["recognized_strand_ids"]),
                     supports=supports,
                 ))
             settlement = EmissionSettlement(
@@ -15730,6 +15729,28 @@ class Guala:
             cls._exact_int(
                 record.get("tick"), f"teaching.emission[{emission_id}].tick",
                 maximum=engine_tick)
+            provenance = record.get("commit_provenance")
+            if provenance is None:
+                continue
+            if (not isinstance(provenance, list)
+                    or any(not isinstance(item, dict) for item in provenance)):
+                raise ValueError(
+                    f"teaching emission {emission_id!r} provenance is invalid")
+            for item in provenance:
+                authority = item.get("authority")
+                if authority == "language_fact_strand_reciprocity_v1":
+                    strand_ids = item.get("recognized_strand_ids")
+                    if (not isinstance(strand_ids, list)
+                            or any(not isinstance(value, str) or not value
+                                   for value in strand_ids)):
+                        raise ValueError(
+                            f"teaching emission {emission_id!r} has invalid "
+                            "legacy recognized-strand provenance")
+                elif authority == "language_fact_strand_reciprocity_v2":
+                    if "recognized_strand_ids" in item:
+                        raise ValueError(
+                            f"teaching emission {emission_id!r} mixes bounded "
+                            "and legacy provenance")
         auditory = data.get("auditory_reciprocity")
         if auditory is not None:
             if not isinstance(auditory, dict):
@@ -15870,13 +15891,38 @@ class Guala:
             return json.load(sound_file)
 
     @staticmethod
-    def _load_teaching_state_file(path):
-        """Reject an oversized teaching artifact before JSON allocates it."""
-        if os.path.getsize(path) > TEACHING_STATE_MAX_BYTES:
+    def _load_teaching_state_file(path, *, allow_legacy_migration=False):
+        """Admit a larger legacy artifact only from verified exact state."""
+        boundary = (LEGACY_TEACHING_STATE_MIGRATION_MAX_BYTES
+                    if allow_legacy_migration else TEACHING_STATE_MAX_BYTES)
+        if os.path.getsize(path) > boundary:
             raise ValueError(
                 "guala_teaching.json exceeds the pre-parse byte boundary")
         with open(path) as teaching_file:
             return json.load(teaching_file)
+
+    @staticmethod
+    def _normalize_emission_provenance_records(emissions):
+        """Replace the legacy recurrence list with its causal witnesses.
+
+        A v1 fact record persisted every structurally equivalent strand ID,
+        even though certification already reconstructs each cited support and
+        proves that support's exact source strand is still recalled.  Those
+        recurrence IDs are therefore redundant index material, not additional
+        causal evidence.  Removing them preserves word, structural class,
+        source window, entry, modality, trace, and source-strand authority.
+        """
+        for record in emissions.values():
+            provenance = record.get("commit_provenance")
+            if not isinstance(provenance, list):
+                continue
+            for item in provenance:
+                if (isinstance(item, dict)
+                        and item.get("authority")
+                        == "language_fact_strand_reciprocity_v1"):
+                    item.pop("recognized_strand_ids", None)
+                    item["authority"] = "language_fact_strand_reciprocity_v2"
+        return emissions
 
     @classmethod
     def _validate_wave_npz_payload(cls, path):
@@ -17576,7 +17622,10 @@ class Guala:
             teaching_path = os.path.join(state_dir, "guala_teaching.json")
             if os.path.exists(teaching_path):
                 try:
-                    td = self._load_teaching_state_file(teaching_path)
+                    td = self._load_teaching_state_file(
+                        teaching_path,
+                        allow_legacy_migration=exact_binary,
+                    )
                     tdata = (self._unwrap(td, "guala_teaching.json")
                              if "data" in td and "guala_identity" in td
                              else td)
@@ -17589,11 +17638,14 @@ class Guala:
                         tdata.get("feedback_log", []))
                     self._teaching_correction_log = list(
                         tdata.get("correction_log", []))
+                    emission_records = dict(
+                        tdata.get("emission_records", {}))
+                    self._normalize_emission_provenance_records(
+                        emission_records)
                     if exact_binary:
-                        self._emission_records = dict(
-                            tdata.get("emission_records", {}))
+                        self._emission_records = emission_records
                     else:
-                        for eid, rec in tdata.get("emission_records", {}).items():
+                        for eid, rec in emission_records.items():
                             self._emission_records[eid] = rec
                     auditory_snapshot = tdata.get("auditory_reciprocity")
                     if auditory_snapshot is not None:
