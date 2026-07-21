@@ -7797,16 +7797,7 @@ async def _quiesce_and_seal(nonce):
         if _guala is None:
             raise RuntimeError("Guala is not loaded")
         app.state.deployment_quiescing = True
-        await asyncio.to_thread(_guala.manual_sleep, STATE_DIR)
-        # Seal settle (2026-07-16): sleep stops intake; the workers now get
-        # their own budget to drain accumulated backlog before the strict
-        # 120s quiescence window opens. Script-side --max-time is 900s.
-        _settle_budget = float(
-            os.environ.get("SEAL_SETTLE_BUDGET_S", "420") or 420)
-        settle_proof = await asyncio.to_thread(
-            _guala.settle_queues, _settle_budget)
         v7_proof = await asyncio.to_thread(_flush_v7_sessions_for_seal)
-
         await asyncio.to_thread(
             _stop_embedded_persistence_components, 120.0)
         import dsf_ai_service.substrate_runner as _sr
@@ -7817,8 +7808,32 @@ async def _quiesce_and_seal(nonce):
         # join it here on seal.  A no-op when the worker was never spawned.
         from dsf_ai_service.speech_transducer import shutdown_speech_worker
         speech_proof = await asyncio.to_thread(shutdown_speech_worker, 30.0)
+
+        # This is the final admitted engine mutation.  It records sleep only
+        # after every external producer has stopped, and before the engine
+        # closes its own mutation admission below.
+        await asyncio.to_thread(_guala.manual_sleep, STATE_DIR)
+
+        # A sealed boundary cannot retain a threshold backlog.  The former
+        # settle_queues(threshold=8) phase ran while autonomy and daydream
+        # could still refill organism and tapestry queues.  The strict engine
+        # boundary owns the correct order: stop producers, close admission,
+        # join accepted mutations, drain all queues to zero, then stop every
+        # worker.  Give that one proof the former settle allowance plus the
+        # existing strict-stop allowance.
+        import math
+        raw_settle_budget = os.environ.get("SEAL_SETTLE_BUDGET_S", "420")
+        try:
+            settle_budget = float(raw_settle_budget or 420)
+        except (TypeError, ValueError) as error:
+            raise RuntimeError(
+                "SEAL_SETTLE_BUDGET_S must be a finite non-negative number"
+            ) from error
+        if not math.isfinite(settle_budget) or settle_budget < 0.0:
+            raise RuntimeError(
+                "SEAL_SETTLE_BUDGET_S must be a finite non-negative number")
         engine_proof = await asyncio.to_thread(
-            _guala.quiesce_background_workers, 120.0)
+            _guala.quiesce_background_workers, settle_budget + 120.0)
         certificate = await asyncio.to_thread(_seal_runtime_generation, nonce)
         proof = {
             **certificate,
@@ -7826,7 +7841,6 @@ async def _quiesce_and_seal(nonce):
             "speech_worker": speech_proof,
             "engine": engine_proof,
             "v7": v7_proof,
-            "settle": settle_proof,
         }
         lifecycle.seal(proof)
         return proof
