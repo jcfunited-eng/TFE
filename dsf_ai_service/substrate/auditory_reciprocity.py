@@ -1342,6 +1342,24 @@ class AuditoryReciprocityOwner:
         )
         return learned
 
+    def issue_tutor_authority(
+        self,
+        *,
+        experience_id: str,
+        kind: AuditoryReciprocityKind,
+        tutor_label: str,
+    ) -> dict | None:
+        """Issue one gateway receipt from this owner's mounted authority."""
+        if not isinstance(kind, AuditoryReciprocityKind):
+            raise ValueError("auditory reciprocity kind is invalid")
+        if not self._tutor_authority.required:
+            return None
+        return self._tutor_authority.issue(
+            experience_id=experience_id,
+            kind=kind.value,
+            tutor_label=tutor_label,
+        ).as_dict()
+
     def recognize(
         self,
         experience: AuditoryL5Experience,

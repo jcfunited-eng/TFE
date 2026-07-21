@@ -198,7 +198,9 @@ def test_http_reply_door_is_closed_for_ambient_and_open_for_utterance(
     monkeypatch.setattr(
         app_module,
         "_maybe_trigger_voice_reply",
-        lambda spoken, tick: reply_calls.append((spoken, tick)),
+        lambda spoken, tick, terminal_event_id=None: reply_calls.append(
+            (spoken, tick)
+        ),
     )
     monkeypatch.setenv("VOICE_WHISPER", "0")
 
@@ -226,5 +228,8 @@ def test_browser_has_no_manual_utterance_control_or_labeling_path() -> None:
     assert 'id="speak-utterance"' not in html
     assert "toggleUtterance" not in html
     assert "utteranceRecorder" not in html
-    assert "capture_purpose:'ambient'" in html
+    assert "capture_purpose:" not in html
+    assert "MediaRecorder" not in html
+    assert "new AudioWorkletNode" in html
+    assert "audio_encoding:'pcm_s16le'" in html
     assert "source:'browser_microphone'" in html

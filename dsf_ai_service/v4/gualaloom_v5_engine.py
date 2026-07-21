@@ -41,7 +41,7 @@ import hashlib as _hashlib
 import heapq as _heapq
 import threading
 import numpy as np
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
 from collections import deque
 import random
@@ -3274,12 +3274,37 @@ class Guala:
             log_event=self._log_substrate_event,
             max_transitions=1024,
         )
+        from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+            AuditoryFullFieldStreamRegistry as _AuditoryFullFieldStreamRegistry,
+        )
+        self._auditory_full_field_streams = _AuditoryFullFieldStreamRegistry()
+        from dsf_ai_service.substrate.auditory_pcm_stream import (
+            PCM_STREAM_CAPACITY as _AUDITORY_TRANSACTION_CAPACITY,
+        )
+        self._auditory_transaction_capacity = _AUDITORY_TRANSACTION_CAPACITY
+        self._auditory_transaction_lock = threading.RLock()
+        self._auditory_capture_authorities = OrderedDict()
+        self._auditory_l5_by_assembly = OrderedDict()
+        self._latest_auditory_continuation_receipt = None
+        self._latest_auditory_stream_settlement_receipt = None
         from dsf_ai_service.substrate.auditory_reciprocity import (
             AuditoryReciprocityOwner as _AuditoryReciprocityOwner)
         self._auditory_reciprocity_owner = _AuditoryReciprocityOwner(
             log_event=self._log_substrate_event,
             max_classes_per_kind=64,
         )
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalTerminalRegistry as
+            _AuditoryIncrementalTerminalRegistry,
+        )
+        self._auditory_incremental_terminals = (
+            _AuditoryIncrementalTerminalRegistry(
+                reciprocity_owner=self._auditory_reciprocity_owner,
+                log_event=self._log_substrate_event,
+            )
+        )
+        self._latest_auditory_full_field_capture = None
+        self._latest_auditory_incremental_advance = None
         self._latest_auditory_recognitions = ()
         self._latest_auditory_recognition_boundary = "ambient"
         from dsf_ai_service.substrate.exact_causal_experience import (
@@ -6719,6 +6744,19 @@ class Guala:
             built,
             event_boundary=auditory_boundary,
         )
+        if self._latest_auditory_l5_experience is not None:
+            with self._auditory_transaction_lock:
+                self._auditory_l5_by_assembly[built.boundary.assembly_id] = (
+                    self._latest_auditory_l5_experience
+                )
+                self._auditory_l5_by_assembly.move_to_end(
+                    built.boundary.assembly_id
+                )
+                while (
+                    len(self._auditory_l5_by_assembly)
+                    > self._auditory_transaction_capacity
+                ):
+                    self._auditory_l5_by_assembly.popitem(last=False)
         self._latest_auditory_recognitions = (
             self._auditory_reciprocity_owner.recognize_all(
                 self._latest_auditory_l5_experience)
@@ -6762,6 +6800,57 @@ class Guala:
         )
 
     @_engine_mutation_entry
+    def teach_isolated_auditory_asset(self, wav_bytes, tutor_label):
+        """Teach one explicitly bounded spoken-form asset through full L5."""
+        from dsf_ai_service.substrate.auditory_reciprocity import (
+            AuditoryReciprocityKind,
+        )
+        from dsf_ai_service.substrate.auditory_tutor_authority import (
+            canonical_tutor_label,
+        )
+
+        label = canonical_tutor_label(tutor_label)
+        canonical, frame_count, _pcm_bytes = self._canonical_replay_wav(
+            wav_bytes
+        )
+        source_start_ns = time.time_ns()
+        causal = self.process_sound_frame(
+            canonical,
+            source="auditory_tutor_asset",
+            source_anchor_ns=source_start_ns,
+            source_time_end_ns=(
+                source_start_ns
+                + frame_count * 1_000_000_000 // REPLAY_SOUND_SAMPLE_RATE_HZ
+            ),
+            auditory_event_boundary="utterance",
+        )
+        experience = self._latest_auditory_l5_experience
+        if (
+            not causal
+            or not causal.get("accepted")
+            or experience is None
+        ):
+            raise RuntimeError("auditory tutor asset did not settle a full field")
+        authority_receipt = self._auditory_reciprocity_owner.issue_tutor_authority(
+            experience_id=experience.experience_id,
+            kind=AuditoryReciprocityKind.SPOKEN_FORM,
+            tutor_label=label,
+        )
+        result = self.teach_latest_auditory_experience(
+            experience_id=experience.experience_id,
+            kind=AuditoryReciprocityKind.SPOKEN_FORM.value,
+            tutor_label=label,
+            authority_receipt=authority_receipt,
+        )
+        return {
+            **result,
+            "sample_count": frame_count,
+            "sample_rate_hz": REPLAY_SOUND_SAMPLE_RATE_HZ,
+            "port_count": len(experience.ports),
+            "event_boundary": experience.event_boundary,
+        }
+
+    @_engine_mutation_entry
     def teach_latest_auditory_experience(
             self, *, experience_id, kind, tutor_label,
             authority_receipt=None):
@@ -6788,6 +6877,14 @@ class Guala:
             tutor_label=tutor_label,
             authority_receipt=authority_receipt,
         )
+        discarded_streams = (
+            self._auditory_incremental_terminals.refresh_learning()
+        )
+        if discarded_streams:
+            self._log_substrate_event(
+                "auditory_incremental_streams_discarded_after_teaching",
+                stream_count=discarded_streams,
+            )
         recognition = self._auditory_reciprocity_owner.recognize(
             experience, kind=typed_kind)
         current = self._latest_auditory_l5_experience
@@ -6822,6 +6919,20 @@ class Guala:
             "recognition_attempted": bool(
                 self._latest_auditory_recognition_boundary == "utterance"
                 and experience is not None
+            ),
+            "continuous_streams": self._auditory_full_field_streams.status(),
+            "incremental_terminal": (
+                self._auditory_incremental_terminals.status()
+            ),
+            "latest_incremental_status": (
+                self._latest_auditory_incremental_advance.status.value
+                if self._latest_auditory_incremental_advance is not None
+                else None
+            ),
+            "latest_stream_settlement_receipt_sha256": (
+                self._latest_auditory_stream_settlement_receipt.authority_receipt_sha256
+                if self._latest_auditory_stream_settlement_receipt is not None
+                else None
             ),
             "l5_owner": self._auditory_l5_owner.status(),
             "reciprocity": self._auditory_reciprocity_owner.status(),
@@ -12948,11 +13059,91 @@ class Guala:
                 "causal_receipt": receipt,
             }
 
+    def close_auditory_pcm_stream(self, stream_id, *, release_terminal=True):
+        """Close one stream and optionally release its final learned terminal."""
+        if not isinstance(stream_id, str) or not stream_id:
+            raise ValueError("auditory PCM stream id is required")
+        field_closed = self._auditory_full_field_streams.close(stream_id)
+        terminal = self._auditory_incremental_terminals.close(
+            stream_id,
+            release_terminal=release_terminal,
+        )
+        with self._auditory_transaction_lock:
+            for receipt_sha256, value in tuple(
+                self._auditory_capture_authorities.items()
+            ):
+                if value[0].stream_id == stream_id:
+                    del self._auditory_capture_authorities[receipt_sha256]
+        self._latest_auditory_incremental_advance = terminal
+        return {
+            "closed": field_closed or terminal is not None,
+            "terminal": terminal,
+        }
+
+    def bind_continuous_auditory_settlement(self, transport, settlement):
+        """Jointly receipt PCM, cochlear, L5, and causal-settlement authority."""
+        from dsf_ai_service.substrate.auditory_stream_settlement import (
+            bind_auditory_stream_settlement,
+        )
+        auditory_l5 = self._latest_auditory_l5_experience
+        cochlear = self._latest_auditory_continuation_receipt
+        if auditory_l5 is None or cochlear is None:
+            raise RuntimeError(
+                "continuous auditory settlement lacks L5 or cochlear authority"
+            )
+        receipt = bind_auditory_stream_settlement(
+            transport=transport,
+            cochlear=cochlear,
+            auditory_l5=auditory_l5,
+            causal_settlement=settlement,
+        )
+        self._latest_auditory_stream_settlement_receipt = receipt
+        return receipt
+
+    def advance_continuous_auditory_terminal(
+            self, *, pcm_s16le, transport, settlement):
+        """Advance one causal auditory epoch and expose only a UNIQUE terminal."""
+        with self._auditory_transaction_lock:
+            mounted_capture = self._auditory_capture_authorities.pop(
+                transport.receipt_sha256, None
+            )
+            auditory_l5 = self._auditory_l5_by_assembly.pop(
+                settlement.assembly_id, None
+            )
+        if mounted_capture is None or auditory_l5 is None:
+            raise RuntimeError(
+                "continuous auditory terminal lacks full-field authority"
+            )
+        mounted_transport, capture, cochlear = mounted_capture
+        if mounted_transport.receipt_sha256 != transport.receipt_sha256:
+            raise RuntimeError("continuous auditory transport authority changed")
+        from dsf_ai_service.substrate.auditory_stream_settlement import (
+            bind_auditory_stream_settlement,
+        )
+        joint = bind_auditory_stream_settlement(
+            transport=transport,
+            cochlear=cochlear,
+            auditory_l5=auditory_l5,
+            causal_settlement=settlement,
+        )
+        self._latest_auditory_stream_settlement_receipt = joint
+        result = self._auditory_incremental_terminals.advance(
+            pcm_s16le=pcm_s16le,
+            capture=capture,
+            auditory_l5=auditory_l5,
+            transport=transport,
+            cochlear=cochlear,
+            joint_settlement=joint,
+        )
+        self._latest_auditory_incremental_advance = result
+        return joint, result
+
     @_engine_mutation_entry
     @_live_sensory_entry
     def process_sound_frame(
             self, audio_bytes, source="mic:live", source_anchor_ns=None,
-            source_time_end_ns=None, auditory_event_boundary="ambient"):
+            source_time_end_ns=None, auditory_event_boundary="ambient",
+            auditory_pcm_continuity=None, auditory_pcm_s16le=None):
         """Bind one native 16 kHz microphone capture into the auditory field.
 
         The physical provider preserves synchronized cochlear-channel
@@ -12971,6 +13162,8 @@ class Guala:
         self._latest_auditory_recognition_boundary = auditory_event_boundary
         self._latest_auditory_l5_experience = None
         self._latest_auditory_recognitions = ()
+        self._latest_auditory_stream_settlement_receipt = None
+        self._latest_auditory_full_field_capture = None
         if source_anchor_ns is None:
             source_anchor_ns = time.time_ns()
         if (isinstance(source_anchor_ns, bool)
@@ -12994,8 +13187,31 @@ class Guala:
         from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
             transduce_auditory_full_field,
         )
-        auditory_field = transduce_auditory_full_field(
-            samples, sample_rate_hz=sr)
+        if auditory_pcm_continuity is None:
+            if auditory_pcm_s16le is not None:
+                raise ValueError(
+                    "auditory PCM bytes require a continuity receipt")
+            auditory_field = transduce_auditory_full_field(
+                samples, sample_rate_hz=sr)
+            auditory_field_source_anchor_ns = source_anchor_ns
+            self._latest_auditory_continuation_receipt = None
+        else:
+            if not isinstance(auditory_pcm_s16le, bytes):
+                raise ValueError(
+                    "auditory continuity requires canonical PCM bytes")
+            if raw != auditory_pcm_s16le:
+                raise ValueError(
+                    "auditory WAV samples differ from the continuous PCM payload")
+            auditory_field, continuation_receipt = (
+                self._auditory_full_field_streams.advance(
+                    auditory_pcm_s16le, auditory_pcm_continuity
+                )
+            )
+            auditory_field_source_anchor_ns = (
+                auditory_pcm_continuity.source_epoch_start_ns
+            )
+            self._latest_auditory_continuation_receipt = continuation_receipt
+        self._latest_auditory_full_field_capture = auditory_field
 
         # The retired one-dimensional organism cache cannot represent this
         # topology without flattening it.  Do not route the full field through
@@ -13077,7 +13293,7 @@ class Guala:
                                 "physical_quantity": (
                                     "cochlear-pressure-envelope"),
                                 "physical_unit": "full-scale-pressure",
-                                "source_anchor_ns": source_anchor_ns,
+                                "source_anchor_ns": auditory_field_source_anchor_ns,
                                 "causal_offsets_ns": list(
                                     channel.causal_offsets_ns),
                                 "normalized_signal": [
@@ -13121,12 +13337,36 @@ class Guala:
             else:
                 _closed_window_id = None
                 _settlement = None
+        if auditory_pcm_continuity is not None:
+            with self._auditory_transaction_lock:
+                receipt_sha256 = auditory_pcm_continuity.receipt_sha256
+                self._auditory_capture_authorities[receipt_sha256] = (
+                    auditory_pcm_continuity,
+                    auditory_field,
+                    self._latest_auditory_continuation_receipt,
+                )
+                self._auditory_capture_authorities.move_to_end(receipt_sha256)
+                while (
+                    len(self._auditory_capture_authorities)
+                    > self._auditory_transaction_capacity
+                ):
+                    self._auditory_capture_authorities.popitem(last=False)
         return {
             "accepted": n_bands_observed > 0,
             "entries_bound": n_bands_observed,
             "context_id": _frame_context_id,
             "closed_window_id": _closed_window_id,
             "settlement": _settlement,
+            "auditory_continuation_receipt": (
+                {
+                    **self._latest_auditory_continuation_receipt.payload(),
+                    "receipt_sha256": (
+                        self._latest_auditory_continuation_receipt.receipt_sha256
+                    ),
+                }
+                if self._latest_auditory_continuation_receipt is not None
+                else None
+            ),
         }
 
     def _atick_attending_visual(self, a):
@@ -17649,6 +17889,7 @@ class Guala:
                     if auditory_snapshot is not None:
                         self._auditory_reciprocity_owner.restore_encoded(
                             auditory_snapshot)
+                        self._auditory_incremental_terminals.refresh_learning()
                 except Exception as error:
                     if exact_binary:
                         raise ValueError(

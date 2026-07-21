@@ -6,17 +6,18 @@ import struct
 import wave
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
 from dsf_ai_service import app as app_module
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
 
-def _tone_wav() -> bytes:
+def _tone_wav(duration_seconds: int = 1) -> bytes:
     rate = 16_000
     values = [
         int(8_000 * math.sin(2.0 * math.pi * 440.0 * index / rate))
-        for index in range(rate)
+        for index in range(rate * duration_seconds)
     ]
     payload = io.BytesIO()
     with wave.open(payload, "wb") as stream:
@@ -170,5 +171,84 @@ def test_authenticated_http_tutoring_reaches_required_engine_owner(
         reciprocity = engine.auditory_l5_status()["reciprocity"]
         assert reciprocity["tutor_authority_required"] is True
         assert reciprocity["tutor_authority_nonce_count"] == 1
+    finally:
+        engine.shutdown()
+
+
+def test_isolated_asset_tutoring_is_authenticated(monkeypatch) -> None:
+    calls = []
+    fake = SimpleNamespace(
+        teach_isolated_auditory_asset=lambda wav, label: (
+            calls.append((wav, label)),
+            {"accepted": True, "tutor_label": label},
+        )[1]
+    )
+    monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setattr(app_module, "_guala", fake)
+    monkeypatch.setattr(app_module, "_is_remote", lambda: False)
+    import dsf_ai_service.substrate_runner as substrate_runner
+    monkeypatch.setattr(
+        substrate_runner, "_webm_to_wav_bytes", lambda _encoded: _tone_wav()
+    )
+    client = TestClient(app_module.app)
+    files = {"file": ("spoken.webm", b"bounded-audio", "audio/webm")}
+    form = {"tutor_label": "hello guala"}
+
+    assert client.post(
+        "/api/v1/auditory/teach-asset", files=files, data=form
+    ).status_code == 401
+    accepted = client.post(
+        "/api/v1/auditory/teach-asset",
+        files=files,
+        data=form,
+        headers={"X-API-Key": "auditory-secret"},
+    )
+    assert accepted.status_code == 200
+    assert calls == [(_tone_wav(), "hello guala")]
+
+
+def test_isolated_asset_transaction_teaches_full_l5_without_retention(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    before_sounds = dict(engine._sounds)
+    try:
+        result = engine.teach_isolated_auditory_asset(
+            _tone_wav(), "hello guala"
+        )
+        assert result["accepted"] is True
+        assert result["recognized_label"] == "hello guala"
+        assert result["event_boundary"] == "utterance"
+        assert result["port_count"] == 16
+        assert result["sample_count"] == 16_000
+        assert engine._sounds == before_sounds
+        status = engine.auditory_l5_status()["reciprocity"]
+        assert status["class_counts"]["spoken_form"] == 1
+        assert status["tutor_authority_nonce_count"] == 1
+    finally:
+        engine.shutdown()
+
+
+def test_oversized_tutor_asset_fails_before_class_mutation(monkeypatch) -> None:
+    monkeypatch.setenv("GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    try:
+        before = engine.auditory_l5_status()["reciprocity"]
+        with pytest.raises(ValueError, match="eight-second"):
+            engine.teach_isolated_auditory_asset(
+                _tone_wav(9), "too long"
+            )
+        after = engine.auditory_l5_status()["reciprocity"]
+        assert after["class_counts"] == before["class_counts"]
+        assert after["reinforcements"] == before["reinforcements"]
     finally:
         engine.shutdown()

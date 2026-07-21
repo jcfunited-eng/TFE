@@ -94,6 +94,15 @@ _FRAME_INFLIGHT_MAX = 1
 _frame_inflight = {"sight": 0, "sound": 0}
 _frame_dropped = {"sight": 0, "sound": 0}
 
+from dsf_ai_service.substrate.auditory_pcm_stream import (
+    AuditoryPCMStreamRegistry,
+    PCM_SAMPLE_RATE_HZ as _PCM_STREAM_SAMPLE_RATE_HZ,
+    pcm_s16le_wav as _pcm_s16le_wav,
+)
+
+_auditory_pcm_streams = AuditoryPCMStreamRegistry()
+_auditory_pcm_epoch_lock = threading.RLock()
+
 # ── STT boundary transducer (port of stranded a8277fa onto the live
 # lineage) ──────────────────────────────────────────────────────────────────
 # One CTranslate2 whisper model is one physical recognition resource: a
@@ -134,14 +143,18 @@ def _speech_transduction_enabled():
 # (so a still-composing reply is never joined by a second overlapping one),
 # is safe under that split; it would not have been safe under the
 # unphased path.  A single worker means back-to-back recognized utterances
-# naturally queue instead of racing -- _voice_reply_busy additionally lets
-# a *new* utterance skip queuing entirely while one is still in flight,
-# so a long pause never composes a backlog of stale replies.
+# naturally serialize instead of racing. One additional terminal may wait
+# behind the active turn; a third is rejected explicitly. This single-slot
+# admission preserves a contiguous exchange without permitting a backlog.
 _voice_reply_executor = _concurrent_futures.ThreadPoolExecutor(
     max_workers=1,
     thread_name_prefix="voice-reply",
 )
 _voice_reply_busy = threading.Event()
+_voice_reply_state_lock = threading.Lock()
+_voice_reply_pending = None
+_voice_turn_results = {}
+_VOICE_TURN_RESULT_CAPACITY = 8
 
 
 def _compose_conversational_organism_fallthrough(text):
@@ -167,7 +180,7 @@ def _compose_conversational_organism_fallthrough(text):
             organism_votes=votes, conversational=True)
 
 
-def _run_voice_reply(spoken_text, tick_hint):
+def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
     """Runs on the single voice-reply worker thread, never the request
     thread. Mirrors substrate_runner's autonomous-emission loop's own
     result contract (_last_autonomous_thought) so the existing /thought
@@ -176,6 +189,10 @@ def _run_voice_reply(spoken_text, tick_hint):
     authority (one mouth, GL Change 4)."""
     import dsf_ai_service.substrate_runner as _sr
     t0 = time.time()
+    delivery = {
+        "status": "completed_without_speech",
+        "terminal_event_id": terminal_event_id,
+    }
     try:
         if _guala is None:
             return
@@ -206,6 +223,7 @@ def _run_voice_reply(spoken_text, tick_hint):
                 "source": "guala",
                 "response_source": response_source,
                 "emission_id": turn_result.emission_id,
+                "terminal_event_id": terminal_event_id,
                 "committed_sections": list(turn_result.committed_sections),
                 "commit_provenance": [
                     p.as_record() if hasattr(p, "as_record") else p
@@ -221,7 +239,20 @@ def _run_voice_reply(spoken_text, tick_hint):
                 "voice_reply_self_hear_error",
                 emission_id=turn_result.emission_id,
                 error=str(self_hear_error))
+        delivery = {
+            "status": "completed",
+            "terminal_event_id": terminal_event_id,
+            "speech": content,
+            "tick": _guala.tick,
+            "response_source": response_source,
+            "emission_id": turn_result.emission_id,
+        }
     except Exception as error:
+        delivery = {
+            "status": "error",
+            "terminal_event_id": terminal_event_id,
+            "error": f"{type(error).__name__}: {error}",
+        }
         print(f"[voice-reply] error after {time.time()-t0:.3f}s: "
               f"{type(error).__name__}: {error}")
         try:
@@ -232,10 +263,27 @@ def _run_voice_reply(spoken_text, tick_hint):
         except Exception:
             pass
     finally:
-        _voice_reply_busy.clear()
+        global _voice_reply_pending
+        if terminal_event_id is not None:
+            with _voice_reply_state_lock:
+                _voice_turn_results[terminal_event_id] = delivery
+                while len(_voice_turn_results) > _VOICE_TURN_RESULT_CAPACITY:
+                    del _voice_turn_results[next(iter(_voice_turn_results))]
+        with _voice_reply_state_lock:
+            pending = _voice_reply_pending
+            _voice_reply_pending = None
+            if pending is None:
+                _voice_reply_busy.clear()
+            else:
+                try:
+                    _voice_reply_executor.submit(_run_voice_reply, *pending)
+                except Exception:
+                    _voice_reply_busy.clear()
 
 
-def _maybe_trigger_voice_reply(spoken_text, tick_hint):
+def _maybe_trigger_voice_reply(
+    spoken_text, tick_hint, terminal_event_id=None
+):
     """Non-blocking: submits at most one converse() call at a time to the
     dedicated voice-reply worker. Called right after a real transcript is
     recognized; never called from read_sentence's own path (that would
@@ -243,16 +291,27 @@ def _maybe_trigger_voice_reply(spoken_text, tick_hint):
     into the substrate as part of composing a reply)."""
     if not spoken_text:
         return False
-    if _voice_reply_busy.is_set():
-        return False
-    _voice_reply_busy.set()
-    try:
-        _voice_reply_executor.submit(
-            _run_voice_reply, spoken_text, tick_hint)
-        return True
-    except Exception:
-        _voice_reply_busy.clear()
-        return False
+    global _voice_reply_pending
+    with _voice_reply_state_lock:
+        if _voice_reply_busy.is_set():
+            if _voice_reply_pending is not None:
+                return False
+            _voice_reply_pending = (
+                spoken_text, tick_hint, terminal_event_id
+            )
+            return True
+        _voice_reply_busy.set()
+        try:
+            _voice_reply_executor.submit(
+                _run_voice_reply,
+                spoken_text,
+                tick_hint,
+                terminal_event_id,
+            )
+            return True
+        except Exception:
+            _voice_reply_busy.clear()
+            return False
 
 
 def _speech_result_wall_timeout():
@@ -2743,6 +2802,122 @@ class GLMessage(BaseModel):
     capture_ended_ms: Optional[int] = None
     sight_captured_ms: Optional[int] = None
     capture_purpose: Literal["ambient", "utterance"] = "ambient"
+    audio_encoding: Literal["encoded_media", "pcm_s16le"] = "encoded_media"
+    audio_stream_id: Optional[str] = None
+    audio_sequence: Optional[int] = None
+    audio_first_sample_index: Optional[int] = None
+    audio_sample_count: Optional[int] = None
+    audio_sample_rate_hz: Optional[int] = None
+    audio_source_epoch_ms: Optional[int] = None
+
+
+class AuditoryPCMStreamCloseRequest(BaseModel):
+    stream_id: str
+    release_terminal: bool = True
+
+
+def _close_auditory_pcm_epoch(
+    stream_id: str, *, release_terminal: bool = True
+) -> dict:
+    """Close one exact stream and release at most one final learned terminal."""
+    with _auditory_pcm_epoch_lock:
+        transport_closed = _auditory_pcm_streams.close(stream_id)
+        engine_close = (
+            _guala.close_auditory_pcm_stream(
+                stream_id, release_terminal=release_terminal
+            )
+            if _guala is not None
+            and hasattr(_guala, "close_auditory_pcm_stream")
+            else None
+        )
+        candidate = None
+        admitted = None
+        if isinstance(engine_close, dict):
+            terminal = engine_close.get("terminal")
+            candidate = (
+                terminal.reply_candidate if terminal is not None else None
+            )
+            if candidate is not None and release_terminal:
+                admitted = _maybe_trigger_voice_reply(
+                    candidate.tutor_label,
+                    _guala.tick,
+                    candidate.event_id,
+                )
+                if not admitted:
+                    _guala._log_substrate_event(
+                        "auditory_reply_admission_full",
+                        terminal_event_id=candidate.event_id,
+                    )
+            field_closed = engine_close.get("closed") is True
+        else:
+            field_closed = bool(engine_close)
+        return {
+            "closed": transport_closed or field_closed,
+            "terminal_event_id": (
+                candidate.event_id if candidate is not None else None
+            ),
+            "recognized_form": (
+                candidate.tutor_label if candidate is not None else None
+            ),
+            "reply_admitted": admitted,
+        }
+
+
+def _reject_auditory_pcm_epoch(stream_id: str) -> None:
+    """Terminally reject both continuity authorities after any stream fault."""
+    with _auditory_pcm_epoch_lock:
+        _auditory_pcm_streams.reject(stream_id)
+        if _guala is not None and hasattr(_guala, "close_auditory_pcm_stream"):
+            _guala.close_auditory_pcm_stream(
+                stream_id, release_terminal=False
+            )
+
+
+@app.post("/api/v1/auditory/pcm/open")
+async def auditory_pcm_stream_open():
+    try:
+        return {"ok": True, **_auditory_pcm_streams.open()}
+    except RuntimeError as error:
+        return JSONResponse(
+            status_code=409,
+            content={"ok": False, "error": str(error)},
+        )
+
+
+@app.post("/api/v1/auditory/pcm/close")
+async def auditory_pcm_stream_close(req: AuditoryPCMStreamCloseRequest):
+    def _close_serialized():
+        with _auditory_pcm_epoch_lock:
+            result = _close_auditory_pcm_epoch(
+                req.stream_id,
+                release_terminal=req.release_terminal,
+            )
+            return {
+                "ok": result["closed"],
+                "continuity": "closed",
+                "terminal_event_id": result["terminal_event_id"],
+                "recognized_form": result["recognized_form"],
+                "reply_admitted": result["reply_admitted"],
+            }
+
+    return await _run_lifecycle_executor(_close_serialized)
+
+
+@app.get("/api/v1/auditory/reply/{terminal_event_id}")
+async def auditory_terminal_reply(terminal_event_id: str):
+    if (
+        len(terminal_event_id) != 64
+        or any(value not in "0123456789abcdef" for value in terminal_event_id)
+    ):
+        raise HTTPException(status_code=400, detail="invalid terminal event id")
+    with _voice_reply_state_lock:
+        result = _voice_turn_results.get(terminal_event_id)
+        if result is None:
+            return {
+                "status": "pending",
+                "terminal_event_id": terminal_event_id,
+            }
+        return dict(result)
 
 
 _LIVE_CAPTURE_MAX_DURATION_MS = 8_000
@@ -2764,6 +2939,54 @@ _video_upload_lock = threading.Lock()
 
 def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
     """Validate client capture clock values; never infer a paired interval."""
+    if msg.audio_encoding == "pcm_s16le":
+        values = (
+            msg.audio_first_sample_index,
+            msg.audio_sample_count,
+            msg.audio_sample_rate_hz,
+            msg.audio_source_epoch_ms,
+        )
+        if any(isinstance(value, bool) or not isinstance(value, int)
+               for value in values):
+            raise ValueError("PCM capture continuity fields are required")
+        first_index = msg.audio_first_sample_index
+        sample_count = msg.audio_sample_count
+        sample_rate = msg.audio_sample_rate_hz
+        epoch_ms = msg.audio_source_epoch_ms
+        if (
+            first_index < 0
+            or sample_count <= 0
+            or sample_count > 8 * _PCM_STREAM_SAMPLE_RATE_HZ
+            or sample_rate != _PCM_STREAM_SAMPLE_RATE_HZ
+            or epoch_ms <= 0
+        ):
+            raise ValueError("PCM capture continuity fields are invalid")
+        source_epoch_ns = epoch_ms * 1_000_000
+        start_ns = (
+            source_epoch_ns
+            + first_index * 1_000_000_000 // _PCM_STREAM_SAMPLE_RATE_HZ
+        )
+        end_ns = (
+            source_epoch_ns
+            + (first_index + sample_count)
+            * 1_000_000_000 // _PCM_STREAM_SAMPLE_RATE_HZ
+        )
+        sight_ns = (
+            msg.sight_captured_ms * 1_000_000
+            if msg.sight_captured_ms is not None else None
+        )
+        if paired_sight and (
+            isinstance(msg.sight_captured_ms, bool)
+            or sight_ns is None
+            or sight_ns < start_ns
+            or sight_ns >= end_ns
+        ):
+            raise ValueError("paired sight timestamp is outside the PCM interval")
+        return {
+            "source_time_start_ns": start_ns,
+            "source_time_end_ns": end_ns,
+            "sight_source_anchor_ns": sight_ns if paired_sight else None,
+        }
     start_ms = msg.capture_started_ms
     end_ms = msg.capture_ended_ms
     sight_ms = msg.sight_captured_ms
@@ -2900,12 +3123,27 @@ async def sound_frame(msg: GLMessage):
     recognition = _spoken_word_recognition_report(src)
     paired_sight_b64 = (msg.sight_b64 or "").strip()
     if len(b64_data) > _LIVE_AUDIO_MAX_B64_CHARS:
+        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "error": "audio capture exceeds the bounded request size",
                 "spoken_word_recognition": recognition}
     if len(paired_sight_b64) > _LIVE_SIGHT_MAX_B64_CHARS:
+        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "error": "sight capture exceeds the bounded request size",
                 "spoken_word_recognition": recognition}
     if _is_remote():
+        if msg.audio_encoding == "pcm_s16le":
+            return {
+                "ok": False,
+                "error": "continuous PCM transport requires embedded ownership",
+                "causal_boundary": "unsettled",
+                "spoken_word_recognition": recognition,
+            }
         try:
             capture_times = _authoritative_capture_times(
                 msg, paired_sight=bool(paired_sight_b64))
@@ -2938,6 +3176,10 @@ async def sound_frame(msg: GLMessage):
             return {"ok": False, "error": "ring write failed",
                     "spoken_word_recognition": recognition}
     if _guala is None:
+        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return JSONResponse(
             status_code=503,
             content={"ok": False, "error": "guala_not_ready",
@@ -2945,6 +3187,10 @@ async def sound_frame(msg: GLMessage):
     import base64, asyncio as _aio
     b64_data = (msg.text or "").strip()
     if not b64_data:
+        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "error": "no audio data",
                 "spoken_word_recognition": recognition}
     # GL-CMD-CONVERSE-FRAME-PRIORITY: while a real conversational turn is
@@ -2954,6 +3200,10 @@ async def sound_frame(msg: GLMessage):
     # yield: never gated on frame content; embedded-only (remote mode already
     # returned above); cleared the instant the turn settles.
     if _converse_turn_in_flight():
+        if msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "dropped": True,
                 "reason": "backpressure — sound-frame processing at capacity",
                 "converse_priority": True,
@@ -2963,10 +3213,18 @@ async def sound_frame(msg: GLMessage):
         capture_times = _authoritative_capture_times(
             msg, paired_sight=bool(paired_sight_b64))
     except ValueError as capture_error:
+        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "error": str(capture_error),
                 "causal_boundary": "unsettled",
                 "spoken_word_recognition": recognition}
     if not _frame_backpressure_acquire("sound"):
+        if msg.audio_stream_id:
+            await _run_lifecycle_executor(
+                _reject_auditory_pcm_epoch, msg.audio_stream_id
+            )
         return {"ok": False, "dropped": True,
                 "reason": "backpressure — sound-frame processing at capacity",
                 "n_dropped": _frame_dropped["sound"],
@@ -2975,11 +3233,43 @@ async def sound_frame(msg: GLMessage):
         t0 = time.time()
         try:
             import dsf_ai_service.substrate_runner as _sr
-            audio_bytes = base64.b64decode(b64_data)
+            try:
+                audio_bytes = base64.b64decode(b64_data, validate=True)
+            except Exception:
+                if msg.audio_stream_id:
+                    _reject_auditory_pcm_epoch(msg.audio_stream_id)
+                raise ValueError("audio payload is not valid base64")
             # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder, outside
             # the engine lock (this executor call). Raw bytes never reach
             # process_sound_frame from this path.
-            wav = _sr._webm_to_wav_bytes(audio_bytes)
+            pcm_acceptance = None
+            if msg.audio_encoding == "pcm_s16le":
+                try:
+                    pcm_acceptance = _auditory_pcm_streams.accept(
+                        stream_id=msg.audio_stream_id,
+                        sequence=msg.audio_sequence,
+                        first_sample_index=msg.audio_first_sample_index,
+                        sample_rate_hz=msg.audio_sample_rate_hz,
+                        source_epoch_start_ns=(
+                            msg.audio_source_epoch_ms * 1_000_000
+                            if isinstance(msg.audio_source_epoch_ms, int)
+                            and not isinstance(msg.audio_source_epoch_ms, bool)
+                            else msg.audio_source_epoch_ms
+                        ),
+                        pcm_s16le=audio_bytes,
+                    )
+                    if pcm_acceptance.receipt.sample_count != msg.audio_sample_count:
+                        _reject_auditory_pcm_epoch(msg.audio_stream_id)
+                        raise ValueError(
+                            "auditory PCM declared sample count changed"
+                        )
+                    wav = _pcm_s16le_wav(audio_bytes)
+                except Exception:
+                    if msg.audio_stream_id:
+                        _reject_auditory_pcm_epoch(msg.audio_stream_id)
+                    raise
+            else:
+                wav = _sr._webm_to_wav_bytes(audio_bytes)
             if not wav:
                 return {"ok": False, "error": "decode_failed",
                         "spoken_word_recognition": recognition}
@@ -2999,6 +3289,7 @@ async def sound_frame(msg: GLMessage):
             sensory_errors = {}
             boundary_settled = False
             settlement = None
+            sound_receipt = None
             if paired_sight_b64:
                 context_id = f"sense:av:{src}:{time.time_ns():x}"
                 _guala.window_manager.begin_context(
@@ -3049,6 +3340,12 @@ async def sound_frame(msg: GLMessage):
                             source_time_end_ns=capture_times[
                                 "source_time_end_ns"],
                             auditory_event_boundary=auditory_event_boundary,
+                            auditory_pcm_continuity=(
+                                pcm_acceptance.receipt
+                                if pcm_acceptance is not None else None),
+                            auditory_pcm_s16le=(
+                                pcm_acceptance.pcm_s16le
+                                if pcm_acceptance is not None else None),
                         )
                         if sound_receipt and sound_receipt.get("accepted"):
                             observed_senses.append("sound")
@@ -3098,6 +3395,12 @@ async def sound_frame(msg: GLMessage):
                         source_time_end_ns=capture_times[
                             "source_time_end_ns"],
                         auditory_event_boundary=auditory_event_boundary,
+                        auditory_pcm_continuity=(
+                            pcm_acceptance.receipt
+                            if pcm_acceptance is not None else None),
+                        auditory_pcm_s16le=(
+                            pcm_acceptance.pcm_s16le
+                            if pcm_acceptance is not None else None),
                     )
                     closed_window_id = (
                         sound_receipt.get("closed_window_id")
@@ -3124,6 +3427,19 @@ async def sound_frame(msg: GLMessage):
                 else observed_senses[0] if len(observed_senses) == 1
                 else "unknown"
             )
+            stream_settlement_receipt = None
+            incremental_terminal = None
+            if pcm_acceptance is not None and boundary_settled:
+                (
+                    stream_settlement_receipt,
+                    incremental_terminal,
+                ) = _guala.advance_continuous_auditory_terminal(
+                    pcm_s16le=pcm_acceptance.pcm_s16le,
+                    transport=pcm_acceptance.receipt,
+                    settlement=settlement,
+                )
+                stream_settlement_receipt.verify()
+                incremental_terminal.verify()
             auditory_status = _guala.auditory_l5_status()
             current_experience = getattr(
                 _guala, "_latest_auditory_l5_experience", None)
@@ -3149,13 +3465,48 @@ async def sound_frame(msg: GLMessage):
                     ),
                 }
             )
+            if incremental_terminal is not None:
+                terminal_candidate = incremental_terminal.reply_candidate
+                deterministic_recognition = {
+                    **_spoken_word_recognition_report(src),
+                    "status": incremental_terminal.status.value,
+                    "recognized_form": (
+                        terminal_candidate.tutor_label
+                        if terminal_candidate is not None else None
+                    ),
+                    "candidate_labels": (
+                        [terminal_candidate.tutor_label]
+                        if terminal_candidate is not None else []
+                    ),
+                    "experience_id": auditory_status.get(
+                        "latest_experience_id"
+                    ),
+                    "terminal_event_id": (
+                        terminal_candidate.event_id
+                        if terminal_candidate is not None else None
+                    ),
+                    "source": "continuous_full_field_terminal",
+                }
             learned_spoken = (
                 deterministic_recognition.get("recognized_form")
-                if deterministic_recognition.get("status") == "unique"
+                if deterministic_recognition.get("status") in (
+                    "unique", "released_unique"
+                )
+                else None
+            )
+            reply_admitted = None
+            terminal_event_id = (
+                incremental_terminal.reply_candidate.event_id
+                if incremental_terminal is not None
+                and incremental_terminal.reply_candidate is not None
                 else None
             )
             if learned_spoken:
-                _maybe_trigger_voice_reply(learned_spoken, _guala.tick)
+                reply_admitted = _maybe_trigger_voice_reply(
+                    learned_spoken,
+                    _guala.tick,
+                    terminal_event_id,
+                )
             if recognition_future is None:
                 print(f"[sound-frame] {time.time()-t0:.3f}s")
                 result = {
@@ -3169,8 +3520,42 @@ async def sound_frame(msg: GLMessage):
                     "spoken_word_recognition": deterministic_recognition,
                     "auditory_l5": auditory_status,
                 }
+                if pcm_acceptance is not None:
+                    cochlear_receipt = (
+                        sound_receipt.get("auditory_continuation_receipt")
+                        if sound_receipt else None
+                    )
+                    if not cochlear_receipt:
+                        _reject_auditory_pcm_epoch(
+                            pcm_acceptance.receipt.stream_id)
+                        raise RuntimeError(
+                            "continuous PCM settled without cochlear continuation"
+                        )
+                    result["pcm_continuity"] = {
+                        "status": "contiguous",
+                        "stream_id": pcm_acceptance.receipt.stream_id,
+                        "sequence": pcm_acceptance.receipt.sequence,
+                        "first_sample_index": (
+                            pcm_acceptance.receipt.first_sample_index),
+                        "sample_count": pcm_acceptance.receipt.sample_count,
+                        "receipt_sha256": (
+                            pcm_acceptance.receipt.receipt_sha256),
+                        "cochlear_state_receipt_sha256": (
+                            cochlear_receipt["receipt_sha256"]),
+                        "causal_settlement_receipt_sha256": (
+                            stream_settlement_receipt.authority_receipt_sha256
+                        ),
+                        "incremental_terminal_status": (
+                            incremental_terminal.status.value
+                        ),
+                        "incremental_terminal_receipt_sha256": (
+                            incremental_terminal.authority_receipt_sha256
+                        ),
+                    }
                 if learned_spoken:
                     result["transcript"] = learned_spoken
+                    result["terminal_event_id"] = terminal_event_id
+                    result["reply_admitted"] = reply_admitted
                 if sensory_errors:
                     result["sensory_errors"] = sensory_errors
                 return result
@@ -3219,8 +3604,41 @@ async def sound_frame(msg: GLMessage):
                     transcript=spoken or None),
                 "auditory_l5": auditory_status,
             }
+            if pcm_acceptance is not None:
+                cochlear_receipt = (
+                    sound_receipt.get("auditory_continuation_receipt")
+                    if sound_receipt else None
+                )
+                if not cochlear_receipt:
+                    _reject_auditory_pcm_epoch(
+                        pcm_acceptance.receipt.stream_id)
+                    raise RuntimeError(
+                        "continuous PCM settled without cochlear continuation"
+                    )
+                result["pcm_continuity"] = {
+                    "status": "contiguous",
+                    "stream_id": pcm_acceptance.receipt.stream_id,
+                    "sequence": pcm_acceptance.receipt.sequence,
+                    "first_sample_index": (
+                        pcm_acceptance.receipt.first_sample_index),
+                    "sample_count": pcm_acceptance.receipt.sample_count,
+                    "receipt_sha256": pcm_acceptance.receipt.receipt_sha256,
+                    "cochlear_state_receipt_sha256": (
+                        cochlear_receipt["receipt_sha256"]),
+                    "causal_settlement_receipt_sha256": (
+                        stream_settlement_receipt.authority_receipt_sha256
+                    ),
+                    "incremental_terminal_status": (
+                        incremental_terminal.status.value
+                    ),
+                    "incremental_terminal_receipt_sha256": (
+                        incremental_terminal.authority_receipt_sha256
+                    ),
+                }
             if learned_spoken:
                 result["transcript"] = learned_spoken
+                result["terminal_event_id"] = terminal_event_id
+                result["reply_admitted"] = reply_admitted
             if spoken:
                 result["boundary_transcript"] = spoken
             if recognition_status == "error":
@@ -3229,13 +3647,21 @@ async def sound_frame(msg: GLMessage):
                 result["sensory_errors"] = sensory_errors
             return result
         except Exception as e:
+            if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
+                _reject_auditory_pcm_epoch(msg.audio_stream_id)
             return {"ok": False, "error": str(e),
                     "spoken_word_recognition": recognition}
+    def _decode_serialized():
+        if msg.audio_encoding != "pcm_s16le":
+            return _decode()
+        with _auditory_pcm_epoch_lock:
+            return _decode()
+
     try:
         # GL-CMD-CAMERA-TURN-LATENCY: a real sound frame is a live interaction
         # too -- mark it pending so background emission/autonomy defer to it.
         with _live_interaction_scope():
-            return await _run_lifecycle_executor(_decode)
+            return await _run_lifecycle_executor(_decode_serialized)
     finally:
         _frame_backpressure_release("sound")
 
@@ -5817,6 +6243,52 @@ async def auditory_l5_teach(req: AuditoryL5TeachRequest):
     except (RuntimeError, ValueError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 
+
+@app.post(
+    "/api/v1/auditory/teach-asset",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def auditory_l5_teach_asset(
+    file: UploadFile = File(...),
+    tutor_label: str = Form(...),
+):
+    """Teach one authenticated isolated sound as a spoken-form witness."""
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="auditory tutor asset requires embedded ownership",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    encoded = await file.read(_LIVE_AUDIO_MAX_BYTES + 1)
+    if not encoded:
+        raise HTTPException(status_code=400, detail="auditory tutor asset is empty")
+    if len(encoded) > _LIVE_AUDIO_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="auditory tutor asset exceeds the 4 MiB request boundary",
+        )
+
+    def _decode_and_teach():
+        from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+
+        wav_bytes = _webm_to_wav_bytes(encoded)
+        if not wav_bytes:
+            raise ValueError(
+                "auditory tutor asset could not be decoded into canonical PCM"
+            )
+        return _guala.teach_isolated_auditory_asset(
+            wav_bytes,
+            tutor_label,
+        )
+
+    try:
+        return await _run_lifecycle_executor(_decode_and_teach)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
 @app.post("/api/v1/teacher/feedback")
 async def teacher_feedback(req: TeacherFeedbackRequest):
     if req.source not in ("joe", "wc"):
@@ -7241,6 +7713,7 @@ async def health():
     # and RSS-watchdog breach count.  Read-only snapshot — can never spawn
     # a worker or load a model from this path.
     result["speech"] = _speech_status_snapshot()
+    result["auditory_pcm_transport"] = _auditory_pcm_streams.status()
     return result
 
 @app.get("/ready")

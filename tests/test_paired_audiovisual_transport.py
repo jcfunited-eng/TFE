@@ -210,11 +210,11 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
 
 def test_browser_suppresses_duplicate_camera_stream_during_mic_capture() -> None:
     html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert "if(micCycleActive)return;" in html
+    assert "if(micPCMActive)return;" in html
     assert "utteranceTransitioning" not in html
     assert "utteranceActive" not in html
-    assert "const _cycleSightPromise=camStream?captureConversationSight()" in html
+    assert "const promise=camStream?captureConversationSight()" in html
     assert "JSON.stringify({text,source,sight_b64})" not in html
     assert "JSON.stringify({text,source})" in html
-    assert "capture_started_ms:captureStartedMs" in html
-    assert "if(_micRequestInFlight)" in html
+    assert "audio_first_sample_index:firstSampleIndex" in html
+    assert "if(epoch.pendingChunks>=PCM_MAX_PENDING_CHUNKS)" in html
