@@ -44,7 +44,7 @@ def decode_image_bytes(img_bytes):
     img_gray = img_full.convert('L').resize((64, 64))
     grid = np.array(img_gray, dtype=np.float64) / 255.0
     return img_full, grid, orig_w, orig_h
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Literal
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -179,7 +179,11 @@ def _run_voice_reply(spoken_text, tick_hint):
     try:
         if _guala is None:
             return
-        turn_result = _guala.converse(spoken_text, source="joe")
+        # Auditory form recognition does not prove who produced the sound.
+        # Keep the heard turn available to conversation without fabricating
+        # Joe's pair-bond identity from a mono waveform.
+        turn_result = _guala.converse(
+            spoken_text, source="auditory:unresolved_source")
         content = (turn_result.response or "").strip()
         response_source = turn_result.response_source
         if not content and response_source == "silence_no_commit":
@@ -312,21 +316,48 @@ def _speech_status_snapshot():
 
 
 def _spoken_word_recognition_report(source):
-    """Honest per-request capability report for /sound_frame's early exits.
+    """Report that deterministic auditory L5 did not receive this request."""
+    if _guala is None and not _is_remote():
+        return {
+            "capability": "spoken_word_recognition",
+            "available": False,
+            "status": "unavailable",
+            "reason": "auditory L5 is not ready",
+            "mechanism": "directed_joint_causal_path_complex",
+            "raw_sensing": {"available": False,
+                            "mechanism": "causal_gammatone_erb_v1"},
+        }
+    return {
+        "capability": "spoken_word_recognition",
+        "available": True,
+        "status": "not_attempted",
+        "mechanism": "directed_joint_causal_path_complex",
+        "raw_sensing": {"available": True, "mechanism": "causal_gammatone_erb_v1"},
+    }
 
-    When the boundary transducer is configured for this source, the honest
-    status is "not_attempted" (this request never reached transcription) —
-    NOT "unavailable", which would misstate a configured capability.  For
-    every other case the Fact-Strand-era unavailable report stands
-    unchanged.
-    """
-    if _speech_transduction_enabled() and source == "joe_voice":
-        from dsf_ai_service.speech_transducer import (
-            spoken_word_transduction_status)
-        return spoken_word_transduction_status("not_attempted")
-    from dsf_ai_service.substrate.grounded_vocab_integration import (
-        spoken_word_recognition_unavailable)
-    return spoken_word_recognition_unavailable(source=source)
+
+def _auditory_l5_spoken_report(auditory_status):
+    recognition = next(
+        (
+            value for value in auditory_status.get("recognitions", [])
+            if value.get("kind") == "spoken_form"
+        ),
+        None,
+    )
+    state = recognition.get("state") if recognition else "unknown"
+    label = recognition.get("tutor_label") if recognition else None
+    return {
+        "capability": "spoken_word_recognition",
+        "available": True,
+        "status": state,
+        "recognized_form": label,
+        "candidate_labels": (
+            recognition.get("candidate_labels", []) if recognition else []
+        ),
+        "experience_id": auditory_status.get("latest_experience_id"),
+        "mechanism": "directed_joint_causal_path_complex",
+        "raw_sensing": {"available": True, "mechanism": "causal_gammatone_erb_v1"},
+    }
 
 
 def _frame_backpressure_acquire(kind):
@@ -2851,6 +2882,7 @@ class GLMessage(BaseModel):
     capture_started_ms: Optional[int] = None
     capture_ended_ms: Optional[int] = None
     sight_captured_ms: Optional[int] = None
+    capture_purpose: Literal["ambient", "utterance"] = "ambient"
 
 
 _LIVE_CAPTURE_MAX_DURATION_MS = 8_000
@@ -2858,6 +2890,16 @@ _LIVE_AUDIO_MAX_BYTES = 4 * 1024 * 1024
 _LIVE_SIGHT_MAX_BYTES = 2 * 1024 * 1024
 _LIVE_AUDIO_MAX_B64_CHARS = 4 * ((_LIVE_AUDIO_MAX_BYTES + 2) // 3)
 _LIVE_SIGHT_MAX_B64_CHARS = 4 * ((_LIVE_SIGHT_MAX_BYTES + 2) // 3)
+_VIDEO_UPLOAD_MAX_BYTES = 30 * 1024 * 1024
+_VIDEO_CAPTURE_MAX_SECONDS = 8
+_VIDEO_FRAME_RATE = 15
+_VIDEO_MAX_RETAINED_FRAMES = (
+    _VIDEO_CAPTURE_MAX_SECONDS * _VIDEO_FRAME_RATE
+)
+_VIDEO_MAX_FRAME_FILE_BYTES = 128 * 1024
+_VIDEO_LIBRARY_MAX_ITEMS = 8
+_video_upload_read_lock = threading.Lock()
+_video_upload_lock = threading.Lock()
 
 
 def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
@@ -2985,19 +3027,16 @@ async def sight_frame(msg: GLMessage):
 
 @app.post("/sound_frame")
 async def sound_frame(msg: GLMessage):
-    """Stream raw sound; transcribe joe-tagged speech at the boundary.
+    """Stream raw sound through auditory L5 and bounded reciprocity.
 
-    With VOICE_WHISPER=1 and a joe_voice source, the owned STT transducer
-    transcribes the decoded audio and the FULL transcript enters through
-    read_sentence(source="joe") — the same real door typed text and heard
-    speech already use (establishes presence, GL-FIX-VOICE-PRESENCE-
-    20260712).  Otherwise word recognition honestly reports unavailable.
+    A unique tutor-grounded auditory L5 spoken form may open the voice reply
+    door.  Optional Whisper output is display-only boundary transcription;
+    it never teaches, recognizes, or triggers cognition.
     """
-    from dsf_ai_service.substrate.grounded_vocab_integration import (
-        spoken_word_recognition_unavailable)
 
     b64_data = (msg.text or "").strip()
     src = msg.source or "ambient"
+    auditory_event_boundary = msg.capture_purpose
     recognition = _spoken_word_recognition_report(src)
     paired_sight_b64 = (msg.sight_b64 or "").strip()
     if len(b64_data) > _LIVE_AUDIO_MAX_B64_CHARS:
@@ -3021,6 +3060,7 @@ async def sound_frame(msg: GLMessage):
                 kind="sound_window", source=src,
                 data={"audio_b64": b64_data,
                       "source": src,
+                      "auditory_event_boundary": auditory_event_boundary,
                       "sight_b64": paired_sight_b64 or None,
                       **capture_times},
                 timeout=3.0)
@@ -3029,8 +3069,10 @@ async def sound_frame(msg: GLMessage):
             result["spoken_word_recognition"] = recognition
             result["causal_boundary"] = (
                 "queued_audiovisual"
-                if paired_sight_b64
-                else "queued_sound")
+                if result.get("ok") is True and paired_sight_b64
+                else "queued_sound"
+                if result.get("ok") is True
+                else "unsettled")
             return result
         except (ConnectionError, Exception):
             return {"ok": False, "error": "ring write failed",
@@ -3085,7 +3127,10 @@ async def sound_frame(msg: GLMessage):
             # worker executor BEFORE raw-sense processing so STT decode
             # overlaps process_sound_frame instead of following it.
             recognition_future = None
-            if _speech_transduction_enabled() and src == "joe_voice":
+            if (
+                _speech_transduction_enabled()
+                and auditory_event_boundary == "utterance"
+            ):
                 from dsf_ai_service.speech_transducer import transcribe_sound
                 recognition_future = _speech_recognition_executor.submit(
                     transcribe_sound, wav)
@@ -3093,6 +3138,7 @@ async def sound_frame(msg: GLMessage):
             observed_senses = []
             sensory_errors = {}
             boundary_settled = False
+            settlement = None
             if paired_sight_b64:
                 context_id = f"sense:av:{src}:{time.time_ns():x}"
                 _guala.window_manager.begin_context(
@@ -3100,6 +3146,7 @@ async def sound_frame(msg: GLMessage):
                     trigger_reason="audiovisual_capture",
                     context_detail={
                         "experience_origin": "live_audiovisual",
+                        "auditory_event_boundary": auditory_event_boundary,
                         "source": src,
                         "source_time_start_ns": capture_times[
                             "source_time_start_ns"],
@@ -3135,6 +3182,7 @@ async def sound_frame(msg: GLMessage):
                             source=src,
                             source_anchor_ns=capture_times[
                                 "source_time_start_ns"],
+                            auditory_event_boundary=auditory_event_boundary,
                         )
                         if sound_receipt and sound_receipt.get("accepted"):
                             observed_senses.append("sound")
@@ -3179,6 +3227,7 @@ async def sound_frame(msg: GLMessage):
                             "source_time_start_ns"],
                         source_time_end_ns=capture_times[
                             "source_time_end_ns"],
+                        auditory_event_boundary=auditory_event_boundary,
                     )
                     closed_window_id = (
                         sound_receipt.get("closed_window_id")
@@ -3205,9 +3254,39 @@ async def sound_frame(msg: GLMessage):
                 else observed_senses[0] if len(observed_senses) == 1
                 else "unknown"
             )
+            auditory_status = _guala.auditory_l5_status()
+            current_experience = getattr(
+                _guala, "_latest_auditory_l5_experience", None)
+            current_recognition_is_causal = (
+                boundary_settled
+                and settlement is not None
+                and current_experience is not None
+                and current_experience.assembly_id == settlement.assembly_id
+                and auditory_event_boundary == "utterance"
+                and auditory_status.get("recognition_attempted") is True
+            )
+            deterministic_recognition = (
+                _auditory_l5_spoken_report(auditory_status)
+                if current_recognition_is_causal
+                else {
+                    **_spoken_word_recognition_report(src),
+                    "status": "not_attempted",
+                    "reason": (
+                        "ambient sound settled as sensory experience without "
+                        "an utterance boundary"
+                        if boundary_settled and auditory_event_boundary == "ambient"
+                        else "the current sound did not settle an auditory L5 experience"
+                    ),
+                }
+            )
+            learned_spoken = (
+                deterministic_recognition.get("recognized_form")
+                if deterministic_recognition.get("status") == "unique"
+                else None
+            )
+            if learned_spoken:
+                _maybe_trigger_voice_reply(learned_spoken, _guala.tick)
             if recognition_future is None:
-                frame_recognition = spoken_word_recognition_unavailable(
-                    _guala, source=src)
                 print(f"[sound-frame] {time.time()-t0:.3f}s")
                 result = {
                     "ok": "sound" in observed_senses and boundary_settled,
@@ -3215,9 +3294,13 @@ async def sound_frame(msg: GLMessage):
                     "raw_sound": (
                         "accepted" if "sound" in observed_senses else "failed"),
                     "causal_boundary": causal_boundary,
+                    "capture_purpose": auditory_event_boundary,
                     "observed_senses": observed_senses,
-                    "spoken_word_recognition": frame_recognition,
+                    "spoken_word_recognition": deterministic_recognition,
+                    "auditory_l5": auditory_status,
                 }
+                if learned_spoken:
+                    result["transcript"] = learned_spoken
                 if sensory_errors:
                     result["sensory_errors"] = sensory_errors
                 return result
@@ -3241,20 +3324,6 @@ async def sound_frame(msg: GLMessage):
                     ) from stt_timeout
                 if spoken:
                     recognition_status = "recognized"
-                    # GL-FIX-VOICE-REPLY-DOOR-20260720: converse(), not
-                    # read_sentence -- confirmed live 2026-07-20 that a full
-                    # minute of successfully-recognized speech (7 real
-                    # transcriptions) produced zero replies, because
-                    # read_sentence only ever updates memory/presence, it
-                    # never composes a turn. converse() does both (it reads
-                    # the input into the substrate itself, same as
-                    # read_sentence did, AND attempts a real reply) -- so
-                    # this REPLACES the old read_sentence call, it does not
-                    # run alongside it (that would process the same
-                    # transcript twice). Runs on its own dedicated worker,
-                    # never the request thread -- see
-                    # _maybe_trigger_voice_reply's own docstring for why.
-                    _maybe_trigger_voice_reply(spoken, _guala.tick)
             except Exception as recognition_error:
                 recognition_status = "error"
                 print("[voice-whisper] error="
@@ -3272,13 +3341,18 @@ async def sound_frame(msg: GLMessage):
                 "raw_sound": (
                     "accepted" if "sound" in observed_senses else "failed"),
                 "causal_boundary": causal_boundary,
+                "capture_purpose": auditory_event_boundary,
                 "observed_senses": observed_senses,
-                "spoken_word_recognition": spoken_word_transduction_status(
+                "spoken_word_recognition": deterministic_recognition,
+                "boundary_transcription": spoken_word_transduction_status(
                     recognition_status,
                     transcript=spoken or None),
+                "auditory_l5": auditory_status,
             }
+            if learned_spoken:
+                result["transcript"] = learned_spoken
             if spoken:
-                result["transcript"] = spoken
+                result["boundary_transcript"] = spoken
             if recognition_status == "error":
                 result["error"] = "speech_recognition_failed"
             if sensory_errors:
@@ -3985,17 +4059,6 @@ async def gualaloom_chat(msg: GLMessage):
             )
             caption = bundle_data.get("caption", "")
             caption_bound = False
-            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring:
-            # the real numeric waveform for whichever sound this bundle
-            # names (ref or freshly-uploaded), if one is available -- set
-            # by the SOUND lane below, consumed by the organism-teach step
-            # after it, so the caption word gets bound to the ORGANISM
-            # (not just the atlas) with a real auditory signal riding
-            # along, the same in-window multi-sense binding N1/N2 (-191)
-            # established for live camera/mic frames, now available for
-            # explicit bundle teaching too.
-            bundle_sound_signal = None
-
             # ── SIGHT lane (H1: process_viewing, H5a: shared decode) ──
             # Support both base64 upload and reference to existing picture (3.12)
             img_b64 = bundle_data.get("image_b64")
@@ -4069,80 +4132,45 @@ async def gualaloom_chat(msg: GLMessage):
             sound_ref = bundle_data.get("sound_id")
             if sound_ref and sound_ref in _guala._sounds and not bundle_data.get("sound_b64"):
                 snd = _guala._sounds[sound_ref]
-                cochlear = snd.get("cochlear", {})
-                for bn, c in cochlear.items():
-                    chi = c.get("winding", 0) % 100
-                    _guala.window_manager.add_entry(
-                        modality="sound", section=f"audio_{bn}",
-                        motif_id=deterministic_motif_id(sound_ref), chi=chi,
-                        tick=_guala.tick, source_tag=bundle_source,
-                        trigger_reason="give_experience",
-                        salience=1.5, dwell_ticks=8)
-                    bundle_chis.append(chi)
-                results.append(f"played her \"{snd.get('title', sound_ref)}\" (ref)")
-                # GL-CMD-CROSS-SENSE-RECALL-208: only present for items
-                # uploaded after the raw_signal change above -- honestly
-                # None (no organism-teach signal) for older items, not a
-                # zero-filled placeholder.
-                bundle_sound_signal = snd.get("raw_signal")
+                try:
+                    replay = _guala.replay_sound_asset(
+                        sound_ref,
+                        source=f"give_experience:{bundle_name}:sound_ref")
+                    if replay.get("accepted"):
+                        results.append(
+                            f"played her \"{snd.get('title', sound_ref)}\" "
+                            "through auditory L5 (ref)")
+                    else:
+                        results.append(
+                            f"sound ref UNAVAILABLE: {replay.get('reason')}")
+                except Exception as error:
+                    results.append(f"sound ref ERROR: {error}")
 
             snd_b64 = bundle_data.get("sound_b64")
             if snd_b64:
                 try:
-                    snd_bytes = base64.b64decode(snd_b64)
-                    if len(snd_bytes) > 8_000_000:  # H2: 8MB server guard
-                        results.append("sound SKIPPED: too big (>8MB) — try mp3")
-                    else:
-                        import tempfile, subprocess
-                        snd_id = _hashlib.md5(snd_bytes).hexdigest()[:12]
-                        tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
-                        tmp_in.write(snd_bytes)
-                        tmp_in.close()
-                        tmp_wav = tmp_in.name + '.wav'
-                        try:
-                            subprocess.run(["ffmpeg", "-i", tmp_in.name, "-ar", "200",
-                                            "-ac", "1", "-f", "wav", tmp_wav, "-y",
-                                            "-loglevel", "error"], check=True, timeout=30)
-                            import wave, struct
-                            with wave.open(tmp_wav, 'rb') as wf:
-                                sr = wf.getframerate()
-                                n_frames = wf.getnframes()
-                                raw = wf.readframes(n_frames)
-                            samples = np.array(struct.unpack(f'<{n_frames}h', raw),
-                                               dtype=np.float64) / 32768.0
-                            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
-                                cochlear_transduce, onset_stream, sustained_stream, a1_signature)
-                            cochlear = cochlear_transduce(samples, sample_rate=sr)
-                            n_events = sum(c["n_events"] for c in cochlear.values())
-                            dur = len(samples) / max(sr, 1)
-                            for bn, c in cochlear.items():
-                                chi = c["winding"] % 100
-                                _guala.window_manager.add_entry(
-                                    modality="sound", section=f"audio_{bn}",
-                                    motif_id=deterministic_motif_id(snd_id),
-                                    chi=chi, tick=_guala.tick,
-                                    source_tag=bundle_source,
-                                    trigger_reason="give_experience",
-                                    salience=1.5, dwell_ticks=8)
-                                bundle_chis.append(chi)
-                            _guala._sounds[snd_id] = {
-                                "item_id": snd_id, "title": bundle_name,
-                                "cochlear": {bn: {"winding": c["winding"],
-                                                  "n_events": c["n_events"]}
-                                             for bn, c in cochlear.items()},
-                                "times_attended": 0, "last_attended_tick": 0,
-                                "created_tick": _guala.tick,
-                                "raw_signal": samples.tolist(),
-                            }
-                            bundle_sound_signal = samples.tolist()
-                            results.append(f"played her \"{bundle_name}\" "
-                                           f"({dur:.1f}s, {n_events} events)")
-                        except Exception as e:
-                            results.append(f"sound ERROR: {e}")
-                        finally:
-                            for p in [tmp_in.name, tmp_wav]:
-                                if os.path.exists(p):
-                                    os.unlink(p)
+                    import binascii
+                    if len(snd_b64) > _LIVE_AUDIO_MAX_B64_CHARS:
+                        raise ValueError(
+                            "encoded sound exceeds the 4 MiB request boundary")
+                    snd_bytes = base64.b64decode(snd_b64, validate=True)
+                    if len(snd_bytes) > _LIVE_AUDIO_MAX_BYTES:
+                        raise ValueError(
+                            "encoded sound exceeds the 4 MiB request boundary")
+                    from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+                    wav_bytes = _webm_to_wav_bytes(snd_bytes)
+                    if wav_bytes is None:
+                        raise ValueError(
+                            "sound could not be decoded inside the auditory boundary")
+                    snd_id = _hashlib.sha256(snd_bytes).hexdigest()[:16]
+                    receipt = _guala.register_replayable_sound(
+                        snd_id, bundle_name, wav_bytes,
+                        source=f"give_experience:{bundle_name}:sound_upload")
+                    results.append(
+                        f"played her \"{bundle_name}\" through auditory L5 "
+                        f"({receipt['duration_s']:.1f}s)")
+                except binascii.Error:
+                    results.append("sound ERROR: invalid base64 audio")
                 except Exception as e:
                     results.append(f"sound ERROR: {e}")
 
@@ -4197,31 +4225,6 @@ async def gualaloom_chat(msg: GLMessage):
                 except Exception as e:
                     results.append(f"word ERROR: {e}")
 
-            # ── ORGANISM teach: real auditory signal + word, one binding ──
-            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring.
-            # Everything above (WORD/SIGHT/SOUND lanes) writes to the ATLAS
-            # (chi-keyed, word-driven, symbolic) -- read_sentence() in the
-            # WORD lane already reaches the ORGANISM too, but language-only
-            # (_enqueue_organism_remember only picks up a real sight/sound
-            # signal from the last 3s of LIVE camera/mic frames -- a
-            # referenced/uploaded item never touches those buffers). This
-            # is the organism's own multi-sense binding, explicit-signal
-            # (not the shared live-frame cache, to avoid a real concurrent
-            # mic frame overwriting a caller-supplied signal in the window
-            # before enqueue) -- same queue/worker/experience_word()
-            # underneath, see _enqueue_organism_experience_explicit.
-            if caption and bundle_sound_signal is not None:
-                try:
-                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
-                    _words = _normalize_text(caption)
-                    if _words:
-                        _guala._enqueue_organism_experience_explicit(
-                            _words[0], sound_signal=bundle_sound_signal)
-                        results.append(
-                            f"organism bound \"{_words[0]}\" with a real auditory signal")
-                except Exception as e:
-                    results.append(f"organism-teach ERROR: {e}")
-
             # ── Bind all lanes in one window ──
             # _open_response_window (below) is the PRE-EXISTING, unrelated
             # response-triggering mechanism (context anchors for emission,
@@ -4269,10 +4272,13 @@ async def gualaloom_chat(msg: GLMessage):
             return response_payload
         return await _run_lifecycle_executor(_decode_bundle)
 
-    # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
+    # ── /addsound:<filename> — one bounded full-field auditory capture ──
     # C8: entire decode in executor
     if cmd.startswith("/addsound:"):
-        import base64, hashlib, tempfile, subprocess
+        import base64
+        import binascii
+        import hashlib
+
         filename = cmd[len("/addsound:"):]
         title = filename.rsplit('.', 1)[0] if '.' in filename else filename
         b64_data = msg.text.strip()
@@ -4281,163 +4287,61 @@ async def gualaloom_chat(msg: GLMessage):
         def _decode_sound():
             t0 = time.time()
             try:
-                audio_bytes = base64.b64decode(b64_data)
-                tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
-                tmp_in.write(audio_bytes)
-                tmp_in.close()
-                tmp_wav = tmp_in.name + '.wav'
-                subprocess.run([
-                    "ffmpeg", "-i", tmp_in.name, "-ar", "200", "-ac", "1",
-                    "-f", "wav", tmp_wav, "-y", "-loglevel", "error"
-                ], check=True, timeout=30)
-                import wave, struct
-                with wave.open(tmp_wav, 'rb') as wf:
-                    sr = wf.getframerate()
-                    n_frames = wf.getnframes()
-                    n_channels = wf.getnchannels()
-                    sampwidth = wf.getsampwidth()
-                    raw = wf.readframes(n_frames)
-                if sampwidth == 2:
-                    fmt = f'<{n_frames * n_channels}h'
-                    vals = struct.unpack(fmt, raw)
-                    samples = np.array(vals, dtype=np.float64) / 32768.0
-                elif sampwidth == 1:
-                    vals = list(raw)
-                    samples = (np.array(vals, dtype=np.float64) - 128.0) / 128.0
-                else:
-                    samples = np.frombuffer(raw, dtype=np.float64)
-                if n_channels > 1:
-                    samples = samples.reshape(-1, n_channels).mean(axis=1)
-                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
-                    cochlear_transduce, onset_stream, sustained_stream, a1_signature)
-                cochlear = cochlear_transduce(samples, sample_rate=sr)
-                onsets = onset_stream(cochlear)
-                sustained = sustained_stream(cochlear)
-                a1 = a1_signature(cochlear, onsets, sustained)
-                item_id = hashlib.md5(audio_bytes).hexdigest()[:12]
-                n_events = sum(c["n_events"] for c in cochlear.values())
-                n_onsets = sum(onsets.values())
-                duration_s = len(samples) / max(sr, 1)
-                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
-                # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: standalone
-                # sound upload is its own complete experience -- explicit
-                # open/add_entry-per-band/close, same pattern as give_experience.
-                # GL-RPT-WAL-BLOAT F2: explicit context id, same reasoning
-                # as give_experience above -- the close must resolve its
-                # target by identity, never by contextvar.
-                _sound_context_id = f"addsound:{item_id}:{time.time_ns():x}"
-                _guala.window_manager.open(
-                    "addsound", context_id=_sound_context_id)
-                for band_name, c in cochlear.items():
-                    chi = c["winding"] % 100
-                    _guala.window_manager.add_entry(
-                        modality="sound", section=f"audio_{band_name}",
-                        motif_id=deterministic_motif_id(item_id), chi=chi,
-                        tick=_guala.tick, source_tag=f"addsound:{item_id}",
-                        trigger_reason="addsound",
-                        context_id=_sound_context_id,
-                        salience=1.2)
-                _guala.window_manager.close(
-                    "addsound_complete", context_id=_sound_context_id)
-                _guala._sounds[item_id] = {
-                    "item_id": item_id, "title": title,
-                    "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
-                                 for bn, c in cochlear.items()},
-                    "duration_s": round(duration_s, 2),
-                    "times_attended": 0, "last_attended_tick": 0,
-                    "created_tick": _guala.tick,
-                    # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test
-                    # wiring: the 200Hz-downsampled waveform (already
-                    # computed above for cochlear_transduce) is the exact
-                    # shape organism.encode_state()'s auditory lane needs
-                    # (resonant_chi.resonant_response takes any real
-                    # numeric array). Previously discarded once cochlear
-                    # stats were extracted -- with it gone, a stored sound
-                    # item could never be replayed as an organism query or
-                    # teaching signal, only as atlas chi/winding stats.
-                    # Kept for NEW uploads only; items uploaded before this
-                    # change have no raw_signal and fall back to None.
-                    "raw_signal": samples.tolist(),
-                }
-                from dsf_ai_service.v4.gualaloom_v5_engine import SensoryItem
-                _guala._sensory_items[item_id] = SensoryItem(
-                    item_id=item_id, kind="sound", title=title)
-                _guala._log_substrate_event("sound_uploaded",
-                                            item_id=item_id, title=title,
-                                            n_events=n_events, n_onsets=n_onsets,
-                                            duration_s=round(duration_s, 2))
-                os.unlink(tmp_in.name)
-                os.unlink(tmp_wav)
+                if len(b64_data) > _LIVE_AUDIO_MAX_B64_CHARS:
+                    raise ValueError("encoded sound exceeds the 4 MiB request boundary")
+                audio_bytes = base64.b64decode(b64_data, validate=True)
+                if len(audio_bytes) > _LIVE_AUDIO_MAX_BYTES:
+                    raise ValueError("encoded sound exceeds the 4 MiB request boundary")
+                from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+                wav_bytes = _webm_to_wav_bytes(audio_bytes)
+                if wav_bytes is None:
+                    raise ValueError(
+                        "sound could not be decoded inside the auditory boundary")
+                item_id = hashlib.sha256(audio_bytes).hexdigest()[:16]
+                receipt = _guala.register_replayable_sound(
+                    item_id, title, wav_bytes,
+                    source=f"sound_upload:{item_id}")
                 result = {
-                    "response": f"heard \"{title}\" ({duration_s:.1f}s, {n_events} cochlear events, "
-                                f"{n_onsets} onsets). she's processing it.",
+                    "response": (
+                        f"heard \"{title}\" through the full auditory field "
+                        f"({receipt['duration_s']:.1f}s)"),
                     "motifs": _guala.introspect()["vocab"],
                     "sound_info": {
                         "item_id": item_id, "title": title,
-                        "duration_s": round(duration_s, 2),
-                        "n_cochlear_events": n_events,
-                        "n_onsets": n_onsets,
-                        "bands": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
-                                  for bn, c in cochlear.items()},
+                        "duration_s": round(receipt["duration_s"], 2),
+                        "causal_entries": receipt["causal_receipt"].get(
+                            "entries_bound", 0),
+                        "replay_pcm_bytes": receipt["replay_pcm_bytes"],
+                        "auditory_boundary": "full_field_l5",
                     },
                 }
-            except Exception as e:
+            except (ValueError, TypeError, binascii.Error) as e:
                 result = {"response": f"sound decode error: {e}",
+                          "motifs": _guala.introspect()["vocab"]}
+            except Exception as e:
+                result = {"response": f"sound processing error: {e}",
                           "motifs": _guala.introspect()["vocab"]}
             print(f"[decode-sound] {time.time()-t0:.2f}s")
             return result
         return await _run_lifecycle_executor(_decode_sound)
 
-    # ── /organism_recall_auditory:<sound_item_id> — cross-sense recall
-    # verification. GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live test:
-    # given a stored sound item (with a raw_signal, i.e. uploaded after
-    # the raw_signal change above), queries the ORGANISM with that
-    # waveform ALONE (no word) and, if a concept comes back, looks up its
-    # bound picture via the existing word-driven atlas mechanism
-    # (_recall_sight_from_atlas) -- proving the -207/-208 per-lane fix
-    # end to end on real live data, not just the loom_model unit tests.
-    # A new, self-contained command rather than reusing /converse: the
-    # 4 existing organism-recall call sites all start from a WORD
-    # (converse turn / tapestry query / daydream seed) and there is no
-    # natural word to start from for a pure sensory cue (see the -208
-    # report's research on this exact point).
+    # The retired organism query accepted a flattened 200 Hz waveform.  The
+    # full auditory field cannot enter that interface without destroying its
+    # channel topology, phase, and causal timing, so report the missing direct
+    # mechanism instead of presenting the old reduction as auditory recall.
     if cmd.startswith("/organism_recall_auditory:"):
-        import asyncio as _aio
-        _loop = _aio.get_event_loop()
         sound_item_id = cmd[len("/organism_recall_auditory:"):]
-
-        def _recall_auditory():
-            snd = _guala._sounds.get(sound_item_id)
-            if snd is None:
-                return {"response": f"no such sound item: {sound_item_id}",
-                        "organism_recall_auditory": None}
-            raw = snd.get("raw_signal")
-            if raw is None:
-                return {"response": f"\"{snd.get('title', sound_item_id)}\" has no "
-                                     f"raw_signal (uploaded before GL-CMD-208's "
-                                     f"persistence change) -- cannot query the "
-                                     f"organism with it.",
-                         "organism_recall_auditory": None}
-            recalled_word = _guala._recall_from_organism_auditory(raw)
-            pictures = []
-            if recalled_word:
-                for motif, item_id in _guala._recall_sight_from_atlas(None, [recalled_word]):
-                    pic = _guala._pictures.get(item_id)
-                    pictures.append({"item_id": item_id,
-                                      "title": pic.title if pic else item_id})
-            return {
-                "response": (f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
-                             f"recalled \"{recalled_word}\"" if recalled_word else
-                             f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
-                             f"no recall (empty vote)"),
-                "organism_recall_auditory": {
-                    "sound_item_id": sound_item_id,
-                    "sound_title": snd.get("title"),
-                    "recalled_word": recalled_word,
-                    "pictures": pictures,
-                },
-            }
-        return await _loop.run_in_executor(None, _recall_auditory)
+        snd = _guala._sounds.get(sound_item_id)
+        if snd is None:
+            return {"response": f"no such sound item: {sound_item_id}",
+                    "organism_recall_auditory": None}
+        return {
+            "response": (
+                "auditory recall through the flattened organism signal is retired; "
+                "a full-field auditory recall mechanism is not yet present"),
+            "organism_recall_auditory": None,
+            "reason": "full_field_auditory_recall_mechanism_missing",
+        }
 
     # ── Normal conversation — now handled by 202 + task poll path above ──
     # This branch is only reached for text messages if _is_converse was False
@@ -5428,10 +5332,25 @@ async def ring_write(request: Request):
     if _input_ring is None:
         return {"ok": False, "error": "ring not initialized"}
     body = await request.json()
-    seq = _input_ring.publish(
-        kind=body.get("kind", "text_input"),
-        source=body.get("source", "bridge"),
-        **body.get("data", {}))
+    from dsf_ai_service.substrate.ring_buffer import InputRingCapacityError
+    try:
+        seq = _input_ring.publish(
+            kind=body.get("kind", "text_input"),
+            source=body.get("source", "bridge"),
+            **body.get("data", {}))
+    except InputRingCapacityError as error:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "ok": False,
+                "error": str(error),
+                "input_pending": _input_ring.pending,
+                "input_pending_transport_bytes": (
+                    _input_ring.pending_transport_bytes),
+                "input_max_pending_transport_bytes": (
+                    _input_ring.max_pending_transport_bytes),
+            },
+        )
     return {"ok": True, "seq": seq}
 
 
@@ -5572,10 +5491,12 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
 
 @app.post("/api/v1/gualaloom/upload/sound")
 async def gualaloom_upload_sound(file: UploadFile = File(...)):
-    """A1 (042): Sound upload — decode, transduce, register for attention."""
+    """Decode one bounded sound and retain only its canonical replay capture."""
+    content = await file.read(_LIVE_AUDIO_MAX_BYTES + 1)
+    if len(content) > _LIVE_AUDIO_MAX_BYTES:
+        raise HTTPException(413, "Sound upload exceeds the 4 MiB request boundary")
     if _is_remote():
         import base64
-        content = await file.read()
         b64 = base64.b64encode(content).decode()
         client = _get_substrate_client()
         return await client.call("gualaloom_post",
@@ -5584,57 +5505,72 @@ async def gualaloom_upload_sound(file: UploadFile = File(...)):
     _gl_init()
     if _guala is None:
         return {"message": "initializing..."}
-    import hashlib
-    content = await file.read()
-    item_id = hashlib.md5(content).hexdigest()[:12]
-    title = file.filename or item_id
-    # Save original to EFS
-    sound_dir = os.path.join(STATE_DIR, "sounds")
-    os.makedirs(sound_dir, exist_ok=True)
-    orig_path = os.path.join(sound_dir, f"{item_id}.audio")
-    with open(orig_path, 'wb') as f:
-        f.write(content)
-    # Process via /addsound: command path (reuse existing cochlear pipeline)
     import base64
     b64 = base64.b64encode(content).decode()
-    # Simulate the command
     from pydantic import BaseModel
     class FakeMsg(BaseModel):
         text: str
         command: str = ""
         source: str = None
-    fake = FakeMsg(text=b64, command=f"/addsound:{title}")
+    fake = FakeMsg(
+        text=b64,
+        command=f"/addsound:{file.filename or 'uploaded-sound'}")
     result = await gualaloom_chat(fake)
     return result
 
 
 @app.post("/api/v1/gualaloom/upload/video")
 async def gualaloom_upload_video(file: UploadFile = File(...)):
-    """Upload a video for visual perception. C8: decode in executor."""
+    """Retain one bounded audiovisual capture for autonomous attention."""
+    if not _video_upload_read_lock.acquire(blocking=False):
+        raise HTTPException(429, "Another video upload is currently being read")
+    try:
+        content = await file.read(_VIDEO_UPLOAD_MAX_BYTES + 1)
+    finally:
+        _video_upload_read_lock.release()
+    if len(content) > _VIDEO_UPLOAD_MAX_BYTES:
+        raise HTTPException(413, "Video exceeds the 30 MiB request boundary")
     if _is_remote():
-        # Video too large for base64 socket — save to EFS, let substrate pick it up
-        content = await file.read()
-        if len(content) > 30 * 1024 * 1024:
-            raise HTTPException(400, "Video too large (max 30MB)")
-        # Save to shared EFS for substrate to process
+        # Remote video processing is not wired; retain a bounded handoff file
+        # without claiming that a nonexistent consumer has queued it.
         vid_dir = os.path.join("state", "uploads")
         os.makedirs(vid_dir, exist_ok=True)
         import hashlib
         vid_id = hashlib.md5(content).hexdigest()[:12]
         vid_path = os.path.join(vid_dir, f"{vid_id}.video")
+        retained = [
+            name for name in os.listdir(vid_dir)
+            if name.endswith(".video")
+            and os.path.isfile(os.path.join(vid_dir, name))
+        ]
+        if (not os.path.exists(vid_path)
+                and len(retained) >= _VIDEO_LIBRARY_MAX_ITEMS):
+            raise HTTPException(409, "Remote video retention boundary reached")
         with open(vid_path, 'wb') as f:
             f.write(content)
-        return {"message": f"video saved ({len(content)//1024}KB) — processing queued",
-                "item_id": vid_id}
+        return {
+            "message": (
+                f"video saved ({len(content)//1024}KB); remote video processing "
+                "is unavailable"),
+            "item_id": vid_id,
+            "processing": "unavailable_in_remote_mode",
+        }
     _gl_init()
-    import hashlib, tempfile, subprocess
-    content = await file.read()
-    if len(content) > 50 * 1024 * 1024:
-        raise HTTPException(400, "File too large (max 50MB)")
+    if _guala is None:
+        raise HTTPException(503, "Guala is still initializing")
+    import hashlib, shutil, tempfile, subprocess
     _fname = file.filename
+    item_id = hashlib.md5(content).hexdigest()[:12]
+    with _guala.lock:
+        if item_id in _guala._videos:
+            return {"message": "video already retained", "item_id": item_id}
+        if len(_guala._videos) >= _VIDEO_LIBRARY_MAX_ITEMS:
+            raise HTTPException(409, "Video library boundary reached")
+    if not _video_upload_lock.acquire(blocking=False):
+        raise HTTPException(429, "Another video is currently being decoded")
+
     def _decode():
         t0 = time.time()
-        item_id = hashlib.md5(content).hexdigest()[:12]
         title = _fname or item_id
         tmp_dir = tempfile.mkdtemp(prefix="guala_vid_")
         video_path = os.path.join(tmp_dir, "input.mp4")
@@ -5645,44 +5581,74 @@ async def gualaloom_upload_video(file: UploadFile = File(...)):
         audio_path = os.path.join(tmp_dir, "audio.wav")
         try:
             subprocess.run([
-                "ffmpeg", "-i", video_path, "-vf",
-                "scale=160:120,format=gray", "-r", "15",
+                "ffmpeg", "-nostdin", "-hide_banner", "-i", video_path,
+                "-t", str(_VIDEO_CAPTURE_MAX_SECONDS), "-vf",
+                "scale=160:120,format=gray", "-r", str(_VIDEO_FRAME_RATE),
+                "-frames:v", str(_VIDEO_MAX_RETAINED_FRAMES),
                 os.path.join(frame_dir, "frame_%05d.png"),
                 "-y", "-loglevel", "error"
             ], check=True, timeout=60)
-            subprocess.run([
-                "ffmpeg", "-i", video_path, "-vn", "-ar", "16000",
-                "-ac", "1", audio_path,
-                "-y", "-loglevel", "error"
-            ], timeout=60)
+            from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+            wav_bytes = _webm_to_wav_bytes(
+                content, encoded_max_bytes=_VIDEO_UPLOAD_MAX_BYTES)
+            if wav_bytes is not None:
+                with open(audio_path, "wb") as audio_file:
+                    audio_file.write(wav_bytes)
+                    audio_file.flush()
+                    os.fsync(audio_file.fileno())
         except FileNotFoundError:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
             print(f"[decode-video] {time.time()-t0:.2f}s ERROR: no ffmpeg")
             return {"message": "ffmpeg not available"}
         except Exception as e:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
             print(f"[decode-video] {time.time()-t0:.2f}s ERROR")
             return {"message": f"video decode error: {e}"}
         frame_files = sorted(f for f in os.listdir(frame_dir) if f.endswith('.png'))
+        if len(frame_files) > _VIDEO_MAX_RETAINED_FRAMES:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            return {"message": "video decode exceeded the retained frame boundary"}
         for fname in frame_files:
             from PIL import Image
             fpath = os.path.join(frame_dir, fname)
+            if os.path.getsize(fpath) > _VIDEO_MAX_FRAME_FILE_BYTES:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
+                return {"message": "video frame exceeded its encoded byte boundary"}
             img = Image.open(fpath).convert('L')
-            arr = np.array(img, dtype=np.float64) / 255.0
+            if img.size != (160, 120):
+                shutil.rmtree(tmp_dir, ignore_errors=True)
+                return {"message": "video frame changed the retained geometry"}
+            arr = np.array(img, dtype=np.uint8)
             np.save(fpath.replace('.png', '.npy'), arr)
+            os.unlink(fpath)
         n_frames = len(frame_files)
-        duration_ms = int(n_frames / 15.0 * 1000)
+        duration_ms = int(n_frames / float(_VIDEO_FRAME_RATE) * 1000)
+        try:
+            os.unlink(video_path)
+        except FileNotFoundError:
+            pass
         vid = VideoItem(item_id=item_id, title=title,
                         frame_dir=frame_dir,
                         audio_path=audio_path if os.path.exists(audio_path) else "",
                         duration_ms=duration_ms, n_frames=n_frames,
                         source="upload", shown_at_tick=_guala.tick)
-        _guala._videos[item_id] = vid
-        _guala._log_substrate_event("video_uploaded",
-                                    item_id=item_id, title=title,
-                                    n_frames=n_frames, duration_ms=duration_ms)
+        with _guala.lock:
+            _guala._videos[item_id] = vid
+            _guala._log_substrate_event(
+                "video_uploaded", item_id=item_id, title=title,
+                n_frames=n_frames, duration_ms=duration_ms)
         print(f"[decode-video] {time.time()-t0:.2f}s")
-        return {"message": f"video \"{title}\" decoded ({n_frames} frames, {duration_ms}ms)",
-                "item_id": item_id}
-    return await _run_lifecycle_executor(_decode)
+        return {
+            "message": (
+                f"video \"{title}\" decoded ({n_frames} frames, "
+                f"{duration_ms}ms; audio "
+                f"{'retained' if vid.audio_path else 'unavailable'})"),
+            "item_id": item_id,
+        }
+    try:
+        return await _run_lifecycle_executor(_decode)
+    finally:
+        _video_upload_lock.release()
 
 
 # ════════════════════════════════════════════════════════════════
@@ -5912,6 +5878,74 @@ class TeacherCorrectionRequest(BaseModel):
     # directly -- the question it answered and the attempt text itself.
     original_input: Optional[str] = None
     her_emission: Optional[str] = None
+
+
+class AuditoryL5TeachRequest(BaseModel):
+    experience_id: str
+    kind: str
+    tutor_label: str
+
+
+@app.get("/api/v1/auditory/status")
+async def auditory_l5_status():
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("auditory_l5_status")
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    return _guala.auditory_l5_status()
+
+
+@app.post(
+    "/api/v1/auditory/teach",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def auditory_l5_teach(req: AuditoryL5TeachRequest):
+    if req.kind not in ("spoken_form", "source_continuity"):
+        raise HTTPException(status_code=400, detail="invalid auditory teaching kind")
+    if not req.tutor_label.strip():
+        raise HTTPException(status_code=400, detail="tutor_label required")
+    authority_receipt = None
+    if _GUALALOOM_API_KEY:
+        from dsf_ai_service.substrate.auditory_tutor_authority import (
+            AuditoryTutorAuthority,
+        )
+        try:
+            authority_receipt = AuditoryTutorAuthority(
+                api_key=_GUALALOOM_API_KEY,
+                required=True,
+            ).issue(
+                experience_id=req.experience_id,
+                kind=req.kind,
+                tutor_label=req.tutor_label,
+            ).as_dict()
+        except ValueError as error:
+            raise HTTPException(
+                status_code=400, detail=str(error)
+            ) from error
+    if _is_remote():
+        client = _get_substrate_client()
+        result = await client.call(
+            "auditory_l5_teach",
+            experience_id=req.experience_id,
+            kind=req.kind,
+            tutor_label=req.tutor_label,
+            authority_receipt=authority_receipt,
+        )
+        if result.get("error"):
+            raise HTTPException(status_code=409, detail=result["error"])
+        return result
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    try:
+        return _guala.teach_latest_auditory_experience(
+            experience_id=req.experience_id,
+            kind=req.kind,
+            tutor_label=req.tutor_label,
+            authority_receipt=authority_receipt,
+        )
+    except (RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
 @app.post("/api/v1/teacher/feedback")
 async def teacher_feedback(req: TeacherFeedbackRequest):

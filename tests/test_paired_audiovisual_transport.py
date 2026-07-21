@@ -10,6 +10,18 @@ import numpy as np
 import dsf_ai_service.app as appmod
 
 
+def _unknown_auditory_status():
+    return {
+        "latest_experience_id": "0" * 64,
+        "recognitions": [
+            {"kind": "spoken_form", "state": "unknown",
+             "tutor_label": None, "candidate_labels": []},
+            {"kind": "source_continuity", "state": "unknown",
+             "tutor_label": None, "candidate_labels": []},
+        ],
+    }
+
+
 class _RecordingWindowManager:
     def __init__(self, calls: list[tuple]) -> None:
         self.calls = calls
@@ -73,6 +85,7 @@ def test_sound_request_binds_paired_camera_frame_in_one_context(
         process_sight_frame=process_sight,
         process_sound_frame=process_sound,
         _latest_causal_settlement=None,
+        auditory_l5_status=_unknown_auditory_status,
         _log_substrate_event=lambda *_args, **_kwargs: None,
     )
     windows.owner = fake
@@ -123,6 +136,7 @@ def test_failed_sight_does_not_erase_sound_or_common_settlement(
         process_sight_frame=fail_sight,
         process_sound_frame=process_sound,
         _latest_causal_settlement=None,
+        auditory_l5_status=_unknown_auditory_status,
         _log_substrate_event=lambda *args, **kwargs: calls.append(
             ("event", args, kwargs)),
     )
@@ -196,7 +210,10 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
 
 def test_browser_suppresses_duplicate_camera_stream_during_mic_capture() -> None:
     html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert "if(micCycleActive)return; // mic chunks carry the contemporaneous frame" in html
+    assert (
+        "if(micCycleActive||_utteranceTransitioning||_utteranceActive)return;"
+        in html
+    )
     assert "const _cycleSightPromise=camStream?captureConversationSight()" in html
     assert "capture_started_ms:captureStartedMs" in html
     assert "if(_micRequestInFlight)" in html

@@ -16,7 +16,8 @@ converse() calls.
 
 Gates:
 1. Recognized speech triggers exactly one converse() call, with the
-   transcript and source="joe" -- not read_sentence.
+   transcript and unresolved auditory-source provenance -- not read_sentence
+   and never a fabricated Joe identity.
 2. While a reply is composing (busy flag set), a second recognized
    utterance is silently skipped, not queued -- never two overlapping
    converse() calls.
@@ -80,7 +81,7 @@ def _reset():
 
 
 def test_gate1_recognized_speech_calls_converse_not_read_sentence():
-    print("Gate 1: converse() called with the transcript and source=joe...")
+    print("Gate 1: converse() called with unresolved auditory provenance...")
     _reset()
     fake = _FakeGuala(reply="")
     appmod._guala = fake
@@ -90,7 +91,9 @@ def test_gate1_recognized_speech_calls_converse_not_read_sentence():
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
-    assert fake.converse_calls == [("hello guala", "joe")], fake.converse_calls
+    assert fake.converse_calls == [
+        ("hello guala", "auditory:unresolved_source")
+    ], fake.converse_calls
     print("  PASS: converse() called exactly once, correct args")
 
 
@@ -108,7 +111,9 @@ def test_gate2_overlapping_utterance_is_skipped_not_queued():
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
-    assert fake.converse_calls == [("first utterance", "joe")], fake.converse_calls
+    assert fake.converse_calls == [
+        ("first utterance", "auditory:unresolved_source")
+    ], fake.converse_calls
     print("  PASS: overlapping utterance skipped, only the first was composed")
 
 

@@ -34,6 +34,9 @@
 use num_complex::Complex64;
 use pyo3::prelude::*;
 
+mod auditory;
+mod auditory_reachability;
+
 const F_PI: f64 = std::f64::consts::PI;
 
 // ---------------------------------------------------------------------------
@@ -600,6 +603,8 @@ fn psi_settle(
 
 #[pymodule]
 fn guala_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    auditory::register(m)?;
+    auditory_reachability::register(m)?;
     m.add_function(wrap_pyfunction!(krim_feed, m)?)?;
     m.add_function(wrap_pyfunction!(word_signal, m)?)?;
     m.add_function(wrap_pyfunction!(lang_transduce, m)?)?;

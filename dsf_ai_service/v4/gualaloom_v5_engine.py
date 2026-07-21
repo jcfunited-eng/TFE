@@ -46,6 +46,48 @@ from dataclasses import dataclass, field
 from collections import deque
 import random
 
+from dsf_ai_service.substrate.auditory_reciprocity import (
+    MAX_DECODED_SNAPSHOT_BYTES as AUDITORY_SNAPSHOT_MAX_DECODED_BYTES,
+)
+
+
+REPLAY_SOUND_SCHEMA = "guala.replay_sound.pcm16k_mono.v1"
+REPLAY_SOUND_SAMPLE_RATE_HZ = 16_000
+REPLAY_SOUND_SAMPLE_WIDTH_BYTES = 2
+REPLAY_SOUND_MAX_SECONDS = 8
+REPLAY_SOUND_MAX_PCM_BYTES = (
+    REPLAY_SOUND_SAMPLE_RATE_HZ
+    * REPLAY_SOUND_SAMPLE_WIDTH_BYTES
+    * REPLAY_SOUND_MAX_SECONDS
+)
+REPLAY_SOUND_MAX_COUNT = 32
+REPLAY_SOUND_TOTAL_PCM_BYTES = 8 * 1024 * 1024
+REPLAY_SOUND_MAX_WAV_BYTES = REPLAY_SOUND_MAX_PCM_BYTES + 44
+REPLAY_SOUND_MAX_B64_CHARS = 4 * ((REPLAY_SOUND_MAX_WAV_BYTES + 2) // 3)
+VIDEO_MAX_RETAINED_FRAMES = 120
+VIDEO_RETAINED_FRAME_RATE_HZ = 15
+VIDEO_RETAINED_FRAME_ROWS = 120
+VIDEO_RETAINED_FRAME_COLUMNS = 160
+VIDEO_RETINAL_TOPOLOGY_EDGE = 4
+# The decoder writes one uint8 160x120 numpy array.  The additional 4 KiB is
+# solely a bounded allowance for the .npy header; it is not image content.
+VIDEO_RETAINED_FRAME_MAX_BYTES = (
+    VIDEO_RETAINED_FRAME_ROWS * VIDEO_RETAINED_FRAME_COLUMNS + 4096
+)
+VIDEO_LEGACY_FRAME_MAX_BYTES = (
+    VIDEO_RETAINED_FRAME_ROWS * VIDEO_RETAINED_FRAME_COLUMNS * 8 + 4096
+)
+SOUNDS_STATE_MAX_BYTES = 16 * 1024 * 1024
+# One teaching artifact cannot consume more encoded bytes at boot than the
+# existing auditory reciprocity contract permits after decoding.  This is a
+# resource admission boundary, not a semantic limit or a truncation rule:
+# oversized state fails closed before json.load can allocate it.
+TEACHING_STATE_MAX_BYTES = AUDITORY_SNAPSHOT_MAX_DECODED_BYTES
+# Historical records used a 200 Hz compatibility waveform.  Preserve up to
+# ten minutes per record for restore honesty; it is never replay authority.
+# The independent 16 MiB file wall bounds aggregate legacy retention.
+LEGACY_SOUND_MAX_RAW_SAMPLES = 200 * 60 * 10
+
 
 def _engine_mutation_entry(method):
     """Make one public engine mutation participate in quiescence admission.
@@ -3102,7 +3144,12 @@ class Guala:
         self._reorganize_hypothesis_tracking = deque(maxlen=REORGANIZE_TRACKING_MAX)
         self._corpora = {}          # corpus_id -> _Corpus
         self._sensory_items = {}    # item_id -> SensoryItem
-        self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
+        # Legacy sound records are retained on restore, but only records with
+        # REPLAY_SOUND_SCHEMA contain an authoritative 16 kHz physical capture
+        # and may re-enter the auditory causal boundary.  The lock makes count
+        # and byte admission atomic across upload, bundle, and autonomous replay.
+        self._sounds = {}
+        self._sound_replay_lock = threading.RLock()
 
         # GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P1: the complete brain moves
         # into her live process, this boot forward. Lazy imports here (not
@@ -3211,6 +3258,21 @@ class Guala:
         self._causal_settlement_accepted = 0
         self._causal_settlement_failed = 0
         self._latest_causal_settlement = None
+        self._latest_auditory_l5_experience = None
+        from dsf_ai_service.substrate.auditory_l5 import (
+            AuditoryL5Owner as _AuditoryL5Owner)
+        self._auditory_l5_owner = _AuditoryL5Owner(
+            log_event=self._log_substrate_event,
+            max_transitions=1024,
+        )
+        from dsf_ai_service.substrate.auditory_reciprocity import (
+            AuditoryReciprocityOwner as _AuditoryReciprocityOwner)
+        self._auditory_reciprocity_owner = _AuditoryReciprocityOwner(
+            log_event=self._log_substrate_event,
+            max_classes_per_kind=64,
+        )
+        self._latest_auditory_recognitions = ()
+        self._latest_auditory_recognition_boundary = "ambient"
         from dsf_ai_service.substrate.exact_causal_experience import (
             ExactCausalExperienceOwner as _ExactCausalExperienceOwner)
         self._causal_experience_owner = _ExactCausalExperienceOwner(
@@ -6479,41 +6541,130 @@ class Guala:
             NativeAxisCoordinate, PhysicalSense, SENSE_ORDER,
             SenseBoundaryState)
 
+        def canonical_fraction_pair(value, label):
+            if (not isinstance(value, (list, tuple)) or len(value) != 2
+                    or any(isinstance(item, bool) or not isinstance(item, int)
+                           for item in value)
+                    or value[1] <= 0):
+                raise RuntimeError(f"{label} is not a rational pair")
+            exact = Fraction(value[0], value[1])
+            if tuple(value) != (exact.numerator, exact.denominator):
+                raise RuntimeError(f"{label} is not canonical")
+            return exact
+
         context_detail = record.get("context_detail") or {}
-        start_ns = context_detail.get("source_time_start_ns")
-        end_ns = context_detail.get("source_time_end_ns")
-        if start_ns is None or end_ns is None:
-            raise RuntimeError("causal sensory window has no authoritative source interval")
-        if (isinstance(start_ns, bool) or not isinstance(start_ns, int)
-                or isinstance(end_ns, bool) or not isinstance(end_ns, int)
-                or end_ns <= start_ns):
-            raise RuntimeError("causal sensory window has an invalid source interval")
-        start = Fraction(start_ns, 1_000_000_000)
-        end = Fraction(end_ns, 1_000_000_000)
+        legacy_interval_present = any(
+            key in context_detail
+            for key in ("source_time_start_ns", "source_time_end_ns"))
+        rational_interval_present = any(
+            key in context_detail for key in (
+                "source_time_start_fraction", "source_time_end_fraction"))
+        if legacy_interval_present and rational_interval_present:
+            raise RuntimeError(
+                "causal sensory window mixes ns and rational source intervals")
+        if rational_interval_present:
+            if not all(key in context_detail for key in (
+                    "source_time_start_fraction", "source_time_end_fraction")):
+                raise RuntimeError(
+                    "causal sensory rational source interval is incomplete")
+            start = canonical_fraction_pair(
+                context_detail["source_time_start_fraction"],
+                "causal sensory source start")
+            end = canonical_fraction_pair(
+                context_detail["source_time_end_fraction"],
+                "causal sensory source end")
+        elif legacy_interval_present:
+            if not all(key in context_detail for key in (
+                    "source_time_start_ns", "source_time_end_ns")):
+                raise RuntimeError(
+                    "causal sensory ns source interval is incomplete")
+            start_ns = context_detail["source_time_start_ns"]
+            end_ns = context_detail["source_time_end_ns"]
+            if (isinstance(start_ns, bool) or not isinstance(start_ns, int)
+                    or isinstance(end_ns, bool) or not isinstance(end_ns, int)):
+                raise RuntimeError(
+                    "causal sensory window has an invalid ns source interval")
+            start = Fraction(start_ns, 1_000_000_000)
+            end = Fraction(end_ns, 1_000_000_000)
+        else:
+            raise RuntimeError(
+                "causal sensory window has no authoritative source interval")
+        if end <= start:
+            raise RuntimeError(
+                "causal sensory window has a non-positive source interval")
         duration = end - start
 
         observed = {}
         for value in native_inputs:
-            if value.get("schema") != "guala.native_sensory_input.v1":
+            schema = value.get("schema")
+            if schema not in (
+                    "guala.native_sensory_input.v1",
+                    "guala.native_sensory_input.v2"):
                 raise RuntimeError("native sensory input has the wrong schema")
             sense = PhysicalSense(str(value["sense"]))
             signals = tuple(float(item) for item in value["normalized_signal"])
-            phases = tuple(Fraction(int(item)) for item in value["phase_turns"])
-            offsets_ns = tuple(int(item) for item in value["causal_offsets_ns"])
-            anchor_ns = value.get("source_anchor_ns")
-            if (isinstance(anchor_ns, bool)
-                    or not isinstance(anchor_ns, int)):
-                raise RuntimeError("native sensory source anchor is invalid")
-            if not (len(signals) == len(phases) == len(offsets_ns)):
-                raise RuntimeError("native sensory sample timing is incomplete")
-            if (offsets_ns[0] < 0
-                    or any(right <= left for left, right in zip(
-                        offsets_ns, offsets_ns[1:]))):
-                raise RuntimeError("native sensory causal offsets are invalid")
-            source_times = tuple(
-                Fraction(anchor_ns + value, 1_000_000_000)
-                for value in offsets_ns
+            phases = tuple(
+                Fraction.from_float(float(item))
+                for item in value["phase_turns"]
             )
+            legacy_timing_present = any(
+                key in value for key in (
+                    "source_anchor_ns", "causal_offsets_ns"))
+            rational_timing_present = any(
+                key in value for key in (
+                    "source_anchor_fraction", "causal_offsets_fraction"))
+            if legacy_timing_present and rational_timing_present:
+                raise RuntimeError(
+                    "native sensory input mixes ns and rational timing")
+            if schema == "guala.native_sensory_input.v1":
+                if rational_timing_present or not all(
+                        key in value for key in (
+                            "source_anchor_ns", "causal_offsets_ns")):
+                    raise RuntimeError(
+                        "native v1 sensory timing is incomplete or mixed")
+                anchor_ns = value["source_anchor_ns"]
+                if (isinstance(anchor_ns, bool)
+                        or not isinstance(anchor_ns, int)):
+                    raise RuntimeError(
+                        "native sensory source anchor is invalid")
+                anchor = Fraction(anchor_ns, 1_000_000_000)
+                raw_offsets_ns = value["causal_offsets_ns"]
+                if (not isinstance(raw_offsets_ns, (list, tuple))
+                        or any(isinstance(item, bool)
+                               or not isinstance(item, int)
+                               for item in raw_offsets_ns)):
+                    raise RuntimeError(
+                        "native sensory ns causal offsets are invalid")
+                offsets = tuple(
+                    Fraction(item, 1_000_000_000)
+                    for item in raw_offsets_ns)
+            else:
+                if legacy_timing_present or not all(
+                        key in value for key in (
+                            "source_anchor_fraction",
+                            "causal_offsets_fraction")):
+                    raise RuntimeError(
+                        "native v2 sensory timing is incomplete or mixed")
+                anchor = canonical_fraction_pair(
+                    value["source_anchor_fraction"],
+                    "native sensory source anchor")
+                raw_offsets = value["causal_offsets_fraction"]
+                if not isinstance(raw_offsets, (list, tuple)):
+                    raise RuntimeError(
+                        "native sensory rational causal offsets are invalid")
+                offsets = tuple(
+                    canonical_fraction_pair(
+                        item, f"native sensory causal offset {index}")
+                    for index, item in enumerate(
+                        raw_offsets)
+                )
+            if not (len(signals) == len(phases) == len(offsets)):
+                raise RuntimeError("native sensory sample timing is incomplete")
+            if (not offsets or offsets[0] < 0
+                    or any(right <= left for left, right in zip(
+                        offsets, offsets[1:]))):
+                raise RuntimeError("native sensory causal offsets are invalid")
+            source_times = tuple(anchor + value for value in offsets)
             native = NativeSensorySubstreamInput(
                 sense=sense,
                 sensor_id=str(value["sensor_id"]),
@@ -6555,6 +6706,24 @@ class Guala:
             observed_substreams=ordered_observed,
             states=states,
         )
+        auditory_boundary = context_detail.get(
+            "auditory_event_boundary", "ambient")
+        if auditory_boundary not in ("ambient", "utterance"):
+            raise RuntimeError("causal window has an invalid auditory event boundary")
+        self._latest_auditory_recognition_boundary = auditory_boundary
+        self._latest_auditory_l5_experience = self._auditory_l5_owner.settle(
+            built,
+            event_boundary=auditory_boundary,
+        )
+        self._latest_auditory_recognitions = (
+            self._auditory_reciprocity_owner.recognize_all(
+                self._latest_auditory_l5_experience)
+            if (
+                self._latest_auditory_l5_experience is not None
+                and auditory_boundary == "utterance"
+            )
+            else ()
+        )
         return owner.settle(
             built,
             routing_chis=tuple(
@@ -6587,6 +6756,82 @@ class Guala:
                 if item.state == "observed"
             ],
         )
+
+    @_engine_mutation_entry
+    def teach_latest_auditory_experience(
+            self, *, experience_id, kind, tutor_label,
+            authority_receipt=None):
+        """Bind one explicit tutor label to the exact latest auditory field.
+
+        The experience identifier prevents a delayed correction from teaching
+        whichever microphone frame happened to arrive later.  Client source
+        tags and Whisper text are never consulted here.
+        """
+        from dsf_ai_service.substrate.auditory_reciprocity import (
+            AuditoryReciprocityKind)
+        experience = self._auditory_l5_owner.pending_experience(
+            experience_id)
+        if experience is None:
+            raise RuntimeError(
+                "auditory tutoring target has left the bounded tutor window")
+        try:
+            typed_kind = AuditoryReciprocityKind(str(kind))
+        except ValueError as exc:
+            raise ValueError("auditory tutoring kind is invalid") from exc
+        learned = self._auditory_reciprocity_owner.teach(
+            experience,
+            kind=typed_kind,
+            tutor_label=tutor_label,
+            authority_receipt=authority_receipt,
+        )
+        recognition = self._auditory_reciprocity_owner.recognize(
+            experience, kind=typed_kind)
+        current = self._latest_auditory_l5_experience
+        self._latest_auditory_recognitions = (
+            self._auditory_reciprocity_owner.recognize_all(current)
+            if (
+                current is not None
+                and self._latest_auditory_recognition_boundary == "utterance"
+            )
+            else ()
+        )
+        return {
+            "accepted": True,
+            "experience_id": experience.experience_id,
+            "kind": typed_kind.value,
+            "tutor_label": learned.tutor_label,
+            "reinforcement_count": learned.reinforcement_count,
+            "recognition_state": recognition.state.value,
+            "recognized_label": recognition.tutor_label,
+            "candidate_labels": list(recognition.candidate_labels),
+        }
+
+    def auditory_l5_status(self):
+        experience = self._latest_auditory_l5_experience
+        return {
+            "provider": "causal_gammatone_erb_v1",
+            "latest_experience_id": (
+                experience.experience_id if experience is not None else None),
+            "latest_relation": (
+                experience.relation if experience is not None else None),
+            "recognition_boundary": self._latest_auditory_recognition_boundary,
+            "recognition_attempted": bool(
+                self._latest_auditory_recognition_boundary == "utterance"
+                and experience is not None
+            ),
+            "l5_owner": self._auditory_l5_owner.status(),
+            "reciprocity": self._auditory_reciprocity_owner.status(),
+            "recognitions": [
+                {
+                    "kind": value.kind.value,
+                    "state": value.state.value,
+                    "tutor_label": value.tutor_label,
+                    "candidate_labels": list(value.candidate_labels),
+                    "experience_id": value.experience_id,
+                }
+                for value in self._latest_auditory_recognitions
+            ],
+        }
 
     def _organism_worker_loop(self):
         """GL-CMD-175 window-2 perf fix, upgraded per
@@ -10865,9 +11110,13 @@ class Guala:
         # Phase 2: visual items
         for pid in self._pictures:
             candidates.append(("ATTENDING_VISUAL", pid))
-        # Audio items
-        for sid in self._sounds:
-            candidates.append(("ATTENDING_AUDIO", sid))
+        # Only exact retained 16 kHz captures can be autonomously re-heard.
+        # Legacy records remain visible in the library but contain only a
+        # reduced 200 Hz summary, so treating them as sound would fabricate
+        # a physical experience that was never persisted.
+        for sid, sound in self._sounds.items():
+            if sound.get("replay_schema") == REPLAY_SOUND_SCHEMA:
+                candidates.append(("ATTENDING_AUDIO", sid))
         for vid in self._videos:
             candidates.append(("ATTENDING_VIDEO", vid))
         # Emission: only if pair-bond source present + cooldown elapsed
@@ -12515,23 +12764,216 @@ class Guala:
             "settlement": _settlement,
         }
 
+    @staticmethod
+    def _canonical_replay_wav(audio_bytes):
+        """Validate and canonicalize one bounded physical replay capture."""
+        import io
+        import wave
+
+        if not isinstance(audio_bytes, bytes):
+            raise TypeError("replay audio must be WAV bytes")
+        if len(audio_bytes) > REPLAY_SOUND_MAX_WAV_BYTES:
+            raise ValueError("replay audio exceeds the eight-second boundary")
+        try:
+            with wave.open(io.BytesIO(audio_bytes), "rb") as source:
+                channels = source.getnchannels()
+                sample_width = source.getsampwidth()
+                sample_rate = source.getframerate()
+                frame_count = source.getnframes()
+                compression = source.getcomptype()
+                if (channels != 1 or sample_width != REPLAY_SOUND_SAMPLE_WIDTH_BYTES
+                        or sample_rate != REPLAY_SOUND_SAMPLE_RATE_HZ
+                        or compression != "NONE"):
+                    raise ValueError(
+                        "replay audio must be uncompressed 16 kHz mono PCM16 WAV")
+                if frame_count < 160:
+                    raise ValueError("replay audio is shorter than 10 milliseconds")
+                pcm_bytes = frame_count * sample_width
+                if pcm_bytes > REPLAY_SOUND_MAX_PCM_BYTES:
+                    raise ValueError("replay audio exceeds the eight-second boundary")
+                raw = source.readframes(frame_count)
+                if len(raw) != pcm_bytes:
+                    raise ValueError("replay audio ended before its declared boundary")
+        except (EOFError, wave.Error) as error:
+            raise ValueError(f"replay audio is not a valid PCM WAV: {error}") from error
+
+        canonical_buffer = io.BytesIO()
+        with wave.open(canonical_buffer, "wb") as target:
+            target.setnchannels(1)
+            target.setsampwidth(REPLAY_SOUND_SAMPLE_WIDTH_BYTES)
+            target.setframerate(REPLAY_SOUND_SAMPLE_RATE_HZ)
+            target.writeframes(raw)
+        return canonical_buffer.getvalue(), frame_count, pcm_bytes
+
+    @classmethod
+    def _decode_replay_sound_record(cls, item_id, sound):
+        """Return and verify the exact retained capture for one new record."""
+        import base64
+        import binascii
+
+        label = f"sound[{item_id}]"
+        if sound.get("replay_schema") != REPLAY_SOUND_SCHEMA:
+            raise ValueError(f"{label} is not a replayable 16 kHz sound")
+        encoded = sound.get("replay_wav_b64")
+        if (not isinstance(encoded, str)
+                or len(encoded) > REPLAY_SOUND_MAX_B64_CHARS):
+            raise ValueError(f"{label}.replay_wav_b64 exceeds its boundary")
+        try:
+            wav_bytes = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as error:
+            raise ValueError(f"{label}.replay_wav_b64 is invalid") from error
+        canonical, frame_count, pcm_bytes = cls._canonical_replay_wav(wav_bytes)
+        if canonical != wav_bytes:
+            raise ValueError(f"{label} does not contain canonical PCM WAV bytes")
+        if sound.get("replay_wav_sha256") != _hashlib.sha256(wav_bytes).hexdigest():
+            raise ValueError(f"{label}.replay_wav_sha256 mismatch")
+        if sound.get("replay_wav_bytes") != len(wav_bytes):
+            raise ValueError(f"{label}.replay_wav_bytes mismatch")
+        if sound.get("replay_pcm_bytes") != pcm_bytes:
+            raise ValueError(f"{label}.replay_pcm_bytes mismatch")
+        if sound.get("replay_pcm_sample_count") != frame_count:
+            raise ValueError(f"{label}.replay_pcm_sample_count mismatch")
+        if sound.get("replay_sample_rate_hz") != REPLAY_SOUND_SAMPLE_RATE_HZ:
+            raise ValueError(f"{label}.replay_sample_rate_hz mismatch")
+        return wav_bytes, frame_count, pcm_bytes
+
+    @_engine_mutation_entry
+    def register_replayable_sound(self, item_id, title, wav_bytes,
+                                  source="sound_upload"):
+        """Hear and retain one bounded capture through the full auditory field."""
+        import base64
+
+        if not isinstance(item_id, str) or not item_id or len(item_id) > 128:
+            raise ValueError("sound item id must be a non-empty bounded string")
+        if not isinstance(title, str) or len(title) > 512:
+            raise ValueError("sound title must be a bounded string")
+        if not isinstance(source, str) or not source or len(source) > 256:
+            raise ValueError("sound source must be a non-empty bounded string")
+        canonical, frame_count, pcm_bytes = self._canonical_replay_wav(wav_bytes)
+
+        with self._sound_replay_lock:
+            with self.lock:
+                replay_records = {
+                    key: record for key, record in self._sounds.items()
+                    if record.get("replay_schema") == REPLAY_SOUND_SCHEMA
+                }
+            replacing = replay_records.get(item_id)
+            admitted_count = len(replay_records) + (0 if replacing else 1)
+            admitted_bytes = sum(
+                record.get("replay_pcm_bytes", 0)
+                for record in replay_records.values()
+            ) - (replacing.get("replay_pcm_bytes", 0) if replacing else 0) + pcm_bytes
+            if admitted_count > REPLAY_SOUND_MAX_COUNT:
+                raise ValueError(
+                    f"replay sound count boundary reached ({REPLAY_SOUND_MAX_COUNT})")
+            if admitted_bytes > REPLAY_SOUND_TOTAL_PCM_BYTES:
+                raise ValueError(
+                    "replay sound PCM byte boundary reached "
+                    f"({REPLAY_SOUND_TOTAL_PCM_BYTES})")
+
+            receipt = self.process_sound_frame(canonical, source=source)
+            if not receipt or not receipt.get("accepted"):
+                raise RuntimeError("auditory causal boundary accepted no full-field entries")
+            encoded = base64.b64encode(canonical).decode("ascii")
+            record = {
+                "item_id": item_id,
+                "title": title,
+                "replay_schema": REPLAY_SOUND_SCHEMA,
+                "replay_wav_b64": encoded,
+                "replay_wav_sha256": _hashlib.sha256(canonical).hexdigest(),
+                "replay_wav_bytes": len(canonical),
+                "replay_pcm_bytes": pcm_bytes,
+                "replay_pcm_sample_count": frame_count,
+                "replay_sample_rate_hz": REPLAY_SOUND_SAMPLE_RATE_HZ,
+                "duration_s": frame_count / REPLAY_SOUND_SAMPLE_RATE_HZ,
+                "times_attended": (
+                    replacing.get("times_attended", 0) + 1 if replacing else 1),
+                "last_attended_tick": self.tick,
+                "created_tick": (
+                    replacing.get("created_tick", self.tick)
+                    if replacing else self.tick),
+            }
+            with self.lock:
+                self._sounds[item_id] = record
+            self._log_substrate_event(
+                "replayable_sound_registered",
+                item_id=item_id,
+                title=title,
+                duration_s=round(record["duration_s"], 4),
+                replay_pcm_bytes=pcm_bytes,
+                replay_sound_count=admitted_count,
+                replay_total_pcm_bytes=admitted_bytes,
+                causal_entries=receipt.get("entries_bound", 0),
+            )
+            return {
+                "accepted": True,
+                "item_id": item_id,
+                "title": title,
+                "duration_s": record["duration_s"],
+                "replay_pcm_bytes": pcm_bytes,
+                "causal_receipt": receipt,
+            }
+
+    @_engine_mutation_entry
+    def replay_sound_asset(self, item_id, source="autonomous_sound_replay"):
+        """Re-hear an exact retained capture; never reconstruct legacy audio."""
+        with self._sound_replay_lock:
+            with self.lock:
+                sound = self._sounds.get(item_id)
+            if sound is None:
+                return {
+                    "accepted": False,
+                    "replay_available": False,
+                    "reason": "sound_item_not_found",
+                }
+            if sound.get("replay_schema") != REPLAY_SOUND_SCHEMA:
+                self._log_substrate_event(
+                    "legacy_sound_replay_unavailable",
+                    item_id=item_id,
+                    reason="legacy_sound_has_no_retained_16khz_pcm",
+                )
+                return {
+                    "accepted": False,
+                    "replay_available": False,
+                    "reason": "legacy_sound_has_no_retained_16khz_pcm",
+                }
+            wav_bytes, _, _ = self._decode_replay_sound_record(item_id, sound)
+            receipt = self.process_sound_frame(wav_bytes, source=source)
+            if not receipt or not receipt.get("accepted"):
+                raise RuntimeError("auditory causal boundary accepted no replay entries")
+            with self.lock:
+                sound["times_attended"] = sound.get("times_attended", 0) + 1
+                sound["last_attended_tick"] = self.tick
+            return {
+                "accepted": True,
+                "replay_available": True,
+                "item_id": item_id,
+                "title": sound.get("title", item_id),
+                "causal_receipt": receipt,
+            }
+
     @_engine_mutation_entry
     def process_sound_frame(
             self, audio_bytes, source="mic:live", source_anchor_ns=None,
-            source_time_end_ns=None):
-        """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
-        sound krimelack. No _sounds entry, no storage. Just cochlear + atlas.
-        GL-CMD-SELFVOICE-TAGGING-152: source tags the binding (default
-        "mic:live"; self-voice injection passes "voice:self") so self and
-        ambient/mic bindings are no longer indistinguishable.
+            source_time_end_ns=None, auditory_event_boundary="ambient"):
+        """Bind one native 16 kHz microphone capture into the auditory field.
 
-        GL-CMD-LOCK-CONTENTION-FIX-182 L1: WAV decode + cochlear_transduce
-        (the DSP) build only local variables (samples/downsampled/cochlear)
-        -- no shared state touched -- so they now run OUTSIDE self.lock,
-        same reasoning as process_sight_frame. Measured live at up to
-        ~93s/call while streaming continuously. Only the atlas writes
-        + event log stay inside, bounded to just that write."""
-        import struct, wave, io, numpy as np
+        The physical provider preserves synchronized cochlear-channel
+        pressure envelope, carrier phase, and causal timing.  It performs no speech,
+        source, word, or semantic decision.  Source is provenance only; chi is
+        routing only.  The resulting independent ports enter the frozen exact
+        L0--L4 boundary without a legacy vector or atlas identity write.
+        """
+        import io, wave, numpy as np
+        if auditory_event_boundary not in ("ambient", "utterance"):
+            raise ValueError(
+                "auditory event boundary must be ambient or utterance")
+        # A valid new capture supersedes the status surface immediately.
+        # If decode/transduction/settlement fails, old recognition must not
+        # remain visible as though it belonged to this physical event.
+        self._latest_auditory_recognition_boundary = auditory_event_boundary
+        self._latest_auditory_l5_experience = None
+        self._latest_auditory_recognitions = ()
         if source_anchor_ns is None:
             source_anchor_ns = time.time_ns()
         if (isinstance(source_anchor_ns, bool)
@@ -12543,65 +12985,26 @@ class Guala:
                 or source_time_end_ns <= source_anchor_ns):
             raise ValueError("sound source end must follow its source anchor")
         _source_started_ns = source_anchor_ns
-        try:
-            # Try reading as WAV first
-            wf = wave.open(io.BytesIO(audio_bytes), 'rb')
+        with wave.open(io.BytesIO(audio_bytes), "rb") as wf:
             sr = wf.getframerate()
             n_frames = wf.getnframes()
+            channels = wf.getnchannels()
+            sample_width = wf.getsampwidth()
             raw = wf.readframes(n_frames)
-            if wf.getsampwidth() == 2:
-                samples = np.array(struct.unpack(f'<{n_frames}h', raw),
-                                   dtype=np.float64) / 32768.0
-            else:
-                samples = np.frombuffer(raw, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
-            wf.close()
-        except Exception:
-            # Raw bytes — treat as 8-bit unsigned mono at 16kHz
-            samples = np.frombuffer(audio_bytes, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
-            sr = 16000
-        if len(samples) < 10:
-            return
-        # Downsample to 200 Hz for cochlear (same as /addsound)
-        from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
-            COCHLEAR_BANDS, cochlear_transduce)
-        target_sr = 200
-        step = max(1, sr // target_sr)
-        downsampled = samples[::step]
-        if len(downsampled) > 1600:
-            raise ValueError("live sound exceeds the eight-second causal capture boundary")
-        # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal cache,
-        # same convention as process_sight_frame above -- already-
-        # downsampled REAL audio (200Hz, no further reduction needed --
-        # already comparable in size to touch/smell/taste's own ~100-160
-        # sample precedent), wall-clock stamped for in-window binding.
-        try:
-            self._last_sound_signal = downsampled.copy()
-            self._last_sound_wall_time = time.time()
-        except Exception:
-            pass
-        cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
-        from dsf_ai_service.glew_runtime.auditory_fragment_receipt import (
-            AuditoryPerceptFragment,
-            auditory_fragment_receipt,
+        if channels != 1 or sample_width != 2:
+            raise ValueError("auditory field requires 16-bit mono PCM WAV")
+        samples = np.frombuffer(raw, dtype="<i2").astype(np.float64) / 32768.0
+        from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+            transduce_auditory_full_field,
         )
-        auditory_receipt = auditory_fragment_receipt(AuditoryPerceptFragment(
-            source_id=str(source),
-            born_tick=int(self.tick),
-            sample_rate_hz=int(target_sr),
-            input_sample_count=int(len(downsampled)),
-            bands={
-                bn: {
-                    "winding": int(c["winding"]),
-                    "n_events": int(c["n_events"]),
-                    "events": list(c["events"]),
-                }
-                for bn, c in cochlear.items()
-            },
-        ))
-        # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
-        # speech-vs-silence discrimination gate. Remove after gate is closed.
-        print(f"[cochlear-debug] n_events_by_band="
-              f"{ {bn: c['n_events'] for bn, c in cochlear.items()} }")
+        auditory_field = transduce_auditory_full_field(
+            samples, sample_rate_hz=sr)
+
+        # The retired one-dimensional organism cache cannot represent this
+        # topology without flattening it.  Do not route the full field through
+        # that compatibility path; auditory L5 consumes the structured field.
+        self._last_sound_signal = None
+        self._last_sound_wall_time = None
         # GL-RPT-WAL-BLOAT F2 (2026-07-15): this frame is one complete
         # sensory moment, so it gets an EXPLICIT per-frame context, opened
         # and closed right here.  Relying on the implicit-context fallback
@@ -12627,81 +13030,79 @@ class Guala:
                 "sound",
                 context_detail={
                     "experience_origin": "live_sound",
+                    "auditory_event_boundary": auditory_event_boundary,
                     "source_time_start_ns": _source_started_ns,
                     "source_time_end_ns": (
                         source_time_end_ns
                         if source_time_end_ns is not None
-                        else _source_started_ns + len(downsampled) * 5_000_000),
+                        else _source_started_ns
+                        + len(samples) * 1_000_000_000 // sr),
                     "sensor_unavailable": [
                         "sight", "touch", "smell", "taste", "body"],
                 },
             )
         n_bands_fired = 0
         n_bands_observed = 0
-        band_profile = {band["name"]: band for band in COCHLEAR_BANDS}
         try:
             with self.lock:
-                for topology_index, (bn, c) in enumerate(cochlear.items()):
-                    cumulative = 0
-                    event_index = 0
-                    events = list(c["events"])
-                    phase_turns = []
-                    for sample_index in range(len(c["filtered"])):
-                        sample_time = (sample_index + 1) * 0.04
-                        while (event_index < len(events)
-                               and float(events[event_index]["t"])
-                               <= sample_time + 1e-12):
-                            cumulative += int(events[event_index]["dw"])
-                            event_index += 1
-                        phase_turns.append(cumulative)
-                    chi = c["winding"] % 100
+                for topology_index, channel in enumerate(auditory_field.channels):
+                    definition = channel.definition
+                    channel_present = any(
+                        value != 0.0
+                        for value in channel.pressure_envelope_full_scale
+                    )
+                    chi = topology_index
                     self.window_manager.add_entry(
-                        modality="sound", section=f"audio_{bn}",
+                        modality="sound", section=f"audio_{definition.name}",
                         motif_id=deterministic_motif_id("mic_stream"),
                         chi=chi, tick=self.tick,
                         source_tag=source, trigger_reason="sound",
                         context_id=_frame_context_id,
                         salience=0.6, dwell_ticks=2,
                         sensory_refs=[source],
-                        mirror_atlas=bool(c["n_events"] > 0),
+                        mirror_atlas=False,
                         detail={
-                            "native_auditory_receipt_sha256": (
-                                auditory_receipt.receipt_sha256),
                             "native_full_field_input": {
                                 "schema": "guala.native_sensory_input.v1",
                                 "sense": "sound",
-                                "sensor_id": "microphone-cochlea",
-                                "substream_id": str(bn),
+                                "sensor_id": "microphone-gammatone-cochlear-field",
+                                "substream_id": definition.name,
                                 "topology_index": topology_index,
                                 "coordinates": [
-                                    ["frequency-band", str(bn)],
-                                    ["center-hz", str(
-                                        band_profile[bn]["freq"])],
-                                    ["bandwidth-hz", str(
-                                        band_profile[bn]["bandwidth"])],
+                                    ["cochlear-channel", definition.name],
+                                    ["centre-hz", str(definition.centre_hz)],
+                                    ["erb-width-hz", str(
+                                        definition.erb_width_hz)],
+                                    ["gammatone-order", "4"],
+                                    ["observation-hop-samples", str(
+                                        auditory_field.observation_hop_samples)],
                                 ],
-                                "physical_quantity": "sound-pressure",
-                                "physical_unit": "normalized-amplitude",
+                                "physical_quantity": (
+                                    "cochlear-pressure-envelope"),
+                                "physical_unit": "full-scale-pressure",
                                 "source_anchor_ns": source_anchor_ns,
-                                "causal_offsets_ns": [
-                                    sample_index * 5_000_000
-                                    for sample_index in range(len(c["filtered"]))
-                                ],
+                                "causal_offsets_ns": list(
+                                    channel.causal_offsets_ns),
                                 "normalized_signal": [
-                                    float(value) for value in c["filtered"]
+                                    float(value)
+                                    for value in channel.pressure_envelope_full_scale
                                 ],
-                                "phase_turns": phase_turns,
+                                "phase_turns": [
+                                    float(value)
+                                    for value in channel.carrier_phase_turns
+                                ],
                             },
                         },
                         **self._affect_kwargs())
                     n_bands_observed += 1
-                    if c["n_events"] > 0:
+                    if channel_present:
                         n_bands_fired += 1
                 self._log_substrate_event("sound_frame_bound",
                     n_bands=n_bands_fired,
                     n_bands_observed=n_bands_observed,
                     duration_s=round(len(samples)/sr, 2),
-                    source=source)
+                    source=source,
+                    auditory_provider="causal_gammatone_erb_v1")
         finally:
             # Close OUTSIDE self.lock: end_context durably appends the closed
             # record to the WAL with an fsync, and EFS latency must never
@@ -12785,90 +13186,339 @@ class Guala:
         # actual exposure) — see there. Nothing left to do here.
 
     def _atick_attending_audio(self, a):
-        """Phase 3 (042): Attend to audio — run cochlear bands through atlas."""
+        """Attend once to the exact retained capture through auditory L5."""
         snd = self._sounds.get(a.target)
         if not snd:
             return
-        # GL-CMD-EPISODE-BINDING C2.3: episode_ref fixed at activity start
-        if "_episode_ref" not in a.metadata:
-            a.metadata["_episode_ref"] = (
-                f"episode:attending_audio:{a.started_tick}:{a.target}")
-        ep_ref = a.metadata["_episode_ref"]
-        presence, location, sky_state = self._current_situation()
-        # Record attendance
-        snd["times_attended"] = snd.get("times_attended", 0) + 1
-        snd["last_attended_tick"] = self.tick
-        # Bind cochlear bands into atlas (same path as upload, reinforces on re-attend)
-        cochlear = snd.get("cochlear", {})
-        for band_name, c in cochlear.items():
-            chi = c.get("winding", 0) % 100  # 1.1
-            self.window_manager.add_entry(
-                modality="sound", section=f"audio_{band_name}",
-                motif_id=deterministic_motif_id(a.target), chi=chi,
-                tick=self.tick,
-                source_tag="attending_audio", trigger_reason="sound",
-                salience=1.2, dwell_ticks=8,
-                sensory_refs=[f"snd:{a.target}"],
-                bundle_id=f"item:snd:{a.target}",
-                episode_ref=ep_ref, presence=presence,
-                location=location, sky_state=sky_state,
-                source="attending_audio",
-                **self._affect_kwargs())
-        # Novelty satisfies
+        if a.metadata.get("_replayed") or a.metadata.get("_replay_unavailable"):
+            return
+        receipt = self.replay_sound_asset(
+            a.target, source=f"autonomous_sound_replay:{a.target}")
+        if not receipt.get("accepted"):
+            a.metadata["_replay_unavailable"] = receipt.get("reason")
+            return
+        a.metadata["_replayed"] = True
+        a.metadata["causal_entries"] = receipt["causal_receipt"].get(
+            "entries_bound", 0)
         if snd.get("times_attended", 0) <= 3:
             self.needs.novelty = saturate(self.needs.novelty, 0.01)
-        # Log first attendance
-        if snd.get("times_attended", 0) == 1:
-            self._log_substrate_event("sound_motif_founded",
-                                      item_id=a.target, title=snd.get("title", ""))
+        self._log_substrate_event(
+            "sound_replayed_through_causal_boundary",
+            item_id=a.target,
+            title=snd.get("title", ""),
+            causal_entries=a.metadata["causal_entries"],
+        )
+
+    @staticmethod
+    def _load_retained_video_frame(frame_path):
+        """Read canonical uint8 or one exact legacy float64 frame.
+
+        Legacy uploads stored ``uint8 / 255.0``.  They remain admissible only
+        when every value round-trips exactly through that equation; no
+        tolerance, clipping, or inferred replacement value is permitted.
+        The sealed source file is never modified here.
+        """
+        import os
+
+        if (not os.path.isfile(frame_path) or os.path.islink(frame_path)):
+            raise ValueError("retained video frame is not a regular file")
+        if os.path.getsize(frame_path) > VIDEO_LEGACY_FRAME_MAX_BYTES:
+            raise ValueError("retained video frame exceeds its byte boundary")
+        frame = np.load(frame_path, mmap_mode="r", allow_pickle=False)
+        if frame.shape != (
+                VIDEO_RETAINED_FRAME_ROWS,
+                VIDEO_RETAINED_FRAME_COLUMNS):
+            raise ValueError("retained video frame has the wrong dimensions")
+        if frame.dtype == np.dtype(np.uint8):
+            if os.path.getsize(frame_path) > VIDEO_RETAINED_FRAME_MAX_BYTES:
+                raise ValueError(
+                    "canonical retained video frame exceeds its byte boundary")
+            return np.asarray(frame).copy(), False
+        if frame.dtype != np.dtype(np.float64):
+            raise ValueError(
+                "retained video frame is neither canonical nor exact legacy")
+        legacy = np.asarray(frame)
+        if (not np.all(np.isfinite(legacy))
+                or np.any(legacy < 0.0) or np.any(legacy > 1.0)):
+            raise ValueError("legacy retained video frame is outside [0,1]")
+        candidate = np.rint(legacy * 255.0).astype(np.uint8)
+        if not np.array_equal(
+                legacy, candidate.astype(np.float64) / 255.0):
+            raise ValueError(
+                "legacy retained video frame is not exactly reversible")
+        return candidate, True
+
+    @staticmethod
+    def _retained_video_frame_names(frame_dir, expected_count=None):
+        """Return one complete canonical or legacy retained-frame sequence."""
+        frame_files = sorted(
+            name for name in os.listdir(frame_dir) if name.endswith(".npy"))
+        if not frame_files:
+            raise ValueError("retained video has no visual frames")
+        if len(frame_files) > VIDEO_MAX_RETAINED_FRAMES:
+            raise ValueError(
+                "retained video exceeds the frame attention boundary")
+        if expected_count is not None and len(frame_files) != expected_count:
+            raise ValueError(
+                "retained video frame count disagrees with its record")
+        one_based = [
+            f"frame_{index:05d}.npy"
+            for index in range(1, len(frame_files) + 1)
+        ]
+        zero_based = [
+            f"frame_{index:05d}.npy"
+            for index in range(len(frame_files))
+        ]
+        if frame_files not in (one_based, zero_based):
+            raise ValueError("retained video frame sequence is incomplete")
+        return frame_files
+
+    @staticmethod
+    def _retained_video_retinal_field(frame_dir):
+        """Integrate every retained pixel/frame into a fixed 4x4 retina.
+
+        Each non-overlapping retinal field covers exactly 30x40 pixels of the
+        canonical 120x160 grayscale frame.  Its temporal signal has one sample
+        per retained frame at the exact 15 fps media cadence.  No frame,
+        region, or pixel is selected by content or omitted.
+        """
+        import os
+        from fractions import Fraction
+        from dsf_ai_service.visual_krimelack import (
+            AdaptingFoveaKrimelack, WINDING_PHASE)
+
+        frame_files = Guala._retained_video_frame_names(frame_dir)
+
+        edge = VIDEO_RETINAL_TOPOLOGY_EDGE
+        field_rows = VIDEO_RETAINED_FRAME_ROWS // edge
+        field_columns = VIDEO_RETAINED_FRAME_COLUMNS // edge
+        field_pixels = field_rows * field_columns
+        receptors = [AdaptingFoveaKrimelack() for _ in range(edge * edge)]
+        signals = [[] for _ in receptors]
+        phases = [[] for _ in receptors]
+        offset_fractions = []
+        frame_delta_s = 1.0 / VIDEO_RETAINED_FRAME_RATE_HZ
+
+        for frame_index, frame_name in enumerate(frame_files):
+            frame_path = os.path.join(frame_dir, frame_name)
+            frame, _legacy_exact = Guala._load_retained_video_frame(frame_path)
+            field_sums = frame.reshape(
+                edge, field_rows, edge, field_columns
+            ).sum(axis=(1, 3), dtype=np.uint64).reshape(-1)
+            for topology_index, pixel_sum in enumerate(field_sums):
+                intensity = float(pixel_sum) / (255.0 * field_pixels)
+                receptor = receptors[topology_index]
+                receptor.tick(
+                    intensity, frame_index, delta_t=frame_delta_s)
+                signals[topology_index].append(2.0 * intensity - 1.0)
+                phases[topology_index].append(
+                    receptor.winding_count
+                    + receptor.phase / WINDING_PHASE)
+            offset = Fraction(frame_index, VIDEO_RETAINED_FRAME_RATE_HZ)
+            offset_fractions.append((offset.numerator, offset.denominator))
+
+        return (
+            tuple(tuple(values) for values in signals),
+            tuple(tuple(values) for values in phases),
+            tuple(offset_fractions),
+        )
+
+    def _bind_retained_video_retinal_field(
+            self, *, vid, context_id, source_start_ns, retinal_field):
+        """Bind the exact retained-video retinal topology to its owner."""
+        from fractions import Fraction
+
+        signals, phases, offset_fractions = retinal_field
+        source_anchor = Fraction(source_start_ns, 1_000_000_000)
+        edge = VIDEO_RETINAL_TOPOLOGY_EDGE
+        field_rows = VIDEO_RETAINED_FRAME_ROWS // edge
+        field_columns = VIDEO_RETAINED_FRAME_COLUMNS // edge
+        source = f"video:{vid.item_id}"
+        for topology_index, signal in enumerate(signals):
+            row = topology_index // edge
+            column = topology_index % edge
+            substream_id = f"retinal-field-{row}-{column}"
+            self.window_manager.add_entry(
+                modality="sight",
+                section="retained_video_retinal_field",
+                motif_id=deterministic_motif_id(substream_id),
+                chi=topology_index,
+                tick=self.tick,
+                source_tag=source,
+                trigger_reason="sight",
+                context_id=context_id,
+                salience=0.8,
+                mirror_atlas=False,
+                sensory_refs=[source],
+                detail={
+                    "native_full_field_input": {
+                        "schema": "guala.native_sensory_input.v2",
+                        "sense": "sight",
+                        "sensor_id": "retained-video-retina-4x4",
+                        "substream_id": substream_id,
+                        "topology_index": topology_index,
+                        "coordinates": [
+                            ["retinal-row", str(row)],
+                            ["retinal-column", str(column)],
+                            ["pixel-row-start", str(row * field_rows)],
+                            ["pixel-row-end-exclusive", str(
+                                (row + 1) * field_rows)],
+                            ["pixel-column-start", str(
+                                column * field_columns)],
+                            ["pixel-column-end-exclusive", str(
+                                (column + 1) * field_columns)],
+                        ],
+                        "physical_quantity": "regional-mean-light-intensity",
+                        "physical_unit": "normalized-full-scale-intensity",
+                        "source_anchor_fraction": [
+                            source_anchor.numerator, source_anchor.denominator],
+                        "causal_offsets_fraction": [
+                            list(value) for value in offset_fractions],
+                        "normalized_signal": list(signal),
+                        "phase_turns": list(phases[topology_index]),
+                    },
+                },
+                **self._affect_kwargs(),
+            )
+        return len(signals)
 
     def _atick_attending_video(self, a):
-        """Phase 2: Attend to video — saccade across decoded frames."""
+        """Settle one retained video experience exactly once."""
+        from fractions import Fraction
+
         vid = self._videos.get(a.target)
         if not vid:
             return
-        # Load frames on demand
-        if not a.metadata.get("_viewed"):
+        if (not a.metadata.get("_video_causal_settled")
+                and not a.metadata.get("_video_causal_unavailable")):
+            context_id = f"video-av:{vid.item_id}:{a.started_tick}"
+            context_open = False
             try:
-                import os
-                frame_files = sorted(
-                    f for f in os.listdir(vid.frame_dir)
-                    if f.endswith('.npy'))
-                # Saccade across a sample of frames (not all)
-                from dsf_ai_service.visual_krimelack import view_picture
-                sample_step = max(1, len(frame_files) // 10)
-                all_fragments = []
-                for i in range(0, len(frame_files), sample_step):
-                    frame = np.load(os.path.join(vid.frame_dir, frame_files[i]))
-                    frags = view_picture(
-                        frame, source_id=vid.item_id,
-                        born_tick=self.tick + i, seed=(self.tick + i) % 10000,
-                        n_fixations=4, ticks_per_fixation=100)
-                    all_fragments.extend(frags)
-                self._visual_fragments_count += len(all_fragments)
-                motif, is_new, overlap = self.sight.process_viewing(
-                    all_fragments, vid.item_id, self.tick)
-                if motif:
-                    chi_val = motif.motif_id % 100
-                    self.window_manager.add_entry(
-                        modality="sight", section="sight",
-                        motif_id=motif.motif_id, chi=chi_val, tick=self.tick,
-                        source_tag=f"vid:{vid.item_id}", trigger_reason="sight",
-                        salience=1.2,
-                        sensory_refs=[f"vid:{vid.item_id}"],
-                        **self._affect_kwargs())
-                    self._log_substrate_event(
-                        "video_motif_committed" if is_new else "video_motif_fired",
-                        motif_id=motif.motif_id, overlap=round(overlap, 3),
-                        source_id=vid.item_id, n_fragments=len(all_fragments))
+                retinal_field = self._retained_video_retinal_field(vid.frame_dir)
+                retained_frame_count = len(retinal_field[2])
+                self._retained_video_frame_names(
+                    vid.frame_dir, expected_count=vid.n_frames)
+                audio_path = getattr(vid, "audio_path", "") or ""
+                canonical = None
+                audio_frame_count = 0
+                if audio_path:
+                    with open(audio_path, "rb") as audio_file:
+                        audio_bytes = audio_file.read(
+                            REPLAY_SOUND_MAX_WAV_BYTES + 1)
+                    if len(audio_bytes) > REPLAY_SOUND_MAX_WAV_BYTES:
+                        raise ValueError(
+                            "retained video audio exceeds the eight-second boundary")
+                    canonical, audio_frame_count, _ = self._canonical_replay_wav(
+                        audio_bytes)
+                    if canonical != audio_bytes:
+                        raise ValueError("retained video audio is not canonical")
+                source_start_ns = time.time_ns()
+                source_start = Fraction(source_start_ns, 1_000_000_000)
+                audio_duration = Fraction(
+                    audio_frame_count, REPLAY_SOUND_SAMPLE_RATE_HZ)
+                video_duration = Fraction(
+                    retained_frame_count, VIDEO_RETAINED_FRAME_RATE_HZ)
+                source_end = source_start + max(
+                    audio_duration, video_duration)
+                self.window_manager.begin_context(
+                    context_id,
+                    "attending_video_causal",
+                    context_detail={
+                        "experience_origin": (
+                            "replayed_video_audiovisual"
+                            if canonical is not None
+                            else "replayed_video_visual"),
+                        "auditory_event_boundary": "ambient",
+                        "source": f"video:{vid.item_id}",
+                        "source_time_start_fraction": [
+                            source_start.numerator, source_start.denominator],
+                        "source_time_end_fraction": [
+                            source_end.numerator, source_end.denominator],
+                        "sensor_unavailable": [
+                            *([] if canonical is not None else ["sound"]),
+                            "touch", "smell", "taste", "body"],
+                    },
+                )
+                context_open = True
+                sight_entries = self._bind_retained_video_retinal_field(
+                    vid=vid,
+                    context_id=context_id,
+                    source_start_ns=source_start_ns,
+                    retinal_field=retinal_field,
+                )
+                if canonical is not None:
+                    audio_receipt = self.process_sound_frame(
+                        canonical,
+                        source=f"video:{vid.item_id}",
+                        source_anchor_ns=source_start_ns,
+                        auditory_event_boundary="ambient",
+                    )
+                    if not audio_receipt or not audio_receipt.get("accepted"):
+                        raise RuntimeError(
+                            "video audio causal boundary accepted no entries")
+                else:
+                    audio_receipt = {"accepted": False, "entries_bound": 0}
+                closed = self.window_manager.end_context(
+                    context_id,
+                    "attending_video_causal_complete",
+                    return_settlement=True,
+                )
+                context_open = False
+                if closed is None:
+                    raise RuntimeError("video causal context did not close")
+                _window_id, settlement = closed
+                if settlement is None:
+                    raise RuntimeError(
+                        "video causal context produced no settlement")
+                settlement.verify()
+                observed = {
+                    item.sense for item in settlement.interpretations
+                    if item.state == "observed"
+                }
+                expected_observed = (
+                    {"sight", "sound"} if canonical is not None else {"sight"})
+                if observed != expected_observed:
+                    raise RuntimeError(
+                        "video causal settlement changed its available senses")
+                a.metadata["_video_causal_settled"] = True
                 a.metadata["_viewed"] = True
-            except Exception as e:
-                self._log_substrate_event("video_attend_error", error=str(e))
-                a.metadata["_viewed"] = True
-        if vid.is_new():
+                if canonical is not None:
+                    a.metadata["_audiovisual_settled"] = True
+                    a.metadata["_audio_heard"] = True
+                else:
+                    a.metadata["_audio_unavailable"] = (
+                        "video_has_no_retained_audio")
+                a.metadata["sight_causal_entries"] = sight_entries
+                a.metadata["audio_causal_entries"] = audio_receipt.get(
+                    "entries_bound", 0)
+                a.metadata["causal_event_id"] = settlement.event_id
+                self._log_substrate_event(
+                    ("video_audiovisual_bound" if canonical is not None
+                     else "video_visual_bound"),
+                    item_id=vid.item_id,
+                    event_id=settlement.event_id,
+                    sight_entries=sight_entries,
+                    audio_entries=a.metadata["audio_causal_entries"],
+                    retained_frames=retained_frame_count,
+                    duration_s=float(source_end - source_start),
+                )
+            except Exception as error:
+                if context_open:
+                    self.window_manager.discard_unsettled_context(
+                        context_id, "attending_video_causal_failed")
+                a.metadata["_video_causal_unavailable"] = (
+                    f"{type(error).__name__}: {error}")
+                self._log_substrate_event(
+                    "video_causal_attend_error",
+                    item_id=vid.item_id,
+                    error_type=type(error).__name__,
+                    error=str(error),
+                )
+        if a.metadata.get("_video_causal_settled") and vid.is_new():
             self.needs.novelty = saturate(self.needs.novelty, 0.004)
-        # No novelty gain for repeat video attendance
-        if self.tick >= a.expected_end_tick - 1:
+        # No novelty gain for repeat video attendance.
+        if (a.metadata.get("_video_causal_settled")
+                and self.tick >= a.expected_end_tick - 1):
             vid.times_attended += 1
             vid.last_attended_tick = self.tick
 
@@ -15080,6 +15730,14 @@ class Guala:
             cls._exact_int(
                 record.get("tick"), f"teaching.emission[{emission_id}].tick",
                 maximum=engine_tick)
+        auditory = data.get("auditory_reciprocity")
+        if auditory is not None:
+            if not isinstance(auditory, dict):
+                raise ValueError("teaching.auditory_reciprocity must be an object")
+            payload = auditory.get("payload")
+            if not isinstance(payload, str) or len(payload) > 16 * 1024 * 1024:
+                raise ValueError(
+                    "teaching.auditory_reciprocity exceeds its encoded boundary")
 
     @classmethod
     def _validate_episodic_payload(cls, data, engine_tick, max_per_concept,
@@ -15134,6 +15792,8 @@ class Guala:
     def _validate_sounds_payload(cls, data, engine_tick):
         if not isinstance(data, dict):
             raise ValueError("sounds payload must be an object")
+        replay_count = 0
+        replay_pcm_bytes = 0
         for item_id, sound in data.items():
             label = f"sound[{item_id}]"
             if not isinstance(item_id, str) or not isinstance(sound, dict):
@@ -15142,15 +15802,6 @@ class Guala:
                 raise ValueError(f"{label}.item_id mismatch")
             if not isinstance(sound.get("title"), str):
                 raise ValueError(f"{label}.title must be a string")
-            cochlear = sound.get("cochlear")
-            if not isinstance(cochlear, dict):
-                raise ValueError(f"{label}.cochlear must be an object")
-            for band, state in cochlear.items():
-                if not isinstance(band, str) or not isinstance(state, dict):
-                    raise ValueError(f"{label}.cochlear band is invalid")
-                cls._exact_int(state.get("winding"), f"{label}.{band}.winding",
-                               minimum=-2**63)
-                cls._exact_int(state.get("n_events"), f"{label}.{band}.n_events")
             for field in ("times_attended", "last_attended_tick"):
                 cls._exact_int(sound.get(field), f"{label}.{field}",
                                maximum=engine_tick)
@@ -15160,12 +15811,72 @@ class Guala:
             if "duration_s" in sound:
                 cls._exact_number(sound["duration_s"], f"{label}.duration_s",
                                   minimum=0.0)
+            if sound.get("replay_schema") == REPLAY_SOUND_SCHEMA:
+                if "cochlear" in sound or "raw_signal" in sound:
+                    raise ValueError(
+                        f"{label} mixes the full auditory field with a legacy reduction")
+                for field, maximum in (
+                        ("replay_wav_bytes", REPLAY_SOUND_MAX_WAV_BYTES),
+                        ("replay_pcm_bytes", REPLAY_SOUND_MAX_PCM_BYTES),
+                        ("replay_pcm_sample_count",
+                         REPLAY_SOUND_SAMPLE_RATE_HZ * REPLAY_SOUND_MAX_SECONDS),
+                        ("replay_sample_rate_hz", REPLAY_SOUND_SAMPLE_RATE_HZ)):
+                    cls._exact_int(
+                        sound.get(field), f"{label}.{field}", maximum=maximum)
+                if not isinstance(sound.get("replay_wav_sha256"), str):
+                    raise ValueError(f"{label}.replay_wav_sha256 must be a string")
+                _, frame_count, pcm_bytes = cls._decode_replay_sound_record(
+                    item_id, sound)
+                expected_duration = frame_count / REPLAY_SOUND_SAMPLE_RATE_HZ
+                if sound.get("duration_s") != expected_duration:
+                    raise ValueError(f"{label}.duration_s mismatch")
+                replay_count += 1
+                replay_pcm_bytes += pcm_bytes
+                if replay_count > REPLAY_SOUND_MAX_COUNT:
+                    raise ValueError("replay sound count boundary exceeded")
+                if replay_pcm_bytes > REPLAY_SOUND_TOTAL_PCM_BYTES:
+                    raise ValueError("replay sound PCM byte boundary exceeded")
+                continue
+
+            # Honest legacy compatibility: old snapshots retain their reduced
+            # records so state restore remains possible, but these fields are
+            # never accepted as replay authority by the live engine.
+            cochlear = sound.get("cochlear")
+            if not isinstance(cochlear, dict):
+                raise ValueError(f"{label}.cochlear must be an object")
+            for band, state in cochlear.items():
+                if not isinstance(band, str) or not isinstance(state, dict):
+                    raise ValueError(f"{label}.cochlear band is invalid")
+                cls._exact_int(state.get("winding"), f"{label}.{band}.winding",
+                               minimum=-2**63)
+                cls._exact_int(state.get("n_events"), f"{label}.{band}.n_events")
             if "raw_signal" in sound:
                 signal = sound["raw_signal"]
                 if not isinstance(signal, list):
                     raise ValueError(f"{label}.raw_signal must be a list")
+                if len(signal) > LEGACY_SOUND_MAX_RAW_SAMPLES:
+                    raise ValueError(
+                        f"{label}.raw_signal exceeds the legacy sample boundary")
                 for index, sample in enumerate(signal):
                     cls._exact_number(sample, f"{label}.raw_signal[{index}]")
+
+    @staticmethod
+    def _load_sounds_state_file(path):
+        """Reject an oversized sound library before JSON allocates it."""
+        if os.path.getsize(path) > SOUNDS_STATE_MAX_BYTES:
+            raise ValueError(
+                "guala_sounds.json exceeds the pre-parse byte boundary")
+        with open(path) as sound_file:
+            return json.load(sound_file)
+
+    @staticmethod
+    def _load_teaching_state_file(path):
+        """Reject an oversized teaching artifact before JSON allocates it."""
+        if os.path.getsize(path) > TEACHING_STATE_MAX_BYTES:
+            raise ValueError(
+                "guala_teaching.json exceeds the pre-parse byte boundary")
+        with open(path) as teaching_file:
+            return json.load(teaching_file)
 
     @classmethod
     def _validate_wave_npz_payload(cls, path):
@@ -15498,7 +16209,7 @@ class Guala:
                 state_dir, *spec["frame_dir"].split("/"))
             if (not os.path.isdir(frame_target)
                     or os.path.realpath(spec["source_frame_dir"])
-                    != os.path.realpath(frame_target)):
+                        != os.path.realpath(frame_target)):
                 return False
             if spec["audio_path"]:
                 audio_target = os.path.join(
@@ -15731,6 +16442,8 @@ class Guala:
             "feedback_log": self._teaching_feedback_log[-500:],
             "correction_log": self._teaching_correction_log[-500:],
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
+            "auditory_reciprocity": (
+                self._auditory_reciprocity_owner.encoded_snapshot()),
         })
         writes.append(("guala_teaching.json", snap_teaching))
 
@@ -16065,6 +16778,8 @@ class Guala:
             "feedback_log": self._teaching_feedback_log[-500:],
             "correction_log": self._teaching_correction_log[-500:],
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
+            "auditory_reciprocity": (
+                self._auditory_reciprocity_owner.encoded_snapshot()),
         }, saved_at_tick=save_tick)
         # GL-CMD-PERSIST-CLOBBER-FIX-81: teaching is non-critical — isolate so it
         # cannot prevent _last_save_tick from advancing when core files succeed.
@@ -16861,8 +17576,7 @@ class Guala:
             teaching_path = os.path.join(state_dir, "guala_teaching.json")
             if os.path.exists(teaching_path):
                 try:
-                    with open(teaching_path) as f:
-                        td = json.load(f)
+                    td = self._load_teaching_state_file(teaching_path)
                     tdata = (self._unwrap(td, "guala_teaching.json")
                              if "data" in td and "guala_identity" in td
                              else td)
@@ -16881,6 +17595,10 @@ class Guala:
                     else:
                         for eid, rec in tdata.get("emission_records", {}).items():
                             self._emission_records[eid] = rec
+                    auditory_snapshot = tdata.get("auditory_reciprocity")
+                    if auditory_snapshot is not None:
+                        self._auditory_reciprocity_owner.restore_encoded(
+                            auditory_snapshot)
                 except Exception as error:
                     if exact_binary:
                         raise ValueError(
@@ -16929,8 +17647,7 @@ class Guala:
             sounds_path = os.path.join(state_dir, "guala_sounds.json")
             if os.path.exists(sounds_path):
                 try:
-                    with open(sounds_path) as fh:
-                        sraw = json.load(fh)
+                    sraw = self._load_sounds_state_file(sounds_path)
                     sdata = (self._unwrap(sraw, "guala_sounds.json")
                              if "data" in sraw and "guala_identity" in sraw
                              else sraw)
@@ -18353,6 +19070,7 @@ class Guala:
                 "causal_settlements_failed": self._causal_settlement_failed,
                 "causal_settlement_backlog": 0,
                 "causal_experience_owner": self._causal_experience_owner.status(),
+                "auditory_l5": self.auditory_l5_status(),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost
                 # that used to climb unbounded with lifetime history.

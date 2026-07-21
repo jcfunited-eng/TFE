@@ -57,6 +57,7 @@ S3_KEY="deploy/dsf_ai_codebuild_src.zip"
 TASK_SECURITY_GROUP="sg-057566437ba8d4b48"
 ALB_SECURITY_GROUP="sg-0c9ff138eba21a6fa"
 ALB_DNS="dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
+HTTP_API_ID="3d6toi0gw0"
 CONTROL_ORIGIN="https://dsf-ai.com"
 DEPLOY_CONFIG="maximumPercent=100,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=true}"
 
@@ -565,10 +566,9 @@ out = {
                 {'name': 'GUALA_OWNER_LOCK_PATH', 'value': '/app/guala/.guala-owner.lock'},
                 {'name': 'GUALA_REQUIRE_SEALED_STATE', 'value': '1'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
-                # Spoken-word recognition is a boundary sense transducer.  It
-                # runs in the separately bounded worker lane after cognition
-                # is ready; it does not replace or approximate cognition.
-                {'name': 'VOICE_WHISPER', 'value': '1'},
+                # ML transcription is excluded from production cognition and
+                # compute. Auditory L5 full-field reciprocity owns recognition.
+                {'name': 'VOICE_WHISPER', 'value': '0'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
@@ -1173,6 +1173,94 @@ if not service.get("taskDefinition", "").endswith("/" + os.environ["EXPECTED_TAS
     exit 1
 fi
 OWNER_FAIL_CLOSED=0
+
+ensure_http_api_route() {
+    local method="$1"
+    local path="$2"
+    local route_key="${method} ${path}"
+    local route_json route_id target integration_id expected_uri actual_uri
+    route_json=$(aws apigatewayv2 get-routes --api-id "${HTTP_API_ID}" \
+        --output json)
+    route_id=$(printf '%s' "${route_json}" | ROUTE_KEY="${route_key}" python3 -c '
+import json, os, sys
+matches = [item for item in json.load(sys.stdin).get("Items", [])
+           if item.get("RouteKey") == os.environ["ROUTE_KEY"]]
+if len(matches) > 1:
+    raise SystemExit("duplicate API Gateway route")
+print(matches[0].get("RouteId", "") if matches else "")
+')
+    expected_uri="http://${ALB_DNS}${path}"
+    if [ -z "${route_id}" ]; then
+        integration_id=$(aws apigatewayv2 create-integration \
+            --api-id "${HTTP_API_ID}" \
+            --integration-type HTTP_PROXY \
+            --integration-method "${method}" \
+            --integration-uri "${expected_uri}" \
+            --payload-format-version 1.0 \
+            --timeout-in-millis 30000 \
+            --query IntegrationId --output text)
+        aws apigatewayv2 create-route --api-id "${HTTP_API_ID}" \
+            --route-key "${route_key}" \
+            --target "integrations/${integration_id}" >/dev/null
+    else
+        target=$(printf '%s' "${route_json}" | ROUTE_KEY="${route_key}" python3 -c '
+import json, os, sys
+match = next(item for item in json.load(sys.stdin).get("Items", [])
+             if item.get("RouteKey") == os.environ["ROUTE_KEY"])
+print(match.get("Target", ""))
+')
+        integration_id="${target#integrations/}"
+        if [ -z "${integration_id}" ] || [ "${integration_id}" = "${target}" ]; then
+            echo "ERROR: ${route_key} has no HTTP integration" >&2
+            return 1
+        fi
+        aws apigatewayv2 update-integration \
+            --api-id "${HTTP_API_ID}" \
+            --integration-id "${integration_id}" \
+            --integration-method "${method}" \
+            --integration-uri "${expected_uri}" \
+            --payload-format-version 1.0 \
+            --timeout-in-millis 30000 >/dev/null
+    fi
+    actual_uri=$(aws apigatewayv2 get-integration \
+        --api-id "${HTTP_API_ID}" --integration-id "${integration_id}" \
+        --query IntegrationUri --output text)
+    if [ "${actual_uri}" != "${expected_uri}" ]; then
+        echo "ERROR: ${route_key} integration mismatch: ${actual_uri}" >&2
+        return 1
+    fi
+    echo "[route] ${route_key} -> ${actual_uri}"
+}
+
+echo "[routes] Ensuring auditory control surfaces reach the deployed owner..."
+ensure_http_api_route GET /api/v1/auditory/status
+ensure_http_api_route POST /api/v1/auditory/teach
+AUDITORY_API_ORIGIN="https://${HTTP_API_ID}.execute-api.${AWS_REGION}.amazonaws.com"
+AUDITORY_STATUS_FILE="${DEPLOY_WORK_DIR}/auditory-status.json"
+AUDITORY_STATUS_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
+    -o "${AUDITORY_STATUS_FILE}" -w '%{http_code}' \
+    "${AUDITORY_API_ORIGIN}/api/v1/auditory/status")
+if [ "${AUDITORY_STATUS_HTTP}" != "200" ] || ! \
+    AUDITORY_STATUS_FILE="${AUDITORY_STATUS_FILE}" python3 -c '
+import json, os
+with open(os.environ["AUDITORY_STATUS_FILE"], encoding="utf-8") as stream:
+    value = json.load(stream)
+if value.get("provider") != "causal_gammatone_erb_v1":
+    raise SystemExit("auditory status did not reach the deployed owner")
+'; then
+    echo "ERROR: public auditory status route did not prove the deployed owner" >&2
+    exit 1
+fi
+AUDITORY_UNAUTH_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
+    -o /dev/null -w '%{http_code}' -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"experience_id":"0000000000000000000000000000000000000000000000000000000000000000","kind":"spoken_form","tutor_label":"route probe"}' \
+    "${AUDITORY_API_ORIGIN}/api/v1/auditory/teach")
+if [ "${AUDITORY_UNAUTH_HTTP}" != "401" ]; then
+    echo "ERROR: auditory tutor route did not enforce authentication" >&2
+    exit 1
+fi
+echo "[routes] Auditory status and tutor authentication verified through API Gateway."
 
 # ── Step 8: Sync static files to S3 + CloudFront invalidation ──
 echo ""
