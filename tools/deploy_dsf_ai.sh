@@ -185,15 +185,23 @@ OLD_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
     --service-name "${ECS_SERVICE}" --desired-status RUNNING \
     --query 'taskArns' --output text)
 read -r -a OLD_TASK_ARNS <<< "${OLD_TASKS_TEXT}"
-if [ "${#OLD_TASK_ARNS[@]}" -ne 1 ] || [ "${OLD_TASK_ARNS[0]}" = "None" ]; then
+if [ "${BUILD_ONLY_FLAG}" = "yes" ] \
+        && { [ "${#OLD_TASK_ARNS[@]}" -eq 0 ] \
+             || [ "${OLD_TASK_ARNS[0]:-None}" = "None" ]; }; then
+    # Build-only never starts a task or touches the immutable state owner.
+    # Allow the intentionally fail-closed zero-owner state so a repaired
+    # image can be built after a boot refusal.  More than one owner still
+    # falls through to the hard failure below.
+    OLD_TASK_ARN="none (build-only; service has zero owners)"
+elif [ "${#OLD_TASK_ARNS[@]}" -ne 1 ] || [ "${OLD_TASK_ARNS[0]}" = "None" ]; then
     echo "ERROR: expected exactly one current state owner, found ${#OLD_TASK_ARNS[@]}"
     exit 1
-fi
-OLD_TASK_ARN="${OLD_TASK_ARNS[0]}"
-OLD_TASK_JSON=$(aws ecs describe-tasks \
-    --cluster "${ECS_CLUSTER}" --tasks "${OLD_TASK_ARN}" \
-    --query 'tasks[0]' --output json)
-if ! OLD_OWNER_IDENTITY=$(printf '%s' "${OLD_TASK_JSON}" | python3 -c '
+else
+    OLD_TASK_ARN="${OLD_TASK_ARNS[0]}"
+    OLD_TASK_JSON=$(aws ecs describe-tasks \
+        --cluster "${ECS_CLUSTER}" --tasks "${OLD_TASK_ARN}" \
+        --query 'tasks[0]' --output json)
+    if ! OLD_OWNER_IDENTITY=$(printf '%s' "${OLD_TASK_JSON}" | python3 -c '
 import json, re, sys
 task = json.load(sys.stdin)
 containers = task.get("containers", [])
@@ -210,41 +218,42 @@ if not isinstance(image_digest, str) or not re.fullmatch(
     raise SystemExit("current owner has no exact image digest")
 print(task_definition, image_digest, sep="\t")
 '); then
-    echo "ERROR: current state owner identity could not be proven"
-    exit 1
-fi
-IFS=$'\t' read -r OLD_TASK_DEFINITION_ARN OLD_IMAGE_DIGEST <<< "${OLD_OWNER_IDENTITY}"
-OLD_SEALED_BOOT=$(aws ecs describe-task-definition \
-    --task-definition "${OLD_TASK_DEFINITION_ARN}" \
-    --query "taskDefinition.containerDefinitions[?name=='dsf-ai'].environment[]" \
-    --output json | python3 -c '
+        echo "ERROR: current state owner identity could not be proven"
+        exit 1
+    fi
+    IFS=$'\t' read -r OLD_TASK_DEFINITION_ARN OLD_IMAGE_DIGEST <<< "${OLD_OWNER_IDENTITY}"
+    OLD_SEALED_BOOT=$(aws ecs describe-task-definition \
+        --task-definition "${OLD_TASK_DEFINITION_ARN}" \
+        --query "taskDefinition.containerDefinitions[?name=='dsf-ai'].environment[]" \
+        --output json | python3 -c '
 import json, sys
 items = json.load(sys.stdin)
 values = {item.get("name"): item.get("value") for item in items}
 print("1" if values.get("GUALA_REQUIRE_SEALED_STATE") == "1" else "0")
 ')
-if [ "${OLD_SEALED_BOOT}" != "1" ]; then
-    # A transitional owner may have the complete authenticated generation
-    # sealer while not yet having booted from a sealed generation itself.
-    # Admit that one-way cutover only when the live process proves the exact
-    # seal endpoint is mounted.  The later nonce-bound seal/read-back remains
-    # the hard state gate; failure there occurs before the old owner stops.
-    LEGACY_OPENAPI=$(curl -sS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time 30 \
-        "${CONTROL_ORIGIN}/openapi.json")
-    if ! printf '%s' "${LEGACY_OPENAPI}" | python3 -c '
+    if [ "${OLD_SEALED_BOOT}" != "1" ]; then
+        # A transitional owner may have the complete authenticated generation
+        # sealer while not yet having booted from a sealed generation itself.
+        # Admit that one-way cutover only when the live process proves the exact
+        # seal endpoint is mounted.  The later nonce-bound seal/read-back remains
+        # the hard state gate; failure there occurs before the old owner stops.
+        LEGACY_OPENAPI=$(curl -sS \
+            --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+            --connect-timeout 10 --max-time 30 \
+            "${CONTROL_ORIGIN}/openapi.json")
+        if ! printf '%s' "${LEGACY_OPENAPI}" | python3 -c '
 import json, sys
 paths = json.load(sys.stdin).get("paths", {})
 route = paths.get("/sleep_for_deploy", {})
 if "post" not in route:
     raise SystemExit("live owner has no authenticated generation-seal endpoint")
 '; then
-        echo "ERROR: current production owner cannot create the first sealed generation"
-        echo "       Production remains online and untouched."
-        exit 1
+            echo "ERROR: current production owner cannot create the first sealed generation"
+            echo "       Production remains online and untouched."
+            exit 1
+        fi
+        echo "[generation] Live transitional owner proved the authenticated seal endpoint."
     fi
-    echo "[generation] Live transitional owner proved the authenticated seal endpoint."
 fi
 
 # Remove direct internet access to port 8080 and retain only ALB-to-task ingress.
