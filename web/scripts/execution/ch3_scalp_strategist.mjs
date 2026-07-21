@@ -72,17 +72,24 @@ const GAP_DOWN_MAX  = -0.01;  // reject gap-downs worse than -1%
 const CH3_MIN_PRICE = 5.0;    // keep in sync with alpaca_bridge MIN_SHARE_PRICE
 const GAP_UP_MAX    = 0.10;   // a +10% gap already happened without us
 const DAY_UP_MAX    = 0.15;   // +15% on the day is a missed move, not an entry
+// Thin-book guard (2026-07-21 LINK: stale last trade beat the $5 floor and
+// the -1% stop slipped to -2.84% in a thin book). Floor checks use the live
+// BID when available; spreads wider than 1% are books a scalp can't exit
+// cleanly.
+const SPREAD_MAX    = 0.01;
 
 export function ch3MomentumVerdict(m) {
   const tooHot      = m.day_pct > DAY_UP_MAX || m.gap_pct > GAP_UP_MAX;
-  const subMinPrice = m.current_price < CH3_MIN_PRICE;
+  const floorPrice  = m.bid_price > 0 ? m.bid_price : m.current_price;
+  const subMinPrice = floorPrice < CH3_MIN_PRICE;
+  const tooThin     = m.spread_pct !== null && m.spread_pct !== undefined && m.spread_pct > SPREAD_MAX;
   const passes =
     m.day_pct      >  0            &&
     m.momentum_pct >  0            &&
     m.rvol         >= RVOL_MIN     &&
     m.gap_pct      >= GAP_DOWN_MAX &&
-    !tooHot && !subMinPrice;
-  return { passes, tooHot, subMinPrice };
+    !tooHot && !subMinPrice && !tooThin;
+  return { passes, tooHot, subMinPrice, tooThin };
 }
 
 function toFloat(v) {
@@ -296,6 +303,12 @@ async function fetchIntradayMomentum(tickers) {
     const todayVol  = snap.dailyBar?.v  ?? 0;
     const prevVol   = snap.prevDailyBar?.v ?? 0;
     const current   = snap.latestTrade?.p ?? snap.minuteBar?.c;
+    // Live book, for tradability: on thin names the last trade can be hours
+    // stale (2026-07-21 LINK printed >=$5 while the real market sat at $4.58,
+    // defeating the price floor and slipping the stop to -2.84%).
+    const bid = toFloat(snap.latestQuote?.bp);
+    const ask = toFloat(snap.latestQuote?.ap);
+    const spread_pct = bid > 0 && ask > bid ? (ask - bid) / ((ask + bid) / 2) : null;
 
     if (!prevClose || !todayOpen || !current || prevClose <= 0 || prevVol <= 0) continue;
 
@@ -309,9 +322,9 @@ async function fetchIntradayMomentum(tickers) {
     // Score: momentum × volume intensity
     const score = momentum_pct * Math.max(rvol, 1);
 
-    const verdict = ch3MomentumVerdict({ gap_pct, momentum_pct, day_pct, rvol, current_price: current });
+    const verdict = ch3MomentumVerdict({ gap_pct, momentum_pct, day_pct, rvol, current_price: current, bid_price: bid, spread_pct });
 
-    results.set(ticker, { gap_pct, momentum_pct, day_pct, rvol, current_price: current, score, ...verdict });
+    results.set(ticker, { gap_pct, momentum_pct, day_pct, rvol, current_price: current, bid_price: bid, spread_pct, score, ...verdict });
   }
 
   return results;
@@ -402,6 +415,7 @@ export async function getCh3Signals() {
   let noSnapCount = 0;
   let rocketCount = 0;
   let pennyCount = 0;
+  let thinCount = 0;
   for (const s of available) {
     const m = momentumMap.get(s.ticker);
     if (!m) {
@@ -415,6 +429,8 @@ export async function getCh3Signals() {
         console.log(`[CH3-HUNTER]   ${s.ticker} — ROCKET SKIP: ${tag} price=${m.current_price} (move already happened)`);
       } else if (m.subMinPrice) {
         pennyCount++;
+      } else if (m.tooThin) {
+        thinCount++;
       } else {
         coldCount++;
       }
@@ -425,7 +441,7 @@ export async function getCh3Signals() {
     s.price    = m.current_price;  // use live price, not stale snapshot
     hot.push(s);
   }
-  console.log(`[CH3-HUNTER] Scored ${available.length}: ${hot.length} HOT | ${coldCount} COLD | ${rocketCount} rockets | ${pennyCount} sub-$${CH3_MIN_PRICE} | ${noSnapCount} no-snapshot`);
+  console.log(`[CH3-HUNTER] Scored ${available.length}: ${hot.length} HOT | ${coldCount} COLD | ${rocketCount} rockets | ${pennyCount} sub-$${CH3_MIN_PRICE} | ${thinCount} thin-book | ${noSnapCount} no-snapshot`);
 
   if (!hot.length) {
     console.log("[CH3-HUNTER] No stocks passing momentum gates today");
