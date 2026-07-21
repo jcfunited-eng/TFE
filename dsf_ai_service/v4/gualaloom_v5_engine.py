@@ -11779,6 +11779,14 @@ class Guala:
 
     def _atick_reading(self, a):
         """Read one sentence from corpus. read_sentence handles tick advancement."""
+        # A sentence is not complete merely because its words were admitted
+        # to the organism worker.  The organism is the physical integration
+        # owner for those word experiences, so autonomous reading cannot
+        # begin another sentence while any word from the preceding sentence
+        # remains unsettled.  This is exact backpressure from the owned FIFO,
+        # not a queue-depth threshold or a timed pacing heuristic.
+        if self.organism_experience_pending():
+            return
         corpus = self._corpora.get(a.target)
         if not corpus or not corpus.lines:
             return
@@ -11799,6 +11807,11 @@ class Guala:
             self.needs.novelty = saturate(self.needs.novelty, 0.001)
         else:
             self.needs.novelty = max(0.0, self.needs.novelty - 0.0003)
+
+    def organism_experience_pending(self):
+        """Whether an admitted word experience has not finished integration."""
+        queue = getattr(self, "_organism_queue", None)
+        return bool(queue is not None and queue.unfinished_tasks > 0)
 
     def _atick_sleeping(self, a):
         """Sleep restores stability TOWARD target. Transitions to dream at

@@ -361,7 +361,9 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
             # degrades exactly like the rate-cap gate above already does
             # (n_fed < planned, capped=True) -- nothing lost, this sentence
             # and the rest of the chunk are just picked up next cycle.
-            if getattr(_guala, "_live_converse_pending", False):
+            if (getattr(_guala, "_live_converse_pending", 0) > 0
+                    or getattr(_guala, "_live_interaction_pending", 0) > 0
+                    or _guala.organism_experience_pending()):
                 break
             try:
                 _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
@@ -396,7 +398,12 @@ def _curriculum_is_busy():
     try:
         if _autonomy_pause_refcount > 0:
             return True
-        return bool(getattr(_guala, "is_asleep", False))
+        return bool(
+            getattr(_guala, "is_asleep", False)
+            or getattr(_guala, "_live_converse_pending", 0) > 0
+            or getattr(_guala, "_live_interaction_pending", 0) > 0
+            or _guala.organism_experience_pending()
+        )
     except Exception:
         return True
 

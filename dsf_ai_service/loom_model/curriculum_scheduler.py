@@ -168,7 +168,12 @@ class CurriculumScheduler:
 
             n_fed, organ_learned = self._feed_chunk(chunk)
 
-            self.progress["offset"] = off + len(chunk)
+            # The injected admission owner may stop before the end of this
+            # chunk when the previous sentence still has unsettled organism
+            # work or a live sensory interaction owns attention.  Advance by
+            # what was actually admitted so every deferred sentence remains
+            # the next curriculum input instead of being silently skipped.
+            self.progress["offset"] = off + n_fed
             self.progress["last_ts"] = self._now()
             self.progress["total_sentences"] = self.progress.get("total_sentences", 0) + n_fed
             self.progress["total_organ_tokens"] = (
