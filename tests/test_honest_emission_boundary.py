@@ -774,12 +774,22 @@ def test_teacher_handlers_and_ui_consume_certified_truth_only():
     import dsf_ai_service.app as appmod
     import dsf_ai_service.substrate_runner as runner
 
+    # WS1 2026-07-22: app-side handlers consume _teachable_emission_record —
+    # certified records FIRST, then converse's real assemblage-commit
+    # records (voice replies became teachable). Still record-gated truth:
+    # uncommitted/silence stays refused. The runner handlers keep the
+    # original certified-only resolver.
     for handler in (
             appmod.handle_teacher_feedback_local,
-            appmod.handle_teacher_correction_local,
+            appmod.handle_teacher_correction_local):
+        assert "_teachable_emission_record" in inspect.getsource(handler)
+    for handler in (
             runner.handle_teacher_feedback,
             runner.handle_teacher_correction):
         assert "_certified_emission_record" in inspect.getsource(handler)
+    resolver_source = inspect.getsource(appmod._teachable_emission_record)
+    assert "_certified_emission_record" in resolver_source, (
+        "the teachable resolver must still consult certified records first")
 
     ui = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
     assert "const resp=d.response||'...';" not in ui
