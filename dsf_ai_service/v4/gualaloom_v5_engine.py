@@ -1118,6 +1118,63 @@ def _organism_signal_with_senses(word, transducer, sight_signal=None,
     return sig
 
 
+# GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): fixed per-channel point
+# count for the organism-lane reduction of the 16-channel gammatone full
+# field. 16 channels x 100 points = 1600 values total -- exactly the retired
+# one-dimensional cache's own hard ceiling (8 s at 200 Hz), so every
+# downstream consumer (resonant_response's outer product, experience_word's
+# rfft composite) pays at most the cost it already paid before the full-field
+# stack landed. Fixed size by construction: never grows with frame duration,
+# channel count is pinned by AUDITORY_CHANNELS' frozen topology.
+AUDITORY_ORGANISM_ENVELOPE_POINTS = 100
+
+
+def _auditory_field_organism_reduction(auditory_field):
+    """Bounded, deterministic organism-lane reduction of one settled
+    auditory full-field capture (GL-FIX-AUDITORY-ORGANISM-RECONNECT,
+    2026-07-22).
+
+    The has_sound:false defect: the full-field stack retired the 1-D
+    `_last_sound_signal` cache (commit 5489d74c, "cannot represent this
+    topology without flattening it") but `_enqueue_organism_remember`
+    still reads that slot to bind what she was hearing into each word's
+    organism experience -- so the organism went permanently deaf while
+    the auditory L5 pipeline stayed fully live.
+
+    This is the substrate-true flattening the retirement comment said it
+    would not improvise in place: each of the 16 cochlear channels'
+    REAL pressure-envelope readings (the same
+    `pressure_envelope_full_scale` values already bound into the causal
+    window entries), resampled onto a fixed
+    AUDITORY_ORGANISM_ENVELOPE_POINTS-point time grid via linear
+    interpolation between adjacent real readings -- the same class of
+    operation as the retired path's own `samples[::step]` decimation
+    and process_sight_frame's `_flat[::_step][:100]` pixel subsample.
+    No invented data: every output value lies on the segment between
+    two measured envelope readings of THIS physical frame. Deterministic:
+    numpy interp on the frame's own numbers, no randomness, no state.
+    Fixed size: always 16 x AUDITORY_ORGANISM_ENVELOPE_POINTS, regardless
+    of frame duration. Channels concatenate in the provider's frozen
+    topology order (low to high centre frequency), so identical captures
+    produce identical arrays.
+
+    Consumers downstream are unchanged and shape-agnostic: lane_features
+    -> resonant_response (any 1-D array), experience_word's charge/fold
+    composite (np.concatenate + rfft). An all-silent frame never reaches
+    here (caller gates on n_bands_fired), so a zero-energy placeholder
+    can never masquerade as heard audio."""
+    n_points = AUDITORY_ORGANISM_ENVELOPE_POINTS
+    parts = []
+    for channel in auditory_field.channels:
+        env = np.asarray(channel.pressure_envelope_full_scale, dtype=float)
+        if env.size == 0:
+            parts.append(np.zeros(n_points))
+            continue
+        grid = np.linspace(0.0, env.size - 1, n_points)
+        parts.append(np.interp(grid, np.arange(env.size), env))
+    return np.concatenate(parts)
+
+
 def _organism_query_signal_auditory(sound_signal):
     """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208: the auditory-only
     mirror of _organism_signal's language-only base -- a genuine SENSORY
@@ -13708,9 +13765,18 @@ class Guala:
             self._latest_auditory_continuation_receipt = continuation_receipt
         self._latest_auditory_full_field_capture = auditory_field
 
-        # The retired one-dimensional organism cache cannot represent this
-        # topology without flattening it.  Do not route the full field through
-        # that compatibility path; auditory L5 consumes the structured field.
+        # GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): a new physical
+        # capture supersedes the organism sound snapshot immediately, same
+        # discipline as the status-surface resets above -- if this frame
+        # fails to settle, the previous frame's audio must not appear to
+        # belong to this event. The slot is REFILLED after successful
+        # settle below with _auditory_field_organism_reduction(), the
+        # bounded per-channel envelope summary of this frame's real
+        # gammatone field. (The 2026-07-15 full-field deploy retired the
+        # old 1-D cache here without rewiring its consumer -- see
+        # _enqueue_organism_remember -- which left every organism
+        # experience binding has_sound:false while auditory L5 ran fully
+        # live: the organism was deaf to audio the substrate really heard.)
         self._last_sound_signal = None
         self._last_sound_wall_time = None
         # GL-RPT-WAL-BLOAT F2 (2026-07-15): this frame is one complete
@@ -13832,6 +13898,33 @@ class Guala:
             else:
                 _closed_window_id = None
                 _settlement = None
+        # GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): the frame settled
+        # (every channel bound, context closed at its real boundary -- an
+        # exception anywhere above skips this, leaving the slot honestly
+        # None). Refill the organism sense-snapshot slot with the bounded,
+        # deterministic per-channel envelope reduction of THIS frame's real
+        # gammatone field, wall-clock stamped so _enqueue_organism_remember's
+        # existing SENSE_BINDING_WINDOW_SEC snapshot-at-enqueue discipline
+        # (untouched) binds it into any word read within the window --
+        # has_sound becomes true again for words heard alongside real audio.
+        # Gated on n_bands_fired (real acoustic energy in at least one
+        # cochlear channel): an all-silent settled frame leaves the slot
+        # cleared by the supersede reset above -- she is hearing silence
+        # NOW, so the previous sound has ended and a word read during the
+        # silence binds no audio, rather than a zero-energy placeholder or
+        # an already-over sound.
+        # Same non-fatal try/except convention as process_sight_frame's
+        # sight cache -- a snapshot failure means the sense stays honestly
+        # absent, never a broken frame receipt.
+        if n_bands_fired > 0:
+            try:
+                self._last_sound_signal = (
+                    _auditory_field_organism_reduction(auditory_field))
+                self._last_sound_wall_time = time.time()
+            except Exception as _osre:
+                print(f"[GualaLoom] process_sound_frame: organism sound "
+                      f"snapshot failed (non-fatal, sense stays honestly "
+                      f"absent): {_osre}")
         if auditory_pcm_continuity is not None:
             with self._auditory_transaction_lock:
                 receipt_sha256 = auditory_pcm_continuity.receipt_sha256
