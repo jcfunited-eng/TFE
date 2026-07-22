@@ -123,7 +123,8 @@ def _make_engine():
     # test_reflection_emission_candidates.py's _stub_organism_self_echo
     # uses -- isolates Stage 2 (the settling loop under test) from Stage
     # 1's own, separately-validated selection logic.
-    g._brain_emission_candidates = lambda input_words: [({}, {}, 1.0)]
+    g._brain_emission_candidates = (
+        lambda input_words, input_chis=None: [({}, {}, 1.0)])
     return g
 
 

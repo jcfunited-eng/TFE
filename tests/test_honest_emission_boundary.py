@@ -150,7 +150,7 @@ def test_ranked_non_dynamics_paths_are_retired_as_voice(monkeypatch):
     g.tick = 0
     g._emission_lock = threading.RLock()
 
-    def must_not_gather(_words):
+    def must_not_gather(_words, input_chis=None):
         raise AssertionError("uncommitted candidate gathering must not run")
 
     g._brain_emission_candidates = must_not_gather
@@ -573,7 +573,7 @@ def test_emit_from_invariants_serializes_every_direct_call(monkeypatch):
     call_count = {"n": 0}
     errors = []
 
-    def gather(_words):
+    def gather(_words, input_chis=None):
         with call_lock:
             call_count["n"] += 1
             call_number = call_count["n"]

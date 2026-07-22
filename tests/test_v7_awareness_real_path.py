@@ -181,7 +181,8 @@ def test_live_emission_dynamics_applies_aware_bias_without_fabricating_speech():
     orig_select = engine_mod._grandurun_select_candidates
     try:
         g = Guala()
-        g._brain_emission_candidates = lambda input_words: [({}, {}, 1.0)]
+        g._brain_emission_candidates = (
+        lambda input_words, input_chis=None: [({}, {}, 1.0)])
 
         # Real turn: genuine intro commits via real read_sentence.
         g._last_converse_tick = g.tick
