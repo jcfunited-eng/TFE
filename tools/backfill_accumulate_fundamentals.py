@@ -107,7 +107,11 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
     """Return tickers that are Accumulate, missing data, AND not already exhausted.
 
     Skip tickers where all 3 tiers (Polygon, Yahoo, Tavily) already failed
-    within the last 7 days. No point re-trying — the data doesn't exist.
+    within the last 90 days. Known failures are re-checked once a quarter,
+    not daily — the data usually doesn't exist (Joe, 2026-07-22: "why waste
+    time on known failures"). 2026-07-22 leak: the June-era stamps aged past
+    the old 30-day window all at once and the loop never re-stamped on the
+    skip path, so ~1,200 known-fails re-walked EVERY day.
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("""
@@ -144,7 +148,7 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
               AND COALESCE(f.market_cap, -1) != 0  -- skip ETFs with market_cap=0 placeholder
               AND (
                     f.tavily_tried_at IS NULL
-                    OR f.tavily_tried_at < NOW() - INTERVAL '30 days'
+                    OR f.tavily_tried_at < NOW() - INTERVAL '90 days'
               )
             ORDER BY r.ticker
         """)
@@ -509,12 +513,12 @@ def run() -> None:
         # Only try Tavily for "Missing financial metric(s)" failures.
         # Quality failures (Domain A/B/C) mean data was found but the stock
         # didn't pass — Tavily can't help with that.
+        # Selection already enforces the 90-day cooldown, so any ticker in
+        # this loop is due for a (re)try — a stale stamp must not veto it,
+        # and every data-missing outcome must RE-stamp, or expired-cooldown
+        # tickers re-walk daily forever (the 2026-07-22 leak).
         is_data_missing = "Missing financial metric" in reason
-        if (
-            tavily_fetcher
-            and is_data_missing
-            and not tavily_already_tried
-        ):
+        if tavily_fetcher and is_data_missing:
             missing_fields = _get_missing_fields(row)
             # Re-check which fields are still missing after Polygon+Yahoo wrote partial data
             # by reading the current DB state
@@ -542,13 +546,13 @@ def run() -> None:
                     print(f"  → [TAVILY] Error: {exc}", flush=True)
 
             _mark_tavily_tried(conn, ticker, tavily_found_fields if missing_fields else None)
-        elif is_data_missing and not tavily_already_tried:
-            # Tavily not available but data is missing — mark as tried so
-            # the 7-day cooldown kicks in and we stop retrying every cycle
+            if tavily_already_tried:
+                print(f"  → [TAVILY] Quarterly recheck done — excluded for 90 days", flush=True)
+        elif is_data_missing:
+            # Tavily unavailable but data is missing — stamp (or re-stamp)
+            # so the 90-day exclusion holds and the ticker leaves the walk.
             _mark_tavily_tried(conn, ticker, None)
-            print(f"  → All sources exhausted — cooldown 7 days", flush=True)
-        elif tavily_already_tried and is_data_missing:
-            print(f"  → [TAVILY] Already tried — skipping", flush=True)
+            print(f"  → All sources exhausted — excluded for 90 days", flush=True)
 
         # ── Tier 4: Claude fallback (hardcoded known fundamentals) ───────
         # Re-check if fields are still missing after Tavily
