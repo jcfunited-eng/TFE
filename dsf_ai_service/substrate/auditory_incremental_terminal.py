@@ -215,8 +215,15 @@ class AuditoryIncrementalTerminalEvent:
             self.cochlear_receipt_sha256s,
             self.joint_settlement_receipt_sha256s,
         )
-        if any(not group for group in receipt_groups):
+        if any(
+            not isinstance(group, tuple)
+            or not group
+            or len(group) > MAX_EVENT_HOPS
+            for group in receipt_groups
+        ):
             raise ValueError("incremental auditory event lost causal evidence")
+        if len({len(group) for group in receipt_groups}) != 1:
+            raise ValueError("incremental auditory event evidence is not joint")
         transport, cochlear, joint = (
             tuple(
                 _canonical_digest(value, "incremental auditory evidence receipt")
@@ -249,6 +256,109 @@ class AuditoryIncrementalTerminalEvent:
             "incremental auditory event authority receipt",
         ):
             raise ValueError("incremental auditory event receipt was altered")
+
+    def as_record(self) -> dict[str, object]:
+        """Return the complete canonical terminal only after verification.
+
+        The tutor label is one field inside this receipt-bound physical event;
+        it is never a stand-alone recognition authority at the cognition door.
+        """
+        self.verify()
+        record = _event_payload(
+            event_id=self.event_id,
+            stream_id=self.stream_id,
+            source_sample_start=self.source_sample_start,
+            source_sample_end=self.source_sample_end,
+            tutor_label=self.tutor_label,
+            structural_fingerprint=self.structural_fingerprint,
+            l5_authority_receipt_sha256=self.l5_authority_receipt_sha256,
+            transport_receipt_sha256s=self.transport_receipt_sha256s,
+            cochlear_receipt_sha256s=self.cochlear_receipt_sha256s,
+            joint_settlement_receipt_sha256s=(
+                self.joint_settlement_receipt_sha256s
+            ),
+        )
+        record["authority_receipt_sha256"] = self.authority_receipt_sha256
+        return record
+
+    @classmethod
+    def from_record(
+        cls,
+        record: dict[str, object],
+    ) -> "AuditoryIncrementalTerminalEvent":
+        """Restore one complete bounded witness without granting admission.
+
+        Reconstructing a durable record proves its internal receipt graph only.
+        It does not put the event back into the live registry, so a restored or
+        copied record can never replay a conversation turn.
+        """
+        if not isinstance(record, dict):
+            raise TypeError("incremental auditory event record must be an object")
+        expected_fields = {
+            "authority_receipt_sha256",
+            "cochlear_receipt_sha256s",
+            "event_id",
+            "joint_settlement_receipt_sha256s",
+            "l5_authority_receipt_sha256",
+            "recognition_state",
+            "sample_rate_hz",
+            "schema",
+            "source_sample_end",
+            "source_sample_start",
+            "stream_id",
+            "structural_fingerprint",
+            "transport_receipt_sha256s",
+            "tutor_label",
+        }
+        if set(record) != expected_fields:
+            raise ValueError("incremental auditory event record fields changed")
+        if record.get("schema") != AUDITORY_INCREMENTAL_EVENT_SCHEMA:
+            raise ValueError("incremental auditory event record schema changed")
+        if record.get("recognition_state") != AuditoryRecognitionState.UNIQUE.value:
+            raise ValueError("incremental auditory event record is not unique")
+        if record.get("sample_rate_hz") != PCM_SAMPLE_RATE_HZ:
+            raise ValueError("incremental auditory event sample rate changed")
+        for field in (
+            "transport_receipt_sha256s",
+            "cochlear_receipt_sha256s",
+            "joint_settlement_receipt_sha256s",
+        ):
+            values = record.get(field)
+            if (
+                not isinstance(values, list)
+                or not values
+                or len(values) > MAX_EVENT_HOPS
+            ):
+                raise ValueError(
+                    f"incremental auditory event {field} is invalid"
+                )
+        event = cls(
+            event_id=record.get("event_id"),
+            stream_id=record.get("stream_id"),
+            source_sample_start=record.get("source_sample_start"),
+            source_sample_end=record.get("source_sample_end"),
+            tutor_label=record.get("tutor_label"),
+            structural_fingerprint=record.get("structural_fingerprint"),
+            l5_authority_receipt_sha256=record.get(
+                "l5_authority_receipt_sha256"
+            ),
+            transport_receipt_sha256s=tuple(
+                record["transport_receipt_sha256s"]
+            ),
+            cochlear_receipt_sha256s=tuple(
+                record["cochlear_receipt_sha256s"]
+            ),
+            joint_settlement_receipt_sha256s=tuple(
+                record["joint_settlement_receipt_sha256s"]
+            ),
+            authority_receipt_sha256=record.get(
+                "authority_receipt_sha256"
+            ),
+        )
+        event.verify()
+        if event.as_record() != record:
+            raise ValueError("incremental auditory event record is not canonical")
+        return event
 
 
 def _advance_payload(
@@ -1605,6 +1715,12 @@ class _OwnedIncrementalTerminal:
     last_activity: float
 
 
+@dataclass(frozen=True, slots=True)
+class _AuditoryTerminalClaim:
+    event: AuditoryIncrementalTerminalEvent
+    owner_token: object
+
+
 class AuditoryIncrementalTerminalRegistry:
     """Bound one incremental terminal owner to each live PCM stream epoch."""
 
@@ -1638,6 +1754,10 @@ class AuditoryIncrementalTerminalRegistry:
         self._streams: OrderedDict[str, _OwnedIncrementalTerminal] = (
             OrderedDict()
         )
+        self._issued: OrderedDict[
+            str, AuditoryIncrementalTerminalEvent
+        ] = OrderedDict()
+        self._claim_token = object()
 
     def _expire_locked(self, now: float) -> None:
         for stream_id in tuple(self._streams):
@@ -1647,6 +1767,76 @@ class AuditoryIncrementalTerminalRegistry:
                     "auditory_incremental_terminal_expired",
                     stream_id=stream_id,
                 )
+    def _issue_locked(
+        self,
+        event: AuditoryIncrementalTerminalEvent,
+    ) -> None:
+        event.verify()
+        existing = self._issued.get(event.event_id)
+        if existing is not None:
+            if existing != event:
+                raise RuntimeError(
+                    "incremental terminal identity was issued twice differently"
+                )
+            return
+        if len(self._issued) >= self._stream_capacity:
+            raise RuntimeError(
+                "incremental terminal authority capacity is full"
+            )
+        self._issued[event.event_id] = event
+
+    def claim(
+        self,
+        event: AuditoryIncrementalTerminalEvent,
+    ) -> _AuditoryTerminalClaim:
+        """Atomically consume one event actually issued by this owner."""
+        if not isinstance(event, AuditoryIncrementalTerminalEvent):
+            raise TypeError("auditory terminal claim requires a typed event")
+        event.verify()
+        now = self._clock()
+        with self._lock:
+            self._expire_locked(now)
+            issued = self._issued.get(event.event_id)
+            if issued is None:
+                raise ValueError(
+                    "auditory terminal was not issued or was already consumed"
+                )
+            if issued != event:
+                raise ValueError("auditory terminal differs from owner authority")
+            del self._issued[event.event_id]
+        return _AuditoryTerminalClaim(
+            event=event,
+            owner_token=self._claim_token,
+        )
+
+    def verify_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+    ) -> AuditoryIncrementalTerminalEvent:
+        if (
+            not isinstance(claim, _AuditoryTerminalClaim)
+            or claim.owner_token is not self._claim_token
+        ):
+            raise ValueError("auditory terminal claim has no owner authority")
+        claim.event.verify()
+        return claim.event
+
+    def discard_unadmitted(
+        self,
+        event: AuditoryIncrementalTerminalEvent,
+    ) -> bool:
+        """Release authority for an event rejected by the bounded reply door."""
+        if not isinstance(event, AuditoryIncrementalTerminalEvent):
+            raise TypeError("auditory terminal discard requires a typed event")
+        event.verify()
+        with self._lock:
+            issued = self._issued.get(event.event_id)
+            if issued is None:
+                return False
+            if issued != event:
+                raise ValueError("auditory terminal differs from owner authority")
+            del self._issued[event.event_id]
+            return True
 
     def advance(self, **authorities) -> AuditoryIncrementalAdvance:
         transport = authorities.get("transport")
@@ -1678,6 +1868,8 @@ class AuditoryIncrementalTerminalRegistry:
                 return result
             mounted.last_activity = now
             self._streams.move_to_end(transport.stream_id)
+            if result.reply_candidate is not None:
+                self._issue_locked(result.reply_candidate)
             return result
 
     def close(
@@ -1692,7 +1884,13 @@ class AuditoryIncrementalTerminalRegistry:
             mounted = self._streams.pop(stream_id, None)
         if mounted is None or not release_terminal:
             return None
-        return mounted.owner.close_stream()
+        result = mounted.owner.close_stream()
+        if result.reply_candidate is not None:
+            now = self._clock()
+            with self._lock:
+                self._expire_locked(now)
+                self._issue_locked(result.reply_candidate)
+        return result
 
     def refresh_learning(self) -> int:
         """Atomically rebuild tutor cells and discard provisional streams."""
@@ -1720,6 +1918,8 @@ class AuditoryIncrementalTerminalRegistry:
                     for value in self._streams.values()
                 ),
                 "learned_cells": len(self._cells),
+                "issued_terminal_authorities": len(self._issued),
+                "issued_terminal_capacity": self._stream_capacity,
             }
 
 

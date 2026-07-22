@@ -4,6 +4,8 @@ import math
 import struct
 from fractions import Fraction
 
+import pytest
+
 import dsf_ai_service.substrate.auditory_incremental_terminal as terminal_module
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
@@ -17,6 +19,7 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 )
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
     AuditoryIncrementalTerminalRegistry,
+    AuditoryIncrementalTerminalEvent,
     AuditoryIncrementalStatus,
     AuditoryIncrementalTerminalOwner,
 )
@@ -602,8 +605,11 @@ def test_registry_keeps_interleaved_stream_epochs_physically_independent() -> No
 
 
 def test_registry_reject_discards_but_graceful_close_releases_terminal() -> None:
+    now = [0.0]
     registry = AuditoryIncrementalTerminalRegistry(
-        reciprocity_owner=_learned_owner()
+        reciprocity_owner=_learned_owner(),
+        clock=lambda: now[0],
+        idle_seconds=1,
     )
     learned_pcm = _pcm(_tone_values(LEARNED_SAMPLES, 440))
 
@@ -627,3 +633,28 @@ def test_registry_reject_discards_but_graceful_close_releases_terminal() -> None
     assert released is not None
     assert released.status is AuditoryIncrementalStatus.RELEASED_UNIQUE
     assert released.reply_candidate is not None
+    assert registry.status()["issued_terminal_authorities"] == 1
+
+    altered_record = released.reply_candidate.as_record()
+    altered_record["tutor_label"] = "altered-label"
+    receipt_payload = dict(altered_record)
+    del receipt_payload["authority_receipt_sha256"]
+    altered_record["authority_receipt_sha256"] = terminal_module._digest(
+        receipt_payload
+    )
+    altered = AuditoryIncrementalTerminalEvent.from_record(altered_record)
+    with pytest.raises(ValueError, match="differs from owner authority"):
+        registry.claim(altered)
+    assert registry.status()["issued_terminal_authorities"] == 1
+
+    # Neither stream-idle expiry nor a later teaching refresh can invalidate a
+    # terminal already admitted to the bounded reply door.  The owner retains
+    # at most stream_capacity events until one is consumed or discarded.
+    registry.refresh_learning()
+    now[0] = 2.0
+    assert registry.status()["issued_terminal_authorities"] == 1
+    claim = registry.claim(released.reply_candidate)
+    assert registry.verify_claim(claim) == released.reply_candidate
+    assert registry.status()["issued_terminal_authorities"] == 0
+    with pytest.raises(ValueError, match="not issued or was already consumed"):
+        registry.claim(released.reply_candidate)

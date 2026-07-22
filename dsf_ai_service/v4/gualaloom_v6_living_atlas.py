@@ -156,7 +156,10 @@ class LivingAtlas:
                polarity=1,
                function_score=0.0, phase_vec=None,
                window_id=None, window_entry_index=None,
-               structural_fact=None, **_extra):
+               structural_fact=None,
+               causal_experience_id=None,
+               causal_intake_receipt_sha256=None,
+               **_extra):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -190,6 +193,39 @@ class LivingAtlas:
         if tick is None:
             tick = self.tick
         self.tick = max(self.tick, tick)
+        causal_reference = None
+        # Bounded historical citation only.  This pair is never an auditory
+        # recognition or replay authority; live admission remains exclusively
+        # owned by AuditoryIncrementalTerminalRegistry.
+        if (
+            causal_experience_id is None
+            and causal_intake_receipt_sha256 is None
+        ):
+            pass
+        elif (
+            isinstance(causal_experience_id, str)
+            and len(causal_experience_id) == 64
+            and all(
+                character in "0123456789abcdef"
+                for character in causal_experience_id
+            )
+            and isinstance(causal_intake_receipt_sha256, str)
+            and len(causal_intake_receipt_sha256) == 64
+            and all(
+                character in "0123456789abcdef"
+                for character in causal_intake_receipt_sha256
+            )
+        ):
+            causal_reference = {
+                "causal_experience_id": causal_experience_id,
+                "causal_intake_receipt_sha256": (
+                    causal_intake_receipt_sha256
+                ),
+            }
+        else:
+            raise ValueError(
+                "causal Atlas provenance must be a complete digest pair"
+            )
 
         # 60-T: no salience clamp — raw derivation. High salience IS a real signal.
         # Impulse = salience / (1 + local_density): empty regions amplify, saturated regions attenuate.
@@ -288,6 +324,13 @@ class LivingAtlas:
                 if structural_fact is not None and d == 0:
                     existing["structural_fact"] = copy.deepcopy(
                         structural_fact)
+                if causal_reference is not None and d == 0:
+                    causal_refs = existing.get(
+                        "causal_experience_refs", []
+                    )
+                    if causal_reference not in causal_refs:
+                        causal_refs.append(causal_reference)
+                    existing["causal_experience_refs"] = causal_refs[-4:]
                 # episode_ref: first-encounter canonical — only set if empty
                 if episode_ref is not None and existing.get("episode_ref") is None:
                     existing["episode_ref"] = episode_ref
@@ -424,6 +467,10 @@ class LivingAtlas:
                     # Soft-band routing replicas do not repeat the payload.
                     new_entry["structural_fact"] = copy.deepcopy(
                         structural_fact)
+                if causal_reference is not None and d == 0:
+                    new_entry["causal_experience_refs"] = [
+                        causal_reference
+                    ]
                 entries.append(new_entry)
 
         # Wave atlas parallel write (WAVE_ATLAS_ENABLED=1)

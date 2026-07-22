@@ -99,6 +99,9 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
     PCM_SAMPLE_RATE_HZ as _PCM_STREAM_SAMPLE_RATE_HZ,
     pcm_s16le_wav as _pcm_s16le_wav,
 )
+from dsf_ai_service.substrate.auditory_incremental_terminal import (
+    AuditoryIncrementalTerminalEvent,
+)
 
 _auditory_pcm_streams = AuditoryPCMStreamRegistry()
 _auditory_pcm_epoch_lock = threading.RLock()
@@ -153,6 +156,7 @@ _voice_reply_executor = _concurrent_futures.ThreadPoolExecutor(
 _voice_reply_busy = threading.Event()
 _voice_reply_state_lock = threading.Lock()
 _voice_reply_pending = None
+_voice_reply_active_event_id = None
 _voice_turn_results = {}
 _VOICE_TURN_RESULT_CAPACITY = 8
 
@@ -180,7 +184,7 @@ def _compose_conversational_organism_fallthrough(text):
             organism_votes=votes, conversational=True)
 
 
-def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
+def _run_voice_reply(terminal_event, tick_hint):
     """Runs on the single voice-reply worker thread, never the request
     thread. Mirrors substrate_runner's autonomous-emission loop's own
     result contract (_last_autonomous_thought) so the existing /thought
@@ -189,9 +193,15 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
     authority (one mouth, GL Change 4)."""
     import dsf_ai_service.substrate_runner as _sr
     t0 = time.time()
+    terminal_event.verify()
+    terminal_event_id = terminal_event.event_id
+    terminal_receipt = terminal_event.authority_receipt_sha256
+    spoken_text = terminal_event.tutor_label
     delivery = {
         "status": "completed_without_speech",
         "terminal_event_id": terminal_event_id,
+        "causal_experience_id": terminal_event_id,
+        "causal_intake_receipt_sha256": terminal_receipt,
     }
     try:
         if _guala is None:
@@ -200,7 +210,17 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
         # Keep the heard turn available to conversation without fabricating
         # Joe's pair-bond identity from a mono waveform.
         turn_result = _guala.converse(
-            spoken_text, source="auditory:unresolved_source")
+            spoken_text,
+            source="auditory:unresolved_source",
+            causal_intake=terminal_event,
+        )
+        if (
+            turn_result.causal_experience_id != terminal_event_id
+            or turn_result.causal_intake_receipt_sha256 != terminal_receipt
+        ):
+            raise RuntimeError(
+                "voice reply lost its auditory causal experience"
+            )
         content = (turn_result.response or "").strip()
         response_source = turn_result.response_source
         if not content and response_source == "silence_no_commit":
@@ -209,6 +229,11 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
             if released is not None:
                 content = (released["content"] or "").strip()
                 response_source = released["response_source"]
+        delivery.update({
+            "response_source": response_source,
+            "emission_id": turn_result.emission_id,
+            "committed_sections": list(turn_result.committed_sections),
+        })
         print(f"[voice-reply] {time.time()-t0:.3f}s "
               f"response_source={response_source} "
               f"committed={bool(content)}")
@@ -224,6 +249,8 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
                 "response_source": response_source,
                 "emission_id": turn_result.emission_id,
                 "terminal_event_id": terminal_event_id,
+                "causal_experience_id": terminal_event_id,
+                "causal_intake_receipt_sha256": terminal_receipt,
                 "committed_sections": list(turn_result.committed_sections),
                 "commit_provenance": [
                     p.as_record() if hasattr(p, "as_record") else p
@@ -242,15 +269,20 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
         delivery = {
             "status": "completed",
             "terminal_event_id": terminal_event_id,
+            "causal_experience_id": terminal_event_id,
+            "causal_intake_receipt_sha256": terminal_receipt,
             "speech": content,
             "tick": _guala.tick,
             "response_source": response_source,
             "emission_id": turn_result.emission_id,
+            "committed_sections": list(turn_result.committed_sections),
         }
     except Exception as error:
         delivery = {
             "status": "error",
             "terminal_event_id": terminal_event_id,
+            "causal_experience_id": terminal_event_id,
+            "causal_intake_receipt_sha256": terminal_receipt,
             "error": f"{type(error).__name__}: {error}",
         }
         print(f"[voice-reply] error after {time.time()-t0:.3f}s: "
@@ -263,54 +295,115 @@ def _run_voice_reply(spoken_text, tick_hint, terminal_event_id=None):
         except Exception:
             pass
     finally:
-        global _voice_reply_pending
-        if terminal_event_id is not None:
-            with _voice_reply_state_lock:
-                _voice_turn_results[terminal_event_id] = delivery
-                while len(_voice_turn_results) > _VOICE_TURN_RESULT_CAPACITY:
-                    del _voice_turn_results[next(iter(_voice_turn_results))]
+        global _voice_reply_pending, _voice_reply_active_event_id
         with _voice_reply_state_lock:
+            _voice_turn_results[terminal_event_id] = delivery
+            while len(_voice_turn_results) > _VOICE_TURN_RESULT_CAPACITY:
+                del _voice_turn_results[next(iter(_voice_turn_results))]
             pending = _voice_reply_pending
             _voice_reply_pending = None
             if pending is None:
+                _voice_reply_active_event_id = None
                 _voice_reply_busy.clear()
             else:
+                _voice_reply_active_event_id = pending[0].event_id
                 try:
                     _voice_reply_executor.submit(_run_voice_reply, *pending)
-                except Exception:
+                except Exception as submit_error:
+                    pending_event = pending[0]
+                    if _guala is not None:
+                        _guala.discard_unadmitted_auditory_terminal(
+                            pending_event
+                        )
+                    _voice_turn_results[pending_event.event_id] = {
+                        "status": "error",
+                        "terminal_event_id": pending_event.event_id,
+                        "causal_experience_id": pending_event.event_id,
+                        "causal_intake_receipt_sha256": (
+                            pending_event.authority_receipt_sha256
+                        ),
+                        "error": (
+                            f"{type(submit_error).__name__}: "
+                            f"{submit_error}"
+                        ),
+                    }
+                    while (
+                        len(_voice_turn_results)
+                        > _VOICE_TURN_RESULT_CAPACITY
+                    ):
+                        del _voice_turn_results[
+                            next(iter(_voice_turn_results))
+                        ]
+                    _voice_reply_active_event_id = None
                     _voice_reply_busy.clear()
 
 
-def _maybe_trigger_voice_reply(
-    spoken_text, tick_hint, terminal_event_id=None
-):
+def _maybe_trigger_voice_reply(terminal_event, tick_hint):
     """Non-blocking: submits at most one converse() call at a time to the
     dedicated voice-reply worker. Called right after a real transcript is
     recognized; never called from read_sentence's own path (that would
     double-process the same words -- converse() already reads its input
     into the substrate as part of composing a reply)."""
-    if not spoken_text:
-        return False
-    global _voice_reply_pending
+    if not isinstance(terminal_event, AuditoryIncrementalTerminalEvent):
+        raise TypeError(
+            "voice reply admission requires an auditory terminal event"
+        )
+    terminal_event.verify()
+    global _voice_reply_pending, _voice_reply_active_event_id
     with _voice_reply_state_lock:
+        terminal_event_id = terminal_event.event_id
+        if (
+            terminal_event_id == _voice_reply_active_event_id
+            or (
+                _voice_reply_pending is not None
+                and _voice_reply_pending[0].event_id == terminal_event_id
+            )
+        ):
+            if _guala is not None:
+                _guala._log_substrate_event(
+                    "auditory_reply_duplicate_ignored",
+                    terminal_event_id=terminal_event_id,
+                )
+            return False
+        if terminal_event_id in _voice_turn_results:
+            if _guala is not None:
+                _guala.discard_unadmitted_auditory_terminal(terminal_event)
+                _guala._log_substrate_event(
+                    "auditory_reply_replay_rejected",
+                    terminal_event_id=terminal_event_id,
+                )
+            return False
         if _voice_reply_busy.is_set():
             if _voice_reply_pending is not None:
+                if _guala is not None:
+                    _guala.discard_unadmitted_auditory_terminal(
+                        terminal_event
+                    )
+                    _guala._log_substrate_event(
+                        "auditory_reply_admission_full",
+                        terminal_event_id=terminal_event_id,
+                    )
                 return False
-            _voice_reply_pending = (
-                spoken_text, tick_hint, terminal_event_id
-            )
+            _voice_reply_pending = (terminal_event, tick_hint)
             return True
         _voice_reply_busy.set()
+        _voice_reply_active_event_id = terminal_event_id
         try:
             _voice_reply_executor.submit(
                 _run_voice_reply,
-                spoken_text,
+                terminal_event,
                 tick_hint,
-                terminal_event_id,
             )
             return True
         except Exception:
+            _voice_reply_active_event_id = None
             _voice_reply_busy.clear()
+            if _guala is not None:
+                _guala.discard_unadmitted_auditory_terminal(terminal_event)
+                _guala._log_substrate_event(
+                    "voice_reply_submit_error",
+                    terminal_event_id=terminal_event_id,
+                )
             return False
 
 
@@ -2906,15 +2999,9 @@ def _close_auditory_pcm_epoch(
             )
             if candidate is not None and release_terminal:
                 admitted = _maybe_trigger_voice_reply(
-                    candidate.tutor_label,
+                    candidate,
                     _guala.tick,
-                    candidate.event_id,
                 )
-                if not admitted:
-                    _guala._log_substrate_event(
-                        "auditory_reply_admission_full",
-                        terminal_event_id=candidate.event_id,
-                    )
             field_closed = engine_close.get("closed") is True
         else:
             field_closed = bool(engine_close)
@@ -3532,6 +3619,7 @@ async def sound_frame(msg: GLMessage):
                     ),
                 }
             )
+            terminal_candidate = None
             if incremental_terminal is not None:
                 terminal_candidate = incremental_terminal.reply_candidate
                 deterministic_recognition = {
@@ -3545,8 +3633,16 @@ async def sound_frame(msg: GLMessage):
                         [terminal_candidate.tutor_label]
                         if terminal_candidate is not None else []
                     ),
-                    "experience_id": auditory_status.get(
+                    "experience_id": (
+                        terminal_candidate.event_id
+                        if terminal_candidate is not None else None
+                    ),
+                    "l5_experience_id": auditory_status.get(
                         "latest_experience_id"
+                    ),
+                    "causal_experience_id": (
+                        terminal_candidate.event_id
+                        if terminal_candidate is not None else None
                     ),
                     "terminal_event_id": (
                         terminal_candidate.event_id
@@ -3563,16 +3659,14 @@ async def sound_frame(msg: GLMessage):
             )
             reply_admitted = None
             terminal_event_id = (
-                incremental_terminal.reply_candidate.event_id
-                if incremental_terminal is not None
-                and incremental_terminal.reply_candidate is not None
+                terminal_candidate.event_id
+                if terminal_candidate is not None
                 else None
             )
-            if learned_spoken:
+            if terminal_candidate is not None:
                 reply_admitted = _maybe_trigger_voice_reply(
-                    learned_spoken,
+                    terminal_candidate,
                     _guala.tick,
-                    terminal_event_id,
                 )
             if recognition_future is None:
                 print(f"[sound-frame] {time.time()-t0:.3f}s")

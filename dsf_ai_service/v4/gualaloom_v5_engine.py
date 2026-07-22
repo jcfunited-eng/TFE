@@ -171,6 +171,8 @@ class ConversationTurnResult:
     recalled_pictures: tuple = ()
     source_turn_index: int | None = None
     commit_provenance: tuple = ()
+    causal_experience_id: str | None = None
+    causal_intake_receipt_sha256: str | None = None
 
 
 @dataclass(frozen=True)
@@ -859,6 +861,35 @@ def _normalize_text(text):
     # Split and filter: drop bare apostrophes and empty tokens
     tokens = [w.strip("'") for w in t.split()]
     return [w for w in tokens if w and len(w) > 0]
+
+
+def _verified_auditory_causal_intake(text, causal_intake):
+    """Verify the physical terminal that authorizes heard-language intake.
+
+    A bare label can still be used by typed/corpus callers, but it can never
+    claim to be heard speech.  The auditory door requires the complete,
+    immutable terminal and requires its learned form to be the exact text
+    interpreted by the language path.
+    """
+    if causal_intake is None:
+        return None
+    from dsf_ai_service.substrate.auditory_incremental_terminal import (
+        AuditoryIncrementalTerminalEvent,
+    )
+    if not isinstance(causal_intake, AuditoryIncrementalTerminalEvent):
+        raise TypeError(
+            "auditory causal intake must be a verified terminal event"
+        )
+    causal_intake.verify()
+    if text != causal_intake.tutor_label:
+        raise ValueError(
+            "heard language differs from its auditory terminal"
+        )
+    if not _normalize_text(text):
+        raise ValueError(
+            "auditory terminal has no interpretable language form"
+        )
+    return causal_intake.as_record()
 
 
 _ORGANISM_SIGNAL_N_SAMPLES = 20  # see Guala.__init__'s comment on this choice
@@ -3305,6 +3336,11 @@ class Guala:
                 log_event=self._log_substrate_event,
             )
         )
+        # One complete, receipt-bound auditory-language witness is retained as
+        # current causal memory.  Historical Atlas bindings retain only its
+        # identity and receipt; this is deliberately not a lifetime event
+        # index and never re-grants live admission authority after restore.
+        self._latest_auditory_causal_event_record = None
         self._latest_auditory_full_field_capture = None
         self._latest_auditory_incremental_advance = None
         self._latest_auditory_recognitions = ()
@@ -4723,13 +4759,23 @@ class Guala:
 
     def _add_canonical_language_entry(
             self, word, language_position, *, context_id, source,
-            episode_ref, bundle_id, experience_origin):
+            episode_ref, bundle_id, experience_origin,
+            causal_experience_id=None,
+            causal_intake_receipt_sha256=None):
         """Add exactly one ordered full-field language fact for one token."""
         from dsf_ai_service.substrate.language_fact_strand import (
             construct_language_fact_strand,
         )
 
         fact = construct_language_fact_strand(word)
+        causal_refs = {}
+        if causal_experience_id is not None:
+            causal_refs = {
+                "causal_experience_id": causal_experience_id,
+                "causal_intake_receipt_sha256": (
+                    causal_intake_receipt_sha256
+                ),
+            }
         self.window_manager.add_entry(
             modality="word",
             section="language_fact",
@@ -4748,6 +4794,7 @@ class Guala:
             source=source,
             episode_ref=episode_ref,
             bundle_id=bundle_id,
+            **causal_refs,
         )
 
     def _bind_certified_fact_emission_to_active_window(self, turn_result):
@@ -5221,11 +5268,39 @@ class Guala:
         except Exception:
             pass  # measurement must never disturb reading
 
+    def _remember_auditory_causal_event(self, record):
+        """Retain exactly one complete witness; never a lifetime index."""
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalTerminalEvent,
+        )
+        restored = AuditoryIncrementalTerminalEvent.from_record(dict(record))
+        canonical = restored.as_record()
+        with self.lock:
+            self._latest_auditory_causal_event_record = canonical
+
+    def _auditory_causal_record_from_claim(self, text, claim):
+        if claim is None:
+            return None
+        event = self._auditory_incremental_terminals.verify_claim(claim)
+        return _verified_auditory_causal_intake(text, event)
+
+    def _admit_auditory_causal_event(self, text, event):
+        """Consume one live owner-issued event and retain its bounded witness."""
+        record = _verified_auditory_causal_intake(text, event)
+        claim = self._auditory_incremental_terminals.claim(event)
+        self._remember_auditory_causal_event(record)
+        return claim, record
+
+    def discard_unadmitted_auditory_terminal(self, event):
+        """Release owner authority when the bounded voice door is full."""
+        return self._auditory_incremental_terminals.discard_unadmitted(event)
+
     @_engine_mutation_entry
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
                       teaching=False,
                       episode_ref=None, presence=None, location=None, sky_state=None,
-                      place=None, ambient=None, experience_origin="emulated"):
+                      place=None, ambient=None, experience_origin="emulated",
+                      causal_intake=None):
         """Read a sentence into the substrate.
 
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1:
@@ -5299,7 +5374,43 @@ class Guala:
             raise ValueError(
                 "experience_origin must be exactly 'emulated', 'observed', "
                 "'imagined' or 'self_heard'")
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalTerminalEvent,
+        )
+        if causal_intake is not None and source != "auditory:unresolved_source":
+            raise ValueError(
+                "auditory causal intake has invalid source provenance"
+            )
+        if causal_intake is None and source == "auditory:unresolved_source":
+            raise ValueError(
+                "heard language requires its auditory terminal"
+            )
+        if isinstance(causal_intake, AuditoryIncrementalTerminalEvent):
+            causal_intake, _causal_intake_record = (
+                self._admit_auditory_causal_event(text, causal_intake)
+            )
+        else:
+            _causal_intake_record = self._auditory_causal_record_from_claim(
+                text, causal_intake
+            )
         _existing_context_id = self.window_manager.active_context_id
+        if _causal_intake_record is not None:
+            if _existing_context_id is not None:
+                raise ValueError(
+                    "auditory causal intake cannot join another experience"
+                )
+            _causal_id = _causal_intake_record["event_id"]
+            if episode_ref not in (None, _causal_id):
+                raise ValueError(
+                    "auditory causal intake episode identity changed"
+                )
+            if bundle_id not in (None, _causal_id):
+                raise ValueError(
+                    "auditory causal intake bundle identity changed"
+                )
+            episode_ref = _causal_id
+            bundle_id = _causal_id
+            experience_origin = "observed"
         if _existing_context_id is not None:
             _existing_window = self.window_manager.current
             _existing_origin = (
@@ -5379,8 +5490,10 @@ class Guala:
             ep_id = f"episode:{source}:{source_turn_index}"
             _resolved_episode_ref = episode_ref if episode_ref is not None else ep_id
             _fact_context_id = (
-                _existing_context_id
-                or f"language:{source}:{source_turn_index}")
+                f"causal-experience:{_causal_intake_record['event_id']}"
+                if _causal_intake_record is not None
+                else (_existing_context_id
+                      or f"language:{source}:{source_turn_index}"))
             _owns_fact_context = _existing_context_id is None
             # §1.1: binding_window is sentence-local — prevents unbounded growth
             binding_window = []
@@ -5400,15 +5513,28 @@ class Guala:
         # The caller owns this exact sentence boundary.  A failed sentence is
         # still closed for audit, but is never committed to recognition.
         if _owns_fact_context:
+            _context_detail = {
+                "experience_origin": experience_origin,
+                "source": source,
+                "episode_ref": _resolved_episode_ref,
+                "bundle_id": bundle_id,
+            }
+            if _causal_intake_record is not None:
+                _context_detail.update({
+                    "causal_experience_id": (
+                        _causal_intake_record["event_id"]
+                    ),
+                    "causal_intake_receipt_sha256": (
+                        _causal_intake_record[
+                            "authority_receipt_sha256"
+                        ]
+                    ),
+                    "auditory_terminal_event": _causal_intake_record,
+                })
             self.window_manager.begin_context(
                 _fact_context_id,
                 trigger_reason="language_experience",
-                context_detail={
-                    "experience_origin": experience_origin,
-                    "source": source,
-                    "episode_ref": _resolved_episode_ref,
-                    "bundle_id": bundle_id,
-                },
+                context_detail=_context_detail,
             )
         _sentence_complete = False
         try:
@@ -5463,6 +5589,16 @@ class Guala:
                     episode_ref=_resolved_episode_ref,
                     bundle_id=bundle_id,
                     experience_origin=experience_origin,
+                    causal_experience_id=(
+                        _causal_intake_record["event_id"]
+                        if _causal_intake_record is not None else None
+                    ),
+                    causal_intake_receipt_sha256=(
+                        _causal_intake_record[
+                            "authority_receipt_sha256"
+                        ]
+                        if _causal_intake_record is not None else None
+                    ),
                 )
                 if _new_phase_vec is not None:
                     _prev_phase_vec_local = _new_phase_vec
@@ -5501,6 +5637,27 @@ class Guala:
             if _closed_window_id is None:
                 raise RuntimeError(
                     f"language BindingWindow {_fact_context_id!r} did not close")
+            if _causal_intake_record is not None:
+                self._log_substrate_event(
+                    "auditory_language_causal_experience_bound",
+                    causal_experience_id=(
+                        _causal_intake_record["event_id"]
+                    ),
+                    causal_intake_receipt_sha256=(
+                        _causal_intake_record[
+                            "authority_receipt_sha256"
+                        ]
+                    ),
+                    stream_id=_causal_intake_record["stream_id"],
+                    source_sample_start=(
+                        _causal_intake_record["source_sample_start"]
+                    ),
+                    source_sample_end=(
+                        _causal_intake_record["source_sample_end"]
+                    ),
+                    window_id=_closed_window_id,
+                    words=len(words),
+                )
             if experience_origin in ("imagined", "self_heard"):
                 # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
                 # experience closes and persists like any window (it IS her
@@ -5643,7 +5800,7 @@ class Guala:
     @_engine_mutation_entry
     def converse(self, text, source="unknown", emission_mode=None, bundle_id=None,
                  episode_ref=None, presence=None, location=None, sky_state=None,
-                 organ_candidates=None):
+                 organ_candidates=None, causal_intake=None):
         """v5: Recall from substrate atlas BEFORE reading input.
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
@@ -5652,6 +5809,20 @@ class Guala:
 
         Then read the input into substrate (so she learns from this exchange).
         """
+        if causal_intake is not None and source != "auditory:unresolved_source":
+            raise ValueError(
+                "auditory causal intake has invalid source provenance"
+            )
+        if causal_intake is None and source == "auditory:unresolved_source":
+            raise ValueError(
+                "heard conversation requires its auditory terminal"
+            )
+        if causal_intake is not None:
+            causal_intake, _causal_intake_record = (
+                self._admit_auditory_causal_event(text, causal_intake)
+            )
+        else:
+            _causal_intake_record = None
         # GL-CMD-SCENE-LANES-B1-188 V4: WHO/location/sky_state were written
         # only for autonomous attending (_atick_attending_visual/_audio via
         # _current_situation) -- never for converse, confirmed by -164's
@@ -5674,7 +5845,8 @@ class Guala:
             with self._presence_keepalive(source):
                 return self._converse_body(
                     text, source, emission_mode, bundle_id, episode_ref,
-                    presence, location, sky_state, organ_candidates)
+                    presence, location, sky_state, organ_candidates,
+                    causal_intake)
         finally:
             with self._live_converse_state_lock:
                 if self._live_converse_pending <= 0:
@@ -5683,14 +5855,15 @@ class Guala:
 
     def _converse_body(self, text, source, emission_mode, bundle_id,
                        episode_ref, presence, location, sky_state,
-                       organ_candidates):
+                       organ_candidates, causal_intake):
         # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2: feature-flagged phased path.
         # CONVERSE_PHASED=1 → _converse_phased (split self.lock + self._emission_lock).
         # CONVERSE_PHASED=0 (default) → original single-lock body below.
         if os.environ.get("CONVERSE_PHASED", "0") == "1":
             return self._converse_phased(
                 text, source, emission_mode, bundle_id,
-                episode_ref, presence, location, sky_state, organ_candidates)
+                episode_ref, presence, location, sky_state, organ_candidates,
+                causal_intake)
 
         # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2: §1.3 phasing deferred.
         # _emit_dynamics() writes to self._emission_system.sections (mode_bank,
@@ -5700,15 +5873,39 @@ class Guala:
         self._last_converse_tick = self.tick
         response_source = "silence_no_commit"
         committed_sections = ()
+        causal_record = self._auditory_causal_record_from_claim(
+            text, causal_intake
+        )
+        causal_experience_id = (
+            causal_record["event_id"] if causal_record is not None else None
+        )
+        causal_intake_receipt_sha256 = (
+            causal_record["authority_receipt_sha256"]
+            if causal_record is not None else None
+        )
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
         if parsed:
+            source_turn_index = None
+            if causal_record is not None:
+                source_turn_index = self.read_sentence(
+                    text, source=source, bundle_id=bundle_id,
+                    episode_ref=episode_ref, presence=presence,
+                    location=location, sky_state=sky_state,
+                    causal_intake=causal_intake)
             op, a, b = parsed
             result = self._mathloom_solve(op, a, b)
             response = self._num_to_word(result)
             self._last_response_source = "mathloom"  # diagnostic only
             self._last_emission_id = None  # diagnostic only
-            return ConversationTurnResult(response, "mathloom")
+            return ConversationTurnResult(
+                response, "mathloom",
+                source_turn_index=source_turn_index,
+                causal_experience_id=causal_experience_id,
+                causal_intake_receipt_sha256=(
+                    causal_intake_receipt_sha256
+                ),
+            )
 
         with self.lock:
             _t_converse_start = time.monotonic()
@@ -5748,7 +5945,8 @@ class Guala:
             source_turn_index = self.read_sentence(
                 text, source=source, bundle_id=bundle_id,
                 episode_ref=episode_ref, presence=presence,
-                location=location, sky_state=sky_state)
+                location=location, sky_state=sky_state,
+                causal_intake=causal_intake)
             tick_after_read = self.tick
             _t_read = time.monotonic()
 
@@ -5815,6 +6013,9 @@ class Guala:
                 emission_id = eid
                 rec = {"emission_id": eid, "text": reply, "tick": self.tick,
                        "input_text": text, "source": source,
+                       "causal_experience_id": causal_experience_id,
+                       "causal_intake_receipt_sha256": (
+                           causal_intake_receipt_sha256),
                        "committed_chis": committed_chis,
                        "committed_sections": list(
                            settlement.committed_sections),
@@ -5900,12 +6101,17 @@ class Guala:
                 committed_sections=committed_sections,
                 recalled_pictures=recalled_pictures,
                 source_turn_index=source_turn_index,
-                commit_provenance=settlement.commit_provenance)
+                commit_provenance=settlement.commit_provenance,
+                causal_experience_id=causal_experience_id,
+                causal_intake_receipt_sha256=(
+                    causal_intake_receipt_sha256
+                ))
 
     # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
 
     def _converse_phased(self, text, source, emission_mode, bundle_id,
-                         episode_ref, presence, location, sky_state, organ_candidates):
+                         episode_ref, presence, location, sky_state,
+                         organ_candidates, causal_intake):
         """Phased converse: splits self.lock and self._emission_lock to allow
         curriculum to interleave between phases.
 
@@ -5924,16 +6130,40 @@ class Guala:
         self._last_converse_tick = self.tick
         response_source = "silence_no_commit"
         committed_sections = ()
+        causal_record = self._auditory_causal_record_from_claim(
+            text, causal_intake
+        )
+        causal_experience_id = (
+            causal_record["event_id"] if causal_record is not None else None
+        )
+        causal_intake_receipt_sha256 = (
+            causal_record["authority_receipt_sha256"]
+            if causal_record is not None else None
+        )
 
         # Phase 1: tokenize + chi transduction (no lock — pure local computation)
         parsed = self._parse_math(text)
         if parsed:
+            source_turn_index = None
+            if causal_record is not None:
+                source_turn_index = self.read_sentence(
+                    text, source=source, bundle_id=bundle_id,
+                    episode_ref=episode_ref, presence=presence,
+                    location=location, sky_state=sky_state,
+                    causal_intake=causal_intake)
             op, a, b = parsed
             result = self._mathloom_solve(op, a, b)
             response = self._num_to_word(result)
             self._last_response_source = "mathloom"  # diagnostic only
             self._last_emission_id = None  # diagnostic only
-            return ConversationTurnResult(response, "mathloom")
+            return ConversationTurnResult(
+                response, "mathloom",
+                source_turn_index=source_turn_index,
+                causal_experience_id=causal_experience_id,
+                causal_intake_receipt_sha256=(
+                    causal_intake_receipt_sha256
+                ),
+            )
 
         words = _normalize_text(text)
         if not words:
@@ -5968,7 +6198,8 @@ class Guala:
         source_turn_index = self.read_sentence(
             text, source=source, bundle_id=bundle_id,
             episode_ref=episode_ref, presence=presence,
-            location=location, sky_state=sky_state)
+            location=location, sky_state=sky_state,
+            causal_intake=causal_intake)
         tick_after_read = self.tick
         _t_read = time.monotonic()
 
@@ -6052,6 +6283,9 @@ class Guala:
                 emission_id = eid
                 rec = {"emission_id": eid, "text": reply, "tick": self.tick,
                        "input_text": text, "source": source,
+                       "causal_experience_id": causal_experience_id,
+                       "causal_intake_receipt_sha256": (
+                           causal_intake_receipt_sha256),
                        "committed_chis": committed_chis,
                        "committed_sections": list(
                            settlement.committed_sections),
@@ -6145,7 +6379,11 @@ class Guala:
             committed_sections=committed_sections,
             recalled_pictures=recalled_pictures,
             source_turn_index=source_turn_index,
-            commit_provenance=settlement.commit_provenance)
+            commit_provenance=settlement.commit_provenance,
+            causal_experience_id=causal_experience_id,
+            causal_intake_receipt_sha256=(
+                causal_intake_receipt_sha256
+            ))
 
     def _ensure_engine_lifecycle_state(self):
         """Initialize lifecycle fields on narrow legacy/test constructions."""
@@ -16116,6 +16354,12 @@ class Guala:
             if not isinstance(payload, str) or len(payload) > 16 * 1024 * 1024:
                 raise ValueError(
                     "teaching.auditory_reciprocity exceeds its encoded boundary")
+        causal_event = data.get("latest_auditory_causal_event")
+        if causal_event is not None:
+            from dsf_ai_service.substrate.auditory_incremental_terminal import (
+                AuditoryIncrementalTerminalEvent,
+            )
+            AuditoryIncrementalTerminalEvent.from_record(causal_event)
 
     @classmethod
     def _validate_episodic_payload(cls, data, engine_tick, max_per_concept,
@@ -16847,6 +17091,8 @@ class Guala:
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
             "auditory_reciprocity": (
                 self._auditory_reciprocity_owner.encoded_snapshot()),
+            "latest_auditory_causal_event": (
+                self._latest_auditory_causal_event_record),
         })
         writes.append(("guala_teaching.json", snap_teaching))
 
@@ -17187,6 +17433,8 @@ class Guala:
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
             "auditory_reciprocity": (
                 self._auditory_reciprocity_owner.encoded_snapshot()),
+            "latest_auditory_causal_event": (
+                self._latest_auditory_causal_event_record),
         }, saved_at_tick=save_tick)
         # GL-CMD-PERSIST-CLOBBER-FIX-81: teaching is non-critical — isolate so it
         # cannot prevent _last_save_tick from advancing when core files succeed.
@@ -18029,6 +18277,20 @@ class Guala:
                         self._auditory_reciprocity_owner.restore_encoded(
                             auditory_snapshot)
                         self._auditory_incremental_terminals.refresh_learning()
+                    causal_event = tdata.get(
+                        "latest_auditory_causal_event"
+                    )
+                    if causal_event is None:
+                        self._latest_auditory_causal_event_record = None
+                    else:
+                        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+                            AuditoryIncrementalTerminalEvent,
+                        )
+                        self._latest_auditory_causal_event_record = (
+                            AuditoryIncrementalTerminalEvent.from_record(
+                                causal_event
+                            ).as_record()
+                        )
                 except Exception as error:
                     if exact_binary:
                         raise ValueError(
@@ -18655,6 +18917,47 @@ class Guala:
                             and not isinstance(entry["structural_fact"], dict)):
                         raise ValueError(
                             f"{label}.structural_fact must be an object")
+                    causal_refs = entry.get("causal_experience_refs")
+                    if causal_refs is not None:
+                        # These are bounded provenance citations, not restored
+                        # auditory admission authority.  Owner authenticity is
+                        # intentionally never reconstructed from Atlas state.
+                        if (
+                            not isinstance(causal_refs, list)
+                            or len(causal_refs) > 4
+                        ):
+                            raise ValueError(
+                                f"{label}.causal_experience_refs is invalid"
+                            )
+                        for causal_index, causal_ref in enumerate(causal_refs):
+                            causal_label = (
+                                f"{label}.causal_experience_refs"
+                                f"[{causal_index}]"
+                            )
+                            if not isinstance(causal_ref, dict):
+                                raise ValueError(
+                                    f"{causal_label} must be an object"
+                                )
+                            if set(causal_ref) != {
+                                "causal_experience_id",
+                                "causal_intake_receipt_sha256",
+                            }:
+                                raise ValueError(
+                                    f"{causal_label} fields are invalid"
+                                )
+                            for digest_name, digest_value in causal_ref.items():
+                                if (
+                                    not isinstance(digest_value, str)
+                                    or len(digest_value) != 64
+                                    or any(
+                                        character not in "0123456789abcdef"
+                                        for character in digest_value
+                                    )
+                                ):
+                                    raise ValueError(
+                                        f"{causal_label}.{digest_name} "
+                                        "must be a SHA-256 digest"
+                                    )
                     self._exact_int(entry["motif"], f"{label}.motif")
                     self._exact_int(
                         entry["chi"], f"{label}.chi", minimum=-2**63)
