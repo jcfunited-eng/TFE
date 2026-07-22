@@ -1244,6 +1244,11 @@ ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 2000, "DREAMING": 3000,
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
+    # GL world-actions-in-process (2026-07-22): DOING = one real verb on one
+    # real object in her room (WorldState.apply_verb), then experiencing the
+    # room's resulting ambient words. Short budget: an action is a moment,
+    # not a session.
+    "DOING": 200,
     # DAYDREAMING removed GL-CMD-DAYDREAM-PARALLEL-42: now a background thread, not an activity
     # GL-CMD-REST-RETIRE-73: REST removed. _atick_rest kept for persisted-state tail-out only.
 }
@@ -1255,6 +1260,11 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
+    # GL world-actions-in-process: an untouched object/verb is genuinely
+    # novel first-hand experience (between ATTENDING 0.8 and PLAYING 0.3 —
+    # it is real interaction, but her room's repertoire is small and
+    # re-doable); a repeat is familiar, same shape as every other kind.
+    "DOING_NEW": 0.6, "DOING_REPEAT": 0.05,
     # DAYDREAMING removed (-42): now a background thread
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
@@ -1265,6 +1275,11 @@ ACTIVITY_STABILITY_PAYOFF = {
     "DREAMING": 0.2,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
+    # GL world-actions-in-process: 0.0 is the BASE only. A comfort action's
+    # real stability payoff is derived per target from the verb's own
+    # experience words (see _world_action_comfort_payoff) — data-driven from
+    # virtual_home.OBJECTS, never a per-object script here.
+    "DOING": 0.0,
     # DAYDREAMING removed (-42): now a background thread
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
@@ -1273,8 +1288,36 @@ ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
+    "DOING": 0.0,  # solitary world action — no social content to credit
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
+
+# ── GL world-actions-in-process (2026-07-22) ────────────────────────────────
+# The :8090 organ-brain sidecar (the only actuator for her virtual room) was
+# never launched in this stack — world ACTIONS were doubly severed (seam map
+# GL-RPT-SEAM-MAP-C1-20260722-v1). DOING ports the actuator in-process:
+# selected by the same drive-physics scoring as every other activity,
+# executed as WorldState.apply_verb on the shared world_state.json, and the
+# consequence experienced honestly by reading the room's resulting
+# ambient_words through read_sentence(source="world").
+#
+# Cooldown: bounded frequency — one world action, then at least this many
+# ticks before DOING candidates re-enter selection. 10x EMISSION_COOLDOWN_
+# TICKS: acting on the room is rarer than speaking, and the small W1 verb
+# repertoire would otherwise habituate to nothing within an hour.
+WORLD_ACTION_COOLDOWN_TICKS = 2000
+# Comfort words: the stability-restoring sensory vocabulary her own world
+# already uses (virtual_home ambient/night-light words + WORLD_ATLAS_SEEDS
+# comfort pairs). A verb whose experience words overlap this set is a real
+# comfort action (lie under blanket, turn on night light) — its stability
+# payoff scales with the overlap fraction, deterministically from the
+# object definition, never a hand-picked object list.
+WORLD_COMFORT_WORDS = frozenset(
+    {"warm", "soft", "safe", "cozy", "quiet", "rest"})
+# Max stability payoff for a fully-comfort verb (every experience word in
+# WORLD_COMFORT_WORDS). Same scale as DREAMING's 0.2 — comfort-seeking in
+# her room competes with, but does not dominate, real consolidation.
+DOING_STABILITY_PAYOFF_MAX = 0.2
 
 EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
@@ -3189,6 +3232,14 @@ class Guala:
         self._dp_last_write_count = 0
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
+        # GL world-actions-in-process (2026-07-22): per-action habituation
+        # record {"obj:verb": {"times_done", "last_done_tick"}} + cooldown
+        # tick — persisted with the core (same lifecycle as
+        # target_familiarity). WorldState instance is lazy (EFS I/O only on
+        # first real use).
+        self._world_actions = {}
+        self._last_world_action_tick = -100_000
+        self._world_state_obj = None
         self._last_emission_record = None  # {emission_id, text, tick, ...}
         # GL-CMD-AUTONOMOUS-EMISSION-39
         self.last_autonomous_emission_tick = -100_000
@@ -11708,6 +11759,8 @@ class Guala:
                     self._atick_attending_audio(a)
                 elif a.kind == "ATTENDING_VIDEO":
                     self._atick_attending_video(a)
+                elif a.kind == "DOING":
+                    self._atick_doing(a)
                 elif a.kind == "EMITTING":
                     self._atick_emitting(a)
                 # Non-reading: manual atlas decay + coordinator
@@ -11767,7 +11820,94 @@ class Guala:
                 for s in PAIR_BOND_SOURCES)
                 and self.tick - self._last_emission_tick > EMISSION_COOLDOWN_TICKS):
             candidates.append(("EMITTING", None))
+        # GL world-actions-in-process: acting on her own room — cooldown-
+        # bounded, block-schedule-respecting, same (kind, target) shape as
+        # every other candidate (target = "object_id:verb").
+        if self._world_actions_available():
+            for wa in self._world_action_candidates():
+                candidates.append(("DOING", wa))
         return candidates
+
+    def _world_actions_available(self):
+        """GL world-actions-in-process: may DOING candidates enter selection
+        right now? Two real bounds, no randomness:
+        1. Cooldown — at least WORLD_ACTION_COOLDOWN_TICKS since her last
+           world action (mirrors EMITTING's cooldown gate above).
+        2. Block schedule — no NEW world actions during the "quiet" block
+           (GL-SPC-EXPERIENCE-FIRST §8, same block the machine feeders
+           already respect). If the runner module isn't loaded (unit
+           tests, engine-only use), the gate honestly reports the only
+           bound it can verify: the cooldown."""
+        if (self.tick - getattr(self, "_last_world_action_tick", -100_000)
+                <= WORLD_ACTION_COOLDOWN_TICKS):
+            return False
+        try:
+            import sys as _sys
+            _sr = _sys.modules.get("dsf_ai_service.substrate_runner")
+            if _sr is not None and _sr._current_block() == "quiet":
+                return False
+        except Exception:
+            pass
+        return True
+
+    def _world_action_candidates(self):
+        """Every (object, verb) currently reachable in her room, as
+        "object_id:verb" targets. Data-driven straight from
+        virtual_home.OBJECTS + the live WorldState — no scripted list:
+        - fixtures/objects placed in her_room are always reachable;
+        - an object placed INSIDE a closable container (toy chest) is
+          reachable only while that container's real state is open —
+          she cannot wind the music box through a closed lid.
+        Sorted for determinism (dict order is never load-bearing here)."""
+        try:
+            from dsf_ai_service.virtual_home import OBJECTS
+            ws = self._world_state()
+        except Exception:
+            return []
+        out = []
+        for obj_id in sorted(OBJECTS):
+            defn = OBJECTS[obj_id]
+            place = defn.get("place")
+            if place != "her_room":
+                container = OBJECTS.get(place)
+                if container is None:
+                    continue
+                if ("open" in (container.get("states") or [])
+                        and ws.get(place).get("state") != "open"):
+                    continue
+            for verb in sorted(defn.get("verbs") or {}):
+                out.append(f"{obj_id}:{verb}")
+        return out
+
+    def _world_state(self):
+        """Lazy shared WorldState on STATE_DIR's world_state.json — the SAME
+        file _current_situation() and /room already read. Single writer:
+        this engine (the :8090 sidecar actuator was never launched and is
+        retired); writes are atomic (WorldState._save tmp+os.replace)."""
+        ws = getattr(self, "_world_state_obj", None)
+        if ws is None:
+            from dsf_ai_service.virtual_home import WorldState
+            ws = WorldState(os.environ.get("STATE_DIR", "/mnt/efs/guala"))
+            self._world_state_obj = ws
+        return ws
+
+    def _world_action_comfort_payoff(self, target):
+        """Per-target stability payoff, derived deterministically from the
+        verb's own experience words in virtual_home.OBJECTS: overlap
+        fraction with WORLD_COMFORT_WORDS × DOING_STABILITY_PAYOFF_MAX.
+        "lie under" the blanket (warm/soft/safe/cozy → 1.0 overlap) is a
+        full comfort action; "ring" the bell (bright/clear/sharp) is 0."""
+        obj_id, _, verb = (target or "").partition(":")
+        try:
+            from dsf_ai_service.virtual_home import OBJECTS
+        except Exception:
+            return 0.0
+        vd = ((OBJECTS.get(obj_id) or {}).get("verbs") or {}).get(verb) or {}
+        words = (vd.get("experience") or {}).get("words") or []
+        if not words:
+            return 0.0
+        overlap = sum(1 for w in words if w in WORLD_COMFORT_WORDS)
+        return DOING_STABILITY_PAYOFF_MAX * overlap / len(words)
 
     # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B2: same reference scale
     # _Corpus.is_new() already uses for "not recently read" -- reused, not
@@ -11934,10 +12074,27 @@ class Guala:
                 v.times_attended, self.tick - v.last_attended_tick)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"] * (1.0 - fresh))
+        elif kind == "DOING" and target:
+            # GL world-actions-in-process: same continuous habituation curve
+            # as every other target-based kind. A never-done action record
+            # is honestly absent → times_done=0 → fully fresh; disuse
+            # recovers freshness exactly like the ATTENDING_* kinds.
+            _habituation_eligible = True
+            rec = self._world_actions.get(target) or {}
+            fresh = self._habituation_freshness(
+                rec.get("times_done", 0),
+                self.tick - rec.get("last_done_tick", 0))
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["DOING_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["DOING_REPEAT"] * (1.0 - fresh))
         else:
             nov_payoff = ACTIVITY_NOVELTY_PAYOFF.get(kind, 0.0)
 
         stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
+        if kind == "DOING" and target:
+            # Comfort actions carry a real, data-derived stability payoff —
+            # a stability deficit steers her toward the blanket/night light,
+            # never via a scripted object list (see _world_action_comfort_payoff).
+            stab_payoff = self._world_action_comfort_payoff(target)
         conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
 
         # GL-CMD-SLEEP-CALIBRATION-JOE-20260704, dial 1: a seen picture (or
@@ -12066,6 +12223,12 @@ class Guala:
             return self._sounds[target].get("last_attended_tick", 0)
         if kind == "ATTENDING_VIDEO" and target in self._videos:
             return self._videos[target].last_attended_tick
+        if kind == "DOING":
+            # Never-done actions report 0 (oldest possible) — the LRU
+            # tie-break then genuinely prefers untouched objects, the
+            # -181 rotation guarantee extended to world actions.
+            rec = self._world_actions.get(target)
+            return rec.get("last_done_tick", 0) if rec else 0
         return None
 
     def _select_next_activity(self):
@@ -13249,6 +13412,68 @@ class Guala:
         if self.tick >= a.expected_end_tick - 1:
             si.times_attended += 1
             si.last_attended_tick = self.tick
+
+    def _atick_doing(self, a):
+        """GL world-actions-in-process: execute the selected world action
+        ONCE (first tick of the activity), through the same shared actuator
+        the /action command uses. The remaining budget ticks are the
+        moment's settle — decay/regulate housekeeping runs in the loop as
+        for every non-reading activity; nothing extra is fabricated."""
+        if a.metadata.get("_world_action_done"):
+            return
+        a.metadata["_world_action_done"] = True
+        obj_id, _, verb = (a.target or "").partition(":")
+        self.perform_world_action(obj_id, verb, trigger="autonomy")
+
+    def perform_world_action(self, obj_id, verb, trigger="autonomy"):
+        """The ONE in-process actuator for her virtual room (ports the
+        retired :8090 sidecar's /action, substrate-true):
+        1. WorldState.apply_verb on the shared world_state.json (atomic
+           save; same file every existing world read uses).
+        2. Log a real world_action substrate event (verb + resulting
+           state + the room's real resulting ambient words).
+        3. Experience the consequence honestly: read the NEW state's
+           ambient_words through the existing real read path
+           (read_sentence, source="world"). No fabricated senses — the
+           words are exactly what the room's live object states emit.
+        Called from _atick_doing (autonomy) and _cmd_action (/action,
+        trigger="external"). Returns the same response shape the sidecar's
+        /action returned, for the surviving route."""
+        ws = self._world_state()
+        result = ws.apply_verb(obj_id, verb)
+        if not result:
+            self._log_substrate_event("world_action_invalid",
+                                      object=obj_id, verb=verb,
+                                      trigger=trigger)
+            return {"ok": False,
+                    "reason": f"no verb '{verb}' on '{obj_id}'"}
+        target = f"{obj_id}:{verb}"
+        with self.lock:
+            rec = self._world_actions.setdefault(
+                target, {"times_done": 0, "last_done_tick": 0})
+            first_time = rec["times_done"] == 0
+            rec["times_done"] += 1
+            rec["last_done_tick"] = self.tick
+            self._last_world_action_tick = self.tick
+            ambient = ws.ambient_words("her_room")
+            self._log_substrate_event(
+                "world_action", object=obj_id, verb=verb, trigger=trigger,
+                next_state=result.get("next_state"),
+                says=result.get("says", ""),
+                ambient_words=list(ambient))
+            if first_time:
+                # A genuinely new first-hand action satisfies novelty —
+                # same magnitude as a new sensory item (_atick_attending).
+                self.needs.novelty = saturate(self.needs.novelty, 0.002)
+        # Consequence, experienced through the one real intake door.
+        # read_sentence manages its own per-word locking (RLock-safe from
+        # the autonomy tick, lock-free entry from the /action route).
+        if ambient:
+            self.read_sentence(" ".join(ambient), source="world")
+        return {"ok": True, "object": obj_id, "verb": verb,
+                "says": result.get("says", ""),
+                "next_state": result.get("next_state"),
+                "ambient_words": list(ambient)}
 
     @_engine_mutation_entry
     @_live_sensory_entry
@@ -15243,6 +15468,8 @@ class Guala:
                     self._atick_attending_audio(activity_ref)
                 elif activity_kind == "ATTENDING_VIDEO":
                     self._atick_attending_video(activity_ref)
+                elif activity_kind == "DOING":
+                    self._atick_doing(activity_ref)
 
         # Phase C (self.lock brief): post-activity housekeeping
         with self.lock:
@@ -17280,6 +17507,8 @@ class Guala:
                 "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
                 "autonomous_emissions_count": self.autonomous_emissions_count,
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
+                "world_actions": {k: dict(v) for k, v in self._world_actions.items()},
+                "last_world_action_tick": self._last_world_action_tick,
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
                 "current_activity": (
@@ -17562,6 +17791,8 @@ class Guala:
                 "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
                 "autonomous_emissions_count": self.autonomous_emissions_count,
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
+                "world_actions": {k: dict(v) for k, v in self._world_actions.items()},
+                "last_world_action_tick": self._last_world_action_tick,
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
                 "current_activity": (
@@ -19003,6 +19234,15 @@ class Guala:
         self.last_autonomous_attempt_tick = int(core.get("last_autonomous_attempt_tick", -100_000))
         self.autonomous_emissions_count = int(core.get("autonomous_emissions_count", 0))
         self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
+        # GL world-actions-in-process: restore per-action habituation + the
+        # cooldown tick. Absent in older states → honest empty (fresh).
+        self._world_actions = {
+            k: {"times_done": int(v.get("times_done", 0)),
+                "last_done_tick": int(v.get("last_done_tick", 0))}
+            for k, v in core.get("world_actions", {}).items()
+            if isinstance(v, dict)}
+        self._last_world_action_tick = int(
+            core.get("last_world_action_tick", -100_000))
         corpora_state = core.get("corpora_state", {})
         if strict:
             restored_corpora = {}

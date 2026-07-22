@@ -2759,9 +2759,9 @@ def _embedded_post_boot(g):
     except Exception as _e:
         print(f"[substrate] Ring init skipped (non-fatal): {_e}")
 
-    # Background loops: organ surface poll, autonomous emission, input ring consumer, curriculum.
+    # Background loops: autonomous emission, input ring consumer, curriculum.
+    # GL world-actions-in-process: organ surface poll deleted (dead :8090 sidecar).
     try:
-        _sr._start_organ_surface_poll()
         _sr._start_autonomous_emission_loop()
         _sr._start_input_ring_consumer()
         _sr._start_curriculum_orchestrator()  # 65-A: density engine (retired, no-op unless CURRICULUM_AUTOSTART=1)
@@ -2907,26 +2907,33 @@ async def gualaloom_organs():
 
 @app.get("/api/v1/gualaloom/thought")
 async def organ_thought():
-    """Current autonomous thought from the organ-brain — poll for independence."""
-    try:
-        import urllib.request as _ur, json as _js
-        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
-        resp = _js.load(_ur.urlopen(f"{_ob_url}/thought", timeout=3))
-        return resp
-    except Exception:
-        return {"speech": "", "tick": 0}
+    """Her real last autonomous thought — from the substrate's own emission
+    loop (GL world-actions-in-process 2026-07-22: this used to poll the
+    retired, never-launched :8090 sidecar and always fell back to an empty
+    stub; now it serves the same in-process _cmd_thought the POST /thought
+    command already uses)."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("gualaloom_post", command="/thought",
+                                     text="", timeout=5.0)
+        except Exception:
+            return {"speech": "", "tick": 0}
+    import dsf_ai_service.substrate_runner as _sr
+    return _sr._cmd_thought()
 
 
 @app.get("/api/v1/gualaloom/organ_brain_status")
 async def organ_brain_status():
-    """Per-organ neuron counts and coupling strengths — feeds the brain visualization."""
-    try:
-        import urllib.request as _ur, json as _js
-        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
-        resp = _js.load(_ur.urlopen(f"{_ob_url}/status", timeout=3))
-        return resp
-    except Exception:
-        return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
+    """GL world-actions-in-process (2026-07-22), real-or-gone: this route
+    used to poll the retired :8090 sidecar and, on the inevitable failure,
+    FABRICATE {"warming": true, "neurons": 0} — a warming state that did
+    not exist. The sidecar is gone; the answer is now honestly gone too.
+    There is ONE brain: the substrate (see /api/v1/gualaloom/organs)."""
+    return JSONResponse(status_code=410, content={
+        "available": False,
+        "reason": "organ-brain sidecar retired; the substrate is the one brain",
+        "see": "/api/v1/gualaloom/organs"})
 
 
 @app.get("/api/v1/gualaloom/chi_density")
@@ -3905,20 +3912,22 @@ async def gualaloom_chat(msg: GLMessage):
         })
     if _cmd.startswith("/tablet"):
         return {"ok": False, "note": "tablet re-wiring pending W2"}
-    if _cmd.startswith("/action "):
+    if _cmd.startswith("/action"):
         # format: /action object_id:verb
-        try:
-            import urllib.request as _ur, json as _js
-            parts = _cmd[len("/action "):].split(":", 1)
-            if len(parts) == 2:
-                body = _js.dumps({"object_id": parts[0].strip(),
-                                  "verb": parts[1].strip()}).encode()
-                req2 = _ur.Request(f"{_ob_url}/action", data=body,
-                                   headers={"content-type": "application/json"})
-                resp = _js.load(_ur.urlopen(req2, timeout=5))
-                return resp
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        # GL world-actions-in-process (2026-07-22): used to post to the dead
+        # sidecar port via an undefined url variable (NameError on every
+        # call). Now routed to the substrate's ONE in-process actuator
+        # (perform_world_action — the same path autonomy's DOING uses).
+        if _is_remote():
+            client = _get_substrate_client()
+            try:
+                return await client.call("gualaloom_post", command=_cmd,
+                                         text="", source=msg.source or "joe",
+                                         timeout=15.0)
+            except Exception as e:
+                return {"ok": False, "error": str(e)}
+        import dsf_ai_service.substrate_runner as _sr
+        return _sr._cmd_action(_cmd)
     if (msg.command or "").strip().lower() == "/organ_voice":
         # Stage 2 (bigram retired -23, deleted -34): silenced organ_voice path.
         # Learn from what Joe says, compose from her succession, return as speech.

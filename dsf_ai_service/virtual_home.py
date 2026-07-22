@@ -462,9 +462,18 @@ class WorldState:
                 }
 
     def _save(self):
+        # GL world-actions-in-process (2026-07-22): atomic write (tmp +
+        # os.replace) — substrate_runner._cmd_room and the engine's
+        # _current_situation() read world_state.json directly from disk,
+        # so a reader must never observe a half-written file.
         try:
-            with open(self._path, "w") as f:
-                json.dump({"objects": self._objects, "weather": self._weather}, f)
+            with self._lock:
+                payload = json.dumps({"objects": self._objects,
+                                      "weather": self._weather})
+            tmp = self._path + ".tmp"
+            with open(tmp, "w") as f:
+                f.write(payload)
+            os.replace(tmp, self._path)
         except Exception:
             pass
 
