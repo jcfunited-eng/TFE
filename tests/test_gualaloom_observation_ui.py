@@ -60,3 +60,19 @@ def test_conversation_ui_uses_one_observed_reply_surface() -> None:
     assert "aria-label','confirm this reply'" in page
     assert "aria-label','correct this reply'" in page
     assert "Embodied State" in page
+
+
+def test_loom_scan_separates_embodied_state_from_lexical_scene_lanes() -> None:
+    page = Path(
+        "dsf_ai_service/static/loomscan.html"
+    ).read_text(encoding="utf-8")
+
+    assert "/api/v1/gualaloom/observation" in page
+    assert "embodied location" in page
+    assert "body state" in page
+    assert "embodied action" in page
+    assert "observed conversation" in page
+    assert "lexical place lane" in page
+    assert "lexical ambient lane" in page
+    assert "cdef9bcf" not in page
+    assert "||'v7'" not in page

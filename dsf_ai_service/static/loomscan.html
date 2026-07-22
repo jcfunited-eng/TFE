@@ -159,9 +159,13 @@ footer b{color:var(--ink);font-weight:normal}
 </div>
 
 <div class="scene">
-  <div class="cell lc"><b>place</b><span id="placeCell">loading…</span></div>
-  <div class="cell lc"><b>ambient</b><span id="ambientCell">loading…</span></div>
-  <div class="cell lc"><b>participants</b><span id="whoCell">loading…</span></div>
+  <div class="cell lc"><b>embodied location</b><span id="embodiedLocationCell">loading…</span></div>
+  <div class="cell lc"><b>body state</b><span id="bodyCell">loading…</span></div>
+  <div class="cell lc"><b>embodied action</b><span id="embodiedActionCell">loading…</span></div>
+  <div class="cell lc"><b>observed conversation</b><span id="conversationCell">loading…</span></div>
+  <div class="cell lc"><b>lexical place lane</b><span id="placeCell">loading…</span></div>
+  <div class="cell lc"><b>lexical ambient lane</b><span id="ambientCell">loading…</span></div>
+  <div class="cell lc"><b>registered presence</b><span id="whoCell">loading…</span></div>
 </div>
 
 <div class="feed">
@@ -541,6 +545,41 @@ function renderScene(status){
     ambient.length?ambient.join(' · '):'no ambient words in the last sentence read';
 }
 
+function renderObservation(value){
+  if(value.schema!=='guala.observation_snapshot.v1'){
+    throw new Error('observation schema unavailable');
+  }
+  document.getElementById('hdr-id').textContent=
+    `guala · ${value.identity||'identity unavailable'}`;
+  const embodiment=value.embodiment||{};
+  if(embodiment.status==='observed'){
+    const location=embodiment.location||{};
+    const body=embodiment.body||{};
+    const pose=body.pose||{};
+    const position=pose.position||{};
+    document.getElementById('embodiedLocationCell').textContent=
+      `${location.room_id||'unknown room'} · revision ${location.revision}`;
+    document.getElementById('bodyCell').textContent=
+      `${body.body_id||'unknown body'} at (${position.x_mm}, ${position.y_mm}, ${position.z_mm}) mm · heading ${pose.heading_millidegrees} mdeg · holding ${body.held_object_id||'nothing'}`;
+  }else{
+    document.getElementById('embodiedLocationCell').textContent=
+      `unavailable · ${embodiment.reason||'unknown reason'}`;
+    document.getElementById('bodyCell').textContent='unavailable';
+  }
+  const action=value.embodied_action||{};
+  document.getElementById('embodiedActionCell').textContent=
+    action.status==='completed'
+      ? `${action.disposition||'unknown'} · ${action.reason||'no reason'} · revision ${action.before_revision}→${action.after_revision}`
+      : action.status==='idle'
+        ? `idle · world revision ${action.world_revision}`
+        : `unavailable · ${action.reason||'unknown reason'}`;
+  const conversation=value.conversation||{};
+  document.getElementById('conversationCell').textContent=
+    conversation.status==='observed'
+      ? `${conversation.input_source||'unknown source'}: “${conversation.input||''}” → ${conversation.response_source||'no response source'}: “${conversation.response||''}”`
+      : `unavailable · ${conversation.reason||'no conversation observed'}`;
+}
+
 /* ---- Events processing ---- */
 function processEvent(ev){
   const key=ev.kind+'|'+ev.tick+'|'+(ev.detail?JSON.stringify([ev.detail.input_chi,ev.detail.context_anchor_chis,ev.detail.name,ev.detail.kind]).replace(/null/g,''):'-');
@@ -660,7 +699,12 @@ async function pollStatus(){
     if(!d.vocab&&!d.n_motifs){return;}
     _tick=(d.atlas_health&&d.atlas_health.tick)||d.tick||_tick;
     // Header
-    document.getElementById('hdr-id').textContent=`guala · ${(d.persistence_health||{}).guala_identity||'cdef9bcf'} · ${(d.persistence_health||{}).schema_version||'v7'}`;
+    const persistence=d.persistence_health||{};
+    if(persistence.guala_identity){
+      document.getElementById('hdr-id').textContent=
+        `guala · ${persistence.guala_identity}`+
+        (persistence.schema_version?` · ${persistence.schema_version}`:'');
+    }
     document.getElementById('hdr-tick').textContent='tick '+_tick.toLocaleString();
     const ts=(d.persistence_health||{}).last_save_timestamp||'';
     document.getElementById('hdr-ts').textContent=ts.replace('T',' ').replace('Z','Z')||'—';
@@ -707,6 +751,22 @@ async function pollStatus(){
   }catch(e){}finally{_pollBusy=false;}
 }
 
+let _observationBusy=false;
+async function pollObservation(){
+  if(_observationBusy)return;_observationBusy=true;
+  try{
+    const value=await fetchJ(
+      `${API}/api/v1/gualaloom/observation`,{},6000
+    );
+    renderObservation(value);
+  }catch(e){
+    document.getElementById('embodiedLocationCell').textContent='observation unavailable';
+    document.getElementById('bodyCell').textContent='observation unavailable';
+    document.getElementById('embodiedActionCell').textContent='observation unavailable';
+    document.getElementById('conversationCell').textContent='observation unavailable';
+  }finally{_observationBusy=false;}
+}
+
 /* ---- Events poll ---- */
 let _evBusy=false;
 async function pollEvents(){
@@ -737,9 +797,11 @@ async function pollChiDensity(){
 /* ---- Boot ---- */
 initBand();
 pollStatus();
+pollObservation();
 setTimeout(pollEvents,800);
 setTimeout(pollChiDensity,1500);
 setInterval(pollStatus,2000);
+setInterval(pollObservation,2000);
 setInterval(pollEvents,2000);
 setInterval(pollChiDensity,6000);
 </script>
