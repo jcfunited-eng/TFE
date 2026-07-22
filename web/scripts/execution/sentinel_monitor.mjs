@@ -192,6 +192,30 @@ async function alpacaPost(path, payload, base) {
   return body;
 }
 
+async function alpacaPatch(path, payload, base) {
+  const res = await fetch(`${base}${path}`, {
+    method: "PATCH",
+    headers: alpacaHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(`Alpaca PATCH ${path} → ${res.status}: ${JSON.stringify(body)}`);
+  return body;
+}
+
+// ── CH3 stop re-anchor ────────────────────────────────────────────────────
+// Brackets are placed against the worst-case limit BEFORE the fill exists.
+// A fill below the cap otherwise leaves the stop at or even above the fill:
+// 2026-07-22 EOLS's stop sat exactly at its own fill (first downtick sold);
+// 2026-07-21 AFRI's sat above its fill. Once the real fill is known, the
+// stop moves to fill × (1 - 1%). The TP stays cap-anchored — fills below
+// the cap only ever widen the win (BLFS +1.75% on a +1.5% design).
+export const CH3_STOP_PCT = 0.01; // keep in sync with ch3_scalp_strategist CH3_STOP_LOSS_PCT
+export function reanchoredStopPrice(fillPrice, slPct = CH3_STOP_PCT) {
+  if (!Number.isFinite(fillPrice) || fillPrice <= 0) return null;
+  return parseFloat((fillPrice * (1 - slPct)).toFixed(2));
+}
+
 // ── Cancel open bracket legs before liquidating ──────────────────────────
 async function cancelOrder(orderId, base) {
   try {
@@ -259,7 +283,7 @@ async function fetchOpenPositions() {
     `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
             entry_filled_at, entry_filled_price, signal_detected_at, created_at,
-            take_profit_price, stop_loss_price, status
+            take_profit_price, stop_loss_price, status, rationale_json
      FROM personal_trade_ledger
      WHERE status IN ('pending', 'submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
@@ -742,6 +766,39 @@ export async function runSentinel() {
             );
             console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
             pos.status = "filled"; // update in-memory so exit checks work
+
+            // CH3: re-anchor the stop leg to the actual fill (see
+            // reanchoredStopPrice). Replace returns a NEW order id — the
+            // ledger must track it or the stored id goes stale.
+            if (String(pos.signal_class ?? "").trim().toUpperCase() === "CH3" && pos.alpaca_stop_loss_order_id) {
+              try {
+                const newStop = reanchoredStopPrice(filledPrice);
+                const slOrder = await alpacaGet(`/v2/orders/${pos.alpaca_stop_loss_order_id}`, ALPACA_BASE);
+                const curStop = parseFloat(slOrder?.stop_price ?? "0");
+                const replaceable = slOrder && ["new", "accepted", "held"].includes(slOrder.status);
+                if (newStop !== null && replaceable && curStop > newStop + 0.005) {
+                  const replaced = await alpacaPatch(
+                    `/v2/orders/${pos.alpaca_stop_loss_order_id}`,
+                    { stop_price: String(newStop) },
+                    ALPACA_BASE
+                  );
+                  const newId = replaced?.id ?? null;
+                  if (newId) {
+                    await pool.query(
+                      `UPDATE personal_trade_ledger SET alpaca_stop_loss_order_id=$1, stop_loss_price=$2 WHERE id=$3`,
+                      [newId, newStop, pos.id]
+                    ).catch(() => {});
+                    pos.alpaca_stop_loss_order_id = newId;
+                  }
+                  console.log(
+                    `[SENTINEL] CH3 ${pos.ticker} stop re-anchored to fill: ` +
+                    `$${curStop} → $${newStop} (fill $${filledPrice})`
+                  );
+                }
+              } catch (reErr) {
+                console.warn(`[SENTINEL] CH3 ${pos.ticker} stop re-anchor failed (bracket stays cap-anchored): ${reErr.message}`);
+              }
+            }
           }
         } else if ((order?.status === "canceled" || order?.status === "expired") && parseFloat(order.filled_qty ?? "0") === 0) {
           // Order was cancelled or expired before filling — mark ledger record as cancelled
