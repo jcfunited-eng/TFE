@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import math
 import os
 import struct
@@ -12,11 +13,16 @@ import pytest
 import dsf_ai_service.substrate.auditory_reciprocity as auditory_reciprocity
 from dsf_ai_service.glew_runtime.model import ReceiptError
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA,
+    AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
     MAX_ENCODED_SNAPSHOT_BYTES,
     MAX_PATH_BRANCHES_PER_CLASS,
     AuditoryRecognitionState,
     AuditoryReciprocityKind,
     AuditoryReciprocityOwner,
+)
+from dsf_ai_service.substrate.auditory_tutor_authority import (
+    AuditoryTutorAdmissionReceipt,
 )
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
@@ -103,11 +109,19 @@ def _recognition(engine: Guala, kind: AuditoryReciprocityKind):
 
 
 def _teach(engine: Guala, experience, label: str):
-    return engine.teach_latest_auditory_experience(
-        experience_id=experience.experience_id,
-        kind="spoken_form",
+    learned = engine._auditory_reciprocity_owner.teach(
+        experience,
+        kind=AuditoryReciprocityKind.SPOKEN_FORM,
         tutor_label=label,
     )
+    recognition = engine._auditory_reciprocity_owner.recognize(
+        experience,
+        kind=AuditoryReciprocityKind.SPOKEN_FORM,
+    )
+    return {
+        "recognition_state": recognition.state.value,
+        "reinforcement_count": learned.reinforcement_count,
+    }
 
 
 def test_spoken_path_reachability_accepts_rate_change_but_not_other_structure(
@@ -324,3 +338,165 @@ def test_exact_fingerprint_fast_path_remains_authoritative_at_class_cap(
     assert result.state is AuditoryRecognitionState.AMBIGUOUS
     assert len(result.candidate_labels) == 64
     assert owner.status()["resource_exhausted_recognitions"] == 0
+
+
+def test_v5_witness_preserves_16_direct_paired_channels_and_both_l4_banks(
+    engine: Guala,
+) -> None:
+    experience = _hear(engine)
+    witness = auditory_reciprocity._pack_experience(experience)
+
+    assert len(witness.topology) == 16
+    assert len(witness.packed_samples) == 16
+    assert len(witness.pressure_l4_field_tuples) == 16
+    assert len(witness.carrier_phase_advance_l4_field_tuples) == 16
+    for channel_index, channel in enumerate(experience.channels):
+        pressure, phase_advance = struct.unpack_from(
+            "<dd", witness.packed_samples[channel_index], 0
+        )
+        assert pressure == float(channel.pressure.samples[0].signal)
+        assert phase_advance == float(
+            channel.carrier_phase_advance.samples[0].phase_turns
+        )
+        assert tuple(
+            value.authority_receipt_sha256
+            for value in witness.pressure_l4_field_tuples[channel_index]
+        ) == tuple(
+            value.authority_receipt_sha256
+            for value in channel.pressure.l4_field_tuples
+        )
+        assert tuple(
+            value.authority_receipt_sha256
+            for value in witness.carrier_phase_advance_l4_field_tuples[
+                channel_index
+            ]
+        ) == tuple(
+            value.authority_receipt_sha256
+            for value in channel.carrier_phase_advance.l4_field_tuples
+        )
+
+
+def test_pressure_and_phase_l4_banks_share_one_exact_interpolation_coordinate(
+    engine: Guala,
+) -> None:
+    base = auditory_reciprocity._pack_experience(_hear(engine))
+
+    def move_first_field(witness, bank_name: str, amount: int):
+        bank = [list(channel) for channel in getattr(witness, bank_name)]
+        first = bank[0][0]
+        fields = list(first.fields)
+        fields[0] = (fields[0][0], fields[0][1] + amount)
+        bank[0][0] = replace(first, fields=tuple(fields))
+        return replace(
+            witness,
+            **{bank_name: tuple(tuple(channel) for channel in bank)},
+        )
+
+    right = move_first_field(base, "pressure_l4_field_tuples", 4)
+    right = move_first_field(
+        right, "carrier_phase_advance_l4_field_tuples", 4
+    )
+    one_coordinate = move_first_field(
+        base, "pressure_l4_field_tuples", 1
+    )
+    one_coordinate = move_first_field(
+        one_coordinate, "carrier_phase_advance_l4_field_tuples", 1
+    )
+    conflicting_coordinates = move_first_field(
+        base, "pressure_l4_field_tuples", 1
+    )
+    conflicting_coordinates = move_first_field(
+        conflicting_coordinates,
+        "carrier_phase_advance_l4_field_tuples",
+        3,
+    )
+
+    assert auditory_reciprocity._l4_lambda_interval(
+        one_coordinate, base, right, (0.0, 1.0)
+    ) == (0.25, 0.25)
+    assert auditory_reciprocity._l4_lambda_interval(
+        conflicting_coordinates, base, right, (0.0, 1.0)
+    ) is None
+
+
+def test_v3_admission_requires_exact_ordered_component_l4_receipts(
+    engine: Guala,
+) -> None:
+    experience = _hear(engine)
+    witness = auditory_reciprocity._pack_experience(experience)
+    authority_payload = experience.receipt_registry.resolve(
+        experience.authority_receipt_sha256,
+        "test auditory L5 authority",
+    )
+    admission = AuditoryTutorAdmissionReceipt(
+        experience_id=experience.experience_id,
+        kind="spoken_form",
+        tutor_label="heard form",
+        event_boundary="utterance",
+        gateway_authority_hmac_sha256="0" * 64,
+        l5_authority_receipt_sha256=experience.authority_receipt_sha256,
+        l5_authority_payload=authority_payload,
+        admission_hmac_sha256="0" * 64,
+    )
+    auditory_reciprocity._verify_l5_admission_evidence(
+        admission, (witness,)
+    )
+
+    altered = json.loads(authority_payload)
+    altered["channels"][0]["pressure"][
+        "l4_field_receipt_sha256s"
+    ][0] = "f" * 64
+    changed = replace(
+        admission,
+        l5_authority_payload=json.dumps(
+            altered,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8"),
+    )
+    with pytest.raises(ValueError, match="does not match"):
+        auditory_reciprocity._verify_l5_admission_evidence(
+            changed, (witness,)
+        )
+
+
+def test_v5_persistence_rejects_legacy_v4_without_mutating_state() -> None:
+    owner = AuditoryReciprocityOwner(
+        log_event=lambda *_args, **_kwargs: None
+    )
+    before = owner.snapshot()
+    assert before["schema"] == AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+    assert owner.encoded_snapshot()["schema"] == (
+        AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+    )
+
+    with pytest.raises(ValueError, match="legacy.*v4"):
+        owner.restore({"schema": "guala.auditory.causal_path.v4"})
+    assert owner.snapshot() == before
+    with pytest.raises(ValueError, match="legacy.*v4"):
+        owner.restore_encoded({
+            "schema": "guala.auditory.causal_path.gzip.v4"
+        })
+    assert owner.snapshot() == before
+
+
+def test_direct_phase_advance_python_native_differential(engine: Guala) -> None:
+    left = auditory_reciprocity._pack_experience(
+        _hear(engine, duration_seconds=1.0)
+    )
+    query = auditory_reciprocity._pack_experience(
+        _hear(engine, duration_seconds=0.8)
+    )
+    assert auditory_reciprocity._native_port_values(query)[0][1] == (
+        struct.unpack_from("<dd", query.packed_samples[0], 0)[1]
+    )
+    expected = auditory_reciprocity._joint_cell_contains_python(
+        query, left, left, max_work=1_000_000
+    )
+    if auditory_reciprocity._native_joint_path_contains is None:
+        pytest.skip("native auditory joint-path kernel is unavailable")
+    assert auditory_reciprocity._joint_cell_contains_native(
+        query, left, left, max_work=1_000_000
+    ) == expected

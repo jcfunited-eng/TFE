@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
 
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AUDITORY_FULL_FIELD_PROVIDER_SCHEMA,
     AUDITORY_CHANNELS,
     COCHLEAR_CHANNEL_COUNT,
     OBSERVATION_HOP_SAMPLES,
+    PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP,
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
 )
@@ -86,6 +89,17 @@ def test_native_rate_phase_winding_retains_carrier_frequency() -> None:
     measured_hz = (phase[-1] - phase[50]) / elapsed_seconds
     assert measured_hz == pytest.approx(frequency_hz, abs=0.5)
 
+    advances = np.asarray(channel.carrier_phase_advance_turns)
+    normalized = np.asarray(
+        channel.carrier_phase_advance_nyquist_fraction
+    )
+    assert advances[0] == 0.0
+    assert np.array_equal(
+        normalized,
+        advances / PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP,
+    )
+    assert np.all(np.abs(normalized) <= 1.0)
+
 
 def test_phase_is_independent_from_pressure_envelope() -> None:
     first = transduce_auditory_full_field(
@@ -114,6 +128,8 @@ def test_all_channels_share_one_bounded_causal_grid() -> None:
     )
     expected_frames = len(eight_seconds) // OBSERVATION_HOP_SAMPLES
     assert capture.frame_count == expected_frames == 800
+    assert capture.provider_schema == AUDITORY_FULL_FIELD_PROVIDER_SCHEMA
+    assert capture.provider_schema == "guala.auditory_full_field_provider.v3"
     assert len(capture.channels) == COCHLEAR_CHANNEL_COUNT == 16
     assert len(capture.channels) * expected_frames == 12_800
     assert all(
@@ -122,6 +138,11 @@ def test_all_channels_share_one_bounded_causal_grid() -> None:
     )
     assert all(
         not any(channel.pressure_envelope_full_scale)
+        for channel in capture.channels
+    )
+    assert all(
+        not any(channel.carrier_phase_advance_turns)
+        and not any(channel.carrier_phase_advance_nyquist_fraction)
         for channel in capture.channels
     )
 
@@ -147,4 +168,29 @@ def test_provider_is_deterministic_and_fails_closed_outside_contract() -> None:
         transduce_auditory_full_field(
             np.zeros(REQUIRED_SAMPLE_RATE_HZ * 8 + 1),
             sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ,
+        )
+
+
+def test_phase_advance_contract_rejects_values_outside_physical_bound() -> None:
+    capture = transduce_auditory_full_field(
+        _tone(440.0, 0.5), sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ
+    )
+    channel = capture.channels[_nearest_channel(440.0)]
+    outside_turns = (
+        PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP + 1.0,
+        *channel.carrier_phase_advance_turns[1:],
+    )
+    with pytest.raises(ValueError, match="phase advance exceeded Nyquist"):
+        replace(channel, carrier_phase_advance_turns=outside_turns)
+
+    outside_normalized = (
+        1.01,
+        *channel.carrier_phase_advance_nyquist_fraction[1:],
+    )
+    with pytest.raises(
+        ValueError, match="normalized carrier phase advance exceeded Nyquist"
+    ):
+        replace(
+            channel,
+            carrier_phase_advance_nyquist_fraction=outside_normalized,
         )

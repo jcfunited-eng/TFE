@@ -15,22 +15,36 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
-    AUDITORY_INCREMENTAL_EVENT_SCHEMA,
+    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
     AuditoryIncrementalTerminalEvent,
+    _event_payload,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-    NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
-    NativeAxisCoordinate,
     PhysicalSense,
     SENSE_ORDER,
     SenseBoundaryState,
 )
-from dsf_ai_service.substrate.auditory_l5 import AuditoryL5Owner
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    auditory_kernel_component_inputs,
+)
+from dsf_ai_service.substrate.auditory_l5 import (
+    AUDITORY_L5_SCHEMA,
+    AuditoryL5Owner,
+)
+from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECOGNITION_OPERATOR,
+    AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+    AuditoryReciprocityKind,
+    AuditoryReciprocityOwner,
+)
+from dsf_ai_service.substrate.auditory_tutor_authority import (
+    AuditoryTutorAuthority,
+)
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
-    OBSERVATION_HOP_SAMPLES,
     transduce_auditory_full_field,
 )
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
@@ -57,42 +71,12 @@ def _terminal(label="one plus one"):
         samples,
         sample_rate_hz=sample_rate_hz,
     )
-    ports = tuple(
-        NativeSensorySubstreamInput(
-            sense=PhysicalSense.SOUND,
-            sensor_id="microphone-gammatone-cochlear-field",
-            substream_id=channel.definition.name,
-            topology_index=index,
-            coordinates=(
-                NativeAxisCoordinate(
-                    "cochlear-channel", channel.definition.name
-                ),
-                NativeAxisCoordinate(
-                    "centre-hz", str(channel.definition.centre_hz)
-                ),
-                NativeAxisCoordinate(
-                    "erb-width-hz", str(channel.definition.erb_width_hz)
-                ),
-                NativeAxisCoordinate("gammatone-order", "4"),
-                NativeAxisCoordinate(
-                    "observation-hop-samples",
-                    str(OBSERVATION_HOP_SAMPLES),
-                ),
-            ),
-            physical_quantity="cochlear-pressure-envelope",
-            physical_unit="full-scale-pressure",
-            source_times=tuple(
-                Fraction(value, 1_000_000_000)
-                for value in channel.causal_offsets_ns
-            ),
-            normalized_signal=channel.pressure_envelope_full_scale,
-            phase_turns=tuple(
-                Fraction.from_float(value)
-                for value in channel.carrier_phase_turns
-            ),
-        )
-        for index, channel in enumerate(capture.channels)
+    ports = auditory_kernel_component_inputs(
+        capture,
+        source_anchor=Fraction(0),
     )
+    assert len(capture.channels) == 16
+    assert len(ports) == AUDITORY_KERNEL_COMPONENT_COUNT
     built = build_six_sense_full_field(
         assembly_id=f"causal-conversation-test-{_digest({'label': label})}",
         source_time_start=Fraction(0),
@@ -111,6 +95,20 @@ def _terminal(label="one plus one"):
         log_event=lambda *_args, **_kwargs: None
     ).settle(built, event_boundary="utterance")
     assert auditory_l5 is not None
+    reciprocity = AuditoryReciprocityOwner(
+        log_event=lambda *_args, **_kwargs: None,
+        tutor_authority=AuditoryTutorAuthority.unrequired(),
+    )
+    reciprocity.teach(
+        auditory_l5,
+        kind=AuditoryReciprocityKind.SPOKEN_FORM,
+        tutor_label=label,
+    )
+    recognition = reciprocity.recognize(
+        auditory_l5,
+        kind=AuditoryReciprocityKind.SPOKEN_FORM,
+    )
+    assert recognition.state.value == "unique"
     stream_id = "causal-conversation-test"
     fingerprint = auditory_l5.structural_fingerprint
     event_id = _digest({
@@ -123,21 +121,23 @@ def _terminal(label="one plus one"):
     transport = (_digest({"transport": 0}), _digest({"transport": 1}))
     cochlear = (_digest({"cochlear": 0}), _digest({"cochlear": 1}))
     joint = (_digest({"joint": 0}), _digest({"joint": 1}))
-    payload = {
-        "cochlear_receipt_sha256s": list(cochlear),
-        "event_id": event_id,
-        "joint_settlement_receipt_sha256s": list(joint),
-        "l5_authority_receipt_sha256": l5,
-        "recognition_state": "unique",
-        "sample_rate_hz": 16_000,
-        "schema": AUDITORY_INCREMENTAL_EVENT_SCHEMA,
-        "source_sample_end": 320,
-        "source_sample_start": 0,
-        "stream_id": stream_id,
-        "structural_fingerprint": fingerprint,
-        "transport_receipt_sha256s": list(transport),
-        "tutor_label": label,
-    }
+    payload = _event_payload(
+        event_id=event_id,
+        stream_id=stream_id,
+        source_sample_start=0,
+        source_sample_end=320,
+        tutor_label=label,
+        structural_fingerprint=fingerprint,
+        l5_authority_receipt_sha256=l5,
+        transport_receipt_sha256s=transport,
+        cochlear_receipt_sha256s=cochlear,
+        joint_settlement_receipt_sha256s=joint,
+        recognition_occurrence=recognition.occurrence,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
+    )
     terminal = AuditoryIncrementalTerminalEvent(
         event_id=event_id,
         stream_id=stream_id,
@@ -149,7 +149,12 @@ def _terminal(label="one plus one"):
         transport_receipt_sha256s=transport,
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
         authority_receipt_sha256=_digest(payload),
+        recognition_occurrence=recognition.occurrence,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
     _TERMINAL_FIELDS[terminal.event_id] = auditory_l5
     return terminal
@@ -197,7 +202,7 @@ def test_terminal_and_language_share_one_causal_experience(
     )
 
     assert turn.response == ""
-    assert turn.response_source == "causal_action_unavailable"
+    assert turn.response_source == "causal_action_unknown"
     assert turn.causal_experience_id == terminal.event_id
     assert (turn.causal_intake_receipt_sha256
             == terminal.authority_receipt_sha256)
@@ -217,8 +222,10 @@ def test_terminal_and_language_share_one_causal_experience(
         entry for entry in window["entries"]
         if entry["modality"] == "sound"
     ]
-    assert len(sounds) == 16
-    assert [entry["chi"] for entry in sounds] == list(range(16))
+    assert len(sounds) == AUDITORY_KERNEL_COMPONENT_COUNT
+    assert [entry["chi"] for entry in sounds] == list(
+        range(AUDITORY_KERNEL_COMPONENT_COUNT)
+    )
     assert all(
         entry["provenance"]["detail"]["native_full_field_input"][
             "schema"
@@ -235,7 +242,7 @@ def test_terminal_and_language_share_one_causal_experience(
         if value.sense == "sound"
     )
     assert joined_sound.state == "observed"
-    assert len(joined_sound.substreams) == 16
+    assert len(joined_sound.substreams) == AUDITORY_KERNEL_COMPONENT_COUNT
     assert all(
         substream.field_tuples for substream in joined_sound.substreams
     )
@@ -305,7 +312,7 @@ def test_normal_conversation_result_keeps_terminal_identity(
     assert (turn.causal_intake_receipt_sha256
             == terminal.authority_receipt_sha256)
     assert turn.response == ""
-    assert turn.response_source == "causal_action_unavailable"
+    assert turn.response_source == "causal_action_unknown"
     settlement = guala._latest_causal_settlement
     assert settlement is not None
     assert len(settlement.language_events) == 1

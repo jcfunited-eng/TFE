@@ -83,10 +83,17 @@ def test_real_audiovisual_capture_produces_one_queue_free_settlement(
             "sight", "sound", "touch", "smell", "taste", "body"
         )
         assert len(by_sense["sight"].substreams) == 3
-        assert len(by_sense["sound"].substreams) == len(AUDITORY_CHANNELS)
+        assert len(by_sense["sound"].substreams) == 2 * len(AUDITORY_CHANNELS)
         assert tuple(
             item.substream_id for item in by_sense["sound"].substreams
-        ) == tuple(item.name for item in AUDITORY_CHANNELS)
+        ) == tuple(
+            substream_id
+            for item in AUDITORY_CHANNELS
+            for substream_id in (
+                f"{item.name}_pressure",
+                f"{item.name}_phase_advance",
+            )
+        )
         assert all(
             tuple(name for name, _value in field_tuple.fields)
             == DSF_FIELD_ORDER
@@ -102,9 +109,13 @@ def test_real_audiovisual_capture_produces_one_queue_free_settlement(
         assert settlement.routing_chis
         assert settlement.source_tags == ("cam:live", "joe_voice")
         assert engine._latest_auditory_l5_experience is not None
-        assert len(engine._latest_auditory_l5_experience.ports) == len(
-            AUDITORY_CHANNELS
-        )
+        assert len(
+            engine._latest_auditory_l5_experience.channels
+        ) == len(AUDITORY_CHANNELS)
+        assert sum(
+            len((channel.pressure, channel.carrier_phase_advance))
+            for channel in engine._latest_auditory_l5_experience.channels
+        ) == 2 * len(AUDITORY_CHANNELS)
         assert engine._organism_queue is None
         assert engine._organism_sensory_queue.qsize() == 0
         assert engine._organism_sensory_dropped_count == 0

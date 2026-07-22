@@ -58,8 +58,9 @@ ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v
 # settlement that this live adapter will admit so one request cannot recreate
 # the historical unbounded-memory failure.
 MAX_NATIVE_SUBSTREAMS_PER_SENSE = 16
+MAX_NATIVE_SOUND_SUBSTREAMS = 32
 MAX_NATIVE_SAMPLES_PER_SUBSTREAM = 2048
-MAX_NATIVE_SAMPLES_PER_SETTLEMENT = 16384
+MAX_NATIVE_SAMPLES_PER_SETTLEMENT = 32768
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -301,7 +302,12 @@ def build_six_sense_full_field(
     for sense in SENSE_ORDER:
         native_ports = observed_substreams.get(sense, ())
         if native_ports:
-            if len(native_ports) > MAX_NATIVE_SUBSTREAMS_PER_SENSE:
+            substream_capacity = (
+                MAX_NATIVE_SOUND_SUBSTREAMS
+                if sense is PhysicalSense.SOUND
+                else MAX_NATIVE_SUBSTREAMS_PER_SENSE
+            )
+            if len(native_ports) > substream_capacity:
                 raise ValueError("native sensory topology exceeds the settlement port boundary")
             if tuple(port.sense for port in native_ports) != (sense,) * len(native_ports):
                 raise ValueError("native topology crosses sense boundaries")
@@ -435,6 +441,7 @@ __all__ = (
     "BuiltSixSenseFullField",
     "MAX_NATIVE_SAMPLES_PER_SETTLEMENT",
     "MAX_NATIVE_SAMPLES_PER_SUBSTREAM",
+    "MAX_NATIVE_SOUND_SUBSTREAMS",
     "MAX_NATIVE_SUBSTREAMS_PER_SENSE",
     "NativeSensorySubstreamInput",
     "build_six_sense_full_field",

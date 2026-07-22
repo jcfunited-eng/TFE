@@ -15,8 +15,10 @@ The microphone is monaural.  It cannot provide physical agent identity.
 mounts an uninterrupted, receipted stream-continuity authority.  This module
 does not turn an acoustic resemblance or a client source string into one.
 
-Witnesses are packed as binary64 auditory samples plus exact rational L4
-tuples.  Four distinct branches per spoken form, a class cap, and a hard
+Witnesses are packed as sixteen physical cochlear channels.  Each channel
+contains one binary64 pressure/phase-advance sample pair and two independent
+exact rational L4 tuple banks evaluated under the same interpolation
+coordinate.  Four distinct branches per spoken form, a class cap, and a hard
 encoded-snapshot cap bound both learned state and persistence.  Every
 admission is encoded and checked before the live state is mutated.
 """
@@ -43,9 +45,15 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     MAX_NATIVE_SUBSTREAMS_PER_SENSE,
 )
 from dsf_ai_service.substrate.auditory_l5 import (
+    AUDITORY_L5_AUTHORITY_SCHEMA,
     AUDITORY_L5_SCHEMA,
+    AuditoryL5CochlearChannel,
     AuditoryL5Experience,
-    AuditoryL5Port,
+    AuditoryL5KernelComponent,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    COCHLEAR_CHANNEL_COUNT,
+    PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP,
 )
 from dsf_ai_service.substrate.auditory_tutor_authority import (
     AuditoryTutorAdmissionReceipt,
@@ -69,14 +77,120 @@ MAX_DECODED_SNAPSHOT_BYTES = 64 * 1024 * 1024
 MAX_REACHABILITY_CELLS_PER_RECOGNITION = 1_000_000
 MAX_INTERVAL_COMPONENTS_PER_CELL = 64
 PCM_PRESSURE_QUANTUM = Fraction(1, 32_768)
-AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA = "guala.auditory.causal_path.v4"
+AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA = "guala.auditory.causal_path.v5"
 AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA = (
-    "guala.auditory.causal_path.gzip.v4"
+    "guala.auditory.causal_path.gzip.v5"
 )
 AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA = (
-    "guala.auditory.recognition_occurrence.v1"
+    "guala.auditory.recognition_occurrence.v2"
 )
-AUDITORY_RECOGNITION_OPERATOR = "auditory_joint_causal_path_contains.v1"
+AUDITORY_RECOGNITION_OPERATOR = "auditory_joint_causal_path_contains.v2"
+LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA = (
+    "guala.auditory.causal_path.v4"
+)
+LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA = (
+    "guala.auditory.causal_path.gzip.v4"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class LegacyAuditoryReciprocityEnvelopeInspection:
+    """Integrity facts for an opaque v4 envelope.
+
+    Inspection proves only bounded, canonical persistence and the two v4
+    schema identities.  It deliberately does not construct reciprocal
+    classes or grant the archived state any live recognition authority.
+    """
+
+    envelope_canonical_sha256: str
+    encoded_payload_bytes: int
+    decoded_payload_bytes: int
+    payload_sha256: str
+
+
+def _canonical_persistence_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def inspect_legacy_v4_envelope(
+    envelope: object,
+) -> LegacyAuditoryReciprocityEnvelopeInspection:
+    """Verify one v4 envelope without interpreting or restoring its field."""
+
+    if not isinstance(envelope, dict) or set(envelope) != {
+        "encoding", "payload", "payload_sha256", "schema"
+    }:
+        raise ValueError("legacy auditory reciprocity envelope is malformed")
+    if (
+        envelope.get("schema")
+        != LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+        or envelope.get("encoding") != "gzip+base64"
+    ):
+        raise ValueError("legacy auditory reciprocity envelope schema is invalid")
+    encoded = envelope.get("payload")
+    expected_digest = envelope.get("payload_sha256")
+    if not isinstance(encoded, str) or not isinstance(expected_digest, str):
+        raise ValueError("legacy auditory reciprocity envelope is malformed")
+    try:
+        encoded_bytes = encoded.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise ValueError(
+            "legacy auditory reciprocity payload is not canonical base64"
+        ) from exc
+    if not encoded_bytes or len(encoded_bytes) > MAX_ENCODED_SNAPSHOT_BYTES:
+        raise ValueError(
+            "legacy auditory reciprocity envelope exceeds its encoded boundary"
+        )
+    if (
+        len(expected_digest) != 64
+        or any(character not in "0123456789abcdef" for character in expected_digest)
+    ):
+        raise ValueError("legacy auditory reciprocity digest is malformed")
+    try:
+        compressed = base64.b64decode(encoded_bytes, validate=True)
+        if base64.b64encode(compressed) != encoded_bytes:
+            raise ValueError("legacy auditory reciprocity base64 is not canonical")
+        with gzip.GzipFile(fileobj=io.BytesIO(compressed)) as stream:
+            payload = stream.read(MAX_DECODED_SNAPSHOT_BYTES + 1)
+    except Exception as exc:
+        raise ValueError(
+            "legacy auditory reciprocity envelope cannot be decoded"
+        ) from exc
+    if len(payload) > MAX_DECODED_SNAPSHOT_BYTES:
+        raise ValueError(
+            "legacy auditory reciprocity decoded snapshot is oversized"
+        )
+    if hashlib.sha256(payload).hexdigest() != expected_digest:
+        raise ValueError(
+            "legacy auditory reciprocity envelope failed integrity check"
+        )
+    try:
+        snapshot = json.loads(payload)
+    except Exception as exc:
+        raise ValueError(
+            "legacy auditory reciprocity payload is not JSON"
+        ) from exc
+    if not isinstance(snapshot, dict) or (
+        snapshot.get("schema")
+        != LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+    ):
+        raise ValueError("legacy auditory reciprocity snapshot schema is invalid")
+    if _canonical_persistence_bytes(snapshot) != payload:
+        raise ValueError("legacy auditory reciprocity payload is not canonical")
+    return LegacyAuditoryReciprocityEnvelopeInspection(
+        envelope_canonical_sha256=hashlib.sha256(
+            _canonical_persistence_bytes(envelope)
+        ).hexdigest(),
+        encoded_payload_bytes=len(encoded_bytes),
+        decoded_payload_bytes=len(payload),
+        payload_sha256=expected_digest,
+    )
 
 
 class AuditoryReciprocityKind(str, Enum):
@@ -92,13 +206,26 @@ class AuditoryRecognitionState(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
-class AuditoryPortTopology:
+class AuditoryComponentTopology:
     sensor_id: str
     substream_id: str
     topology_index: int
     coordinates: tuple[tuple[str, str], ...]
     physical_quantity: str
     physical_unit: str
+    source_stream_receipt_sha256: str
+    l0_l4_trace_receipt_sha256: str
+    kernel_basin_receipt_sha256: str
+    authority_receipt_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryChannelTopology:
+    cochlear_index: int
+    channel_id: str
+    pressure: AuditoryComponentTopology
+    carrier_phase_advance: AuditoryComponentTopology
+    pair_receipt_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,14 +241,19 @@ class AuditoryPathWitness:
 
     experience_id: str
     structural_fingerprint: str
-    topology: tuple[AuditoryPortTopology, ...]
+    topology: tuple[AuditoryChannelTopology, ...]
     sample_count: int
     source_indices: tuple[int, ...]
+    source_time_start: Fraction
     causal_offset_start: Fraction
     causal_offset_step: Fraction
-    # Per port: little-endian (pressure, absolute phase turns) binary64 pairs.
+    # Per channel: little-endian (normalized pressure, provider-settled
+    # carrier phase advance turns) binary64 pairs.
     packed_samples: tuple[bytes, ...]
-    l4_field_tuples: tuple[tuple[PackedL4Tuple, ...], ...]
+    pressure_l4_field_tuples: tuple[tuple[PackedL4Tuple, ...], ...]
+    carrier_phase_advance_l4_field_tuples: tuple[
+        tuple[PackedL4Tuple, ...], ...
+    ]
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,6 +266,7 @@ class AuditoryReciprocalClass:
     last_experience_id: str
     authority_receipts: tuple[AuditoryTutorAuthorityReceipt, ...]
     admission_receipts: tuple[AuditoryTutorAdmissionReceipt, ...]
+    admission_evidence_sha256: tuple[str, ...]
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -340,28 +473,55 @@ def _binary64_exact(value: Fraction, name: str) -> float:
     return encoded
 
 
-def _topology(port: AuditoryL5Port) -> AuditoryPortTopology:
-    return AuditoryPortTopology(
-        sensor_id=port.sensor_id,
-        substream_id=port.substream_id,
-        topology_index=port.topology_index,
-        coordinates=port.coordinates,
-        physical_quantity=port.physical_quantity,
-        physical_unit=port.physical_unit,
+def _component_topology(
+    component: AuditoryL5KernelComponent,
+) -> AuditoryComponentTopology:
+    return AuditoryComponentTopology(
+        sensor_id=component.sensor_id,
+        substream_id=component.substream_id,
+        topology_index=component.topology_index,
+        coordinates=component.coordinates,
+        physical_quantity=component.physical_quantity,
+        physical_unit=component.physical_unit,
+        source_stream_receipt_sha256=component.source_stream_receipt_sha256,
+        l0_l4_trace_receipt_sha256=component.l0_l4_trace_receipt_sha256,
+        kernel_basin_receipt_sha256=component.kernel_basin_receipt_sha256,
+        authority_receipt_sha256=component.authority_receipt_sha256,
+    )
+
+
+def _channel_topology(
+    channel: AuditoryL5CochlearChannel,
+) -> AuditoryChannelTopology:
+    return AuditoryChannelTopology(
+        cochlear_index=channel.cochlear_index,
+        channel_id=channel.channel_id,
+        pressure=_component_topology(channel.pressure),
+        carrier_phase_advance=_component_topology(
+            channel.carrier_phase_advance
+        ),
+        pair_receipt_sha256=channel.pair_receipt_sha256,
     )
 
 
 def _common_causal_grid(
-    ports: tuple[AuditoryL5Port, ...],
+    channels: tuple[AuditoryL5CochlearChannel, ...],
 ) -> tuple[int, Fraction, Fraction]:
-    if not ports or not ports[0].samples:
+    if not channels or not channels[0].pressure.samples:
         raise ValueError("auditory path requires a nonempty mounted field")
-    reference = tuple(sample.causal_offset for sample in ports[0].samples)
+    components = tuple(
+        component
+        for channel in channels
+        for component in (channel.pressure, channel.carrier_phase_advance)
+    )
+    reference = tuple(
+        sample.causal_offset for sample in components[0].samples
+    )
     if any(
-        tuple(sample.causal_offset for sample in port.samples) != reference
-        for port in ports[1:]
+        tuple(sample.causal_offset for sample in component.samples) != reference
+        for component in components[1:]
     ):
-        raise ValueError("auditory path ports are not on one causal grid")
+        raise ValueError("auditory path components are not on one causal grid")
     if len(reference) == 1:
         return 1, reference[0], Fraction(0)
     step = reference[1] - reference[0]
@@ -377,40 +537,38 @@ def _pack_experience(experience: AuditoryL5Experience) -> AuditoryPathWitness:
     if not isinstance(experience, AuditoryL5Experience):
         raise ValueError("auditory reciprocity requires an exact L5 experience")
     experience.verify()
-    ports = experience.ports
-    if len(ports) > MAX_NATIVE_SUBSTREAMS_PER_SENSE:
-        raise ValueError("auditory path exceeds the mounted port boundary")
-    if tuple(port.topology_index for port in ports) != tuple(range(len(ports))):
-        raise ValueError("auditory path topology is incomplete or reordered")
-    sample_count, offset_start, offset_step = _common_causal_grid(ports)
+    channels = experience.channels
+    if (
+        len(channels) != COCHLEAR_CHANNEL_COUNT
+        or len(channels) > MAX_NATIVE_SUBSTREAMS_PER_SENSE
+        or tuple(channel.cochlear_index for channel in channels)
+        != tuple(range(COCHLEAR_CHANNEL_COUNT))
+    ):
+        raise ValueError("auditory path requires exactly 16 ordered channels")
+    sample_count, offset_start, offset_step = _common_causal_grid(channels)
     if sample_count > MAX_NATIVE_SAMPLES_PER_SUBSTREAM:
         raise ValueError("auditory path exceeds the mounted sample boundary")
     source_indices = tuple(
-        sample.source_index for sample in ports[0].samples
+        sample.source_index for sample in channels[0].pressure.samples
+    )
+    components = tuple(
+        component
+        for channel in channels
+        for component in (channel.pressure, channel.carrier_phase_advance)
     )
     if any(
-        tuple(sample.source_index for sample in port.samples) != source_indices
-        for port in ports[1:]
+        tuple(sample.source_index for sample in component.samples)
+        != source_indices
+        for component in components[1:]
     ):
-        raise ValueError("auditory path ports changed source sample identity")
-    packed_ports: list[bytes] = []
-    packed_l4: list[tuple[PackedL4Tuple, ...]] = []
-    for port_index, port in enumerate(ports):
-        values: list[float] = []
-        for sample_index, sample in enumerate(port.samples):
-            values.extend((
-                _binary64_exact(
-                    sample.pressure,
-                    f"auditory port {port_index} pressure {sample_index}",
-                ),
-                _binary64_exact(
-                    sample.phase_turns,
-                    f"auditory port {port_index} phase {sample_index}",
-                ),
-            ))
-        packed_ports.append(struct.pack(f"<{len(values)}d", *values))
+        raise ValueError("auditory path components changed source sample identity")
+
+    def pack_l4(
+        component: AuditoryL5KernelComponent,
+        channel_index: int,
+    ) -> tuple[PackedL4Tuple, ...]:
         tuples = []
-        for expected_index, field_tuple in enumerate(port.l4_field_tuples):
+        for expected_index, field_tuple in enumerate(component.l4_field_tuples):
             if (
                 field_tuple.tuple_index != expected_index
                 or tuple(name for name, _ in field_tuple.fields)
@@ -422,12 +580,38 @@ def _pack_experience(experience: AuditoryL5Experience) -> AuditoryPathWitness:
                 fields=field_tuple.fields,
                 authority_receipt_sha256=sha256_digest(
                     field_tuple.authority_receipt_sha256,
-                    "auditory path L4 receipt",
+                    f"auditory channel {channel_index} L4 receipt",
                 ),
             ))
         if not tuples:
             raise ValueError("auditory path has no explicit L4 field tuple")
-        packed_l4.append(tuple(tuples))
+        return tuple(tuples)
+
+    packed_channels: list[bytes] = []
+    pressure_l4: list[tuple[PackedL4Tuple, ...]] = []
+    phase_l4: list[tuple[PackedL4Tuple, ...]] = []
+    for channel_index, channel in enumerate(channels):
+        values: list[float] = []
+        for sample_index, (pressure, phase) in enumerate(zip(
+            channel.pressure.samples,
+            channel.carrier_phase_advance.samples,
+            strict=True,
+        )):
+            values.extend((
+                _binary64_exact(
+                    pressure.signal,
+                    f"auditory channel {channel_index} pressure {sample_index}",
+                ),
+                _binary64_exact(
+                    phase.phase_turns,
+                    f"auditory channel {channel_index} phase advance {sample_index}",
+                ),
+            ))
+        packed_channels.append(struct.pack(f"<{len(values)}d", *values))
+        pressure_l4.append(pack_l4(channel.pressure, channel_index))
+        phase_l4.append(pack_l4(
+            channel.carrier_phase_advance, channel_index
+        ))
     return AuditoryPathWitness(
         experience_id=sha256_digest(
             experience.experience_id, "auditory path experience id"
@@ -436,66 +620,92 @@ def _pack_experience(experience: AuditoryL5Experience) -> AuditoryPathWitness:
             experience.structural_fingerprint,
             "auditory path structural fingerprint",
         ),
-        topology=tuple(_topology(port) for port in ports),
+        topology=tuple(_channel_topology(channel) for channel in channels),
         sample_count=sample_count,
         source_indices=source_indices,
+        source_time_start=experience.source_time_start,
         causal_offset_start=offset_start,
         causal_offset_step=offset_step,
-        packed_samples=tuple(packed_ports),
-        l4_field_tuples=tuple(packed_l4),
+        packed_samples=tuple(packed_channels),
+        pressure_l4_field_tuples=tuple(pressure_l4),
+        carrier_phase_advance_l4_field_tuples=tuple(phase_l4),
     )
 
 
 def _witness_structural_fingerprint(witness: AuditoryPathWitness) -> str:
+    def component_payload(
+        topology: AuditoryComponentTopology,
+        l4_bank: tuple[PackedL4Tuple, ...],
+        channel_index: int,
+        *,
+        pressure: bool,
+    ) -> dict[str, object]:
+        samples = []
+        for sample_index in range(witness.sample_count):
+            pressure_value, phase_advance = struct.unpack_from(
+                "<dd",
+                witness.packed_samples[channel_index],
+                sample_index * 16,
+            )
+            signal = (
+                pressure_value
+                if pressure
+                else phase_advance
+                / PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+            )
+            phase_turns = 0.0 if pressure else phase_advance
+            causal_offset = (
+                witness.causal_offset_start
+                + sample_index * witness.causal_offset_step
+            )
+            samples.append({
+                "causal_offset": _fraction_text(causal_offset),
+                "phase_turns": _fraction_text(
+                    Fraction.from_float(phase_turns)
+                ),
+                "signal": _fraction_text(Fraction.from_float(signal)),
+                "source_index": witness.source_indices[sample_index],
+            })
+        return {
+            "coordinates": [list(value) for value in topology.coordinates],
+            "kind": "pressure" if pressure else "carrier_phase_advance",
+            "l4_field_tuples": [
+                {
+                    "fields": [
+                        [name, _fraction_text(field)]
+                        for name, field in field_tuple.fields
+                    ],
+                    "tuple_index": field_tuple.tuple_index,
+                }
+                for field_tuple in l4_bank
+            ],
+            "physical_quantity": topology.physical_quantity,
+            "physical_unit": topology.physical_unit,
+            "samples": samples,
+            "sensor_id": topology.sensor_id,
+            "substream_id": topology.substream_id,
+            "topology_index": topology.topology_index,
+        }
+
     payload = {
-        "ports": [
+        "channels": [
             {
-                "coordinates": [list(value) for value in port.coordinates],
-                "l4_field_tuples": [
-                    {
-                        "fields": [
-                            [name, _fraction_text(field)]
-                            for name, field in field_tuple.fields
-                        ],
-                        "tuple_index": field_tuple.tuple_index,
-                    }
-                    for field_tuple in witness.l4_field_tuples[port_index]
-                ],
-                "physical_quantity": port.physical_quantity,
-                "physical_unit": port.physical_unit,
-                "samples": [
-                    {
-                        "causal_offset": _fraction_text(
-                            witness.causal_offset_start
-                            + sample_index * witness.causal_offset_step
-                        ),
-                        "phase_turns": _fraction_text(
-                            Fraction.from_float(
-                                struct.unpack_from(
-                                    "<dd",
-                                    witness.packed_samples[port_index],
-                                    sample_index * 16,
-                                )[1]
-                            )
-                        ),
-                        "pressure": _fraction_text(
-                            Fraction.from_float(
-                                struct.unpack_from(
-                                    "<dd",
-                                    witness.packed_samples[port_index],
-                                    sample_index * 16,
-                                )[0]
-                            )
-                        ),
-                        "source_index": witness.source_indices[sample_index],
-                    }
-                    for sample_index in range(witness.sample_count)
-                ],
-                "sensor_id": port.sensor_id,
-                "substream_id": port.substream_id,
-                "topology_index": port.topology_index,
+                "carrier_phase_advance": component_payload(
+                    channel.carrier_phase_advance,
+                    witness.carrier_phase_advance_l4_field_tuples[channel_index],
+                    channel_index,
+                    pressure=False,
+                ),
+                "channel_id": channel.channel_id,
+                "cochlear_index": channel.cochlear_index,
+                "pressure": component_payload(
+                    channel.pressure,
+                    witness.pressure_l4_field_tuples[channel_index],
+                    channel_index,
+                    pressure=True,
+                ),
             }
-            for port_index, port in enumerate(witness.topology)
+            for channel_index, channel in enumerate(witness.topology)
         ],
         "schema": AUDITORY_L5_SCHEMA,
     }
@@ -508,14 +718,65 @@ def _witness_structural_fingerprint(witness: AuditoryPathWitness) -> str:
     ).encode("utf-8")).hexdigest()
 
 
+def _witness_admission_evidence(
+    witness: AuditoryPathWitness,
+) -> dict[str, object]:
+    return {
+        "channels": [
+            {
+                "carrier_phase_advance": {
+                    "component_receipt_sha256": (
+                        topology.carrier_phase_advance.authority_receipt_sha256
+                    ),
+                    "l4_field_receipt_sha256s": [
+                        value.authority_receipt_sha256
+                        for value in (
+                            witness.carrier_phase_advance_l4_field_tuples[index]
+                        )
+                    ],
+                },
+                "channel_id": topology.channel_id,
+                "cochlear_index": topology.cochlear_index,
+                "pair_receipt_sha256": topology.pair_receipt_sha256,
+                "pressure": {
+                    "component_receipt_sha256": (
+                        topology.pressure.authority_receipt_sha256
+                    ),
+                    "l4_field_receipt_sha256s": [
+                        value.authority_receipt_sha256
+                        for value in witness.pressure_l4_field_tuples[index]
+                    ],
+                },
+            }
+            for index, topology in enumerate(witness.topology)
+        ],
+        "source_time_start": _fraction_text(witness.source_time_start),
+        "structural_fingerprint": witness.structural_fingerprint,
+    }
+
+
+def _admission_evidence_from_payload(payload: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "channels": payload.get("channels"),
+        "source_time_start": payload.get("source_time_start"),
+        "structural_fingerprint": payload.get("structural_fingerprint"),
+    }
+
+
 def _verify_l5_admission_evidence(
     admission: AuditoryTutorAdmissionReceipt,
     witnesses: tuple[AuditoryPathWitness, ...],
     *,
     witnesses_verified: bool = False,
+    expected_evidence_sha256: str | None = None,
 ) -> None:
     if not isinstance(witnesses_verified, bool):
         raise TypeError("auditory witness verification state must be boolean")
+    if expected_evidence_sha256 is not None:
+        expected_evidence_sha256 = sha256_digest(
+            expected_evidence_sha256,
+            "auditory persisted admission evidence",
+        )
     try:
         payload = json.loads(admission.l5_authority_payload)
     except Exception as exc:
@@ -532,9 +793,10 @@ def _verify_l5_admission_evidence(
     if not isinstance(payload, dict) or set(payload) != {
         "assembly_id",
         "assembly_receipt_sha256",
+        "channels",
         "event_boundary",
         "experience_id",
-        "ports",
+        "relation",
         "schema",
         "source_time_end",
         "source_time_start",
@@ -542,10 +804,13 @@ def _verify_l5_admission_evidence(
     }:
         raise ValueError("auditory L5 admission payload is malformed")
     if (
-        payload.get("schema") != "guala.auditory_l5.authority.v2"
+        payload.get("schema") != AUDITORY_L5_AUTHORITY_SCHEMA
         or payload.get("event_boundary") != "utterance"
         or admission.event_boundary != "utterance"
         or payload.get("experience_id") != admission.experience_id
+        or payload.get("relation") not in (
+            "first_observation", "recurrence", "structural_change"
+        )
     ):
         raise ValueError("auditory L5 admission does not prove utterance eligibility")
     assembly_id = payload.get("assembly_id")
@@ -581,72 +846,121 @@ def _verify_l5_admission_evidence(
     )
     if end <= start:
         raise ValueError("auditory L5 admission source time is invalid")
-    ports = payload.get("ports")
-    if not isinstance(ports, list) or not ports:
-        raise ValueError("auditory L5 admission ports are malformed")
+    channels = payload.get("channels")
+    if (
+        not isinstance(channels, list)
+        or len(channels) != COCHLEAR_CHANNEL_COUNT
+    ):
+        raise ValueError("auditory L5 admission channels are malformed")
     matching = tuple(
         witness
         for witness in witnesses
         if witness.structural_fingerprint == fingerprint
+        and witness.source_time_start == start
         and (
             witnesses_verified
             or _witness_structural_fingerprint(witness) == fingerprint
         )
     )
+    if expected_evidence_sha256 is not None:
+        if not any(
+            witness.structural_fingerprint == fingerprint
+            and (
+                witnesses_verified
+                or _witness_structural_fingerprint(witness) == fingerprint
+            )
+            for witness in witnesses
+        ):
+            raise ValueError(
+                "auditory L5 admission does not match a persisted witness"
+            )
+        if _digest(_admission_evidence_from_payload(payload)) != (
+            expected_evidence_sha256
+        ):
+            raise ValueError(
+                "auditory L5 admission ordered receipt evidence changed"
+            )
+        return
     for witness in matching:
-        if len(ports) != len(witness.topology):
+        if len(channels) != len(witness.topology):
             continue
         valid = True
-        for port_index, (raw, topology) in enumerate(
-            zip(ports, witness.topology, strict=True)
+        for channel_index, (raw, topology) in enumerate(
+            zip(channels, witness.topology, strict=True)
         ):
             if not isinstance(raw, dict) or set(raw) != {
-                "kernel_basin_receipt_sha256",
-                "l4_field_receipt_sha256",
-                "source_stream_receipt_sha256",
-                "substream_id",
-                "topology_index",
+                "carrier_phase_advance",
+                "channel_id",
+                "cochlear_index",
+                "pair_receipt_sha256",
+                "pressure",
             }:
                 valid = False
                 break
-            l4_receipts = raw.get("l4_field_receipt_sha256")
             if (
-                raw.get("substream_id") != topology.substream_id
-                or raw.get("topology_index") != topology.topology_index
-                or not isinstance(l4_receipts, list)
-                or len(l4_receipts)
-                != len(witness.l4_field_tuples[port_index])
+                raw.get("cochlear_index") != topology.cochlear_index
+                or raw.get("channel_id") != topology.channel_id
+                or raw.get("pair_receipt_sha256")
+                != topology.pair_receipt_sha256
             ):
                 valid = False
                 break
             sha256_digest(
-                raw.get("source_stream_receipt_sha256"),
-                "auditory L5 source stream receipt",
+                raw.get("pair_receipt_sha256"),
+                "auditory L5 cochlear pair receipt",
             )
-            sha256_digest(
-                raw.get("kernel_basin_receipt_sha256"),
-                "auditory L5 kernel basin receipt",
+            component_evidence = (
+                (
+                    raw.get("pressure"),
+                    topology.pressure,
+                    witness.pressure_l4_field_tuples[channel_index],
+                ),
+                (
+                    raw.get("carrier_phase_advance"),
+                    topology.carrier_phase_advance,
+                    witness.carrier_phase_advance_l4_field_tuples[
+                        channel_index
+                    ],
+                ),
             )
-            for digest in l4_receipts:
-                sha256_digest(digest, "auditory L5 field receipt")
+            for component_raw, component_topology, l4_bank in component_evidence:
+                if not isinstance(component_raw, dict) or set(component_raw) != {
+                    "component_receipt_sha256",
+                    "l4_field_receipt_sha256s",
+                }:
+                    valid = False
+                    break
+                receipts = component_raw.get("l4_field_receipt_sha256s")
+                expected_receipts = tuple(
+                    value.authority_receipt_sha256 for value in l4_bank
+                )
+                if (
+                    component_raw.get("component_receipt_sha256")
+                    != component_topology.authority_receipt_sha256
+                    or not isinstance(receipts, list)
+                    or tuple(receipts) != expected_receipts
+                ):
+                    valid = False
+                    break
+                sha256_digest(
+                    component_raw.get("component_receipt_sha256"),
+                    "auditory L5 component receipt",
+                )
+                for digest in receipts:
+                    sha256_digest(digest, "auditory L5 ordered L4 receipt")
+            if not valid:
+                break
         if valid:
             return
     raise ValueError("auditory L5 admission does not match a persisted witness")
 
 
-def _sample(witness: AuditoryPathWitness, port: int, index: int) -> tuple[float, float]:
-    return struct.unpack_from("<dd", witness.packed_samples[port], index * 16)
-
-
-def _phase_advance(
-    witness: AuditoryPathWitness, port: int, index: int
-) -> float:
-    if witness.sample_count == 1:
-        return 0.0
-    right = max(1, index)
-    return _sample(witness, port, right)[1] - _sample(
-        witness, port, right - 1
-    )[1]
+def _sample(
+    witness: AuditoryPathWitness, channel: int, index: int
+) -> tuple[float, float]:
+    return struct.unpack_from(
+        "<dd", witness.packed_samples[channel], index * 16
+    )
 
 
 def _interpolated_sample(
@@ -656,15 +970,15 @@ def _interpolated_sample(
     query_count: int,
 ) -> tuple[float, float]:
     if witness.sample_count == 1 or query_count == 1:
-        return _sample(witness, port, 0)[0], _phase_advance(witness, port, 0)
+        return _sample(witness, port, 0)
     position = query_index * (witness.sample_count - 1) / (query_count - 1)
     left = int(math.floor(position))
     right = min(left + 1, witness.sample_count - 1)
     weight = position - left
     left_pressure = _sample(witness, port, left)[0]
     right_pressure = _sample(witness, port, right)[0]
-    left_phase = _phase_advance(witness, port, left)
-    right_phase = _phase_advance(witness, port, right)
+    left_phase = _sample(witness, port, left)[1]
+    right_phase = _sample(witness, port, right)[1]
     return (
         left_pressure + weight * (right_pressure - left_pressure),
         left_phase + weight * (right_phase - left_phase),
@@ -728,8 +1042,32 @@ def _phase_uncertainty(*pressures: float) -> float | None:
 
 
 def _same_topology(*witnesses: AuditoryPathWitness) -> bool:
+    def physical(value: AuditoryPathWitness) -> tuple[object, ...]:
+        return tuple(
+            (
+                channel.cochlear_index,
+                channel.channel_id,
+                *(
+                    (
+                        component.sensor_id,
+                        component.substream_id,
+                        component.topology_index,
+                        component.coordinates,
+                        component.physical_quantity,
+                        component.physical_unit,
+                    )
+                    for component in (
+                        channel.pressure,
+                        channel.carrier_phase_advance,
+                    )
+                ),
+            )
+            for channel in value.topology
+        )
+
     return bool(witnesses) and all(
-        witness.topology == witnesses[0].topology for witness in witnesses[1:]
+        physical(witness) == physical(witnesses[0])
+        for witness in witnesses[1:]
     )
 
 
@@ -739,46 +1077,67 @@ def _l4_lambda_interval(
     right: AuditoryPathWitness,
     interval: tuple[float, float],
 ) -> tuple[float, float] | None:
-    if not (
-        len(query.l4_field_tuples)
-        == len(left.l4_field_tuples)
-        == len(right.l4_field_tuples)
-    ):
-        return None
     exact_lambda: Fraction | None = None
-    for query_port, left_port, right_port in zip(
-        query.l4_field_tuples,
-        left.l4_field_tuples,
-        right.l4_field_tuples,
-        strict=True,
-    ):
-        if not (len(query_port) == len(left_port) == len(right_port)):
+    banks = (
+        (
+            query.pressure_l4_field_tuples,
+            left.pressure_l4_field_tuples,
+            right.pressure_l4_field_tuples,
+        ),
+        (
+            query.carrier_phase_advance_l4_field_tuples,
+            left.carrier_phase_advance_l4_field_tuples,
+            right.carrier_phase_advance_l4_field_tuples,
+        ),
+    )
+    for query_bank, left_bank, right_bank in banks:
+        if not (
+            len(query_bank) == len(left_bank) == len(right_bank)
+            == COCHLEAR_CHANNEL_COUNT
+        ):
             return None
-        for q_tuple, l_tuple, r_tuple in zip(
-            query_port, left_port, right_port, strict=True
+        for query_channel, left_channel, right_channel in zip(
+            query_bank, left_bank, right_bank, strict=True
         ):
             if not (
-                q_tuple.tuple_index == l_tuple.tuple_index == r_tuple.tuple_index
-                and tuple(name for name, _ in q_tuple.fields) == DSF_FIELD_ORDER
-                and tuple(name for name, _ in l_tuple.fields) == DSF_FIELD_ORDER
-                and tuple(name for name, _ in r_tuple.fields) == DSF_FIELD_ORDER
+                len(query_channel)
+                == len(left_channel)
+                == len(right_channel)
             ):
                 return None
-            for (_, q_value), (_, l_value), (_, r_value) in zip(
-                q_tuple.fields, l_tuple.fields, r_tuple.fields, strict=True
+            for q_tuple, l_tuple, r_tuple in zip(
+                query_channel, left_channel, right_channel, strict=True
             ):
-                difference = r_value - l_value
-                if difference == 0:
-                    if q_value != l_value:
+                if not (
+                    q_tuple.tuple_index
+                    == l_tuple.tuple_index
+                    == r_tuple.tuple_index
+                    and tuple(name for name, _ in q_tuple.fields)
+                    == DSF_FIELD_ORDER
+                    and tuple(name for name, _ in l_tuple.fields)
+                    == DSF_FIELD_ORDER
+                    and tuple(name for name, _ in r_tuple.fields)
+                    == DSF_FIELD_ORDER
+                ):
+                    return None
+                for (_, q_value), (_, l_value), (_, r_value) in zip(
+                    q_tuple.fields,
+                    l_tuple.fields,
+                    r_tuple.fields,
+                    strict=True,
+                ):
+                    difference = r_value - l_value
+                    if difference == 0:
+                        if q_value != l_value:
+                            return None
+                        continue
+                    candidate = (q_value - l_value) / difference
+                    if not 0 <= candidate <= 1:
                         return None
-                    continue
-                candidate = (q_value - l_value) / difference
-                if not 0 <= candidate <= 1:
-                    return None
-                if exact_lambda is None:
-                    exact_lambda = candidate
-                elif exact_lambda != candidate:
-                    return None
+                    if exact_lambda is None:
+                        exact_lambda = candidate
+                    elif exact_lambda != candidate:
+                        return None
     if exact_lambda is None:
         return interval
     encoded = float(exact_lambda)
@@ -838,6 +1197,8 @@ def _joint_cell_contains_python(
             )
             if abs(first_pressure - second_pressure) > pressure_uncertainty:
                 return False
+            if first == 0 or second == 0:
+                continue
             uncertainty = _phase_uncertainty(
                 first_pressure,
                 _interpolated_phase_prior_pressure(
@@ -892,6 +1253,8 @@ def _joint_cell_contains_python(
             )
             if interval is None:
                 return None
+            if query_index == 0 or reference_index == 0:
+                continue
             phase_uncertainty = _phase_uncertainty(
                 query_pressure,
                 _interpolated_phase_prior_pressure(
@@ -1089,14 +1452,30 @@ def _class_contains(
     return False, consumed
 
 
-def _topology_snapshot(value: AuditoryPortTopology) -> dict:
+def _component_topology_snapshot(value: AuditoryComponentTopology) -> dict:
     return {
+        "authority_receipt_sha256": value.authority_receipt_sha256,
         "coordinates": [list(item) for item in value.coordinates],
+        "kernel_basin_receipt_sha256": value.kernel_basin_receipt_sha256,
+        "l0_l4_trace_receipt_sha256": value.l0_l4_trace_receipt_sha256,
         "physical_quantity": value.physical_quantity,
         "physical_unit": value.physical_unit,
         "sensor_id": value.sensor_id,
+        "source_stream_receipt_sha256": value.source_stream_receipt_sha256,
         "substream_id": value.substream_id,
         "topology_index": value.topology_index,
+    }
+
+
+def _channel_topology_snapshot(value: AuditoryChannelTopology) -> dict:
+    return {
+        "carrier_phase_advance": _component_topology_snapshot(
+            value.carrier_phase_advance
+        ),
+        "channel_id": value.channel_id,
+        "cochlear_index": value.cochlear_index,
+        "pair_receipt_sha256": value.pair_receipt_sha256,
+        "pressure": _component_topology_snapshot(value.pressure),
     }
 
 
@@ -1112,19 +1491,26 @@ def _witness_snapshot(value: AuditoryPathWitness) -> dict:
     return {
         "causal_offset_start": _fraction_text(value.causal_offset_start),
         "causal_offset_step": _fraction_text(value.causal_offset_step),
-        "experience_id": value.experience_id,
-        "l4_field_tuples": [
-            [_l4_snapshot(field_tuple) for field_tuple in port]
-            for port in value.l4_field_tuples
+        "carrier_phase_advance_l4_field_tuples": [
+            [_l4_snapshot(field_tuple) for field_tuple in channel]
+            for channel in value.carrier_phase_advance_l4_field_tuples
         ],
+        "experience_id": value.experience_id,
         "packed_samples": [
             base64.b64encode(samples).decode("ascii")
             for samples in value.packed_samples
         ],
+        "pressure_l4_field_tuples": [
+            [_l4_snapshot(field_tuple) for field_tuple in channel]
+            for channel in value.pressure_l4_field_tuples
+        ],
         "sample_count": value.sample_count,
         "source_indices": list(value.source_indices),
+        "source_time_start": _fraction_text(value.source_time_start),
         "structural_fingerprint": value.structural_fingerprint,
-        "topology": [_topology_snapshot(port) for port in value.topology],
+        "topology": [
+            _channel_topology_snapshot(channel) for channel in value.topology
+        ],
     }
 
 
@@ -1142,6 +1528,9 @@ def _snapshot_for(
                 "admission_receipts": [
                     receipt.as_dict() for receipt in learned.admission_receipts
                 ],
+                "admission_evidence_sha256": list(
+                    learned.admission_evidence_sha256
+                ),
                 "authority_receipts": [
                     receipt.as_dict() for receipt in learned.authority_receipts
                 ],
@@ -1182,7 +1571,9 @@ def _envelope(snapshot: dict) -> dict:
     }
 
 
-def _restore_topology(value: object, name: str) -> AuditoryPortTopology:
+def _restore_component_topology(
+    value: object, name: str
+) -> AuditoryComponentTopology:
     if not isinstance(value, dict):
         raise ValueError(f"{name} is malformed")
     topology_index = value.get("topology_index")
@@ -1202,18 +1593,71 @@ def _restore_topology(value: object, name: str) -> AuditoryPortTopology:
     )
     if len(coordinates) != len(coordinates_raw):
         raise ValueError(f"{name} coordinates are malformed")
-    result = AuditoryPortTopology(
+    result = AuditoryComponentTopology(
         sensor_id=str(value.get("sensor_id", "")),
         substream_id=str(value.get("substream_id", "")),
         topology_index=topology_index,
         coordinates=coordinates,
         physical_quantity=str(value.get("physical_quantity", "")),
         physical_unit=str(value.get("physical_unit", "")),
+        source_stream_receipt_sha256=sha256_digest(
+            value.get("source_stream_receipt_sha256"),
+            f"{name} source stream receipt",
+        ),
+        l0_l4_trace_receipt_sha256=sha256_digest(
+            value.get("l0_l4_trace_receipt_sha256"),
+            f"{name} L0-L4 trace receipt",
+        ),
+        kernel_basin_receipt_sha256=sha256_digest(
+            value.get("kernel_basin_receipt_sha256"),
+            f"{name} kernel basin receipt",
+        ),
+        authority_receipt_sha256=sha256_digest(
+            value.get("authority_receipt_sha256"),
+            f"{name} component receipt",
+        ),
     )
     if not all((result.sensor_id, result.substream_id,
                 result.physical_quantity, result.physical_unit)):
         raise ValueError(f"{name} identifiers are empty")
     return result
+
+
+def _restore_channel_topology(
+    value: object, name: str
+) -> AuditoryChannelTopology:
+    if not isinstance(value, dict) or set(value) != {
+        "carrier_phase_advance",
+        "channel_id",
+        "cochlear_index",
+        "pair_receipt_sha256",
+        "pressure",
+    }:
+        raise ValueError(f"{name} is malformed")
+    cochlear_index = value.get("cochlear_index")
+    channel_id = value.get("channel_id")
+    if (
+        isinstance(cochlear_index, bool)
+        or not isinstance(cochlear_index, int)
+        or not 0 <= cochlear_index < COCHLEAR_CHANNEL_COUNT
+        or not isinstance(channel_id, str)
+        or not channel_id
+    ):
+        raise ValueError(f"{name} identity is malformed")
+    return AuditoryChannelTopology(
+        cochlear_index=cochlear_index,
+        channel_id=channel_id,
+        pressure=_restore_component_topology(
+            value.get("pressure"), f"{name}.pressure"
+        ),
+        carrier_phase_advance=_restore_component_topology(
+            value.get("carrier_phase_advance"),
+            f"{name}.carrier_phase_advance",
+        ),
+        pair_receipt_sha256=sha256_digest(
+            value.get("pair_receipt_sha256"), f"{name} pair receipt"
+        ),
+    )
 
 
 def _restore_l4(value: object, name: str) -> PackedL4Tuple:
@@ -1250,32 +1694,36 @@ def _restore_witness(value: object, name: str) -> AuditoryPathWitness:
     sample_count = value.get("sample_count")
     topology_raw = value.get("topology")
     samples_raw = value.get("packed_samples")
-    l4_raw = value.get("l4_field_tuples")
+    pressure_l4_raw = value.get("pressure_l4_field_tuples")
+    phase_l4_raw = value.get("carrier_phase_advance_l4_field_tuples")
     source_indices_raw = value.get("source_indices")
     if (
         isinstance(sample_count, bool)
         or not isinstance(sample_count, int)
         or sample_count <= 0
         or not isinstance(topology_raw, list)
-        or not topology_raw
+        or len(topology_raw) != COCHLEAR_CHANNEL_COUNT
         or not isinstance(samples_raw, list)
-        or not isinstance(l4_raw, list)
-        or not len(topology_raw) == len(samples_raw) == len(l4_raw)
+        or not isinstance(pressure_l4_raw, list)
+        or not isinstance(phase_l4_raw, list)
+        or not len(topology_raw) == len(samples_raw)
+        == len(pressure_l4_raw) == len(phase_l4_raw)
         or not isinstance(source_indices_raw, list)
         or len(source_indices_raw) != sample_count
         or any(
             isinstance(item, bool) or not isinstance(item, int) or item < 0
             for item in source_indices_raw
         )
-        or len(topology_raw) > MAX_NATIVE_SUBSTREAMS_PER_SENSE
         or sample_count > MAX_NATIVE_SAMPLES_PER_SUBSTREAM
     ):
         raise ValueError(f"{name} is malformed")
     topology = tuple(
-        _restore_topology(item, f"{name}.topology[{index}]")
+        _restore_channel_topology(item, f"{name}.topology[{index}]")
         for index, item in enumerate(topology_raw)
     )
-    if tuple(port.topology_index for port in topology) != tuple(range(len(topology))):
+    if tuple(channel.cochlear_index for channel in topology) != tuple(
+        range(COCHLEAR_CHANNEL_COUNT)
+    ):
         raise ValueError(f"{name} topology is reordered")
     packed = []
     for index, item in enumerate(samples_raw):
@@ -1294,19 +1742,35 @@ def _restore_witness(value: object, name: str) -> AuditoryPathWitness:
         )):
             raise ValueError(f"{name}.packed_samples[{index}] is not finite")
         packed.append(decoded)
-    l4_ports = []
-    for port_index, raw_port in enumerate(l4_raw):
-        if not isinstance(raw_port, list) or not raw_port:
-            raise ValueError(f"{name}.l4_field_tuples[{port_index}] is malformed")
-        restored_port = tuple(
-            _restore_l4(item, f"{name}.l4[{port_index}][{index}]")
-            for index, item in enumerate(raw_port)
-        )
-        if tuple(item.tuple_index for item in restored_port) != tuple(
-            range(len(restored_port))
-        ):
-            raise ValueError(f"{name}.l4_field_tuples are reordered")
-        l4_ports.append(restored_port)
+    def restore_l4_bank(
+        raw_bank: list[object], bank_name: str
+    ) -> tuple[tuple[PackedL4Tuple, ...], ...]:
+        restored_channels = []
+        for channel_index, raw_channel in enumerate(raw_bank):
+            if not isinstance(raw_channel, list) or not raw_channel:
+                raise ValueError(
+                    f"{name}.{bank_name}[{channel_index}] is malformed"
+                )
+            restored_channel = tuple(
+                _restore_l4(
+                    item,
+                    f"{name}.{bank_name}[{channel_index}][{index}]",
+                )
+                for index, item in enumerate(raw_channel)
+            )
+            if tuple(item.tuple_index for item in restored_channel) != tuple(
+                range(len(restored_channel))
+            ):
+                raise ValueError(f"{name}.{bank_name} is reordered")
+            restored_channels.append(restored_channel)
+        return tuple(restored_channels)
+
+    pressure_l4 = restore_l4_bank(
+        pressure_l4_raw, "pressure_l4_field_tuples"
+    )
+    phase_l4 = restore_l4_bank(
+        phase_l4_raw, "carrier_phase_advance_l4_field_tuples"
+    )
     return AuditoryPathWitness(
         experience_id=sha256_digest(
             value.get("experience_id"), f"{name} experience id"
@@ -1317,6 +1781,9 @@ def _restore_witness(value: object, name: str) -> AuditoryPathWitness:
         topology=topology,
         sample_count=sample_count,
         source_indices=tuple(source_indices_raw),
+        source_time_start=_fraction(
+            value.get("source_time_start"), f"{name} source time start"
+        ),
         causal_offset_start=_fraction(
             value.get("causal_offset_start"), f"{name} causal start"
         ),
@@ -1324,7 +1791,8 @@ def _restore_witness(value: object, name: str) -> AuditoryPathWitness:
             value.get("causal_offset_step"), f"{name} causal step"
         ),
         packed_samples=tuple(packed),
-        l4_field_tuples=tuple(l4_ports),
+        pressure_l4_field_tuples=pressure_l4,
+        carrier_phase_advance_l4_field_tuples=phase_l4,
     )
 
 
@@ -1399,6 +1867,7 @@ class AuditoryReciprocityOwner:
         witness = _pack_experience(experience)
         mounted_authority = None
         mounted_admission = None
+        mounted_admission_evidence = None
         if authority_receipt is None:
             if self._tutor_authority.required:
                 raise RuntimeError(
@@ -1433,6 +1902,9 @@ class AuditoryReciprocityOwner:
             _verify_l5_admission_evidence(
                 mounted_admission, (witness,)
             )
+            mounted_admission_evidence = _digest(
+                _witness_admission_evidence(witness)
+            )
         with self._lock:
             if (
                 mounted_authority is not None
@@ -1458,6 +1930,11 @@ class AuditoryReciprocityOwner:
                     admission_receipts=(
                         (mounted_admission,)
                         if mounted_admission is not None
+                        else ()
+                    ),
+                    admission_evidence_sha256=(
+                        (mounted_admission_evidence,)
+                        if mounted_admission_evidence is not None
                         else ()
                     ),
                 )
@@ -1491,6 +1968,14 @@ class AuditoryReciprocityOwner:
                         (*existing.admission_receipts, mounted_admission)
                         if mounted_admission is not None
                         else existing.admission_receipts
+                    ),
+                    admission_evidence_sha256=(
+                        (
+                            *existing.admission_evidence_sha256,
+                            mounted_admission_evidence,
+                        )
+                        if mounted_admission_evidence is not None
+                        else existing.admission_evidence_sha256
                     ),
                 )
             prospective = {
@@ -1708,6 +2193,11 @@ class AuditoryReciprocityOwner:
     def restore_encoded(self, envelope: object) -> None:
         if not isinstance(envelope, dict):
             raise ValueError("auditory reciprocity envelope must be an object")
+        if envelope.get("schema") == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+            raise ValueError(
+                "legacy auditory reciprocity v4 envelope is preserved but "
+                "cannot be applied to paired v5 channels"
+            )
         if (
             envelope.get("schema") != AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
             or envelope.get("encoding") != "gzip+base64"
@@ -1740,6 +2230,11 @@ class AuditoryReciprocityOwner:
     def restore(self, snapshot: object) -> None:
         if not isinstance(snapshot, dict):
             raise ValueError("auditory reciprocity snapshot must be an object")
+        if snapshot.get("schema") == LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA:
+            raise ValueError(
+                "legacy auditory reciprocity v4 snapshot is preserved but "
+                "cannot be applied to paired v5 channels"
+            )
         if snapshot.get("schema") != AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA:
             raise ValueError("auditory reciprocity snapshot schema is invalid")
         if (
@@ -1804,19 +2299,33 @@ class AuditoryReciprocityOwner:
                 raise ValueError("auditory reinforcement count is invalid")
             raw_authority_receipts = value.get("authority_receipts")
             raw_admission_receipts = value.get("admission_receipts")
+            raw_admission_evidence = value.get("admission_evidence_sha256")
             if not isinstance(raw_authority_receipts, list):
                 raise ValueError("auditory tutor authority receipts are malformed")
             if not isinstance(raw_admission_receipts, list):
                 raise ValueError("auditory tutor admission receipts are malformed")
+            if not isinstance(raw_admission_evidence, list):
+                raise ValueError("auditory tutor admission evidence is malformed")
+            admission_evidence = tuple(
+                sha256_digest(
+                    item, "auditory tutor ordered admission evidence"
+                )
+                for item in raw_admission_evidence
+            )
             if self._tutor_authority.required:
                 if (
                     len(raw_authority_receipts) != count
                     or len(raw_admission_receipts) != count
+                    or len(admission_evidence) != count
                 ):
                     raise ValueError(
                         "auditory reinforcement lacks tutor admission authority"
                     )
-            elif raw_authority_receipts or raw_admission_receipts:
+            elif (
+                raw_authority_receipts
+                or raw_admission_receipts
+                or admission_evidence
+            ):
                 raise ValueError(
                     "unrequired auditory snapshot contains authority receipts"
                 )
@@ -1845,9 +2354,14 @@ class AuditoryReciprocityOwner:
                     strict=True,
                 )
             )
-            for admission in admission_receipts:
+            for admission, evidence_sha256 in zip(
+                admission_receipts, admission_evidence, strict=True
+            ):
                 _verify_l5_admission_evidence(
-                    admission, branches, witnesses_verified=True
+                    admission,
+                    branches,
+                    witnesses_verified=True,
+                    expected_evidence_sha256=evidence_sha256,
                 )
             for receipt in authority_receipts:
                 if receipt.nonce in restored_authority_nonces:
@@ -1888,6 +2402,7 @@ class AuditoryReciprocityOwner:
                 last_experience_id=last_id,
                 authority_receipts=authority_receipts,
                 admission_receipts=admission_receipts,
+                admission_evidence_sha256=admission_evidence,
             )
         envelope = self._prospective_envelope(restored)
         with self._lock:
@@ -1943,7 +2458,11 @@ __all__ = (
     "AuditoryReciprocalClass",
     "AuditoryReciprocityKind",
     "AuditoryReciprocityOwner",
+    "LegacyAuditoryReciprocityEnvelopeInspection",
+    "LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA",
+    "LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA",
     "MAX_ENCODED_SNAPSHOT_BYTES",
     "MAX_PATH_BRANCHES_PER_CLASS",
     "MAX_RECIPROCAL_CLASSES_PER_KIND",
+    "inspect_legacy_v4_envelope",
 )

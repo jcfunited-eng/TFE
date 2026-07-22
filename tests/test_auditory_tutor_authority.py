@@ -238,7 +238,8 @@ def test_isolated_asset_transaction_teaches_full_l5_without_retention(
         assert result["accepted"] is True
         assert result["recognized_label"] == "hello guala"
         assert result["event_boundary"] == "utterance"
-        assert result["port_count"] == 16
+        assert result["channel_count"] == 16
+        assert result["kernel_component_count"] == 32
         assert result["sample_count"] == 16_320
         assert engine._sounds == before_sounds
         status = engine.auditory_l5_status()["reciprocity"]

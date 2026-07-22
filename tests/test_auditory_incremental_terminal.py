@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import math
 import struct
 from fractions import Fraction
@@ -8,11 +9,9 @@ import pytest
 
 import dsf_ai_service.substrate.auditory_incremental_terminal as terminal_module
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-    NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
-    NativeAxisCoordinate,
     PhysicalSense,
     SENSE_ORDER,
     SenseBoundaryState,
@@ -22,6 +21,10 @@ from dsf_ai_service.substrate.auditory_incremental_terminal import (
     AuditoryIncrementalTerminalEvent,
     AuditoryIncrementalStatus,
     AuditoryIncrementalTerminalOwner,
+)
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    auditory_kernel_component_inputs,
 )
 from dsf_ai_service.substrate.auditory_l5 import AuditoryL5Owner
 from dsf_ai_service.substrate.auditory_pcm_stream import (
@@ -42,7 +45,6 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
-    AUDITORY_CHANNELS,
     OBSERVATION_HOP_SAMPLES,
     AuditoryFullFieldStream,
 )
@@ -104,6 +106,8 @@ class _MountedStream:
             on_settlement=lambda _value: None,
             log_event=lambda *_args, **_kwargs: None,
         )
+        self.last_built = None
+        self.last_causal = None
 
     def mount(
         self,
@@ -125,45 +129,11 @@ class _MountedStream:
             accepted.pcm_s16le, accepted.receipt
         )
         epoch = Fraction(SOURCE_EPOCH_NS, 1_000_000_000)
-        ports = tuple(
-            NativeSensorySubstreamInput(
-                sense=PhysicalSense.SOUND,
-                sensor_id="microphone-gammatone-cochlear-field",
-                substream_id=channel.definition.name,
-                topology_index=topology_index,
-                coordinates=(
-                    NativeAxisCoordinate(
-                        "cochlear-channel", channel.definition.name
-                    ),
-                    NativeAxisCoordinate(
-                        "centre-hz", str(channel.definition.centre_hz)
-                    ),
-                    NativeAxisCoordinate(
-                        "erb-width-hz", str(channel.definition.erb_width_hz)
-                    ),
-                    NativeAxisCoordinate("gammatone-order", "4"),
-                    NativeAxisCoordinate(
-                        "observation-hop-samples",
-                        str(OBSERVATION_HOP_SAMPLES),
-                    ),
-                ),
-                physical_quantity="cochlear-pressure-envelope",
-                physical_unit="full-scale-pressure",
-                source_times=tuple(
-                    epoch + Fraction(value, 1_000_000_000)
-                    for value in channel.causal_offsets_ns
-                ),
-                normalized_signal=channel.pressure_envelope_full_scale,
-                phase_turns=tuple(
-                    Fraction.from_float(value)
-                    for value in channel.carrier_phase_turns
-                ),
-            )
-            for topology_index, channel in enumerate(capture.channels)
+        ports = auditory_kernel_component_inputs(
+            capture,
+            source_anchor=epoch,
         )
-        assert tuple(port.substream_id for port in ports) == tuple(
-            value.name for value in AUDITORY_CHANNELS
-        )
+        assert len(ports) == AUDITORY_KERNEL_COMPONENT_COUNT
         start = accepted.receipt.first_sample_index
         end = accepted.receipt.last_sample_index_exclusive
         built = build_six_sense_full_field(
@@ -180,6 +150,7 @@ class _MountedStream:
                 for sense in SENSE_ORDER
             },
         )
+        self.last_built = built
         auditory_l5 = self.l5.settle(
             built, event_boundary=event_boundary
         )
@@ -189,6 +160,7 @@ class _MountedStream:
             routing_chis=(),
             source_tags=(),
         )
+        self.last_causal = causal
         joint = bind_auditory_stream_settlement(
             transport=accepted.receipt,
             cochlear=cochlear,
@@ -203,6 +175,109 @@ class _MountedStream:
             "cochlear": cochlear,
             "joint_settlement": joint,
         }
+
+
+def test_incremental_frames_consume_provider_settled_phase_advance() -> None:
+    mounted = _MountedStream().mount(
+        _pcm(_tone_values(LEARNED_SAMPLES, 440)),
+        sequence=0,
+        first_sample_index=0,
+    )
+    frames = AuditoryIncrementalTerminalOwner._frame_values(
+        mounted["capture"],
+        mounted["auditory_l5"],
+    )
+
+    assert len(frames) == mounted["capture"].frame_count
+    for frame_index, frame in enumerate(frames):
+        assert frame[2] == tuple(
+            channel.carrier_phase_advance_turns[frame_index]
+            for channel in mounted["capture"].channels
+        )
+        assert frame[3] == tuple(
+            channel.carrier_phase_advance_nyquist_fraction[frame_index]
+            for channel in mounted["capture"].channels
+        )
+    assert any(
+        advance != absolute
+        for channel in mounted["capture"].channels
+        for advance, absolute in zip(
+            channel.carrier_phase_advance_turns,
+            channel.carrier_phase_turns,
+            strict=True,
+        )
+    )
+
+
+def test_full_gate_establishes_only_event_local_phase_genesis() -> None:
+    offset = 3_200
+    mounted = _MountedStream().mount(
+        _pcm(
+            (0,) * offset
+            + _tone_values(LEARNED_SAMPLES, 440)
+            + (0,) * OBSERVATION_HOP_SAMPLES
+        ),
+        sequence=0,
+        first_sample_index=0,
+    )
+    values = AuditoryIncrementalTerminalOwner._frame_values(
+        mounted["capture"],
+        mounted["auditory_l5"],
+    )
+    selected = tuple(
+        terminal_module._Frame(*value)
+        for value in values
+        if offset < value[0] <= offset + LEARNED_SAMPLES
+    )
+    assert selected
+    assert any(value != 0.0 for value in selected[0].phase_advance)
+
+    for channel_index in range(len(mounted["capture"].channels)):
+        advances, normalized = terminal_module._event_local_phase_component(
+            selected,
+            channel_index,
+        )
+        assert advances[0] == 0.0
+        assert normalized[0] == 0.0
+        assert advances[1:] == tuple(
+            frame.phase_advance[channel_index] for frame in selected[1:]
+        )
+        assert normalized[1:] == tuple(
+            frame.phase_advance_nyquist_fraction[channel_index]
+            for frame in selected[1:]
+        )
+
+
+def test_incremental_owner_rejects_legacy_reciprocity_v4(
+    monkeypatch,
+) -> None:
+    owner = _learned_owner()
+    monkeypatch.setattr(
+        owner,
+        "snapshot",
+        lambda: {
+            "schema": (
+                terminal_module.LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+            )
+        },
+    )
+
+    with pytest.raises(ValueError, match="rejects reciprocity v4"):
+        AuditoryIncrementalTerminalOwner(reciprocity_owner=owner)
+
+
+def test_incremental_owner_requires_both_complete_l4_banks(
+    monkeypatch,
+) -> None:
+    owner = _learned_owner()
+    snapshot = copy.deepcopy(owner.snapshot())
+    snapshot["classes"][0]["branches"][0][
+        "carrier_phase_advance_l4_field_tuples"
+    ][0] = []
+    monkeypatch.setattr(owner, "snapshot", lambda: snapshot)
+
+    with pytest.raises(ValueError, match="phase L4 channel 0 is incomplete"):
+        AuditoryIncrementalTerminalOwner(reciprocity_owner=owner)
 
 
 def _run(
@@ -506,7 +581,12 @@ def test_same_completion_requires_every_full_field_candidate(monkeypatch) -> Non
         (0.0,) * 16,
         terminal_module._AdvanceFullGateWorkLedger(
             reachability_limit=2,
-            field_sample_limit=2_000,
+            field_sample_limit=(
+                2
+                * LEARNED_SAMPLES
+                // OBSERVATION_HOP_SAMPLES
+                * AUDITORY_KERNEL_COMPONENT_COUNT
+            ),
         ),
     )
 
@@ -546,7 +626,14 @@ def test_overlapping_identity_cannot_be_preempted_by_proposal_order(
         (0.0,) * 16,
         terminal_module._AdvanceFullGateWorkLedger(
             reachability_limit=2,
-            field_sample_limit=2_000,
+            field_sample_limit=(
+                (
+                    LEARNED_SAMPLES // OBSERVATION_HOP_SAMPLES
+                    + (LEARNED_SAMPLES + OBSERVATION_HOP_SAMPLES)
+                    // OBSERVATION_HOP_SAMPLES
+                )
+                * AUDITORY_KERNEL_COMPONENT_COUNT
+            ),
         ),
     )
 
@@ -580,7 +667,11 @@ def test_zero_reachability_matches_cannot_bypass_field_rebuild_boundary(
         )
 
     monkeypatch.setattr(terminal, "_full_gate", exact_full_gate)
-    one_field = LEARNED_SAMPLES // OBSERVATION_HOP_SAMPLES * 16
+    one_field = (
+        LEARNED_SAMPLES
+        // OBSERVATION_HOP_SAMPLES
+        * AUDITORY_KERNEL_COMPONENT_COUNT
+    )
     chosen, ambiguous, resource = terminal._process_frame(
         LEARNED_SAMPLES,
         (1.0,) * 16,
@@ -684,3 +775,68 @@ def test_registry_reject_discards_but_graceful_close_releases_terminal() -> None
     assert registry.status()["issued_terminal_authorities"] == 0
     with pytest.raises(ValueError, match="not issued or was already consumed"):
         registry.claim(released.reply_candidate)
+
+
+def test_claim_completion_joins_paired_field_and_source_evidence() -> None:
+    registry = AuditoryIncrementalTerminalRegistry(
+        reciprocity_owner=_learned_owner(),
+    )
+    mounted = _MountedStream()
+    first = registry.advance(**mounted.mount(
+        _pcm(_tone_values(LEARNED_SAMPLES, 440)),
+        sequence=0,
+        first_sample_index=0,
+    ))
+    assert first.status is AuditoryIncrementalStatus.CONTINUING
+    released = registry.close(mounted.stream_id, release_terminal=True)
+    assert released is not None
+    assert released.reply_candidate is not None
+    assert mounted.last_causal is not None
+    current_record = released.reply_candidate.as_record()
+    assert current_record["schema"] == (
+        terminal_module.AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3
+    )
+    assert current_record["l5_schema"] == "guala.auditory_l5.full_field.v3"
+    assert current_record["reciprocity_snapshot_schema"] == (
+        "guala.auditory.causal_path.v5"
+    )
+    assert current_record["recognition_operator"] == (
+        "auditory_joint_causal_path_contains.v2"
+    )
+    assert AuditoryIncrementalTerminalEvent.from_record(current_record) == (
+        released.reply_candidate
+    )
+    legacy_record = dict(current_record)
+    legacy_record["schema"] = (
+        terminal_module.AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2
+    )
+    del legacy_record["l5_schema"]
+    del legacy_record["recognition_operator"]
+    del legacy_record["reciprocity_snapshot_schema"]
+    del legacy_record["authority_receipt_sha256"]
+    legacy_record["authority_receipt_sha256"] = terminal_module._digest(
+        legacy_record
+    )
+    legacy = AuditoryIncrementalTerminalEvent.from_record(legacy_record)
+    with pytest.raises(ValueError, match="audit record cannot be claimed"):
+        registry.claim(legacy)
+
+    claim = registry.claim(released.reply_candidate)
+    with pytest.raises(ValueError, match="language cardinality"):
+        registry.complete_claim(claim, mounted.last_causal)
+    assert mounted.last_built is not None
+    causal_with_language = mounted.causal.settle(
+        mounted.last_built,
+        recognized_language_record=released.reply_candidate.as_record(),
+        routing_chis=(),
+        source_tags=(),
+    )
+    registry.complete_claim(claim, causal_with_language)
+    settlement = registry.causal_settlement_from_claim(claim)
+    sound = next(
+        value for value in settlement.interpretations
+        if value.sense == "sound"
+    )
+
+    assert len(sound.substreams) == AUDITORY_KERNEL_COMPONENT_COUNT
+    assert all(value.source_sample_count > 0 for value in sound.substreams)

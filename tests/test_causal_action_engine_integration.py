@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from fractions import Fraction
 
+import numpy as np
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,16 +26,30 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SenseBoundaryState,
 )
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
+    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
     AuditoryIncrementalTerminalEvent,
     _event_payload,
 )
-from dsf_ai_service.substrate.auditory_l5 import AuditoryL5Owner
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    auditory_kernel_component_inputs,
+)
+from dsf_ai_service.substrate.auditory_l5 import (
+    AUDITORY_L5_SCHEMA,
+    AuditoryL5Owner,
+)
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECOGNITION_OPERATOR,
+    AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
     AuditoryReciprocityKind,
     AuditoryReciprocityOwner,
 )
 from dsf_ai_service.substrate.auditory_tutor_authority import (
     AuditoryTutorAuthority,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    REQUIRED_SAMPLE_RATE_HZ,
+    transduce_auditory_full_field,
 )
 from dsf_ai_service.substrate.causal_action import (
     CausalActionOwner,
@@ -62,26 +77,21 @@ def _full_field(
     sight_values: tuple[Fraction, ...] | None = None,
 ):
     duration = Fraction(1, 50)
-    port = NativeSensorySubstreamInput(
-        sense=PhysicalSense.SOUND,
-        sensor_id="test-microphone",
-        substream_id="test-cochlear-band",
-        topology_index=0,
-        coordinates=(
-            NativeAxisCoordinate("cochlear-channel", "test-band"),
+    sample_count = 320
+    capture = transduce_auditory_full_field(
+        np.asarray(
+            [float(values[index % len(values)]) for index in range(sample_count)],
+            dtype=np.float64,
         ),
-        physical_quantity="cochlear-pressure-envelope",
-        physical_unit="full-scale-pressure",
-        source_times=tuple(
-            duration * Fraction(index + 1, len(values))
-            for index in range(len(values))
-        ),
-        normalized_signal=values,
-        phase_turns=tuple(
-            Fraction(index, 16) for index in range(len(values))
-        ),
+        sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ,
     )
-    observed = {PhysicalSense.SOUND: (port,)}
+    sound_ports = auditory_kernel_component_inputs(
+        capture,
+        source_anchor=Fraction(0),
+    )
+    assert len(capture.channels) == 16
+    assert len(sound_ports) == AUDITORY_KERNEL_COMPONENT_COUNT
+    observed = {PhysicalSense.SOUND: sound_ports}
     if sight_values is not None:
         observed[PhysicalSense.SIGHT] = (
             NativeSensorySubstreamInput(
@@ -186,6 +196,10 @@ def _artifacts(
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
         recognition_occurrence=recognition.occurrence,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
     terminal = AuditoryIncrementalTerminalEvent(
         event_id=event_id,
@@ -198,8 +212,12 @@ def _artifacts(
         transport_receipt_sha256s=transport,
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
         authority_receipt_sha256=_digest(payload),
         recognition_occurrence=recognition.occurrence,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
     terminal.verify()
     settled = []

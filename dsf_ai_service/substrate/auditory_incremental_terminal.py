@@ -2,16 +2,16 @@
 
 The owner in this module is deliberately outside L0--L4.  It carries a
 bounded monotone dynamic-programming state over continuous 10 ms auditory L5
-pressure and phase frames.  The state cannot recognize an identity: it has no
+pressure and provider-settled phase-advance frames. The state cannot recognize an identity: it has no
 candidate-level L4 field.  After a full-field UNIQUE gate, its complete exact
-pressure/phase recurrence can prove only the negative structural fact that the
+paired recurrence can prove only the negative structural fact that the
 verified path no longer extends; that closes the pending physical interval but
 cannot create or change its learned meaning.
 
 A proposed terminal must be rebuilt from its exact retained PCM through the
-unchanged sixteen-port sensory provider and unchanged L0--L4 boundary.  The
+unchanged sixteen-channel, thirty-two-component boundary. The
 existing ``AuditoryReciprocityOwner`` must then return one UNIQUE tutor label
-from pressure, phase, topology, and every explicit L4 tuple.  UNKNOWN,
+from pressure, phase advance, topology, and both explicit L4 banks. UNKNOWN,
 AMBIGUOUS, discontinuity, and resource exhaustion release nothing.
 
 Terminal extent comes from the tutor-witnessed path length.  The current
@@ -35,9 +35,10 @@ import struct
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from fractions import Fraction
+from typing import Callable
 
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.model import sha256_digest
@@ -52,7 +53,13 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SENSE_ORDER,
     SenseBoundaryState,
 )
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    AUDITORY_KERNEL_SENSOR_ID,
+)
 from dsf_ai_service.substrate.auditory_l5 import (
+    AUDITORY_L5_SCHEMA,
+    AuditoryL5ComponentKind,
     AuditoryL5Experience,
     AuditoryL5Owner,
 )
@@ -63,7 +70,9 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
     PCM_SAMPLE_RATE_HZ,
 )
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECOGNITION_OPERATOR,
     AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+    LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
     MAX_INTERVAL_COMPONENTS_PER_CELL,
     MAX_PATH_BRANCHES_PER_CLASS,
     MAX_REACHABILITY_CELLS_PER_RECOGNITION,
@@ -84,6 +93,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     COCHLEAR_CHANNEL_COUNT,
     MAX_CAPTURE_SECONDS,
     OBSERVATION_HOP_SAMPLES,
+    PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP,
     AuditoryFullFieldCapture,
     AuditoryGammatoneContinuationReceipt,
 )
@@ -99,6 +109,9 @@ except ImportError:
 AUDITORY_INCREMENTAL_EVENT_SCHEMA = "guala.auditory.incremental_terminal.v1"
 AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2 = (
     "guala.auditory.incremental_terminal.v2"
+)
+AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3 = (
+    "guala.auditory.incremental_terminal.v3"
 )
 AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v1"
 MAX_EVENT_SAMPLES = PCM_SAMPLE_RATE_HZ * MAX_CAPTURE_SECONDS
@@ -155,7 +168,17 @@ def _event_payload(
     cochlear_receipt_sha256s: tuple[str, ...],
     joint_settlement_receipt_sha256s: tuple[str, ...],
     recognition_occurrence: AuditoryRecognitionOccurrence | None,
+    schema: str | None = None,
+    l5_schema: str | None = None,
+    reciprocity_snapshot_schema: str | None = None,
+    recognition_operator: str | None = None,
 ) -> dict[str, object]:
+    if schema is None:
+        schema = (
+            AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2
+            if recognition_occurrence is not None
+            else AUDITORY_INCREMENTAL_EVENT_SCHEMA
+        )
     payload = {
         "cochlear_receipt_sha256s": list(cochlear_receipt_sha256s),
         "event_id": event_id,
@@ -165,11 +188,7 @@ def _event_payload(
         "l5_authority_receipt_sha256": l5_authority_receipt_sha256,
         "recognition_state": AuditoryRecognitionState.UNIQUE.value,
         "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
-        "schema": (
-            AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2
-            if recognition_occurrence is not None
-            else AUDITORY_INCREMENTAL_EVENT_SCHEMA
-        ),
+        "schema": schema,
         "source_sample_end": source_sample_end,
         "source_sample_start": source_sample_start,
         "stream_id": stream_id,
@@ -180,6 +199,12 @@ def _event_payload(
     if recognition_occurrence is not None:
         recognition_occurrence.verify()
         payload["recognition_occurrence"] = recognition_occurrence.as_record()
+    if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3:
+        payload.update({
+            "l5_schema": l5_schema,
+            "recognition_operator": recognition_operator,
+            "reciprocity_snapshot_schema": reciprocity_snapshot_schema,
+        })
     return payload
 
 
@@ -197,10 +222,24 @@ class AuditoryIncrementalTerminalEvent:
     joint_settlement_receipt_sha256s: tuple[str, ...]
     authority_receipt_sha256: str
     recognition_occurrence: AuditoryRecognitionOccurrence | None = None
+    schema: str | None = None
+    l5_schema: str | None = None
+    reciprocity_snapshot_schema: str | None = None
+    recognition_operator: str | None = None
 
     @property
     def sample_count(self) -> int:
         return self.source_sample_end - self.source_sample_start
+
+    @property
+    def record_schema(self) -> str:
+        return (
+            self.schema
+            if self.schema is not None
+            else AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2
+            if self.recognition_occurrence is not None
+            else AUDITORY_INCREMENTAL_EVENT_SCHEMA
+        )
 
     def verify(self) -> None:
         if not isinstance(self.stream_id, str) or not self.stream_id:
@@ -227,6 +266,41 @@ class AuditoryIncrementalTerminalEvent:
             self.l5_authority_receipt_sha256,
             "incremental auditory L5 receipt",
         )
+        schema = self.record_schema
+        if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3:
+            if (
+                self.recognition_occurrence is None
+                or self.l5_schema != AUDITORY_L5_SCHEMA
+                or self.reciprocity_snapshot_schema
+                != AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+                or self.recognition_operator
+                != AUDITORY_RECOGNITION_OPERATOR
+            ):
+                raise ValueError(
+                    "incremental auditory event generation changed"
+                )
+        elif schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2:
+            if (
+                self.recognition_occurrence is None
+                or self.l5_schema is not None
+                or self.reciprocity_snapshot_schema is not None
+                or self.recognition_operator is not None
+            ):
+                raise ValueError(
+                    "incremental auditory v2 audit record changed"
+                )
+        elif schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA:
+            if (
+                self.recognition_occurrence is not None
+                or self.l5_schema is not None
+                or self.reciprocity_snapshot_schema is not None
+                or self.recognition_operator is not None
+            ):
+                raise ValueError(
+                    "incremental auditory v1 audit record changed"
+                )
+        else:
+            raise ValueError("incremental auditory event schema changed")
         if self.recognition_occurrence is not None:
             self.recognition_occurrence.verify()
             if (
@@ -238,6 +312,11 @@ class AuditoryIncrementalTerminalEvent:
                 != fingerprint
                 or self.recognition_occurrence.l5_authority_receipt_sha256
                 != l5_receipt
+                or (
+                    schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3
+                    and self.recognition_occurrence.operator
+                    != self.recognition_operator
+                )
             ):
                 raise ValueError(
                     "incremental auditory recognition occurrence changed"
@@ -283,6 +362,10 @@ class AuditoryIncrementalTerminalEvent:
             cochlear_receipt_sha256s=cochlear,
             joint_settlement_receipt_sha256s=joint,
             recognition_occurrence=self.recognition_occurrence,
+            schema=schema,
+            l5_schema=self.l5_schema,
+            reciprocity_snapshot_schema=self.reciprocity_snapshot_schema,
+            recognition_operator=self.recognition_operator,
         )
         if _digest(payload) != _canonical_digest(
             self.authority_receipt_sha256,
@@ -311,6 +394,10 @@ class AuditoryIncrementalTerminalEvent:
                 self.joint_settlement_receipt_sha256s
             ),
             recognition_occurrence=self.recognition_occurrence,
+            schema=self.record_schema,
+            l5_schema=self.l5_schema,
+            reciprocity_snapshot_schema=self.reciprocity_snapshot_schema,
+            recognition_operator=self.recognition_operator,
         )
         record["authority_receipt_sha256"] = self.authority_receipt_sha256
         return record
@@ -345,7 +432,14 @@ class AuditoryIncrementalTerminalEvent:
             "tutor_label",
         }
         schema = record.get("schema")
-        if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2:
+        if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3:
+            expected_fields.update({
+                "l5_schema",
+                "recognition_occurrence",
+                "recognition_operator",
+                "reciprocity_snapshot_schema",
+            })
+        elif schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2:
             expected_fields.add("recognition_occurrence")
         elif schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA:
             raise ValueError("incremental auditory event record schema changed")
@@ -388,12 +482,21 @@ class AuditoryIncrementalTerminalEvent:
             joint_settlement_receipt_sha256s=tuple(
                 record["joint_settlement_receipt_sha256s"]
             ),
+            schema=schema,
             recognition_occurrence=(
                 AuditoryRecognitionOccurrence.from_record(
                     record["recognition_occurrence"]
                 )
-                if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2 else None
+                if schema in (
+                    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2,
+                    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+                ) else None
             ),
+            l5_schema=record.get("l5_schema"),
+            reciprocity_snapshot_schema=record.get(
+                "reciprocity_snapshot_schema"
+            ),
+            recognition_operator=record.get("recognition_operator"),
             authority_receipt_sha256=record.get(
                 "authority_receipt_sha256"
             ),
@@ -466,7 +569,14 @@ class _Branch:
     structural_fingerprint: str
     sample_count: int
     topology: tuple[tuple[object, ...], ...]
-    # port -> frame -> (pressure, absolute phase turns)
+    source_indices: tuple[int, ...]
+    causal_offset_start: Fraction
+    causal_offset_step: Fraction
+    pressure_l4_field_tuples: tuple[tuple[tuple[object, ...], ...], ...]
+    carrier_phase_advance_l4_field_tuples: tuple[
+        tuple[tuple[object, ...], ...], ...
+    ]
+    # cochlear channel -> frame -> (pressure, settled phase-advance turns)
     values: tuple[tuple[tuple[float, float], ...], ...]
 
 
@@ -490,9 +600,9 @@ class _Tracker:
     start_sample: int
     frames_seen: int
     first_pressure: tuple[float, ...]
-    first_phase: tuple[float, ...]
+    first_phase_advance: tuple[float, ...]
     previous_pressure: tuple[float, ...]
-    previous_phase: tuple[float, ...]
+    previous_phase_advance: tuple[float, ...]
     row: tuple[IntervalSet, ...] | None
 
 
@@ -509,7 +619,40 @@ class _Evidence:
 class _Frame:
     completion_sample: int
     pressure: tuple[float, ...]
-    phase: tuple[float, ...]
+    phase_advance: tuple[float, ...]
+    phase_advance_nyquist_fraction: tuple[float, ...]
+
+
+def _event_local_phase_component(
+    frames: tuple[_Frame, ...],
+    channel_index: int,
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    """Establish phase origin for one derived bounded auditory event.
+
+    The continuous capture keeps its real predecessor-dependent first
+    advance.  A derived utterance has no predecessor inside its own causal
+    boundary, so only its phase component begins at exact zero.  Every later
+    provider-settled advance remains unchanged.
+    """
+    if not frames:
+        raise ValueError("event-local auditory phase requires frames")
+    if (
+        isinstance(channel_index, bool)
+        or not isinstance(channel_index, int)
+        or not 0 <= channel_index < COCHLEAR_CHANNEL_COUNT
+    ):
+        raise ValueError("event-local auditory phase channel is invalid")
+    advances = tuple(
+        0.0 if index == 0 else frame.phase_advance[channel_index]
+        for index, frame in enumerate(frames)
+    )
+    normalized = tuple(
+        0.0
+        if index == 0
+        else frame.phase_advance_nyquist_fraction[channel_index]
+        for index, frame in enumerate(frames)
+    )
+    return advances, normalized
 
 
 @dataclass(frozen=True, slots=True)
@@ -524,6 +667,26 @@ class _PendingTerminal:
     joint_settlement_receipt_sha256s: tuple[str, ...]
     auditory_l5: AuditoryL5Experience
     recognition_occurrence: AuditoryRecognitionOccurrence | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _OwnerLiveStateCheckpoint:
+    stream_id: str | None
+    last_transport: AuditoryPCMContinuityReceipt | None
+    last_cochlear: AuditoryGammatoneContinuationReceipt | None
+    last_result: AuditoryIncrementalAdvance | None
+    last_committed_receipt_sha256: str | None
+    buffer_start: int
+    pcm: bytes
+    evidence: tuple[_Evidence, ...]
+    frames: tuple[_Frame, ...]
+    pending: tuple[tuple[int, _PendingTerminal], ...]
+    released_full_fields: tuple[
+        tuple[str, AuditoryL5Experience], ...
+    ]
+    native_active_starts: tuple[int, ...]
+    native_active_tracker_count: int
+    native_state: object | None = field(compare=False, repr=False)
 
 
 @dataclass(slots=True)
@@ -569,6 +732,9 @@ def _branch_from_snapshot(value: object) -> _Branch:
     sample_count = value.get("sample_count")
     topology_raw = value.get("topology")
     packed_raw = value.get("packed_samples")
+    source_indices_raw = value.get("source_indices")
+    pressure_l4_raw = value.get("pressure_l4_field_tuples")
+    phase_l4_raw = value.get("carrier_phase_advance_l4_field_tuples")
     if (
         isinstance(sample_count, bool)
         or not isinstance(sample_count, int)
@@ -578,31 +744,205 @@ def _branch_from_snapshot(value: object) -> _Branch:
         or len(topology_raw) != COCHLEAR_CHANNEL_COUNT
         or not isinstance(packed_raw, list)
         or len(packed_raw) != COCHLEAR_CHANNEL_COUNT
+        or not isinstance(source_indices_raw, list)
+        or source_indices_raw != list(range(sample_count))
+        or not isinstance(pressure_l4_raw, list)
+        or len(pressure_l4_raw) != COCHLEAR_CHANNEL_COUNT
+        or not isinstance(phase_l4_raw, list)
+        or len(phase_l4_raw) != COCHLEAR_CHANNEL_COUNT
     ):
         raise ValueError("incremental auditory witness exceeds its boundary")
+
+    def exact_fraction(raw: object, name: str) -> Fraction:
+        if not isinstance(raw, str):
+            raise ValueError(f"{name} is not an exact fraction")
+        try:
+            return Fraction(raw)
+        except (ValueError, ZeroDivisionError) as exc:
+            raise ValueError(f"{name} is not an exact fraction") from exc
+
+    exact_fraction(
+        value.get("source_time_start"),
+        "incremental auditory source time start",
+    )
+    causal_offset_start = exact_fraction(
+        value.get("causal_offset_start"),
+        "incremental auditory causal offset start",
+    )
+    causal_offset_step = exact_fraction(
+        value.get("causal_offset_step"),
+        "incremental auditory causal offset step",
+    )
+    native_hop = Fraction(
+        OBSERVATION_HOP_SAMPLES,
+        PCM_SAMPLE_RATE_HZ,
+    )
+    if (
+        causal_offset_start != native_hop
+        or causal_offset_step != native_hop
+    ):
+        raise ValueError("incremental auditory witness grid changed")
+
+    def component_topology(
+        raw: object,
+        *,
+        channel_index: int,
+        phase_advance: bool,
+    ) -> tuple[object, ...]:
+        if not isinstance(raw, dict):
+            raise ValueError("incremental auditory component topology changed")
+        definition = AUDITORY_CHANNELS[channel_index]
+        expected_index = channel_index * 2 + int(phase_advance)
+        component = (
+            "carrier-phase-advance" if phase_advance else "pressure-envelope"
+        )
+        expected_coordinates = (
+            ("cochlear-channel", definition.name),
+            ("kernel-component", component),
+            ("centre-hz", str(definition.centre_hz)),
+            ("erb-width-hz", str(definition.erb_width_hz)),
+            ("gammatone-order", "4"),
+            ("observation-hop-samples", str(OBSERVATION_HOP_SAMPLES)),
+        )
+        coordinates_raw = raw.get("coordinates")
+        coordinates = (
+            tuple(tuple(item) for item in coordinates_raw)
+            if isinstance(coordinates_raw, list)
+            and all(isinstance(item, list) and len(item) == 2
+                    for item in coordinates_raw)
+            else ()
+        )
+        expected_substream = (
+            f"{definition.name}_phase_advance"
+            if phase_advance
+            else f"{definition.name}_pressure"
+        )
+        expected_quantity = (
+            "cochlear-carrier-phase-advance"
+            if phase_advance
+            else "cochlear-pressure-envelope"
+        )
+        expected_unit = (
+            "nyquist-fraction-per-observation-hop"
+            if phase_advance
+            else "full-scale-pressure"
+        )
+        if (
+            raw.get("sensor_id") != AUDITORY_KERNEL_SENSOR_ID
+            or raw.get("substream_id") != expected_substream
+            or raw.get("topology_index") != expected_index
+            or coordinates != expected_coordinates
+            or raw.get("physical_quantity") != expected_quantity
+            or raw.get("physical_unit") != expected_unit
+        ):
+            raise ValueError("incremental auditory witness topology changed")
+        return (
+            raw.get("sensor_id"),
+            raw.get("substream_id"),
+            raw.get("topology_index"),
+            coordinates,
+            raw.get("physical_quantity"),
+            raw.get("physical_unit"),
+            _canonical_digest(
+                raw.get("source_stream_receipt_sha256"),
+                "incremental auditory source stream receipt",
+            ),
+            _canonical_digest(
+                raw.get("l0_l4_trace_receipt_sha256"),
+                "incremental auditory L0-L4 trace receipt",
+            ),
+            _canonical_digest(
+                raw.get("kernel_basin_receipt_sha256"),
+                "incremental auditory kernel basin receipt",
+            ),
+            _canonical_digest(
+                raw.get("authority_receipt_sha256"),
+                "incremental auditory component receipt",
+            ),
+        )
+
+    def l4_bank(raw: object, name: str) -> tuple[tuple[object, ...], ...]:
+        if (
+            not isinstance(raw, list)
+            or not raw
+            or len(raw) > MAX_EVENT_HOPS
+        ):
+            raise ValueError(f"{name} is incomplete")
+        restored = []
+        for expected_index, item in enumerate(raw):
+            if (
+                not isinstance(item, dict)
+                or item.get("tuple_index") != expected_index
+                or not isinstance(item.get("fields"), list)
+            ):
+                raise ValueError(f"{name} is incomplete")
+            fields = tuple(
+                (field[0], exact_fraction(field[1], f"{name}.{field[0]}"))
+                for field in item["fields"]
+                if isinstance(field, list) and len(field) == 2
+            )
+            if (
+                len(fields) != len(item["fields"])
+                or tuple(field_name for field_name, _ in fields)
+                != DSF_FIELD_ORDER
+            ):
+                raise ValueError(f"{name} field structure changed")
+            restored.append((
+                expected_index,
+                fields,
+                _canonical_digest(
+                    item.get("authority_receipt_sha256"),
+                    f"{name} receipt",
+                ),
+            ))
+        return tuple(restored)
+
     topology = []
     values = []
-    for port_index, (raw_topology, encoded) in enumerate(
-        zip(topology_raw, packed_raw, strict=True)
+    pressure_l4 = []
+    phase_l4 = []
+    for channel_index, (
+        raw_topology,
+        encoded,
+        raw_pressure_l4,
+        raw_phase_l4,
+    ) in enumerate(
+        zip(
+            topology_raw,
+            packed_raw,
+            pressure_l4_raw,
+            phase_l4_raw,
+            strict=True,
+        )
     ):
         if (
             not isinstance(raw_topology, dict)
-            or raw_topology.get("topology_index") != port_index
-            or raw_topology.get("substream_id")
-            != AUDITORY_CHANNELS[port_index].name
+            or raw_topology.get("cochlear_index") != channel_index
+            or raw_topology.get("channel_id")
+            != AUDITORY_CHANNELS[channel_index].name
             or not isinstance(encoded, str)
         ):
             raise ValueError("incremental auditory witness topology changed")
-        coordinates = raw_topology.get("coordinates")
-        if not isinstance(coordinates, list):
-            raise ValueError("incremental auditory witness coordinates changed")
+        pair_receipt = _canonical_digest(
+            raw_topology.get("pair_receipt_sha256"),
+            "incremental auditory pair receipt",
+        )
+        pressure_topology = component_topology(
+            raw_topology.get("pressure"),
+            channel_index=channel_index,
+            phase_advance=False,
+        )
+        phase_topology = component_topology(
+            raw_topology.get("carrier_phase_advance"),
+            channel_index=channel_index,
+            phase_advance=True,
+        )
         topology.append((
-            raw_topology.get("sensor_id"),
-            raw_topology.get("substream_id"),
-            raw_topology.get("topology_index"),
-            tuple(tuple(item) for item in coordinates),
-            raw_topology.get("physical_quantity"),
-            raw_topology.get("physical_unit"),
+            channel_index,
+            raw_topology.get("channel_id"),
+            pressure_topology,
+            phase_topology,
+            pair_receipt,
         ))
         try:
             packed = base64.b64decode(encoded, validate=True)
@@ -615,10 +955,31 @@ def _branch_from_snapshot(value: object) -> _Branch:
         unpacked = struct.unpack(f"<{sample_count * 2}d", packed)
         if any(not math.isfinite(item) for item in unpacked):
             raise ValueError("incremental auditory witness is not finite")
-        values.append(tuple(
+        channel_values = tuple(
             (unpacked[index * 2], unpacked[index * 2 + 1])
             for index in range(sample_count)
+        )
+        if any(
+            not 0.0 <= pressure <= 1.0
+            or not -PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+            <= phase_advance
+            <= PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+            for pressure, phase_advance in channel_values
+        ):
+            raise ValueError("incremental auditory witness left physical bounds")
+        values.append(channel_values)
+        pressure_l4.append(l4_bank(
+            raw_pressure_l4,
+            f"incremental pressure L4 channel {channel_index}",
         ))
+        phase_l4.append(l4_bank(
+            raw_phase_l4,
+            f"incremental phase L4 channel {channel_index}",
+        ))
+        if tuple(value[2] for value in pressure_l4[-1]) == tuple(
+            value[2] for value in phase_l4[-1]
+        ):
+            raise ValueError("incremental auditory L4 banks are not independent")
     return _Branch(
         structural_fingerprint=_canonical_digest(
             value.get("structural_fingerprint"),
@@ -626,6 +987,11 @@ def _branch_from_snapshot(value: object) -> _Branch:
         ),
         sample_count=sample_count,
         topology=tuple(topology),
+        source_indices=tuple(source_indices_raw),
+        causal_offset_start=causal_offset_start,
+        causal_offset_step=causal_offset_step,
+        pressure_l4_field_tuples=tuple(pressure_l4),
+        carrier_phase_advance_l4_field_tuples=tuple(phase_l4),
         values=tuple(values),
     )
 
@@ -639,8 +1005,7 @@ def _branch_sample(
     """Return pressure and phase advance on the common reference grid."""
 
     if branch.sample_count == 1 or query_count == 1:
-        pressure = branch.values[port][0][0]
-        return pressure, 0.0
+        return branch.values[port][0]
     position = query_index * (branch.sample_count - 1) / (query_count - 1)
     left_index = int(math.floor(position))
     right_index = min(left_index + 1, branch.sample_count - 1)
@@ -648,15 +1013,8 @@ def _branch_sample(
     left_pressure = branch.values[port][left_index][0]
     right_pressure = branch.values[port][right_index][0]
 
-    def phase_advance(index: int) -> float:
-        right = max(1, index)
-        return (
-            branch.values[port][right][1]
-            - branch.values[port][right - 1][1]
-        )
-
-    left_phase = phase_advance(left_index)
-    right_phase = phase_advance(right_index)
+    left_phase = branch.values[port][left_index][1]
+    right_phase = branch.values[port][right_index][1]
     return (
         left_pressure + weight * (right_pressure - left_pressure),
         left_phase + weight * (right_phase - left_phase),
@@ -788,6 +1146,10 @@ def _local_interval(
 
 def _cells_from_owner(owner: AuditoryReciprocityOwner) -> tuple[_Cell, ...]:
     snapshot = owner.snapshot()
+    if isinstance(snapshot, dict) and snapshot.get("schema") == (
+        LEGACY_AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+    ):
+        raise ValueError("incremental auditory rejects reciprocity v4 evidence")
     if (
         not isinstance(snapshot, dict)
         or snapshot.get("schema") != AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
@@ -812,7 +1174,22 @@ def _cells_from_owner(owner: AuditoryReciprocityOwner) -> tuple[_Cell, ...]:
         ):
             raise ValueError("incremental auditory learned class is malformed")
         branches = tuple(_branch_from_snapshot(value) for value in raw_branches)
-        if any(branch.topology != branches[0].topology for branch in branches[1:]):
+
+        def physical_topology(branch: _Branch) -> tuple[object, ...]:
+            return tuple(
+                (
+                    channel[0],
+                    channel[1],
+                    channel[2][:6],
+                    channel[3][:6],
+                )
+                for channel in branch.topology
+            )
+
+        if any(
+            physical_topology(branch) != physical_topology(branches[0])
+            for branch in branches[1:]
+        ):
             raise ValueError("incremental auditory learned topology changed")
         for left_index, left in enumerate(branches):
             for right in branches[left_index:]:
@@ -908,7 +1285,13 @@ class AuditoryIncrementalTerminalOwner:
                 "learned incremental auditory perception requires the exact "
                 "native proposal kernel"
             )
-        self._native_proposals = (
+        self._native_proposals = self._new_native_proposal_owner()
+        self._lock = threading.RLock()
+        self._released_full_fields: dict[str, AuditoryL5Experience] = {}
+        self._clear_live_state()
+
+    def _new_native_proposal_owner(self):
+        return (
             _NativeIncrementalProposalCells([
                 (
                     [
@@ -937,9 +1320,6 @@ class AuditoryIncrementalTerminalOwner:
             ])
             if self._cells else None
         )
-        self._lock = threading.RLock()
-        self._released_full_fields: dict[str, AuditoryL5Experience] = {}
-        self._clear_live_state()
 
     def _clear_live_state(self) -> None:
         if (
@@ -951,11 +1331,88 @@ class AuditoryIncrementalTerminalOwner:
         self._last_transport: AuditoryPCMContinuityReceipt | None = None
         self._last_cochlear: AuditoryGammatoneContinuationReceipt | None = None
         self._last_result: AuditoryIncrementalAdvance | None = None
+        self._last_committed_receipt_sha256: str | None = None
         self._buffer_start = 0
         self._pcm = bytearray()
         self._evidence: list[_Evidence] = []
         self._frames: list[_Frame] = []
         self._pending: dict[int, _PendingTerminal] = {}
+
+    def _transaction_checkpoint(self) -> _OwnerLiveStateCheckpoint:
+        native_starts = (
+            tuple(self._native_proposals.active_starts)
+            if self._native_proposals is not None else ()
+        )
+        native_count = (
+            self._native_proposals.active_tracker_count
+            if self._native_proposals is not None else 0
+        )
+        if native_count > MAX_ACTIVE_TRACKERS:
+            raise RuntimeError(
+                "incremental auditory checkpoint exceeds tracker capacity"
+            )
+        native_state = (
+            self._native_proposals.checkpoint_state()
+            if self._native_proposals is not None else None
+        )
+        return _OwnerLiveStateCheckpoint(
+            stream_id=self._stream_id,
+            last_transport=self._last_transport,
+            last_cochlear=self._last_cochlear,
+            last_result=self._last_result,
+            last_committed_receipt_sha256=(
+                self._last_committed_receipt_sha256
+            ),
+            buffer_start=self._buffer_start,
+            pcm=bytes(self._pcm),
+            evidence=tuple(self._evidence),
+            frames=tuple(self._frames),
+            pending=tuple(self._pending.items()),
+            released_full_fields=tuple(self._released_full_fields.items()),
+            native_active_starts=native_starts,
+            native_active_tracker_count=native_count,
+            native_state=native_state,
+        )
+
+    def _restore_transaction_checkpoint(
+        self, checkpoint: _OwnerLiveStateCheckpoint
+    ) -> None:
+        if not isinstance(checkpoint, _OwnerLiveStateCheckpoint):
+            raise TypeError("incremental auditory checkpoint is invalid")
+        native = checkpoint.native_state
+        if native is None:
+            if (
+                checkpoint.native_active_starts
+                or checkpoint.native_active_tracker_count
+            ):
+                raise RuntimeError(
+                    "incremental auditory checkpoint lost its learned cells"
+                )
+        else:
+            if (
+                tuple(native.active_starts)
+                != checkpoint.native_active_starts
+                or native.active_tracker_count
+                != checkpoint.native_active_tracker_count
+            ):
+                raise RuntimeError(
+                    "incremental auditory native rollback changed state"
+                )
+
+        self._native_proposals = native
+        self._stream_id = checkpoint.stream_id
+        self._last_transport = checkpoint.last_transport
+        self._last_cochlear = checkpoint.last_cochlear
+        self._last_result = checkpoint.last_result
+        self._last_committed_receipt_sha256 = (
+            checkpoint.last_committed_receipt_sha256
+        )
+        self._buffer_start = checkpoint.buffer_start
+        self._pcm = bytearray(checkpoint.pcm)
+        self._evidence = list(checkpoint.evidence)
+        self._frames = list(checkpoint.frames)
+        self._pending = dict(checkpoint.pending)
+        self._released_full_fields = dict(checkpoint.released_full_fields)
 
     @property
     def active_tracker_count(self) -> int:
@@ -1010,23 +1467,41 @@ class AuditoryIncrementalTerminalOwner:
         capture: AuditoryFullFieldCapture,
         auditory_l5: AuditoryL5Experience,
     ) -> tuple[
-        tuple[int, tuple[float, ...], tuple[float, ...]], ...
+        tuple[
+            int,
+            tuple[float, ...],
+            tuple[float, ...],
+            tuple[float, ...],
+        ], ...
     ]:
-        if len(auditory_l5.ports) != COCHLEAR_CHANNEL_COUNT:
-            raise ValueError("incremental auditory L5 topology is incomplete")
+        auditory_l5.verify()
+        if (
+            len(auditory_l5.channels) != COCHLEAR_CHANNEL_COUNT
+            or not auditory_l5.receipt_registry.resolve(
+                auditory_l5.authority_receipt_sha256,
+                "incremental auditory L5 v3 authority",
+            )
+        ):
+            raise ValueError("incremental auditory requires paired L5 v3")
         if any(
-            len(port.samples) != capture.frame_count
-            or len(port.l4_field_tuples) == 0
+            len(component.samples) != capture.frame_count
+            or not component.l4_field_tuples
             or tuple(
-                value.tuple_index for value in port.l4_field_tuples
-            ) != tuple(range(len(port.l4_field_tuples)))
+                value.tuple_index for value in component.l4_field_tuples
+            ) != tuple(range(len(component.l4_field_tuples)))
             or any(
                 tuple(name for name, _ in value.fields) != DSF_FIELD_ORDER
-                for value in port.l4_field_tuples
+                for value in component.l4_field_tuples
             )
-            for port in auditory_l5.ports
+            for channel in auditory_l5.channels
+            for component in (
+                channel.pressure,
+                channel.carrier_phase_advance,
+            )
         ):
-            raise ValueError("incremental auditory L5 frame field is incomplete")
+            raise ValueError(
+                "incremental auditory requires two complete independent L4 banks"
+            )
         completions = []
         for offset_ns in capture.channels[0].causal_offsets_ns:
             numerator = offset_ns * PCM_SAMPLE_RATE_HZ
@@ -1036,27 +1511,51 @@ class AuditoryIncrementalTerminalOwner:
         frames = []
         for frame_index, completion in enumerate(completions):
             pressures = []
-            phases = []
-            for port_index, (channel, port) in enumerate(
-                zip(capture.channels, auditory_l5.ports, strict=True)
+            phase_advances = []
+            normalized_phase_advances = []
+            for channel_index, (source, settled) in enumerate(
+                zip(capture.channels, auditory_l5.channels, strict=True)
             ):
+                pressure = settled.pressure
+                phase = settled.carrier_phase_advance
+                pressure_sample = pressure.samples[frame_index]
+                phase_sample = phase.samples[frame_index]
                 if (
-                    port.topology_index != port_index
-                    or port.substream_id != channel.definition.name
-                    or port.samples[frame_index].source_index != frame_index
+                    settled.cochlear_index != channel_index
+                    or settled.channel_id != source.definition.name
+                    or pressure.kind is not AuditoryL5ComponentKind.PRESSURE
+                    or phase.kind
+                    is not AuditoryL5ComponentKind.CARRIER_PHASE_ADVANCE
+                    or pressure_sample.source_index != frame_index
+                    or phase_sample.source_index != frame_index
                     or Fraction.from_float(
-                        channel.pressure_envelope_full_scale[frame_index]
-                    ) != port.samples[frame_index].pressure
+                        source.pressure_envelope_full_scale[frame_index]
+                    ) != pressure_sample.signal
+                    or pressure_sample.phase_turns != 0
                     or Fraction.from_float(
-                        channel.carrier_phase_turns[frame_index]
-                    ) != port.samples[frame_index].phase_turns
+                        source.carrier_phase_advance_turns[frame_index]
+                    ) != phase_sample.phase_turns
+                    or Fraction.from_float(
+                        source.carrier_phase_advance_nyquist_fraction[
+                            frame_index
+                        ]
+                    ) != phase_sample.signal
+                    or float(phase_sample.signal)
+                    != float(phase_sample.phase_turns)
+                    / PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
                 ):
                     raise ValueError(
                         "incremental auditory capture differs from settled L5"
                     )
-                pressures.append(float(port.samples[frame_index].pressure))
-                phases.append(float(port.samples[frame_index].phase_turns))
-            frames.append((completion, tuple(pressures), tuple(phases)))
+                pressures.append(float(pressure_sample.signal))
+                phase_advances.append(float(phase_sample.phase_turns))
+                normalized_phase_advances.append(float(phase_sample.signal))
+            frames.append((
+                completion,
+                tuple(pressures),
+                tuple(phase_advances),
+                tuple(normalized_phase_advances),
+            ))
         return tuple(frames)
 
     @staticmethod
@@ -1067,7 +1566,14 @@ class AuditoryIncrementalTerminalOwner:
         transport: AuditoryPCMContinuityReceipt,
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint: AuditoryStreamSettlementReceipt,
-    ) -> tuple[tuple[int, tuple[float, ...], tuple[float, ...]], ...]:
+    ) -> tuple[
+        tuple[
+            int,
+            tuple[float, ...],
+            tuple[float, ...],
+            tuple[float, ...],
+        ], ...
+    ]:
         if not isinstance(transport, AuditoryPCMContinuityReceipt):
             raise TypeError("incremental terminal requires typed PCM continuity")
         if not isinstance(cochlear, AuditoryGammatoneContinuationReceipt):
@@ -1249,40 +1755,82 @@ class AuditoryIncrementalTerminalOwner:
         ):
             raise RuntimeError("incremental auditory candidate frame extent changed")
         epoch_start = self._evidence_epoch_start()
-        ports = []
-        for topology_index, definition in enumerate(AUDITORY_CHANNELS):
-            ports.append(NativeSensorySubstreamInput(
+        components = []
+        source_times = tuple(
+            epoch_start
+            + Fraction(value.completion_sample, PCM_SAMPLE_RATE_HZ)
+            for value in selected
+        )
+        zero_phase = (Fraction(0),) * len(selected)
+        for channel_index, definition in enumerate(AUDITORY_CHANNELS):
+            event_phase_advances, event_normalized_phase_advances = (
+                _event_local_phase_component(selected, channel_index)
+            )
+            pressure_index = channel_index * 2
+            phase_index = pressure_index + 1
+            common_coordinates = (
+                NativeAxisCoordinate("cochlear-channel", definition.name),
+            )
+            fixed_coordinates = (
+                NativeAxisCoordinate("centre-hz", str(definition.centre_hz)),
+                NativeAxisCoordinate(
+                    "erb-width-hz", str(definition.erb_width_hz)
+                ),
+                NativeAxisCoordinate("gammatone-order", "4"),
+                NativeAxisCoordinate(
+                    "observation-hop-samples",
+                    str(OBSERVATION_HOP_SAMPLES),
+                ),
+            )
+            components.append(NativeSensorySubstreamInput(
                 sense=PhysicalSense.SOUND,
-                sensor_id="microphone-gammatone-cochlear-field",
-                substream_id=definition.name,
-                topology_index=topology_index,
+                sensor_id=AUDITORY_KERNEL_SENSOR_ID,
+                substream_id=f"{definition.name}_pressure",
+                topology_index=pressure_index,
                 coordinates=(
-                    NativeAxisCoordinate("cochlear-channel", definition.name),
-                    NativeAxisCoordinate("centre-hz", str(definition.centre_hz)),
+                    *common_coordinates,
                     NativeAxisCoordinate(
-                        "erb-width-hz", str(definition.erb_width_hz)
+                        "kernel-component", "pressure-envelope"
                     ),
-                    NativeAxisCoordinate("gammatone-order", "4"),
-                    NativeAxisCoordinate(
-                        "observation-hop-samples",
-                        str(OBSERVATION_HOP_SAMPLES),
-                    ),
+                    *fixed_coordinates,
                 ),
                 physical_quantity="cochlear-pressure-envelope",
                 physical_unit="full-scale-pressure",
-                source_times=tuple(
-                    epoch_start
-                    + Fraction(value.completion_sample, PCM_SAMPLE_RATE_HZ)
-                    for value in selected
-                ),
+                source_times=source_times,
                 normalized_signal=tuple(
-                    value.pressure[topology_index] for value in selected
+                    value.pressure[channel_index] for value in selected
                 ),
+                phase_turns=zero_phase,
+            ))
+            components.append(NativeSensorySubstreamInput(
+                sense=PhysicalSense.SOUND,
+                sensor_id=AUDITORY_KERNEL_SENSOR_ID,
+                substream_id=f"{definition.name}_phase_advance",
+                topology_index=phase_index,
+                coordinates=(
+                    *common_coordinates,
+                    NativeAxisCoordinate(
+                        "kernel-component", "carrier-phase-advance"
+                    ),
+                    *fixed_coordinates,
+                ),
+                physical_quantity="cochlear-carrier-phase-advance",
+                physical_unit="nyquist-fraction-per-observation-hop",
+                source_times=source_times,
+                normalized_signal=event_normalized_phase_advances,
                 phase_turns=tuple(
-                    Fraction.from_float(value.phase[topology_index])
-                    for value in selected
+                    Fraction.from_float(value)
+                    for value in event_phase_advances
                 ),
             ))
+        if (
+            len(components) != AUDITORY_KERNEL_COMPONENT_COUNT
+            or tuple(value.topology_index for value in components)
+            != tuple(range(AUDITORY_KERNEL_COMPONENT_COUNT))
+        ):
+            raise RuntimeError(
+                "incremental auditory full gate lost paired topology"
+            )
         identity = _digest({
             "pcm_sha256": pcm_sha256,
             "source_sample_end": end,
@@ -1295,7 +1843,7 @@ class AuditoryIncrementalTerminalOwner:
                 epoch_start + Fraction(start, PCM_SAMPLE_RATE_HZ)
             ),
             source_time_end=epoch_start + Fraction(end, PCM_SAMPLE_RATE_HZ),
-            observed_substreams={PhysicalSense.SOUND: tuple(ports)},
+            observed_substreams={PhysicalSense.SOUND: tuple(components)},
             states={
                 sense: (
                     SenseBoundaryState.OBSERVED
@@ -1366,6 +1914,12 @@ class AuditoryIncrementalTerminalOwner:
                 value.joint_settlement_receipt_sha256s
             ),
             recognition_occurrence=value.recognition_occurrence,
+            schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+            l5_schema=AUDITORY_L5_SCHEMA,
+            reciprocity_snapshot_schema=(
+                AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+            ),
+            recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
         )
         event = AuditoryIncrementalTerminalEvent(
             event_id=event_id,
@@ -1380,7 +1934,13 @@ class AuditoryIncrementalTerminalOwner:
             joint_settlement_receipt_sha256s=(
                 value.joint_settlement_receipt_sha256s
             ),
+            schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
             recognition_occurrence=value.recognition_occurrence,
+            l5_schema=AUDITORY_L5_SCHEMA,
+            reciprocity_snapshot_schema=(
+                AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA
+            ),
+            recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
             authority_receipt_sha256=_digest(payload),
         )
         event.verify()
@@ -1402,6 +1962,10 @@ class AuditoryIncrementalTerminalOwner:
     ) -> AuditoryL5Experience:
         """Transfer the exact field released with one terminal event."""
         event.verify()
+        if event.schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3:
+            raise ValueError(
+                "legacy incremental auditory audit record is not live authority"
+            )
         with self._lock:
             experience = self._released_full_fields.pop(event.event_id, None)
         if experience is None:
@@ -1427,7 +1991,7 @@ class AuditoryIncrementalTerminalOwner:
         self,
         completion: int,
         pressure: tuple[float, ...],
-        phase: tuple[float, ...],
+        phase_advance: tuple[float, ...],
     ) -> None:
         start = completion - OBSERVATION_HOP_SAMPLES
         pressure_uncertainty = 2.0 * float(PCM_PRESSURE_QUANTUM)
@@ -1455,9 +2019,9 @@ class AuditoryIncrementalTerminalOwner:
                     start_sample=start,
                     frames_seen=1,
                     first_pressure=pressure,
-                    first_phase=phase,
+                    first_phase_advance=phase_advance,
                     previous_pressure=pressure,
-                    previous_phase=phase,
+                    previous_phase_advance=phase_advance,
                     row=None,
                 ))
 
@@ -1465,21 +2029,15 @@ class AuditoryIncrementalTerminalOwner:
         self,
         tracker: _Tracker,
         pressure: tuple[float, ...],
-        phase: tuple[float, ...],
+        phase_advance: tuple[float, ...],
     ) -> bool | None:
         cell = self._cells[tracker.cell_index]
-        delta = tuple(
-            current - prior
-            for current, prior in zip(
-                phase, tracker.previous_phase, strict=True
-            )
-        )
         if tracker.row is None:
             first_row = _advance_row(
                 cell,
                 None,
                 pressure=tracker.first_pressure,
-                phase_advance=delta,
+                phase_advance=tracker.first_phase_advance,
                 phase_prior_pressure=pressure,
             )
             if first_row is None:
@@ -1490,7 +2048,7 @@ class AuditoryIncrementalTerminalOwner:
                 cell,
                 first_row,
                 pressure=pressure,
-                phase_advance=delta,
+                phase_advance=phase_advance,
                 phase_prior_pressure=tracker.first_pressure,
             )
         else:
@@ -1498,7 +2056,7 @@ class AuditoryIncrementalTerminalOwner:
                 cell,
                 tracker.row,
                 pressure=pressure,
-                phase_advance=delta,
+                phase_advance=phase_advance,
                 phase_prior_pressure=tracker.previous_pressure,
             )
         if row is None:
@@ -1508,7 +2066,7 @@ class AuditoryIncrementalTerminalOwner:
         tracker.row = row
         tracker.frames_seen += 1
         tracker.previous_pressure = pressure
-        tracker.previous_phase = phase
+        tracker.previous_phase_advance = phase_advance
         return bool(
             tracker.frames_seen >= cell.terminal_floor and row[-1]
         )
@@ -1537,7 +2095,7 @@ class AuditoryIncrementalTerminalOwner:
         self,
         completion: int,
         pressure: tuple[float, ...],
-        phase: tuple[float, ...],
+        phase_advance: tuple[float, ...],
         full_gate_work: _AdvanceFullGateWorkLedger,
     ) -> tuple[_PendingTerminal | None, bool, bool]:
         if self._native_proposals is None:
@@ -1556,7 +2114,7 @@ class AuditoryIncrementalTerminalOwner:
         ) = self._native_proposals.step(
             completion,
             list(pressure),
-            list(phase),
+            list(phase_advance),
             [
                 (start, pending.end)
                 for start, pending in self._pending.items()
@@ -1580,7 +2138,8 @@ class AuditoryIncrementalTerminalOwner:
             if span <= 0 or span % OBSERVATION_HOP_SAMPLES:
                 raise RuntimeError("incremental auditory gate extent changed")
             field_samples = (
-                span // OBSERVATION_HOP_SAMPLES * COCHLEAR_CHANNEL_COUNT
+                span // OBSERVATION_HOP_SAMPLES
+                * AUDITORY_KERNEL_COMPONENT_COUNT
             )
             if not full_gate_work.reserve_field_samples(field_samples):
                 self._native_proposals.clear()
@@ -1664,6 +2223,59 @@ class AuditoryIncrementalTerminalOwner:
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint_settlement: AuditoryStreamSettlementReceipt,
     ) -> AuditoryIncrementalAdvance:
+        # Verification is intentionally before duplicate recognition: the
+        # receipt alone cannot authorize a result for different chunk bytes or
+        # a different full-field graph.
+        self._verify_chunk(
+            pcm_s16le,
+            capture,
+            auditory_l5,
+            transport,
+            cochlear,
+            joint_settlement,
+        )
+        with self._lock:
+            if (
+                transport.receipt_sha256
+                == self._last_committed_receipt_sha256
+            ):
+                if self._last_result is None:
+                    raise RuntimeError(
+                        "incremental auditory committed retry has no result"
+                    )
+                return self._last_result
+            checkpoint = self._transaction_checkpoint()
+            try:
+                result = self._advance_untransactional(
+                    pcm_s16le=pcm_s16le,
+                    capture=capture,
+                    auditory_l5=auditory_l5,
+                    transport=transport,
+                    cochlear=cochlear,
+                    joint_settlement=joint_settlement,
+                )
+            except Exception as advance_error:
+                try:
+                    self._restore_transaction_checkpoint(checkpoint)
+                except Exception as rollback_error:
+                    raise ExceptionGroup(
+                        "incremental auditory advance and rollback failed",
+                        [advance_error, rollback_error],
+                    )
+                raise
+            self._last_committed_receipt_sha256 = transport.receipt_sha256
+            return result
+
+    def _advance_untransactional(
+        self,
+        *,
+        pcm_s16le: bytes,
+        capture: AuditoryFullFieldCapture,
+        auditory_l5: AuditoryL5Experience,
+        transport: AuditoryPCMContinuityReceipt,
+        cochlear: AuditoryGammatoneContinuationReceipt,
+        joint_settlement: AuditoryStreamSettlementReceipt,
+    ) -> AuditoryIncrementalAdvance:
         frames = self._verify_chunk(
             pcm_s16le,
             capture,
@@ -1674,9 +2286,9 @@ class AuditoryIncrementalTerminalOwner:
         )
         with self._lock:
             if (
-                self._last_transport is not None
+                self._last_committed_receipt_sha256 is not None
                 and transport.receipt_sha256
-                == self._last_transport.receipt_sha256
+                == self._last_committed_receipt_sha256
             ):
                 if self._last_result is None:
                     raise RuntimeError("incremental auditory retry has no result")
@@ -1709,8 +2321,8 @@ class AuditoryIncrementalTerminalOwner:
                 pcm_s16le, transport, cochlear, joint_settlement
             )
             self._frames.extend(
-                _Frame(completion, pressure, phase)
-                for completion, pressure, phase in frames
+                _Frame(completion, pressure, phase_advance, normalized)
+                for completion, pressure, phase_advance, normalized in frames
             )
             released = []
             ambiguous = False
@@ -1725,13 +2337,13 @@ class AuditoryIncrementalTerminalOwner:
                     self._native_proposals.clear()
                 self._pending.clear()
             else:
-                for completion, pressure, phase in frames:
+                for completion, pressure, phase_advance, _normalized in frames:
                     processed_hops += 1
                     terminal, frame_ambiguous, frame_resource = (
                         self._process_frame(
                             completion,
                             pressure,
-                            phase,
+                            phase_advance,
                             full_gate_work,
                         )
                     )
@@ -1807,6 +2419,10 @@ class _AuditoryTerminalClaim:
     event: AuditoryIncrementalTerminalEvent
     auditory_l5: AuditoryL5Experience
     owner_token: object
+    reservation_token: object
+    authority_position: int
+    lifecycle: str = "in_flight"
+    prepared_causal_settlement: CausalExperienceSettlement | None = None
     causal_settlement: CausalExperienceSettlement | None = None
 
 
@@ -1814,6 +2430,13 @@ class _AuditoryTerminalClaim:
 class _IssuedTerminal:
     event: AuditoryIncrementalTerminalEvent
     auditory_l5: AuditoryL5Experience
+
+
+@dataclass(frozen=True, slots=True)
+class _InFlightTerminal:
+    issued: _IssuedTerminal
+    reservation_token: object
+    authority_position: int
 
 
 class AuditoryIncrementalTerminalRegistry:
@@ -1850,7 +2473,24 @@ class AuditoryIncrementalTerminalRegistry:
             OrderedDict()
         )
         self._issued: OrderedDict[str, _IssuedTerminal] = OrderedDict()
+        self._in_flight: OrderedDict[str, _InFlightTerminal] = OrderedDict()
+        self._authority_order: list[str] = []
         self._claim_token = object()
+
+    def _order_issued_locked(self) -> None:
+        self._issued = OrderedDict(
+            (event_id, self._issued[event_id])
+            for event_id in self._authority_order
+            if event_id in self._issued
+        )
+
+    def _remove_authority_order_locked(self, event_id: str) -> None:
+        try:
+            self._authority_order.remove(event_id)
+        except ValueError as error:
+            raise RuntimeError(
+                "incremental terminal authority order changed"
+            ) from error
 
     def _expire_locked(self, now: float) -> None:
         for stream_id in tuple(self._streams):
@@ -1868,7 +2508,8 @@ class AuditoryIncrementalTerminalRegistry:
         event.verify()
         auditory_l5.verify()
         if (
-            auditory_l5.event_boundary != "utterance"
+            event.schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3
+            or auditory_l5.event_boundary != "utterance"
             or auditory_l5.structural_fingerprint
             != event.structural_fingerprint
             or auditory_l5.authority_receipt_sha256
@@ -1886,11 +2527,19 @@ class AuditoryIncrementalTerminalRegistry:
                     "incremental terminal identity was issued twice differently"
                 )
             return
-        if len(self._issued) >= self._stream_capacity:
+        reserved = self._in_flight.get(event.event_id)
+        if reserved is not None:
+            if reserved.issued != _IssuedTerminal(event, auditory_l5):
+                raise RuntimeError(
+                    "incremental terminal identity changed while claimed"
+                )
+            return
+        if len(self._authority_order) >= self._stream_capacity:
             raise RuntimeError(
                 "incremental terminal authority capacity is full"
             )
         self._issued[event.event_id] = _IssuedTerminal(event, auditory_l5)
+        self._authority_order.append(event.event_id)
 
     def _issue_from_owner_locked(
         self,
@@ -1904,7 +2553,14 @@ class AuditoryIncrementalTerminalRegistry:
                     "incremental terminal identity was issued twice differently"
                 )
             return
-        if len(self._issued) >= self._stream_capacity:
+        reserved = self._in_flight.get(event.event_id)
+        if reserved is not None:
+            if reserved.issued.event != event:
+                raise RuntimeError(
+                    "incremental terminal identity changed while claimed"
+                )
+            return
+        if len(self._authority_order) >= self._stream_capacity:
             raise RuntimeError(
                 "incremental terminal authority capacity is full"
             )
@@ -1917,13 +2573,22 @@ class AuditoryIncrementalTerminalRegistry:
         self,
         event: AuditoryIncrementalTerminalEvent,
     ) -> _AuditoryTerminalClaim:
-        """Atomically consume one event actually issued by this owner."""
+        """Move one issued event into a bounded in-flight reservation."""
         if not isinstance(event, AuditoryIncrementalTerminalEvent):
             raise TypeError("auditory terminal claim requires a typed event")
         event.verify()
+        if event.schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3:
+            raise ValueError(
+                "legacy incremental auditory audit record cannot be claimed"
+            )
         now = self._clock()
         with self._lock:
             self._expire_locked(now)
+            if event.event_id in self._in_flight:
+                raise ValueError(
+                    "auditory terminal was not issued or was already consumed; "
+                    "auditory terminal is already claimed"
+                )
             issued = self._issued.get(event.event_id)
             if issued is None:
                 raise ValueError(
@@ -1931,17 +2596,30 @@ class AuditoryIncrementalTerminalRegistry:
                 )
             if issued.event != event:
                 raise ValueError("auditory terminal differs from owner authority")
+            try:
+                authority_position = self._authority_order.index(event.event_id)
+            except ValueError as error:
+                raise RuntimeError(
+                    "auditory terminal lost its issued order"
+                ) from error
+            reservation_token = object()
             del self._issued[event.event_id]
-        return _AuditoryTerminalClaim(
-            event=event,
-            auditory_l5=issued.auditory_l5,
-            owner_token=self._claim_token,
-        )
+            self._in_flight[event.event_id] = _InFlightTerminal(
+                issued=issued,
+                reservation_token=reservation_token,
+                authority_position=authority_position,
+            )
+            return _AuditoryTerminalClaim(
+                event=event,
+                auditory_l5=issued.auditory_l5,
+                owner_token=self._claim_token,
+                reservation_token=reservation_token,
+                authority_position=authority_position,
+            )
 
-    def verify_claim(
-        self,
-        claim: _AuditoryTerminalClaim,
-    ) -> AuditoryIncrementalTerminalEvent:
+    def _verify_claim_identity(
+        self, claim: _AuditoryTerminalClaim
+    ) -> None:
         if (
             not isinstance(claim, _AuditoryTerminalClaim)
             or claim.owner_token is not self._claim_token
@@ -1950,13 +2628,33 @@ class AuditoryIncrementalTerminalRegistry:
         claim.event.verify()
         claim.auditory_l5.verify()
         if (
-            claim.auditory_l5.event_boundary != "utterance"
+            claim.event.schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3
+            or claim.auditory_l5.event_boundary != "utterance"
             or claim.auditory_l5.structural_fingerprint
             != claim.event.structural_fingerprint
             or claim.auditory_l5.authority_receipt_sha256
             != claim.event.l5_authority_receipt_sha256
         ):
             raise ValueError("auditory terminal claim lost its full field")
+
+    def verify_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+    ) -> AuditoryIncrementalTerminalEvent:
+        self._verify_claim_identity(claim)
+        with self._lock:
+            reserved = self._in_flight.get(claim.event.event_id)
+            if (
+                claim.lifecycle != "in_flight"
+                or reserved is None
+                or reserved.reservation_token is not claim.reservation_token
+                or reserved.issued
+                != _IssuedTerminal(claim.event, claim.auditory_l5)
+                or reserved.authority_position != claim.authority_position
+            ):
+                raise ValueError(
+                    "auditory terminal claim is not the live reservation"
+                )
         return claim.event
 
     def full_field_from_claim(
@@ -1967,15 +2665,16 @@ class AuditoryIncrementalTerminalRegistry:
         self.verify_claim(claim)
         return claim.auditory_l5
 
-    def complete_claim(
+    def _validate_claim_settlement(
         self,
         claim: _AuditoryTerminalClaim,
         settlement: CausalExperienceSettlement,
     ) -> None:
-        """Join the claimed field to its one structured causal settlement."""
-        self.verify_claim(claim)
-        if claim.causal_settlement is not None:
+        """Verify that one prepared settlement preserves the claimed field."""
+        self._verify_claim_identity(claim)
+        if claim.lifecycle != "in_flight" or claim.causal_settlement is not None:
             raise ValueError("auditory terminal claim was already settled")
+        self.verify_claim(claim)
         if not isinstance(settlement, CausalExperienceSettlement):
             raise TypeError(
                 "auditory terminal claim requires a causal settlement"
@@ -2000,27 +2699,52 @@ class AuditoryIncrementalTerminalRegistry:
             raise ValueError(
                 "auditory causal settlement lost the observed sound field"
             )
-        if len(sound.substreams) != len(experience.ports):
+        components = tuple(
+            component
+            for channel in experience.channels
+            for component in (
+                channel.pressure,
+                channel.carrier_phase_advance,
+            )
+        )
+        if (
+            len(components) != AUDITORY_KERNEL_COMPONENT_COUNT
+            or len(sound.substreams) != AUDITORY_KERNEL_COMPONENT_COUNT
+        ):
             raise ValueError(
                 "auditory causal settlement changed field topology"
             )
-        for interpreted, port in zip(
+        for interpreted, component in zip(
             sound.substreams,
-            experience.ports,
+            components,
             strict=True,
         ):
-            # The joined window is a new receipt graph with a new assembly
-            # identity, so its basin/tuple receipt digests must differ from
-            # the terminal's original graph.  Both graphs verify above; the
-            # cross-graph invariant is exact topology plus every explicit
-            # L4 field value, never receipt-string equality.
+            # The joined window is a new receipt graph, so graph-local receipt
+            # strings do not establish cross-graph equality.  The invariant
+            # is exact source commitment, topology, and every explicit L4
+            # field value.
             if (
-                interpreted.sensor_id != port.sensor_id
-                or interpreted.substream_id != port.substream_id
-                or interpreted.topology_index != port.topology_index
-                or interpreted.coordinates != port.coordinates
-                or interpreted.physical_quantity != port.physical_quantity
-                or interpreted.physical_unit != port.physical_unit
+                interpreted.sensor_id != component.sensor_id
+                or interpreted.substream_id != component.substream_id
+                or interpreted.topology_index != component.topology_index
+                or interpreted.coordinates != component.coordinates
+                or interpreted.physical_quantity
+                != component.physical_quantity
+                or interpreted.physical_unit != component.physical_unit
+                or not interpreted.matches_source_claim(
+                    source_evidence_stream_receipt_sha256=(
+                        component.source_stream_receipt_sha256
+                    ),
+                    samples=tuple(
+                        (
+                            sample.source_index,
+                            sample.source_time,
+                            sample.signal,
+                            sample.phase_turns,
+                        )
+                        for sample in component.samples
+                    ),
+                )
                 or tuple(
                     (
                         value.tuple_index,
@@ -2033,20 +2757,129 @@ class AuditoryIncrementalTerminalRegistry:
                         value.tuple_index,
                         value.fields,
                     )
-                    for value in port.l4_field_tuples
+                    for value in component.l4_field_tuples
                 )
             ):
                 raise ValueError(
                     "auditory causal settlement reduced the exact field"
                 )
-        claim.causal_settlement = settlement
+        if len(settlement.language_events) != 1:
+            raise ValueError(
+                "auditory causal settlement changed terminal language cardinality"
+            )
+        language_event = settlement.language_events[0]
+        event = claim.event
+        if (
+            language_event.form != event.tutor_label
+            or language_event.unicode_scalars
+            != tuple(ord(value) for value in event.tutor_label)
+            or language_event.source_event_id != event.event_id
+            or language_event.source_authority_receipt_sha256
+            != event.authority_receipt_sha256
+            or language_event.source_l5_authority_receipt_sha256
+            != event.l5_authority_receipt_sha256
+            or language_event.recognition_occurrence
+            != event.recognition_occurrence
+        ):
+            raise ValueError(
+                "auditory causal settlement changed the issued terminal"
+            )
+
+    def prepare_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+        settlement: CausalExperienceSettlement,
+    ) -> None:
+        """Attach one verified, still-uncommitted settlement to a live claim."""
+        self._validate_claim_settlement(claim, settlement)
+        with self._lock:
+            self.verify_claim(claim)
+            existing = claim.prepared_causal_settlement
+            if existing is not None and existing != settlement:
+                raise ValueError(
+                    "auditory terminal claim was prepared differently"
+                )
+            claim.prepared_causal_settlement = settlement
+
+    def prepared_settlement_from_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+    ) -> CausalExperienceSettlement:
+        """Return only a verified settlement that has not yet been committed."""
+        self.verify_claim(claim)
+        settlement = claim.prepared_causal_settlement
+        if settlement is None:
+            raise ValueError("auditory terminal claim is not prepared")
+        self._validate_claim_settlement(claim, settlement)
+        return settlement
+
+    def complete_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+        settlement: CausalExperienceSettlement | None = None,
+        *,
+        commit_settlement: Callable[[], None] | None = None,
+    ) -> None:
+        """Atomically commit one prepared settlement and consume its claim."""
+        if settlement is None:
+            settlement = self.prepared_settlement_from_claim(claim)
+        else:
+            self._validate_claim_settlement(claim, settlement)
+        event = claim.event
+        with self._lock:
+            self.verify_claim(claim)
+            prepared = claim.prepared_causal_settlement
+            if prepared is not None and prepared != settlement:
+                raise ValueError(
+                    "auditory terminal claim settlement changed after prepare"
+                )
+            if commit_settlement is not None:
+                if not callable(commit_settlement):
+                    raise TypeError("claim settlement commit must be callable")
+                commit_settlement()
+            del self._in_flight[event.event_id]
+            self._remove_authority_order_locked(event.event_id)
+            claim.prepared_causal_settlement = None
+            claim.causal_settlement = settlement
+            claim.lifecycle = "completed"
+
+    def rollback_claim(self, claim: _AuditoryTerminalClaim) -> None:
+        """Restore a failed conversation claim to its exact issued slot."""
+
+        self._verify_claim_identity(claim)
+        with self._lock:
+            if claim.lifecycle == "rolled_back":
+                raise ValueError("auditory terminal claim was already rolled back")
+            issued = _IssuedTerminal(claim.event, claim.auditory_l5)
+            if claim.lifecycle != "in_flight":
+                raise ValueError(
+                    "completed auditory terminal claim cannot be rolled back"
+                )
+            reserved = self._in_flight.get(claim.event.event_id)
+            if (
+                reserved is None
+                or reserved.reservation_token is not claim.reservation_token
+                or reserved.issued != issued
+                or reserved.authority_position != claim.authority_position
+            ):
+                raise ValueError(
+                    "auditory terminal rollback lost its reservation"
+                )
+            del self._in_flight[claim.event.event_id]
+            self._issued[claim.event.event_id] = issued
+            self._order_issued_locked()
+            claim.prepared_causal_settlement = None
+            claim.causal_settlement = None
+            claim.lifecycle = "rolled_back"
 
     def causal_settlement_from_claim(
         self,
         claim: _AuditoryTerminalClaim,
     ) -> CausalExperienceSettlement:
         """Return only a verified, fully joined causal action authority."""
-        self.verify_claim(claim)
+        self._verify_claim_identity(claim)
+        if claim.lifecycle != "completed":
+            raise ValueError("auditory terminal claim is not completed")
         settlement = claim.causal_settlement
         if settlement is None:
             raise ValueError("auditory terminal claim is not causally settled")
@@ -2062,12 +2895,15 @@ class AuditoryIncrementalTerminalRegistry:
             raise TypeError("auditory terminal discard requires a typed event")
         event.verify()
         with self._lock:
+            if event.event_id in self._in_flight:
+                raise ValueError("claimed auditory terminal cannot be discarded")
             issued = self._issued.get(event.event_id)
             if issued is None:
                 return False
             if issued.event != event:
                 raise ValueError("auditory terminal differs from owner authority")
             del self._issued[event.event_id]
+            self._remove_authority_order_locked(event.event_id)
             return True
 
     def advance(self, **authorities) -> AuditoryIncrementalAdvance:
@@ -2078,32 +2914,65 @@ class AuditoryIncrementalTerminalRegistry:
         with self._lock:
             self._expire_locked(now)
             mounted = self._streams.get(transport.stream_id)
+            created = False
             if transport.sequence == 0:
                 if mounted is not None:
-                    raise ValueError("incremental stream epoch already exists")
-                if len(self._streams) >= self._stream_capacity:
-                    raise RuntimeError("incremental stream capacity is full")
-                mounted = _OwnedIncrementalTerminal(
-                    owner=AuditoryIncrementalTerminalOwner(
-                        reciprocity_owner=self._reciprocity_owner,
-                        log_event=self._log_event,
-                        _prepared_cells=self._cells,
-                    ),
-                    last_activity=now,
-                )
-                self._streams[transport.stream_id] = mounted
+                    if (
+                        mounted.owner._last_committed_receipt_sha256
+                        != transport.receipt_sha256
+                    ):
+                        raise ValueError(
+                            "incremental stream epoch already exists"
+                        )
+                else:
+                    if len(self._streams) >= self._stream_capacity:
+                        raise RuntimeError("incremental stream capacity is full")
+                    mounted = _OwnedIncrementalTerminal(
+                        owner=AuditoryIncrementalTerminalOwner(
+                            reciprocity_owner=self._reciprocity_owner,
+                            log_event=self._log_event,
+                            _prepared_cells=self._cells,
+                        ),
+                        last_activity=now,
+                    )
+                    self._streams[transport.stream_id] = mounted
+                    created = True
             elif mounted is None:
                 raise ValueError("incremental stream epoch is unknown or expired")
-            result = mounted.owner.advance(**authorities)
-            if result.status is AuditoryIncrementalStatus.DISCONTINUITY:
-                self._streams.pop(transport.stream_id, None)
-                return result
+            prior_issued = OrderedDict(self._issued)
+            prior_authority_order = list(self._authority_order)
+            with mounted.owner._lock:
+                checkpoint = mounted.owner._transaction_checkpoint()
+                owner_advance_completed = False
+                try:
+                    result = mounted.owner.advance(**authorities)
+                    owner_advance_completed = True
+                    if result.status is AuditoryIncrementalStatus.DISCONTINUITY:
+                        self._streams.pop(transport.stream_id, None)
+                        return result
+                    if result.reply_candidate is not None:
+                        self._issue_from_owner_locked(
+                            mounted.owner, result.reply_candidate
+                        )
+                except Exception as advance_error:
+                    self._issued = prior_issued
+                    self._authority_order = prior_authority_order
+                    if created:
+                        self._streams.pop(transport.stream_id, None)
+                    if owner_advance_completed:
+                        try:
+                            mounted.owner._restore_transaction_checkpoint(
+                                checkpoint
+                            )
+                        except Exception as rollback_error:
+                            raise ExceptionGroup(
+                                "incremental auditory registry advance and "
+                                "rollback failed",
+                                [advance_error, rollback_error],
+                            )
+                    raise
             mounted.last_activity = now
             self._streams.move_to_end(transport.stream_id)
-            if result.reply_candidate is not None:
-                self._issue_from_owner_locked(
-                    mounted.owner, result.reply_candidate
-                )
             return result
 
     def close(
@@ -2155,13 +3024,24 @@ class AuditoryIncrementalTerminalRegistry:
                 ),
                 "learned_cells": len(self._cells),
                 "issued_terminal_authorities": len(self._issued),
+                "in_flight_terminal_authorities": len(self._in_flight),
                 "issued_terminal_capacity": self._stream_capacity,
+            }
+
+    def authority_counts(self) -> dict[str, int]:
+        """Read terminal ownership for fail-closed lifecycle certification."""
+        with self._lock:
+            return {
+                "issued_terminal_authorities": len(self._issued),
+                "in_flight_terminal_authorities": len(self._in_flight),
             }
 
 
 __all__ = (
     "AUDITORY_INCREMENTAL_ADVANCE_SCHEMA",
     "AUDITORY_INCREMENTAL_EVENT_SCHEMA",
+    "AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2",
+    "AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3",
     "AuditoryIncrementalAdvance",
     "AuditoryIncrementalStatus",
     "AuditoryIncrementalTerminalEvent",

@@ -764,10 +764,14 @@ class CausalActionOwner:
             self._transient[witness.event_id] = settlement
             self._transient_by_source_event[source_event_id] = witness.event_id
         if expired is not None:
-            self._log_event(
-                "causal_action_teaching_experience_expired",
-                causal_experience_id=expired,
-            )
+            try:
+                self._log_event(
+                    "causal_action_teaching_experience_expired",
+                    causal_experience_id=expired,
+                )
+            except Exception:
+                # Capacity settlement is complete; telemetry cannot undo it.
+                pass
         return {"accepted": True, "repeated": False, "expired": expired}
 
     def resolve_teaching_experience_id(self, reference_id: str) -> str:

@@ -15,6 +15,7 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
     pcm_s16le_wav,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AUDITORY_GAMMATONE_CONTINUATION_SCHEMA,
     AuditoryFullFieldStream,
     AuditoryFullFieldStreamRegistry,
     transduce_auditory_full_field,
@@ -235,6 +236,11 @@ def test_stateful_cochlea_is_exactly_invariant_to_transport_partition(
     assert receipts[2].prior_state_receipt_sha256 == receipts[1].receipt_sha256
     for receipt in receipts:
         receipt.verify()
+        assert (
+            receipt.payload()["schema"]
+            == AUDITORY_GAMMATONE_CONTINUATION_SCHEMA
+            == "guala.auditory_gammatone_continuation.v3"
+        )
     for port_index, expected in enumerate(unsplit.channels):
         pressure = tuple(
             value
@@ -248,6 +254,20 @@ def test_stateful_cochlea_is_exactly_invariant_to_transport_partition(
             for capture in captures
             for value in capture.channels[port_index].carrier_phase_turns
         )
+        phase_advance = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[
+                port_index
+            ].carrier_phase_advance_turns
+        )
+        normalized_phase_advance = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[
+                port_index
+            ].carrier_phase_advance_nyquist_fraction
+        )
         offsets = tuple(
             value
             for capture in captures
@@ -255,7 +275,108 @@ def test_stateful_cochlea_is_exactly_invariant_to_transport_partition(
         )
         assert pressure == expected.pressure_envelope_full_scale
         assert phase == expected.carrier_phase_turns
+        assert phase_advance == expected.carrier_phase_advance_turns
+        assert normalized_phase_advance == (
+            expected.carrier_phase_advance_nyquist_fraction
+        )
         assert offsets == expected.causal_offsets_ns
+
+
+@pytest.mark.parametrize("first_cut", (161, 319, 320, 321))
+def test_completed_phase_is_exact_across_arbitrary_hop_boundary_partitions(
+    monkeypatch, first_cut: int
+) -> None:
+    monkeypatch.setattr(provider, "_native_gammatone_field", None)
+    monkeypatch.setattr(provider, "_native_gammatone_stream", None)
+    transport = AuditoryPCMStreamRegistry()
+    stream_id = transport.open()["stream_id"]
+    stream = AuditoryFullFieldStream()
+    complete = _pcm(960)
+    captures = []
+    start = 0
+    for sequence, end in enumerate((first_cut, 960)):
+        accepted = transport.accept(
+            stream_id=stream_id,
+            sequence=sequence,
+            first_sample_index=start,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=complete[start * 2:end * 2],
+        )
+        capture, receipt = stream.advance(
+            accepted.pcm_s16le, accepted.receipt
+        )
+        receipt.verify()
+        captures.append(capture)
+        start = end
+
+    expected = _field(complete)
+    for channel_index, expected_channel in enumerate(expected.channels):
+        actual_phase = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[channel_index].carrier_phase_turns
+        )
+        actual_advance = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[
+                channel_index
+            ].carrier_phase_advance_turns
+        )
+        actual_normalized = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[
+                channel_index
+            ].carrier_phase_advance_nyquist_fraction
+        )
+        assert actual_phase == expected_channel.carrier_phase_turns
+        assert actual_advance == expected_channel.carrier_phase_advance_turns
+        assert actual_normalized == (
+            expected_channel.carrier_phase_advance_nyquist_fraction
+        )
+
+
+def test_native_one_shot_and_stream_phase_components_are_exactly_identical(
+) -> None:
+    if (
+        provider._native_gammatone_field is None
+        or provider._native_gammatone_stream is None
+    ):
+        pytest.skip("native auditory kernels are unavailable")
+    transport = AuditoryPCMStreamRegistry()
+    stream_id = transport.open()["stream_id"]
+    stream = AuditoryFullFieldStream()
+    complete = _pcm(960)
+    captures = []
+    start = 0
+    for sequence, end in enumerate((321, 960)):
+        accepted = transport.accept(
+            stream_id=stream_id,
+            sequence=sequence,
+            first_sample_index=start,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=complete[start * 2:end * 2],
+        )
+        capture, _ = stream.advance(accepted.pcm_s16le, accepted.receipt)
+        captures.append(capture)
+        start = end
+
+    expected = _field(complete)
+    for channel_index, expected_channel in enumerate(expected.channels):
+        for field_name in (
+            "pressure_envelope_full_scale",
+            "carrier_phase_turns",
+            "carrier_phase_advance_turns",
+            "carrier_phase_advance_nyquist_fraction",
+        ):
+            assert tuple(
+                value
+                for capture in captures
+                for value in getattr(capture.channels[channel_index], field_name)
+            ) == getattr(expected_channel, field_name)
 
 
 def test_interleaved_streams_preserve_independent_cochlear_histories(

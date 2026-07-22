@@ -3,9 +3,9 @@
 An admitted tutor recording contains one physical utterance surrounded by its
 ambient field.  This module separates those two measured cochlear-energy
 basins without a transcript, fixed loudness threshold, silence timer, learned
-model, chi key, or Atlas lookup.  The selected event remains the complete
-sixteen-channel pressure/phase path; energy is used only to settle its temporal
-boundary.
+model, chi key, or Atlas lookup. The selected event remains the complete
+sixteen-channel pressure, cumulative phase, phase-advance, and normalized
+phase-advance path; energy is used only to settle its temporal boundary.
 """
 
 from __future__ import annotations
@@ -16,11 +16,12 @@ import math
 from dataclasses import dataclass
 
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AUDITORY_FULL_FIELD_PROVIDER_SCHEMA,
     AuditoryFullFieldCapture,
 )
 
 
-AUDITORY_EVENT_BOUNDARY_SCHEMA = "guala.auditory_event_boundary.v1"
+AUDITORY_EVENT_BOUNDARY_SCHEMA = "guala.auditory_event_boundary.v3"
 AUDITORY_EVENT_BOUNDARY_OPERATOR = (
     "two_basin_cochlear_energy_minimum_variance_v1"
 )
@@ -36,18 +37,42 @@ def _canonical_bytes(value: object) -> bytes:
     ).encode("utf-8")
 
 
+def _validate_provider_capture(capture: AuditoryFullFieldCapture) -> None:
+    if not isinstance(capture, AuditoryFullFieldCapture):
+        raise TypeError("auditory event boundary requires a full-field capture")
+    capture.__post_init__()
+    if capture.provider_schema != AUDITORY_FULL_FIELD_PROVIDER_SCHEMA:
+        raise ValueError("auditory event boundary requires provider-v3 evidence")
+    for channel in capture.channels:
+        channel.__post_init__()
+        advances = channel.carrier_phase_advance_turns
+        if capture.source_first_sample_index == 0 and advances[0] != 0.0:
+            raise ValueError("auditory event carrier phase genesis changed")
+
+
 def _capture_sha256(capture: AuditoryFullFieldCapture) -> str:
+    _validate_provider_capture(capture)
     payload = {
         "channels": [
             {
                 "causal_offsets_ns": list(channel.causal_offsets_ns),
+                "carrier_phase_advance_nyquist_fraction": [
+                    value.hex()
+                    for value in (
+                        channel.carrier_phase_advance_nyquist_fraction
+                    )
+                ],
+                "carrier_phase_advance_turns": [
+                    value.hex()
+                    for value in channel.carrier_phase_advance_turns
+                ],
+                "carrier_phase_turns": [
+                    value.hex() for value in channel.carrier_phase_turns
+                ],
                 "centre_hz": channel.definition.centre_hz.hex(),
                 "erb_width_hz": channel.definition.erb_width_hz.hex(),
                 "name": channel.definition.name,
-                "phase_turns": [
-                    value.hex() for value in channel.carrier_phase_turns
-                ],
-                "pressure": [
+                "pressure_envelope_full_scale": [
                     value.hex()
                     for value in channel.pressure_envelope_full_scale
                 ],
@@ -59,6 +84,7 @@ def _capture_sha256(capture: AuditoryFullFieldCapture) -> str:
         ),
         "input_sample_count": capture.input_sample_count,
         "observation_hop_samples": capture.observation_hop_samples,
+        "provider_schema": capture.provider_schema,
         "source_first_sample_index": capture.source_first_sample_index,
         "source_sample_rate_hz": capture.source_sample_rate_hz,
     }
@@ -76,6 +102,7 @@ def _boundary_payload(
     lower_energy_upper_bound: float,
     upper_energy_lower_bound: float,
     observation_hop_samples: int,
+    provider_schema: str,
 ) -> dict[str, object]:
     return {
         "capture_sha256": capture_sha256,
@@ -86,6 +113,7 @@ def _boundary_payload(
         "lower_energy_upper_bound": lower_energy_upper_bound.hex(),
         "observation_hop_samples": observation_hop_samples,
         "operator": AUDITORY_EVENT_BOUNDARY_OPERATOR,
+        "provider_schema": provider_schema,
         "schema": AUDITORY_EVENT_BOUNDARY_SCHEMA,
         "upper_basin_frames": upper_basin_frames,
         "upper_energy_lower_bound": upper_energy_lower_bound.hex(),
@@ -95,6 +123,7 @@ def _boundary_payload(
 @dataclass(frozen=True, slots=True)
 class AuditoryEventBoundary:
     capture_sha256: str
+    provider_schema: str
     event_frame_start: int
     event_frame_end: int
     frame_count: int
@@ -124,9 +153,12 @@ class AuditoryEventBoundary:
             lower_energy_upper_bound=self.lower_energy_upper_bound,
             upper_energy_lower_bound=self.upper_energy_lower_bound,
             observation_hop_samples=self.observation_hop_samples,
+            provider_schema=self.provider_schema,
         )
 
     def verify(self) -> None:
+        if self.provider_schema != AUDITORY_FULL_FIELD_PROVIDER_SCHEMA:
+            raise ValueError("auditory event boundary provider schema changed")
         if (
             not isinstance(self.capture_sha256, str)
             or len(self.capture_sha256) != 64
@@ -176,8 +208,7 @@ def settle_auditory_event_boundary(
 ) -> AuditoryEventBoundary:
     """Settle one surrounded event from two separable physical basins."""
 
-    if not isinstance(capture, AuditoryFullFieldCapture):
-        raise TypeError("auditory event boundary requires a full-field capture")
+    _validate_provider_capture(capture)
     if (
         not math.isfinite(pressure_uncertainty_full_scale)
         or pressure_uncertainty_full_scale <= 0.0
@@ -277,9 +308,11 @@ def settle_auditory_event_boundary(
         lower_energy_upper_bound=lower_upper_bound,
         upper_energy_lower_bound=upper_lower_bound,
         observation_hop_samples=capture.observation_hop_samples,
+        provider_schema=capture.provider_schema,
     )
     boundary = AuditoryEventBoundary(
         capture_sha256=capture_sha256,
+        provider_schema=capture.provider_schema,
         event_frame_start=event_start,
         event_frame_end=event_end,
         frame_count=frame_count,

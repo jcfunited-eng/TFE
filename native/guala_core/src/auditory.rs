@@ -14,10 +14,12 @@ const COCHLEAR_ORDER: usize = 4;
 const OBSERVATION_HOP_SAMPLES: usize = 160;
 const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
 
-type FieldArrays = (Vec<Vec<f64>>, Vec<Vec<f64>>);
+type FieldArrays = (Vec<Vec<f64>>, Vec<Vec<f64>>, Vec<Vec<f64>>);
 type StreamArrays = (
     Vec<Vec<f64>>,
     Vec<Vec<f64>>,
+    Vec<Vec<f64>>,
+    Vec<f64>,
     Vec<f64>,
     Vec<f64>,
     Vec<f64>,
@@ -56,6 +58,7 @@ fn validate_stream_state(
     previous_imag: &[f64],
     phase_turns: &[f64],
     block_energy: &[f64],
+    partial_hop_phase_turns: &[f64],
     partial_hop_samples: usize,
 ) -> PyResult<()> {
     let state_size = COCHLEAR_ORDER * CHANNEL_COUNT;
@@ -65,6 +68,7 @@ fn validate_stream_state(
         || previous_imag.len() != CHANNEL_COUNT
         || phase_turns.len() != CHANNEL_COUNT
         || block_energy.len() != CHANNEL_COUNT
+        || partial_hop_phase_turns.len() != CHANNEL_COUNT
         || partial_hop_samples >= OBSERVATION_HOP_SAMPLES
     {
         return Err(PyValueError::new_err(
@@ -78,6 +82,7 @@ fn validate_stream_state(
         .chain(previous_imag.iter())
         .chain(phase_turns.iter())
         .chain(block_energy.iter())
+        .chain(partial_hop_phase_turns.iter())
         .any(|value| !value.is_finite())
     {
         return Err(PyValueError::new_err(
@@ -104,11 +109,13 @@ fn auditory_gammatone_stream_impl(
     mut previous_imag: Vec<f64>,
     mut phase_turns: Vec<f64>,
     mut block_energy: Vec<f64>,
+    mut partial_hop_phase_turns: Vec<f64>,
     mut partial_hop_samples: usize,
 ) -> Result<StreamArrays, &'static str> {
     let observation_count = (partial_hop_samples + signal.len()) / OBSERVATION_HOP_SAMPLES;
     let mut envelopes = vec![vec![0.0; CHANNEL_COUNT]; observation_count];
     let mut phases = vec![vec![0.0; CHANNEL_COUNT]; observation_count];
+    let mut phase_advances = vec![vec![0.0; CHANNEL_COUNT]; observation_count];
     let mut stage_real = [0.0f64; CHANNEL_COUNT];
     let mut stage_imag = [0.0f64; CHANNEL_COUNT];
     let mut observation_index = 0usize;
@@ -149,7 +156,9 @@ fn auditory_gammatone_stream_impl(
             if output_magnitude > 0.0 && prior_magnitude > 0.0 {
                 let product_real = output_real.mul_add(prior_real, output_imag * prior_imag);
                 let product_imag = output_real.mul_add(-prior_imag, output_imag * prior_real);
-                phase_turns[channel_index] += product_imag.atan2(product_real) / TWO_PI;
+                let phase_delta = product_imag.atan2(product_real) / TWO_PI;
+                phase_turns[channel_index] += phase_delta;
+                partial_hop_phase_turns[channel_index] += phase_delta;
             } else if output_magnitude > 0.0 && prior_magnitude == 0.0 {
                 phase_turns[channel_index] = output_imag.atan2(output_real) / TWO_PI;
             }
@@ -168,7 +177,10 @@ fn auditory_gammatone_stream_impl(
                 }
                 envelopes[observation_index][channel_index] = magnitude.min(1.0);
                 phases[observation_index][channel_index] = phase_turns[channel_index];
+                phase_advances[observation_index][channel_index] =
+                    partial_hop_phase_turns[channel_index];
                 block_energy[channel_index] = 0.0;
+                partial_hop_phase_turns[channel_index] = 0.0;
             }
             observation_index += 1;
             partial_hop_samples = 0;
@@ -178,20 +190,31 @@ fn auditory_gammatone_stream_impl(
     Ok((
         envelopes,
         phases,
+        phase_advances,
         state_real,
         state_imag,
         previous_real,
         previous_imag,
         phase_turns,
         block_energy,
+        partial_hop_phase_turns,
         partial_hop_samples,
     ))
 }
 
-fn zero_stream_state() -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
+fn zero_stream_state() -> (
+    Vec<f64>,
+    Vec<f64>,
+    Vec<f64>,
+    Vec<f64>,
+    Vec<f64>,
+    Vec<f64>,
+    Vec<f64>,
+) {
     (
         vec![0.0; COCHLEAR_ORDER * CHANNEL_COUNT],
         vec![0.0; COCHLEAR_ORDER * CHANNEL_COUNT],
+        vec![0.0; CHANNEL_COUNT],
         vec![0.0; CHANNEL_COUNT],
         vec![0.0; CHANNEL_COUNT],
         vec![0.0; CHANNEL_COUNT],
@@ -213,7 +236,8 @@ fn auditory_gammatone_field(
             "auditory gammatone input must be finite",
         ));
     }
-    let (state_real, state_imag, previous_real, previous_imag, phase, energy) = zero_stream_state();
+    let (state_real, state_imag, previous_real, previous_imag, phase, energy, partial_phase) =
+        zero_stream_state();
     let result = py
         .allow_threads(|| {
             auditory_gammatone_stream_impl(
@@ -227,11 +251,12 @@ fn auditory_gammatone_field(
                 previous_imag,
                 phase,
                 energy,
+                partial_phase,
                 0,
             )
         })
         .map_err(PyRuntimeError::new_err)?;
-    Ok((result.0, result.1))
+    Ok((result.0, result.1, result.2))
 }
 
 #[pyfunction]
@@ -248,6 +273,7 @@ fn auditory_gammatone_stream(
     previous_imag: Vec<f64>,
     phase_turns: Vec<f64>,
     block_energy: Vec<f64>,
+    partial_hop_phase_turns: Vec<f64>,
     partial_hop_samples: usize,
 ) -> PyResult<StreamArrays> {
     validate_coefficients(&pole_real, &pole_imag, &injection)?;
@@ -258,6 +284,7 @@ fn auditory_gammatone_stream(
         &previous_imag,
         &phase_turns,
         &block_energy,
+        &partial_hop_phase_turns,
         partial_hop_samples,
     )?;
     if signal.iter().any(|value| !value.is_finite()) {
@@ -277,6 +304,7 @@ fn auditory_gammatone_stream(
             previous_imag,
             phase_turns,
             block_energy,
+            partial_hop_phase_turns,
             partial_hop_samples,
         )
     })

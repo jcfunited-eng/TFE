@@ -12,6 +12,8 @@ The mounted field retains, for every channel and observation time:
 * the channel's calibrated 10 ms pressure-envelope RMS;
 * the continuously accumulated carrier phase (advanced at 16 kHz, so phase
   winding is not aliased by the 10 ms observation grid);
+* the carrier-phase advance across each completed observation hop and that
+  advance divided by the hop's analytic Nyquist limit;
 * the channel centre frequency and ERB bandwidth as explicit coordinates.
 
 This is a sensory transduction, not a claim that the original waveform is
@@ -55,12 +57,14 @@ REQUIRED_SAMPLE_RATE_HZ = 16_000
 COCHLEAR_CHANNEL_COUNT = 16
 COCHLEAR_ORDER = 4
 OBSERVATION_HOP_SAMPLES = 160
+PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP = OBSERVATION_HOP_SAMPLES / 2.0
 MAX_CAPTURE_SECONDS = 8
 LOWEST_CENTRE_FREQUENCY_HZ = 80.0
 HIGHEST_CENTRE_FREQUENCY_HZ = 7_500.0
 AUDITORY_GAMMATONE_CONTINUATION_SCHEMA = (
-    "guala.auditory_gammatone_continuation.v1"
+    "guala.auditory_gammatone_continuation.v3"
 )
+AUDITORY_FULL_FIELD_PROVIDER_SCHEMA = "guala.auditory_full_field_provider.v3"
 
 
 def _erb_width_hz(frequency_hz: float) -> float:
@@ -107,6 +111,8 @@ class AuditoryChannelField:
     causal_offsets_ns: tuple[int, ...]
     pressure_envelope_full_scale: tuple[float, ...]
     carrier_phase_turns: tuple[float, ...]
+    carrier_phase_advance_turns: tuple[float, ...]
+    carrier_phase_advance_nyquist_fraction: tuple[float, ...]
 
     def __post_init__(self) -> None:
         cardinality = len(self.causal_offsets_ns)
@@ -116,6 +122,8 @@ class AuditoryChannelField:
             cardinality
             == len(self.pressure_envelope_full_scale)
             == len(self.carrier_phase_turns)
+            == len(self.carrier_phase_advance_turns)
+            == len(self.carrier_phase_advance_nyquist_fraction)
         ):
             raise ValueError("auditory channel field lost synchronized samples")
         if self.causal_offsets_ns[0] < 0 or any(
@@ -131,6 +139,25 @@ class AuditoryChannelField:
         for value in self.carrier_phase_turns:
             if not math.isfinite(value):
                 raise ValueError("auditory carrier phase is not finite")
+        for value in self.carrier_phase_advance_turns:
+            if (
+                not math.isfinite(value)
+                or not -PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+                <= value
+                <= PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+            ):
+                raise ValueError("auditory carrier phase advance exceeded Nyquist")
+        for value in self.carrier_phase_advance_nyquist_fraction:
+            if not math.isfinite(value) or not -1.0 <= value <= 1.0:
+                raise ValueError(
+                    "auditory normalized carrier phase advance exceeded Nyquist"
+                )
+        expected_normalized = tuple(
+            value / PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+            for value in self.carrier_phase_advance_turns
+        )
+        if self.carrier_phase_advance_nyquist_fraction != expected_normalized:
+            raise ValueError("auditory carrier phase normalization changed")
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,10 +168,13 @@ class AuditoryFullFieldCapture:
     channels: tuple[AuditoryChannelField, ...]
     source_first_sample_index: int = 0
     continuation_receipt_sha256: str | None = None
+    provider_schema: str = AUDITORY_FULL_FIELD_PROVIDER_SCHEMA
 
     def __post_init__(self) -> None:
         if self.source_sample_rate_hz != REQUIRED_SAMPLE_RATE_HZ:
             raise ValueError("auditory field requires 16 kHz physical samples")
+        if self.provider_schema != AUDITORY_FULL_FIELD_PROVIDER_SCHEMA:
+            raise ValueError("auditory full-field provider schema changed")
         if self.input_sample_count < self.observation_hop_samples:
             raise ValueError("auditory capture is shorter than one observation interval")
         if self.observation_hop_samples != OBSERVATION_HOP_SAMPLES:
@@ -251,7 +281,9 @@ def _cochlear_coefficients() -> tuple[np.ndarray, np.ndarray]:
     return pole, injection
 
 
-def _cochlear_state_python(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _cochlear_state_python(
+    values: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reference recurrence; authoritative fallback and differential oracle."""
     pole, injection = _cochlear_coefficients()
     state = np.zeros(
@@ -259,11 +291,13 @@ def _cochlear_state_python(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     )
     previous = np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.complex128)
     phase_turns = np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64)
+    hop_phase_turns = np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64)
     observation_count = len(values) // OBSERVATION_HOP_SAMPLES
     envelopes = np.empty(
         (observation_count, COCHLEAR_CHANNEL_COUNT), dtype=np.float64
     )
     phases = np.empty_like(envelopes)
+    phase_advances = np.empty_like(envelopes)
     observation_index = 0
     block_energy = np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64)
 
@@ -279,9 +313,11 @@ def _cochlear_state_python(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         output = state[-1]
         active = (np.abs(output) > 0.0) & (np.abs(previous) > 0.0)
         if np.any(active):
-            phase_turns[active] += np.angle(
+            phase_delta = np.angle(
                 output[active] * np.conjugate(previous[active])
             ) / (2.0 * math.pi)
+            phase_turns[active] += phase_delta
+            hop_phase_turns[active] += phase_delta
         first_active = (np.abs(output) > 0.0) & (np.abs(previous) == 0.0)
         if np.any(first_active):
             phase_turns[first_active] = (
@@ -298,18 +334,22 @@ def _cochlear_state_python(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
                 raise RuntimeError("cochlear pressure exceeded its analytic bound")
             envelopes[observation_index] = np.minimum(magnitude, 1.0)
             phases[observation_index] = phase_turns
+            phase_advances[observation_index] = hop_phase_turns
             observation_index += 1
             block_energy.fill(0.0)
+            hop_phase_turns.fill(0.0)
 
-    return envelopes, phases
+    return envelopes, phases, phase_advances
 
 
-def _cochlear_state_native(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _cochlear_state_native(
+    values: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Run the operation-ordered recurrence in the GIL-released Rust core."""
     if _native_gammatone_field is None:
         raise RuntimeError("native auditory gammatone kernel is unavailable")
     pole, injection = _cochlear_coefficients()
-    envelopes_raw, phases_raw = _native_gammatone_field(
+    envelopes_raw, phases_raw, phase_advances_raw = _native_gammatone_field(
         values.tolist(),
         pole.real.tolist(),
         pole.imag.tolist(),
@@ -317,25 +357,70 @@ def _cochlear_state_native(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     )
     envelopes = np.asarray(envelopes_raw, dtype=np.float64)
     phases = np.asarray(phases_raw, dtype=np.float64)
+    phase_advances = np.asarray(phase_advances_raw, dtype=np.float64)
     expected_shape = (
         len(values) // OBSERVATION_HOP_SAMPLES,
         COCHLEAR_CHANNEL_COUNT,
     )
-    if envelopes.shape != expected_shape or phases.shape != expected_shape:
+    if (
+        envelopes.shape != expected_shape
+        or phases.shape != expected_shape
+        or phase_advances.shape != expected_shape
+    ):
         raise RuntimeError("native auditory gammatone kernel changed field shape")
-    return envelopes, phases
+    return envelopes, phases, phase_advances
 
 
-def _cochlear_state(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _cochlear_state(
+    values: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Advance the field natively when present, otherwise use the exact oracle."""
     if _native_gammatone_field is None:
         return _cochlear_state_python(values)
     return _cochlear_state_native(values)
 
 
+def _phase_advance_components(
+    phase_advances: np.ndarray,
+    *,
+    completed_observation_count: int,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """Settle phase motion accumulated directly inside each physical hop."""
+    advances = np.asarray(phase_advances, dtype=np.float64).copy()
+    expected_shape = (len(advances), COCHLEAR_CHANNEL_COUNT)
+    if advances.shape != expected_shape:
+        raise RuntimeError("auditory carrier phase advance changed field shape")
+    if (
+        isinstance(completed_observation_count, bool)
+        or not isinstance(completed_observation_count, int)
+        or completed_observation_count < 0
+    ):
+        raise RuntimeError("auditory completed observation count is invalid")
+
+    if len(advances) and completed_observation_count == 0:
+        # The first completed observation establishes phase origin. There is
+        # no earlier completed observation, so genesis is exactly zero once.
+        advances[0].fill(0.0)
+
+    normalized = advances / PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+    if (
+        not np.all(np.isfinite(advances))
+        or np.any(
+            np.abs(advances) > PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP
+        )
+        or np.any(np.abs(normalized) > 1.0)
+    ):
+        raise RuntimeError("auditory carrier phase advance exceeded Nyquist")
+    return (
+        advances,
+        normalized,
+        completed_observation_count + len(advances),
+    )
+
+
 def _zero_continuation_state() -> tuple[
     np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    np.ndarray, np.ndarray, int,
+    np.ndarray, np.ndarray, np.ndarray, int, int,
 ]:
     state_shape = (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)
     return (
@@ -345,6 +430,8 @@ def _zero_continuation_state() -> tuple[
         np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
         np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
         np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
+        np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
+        0,
         0,
     )
 
@@ -357,16 +444,20 @@ def _cochlear_stream_python(
     previous_imag: np.ndarray,
     phase_turns: np.ndarray,
     block_energy: np.ndarray,
+    partial_hop_phase_turns: np.ndarray,
     partial_hop_samples: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-           np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
+           np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+           np.ndarray, np.ndarray, int]:
     pole, injection = _cochlear_coefficients()
     state = state_real.astype(np.complex128) + 1j * state_imag
     previous = previous_real.astype(np.complex128) + 1j * previous_imag
     phases_state = phase_turns.copy()
     energy_state = block_energy.copy()
+    hop_phase_state = partial_hop_phase_turns.copy()
     envelopes = []
     phases = []
+    phase_advances = []
     partial = int(partial_hop_samples)
     for sample in values:
         stage_input = np.full(
@@ -380,9 +471,11 @@ def _cochlear_stream_python(
         output = state[-1]
         active = (np.abs(output) > 0.0) & (np.abs(previous) > 0.0)
         if np.any(active):
-            phases_state[active] += np.angle(
+            phase_delta = np.angle(
                 output[active] * np.conjugate(previous[active])
             ) / (2.0 * math.pi)
+            phases_state[active] += phase_delta
+            hop_phase_state[active] += phase_delta
         first_active = (np.abs(output) > 0.0) & (np.abs(previous) == 0.0)
         if np.any(first_active):
             phases_state[first_active] = (
@@ -397,7 +490,9 @@ def _cochlear_stream_python(
                 raise RuntimeError("cochlear pressure exceeded its analytic bound")
             envelopes.append(np.minimum(magnitude, 1.0))
             phases.append(phases_state.copy())
+            phase_advances.append(hop_phase_state.copy())
             energy_state.fill(0.0)
+            hop_phase_state.fill(0.0)
             partial = 0
     shape = (0, COCHLEAR_CHANNEL_COUNT)
     return (
@@ -407,12 +502,16 @@ def _cochlear_stream_python(
         np.asarray(phases, dtype=np.float64).reshape(
             (-1, COCHLEAR_CHANNEL_COUNT)) if phases
         else np.empty(shape, dtype=np.float64),
+        np.asarray(phase_advances, dtype=np.float64).reshape(
+            (-1, COCHLEAR_CHANNEL_COUNT)) if phase_advances
+        else np.empty(shape, dtype=np.float64),
         state.real.copy(),
         state.imag.copy(),
         previous.real.copy(),
         previous.imag.copy(),
         phases_state,
         energy_state,
+        hop_phase_state,
         partial,
     )
 
@@ -425,9 +524,11 @@ def _cochlear_stream_native(
     previous_imag: np.ndarray,
     phase_turns: np.ndarray,
     block_energy: np.ndarray,
+    partial_hop_phase_turns: np.ndarray,
     partial_hop_samples: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-           np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
+           np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+           np.ndarray, np.ndarray, int]:
     if _native_gammatone_stream is None:
         raise RuntimeError("native auditory gammatone stream kernel is unavailable")
     pole, injection = _cochlear_coefficients()
@@ -436,35 +537,41 @@ def _cochlear_stream_native(
         injection.tolist(), state_real.reshape(-1).tolist(),
         state_imag.reshape(-1).tolist(), previous_real.tolist(),
         previous_imag.tolist(), phase_turns.tolist(), block_energy.tolist(),
+        partial_hop_phase_turns.tolist(),
         int(partial_hop_samples),
     )
     envelopes = np.asarray(result[0], dtype=np.float64).reshape(
         (-1, COCHLEAR_CHANNEL_COUNT))
     phases = np.asarray(result[1], dtype=np.float64).reshape(
         (-1, COCHLEAR_CHANNEL_COUNT))
+    phase_advances = np.asarray(result[2], dtype=np.float64).reshape(
+        (-1, COCHLEAR_CHANNEL_COUNT))
     return (
         envelopes,
         phases,
-        np.asarray(result[2], dtype=np.float64).reshape(
-            (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)),
+        phase_advances,
         np.asarray(result[3], dtype=np.float64).reshape(
             (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)),
-        np.asarray(result[4], dtype=np.float64),
+        np.asarray(result[4], dtype=np.float64).reshape(
+            (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)),
         np.asarray(result[5], dtype=np.float64),
         np.asarray(result[6], dtype=np.float64),
         np.asarray(result[7], dtype=np.float64),
-        int(result[8]),
+        np.asarray(result[8], dtype=np.float64),
+        np.asarray(result[9], dtype=np.float64),
+        int(result[10]),
     )
 
 
 def _state_sha256(state: tuple[
     np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    np.ndarray, np.ndarray, int,
+    np.ndarray, np.ndarray, np.ndarray, int, int,
 ]) -> str:
     encoded = bytearray()
-    for values in state[:-1]:
+    for values in state[:-2]:
         for value in np.asarray(values, dtype=np.float64).reshape(-1):
             encoded.extend(struct.pack("<d", float(value)))
+    encoded.extend(struct.pack("<Q", int(state[-2])))
     encoded.extend(struct.pack("<Q", int(state[-1])))
     return hashlib.sha256(encoded).hexdigest()
 
@@ -528,8 +635,21 @@ class AuditoryFullFieldStream:
                 if _native_gammatone_stream is not None
                 else _cochlear_stream_python
             )
-            result = operation(values, *self._state)
-            next_state = result[2:]
+            result = operation(values, *self._state[:7], self._state[-1])
+            envelopes, phases, direct_phase_advances = result[:3]
+            (
+                phase_advances,
+                normalized_phase_advances,
+                next_completed_observation_count,
+            ) = _phase_advance_components(
+                direct_phase_advances,
+                completed_observation_count=self._state[7],
+            )
+            next_state = (
+                *result[3:10],
+                next_completed_observation_count,
+                result[10],
+            )
             state_digest = _state_sha256(next_state)
             receipt_payload = {
                 "first_sample_index": continuity.first_sample_index,
@@ -556,7 +676,6 @@ class AuditoryFullFieldStream:
                 receipt_sha256=hashlib.sha256(receipt_bytes).hexdigest(),
             )
             state_receipt.verify()
-            envelopes, phases = result[:2]
             if not len(envelopes):
                 raise ValueError(
                     "auditory stream chunk is shorter than one completed observation"
@@ -579,6 +698,13 @@ class AuditoryFullFieldStream:
                     ),
                     carrier_phase_turns=tuple(
                         float(value) for value in phases[:, index]
+                    ),
+                    carrier_phase_advance_turns=tuple(
+                        float(value) for value in phase_advances[:, index]
+                    ),
+                    carrier_phase_advance_nyquist_fraction=tuple(
+                        float(value)
+                        for value in normalized_phase_advances[:, index]
                     ),
                 )
                 for index, definition in enumerate(AUDITORY_CHANNELS)
@@ -691,7 +817,13 @@ def transduce_auditory_full_field(
 ) -> AuditoryFullFieldCapture:
     """Map native PCM pressure into one bounded causal cochlear field."""
     values = _validated_samples(signal, sample_rate_hz)
-    envelopes, phases = _cochlear_state(values)
+    envelopes, phases, direct_phase_advances = _cochlear_state(values)
+    phase_advances, normalized_phase_advances, _ = (
+        _phase_advance_components(
+            direct_phase_advances,
+            completed_observation_count=0,
+        )
+    )
     offsets_ns = tuple(
         (index + 1)
         * OBSERVATION_HOP_SAMPLES
@@ -709,6 +841,13 @@ def transduce_auditory_full_field(
             carrier_phase_turns=tuple(
                 float(value) for value in phases[:, index]
             ),
+            carrier_phase_advance_turns=tuple(
+                float(value) for value in phase_advances[:, index]
+            ),
+            carrier_phase_advance_nyquist_fraction=tuple(
+                float(value)
+                for value in normalized_phase_advances[:, index]
+            ),
         )
         for index, definition in enumerate(AUDITORY_CHANNELS)
     )
@@ -721,6 +860,7 @@ def transduce_auditory_full_field(
 
 
 __all__ = (
+    "AUDITORY_FULL_FIELD_PROVIDER_SCHEMA",
     "AUDITORY_GAMMATONE_CONTINUATION_SCHEMA",
     "AUDITORY_CHANNELS",
     "AuditoryChannelDefinition",
@@ -735,6 +875,7 @@ __all__ = (
     "LOWEST_CENTRE_FREQUENCY_HZ",
     "MAX_CAPTURE_SECONDS",
     "OBSERVATION_HOP_SAMPLES",
+    "PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP",
     "REQUIRED_SAMPLE_RATE_HZ",
     "transduce_auditory_full_field",
 )

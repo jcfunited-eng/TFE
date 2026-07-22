@@ -12,6 +12,13 @@
 //! stream-owner lock; PyO3's mutable borrow rejects concurrent entry. The
 //! heavy loop releases the GIL. Python retains evidence, pending-terminal,
 //! ambiguity, and final-authority ownership.
+//!
+//! Every packed branch pair and every incoming frame pair is pressure plus
+//! the provider-settled carrier phase advance for that observation.  Phase is
+//! consumed directly; this kernel never differences adjacent learned samples
+//! or consecutive incoming frames.  An isolated learned event has no phase
+//! predecessor at genesis, so candidate row zero and learned reference row
+//! zero are pressure-authoritative only.
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -23,6 +30,9 @@ const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
 const COCHLEAR_CHANNEL_COUNT: usize = 16;
 const OBSERVATION_HOP_SAMPLES: usize = 160;
 const MAX_EVENT_HOPS: usize = 800;
+const MAX_REACHABILITY_WORK: usize = 1_000_000;
+const MAX_ACTIVE_TRACKERS: usize = MAX_REACHABILITY_WORK / MAX_EVENT_HOPS;
+const MAX_INTERVAL_COMPONENTS: usize = 64;
 
 type Interval = (f64, f64);
 type IntervalSet = Vec<Interval>;
@@ -59,11 +69,7 @@ impl Branch {
 
     #[inline]
     fn phase_advance(&self, port: usize, index: usize) -> f64 {
-        if self.sample_count == 1 {
-            return 0.0;
-        }
-        let right = index.max(1);
-        self.sample(port, right).1 - self.sample(port, right - 1).1
+        self.sample(port, index).1
     }
 
     #[inline]
@@ -74,7 +80,7 @@ impl Branch {
         query_count: usize,
     ) -> (f64, f64) {
         if self.sample_count == 1 || query_count == 1 {
-            return (self.sample(port, 0).0, 0.0);
+            return self.sample(port, 0);
         }
         let position = (query_index * (self.sample_count - 1)) as f64 / (query_count - 1) as f64;
         let left_index = position.floor() as usize;
@@ -135,15 +141,17 @@ fn recurrence_incoming(branch: &Branch, reference_count: usize) -> Vec<Vec<usize
                     equivalent = false;
                     break;
                 }
-                if let Some(uncertainty) = phase_uncertainty(&[
-                    first_pressure,
-                    branch.phase_prior_pressure(port, earlier, reference_count),
-                    second_pressure,
-                    branch.phase_prior_pressure(port, later, reference_count),
-                ]) {
-                    if (first_phase - second_phase).abs() > uncertainty {
-                        equivalent = false;
-                        break;
+                if earlier != 0 {
+                    if let Some(uncertainty) = phase_uncertainty(&[
+                        first_pressure,
+                        branch.phase_prior_pressure(port, earlier, reference_count),
+                        second_pressure,
+                        branch.phase_prior_pressure(port, later, reference_count),
+                    ]) {
+                        if (first_phase - second_phase).abs() > uncertainty {
+                            equivalent = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -165,7 +173,6 @@ struct Tracker {
     first_pressure: Vec<f64>,
     first_phase: Vec<f64>,
     previous_pressure: Vec<f64>,
-    previous_phase: Vec<f64>,
     row: Option<Row>,
 }
 
@@ -388,6 +395,7 @@ fn local_interval(
     query_pressure: &[f64],
     query_phase_advance: &[f64],
     query_phase_prior_pressure: &[f64],
+    query_phase_available: bool,
     reference_index: usize,
 ) -> Option<Interval> {
     let mut interval = (0.0, 1.0);
@@ -406,6 +414,9 @@ fn local_interval(
             right_pressure,
             pressure_uncertainty,
         )?;
+        if !query_phase_available || reference_index == 0 {
+            continue;
+        }
         let uncertainty = phase_uncertainty(&[
             query_pressure[port],
             query_phase_prior_pressure[port],
@@ -435,6 +446,7 @@ fn advance_row(
     pressure: &[f64],
     phase_advance: &[f64],
     phase_prior_pressure: &[f64],
+    query_phase_available: bool,
     max_components: usize,
 ) -> Result<Row, ()> {
     let mut current = vec![Vec::new(); cell.reference_count];
@@ -466,6 +478,7 @@ fn advance_row(
             pressure,
             phase_advance,
             phase_prior_pressure,
+            query_phase_available,
             reference_index,
         ) else {
             continue;
@@ -488,18 +501,14 @@ fn advance_tracker(
     max_components: usize,
 ) -> TrackerAdvance {
     let cell = &cells[tracker.cell_index];
-    let delta: Vec<f64> = phase
-        .iter()
-        .zip(&tracker.previous_phase)
-        .map(|(current, prior)| current - prior)
-        .collect();
     let row = if tracker.row.is_none() {
         let first_row = match advance_row(
             cell,
             None,
             &tracker.first_pressure,
-            &delta,
+            &tracker.first_phase,
             pressure,
+            false,
             max_components,
         ) {
             Ok(value) => value,
@@ -512,8 +521,9 @@ fn advance_tracker(
             cell,
             Some(&first_row),
             pressure,
-            &delta,
+            phase,
             &tracker.first_pressure,
+            true,
             max_components,
         ) {
             Ok(value) => value,
@@ -524,8 +534,9 @@ fn advance_tracker(
             cell,
             tracker.row.as_ref(),
             pressure,
-            &delta,
+            phase,
             &tracker.previous_pressure,
+            true,
             max_components,
         ) {
             Ok(value) => value,
@@ -541,7 +552,6 @@ fn advance_tracker(
     tracker.row = Some(row);
     tracker.frames_seen += 1;
     tracker.previous_pressure.clone_from_slice(pressure);
-    tracker.previous_phase.clone_from_slice(phase);
     if terminal {
         TrackerAdvance::Terminal
     } else {
@@ -584,7 +594,6 @@ fn spawn(
                 first_pressure: pressure.to_vec(),
                 first_phase: phase.to_vec(),
                 previous_pressure: pressure.to_vec(),
-                previous_phase: phase.to_vec(),
                 row: None,
             });
         }
@@ -732,6 +741,41 @@ impl AuditoryIncrementalProposalCells {
     #[getter]
     fn active_starts(&self) -> Vec<usize> {
         active_starts(&self.trackers).into_iter().collect()
+    }
+
+    /// Clone only the already-bounded live proposal state for transaction
+    /// rollback.  Replaying retained frames here would perform recognition
+    /// work a second time and could evade the live step limits by supplying
+    /// larger temporary capacities.
+    fn checkpoint_state(&self) -> PyResult<Self> {
+        if self.trackers.len() > MAX_ACTIVE_TRACKERS {
+            return Err(PyValueError::new_err(
+                "incremental proposal checkpoint exceeds tracker capacity",
+            ));
+        }
+        let mut reference_cells = 0usize;
+        for tracker in &self.trackers {
+            let cell = self.cells.get(tracker.cell_index).ok_or_else(|| {
+                PyValueError::new_err("incremental proposal checkpoint has an invalid cell")
+            })?;
+            reference_cells = reference_cells
+                .checked_add(cell.reference_count)
+                .ok_or_else(|| {
+                    PyValueError::new_err("incremental proposal checkpoint work count overflow")
+                })?;
+            if reference_cells > MAX_REACHABILITY_WORK {
+                return Err(PyValueError::new_err(
+                    "incremental proposal checkpoint exceeds work capacity",
+                ));
+            }
+            if let Some(ref row) = tracker.row {
+                validate_row(row, cell.reference_count, MAX_INTERVAL_COMPONENTS)?;
+            }
+        }
+        Ok(Self {
+            cells: Arc::clone(&self.cells),
+            trackers: self.trackers.clone(),
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -928,6 +972,28 @@ mod tests {
     }
 
     #[test]
+    fn prior_dependent_candidate_genesis_phase_does_not_block_exact_event() {
+        let cells = vec![cell(&[(0.5, 0.0), (0.5, 0.35)])];
+        let mut trackers = Vec::new();
+        let first = step(&cells, &mut trackers, 160, 0.5, -0.75, &[], 10, 1_000, 64);
+        assert!(first.0.is_empty());
+
+        let second = step(&cells, &mut trackers, 320, 0.5, 0.35, &[], 10, 1_000, 64);
+        assert_eq!(second.0, vec![(0, 320)]);
+    }
+
+    #[test]
+    fn post_genesis_phase_mismatch_blocks_an_otherwise_exact_event() {
+        let cells = vec![cell(&[(0.5, 0.0), (0.5, 0.35)])];
+        let mut trackers = Vec::new();
+        step(&cells, &mut trackers, 160, 0.5, -0.75, &[], 10, 1_000, 64);
+
+        let second = step(&cells, &mut trackers, 320, 0.5, -0.35, &[], 10, 1_000, 64);
+        assert!(second.0.is_empty());
+        assert!(second.6.contains(&0));
+    }
+
+    #[test]
     fn established_tracker_retains_prior_row_after_empty_advance() {
         let cells = vec![cell(&[(0.5, 0.0), (0.5, 0.1)])];
         let mut trackers = Vec::new();
@@ -1016,7 +1082,6 @@ mod tests {
             first_pressure: frame(0.5),
             first_phase: frame(0.0),
             previous_pressure: frame(0.5),
-            previous_phase: frame(0.1),
             row: Some(row),
         }];
         let result = step(
@@ -1024,7 +1089,7 @@ mod tests {
             &mut trackers,
             480,
             0.5,
-            0.2,
+            0.1,
             &[(0, 320)],
             10,
             1_000,
@@ -1046,7 +1111,6 @@ mod tests {
             first_pressure: frame(0.5),
             first_phase: frame(0.0),
             previous_pressure: frame(0.5),
-            previous_phase: frame(0.0),
             row: None,
         };
         let mut trackers = vec![prototype(0), prototype(160), prototype(160), prototype(320)];
@@ -1064,7 +1128,7 @@ mod tests {
 
     #[test]
     fn five_hundred_frame_state_residency_benchmark() {
-        let cells = vec![cell(&[(0.5, 0.0), (0.5, 0.1)])];
+        let cells = vec![cell(&[(0.5, 0.1), (0.5, 0.1)])];
         let mut trackers = Vec::new();
         let started = Instant::now();
         for hop in 1..=500 {
@@ -1074,7 +1138,7 @@ mod tests {
                 &mut trackers,
                 completion,
                 0.5,
-                hop as f64 * 0.1,
+                0.1,
                 &[],
                 1_000,
                 10_000_000,

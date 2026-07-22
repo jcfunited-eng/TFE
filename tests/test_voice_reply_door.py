@@ -51,8 +51,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import dsf_ai_service.app as appmod
 import dsf_ai_service.substrate_runner as srmod
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
-    AUDITORY_INCREMENTAL_EVENT_SCHEMA,
+    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
     AuditoryIncrementalTerminalEvent,
+    _event_payload,
+)
+from dsf_ai_service.substrate.auditory_l5 import AUDITORY_L5_SCHEMA
+from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA,
+    AUDITORY_RECOGNITION_OPERATOR,
+    AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+    AuditoryRecognitionOccurrence,
+    AuditoryRecognitionState,
+    AuditoryReciprocityKind,
 )
 
 
@@ -78,21 +88,46 @@ def _terminal(label, ordinal=0):
     transport = (_digest({"transport": ordinal}),)
     cochlear = (_digest({"cochlear": ordinal}),)
     joint = (_digest({"joint": ordinal}),)
-    payload = {
-        "cochlear_receipt_sha256s": list(cochlear),
-        "event_id": event_id,
-        "joint_settlement_receipt_sha256s": list(joint),
+    class_receipt = _digest({"learned_class": ordinal})
+    occurrence_payload = {
+        "candidate_class_authority_receipts": [class_receipt],
+        "experience_id": _digest({"experience": ordinal}),
+        "kind": AuditoryReciprocityKind.SPOKEN_FORM.value,
         "l5_authority_receipt_sha256": l5_receipt,
-        "recognition_state": "unique",
-        "sample_rate_hz": 16_000,
-        "schema": AUDITORY_INCREMENTAL_EVENT_SCHEMA,
-        "source_sample_end": 160,
-        "source_sample_start": 0,
-        "stream_id": stream_id,
+        "operator": AUDITORY_RECOGNITION_OPERATOR,
+        "schema": AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA,
+        "selected_class_authority_receipt_sha256": class_receipt,
+        "state": AuditoryRecognitionState.UNIQUE.value,
         "structural_fingerprint": structural_fingerprint,
-        "transport_receipt_sha256s": list(transport),
-        "tutor_label": label,
     }
+    occurrence = AuditoryRecognitionOccurrence(
+        kind=AuditoryReciprocityKind.SPOKEN_FORM,
+        state=AuditoryRecognitionState.UNIQUE,
+        experience_id=occurrence_payload["experience_id"],
+        structural_fingerprint=structural_fingerprint,
+        l5_authority_receipt_sha256=l5_receipt,
+        candidate_class_authority_receipts=(class_receipt,),
+        selected_class_authority_receipt_sha256=class_receipt,
+        operator=AUDITORY_RECOGNITION_OPERATOR,
+        authority_receipt_sha256=_digest(occurrence_payload),
+    )
+    payload = _event_payload(
+        event_id=event_id,
+        stream_id=stream_id,
+        source_sample_start=0,
+        source_sample_end=160,
+        tutor_label=label,
+        structural_fingerprint=structural_fingerprint,
+        l5_authority_receipt_sha256=l5_receipt,
+        transport_receipt_sha256s=transport,
+        cochlear_receipt_sha256s=cochlear,
+        joint_settlement_receipt_sha256s=joint,
+        recognition_occurrence=occurrence,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
+    )
     return AuditoryIncrementalTerminalEvent(
         event_id=event_id,
         stream_id=stream_id,
@@ -105,6 +140,11 @@ def _terminal(label, ordinal=0):
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
         authority_receipt_sha256=_digest(payload),
+        recognition_occurrence=occurrence,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
 
 

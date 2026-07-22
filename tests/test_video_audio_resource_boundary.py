@@ -181,7 +181,7 @@ def test_real_upload_frame_representation_enters_video_causal_attention(
         assert activity.metadata["_video_causal_settled"] is True
         assert activity.metadata["_audiovisual_settled"] is True
         assert activity.metadata["sight_causal_entries"] == 16
-        assert activity.metadata["audio_causal_entries"] == 16
+        assert activity.metadata["audio_causal_entries"] == 32
         assert engine.window_manager.open_context_ids() == ()
         observed = {
             item.sense for item in engine._latest_causal_settlement.interpretations
@@ -317,7 +317,7 @@ def test_video_attention_routes_one_full_audiovisual_settlement_once(
         assert activity.metadata["_video_causal_settled"] is True
         assert activity.metadata["_audiovisual_settled"] is True
         assert activity.metadata["sight_causal_entries"] == 16
-        assert activity.metadata["audio_causal_entries"] == 16
+        assert activity.metadata["audio_causal_entries"] == 32
         assert engine.window_manager.open_context_ids() == ()
         settlement = engine._latest_causal_settlement
         settlement.verify()
@@ -327,7 +327,7 @@ def test_video_attention_routes_one_full_audiovisual_settlement_once(
         }
         assert set(observed) == {"sight", "sound"}
         assert len(observed["sight"].substreams) == 16
-        assert len(observed["sound"].substreams) == 16
+        assert len(observed["sound"].substreams) == 32
         assert tuple(
             item.substream_id for item in observed["sight"].substreams
         ) == tuple(
@@ -341,10 +341,17 @@ def test_video_attention_routes_one_full_audiovisual_settlement_once(
             if "native_full_field_input"
             in entry["provenance"]["detail"]
         ]
-        assert len(native_inputs) == 32
+        assert len(native_inputs) == sum(
+            len(interpretation.substreams)
+            for interpretation in observed.values()
+        )
         assert sum(
             len(value["normalized_signal"]) for value in native_inputs
-        ) == 14_720
+        ) == sum(
+            substream.source_sample_count
+            for interpretation in observed.values()
+            for substream in interpretation.substreams
+        )
         assert engine._causal_experience_owner.status()[
             "transition_relations"] <= 1_024
         assert engine._auditory_l5_owner.status()[

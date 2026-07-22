@@ -7,31 +7,44 @@ import os
 import sys
 from fractions import Fraction
 
+import numpy as np
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-    NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
-    NativeAxisCoordinate,
     PhysicalSense,
     SENSE_ORDER,
     SenseBoundaryState,
 )
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
+    AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
     AuditoryIncrementalTerminalEvent,
     _event_payload,
 )
-from dsf_ai_service.substrate.auditory_l5 import AuditoryL5Owner
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    auditory_kernel_component_inputs,
+)
+from dsf_ai_service.substrate.auditory_l5 import (
+    AUDITORY_L5_SCHEMA,
+    AuditoryL5Owner,
+)
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECOGNITION_OPERATOR,
+    AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
     AuditoryReciprocityKind,
     AuditoryReciprocityOwner,
 )
 from dsf_ai_service.substrate.auditory_tutor_authority import (
     AuditoryTutorAuthority,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    REQUIRED_SAMPLE_RATE_HZ,
+    transduce_auditory_full_field,
 )
 from dsf_ai_service.substrate.causal_action import (
     CausalActionOwner,
@@ -52,28 +65,25 @@ def _digest(value: object) -> str:
 
 
 def _built(name: str, values: tuple[Fraction, ...]):
-    times = tuple(
-        Fraction(index + 1, len(values)) for index in range(len(values))
-    )
-    port = NativeSensorySubstreamInput(
-        sense=PhysicalSense.SOUND,
-        sensor_id="test-microphone",
-        substream_id="test-cochlear-band",
-        topology_index=0,
-        coordinates=(
-            NativeAxisCoordinate("cochlear-channel", "test-band"),
+    sample_count = 320
+    capture = transduce_auditory_full_field(
+        np.asarray(
+            [float(values[index % len(values)]) for index in range(sample_count)],
+            dtype=np.float64,
         ),
-        physical_quantity="cochlear-pressure-envelope",
-        physical_unit="full-scale-pressure",
-        source_times=times,
-        normalized_signal=values,
-        phase_turns=tuple(Fraction(index, 16) for index in range(len(values))),
+        sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ,
     )
+    ports = auditory_kernel_component_inputs(
+        capture,
+        source_anchor=Fraction(0),
+    )
+    assert len(capture.channels) == 16
+    assert len(ports) == AUDITORY_KERNEL_COMPONENT_COUNT
     return build_six_sense_full_field(
         assembly_id=f"causal-action-test-{name}",
         source_time_start=Fraction(0),
-        source_time_end=Fraction(1),
-        observed_substreams={PhysicalSense.SOUND: (port,)},
+        source_time_end=Fraction(sample_count, REQUIRED_SAMPLE_RATE_HZ),
+        observed_substreams={PhysicalSense.SOUND: ports},
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -131,6 +141,10 @@ def _settlement(
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
         recognition_occurrence=recognition.occurrence,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
     terminal = AuditoryIncrementalTerminalEvent(
         event_id=event_id,
@@ -143,8 +157,12 @@ def _settlement(
         transport_receipt_sha256s=transport,
         cochlear_receipt_sha256s=cochlear,
         joint_settlement_receipt_sha256s=joint,
+        schema=AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3,
         authority_receipt_sha256=_digest(payload),
         recognition_occurrence=recognition.occurrence,
+        l5_schema=AUDITORY_L5_SCHEMA,
+        reciprocity_snapshot_schema=AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA,
+        recognition_operator=AUDITORY_RECOGNITION_OPERATOR,
     )
     terminal.verify()
     settled = []

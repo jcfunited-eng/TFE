@@ -47,7 +47,10 @@ from collections import deque
 import random
 
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA,
+    LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA,
     MAX_DECODED_SNAPSHOT_BYTES as AUDITORY_SNAPSHOT_MAX_DECODED_BYTES,
+    inspect_legacy_v4_envelope,
 )
 
 
@@ -84,6 +87,7 @@ SOUNDS_STATE_MAX_BYTES = 16 * 1024 * 1024
 # resource admission boundary, not a semantic limit or a truncation rule:
 # oversized state fails closed before json.load can allocate it.
 TEACHING_STATE_MAX_BYTES = AUDITORY_SNAPSHOT_MAX_DECODED_BYTES
+AUDITORY_V4_ARCHIVE_SCHEMA = "guala.auditory.persistence_archive.v1"
 # One already-sealed production generation predates the bounded causal
 # provenance schema and contains 1,164,724 repeated recognized-strand IDs in
 # only 37 emission records (97,963,119 encoded bytes).  Admit that exact class
@@ -3327,6 +3331,10 @@ class Guala:
             log_event=self._log_substrate_event,
             max_classes_per_kind=64,
         )
+        # A verified v4 envelope can survive the v5 channel-pair transition
+        # only as inert historical bytes.  It is never installed in a live
+        # recognition, terminal, or action owner.
+        self._auditory_v4_archive = None
         from dsf_ai_service.substrate.auditory_incremental_terminal import (
             AuditoryIncrementalTerminalRegistry as
             _AuditoryIncrementalTerminalRegistry,
@@ -5279,13 +5287,18 @@ class Guala:
         except Exception:
             pass  # measurement must never disturb reading
 
-    def _remember_auditory_causal_event(self, record):
-        """Retain exactly one complete witness; never a lifetime index."""
+    @staticmethod
+    def _canonical_auditory_causal_event_record(record):
+        """Validate and detach one complete witness before transaction commit."""
         from dsf_ai_service.substrate.auditory_incremental_terminal import (
             AuditoryIncrementalTerminalEvent,
         )
         restored = AuditoryIncrementalTerminalEvent.from_record(dict(record))
-        canonical = restored.as_record()
+        return restored.as_record()
+
+    def _remember_auditory_causal_event(self, record):
+        """Retain exactly one complete witness; never a lifetime index."""
+        canonical = self._canonical_auditory_causal_event_record(record)
         with self.lock:
             self._latest_auditory_causal_event_record = canonical
 
@@ -5302,40 +5315,76 @@ class Guala:
         source,
         claim,
     ):
-        """Bind every exact L5 port from one live terminal into its turn."""
+        """Bind every paired L5 kernel component into its causal turn."""
         experience = self._auditory_incremental_terminals.full_field_from_claim(
             claim
         )
         event = self._auditory_incremental_terminals.verify_claim(claim)
-        if not experience.ports:
-            raise RuntimeError("auditory terminal claim has no field ports")
-        sample_count = len(experience.ports[0].samples)
+        experience.verify()
+        components = tuple(
+            component
+            for channel in experience.channels
+            for component in (
+                channel.pressure,
+                channel.carrier_phase_advance,
+            )
+        )
+        if len(components) != 32:
+            raise RuntimeError(
+                "auditory terminal claim has no complete paired field"
+            )
+        sample_count = len(components[0].samples)
         if sample_count <= 0 or any(
-            len(port.samples) != sample_count for port in experience.ports
+            len(component.samples) != sample_count
+            for component in components
         ):
             raise RuntimeError(
                 "auditory terminal claim changed field sample cardinality"
             )
-        source_step = (
-            experience.source_time_end - experience.source_time_start
-        ) / sample_count
-        source_anchor = experience.source_time_start + source_step
+        source_anchor = experience.source_time_start
+        reference_grid = tuple(
+            (
+                sample.source_index,
+                sample.source_time,
+                sample.causal_offset,
+            )
+            for sample in components[0].samples
+        )
         if any(
-            port.samples[-1].causal_offset + source_anchor
+            tuple(
+                (
+                    sample.source_index,
+                    sample.source_time,
+                    sample.causal_offset,
+                )
+                for sample in component.samples
+            ) != reference_grid
+            for component in components[1:]
+        ):
+            raise RuntimeError(
+                "auditory terminal claim changed the paired causal grid"
+            )
+        if (
+            reference_grid[-1][1] != experience.source_time_end
+            or reference_grid[-1][2] + source_anchor
             != experience.source_time_end
-            for port in experience.ports
+            or any(
+                source_time != source_anchor + causal_offset
+                for _index, source_time, causal_offset in reference_grid
+            )
         ):
             raise RuntimeError(
                 "auditory terminal claim changed exact sample timing"
             )
-        for port in experience.ports:
+        for component in components:
             self.window_manager.add_entry(
                 modality="sound",
-                section=f"audio_{port.substream_id}",
+                section=f"audio_{component.substream_id}",
                 motif_id=deterministic_motif_id(
-                    f"auditory-terminal:{event.event_id}:{port.substream_id}"
+                    "auditory-terminal:"
+                    f"{event.event_id}:{component.substream_id}"
                 ),
-                chi=port.topology_index,
+                chi=component.topology_index,
                 tick=self.tick,
                 source_tag=source,
                 trigger_reason="auditory_terminal",
@@ -5349,15 +5398,15 @@ class Guala:
                     "native_full_field_input": {
                         "schema": "guala.native_sensory_input.v2",
                         "sense": "sound",
-                        "sensor_id": port.sensor_id,
-                        "substream_id": port.substream_id,
-                        "topology_index": port.topology_index,
+                        "sensor_id": component.sensor_id,
+                        "substream_id": component.substream_id,
+                        "topology_index": component.topology_index,
                         "coordinates": [
                             [axis, coordinate]
-                            for axis, coordinate in port.coordinates
+                            for axis, coordinate in component.coordinates
                         ],
-                        "physical_quantity": port.physical_quantity,
-                        "physical_unit": port.physical_unit,
+                        "physical_quantity": component.physical_quantity,
+                        "physical_unit": component.physical_unit,
                         "source_anchor_fraction": [
                             source_anchor.numerator,
                             source_anchor.denominator,
@@ -5367,15 +5416,15 @@ class Guala:
                                 sample.causal_offset.numerator,
                                 sample.causal_offset.denominator,
                             ]
-                            for sample in port.samples
+                            for sample in component.samples
                         ],
                         "normalized_signal": [
-                            float(sample.pressure)
-                            for sample in port.samples
+                            float(sample.signal)
+                            for sample in component.samples
                         ],
                         "phase_turns": [
                             float(sample.phase_turns)
-                            for sample in port.samples
+                            for sample in component.samples
                         ],
                     },
                 },
@@ -5384,18 +5433,138 @@ class Guala:
         return experience
 
     def _admit_auditory_causal_event(self, text, event):
-        """Consume one live owner-issued event and retain its bounded witness."""
+        """Reserve one live owner-issued event for conversation intake."""
         record = _verified_auditory_causal_intake(text, event)
         claim = self._auditory_incremental_terminals.claim(event)
-        self._remember_auditory_causal_event(record)
         return claim, record
 
     def discard_unadmitted_auditory_terminal(self, event):
         """Release owner authority when the bounded voice door is full."""
         return self._auditory_incremental_terminals.discard_unadmitted(event)
 
+    def _commit_auditory_conversation_claim(self, claim, record):
+        """Commit prepared causal state and consume its utterance authority."""
+        canonical_record = self._canonical_auditory_causal_event_record(record)
+        settlement = (
+            self._auditory_incremental_terminals
+            .prepared_settlement_from_claim(claim)
+        )
+        self._auditory_incremental_terminals.complete_claim(
+            claim,
+            settlement,
+            commit_settlement=lambda: (
+                self._causal_experience_owner.commit_prepared(settlement)
+            ),
+        )
+        with self.lock:
+            self._latest_auditory_causal_event_record = canonical_record
+        try:
+            self._log_substrate_event(
+                "auditory_language_causal_experience_bound",
+                causal_experience_id=record["event_id"],
+                causal_intake_receipt_sha256=(
+                    record["authority_receipt_sha256"]
+                ),
+                stream_id=record["stream_id"],
+                source_sample_start=record["source_sample_start"],
+                source_sample_end=record["source_sample_end"],
+                causal_settlement_receipt_sha256=(
+                    settlement.authority_receipt_sha256
+                ),
+            )
+        except Exception:
+            # Telemetry is outside the authority transaction.  A completed
+            # causal experience cannot be reopened by a failed observer.
+            pass
+        return settlement
+
+    def _rollback_auditory_conversation_claim(self, claim):
+        """Release prepared ordering before restoring issued authority."""
+        self._causal_experience_owner.discard_prepared_for_source_event(
+            claim.event.event_id
+        )
+        self._auditory_incremental_terminals.rollback_claim(claim)
+
     @_engine_mutation_entry
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
+                      teaching=False,
+                      episode_ref=None, presence=None, location=None, sky_state=None,
+                      place=None, ambient=None, experience_origin="emulated",
+                      causal_intake=None, _defer_causal_commit=False):
+        """Run one sentence and its auditory claim as one exact transaction."""
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalTerminalEvent,
+        )
+        claim = None
+        record = None
+        try:
+            if isinstance(causal_intake, AuditoryIncrementalTerminalEvent):
+                claim, record = self._admit_auditory_causal_event(
+                    text, causal_intake
+                )
+            elif causal_intake is not None:
+                claim = causal_intake
+                record = self._auditory_causal_record_from_claim(
+                    text, claim
+                )
+            result = self._read_sentence_inner(
+                text,
+                source=source,
+                bundle_id=bundle_id,
+                salience=salience,
+                teaching=teaching,
+                episode_ref=episode_ref,
+                presence=presence,
+                location=location,
+                sky_state=sky_state,
+                place=place,
+                ambient=ambient,
+                experience_origin=experience_origin,
+                causal_intake=claim,
+            )
+            if claim is not None:
+                if _defer_causal_commit:
+                    (
+                        self._auditory_incremental_terminals
+                        .prepared_settlement_from_claim(claim)
+                    )
+                else:
+                    self._commit_auditory_conversation_claim(claim, record)
+            return result
+        except BaseException as intake_error:
+            cleanup_error = None
+            if record is not None:
+                causal_context_id = (
+                    f"causal-experience:{record['event_id']}"
+                )
+                if causal_context_id in self.window_manager.open_context_ids():
+                    try:
+                        self.window_manager.discard_unsettled_context(
+                            causal_context_id,
+                            "auditory_conversation_claim_failed",
+                        )
+                    except BaseException as error:
+                        cleanup_error = error
+            rollback_error = None
+            if claim is not None and getattr(
+                    claim, "lifecycle", None) == "in_flight":
+                try:
+                    self._rollback_auditory_conversation_claim(claim)
+                except BaseException as error:
+                    rollback_error = error
+            recovery_errors = [
+                error for error in (cleanup_error, rollback_error)
+                if error is not None
+            ]
+            if recovery_errors:
+                raise BaseExceptionGroup(
+                    "auditory conversation intake recovery failed",
+                    [intake_error, *recovery_errors],
+                )
+            raise
+
+    def _read_sentence_inner(
+                      self, text, source="corpus", bundle_id=None, salience=None,
                       teaching=False,
                       episode_ref=None, presence=None, location=None, sky_state=None,
                       place=None, ambient=None, experience_origin="emulated",
@@ -5485,8 +5654,8 @@ class Guala:
                 "heard language requires its auditory terminal"
             )
         if isinstance(causal_intake, AuditoryIncrementalTerminalEvent):
-            causal_intake, _causal_intake_record = (
-                self._admit_auditory_causal_event(text, causal_intake)
+            raise RuntimeError(
+                "auditory event must enter through read_sentence transaction"
             )
         else:
             _causal_intake_record = self._auditory_causal_record_from_claim(
@@ -5753,14 +5922,21 @@ class Guala:
             _causal_settlement = None
             if _owns_fact_context:
                 if _causal_intake_record is not None:
-                    _closed_window_id, _causal_settlement = (
-                        self.window_manager.end_context(
-                            _fact_context_id,
-                            "context_complete"
-                            if _sentence_complete else "context_failed",
-                            return_settlement=True,
+                    if _sentence_complete:
+                        _closed_window_id, _causal_settlement = (
+                            self.window_manager.end_context(
+                                _fact_context_id,
+                                "context_complete",
+                                return_settlement=True,
+                            )
                         )
-                    )
+                    else:
+                        _closed_window_id = (
+                            self.window_manager.discard_unsettled_context(
+                                _fact_context_id,
+                                "auditory_conversation_read_failed",
+                            )
+                        )
                 else:
                     _closed_window_id = self.window_manager.end_context(
                         _fact_context_id,
@@ -5777,33 +5953,6 @@ class Guala:
                     raise RuntimeError(
                         "auditory language experience did not settle"
                     )
-                self._auditory_incremental_terminals.complete_claim(
-                    causal_intake,
-                    _causal_settlement,
-                )
-                self._log_substrate_event(
-                    "auditory_language_causal_experience_bound",
-                    causal_experience_id=(
-                        _causal_intake_record["event_id"]
-                    ),
-                    causal_intake_receipt_sha256=(
-                        _causal_intake_record[
-                            "authority_receipt_sha256"
-                        ]
-                    ),
-                    stream_id=_causal_intake_record["stream_id"],
-                    source_sample_start=(
-                        _causal_intake_record["source_sample_start"]
-                    ),
-                    source_sample_end=(
-                        _causal_intake_record["source_sample_end"]
-                    ),
-                    window_id=_closed_window_id,
-                    words=len(words),
-                    causal_settlement_receipt_sha256=(
-                        _causal_settlement.authority_receipt_sha256
-                    ),
-                )
             if experience_origin in ("imagined", "self_heard"):
                 # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
                 # experience closes and persists like any window (it IS her
@@ -5851,6 +6000,11 @@ class Guala:
             # via introspect()/loomscan (mirrors _last_surprise's pattern).
             self._last_place_tags = place
             self._last_ambient_tags = ambient
+        if _causal_intake_record is not None:
+            self._auditory_incremental_terminals.prepare_claim(
+                causal_intake,
+                _causal_settlement,
+            )
         return source_turn_index
 
     # ------------------------------------------------------------------
@@ -5963,41 +6117,52 @@ class Guala:
             raise ValueError(
                 "heard conversation requires its auditory terminal"
             )
-        if causal_intake is not None:
-            causal_intake, _causal_intake_record = (
-                self._admit_auditory_causal_event(text, causal_intake)
-            )
-        else:
-            _causal_intake_record = None
-        # GL-CMD-SCENE-LANES-B1-188 V4: WHO/location/sky_state were written
-        # only for autonomous attending (_atick_attending_visual/_audio via
-        # _current_situation) -- never for converse, confirmed by -164's
-        # audit ("presence tags... never for converse"). Same real, no-I/O
-        # source, computed here so every converse turn writes a real WHO tag
-        # too. Caller-supplied values (none exist today) still win.
-        if presence is None and location is None and sky_state is None:
-            presence, location, sky_state = self._current_situation()
-        # GL-FIX-PRESENCE-KEEPALIVE-C1-20260710: keep this source's presence
-        # alive for the FULL wall-clock duration of this call -- BEFORE any
-        # lock wait, BEFORE the math-parse shortcut in either path below
-        # (both of which could otherwise skip read_sentence's own renewal
-        # entirely), and THROUGHOUT any single slow phase (a heartbeat
-        # thread, not just phase-boundary renewals -- see
-        # _presence_keepalive's docstring for why boundary-only renewal was
-        # proven insufficient by real-threading adversarial testing).
-        with self._live_converse_state_lock:
-            self._live_converse_pending += 1
+        _conversation_claim = None
+        _pending_registered = False
         try:
+            if causal_intake is not None:
+                causal_intake, _causal_intake_record = (
+                    self._admit_auditory_causal_event(text, causal_intake)
+                )
+                _conversation_claim = causal_intake
+            else:
+                _causal_intake_record = None
+            # GL-CMD-SCENE-LANES-B1-188 V4: WHO/location/sky_state were written
+            # only for autonomous attending (_atick_attending_visual/_audio via
+            # _current_situation) -- never for converse. Caller-supplied values
+            # still win.
+            if presence is None and location is None and sky_state is None:
+                presence, location, sky_state = self._current_situation()
+            # Presence spans the complete admitted turn, including lock waits.
+            with self._live_converse_state_lock:
+                self._live_converse_pending += 1
+                _pending_registered = True
             with self._presence_keepalive(source):
                 return self._converse_body(
                     text, source, emission_mode, bundle_id, episode_ref,
                     presence, location, sky_state, organ_candidates,
                     causal_intake)
+        except BaseException as conversation_error:
+            if (
+                _conversation_claim is not None
+                and _conversation_claim.lifecycle == "in_flight"
+            ):
+                try:
+                    self._rollback_auditory_conversation_claim(
+                        _conversation_claim
+                    )
+                except BaseException as rollback_error:
+                    raise BaseExceptionGroup(
+                        "auditory conversation and claim rollback failed",
+                        [conversation_error, rollback_error],
+                    )
+            raise
         finally:
-            with self._live_converse_state_lock:
-                if self._live_converse_pending <= 0:
-                    raise RuntimeError("live converse counter underflow")
-                self._live_converse_pending -= 1
+            if _pending_registered:
+                with self._live_converse_state_lock:
+                    if self._live_converse_pending <= 0:
+                        raise RuntimeError("live converse counter underflow")
+                    self._live_converse_pending -= 1
 
     def _converse_body(self, text, source, emission_mode, bundle_id,
                        episode_ref, presence, location, sky_state,
@@ -6092,10 +6257,11 @@ class Guala:
                 text, source=source, bundle_id=bundle_id,
                 episode_ref=episode_ref, presence=presence,
                 location=location, sky_state=sky_state,
-                causal_intake=causal_intake)
+                causal_intake=causal_intake,
+                _defer_causal_commit=causal_record is not None)
             causal_settlement = (
                 self._auditory_incremental_terminals
-                .causal_settlement_from_claim(causal_intake)
+                .prepared_settlement_from_claim(causal_intake)
                 if causal_record is not None else None
             )
             tick_after_read = self.tick
@@ -6249,10 +6415,7 @@ class Guala:
                         total_ms=round((_t_reply_ready - _t_converse_start) * 1000, 1),
                         n_words=len(words), released_before_selfhear=True)
 
-            self._start_engine_background_thread(
-                _post_reply_continuation, daemon=True,
-                name="converse-posthear")
-            return ConversationTurnResult(
+            turn = ConversationTurnResult(
                 response=reply,
                 response_source=response_source,
                 emission_id=emission_id,
@@ -6264,6 +6427,18 @@ class Guala:
                 causal_intake_receipt_sha256=(
                     causal_intake_receipt_sha256
                 ))
+            if causal_record is not None:
+                self._commit_auditory_conversation_claim(
+                    causal_intake,
+                    causal_record,
+                )
+            try:
+                self._start_engine_background_thread(
+                    _post_reply_continuation, daemon=True,
+                    name="converse-posthear")
+            except Exception:
+                pass
+            return turn
 
     # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
 
@@ -6357,10 +6532,11 @@ class Guala:
             text, source=source, bundle_id=bundle_id,
             episode_ref=episode_ref, presence=presence,
             location=location, sky_state=sky_state,
-            causal_intake=causal_intake)
+            causal_intake=causal_intake,
+            _defer_causal_commit=causal_record is not None)
         causal_settlement = (
             self._auditory_incremental_terminals
-            .causal_settlement_from_claim(causal_intake)
+            .prepared_settlement_from_claim(causal_intake)
             if causal_record is not None else None
         )
         tick_after_read = self.tick
@@ -6540,10 +6716,7 @@ class Guala:
                     n_words=len(words),
                     phased=True, released_before_selfhear=True)
 
-        self._start_engine_background_thread(
-            _post_reply_continuation, daemon=True,
-            name="converse-posthear")
-        return ConversationTurnResult(
+        turn = ConversationTurnResult(
             response=reply,
             response_source=response_source,
             emission_id=emission_id,
@@ -6555,6 +6728,18 @@ class Guala:
             causal_intake_receipt_sha256=(
                 causal_intake_receipt_sha256
             ))
+        if causal_record is not None:
+            self._commit_auditory_conversation_claim(
+                causal_intake,
+                causal_record,
+            )
+        try:
+            self._start_engine_background_thread(
+                _post_reply_continuation, daemon=True,
+                name="converse-posthear")
+        except Exception:
+            pass
+        return turn
 
     def _ensure_engine_lifecycle_state(self):
         """Initialize lifecycle fields on narrow legacy/test constructions."""
@@ -6769,6 +6954,16 @@ class Guala:
             raise RuntimeError(
                 f"engine mutation counter reached zero with {pending_turns} "
                 "conversation(s) still active")
+        terminal_authorities = (
+            self._auditory_incremental_terminals.authority_counts()
+        )
+        if any(terminal_authorities.values()):
+            raise RuntimeError(
+                "engine quiescence rejected live auditory terminal authority: "
+                f"issued={terminal_authorities['issued_terminal_authorities']}, "
+                "in_flight="
+                f"{terminal_authorities['in_flight_terminal_authorities']}"
+            )
         raw_thread_certificate = self._join_engine_raw_threads(deadline)
 
         # No foreground operation, accepted continuation, or engine loop can
@@ -7150,38 +7345,40 @@ class Guala:
             "auditory_event_boundary", "ambient")
         if auditory_boundary not in ("ambient", "utterance"):
             raise RuntimeError("causal window has an invalid auditory event boundary")
-        self._latest_auditory_recognition_boundary = auditory_boundary
-        self._latest_auditory_l5_experience = self._auditory_l5_owner.settle(
-            built,
-            event_boundary=auditory_boundary,
+        recognized_language_record = context_detail.get(
+            "auditory_terminal_event"
         )
-        if self._latest_auditory_l5_experience is not None:
-            with self._auditory_transaction_lock:
-                self._auditory_l5_by_assembly[built.boundary.assembly_id] = (
-                    self._latest_auditory_l5_experience
-                )
-                self._auditory_l5_by_assembly.move_to_end(
-                    built.boundary.assembly_id
-                )
-                while (
-                    len(self._auditory_l5_by_assembly)
-                    > self._auditory_transaction_capacity
-                ):
-                    self._auditory_l5_by_assembly.popitem(last=False)
-        self._latest_auditory_recognitions = (
-            self._auditory_reciprocity_owner.recognize_all(
-                self._latest_auditory_l5_experience)
-            if (
-                self._latest_auditory_l5_experience is not None
-                and auditory_boundary == "utterance"
+        if recognized_language_record is None:
+            self._latest_auditory_recognition_boundary = auditory_boundary
+            self._latest_auditory_l5_experience = self._auditory_l5_owner.settle(
+                built,
+                event_boundary=auditory_boundary,
             )
-            else ()
-        )
+            if self._latest_auditory_l5_experience is not None:
+                with self._auditory_transaction_lock:
+                    self._auditory_l5_by_assembly[built.boundary.assembly_id] = (
+                        self._latest_auditory_l5_experience
+                    )
+                    self._auditory_l5_by_assembly.move_to_end(
+                        built.boundary.assembly_id
+                    )
+                    while (
+                        len(self._auditory_l5_by_assembly)
+                        > self._auditory_transaction_capacity
+                    ):
+                        self._auditory_l5_by_assembly.popitem(last=False)
+            self._latest_auditory_recognitions = (
+                self._auditory_reciprocity_owner.recognize_all(
+                    self._latest_auditory_l5_experience)
+                if (
+                    self._latest_auditory_l5_experience is not None
+                    and auditory_boundary == "utterance"
+                )
+                else ()
+            )
         return owner.settle(
             built,
-            recognized_language_record=context_detail.get(
-                "auditory_terminal_event"
-            ),
+            recognized_language_record=recognized_language_record,
             routing_chis=tuple(
                 int(entry["chi"]) for entry in record.get("entries") or ()
                 if "chi" in entry),
@@ -7189,6 +7386,8 @@ class Guala:
                 str(entry["source_tag"])
                 for entry in record.get("entries") or ()
                 if entry.get("source_tag")),
+            commit=recognized_language_record is None,
+            reserve=recognized_language_record is not None,
         )
 
     def _accept_causal_settlement(self, settlement):
@@ -7201,23 +7400,27 @@ class Guala:
         """
         if self._engine_quiesced:
             raise RuntimeError("causal settlement rejected after quiescence")
-        self._latest_causal_settlement = settlement
-        self._causal_settlement_accepted += 1
         language_events = getattr(settlement, "language_events", ())
         if (
             len(language_events) == 1
             and language_events[0].recognition_occurrence is not None
         ):
             self._causal_action_owner.offer_teaching_experience(settlement)
-        self._log_substrate_event(
-            "causal_experience_accepted",
-            event_id=settlement.event_id,
-            structural_fingerprint=settlement.structural_fingerprint,
-            observed_senses=[
-                item.sense for item in settlement.interpretations
-                if item.state == "observed"
-            ],
-        )
+        self._latest_causal_settlement = settlement
+        self._causal_settlement_accepted += 1
+        try:
+            self._log_substrate_event(
+                "causal_experience_accepted",
+                event_id=settlement.event_id,
+                structural_fingerprint=settlement.structural_fingerprint,
+                observed_senses=[
+                    item.sense for item in settlement.interpretations
+                    if item.state == "observed"
+                ],
+            )
+        except Exception:
+            # Telemetry is not part of settlement authority.
+            pass
 
     @_engine_mutation_entry
     def teach_causal_action(
@@ -7338,7 +7541,10 @@ class Guala:
             **result,
             "sample_count": frame_count,
             "sample_rate_hz": REPLAY_SOUND_SAMPLE_RATE_HZ,
-            "port_count": len(experience.ports),
+            "channel_count": len(experience.channels),
+            "kernel_component_count": sum(
+                2 for _channel in experience.channels
+            ),
             "event_boundary": experience.event_boundary,
         }
 
@@ -7457,6 +7663,21 @@ class Guala:
 
     def auditory_l5_status(self):
         experience = self._latest_auditory_l5_experience
+        reciprocity_status = self._auditory_reciprocity_owner.status()
+        active_class_count = sum(
+            reciprocity_status["class_counts"].values()
+        )
+        archived = self._auditory_v4_archive
+        archive_inspection = (
+            self._validate_auditory_v4_archive(archived)
+            if archived is not None else None
+        )
+        if active_class_count:
+            persistence_state = "v5_active"
+        elif archived is not None:
+            persistence_state = "v5_empty_reobservation_required"
+        else:
+            persistence_state = "v5_empty"
         return {
             "provider": "causal_gammatone_erb_v1",
             "latest_experience_id": (
@@ -7483,7 +7704,37 @@ class Guala:
                 else None
             ),
             "l5_owner": self._auditory_l5_owner.status(),
-            "reciprocity": self._auditory_reciprocity_owner.status(),
+            "reciprocity": reciprocity_status,
+            "persistence_transition": {
+                "active_envelope_schema": (
+                    AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+                ),
+                "state": persistence_state,
+                "legacy_archive_schema": (
+                    AUDITORY_V4_ARCHIVE_SCHEMA
+                    if archived is not None else None
+                ),
+                "legacy_v4_preserved": archived is not None,
+                "legacy_v4_envelope_sha256": (
+                    archive_inspection.envelope_canonical_sha256
+                    if archive_inspection is not None else None
+                ),
+                "legacy_v4_encoded_payload_bytes": (
+                    archive_inspection.encoded_payload_bytes
+                    if archive_inspection is not None else 0
+                ),
+                "legacy_v4_applied": False,
+                "quarantined_causal_action_present": bool(
+                    archived is not None
+                    and archived["quarantined_causal_action"] is not None
+                ),
+                "quarantined_terminal_event_present": bool(
+                    archived is not None
+                    and archived[
+                        "quarantined_latest_auditory_causal_event"
+                    ] is not None
+                ),
+            },
             "recognitions": [
                 {
                     "kind": value.kind.value,
@@ -13705,6 +13956,7 @@ class Guala:
                 "causal_receipt": receipt,
             }
 
+    @_engine_mutation_entry
     def close_auditory_pcm_stream(self, stream_id, *, release_terminal=True):
         """Close one stream and optionally release its final learned terminal."""
         if not isinstance(stream_id, str) or not stream_id:
@@ -13746,43 +13998,50 @@ class Guala:
         self._latest_auditory_stream_settlement_receipt = receipt
         return receipt
 
+    @_engine_mutation_entry
     def advance_continuous_auditory_terminal(
             self, *, pcm_s16le, transport, settlement):
         """Advance one causal auditory epoch and expose only a UNIQUE terminal."""
         with self._auditory_transaction_lock:
-            mounted_capture = self._auditory_capture_authorities.pop(
-                transport.receipt_sha256, None
+            mounted_capture = self._auditory_capture_authorities.get(
+                transport.receipt_sha256
             )
-            auditory_l5 = self._auditory_l5_by_assembly.pop(
-                settlement.assembly_id, None
+            auditory_l5 = self._auditory_l5_by_assembly.get(
+                settlement.assembly_id
             )
-        if mounted_capture is None or auditory_l5 is None:
-            raise RuntimeError(
-                "continuous auditory terminal lacks full-field authority"
+            if mounted_capture is None or auditory_l5 is None:
+                raise RuntimeError(
+                    "continuous auditory terminal lacks full-field authority"
+                )
+            mounted_transport, capture, cochlear = mounted_capture
+            if mounted_transport.receipt_sha256 != transport.receipt_sha256:
+                raise RuntimeError(
+                    "continuous auditory transport authority changed"
+                )
+            from dsf_ai_service.substrate.auditory_stream_settlement import (
+                bind_auditory_stream_settlement,
             )
-        mounted_transport, capture, cochlear = mounted_capture
-        if mounted_transport.receipt_sha256 != transport.receipt_sha256:
-            raise RuntimeError("continuous auditory transport authority changed")
-        from dsf_ai_service.substrate.auditory_stream_settlement import (
-            bind_auditory_stream_settlement,
-        )
-        joint = bind_auditory_stream_settlement(
-            transport=transport,
-            cochlear=cochlear,
-            auditory_l5=auditory_l5,
-            causal_settlement=settlement,
-        )
-        self._latest_auditory_stream_settlement_receipt = joint
-        result = self._auditory_incremental_terminals.advance(
-            pcm_s16le=pcm_s16le,
-            capture=capture,
-            auditory_l5=auditory_l5,
-            transport=transport,
-            cochlear=cochlear,
-            joint_settlement=joint,
-        )
-        self._latest_auditory_incremental_advance = result
-        return joint, result
+            joint = bind_auditory_stream_settlement(
+                transport=transport,
+                cochlear=cochlear,
+                auditory_l5=auditory_l5,
+                causal_settlement=settlement,
+            )
+            result = self._auditory_incremental_terminals.advance(
+                pcm_s16le=pcm_s16le,
+                capture=capture,
+                auditory_l5=auditory_l5,
+                transport=transport,
+                cochlear=cochlear,
+                joint_settlement=joint,
+            )
+            del self._auditory_capture_authorities[
+                transport.receipt_sha256
+            ]
+            del self._auditory_l5_by_assembly[settlement.assembly_id]
+            self._latest_auditory_stream_settlement_receipt = joint
+            self._latest_auditory_incremental_advance = result
+            return joint, result
 
     @_engine_mutation_entry
     @_live_sensory_entry
@@ -13857,6 +14116,16 @@ class Guala:
                 auditory_pcm_continuity.source_epoch_start_ns
             )
             self._latest_auditory_continuation_receipt = continuation_receipt
+        from fractions import Fraction
+        from dsf_ai_service.substrate.auditory_kernel_mount import (
+            auditory_kernel_component_records,
+        )
+        auditory_kernel_records = auditory_kernel_component_records(
+            auditory_field,
+            source_anchor=Fraction(
+                auditory_field_source_anchor_ns, 1_000_000_000
+            ),
+        )
         self._latest_auditory_full_field_capture = auditory_field
 
         # The retired one-dimensional organism cache cannot represent this
@@ -13900,62 +14169,29 @@ class Guala:
                         "sight", "touch", "smell", "taste", "body"],
                 },
             )
-        n_bands_fired = 0
-        n_bands_observed = 0
+        n_bands_observed = len(auditory_field.channels)
+        n_bands_fired = sum(
+            any(value != 0.0 for value in channel.pressure_envelope_full_scale)
+            for channel in auditory_field.channels
+        )
         try:
             with self.lock:
-                for topology_index, channel in enumerate(auditory_field.channels):
-                    definition = channel.definition
-                    channel_present = any(
-                        value != 0.0
-                        for value in channel.pressure_envelope_full_scale
-                    )
-                    chi = topology_index
+                for native_record in auditory_kernel_records:
+                    topology_index = native_record["topology_index"]
                     self.window_manager.add_entry(
-                        modality="sound", section=f"audio_{definition.name}",
+                        modality="sound",
+                        section=f"audio_{native_record['substream_id']}",
                         motif_id=deterministic_motif_id("mic_stream"),
-                        chi=chi, tick=self.tick,
+                        chi=topology_index, tick=self.tick,
                         source_tag=source, trigger_reason="sound",
                         context_id=_frame_context_id,
                         salience=0.6, dwell_ticks=2,
                         sensory_refs=[source],
                         mirror_atlas=False,
                         detail={
-                            "native_full_field_input": {
-                                "schema": "guala.native_sensory_input.v1",
-                                "sense": "sound",
-                                "sensor_id": "microphone-gammatone-cochlear-field",
-                                "substream_id": definition.name,
-                                "topology_index": topology_index,
-                                "coordinates": [
-                                    ["cochlear-channel", definition.name],
-                                    ["centre-hz", str(definition.centre_hz)],
-                                    ["erb-width-hz", str(
-                                        definition.erb_width_hz)],
-                                    ["gammatone-order", "4"],
-                                    ["observation-hop-samples", str(
-                                        auditory_field.observation_hop_samples)],
-                                ],
-                                "physical_quantity": (
-                                    "cochlear-pressure-envelope"),
-                                "physical_unit": "full-scale-pressure",
-                                "source_anchor_ns": auditory_field_source_anchor_ns,
-                                "causal_offsets_ns": list(
-                                    channel.causal_offsets_ns),
-                                "normalized_signal": [
-                                    float(value)
-                                    for value in channel.pressure_envelope_full_scale
-                                ],
-                                "phase_turns": [
-                                    float(value)
-                                    for value in channel.carrier_phase_turns
-                                ],
-                            },
+                            "native_full_field_input": native_record,
                         },
                         **self._affect_kwargs())
-                    n_bands_observed += 1
-                    if channel_present:
-                        n_bands_fired += 1
                 self._log_substrate_event("sound_frame_bound",
                     n_bands=n_bands_fired,
                     n_bands_observed=n_bands_observed,
@@ -13999,7 +14235,7 @@ class Guala:
                     self._auditory_capture_authorities.popitem(last=False)
         return {
             "accepted": n_bands_observed > 0,
-            "entries_bound": n_bands_observed,
+            "entries_bound": len(auditory_kernel_records),
             "context_id": _frame_context_id,
             "closed_window_id": _closed_window_id,
             "settlement": _settlement,
@@ -16207,6 +16443,162 @@ class Guala:
             "data": data,
         }
 
+    @staticmethod
+    def _canonical_persistence_bytes(value):
+        try:
+            return json.dumps(
+                value,
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        except (TypeError, ValueError) as error:
+            raise ValueError("persistence value is not canonical JSON") from error
+
+    @classmethod
+    def _validate_auditory_v4_archive(cls, archive):
+        if not isinstance(archive, dict) or set(archive) != {
+            "schema",
+            "auditory_reciprocity_v4",
+            "auditory_reciprocity_v4_canonical_sha256",
+            "quarantined_causal_action",
+            "quarantined_causal_action_canonical_sha256",
+            "quarantined_latest_auditory_causal_event",
+            "quarantined_latest_auditory_causal_event_canonical_sha256",
+        }:
+            raise ValueError("teaching.auditory_v4_archive is malformed")
+        if archive.get("schema") != AUDITORY_V4_ARCHIVE_SCHEMA:
+            raise ValueError("teaching.auditory_v4_archive schema is invalid")
+
+        legacy = archive["auditory_reciprocity_v4"]
+        inspection = inspect_legacy_v4_envelope(legacy)
+        if (
+            archive["auditory_reciprocity_v4_canonical_sha256"]
+            != inspection.envelope_canonical_sha256
+        ):
+            raise ValueError(
+                "teaching.auditory_v4_archive reciprocity digest changed"
+            )
+
+        for field, digest_field in (
+            (
+                "quarantined_causal_action",
+                "quarantined_causal_action_canonical_sha256",
+            ),
+            (
+                "quarantined_latest_auditory_causal_event",
+                "quarantined_latest_auditory_causal_event_canonical_sha256",
+            ),
+        ):
+            canonical = cls._canonical_persistence_bytes(archive[field])
+            if len(canonical) > TEACHING_STATE_MAX_BYTES:
+                raise ValueError(
+                    f"teaching.auditory_v4_archive.{field} exceeds its boundary"
+                )
+            expected = archive[digest_field]
+            if (
+                not isinstance(expected, str)
+                or len(expected) != 64
+                or any(character not in "0123456789abcdef" for character in expected)
+                or _hashlib.sha256(canonical).hexdigest() != expected
+            ):
+                raise ValueError(
+                    f"teaching.auditory_v4_archive.{field} digest changed"
+                )
+
+        archive_bytes = cls._canonical_persistence_bytes(archive)
+        if len(archive_bytes) > TEACHING_STATE_MAX_BYTES:
+            raise ValueError("teaching.auditory_v4_archive exceeds its boundary")
+        return inspection
+
+    @classmethod
+    def _build_auditory_v4_archive(
+            cls, auditory_reciprocity, causal_action, causal_event):
+        inspection = inspect_legacy_v4_envelope(auditory_reciprocity)
+        action_bytes = cls._canonical_persistence_bytes(causal_action)
+        event_bytes = cls._canonical_persistence_bytes(causal_event)
+        archive = {
+            "schema": AUDITORY_V4_ARCHIVE_SCHEMA,
+            "auditory_reciprocity_v4": json.loads(
+                cls._canonical_persistence_bytes(auditory_reciprocity)
+            ),
+            "auditory_reciprocity_v4_canonical_sha256": (
+                inspection.envelope_canonical_sha256
+            ),
+            "quarantined_causal_action": json.loads(action_bytes),
+            "quarantined_causal_action_canonical_sha256": (
+                _hashlib.sha256(action_bytes).hexdigest()
+            ),
+            "quarantined_latest_auditory_causal_event": json.loads(event_bytes),
+            "quarantined_latest_auditory_causal_event_canonical_sha256": (
+                _hashlib.sha256(event_bytes).hexdigest()
+            ),
+        }
+        cls._validate_auditory_v4_archive(archive)
+        return archive
+
+    def _teaching_persistence_payload(self):
+        if self._auditory_v4_archive is not None:
+            self._validate_auditory_v4_archive(self._auditory_v4_archive)
+        return {
+            "feedback_log": self._teaching_feedback_log[-500:],
+            "correction_log": self._teaching_correction_log[-500:],
+            "emission_records": dict(
+                list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]
+            ),
+            "auditory_reciprocity": (
+                self._auditory_reciprocity_owner.encoded_snapshot()
+            ),
+            "auditory_v4_archive": self._auditory_v4_archive,
+            "causal_action": (
+                self._causal_action_owner.encoded_snapshot()
+                if self._causal_action_owner.persistence_available
+                else None
+            ),
+            "latest_auditory_causal_event": (
+                self._latest_auditory_causal_event_record
+            ),
+        }
+
+    def _bounded_teaching_envelope(self, *, saved_at_tick=None):
+        envelope = self._envelope(
+            self._teaching_persistence_payload(),
+            saved_at_tick=saved_at_tick,
+        )
+        try:
+            serialized = json.dumps(envelope, allow_nan=False).encode("utf-8")
+        except (TypeError, ValueError) as error:
+            raise ValueError("guala_teaching.json is not serializable") from error
+        if len(serialized) > TEACHING_STATE_MAX_BYTES:
+            raise RuntimeError(
+                "guala_teaching.json exceeds the aggregate byte boundary"
+            )
+        return envelope
+
+    def _assert_pristine_v5_auditory_authorities(self):
+        reciprocity = self._auditory_reciprocity_owner.status()
+        incremental = self._auditory_incremental_terminals.status()
+        action = self._causal_action_owner.status()
+        if (
+            any(reciprocity["class_counts"].values())
+            or any(reciprocity["branch_counts"].values())
+            or reciprocity["tutor_authority_nonce_count"]
+            or incremental["active_streams"]
+            or incremental["learned_cells"]
+            or incremental["issued_terminal_authorities"]
+            or incremental["in_flight_terminal_authorities"]
+            or action["actions"]
+            or action["witnesses"]
+            or action["working_experiences"]
+            or action["issued_actions"]
+            or self._latest_auditory_causal_event_record is not None
+            or self._auditory_v4_archive is not None
+        ):
+            raise ValueError(
+                "v4 quarantine requires pristine v5 auditory authorities"
+            )
+
     # Schema migrations
     COMPATIBLE_SCHEMAS = {
         "v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0", "v7.2.0", "v7.3.0",
@@ -16636,6 +17028,7 @@ class Guala:
                             f"teaching emission {emission_id!r} mixes bounded "
                             "and legacy provenance")
         auditory = data.get("auditory_reciprocity")
+        auditory_schema = None
         if auditory is not None:
             if not isinstance(auditory, dict):
                 raise ValueError("teaching.auditory_reciprocity must be an object")
@@ -16643,6 +17036,27 @@ class Guala:
             if not isinstance(payload, str) or len(payload) > 16 * 1024 * 1024:
                 raise ValueError(
                     "teaching.auditory_reciprocity exceeds its encoded boundary")
+            auditory_schema = auditory.get("schema")
+            if auditory_schema == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+                inspect_legacy_v4_envelope(auditory)
+            elif auditory_schema != AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+                raise ValueError(
+                    "teaching.auditory_reciprocity schema is unknown"
+                )
+        auditory_archive = data.get("auditory_v4_archive")
+        if auditory_archive is not None:
+            cls._validate_auditory_v4_archive(auditory_archive)
+            if auditory_schema != AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+                raise ValueError(
+                    "teaching.auditory_v4_archive requires active v5 state"
+                )
+        if (
+            auditory_schema == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+            and auditory_archive is not None
+        ):
+            raise ValueError(
+                "teaching state cannot contain active and archived v4 state"
+            )
         causal_action = data.get("causal_action")
         if causal_action is not None:
             if (
@@ -16662,10 +17076,17 @@ class Guala:
                 )
         causal_event = data.get("latest_auditory_causal_event")
         if causal_event is not None:
-            from dsf_ai_service.substrate.auditory_incremental_terminal import (
-                AuditoryIncrementalTerminalEvent,
-            )
-            AuditoryIncrementalTerminalEvent.from_record(causal_event)
+            if auditory_schema == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+                causal_event_bytes = cls._canonical_persistence_bytes(causal_event)
+                if len(causal_event_bytes) > TEACHING_STATE_MAX_BYTES:
+                    raise ValueError(
+                        "teaching.latest_auditory_causal_event exceeds its boundary"
+                    )
+            else:
+                from dsf_ai_service.substrate.auditory_incremental_terminal import (
+                    AuditoryIncrementalTerminalEvent,
+                )
+                AuditoryIncrementalTerminalEvent.from_record(causal_event)
 
     @classmethod
     def _validate_episodic_payload(cls, data, engine_tick, max_per_concept,
@@ -17391,20 +17812,7 @@ class Guala:
         if snap_sight_motifs is not None:
             # GL-194 one-time migration write (see snap_visual comment).
             writes.append(("guala_sight_motifs.json", snap_sight_motifs))
-        snap_teaching = self._envelope({
-            "feedback_log": self._teaching_feedback_log[-500:],
-            "correction_log": self._teaching_correction_log[-500:],
-            "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
-            "auditory_reciprocity": (
-                self._auditory_reciprocity_owner.encoded_snapshot()),
-            "causal_action": (
-                self._causal_action_owner.encoded_snapshot()
-                if self._causal_action_owner.persistence_available
-                else None
-            ),
-            "latest_auditory_causal_event": (
-                self._latest_auditory_causal_event_record),
-        })
+        snap_teaching = self._bounded_teaching_envelope()
         writes.append(("guala_teaching.json", snap_teaching))
 
         # GL-CMD-EPISODIC-MEMORY: real, situational memories, already
@@ -17738,20 +18146,9 @@ class Guala:
         # clean shutdown/deploy. load_full_state tries .npz first, falls back to .json.
 
         # GL-CMD-TEACHER-CORRECTION-UI: teaching data
-        snap_teaching = self._envelope({
-            "feedback_log": self._teaching_feedback_log[-500:],
-            "correction_log": self._teaching_correction_log[-500:],
-            "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
-            "auditory_reciprocity": (
-                self._auditory_reciprocity_owner.encoded_snapshot()),
-            "causal_action": (
-                self._causal_action_owner.encoded_snapshot()
-                if self._causal_action_owner.persistence_available
-                else None
-            ),
-            "latest_auditory_causal_event": (
-                self._latest_auditory_causal_event_record),
-        }, saved_at_tick=save_tick)
+        snap_teaching = self._bounded_teaching_envelope(
+            saved_at_tick=save_tick
+        )
         # GL-CMD-PERSIST-CLOBBER-FIX-81: teaching is non-critical — isolate so it
         # cannot prevent _last_save_tick from advancing when core files succeed.
         try:
@@ -18575,6 +18972,49 @@ class Guala:
                             td, "guala_teaching.json", core_envelope_tick)
                         self._validate_teaching_payload(
                             tdata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW)
+                    auditory_snapshot = tdata.get("auditory_reciprocity")
+                    auditory_archive = tdata.get("auditory_v4_archive")
+                    auditory_schema = (
+                        auditory_snapshot.get("schema")
+                        if isinstance(auditory_snapshot, dict) else None
+                    )
+                    if (
+                        auditory_schema
+                        == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+                    ):
+                        if auditory_archive is not None:
+                            raise ValueError(
+                                "active v4 state cannot coexist with a v4 archive"
+                            )
+                        inspect_legacy_v4_envelope(auditory_snapshot)
+                        self._assert_pristine_v5_auditory_authorities()
+                        pending_auditory_archive = (
+                            self._build_auditory_v4_archive(
+                                auditory_snapshot,
+                                tdata.get("causal_action"),
+                                tdata.get("latest_auditory_causal_event"),
+                            )
+                        )
+                    elif auditory_schema == AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
+                        if auditory_archive is not None:
+                            self._validate_auditory_v4_archive(auditory_archive)
+                            pending_auditory_archive = json.loads(
+                                self._canonical_persistence_bytes(
+                                    auditory_archive
+                                )
+                            )
+                        else:
+                            pending_auditory_archive = None
+                    elif auditory_snapshot is None:
+                        if auditory_archive is not None:
+                            raise ValueError(
+                                "v4 archive requires active v5 auditory state"
+                            )
+                        pending_auditory_archive = None
+                    else:
+                        raise ValueError(
+                            "auditory reciprocity persistence schema is unknown"
+                        )
                     self._teaching_feedback_log = list(
                         tdata.get("feedback_log", []))
                     self._teaching_correction_log = list(
@@ -18588,30 +19028,55 @@ class Guala:
                     else:
                         for eid, rec in emission_records.items():
                             self._emission_records[eid] = rec
-                    auditory_snapshot = tdata.get("auditory_reciprocity")
-                    if auditory_snapshot is not None:
+                    if (
+                        auditory_schema
+                        == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+                    ):
+                        # One assignment commits the complete quarantine.
+                        # The active v5 reciprocity, terminal, and action
+                        # authorities remain the pristine owners constructed
+                        # at boot and must relearn from new observation.
+                        self._auditory_v4_archive = pending_auditory_archive
+                        self._log_substrate_event(
+                            "auditory_reciprocity_v4_quarantined",
+                            envelope_sha256=(
+                                pending_auditory_archive[
+                                    "auditory_reciprocity_v4_canonical_sha256"
+                                ]
+                            ),
+                            active_v5_applied=False,
+                        )
+                    elif auditory_snapshot is not None:
                         self._auditory_reciprocity_owner.restore_encoded(
                             auditory_snapshot)
                         self._auditory_incremental_terminals.refresh_learning()
-                    causal_action_snapshot = tdata.get("causal_action")
-                    if causal_action_snapshot is not None:
-                        self._causal_action_owner.restore_encoded(
-                            causal_action_snapshot
-                        )
-                    causal_event = tdata.get(
-                        "latest_auditory_causal_event"
-                    )
-                    if causal_event is None:
-                        self._latest_auditory_causal_event_record = None
                     else:
-                        from dsf_ai_service.substrate.auditory_incremental_terminal import (
-                            AuditoryIncrementalTerminalEvent,
+                        self._auditory_v4_archive = pending_auditory_archive
+
+                    if (
+                        auditory_schema
+                        != LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+                    ):
+                        causal_action_snapshot = tdata.get("causal_action")
+                        if causal_action_snapshot is not None:
+                            self._causal_action_owner.restore_encoded(
+                                causal_action_snapshot
+                            )
+                        causal_event = tdata.get(
+                            "latest_auditory_causal_event"
                         )
-                        self._latest_auditory_causal_event_record = (
-                            AuditoryIncrementalTerminalEvent.from_record(
-                                causal_event
-                            ).as_record()
-                        )
+                        if causal_event is None:
+                            self._latest_auditory_causal_event_record = None
+                        else:
+                            from dsf_ai_service.substrate.auditory_incremental_terminal import (
+                                AuditoryIncrementalTerminalEvent,
+                            )
+                            self._latest_auditory_causal_event_record = (
+                                AuditoryIncrementalTerminalEvent.from_record(
+                                    causal_event
+                                ).as_record()
+                            )
+                        self._auditory_v4_archive = pending_auditory_archive
                 except Exception as error:
                     if exact_binary:
                         raise ValueError(
