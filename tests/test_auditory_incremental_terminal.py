@@ -442,15 +442,25 @@ class _NativeProposalStub:
 
 
 def _pending_terminal(start, end, label):
+    mounted = _MountedStream().mount(
+        _pcm(_tone_values(LEARNED_SAMPLES, 440)),
+        sequence=0,
+        first_sample_index=0,
+        event_boundary="utterance",
+    )
+    auditory_l5 = mounted["auditory_l5"]
     return terminal_module._PendingTerminal(
         start=start,
         end=end,
         tutor_label=label,
-        structural_fingerprint="1" * 64,
-        l5_authority_receipt_sha256="2" * 64,
+        structural_fingerprint=auditory_l5.structural_fingerprint,
+        l5_authority_receipt_sha256=(
+            auditory_l5.authority_receipt_sha256
+        ),
         transport_receipt_sha256s=("3" * 64,),
         cochlear_receipt_sha256s=("4" * 64,),
         joint_settlement_receipt_sha256s=("5" * 64,),
+        auditory_l5=auditory_l5,
     )
 
 

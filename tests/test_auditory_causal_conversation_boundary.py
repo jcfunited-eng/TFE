@@ -3,10 +3,13 @@
 import copy
 import hashlib
 import json
+import math
 import os
 import sys
 from dataclasses import replace
+from fractions import Fraction
 
+import numpy as np
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,7 +18,25 @@ from dsf_ai_service.substrate.auditory_incremental_terminal import (
     AUDITORY_INCREMENTAL_EVENT_SCHEMA,
     AuditoryIncrementalTerminalEvent,
 )
+from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    NativeSensorySubstreamInput,
+    build_six_sense_full_field,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    NativeAxisCoordinate,
+    PhysicalSense,
+    SENSE_ORDER,
+    SenseBoundaryState,
+)
+from dsf_ai_service.substrate.auditory_l5 import AuditoryL5Owner
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    OBSERVATION_HOP_SAMPLES,
+    transduce_auditory_full_field,
+)
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+
+
+_TERMINAL_FIELDS = {}
 
 
 def _digest(value):
@@ -26,15 +47,79 @@ def _digest(value):
 
 
 def _terminal(label="one plus one"):
+    sample_count = 320
+    sample_rate_hz = 16_000
+    samples = np.asarray([
+        8_000 * math.sin(2 * math.pi * 440 * index / sample_rate_hz)
+        for index in range(sample_count)
+    ], dtype=np.float64) / 32_768.0
+    capture = transduce_auditory_full_field(
+        samples,
+        sample_rate_hz=sample_rate_hz,
+    )
+    ports = tuple(
+        NativeSensorySubstreamInput(
+            sense=PhysicalSense.SOUND,
+            sensor_id="microphone-gammatone-cochlear-field",
+            substream_id=channel.definition.name,
+            topology_index=index,
+            coordinates=(
+                NativeAxisCoordinate(
+                    "cochlear-channel", channel.definition.name
+                ),
+                NativeAxisCoordinate(
+                    "centre-hz", str(channel.definition.centre_hz)
+                ),
+                NativeAxisCoordinate(
+                    "erb-width-hz", str(channel.definition.erb_width_hz)
+                ),
+                NativeAxisCoordinate("gammatone-order", "4"),
+                NativeAxisCoordinate(
+                    "observation-hop-samples",
+                    str(OBSERVATION_HOP_SAMPLES),
+                ),
+            ),
+            physical_quantity="cochlear-pressure-envelope",
+            physical_unit="full-scale-pressure",
+            source_times=tuple(
+                Fraction(value, 1_000_000_000)
+                for value in channel.causal_offsets_ns
+            ),
+            normalized_signal=channel.pressure_envelope_full_scale,
+            phase_turns=tuple(
+                Fraction.from_float(value)
+                for value in channel.carrier_phase_turns
+            ),
+        )
+        for index, channel in enumerate(capture.channels)
+    )
+    built = build_six_sense_full_field(
+        assembly_id=f"causal-conversation-test-{_digest({'label': label})}",
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(sample_count, sample_rate_hz),
+        observed_substreams={PhysicalSense.SOUND: ports},
+        states={
+            sense: (
+                SenseBoundaryState.OBSERVED
+                if sense is PhysicalSense.SOUND
+                else SenseBoundaryState.SENSOR_UNAVAILABLE
+            )
+            for sense in SENSE_ORDER
+        },
+    )
+    auditory_l5 = AuditoryL5Owner(
+        log_event=lambda *_args, **_kwargs: None
+    ).settle(built, event_boundary="utterance")
+    assert auditory_l5 is not None
     stream_id = "causal-conversation-test"
-    fingerprint = _digest({"full_field_terminal": label})
+    fingerprint = auditory_l5.structural_fingerprint
     event_id = _digest({
         "source_sample_end": 320,
         "source_sample_start": 0,
         "stream_id": stream_id,
         "structural_fingerprint": fingerprint,
     })
-    l5 = _digest({"l5": label})
+    l5 = auditory_l5.authority_receipt_sha256
     transport = (_digest({"transport": 0}), _digest({"transport": 1}))
     cochlear = (_digest({"cochlear": 0}), _digest({"cochlear": 1}))
     joint = (_digest({"joint": 0}), _digest({"joint": 1}))
@@ -53,7 +138,7 @@ def _terminal(label="one plus one"):
         "transport_receipt_sha256s": list(transport),
         "tutor_label": label,
     }
-    return AuditoryIncrementalTerminalEvent(
+    terminal = AuditoryIncrementalTerminalEvent(
         event_id=event_id,
         stream_id=stream_id,
         source_sample_start=0,
@@ -66,12 +151,17 @@ def _terminal(label="one plus one"):
         joint_settlement_receipt_sha256s=joint,
         authority_receipt_sha256=_digest(payload),
     )
+    _TERMINAL_FIELDS[terminal.event_id] = auditory_l5
+    return terminal
 
 
 def _issue(guala, terminal):
     registry = guala._auditory_incremental_terminals
     with registry._lock:
-        registry._issue_locked(terminal)
+        registry._issue_locked(
+            terminal,
+            _TERMINAL_FIELDS[terminal.event_id],
+        )
     return terminal
 
 
@@ -120,6 +210,35 @@ def test_terminal_and_language_share_one_causal_experience(
     assert detail["bundle_id"] == terminal.event_id
     assert detail["causal_experience_id"] == terminal.event_id
     assert detail["auditory_terminal_event"] == terminal.as_record()
+    assert detail["auditory_event_boundary"] == "utterance"
+    assert detail["source_time_start_fraction"] == [0, 1]
+    assert detail["source_time_end_fraction"] == [1, 50]
+    sounds = [
+        entry for entry in window["entries"]
+        if entry["modality"] == "sound"
+    ]
+    assert len(sounds) == 16
+    assert [entry["chi"] for entry in sounds] == list(range(16))
+    assert all(
+        entry["provenance"]["detail"]["native_full_field_input"][
+            "schema"
+        ] == "guala.native_sensory_input.v2"
+        and entry["provenance"]["detail"][
+            "auditory_terminal_event_id"
+        ] == terminal.event_id
+        for entry in sounds
+    )
+    joined = guala._latest_causal_settlement
+    joined.verify()
+    joined_sound = next(
+        value for value in joined.interpretations
+        if value.sense == "sound"
+    )
+    assert joined_sound.state == "observed"
+    assert len(joined_sound.substreams) == 16
+    assert all(
+        substream.field_tuples for substream in joined_sound.substreams
+    )
     words = [
         entry for entry in window["entries"]
         if entry["modality"] == "word"
@@ -165,6 +284,17 @@ def test_normal_conversation_result_keeps_terminal_identity(
     monkeypatch.setenv("CONVERSE_PHASED", phased)
     terminal = _issue(guala, _terminal("hello guala"))
 
+    def legacy_candidates_must_not_run(_words):
+        raise AssertionError(
+            "claimed full-field speech reached the reduced legacy emitter"
+        )
+
+    monkeypatch.setattr(
+        guala,
+        "_brain_emission_candidates",
+        legacy_candidates_must_not_run,
+    )
+
     turn = guala.converse(
         terminal.tutor_label,
         source="auditory:unresolved_source",
@@ -174,9 +304,8 @@ def test_normal_conversation_result_keeps_terminal_identity(
     assert turn.causal_experience_id == terminal.event_id
     assert (turn.causal_intake_receipt_sha256
             == terminal.authority_receipt_sha256)
-    assert turn.response_source in {
-        "silence_no_commit", "assemblage_commit", "fact_strand_commit"
-    }
+    assert turn.response == ""
+    assert turn.response_source == "causal_action_unavailable"
 
 
 def test_label_only_or_altered_terminal_cannot_claim_heard_experience(guala):

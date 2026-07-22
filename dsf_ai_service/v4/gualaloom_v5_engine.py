@@ -225,6 +225,7 @@ class EmissionSettlement:
     organ_in_commits: bool = False
     tick: int = 0
     commit_provenance: tuple = ()
+    stop_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -5284,6 +5285,94 @@ class Guala:
         event = self._auditory_incremental_terminals.verify_claim(claim)
         return _verified_auditory_causal_intake(text, event)
 
+    def _bind_claimed_auditory_field(
+        self,
+        *,
+        context_id,
+        source,
+        claim,
+    ):
+        """Bind every exact L5 port from one live terminal into its turn."""
+        experience = self._auditory_incremental_terminals.full_field_from_claim(
+            claim
+        )
+        event = self._auditory_incremental_terminals.verify_claim(claim)
+        if not experience.ports:
+            raise RuntimeError("auditory terminal claim has no field ports")
+        sample_count = len(experience.ports[0].samples)
+        if sample_count <= 0 or any(
+            len(port.samples) != sample_count for port in experience.ports
+        ):
+            raise RuntimeError(
+                "auditory terminal claim changed field sample cardinality"
+            )
+        source_step = (
+            experience.source_time_end - experience.source_time_start
+        ) / sample_count
+        source_anchor = experience.source_time_start + source_step
+        if any(
+            port.samples[-1].causal_offset + source_anchor
+            != experience.source_time_end
+            for port in experience.ports
+        ):
+            raise RuntimeError(
+                "auditory terminal claim changed exact sample timing"
+            )
+        for port in experience.ports:
+            self.window_manager.add_entry(
+                modality="sound",
+                section=f"audio_{port.substream_id}",
+                motif_id=deterministic_motif_id(
+                    f"auditory-terminal:{event.event_id}:{port.substream_id}"
+                ),
+                chi=port.topology_index,
+                tick=self.tick,
+                source_tag=source,
+                trigger_reason="auditory_terminal",
+                context_id=context_id,
+                salience=0.6,
+                dwell_ticks=2,
+                sensory_refs=[event.event_id],
+                mirror_atlas=False,
+                detail={
+                    "auditory_terminal_event_id": event.event_id,
+                    "native_full_field_input": {
+                        "schema": "guala.native_sensory_input.v2",
+                        "sense": "sound",
+                        "sensor_id": port.sensor_id,
+                        "substream_id": port.substream_id,
+                        "topology_index": port.topology_index,
+                        "coordinates": [
+                            [axis, coordinate]
+                            for axis, coordinate in port.coordinates
+                        ],
+                        "physical_quantity": port.physical_quantity,
+                        "physical_unit": port.physical_unit,
+                        "source_anchor_fraction": [
+                            source_anchor.numerator,
+                            source_anchor.denominator,
+                        ],
+                        "causal_offsets_fraction": [
+                            [
+                                sample.causal_offset.numerator,
+                                sample.causal_offset.denominator,
+                            ]
+                            for sample in port.samples
+                        ],
+                        "normalized_signal": [
+                            float(sample.pressure)
+                            for sample in port.samples
+                        ],
+                        "phase_turns": [
+                            float(sample.phase_turns)
+                            for sample in port.samples
+                        ],
+                    },
+                },
+                **self._affect_kwargs(),
+            )
+        return experience
+
     def _admit_auditory_causal_event(self, text, event):
         """Consume one live owner-issued event and retain its bounded witness."""
         record = _verified_auditory_causal_intake(text, event)
@@ -5520,6 +5609,11 @@ class Guala:
                 "bundle_id": bundle_id,
             }
             if _causal_intake_record is not None:
+                _causal_auditory_l5 = (
+                    self._auditory_incremental_terminals.full_field_from_claim(
+                        causal_intake
+                    )
+                )
                 _context_detail.update({
                     "causal_experience_id": (
                         _causal_intake_record["event_id"]
@@ -5530,6 +5624,18 @@ class Guala:
                         ]
                     ),
                     "auditory_terminal_event": _causal_intake_record,
+                    "auditory_event_boundary": "utterance",
+                    "source_time_start_fraction": [
+                        _causal_auditory_l5.source_time_start.numerator,
+                        _causal_auditory_l5.source_time_start.denominator,
+                    ],
+                    "source_time_end_fraction": [
+                        _causal_auditory_l5.source_time_end.numerator,
+                        _causal_auditory_l5.source_time_end.denominator,
+                    ],
+                    "sensor_unavailable": [
+                        "sight", "touch", "smell", "taste", "body"
+                    ],
                 })
             self.window_manager.begin_context(
                 _fact_context_id,
@@ -5538,6 +5644,12 @@ class Guala:
             )
         _sentence_complete = False
         try:
+            if _causal_intake_record is not None:
+                self._bind_claimed_auditory_field(
+                    context_id=_fact_context_id,
+                    source=source,
+                    claim=causal_intake,
+                )
             self._add_canonical_scene_entries(
                 context_id=_fact_context_id,
                 source=source,
@@ -5628,16 +5740,37 @@ class Guala:
                           f"(non-fatal): {_te}", flush=True)
         finally:
             _closed_window_id = None
+            _causal_settlement = None
             if _owns_fact_context:
-                _closed_window_id = self.window_manager.end_context(
-                    _fact_context_id,
-                    "context_complete" if _sentence_complete else "context_failed")
+                if _causal_intake_record is not None:
+                    _closed_window_id, _causal_settlement = (
+                        self.window_manager.end_context(
+                            _fact_context_id,
+                            "context_complete"
+                            if _sentence_complete else "context_failed",
+                            return_settlement=True,
+                        )
+                    )
+                else:
+                    _closed_window_id = self.window_manager.end_context(
+                        _fact_context_id,
+                        "context_complete"
+                        if _sentence_complete else "context_failed",
+                    )
 
         if _owns_fact_context:
             if _closed_window_id is None:
                 raise RuntimeError(
                     f"language BindingWindow {_fact_context_id!r} did not close")
             if _causal_intake_record is not None:
+                if _causal_settlement is None:
+                    raise RuntimeError(
+                        "auditory language experience did not settle"
+                    )
+                self._auditory_incremental_terminals.complete_claim(
+                    causal_intake,
+                    _causal_settlement,
+                )
                 self._log_substrate_event(
                     "auditory_language_causal_experience_bound",
                     causal_experience_id=(
@@ -5657,6 +5790,9 @@ class Guala:
                     ),
                     window_id=_closed_window_id,
                     words=len(words),
+                    causal_settlement_receipt_sha256=(
+                        _causal_settlement.authority_receipt_sha256
+                    ),
                 )
             if experience_origin in ("imagined", "self_heard"):
                 # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
@@ -5947,6 +6083,11 @@ class Guala:
                 episode_ref=episode_ref, presence=presence,
                 location=location, sky_state=sky_state,
                 causal_intake=causal_intake)
+            causal_settlement = (
+                self._auditory_incremental_terminals
+                .causal_settlement_from_claim(causal_intake)
+                if causal_record is not None else None
+            )
             tick_after_read = self.tick
             _t_read = time.monotonic()
 
@@ -5981,7 +6122,8 @@ class Guala:
             if getattr(fact_settlement, "n_commits", 0) <= 0:
                 settlement = self._emit_from_invariants(
                     input_chis, words, mode_override=emission_mode,
-                    v7_session=getattr(self, "_v7_session", None))
+                    v7_session=getattr(self, "_v7_session", None),
+                    causal_settlement=causal_settlement)
             _t_emit = time.monotonic()
             reply, response_source = self._committed_emission_response(
                 settlement)
@@ -6200,6 +6342,11 @@ class Guala:
             episode_ref=episode_ref, presence=presence,
             location=location, sky_state=sky_state,
             causal_intake=causal_intake)
+        causal_settlement = (
+            self._auditory_incremental_terminals
+            .causal_settlement_from_claim(causal_intake)
+            if causal_record is not None else None
+        )
         tick_after_read = self.tick
         _t_read = time.monotonic()
 
@@ -6242,7 +6389,8 @@ class Guala:
                 # RLock; _emit_from_invariants re-acquires it safely inline.
                 settlement = self._emit_from_invariants(
                     input_chis, words, mode_override=emission_mode,
-                    v7_session=getattr(self, "_v7_session", None))
+                    v7_session=getattr(self, "_v7_session", None),
+                    causal_settlement=causal_settlement)
             reply, response_source = self._committed_emission_response(
                 settlement)
             if reply:
@@ -8786,6 +8934,11 @@ class Guala:
                 and " ".join(item.word for item in settlement.commit_provenance)
                 == settlement.content):
             return settlement.content, "assemblage_commit"
+        if (
+            isinstance(settlement, EmissionSettlement)
+            and settlement.stop_reason == "causal_action_consumer_missing"
+        ):
+            return "", "causal_action_unavailable"
         return "", "silence_no_commit"
 
     def _fact_record_has_certified_provenance(self, record):
@@ -8853,7 +9006,8 @@ class Guala:
             return self._emission_lock.acquire(blocking=False)
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
-                              v7_session=None, organ_candidates=None):
+                              v7_session=None, organ_candidates=None,
+                              causal_settlement=None):
         """Settle organism candidates and return committed content only.
 
         The former ``topk`` and scalar-grandurun branches returned ranked
@@ -8862,6 +9016,34 @@ class Guala:
         speech now has one source: assemblage dynamics with a real commit.
         """
         with self._emission_lock:
+            if causal_settlement is not None:
+                from dsf_ai_service.substrate.exact_causal_experience import (
+                    CausalExperienceSettlement,
+                )
+                if not isinstance(
+                    causal_settlement,
+                    CausalExperienceSettlement,
+                ):
+                    raise TypeError(
+                        "causal emission requires a structured settlement"
+                    )
+                causal_settlement.verify()
+                self._log_substrate_event(
+                    "causal_action_consumer_missing",
+                    causal_experience_id=causal_settlement.event_id,
+                    causal_settlement_receipt_sha256=(
+                        causal_settlement.authority_receipt_sha256
+                    ),
+                    observed_senses=[
+                        value.sense
+                        for value in causal_settlement.interpretations
+                        if value.state == "observed"
+                    ],
+                )
+                return EmissionSettlement(
+                    tick=self.tick,
+                    stop_reason="causal_action_consumer_missing",
+                )
             mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
             if (os.environ.get("EMISSION_DYNAMICS", "0") != "1"
                     or mode != "grandurun"):

@@ -75,6 +75,9 @@ from dsf_ai_service.substrate.auditory_reciprocity import (
 from dsf_ai_service.substrate.auditory_stream_settlement import (
     AuditoryStreamSettlementReceipt,
 )
+from dsf_ai_service.substrate.exact_causal_experience import (
+    CausalExperienceSettlement,
+)
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AUDITORY_CHANNELS,
     COCHLEAR_CHANNEL_COUNT,
@@ -479,6 +482,7 @@ class _PendingTerminal:
     transport_receipt_sha256s: tuple[str, ...]
     cochlear_receipt_sha256s: tuple[str, ...]
     joint_settlement_receipt_sha256s: tuple[str, ...]
+    auditory_l5: AuditoryL5Experience
 
 
 @dataclass(slots=True)
@@ -893,6 +897,7 @@ class AuditoryIncrementalTerminalOwner:
             if self._cells else None
         )
         self._lock = threading.RLock()
+        self._released_full_fields: dict[str, AuditoryL5Experience] = {}
         self._clear_live_state()
 
     def _clear_live_state(self) -> None:
@@ -1261,7 +1266,7 @@ class AuditoryIncrementalTerminalOwner:
         )
         experience = AuditoryL5Owner(
             log_event=lambda *_args, **_kwargs: None
-        ).settle(built, event_boundary="ambient")
+        ).settle(built, event_boundary="utterance")
         if experience is None:
             raise RuntimeError("incremental auditory candidate did not settle")
         experience.verify()
@@ -1285,6 +1290,7 @@ class AuditoryIncrementalTerminalOwner:
             transport_receipt_sha256s=transport,
             cochlear_receipt_sha256s=cochlear,
             joint_settlement_receipt_sha256s=joint,
+            auditory_l5=experience,
         ), consumed_cells
 
     def _evidence_epoch_start(self) -> Fraction:
@@ -1334,7 +1340,44 @@ class AuditoryIncrementalTerminalOwner:
             authority_receipt_sha256=_digest(payload),
         )
         event.verify()
+        existing = self._released_full_fields.get(event.event_id)
+        if existing is not None and existing != value.auditory_l5:
+            raise RuntimeError(
+                "incremental auditory terminal released two full fields"
+            )
+        if existing is None and self._released_full_fields:
+            raise RuntimeError(
+                "incremental auditory released-field capacity is full"
+            )
+        self._released_full_fields[event.event_id] = value.auditory_l5
         return event
+
+    def claim_released_full_field(
+        self,
+        event: AuditoryIncrementalTerminalEvent,
+    ) -> AuditoryL5Experience:
+        """Transfer the exact field released with one terminal event."""
+        event.verify()
+        with self._lock:
+            experience = self._released_full_fields.pop(event.event_id, None)
+        if experience is None:
+            raise ValueError(
+                "incremental auditory terminal has no released full field"
+            )
+        experience.verify()
+        if (
+            experience.event_boundary != "utterance"
+            or experience.structural_fingerprint
+            != event.structural_fingerprint
+            or experience.authority_receipt_sha256
+            != event.l5_authority_receipt_sha256
+            or experience.source_time_end - experience.source_time_start
+            != Fraction(event.sample_count, PCM_SAMPLE_RATE_HZ)
+        ):
+            raise ValueError(
+                "incremental auditory terminal field authority changed"
+            )
+        return experience
 
     def _spawn(
         self,
@@ -1715,10 +1758,18 @@ class _OwnedIncrementalTerminal:
     last_activity: float
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class _AuditoryTerminalClaim:
     event: AuditoryIncrementalTerminalEvent
+    auditory_l5: AuditoryL5Experience
     owner_token: object
+    causal_settlement: CausalExperienceSettlement | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _IssuedTerminal:
+    event: AuditoryIncrementalTerminalEvent
+    auditory_l5: AuditoryL5Experience
 
 
 class AuditoryIncrementalTerminalRegistry:
@@ -1754,9 +1805,7 @@ class AuditoryIncrementalTerminalRegistry:
         self._streams: OrderedDict[str, _OwnedIncrementalTerminal] = (
             OrderedDict()
         )
-        self._issued: OrderedDict[
-            str, AuditoryIncrementalTerminalEvent
-        ] = OrderedDict()
+        self._issued: OrderedDict[str, _IssuedTerminal] = OrderedDict()
         self._claim_token = object()
 
     def _expire_locked(self, now: float) -> None:
@@ -1770,11 +1819,25 @@ class AuditoryIncrementalTerminalRegistry:
     def _issue_locked(
         self,
         event: AuditoryIncrementalTerminalEvent,
+        auditory_l5: AuditoryL5Experience,
     ) -> None:
         event.verify()
+        auditory_l5.verify()
+        if (
+            auditory_l5.event_boundary != "utterance"
+            or auditory_l5.structural_fingerprint
+            != event.structural_fingerprint
+            or auditory_l5.authority_receipt_sha256
+            != event.l5_authority_receipt_sha256
+            or auditory_l5.source_time_end - auditory_l5.source_time_start
+            != Fraction(event.sample_count, PCM_SAMPLE_RATE_HZ)
+        ):
+            raise ValueError(
+                "incremental auditory issued field differs from terminal"
+            )
         existing = self._issued.get(event.event_id)
         if existing is not None:
-            if existing != event:
+            if existing != _IssuedTerminal(event, auditory_l5):
                 raise RuntimeError(
                     "incremental terminal identity was issued twice differently"
                 )
@@ -1783,7 +1846,28 @@ class AuditoryIncrementalTerminalRegistry:
             raise RuntimeError(
                 "incremental terminal authority capacity is full"
             )
-        self._issued[event.event_id] = event
+        self._issued[event.event_id] = _IssuedTerminal(event, auditory_l5)
+
+    def _issue_from_owner_locked(
+        self,
+        owner: AuditoryIncrementalTerminalOwner,
+        event: AuditoryIncrementalTerminalEvent,
+    ) -> None:
+        existing = self._issued.get(event.event_id)
+        if existing is not None:
+            if existing.event != event:
+                raise RuntimeError(
+                    "incremental terminal identity was issued twice differently"
+                )
+            return
+        if len(self._issued) >= self._stream_capacity:
+            raise RuntimeError(
+                "incremental terminal authority capacity is full"
+            )
+        self._issue_locked(
+            event,
+            owner.claim_released_full_field(event),
+        )
 
     def claim(
         self,
@@ -1801,11 +1885,12 @@ class AuditoryIncrementalTerminalRegistry:
                 raise ValueError(
                     "auditory terminal was not issued or was already consumed"
                 )
-            if issued != event:
+            if issued.event != event:
                 raise ValueError("auditory terminal differs from owner authority")
             del self._issued[event.event_id]
         return _AuditoryTerminalClaim(
             event=event,
+            auditory_l5=issued.auditory_l5,
             owner_token=self._claim_token,
         )
 
@@ -1819,7 +1904,110 @@ class AuditoryIncrementalTerminalRegistry:
         ):
             raise ValueError("auditory terminal claim has no owner authority")
         claim.event.verify()
+        claim.auditory_l5.verify()
+        if (
+            claim.auditory_l5.event_boundary != "utterance"
+            or claim.auditory_l5.structural_fingerprint
+            != claim.event.structural_fingerprint
+            or claim.auditory_l5.authority_receipt_sha256
+            != claim.event.l5_authority_receipt_sha256
+        ):
+            raise ValueError("auditory terminal claim lost its full field")
         return claim.event
+
+    def full_field_from_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+    ) -> AuditoryL5Experience:
+        """Return the exact field while preserving claim ownership."""
+        self.verify_claim(claim)
+        return claim.auditory_l5
+
+    def complete_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+        settlement: CausalExperienceSettlement,
+    ) -> None:
+        """Join the claimed field to its one structured causal settlement."""
+        self.verify_claim(claim)
+        if claim.causal_settlement is not None:
+            raise ValueError("auditory terminal claim was already settled")
+        if not isinstance(settlement, CausalExperienceSettlement):
+            raise TypeError(
+                "auditory terminal claim requires a causal settlement"
+            )
+        settlement.verify()
+        experience = claim.auditory_l5
+        if (
+            settlement.source_time_start != experience.source_time_start
+            or settlement.source_time_end != experience.source_time_end
+        ):
+            raise ValueError(
+                "auditory causal settlement changed the source interval"
+            )
+        sound = next(
+            (
+                value for value in settlement.interpretations
+                if value.sense == "sound"
+            ),
+            None,
+        )
+        if sound is None or sound.state != "observed":
+            raise ValueError(
+                "auditory causal settlement lost the observed sound field"
+            )
+        if len(sound.substreams) != len(experience.ports):
+            raise ValueError(
+                "auditory causal settlement changed field topology"
+            )
+        for interpreted, port in zip(
+            sound.substreams,
+            experience.ports,
+            strict=True,
+        ):
+            # The joined window is a new receipt graph with a new assembly
+            # identity, so its basin/tuple receipt digests must differ from
+            # the terminal's original graph.  Both graphs verify above; the
+            # cross-graph invariant is exact topology plus every explicit
+            # L4 field value, never receipt-string equality.
+            if (
+                interpreted.sensor_id != port.sensor_id
+                or interpreted.substream_id != port.substream_id
+                or interpreted.topology_index != port.topology_index
+                or interpreted.coordinates != port.coordinates
+                or interpreted.physical_quantity != port.physical_quantity
+                or interpreted.physical_unit != port.physical_unit
+                or tuple(
+                    (
+                        value.tuple_index,
+                        value.fields,
+                    )
+                    for value in interpreted.field_tuples
+                )
+                != tuple(
+                    (
+                        value.tuple_index,
+                        value.fields,
+                    )
+                    for value in port.l4_field_tuples
+                )
+            ):
+                raise ValueError(
+                    "auditory causal settlement reduced the exact field"
+                )
+        claim.causal_settlement = settlement
+
+    def causal_settlement_from_claim(
+        self,
+        claim: _AuditoryTerminalClaim,
+    ) -> CausalExperienceSettlement:
+        """Return only a verified, fully joined causal action authority."""
+        self.verify_claim(claim)
+        settlement = claim.causal_settlement
+        if settlement is None:
+            raise ValueError("auditory terminal claim is not causally settled")
+        settlement.verify()
+        return settlement
 
     def discard_unadmitted(
         self,
@@ -1833,7 +2021,7 @@ class AuditoryIncrementalTerminalRegistry:
             issued = self._issued.get(event.event_id)
             if issued is None:
                 return False
-            if issued != event:
+            if issued.event != event:
                 raise ValueError("auditory terminal differs from owner authority")
             del self._issued[event.event_id]
             return True
@@ -1869,7 +2057,9 @@ class AuditoryIncrementalTerminalRegistry:
             mounted.last_activity = now
             self._streams.move_to_end(transport.stream_id)
             if result.reply_candidate is not None:
-                self._issue_locked(result.reply_candidate)
+                self._issue_from_owner_locked(
+                    mounted.owner, result.reply_candidate
+                )
             return result
 
     def close(
@@ -1889,7 +2079,9 @@ class AuditoryIncrementalTerminalRegistry:
             now = self._clock()
             with self._lock:
                 self._expire_locked(now)
-                self._issue_locked(result.reply_candidate)
+                self._issue_from_owner_locked(
+                    mounted.owner, result.reply_candidate
+                )
         return result
 
     def refresh_learning(self) -> int:
