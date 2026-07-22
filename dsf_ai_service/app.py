@@ -3125,6 +3125,10 @@ async def auditory_pcm_stream_close(req: AuditoryPCMStreamCloseRequest):
                 "terminal_event_id": result["terminal_event_id"],
                 "recognized_form": result["recognized_form"],
                 "reply_admitted": result["reply_admitted"],
+                "reply_state": result.get("reply_state"),
+                # GL-FEAT-TEACH-LAST: without this passthrough the teach
+                # button can never learn the slot was filled.
+                "teachable": result.get("teachable", False),
             }
 
     return await _run_lifecycle_executor(_close_serialized)

@@ -124,3 +124,13 @@ def test_teach_last_rejects_bad_source_and_label(wired):
     # slot must survive rejected attempts
     with appmod._last_unrecognized_lock:
         assert appmod._last_unrecognized_utterance is not None
+
+
+def test_close_endpoint_surfaces_teachable(wired):
+    registry, engine = wired
+    sid = _stream_with_pcm(registry, PCM_HALF_SECOND)
+    result = asyncio.run(appmod.auditory_pcm_stream_close(
+        appmod.AuditoryPCMStreamCloseRequest(stream_id=sid)))
+    assert result["teachable"] is True, (
+        "the close ENDPOINT must pass the teachable flag through — "
+        "without it the teach button can never see the retained slot")
