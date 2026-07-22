@@ -9,9 +9,12 @@ independent executor receipt.
 
 Teacher relations, intents, executions, outcomes, feedback, and closures are
 authenticated.  Completed transactions compact into one latest closure per
-binding, so this is not a lifetime action ledger.  Rejected executions remove
-their intent immediately.  Every retained collection and byte surface is
-bounded and authenticated on persistence.
+binding, so this is not a lifetime action ledger.  An observed outcome can
+close neutrally without teacher feedback; explicit confirmation and revocation
+remain available.  Rejected executions remove their intent immediately.  The
+executor-recording API is trusted-internal and must never be exposed as a
+remote request surface.  Every retained collection and byte surface is bounded
+and authenticated on persistence.
 """
 
 from __future__ import annotations
@@ -559,6 +562,7 @@ class ActionFeedback:
     outcome_receipt_sha256: str
     binding_id: str
     decision: str
+    resulting_binding_status: str
     source: str
     nonce: str
     authority_hmac_sha256: str
@@ -569,6 +573,7 @@ class ActionFeedback:
             "decision": self.decision,
             "nonce": self.nonce,
             "outcome_receipt_sha256": self.outcome_receipt_sha256,
+            "resulting_binding_status": self.resulting_binding_status,
             "schema": FEEDBACK_SCHEMA,
             "source": self.source,
         }
@@ -582,8 +587,25 @@ class ActionFeedback:
         return _signed_receipt(self.payload(), self.authority_hmac_sha256)
 
     def verify(self, key: bytes) -> None:
-        if self.decision not in {"confirm", "revoke"}:
+        if self.decision not in {"observe", "confirm", "revoke"}:
             raise ValueError("feedback decision changed")
+        if (
+            self.resulting_binding_status
+            not in {"provisional", "confirmed", "revoked"}
+            or (
+                self.decision == "confirm"
+                and self.resulting_binding_status != "confirmed"
+            )
+            or (
+                self.decision == "revoke"
+                and self.resulting_binding_status != "revoked"
+            )
+            or (
+                self.decision == "observe"
+                and self.resulting_binding_status == "revoked"
+            )
+        ):
+            raise ValueError("feedback resulting binding status changed")
         sha256_digest(self.outcome_receipt_sha256, "feedback outcome")
         sha256_digest(self.binding_id, "feedback binding")
         _identifier(self.source, "feedback source")
@@ -680,6 +702,7 @@ def _feedback_from(value: object, *, key: bytes) -> ActionFeedback:
         "decision",
         "nonce",
         "outcome_receipt_sha256",
+        "resulting_binding_status",
         "schema",
         "source",
     }
@@ -689,6 +712,7 @@ def _feedback_from(value: object, *, key: bytes) -> ActionFeedback:
         outcome_receipt_sha256=value.get("outcome_receipt_sha256"),
         binding_id=value.get("binding_id"),
         decision=value.get("decision"),
+        resulting_binding_status=value.get("resulting_binding_status"),
         source=value.get("source"),
         nonce=value.get("nonce"),
         authority_hmac_sha256=value.get("authority_hmac_sha256"),
@@ -826,11 +850,7 @@ class ActionBinding:
         self.latest_closure.verify(
             key, max_scalars=max_scalars, max_command_bytes=max_command_bytes
         )
-        expected_status = (
-            "confirmed"
-            if self.latest_closure.feedback.decision == "confirm"
-            else "revoked"
-        )
+        expected_status = self.latest_closure.feedback.resulting_binding_status
         if (
             self.status != expected_status
             or self.latest_closure.intent.binding_id != self.binding_id
@@ -1115,6 +1135,18 @@ class CausalActionCycle:
                 raise ValueError("causal perception is no longer in working memory")
             return witness
 
+    def perception_record(self, reference: str) -> dict[str, object]:
+        """Return a verified decoded copy of one bounded working perception."""
+        witness = self._working_witness(reference)
+        witness.verify(max_bytes=self._max_witness_bytes)
+        payload = base64.b64decode(
+            witness.settlement_payload_base64, validate=True
+        )
+        decoded = json.loads(payload.decode("utf-8"))
+        if not isinstance(decoded, dict) or _canonical(decoded) != payload:
+            raise ValueError("working perception record is not canonical")
+        return decoded
+
     def issue_teacher_relation(
         self,
         *,
@@ -1292,6 +1324,22 @@ class CausalActionCycle:
         )
         return ActionSelection(status="committed", intent=intent)
 
+    def verify_live_intent(self, intent: object) -> bool:
+        """Verify intent authority and current issued-intent membership."""
+        if not isinstance(intent, ActionIntent):
+            return False
+        try:
+            intent.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            receipt = intent.authority_receipt_sha256
+        except (TypeError, ValueError):
+            return False
+        with self._lock:
+            return self._intents.get(receipt) == intent
+
     def record_execution(
         self,
         *,
@@ -1299,6 +1347,12 @@ class CausalActionCycle:
         executor_receipt_sha256: str,
         disposition: str,
     ) -> ActionExecution:
+        """TRUSTED-INTERNAL executor acknowledgement; never expose remotely.
+
+        Only an in-process executor adapter that actually received the exact
+        action command may call this method.  A rejected disposition is the
+        abort path and atomically releases the live intent.
+        """
         sha256_digest(intent_receipt_sha256, "intent receipt")
         sha256_digest(executor_receipt_sha256, "executor receipt")
         if disposition not in {"executed", "rejected"}:
@@ -1390,6 +1444,114 @@ class CausalActionCycle:
         )
         return outcome
 
+    def _close_outcome_locked(
+        self,
+        *,
+        outcome_receipt_sha256: str,
+        decision: str,
+        resulting_status: str,
+        source: str,
+        nonce: str,
+    ) -> tuple[ActionFeedback, ActionClosure]:
+        if any(
+            binding.latest_closure is not None
+            and binding.latest_closure.feedback.nonce == nonce
+            for binding in self._bindings.values()
+        ):
+            raise ValueError("feedback nonce was already used")
+        outcome = self._outcomes.get(outcome_receipt_sha256)
+        if outcome is None:
+            raise ValueError("closure names an unknown outcome")
+        execution = self._executions[outcome.execution_receipt_sha256]
+        intent = self._intents[execution.intent_receipt_sha256]
+        binding = self._bindings[intent.binding_id]
+        if decision == "observe" and resulting_status != binding.status:
+            raise ValueError("neutral observation cannot change binding status")
+        unsigned = {
+            "binding_id": binding.binding_id,
+            "decision": decision,
+            "nonce": nonce,
+            "outcome_receipt_sha256": outcome_receipt_sha256,
+            "resulting_binding_status": resulting_status,
+            "schema": FEEDBACK_SCHEMA,
+            "source": source,
+        }
+        feedback = ActionFeedback(
+            outcome_receipt_sha256=outcome_receipt_sha256,
+            binding_id=binding.binding_id,
+            decision=decision,
+            resulting_binding_status=resulting_status,
+            source=source,
+            nonce=nonce,
+            authority_hmac_sha256=_sign(
+                self._key, FEEDBACK_DOMAIN, _canonical(unsigned)
+            ),
+        )
+        feedback.verify(self._key)
+        closure_unsigned = {
+            "execution": execution.as_record(),
+            "feedback": feedback.as_record(),
+            "intent": intent.as_record(),
+            "outcome": outcome.as_record(),
+            "schema": CLOSURE_SCHEMA,
+        }
+        closure = ActionClosure(
+            intent=intent,
+            execution=execution,
+            outcome=outcome,
+            feedback=feedback,
+            authority_hmac_sha256=_sign(
+                self._key, CLOSURE_DOMAIN, _canonical(closure_unsigned)
+            ),
+        )
+        closure.verify(
+            self._key,
+            max_scalars=self._max_speech_scalars,
+            max_command_bytes=self._max_command_bytes,
+        )
+        with self._atomic():
+            self._bindings[binding.binding_id] = replace(
+                binding,
+                status=resulting_status,
+                latest_closure=closure,
+            )
+            del self._outcomes[outcome_receipt_sha256]
+            del self._executions[outcome.execution_receipt_sha256]
+            del self._intents[execution.intent_receipt_sha256]
+            self._gc_evidence_locked()
+        return feedback, closure
+
+    def close_observed(
+        self, *, outcome_receipt_sha256: str
+    ) -> ActionFeedback:
+        """Neutrally close one observed outcome without teacher judgment.
+
+        This is an internal settlement operation.  It authenticates and
+        compacts the completed chain but preserves the binding's current
+        status, so a provisional learned relation remains selectable.
+        """
+        sha256_digest(outcome_receipt_sha256, "observed outcome receipt")
+        with self._lock:
+            outcome = self._outcomes.get(outcome_receipt_sha256)
+            if outcome is None:
+                raise ValueError("closure names an unknown outcome")
+            execution = self._executions[outcome.execution_receipt_sha256]
+            intent = self._intents[execution.intent_receipt_sha256]
+            binding = self._bindings[intent.binding_id]
+            feedback, closure = self._close_outcome_locked(
+                outcome_receipt_sha256=outcome_receipt_sha256,
+                decision="observe",
+                resulting_status=binding.status,
+                source="causal_action_cycle:trusted_internal",
+                nonce=f"observe:{outcome_receipt_sha256}",
+            )
+        self._emit(
+            "causal_action_cycle_closed",
+            closure_receipt_sha256=closure.authority_receipt_sha256,
+            decision="observe",
+        )
+        return feedback
+
     def apply_feedback(
         self,
         *,
@@ -1398,74 +1560,20 @@ class CausalActionCycle:
         source: str,
         nonce: str,
     ) -> ActionFeedback:
+        """Close an observed outcome with explicit teacher judgment."""
         if decision not in {"confirm", "revoke"}:
             raise ValueError("feedback decision must be confirm or revoke")
         _identifier(source, "feedback source")
         _nonce(nonce, "feedback nonce")
+        resulting_status = "confirmed" if decision == "confirm" else "revoked"
         with self._lock:
-            if any(
-                binding.latest_closure is not None
-                and binding.latest_closure.feedback.nonce == nonce
-                for binding in self._bindings.values()
-            ):
-                raise ValueError("feedback nonce was already used")
-            outcome = self._outcomes.get(outcome_receipt_sha256)
-            if outcome is None:
-                raise ValueError("feedback names an unknown outcome")
-            execution = self._executions[outcome.execution_receipt_sha256]
-            intent = self._intents[execution.intent_receipt_sha256]
-            binding = self._bindings[intent.binding_id]
-            unsigned = {
-                "binding_id": binding.binding_id,
-                "decision": decision,
-                "nonce": nonce,
-                "outcome_receipt_sha256": outcome_receipt_sha256,
-                "schema": FEEDBACK_SCHEMA,
-                "source": source,
-            }
-            feedback = ActionFeedback(
+            feedback, closure = self._close_outcome_locked(
                 outcome_receipt_sha256=outcome_receipt_sha256,
-                binding_id=binding.binding_id,
                 decision=decision,
+                resulting_status=resulting_status,
                 source=source,
                 nonce=nonce,
-                authority_hmac_sha256=_sign(
-                    self._key, FEEDBACK_DOMAIN, _canonical(unsigned)
-                ),
             )
-            feedback.verify(self._key)
-            closure_unsigned = {
-                "execution": execution.as_record(),
-                "feedback": feedback.as_record(),
-                "intent": intent.as_record(),
-                "outcome": outcome.as_record(),
-                "schema": CLOSURE_SCHEMA,
-            }
-            closure = ActionClosure(
-                intent=intent,
-                execution=execution,
-                outcome=outcome,
-                feedback=feedback,
-                authority_hmac_sha256=_sign(
-                    self._key, CLOSURE_DOMAIN, _canonical(closure_unsigned)
-                ),
-            )
-            closure.verify(
-                self._key,
-                max_scalars=self._max_speech_scalars,
-                max_command_bytes=self._max_command_bytes,
-            )
-            next_status = "confirmed" if decision == "confirm" else "revoked"
-            with self._atomic():
-                self._bindings[binding.binding_id] = replace(
-                    binding,
-                    status=next_status,
-                    latest_closure=closure,
-                )
-                del self._outcomes[outcome_receipt_sha256]
-                del self._executions[outcome.execution_receipt_sha256]
-                del self._intents[execution.intent_receipt_sha256]
-                self._gc_evidence_locked()
         self._emit(
             "causal_action_cycle_closed",
             closure_receipt_sha256=closure.authority_receipt_sha256,

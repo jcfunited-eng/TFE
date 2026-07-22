@@ -274,6 +274,61 @@ def test_closed_cycles_compact_and_continue_beyond_transaction_capacity() -> Non
     assert restored.encoded_snapshot() == snapshot
 
 
+def test_unattended_observed_cycles_close_neutrally_beyond_capacity_and_restore() -> None:
+    trigger = _settlement("observed-teach")
+    cycle = CausalActionCycle(
+        authority_key="cycle-observed-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    _teach(
+        cycle,
+        trigger,
+        ActionCommand.speech("observe"),
+        "observed-teacher-nonce-0001",
+    )
+    for index in range(4):
+        selection = cycle.select(
+            _settlement(f"observed-trigger-{index}", routing_chis=(50 + index,))
+        )
+        execution = cycle.record_execution(
+            intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+            executor_receipt_sha256=hashlib.sha256(
+                f"observed-executor-{index}".encode("utf-8")
+            ).hexdigest(),
+            disposition="executed",
+        )
+        outcome = cycle.observe_outcome(
+            execution_receipt_sha256=execution.authority_receipt_sha256,
+            settlement=_settlement(
+                f"observed-outcome-{index}", frequency=40 + index
+            ),
+        )
+        closed = cycle.close_observed(
+            outcome_receipt_sha256=outcome.authority_receipt_sha256
+        )
+        assert closed.decision == "observe"
+        assert closed.resulting_binding_status == "provisional"
+        status = cycle.status()
+        assert status["binding_statuses"]["provisional"] == 1
+        assert status["closures"] == 1
+        assert status["intents"] == 0
+        assert status["executions"] == 0
+        assert status["outcomes"] == 0
+        assert status["evidence"] <= 3
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(
+        authority_key="cycle-observed-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot
+    assert restored.status()["binding_statuses"]["provisional"] == 1
+    assert restored.select(_settlement("observed-after-restore")).status == "committed"
+
+
 def test_nonce_replay_and_rejected_execution_fail_without_capacity_leaks() -> None:
     trigger = _settlement("replay-teach")
     cycle = CausalActionCycle(
@@ -336,6 +391,33 @@ def test_nonce_replay_and_rejected_execution_fail_without_capacity_leaks() -> No
     assert cycle.status()["intents"] == 0
     assert cycle.status()["executions"] == 0
     assert cycle.status()["outcomes"] == 0
+
+
+def test_read_only_perception_copy_and_live_intent_verifier() -> None:
+    trigger = _settlement("read-only-trigger", routing_chis=(7, 19))
+    cycle = CausalActionCycle(authority_key="cycle-read-only-key")
+    cycle.accept(trigger)
+    first = cycle.perception_record(trigger.event_id)
+    assert first["event_id"] == trigger.event_id
+    assert len(first["interpretations"]) == 6
+    first["event_id"] = "changed-copy"
+    assert cycle.perception_record(trigger.event_id)["event_id"] == trigger.event_id
+
+    _teach(
+        cycle,
+        trigger,
+        ActionCommand.speech("live"),
+        "read-only-teacher-nonce-0001",
+    )
+    selection = cycle.select(_settlement("read-only-repeat", routing_chis=(88,)))
+    assert cycle.verify_live_intent(selection.intent)
+    assert "TRUSTED-INTERNAL" in CausalActionCycle.record_execution.__doc__
+    cycle.record_execution(
+        intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(b"read-only-rejected").hexdigest(),
+        disposition="rejected",
+    )
+    assert not cycle.verify_live_intent(selection.intent)
 
 
 def test_capacity_and_state_hmac_reject_without_partial_mutation() -> None:
