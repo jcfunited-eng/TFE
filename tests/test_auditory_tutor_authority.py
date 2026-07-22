@@ -17,7 +17,7 @@ from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 def _tone_wav(
     duration_seconds: int = 1,
     frequency_hz: int = 440,
-    leading_absent_hops: int = 0,
+    leading_absent_hops: int = 20,
 ) -> bytes:
     rate = 16_000
     values = [0] * (leading_absent_hops * 160) + [
@@ -25,7 +25,7 @@ def _tone_wav(
             2.0 * math.pi * frequency_hz * index / rate
         ))
         for index in range(rate * duration_seconds)
-    ]
+    ] + [0] * (30 * 160)
     payload = io.BytesIO()
     with wave.open(payload, "wb") as stream:
         stream.setnchannels(1)
@@ -156,7 +156,7 @@ def test_authenticated_http_tutoring_reaches_required_engine_owner(
             _tone_wav(),
             source="browser_microphone",
             source_anchor_ns=1_000_000_000,
-            source_time_end_ns=2_000_000_000,
+            source_time_end_ns=2_500_000_000,
             auditory_event_boundary="utterance",
         )
         experience = engine._latest_auditory_l5_experience
@@ -239,7 +239,7 @@ def test_isolated_asset_transaction_teaches_full_l5_without_retention(
         assert result["recognized_label"] == "hello guala"
         assert result["event_boundary"] == "utterance"
         assert result["port_count"] == 16
-        assert result["sample_count"] == 16_000
+        assert result["sample_count"] == 16_320
         assert engine._sounds == before_sounds
         status = engine.auditory_l5_status()["reciprocity"]
         assert status["class_counts"]["spoken_form"] == 1
@@ -248,7 +248,7 @@ def test_isolated_asset_transaction_teaches_full_l5_without_retention(
         engine.shutdown()
 
 
-def test_tutor_event_excludes_only_quantized_absence_prefix(
+def test_tutor_event_settles_the_surrounded_physical_event(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
@@ -262,7 +262,7 @@ def test_tutor_event_excludes_only_quantized_absence_prefix(
             "hello guala",
         )
         assert result["accepted"] is True
-        assert result["sample_count"] == 16_000
+        assert result["sample_count"] == 16_320
         assert engine.auditory_l5_status()["reciprocity"][
             "class_counts"
         ]["spoken_form"] == 1

@@ -321,7 +321,8 @@ function _pcmBase64(buffer){
 
 function _schedulePCMSight(epoch,sequence){
   if(!epoch.active||epoch.sourceEpochMs===null||epoch.sightBySequence.has(sequence)||epoch.sightTimers.has(sequence))return;
-  const target=epoch.sourceEpochMs+sequence*5000;
+  const chunkDurationMs=PCM_CHUNK_SAMPLES*1000/PCM_SAMPLE_RATE;
+  const target=epoch.sourceEpochMs+sequence*chunkDurationMs+chunkDurationMs/2;
   const timer=setTimeout(()=>{
     epoch.sightTimers.delete(sequence);
     if(!epoch.active)return;

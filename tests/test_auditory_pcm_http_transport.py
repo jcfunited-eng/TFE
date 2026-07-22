@@ -253,8 +253,9 @@ def test_continuous_full_field_terminal_opens_one_existing_reply_door(
     engine: Guala, monkeypatch
 ) -> None:
     learned_pcm = _pcm(offset=0, count=6_400)
+    tutor_capture = bytes(3_200 * 2) + learned_pcm + bytes(4_800 * 2)
     engine.teach_isolated_auditory_asset(
-        pcm_s16le_wav(learned_pcm), "hello guala"
+        pcm_s16le_wav(tutor_capture), "hello guala"
     )
     replies = []
     monkeypatch.setattr(

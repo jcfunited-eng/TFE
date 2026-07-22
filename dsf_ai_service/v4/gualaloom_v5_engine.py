@@ -65,7 +65,6 @@ REPLAY_SOUND_TOTAL_PCM_BYTES = 8 * 1024 * 1024
 REPLAY_SOUND_MAX_WAV_BYTES = REPLAY_SOUND_MAX_PCM_BYTES + 44
 REPLAY_SOUND_MAX_B64_CHARS = 4 * ((REPLAY_SOUND_MAX_WAV_BYTES + 2) // 3)
 AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE = 2.0 / 32_768.0
-AUDITORY_TUTOR_OBSERVATION_HOP_SAMPLES = 160
 VIDEO_MAX_RETAINED_FRAMES = 120
 VIDEO_RETAINED_FRAME_RATE_HZ = 15
 VIDEO_RETAINED_FRAME_ROWS = 120
@@ -13513,19 +13512,20 @@ class Guala:
 
     @classmethod
     def _auditory_tutor_event_wav(cls, canonical_wav):
-        """Exclude only a quantized-absence prefix from a tutor event.
+        """Settle the surrounded physical event inside one tutor capture.
 
-        The continuous microphone owner advances on 10 ms cochlear pressure
-        observations.  A leading observation whose complete sixteen-port
-        pressure field lies within the same two-count input uncertainty
-        already used by auditory reciprocity is indistinguishable from absent
-        input and cannot own an utterance start.  The fourth-order channel
-        cascade has unit L1 gain, so that input uncertainty is also a strict
-        full-scale output bound.  This does not trim room sound, fit an energy
-        threshold, or infer speech.
+        A deterministic auditory-L5 operator partitions the measured
+        cochlear energy into its two minimum-variance physical basins.  The
+        upper-basin hull supplies only the temporal boundary; every native
+        pressure and phase channel inside that boundary remains authoritative.
+        No transcript, fixed amplitude threshold, learned model, chi key, or
+        Atlas entry participates.
         """
         import io
         import wave
+        from dsf_ai_service.substrate.auditory_event_boundary import (
+            settle_auditory_event_boundary,
+        )
         from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
             transduce_auditory_full_field,
         )
@@ -13539,28 +13539,17 @@ class Guala:
             np.frombuffer(raw, dtype="<i2").astype(np.float64) / 32_768.0,
             sample_rate_hz=REPLAY_SOUND_SAMPLE_RATE_HZ,
         )
-        onset = None
-        hop = AUDITORY_TUTOR_OBSERVATION_HOP_SAMPLES
-        for frame_index in range(field.frame_count):
-            if any(
-                channel.pressure_envelope_full_scale[frame_index]
-                > AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE
-                for channel in field.channels
-            ):
-                onset = frame_index * hop
-                break
-        if onset is None:
-            raise ValueError(
-                "auditory tutor asset has no quantization-distinguishable event"
-            )
-        retained = frame_count - onset
-        if retained < 2 * hop:
-            raise ValueError(
-                "auditory tutor event is shorter than two observations"
-            )
-        if onset == 0:
-            return canonical, frame_count, frame_count * 2
-        trimmed = raw[onset * 2:]
+        boundary = settle_auditory_event_boundary(
+            field,
+            pressure_uncertainty_full_scale=(
+                AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE
+            ),
+        )
+        start = boundary.source_sample_start
+        end = boundary.source_sample_end
+        if end > frame_count:
+            raise ValueError("auditory tutor event exceeds its physical capture")
+        trimmed = raw[start * 2:end * 2]
         target_buffer = io.BytesIO()
         with wave.open(target_buffer, "wb") as target:
             target.setnchannels(1)
