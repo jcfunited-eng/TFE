@@ -175,6 +175,9 @@ def guala(monkeypatch):
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY", "causal-boundary-test-key"
+    )
     engine = Guala()
     try:
         yield engine

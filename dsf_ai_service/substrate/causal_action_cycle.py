@@ -357,6 +357,20 @@ def _witness_from(value: object, *, max_bytes: int) -> PerceptionWitness:
     return witness
 
 
+def _witness_language_source_event(witness: PerceptionWitness) -> str | None:
+    payload = base64.b64decode(
+        witness.settlement_payload_base64, validate=True
+    )
+    decoded = json.loads(payload.decode("utf-8"))
+    language_events = decoded.get("language_events")
+    if not language_events:
+        return None
+    if not isinstance(language_events, list) or len(language_events) != 1:
+        raise ValueError("perception witness language source changed")
+    source_event_id = language_events[0].get("source_event_id")
+    return sha256_digest(source_event_id, "language source event")
+
+
 @dataclass(frozen=True, slots=True)
 class TeacherRelation:
     trigger_settlement_receipt_sha256: str
@@ -989,6 +1003,7 @@ class CausalActionCycle:
         self._lock = threading.RLock()
         self._working: OrderedDict[str, PerceptionWitness] = OrderedDict()
         self._working_by_receipt: dict[str, str] = {}
+        self._working_by_source_event: dict[str, str] = {}
         self._evidence: dict[str, PerceptionWitness] = {}
         self._bindings: dict[str, ActionBinding] = {}
         self._by_structure: dict[str, set[str]] = {}
@@ -1112,11 +1127,24 @@ class CausalActionCycle:
                 return known
             if witness.event_id in self._working:
                 raise ValueError("perception event was offered differently")
+            source_event_id = _witness_language_source_event(witness)
+            if (
+                source_event_id is not None
+                and source_event_id in self._working_by_source_event
+            ):
+                raise ValueError(
+                    "language source event was offered as two perceptions"
+                )
             if len(self._working) >= self._working_capacity:
                 expired, old = self._working.popitem(last=False)
                 del self._working_by_receipt[old.settlement_receipt_sha256]
+                old_source_event = _witness_language_source_event(old)
+                if old_source_event is not None:
+                    del self._working_by_source_event[old_source_event]
             self._working[witness.event_id] = witness
             self._working_by_receipt[witness.settlement_receipt_sha256] = witness.event_id
+            if source_event_id is not None:
+                self._working_by_source_event[source_event_id] = witness.event_id
         self._emit(
             "causal_action_cycle_perception_accepted",
             event_id=witness.event_id,
@@ -1130,6 +1158,9 @@ class CausalActionCycle:
             witness = self._working.get(reference)
             if witness is None:
                 event = self._working_by_receipt.get(reference)
+                witness = self._working.get(event) if event else None
+            if witness is None:
+                event = self._working_by_source_event.get(reference)
                 witness = self._working.get(event) if event else None
             if witness is None:
                 raise ValueError("causal perception is no longer in working memory")
@@ -1339,6 +1370,39 @@ class CausalActionCycle:
             return False
         with self._lock:
             return self._intents.get(receipt) == intent
+
+    def verify_live_execution_receipt(self, receipt: object) -> bool:
+        """Return whether an authenticated execution is awaiting outcome."""
+        try:
+            canonical = sha256_digest(receipt, "execution receipt")
+        except (TypeError, ValueError):
+            return False
+        with self._lock:
+            execution = self._executions.get(canonical)
+            if execution is None:
+                return False
+            try:
+                execution.verify(self._key)
+            except (TypeError, ValueError):
+                return False
+            return execution.authority_receipt_sha256 == canonical
+
+    def live_execution_trigger_receipt(self, receipt: object) -> str | None:
+        """Resolve a live execution to its authenticated trigger receipt."""
+        if not self.verify_live_execution_receipt(receipt):
+            return None
+        canonical = str(receipt)
+        with self._lock:
+            execution = self._executions[canonical]
+            intent = self._intents.get(execution.intent_receipt_sha256)
+            if intent is None:
+                return None
+            intent.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            return intent.trigger_settlement_receipt_sha256
 
     def record_execution(
         self,

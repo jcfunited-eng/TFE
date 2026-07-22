@@ -25,6 +25,9 @@ def guala(monkeypatch):
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     monkeypatch.setenv("WAVE_SUMMARY_ENABLED", "0")
     monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY", "claim-transaction-test-key"
+    )
     engine = Guala()
     try:
         yield engine
@@ -265,7 +268,7 @@ def test_emission_failure_restores_utterance_for_exact_retry(
     assert guala._latest_auditory_causal_event_record == prior
     assert guala._causal_experience_owner.status()["settled"] == 0
     assert guala._causal_settlement_accepted == 0
-    assert guala._causal_action_owner.status()["working_experiences"] == 0
+    assert guala._causal_action_cycle.status()["working_perceptions"] == 0
 
     monkeypatch.setattr(guala, "_emit_from_invariants", real_emit)
     turn = guala.converse(
@@ -314,7 +317,7 @@ def test_final_settlement_log_failure_is_nonfatal_after_atomic_commit(
     assert status["in_flight_terminal_authorities"] == 0
     assert guala._causal_experience_owner.status()["settled"] == 1
     assert guala._causal_settlement_accepted == 1
-    assert guala._causal_action_owner.status()["working_experiences"] == 1
+    assert guala._causal_action_cycle.status()["working_perceptions"] == 1
     assert guala._latest_auditory_causal_event_record == terminal.as_record()
     with pytest.raises(ValueError, match="not issued or was already consumed"):
         guala._auditory_incremental_terminals.claim(terminal)

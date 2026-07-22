@@ -232,6 +232,52 @@ class EmissionSettlement:
 
 
 @dataclass(frozen=True)
+class CausalCycleEmissionSettlement:
+    """Conversation adapter for one live full-field action intent.
+
+    The action-cycle intent remains the authority.  This adapter only exposes
+    the immutable fields consumed by the existing conversation transport; it
+    does not derive identity from chi, words, or Atlas state.
+    """
+
+    selection: object
+    tick: int
+
+    @property
+    def status(self):
+        return self.selection.status
+
+    @property
+    def stop_reason(self):
+        return self.selection.stop_reason
+
+    @property
+    def content(self):
+        intent = self.selection.intent
+        if intent is None or intent.action.kind != "speech":
+            return ""
+        return "".join(chr(value) for value in intent.action.unicode_scalars)
+
+    @property
+    def committed_sections(self):
+        return ("causal_action_cycle",) if self.content else ()
+
+    @property
+    def n_commits(self):
+        intent = self.selection.intent
+        return (
+            len(intent.action.unicode_scalars)
+            if intent is not None and intent.action.kind == "speech"
+            else 0
+        )
+
+    @property
+    def commit_provenance(self):
+        intent = self.selection.intent
+        return (intent,) if intent is not None and self.content else ()
+
+
+@dataclass(frozen=True)
 class FactEmissionSupport:
     """One exact closed-window entry supporting one emitted Fact token."""
 
@@ -1332,7 +1378,7 @@ AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any convers
 # reinforcement, teach/correct feedback, and window fact-binding.
 VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit",
                           "organism_attempt", "composed_attempt",
-                          "causal_action_commit")
+                          "causal_action_cycle_commit")
 
 # Change 4 (spec v3 release-policy note b): the autonomous loop queries the
 # certified composer with seeds drawn from the organism's own lived content.
@@ -3371,6 +3417,39 @@ class Guala:
                 or os.environ.get("GUALALOOM_API_KEY")
             ),
         )
+        # The modality-neutral cycle is the authoritative full-field
+        # perception-to-action boundary.  The legacy auditory owner remains
+        # restore-only during the state transition; it is not allowed to
+        # decide identity for this owner.  Production admission requires the
+        # same persisted authority key used by the already authenticated
+        # auditory action state.  Narrow unit constructions without that key
+        # expose an explicit unavailable owner instead of inventing a key.
+        from dsf_ai_service.substrate.causal_action_cycle import (
+            CausalActionCycle as _CausalActionCycle,
+        )
+        _causal_cycle_key = (
+            os.environ.get("GUALA_CAUSAL_ACTION_KEY")
+            or os.environ.get("GUALALOOM_API_KEY")
+        )
+        self._causal_action_cycle = (
+            _CausalActionCycle(
+                log_event=self._log_substrate_event,
+                authority_key=_causal_cycle_key,
+            )
+            if _causal_cycle_key
+            else None
+        )
+        from dsf_ai_service.substrate.embodiment_world import (
+            EmbodimentWorldAuthority as _EmbodimentWorldAuthority,
+        )
+        self._embodiment_world = (
+            _EmbodimentWorldAuthority(authority_key=_causal_cycle_key)
+            if _causal_cycle_key
+            else None
+        )
+        self._causal_cycle_bridge_lock = threading.RLock()
+        self._causal_cycle_pending_execution_receipt = None
+        self._causal_cycle_pending_trigger_receipt = None
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -7393,19 +7472,35 @@ class Guala:
     def _accept_causal_settlement(self, settlement):
         """Accept one structured settlement without a second work queue.
 
-        Only the latest compact settlement and four teaching candidates are
-        retained.  The direct action owner consumes the structured settlement;
-        no numeric vector is manufactured for the legacy organism because that
-        would erase sense, substream, and DSF-field relationships.
+        The cycle retains only its bounded current working perceptions and
+        authenticated causal evidence.  No numeric vector is manufactured for
+        the legacy organism because that would erase sense, substream, and
+        DSF-field relationships.
         """
         if self._engine_quiesced:
             raise RuntimeError("causal settlement rejected after quiescence")
-        language_events = getattr(settlement, "language_events", ())
-        if (
-            len(language_events) == 1
-            and language_events[0].recognition_occurrence is not None
-        ):
-            self._causal_action_owner.offer_teaching_experience(settlement)
+        if self._causal_action_cycle is not None:
+            with self._causal_cycle_bridge_lock:
+                pending_execution = (
+                    self._causal_cycle_pending_execution_receipt
+                )
+                if (
+                    pending_execution is not None
+                    and settlement.authority_receipt_sha256
+                    != self._causal_cycle_pending_trigger_receipt
+                ):
+                    outcome = self._causal_action_cycle.observe_outcome(
+                        execution_receipt_sha256=pending_execution,
+                        settlement=settlement,
+                    )
+                    self._causal_action_cycle.close_observed(
+                        outcome_receipt_sha256=(
+                            outcome.authority_receipt_sha256
+                        )
+                    )
+                    self._causal_cycle_pending_execution_receipt = None
+                    self._causal_cycle_pending_trigger_receipt = None
+                self._causal_action_cycle.accept(settlement)
         self._latest_causal_settlement = settlement
         self._causal_settlement_accepted += 1
         try:
@@ -7431,31 +7526,80 @@ class Guala:
         source="joe",
     ):
         """Join two verified working experiences as one taught action."""
+        if self._causal_action_cycle is None:
+            raise RuntimeError("causal action cycle authority is unavailable")
         trigger_reference_id = trigger_experience_id
         action_reference_id = action_experience_id
-        trigger_experience_id = (
-            self._causal_action_owner.resolve_teaching_experience_id(
-                trigger_reference_id
-            )
+        trigger_record = self._causal_action_cycle.perception_record(
+            trigger_reference_id
         )
-        action_experience_id = (
-            self._causal_action_owner.resolve_teaching_experience_id(
-                action_reference_id
-            )
+        action_record = self._causal_action_cycle.perception_record(
+            action_reference_id
         )
-        binding = self._causal_action_owner.teach(
-            trigger_experience_id=trigger_experience_id,
-            action_experience_id=action_experience_id,
+        language_events = action_record.get("language_events")
+        if (
+            not isinstance(language_events, list)
+            or len(language_events) != 1
+            or not isinstance(language_events[0], dict)
+            or language_events[0].get("recognition_occurrence") is None
+        ):
+            raise ValueError(
+                "taught speech action requires one separately recognized "
+                "spoken experience"
+            )
+        scalars = language_events[0].get("unicode_scalars")
+        if (
+            not isinstance(scalars, list)
+            or not scalars
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+                or value > 0x10FFFF
+                or 0xD800 <= value <= 0xDFFF
+                for value in scalars
+            )
+        ):
+            raise ValueError("spoken action lost exact Unicode experience")
+        from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
+        action = ActionCommand.speech(
+            "".join(chr(value) for value in scalars)
+        )
+        nonce_payload = json.dumps(
+            {
+                "action_reference": action_reference_id,
+                "source": source,
+                "trigger_reference": trigger_reference_id,
+            },
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        binding = self._causal_action_cycle.teach(
+            trigger_reference=trigger_reference_id,
+            action=action,
             source=source,
+            nonce="teach:" + _hashlib.sha256(nonce_payload).hexdigest(),
         )
+        trigger_experience_id = trigger_record["event_id"]
+        action_experience_id = action_record["event_id"]
         return {
             "binding_id": binding.binding_id,
-            "binding_receipt_sha256": binding.binding_receipt_sha256,
+            "binding_receipt_sha256": _hashlib.sha256(
+                json.dumps(
+                    binding.as_record(),
+                    allow_nan=False,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ).encode("utf-8")
+            ).hexdigest(),
             "trigger_experience_id": trigger_experience_id,
             "action_experience_id": action_experience_id,
             "trigger_reference_id": trigger_reference_id,
             "action_reference_id": action_reference_id,
-            "unicode_scalars": list(binding.unicode_scalars),
+            "unicode_scalars": list(binding.action.unicode_scalars),
         }
 
     @_engine_mutation_entry
@@ -7474,8 +7618,11 @@ class Guala:
                 "authoritative causal action durability is unavailable"
             )
         with self.persistence_transaction():
-            prior = self._causal_action_owner.encoded_snapshot()
-            working = self._causal_action_owner.working_settlements()
+            if self._causal_action_cycle is None:
+                raise RuntimeError(
+                    "causal action cycle authority is unavailable"
+                )
+            prior = self._causal_action_cycle.encoded_snapshot()
             try:
                 result = self.teach_causal_action(
                     trigger_experience_id=trigger_experience_id,
@@ -7485,10 +7632,7 @@ class Guala:
                 self.save_hot_state(state_dir)
                 return result
             except BaseException:
-                self._causal_action_owner.restore_encoded(prior)
-                self._causal_action_owner.restore_working_settlements(
-                    working
-                )
+                self._causal_action_cycle.restore_encoded(prior)
                 raise
 
     @_engine_mutation_entry
@@ -9275,6 +9419,93 @@ class Guala:
         by authority; a reply is labeled fact_strand_commit ONLY when the
         certifier passed.
         """
+        if isinstance(settlement, CausalCycleEmissionSettlement):
+            if settlement.status != "committed":
+                return "", settlement.stop_reason
+            intent = settlement.selection.intent
+            if (
+                self._causal_action_cycle is None
+                or not self._causal_action_cycle.verify_live_intent(intent)
+            ):
+                return "", "causal_action_cycle_authority_missing"
+            with self._causal_cycle_bridge_lock:
+                if self._causal_cycle_pending_execution_receipt is not None:
+                    return "", "causal_action_outcome_pending"
+                intent_receipt = intent.authority_receipt_sha256
+                if intent.action.kind == "speech":
+                    executor_payload = json.dumps(
+                        {
+                            "intent_receipt_sha256": intent_receipt,
+                            "schema": "guala.speech_executor.release.v1",
+                            "unicode_scalars": list(
+                                intent.action.unicode_scalars
+                            ),
+                        },
+                        allow_nan=False,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    ).encode("utf-8")
+                    execution = self._causal_action_cycle.record_execution(
+                        intent_receipt_sha256=intent_receipt,
+                        executor_receipt_sha256=(
+                            _hashlib.sha256(executor_payload).hexdigest()
+                        ),
+                        disposition="executed",
+                    )
+                    self._causal_cycle_pending_execution_receipt = (
+                        execution.authority_receipt_sha256
+                    )
+                    self._causal_cycle_pending_trigger_receipt = (
+                        intent.trigger_settlement_receipt_sha256
+                    )
+                    return settlement.content, "causal_action_cycle_commit"
+                if intent.action.kind == "embodiment_port":
+                    unavailable_receipt = _hashlib.sha256(
+                        b"guala-embodiment-executor-unavailable-v1\0"
+                        + intent_receipt.encode("ascii")
+                    ).hexdigest()
+                    if self._embodiment_world is None:
+                        self._causal_action_cycle.record_execution(
+                            intent_receipt_sha256=intent_receipt,
+                            executor_receipt_sha256=unavailable_receipt,
+                            disposition="rejected",
+                        )
+                        return "", "causal_action_embodiment_unavailable"
+                    observation = self._embodiment_world.observation_snapshot()
+                    world_execution = (
+                        self._embodiment_world.execute_port_command(
+                            port_id=intent.action.port_id,
+                            command_payload=intent.action.command_payload,
+                            causal_intent_receipt_sha256=intent_receipt,
+                            expected_revision=observation.revision,
+                        )
+                    )
+                    disposition = (
+                        "executed"
+                        if world_execution.disposition == "applied"
+                        else "rejected"
+                    )
+                    execution = self._causal_action_cycle.record_execution(
+                        intent_receipt_sha256=intent_receipt,
+                        executor_receipt_sha256=(
+                            world_execution.authority_receipt_sha256
+                        ),
+                        disposition=disposition,
+                    )
+                    if disposition == "rejected":
+                        return "", (
+                            "causal_action_embodiment_rejected:"
+                            + world_execution.reason
+                        )
+                    self._causal_cycle_pending_execution_receipt = (
+                        execution.authority_receipt_sha256
+                    )
+                    self._causal_cycle_pending_trigger_receipt = (
+                        intent.trigger_settlement_receipt_sha256
+                    )
+                    return "", "causal_action_embodiment_executed"
+                raise RuntimeError("causal action kind changed after selection")
         from dsf_ai_service.substrate.causal_action import (
             CausalActionSettlement,
         )
@@ -9394,24 +9625,27 @@ class Guala:
                         "causal emission requires a structured settlement"
                     )
                 causal_settlement.verify()
-                try:
-                    return self._causal_action_owner.form(
-                        causal_settlement,
-                        tick=self.tick,
-                    )
-                except ValueError as error:
-                    self._log_substrate_event(
-                        "causal_action_recognition_authority_missing",
-                        causal_experience_id=causal_settlement.event_id,
-                        causal_settlement_receipt_sha256=(
-                            causal_settlement.authority_receipt_sha256
-                        ),
-                        error=str(error),
-                    )
+                if self._causal_action_cycle is None:
                     return EmissionSettlement(
                         tick=self.tick,
-                        stop_reason="causal_action_consumer_missing",
+                        stop_reason="causal_action_cycle_unavailable",
                     )
+                with self._causal_cycle_bridge_lock:
+                    if (
+                        self._causal_cycle_pending_execution_receipt
+                        is not None
+                    ):
+                        return EmissionSettlement(
+                            tick=self.tick,
+                            stop_reason="causal_action_outcome_pending",
+                        )
+                    selection = self._causal_action_cycle.select(
+                        causal_settlement
+                    )
+                return CausalCycleEmissionSettlement(
+                    selection=selection,
+                    tick=self.tick,
+                )
             mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
             if (os.environ.get("EMISSION_DYNAMICS", "0") != "1"
                     or mode != "grandurun"):
@@ -16556,6 +16790,24 @@ class Guala:
                 if self._causal_action_owner.persistence_available
                 else None
             ),
+            "causal_action_cycle": (
+                self._causal_action_cycle.encoded_snapshot()
+                if self._causal_action_cycle is not None
+                else None
+            ),
+            "causal_action_cycle_pending_execution_receipt": (
+                self._causal_cycle_pending_execution_receipt
+            ),
+            "causal_action_cycle_pending_trigger_receipt": (
+                self._causal_cycle_pending_trigger_receipt
+            ),
+            "embodiment_world": (
+                json.loads(
+                    self._embodiment_world.encoded_snapshot().decode("utf-8")
+                )
+                if self._embodiment_world is not None
+                else None
+            ),
             "latest_auditory_causal_event": (
                 self._latest_auditory_causal_event_record
             ),
@@ -17073,6 +17325,62 @@ class Guala:
             ):
                 raise ValueError(
                     "teaching.causal_action exceeds its encoded boundary"
+                )
+        causal_action_cycle = data.get("causal_action_cycle")
+        if causal_action_cycle is not None:
+            if (
+                not isinstance(causal_action_cycle, dict)
+                or set(causal_action_cycle) != {
+                    "payload_base64", "schema", "state_hmac_sha256"
+                }
+                or not isinstance(
+                    causal_action_cycle.get("payload_base64"), str
+                )
+                or len(causal_action_cycle["payload_base64"])
+                > 4 * ((32 * 1024 * 1024 + 2) // 3)
+                or not isinstance(
+                    causal_action_cycle.get("state_hmac_sha256"), str
+                )
+            ):
+                raise ValueError(
+                    "teaching.causal_action_cycle exceeds its encoded boundary"
+                )
+        pending_cycle_execution = data.get(
+            "causal_action_cycle_pending_execution_receipt"
+        )
+        pending_cycle_trigger = data.get(
+            "causal_action_cycle_pending_trigger_receipt"
+        )
+        for pending_name, pending_receipt in (
+            ("execution", pending_cycle_execution),
+            ("trigger", pending_cycle_trigger),
+        ):
+            if (
+                pending_receipt is not None
+                and (
+                    not isinstance(pending_receipt, str)
+                    or len(pending_receipt) != 64
+                    or any(
+                        item not in "0123456789abcdef"
+                        for item in pending_receipt
+                    )
+                )
+            ):
+                raise ValueError(
+                    "teaching causal action pending "
+                    + pending_name
+                    + " changed"
+                )
+        if (pending_cycle_execution is None) != (pending_cycle_trigger is None):
+            raise ValueError("teaching causal action pending pair changed")
+        embodiment_world = data.get("embodiment_world")
+        if embodiment_world is not None:
+            embodiment_bytes = cls._canonical_persistence_bytes(
+                embodiment_world
+            )
+            if len(embodiment_bytes) > 8 * 1024 * 1024:
+                raise ValueError(
+                    "teaching.embodiment_world exceeds its encoded boundary"
                 )
         causal_event = data.get("latest_auditory_causal_event")
         if causal_event is not None:
@@ -19062,6 +19370,56 @@ class Guala:
                             self._causal_action_owner.restore_encoded(
                                 causal_action_snapshot
                             )
+                        causal_action_cycle_snapshot = tdata.get(
+                            "causal_action_cycle"
+                        )
+                        if causal_action_cycle_snapshot is not None:
+                            if self._causal_action_cycle is None:
+                                raise ValueError(
+                                    "causal action cycle authority key is missing"
+                                )
+                            self._causal_action_cycle.restore_encoded(
+                                causal_action_cycle_snapshot
+                            )
+                        pending_cycle_execution = tdata.get(
+                            "causal_action_cycle_pending_execution_receipt"
+                        )
+                        pending_cycle_trigger = tdata.get(
+                            "causal_action_cycle_pending_trigger_receipt"
+                        )
+                        if pending_cycle_execution is not None:
+                            if (
+                                self._causal_action_cycle is None
+                                or not self._causal_action_cycle
+                                .verify_live_execution_receipt(
+                                    pending_cycle_execution
+                                )
+                                or self._causal_action_cycle
+                                .live_execution_trigger_receipt(
+                                    pending_cycle_execution
+                                )
+                                != pending_cycle_trigger
+                            ):
+                                raise ValueError(
+                                    "causal action pending execution lost authority"
+                                )
+                        self._causal_cycle_pending_execution_receipt = (
+                            pending_cycle_execution
+                        )
+                        self._causal_cycle_pending_trigger_receipt = (
+                            pending_cycle_trigger
+                        )
+                        embodiment_world = tdata.get("embodiment_world")
+                        if embodiment_world is not None:
+                            if self._embodiment_world is None:
+                                raise ValueError(
+                                    "embodiment world authority key is missing"
+                                )
+                            self._embodiment_world.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    embodiment_world
+                                )
+                            )
                         causal_event = tdata.get(
                             "latest_auditory_causal_event"
                         )
@@ -20590,6 +20948,16 @@ class Guala:
                 "causal_settlement_backlog": 0,
                 "causal_experience_owner": self._causal_experience_owner.status(),
                 "causal_action_owner": self._causal_action_owner.status(),
+                "causal_action_cycle": (
+                    self._causal_action_cycle.status()
+                    if self._causal_action_cycle is not None
+                    else {"available": False}
+                ),
+                "embodiment_world": (
+                    self._embodiment_world.status()
+                    if self._embodiment_world is not None
+                    else {"available": False}
+                ),
                 "auditory_l5": self.auditory_l5_status(),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost

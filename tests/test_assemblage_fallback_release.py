@@ -231,7 +231,7 @@ def test_engine_and_runner_share_one_voiced_release_authority():
         "assemblage_commit",
         "organism_attempt",
         "composed_attempt",
-        "causal_action_commit",
+        "causal_action_cycle_commit",
     )
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(Guala._self_hear)
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(

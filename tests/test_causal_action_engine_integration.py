@@ -55,6 +55,14 @@ from dsf_ai_service.substrate.causal_action import (
     CausalActionOwner,
     CausalActionSettlement,
 )
+from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
+from dsf_ai_service.substrate.embodiment_world import (
+    PORT_ID,
+    MoveCommand,
+    PoseMM,
+    PositionMM,
+    encode_command,
+)
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
@@ -291,8 +299,8 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
     monkeypatch.setenv("EMISSION_MODE", "grandurun")
     guala = Guala()
     try:
-        guala._causal_action_owner.offer_teaching_experience(trigger)
-        guala._causal_action_owner.offer_teaching_experience(action)
+        guala._causal_action_cycle.accept(trigger)
+        guala._causal_action_cycle.accept(action)
         binding = guala.teach_causal_action(
             trigger_experience_id=trigger_terminal.event_id,
             action_experience_id=action_terminal.event_id,
@@ -318,17 +326,19 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
         )
 
         assert turn.response == "hello daddy"
-        assert turn.response_source == "causal_action_commit"
+        assert turn.response_source == "causal_action_cycle_commit"
         assert turn.causal_experience_id == current_terminal.event_id
         assert turn.causal_intake_receipt_sha256 == (
             current_terminal.authority_receipt_sha256
         )
-        assert turn.committed_sections == ("causal_action",)
+        assert turn.committed_sections == ("causal_action_cycle",)
         assert len(turn.commit_provenance) == 1
         assert turn.commit_provenance[0].binding_id == binding["binding_id"]
         assert guala._latest_causal_settlement is not None
         guala._latest_causal_settlement.verify()
-        assert guala._causal_action_owner.status()["formed"] == 1
+        cycle_status = guala._causal_action_cycle.status()
+        assert cycle_status["intents"] == 1
+        assert cycle_status["executions"] == 1
     finally:
         guala.shutdown()
 
@@ -519,14 +529,14 @@ def test_full_engine_restart_preserves_exact_learned_action(
     writer = Guala()
     restored = None
     try:
-        writer._causal_action_owner.offer_teaching_experience(trigger)
-        writer._causal_action_owner.offer_teaching_experience(action)
+        writer._causal_action_cycle.accept(trigger)
+        writer._causal_action_cycle.accept(action)
         writer.teach_causal_action(
             trigger_experience_id=trigger.event_id,
             action_experience_id=action.event_id,
             source="joe",
         )
-        expected = writer._causal_action_owner.encoded_snapshot()
+        expected = writer._causal_action_cycle.encoded_snapshot()
         writer.save_full_state(str(tmp_path))
         identity = writer._guala_identity
         writer.shutdown()
@@ -537,13 +547,72 @@ def test_full_engine_restart_preserves_exact_learned_action(
 
         assert restored._load_successful, restored._load_errors
         assert restored._guala_identity == identity
-        assert restored._causal_action_owner.encoded_snapshot() == expected
-        formed = restored._causal_action_owner.form(trigger, tick=47)
-        assert formed.content == "hello daddy"
-        assert restored._causal_action_owner.verify_issued(formed)
-        assert restored._causal_action_owner.status()["working_experiences"] == 0
+        assert restored._causal_action_cycle.encoded_snapshot() == expected
+        formed = restored._causal_action_cycle.select(trigger)
+        assert formed.intent.action == ActionCommand.speech("hello daddy")
+        assert restored._causal_action_cycle.verify_live_intent(formed.intent)
     finally:
         if writer is not None:
             writer.shutdown()
         if restored is not None:
             restored.shutdown()
+
+
+def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
+    monkeypatch,
+    learned_artifacts,
+) -> None:
+    _reciprocity, trigger_artifacts, outcome_artifacts = learned_artifacts
+    _trigger_built, _trigger_l5, _trigger_terminal, trigger = (
+        trigger_artifacts
+    )
+    _outcome_built, _outcome_l5, _outcome_terminal, outcome = (
+        outcome_artifacts
+    )
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "embodiment-integration-key")
+    guala = Guala()
+    try:
+        guala._causal_action_cycle.accept(trigger)
+        command = ActionCommand.embodiment(
+            PORT_ID,
+            encode_command(
+                MoveCommand(
+                    target_pose=PoseMM(
+                        position=PositionMM(1000, 2000, 0),
+                        heading_millidegrees=90_000,
+                    )
+                )
+            ),
+        )
+        guala._causal_action_cycle.teach(
+            trigger_reference=trigger.event_id,
+            action=command,
+            source="joe",
+            nonce="embodiment-teacher-nonce-0001",
+        )
+
+        emission = guala._emit_from_invariants(
+            (), (), causal_settlement=trigger
+        )
+        assert guala._committed_emission_response(emission) == (
+            "",
+            "causal_action_embodiment_executed",
+        )
+        observed = guala._embodiment_world.observation_snapshot()
+        assert observed.revision == 1
+        assert observed.body.pose.position == PositionMM(1000, 2000, 0)
+        assert guala._causal_cycle_pending_execution_receipt is not None
+
+        guala._accept_causal_settlement(outcome)
+        status = guala._causal_action_cycle.status()
+        assert status["closures"] == 1
+        assert status["intents"] == 0
+        assert status["executions"] == 0
+        assert status["outcomes"] == 0
+        assert guala._causal_cycle_pending_execution_receipt is None
+        assert guala._causal_cycle_pending_trigger_receipt is None
+    finally:
+        guala.shutdown()
