@@ -159,6 +159,24 @@ class AuditoryPCMStreamRegistry:
         with self._lock:
             return self._streams.pop(stream_id, None) is not None
 
+    def close_taking_tail(self, stream_id: str) -> bytes | None:
+        """Close one stream and hand back its bounded PCM tail.
+
+        GL-FEAT-TEACH-LAST-C1-20260722: when a closed stream released no
+        learned terminal, the just-heard sound is the ONLY evidence of
+        what the speaker said — handing the already-bounded eight-second
+        tail to the caller lets an unrecognized utterance be taught
+        through the existing tutor-authority path instead of being lost.
+        Returns None if the stream is unknown. The tail is the same
+        transient, bounded buffer this module already retains; nothing
+        new is stored here.
+        """
+        with self._lock:
+            state = self._streams.pop(stream_id, None)
+            if state is None:
+                return None
+            return bytes(state.pcm_tail)
+
     def reject(self, stream_id: str) -> None:
         with self._lock:
             if self._streams.pop(stream_id, None) is not None:

@@ -3024,12 +3024,25 @@ class AuditoryPCMStreamCloseRequest(BaseModel):
     release_terminal: bool = True
 
 
+# GL-FEAT-TEACH-LAST-C1-20260722: one bounded slot holding the most recent
+# closed-but-unrecognized utterance's PCM tail (≤8s, ≤256KB — the transport's
+# own existing bound), so the speaker can teach what they just said through
+# the existing tutor-authority path. Overwritten by each newer unrecognized
+# utterance; cleared on successful teach or on a recognized utterance. One
+# slot, transient process state, never persisted — lean doctrine.
+_last_unrecognized_lock = threading.Lock()
+_last_unrecognized_utterance = None  # {"pcm": bytes, "ts": float}
+_TEACH_LAST_MIN_BYTES = 9600  # ≥0.3s of real sound — below this it's a blip
+
+
 def _close_auditory_pcm_epoch(
     stream_id: str, *, release_terminal: bool = True
 ) -> dict:
     """Close one exact stream and release at most one final learned terminal."""
+    global _last_unrecognized_utterance
     with _auditory_pcm_epoch_lock:
-        transport_closed = _auditory_pcm_streams.close(stream_id)
+        _pcm_tail = _auditory_pcm_streams.close_taking_tail(stream_id)
+        transport_closed = _pcm_tail is not None
         engine_close = (
             _guala.close_auditory_pcm_stream(
                 stream_id, release_terminal=release_terminal
@@ -3053,6 +3066,16 @@ def _close_auditory_pcm_epoch(
             field_closed = engine_close.get("closed") is True
         else:
             field_closed = bool(engine_close)
+        teachable = False
+        with _last_unrecognized_lock:
+            if candidate is not None:
+                # A recognized utterance supersedes any pending unknown.
+                _last_unrecognized_utterance = None
+            elif (_pcm_tail is not None
+                    and len(_pcm_tail) >= _TEACH_LAST_MIN_BYTES):
+                _last_unrecognized_utterance = {
+                    "pcm": _pcm_tail, "ts": time.time()}
+                teachable = True
         return {
             "closed": transport_closed or field_closed,
             "terminal_event_id": (
@@ -3063,6 +3086,7 @@ def _close_auditory_pcm_epoch(
             ),
             "reply_admitted": admitted in ("started", "queued"),
             "reply_state": admitted,
+            "teachable": teachable,
         }
 
 
@@ -6550,6 +6574,61 @@ async def auditory_l5_teach_asset(
         raise HTTPException(status_code=400, detail=str(error)) from error
     except RuntimeError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+class AuditoryTeachLastRequest(BaseModel):
+    tutor_label: str
+    source: str = "joe"
+
+
+@app.post("/api/v1/auditory/teach-last")
+async def auditory_teach_last(req: AuditoryTeachLastRequest):
+    """GL-FEAT-TEACH-LAST-C1-20260722: teach the most recent heard-but-
+    unrecognized utterance its words — the speaker's own live voice
+    becomes the recognizer's vocabulary, one real utterance at a time.
+
+    Same trust level as the teacher correction gateway (source-gated,
+    no admin key — this IS teaching), same underlying mechanism as
+    /teach-asset: the bounded retained PCM of the utterance that was
+    genuinely just heard goes through durably_teach_isolated_auditory_
+    asset with full tutor authority. Nothing is invented: the sound is
+    the sound that was heard; the label is the tutor's word."""
+    global _last_unrecognized_utterance
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    label = (req.tutor_label or "").strip().lower()
+    if not label or len(label) > 120:
+        raise HTTPException(
+            status_code=400, detail="tutor label must be 1-120 characters")
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="auditory teaching requires embedded ownership")
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    with _last_unrecognized_lock:
+        slot = _last_unrecognized_utterance
+        _last_unrecognized_utterance = None
+    if slot is None:
+        raise HTTPException(
+            status_code=409,
+            detail="no unrecognized utterance is retained — say it again, "
+                   "then teach")
+
+    def _teach_retained():
+        wav_bytes = _pcm_s16le_wav(slot["pcm"])
+        return _guala.durably_teach_isolated_auditory_asset(
+            wav_bytes, label, state_dir=STATE_DIR)
+
+    try:
+        result = await _run_lifecycle_executor(_teach_retained)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    return {"ok": True, "taught_label": label, **(
+        result if isinstance(result, dict) else {})}
+
 
 @app.post("/api/v1/teacher/feedback")
 async def teacher_feedback(req: TeacherFeedbackRequest):
