@@ -672,6 +672,15 @@ class EmbodimentWorldAuthority:
         with self._lock:
             return self._observation_for(self._state.world)
 
+    def latest_execution_snapshot(self) -> ActionExecutionReceipt | None:
+        """Return the latest immutable completed action, if one exists."""
+        with self._lock:
+            if not self._state.recent_applied_receipts:
+                return None
+            receipt = self._state.recent_applied_receipts[-1]
+            self._verify_execution(receipt)
+            return receipt
+
     def _execution_receipt(
         self,
         *,

@@ -29,10 +29,13 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .msg{max-width:85%;padding:6px 10px;border-radius:6px;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .msg.user{align-self:flex-end;background:var(--msg-user);border:1px solid var(--border)}
 .msg.substrate{align-self:flex-start;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent)}
-.msg.emission{align-self:flex-start;background:transparent;border:1px solid #30363d44;color:var(--ev-emission);font-style:italic;font-size:10px}
+.msg.emission{align-self:flex-start;background:var(--msg-sub);border:1px solid var(--border);color:#f0f6fc;font-style:normal;font-size:13px}
 .msg.system{align-self:center;color:var(--text-muted);font-size:9px;font-style:italic}
 .response-block{align-self:flex-start;max-width:90%}
-.response-text{padding:6px 10px;border-radius:6px 6px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent);font-size:11px;line-height:1.45}
+.response-text{padding:6px 10px;border-radius:6px 6px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:#f0f6fc;font-size:13px;line-height:1.45}
+#observation-bar{padding:7px 14px;border-bottom:1px solid var(--border);background:#0d1117;color:#c9d1d9;font-size:11px;line-height:1.5;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:3px 14px}
+#observation-bar .obs-value{color:#f0f6fc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#observation-bar.stale{border-color:#f85149;color:#f85149}
 .response-text .tok-anno{color:var(--text-muted);font-size:9px}
 .response-meta{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;font-size:9px;color:var(--text-muted)}
 .fb-btn{cursor:pointer;font-size:13px;opacity:0.4}.fb-btn:hover{opacity:1}.fb-btn.active{opacity:1}
@@ -135,6 +138,12 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
 <div id="convo-col">
+  <div id="observation-bar" aria-live="polite">
+    <div id="obs-conversation" class="obs-value">conversation observation unavailable</div>
+    <div id="obs-location" class="obs-value">embodiment observation unavailable</div>
+    <div id="obs-reply" class="obs-value">no reply observed</div>
+    <div id="obs-action" class="obs-value">action observation unavailable</div>
+  </div>
   <div id="transcript"></div>
   <div id="upload-bar">
     <button class="upload-btn" onclick="uploadBook()">&#x1f4d6; book</button>
@@ -154,7 +163,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </div>
 <div id="state-panel">
-  <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
+  <div class="ps"><div class="ps-title">Embodied State</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
   <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
@@ -285,7 +294,7 @@ async function _pollAuditoryReply(terminalEventId){
       if(!result.emission_id||!deliveredEmissionIds.has(result.emission_id)){
         const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
         addMsg('replying to: "'+heard+'"','system');
-        addEmissionMsg(result.speech,result.emission_id||null);
+        addEmissionMsg(result.speech,result.emission_id||null,heard);
         _rememberBounded(deliveredEmissionIds,result.emission_id);
         gualaSpeak(result.speech);
       }
@@ -884,14 +893,25 @@ async function submitBundle(){
 }
 
 // --- renderPictures (B5) ---
+function appendPictureContent(container,src,title){
+  const img=document.createElement('img');
+  img.style.cssText='max-width:240px;border-radius:6px';
+  img.alt=title||'experienced picture';
+  img.onerror=()=>{img.style.display='none'};
+  img.src=src;
+  const caption=document.createElement('span');
+  caption.style.cssText='font-size:9px;color:var(--text-muted)';
+  caption.textContent=title||'';
+  container.replaceChildren(img,document.createTextNode(' '),caption);
+}
 function renderPictures(pics){
   if(!pics||!pics.length)return;
   for(const p of pics){
     const div=document.createElement('div');div.className='msg substrate';
     if(p.data){
-      div.innerHTML='<img src="data:image/jpeg;base64,'+p.data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+      appendPictureContent(div,'data:image/jpeg;base64,'+p.data,p.title);
     }else if(p.url){
-      div.innerHTML='<img src="'+p.url+'" style="max-width:240px;border-radius:6px" onerror="this.style.display=\'none\'"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+      appendPictureContent(div,p.url,p.title);
     }else if(p.item_id){
       div.textContent='loading '+(p.title||p.item_id)+'...';
       (async(el,pid)=>{
@@ -900,7 +920,7 @@ function renderPictures(pics){
             body:JSON.stringify({text:'',command:'/picture '+pid})},10000);
           const d=await r.json();
           if(d.picture_data){
-            el.innerHTML='<img src="'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+            appendPictureContent(el,d.picture_data,p.title);
           }
         }catch(e){}
       })(div,p.item_id);
@@ -914,58 +934,21 @@ function renderPictures(pics){
 function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight;return d;}
 
 // GL-CMD-TEACHER-CORRECTION-UI: emission message with 👍/👎 buttons
-function addEmissionMsg(text,emissionId){
+function addEmissionMsg(text,emissionId,originalInput){
   const block=document.createElement('div');block.className='msg emission';
   block.style.position='relative';
   if(emissionId)block.dataset.emissionId=emissionId;
   block.dataset.emissionText=text;
+  block.dataset.originalInput=originalInput||window._lastUserText||'';
   const txt=document.createElement('span');txt.textContent=text;block.appendChild(txt);
-  const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.5;cursor:pointer;margin-left:8px';
-  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';up.style.marginRight='4px';
-  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
-  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
-  btns.appendChild(up);btns.appendChild(dn);block.appendChild(btns);
-  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
-}
-
-function addResponseBlock(result){
-  const tokens=result.response_tokens||[];
-  const emissionText=tokens.map(t=>t.token).join(' ')||result.response||'';
-  if(!emissionText){addMsg('(she had nothing — emission was empty)','system');return}
-  const committedSource=result.response_source==='fact_strand_commit';
-  if(!committedSource){addMsg(emissionText,'system');return}
-  const block=document.createElement('div');block.className='response-block';
-  // GL-CMD-TEACHER-CORRECTION-UI: store emission context on block
-  if(result.emission_id) block.dataset.emissionId=result.emission_id;
-  block.dataset.emissionText=emissionText;
-  const textDiv=document.createElement('div');textDiv.className='response-text';
-  textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):emissionText;
-  block.appendChild(textDiv);
-  const meta=document.createElement('div');meta.className='response-meta';
-  const nFired=(result.nmda_events||[]).filter(e=>e.fired).length;
-  const emCount=(result.raw_emissions||[]).length;
-  const info=document.createElement('span');info.textContent=`${emCount} commits, ${nFired} gates`;meta.appendChild(info);
-  if(result.honest_silence_reason){const s=document.createElement('span');s.style.color='var(--text-muted)';s.textContent=`[${result.honest_silence_reason}]`;meta.appendChild(s)}
-  const spacer=document.createElement('span');spacer.style.flex='1';meta.appendChild(spacer);
-  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';
-  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
-  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
-  meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
-  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
-  // Voice playback — try espeak WAV first, fall back to browser speechSynthesis
-  const badge=document.getElementById('speaker-badge');
-  if(result.self_voice_audio_b64&&audioUnlocked&&!muted){
-    voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;
-    voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a speaking (espeak)'}).catch(e=>{
-      badge.innerHTML='\ud83d\udd07 espeak failed: '+e.message+' \u2014 trying TTS';
-      const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
-      if(tokText)gualaSpeak(tokText);
-    });
-  }else{
-    const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
-    if(!result.self_voice_audio_b64)badge.innerHTML='\ud83d\udd0a (no espeak \u2014 browser TTS)';
-    if(tokText)gualaSpeak(tokText);
+  if(emissionId){
+    const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.8;margin-left:8px';
+    const up=document.createElement('button');up.type='button';up.className='fb-btn';up.textContent='\ud83d\udc4d';up.setAttribute('aria-label','confirm this reply');up.style.marginRight='4px';
+    const dn=document.createElement('button');dn.type='button';dn.className='fb-btn';dn.textContent='\ud83d\udc4e';dn.setAttribute('aria-label','correct this reply');
+    up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
+    btns.appendChild(up);btns.appendChild(dn);block.appendChild(btns);
   }
+  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
 }
 
 // GL-FIX-UI-FRONTEND: fetch with timeout + dedup + backoff
@@ -982,9 +965,9 @@ function fetchT(url,opts={},timeoutMs=15000){
     if(external)external.removeEventListener('abort',relay);
   });
 }
-let _inflight={state:false,events:false,status:false,replay:false};
-let _backoff={state:0,events:0,status:0,replay:0};
-const _BASE={state:5000,events:15000,status:15000,replay:30000};
+let _inflight={state:false,events:false,status:false,replay:false,observation:false};
+let _backoff={state:0,events:0,status:0,replay:0,observation:0};
+const _BASE={state:5000,events:15000,status:15000,replay:30000,observation:3000};
 function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
 
 // GL-CMD-TEACHER-CORRECTION-UI: teacher feedback with correction modal
@@ -1003,7 +986,7 @@ async function sendFeedback(correct,up,dn,block){
       // which this used to render as a silent, indistinguishable success.
       const d=await r.json().catch(()=>({}));
       if(r.ok&&!d.error){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
-      else{addMsg('feedback not applied: '+(d.error||'unknown error'),'system')}
+      else{addMsg('feedback not applied: '+(d.detail||d.error||'unknown error'),'system')}
     }catch(e){addMsg('feedback error: '+e.message,'system')}
   }else{
     openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn);
@@ -1039,6 +1022,9 @@ function openCorrectionModal(emissionId,emissionText,up,dn){
     });
   }
   _correctionModal._emissionId=emissionId;
+  _correctionModal._emissionText=emissionText;
+  const feedbackBlock=up?up.closest('[data-emission-text]'):null;
+  _correctionModal._originalInput=feedbackBlock?feedbackBlock.dataset.originalInput:'';
   _correctionModal._up=up;_correctionModal._dn=dn;
   document.getElementById('cm-emission').textContent=emissionText;
   document.getElementById('cm-corrected').value='';
@@ -1060,7 +1046,7 @@ async function submitCorrection(){
   const corrected=document.getElementById('cm-corrected').value.trim();
   if(!corrected)return;
   const body={emission_id:emissionId,corrected_text:corrected,source:'joe',
-    original_input:window._lastUserText||undefined,
+    original_input:_correctionModal._originalInput||window._lastUserText||undefined,
     her_emission:_correctionModal._emissionText||window._lastAttemptText||undefined,
     story:document.getElementById('cm-story').value.trim()||undefined,
     temporal:document.getElementById('cm-temporal').value.trim()||undefined,
@@ -1075,9 +1061,9 @@ async function submitCorrection(){
     const d=await r.json().catch(()=>({}));
     if(r.ok&&!d.error){
       dn.classList.add('active');dn.textContent='\u2714';dn.dataset.locked='1';up.style.opacity='0.3';up.dataset.locked='1';
-      addMsg(`corrected: "${corrected}"`,`system`);
+      addMsg(d.correction_note||`corrected: "${corrected}"`,`system`);
     }else{
-      addMsg('correction not applied: '+(d.error||'unknown error'),'system');
+      addMsg('correction not applied: '+(d.detail||d.error||'unknown error'),'system');
     }
   }catch(e){addMsg('correction error: '+e.message,'system')}
   closeCorrectionModal();
@@ -1171,15 +1157,13 @@ async function _converseAndRender(text,source){
     // ALWAYS said in plain words (never re-collapsed to a generic "quiet"),
     // a genuine empty emission gets its own honest label distinct from that
     if(d._terminal_reason){addMsg(resp,'system');}
-    else if(resp&&d.response_source==='fact_strand_commit'){
-      addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-    }else if(resp&&d.response_source==='organism_attempt'){
+    else if(resp&&d.response_source==='organism_attempt'){
       window._lastAttemptText=resp;
-      addEmissionMsg(resp+'  (attempt)',d.emission_id||null);gualaSpeak(resp);
+      addEmissionMsg(resp+'  (attempt)',d.emission_id||null,text);gualaSpeak(resp);
     }else if(resp&&d.response_source==='composed_attempt'){
       window._lastAttemptText=resp;
-      addEmissionMsg(resp+'  (composed)',d.emission_id||null);gualaSpeak(resp);
-    }else if(resp){addMsg(resp,'system');gualaSpeak(resp);}
+      addEmissionMsg(resp+'  (composed)',d.emission_id||null,text);gualaSpeak(resp);
+    }else if(resp){addEmissionMsg(resp,d.emission_id||null,text);gualaSpeak(resp);}
     else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);
   }else{
@@ -1483,53 +1467,74 @@ async function backgroundReplay(){
 }
 
 // --- Room state polling ---
-async function pollRoom(){
+async function pollObservation(){
+  if(_inflight.observation)return;
+  _inflight.observation=true;
+  const bar=document.getElementById('observation-bar');
   try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/room'})},5000);
+    const r=await fetchT(`${API}/api/v1/gualaloom/observation`,{},6000);
     const d=await r.json();
-    const roomEl=document.getElementById('sp-room');
-    if(!roomEl)return;
-    const sky=d.sky||{};
-    let html=`<div style="color:var(--ev-activity)">${sky.description||''}</div>`;
-    const objs=d.objects||{};
-    const show=['drapes','night_light','blanket','toy_chest','bed'];
-    for(const k of show){
-      const o=objs[k];if(!o)continue;
-      const state=(o.state||'').replace(/_/g,' ');
-      html+=`<div class="ps-row"><span class="l">${k.replace(/_/g,' ')}</span><span class="v">${state}</span></div>`;
-    }
-    roomEl.innerHTML=html||'--';
-  }catch(e){}
-  setTimeout(pollRoom,60000);
-}
+    if(!r.ok||d.status==='unavailable')throw new Error(d.reason||`HTTP ${r.status}`);
 
-// Send an action to her world (/action object:verb)
-async function doAction(obj,verb){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:`/action ${obj}:${verb}`})},8000);
-    const d=await r.json();
-    if(d.says)addMsg(d.says,'system');
-    if(d.show_picture)renderPictures([{item_id:d.show_picture,title:'mirror'}]);
-    pollRoom();
-  }catch(e){}
-}
+    const conversation=d.conversation||{};
+    const input=conversation.status==='observed'
+      ? `${conversation.input_source||'unknown source'} heard: ${conversation.input||'(empty)'}`
+      : 'no conversation observed this boot';
+    const reply=conversation.status==='observed'
+      ? `${conversation.response_source||'no response source'} replied: ${conversation.response||'(no reply)'}`
+      : 'no reply observed this boot';
+    document.getElementById('obs-conversation').textContent=input;
+    document.getElementById('obs-reply').textContent=reply;
 
-// --- Location polling ---
-let _lastLocation='';
-async function pollLocation(){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/where'})},4000);
-    const d=await r.json();
-    if(d.description&&d.description!==_lastLocation){
-      _lastLocation=d.description;
-      const el=document.getElementById('location-text');
-      if(el)el.textContent='in '+d.description;
+    const embodiment=d.embodiment||{};
+    if(embodiment.status==='observed'){
+      const location=embodiment.location||{};
+      const body=embodiment.body||{};
+      const pose=body.pose||{};
+      const p=pose.position||{};
+      document.getElementById('obs-location').textContent=
+        `${location.room_id||'unknown room'} body ${body.body_id||'unknown'} at (${p.x_mm}, ${p.y_mm}, ${p.z_mm}) mm · revision ${location.revision}`;
+      const held=body.held_object_id||'nothing';
+      const room=document.getElementById('sp-room');
+      while(room.firstChild)room.removeChild(room.firstChild);
+      const rows=[
+        ['room',location.room_id],
+        ['revision',location.revision],
+        ['body',body.body_id],
+        ['position',`(${p.x_mm}, ${p.y_mm}, ${p.z_mm}) mm`],
+        ['held',held],
+        ['objects',(embodiment.objects||[]).length],
+      ];
+      for(const [label,value] of rows){
+        const row=document.createElement('div');row.className='ps-row';
+        const left=document.createElement('span');left.className='l';left.textContent=label;
+        const right=document.createElement('span');right.className='v';right.textContent=String(value);
+        row.appendChild(left);row.appendChild(right);room.appendChild(row);
+      }
+    }else{
+      document.getElementById('obs-location').textContent=`embodiment unavailable: ${embodiment.reason||'unknown reason'}`;
+      document.getElementById('sp-room').textContent='embodiment unavailable';
     }
-  }catch(e){}
-  setTimeout(pollLocation,30000);
+
+    const action=d.embodied_action||{};
+    document.getElementById('obs-action').textContent=action.status==='completed'
+      ? `action ${action.disposition||'unknown'} · ${action.reason||'no reason'} · world ${action.before_revision}→${action.after_revision}`
+      : action.status==='idle'
+        ? `body idle · world revision ${action.world_revision}`
+        : `action unavailable: ${action.reason||'unknown reason'}`;
+    bar.classList.remove('stale');
+    _backoff.observation=0;
+  }catch(e){
+    bar.classList.add('stale');
+    document.getElementById('obs-conversation').textContent='observation unavailable';
+    document.getElementById('obs-reply').textContent='reply observation unavailable';
+    document.getElementById('obs-location').textContent='embodiment observation unavailable';
+    document.getElementById('obs-action').textContent=`observation failed: ${e.message}`;
+    _backoff.observation=Math.min((_backoff.observation*2)||3000,30000);
+  }finally{
+    _inflight.observation=false;
+    _schedNext('observation',pollObservation);
+  }
 }
 
 // --- Autonomous thought polling (independence) ---
@@ -1810,13 +1815,11 @@ function renderCogMeterArchive(){
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
-  addMsg('she is here','system');
   _applyBrainModeUI();
   msgInput.focus();
   renderCogMeter();
   setTimeout(pollAutonomousThought,35000);
-  setTimeout(pollLocation,20000);
-  setTimeout(pollRoom,25000);
+  pollObservation();
   pollStatus();
   setTimeout(pollV7State, 3000);
   setTimeout(pollEvents,5000);

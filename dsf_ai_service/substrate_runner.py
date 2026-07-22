@@ -2421,6 +2421,23 @@ def handle_teacher_feedback(args):
     if source not in ("joe", "wc"):
         return {"error": "invalid source"}
 
+    with _guala.lock:
+        causal_record = _guala._emission_records.get(emission_id)
+    if (
+        isinstance(causal_record, dict)
+        and causal_record.get("response_source")
+        == "causal_action_cycle_commit"
+    ):
+        try:
+            return _guala.durably_review_causal_action_emission(
+                emission_id=emission_id,
+                correct=True,
+                source=source,
+                state_dir=STATE_DIR,
+            )
+        except (RuntimeError, ValueError) as error:
+            return {"error": str(error)}
+
     rec = _guala._certified_emission_record(emission_id)
     if rec is None:
         return {"error": "emission is not source-certified"}
@@ -2463,6 +2480,29 @@ def handle_teacher_correction(args):
     if not corrected_text.strip():
         return {"error": "corrected_text required"}
 
+    with _guala.lock:
+        causal_record = _guala._emission_records.get(emission_id)
+    if (
+        isinstance(causal_record, dict)
+        and causal_record.get("response_source")
+        == "causal_action_cycle_commit"
+    ):
+        try:
+            result = _guala.durably_review_causal_action_emission(
+                emission_id=emission_id,
+                correct=False,
+                source=source,
+                state_dir=STATE_DIR,
+            )
+        except (RuntimeError, ValueError) as error:
+            return {"error": str(error)}
+        result["corrected_text_learned"] = False
+        result["correction_note"] = (
+            "action revoked; corrected text requires a separately "
+            "experienced spoken action"
+        )
+        return result
+
     rec = _guala._certified_emission_record(emission_id)
     if rec is None:
         return {"error": "emission is not source-certified"}
@@ -2504,6 +2544,11 @@ def handle_teacher_correction(args):
 def handle_auditory_l5_status(args):
     """Return the bounded live auditory L5 and reciprocity state."""
     return _guala.auditory_l5_status()
+
+
+def handle_observation_snapshot(args):
+    """Return the one authoritative conversation/body/world observation."""
+    return _guala.observation_snapshot()
 
 
 def handle_auditory_l5_teach(args):
@@ -3796,6 +3841,7 @@ OP_HANDLERS = {
     "stop_cascade_monitor": handle_stop_cascade_monitor,
     "teacher_feedback": handle_teacher_feedback,
     "teacher_correction": handle_teacher_correction,
+    "observation_snapshot": handle_observation_snapshot,
     "auditory_l5_status": handle_auditory_l5_status,
     "auditory_l5_teach": handle_auditory_l5_teach,
     "load_corpus": handle_load_corpus,

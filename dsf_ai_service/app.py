@@ -3794,6 +3794,21 @@ async def gualaloom_page():
     return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
 
 
+@app.get("/api/v1/gualaloom/observation")
+async def gualaloom_observation():
+    """One authoritative read-only conversation/body/world observation."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("observation_snapshot")
+    if _guala is None:
+        return {
+            "schema": "guala.observation_snapshot.v1",
+            "status": "unavailable",
+            "reason": "embedded_substrate_unavailable",
+        }
+    return await _run_lifecycle_executor(_guala.observation_snapshot)
+
+
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
@@ -6474,7 +6489,9 @@ async def teacher_feedback(req: TeacherFeedbackRequest):
                                   source=req.source)
     if _guala is None:
         raise HTTPException(status_code=503, detail="guala_not_ready")
-    return handle_teacher_feedback_local(req)
+    return await _run_lifecycle_executor(
+        lambda: handle_teacher_feedback_local(req)
+    )
 
 
 @app.post("/api/v1/teacher/correction")
@@ -6494,10 +6511,25 @@ async def teacher_correction(req: TeacherCorrectionRequest):
                                   source=req.source)
     if _guala is None:
         raise HTTPException(status_code=503, detail="guala_not_ready")
-    return handle_teacher_correction_local(req)
+    return await _run_lifecycle_executor(
+        lambda: handle_teacher_correction_local(req)
+    )
 
 
 def handle_teacher_feedback_local(req):
+    with _guala.lock:
+        causal_record = _guala._emission_records.get(req.emission_id)
+    if (
+        isinstance(causal_record, dict)
+        and causal_record.get("response_source")
+        == "causal_action_cycle_commit"
+    ):
+        return _guala.durably_review_causal_action_emission(
+            emission_id=req.emission_id,
+            correct=True,
+            source=req.source,
+            state_dir=STATE_DIR,
+        )
     rec = _guala._certified_emission_record(req.emission_id)
     if rec is None:
         raise HTTPException(status_code=400,
@@ -6512,6 +6544,25 @@ def handle_teacher_feedback_local(req):
 
 
 def handle_teacher_correction_local(req):
+    with _guala.lock:
+        causal_record = _guala._emission_records.get(req.emission_id)
+    if (
+        isinstance(causal_record, dict)
+        and causal_record.get("response_source")
+        == "causal_action_cycle_commit"
+    ):
+        result = _guala.durably_review_causal_action_emission(
+            emission_id=req.emission_id,
+            correct=False,
+            source=req.source,
+            state_dir=STATE_DIR,
+        )
+        result["corrected_text_learned"] = False
+        result["correction_note"] = (
+            "action revoked; corrected text requires a separately "
+            "experienced spoken action"
+        )
+        return result
     rec = _guala._certified_emission_record(req.emission_id)
     if rec is not None:
         original_input = rec.get("input_text", "")

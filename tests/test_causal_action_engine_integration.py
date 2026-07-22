@@ -83,6 +83,7 @@ def _full_field(
     name: str,
     values: tuple[Fraction, ...],
     sight_values: tuple[Fraction, ...] | None = None,
+    source_time_start: Fraction = Fraction(0),
 ):
     duration = Fraction(1, 50)
     sample_count = 320
@@ -95,7 +96,7 @@ def _full_field(
     )
     sound_ports = auditory_kernel_component_inputs(
         capture,
-        source_anchor=Fraction(0),
+        source_anchor=source_time_start,
     )
     assert len(capture.channels) == 16
     assert len(sound_ports) == AUDITORY_KERNEL_COMPONENT_COUNT
@@ -114,7 +115,8 @@ def _full_field(
                 physical_quantity="retinal-luminance",
                 physical_unit="full-scale-luminance",
                 source_times=tuple(
-                    duration * Fraction(index + 1, len(sight_values))
+                    source_time_start
+                    + duration * Fraction(index + 1, len(sight_values))
                     for index in range(len(sight_values))
                 ),
                 normalized_signal=sight_values,
@@ -126,8 +128,8 @@ def _full_field(
         )
     return build_six_sense_full_field(
         assembly_id=f"causal-action-engine-{name}",
-        source_time_start=Fraction(0),
-        source_time_end=duration,
+        source_time_start=source_time_start,
+        source_time_end=source_time_start + duration,
         observed_substreams=observed,
         states={
             sense: (
@@ -153,7 +155,14 @@ def _artifacts(
     source_tags: tuple[str, ...] = ("auditory:unresolved_source",),
     sight_values: tuple[Fraction, ...] | None = None,
 ):
-    built = _full_field(name, values, sight_values)
+    built = _full_field(
+        name,
+        values,
+        sight_values,
+        source_time_start=Fraction(
+            source_sample_start, REQUIRED_SAMPLE_RATE_HZ
+        ),
+    )
     auditory = AuditoryL5Owner(
         log_event=lambda *_args, **_kwargs: None
     ).settle(built, event_boundary="utterance")
@@ -334,11 +343,32 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
         assert turn.committed_sections == ("causal_action_cycle",)
         assert len(turn.commit_provenance) == 1
         assert turn.commit_provenance[0].binding_id == binding["binding_id"]
+        observation = guala.observation_snapshot()
+        assert observation["conversation"] == {
+            "status": "observed",
+            "input": current_terminal.tutor_label,
+            "input_source": "auditory:unresolved_source",
+            "response": "hello daddy",
+            "response_source": "causal_action_cycle_commit",
+            "emission_id": turn.emission_id,
+        }
+        assert observation["embodiment"]["status"] == "observed"
+        assert observation["embodiment"]["location"]["room_id"] == "W1"
         assert guala._latest_causal_settlement is not None
         guala._latest_causal_settlement.verify()
         cycle_status = guala._causal_action_cycle.status()
         assert cycle_status["intents"] == 1
         assert cycle_status["executions"] == 1
+        review = guala.review_causal_action_emission(
+            emission_id=turn.emission_id,
+            correct=True,
+            source="joe",
+        )
+        assert review["status"] == "queued_until_outcome"
+        guala._accept_causal_settlement(action)
+        reviewed_status = guala._causal_action_cycle.status()
+        assert reviewed_status["binding_statuses"]["confirmed"] == 1
+        assert guala._causal_cycle_pending_review is None
     finally:
         guala.shutdown()
 
@@ -605,6 +635,14 @@ def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
         assert observed.revision == 1
         assert observed.body.pose.position == PositionMM(1000, 2000, 0)
         assert guala._causal_cycle_pending_execution_receipt is not None
+        surface = guala.observation_snapshot()
+        assert surface["embodied_action"]["status"] == "completed"
+        assert surface["embodied_action"]["after_revision"] == 1
+        assert surface["embodiment"]["body"]["pose"]["position"] == {
+            "x_mm": 1000,
+            "y_mm": 2000,
+            "z_mm": 0,
+        }
 
         guala._accept_causal_settlement(outcome)
         status = guala._causal_action_cycle.status()
@@ -614,5 +652,58 @@ def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
         assert status["outcomes"] == 0
         assert guala._causal_cycle_pending_execution_receipt is None
         assert guala._causal_cycle_pending_trigger_receipt is None
+    finally:
+        guala.shutdown()
+
+
+def test_full_field_prediction_is_issued_before_and_verified_by_next_settlement(
+    monkeypatch,
+    learned_artifacts,
+) -> None:
+    reciprocity, trigger_artifacts, action_artifacts = learned_artifacts
+    _trigger_built, _trigger_l5, _trigger_terminal, trigger = trigger_artifacts
+    _action_built, _action_l5, _action_terminal, action = action_artifacts
+    _repeat_built, _repeat_l5, _repeat_terminal, trigger_repeat = _artifacts(
+        name="trigger",
+        label="hello guala",
+        values=(Fraction(1, 8), Fraction(1, 4), Fraction(3, 8)),
+        reciprocity=reciprocity,
+        stream_id="prediction-trigger-repeat",
+        source_sample_start=640,
+    )
+    _outcome_built, _outcome_l5, _outcome_terminal, action_repeat = _artifacts(
+        name="action",
+        label="hello daddy",
+        values=(Fraction(5, 8), Fraction(3, 4), Fraction(7, 8)),
+        reciprocity=reciprocity,
+        stream_id="prediction-action-repeat",
+        source_sample_start=960,
+    )
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "prediction-engine-key")
+    guala = Guala()
+    try:
+        guala._accept_causal_settlement(trigger)
+        first = guala._causal_prediction.current_prediction()
+        assert first is not None
+        assert first.status == "unknown"
+
+        guala._accept_causal_settlement(action)
+        assert guala._causal_prediction.latest_resolution().verification == (
+            "unknown_observed"
+        )
+        assert guala._causal_prediction.status()["relations"] == 1
+
+        guala._accept_causal_settlement(trigger_repeat)
+        next_attempt = guala._causal_prediction.current_prediction()
+        assert next_attempt is not None
+        assert next_attempt.status == "predicted"
+
+        guala._accept_causal_settlement(action_repeat)
+        assert guala._causal_prediction.latest_resolution().verification == (
+            "predicted_match"
+        )
     finally:
         guala.shutdown()

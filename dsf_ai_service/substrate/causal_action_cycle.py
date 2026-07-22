@@ -1404,6 +1404,23 @@ class CausalActionCycle:
             )
             return intent.trigger_settlement_receipt_sha256
 
+    def live_execution_binding_id(self, receipt: object) -> str | None:
+        """Resolve a live execution to its authenticated learned relation."""
+        if not self.verify_live_execution_receipt(receipt):
+            return None
+        canonical = str(receipt)
+        with self._lock:
+            execution = self._executions[canonical]
+            intent = self._intents.get(execution.intent_receipt_sha256)
+            if intent is None:
+                return None
+            intent.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            return intent.binding_id
+
     def record_execution(
         self,
         *,
@@ -1642,6 +1659,89 @@ class CausalActionCycle:
             "causal_action_cycle_closed",
             closure_receipt_sha256=closure.authority_receipt_sha256,
             decision=decision,
+        )
+        return feedback
+
+    def review_latest_closure(
+        self,
+        *,
+        binding_id: str,
+        decision: str,
+        source: str,
+        nonce: str,
+    ) -> ActionFeedback:
+        """Apply explicit teacher judgment to the latest observed closure."""
+        sha256_digest(binding_id, "reviewed binding")
+        if decision not in {"confirm", "revoke"}:
+            raise ValueError("review decision must be confirm or revoke")
+        _identifier(source, "feedback source")
+        _nonce(nonce, "feedback nonce")
+        resulting_status = "confirmed" if decision == "confirm" else "revoked"
+        with self._lock:
+            if any(
+                item.latest_closure is not None
+                and item.latest_closure.feedback.nonce == nonce
+                for item in self._bindings.values()
+            ):
+                raise ValueError("feedback nonce was already used")
+            binding = self._bindings.get(binding_id)
+            if binding is None or binding.latest_closure is None:
+                raise ValueError("binding has no observed closure to review")
+            prior = binding.latest_closure
+            outcome_receipt = prior.outcome.authority_receipt_sha256
+            unsigned = {
+                "binding_id": binding.binding_id,
+                "decision": decision,
+                "nonce": nonce,
+                "outcome_receipt_sha256": outcome_receipt,
+                "resulting_binding_status": resulting_status,
+                "schema": FEEDBACK_SCHEMA,
+                "source": source,
+            }
+            feedback = ActionFeedback(
+                outcome_receipt_sha256=outcome_receipt,
+                binding_id=binding.binding_id,
+                decision=decision,
+                resulting_binding_status=resulting_status,
+                source=source,
+                nonce=nonce,
+                authority_hmac_sha256=_sign(
+                    self._key, FEEDBACK_DOMAIN, _canonical(unsigned)
+                ),
+            )
+            feedback.verify(self._key)
+            closure_unsigned = {
+                "execution": prior.execution.as_record(),
+                "feedback": feedback.as_record(),
+                "intent": prior.intent.as_record(),
+                "outcome": prior.outcome.as_record(),
+                "schema": CLOSURE_SCHEMA,
+            }
+            reviewed = ActionClosure(
+                intent=prior.intent,
+                execution=prior.execution,
+                outcome=prior.outcome,
+                feedback=feedback,
+                authority_hmac_sha256=_sign(
+                    self._key, CLOSURE_DOMAIN, _canonical(closure_unsigned)
+                ),
+            )
+            reviewed.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            with self._atomic():
+                self._bindings[binding_id] = replace(
+                    binding,
+                    status=resulting_status,
+                    latest_closure=reviewed,
+                )
+        self._emit(
+            "causal_action_cycle_closure_reviewed",
+            binding_id=binding_id,
+            decision=decision,
+            closure_receipt_sha256=reviewed.authority_receipt_sha256,
         )
         return feedback
 

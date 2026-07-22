@@ -1271,6 +1271,29 @@ if [ "${AUDITORY_UNAUTH_HTTP}" != "401" ]; then
 fi
 echo "[routes] Auditory status and tutor authentication verified through API Gateway."
 
+echo "[routes] Ensuring observation and teacher-feedback surfaces reach the deployed owner..."
+ensure_http_api_route GET /api/v1/gualaloom/observation
+ensure_http_api_route POST /api/v1/teacher/feedback
+ensure_http_api_route POST /api/v1/teacher/correction
+OBSERVATION_FILE="${DEPLOY_WORK_DIR}/gualaloom-observation.json"
+OBSERVATION_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
+    -o "${OBSERVATION_FILE}" -w '%{http_code}' \
+    "${AUDITORY_API_ORIGIN}/api/v1/gualaloom/observation")
+if [ "${OBSERVATION_HTTP}" != "200" ] || ! \
+    OBSERVATION_FILE="${OBSERVATION_FILE}" python3 -c '
+import json, os
+with open(os.environ["OBSERVATION_FILE"], encoding="utf-8") as stream:
+    value = json.load(stream)
+if value.get("schema") != "guala.observation_snapshot.v1":
+    raise SystemExit("observation route did not reach the deployed owner")
+if value.get("embodiment", {}).get("status") not in {"observed", "unavailable"}:
+    raise SystemExit("observation route returned no explicit embodiment state")
+'; then
+    echo "ERROR: public observation route did not prove the deployed owner" >&2
+    exit 1
+fi
+echo "[routes] Observation and teacher-feedback routing verified through API Gateway."
+
 # ── Step 8: Sync static files to S3 + CloudFront invalidation ──
 echo ""
 echo "[deploy] Syncing static files to S3 and invalidating CloudFront..."

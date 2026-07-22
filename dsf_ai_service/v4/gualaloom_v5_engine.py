@@ -3447,9 +3447,21 @@ class Guala:
             if _causal_cycle_key
             else None
         )
+        from dsf_ai_service.substrate.causal_prediction import (
+            CausalPredictionAuthority as _CausalPredictionAuthority,
+        )
+        self._causal_prediction = (
+            _CausalPredictionAuthority(
+                authority_key=_causal_cycle_key,
+                log_event=self._log_substrate_event,
+            )
+            if _causal_cycle_key
+            else None
+        )
         self._causal_cycle_bridge_lock = threading.RLock()
         self._causal_cycle_pending_execution_receipt = None
         self._causal_cycle_pending_trigger_receipt = None
+        self._causal_cycle_pending_review = None
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -7489,18 +7501,54 @@ class Guala:
                     and settlement.authority_receipt_sha256
                     != self._causal_cycle_pending_trigger_receipt
                 ):
+                    pending_binding_id = (
+                        self._causal_action_cycle.live_execution_binding_id(
+                            pending_execution
+                        )
+                    )
+                    review = self._causal_cycle_pending_review
+                    if (
+                        review is not None
+                        and review["binding_id"] != pending_binding_id
+                    ):
+                        raise RuntimeError(
+                            "pending teacher review names another action"
+                        )
                     outcome = self._causal_action_cycle.observe_outcome(
                         execution_receipt_sha256=pending_execution,
                         settlement=settlement,
                     )
-                    self._causal_action_cycle.close_observed(
-                        outcome_receipt_sha256=(
-                            outcome.authority_receipt_sha256
+                    if (
+                        review is not None
+                        and review["binding_id"] == pending_binding_id
+                    ):
+                        self._causal_action_cycle.apply_feedback(
+                            outcome_receipt_sha256=(
+                                outcome.authority_receipt_sha256
+                            ),
+                            decision=review["decision"],
+                            source=review["source"],
+                            nonce=review["nonce"],
                         )
-                    )
+                    else:
+                        self._causal_action_cycle.close_observed(
+                            outcome_receipt_sha256=(
+                                outcome.authority_receipt_sha256
+                            )
+                        )
                     self._causal_cycle_pending_execution_receipt = None
                     self._causal_cycle_pending_trigger_receipt = None
+                    self._causal_cycle_pending_review = None
                 self._causal_action_cycle.accept(settlement)
+        if self._causal_prediction is not None:
+            pending_prediction = self._causal_prediction.current_prediction()
+            if pending_prediction is None:
+                self._causal_prediction.start(settlement)
+            elif (
+                pending_prediction.context_settlement_receipt_sha256
+                != settlement.authority_receipt_sha256
+            ):
+                self._causal_prediction.advance(settlement)
         self._latest_causal_settlement = settlement
         self._causal_settlement_accepted += 1
         try:
@@ -7633,6 +7681,125 @@ class Guala:
                 return result
             except BaseException:
                 self._causal_action_cycle.restore_encoded(prior)
+                raise
+
+    @_engine_mutation_entry
+    def review_causal_action_emission(
+        self, *, emission_id, correct, source="joe"
+    ):
+        """Confirm or revoke one causal action from its visible emission."""
+        if self._causal_action_cycle is None:
+            raise RuntimeError("causal action cycle authority is unavailable")
+        with self.lock:
+            record = self._emission_records.get(emission_id)
+        if (
+            not isinstance(record, dict)
+            or record.get("response_source")
+            != "causal_action_cycle_commit"
+        ):
+            raise ValueError("emission is not a causal action cycle release")
+        provenance = record.get("commit_provenance")
+        if (
+            not isinstance(provenance, list)
+            or len(provenance) != 1
+            or not isinstance(provenance[0], dict)
+            or provenance[0].get("schema")
+            != "guala.causal_action_cycle.intent.v1"
+        ):
+            raise ValueError("causal action emission provenance changed")
+        binding_id = provenance[0].get("binding_id")
+        if (
+            not isinstance(binding_id, str)
+            or len(binding_id) != 64
+        ):
+            raise ValueError("causal action emission binding changed")
+        decision = "confirm" if correct else "revoke"
+        nonce = "review:" + _hashlib.sha256(
+            json.dumps(
+                {
+                    "binding_id": binding_id,
+                    "decision": decision,
+                    "emission_id": emission_id,
+                    "source": source,
+                },
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        try:
+            feedback = self._causal_action_cycle.review_latest_closure(
+                binding_id=binding_id,
+                decision=decision,
+                source=source,
+                nonce=nonce,
+            )
+            return {
+                "ok": True,
+                "status": "applied",
+                "binding_id": binding_id,
+                "decision": feedback.decision,
+            }
+        except ValueError as error:
+            if "no observed closure" not in str(error):
+                raise
+        pending_execution = self._causal_cycle_pending_execution_receipt
+        if (
+            pending_execution is None
+            or self._causal_action_cycle.live_execution_binding_id(
+                pending_execution
+            )
+            != binding_id
+        ):
+            raise ValueError("causal action outcome is not available")
+        review = {
+            "binding_id": binding_id,
+            "decision": decision,
+            "source": source,
+            "nonce": nonce,
+        }
+        if (
+            self._causal_cycle_pending_review is not None
+            and self._causal_cycle_pending_review != review
+        ):
+            raise ValueError("causal action already has pending teacher review")
+        self._causal_cycle_pending_review = review
+        return {
+            "ok": True,
+            "status": "queued_until_outcome",
+            "binding_id": binding_id,
+            "decision": decision,
+        }
+
+    @_engine_mutation_entry
+    def durably_review_causal_action_emission(
+        self, *, emission_id, correct, source, state_dir
+    ):
+        """Publish teacher review state before reporting UI success."""
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative causal action durability is unavailable"
+            )
+        with self.persistence_transaction():
+            if self._causal_action_cycle is None:
+                raise RuntimeError(
+                    "causal action cycle authority is unavailable"
+                )
+            prior = self._causal_action_cycle.encoded_snapshot()
+            prior_review = self._causal_cycle_pending_review
+            try:
+                result = self.review_causal_action_emission(
+                    emission_id=emission_id,
+                    correct=correct,
+                    source=source,
+                )
+                self.save_hot_state(state_dir)
+                return result
+            except BaseException:
+                self._causal_action_cycle.restore_encoded(prior)
+                self._causal_cycle_pending_review = prior_review
                 raise
 
     @_engine_mutation_entry
@@ -16801,11 +16968,23 @@ class Guala:
             "causal_action_cycle_pending_trigger_receipt": (
                 self._causal_cycle_pending_trigger_receipt
             ),
+            "causal_action_cycle_pending_review": (
+                dict(self._causal_cycle_pending_review)
+                if self._causal_cycle_pending_review is not None
+                else None
+            ),
             "embodiment_world": (
                 json.loads(
                     self._embodiment_world.encoded_snapshot().decode("utf-8")
                 )
                 if self._embodiment_world is not None
+                else None
+            ),
+            "causal_prediction": (
+                json.loads(
+                    self._causal_prediction.encoded_snapshot().decode("utf-8")
+                )
+                if self._causal_prediction is not None
                 else None
             ),
             "latest_auditory_causal_event": (
@@ -17373,6 +17552,29 @@ class Guala:
                 )
         if (pending_cycle_execution is None) != (pending_cycle_trigger is None):
             raise ValueError("teaching causal action pending pair changed")
+        pending_cycle_review = data.get(
+            "causal_action_cycle_pending_review"
+        )
+        if pending_cycle_review is not None:
+            if (
+                not isinstance(pending_cycle_review, dict)
+                or set(pending_cycle_review) != {
+                    "binding_id", "decision", "nonce", "source"
+                }
+                or pending_cycle_review.get("decision")
+                not in {"confirm", "revoke"}
+                or pending_cycle_review.get("source") not in {"joe", "wc"}
+                or not isinstance(pending_cycle_review.get("nonce"), str)
+                or len(pending_cycle_review["nonce"]) > 256
+                or not isinstance(
+                    pending_cycle_review.get("binding_id"), str
+                )
+                or len(pending_cycle_review["binding_id"]) != 64
+                or pending_cycle_execution is None
+            ):
+                raise ValueError(
+                    "teaching causal action pending review changed"
+                )
         embodiment_world = data.get("embodiment_world")
         if embodiment_world is not None:
             embodiment_bytes = cls._canonical_persistence_bytes(
@@ -17381,6 +17583,15 @@ class Guala:
             if len(embodiment_bytes) > 8 * 1024 * 1024:
                 raise ValueError(
                     "teaching.embodiment_world exceeds its encoded boundary"
+                )
+        causal_prediction = data.get("causal_prediction")
+        if causal_prediction is not None:
+            prediction_bytes = cls._canonical_persistence_bytes(
+                causal_prediction
+            )
+            if len(prediction_bytes) > 32 * 1024 * 1024:
+                raise ValueError(
+                    "teaching.causal_prediction exceeds its encoded boundary"
                 )
         causal_event = data.get("latest_auditory_causal_event")
         if causal_event is not None:
@@ -19387,6 +19598,9 @@ class Guala:
                         pending_cycle_trigger = tdata.get(
                             "causal_action_cycle_pending_trigger_receipt"
                         )
+                        pending_cycle_review = tdata.get(
+                            "causal_action_cycle_pending_review"
+                        )
                         if pending_cycle_execution is not None:
                             if (
                                 self._causal_action_cycle is None
@@ -19399,6 +19613,14 @@ class Guala:
                                     pending_cycle_execution
                                 )
                                 != pending_cycle_trigger
+                                or (
+                                    pending_cycle_review is not None
+                                    and self._causal_action_cycle
+                                    .live_execution_binding_id(
+                                        pending_cycle_execution
+                                    )
+                                    != pending_cycle_review["binding_id"]
+                                )
                             ):
                                 raise ValueError(
                                     "causal action pending execution lost authority"
@@ -19408,6 +19630,11 @@ class Guala:
                         )
                         self._causal_cycle_pending_trigger_receipt = (
                             pending_cycle_trigger
+                        )
+                        self._causal_cycle_pending_review = (
+                            dict(pending_cycle_review)
+                            if pending_cycle_review is not None
+                            else None
                         )
                         embodiment_world = tdata.get("embodiment_world")
                         if embodiment_world is not None:
@@ -19420,6 +19647,21 @@ class Guala:
                                     embodiment_world
                                 )
                             )
+                        causal_prediction = tdata.get("causal_prediction")
+                        if causal_prediction is not None:
+                            if self._causal_prediction is None:
+                                raise ValueError(
+                                    "causal prediction authority key is missing"
+                                )
+                            self._causal_prediction.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    causal_prediction
+                                )
+                            )
+                            # A process restart is a real temporal boundary.
+                            # Retain learned transitions, but never infer one
+                            # across an interval in which no senses were live.
+                            self._causal_prediction.stop()
                         causal_event = tdata.get(
                             "latest_auditory_causal_event"
                         )
@@ -20881,6 +21123,114 @@ class Guala:
     # ------------------------------------------------------------------
     # Introspection: real readout of substrate state
     # ------------------------------------------------------------------
+    def observation_snapshot(self):
+        """Return one truthful read-only conversation/body/world snapshot."""
+        with self.lock:
+            tick = self.tick
+            identity = self._guala_identity
+            conversation_input = getattr(self, "_last_converse_input", None)
+            conversation_reply = getattr(self, "_last_converse_reply", None)
+            conversation_source = getattr(self, "_last_converse_source", None)
+            response_source = getattr(self, "_last_response_source", None)
+            emission_id = getattr(self, "_last_emission_id", None)
+            activity = (
+                self._current_activity.snapshot()
+                if self._current_activity is not None
+                else None
+            )
+            participants = self.coordinator.presence_snapshot()
+
+        if self._embodiment_world is None:
+            embodiment = {
+                "status": "unavailable",
+                "reason": "embodiment_authority_unavailable",
+            }
+            action = {
+                "status": "unavailable",
+                "reason": "embodiment_authority_unavailable",
+            }
+        else:
+            world = self._embodiment_world.observation_snapshot()
+            latest_action = self._embodiment_world.latest_execution_snapshot()
+            embodiment = {
+                "status": "observed",
+                "location": {
+                    "room_id": world.room_id,
+                    "revision": world.revision,
+                },
+                "body": world.body.as_record(),
+                "objects": [item.as_record() for item in world.objects],
+                "room_bounds": world.room_bounds.as_record(),
+                "authority_receipt_sha256": (
+                    world.authority_receipt_sha256
+                ),
+            }
+            action = (
+                {
+                    "status": "idle",
+                    "world_revision": world.revision,
+                }
+                if latest_action is None
+                else {
+                    "status": "completed",
+                    "disposition": latest_action.disposition,
+                    "reason": latest_action.reason,
+                    "lifecycle": list(latest_action.lifecycle),
+                    "before_revision": latest_action.before.revision,
+                    "after_revision": latest_action.after.revision,
+                    "authority_receipt_sha256": (
+                        latest_action.authority_receipt_sha256
+                    ),
+                }
+            )
+
+        conversation = (
+            {
+                "status": "unavailable",
+                "reason": "no_conversation_observed_this_boot",
+            }
+            if conversation_input is None
+            else {
+                "status": "observed",
+                "input": conversation_input,
+                "input_source": conversation_source,
+                "response": conversation_reply or "",
+                "response_source": response_source,
+                "emission_id": emission_id,
+            }
+        )
+        payload = {
+            "schema": "guala.observation_snapshot.v1",
+            "observed_at_tick": tick,
+            "identity": identity,
+            "embodiment": embodiment,
+            "embodied_action": action,
+            "conversation": conversation,
+            "cognition_activity": (
+                {"status": "observed", "activity": activity}
+                if activity is not None
+                else {
+                    "status": "unavailable",
+                    "reason": "no_scheduler_activity_observed",
+                }
+            ),
+            "participants": {
+                "status": "observed",
+                "presence": participants,
+            },
+        }
+        encoded = json.dumps(
+            payload,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        return {
+            **payload,
+            "snapshot_receipt_sha256": _hashlib.sha256(encoded).hexdigest(),
+        }
+
     def introspect(self):
         states = {}
         for nm, s in self.sections.items():
@@ -20956,6 +21306,11 @@ class Guala:
                 "embodiment_world": (
                     self._embodiment_world.status()
                     if self._embodiment_world is not None
+                    else {"available": False}
+                ),
+                "causal_prediction": (
+                    self._causal_prediction.status()
+                    if self._causal_prediction is not None
                     else {"available": False}
                 ),
                 "auditory_l5": self.auditory_l5_status(),

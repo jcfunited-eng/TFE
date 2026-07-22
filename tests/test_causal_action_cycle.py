@@ -474,3 +474,51 @@ def test_capacity_and_state_hmac_reject_without_partial_mutation() -> None:
     with pytest.raises(ValueError, match="HMAC changed"):
         restored.restore_encoded(damaged)
     assert restored.status()["bindings"] == 0
+
+
+def test_teacher_can_review_latest_neutral_closure_without_reopening_cycle() -> None:
+    trigger = _settlement("review-trigger")
+    outcome = _settlement("review-outcome", frequency=41)
+    cycle = CausalActionCycle(authority_key="cycle-review-key")
+    binding = _teach(
+        cycle,
+        trigger,
+        ActionCommand.speech("review me"),
+        "review-teacher-nonce-0001",
+    )
+    selected = cycle.select(_settlement("review-repeat"))
+    execution = cycle.record_execution(
+        intent_receipt_sha256=selected.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(
+            b"review-executor"
+        ).hexdigest(),
+        disposition="executed",
+    )
+    observed = cycle.observe_outcome(
+        execution_receipt_sha256=execution.authority_receipt_sha256,
+        settlement=outcome,
+    )
+    cycle.close_observed(
+        outcome_receipt_sha256=observed.authority_receipt_sha256
+    )
+
+    feedback = cycle.review_latest_closure(
+        binding_id=binding.binding_id,
+        decision="confirm",
+        source="joe",
+        nonce="review-feedback-nonce-0001",
+    )
+    assert feedback.decision == "confirm"
+    assert cycle.status()["binding_statuses"] == {
+        "provisional": 0,
+        "confirmed": 1,
+        "revoked": 0,
+    }
+    assert cycle.status()["intents"] == 0
+    assert cycle.status()["executions"] == 0
+    assert cycle.status()["outcomes"] == 0
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(authority_key="cycle-review-key")
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot
