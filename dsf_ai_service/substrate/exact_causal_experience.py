@@ -22,6 +22,7 @@ from dsf_ai_service.glew_runtime.model import (
     ReceiptError,
     ReceiptRegistry,
     receipt_sha256,
+    sha256_digest,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     BuiltSixSenseFullField,
@@ -49,7 +50,7 @@ def _digest(value: object) -> str:
     return hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
-SETTLEMENT_PROFILE_PAYLOAD = b"guala.exact_causal_experience.settlement.profile.v1"
+SETTLEMENT_PROFILE_PAYLOAD = b"guala.exact_causal_experience.settlement.profile.v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +85,45 @@ class ExactSenseInterpretation:
 
 
 @dataclass(frozen=True, slots=True)
+class ExactRecognizedLanguageEvent:
+    """One terminal-recognized symbolic event; never its meaning authority."""
+
+    form: str
+    unicode_scalars: tuple[int, ...]
+    source_event_id: str
+    source_authority_receipt_sha256: str
+    source_l5_authority_receipt_sha256: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.form, str) or not self.form:
+            raise ValueError("recognized language event requires a nonempty form")
+        if (
+            not isinstance(self.unicode_scalars, tuple)
+            or not self.unicode_scalars
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+                or value > 0x10FFFF
+                or 0xD800 <= value <= 0xDFFF
+                for value in self.unicode_scalars
+            )
+        ):
+            raise ValueError("recognized language event has invalid Unicode scalars")
+        if "".join(chr(value) for value in self.unicode_scalars) != self.form:
+            raise ValueError("recognized language form differs from its scalar order")
+        sha256_digest(self.source_event_id, "recognized language source event")
+        sha256_digest(
+            self.source_authority_receipt_sha256,
+            "recognized language source authority",
+        )
+        sha256_digest(
+            self.source_l5_authority_receipt_sha256,
+            "recognized language source L5 authority",
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class CausalExperienceSettlement:
     event_id: str
     structural_fingerprint: str
@@ -91,6 +131,7 @@ class CausalExperienceSettlement:
     source_time_start: Fraction
     source_time_end: Fraction
     interpretations: tuple[ExactSenseInterpretation, ...]
+    language_events: tuple[ExactRecognizedLanguageEvent, ...]
     routing_chis: tuple[int, ...]
     source_tags: tuple[str, ...]
     assembly_receipt_sha256: str
@@ -105,6 +146,7 @@ class CausalExperienceSettlement:
             source_time_start=self.source_time_start,
             source_time_end=self.source_time_end,
             interpretations=self.interpretations,
+            language_events=self.language_events,
             routing_chis=self.routing_chis,
             source_tags=self.source_tags,
             assembly_receipt_sha256=self.assembly_receipt_sha256,
@@ -125,6 +167,7 @@ def causal_experience_settlement_receipt_payload(
     source_time_start: Fraction,
     source_time_end: Fraction,
     interpretations: tuple[ExactSenseInterpretation, ...],
+    language_events: tuple[ExactRecognizedLanguageEvent, ...],
     routing_chis: tuple[int, ...],
     source_tags: tuple[str, ...],
     assembly_receipt_sha256: str,
@@ -169,8 +212,22 @@ def causal_experience_settlement_receipt_payload(
             }
             for sense in interpretations
         ],
+        "language_events": [
+            {
+                "form": value.form,
+                "source_authority_receipt_sha256": (
+                    value.source_authority_receipt_sha256
+                ),
+                "source_event_id": value.source_event_id,
+                "source_l5_authority_receipt_sha256": (
+                    value.source_l5_authority_receipt_sha256
+                ),
+                "unicode_scalars": list(value.unicode_scalars),
+            }
+            for value in language_events
+        ],
         "routing_chis": list(routing_chis),
-        "schema": "guala.exact_causal_experience.settlement.v1",
+        "schema": "guala.exact_causal_experience.settlement.v2",
         "source_tags": list(source_tags),
         "source_time_end": _fraction_text(source_time_end),
         "source_time_start": _fraction_text(source_time_start),
@@ -258,6 +315,7 @@ class ExactCausalExperienceOwner:
         self,
         built: BuiltSixSenseFullField,
         *,
+        recognized_language_record: dict[str, object] | None = None,
         routing_chis: tuple[int, ...],
         source_tags: tuple[str, ...],
     ) -> CausalExperienceSettlement:
@@ -299,12 +357,43 @@ class ExactCausalExperienceOwner:
             if tuple(item.sense for item in interpretations) != tuple(
                     sense.value for sense in SENSE_ORDER):
                 raise RuntimeError("causal settlement lost six-sense order")
+            language_events: tuple[ExactRecognizedLanguageEvent, ...] = ()
+            if recognized_language_record is not None:
+                from dsf_ai_service.substrate.auditory_incremental_terminal import (
+                    AuditoryIncrementalTerminalEvent,
+                )
+
+                terminal = AuditoryIncrementalTerminalEvent.from_record(
+                    dict(recognized_language_record)
+                )
+                language_events = (ExactRecognizedLanguageEvent(
+                    form=terminal.tutor_label,
+                    unicode_scalars=tuple(
+                        ord(value) for value in terminal.tutor_label
+                    ),
+                    source_event_id=terminal.event_id,
+                    source_authority_receipt_sha256=(
+                        terminal.authority_receipt_sha256
+                    ),
+                    source_l5_authority_receipt_sha256=(
+                        terminal.l5_authority_receipt_sha256
+                    ),
+                ),)
             structural_fingerprint = _digest({
-                item.sense: {
-                    "state": item.state,
-                    "structural_fingerprint": item.structural_fingerprint,
-                }
-                for item in interpretations
+                "interpretations": {
+                    item.sense: {
+                        "state": item.state,
+                        "structural_fingerprint": item.structural_fingerprint,
+                    }
+                    for item in interpretations
+                },
+                "language_events": [
+                    {
+                        "form": value.form,
+                        "unicode_scalars": list(value.unicode_scalars),
+                    }
+                    for value in language_events
+                ],
             })
             event_id = _digest({
                 "assembly_id": built.boundary.assembly_id,
@@ -322,6 +411,7 @@ class ExactCausalExperienceOwner:
                     built.boundary.boundaries[0].source_time_start),
                 source_time_end=built.boundary.boundaries[0].source_time_end,
                 interpretations=tuple(interpretations),
+                language_events=language_events,
                 routing_chis=routing,
                 source_tags=sources,
                 assembly_receipt_sha256=built.boundary.authority_receipt_sha256,
@@ -338,6 +428,7 @@ class ExactCausalExperienceOwner:
                     built.boundary.boundaries[0].source_time_start),
                 source_time_end=built.boundary.boundaries[0].source_time_end,
                 interpretations=tuple(interpretations),
+                language_events=language_events,
                 routing_chis=routing,
                 source_tags=sources,
                 assembly_receipt_sha256=built.boundary.authority_receipt_sha256,
@@ -364,6 +455,7 @@ class ExactCausalExperienceOwner:
                     item.sense for item in interpretations
                     if item.state == "observed"
                 ],
+                recognized_language_events=len(language_events),
                 unavailable_senses=[
                     item.sense for item in interpretations
                     if item.state == "sensor_unavailable"
@@ -386,6 +478,7 @@ __all__ = (
     "CausalExperienceSettlement",
     "ExactCausalExperienceOwner",
     "ExactFieldTuple",
+    "ExactRecognizedLanguageEvent",
     "ExactSenseInterpretation",
     "ExactSubstreamInterpretation",
     "causal_experience_settlement_receipt_payload",

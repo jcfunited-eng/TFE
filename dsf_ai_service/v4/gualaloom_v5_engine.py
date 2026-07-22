@@ -7156,6 +7156,9 @@ class Guala:
         )
         return owner.settle(
             built,
+            recognized_language_record=context_detail.get(
+                "auditory_terminal_event"
+            ),
             routing_chis=tuple(
                 int(entry["chi"]) for entry in record.get("entries") or ()
                 if "chi" in entry),

@@ -306,6 +306,24 @@ def test_normal_conversation_result_keeps_terminal_identity(
             == terminal.authority_receipt_sha256)
     assert turn.response == ""
     assert turn.response_source == "causal_action_unavailable"
+    settlement = guala._latest_causal_settlement
+    assert settlement is not None
+    assert len(settlement.language_events) == 1
+    language = settlement.language_events[0]
+    assert language.form == terminal.tutor_label
+    assert language.unicode_scalars == tuple(
+        ord(value) for value in terminal.tutor_label
+    )
+    assert language.source_event_id == terminal.event_id
+    assert (
+        language.source_authority_receipt_sha256
+        == terminal.authority_receipt_sha256
+    )
+    assert (
+        language.source_l5_authority_receipt_sha256
+        == terminal.l5_authority_receipt_sha256
+    )
+    settlement.verify()
 
 
 def test_label_only_or_altered_terminal_cannot_claim_heard_experience(guala):
