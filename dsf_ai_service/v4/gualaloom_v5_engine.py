@@ -5536,6 +5536,48 @@ class Guala:
                 trigger_reason="language_experience",
                 context_detail=_context_detail,
             )
+            if _causal_intake_record is not None:
+                # GL-FIX-HEARD-GROUNDING-C1-20260722: the heard sentence's
+                # verified sound is part of THIS experience — bind one real
+                # auditory entry citing the settled terminal event, so the
+                # causal window carries real grounding
+                # (_current_window_has_real_grounding matches the "audio_"
+                # prefix). Before this, a heard sentence's window held only
+                # language_fact/story_* entries, so heard words never
+                # passed the speakable-index insert gate: nothing Joe SAID
+                # to her could ever become a word she may SAY — live
+                # emission_diag n_with_section_home=0 → organism_empty
+                # silence (trace 2026-07-22). chi is the terminal's own
+                # physical coordinate (where in the receipted stream this
+                # experience began), never an invented number.
+                # mirror_atlas=False: the terminal event's structural home
+                # is the auditory L5/reciprocity store (Sol's causal
+                # boundary, live task :723) — this entry is a citation of
+                # it, not a second copy (lean doctrine: no new store).
+                self.window_manager.add_entry(
+                    modality="sound", section="audio_terminal",
+                    motif_id=deterministic_motif_id("auditory_terminal"),
+                    chi=int(_causal_intake_record["source_sample_start"])
+                        % 100,
+                    tick=self.tick, source_tag=source,
+                    trigger_reason="sound",
+                    context_id=_fact_context_id,
+                    salience=1.0, dwell_ticks=2,
+                    mirror_atlas=False,
+                    structural_fact={
+                        "schema": "guala.auditory_terminal_citation.v1",
+                        "causal_experience_id": (
+                            _causal_intake_record["event_id"]),
+                        "causal_intake_receipt_sha256": (
+                            _causal_intake_record[
+                                "authority_receipt_sha256"]),
+                        "stream_id": _causal_intake_record["stream_id"],
+                        "source_sample_start": (
+                            _causal_intake_record["source_sample_start"]),
+                        "source_sample_end": (
+                            _causal_intake_record["source_sample_end"]),
+                    },
+                )
         _sentence_complete = False
         try:
             self._add_canonical_scene_entries(
@@ -8077,7 +8119,7 @@ class Guala:
         extended = list(candidates) + [n for _, _, n in pool[:extra_needed]]
         return extended
 
-    def _brain_emission_candidates(self, input_words):
+    def _brain_emission_candidates(self, input_words, input_chis=None):
         """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8, extended
         by GL-CMD-EMISSION-SHADOW-EVE-20260709 (design only -- NOT
         enabled by default, NOT deployed; see that dispatch's report for
@@ -8115,7 +8157,8 @@ class Guala:
         if backend == "stdp":
             return self._brain_emission_candidates_membrane(input_words)
         elif backend == "shadow":
-            legacy_candidates = self._brain_emission_candidates_legacy(input_words)
+            legacy_candidates = self._brain_emission_candidates_legacy(
+                input_words, input_chis)
             try:
                 membrane_candidates = self._brain_emission_candidates_membrane(input_words)
                 self._log_emission_shadow_comparison(legacy_candidates, membrane_candidates, input_words)
@@ -8123,7 +8166,7 @@ class Guala:
                 print(f"[GualaLoom] membrane shadow emission comparison failed "
                       f"(non-fatal, legacy candidates still returned): {_se}")
             return legacy_candidates
-        return self._brain_emission_candidates_legacy(input_words)
+        return self._brain_emission_candidates_legacy(input_words, input_chis)
 
     def _brain_emission_candidates_membrane(self, input_words):
         """New (not production-serving during Phase 1) emission backend:
@@ -8298,7 +8341,41 @@ class Guala:
             top5_jaccard=top5_jaccard,
         )
 
-    def _brain_emission_candidates_legacy(self, input_words):
+    def _candidate_word_chi(self, word_lower, input_chis=None):
+        """GL-FIX-CANDIDATE-CHI-C1-20260722: real chi address for an
+        emission candidate word.
+
+        The candidate evidence dicts below historically carried no "chi"
+        key, so every physics consumer read the placeholder 0 —
+        _grandurun_select_candidates' de.get("chi", 0) phase term, the
+        Path-A agency backtrack, gp goal bias, attend proximity. With all
+        candidates sitting at chi=0 the backtrack measured |0 − input
+        centroid| and stripped the top candidate whenever the turn's
+        centroid exceeded the radius: replies died with real candidates
+        in hand (live trace 2026-07-22, "your name is guala": 3
+        candidates, 3 agency_backtrack pops, silence).
+
+        A word's real addresses are the recall reverse index
+        (_word_to_chi_index, GL-CMD-RECALL-WORD-INDEX-57). A word bound
+        at several addresses contributes the binding nearest this turn's
+        centroid — the backtrack's question is "does this word have a
+        binding near the input", so the nearest binding is the honest
+        witness; ties break low for determinism. A word with a section
+        home but no atlas binding yet falls back to the same
+        LanguageKrimelack transduction that assigns the INPUT chis in
+        converse Phase 1 — symmetric physics, never an invented number.
+        """
+        chis = self._word_to_chi_index.get(word_lower)
+        if chis:
+            if input_chis:
+                _centroid = sum(input_chis) / len(input_chis)
+                return min(chis, key=lambda c: (abs(c - _centroid), c))
+            return min(chis)
+        temp_krim = LanguageKrimelack()
+        temp_krim.transduce(word_lower)
+        return temp_krim.winding
+
+    def _brain_emission_candidates_legacy(self, input_words, input_chis=None):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
         on -169's Embryo + real experience via read_word's tap) supplies
@@ -8394,7 +8471,8 @@ class Guala:
             section, mode_idx, _matched_word = self._best_fit_location(locations)
             weight = (n_votes / total) if total else 0.0
             co = {section: {mode_idx: weight}}
-            de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "brain",
+                  "chi": self._candidate_word_chi(w.lower(), input_chis)}
             candidates.append((de, co, weight))
             input_words_lower.add(w.lower())  # don't also deep-atlas-surface this word below
 
@@ -8460,7 +8538,8 @@ class Guala:
                 DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED * (n_distinct_queries - 1))
             weight = best_weight * relevance_boost
             co = {section: {str(mode_idx): weight}}
-            de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas"}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas",
+                  "chi": self._candidate_word_chi(wl, input_chis)}
             candidates.append((de, co, weight))
             input_words_lower.add(wl)
             n_deep_candidates += 1
@@ -8481,7 +8560,10 @@ class Guala:
                     if n_imagination_candidates >= IMAGINATION_MAX_CANDIDATES_PER_TURN:
                         break
                     co = {section: {str(mode_idx): weight}}
-                    de = {"co_occurrence": co, "clarity": weight, "origin": "imagination"}
+                    de = {"co_occurrence": co, "clarity": weight,
+                          "origin": "imagination",
+                          "chi": self._candidate_word_chi(word_label.lower(),
+                                                          input_chis)}
                     candidates.append((de, co, weight))
                     input_words_lower.add(word_label.lower())
                     n_imagination_candidates += 1
@@ -8504,7 +8586,10 @@ class Guala:
                     if n_reflection_candidates >= REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN:
                         break
                     co = {section: {str(mode_idx): weight}}
-                    de = {"co_occurrence": co, "clarity": weight, "origin": "reflection"}
+                    de = {"co_occurrence": co, "clarity": weight,
+                          "origin": "reflection",
+                          "chi": self._candidate_word_chi(word_label.lower(),
+                                                          input_chis)}
                     candidates.append((de, co, weight))
                     input_words_lower.add(word_label.lower())
                     n_reflection_candidates += 1
@@ -8868,7 +8953,8 @@ class Guala:
                 return EmissionSettlement(tick=self.tick)
 
             input_words_set = set(w.lower() for w in input_words)
-            deep_candidates = self._brain_emission_candidates(input_words)
+            deep_candidates = self._brain_emission_candidates(
+                input_words, input_chis=input_chis)
             if not deep_candidates:
                 return EmissionSettlement(tick=self.tick)
 
@@ -12199,6 +12285,37 @@ class Guala:
         """Whether an admitted word experience has not finished integration."""
         queue = getattr(self, "_organism_queue", None)
         return bool(queue is not None and queue.unfinished_tasks > 0)
+
+    # GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: ~two sentences of words.
+    # Bound chosen against the worker queue's hard maxsize (2000) — this
+    # is ~1% of it; binding lag at the limit is ≤2 sentences.
+    ORGANISM_INTAKE_BACKLOG_LIMIT = 24
+
+    def organism_experience_backlogged(self, limit=None):
+        """GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: bounded-backlog form of
+        organism_experience_pending() for the autonomous curriculum feed.
+
+        The exact-zero form above is correct where it guards one
+        in-window sentence whose words must finish binding before the
+        window closes (_atick_reading). As the per-sentence AUTONOMOUS
+        INTAKE gate, though, it shut the reading valve almost completely:
+        every word read enqueues one item to the single organism worker
+        (which also drains the sensory queue on the same thread), so the
+        queue is virtually never empty at the next sentence's re-check.
+        Live block_intake_ledger evidence: planned=30 actual=1
+        capped=true every scaffold cycle — reading throughput ~1
+        sentence/cycle, starving association growth, which is the fuel
+        for organism recall and babble replies.
+
+        This form yields only when a small bounded backlog is exceeded.
+        The bounds above it are unchanged and real: the worker queue's
+        hard maxsize, the 15/min scaffold rate cap, the block schedule.
+        Lean doctrine: bound stated here, decay untouched, no new store.
+        """
+        if limit is None:
+            limit = self.ORGANISM_INTAKE_BACKLOG_LIMIT
+        queue = getattr(self, "_organism_queue", None)
+        return bool(queue is not None and queue.unfinished_tasks > limit)
 
     def _atick_sleeping(self, a):
         """Sleep restores stability TOWARD target. Transitions to dream at

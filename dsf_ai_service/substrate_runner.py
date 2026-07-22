@@ -363,7 +363,10 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
             # and the rest of the chunk are just picked up next cycle.
             if (getattr(_guala, "_live_converse_pending", 0) > 0
                     or getattr(_guala, "_live_interaction_pending", 0) > 0
-                    or _guala.organism_experience_pending()):
+                    # GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: bounded
+                    # backlog, not exact-zero — see the engine method's
+                    # docstring for the live planned=30/actual=1 evidence.
+                    or _guala.organism_experience_backlogged()):
                 break
             try:
                 _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
@@ -402,7 +405,10 @@ def _curriculum_is_busy():
             getattr(_guala, "is_asleep", False)
             or getattr(_guala, "_live_converse_pending", 0) > 0
             or getattr(_guala, "_live_interaction_pending", 0) > 0
-            or _guala.organism_experience_pending()
+            # GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: bounded backlog —
+            # a whole study cycle no longer skips because the worker
+            # queue held a handful of unfinished word items.
+            or _guala.organism_experience_backlogged()
         )
     except Exception:
         return True

@@ -6,23 +6,43 @@ from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
 
 class _AdmissionGuala:
-    def __init__(self, *, pending=False):
-        self.pending = pending
+    """GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: admission is now BOUNDED-
+    BACKLOG, not exact-zero. The organism worker snapshots each word's
+    sight/sound/modal signals AT ENQUEUE (see _enqueue_organism_remember's
+    own docstring: the binding reflects what she experienced when the word
+    was read, "not whatever's most recent by the time a backlogged worker
+    gets to it") — so a small backlog cannot smear causal binding, while
+    exact-zero admission live-measured planned=30 actual=1 every scaffold
+    cycle, starving association growth. The strict exact-zero gate remains
+    where it is semantically load-bearing (_atick_reading, tested below,
+    unchanged)."""
+
+    WORDS_PER_SENTENCE = 10
+
+    def __init__(self, *, unfinished=0):
+        self.unfinished = unfinished
         self.read = []
         self.tick = 100
         self._live_converse_pending = 0
         self._live_interaction_pending = 0
         self.is_asleep = False
+        self.ORGANISM_INTAKE_BACKLOG_LIMIT = (
+            Guala.ORGANISM_INTAKE_BACKLOG_LIMIT)
 
     def organism_experience_pending(self):
-        return self.pending
+        return self.unfinished > 0
+
+    def organism_experience_backlogged(self, limit=None):
+        if limit is None:
+            limit = self.ORGANISM_INTAKE_BACKLOG_LIMIT
+        return self.unfinished > limit
 
     def _current_situation(self):
         return [], "her_room", "day"
 
     def read_sentence(self, sentence, **_kwargs):
         self.read.append(sentence)
-        self.pending = True
+        self.unfinished += self.WORDS_PER_SENTENCE
 
     def _log_substrate_event(self, *_args, **_kwargs):
         return None
@@ -40,9 +60,10 @@ def _isolate_curriculum_runner(monkeypatch, guala):
     monkeypatch.setattr(substrate_runner, "_rate_window", [])
 
 
-def test_curriculum_admits_no_sentence_while_prior_experience_is_pending(
+def test_curriculum_admits_no_sentence_while_backlog_exceeds_bound(
         monkeypatch):
-    guala = _AdmissionGuala(pending=True)
+    guala = _AdmissionGuala(
+        unfinished=Guala.ORGANISM_INTAKE_BACKLOG_LIMIT + 1)
     _isolate_curriculum_runner(monkeypatch, guala)
 
     admitted, learned = substrate_runner._curriculum_feed_chunk(
@@ -52,16 +73,19 @@ def test_curriculum_admits_no_sentence_while_prior_experience_is_pending(
     assert guala.read == []
 
 
-def test_curriculum_admits_one_sentence_then_waits_for_exact_settlement(
-        monkeypatch):
-    guala = _AdmissionGuala(pending=False)
+def test_curriculum_admits_sentences_until_bounded_backlog(monkeypatch):
+    guala = _AdmissionGuala(unfinished=0)
     _isolate_curriculum_runner(monkeypatch, guala)
 
     admitted, learned = substrate_runner._curriculum_feed_chunk(
-        ["first", "second", "third"])
+        ["first", "second", "third", "fourth", "fifth"])
 
-    assert (admitted, learned) == (1, 0)
-    assert guala.read == ["first"]
+    # 10 enqueued words per sentence against the 24-item bound: sentences
+    # admit while backlog <= 24 (0, 10, 20), the fourth check sees 30 and
+    # yields. Throughput restored (was exact-zero: 1 admitted), bound real.
+    assert (admitted, learned) == (3, 0)
+    assert guala.read == ["first", "second", "third"]
+    assert guala.unfinished == 3 * _AdmissionGuala.WORDS_PER_SENTENCE
 
 
 def test_curriculum_progress_advances_only_by_admitted_sentences(tmp_path):
