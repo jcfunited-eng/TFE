@@ -260,11 +260,18 @@ let micStream=null,micPCMActive=false,micEpoch=null,micTransitionActive=false;
 let micEpochGeneration=0;
 const PCM_SAMPLE_RATE=16000,PCM_CHUNK_SAMPLES=80000,PCM_MAX_PENDING_CHUNKS=2;
 const auditoryTerminalSeen=new Set(),deliveredEmissionIds=new Set();
+const auditoryHeardByTerminal=new Map();
 
 function _rememberBounded(set,value){
   if(!value)return;
   set.add(value);
   while(set.size>64)set.delete(set.values().next().value);
+}
+
+function _rememberBoundedMap(map,key,value){
+  if(!key)return;
+  map.set(key,value);
+  while(map.size>64)map.delete(map.keys().next().value);
 }
 
 async function _pollAuditoryReply(terminalEventId){
@@ -276,10 +283,15 @@ async function _pollAuditoryReply(terminalEventId){
     }
     if(result.status==='completed'&&result.speech){
       if(!result.emission_id||!deliveredEmissionIds.has(result.emission_id)){
+        const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
+        addMsg('replying to: "'+heard+'"','system');
         addEmissionMsg(result.speech,result.emission_id||null);
         _rememberBounded(deliveredEmissionIds,result.emission_id);
         gualaSpeak(result.speech);
       }
+    }else if(result.status==='completed_without_speech'){
+      const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
+      addMsg('no learned causal action for: "'+heard+'" ('+(result.response_source||'unknown')+')','system');
     }else if(result.status==='error'){
       addMsg('reply failed: '+(result.error||'unknown error'),'system');
     }
@@ -293,6 +305,7 @@ function _handleAuditoryTerminal(result){
   const terminalEventId=result.terminal_event_id;
   if(!recognized||!terminalEventId||auditoryTerminalSeen.has(terminalEventId))return;
   _rememberBounded(auditoryTerminalSeen,terminalEventId);
+  _rememberBoundedMap(auditoryHeardByTerminal,terminalEventId,recognized);
   addMsg('heard: "'+recognized+'"','user');
   if(result.reply_admitted===true)_pollAuditoryReply(terminalEventId);
   else addMsg('reply was not admitted because the bounded voice turn is full','system');

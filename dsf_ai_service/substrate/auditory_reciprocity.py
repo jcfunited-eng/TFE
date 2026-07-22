@@ -73,6 +73,10 @@ AUDITORY_RECIPROCITY_SNAPSHOT_SCHEMA = "guala.auditory.causal_path.v4"
 AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA = (
     "guala.auditory.causal_path.gzip.v4"
 )
+AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA = (
+    "guala.auditory.recognition_occurrence.v1"
+)
+AUDITORY_RECOGNITION_OPERATOR = "auditory_joint_causal_path_contains.v1"
 
 
 class AuditoryReciprocityKind(str, Enum):
@@ -132,6 +136,174 @@ class AuditoryReciprocalClass:
     admission_receipts: tuple[AuditoryTutorAdmissionReceipt, ...]
 
 
+def _canonical_bytes(value: object) -> bytes:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _digest(value: object) -> str:
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def _class_authority_receipt(value: AuditoryReciprocalClass) -> str:
+    """Stable identity of one tutor-grounded learned auditory class."""
+    if not isinstance(value, AuditoryReciprocalClass) or not value.branches:
+        raise ValueError("auditory learned class authority is invalid")
+    first_authority = (
+        value.authority_receipts[0].authority_hmac_sha256
+        if value.authority_receipts else None
+    )
+    first_admission = (
+        value.admission_receipts[0].admission_hmac_sha256
+        if value.admission_receipts else None
+    )
+    return _digest({
+        "first_admission_hmac_sha256": first_admission,
+        "first_authority_hmac_sha256": first_authority,
+        "first_experience_id": value.first_experience_id,
+        "first_structural_fingerprint": (
+            value.branches[0].structural_fingerprint
+        ),
+        "kind": value.kind.value,
+        "schema": "guala.auditory.learned_class_authority.v1",
+        "tutor_label": value.tutor_label,
+    })
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryRecognitionOccurrence:
+    """Receipt-bound result of one complete full-field recognition act."""
+
+    kind: AuditoryReciprocityKind
+    state: AuditoryRecognitionState
+    experience_id: str
+    structural_fingerprint: str
+    l5_authority_receipt_sha256: str
+    candidate_class_authority_receipts: tuple[str, ...]
+    selected_class_authority_receipt_sha256: str | None
+    operator: str
+    authority_receipt_sha256: str
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "candidate_class_authority_receipts": list(
+                self.candidate_class_authority_receipts
+            ),
+            "experience_id": self.experience_id,
+            "kind": self.kind.value,
+            "l5_authority_receipt_sha256": (
+                self.l5_authority_receipt_sha256
+            ),
+            "operator": self.operator,
+            "schema": AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA,
+            "selected_class_authority_receipt_sha256": (
+                self.selected_class_authority_receipt_sha256
+            ),
+            "state": self.state.value,
+            "structural_fingerprint": self.structural_fingerprint,
+        }
+
+    def verify(self) -> None:
+        sha256_digest(self.experience_id, "auditory recognition experience")
+        sha256_digest(
+            self.structural_fingerprint,
+            "auditory recognition structural fingerprint",
+        )
+        sha256_digest(
+            self.l5_authority_receipt_sha256,
+            "auditory recognition L5 authority",
+        )
+        if (
+            self.operator != AUDITORY_RECOGNITION_OPERATOR
+            or not isinstance(self.candidate_class_authority_receipts, tuple)
+            or tuple(sorted(set(self.candidate_class_authority_receipts)))
+            != self.candidate_class_authority_receipts
+        ):
+            raise ValueError("auditory recognition occurrence is malformed")
+        for receipt in self.candidate_class_authority_receipts:
+            sha256_digest(receipt, "auditory recognition candidate class")
+        if self.state is AuditoryRecognitionState.UNIQUE:
+            if (
+                len(self.candidate_class_authority_receipts) != 1
+                or self.selected_class_authority_receipt_sha256
+                != self.candidate_class_authority_receipts[0]
+            ):
+                raise ValueError(
+                    "unique auditory recognition lost its selected class"
+                )
+        elif self.selected_class_authority_receipt_sha256 is not None:
+            raise ValueError(
+                "non-unique auditory recognition selected a class"
+            )
+        if _digest(self._payload()) != sha256_digest(
+            self.authority_receipt_sha256,
+            "auditory recognition occurrence authority",
+        ):
+            raise ValueError("auditory recognition occurrence receipt changed")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            **self._payload(),
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
+
+    @classmethod
+    def from_record(cls, value: object) -> "AuditoryRecognitionOccurrence":
+        if not isinstance(value, Mapping):
+            raise ValueError("auditory recognition occurrence must be an object")
+        expected = {
+            "authority_receipt_sha256",
+            "candidate_class_authority_receipts",
+            "experience_id",
+            "kind",
+            "l5_authority_receipt_sha256",
+            "operator",
+            "schema",
+            "selected_class_authority_receipt_sha256",
+            "state",
+            "structural_fingerprint",
+        }
+        if set(value) != expected or value.get("schema") != (
+            AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA
+        ):
+            raise ValueError("auditory recognition occurrence fields changed")
+        candidates = value.get("candidate_class_authority_receipts")
+        if not isinstance(candidates, list):
+            raise ValueError("auditory recognition candidates are malformed")
+        try:
+            occurrence = cls(
+                kind=AuditoryReciprocityKind(value.get("kind")),
+                state=AuditoryRecognitionState(value.get("state")),
+                experience_id=value.get("experience_id"),
+                structural_fingerprint=value.get("structural_fingerprint"),
+                l5_authority_receipt_sha256=value.get(
+                    "l5_authority_receipt_sha256"
+                ),
+                candidate_class_authority_receipts=tuple(candidates),
+                selected_class_authority_receipt_sha256=value.get(
+                    "selected_class_authority_receipt_sha256"
+                ),
+                operator=value.get("operator"),
+                authority_receipt_sha256=value.get(
+                    "authority_receipt_sha256"
+                ),
+            )
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                "auditory recognition occurrence values changed"
+            ) from error
+        occurrence.verify()
+        if occurrence.as_record() != dict(value):
+            raise ValueError("auditory recognition occurrence is not canonical")
+        return occurrence
+
+
 @dataclass(frozen=True, slots=True)
 class AuditoryRecognition:
     kind: AuditoryReciprocityKind
@@ -139,6 +311,7 @@ class AuditoryRecognition:
     tutor_label: str | None
     candidate_labels: tuple[str, ...]
     experience_id: str
+    occurrence: AuditoryRecognitionOccurrence
 
 
 def _label(value: object) -> str:
@@ -1385,12 +1558,13 @@ class AuditoryReciprocityOwner:
         experience.verify()
         if kind is AuditoryReciprocityKind.SOURCE_CONTINUITY:
             candidates: tuple[str, ...] = ()
+            candidate_class_receipts: tuple[str, ...] = ()
             exhausted = False
             consumed_cells = 0
         else:
             query = _pack_experience(experience)
             with self._lock:
-                matched_labels = []
+                matched_classes = []
                 consumed_cells = 0
                 exhausted = False
                 for learned in self._classes[kind].values():
@@ -1408,10 +1582,22 @@ class AuditoryReciprocityOwner:
                         break
                     consumed_cells += cells
                     if matched:
-                        matched_labels.append(learned.tutor_label)
-                candidates = (
-                    () if exhausted else tuple(sorted(matched_labels))
-                )
+                        matched_classes.append(learned)
+                if exhausted:
+                    candidates = ()
+                    candidate_class_receipts = ()
+                else:
+                    ordered_matches = tuple(sorted(
+                        matched_classes,
+                        key=lambda value: value.tutor_label,
+                    ))
+                    candidates = tuple(
+                        value.tutor_label for value in ordered_matches
+                    )
+                    candidate_class_receipts = tuple(sorted(
+                        _class_authority_receipt(value)
+                        for value in ordered_matches
+                    ))
         state = (
             AuditoryRecognitionState.INDETERMINATE
             if exhausted
@@ -1421,6 +1607,45 @@ class AuditoryReciprocityOwner:
             if len(candidates) == 1
             else AuditoryRecognitionState.AMBIGUOUS
         )
+        selected_class_receipt = (
+            candidate_class_receipts[0]
+            if state is AuditoryRecognitionState.UNIQUE else None
+        )
+        occurrence_payload = {
+            "candidate_class_authority_receipts": list(
+                candidate_class_receipts
+            ),
+            "experience_id": experience.experience_id,
+            "kind": kind.value,
+            "l5_authority_receipt_sha256": (
+                experience.authority_receipt_sha256
+            ),
+            "operator": AUDITORY_RECOGNITION_OPERATOR,
+            "schema": AUDITORY_RECOGNITION_OCCURRENCE_SCHEMA,
+            "selected_class_authority_receipt_sha256": (
+                selected_class_receipt
+            ),
+            "state": state.value,
+            "structural_fingerprint": experience.structural_fingerprint,
+        }
+        occurrence = AuditoryRecognitionOccurrence(
+            kind=kind,
+            state=state,
+            experience_id=experience.experience_id,
+            structural_fingerprint=experience.structural_fingerprint,
+            l5_authority_receipt_sha256=(
+                experience.authority_receipt_sha256
+            ),
+            candidate_class_authority_receipts=(
+                candidate_class_receipts
+            ),
+            selected_class_authority_receipt_sha256=(
+                selected_class_receipt
+            ),
+            operator=AUDITORY_RECOGNITION_OPERATOR,
+            authority_receipt_sha256=_digest(occurrence_payload),
+        )
+        occurrence.verify()
         result = AuditoryRecognition(
             kind=kind,
             state=state,
@@ -1430,6 +1655,7 @@ class AuditoryReciprocityOwner:
             ),
             candidate_labels=candidates,
             experience_id=experience.experience_id,
+            occurrence=occurrence,
         )
         if exhausted:
             with self._lock:

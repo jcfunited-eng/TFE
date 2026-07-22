@@ -66,3 +66,11 @@ def test_post_open_contract_failure_closes_the_known_server_epoch() -> None:
     )
     construction = page.index("const epoch={generation", contract)
     assert contract < cleanup < construction
+
+
+def test_voice_transcript_pairs_each_reply_with_its_heard_experience() -> None:
+    page = _page()
+    assert "const auditoryHeardByTerminal=new Map()" in page
+    assert "replying to: \"'+heard+'\"" in page
+    assert "no learned causal action for: \"'+heard+'\"" in page
+    assert "_rememberBoundedMap(auditoryHeardByTerminal" in page

@@ -196,8 +196,8 @@ def test_terminal_and_language_share_one_causal_experience(
         causal_intake=terminal,
     )
 
-    assert turn.response == "two"
-    assert turn.response_source == "mathloom"
+    assert turn.response == ""
+    assert turn.response_source == "causal_action_unavailable"
     assert turn.causal_experience_id == terminal.event_id
     assert (turn.causal_intake_receipt_sha256
             == terminal.authority_receipt_sha256)

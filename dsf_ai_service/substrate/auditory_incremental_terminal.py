@@ -68,6 +68,7 @@ from dsf_ai_service.substrate.auditory_reciprocity import (
     MAX_PATH_BRANCHES_PER_CLASS,
     MAX_REACHABILITY_CELLS_PER_RECOGNITION,
     PCM_PRESSURE_QUANTUM,
+    AuditoryRecognitionOccurrence,
     AuditoryRecognitionState,
     AuditoryReciprocityKind,
     AuditoryReciprocityOwner,
@@ -96,6 +97,9 @@ except ImportError:
 
 
 AUDITORY_INCREMENTAL_EVENT_SCHEMA = "guala.auditory.incremental_terminal.v1"
+AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2 = (
+    "guala.auditory.incremental_terminal.v2"
+)
 AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v1"
 MAX_EVENT_SAMPLES = PCM_SAMPLE_RATE_HZ * MAX_CAPTURE_SECONDS
 MAX_EVENT_HOPS = MAX_EVENT_SAMPLES // OBSERVATION_HOP_SAMPLES
@@ -150,8 +154,9 @@ def _event_payload(
     transport_receipt_sha256s: tuple[str, ...],
     cochlear_receipt_sha256s: tuple[str, ...],
     joint_settlement_receipt_sha256s: tuple[str, ...],
+    recognition_occurrence: AuditoryRecognitionOccurrence | None,
 ) -> dict[str, object]:
-    return {
+    payload = {
         "cochlear_receipt_sha256s": list(cochlear_receipt_sha256s),
         "event_id": event_id,
         "joint_settlement_receipt_sha256s": list(
@@ -160,7 +165,11 @@ def _event_payload(
         "l5_authority_receipt_sha256": l5_authority_receipt_sha256,
         "recognition_state": AuditoryRecognitionState.UNIQUE.value,
         "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
-        "schema": AUDITORY_INCREMENTAL_EVENT_SCHEMA,
+        "schema": (
+            AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2
+            if recognition_occurrence is not None
+            else AUDITORY_INCREMENTAL_EVENT_SCHEMA
+        ),
         "source_sample_end": source_sample_end,
         "source_sample_start": source_sample_start,
         "stream_id": stream_id,
@@ -168,6 +177,10 @@ def _event_payload(
         "transport_receipt_sha256s": list(transport_receipt_sha256s),
         "tutor_label": tutor_label,
     }
+    if recognition_occurrence is not None:
+        recognition_occurrence.verify()
+        payload["recognition_occurrence"] = recognition_occurrence.as_record()
+    return payload
 
 
 @dataclass(frozen=True, slots=True)
@@ -183,6 +196,7 @@ class AuditoryIncrementalTerminalEvent:
     cochlear_receipt_sha256s: tuple[str, ...]
     joint_settlement_receipt_sha256s: tuple[str, ...]
     authority_receipt_sha256: str
+    recognition_occurrence: AuditoryRecognitionOccurrence | None = None
 
     @property
     def sample_count(self) -> int:
@@ -213,6 +227,21 @@ class AuditoryIncrementalTerminalEvent:
             self.l5_authority_receipt_sha256,
             "incremental auditory L5 receipt",
         )
+        if self.recognition_occurrence is not None:
+            self.recognition_occurrence.verify()
+            if (
+                self.recognition_occurrence.kind
+                is not AuditoryReciprocityKind.SPOKEN_FORM
+                or self.recognition_occurrence.state
+                is not AuditoryRecognitionState.UNIQUE
+                or self.recognition_occurrence.structural_fingerprint
+                != fingerprint
+                or self.recognition_occurrence.l5_authority_receipt_sha256
+                != l5_receipt
+            ):
+                raise ValueError(
+                    "incremental auditory recognition occurrence changed"
+                )
         receipt_groups = (
             self.transport_receipt_sha256s,
             self.cochlear_receipt_sha256s,
@@ -253,6 +282,7 @@ class AuditoryIncrementalTerminalEvent:
             transport_receipt_sha256s=transport,
             cochlear_receipt_sha256s=cochlear,
             joint_settlement_receipt_sha256s=joint,
+            recognition_occurrence=self.recognition_occurrence,
         )
         if _digest(payload) != _canonical_digest(
             self.authority_receipt_sha256,
@@ -280,6 +310,7 @@ class AuditoryIncrementalTerminalEvent:
             joint_settlement_receipt_sha256s=(
                 self.joint_settlement_receipt_sha256s
             ),
+            recognition_occurrence=self.recognition_occurrence,
         )
         record["authority_receipt_sha256"] = self.authority_receipt_sha256
         return record
@@ -313,10 +344,13 @@ class AuditoryIncrementalTerminalEvent:
             "transport_receipt_sha256s",
             "tutor_label",
         }
+        schema = record.get("schema")
+        if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2:
+            expected_fields.add("recognition_occurrence")
+        elif schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA:
+            raise ValueError("incremental auditory event record schema changed")
         if set(record) != expected_fields:
             raise ValueError("incremental auditory event record fields changed")
-        if record.get("schema") != AUDITORY_INCREMENTAL_EVENT_SCHEMA:
-            raise ValueError("incremental auditory event record schema changed")
         if record.get("recognition_state") != AuditoryRecognitionState.UNIQUE.value:
             raise ValueError("incremental auditory event record is not unique")
         if record.get("sample_rate_hz") != PCM_SAMPLE_RATE_HZ:
@@ -353,6 +387,12 @@ class AuditoryIncrementalTerminalEvent:
             ),
             joint_settlement_receipt_sha256s=tuple(
                 record["joint_settlement_receipt_sha256s"]
+            ),
+            recognition_occurrence=(
+                AuditoryRecognitionOccurrence.from_record(
+                    record["recognition_occurrence"]
+                )
+                if schema == AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2 else None
             ),
             authority_receipt_sha256=record.get(
                 "authority_receipt_sha256"
@@ -483,6 +523,7 @@ class _PendingTerminal:
     cochlear_receipt_sha256s: tuple[str, ...]
     joint_settlement_receipt_sha256s: tuple[str, ...]
     auditory_l5: AuditoryL5Experience
+    recognition_occurrence: AuditoryRecognitionOccurrence | None = None
 
 
 @dataclass(slots=True)
@@ -1290,6 +1331,7 @@ class AuditoryIncrementalTerminalOwner:
             transport_receipt_sha256s=transport,
             cochlear_receipt_sha256s=cochlear,
             joint_settlement_receipt_sha256s=joint,
+            recognition_occurrence=recognition.occurrence,
             auditory_l5=experience,
         ), consumed_cells
 
@@ -1323,6 +1365,7 @@ class AuditoryIncrementalTerminalOwner:
             joint_settlement_receipt_sha256s=(
                 value.joint_settlement_receipt_sha256s
             ),
+            recognition_occurrence=value.recognition_occurrence,
         )
         event = AuditoryIncrementalTerminalEvent(
             event_id=event_id,
@@ -1337,6 +1380,7 @@ class AuditoryIncrementalTerminalOwner:
             joint_settlement_receipt_sha256s=(
                 value.joint_settlement_receipt_sha256s
             ),
+            recognition_occurrence=value.recognition_occurrence,
             authority_receipt_sha256=_digest(payload),
         )
         event.verify()

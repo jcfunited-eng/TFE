@@ -290,8 +290,8 @@ def test_gate4_real_reply_reaches_last_autonomous_thought():
     print("  PASS: real reply written in the existing /thought poll shape")
 
 
-def test_gate5_real_reply_self_hears():
-    print("Gate 5: a real reply self-hears...")
+def test_gate5_app_does_not_duplicate_engine_owned_self_hearing():
+    print("Gate 5: the app does not self-hear a second time...")
     _reset()
     fake = _FakeGuala(reply="hear this")
     appmod._guala = fake
@@ -300,9 +300,7 @@ def test_gate5_real_reply_self_hears():
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
-    assert len(fake.self_hear_calls) == 1
-    assert fake.self_hear_calls[0][0] == "hear this"
-    assert fake.self_hear_calls[0][1] == "guala"
+    assert fake.self_hear_calls == []
     print("  PASS: self-hear fired with the real reply content")
 
 
@@ -331,8 +329,8 @@ def test_gate6_empty_reply_does_not_surface_or_self_hear():
     print("  PASS: empty reply stays honestly silent, no fabricated surfacing")
 
 
-def test_gate7_structural_silence_uses_typed_organism_fallthrough():
-    print("Gate 7: spoken structural silence reaches the typed organism attempt...")
+def test_gate7_structural_silence_never_enters_organism_fallthrough():
+    print("Gate 7: spoken structural silence remains typed silence...")
     _reset()
     srmod._last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
 
@@ -351,16 +349,11 @@ def test_gate7_structural_silence_uses_typed_organism_fallthrough():
             )
 
         def precompute_organism_attempt(self, seeds):
-            self.seeds = seeds
-            return {"real": "votes"}
+            raise AssertionError("causal silence reached organism fallthrough")
 
         def _compose_organism_attempt(self, seeds, deadline, *,
                                       organism_votes, conversational):
-            assert seeds == self.seeds
-            assert organism_votes == {"real": "votes"}
-            assert conversational is True
-            return {"content": "the and of",
-                    "response_source": "organism_attempt"}
+            raise AssertionError("causal silence reached organism composition")
 
     fake = _SilentThenOrganismGuala()
     appmod._guala = fake
@@ -373,9 +366,8 @@ def test_gate7_structural_silence_uses_typed_organism_fallthrough():
         time.sleep(0.05)
     with srmod._autonomous_thought_lock:
         thought = dict(srmod._last_autonomous_thought)
-    assert thought["speech"] == "the and of"
-    assert thought["response_source"] == "organism_attempt"
-    assert fake.self_hear_calls[0][0] == "the and of"
+    assert thought["speech"] == ""
+    assert fake.self_hear_calls == []
     print("  PASS: voice and typed turns share one organism fall-through")
 
 

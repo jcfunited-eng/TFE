@@ -1328,7 +1328,8 @@ AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any convers
 # so organism_attempt releases are structurally ineligible for
 # reinforcement, teach/correct feedback, and window fact-binding.
 VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit",
-                          "organism_attempt", "composed_attempt")
+                          "organism_attempt", "composed_attempt",
+                          "causal_action_commit")
 
 # Change 4 (spec v3 release-policy note b): the autonomous loop queries the
 # certified composer with seeds drawn from the organism's own lived content.
@@ -3352,6 +3353,16 @@ class Guala:
             on_settlement=self._accept_causal_settlement,
             log_event=self._log_substrate_event,
             max_transitions=1024,
+        )
+        from dsf_ai_service.substrate.causal_action import (
+            CausalActionOwner as _CausalActionOwner,
+        )
+        self._causal_action_owner = _CausalActionOwner(
+            log_event=self._log_substrate_event,
+            authority_key=(
+                os.environ.get("GUALA_CAUSAL_ACTION_KEY")
+                or os.environ.get("GUALALOOM_API_KEY")
+            ),
         )
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
@@ -6021,7 +6032,7 @@ class Guala:
         )
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
-        if parsed:
+        if parsed and causal_record is None:
             source_turn_index = None
             if causal_record is not None:
                 source_turn_index = self.read_sentence(
@@ -6113,17 +6124,20 @@ class Guala:
                                 _bind_count += 1
             _t_tag = time.monotonic()
 
-            # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
-            # 6. Fact-Strand composer preferred; when it has nothing to
-            # release, the substrate's own assemblage voice settles the turn
-            # (Joe's 2026-07-16 ruling — see _committed_emission_response).
+            # A causally admitted spoken turn belongs to the direct action
+            # owner.  Non-causal typed turns retain the existing Fact-Strand
+            # then assemblage release order.
             self._last_converse_source = source
             settlement = fact_settlement
-            if getattr(fact_settlement, "n_commits", 0) <= 0:
+            if causal_settlement is not None:
                 settlement = self._emit_from_invariants(
                     input_chis, words, mode_override=emission_mode,
                     v7_session=getattr(self, "_v7_session", None),
                     causal_settlement=causal_settlement)
+            elif getattr(fact_settlement, "n_commits", 0) <= 0:
+                settlement = self._emit_from_invariants(
+                    input_chis, words, mode_override=emission_mode,
+                    v7_session=getattr(self, "_v7_session", None))
             _t_emit = time.monotonic()
             reply, response_source = self._committed_emission_response(
                 settlement)
@@ -6203,7 +6217,10 @@ class Guala:
             def _post_reply_continuation():
                 _t_ph_start = time.monotonic()
                 # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
-                if reply and source in ("joe", "joe_voice", "wc", "c1"):
+                if reply and source in (
+                    "joe", "joe_voice", "wc", "c1",
+                    "auditory:unresolved_source",
+                ):
                     self._self_hear(
                         reply, source, reply_chis=reply_chis,
                         emission_id=reply_emission_id,
@@ -6285,7 +6302,7 @@ class Guala:
 
         # Phase 1: tokenize + chi transduction (no lock — pure local computation)
         parsed = self._parse_math(text)
-        if parsed:
+        if parsed and causal_record is None:
             source_turn_index = None
             if causal_record is not None:
                 source_turn_index = self.read_sentence(
@@ -6382,15 +6399,19 @@ class Guala:
             _emit_start = time.monotonic()
             self._last_converse_source = source
             settlement = fact_settlement
-            if getattr(fact_settlement, "n_commits", 0) <= 0:
+            if causal_settlement is not None:
+                settlement = self._emit_from_invariants(
+                    input_chis, words, mode_override=emission_mode,
+                    v7_session=getattr(self, "_v7_session", None),
+                    causal_settlement=causal_settlement)
+            elif getattr(fact_settlement, "n_commits", 0) <= 0:
                 # Fact-Strand had nothing to release — the substrate's own
                 # assemblage voice settles the turn (Joe's 2026-07-16 ruling,
                 # see _committed_emission_response).  _emission_lock is an
                 # RLock; _emit_from_invariants re-acquires it safely inline.
                 settlement = self._emit_from_invariants(
                     input_chis, words, mode_override=emission_mode,
-                    v7_session=getattr(self, "_v7_session", None),
-                    causal_settlement=causal_settlement)
+                    v7_session=getattr(self, "_v7_session", None))
             reply, response_source = self._committed_emission_response(
                 settlement)
             if reply:
@@ -6485,7 +6506,10 @@ class Guala:
         def _post_reply_continuation():
             _t_ph_start = time.monotonic()
             # Phase 8: self-hear (per-word self.lock internally)
-            if reply and source in ("joe", "joe_voice", "wc", "c1"):
+            if reply and source in (
+                "joe", "joe_voice", "wc", "c1",
+                "auditory:unresolved_source",
+            ):
                 self._self_hear(
                     reply, source, reply_chis=reply_chis,
                     emission_id=reply_emission_id,
@@ -7171,15 +7195,21 @@ class Guala:
     def _accept_causal_settlement(self, settlement):
         """Accept one structured settlement without a second work queue.
 
-        Only the latest compact settlement is retained.  No numeric vector is
-        manufactured for the legacy organism because that would erase sense,
-        substream, and DSF-field relationships.  A later perception-to-action
-        consumer must accept this structured type directly.
+        Only the latest compact settlement and four teaching candidates are
+        retained.  The direct action owner consumes the structured settlement;
+        no numeric vector is manufactured for the legacy organism because that
+        would erase sense, substream, and DSF-field relationships.
         """
         if self._engine_quiesced:
             raise RuntimeError("causal settlement rejected after quiescence")
         self._latest_causal_settlement = settlement
         self._causal_settlement_accepted += 1
+        language_events = getattr(settlement, "language_events", ())
+        if (
+            len(language_events) == 1
+            and language_events[0].recognition_occurrence is not None
+        ):
+            self._causal_action_owner.offer_teaching_experience(settlement)
         self._log_substrate_event(
             "causal_experience_accepted",
             event_id=settlement.event_id,
@@ -7189,6 +7219,75 @@ class Guala:
                 if item.state == "observed"
             ],
         )
+
+    @_engine_mutation_entry
+    def teach_causal_action(
+        self,
+        *,
+        trigger_experience_id,
+        action_experience_id,
+        source="joe",
+    ):
+        """Join two verified working experiences as one taught action."""
+        trigger_reference_id = trigger_experience_id
+        action_reference_id = action_experience_id
+        trigger_experience_id = (
+            self._causal_action_owner.resolve_teaching_experience_id(
+                trigger_reference_id
+            )
+        )
+        action_experience_id = (
+            self._causal_action_owner.resolve_teaching_experience_id(
+                action_reference_id
+            )
+        )
+        binding = self._causal_action_owner.teach(
+            trigger_experience_id=trigger_experience_id,
+            action_experience_id=action_experience_id,
+            source=source,
+        )
+        return {
+            "binding_id": binding.binding_id,
+            "binding_receipt_sha256": binding.binding_receipt_sha256,
+            "trigger_experience_id": trigger_experience_id,
+            "action_experience_id": action_experience_id,
+            "trigger_reference_id": trigger_reference_id,
+            "action_reference_id": action_reference_id,
+            "unicode_scalars": list(binding.unicode_scalars),
+        }
+
+    @_engine_mutation_entry
+    def durably_teach_causal_action(
+        self,
+        *,
+        trigger_experience_id,
+        action_experience_id,
+        source="joe",
+        state_dir,
+    ):
+        """Publish learned action state before reporting acceptance."""
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative causal action durability is unavailable"
+            )
+        with self.persistence_transaction():
+            prior = self._causal_action_owner.encoded_snapshot()
+            working = self._causal_action_owner.working_settlements()
+            try:
+                result = self.teach_causal_action(
+                    trigger_experience_id=trigger_experience_id,
+                    action_experience_id=action_experience_id,
+                    source=source,
+                )
+                self.save_hot_state(state_dir)
+                return result
+            except BaseException:
+                self._causal_action_owner.restore_encoded(prior)
+                self._causal_action_owner.restore_working_settlements(
+                    working
+                )
+                raise
 
     @_engine_mutation_entry
     def teach_isolated_auditory_asset(self, wav_bytes, tutor_label):
@@ -8926,6 +9025,20 @@ class Guala:
         by authority; a reply is labeled fact_strand_commit ONLY when the
         certifier passed.
         """
+        from dsf_ai_service.substrate.causal_action import (
+            CausalActionSettlement,
+        )
+        if (
+            isinstance(settlement, CausalActionSettlement)
+            and self._causal_action_owner.verify_issued(settlement)
+        ):
+            return settlement.content, "causal_action_commit"
+        if (
+            isinstance(settlement, CausalActionSettlement)
+            and settlement.status != "committed"
+        ):
+            settlement.verify_receipts()
+            return "", settlement.stop_reason or "causal_action_unknown"
         if self._fact_settlement_has_certified_provenance(settlement):
             return settlement.content, "fact_strand_commit"
         if (isinstance(settlement, EmissionSettlement)
@@ -9011,12 +9124,12 @@ class Guala:
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None,
                               causal_settlement=None):
-        """Settle organism candidates and return committed content only.
+        """Settle one causal action or non-causal organism emission.
 
-        The former ``topk`` and scalar-grandurun branches returned ranked
-        candidates without a dynamics commit.  They remain available as
-        diagnostic functions but are retired as voice paths.  Production
-        speech now has one source: assemblage dynamics with a real commit.
+        A verified causal settlement can enter only the bounded learned-action
+        owner.  Without one, the former ``topk`` and scalar-grandurun branches
+        remain diagnostic-only and assemblage speech still requires a real
+        dynamics commit.
         """
         with self._emission_lock:
             if causal_settlement is not None:
@@ -9031,22 +9144,24 @@ class Guala:
                         "causal emission requires a structured settlement"
                     )
                 causal_settlement.verify()
-                self._log_substrate_event(
-                    "causal_action_consumer_missing",
-                    causal_experience_id=causal_settlement.event_id,
-                    causal_settlement_receipt_sha256=(
-                        causal_settlement.authority_receipt_sha256
-                    ),
-                    observed_senses=[
-                        value.sense
-                        for value in causal_settlement.interpretations
-                        if value.state == "observed"
-                    ],
-                )
-                return EmissionSettlement(
-                    tick=self.tick,
-                    stop_reason="causal_action_consumer_missing",
-                )
+                try:
+                    return self._causal_action_owner.form(
+                        causal_settlement,
+                        tick=self.tick,
+                    )
+                except ValueError as error:
+                    self._log_substrate_event(
+                        "causal_action_recognition_authority_missing",
+                        causal_experience_id=causal_settlement.event_id,
+                        causal_settlement_receipt_sha256=(
+                            causal_settlement.authority_receipt_sha256
+                        ),
+                        error=str(error),
+                    )
+                    return EmissionSettlement(
+                        tick=self.tick,
+                        stop_reason="causal_action_consumer_missing",
+                    )
             mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
             if (os.environ.get("EMISSION_DYNAMICS", "0") != "1"
                     or mode != "grandurun"):
@@ -16539,6 +16654,23 @@ class Guala:
             if not isinstance(payload, str) or len(payload) > 16 * 1024 * 1024:
                 raise ValueError(
                     "teaching.auditory_reciprocity exceeds its encoded boundary")
+        causal_action = data.get("causal_action")
+        if causal_action is not None:
+            if (
+                not isinstance(causal_action, dict)
+                or set(causal_action) != {
+                    "payload_base64", "schema", "state_hmac_sha256"
+                }
+                or not isinstance(causal_action.get("payload_base64"), str)
+                or len(causal_action["payload_base64"])
+                > 4 * ((16 * 1024 * 1024 + 2) // 3)
+                or not isinstance(
+                    causal_action.get("state_hmac_sha256"), str
+                )
+            ):
+                raise ValueError(
+                    "teaching.causal_action exceeds its encoded boundary"
+                )
         causal_event = data.get("latest_auditory_causal_event")
         if causal_event is not None:
             from dsf_ai_service.substrate.auditory_incremental_terminal import (
@@ -17276,6 +17408,11 @@ class Guala:
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
             "auditory_reciprocity": (
                 self._auditory_reciprocity_owner.encoded_snapshot()),
+            "causal_action": (
+                self._causal_action_owner.encoded_snapshot()
+                if self._causal_action_owner.persistence_available
+                else None
+            ),
             "latest_auditory_causal_event": (
                 self._latest_auditory_causal_event_record),
         })
@@ -17618,6 +17755,11 @@ class Guala:
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
             "auditory_reciprocity": (
                 self._auditory_reciprocity_owner.encoded_snapshot()),
+            "causal_action": (
+                self._causal_action_owner.encoded_snapshot()
+                if self._causal_action_owner.persistence_available
+                else None
+            ),
             "latest_auditory_causal_event": (
                 self._latest_auditory_causal_event_record),
         }, saved_at_tick=save_tick)
@@ -18462,6 +18604,11 @@ class Guala:
                         self._auditory_reciprocity_owner.restore_encoded(
                             auditory_snapshot)
                         self._auditory_incremental_terminals.refresh_learning()
+                    causal_action_snapshot = tdata.get("causal_action")
+                    if causal_action_snapshot is not None:
+                        self._causal_action_owner.restore_encoded(
+                            causal_action_snapshot
+                        )
                     causal_event = tdata.get(
                         "latest_auditory_causal_event"
                     )
@@ -19988,6 +20135,7 @@ class Guala:
                 "causal_settlements_failed": self._causal_settlement_failed,
                 "causal_settlement_backlog": 0,
                 "causal_experience_owner": self._causal_experience_owner.status(),
+                "causal_action_owner": self._causal_action_owner.status(),
                 "auditory_l5": self.auditory_l5_status(),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost

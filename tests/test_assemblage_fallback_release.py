@@ -81,7 +81,7 @@ def test_converse_falls_back_only_when_fact_settlement_is_empty(
     calls = []
 
     def fake_invariants(input_chis, input_words, mode_override=None,
-                        v7_session=None):
+                        v7_session=None, causal_settlement=None):
         calls.append(tuple(input_words))
         return _assemblage(["dog"])
 
@@ -226,9 +226,13 @@ def test_engine_and_runner_share_one_voiced_release_authority():
     """
     import dsf_ai_service.substrate_runner as runner
 
-    assert VOICED_RELEASE_SOURCES == ("fact_strand_commit",
-                                      "assemblage_commit",
-                                      "organism_attempt")
+    assert VOICED_RELEASE_SOURCES == (
+        "fact_strand_commit",
+        "assemblage_commit",
+        "organism_attempt",
+        "composed_attempt",
+        "causal_action_commit",
+    )
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(Guala._self_hear)
     assert "VOICED_RELEASE_SOURCES" in inspect.getsource(
         runner._cmd_converse)

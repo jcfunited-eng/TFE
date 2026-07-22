@@ -161,29 +161,6 @@ _voice_turn_results = {}
 _VOICE_TURN_RESULT_CAPACITY = 8
 
 
-def _compose_conversational_organism_fallthrough(text):
-    """Run the one existing typed-conversation organism attempt.
-
-    Both typed and spoken turns call this exact helper after a deterministic
-    ``silence_no_commit``.  It does not force speech: the organism may still
-    return None.  Keeping the mechanism shared prevents the voice door from
-    ending one structural stage earlier than the typed door.
-    """
-    if (_guala is None
-            or os.environ.get("CONVERSE_BABBLE_FALLTHROUGH", "1") == "0"):
-        return None
-    turn_seeds = [{"words": text.split()[:6],
-                   "provenance": "conversation_turn_words"}]
-    votes = _guala.precompute_organism_attempt(turn_seeds)
-    if votes is None:
-        return None
-    import time as _bt
-    with _guala.lock:
-        return _guala._compose_organism_attempt(
-            turn_seeds, _bt.monotonic() + 0.25,
-            organism_votes=votes, conversational=True)
-
-
 def _run_voice_reply(terminal_event, tick_hint):
     """Runs on the single voice-reply worker thread, never the request
     thread. Mirrors substrate_runner's autonomous-emission loop's own
@@ -223,12 +200,6 @@ def _run_voice_reply(terminal_event, tick_hint):
             )
         content = (turn_result.response or "").strip()
         response_source = turn_result.response_source
-        if not content and response_source == "silence_no_commit":
-            released = _compose_conversational_organism_fallthrough(
-                spoken_text)
-            if released is not None:
-                content = (released["content"] or "").strip()
-                response_source = released["response_source"]
         delivery.update({
             "response_source": response_source,
             "emission_id": turn_result.emission_id,
@@ -256,16 +227,6 @@ def _run_voice_reply(terminal_event, tick_hint):
                     p.as_record() if hasattr(p, "as_record") else p
                     for p in turn_result.commit_provenance],
             }
-        try:
-            _guala._self_hear(
-                content, "guala",
-                emission_id=turn_result.emission_id,
-                response_source=response_source)
-        except Exception as self_hear_error:
-            _guala._log_substrate_event(
-                "voice_reply_self_hear_error",
-                emission_id=turn_result.emission_id,
-                error=str(self_hear_error))
         delivery = {
             "status": "completed",
             "terminal_event_id": terminal_event_id,
@@ -6343,6 +6304,12 @@ class AuditoryL5TeachRequest(BaseModel):
     tutor_label: str
 
 
+class CausalActionTeachRequest(BaseModel):
+    trigger_experience_id: str
+    action_experience_id: str
+    source: Optional[str] = "joe"
+
+
 @app.get("/api/v1/auditory/status")
 async def auditory_l5_status():
     if _is_remote():
@@ -6446,6 +6413,53 @@ async def auditory_l5_teach_asset(
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except RuntimeError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
+    "/api/v1/causal-action/teach",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def causal_action_teach(req: CausalActionTeachRequest):
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    if req.trigger_experience_id == req.action_experience_id:
+        raise HTTPException(
+            status_code=400,
+            detail="trigger and action must be separate causal experiences",
+        )
+    for value in (
+        req.trigger_experience_id,
+        req.action_experience_id,
+    ):
+        if (
+            not isinstance(value, str)
+            or len(value) != 64
+            or any(character not in "0123456789abcdef" for character in value)
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="causal experience id must be canonical SHA-256",
+            )
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="remote causal action teaching has no durability barrier",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+
+    def _teach_and_commit():
+        return _guala.durably_teach_causal_action(
+            trigger_experience_id=req.trigger_experience_id,
+            action_experience_id=req.action_experience_id,
+            source=req.source,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(_teach_and_commit)
+    except (RuntimeError, ValueError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 
 @app.post("/api/v1/teacher/feedback")

@@ -257,6 +257,22 @@ def test_same_terminal_is_found_at_137_seconds_across_chunk_partitions() -> None
         assert len(replies) == 1
         event = replies[0]
         event.verify()
+        assert event.recognition_occurrence is not None
+        event.recognition_occurrence.verify()
+        assert (
+            event.recognition_occurrence.l5_authority_receipt_sha256
+            == event.l5_authority_receipt_sha256
+        )
+        assert len(
+            event.recognition_occurrence
+            .candidate_class_authority_receipts
+        ) == 1
+        assert (
+            event.recognition_occurrence
+            .selected_class_authority_receipt_sha256
+            == event.recognition_occurrence
+            .candidate_class_authority_receipts[0]
+        )
         extents.append((
             event.source_sample_start,
             event.source_sample_end,

@@ -30,6 +30,11 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SENSE_ORDER,
 )
+from dsf_ai_service.substrate.auditory_reciprocity import (
+    AuditoryRecognitionOccurrence,
+    AuditoryRecognitionState,
+    AuditoryReciprocityKind,
+)
 
 
 def _fraction_text(value: Fraction) -> str:
@@ -50,7 +55,7 @@ def _digest(value: object) -> str:
     return hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
-SETTLEMENT_PROFILE_PAYLOAD = b"guala.exact_causal_experience.settlement.profile.v2"
+SETTLEMENT_PROFILE_PAYLOAD = b"guala.exact_causal_experience.settlement.profile.v3"
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +98,7 @@ class ExactRecognizedLanguageEvent:
     source_event_id: str
     source_authority_receipt_sha256: str
     source_l5_authority_receipt_sha256: str
+    recognition_occurrence: AuditoryRecognitionOccurrence | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.form, str) or not self.form:
@@ -121,6 +127,19 @@ class ExactRecognizedLanguageEvent:
             self.source_l5_authority_receipt_sha256,
             "recognized language source L5 authority",
         )
+        if self.recognition_occurrence is not None:
+            self.recognition_occurrence.verify()
+            if (
+                self.recognition_occurrence.kind
+                is not AuditoryReciprocityKind.SPOKEN_FORM
+                or self.recognition_occurrence.state
+                is not AuditoryRecognitionState.UNIQUE
+                or self.recognition_occurrence.l5_authority_receipt_sha256
+                != self.source_l5_authority_receipt_sha256
+            ):
+                raise ValueError(
+                    "recognized language occurrence lost auditory authority"
+                )
 
 
 @dataclass(frozen=True, slots=True)
@@ -222,12 +241,16 @@ def causal_experience_settlement_receipt_payload(
                 "source_l5_authority_receipt_sha256": (
                     value.source_l5_authority_receipt_sha256
                 ),
+                "recognition_occurrence": (
+                    value.recognition_occurrence.as_record()
+                    if value.recognition_occurrence is not None else None
+                ),
                 "unicode_scalars": list(value.unicode_scalars),
             }
             for value in language_events
         ],
         "routing_chis": list(routing_chis),
-        "schema": "guala.exact_causal_experience.settlement.v2",
+        "schema": "guala.exact_causal_experience.settlement.v3",
         "source_tags": list(source_tags),
         "source_time_end": _fraction_text(source_time_end),
         "source_time_start": _fraction_text(source_time_start),
@@ -378,6 +401,7 @@ class ExactCausalExperienceOwner:
                     source_l5_authority_receipt_sha256=(
                         terminal.l5_authority_receipt_sha256
                     ),
+                    recognition_occurrence=terminal.recognition_occurrence,
                 ),)
             structural_fingerprint = _digest({
                 "interpretations": {
@@ -390,6 +414,12 @@ class ExactCausalExperienceOwner:
                 "language_events": [
                     {
                         "form": value.form,
+                        "recognition_class_authority_receipt_sha256": (
+                            value.recognition_occurrence
+                            .selected_class_authority_receipt_sha256
+                            if value.recognition_occurrence is not None
+                            else None
+                        ),
                         "unicode_scalars": list(value.unicode_scalars),
                     }
                     for value in language_events
