@@ -98,7 +98,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <!-- Permission Strip -->
 <div id="perm-strip">
   <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
-  <button class="perm-btn" id="teach-last-btn" onclick="teachThat()" title="teach her the words you just spoke — her recognizer learns YOUR voice, one utterance at a time">teach that</button>
   <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">auditory L5 ready — no sound observed</span>
   <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
   <span id="cam-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sight only — object naming unavailable</span>
@@ -548,49 +547,6 @@ async function startMicSoundStream(stream,generation){
     return epoch;
   }catch(error){
     _closePCMEpoch(epoch,true,false);throw error;
-  }
-}
-
-// GL-FEAT-TEACH-LAST-C1-20260722: your live voice becomes her recognizer's
-// vocabulary. Speak, press "teach that", type the words once — the just-
-// heard utterance (server-retained, bounded 8s) is taught through the same
-// tutor authority the three original phrases used. Next time she hears you
-// say it, it releases a terminal and gets a real reply.
-async function teachThat(){
-  const btn=document.getElementById('teach-last-btn');
-  if(btn)btn.disabled=true;
-  const wasListening=micGranted;
-  try{
-    let closeResult=null;
-    if(micEpoch&&micEpoch.active){
-      const epoch=micEpoch,streamId=epoch.streamId,settled=epoch.sendChain;
-      micEpochGeneration+=1;
-      _closePCMEpoch(epoch,false);
-      await Promise.resolve(settled).catch(()=>{});
-      closeResult=await fetch(`${API}/api/v1/auditory/pcm/close`,{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({stream_id:streamId,release_terminal:true})})
-        .then(r=>r.json()).catch(()=>null);
-      if(closeResult)_handleAuditoryTerminal(closeResult);
-    }
-    if(closeResult&&closeResult.recognized_form){
-      addMsg('she already recognized that: "'+closeResult.recognized_form+'" — no teaching needed','system');
-    }else if(closeResult&&closeResult.teachable){
-      const words=prompt('Teach her: what did you just say?');
-      if(words&&words.trim()){
-        const t=await fetch(`${API}/api/v1/auditory/teach-last`,{method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({tutor_label:words.trim().toLowerCase(),source:'joe'})})
-          .then(r=>r.json()).catch(e=>({detail:String(e)}));
-        if(t&&t.ok)addMsg('taught: "'+t.taught_label+'" — say it again and she will recognize your voice','system');
-        else addMsg('teach failed: '+((t&&(t.detail||t.error))||'unknown error'),'system');
-      }
-    }else{
-      addMsg('nothing teachable was retained — speak first, then press teach that','system');
-    }
-  }finally{
-    if(btn)btn.disabled=false;
-    if(wasListening){micGranted=false;await requestMic();}
   }
 }
 
