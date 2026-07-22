@@ -294,6 +294,43 @@ def test_current_update_keeps_old_generation_immutable_and_selects_new(tmp_path)
     assert not list(store.generations_directory.glob(".building-*"))
 
 
+def test_retention_preserves_current_and_two_newest_predecessors(tmp_path):
+    store = _store(tmp_path)
+    committed = [
+        store.commit(tick=tick, files=_files(tmp_path, marker=str(tick)))
+        for tick in range(70, 75)
+    ]
+
+    removed = store.prune_generations(
+        retain=3,
+        verified_current=committed[-1],
+    )
+
+    assert set(removed) == {
+        committed[0].generation_uuid,
+        committed[1].generation_uuid,
+    }
+    assert store.load_current().generation_uuid == committed[-1].generation_uuid
+    assert {
+        path.name for path in store.generations_directory.iterdir()
+    } == {
+        committed[2].generation_uuid,
+        committed[3].generation_uuid,
+        committed[4].generation_uuid,
+    }
+
+
+def test_retention_refuses_to_run_without_a_recovery_predecessor(tmp_path):
+    store = _store(tmp_path)
+    store.commit(tick=80, files=_files(tmp_path))
+
+    with pytest.raises(
+        GenerationValidationError,
+        match="CURRENT and a predecessor",
+    ):
+        store.prune_generations(retain=1)
+
+
 def test_current_replace_failure_preserves_prior_pointer_and_removes_temp(
         tmp_path, monkeypatch):
     store = _store(tmp_path)

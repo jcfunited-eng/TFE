@@ -59,6 +59,7 @@ DEPLOYMENT_SEAL_SCHEMA = "deployment_generation_seal_v1"
 MATERIALIZATION_SCHEMA = "deployment_generation_materialization_v1"
 OWNER_LOCK_SCHEMA = "deployment_generation_efs_owner_v1"
 DEPLOYMENT_SEAL_NAME = "DEPLOYMENT_SEAL.json"
+DEPLOYMENT_TRANSACTION_LOCK_NAME = ".deployment-transaction.lock"
 
 _CURRENT_KEYS = {
     "schema", "generation_uuid", "identity", "tick", "generation_path",
@@ -229,6 +230,21 @@ def _remove_private_tree(path: Path) -> None:
         raise DeploymentGenerationError(
             f"refusing to remove non-directory private path {path}")
     shutil.rmtree(path)
+
+
+@contextlib.contextmanager
+def _exclusive_deployment_transaction(root: Path) -> Iterator[None]:
+    """Own staging through publication and retire abandoned private stages."""
+    lock_path = root / DEPLOYMENT_TRANSACTION_LOCK_NAME
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        for candidate in sorted(root.glob(".deployment-stage-*")):
+            _remove_private_tree(candidate)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
 
 
 def _read_immutable_json(path: Path, description: str) -> tuple[dict, bytes]:
@@ -762,36 +778,37 @@ def stage_commit_upload(
         raise TypeError("pre_publish_validator must be callable")
     root = Path(store_root)
     root.mkdir(parents=True, exist_ok=True)
-    stage = Path(tempfile.mkdtemp(prefix=".deployment-stage-", dir=root))
-    os.chmod(stage, 0o700)
-    try:
-        save_callback(stage)
-        staged_files = _discover_staged_files(stage)
-        store = ImmutableGenerationStore(
-            root,
-            identity=_identity(identity),
-            required_files=tuple(staged_files),
-        )
-        generation = store.commit(
-            tick=_tick(tick), files=staged_files, publish_current=False)
-        if pre_publish_validator is not None:
-            pre_publish_validator(generation)
-        seal_json = upload_verified_generation(
-            generation,
-            s3_client=s3_client,
-            bucket=bucket,
-            prefix=prefix,
-            hmac_key=hmac_key,
-            nonce=nonce,
-        )
-        generation = store.publish(generation)
-        return DeploymentGenerationResult(
-            generation=generation,
-            _seal_json=seal_json,
-        )
-    finally:
-        if stage.exists():
-            _remove_private_tree(stage)
+    with _exclusive_deployment_transaction(root):
+        stage = Path(tempfile.mkdtemp(prefix=".deployment-stage-", dir=root))
+        os.chmod(stage, 0o700)
+        try:
+            save_callback(stage)
+            staged_files = _discover_staged_files(stage)
+            store = ImmutableGenerationStore(
+                root,
+                identity=_identity(identity),
+                required_files=tuple(staged_files),
+            )
+            generation = store.commit(
+                tick=_tick(tick), files=staged_files, publish_current=False)
+            if pre_publish_validator is not None:
+                pre_publish_validator(generation)
+            seal_json = upload_verified_generation(
+                generation,
+                s3_client=s3_client,
+                bucket=bucket,
+                prefix=prefix,
+                hmac_key=hmac_key,
+                nonce=nonce,
+            )
+            generation = store.publish(generation)
+            return DeploymentGenerationResult(
+                generation=generation,
+                _seal_json=seal_json,
+            )
+        finally:
+            if stage.exists():
+                _remove_private_tree(stage)
 
 
 def _materialized_expected_bytes(generation: LoadedGeneration) -> dict[str, bytes]:
@@ -1024,7 +1041,8 @@ def materialize_verified_generation(
 
 def materialize_current(
         *, store_root: str | os.PathLike[str],
-        active_directory: str | os.PathLike[str]) -> MaterializedGeneration:
+        active_directory: str | os.PathLike[str],
+        retained_generations: int | None = None) -> MaterializedGeneration:
     """Fully verify CURRENT, materialize it, and atomically activate it."""
     discovered = discover_and_load_current(store_root)
     store_path = Path(store_root).resolve(strict=True)
@@ -1032,10 +1050,16 @@ def materialize_current(
     if _path_is_within(resolved_active, store_path):
         raise MaterializationError(
             "active directory cannot be inside the immutable generation store")
-    return materialize_verified_generation(
+    materialized = materialize_verified_generation(
         generation=discovered.generation,
         active_directory=active_directory,
     )
+    if retained_generations is not None:
+        discovered.store.prune_generations(
+            retain=retained_generations,
+            verified_current=discovered.generation,
+        )
+    return materialized
 
 
 class ProcessLifetimeEFSOwnerLock:

@@ -38,6 +38,7 @@ MANIFEST_NAME = "MANIFEST.json"
 CURRENT_NAME = "CURRENT"
 GENERATIONS_DIRECTORY = "generations"
 LOCK_NAME = ".generation-store.lock"
+MINIMUM_RETAINED_GENERATIONS = 2
 
 _ENVELOPE_KEYS = {
     "schema", "generation_uuid", "identity", "tick", "relative_path",
@@ -676,6 +677,166 @@ class ImmutableGenerationStore:
             return verified
 
     @staticmethod
+    def _remove_retired_generation(path: Path) -> None:
+        """Remove one exact non-CURRENT generation without following links."""
+        try:
+            root_info = path.lstat()
+        except FileNotFoundError as error:
+            raise GenerationValidationError(
+                f"retired generation {path.name!r} disappeared"
+            ) from error
+        if (
+            path.is_symlink()
+            or not stat.S_ISDIR(root_info.st_mode)
+            or stat.S_IMODE(root_info.st_mode) != 0o555
+        ):
+            raise GenerationValidationError(
+                f"retired generation {path.name!r} is unsafe"
+            )
+        directories = []
+        for current_root, directory_names, file_names in os.walk(
+                path, topdown=True, followlinks=False):
+            current = Path(current_root)
+            if current.is_symlink() or not current.is_dir():
+                raise GenerationValidationError(
+                    f"retired generation contains unsafe directory {current}"
+                )
+            directories.append(current)
+            for name in directory_names:
+                child = current / name
+                if child.is_symlink() or not child.is_dir():
+                    raise GenerationValidationError(
+                        f"retired generation contains unsafe directory {child}"
+                    )
+            for name in file_names:
+                child = current / name
+                info = child.lstat()
+                if child.is_symlink() or not stat.S_ISREG(info.st_mode):
+                    raise GenerationValidationError(
+                        f"retired generation contains unsafe file {child}"
+                    )
+        for directory in reversed(directories):
+            os.chmod(directory, 0o700)
+        shutil.rmtree(path)
+
+    def _retention_metadata(self, path: Path) -> tuple[int, str]:
+        generation_uuid = _canonical_generation_uuid(path.name)
+        manifest, manifest_bytes = _read_strict_json_file(
+            path / MANIFEST_NAME,
+            f"retention manifest {generation_uuid!r}",
+        )
+        if (
+            not isinstance(manifest, dict)
+            or set(manifest) != _MANIFEST_KEYS
+            or manifest.get("schema") != MANIFEST_SCHEMA
+            or manifest.get("generation_uuid") != generation_uuid
+            or manifest.get("identity") != self.identity
+        ):
+            raise GenerationValidationError(
+                f"retention manifest {generation_uuid!r} is invalid"
+            )
+        tick = _validated_tick(manifest.get("tick"))
+        if manifest_bytes != _canonical_json(manifest):
+            raise GenerationValidationError(
+                f"retention manifest {generation_uuid!r} is not canonical"
+            )
+        return tick, generation_uuid
+
+    def prune_generations(
+        self,
+        *,
+        retain: int = 3,
+        verified_current: LoadedGeneration | None = None,
+    ) -> tuple[str, ...]:
+        """Retain CURRENT plus the newest immutable-manifest predecessors.
+
+        The CURRENT generation is fully verified before any retirement.  A
+        non-CURRENT directory is eligible only when its immutable manifest
+        identifies this store and its UUID-derived path.  The finite retained
+        count is a persistence resource boundary; it never changes substrate
+        state or the remote sealed generations.
+        """
+        if (
+            isinstance(retain, bool)
+            or not isinstance(retain, int)
+            or retain < MINIMUM_RETAINED_GENERATIONS
+        ):
+            raise GenerationValidationError(
+                "generation retention must preserve CURRENT and a predecessor"
+            )
+        with self._exclusive_writer():
+            if verified_current is None:
+                current = self.load_current()
+            else:
+                if (
+                    not isinstance(verified_current, LoadedGeneration)
+                    or verified_current.identity != self.identity
+                    or verified_current.required_files != self.required_files
+                    or verified_current.directory.parent
+                    != self.generations_directory
+                ):
+                    raise GenerationValidationError(
+                        "verified CURRENT does not belong to this generation store"
+                    )
+                pointer, canonical = self._read_current()
+                if (
+                    not canonical
+                    or pointer["generation_uuid"]
+                    != verified_current.generation_uuid
+                    or pointer["tick"] != verified_current.tick
+                    or pointer["manifest_sha256"]
+                    != verified_current.manifest_sha256
+                ):
+                    raise GenerationValidationError(
+                        "verified CURRENT differs from the published pointer"
+                    )
+                current = verified_current
+            metadata = []
+            for path in self.generations_directory.iterdir():
+                if path.name.startswith(".building-"):
+                    raise GenerationValidationError(
+                        "unfinished generation requires inspection before retention"
+                    )
+                metadata.append((*self._retention_metadata(path), path))
+            metadata.sort(
+                key=lambda item: (item[0], item[1]),
+                reverse=True,
+            )
+            retained = {current.generation_uuid}
+            for _tick, generation_uuid, _path in metadata:
+                if generation_uuid == current.generation_uuid:
+                    continue
+                if len(retained) >= retain:
+                    break
+                retained.add(generation_uuid)
+            removable = tuple(
+                (generation_uuid, path)
+                for _tick, generation_uuid, path in metadata
+                if generation_uuid not in retained
+            )
+            for generation_uuid, path in removable:
+                if generation_uuid == current.generation_uuid:
+                    raise GenerationValidationError(
+                        "generation retention selected CURRENT for removal"
+                    )
+                self._remove_retired_generation(path)
+            if removable:
+                _fsync_directory(self.generations_directory)
+            if verified_current is None:
+                self.load_current()
+            else:
+                pointer, canonical = self._read_current()
+                if (
+                    not canonical
+                    or pointer["generation_uuid"] != current.generation_uuid
+                    or not current.directory.is_dir()
+                ):
+                    raise GenerationValidationError(
+                        "generation retention changed CURRENT"
+                    )
+            return tuple(generation_uuid for generation_uuid, _path in removable)
+
+    @staticmethod
     def _remove_building_directory(building: Path) -> None:
         """Remove only this call's unpublished private directory."""
         for current_root, directory_names, _file_names in os.walk(
@@ -760,4 +921,5 @@ __all__ = [
     "ImmutableGenerationStore",
     "LoadedGeneration",
     "MANIFEST_NAME",
+    "MINIMUM_RETAINED_GENERATIONS",
 ]

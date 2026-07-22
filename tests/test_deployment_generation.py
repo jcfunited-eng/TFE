@@ -341,6 +341,29 @@ def test_save_callback_failure_cleans_private_stage(tmp_path):
     assert not list((tmp_path / "store").glob(".deployment-stage-*"))
 
 
+def test_next_transaction_retires_abandoned_private_stage(tmp_path):
+    root = tmp_path / "store"
+    abandoned = root / ".deployment-stage-interrupted"
+    abandoned.mkdir(parents=True)
+    (abandoned / "partial.bin").write_bytes(b"unpublished")
+
+    result = stage_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=2,
+        save_callback=_save_callback,
+        s3_client=FakeS3(),
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+    )
+
+    assert result.generation.tick == 2
+    assert not abandoned.exists()
+    assert not list(root.glob(".deployment-stage-*"))
+
+
 def test_named_hidden_state_marker_is_required_but_not_misclassified_as_temp(
         tmp_path):
     def save_with_marker(stage):
@@ -466,6 +489,35 @@ def test_materialize_current_unwraps_json_and_preserves_binary(tmp_path):
         for relative in generation.required_files
     } == immutable_before
     assert not list(active.parent.glob(f".{active.name}.materializing-*"))
+
+
+def test_materialize_current_applies_the_generation_retention_boundary(tmp_path):
+    store, first = _committed_generation(tmp_path)
+    source = tmp_path / "source"
+    generations = [first]
+    for tick in range(78, 82):
+        generations.append(store.commit(
+            tick=tick,
+            files={
+                relative: source / relative
+                for relative in store.required_files
+            },
+        ))
+
+    result = materialize_current(
+        store_root=store.root,
+        active_directory=tmp_path / "active",
+        retained_generations=3,
+    )
+
+    assert result.generation_uuid == generations[-1].generation_uuid
+    assert {
+        path.name for path in store.generations_directory.iterdir()
+    } == {
+        generations[-1].generation_uuid,
+        generations[-2].generation_uuid,
+        generations[-3].generation_uuid,
+    }
 
 
 def test_materialization_rolls_back_existing_active_directory_on_post_swap_failure(

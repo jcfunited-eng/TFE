@@ -2300,6 +2300,7 @@ def _prepare_generation_boot():
         baseline = materialize_current(
             store_root=GENERATION_STORE_ROOT,
             active_directory=STATE_DIR,
+            retained_generations=3,
         )
         live_store = LiveRecoveryGenerationStore(
             LIVE_RECOVERY_STORE_ROOT,
@@ -8344,6 +8345,18 @@ def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
         )
         app.state.deployment_baseline_generation = result.generation
         app.state.loaded_generation = _loaded_generation
+    from dsf_ai_service.substrate.immutable_generation_store import (
+        ImmutableGenerationStore,
+    )
+    generation_store = ImmutableGenerationStore(
+        GENERATION_STORE_ROOT,
+        identity=result.generation.identity,
+        required_files=result.generation.required_files,
+    )
+    generation_store.prune_generations(
+        retain=3,
+        verified_current=result.generation,
+    )
     return certificate
 
 
