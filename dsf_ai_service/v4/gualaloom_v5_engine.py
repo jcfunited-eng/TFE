@@ -4227,15 +4227,36 @@ class Guala:
                 # scan (boot/restore), not instantly here, since reinforcement
                 # of an existing mode doesn't change len(modes) and so never
                 # reaches this incremental branch at all.
+                # GL-FIX-HEARD-GROUNDING-C1-20260722 completion: the gate
+                # above fires only for BRAND-NEW modes. On an aged brain a
+                # heard common word usually REINFORCES a mode it founded
+                # ungrounded during reading — the comment above defers that
+                # word to "the next full scan (boot/restore)", i.e. never
+                # in practice. The grounded reinforcement already writes
+                # real_grounding=True to the atlas record (which is exactly
+                # what the boot rebuild would index), so index it now:
+                # same evidence, no reboot. Honesty guard: only when the
+                # reinforced mode is genuinely THIS word's mode (the
+                # selector reads the mode's own word label; indexing a
+                # different word's mode would misattribute speech).
                 if (primary_section in self._EMISSION_SECTIONS
-                        and len(self.sections[primary_section].modes) > n_modes_before
+                        and _committed
                         and (not _require_grounded_speech() or _akw.get("real_grounding"))):
                     wl = word.lower()
-                    mi = len(self.sections[primary_section].modes) - 1
-                    if wl not in self._word_to_emission_sections:
-                        self._word_to_emission_sections[wl] = []
-                    self._word_to_emission_sections[wl].append(
-                        (primary_section, mi, word))
+                    _sec_modes = self.sections[primary_section].modes
+                    if len(_sec_modes) > n_modes_before:
+                        mi = len(_sec_modes) - 1
+                    elif (_mode_idx is not None
+                            and _mode_idx < len(_sec_modes)
+                            and (_sec_modes[_mode_idx][2] or "").lower() == wl):
+                        mi = _mode_idx
+                    else:
+                        mi = None
+                    if mi is not None:
+                        locs = self._word_to_emission_sections.setdefault(wl, [])
+                        if not any(s == primary_section and m == mi
+                                   for s, m, *_ in locs):
+                            locs.append((primary_section, mi, word))
             _prof_t0 = _prof_mark("primary_sections_receive", _prof_t0)
 
             if senses:

@@ -124,6 +124,26 @@ def test_heard_words_enter_speakable_index(guala):
         f"index after read: {sorted(indexed)}")
 
 
+def test_reground_of_previously_read_word_indexes_on_reinforcement(guala):
+    # Aged-brain case: the word already founded its modes UNGROUNDED
+    # (ordinary reading), so hearing it later reinforces instead of
+    # creating a new mode — the original gate never fired and the word
+    # stayed unspeakable until a reboot rescan. Grounded reinforcement
+    # must index immediately (same evidence the boot rebuild would use).
+    guala.read_sentence("daddy says hello", source="joe")
+    before = set(guala._word_to_emission_sections)
+    assert not (before & {"daddy", "says", "hello"}), (
+        "control: ungrounded reading must not index (credo gate)")
+    terminal = _issue(guala, _terminal("daddy says hello"))
+    guala.read_sentence(
+        "daddy says hello", source="auditory:unresolved_source",
+        causal_intake=terminal)
+    indexed = set(guala._word_to_emission_sections)
+    assert indexed & {"daddy", "says", "hello"}, (
+        "hearing a previously-read word in a grounded moment must make "
+        f"it speakable; index: {sorted(indexed)}")
+
+
 def test_merely_read_word_stays_ungrounded(guala):
     guala.read_sentence("zymurgy", source="joe")
     assert "zymurgy" not in guala._word_to_emission_sections, (
