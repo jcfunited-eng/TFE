@@ -8979,9 +8979,101 @@ class Guala:
             if not deep_candidates:
                 return EmissionSettlement(tick=self.tick)
 
-            return self._emit_dynamics(
+            first = self._emit_dynamics(
                 input_chis, input_words_set, deep_candidates,
                 v7_session=v7_session, input_words=input_words)
+
+            # GL-FEAT-UTTERANCE-WALK-C1-20260722: an utterance is a walk,
+            # not a single shot. The settle above commits 0-2 words and
+            # stops by construction — there was no mechanism for a
+            # committed word to carry the utterance forward, which is why
+            # replies were one word while the atlas holds a library. Each
+            # further step is the IDENTICAL physics run again: candidates
+            # re-gathered with the just-committed words as the organism/
+            # deep-atlas queries (the utterance's own associations drive
+            # the continuation), anchors extended by the committed words'
+            # real chi (the walk stays tethered to the conversation and
+            # drifts only through lived bindings), every gate — agency
+            # backtrack, dead-zone, NMDA, wall budget — unchanged per
+            # step. Already-spoken words join the anti-echo set, so the
+            # walk can never loop. It ends the honest way: the dynamics
+            # themselves go quiet (a step with no commit), or the bounded
+            # walk budget/word cap is reached. No new store, no new
+            # index, no new process — iteration of what exists, bounded:
+            # UTTERANCE_WALK_MAX_WORDS total words (0/1 disables the
+            # walk), UTTERANCE_WALK_BUDGET_S wall clock for the extra
+            # steps (same kind of budget bound as EMISSION_WALL_BUDGET_S).
+            _walk_cap = int(os.environ.get("UTTERANCE_WALK_MAX_WORDS", "5"))
+            _walk_budget = float(os.environ.get(
+                "UTTERANCE_WALK_BUDGET_S", "8.0"))
+            if first.n_commits == 0 or _walk_cap <= 1:
+                return first
+
+            _walk_deadline = time.monotonic() + _walk_budget
+            chain_words = list(first.content.split())
+            chain_sections = list(first.committed_sections)
+            chain_prov = list(first.commit_provenance)
+            n_commits_total = first.n_commits
+            organ_any = first.organ_in_commits
+            spoken = set(input_words_set)
+            anchors = list(input_chis)
+            step_words = chain_words
+            n_steps = 1
+            while (len(chain_words) < _walk_cap
+                    and step_words
+                    and time.monotonic() < _walk_deadline):
+                for w in step_words:
+                    wl = w.lower()
+                    spoken.add(wl)
+                    anchors.append(self._candidate_word_chi(wl, anchors))
+                step_candidates = self._brain_emission_candidates(
+                    step_words, input_chis=anchors)
+                if not step_candidates:
+                    break
+                step = self._emit_dynamics(
+                    anchors, spoken, step_candidates,
+                    v7_session=v7_session, input_words=list(spoken))
+                if step.n_commits == 0 or not step.content:
+                    break
+                step_words = [w for w in step.content.split()
+                              if w.lower() not in spoken]
+                if not step_words:
+                    break
+                room = _walk_cap - len(chain_words)
+                step_words = step_words[:room]
+                chain_words.extend(step_words)
+                chain_sections.extend(step.committed_sections)
+                chain_prov.extend(step.commit_provenance)
+                n_commits_total += step.n_commits
+                organ_any = organ_any or step.organ_in_commits
+                n_steps += 1
+
+            if n_steps == 1:
+                return first
+            walk_text = " ".join(chain_words)
+            self._log_substrate_event(
+                "utterance_walk", content=walk_text, n_steps=n_steps,
+                n_words=len(chain_words),
+                n_commits=n_commits_total)
+            walk_settlement = EmissionSettlement(
+                content=walk_text,
+                committed_sections=tuple(chain_sections),
+                n_commits=n_commits_total,
+                organ_in_commits=organ_any,
+                tick=self.tick,
+                commit_provenance=tuple(chain_prov))
+            self._last_dynamics_result = {
+                "content": walk_text,
+                "committed_sections": list(chain_sections),
+                "n_commits": n_commits_total,
+                "dynamics_commits": n_commits_total,
+                "organ_in_commits": organ_any,
+                "commit_provenance": [
+                    p.as_record() if hasattr(p, "as_record") else p
+                    for p in chain_prov],
+                "tick": self.tick,
+            }
+            return walk_settlement
 
     # Phase 3b constants — context prior weights
     INTRO_RECENCY_BOOST = 2.0
