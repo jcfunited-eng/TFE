@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+import dsf_ai_service.v4.gualaloom_v5_engine as engine_module
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     Activity,
     Guala,
@@ -277,6 +278,51 @@ def _write_exact_state(state_dir, monkeypatch, *, wave=False):
             writer._save_wave_atlas(str(state_dir))
     finally:
         writer.strict_shutdown(timeout=30.0)
+
+
+def test_teaching_state_refuses_oversize_before_json_parse(
+        tmp_path, monkeypatch):
+    teaching_path = tmp_path / "guala_teaching.json"
+    with teaching_path.open("wb") as output:
+        output.truncate(engine_module.TEACHING_STATE_MAX_BYTES + 1)
+
+    def forbidden_parse(*_args, **_kwargs):
+        raise AssertionError("oversized teaching state reached json.load")
+
+    monkeypatch.setattr(engine_module.json, "load", forbidden_parse)
+    with pytest.raises(ValueError, match="pre-parse byte boundary"):
+        Guala._load_teaching_state_file(str(teaching_path))
+
+
+def test_verified_exact_state_can_enter_finite_legacy_migration_wall(
+        tmp_path, monkeypatch):
+    teaching_path = tmp_path / "guala_teaching.json"
+    with teaching_path.open("wb") as output:
+        output.truncate(engine_module.TEACHING_STATE_MAX_BYTES + 1)
+
+    monkeypatch.setattr(engine_module.json, "load", lambda _stream: {})
+
+    assert Guala._load_teaching_state_file(
+        str(teaching_path), allow_legacy_migration=True) == {}
+
+
+def test_current_teaching_state_restores_inside_preparse_boundary(
+        tmp_path, monkeypatch):
+    state_dir = tmp_path / "state"
+    _write_exact_state(state_dir, monkeypatch)
+    teaching_path = state_dir / "guala_teaching.json"
+    assert teaching_path.stat().st_size <= engine_module.TEACHING_STATE_MAX_BYTES
+
+    reader = Guala()
+    try:
+        reader.load_full_state(
+            str(state_dir), require_exact_binary=True)
+        assert reader._load_successful, reader._load_errors
+        assert reader.auditory_l5_status()["reciprocity"][
+            "encoded_snapshot_capacity_bytes"
+        ] == 15 * 1024 * 1024
+    finally:
+        reader.strict_shutdown(timeout=30.0)
 
 
 @pytest.mark.parametrize(

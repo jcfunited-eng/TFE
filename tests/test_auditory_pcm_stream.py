@@ -1,0 +1,304 @@
+from __future__ import annotations
+
+import math
+import struct
+import wave
+from io import BytesIO
+
+import numpy as np
+import pytest
+
+from dsf_ai_service.substrate.auditory_pcm_stream import (
+    AuditoryPCMStreamRegistry,
+    PCM_RING_BYTES,
+    PCM_SAMPLE_RATE_HZ,
+    pcm_s16le_wav,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AuditoryFullFieldStream,
+    AuditoryFullFieldStreamRegistry,
+    transduce_auditory_full_field,
+)
+import dsf_ai_service.substrate.senses.auditory_full_field_provider as provider
+
+
+def _pcm(sample_count: int, *, offset: int = 0) -> bytes:
+    values = tuple(
+        int(12_000 * math.sin(2 * math.pi * 317 * (offset + index) / 16_000))
+        for index in range(sample_count)
+    )
+    return struct.pack(f"<{len(values)}h", *values)
+
+
+def _field(pcm: bytes):
+    samples = np.frombuffer(pcm, dtype="<i2").astype(np.float64) / 32768.0
+    return transduce_auditory_full_field(
+        samples, sample_rate_hz=PCM_SAMPLE_RATE_HZ
+    )
+
+
+def test_contiguous_chunks_reconstruct_identical_unsplit_auditory_field() -> None:
+    registry = AuditoryPCMStreamRegistry()
+    opened = registry.open()
+    stream_id = opened["stream_id"]
+    complete = _pcm(96_000)
+    cuts = (17_333, 61_777, 96_000)
+    start = 0
+    accepted = None
+    for sequence, end in enumerate(cuts):
+        accepted = registry.accept(
+            stream_id=stream_id,
+            sequence=sequence,
+            first_sample_index=start,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=complete[start * 2:end * 2],
+        )
+        accepted.receipt.verify()
+        start = end
+
+    assert accepted is not None
+    assert accepted.bounded_pcm_tail == complete
+    assert accepted.bounded_tail_first_sample_index == 0
+    assert _field(accepted.bounded_pcm_tail) == _field(complete)
+
+
+@pytest.mark.parametrize(
+    ("sequence", "first_sample_index"),
+    ((0, 10), (1, 0), (2, 32), (0, 0)),
+)
+def test_gap_duplicate_reorder_or_overlap_closes_epoch(
+    sequence: int, first_sample_index: int
+) -> None:
+    registry = AuditoryPCMStreamRegistry()
+    stream_id = registry.open()["stream_id"]
+    first = _pcm(32)
+    registry.accept(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=first,
+    )
+    with pytest.raises(ValueError, match="discontinuous"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=sequence,
+            first_sample_index=first_sample_index,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=_pcm(32, offset=32),
+        )
+    with pytest.raises(ValueError, match="unknown or expired"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=1,
+            first_sample_index=32,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=_pcm(32, offset=32),
+        )
+    assert registry.status()["active_streams"] == 0
+
+
+def test_ring_is_bounded_and_preserves_sample_alignment() -> None:
+    registry = AuditoryPCMStreamRegistry()
+    stream_id = registry.open()["stream_id"]
+    first = _pcm(80_000)
+    second = _pcm(80_000, offset=80_000)
+    registry.accept(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=first,
+    )
+    accepted = registry.accept(
+        stream_id=stream_id,
+        sequence=1,
+        first_sample_index=80_000,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=second,
+    )
+
+    assert len(accepted.bounded_pcm_tail) == PCM_RING_BYTES
+    assert accepted.bounded_tail_first_sample_index == 32_000
+    assert accepted.bounded_pcm_tail == (first + second)[-PCM_RING_BYTES:]
+    assert registry.status()["retained_pcm_bytes"] == PCM_RING_BYTES
+
+
+def test_expired_stream_cannot_be_resumed() -> None:
+    now = [0.0]
+    registry = AuditoryPCMStreamRegistry(
+        clock=lambda: now[0], idle_seconds=5
+    )
+    stream_id = registry.open()["stream_id"]
+    now[0] = 6.0
+    with pytest.raises(ValueError, match="unknown or expired"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=_pcm(32),
+        )
+
+
+def test_invalid_rate_shape_and_oversize_fail_before_state_mutation() -> None:
+    registry = AuditoryPCMStreamRegistry()
+    stream_id = registry.open()["stream_id"]
+    with pytest.raises(ValueError, match="16 kHz"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=48_000,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=b"\0\0",
+        )
+    with pytest.raises(ValueError, match="signed 16-bit"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=b"\0",
+        )
+    with pytest.raises(ValueError, match="sample boundary"):
+        registry.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=b"\0\0" * (8 * PCM_SAMPLE_RATE_HZ + 1),
+        )
+    accepted = registry.accept(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=b"\0\0" * 32,
+    )
+    assert accepted.receipt.sequence == 0
+
+
+def test_pcm_wav_wrapper_is_lossless_and_canonical() -> None:
+    pcm = _pcm(321)
+    encoded = pcm_s16le_wav(pcm)
+    with wave.open(BytesIO(encoded), "rb") as stream:
+        assert stream.getnchannels() == 1
+        assert stream.getsampwidth() == 2
+        assert stream.getframerate() == PCM_SAMPLE_RATE_HZ
+        assert stream.getnframes() == 321
+        assert stream.readframes(321) == pcm
+
+
+def test_stateful_cochlea_is_exactly_invariant_to_transport_partition(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(provider, "_native_gammatone_field", None)
+    monkeypatch.setattr(provider, "_native_gammatone_stream", None)
+    registry = AuditoryPCMStreamRegistry()
+    stream_id = registry.open()["stream_id"]
+    stream = AuditoryFullFieldStream()
+    complete = _pcm(96_000)
+    cuts = (17_333, 61_777, 96_000)
+    start = 0
+    captures = []
+    receipts = []
+    for sequence, end in enumerate(cuts):
+        accepted = registry.accept(
+            stream_id=stream_id,
+            sequence=sequence,
+            first_sample_index=start,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=complete[start * 2:end * 2],
+        )
+        capture, receipt = stream.advance(
+            accepted.pcm_s16le, accepted.receipt
+        )
+        captures.append(capture)
+        receipts.append(receipt)
+        start = end
+
+    unsplit = _field(complete)
+    assert receipts[0].prior_state_receipt_sha256 is None
+    assert receipts[1].prior_state_receipt_sha256 == receipts[0].receipt_sha256
+    assert receipts[2].prior_state_receipt_sha256 == receipts[1].receipt_sha256
+    for receipt in receipts:
+        receipt.verify()
+    for port_index, expected in enumerate(unsplit.channels):
+        pressure = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[
+                port_index
+            ].pressure_envelope_full_scale
+        )
+        phase = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[port_index].carrier_phase_turns
+        )
+        offsets = tuple(
+            value
+            for capture in captures
+            for value in capture.channels[port_index].causal_offsets_ns
+        )
+        assert pressure == expected.pressure_envelope_full_scale
+        assert phase == expected.carrier_phase_turns
+        assert offsets == expected.causal_offsets_ns
+
+
+def test_interleaved_streams_preserve_independent_cochlear_histories(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(provider, "_native_gammatone_field", None)
+    monkeypatch.setattr(provider, "_native_gammatone_stream", None)
+    transport = AuditoryPCMStreamRegistry()
+    stream_ids = (transport.open()["stream_id"], transport.open()["stream_id"])
+    cochleae = AuditoryFullFieldStreamRegistry()
+    complete = (_pcm(640), _pcm(640, offset=177))
+    captures = {stream_id: [] for stream_id in stream_ids}
+
+    for sequence, (start, end) in enumerate(((0, 320), (320, 640))):
+        for stream_index, stream_id in enumerate(stream_ids):
+            accepted = transport.accept(
+                stream_id=stream_id,
+                sequence=sequence,
+                first_sample_index=start,
+                sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+                source_epoch_start_ns=(stream_index + 1) * 1_000_000_000,
+                pcm_s16le=complete[stream_index][start * 2:end * 2],
+            )
+            capture, _ = cochleae.advance(
+                accepted.pcm_s16le, accepted.receipt
+            )
+            captures[stream_id].append(capture)
+
+    for stream_index, stream_id in enumerate(stream_ids):
+        expected = _field(complete[stream_index])
+        for port_index, port in enumerate(expected.channels):
+            assert tuple(
+                value
+                for capture in captures[stream_id]
+                for value in capture.channels[
+                    port_index
+                ].pressure_envelope_full_scale
+            ) == port.pressure_envelope_full_scale
+            assert tuple(
+                value
+                for capture in captures[stream_id]
+                for value in capture.channels[
+                    port_index
+                ].carrier_phase_turns
+            ) == port.carrier_phase_turns
+    assert cochleae.status()["active_streams"] == 2

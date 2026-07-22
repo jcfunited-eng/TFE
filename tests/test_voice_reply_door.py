@@ -16,10 +16,11 @@ converse() calls.
 
 Gates:
 1. Recognized speech triggers exactly one converse() call, with the
-   transcript and source="joe" -- not read_sentence.
-2. While a reply is composing (busy flag set), a second recognized
-   utterance is silently skipped, not queued -- never two overlapping
-   converse() calls.
+   transcript and unresolved auditory-source provenance -- not read_sentence
+   and never a fabricated Joe identity.
+2. While a reply is composing, one additional recognized terminal is
+   admitted to the single pending slot and composed afterward. A third is
+   rejected, so replies never overlap and no backlog can grow.
 3. The busy flag clears after completion, success or failure, so the
    NEXT utterance after the current one finishes is not permanently
    blocked.
@@ -37,6 +38,7 @@ Gates:
 
 import sys
 import os
+import asyncio
 import threading
 import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -76,11 +78,14 @@ class _FakeGuala:
 
 
 def _reset():
-    appmod._voice_reply_busy.clear()
+    with appmod._voice_reply_state_lock:
+        appmod._voice_reply_busy.clear()
+        appmod._voice_reply_pending = None
+        appmod._voice_turn_results.clear()
 
 
 def test_gate1_recognized_speech_calls_converse_not_read_sentence():
-    print("Gate 1: converse() called with the transcript and source=joe...")
+    print("Gate 1: converse() called with unresolved auditory provenance...")
     _reset()
     fake = _FakeGuala(reply="")
     appmod._guala = fake
@@ -90,12 +95,14 @@ def test_gate1_recognized_speech_calls_converse_not_read_sentence():
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
-    assert fake.converse_calls == [("hello guala", "joe")], fake.converse_calls
+    assert fake.converse_calls == [
+        ("hello guala", "auditory:unresolved_source")
+    ], fake.converse_calls
     print("  PASS: converse() called exactly once, correct args")
 
 
-def test_gate2_overlapping_utterance_is_skipped_not_queued():
-    print("Gate 2: a second utterance while busy is skipped...")
+def test_gate2_one_pending_utterance_is_bounded_and_serial():
+    print("Gate 2: one pending utterance is admitted without overlap...")
     _reset()
     fake = _FakeGuala(reply="reply one", delay=0.3)
     appmod._guala = fake
@@ -103,13 +110,18 @@ def test_gate2_overlapping_utterance_is_skipped_not_queued():
     assert first is True
     assert appmod._voice_reply_busy.is_set()
     second = appmod._maybe_trigger_voice_reply("second utterance", fake.tick)
-    assert second is False, "a second utterance must be skipped while busy"
+    third = appmod._maybe_trigger_voice_reply("third utterance", fake.tick)
+    assert second is True, "one pending utterance must be admitted"
+    assert third is False, "the bounded pending slot must reject a third"
     for _ in range(50):
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
-    assert fake.converse_calls == [("first utterance", "joe")], fake.converse_calls
-    print("  PASS: overlapping utterance skipped, only the first was composed")
+    assert fake.converse_calls == [
+        ("first utterance", "auditory:unresolved_source"),
+        ("second utterance", "auditory:unresolved_source"),
+    ], fake.converse_calls
+    print("  PASS: one pending utterance composed serially; third rejected")
 
 
 def test_gate3_busy_flag_clears_after_completion():
@@ -147,7 +159,10 @@ def test_gate4_real_reply_reaches_last_autonomous_thought():
     srmod._last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
     fake = _FakeGuala(reply="a real committed reply")
     appmod._guala = fake
-    appmod._maybe_trigger_voice_reply("say something", fake.tick)
+    terminal_event_id = "a" * 64
+    appmod._maybe_trigger_voice_reply(
+        "say something", fake.tick, terminal_event_id
+    )
     for _ in range(50):
         if not appmod._voice_reply_busy.is_set():
             break
@@ -158,6 +173,13 @@ def test_gate4_real_reply_reaches_last_autonomous_thought():
     assert t["category"] == "voice_reply"
     assert t["source"] == "guala"
     assert t["response_source"] == "assemblage_commit"
+    assert t["terminal_event_id"] == terminal_event_id
+    delivered = asyncio.run(
+        appmod.auditory_terminal_reply(terminal_event_id)
+    )
+    assert delivered["status"] == "completed"
+    assert delivered["speech"] == "a real committed reply"
+    assert delivered["emission_id"] == "test-emission-1"
     print("  PASS: real reply written in the existing /thought poll shape")
 
 
@@ -241,7 +263,7 @@ def test_gate7_structural_silence_uses_typed_organism_fallthrough():
 
 if __name__ == "__main__":
     test_gate1_recognized_speech_calls_converse_not_read_sentence()
-    test_gate2_overlapping_utterance_is_skipped_not_queued()
+    test_gate2_one_pending_utterance_is_bounded_and_serial()
     test_gate3_busy_flag_clears_after_completion()
     test_gate4_real_reply_reaches_last_autonomous_thought()
     test_gate5_real_reply_self_hears()

@@ -98,7 +98,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <!-- Permission Strip -->
 <div id="perm-strip">
   <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
-  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sound only — spoken-word recognition unavailable</span>
+  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">auditory L5 ready — no sound observed</span>
   <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
   <span id="cam-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sight only — object naming unavailable</span>
   <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
@@ -251,122 +251,299 @@ async function triggerSleep(){
 }
 
 // --- Permission Strip (5a: toggle off support) ---
-// Microphone audio is raw sound experience, PLUS boundary speech-to-text
-// when the server has VOICE_WHISPER on (port of a8277fa): the transducer
-// converts joe_voice audio to words at the boundary and they enter through
-// the same read_sentence door as typed text. Semantic recognition inside
-// the substrate remains Fact-Strand-only; when the transducer is off the
-// server reports spoken-word recognition unavailable and this UI says so.
-// GL-CMD-MIC-CHUNKING-111: restart-per-interval, not timeslice. A long-lived
-// MediaRecorder(stream,{...}).start(5000) only emits a self-contained WebM
-// on its FIRST ondataavailable blob; every later 5s blob is a headerless
-// cluster continuation ffmpeg can't parse alone (G-110-2's finding). Cycling
-// a fresh MediaRecorder every ~5s means every stop() delivers one complete,
-// independently-decodable WebM file. Server is untouched — stateless either way.
-let micStream=null,micRecorder=null,micCycleActive=false,_micCycleTimer=null,_micLastCycleEndTs=0,_micRequestInFlight=false,_micChunksDropped=0;
-function _sendMicChunk(blob,captureStartedMs,captureEndedMs,sightCapturedMs,sightPromise){
-  if(blob.size<100)return;
-  if(_micRequestInFlight){
-    _micChunksDropped+=1;
-    const status=document.getElementById('mic-status');
-    status.textContent='listening — one earlier experience is still settling; '+_micChunksDropped+' later chunk(s) not admitted';
-    status.style.color='#d29922';
-    return;
-  }
-  _micRequestInFlight=true;
-  const reader=new FileReader();
-  reader.onload=async()=>{
-    try{
-      const b64=reader.result.split(',')[1];
-      const sight_b64=await sightPromise;
-      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice',sight_b64,capture_started_ms:captureStartedMs,capture_ended_ms:captureEndedMs,sight_captured_ms:sight_b64?sightCapturedMs:null})},25000)
-      .then(r=>r.json())
-      .then(d=>{
-        const status=document.getElementById('mic-status');
-        if(!d.ok){status.textContent='raw sound failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
-        // Render the server's real report — never assume. The boundary STT
-        // transducer (port of a8277fa) may be on (status recognized/no_speech),
-        // erroring (loud red), or absent (honest unavailable line).
-        const rec=d.spoken_word_recognition||{};
-        if(rec.status==='recognized'&&d.transcript){status.textContent='heard: "'+d.transcript+'"';status.style.color='var(--text-muted)';return}
-        if(rec.status==='no_speech'){status.textContent='raw sound active — listening (no speech in last chunk)';status.style.color='var(--text-muted)';return}
-        if(rec.status==='error'){status.textContent='speech recognition FAILED — see server logs';status.style.color='#f85149';return}
-        if(rec.status==='not_attempted'){status.textContent='raw sound active — speech recognition pending';status.style.color='var(--text-muted)';return}
-        status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
-      })
-      .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'})
-      .finally(()=>{_micRequestInFlight=false});
-    }catch(e){
-      _micRequestInFlight=false;
-      const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149';
+// One AudioContext owns one uninterrupted 16 kHz sample clock. The worklet
+// emits bounded raw-PCM transport chunks without stopping capture, resetting
+// a codec, or assigning speech/identity/meaning. The server-issued stream id
+// and exact sample indices prove ordering only. Any gap, duplicate, reorder,
+// queue overflow, or server restart closes the epoch instead of bridging it.
+let micStream=null,micPCMActive=false,micEpoch=null,micTransitionActive=false;
+let micEpochGeneration=0;
+const PCM_SAMPLE_RATE=16000,PCM_CHUNK_SAMPLES=80000,PCM_MAX_PENDING_CHUNKS=2;
+const auditoryTerminalSeen=new Set(),deliveredEmissionIds=new Set();
+
+function _rememberBounded(set,value){
+  if(!value)return;
+  set.add(value);
+  while(set.size>64)set.delete(set.values().next().value);
+}
+
+async function _pollAuditoryReply(terminalEventId){
+  try{
+    const response=await fetchT(`${API}/api/v1/auditory/reply/${terminalEventId}`,{},10000);
+    const result=await response.json();
+    if(result.status==='pending'){
+      setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);return;
     }
-  };
-  reader.onerror=()=>{
-    _micRequestInFlight=false;
-    const status=document.getElementById('mic-status');status.textContent='raw sound failed: microphone chunk could not be read';status.style.color='#f85149';
-  };
-  reader.readAsDataURL(blob);
-}
-function _startOneMicCycle(stream){
-  if(!micCycleActive)return;
-  try{micRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'})}
-  catch(e){try{micRecorder=new MediaRecorder(stream)}catch(e2){
-    const status=document.getElementById('mic-status');status.textContent='raw sound recorder unavailable: '+e2.message;status.style.color='#f85149';
-    micCycleActive=false;return
-  }}
-  const _cycleStartTs=Date.now();
-  const _sightCapturedTs=_cycleStartTs;
-  const _cycleSightPromise=camStream?captureConversationSight():Promise.resolve(null);
-  let _cycleEndTs=null;
-  if(_micLastCycleEndTs){
-    console.log('[mic-cycle] inter-cycle gap ms:', _cycleStartTs-_micLastCycleEndTs);
+    if(result.status==='completed'&&result.speech){
+      if(!result.emission_id||!deliveredEmissionIds.has(result.emission_id)){
+        addEmissionMsg(result.speech,result.emission_id||null);
+        _rememberBounded(deliveredEmissionIds,result.emission_id);
+        gualaSpeak(result.speech);
+      }
+    }else if(result.status==='error'){
+      addMsg('reply failed: '+(result.error||'unknown error'),'system');
+    }
+  }catch(error){
+    setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);
   }
-  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data,_cycleStartTs,_cycleEndTs||Date.now(),_sightCapturedTs,_cycleSightPromise);
-  micRecorder.onstop=()=>{
-    _micLastCycleEndTs=Date.now();
-    if(micCycleActive)_startOneMicCycle(stream);
+}
+
+function _handleAuditoryTerminal(result){
+  const recognized=result.recognized_form||(result.spoken_word_recognition&&result.spoken_word_recognition.recognized_form);
+  const terminalEventId=result.terminal_event_id;
+  if(!recognized||!terminalEventId||auditoryTerminalSeen.has(terminalEventId))return;
+  _rememberBounded(auditoryTerminalSeen,terminalEventId);
+  addMsg('heard: "'+recognized+'"','user');
+  if(result.reply_admitted===true)_pollAuditoryReply(terminalEventId);
+  else addMsg('reply was not admitted because the bounded voice turn is full','system');
+}
+
+function _pcmBase64(buffer){
+  const bytes=new Uint8Array(buffer);let binary='';
+  for(let offset=0;offset<bytes.length;offset+=0x8000){
+    binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+0x8000,bytes.length)));
+  }
+  return btoa(binary);
+}
+
+function _schedulePCMSight(epoch,sequence){
+  if(!epoch.active||epoch.sourceEpochMs===null||epoch.sightBySequence.has(sequence)||epoch.sightTimers.has(sequence))return;
+  const target=epoch.sourceEpochMs+sequence*5000;
+  const timer=setTimeout(()=>{
+    epoch.sightTimers.delete(sequence);
+    if(!epoch.active)return;
+    const capturedMs=Date.now();
+    const promise=camStream?captureConversationSight():Promise.resolve(null);
+    epoch.sightBySequence.set(sequence,{capturedMs,promise});
+  },Math.max(0,target-Date.now()));
+  epoch.sightTimers.set(sequence,timer);
+}
+
+function _notifyPCMEpochClose(streamId,releaseTerminal){
+  if(!streamId)return Promise.resolve();
+  return fetch(`${API}/api/v1/auditory/pcm/close`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stream_id:streamId,release_terminal:releaseTerminal}),keepalive:true})
+    .then(response=>response.json()).then(result=>_handleAuditoryTerminal(result)).catch(()=>{});
+}
+
+function _closePCMEpoch(epoch,notifyServer=true,releaseTerminal=true){
+  if(!epoch||!epoch.active)return;
+  const streamId=epoch.streamId,settled=epoch.sendChain;
+  epoch.active=false;
+  epoch.sightTimers.forEach(timer=>clearTimeout(timer));epoch.sightTimers.clear();epoch.sightBySequence.clear();
+  if(!releaseTerminal&&epoch.fetchAbort){epoch.fetchAbort.abort();epoch.fetchAbort=null}
+  if(epoch.worklet){try{epoch.worklet.port.postMessage({type:'stop'});epoch.worklet.disconnect()}catch(e){}epoch.worklet=null}
+  if(epoch.source){try{epoch.source.disconnect()}catch(e){}epoch.source=null}
+  if(epoch.gain){try{epoch.gain.disconnect()}catch(e){}epoch.gain=null}
+  if(epoch.context){try{epoch.context.close()}catch(e){}epoch.context=null}
+  if(epoch.stream){epoch.stream.getTracks().forEach(track=>track.stop());epoch.stream=null}
+  if(notifyServer&&streamId){
+    if(releaseTerminal)Promise.resolve(settled).catch(()=>{}).then(()=>_notifyPCMEpochClose(streamId,true));
+    else _notifyPCMEpochClose(streamId,false);
+  }
+  epoch.streamId=null;
+  if(micEpoch===epoch){micEpoch=null;micStream=null;micPCMActive=false}
+}
+
+function _failPCMStream(epoch,message){
+  if(!epoch||!epoch.active)return;
+  const isCurrent=micEpoch===epoch;
+  _closePCMEpoch(epoch,true,false);
+  if(!isCurrent)return;
+  micGranted=false;
+  const status=document.getElementById('mic-status');
+  status.textContent='raw sound stopped — '+message;status.style.color='#f85149';
+  const btn=document.getElementById('mic-perm');
+  btn.textContent='Enable Microphone';btn.className='perm-btn denied';
+}
+
+async function _sendPCMChunk(epoch,buffer,sequence,firstSampleIndex){
+  if(!epoch.active)return;
+  const sight=epoch.sightBySequence.get(sequence)||{capturedMs:null,promise:Promise.resolve(null)};
+  epoch.sightBySequence.delete(sequence);
+  const sight_b64=await sight.promise;
+  if(!epoch.active)return;
+  const sampleCount=buffer.byteLength/2;
+  const body={
+    text:_pcmBase64(buffer),command:'',source:'browser_microphone',
+    audio_encoding:'pcm_s16le',audio_stream_id:epoch.streamId,
+    audio_sequence:sequence,audio_first_sample_index:firstSampleIndex,
+    audio_sample_count:sampleCount,audio_sample_rate_hz:PCM_SAMPLE_RATE,
+    audio_source_epoch_ms:epoch.sourceEpochMs,sight_b64,
+    sight_captured_ms:sight_b64?sight.capturedMs:null
   };
-  micRecorder.start(); // no timeslice -> one complete blob, delivered on stop()
-  _micCycleTimer=setTimeout(()=>{_cycleEndTs=Date.now();try{micRecorder.stop()}catch(e){}},5000);
+  const abort=new AbortController();epoch.fetchAbort=abort;
+  const response=await fetchT(`${API}/sound_frame`,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:abort.signal
+  },25000);
+  if(epoch.fetchAbort===abort)epoch.fetchAbort=null;
+  if(!epoch.active)return;
+  const result=await response.json();
+  if(!result.ok||!result.pcm_continuity||result.pcm_continuity.status!=='contiguous'){
+    throw new Error(result.error||result.reason||'sample continuity was not accepted');
+  }
+  _handleAuditoryTerminal(result);
+  const status=document.getElementById('mic-status');
+  status.textContent='raw sound active — continuous samples '+firstSampleIndex+'–'+(firstSampleIndex+sampleCount-1)+' settled';
+  status.style.color='var(--text-muted)';
 }
-function startMicSoundStream(stream){
-  if(micCycleActive)return;
-  micCycleActive=true;
-  _startOneMicCycle(stream);
+
+function _admitPCMChunk(epoch,buffer){
+  if(!epoch.active||micEpoch!==epoch)return;
+  if(!(buffer instanceof ArrayBuffer)||buffer.byteLength!==PCM_CHUNK_SAMPLES*2){
+    _failPCMStream(epoch,'worklet changed the bounded PCM chunk shape');return;
+  }
+  if(epoch.pendingChunks>=PCM_MAX_PENDING_CHUNKS){
+    _failPCMStream(epoch,'processing fell behind the continuous sample stream');return;
+  }
+  const sequence=epoch.sequence++,firstSampleIndex=epoch.firstSampleIndex;
+  epoch.firstSampleIndex+=PCM_CHUNK_SAMPLES;
+  _schedulePCMSight(epoch,sequence+1);
+  epoch.pendingChunks+=1;
+  epoch.sendChain=epoch.sendChain
+    .then(()=>epoch.active?_sendPCMChunk(epoch,buffer,sequence,firstSampleIndex):undefined)
+    .catch(error=>{if(epoch.active)_failPCMStream(epoch,error.message)})
+    .finally(()=>{epoch.pendingChunks=Math.max(0,epoch.pendingChunks-1)});
 }
+
+async function startMicSoundStream(stream,generation){
+  const openedResponse=await fetchT(`${API}/api/v1/auditory/pcm/open`,{method:'POST'},10000);
+  const opened=await openedResponse.json();
+  if(!opened.ok||opened.sample_rate_hz!==PCM_SAMPLE_RATE||opened.chunk_samples!==PCM_CHUNK_SAMPLES){
+    if(typeof opened.stream_id==='string'&&opened.stream_id){
+      _notifyPCMEpochClose(opened.stream_id,false);
+    }
+    throw new Error(opened.error||'server did not establish the PCM sample clock');
+  }
+  const epoch={generation,streamId:opened.stream_id,stream,context:null,source:null,worklet:null,gain:null,
+    sequence:0,firstSampleIndex:0,sourceEpochMs:null,sendChain:Promise.resolve(),pendingChunks:0,
+    fetchAbort:null,active:true,sightBySequence:new Map(),sightTimers:new Map()};
+  const workletSource=`
+    class GualaPCMTransport extends AudioWorkletProcessor {
+      constructor(options){
+        super();
+        this.chunkSamples=options.processorOptions.chunkSamples;
+        this.buffer=new ArrayBuffer(this.chunkSamples*2);
+        this.view=new DataView(this.buffer);
+        this.offset=0;this.running=true;this.started=false;this.expectedFrame=null;
+        this.port.onmessage=(event)=>{if(event.data&&event.data.type==='stop')this.running=false};
+      }
+      process(inputs){
+        const channels=inputs[0];
+        if(!this.running)return false;
+        if(!channels||channels.length===0||channels[0].length===0){
+          if(this.started)this.port.postMessage({type:'discontinuity',reason:'physical microphone input stopped'});
+          return !this.started;
+        }
+        if(!this.started){
+          if(this.expectedFrame===null||currentFrame!==this.expectedFrame){
+            this.expectedFrame=currentFrame+channels[0].length;return true;
+          }
+          this.started=true;this.expectedFrame=currentFrame;
+          this.port.postMessage({type:'started',renderFrame:currentFrame});
+        }
+        if(currentFrame!==this.expectedFrame){
+          this.port.postMessage({type:'discontinuity',reason:'audio render clock skipped samples '+this.expectedFrame+'–'+currentFrame});return false;
+        }
+        for(let index=0;index<channels[0].length;index++){
+          let sample=0;
+          for(let channel=0;channel<channels.length;channel++)sample+=channels[channel][index]||0;
+          sample/=channels.length;
+          sample=Math.max(-1,Math.min(1,sample));
+          const encoded=sample<0?Math.round(sample*32768):Math.round(sample*32767);
+          this.view.setInt16(this.offset*2,encoded,true);this.offset+=1;
+          if(this.offset===this.chunkSamples){
+            const completed=this.buffer;
+            this.buffer=new ArrayBuffer(this.chunkSamples*2);
+            this.view=new DataView(this.buffer);this.offset=0;
+            this.port.postMessage({type:'chunk',buffer:completed},[completed]);
+          }
+        }
+        this.expectedFrame=currentFrame+channels[0].length;
+        return true;
+      }
+    }
+    registerProcessor('guala-pcm-transport',GualaPCMTransport);
+  `;
+  try{
+    epoch.context=new AudioContext({sampleRate:PCM_SAMPLE_RATE,latencyHint:'interactive'});
+    if(epoch.context.sampleRate!==PCM_SAMPLE_RATE)throw new Error('browser cannot provide the required continuous 16 kHz sample clock');
+    if(typeof epoch.context.getOutputTimestamp!=='function')throw new Error('browser cannot receipt the audio sample clock');
+    const moduleURL=URL.createObjectURL(new Blob([workletSource],{type:'application/javascript'}));
+    try{await epoch.context.audioWorklet.addModule(moduleURL)}finally{URL.revokeObjectURL(moduleURL)}
+    epoch.source=epoch.context.createMediaStreamSource(stream);
+    epoch.worklet=new AudioWorkletNode(epoch.context,'guala-pcm-transport',{processorOptions:{chunkSamples:PCM_CHUNK_SAMPLES}});
+    epoch.gain=epoch.context.createGain();epoch.gain.gain.value=0;
+    let resolveStarted,rejectStarted;
+    const started=new Promise((resolve,reject)=>{resolveStarted=resolve;rejectStarted=reject});
+    epoch.worklet.port.onmessage=event=>{
+      if(!epoch.active||!event.data)return;
+      if(event.data.type==='started'){
+        const stamp=epoch.context.getOutputTimestamp();
+        if(!Number.isFinite(stamp.contextTime)||!Number.isFinite(stamp.performanceTime)){
+          rejectStarted(new Error('browser audio sample clock is unavailable'));return;
+        }
+        const originPerformanceMs=stamp.performanceTime-stamp.contextTime*1000;
+        epoch.sourceEpochMs=Math.round(performance.timeOrigin+originPerformanceMs+event.data.renderFrame*1000/PCM_SAMPLE_RATE);
+        _schedulePCMSight(epoch,0);resolveStarted();
+      }else if(event.data.type==='chunk')_admitPCMChunk(epoch,event.data.buffer);
+      else if(event.data.type==='discontinuity'){
+        rejectStarted(new Error(event.data.reason));_failPCMStream(epoch,event.data.reason);
+      }
+    };
+    epoch.worklet.onprocessorerror=()=>{
+      rejectStarted(new Error('audio processor failed'));
+      _failPCMStream(epoch,'audio processor failed');
+    };
+    stream.getTracks().forEach(track=>track.addEventListener('ended',()=>{
+      rejectStarted(new Error('physical microphone input ended'));
+      _failPCMStream(epoch,'physical microphone input ended');
+    },{once:true}));
+    epoch.source.connect(epoch.worklet);epoch.worklet.connect(epoch.gain);epoch.gain.connect(epoch.context.destination);
+    await epoch.context.resume();
+    await Promise.race([started,new Promise((_,reject)=>setTimeout(()=>reject(new Error('audio sample clock did not start')),10000))]);
+    if(generation!==micEpochGeneration)throw new Error('microphone start was superseded');
+    micEpoch=epoch;micStream=stream;micPCMActive=true;
+    return epoch;
+  }catch(error){
+    _closePCMEpoch(epoch,true,false);throw error;
+  }
+}
+
 function stopMicSoundStream(){
-  micCycleActive=false;
-  if(_micCycleTimer){clearTimeout(_micCycleTimer);_micCycleTimer=null}
-  if(micRecorder){try{micRecorder.stop()}catch(e){}micRecorder=null}
-  if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
+  micEpochGeneration+=1;
+  if(micEpoch)_closePCMEpoch(micEpoch);
+  else if(micStream){micStream.getTracks().forEach(track=>track.stop());micStream=null}
+  micPCMActive=false;
 }
 
 async function requestMic(){
+  if(micTransitionActive)return;
+  micTransitionActive=true;
   const btn=document.getElementById('mic-perm');
-  if(micGranted){
-    // Turn OFF
-    stopMicSoundStream();
-    micGranted=false;
-    btn.textContent='Enable Microphone';btn.className='perm-btn';
-    const status=document.getElementById('mic-status');
-    status.textContent='raw sound off — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
-    return;
-  }
   try{
-    micStream=await navigator.mediaDevices.getUserMedia({audio:{
+    if(micGranted){
+      micGranted=false;stopMicSoundStream();
+      btn.textContent='Enable Microphone';btn.className='perm-btn';
+      const status=document.getElementById('mic-status');
+      status.textContent='auditory L5 idle — microphone off';status.style.color='var(--text-muted)';
+      return;
+    }
+    const generation=++micEpochGeneration;
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{
       echoCancellation:false,   // don't strip music as feedback
       noiseSuppression:false,   // don't strip music as noise
-      autoGainControl:true      // DO boost gain to capture room audio
+      autoGainControl:false     // preserve physical cross-capture amplitude
     }});
+    micStream=stream;
+    await startMicSoundStream(stream,generation);
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
     const status=document.getElementById('mic-status');
-    status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
-    // Start raw sound streaming to her krimelack. No transcript is produced.
-    startMicSoundStream(micStream);
+    status.textContent='raw sound active — auditory L5 listening';status.style.color='var(--text-muted)';
   }catch(e){
+    stopMicSoundStream();micGranted=false;
     btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied';
     const status=document.getElementById('mic-status');status.textContent='raw sound unavailable: '+e.message;status.style.color='#f85149';
-  }
+  }finally{micTransitionActive=false}
 }
 // GL-BRIEF-SENSORY-IO Part C: camera sight streaming
 let sightStreamTimer=null;
@@ -375,7 +552,7 @@ function startSightStream(){
   if(sightStreamTimer)clearInterval(sightStreamTimer);
   sightStreamTimer=setInterval(async()=>{
     if(!camStream)return;
-    if(micCycleActive)return; // mic chunks carry the contemporaneous frame
+    if(micPCMActive)return; // microphone PCM intervals carry the contemporaneous frame
     try{
       const sightCapturedMs=Date.now();
       const c=document.createElement('canvas');c.width=128;c.height=128;
@@ -778,7 +955,19 @@ function addResponseBlock(result){
 }
 
 // GL-FIX-UI-FRONTEND: fetch with timeout + dedup + backoff
-const fetchT=(url,opts={},timeoutMs=15000)=>fetch(url,{...opts,signal:AbortSignal.timeout(timeoutMs)});
+function fetchT(url,opts={},timeoutMs=15000){
+  const controller=new AbortController();
+  const external=opts.signal;
+  const relay=()=>controller.abort(external.reason);
+  if(external){
+    if(external.aborted)relay();else external.addEventListener('abort',relay,{once:true});
+  }
+  const timer=setTimeout(()=>controller.abort(new DOMException('request timed out','TimeoutError')),timeoutMs);
+  return fetch(url,{...opts,signal:controller.signal}).finally(()=>{
+    clearTimeout(timer);
+    if(external)external.removeEventListener('abort',relay);
+  });
+}
 let _inflight={state:false,events:false,status:false,replay:false};
 let _backoff={state:0,events:0,status:0,replay:0};
 const _BASE={state:5000,events:15000,status:15000,replay:30000};
@@ -951,8 +1140,9 @@ async function _pollConverseTask(pollUrl, retryAfterMs, onTick){
 // is shown rather than discarded.
 async function _converseAndRender(text,source){
   // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
-  const sight_b64=await captureConversationSight();
-  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source,sight_b64})});
+  // Text is a language event, not a fabricated visual interval. The timed
+  // camera/microphone stream owns audiovisual causal experience separately.
+  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source})});
   if(startR.status===503||startR.status===500){handleNotReady('converse');}
   else if(startR.status===202){
     const start=await startR.json();
@@ -1339,8 +1529,11 @@ async function pollAutonomousThought(){
     window._lastThought=d;
     if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
       _lastThoughtTick=d.tick;
-      addEmissionMsg(d.speech,null);
-      gualaSpeak(d.speech);
+      if(!d.emission_id||!deliveredEmissionIds.has(d.emission_id)){
+        addEmissionMsg(d.speech,d.emission_id||null);
+        _rememberBounded(deliveredEmissionIds,d.emission_id);
+        gualaSpeak(d.speech);
+      }
     }
   }catch(e){}
   setTimeout(pollAutonomousThought,20000);
@@ -1433,8 +1626,8 @@ const COGMETER_AUDIT_ARCHIVE=[
     firing:'real _word_order_relation() reader compares real recorded commit ticks for two words, returns before/after/same/unknown (never a guess) -- wired into _form_reflection\'s context_then comparison, shipped and end-to-end verified live 2026-07-11 (a real reflection just now carried context_order: {"beach":"before","whiskers":"before"})',
     impact:'FIX SHIPPED 2026-07-11: the prior "no code path for this yet" is closed -- confirmed firing on real production data, not a test fixture'},
   {name:'imagination',connected:'severed',pointer:'-164',
-    firing:'the daydream thread itself is real, complete code (chi-neighborhood associative walk) -- was orphaned by a 2026-07-01 boot-path refactor (traced precisely: accidental, not a deliberate safety block) and has been reconnected into the real boot path 2026-07-11. LIVE as of 2026-07-16 (all-at-once campaign): DAYDREAM_LOOP_ENABLED default ON with lock-wait p95 + tick-rate telemetry and loud alerts; env var is an emergency-off only',
-    impact:'PARTIAL FIX 2026-07-11: reconnected and verified thread-safe, deliberately left off by default given this week\'s own lock-contention incidents -- flip DAYDREAM_LOOP_ENABLED=1 with tick_rate/lock-wait telemetry open when conditions allow, don\'t flip it blind'},
+    firing:'DISABLED 2026-07-21: the periodic 0.5-second chi-walk is not the intended daydream architecture and does not start in production, including when an obsolete environment setting requests it',
+    impact:'LOW PRIORITY REDESIGN: replace it with bounded sense-triggered background memory that may request attention but cannot interrupt perception, conversation, or action'},
   {name:'hearing-her-own-voice',connected:'yes',pointer:'-164',
     firing:'fires on every real reply to Joe/wc/c1, weighted well below a real conversation partner',
     impact:'fired live moments ago -- a self-heard binding actually shaped what she said next'},

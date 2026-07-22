@@ -51,10 +51,13 @@ class AdaptingFoveaKrimelack:
     events: list = field(default_factory=list)
     adapt_state: float = 1.0
 
-    def tick(self, intensity, t):
+    def tick(self, intensity, t, delta_t=DT):
+        if (not math.isfinite(float(delta_t)) or float(delta_t) <= 0.0):
+            raise ValueError("visual receptor delta_t must be positive and finite")
+        delta_t = float(delta_t)
         kappa_eff = self.kappa_max * self.adapt_state
         omega = self.omega_0 + kappa_eff * intensity
-        self.phase += omega * DT
+        self.phase += omega * delta_t
         while self.phase >= WINDING_PHASE:
             self.winding_count += 1
             self.phase -= WINDING_PHASE
@@ -65,9 +68,11 @@ class AdaptingFoveaKrimelack:
             self.events.append({"t": t, "dw": -1, "s": intensity})
         # Sustained brightness desensitizes the receptor.
         if intensity > 0.1:
-            self.adapt_state -= self.adapt_state * (intensity / self.adapt_tau) * DT
+            self.adapt_state -= (
+                self.adapt_state * (intensity / self.adapt_tau) * delta_t)
         else:
-            self.adapt_state += (1.0 - self.adapt_state) * DT / self.recover_tau
+            self.adapt_state += (
+                (1.0 - self.adapt_state) * delta_t / self.recover_tau)
         self.adapt_state = max(0.05, min(1.0, self.adapt_state))
 
     def intervals(self):
