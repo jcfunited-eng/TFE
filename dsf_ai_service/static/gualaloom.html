@@ -267,24 +267,42 @@ function _rememberBounded(set,value){
   while(set.size>64)set.delete(set.values().next().value);
 }
 
-async function _pollAuditoryReply(terminalEventId){
+// GL-FIX-VOICE-LOOP-UX-20260722: real backend error text, never "unknown error"
+// (FastAPI puts HTTPException text in `detail`, not `error` — the old readers
+// only checked `error`, so every real 400 rendered as "unknown error").
+function _errText(d){
+  const v=d&&(d.error||d.detail);
+  if(!v)return 'the server returned no error text';
+  return typeof v==='string'?v:JSON.stringify(v);
+}
+
+async function _pollAuditoryReply(terminalEventId,heard,statusEl,startMs){
+  const tickEl=()=>{if(statusEl&&statusEl.parentNode)statusEl.textContent='thinking — '+Math.round((Date.now()-startMs)/1000)+'s...';};
+  const dropEl=()=>{if(statusEl&&statusEl.parentNode)statusEl.parentNode.removeChild(statusEl);};
   try{
     const response=await fetchT(`${API}/api/v1/auditory/reply/${terminalEventId}`,{},10000);
     const result=await response.json();
     if(result.status==='pending'){
-      setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);return;
+      tickEl();
+      setTimeout(()=>_pollAuditoryReply(terminalEventId,heard,statusEl,startMs),2000);return;
     }
+    dropEl();
     if(result.status==='completed'&&result.speech){
       if(!result.emission_id||!deliveredEmissionIds.has(result.emission_id)){
-        addEmissionMsg(result.speech,result.emission_id||null);
+        addEmissionMsg(result.speech,result.emission_id||null,result.heard||heard||null);
         _rememberBounded(deliveredEmissionIds,result.emission_id);
         gualaSpeak(result.speech);
       }
+    }else if(result.status==='completed_without_speech'){
+      addMsg('(she heard, and had nothing to say)','system');
+    }else if(result.status==='superseded'){
+      addMsg('(replaced by your newer utterance — she answers the latest thing said)','system');
     }else if(result.status==='error'){
-      addMsg('reply failed: '+(result.error||'unknown error'),'system');
+      addMsg('reply failed: '+_errText(result),'system');
     }
   }catch(error){
-    setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);
+    tickEl();
+    setTimeout(()=>_pollAuditoryReply(terminalEventId,heard,statusEl,startMs),2000);
   }
 }
 
@@ -293,9 +311,16 @@ function _handleAuditoryTerminal(result){
   const terminalEventId=result.terminal_event_id;
   if(!recognized||!terminalEventId||auditoryTerminalSeen.has(terminalEventId))return;
   _rememberBounded(auditoryTerminalSeen,terminalEventId);
-  addMsg('heard: "'+recognized+'"','user');
-  if(result.reply_admitted===true)_pollAuditoryReply(terminalEventId);
-  else addMsg('reply was not admitted because the bounded voice turn is full','system');
+  // GL-FIX-VOICE-LOOP-UX-20260722: the real recognizer's released form is
+  // shown the moment the terminal releases — never invented text.
+  addMsg('you (heard): "'+recognized+'"','user');
+  if(result.reply_admitted===true){
+    const queued=result.reply_state==='queued';
+    const el=addMsg(queued?'queued — she is still composing the previous reply...':'thinking — 0s...','system');
+    _pollAuditoryReply(terminalEventId,recognized,el,Date.now());
+  }else{
+    addMsg('(no reply started — this utterance was a duplicate or already answered)','system');
+  }
 }
 
 function _pcmBase64(buffer){
@@ -306,15 +331,26 @@ function _pcmBase64(buffer){
   return btoa(binary);
 }
 
+const PCM_CHUNK_MS=PCM_CHUNK_SAMPLES*1000/PCM_SAMPLE_RATE;
 function _schedulePCMSight(epoch,sequence){
   if(!epoch.active||epoch.sourceEpochMs===null||epoch.sightBySequence.has(sequence)||epoch.sightTimers.has(sequence))return;
-  const target=epoch.sourceEpochMs+sequence*5000;
+  const target=epoch.sourceEpochMs+sequence*PCM_CHUNK_MS;
   const timer=setTimeout(()=>{
     epoch.sightTimers.delete(sequence);
     if(!epoch.active)return;
     const capturedMs=Date.now();
+    // GL-FIX-VOICE-LOOP-UX-20260722: throttled/late timers used to file the
+    // capture under the ORIGINAL target sequence even when it really fell in
+    // a later chunk's PCM interval — the server then correctly refused the
+    // pairing, and (before the paired server fix) that refusal killed the
+    // whole audio stream. The capture is filed under the sequence whose
+    // interval actually contains its timestamp, so a genuine pairing
+    // survives scheduling jitter.
+    let owner=Math.floor((capturedMs-epoch.sourceEpochMs)/PCM_CHUNK_MS);
+    if(owner<sequence)owner=sequence;
+    if(epoch.sightBySequence.has(owner))return;
     const promise=camStream?captureConversationSight():Promise.resolve(null);
-    epoch.sightBySequence.set(sequence,{capturedMs,promise});
+    epoch.sightBySequence.set(owner,{capturedMs,promise});
   },Math.max(0,target-Date.now()));
   epoch.sightTimers.set(sequence,timer);
 }
@@ -385,6 +421,11 @@ async function _sendPCMChunk(epoch,buffer,sequence,firstSampleIndex){
   const status=document.getElementById('mic-status');
   status.textContent='raw sound active — continuous samples '+firstSampleIndex+'–'+(firstSampleIndex+sampleCount-1)+' settled';
   status.style.color='var(--text-muted)';
+  if(result.sight_pairing){
+    // Honest, non-fatal: this chunk's sight pairing was dropped; hearing lives.
+    const cam=document.getElementById('cam-status');
+    if(cam){cam.textContent='sight pairing skipped for one chunk — '+result.sight_pairing;cam.style.color='var(--text-muted)'}
+  }
 }
 
 function _admitPCMChunk(epoch,buffer){
@@ -900,10 +941,14 @@ function renderPictures(pics){
 function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight;return d;}
 
 // GL-CMD-TEACHER-CORRECTION-UI: emission message with 👍/👎 buttons
-function addEmissionMsg(text,emissionId){
+// GL-FIX-VOICE-LOOP-UX-20260722: heardText (the recognizer's released form
+// that caused this reply) rides the block so teacher thumbs on a voice reply
+// can supply the real heard input as original_input.
+function addEmissionMsg(text,emissionId,heardText){
   const block=document.createElement('div');block.className='msg emission';
   block.style.position='relative';
   if(emissionId)block.dataset.emissionId=emissionId;
+  if(heardText)block.dataset.heardText=heardText;
   block.dataset.emissionText=text;
   const txt=document.createElement('span');txt.textContent=text;block.appendChild(txt);
   const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.5;cursor:pointer;margin-left:8px';
@@ -978,25 +1023,34 @@ let _correctionModal=null;
 async function sendFeedback(correct,up,dn,block){
   if(up.dataset.locked)return;
   const emissionId=block?block.dataset.emissionId:null;
+  const heard=block?(block.dataset.heardText||null):null;
   if(correct){
     try{
+      // GL-FIX-VOICE-LOOP-UX-20260722: voice replies ride the displayed
+      // pair too \u2014 heard input as original_input, the reply as her_emission
+      // \u2014 so a reply with no resolvable emission record (organism attempts
+      // carry emission_id=null) is still teachable through the one gateway.
+      const body={emission_id:emissionId,source:'joe'};
+      const oi=heard||window._lastUserText;
+      if(oi)body.original_input=oi;
+      if(block&&block.dataset.emissionText)body.her_emission=block.dataset.emissionText;
       const r=await fetchT(`${API}/api/v1/teacher/feedback`,{method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({emission_id:emissionId,source:'joe'})},10000);
+        body:JSON.stringify(body)},10000);
       // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: r.ok only
       // checks HTTP status -- the backend can return 200 with {"error":...}
       // (e.g. "no conversation context") when emission_id doesn't resolve,
       // which this used to render as a silent, indistinguishable success.
       const d=await r.json().catch(()=>({}));
       if(r.ok&&!d.error){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
-      else{addMsg('feedback not applied: '+(d.error||'unknown error'),'system')}
+      else{addMsg('feedback not applied: '+_errText(d),'system')}
     }catch(e){addMsg('feedback error: '+e.message,'system')}
   }else{
-    openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn);
+    openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn,heard);
   }
 }
 
-function openCorrectionModal(emissionId,emissionText,up,dn){
+function openCorrectionModal(emissionId,emissionText,up,dn,heardText){
   if(!_correctionModal){
     const m=document.createElement('div');
     m.id='correction-modal';
@@ -1026,6 +1080,12 @@ function openCorrectionModal(emissionId,emissionText,up,dn){
   }
   _correctionModal._emissionId=emissionId;
   _correctionModal._up=up;_correctionModal._dn=dn;
+  // GL-FIX-VOICE-LOOP-UX-20260722: _emissionText was read by
+  // submitCorrection but never assigned (her_emission silently fell back
+  // to stale window state); _heard carries the recognizer's released form
+  // for voice replies so original_input is the real heard input.
+  _correctionModal._emissionText=emissionText||'';
+  _correctionModal._heard=heardText||null;
   document.getElementById('cm-emission').textContent=emissionText;
   document.getElementById('cm-corrected').value='';
   document.getElementById('cm-story').value='';
@@ -1046,7 +1106,7 @@ async function submitCorrection(){
   const corrected=document.getElementById('cm-corrected').value.trim();
   if(!corrected)return;
   const body={emission_id:emissionId,corrected_text:corrected,source:'joe',
-    original_input:window._lastUserText||undefined,
+    original_input:_correctionModal._heard||window._lastUserText||undefined,
     her_emission:_correctionModal._emissionText||window._lastAttemptText||undefined,
     story:document.getElementById('cm-story').value.trim()||undefined,
     temporal:document.getElementById('cm-temporal').value.trim()||undefined,
@@ -1063,7 +1123,7 @@ async function submitCorrection(){
       dn.classList.add('active');dn.textContent='\u2714';dn.dataset.locked='1';up.style.opacity='0.3';up.dataset.locked='1';
       addMsg(`corrected: "${corrected}"`,`system`);
     }else{
-      addMsg('correction not applied: '+(d.error||'unknown error'),'system');
+      addMsg('correction not applied: '+_errText(d),'system');
     }
   }catch(e){addMsg('correction error: '+e.message,'system')}
   closeCorrectionModal();
@@ -1530,7 +1590,7 @@ async function pollAutonomousThought(){
     if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
       _lastThoughtTick=d.tick;
       if(!d.emission_id||!deliveredEmissionIds.has(d.emission_id)){
-        addEmissionMsg(d.speech,d.emission_id||null);
+        addEmissionMsg(d.speech,d.emission_id||null,d.heard||null);
         _rememberBounded(deliveredEmissionIds,d.emission_id);
         gualaSpeak(d.speech);
       }
