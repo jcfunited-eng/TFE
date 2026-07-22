@@ -2,8 +2,11 @@
 
 The owner in this module is deliberately outside L0--L4.  It carries a
 bounded monotone dynamic-programming state over continuous 10 ms auditory L5
-pressure and phase frames.  The state is proposal evidence only: it has no
-candidate-level L4 field and therefore cannot recognize or release anything.
+pressure and phase frames.  The state cannot recognize an identity: it has no
+candidate-level L4 field.  After a full-field UNIQUE gate, its complete exact
+pressure/phase recurrence can prove only the negative structural fact that the
+verified path no longer extends; that closes the pending physical interval but
+cannot create or change its learned meaning.
 
 A proposed terminal must be rebuilt from its exact retained PCM through the
 unchanged sixteen-port sensory provider and unchanged L0--L4 boundary.  The
@@ -39,6 +42,7 @@ from fractions import Fraction
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.model import sha256_digest
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    MAX_NATIVE_SAMPLES_PER_SETTLEMENT,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
@@ -80,6 +84,13 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AuditoryGammatoneContinuationReceipt,
 )
 
+try:
+    from guala_core import (
+        AuditoryIncrementalProposalCells as _NativeIncrementalProposalCells,
+    )
+except ImportError:
+    _NativeIncrementalProposalCells = None
+
 
 AUDITORY_INCREMENTAL_EVENT_SCHEMA = "guala.auditory.incremental_terminal.v1"
 AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v1"
@@ -90,6 +101,11 @@ MAX_EVENT_HOPS = MAX_EVENT_SAMPLES // OBSERVATION_HOP_SAMPLES
 MAX_ACTIVE_TRACKERS = max(
     1, MAX_REACHABILITY_CELLS_PER_RECOGNITION // MAX_EVENT_HOPS
 )
+# Every full-field confirmation performed by one advance shares the existing
+# recognition boundary.  Proposal count, closure count, and chunk size cannot
+# multiply this authority.
+MAX_FULL_GATE_WORK_PER_ADVANCE = MAX_REACHABILITY_CELLS_PER_RECOGNITION
+MAX_FULL_GATE_FIELD_SAMPLES_PER_ADVANCE = MAX_NATIVE_SAMPLES_PER_SETTLEMENT
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -355,6 +371,43 @@ class _PendingTerminal:
     joint_settlement_receipt_sha256s: tuple[str, ...]
 
 
+@dataclass(slots=True)
+class _AdvanceFullGateWorkLedger:
+    """Cumulative exact field and reachability authority for one advance."""
+
+    reachability_limit: int
+    field_sample_limit: int
+    reachability_consumed: int = 0
+    field_samples_consumed: int = 0
+
+    @property
+    def remaining_reachability(self) -> int:
+        return self.reachability_limit - self.reachability_consumed
+
+    @staticmethod
+    def _work(required: int, name: str) -> int:
+        if (
+            isinstance(required, bool)
+            or not isinstance(required, int)
+            or required < 0
+        ):
+            raise ValueError(f"full-gate {name} work must be non-negative")
+        return required
+
+    def reserve_field_samples(self, required: int) -> bool:
+        required = self._work(required, "field-sample")
+        if required > self.field_sample_limit - self.field_samples_consumed:
+            return False
+        self.field_samples_consumed += required
+        return True
+
+    def charge_reachability(self, required: int) -> None:
+        required = self._work(required, "reachability")
+        if required > self.remaining_reachability:
+            raise RuntimeError("full-gate work exceeded its granted authority")
+        self.reachability_consumed += required
+
+
 def _branch_from_snapshot(value: object) -> _Branch:
     if not isinstance(value, dict):
         raise ValueError("incremental auditory witness is malformed")
@@ -615,10 +668,10 @@ def _cells_from_owner(owner: AuditoryReciprocityOwner) -> tuple[_Cell, ...]:
                     right=right,
                     reference_count=reference_count,
                     terminal_floor=min(left.sample_count, right.sample_count),
-                    # Tutor-witnessed terminal discovery always has the
-                    # direct monotone path.  Recomputing optional recurrence
-                    # shortcuts here would add quadratic boot work; the final
-                    # existing reciprocity gate retains those semantics.
+                    # This compatibility field is not used by the live path.
+                    # The native state owner receives the exact branch-
+                    # fingerprint relation and constructs the same recurrence
+                    # graph once with its immutable cell.
                     recurrence_incoming=tuple(
                         () for _ in range(reference_count)
                     ),
@@ -695,10 +748,49 @@ class AuditoryIncrementalTerminalOwner:
             _cells_from_owner(reciprocity_owner)
             if _prepared_cells is None else _prepared_cells
         )
+        if self._cells and _NativeIncrementalProposalCells is None:
+            raise RuntimeError(
+                "learned incremental auditory perception requires the exact "
+                "native proposal kernel"
+            )
+        self._native_proposals = (
+            _NativeIncrementalProposalCells([
+                (
+                    [
+                        [
+                            coordinate
+                            for observation in port
+                            for coordinate in observation
+                        ]
+                        for port in cell.left.values
+                    ],
+                    cell.left.sample_count,
+                    [
+                        [
+                            coordinate
+                            for observation in port
+                            for coordinate in observation
+                        ]
+                        for port in cell.right.values
+                    ],
+                    cell.right.sample_count,
+                    cell.terminal_floor,
+                    cell.left.structural_fingerprint
+                    == cell.right.structural_fingerprint,
+                )
+                for cell in self._cells
+            ])
+            if self._cells else None
+        )
         self._lock = threading.RLock()
         self._clear_live_state()
 
     def _clear_live_state(self) -> None:
+        if (
+            hasattr(self, "_native_proposals")
+            and self._native_proposals is not None
+        ):
+            self._native_proposals.clear()
         self._stream_id: str | None = None
         self._last_transport: AuditoryPCMContinuityReceipt | None = None
         self._last_cochlear: AuditoryGammatoneContinuationReceipt | None = None
@@ -707,13 +799,15 @@ class AuditoryIncrementalTerminalOwner:
         self._pcm = bytearray()
         self._evidence: list[_Evidence] = []
         self._frames: list[_Frame] = []
-        self._trackers: list[_Tracker] = []
         self._pending: dict[int, _PendingTerminal] = {}
 
     @property
     def active_tracker_count(self) -> int:
         with self._lock:
-            return len(self._trackers)
+            return (
+                self._native_proposals.active_tracker_count
+                if self._native_proposals is not None else 0
+            )
 
     @property
     def retained_sample_count(self) -> int:
@@ -742,13 +836,13 @@ class AuditoryIncrementalTerminalOwner:
             status=status,
             reply_candidate=reply_candidate,
             processed_hops=processed_hops,
-            active_tracker_count=len(self._trackers),
+            active_tracker_count=self.active_tracker_count,
         )
         result = AuditoryIncrementalAdvance(
             status=status,
             reply_candidate=reply_candidate,
             processed_hops=processed_hops,
-            active_tracker_count=len(self._trackers),
+            active_tracker_count=self.active_tracker_count,
             authority_receipt_sha256=_digest(payload),
         )
         result.verify()
@@ -942,10 +1036,10 @@ class AuditoryIncrementalTerminalOwner:
             value for value in self._frames
             if value.completion_sample > keep_from
         ]
-        expired = any(value.start_sample < keep_from for value in self._trackers)
-        self._trackers = [
-            value for value in self._trackers if value.start_sample >= keep_from
-        ]
+        expired = (
+            self._native_proposals.expire_before(keep_from)
+            if self._native_proposals is not None else False
+        )
         if any(start < keep_from for start in self._pending):
             expired = True
             self._pending = {
@@ -978,8 +1072,8 @@ class AuditoryIncrementalTerminalOwner:
         )
 
     def _full_gate(
-        self, start: int, end: int
-    ) -> tuple[AuditoryRecognitionState, _PendingTerminal | None]:
+        self, start: int, end: int, *, max_work: int
+    ) -> tuple[AuditoryRecognitionState, _PendingTerminal | None, int]:
         if self._stream_id is None:
             raise RuntimeError("incremental auditory candidate has no stream")
         # Retained PCM proves exact sample identity, but the candidate field is
@@ -1061,12 +1155,14 @@ class AuditoryIncrementalTerminalOwner:
         if experience is None:
             raise RuntimeError("incremental auditory candidate did not settle")
         experience.verify()
-        recognition = self._reciprocity_owner.recognize(
+        recognition, consumed_cells = (
+            self._reciprocity_owner.recognize_bounded(
             experience,
             kind=AuditoryReciprocityKind.SPOKEN_FORM,
-        )
+            max_work=max_work,
+        ))
         if recognition.state is not AuditoryRecognitionState.UNIQUE:
-            return recognition.state, None
+            return recognition.state, None, consumed_cells
         if not recognition.tutor_label:
             raise RuntimeError("unique incremental recognition has no tutor label")
         transport, cochlear, joint = self._candidate_evidence(start, end)
@@ -1079,7 +1175,7 @@ class AuditoryIncrementalTerminalOwner:
             transport_receipt_sha256s=transport,
             cochlear_receipt_sha256s=cochlear,
             joint_settlement_receipt_sha256s=joint,
-        )
+        ), consumed_cells
 
     def _evidence_epoch_start(self) -> Fraction:
         if self._last_transport is None:
@@ -1245,55 +1341,60 @@ class AuditoryIncrementalTerminalOwner:
         completion: int,
         pressure: tuple[float, ...],
         phase: tuple[float, ...],
+        full_gate_work: _AdvanceFullGateWorkLedger,
     ) -> tuple[_PendingTerminal | None, bool, bool]:
-        prior_pending = dict(self._pending)
-        terminal_spans = set()
-        survivors = []
-        resource = False
-        work_cells = 0
-        for tracker in self._trackers:
-            cell = self._cells[tracker.cell_index]
-            work_cells += cell.reference_count * (
-                2 if tracker.row is None else 1
+        if self._native_proposals is None:
+            raise RuntimeError(
+                "incremental auditory proposal owner has no learned cells"
             )
-            if work_cells > MAX_REACHABILITY_CELLS_PER_RECOGNITION:
-                self._trackers.clear()
-                self._pending.clear()
-                return None, False, True
-            terminal = self._advance_tracker(tracker, pressure, phase)
-            if terminal is None:
-                resource = True
-                self._pending.pop(tracker.start_sample, None)
-            elif terminal is False:
-                if tracker.row is not None and any(tracker.row):
-                    survivors.append(tracker)
-            else:
-                survivors.append(tracker)
-                terminal_spans.add((tracker.start_sample, completion))
-        self._trackers = survivors
-        self._spawn(completion, pressure, phase)
-        if len(self._trackers) > self._max_active_trackers:
-            self._trackers.clear()
+        prior_pending = dict(self._pending)
+        (
+            terminal_spans,
+            remove_pending_starts,
+            resource,
+            clear_all_state,
+            _proposal_work_cells,
+            _active_tracker_count,
+            _active_starts,
+        ) = self._native_proposals.step(
+            completion,
+            list(pressure),
+            list(phase),
+            [
+                (start, pending.end)
+                for start, pending in self._pending.items()
+            ],
+            self._max_active_trackers,
+            MAX_REACHABILITY_CELLS_PER_RECOGNITION,
+            MAX_INTERVAL_COMPONENTS_PER_CELL,
+        )
+        closed_pending_starts = set(remove_pending_starts)
+        for start in closed_pending_starts:
+            self._pending.pop(start, None)
+        if clear_all_state:
+            self._native_proposals.clear()
             self._pending.clear()
             return None, False, True
-
-        # Once a witnessed terminal exists, every later contiguous hop is a
-        # same-start extension question.  The DP may retain lagging alternate
-        # paths after the actual terminal; those paths cannot postpone closure
-        # unless the freshly rebuilt full candidate is still UNIQUE.
-        active_starts_before_gate = {
-            value.start_sample for value in self._trackers
-        }
-        terminal_spans.update(
-            (start, completion)
-            for start, pending in self._pending.items()
-            if start in active_starts_before_gate and completion > pending.end
-        )
 
         ambiguous = False
         rejected_starts = set()
         for start, end in sorted(terminal_spans):
-            state, pending = self._full_gate(start, end)
+            span = end - start
+            if span <= 0 or span % OBSERVATION_HOP_SAMPLES:
+                raise RuntimeError("incremental auditory gate extent changed")
+            field_samples = (
+                span // OBSERVATION_HOP_SAMPLES * COCHLEAR_CHANNEL_COUNT
+            )
+            if not full_gate_work.reserve_field_samples(field_samples):
+                self._native_proposals.clear()
+                self._pending.clear()
+                return None, False, True
+            state, pending, consumed_cells = self._full_gate(
+                start,
+                end,
+                max_work=full_gate_work.remaining_reachability,
+            )
+            full_gate_work.charge_reachability(consumed_cells)
             if state is AuditoryRecognitionState.UNIQUE:
                 if pending is None:
                     raise RuntimeError("unique full-field gate lost its terminal")
@@ -1311,26 +1412,49 @@ class AuditoryIncrementalTerminalOwner:
                     prior_pending[start] = self._pending.pop(start)
                 rejected_starts.add(start)
         if rejected_starts:
-            self._trackers = [
-                value for value in self._trackers
-                if value.start_sample not in rejected_starts
-            ]
-        active_starts = {value.start_sample for value in self._trackers}
+            self._native_proposals.discard_starts(sorted(rejected_starts))
+        active_starts = set(self._native_proposals.active_starts)
         closed = []
         for start, pending in tuple(prior_pending.items()):
-            if start not in active_starts and start not in self._pending:
+            if (
+                start in closed_pending_starts
+                or (start not in active_starts and start not in self._pending)
+            ):
                 closed.append(pending)
-        chosen, closure_ambiguity = self._resolve_closed(closed)
+        # A closed interval cannot be released independently of a still-live
+        # full-field identity whose physical interval overlaps it.  Those
+        # candidates are one contemporaneous causal component.  Resolve the
+        # component by learned identity only after every proposal ending on
+        # this frame has passed the full field; proposal iteration order never
+        # owns segmentation or meaning.
+        overlap_pending = [
+            pending for pending in self._pending.values()
+            if any(
+                pending.start < closed_value.end
+                and closed_value.start < pending.end
+                for closed_value in closed
+            )
+        ]
+        component = [*closed, *overlap_pending]
+        component_labels = {value.tutor_label for value in component}
+        closure_ambiguity = len(component_labels) > 1
+        chosen, closed_ambiguity = self._resolve_closed(closed)
+        closure_ambiguity = closure_ambiguity or closed_ambiguity
         ambiguous = ambiguous or closure_ambiguity
-        if chosen is not None:
-            self._trackers = [
-                value for value in self._trackers
-                if value.start_sample >= chosen.end
-            ]
+        if chosen is not None and not closure_ambiguity and not ambiguous:
+            self._native_proposals.retain_at_or_after(chosen.end)
             self._pending = {
                 start: value for start, value in self._pending.items()
                 if start >= chosen.end
             }
+        elif component and ambiguous:
+            component_end = max(value.end for value in component)
+            self._native_proposals.retain_at_or_after(component_end)
+            self._pending = {
+                start: value for start, value in self._pending.items()
+                if start >= component_end
+            }
+            chosen = None
         return chosen, ambiguous, resource
 
     def advance(
@@ -1394,20 +1518,41 @@ class AuditoryIncrementalTerminalOwner:
             released = []
             ambiguous = False
             resource = expired
-            for completion, pressure, phase in frames:
-                terminal, frame_ambiguous, frame_resource = self._process_frame(
-                    completion, pressure, phase
-                )
-                ambiguous = ambiguous or frame_ambiguous
-                resource = resource or frame_resource
-                if terminal is not None:
-                    released.append(terminal)
-                if len(released) > 1:
-                    released.clear()
-                    resource = True
-                    self._trackers.clear()
-                    self._pending.clear()
-                    break
+            processed_hops = 0
+            full_gate_work = _AdvanceFullGateWorkLedger(
+                reachability_limit=MAX_FULL_GATE_WORK_PER_ADVANCE,
+                field_sample_limit=MAX_FULL_GATE_FIELD_SAMPLES_PER_ADVANCE,
+            )
+            if resource:
+                if self._native_proposals is not None:
+                    self._native_proposals.clear()
+                self._pending.clear()
+            else:
+                for completion, pressure, phase in frames:
+                    processed_hops += 1
+                    terminal, frame_ambiguous, frame_resource = (
+                        self._process_frame(
+                            completion,
+                            pressure,
+                            phase,
+                            full_gate_work,
+                        )
+                    )
+                    ambiguous = ambiguous or frame_ambiguous
+                    resource = resource or frame_resource
+                    if frame_resource:
+                        released.clear()
+                        self._native_proposals.clear()
+                        self._pending.clear()
+                        break
+                    if terminal is not None:
+                        released.append(terminal)
+                    if len(released) > 1:
+                        released.clear()
+                        resource = True
+                        self._native_proposals.clear()
+                        self._pending.clear()
+                        break
             reply = self._event(released[0]) if len(released) == 1 else None
             if resource:
                 reply = None
@@ -1417,21 +1562,25 @@ class AuditoryIncrementalTerminalOwner:
                 status = AuditoryIncrementalStatus.AMBIGUOUS
             elif reply is not None:
                 status = AuditoryIncrementalStatus.RELEASED_UNIQUE
-            elif self._trackers or self._pending:
+            elif self.active_tracker_count or self._pending:
                 status = AuditoryIncrementalStatus.CONTINUING
             else:
                 status = AuditoryIncrementalStatus.UNKNOWN
             result = self._make_result(
                 status,
                 reply_candidate=reply,
-                processed_hops=len(frames),
+                processed_hops=processed_hops,
             )
             self._log_event(
                 "auditory_incremental_terminal_advanced",
                 status=status.value,
-                processed_hops=len(frames),
-                active_tracker_count=len(self._trackers),
+                processed_hops=processed_hops,
+                active_tracker_count=self.active_tracker_count,
                 reply_candidate_count=1 if reply is not None else 0,
+                full_gate_reachability_cells=(
+                    full_gate_work.reachability_consumed
+                ),
+                full_gate_field_samples=full_gate_work.field_samples_consumed,
             )
             return result
 

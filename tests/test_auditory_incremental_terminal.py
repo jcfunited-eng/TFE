@@ -4,6 +4,7 @@ import math
 import struct
 from fractions import Fraction
 
+import dsf_ai_service.substrate.auditory_incremental_terminal as terminal_module
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
@@ -355,6 +356,217 @@ def test_tracker_overflow_is_typed_indeterminate_and_releases_nothing() -> None:
     assert result.status is AuditoryIncrementalStatus.INDETERMINATE_RESOURCE
     assert result.reply_candidate is None
     assert terminal.active_tracker_count == 0
+
+
+def test_exact_structural_closure_does_not_repeat_the_full_field_gate(
+    monkeypatch,
+) -> None:
+    learned = _learned_owner()
+    terminal = AuditoryIncrementalTerminalOwner(reciprocity_owner=learned)
+    mounted = _MountedStream()
+    offset = 21_920
+    signal = (
+        (0,) * offset
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * TRAILING_SAMPLES
+    )
+    full_gate_calls = []
+    full_gate = terminal._full_gate
+
+    def counted_full_gate(start, end, *, max_work):
+        full_gate_calls.append((start, end, max_work))
+        return full_gate(start, end, max_work=max_work)
+
+    monkeypatch.setattr(terminal, "_full_gate", counted_full_gate)
+    monkeypatch.setattr(
+        terminal_module,
+        "MAX_REACHABILITY_CELLS_PER_RECOGNITION",
+        2_000,
+    )
+    monkeypatch.setattr(
+        terminal_module,
+        "MAX_FULL_GATE_WORK_PER_ADVANCE",
+        2_000,
+    )
+    result = terminal.advance(**mounted.mount(
+        _pcm(signal), sequence=0, first_sample_index=0
+    ))
+
+    assert [value[:2] for value in full_gate_calls] == [
+        (offset, offset + LEARNED_SAMPLES),
+    ]
+    assert full_gate_calls[0][2] == 2_000
+    assert result.status is AuditoryIncrementalStatus.RELEASED_UNIQUE
+    assert result.reply_candidate is not None
+    assert terminal.active_tracker_count == 0
+    assert terminal.close_stream().reply_candidate is None
+
+
+class _NativeProposalStub:
+    def __init__(self, spans, active_starts=()):
+        self.spans = list(spans)
+        self._active_starts = set(active_starts)
+
+    def step(self, *_args):
+        return (
+            list(self.spans),
+            [],
+            False,
+            False,
+            0,
+            len(self._active_starts),
+            sorted(self._active_starts),
+        )
+
+    @property
+    def active_starts(self):
+        return sorted(self._active_starts)
+
+    @property
+    def active_tracker_count(self):
+        return len(self._active_starts)
+
+    def discard_starts(self, starts):
+        self._active_starts.difference_update(starts)
+
+    def retain_at_or_after(self, boundary):
+        self._active_starts = {
+            start for start in self._active_starts if start >= boundary
+        }
+
+    def clear(self):
+        self._active_starts.clear()
+
+
+def _pending_terminal(start, end, label):
+    return terminal_module._PendingTerminal(
+        start=start,
+        end=end,
+        tutor_label=label,
+        structural_fingerprint="1" * 64,
+        l5_authority_receipt_sha256="2" * 64,
+        transport_receipt_sha256s=("3" * 64,),
+        cochlear_receipt_sha256s=("4" * 64,),
+        joint_settlement_receipt_sha256s=("5" * 64,),
+    )
+
+
+def test_same_completion_requires_every_full_field_candidate(monkeypatch) -> None:
+    terminal = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    terminal._native_proposals = _NativeProposalStub(
+        ((0, LEARNED_SAMPLES), (160, LEARNED_SAMPLES)),
+        active_starts=(0, 160),
+    )
+    calls = []
+
+    def full_gate(start, end, *, max_work):
+        calls.append((start, end))
+        assert max_work >= 1
+        return (
+            terminal_module.AuditoryRecognitionState.UNIQUE,
+            _pending_terminal(start, end, f"identity-{start}"),
+            1,
+        )
+
+    monkeypatch.setattr(terminal, "_full_gate", full_gate)
+    chosen, ambiguous, resource = terminal._process_frame(
+        LEARNED_SAMPLES,
+        (1.0,) * 16,
+        (0.0,) * 16,
+        terminal_module._AdvanceFullGateWorkLedger(
+            reachability_limit=2,
+            field_sample_limit=2_000,
+        ),
+    )
+
+    assert calls == [(0, LEARNED_SAMPLES), (160, LEARNED_SAMPLES)]
+    assert chosen is None
+    assert ambiguous is False
+    assert resource is False
+
+
+def test_overlapping_identity_cannot_be_preempted_by_proposal_order(
+        monkeypatch) -> None:
+    terminal = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    terminal._pending[0] = _pending_terminal(0, LEARNED_SAMPLES, "first")
+    terminal._native_proposals = _NativeProposalStub(
+        ((0, LEARNED_SAMPLES + 160), (160, LEARNED_SAMPLES + 160)),
+        active_starts=(160,),
+    )
+    calls = []
+
+    def full_gate(start, end, *, max_work):
+        calls.append((start, end))
+        assert max_work >= 1
+        if start == 0:
+            return terminal_module.AuditoryRecognitionState.UNKNOWN, None, 1
+        return (
+            terminal_module.AuditoryRecognitionState.UNIQUE,
+            _pending_terminal(start, end, "second"),
+            1,
+        )
+
+    monkeypatch.setattr(terminal, "_full_gate", full_gate)
+    chosen, ambiguous, resource = terminal._process_frame(
+        LEARNED_SAMPLES + 160,
+        (1.0,) * 16,
+        (0.0,) * 16,
+        terminal_module._AdvanceFullGateWorkLedger(
+            reachability_limit=2,
+            field_sample_limit=2_000,
+        ),
+    )
+
+    assert calls == [
+        (0, LEARNED_SAMPLES + 160),
+        (160, LEARNED_SAMPLES + 160),
+    ]
+    assert chosen is None
+    assert ambiguous is True
+    assert resource is False
+    assert terminal._pending == {}
+
+
+def test_zero_reachability_matches_cannot_bypass_field_rebuild_boundary(
+        monkeypatch) -> None:
+    terminal = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    terminal._native_proposals = _NativeProposalStub(
+        ((0, LEARNED_SAMPLES), (160, LEARNED_SAMPLES)),
+        active_starts=(0, 160),
+    )
+    calls = []
+
+    def exact_full_gate(start, end, *, max_work):
+        calls.append((start, end, max_work))
+        return (
+            terminal_module.AuditoryRecognitionState.UNIQUE,
+            _pending_terminal(start, end, "same-identity"),
+            0,
+        )
+
+    monkeypatch.setattr(terminal, "_full_gate", exact_full_gate)
+    one_field = LEARNED_SAMPLES // OBSERVATION_HOP_SAMPLES * 16
+    chosen, ambiguous, resource = terminal._process_frame(
+        LEARNED_SAMPLES,
+        (1.0,) * 16,
+        (0.0,) * 16,
+        terminal_module._AdvanceFullGateWorkLedger(
+            reachability_limit=2,
+            field_sample_limit=one_field,
+        ),
+    )
+
+    assert calls == [(0, LEARNED_SAMPLES, 2)]
+    assert chosen is None
+    assert ambiguous is False
+    assert resource is True
+    assert terminal._pending == {}
 
 
 def test_registry_keeps_interleaved_stream_epochs_physically_independent() -> None:

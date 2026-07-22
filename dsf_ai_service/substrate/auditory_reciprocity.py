@@ -1360,18 +1360,33 @@ class AuditoryReciprocityOwner:
             tutor_label=tutor_label,
         ).as_dict()
 
-    def recognize(
+    def recognize_bounded(
         self,
         experience: AuditoryL5Experience,
         *,
         kind: AuditoryReciprocityKind,
-    ) -> AuditoryRecognition:
+        max_work: int,
+    ) -> tuple[AuditoryRecognition, int]:
+        """Recognize under an exact caller-owned cumulative work grant.
+
+        The returned cell count is the authority actually consumed.  A caller
+        may pass its remaining grant across several candidate gates without
+        multiplying the existing recognition boundary.
+        """
         if not isinstance(kind, AuditoryReciprocityKind):
             raise ValueError("auditory reciprocity kind is invalid")
+        if (
+            isinstance(max_work, bool)
+            or not isinstance(max_work, int)
+            or max_work < 0
+            or max_work > MAX_REACHABILITY_CELLS_PER_RECOGNITION
+        ):
+            raise ValueError("auditory recognition work authority is invalid")
         experience.verify()
         if kind is AuditoryReciprocityKind.SOURCE_CONTINUITY:
             candidates: tuple[str, ...] = ()
             exhausted = False
+            consumed_cells = 0
         else:
             query = _pack_experience(experience)
             with self._lock:
@@ -1383,8 +1398,7 @@ class AuditoryReciprocityOwner:
                         learned,
                         query,
                         max_work=(
-                            MAX_REACHABILITY_CELLS_PER_RECOGNITION
-                            - consumed_cells
+                            max_work - consumed_cells
                         ),
                     )
                     if (
@@ -1427,6 +1441,19 @@ class AuditoryReciprocityOwner:
             kind=kind.value,
             resource_exhausted=exhausted,
             state=state.value,
+        )
+        return result, consumed_cells
+
+    def recognize(
+        self,
+        experience: AuditoryL5Experience,
+        *,
+        kind: AuditoryReciprocityKind,
+    ) -> AuditoryRecognition:
+        result, _consumed_cells = self.recognize_bounded(
+            experience,
+            kind=kind,
+            max_work=MAX_REACHABILITY_CELLS_PER_RECOGNITION,
         )
         return result
 

@@ -409,6 +409,13 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
     )
     monkeypatch.setattr(appmod, "_generation_owner_lock", owner)
     monkeypatch.setattr(appmod, "_loaded_generation", generation)
+    monkeypatch.setattr(
+        appmod, "_deployment_baseline_generation", generation)
+    monkeypatch.setattr(
+        appmod,
+        "_live_recovery_store",
+        SimpleNamespace(load_current=lambda: None),
+    )
 
     actual_git = "1" * 40
     expected_git = "2" * 40 if mismatch == "build" else actual_git
@@ -468,3 +475,94 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
     assert response.status_code == 503
     assert response.json()["ready"] is False
     assert error_fragment in response.json()["error"]
+
+
+def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
+        monkeypatch):
+    """A valid hot overlay cannot replace the deployment seal's identity."""
+    lifecycle = appmod._DeploymentLifecycle()
+    baseline = SimpleNamespace(
+        generation_uuid=_certificate()["generation_uuid"],
+        identity=_certificate()["identity"],
+        manifest_sha256=_certificate()["manifest_sha256"],
+        tick=_certificate()["tick"],
+    )
+    overlay = SimpleNamespace(
+        generation_uuid="22222222-2222-4222-8222-222222222222",
+        identity=baseline.identity,
+        manifest_sha256="c" * 64,
+        tick=baseline.tick + 11,
+    )
+
+    monkeypatch.setattr(appmod, "_deployment_lifecycle", lifecycle)
+    monkeypatch.setattr(appmod, "_REQUIRE_SEALED_STATE", True)
+    monkeypatch.setattr(appmod, "_GUALALOOM_API_KEY", "control-secret")
+    monkeypatch.setattr(appmod, "_init_complete", True)
+    monkeypatch.setattr(appmod, "_init_error", None)
+    monkeypatch.setattr(
+        appmod,
+        "_guala",
+        SimpleNamespace(_guala_identity=baseline.identity, tick=overlay.tick),
+    )
+    monkeypatch.setattr(
+        appmod, "_generation_owner_lock", SimpleNamespace(acquired=True))
+    monkeypatch.setattr(appmod, "_loaded_generation", overlay)
+    monkeypatch.setattr(
+        appmod, "_deployment_baseline_generation", baseline)
+    monkeypatch.setattr(
+        appmod,
+        "_live_recovery_store",
+        SimpleNamespace(load_current=lambda: overlay),
+    )
+
+    actual_git = "1" * 40
+    actual_task = "dsf-ai:41"
+    actual_image = "sha256:" + "3" * 64
+    monkeypatch.setenv("DEPLOY_EXPECTED_GIT_SHA", actual_git)
+    monkeypatch.setenv("DEPLOY_EXPECTED_TASK_DEFINITION", actual_task)
+    monkeypatch.setenv("DEPLOY_EXPECTED_IMAGE_DIGEST", actual_image)
+    monkeypatch.setattr(appmod, "_read_build_git_sha", lambda: actual_git)
+    monkeypatch.setattr(
+        appmod,
+        "_ecs_task_runtime_identity",
+        lambda: {
+            "task_definition": actual_task,
+            "image_digest": actual_image,
+        },
+    )
+
+    def load_seal(_root, *, hmac_key, expected_nonce):
+        assert hmac_key == appmod._deploy_hmac_key()
+        assert expected_nonce == "readiness-nonce"
+        return _certificate()
+
+    monkeypatch.setattr(
+        deployment_generation,
+        "load_and_verify_deployment_seal",
+        load_seal,
+    )
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.get(
+                "/internal/deployment/readiness",
+                headers={
+                    "X-API-Key": "control-secret",
+                    "X-Deploy-Nonce": "readiness-nonce",
+                },
+            )
+
+    response = _run(scenario())
+    assert response.status_code == 200
+    proof = response.json()
+    assert proof["ready"] is True
+    assert proof["generation"] == baseline.generation_uuid
+    assert proof["manifest_sha256"] == baseline.manifest_sha256
+    assert proof["generation_tick"] == baseline.tick
+    assert proof["active_recovery_generation"] == overlay.generation_uuid
+    assert proof["active_recovery_manifest_sha256"] == overlay.manifest_sha256
+    assert proof["active_recovery_tick"] == overlay.tick
+    assert proof["active_recovery_is_overlay"] is True

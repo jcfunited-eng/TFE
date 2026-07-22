@@ -8,6 +8,9 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+#[path = "auditory_incremental.rs"]
+mod auditory_incremental;
+
 const PCM_PRESSURE_QUANTUM: f64 = 1.0 / 32_768.0;
 const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
 
@@ -380,5 +383,6 @@ fn auditory_joint_path_contains(
 
 pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(auditory_joint_path_contains, module)?)?;
+    auditory_incremental::register(module)?;
     Ok(())
 }

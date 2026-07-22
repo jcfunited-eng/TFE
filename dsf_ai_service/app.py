@@ -1690,6 +1690,13 @@ GENERATION_STORE_ROOT = os.environ.get(
         os.path.basename(os.path.abspath(STATE_DIR)) + "-sealed",
     ),
 )
+LIVE_RECOVERY_STORE_ROOT = os.environ.get(
+    "GUALA_LIVE_RECOVERY_STORE_ROOT",
+    os.path.join(
+        os.path.dirname(GENERATION_STORE_ROOT),
+        os.path.basename(GENERATION_STORE_ROOT) + "-live-recovery",
+    ),
+)
 def _safe_ledger_status(module_name):
     """Best-effort status from a schooling ledger; never raises into /status."""
     try:
@@ -1709,6 +1716,8 @@ _REQUIRE_SEALED_STATE = os.environ.get(
     "GUALA_REQUIRE_SEALED_STATE", "0").strip() == "1"
 _generation_owner_lock = None
 _loaded_generation = None
+_deployment_baseline_generation = None
+_live_recovery_store = None
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
 _seed_load_progress = None
@@ -2220,6 +2229,7 @@ SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 def _prepare_generation_boot():
     """Acquire the sole EFS owner and activate fully verified CURRENT state."""
     global _generation_owner_lock, _loaded_generation
+    global _deployment_baseline_generation, _live_recovery_store
     if not _REQUIRE_SEALED_STATE:
         return None
     if _generation_owner_lock is not None:
@@ -2228,20 +2238,70 @@ def _prepare_generation_boot():
         ProcessLifetimeEFSOwnerLock,
         materialize_current,
     )
+    from dsf_ai_service.substrate.live_recovery_generation import (
+        LiveRecoveryGenerationStore,
+    )
     owner = ProcessLifetimeEFSOwnerLock(OWNER_LOCK_PATH).acquire()
     try:
-        materialized = materialize_current(
+        baseline = materialize_current(
             store_root=GENERATION_STORE_ROOT,
             active_directory=STATE_DIR,
         )
+        live_store = LiveRecoveryGenerationStore(
+            LIVE_RECOVERY_STORE_ROOT,
+            baseline=baseline,
+            hot_files=Guala.HOT_SAVE_MANIFEST_FILES,
+            hmac_key=_deploy_hmac_key(),
+        )
+        live = live_store.apply_current(STATE_DIR)
+        materialized = live or baseline
     except BaseException:
         owner.release()
         raise
     _generation_owner_lock = owner
     _loaded_generation = materialized
+    _deployment_baseline_generation = baseline
+    _live_recovery_store = live_store
     app.state.generation_owner = owner
     app.state.loaded_generation = materialized
+    app.state.deployment_baseline_generation = baseline
+    app.state.live_recovery_store = live_store
     return materialized
+
+
+def _publish_authoritative_hot_generation(
+        *, state_dir, save_tick, identity, manifest_files):
+    """Commit the completed hot save before its caller may report success."""
+    global _loaded_generation
+    if not _REQUIRE_SEALED_STATE or _live_recovery_store is None:
+        raise RuntimeError(
+            "authoritative live recovery is unavailable in sealed production")
+    if os.path.realpath(state_dir) != os.path.realpath(STATE_DIR):
+        raise RuntimeError("hot recovery publish targeted a non-active state tree")
+    if identity != _live_recovery_store.baseline.identity:
+        raise RuntimeError("hot recovery identity differs from deployment baseline")
+    required = tuple(sorted(manifest_files))
+    if required != _live_recovery_store.hot_files:
+        raise RuntimeError("hot recovery file contract differs from engine contract")
+    generation = _live_recovery_store.commit_hot_state(
+        tick=int(save_tick),
+        files={name: os.path.join(state_dir, name) for name in required},
+    )
+    from dsf_ai_service.substrate.deployment_generation import (
+        MATERIALIZATION_SCHEMA,
+        MaterializedGeneration,
+    )
+    materialized = MaterializedGeneration(
+        schema=MATERIALIZATION_SCHEMA,
+        generation_uuid=generation.generation_uuid,
+        identity=generation.identity,
+        tick=generation.tick,
+        manifest_sha256=generation.manifest_sha256,
+        active_directory=os.path.abspath(state_dir),
+        materialized_files=required,
+    )
+    _loaded_generation = materialized
+    app.state.loaded_generation = materialized
 
 
 def _strict_discard_guala(instance, *, reason):
@@ -2258,6 +2318,7 @@ def _strict_discard_guala(instance, *, reason):
 def _boot_generation_and_guala():
     """Boot under the process-lifetime owner lock, releasing it on failure."""
     global _generation_owner_lock, _loaded_generation
+    global _deployment_baseline_generation, _live_recovery_store
     try:
         _prepare_generation_boot()
         _gl_init()
@@ -2266,8 +2327,12 @@ def _boot_generation_and_guala():
             _generation_owner_lock.release()
             _generation_owner_lock = None
             _loaded_generation = None
+            _deployment_baseline_generation = None
+            _live_recovery_store = None
             app.state.generation_owner = None
             app.state.loaded_generation = None
+            app.state.deployment_baseline_generation = None
+            app.state.live_recovery_store = None
         raise
 
 
@@ -2435,6 +2500,8 @@ def _gl_init():
                 f"loaded identity={loaded_id!r} tick={g.tick}; "
                 f"generation identity={_loaded_generation.identity!r} "
                 f"tick={_loaded_generation.tick}")
+        g._authoritative_hot_generation_publisher = (
+            _publish_authoritative_hot_generation)
     elif loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
         # Joe 2026-07-15 ("old state can never be silently recalled"): do NOT
         # auto-restore S3 on an identity mismatch. The state loaded cleanly; an
@@ -6220,26 +6287,23 @@ async def auditory_l5_teach(req: AuditoryL5TeachRequest):
                 status_code=400, detail=str(error)
             ) from error
     if _is_remote():
-        client = _get_substrate_client()
-        result = await client.call(
-            "auditory_l5_teach",
-            experience_id=req.experience_id,
-            kind=req.kind,
-            tutor_label=req.tutor_label,
-            authority_receipt=authority_receipt,
+        raise HTTPException(
+            status_code=501,
+            detail="remote auditory tutoring has no authoritative durability barrier",
         )
-        if result.get("error"):
-            raise HTTPException(status_code=409, detail=result["error"])
-        return result
     if _guala is None:
         raise HTTPException(status_code=503, detail="guala_not_ready")
-    try:
-        return _guala.teach_latest_auditory_experience(
+    def _teach_and_commit():
+        return _guala.durably_teach_latest_auditory_experience(
             experience_id=req.experience_id,
             kind=req.kind,
             tutor_label=req.tutor_label,
             authority_receipt=authority_receipt,
+            state_dir=STATE_DIR,
         )
+
+    try:
+        return await _run_lifecycle_executor(_teach_and_commit)
     except (RuntimeError, ValueError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 
@@ -6277,9 +6341,10 @@ async def auditory_l5_teach_asset(
             raise ValueError(
                 "auditory tutor asset could not be decoded into canonical PCM"
             )
-        return _guala.teach_isolated_auditory_asset(
+        return _guala.durably_teach_isolated_auditory_asset(
             wav_bytes,
             tutor_label,
+            state_dir=STATE_DIR,
         )
 
     try:
@@ -7818,7 +7883,9 @@ def _production_runtime_proof(nonce=None):
     if (_generation_owner_lock is None
             or not _generation_owner_lock.acquired):
         raise RuntimeError("process does not hold the EFS owner lease")
-    if _loaded_generation is None:
+    if (_loaded_generation is None
+            or _deployment_baseline_generation is None
+            or _live_recovery_store is None):
         raise RuntimeError("no immutable generation was materialized")
 
     from dsf_ai_service.substrate.deployment_generation import (
@@ -7830,16 +7897,24 @@ def _production_runtime_proof(nonce=None):
         expected_nonce=nonce,
     )
     expected = {
-        "generation_uuid": _loaded_generation.generation_uuid,
-        "identity": _loaded_generation.identity,
-        "manifest_sha256": _loaded_generation.manifest_sha256,
-        "tick": _loaded_generation.tick,
+        "generation_uuid": _deployment_baseline_generation.generation_uuid,
+        "identity": _deployment_baseline_generation.identity,
+        "manifest_sha256": _deployment_baseline_generation.manifest_sha256,
+        "tick": _deployment_baseline_generation.tick,
     }
     for field, value in expected.items():
         if certificate.get(field) != value:
             raise RuntimeError(f"deployment seal {field} mismatch")
     if getattr(_guala, "_guala_identity", None) != expected["identity"]:
         raise RuntimeError("live Guala identity differs from immutable generation")
+    live_current = _live_recovery_store.load_current()
+    active = live_current or _deployment_baseline_generation
+    for field in ("generation_uuid", "identity", "manifest_sha256", "tick"):
+        if getattr(_loaded_generation, field) != getattr(active, field):
+            raise RuntimeError(
+                f"loaded live recovery {field} differs from authoritative CURRENT")
+    if int(_guala.tick) < int(_loaded_generation.tick):
+        raise RuntimeError("live Guala tick precedes authoritative recovery state")
 
     git_sha = _read_build_git_sha()
     task = _ecs_task_runtime_identity()
@@ -7858,10 +7933,21 @@ def _production_runtime_proof(nonce=None):
     return {
         "owner": True,
         "git_sha": git_sha,
+        # These three fields are the immutable deployment identity consumed by
+        # the sealed single-owner handoff controller.  A newer, verified hot
+        # recovery overlay is allowed to be active without changing which
+        # complete generation the deployment seal authenticated.
         "generation": expected["generation_uuid"],
         "identity": expected["identity"],
         "manifest_sha256": expected["manifest_sha256"],
         "generation_tick": expected["tick"],
+        "active_recovery_generation": _loaded_generation.generation_uuid,
+        "active_recovery_manifest_sha256": _loaded_generation.manifest_sha256,
+        "active_recovery_tick": _loaded_generation.tick,
+        "active_recovery_is_overlay": live_current is not None,
+        "deployment_baseline_generation": expected["generation_uuid"],
+        "deployment_baseline_manifest_sha256": expected["manifest_sha256"],
+        "deployment_baseline_tick": expected["tick"],
         **task,
     }
 
@@ -8079,6 +8165,7 @@ def _write_runtime_generation_stage(stage):
 
 def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
     """Create, upload, read back, and publish one exact stopped generation."""
+    global _deployment_baseline_generation, _loaded_generation
     import boto3
     from dsf_ai_service.substrate.deployment_generation import (
         persist_deployment_seal,
@@ -8117,6 +8204,38 @@ def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
         hmac_key=key,
         expected_nonce=nonce,
     )
+    if _live_recovery_store is not None:
+        hot_payloads = {
+            name: (json.dumps(
+                result.generation.payload(name),
+                allow_nan=False,
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            ) + "\n").encode("utf-8")
+            for name in Guala.HOT_SAVE_MANIFEST_FILES
+        }
+        rebased = _live_recovery_store.rebase_after_deployment_seal(
+            baseline=result.generation,
+            tick=result.generation.tick,
+            files=hot_payloads,
+        )
+        from dsf_ai_service.substrate.deployment_generation import (
+            MATERIALIZATION_SCHEMA,
+            MaterializedGeneration,
+        )
+        _deployment_baseline_generation = result.generation
+        _loaded_generation = MaterializedGeneration(
+            schema=MATERIALIZATION_SCHEMA,
+            generation_uuid=rebased.generation_uuid,
+            identity=rebased.identity,
+            tick=rebased.tick,
+            manifest_sha256=rebased.manifest_sha256,
+            active_directory=os.path.abspath(STATE_DIR),
+            materialized_files=tuple(sorted(Guala.HOT_SAVE_MANIFEST_FILES)),
+        )
+        app.state.deployment_baseline_generation = result.generation
+        app.state.loaded_generation = _loaded_generation
     return certificate
 
 

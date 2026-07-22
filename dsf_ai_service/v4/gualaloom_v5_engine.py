@@ -64,6 +64,8 @@ REPLAY_SOUND_MAX_COUNT = 32
 REPLAY_SOUND_TOTAL_PCM_BYTES = 8 * 1024 * 1024
 REPLAY_SOUND_MAX_WAV_BYTES = REPLAY_SOUND_MAX_PCM_BYTES + 44
 REPLAY_SOUND_MAX_B64_CHARS = 4 * ((REPLAY_SOUND_MAX_WAV_BYTES + 2) // 3)
+AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE = 2.0 / 32_768.0
+AUDITORY_TUTOR_OBSERVATION_HOP_SAMPLES = 160
 VIDEO_MAX_RETAINED_FRAMES = 120
 VIDEO_RETAINED_FRAME_RATE_HZ = 15
 VIDEO_RETAINED_FRAME_ROWS = 120
@@ -6813,6 +6815,9 @@ class Guala:
         canonical, frame_count, _pcm_bytes = self._canonical_replay_wav(
             wav_bytes
         )
+        canonical, frame_count, _pcm_bytes = self._auditory_tutor_event_wav(
+            canonical
+        )
         source_start_ns = time.time_ns()
         causal = self.process_sound_frame(
             canonical,
@@ -6906,6 +6911,62 @@ class Guala:
             "recognized_label": recognition.tutor_label,
             "candidate_labels": list(recognition.candidate_labels),
         }
+
+    def _durable_auditory_teaching_transaction(self, state_dir, teaching_call):
+        """Return acceptance only after hot state and live CURRENT commit.
+
+        If either persistence boundary fails, the auditory class and tutor
+        authority state are restored in memory.  The immutable store itself
+        leaves its prior CURRENT untouched until a complete commit exists.
+        """
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative auditory teaching durability is unavailable"
+            )
+        with self.persistence_transaction():
+            prior = self._auditory_reciprocity_owner.encoded_snapshot()
+            try:
+                result = teaching_call()
+                self.save_hot_state(state_dir)
+                return result
+            except BaseException:
+                self._auditory_reciprocity_owner.restore_encoded(prior)
+                self._auditory_incremental_terminals.refresh_learning()
+                current = self._latest_auditory_l5_experience
+                self._latest_auditory_recognitions = (
+                    self._auditory_reciprocity_owner.recognize_all(current)
+                    if (
+                        current is not None
+                        and self._latest_auditory_recognition_boundary
+                            == "utterance"
+                    )
+                    else ()
+                )
+                raise
+
+    @_engine_mutation_entry
+    def durably_teach_isolated_auditory_asset(
+            self, wav_bytes, tutor_label, *, state_dir):
+        return self._durable_auditory_teaching_transaction(
+            state_dir,
+            lambda: self.teach_isolated_auditory_asset(
+                wav_bytes, tutor_label),
+        )
+
+    @_engine_mutation_entry
+    def durably_teach_latest_auditory_experience(
+            self, *, experience_id, kind, tutor_label,
+            authority_receipt=None, state_dir):
+        return self._durable_auditory_teaching_transaction(
+            state_dir,
+            lambda: self.teach_latest_auditory_experience(
+                experience_id=experience_id,
+                kind=kind,
+                tutor_label=tutor_label,
+                authority_receipt=authority_receipt,
+            ),
+        )
 
     def auditory_l5_status(self):
         experience = self._latest_auditory_l5_experience
@@ -12913,6 +12974,64 @@ class Guala:
         return canonical_buffer.getvalue(), frame_count, pcm_bytes
 
     @classmethod
+    def _auditory_tutor_event_wav(cls, canonical_wav):
+        """Exclude only a quantized-absence prefix from a tutor event.
+
+        The continuous microphone owner advances on 10 ms cochlear pressure
+        observations.  A leading observation whose complete sixteen-port
+        pressure field lies within the same two-count input uncertainty
+        already used by auditory reciprocity is indistinguishable from absent
+        input and cannot own an utterance start.  The fourth-order channel
+        cascade has unit L1 gain, so that input uncertainty is also a strict
+        full-scale output bound.  This does not trim room sound, fit an energy
+        threshold, or infer speech.
+        """
+        import io
+        import wave
+        from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+            transduce_auditory_full_field,
+        )
+
+        canonical, frame_count, _pcm_bytes = cls._canonical_replay_wav(
+            canonical_wav
+        )
+        with wave.open(io.BytesIO(canonical), "rb") as source:
+            raw = source.readframes(frame_count)
+        field = transduce_auditory_full_field(
+            np.frombuffer(raw, dtype="<i2").astype(np.float64) / 32_768.0,
+            sample_rate_hz=REPLAY_SOUND_SAMPLE_RATE_HZ,
+        )
+        onset = None
+        hop = AUDITORY_TUTOR_OBSERVATION_HOP_SAMPLES
+        for frame_index in range(field.frame_count):
+            if any(
+                channel.pressure_envelope_full_scale[frame_index]
+                > AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE
+                for channel in field.channels
+            ):
+                onset = frame_index * hop
+                break
+        if onset is None:
+            raise ValueError(
+                "auditory tutor asset has no quantization-distinguishable event"
+            )
+        retained = frame_count - onset
+        if retained < 2 * hop:
+            raise ValueError(
+                "auditory tutor event is shorter than two observations"
+            )
+        if onset == 0:
+            return canonical, frame_count, frame_count * 2
+        trimmed = raw[onset * 2:]
+        target_buffer = io.BytesIO()
+        with wave.open(target_buffer, "wb") as target:
+            target.setnchannels(1)
+            target.setsampwidth(REPLAY_SOUND_SAMPLE_WIDTH_BYTES)
+            target.setframerate(REPLAY_SOUND_SAMPLE_RATE_HZ)
+            target.writeframes(trimmed)
+        return cls._canonical_replay_wav(target_buffer.getvalue())
+
+    @classmethod
     def _decode_replay_sound_record(cls, item_id, sound):
         """Return and verify the exact retained capture for one new record."""
         import base64
@@ -16802,7 +16921,11 @@ class Guala:
         _slowest = max(_per_file_ms.items(), key=lambda kv: kv[1]) if _per_file_ms else (None, 0)
         print(f"[save-hot-detail] {_per_file_ms} slowest={_slowest[0]}({_slowest[1]}ms)")
         if not _failures:
-            self._publish_state_generation(state_dir, save_tick)
+            self._publish_state_generation(
+                state_dir,
+                save_tick,
+                manifest_files=self.HOT_SAVE_MANIFEST_FILES,
+            )
         self._raise_persistence_failures("hot save", _failures)
         return results
 
@@ -17255,8 +17378,14 @@ class Guala:
 
         return results
 
-    def _publish_state_generation(self, state_dir, save_tick):
-        """Best-effort atomic generation snapshot of the flat state dir.
+    def _publish_state_generation(
+            self, state_dir, save_tick, *, manifest_files=None):
+        """Publish one completed state generation.
+
+        Sealed production injects an authoritative hot-generation publisher.
+        Its failure is part of hot-save failure and therefore propagates to
+        the caller.  The legacy local generation remains best-effort only for
+        unsealed operation and full saves.
 
         GL-FIX-ATOMIC-SAVE-GENERATIONS-20260715: a kill between the individual
         per-file writes of a save cycle can leave the flat directory mixing two
@@ -17274,12 +17403,22 @@ class Guala:
         older one -- it still never silently reaches for S3. Provided because
         per-save cost at production scale has historically been the one class
         of regression local testing cannot catch."""
-        if os.environ.get("GUALA_ATOMIC_GENERATIONS", "1") == "0":
-            return
         # GL-FIX-STAGED-SET-FLIP-20260718: the generation hard-links the
         # FLAT files — commit any staged set first so it snapshots this
         # cycle's flipped files, never a half-staged mix.
         self._commit_staged_persistence()
+        authoritative = getattr(
+            self, "_authoritative_hot_generation_publisher", None)
+        if manifest_files is not None and authoritative is not None:
+            authoritative(
+                state_dir=state_dir,
+                save_tick=int(save_tick),
+                identity=self._guala_identity,
+                manifest_files=tuple(manifest_files),
+            )
+            return
+        if os.environ.get("GUALA_ATOMIC_GENERATIONS", "1") == "0":
+            return
         try:
             from dsf_ai_service.substrate import atomic_state_generation as _asg
         except Exception:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import math
+import shutil
 import struct
 import wave
 from types import SimpleNamespace
@@ -13,10 +14,16 @@ from dsf_ai_service import app as app_module
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
 
-def _tone_wav(duration_seconds: int = 1) -> bytes:
+def _tone_wav(
+    duration_seconds: int = 1,
+    frequency_hz: int = 440,
+    leading_absent_hops: int = 0,
+) -> bytes:
     rate = 16_000
-    values = [
-        int(8_000 * math.sin(2.0 * math.pi * 440.0 * index / rate))
+    values = [0] * (leading_absent_hops * 160) + [
+        int(8_000 * math.sin(
+            2.0 * math.pi * frequency_hz * index / rate
+        ))
         for index in range(rate * duration_seconds)
     ]
     payload = io.BytesIO()
@@ -31,7 +38,7 @@ def _tone_wav(duration_seconds: int = 1) -> bytes:
 def test_auditory_tutoring_requires_server_credential(monkeypatch) -> None:
     calls = []
     fake = SimpleNamespace(
-        teach_latest_auditory_experience=lambda **values: (
+        durably_teach_latest_auditory_experience=lambda **values: (
             calls.append(values),
             {
                 "accepted": True,
@@ -86,7 +93,7 @@ def test_authenticated_malformed_experience_id_returns_bounded_4xx(
         app_module,
         "_guala",
         SimpleNamespace(
-            teach_latest_auditory_experience=lambda **values: calls.append(values)
+            durably_teach_latest_auditory_experience=lambda **values: calls.append(values)
         ),
     )
     monkeypatch.setattr(app_module, "_is_remote", lambda: False)
@@ -118,7 +125,7 @@ def test_monaural_source_label_is_not_a_tutoring_option(monkeypatch) -> None:
     monkeypatch.setattr(
         app_module,
         "_guala",
-        SimpleNamespace(teach_latest_auditory_experience=reject_source),
+        SimpleNamespace(durably_teach_latest_auditory_experience=reject_source),
     )
     monkeypatch.setattr(app_module, "_is_remote", lambda: False)
     client = TestClient(app_module.app)
@@ -136,7 +143,7 @@ def test_monaural_source_label_is_not_a_tutoring_option(monkeypatch) -> None:
 
 
 def test_authenticated_http_tutoring_reaches_required_engine_owner(
-    monkeypatch,
+    monkeypatch, tmp_path,
 ) -> None:
     monkeypatch.setenv("GUALALOOM_API_KEY", "auditory-secret")
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
@@ -156,6 +163,13 @@ def test_authenticated_http_tutoring_reaches_required_engine_owner(
         monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "auditory-secret")
         monkeypatch.setattr(app_module, "_guala", engine)
         monkeypatch.setattr(app_module, "_is_remote", lambda: False)
+        monkeypatch.setattr(app_module, "STATE_DIR", str(tmp_path / "state"))
+        monkeypatch.setattr(
+            engine,
+            "_authoritative_hot_generation_publisher",
+            lambda **_values: None,
+            raising=False,
+        )
         response = TestClient(app_module.app).post(
             "/api/v1/auditory/teach",
             json={
@@ -178,8 +192,8 @@ def test_authenticated_http_tutoring_reaches_required_engine_owner(
 def test_isolated_asset_tutoring_is_authenticated(monkeypatch) -> None:
     calls = []
     fake = SimpleNamespace(
-        teach_isolated_auditory_asset=lambda wav, label: (
-            calls.append((wav, label)),
+        durably_teach_isolated_auditory_asset=lambda wav, label, **values: (
+            calls.append((wav, label, values["state_dir"])),
             {"accepted": True, "tutor_label": label},
         )[1]
     )
@@ -204,7 +218,7 @@ def test_isolated_asset_tutoring_is_authenticated(monkeypatch) -> None:
         headers={"X-API-Key": "auditory-secret"},
     )
     assert accepted.status_code == 200
-    assert calls == [(_tone_wav(), "hello guala")]
+    assert calls == [(_tone_wav(), "hello guala", app_module.STATE_DIR)]
 
 
 def test_isolated_asset_transaction_teaches_full_l5_without_retention(
@@ -232,6 +246,162 @@ def test_isolated_asset_transaction_teaches_full_l5_without_retention(
         assert status["tutor_authority_nonce_count"] == 1
     finally:
         engine.shutdown()
+
+
+def test_tutor_event_excludes_only_quantized_absence_prefix(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    try:
+        result = engine.teach_isolated_auditory_asset(
+            _tone_wav(leading_absent_hops=23),
+            "hello guala",
+        )
+        assert result["accepted"] is True
+        assert result["sample_count"] == 16_000
+        assert engine.auditory_l5_status()["reciprocity"][
+            "class_counts"
+        ]["spoken_form"] == 1
+    finally:
+        engine.shutdown()
+
+
+def test_durable_teaching_failure_rolls_back_auditory_class(
+    monkeypatch, tmp_path,
+) -> None:
+    monkeypatch.setenv("GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    monkeypatch.setattr(
+        engine,
+        "_authoritative_hot_generation_publisher",
+        lambda **_values: None,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        engine,
+        "save_hot_state",
+        lambda _state_dir: (_ for _ in ()).throw(
+            RuntimeError("injected authoritative commit failure")),
+    )
+    try:
+        with pytest.raises(RuntimeError, match="authoritative commit failure"):
+            engine.durably_teach_isolated_auditory_asset(
+                _tone_wav(),
+                "hello guala",
+                state_dir=str(tmp_path / "state"),
+            )
+        reciprocity = engine.auditory_l5_status()["reciprocity"]
+        assert reciprocity["class_counts"]["spoken_form"] == 0
+        assert reciprocity["tutor_authority_nonce_count"] == 0
+    finally:
+        engine.shutdown()
+
+
+def test_durable_teaching_refuses_absent_recovery_authority(
+    monkeypatch, tmp_path,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    try:
+        with pytest.raises(RuntimeError, match="durability is unavailable"):
+            engine.durably_teach_isolated_auditory_asset(
+                _tone_wav(),
+                "hello guala",
+                state_dir=str(tmp_path / "state"),
+            )
+        reciprocity = engine.auditory_l5_status()["reciprocity"]
+        assert reciprocity["class_counts"]["spoken_form"] == 0
+        assert reciprocity["tutor_authority_nonce_count"] == 0
+    finally:
+        engine.shutdown()
+
+
+def test_three_durable_classes_restore_exactly_after_process_replacement(
+    monkeypatch, tmp_path,
+) -> None:
+    from dsf_ai_service.substrate.live_recovery_generation import (
+        LiveRecoveryGenerationStore,
+    )
+
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    active = tmp_path / "active"
+    baseline_tree = tmp_path / "baseline-tree"
+    engine = Guala()
+    try:
+        engine.save_full_state(str(active))
+        shutil.copytree(active, baseline_tree)
+        baseline = SimpleNamespace(
+            generation_uuid="584b0681-b386-4762-92af-54fd671d4f53",
+            identity=engine._guala_identity,
+            tick=engine.tick,
+            manifest_sha256="7" * 64,
+        )
+        recovery = LiveRecoveryGenerationStore(
+            tmp_path / "live-recovery",
+            baseline=baseline,
+            hot_files=Guala.HOT_SAVE_MANIFEST_FILES,
+            hmac_key=b"auditory-restart-test-key-material-32-bytes",
+        )
+
+        def publish(**values):
+            assert values["identity"] == baseline.identity
+            assert tuple(sorted(values["manifest_files"])) == recovery.hot_files
+            recovery.commit_hot_state(
+                tick=values["save_tick"],
+                files={
+                    name: active / name
+                    for name in recovery.hot_files
+                },
+            )
+
+        engine._authoritative_hot_generation_publisher = publish
+        for label, frequency in (
+            ("hello", 330),
+            ("hello guala", 440),
+            ("your name is guala", 550),
+        ):
+            result = engine.durably_teach_isolated_auditory_asset(
+                _tone_wav(frequency_hz=frequency),
+                label,
+                state_dir=str(active),
+            )
+            assert result["accepted"] is True
+        expected = engine._auditory_reciprocity_owner.encoded_snapshot()
+        assert engine.auditory_l5_status()["reciprocity"][
+            "class_counts"
+        ]["spoken_form"] == 3
+    finally:
+        engine.shutdown()
+
+    boot_active = tmp_path / "boot-active"
+    shutil.copytree(baseline_tree, boot_active)
+    restored_generation = recovery.apply_current(boot_active)
+    assert restored_generation is not None
+
+    restored = Guala()
+    try:
+        restored.load_full_state(str(boot_active))
+        assert restored._load_successful is True
+        assert restored._auditory_reciprocity_owner.encoded_snapshot() == expected
+        assert restored.auditory_l5_status()["reciprocity"][
+            "class_counts"
+        ]["spoken_form"] == 3
+    finally:
+        restored.shutdown()
 
 
 def test_oversized_tutor_asset_fails_before_class_mutation(monkeypatch) -> None:
