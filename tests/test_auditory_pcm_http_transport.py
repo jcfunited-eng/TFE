@@ -260,8 +260,8 @@ def test_continuous_full_field_terminal_opens_one_existing_reply_door(
     monkeypatch.setattr(
         app_module,
         "_maybe_trigger_voice_reply",
-        lambda spoken, tick, terminal_event_id=None: (
-            replies.append((spoken, tick, terminal_event_id)) or True
+        lambda terminal_event, tick: (
+            replies.append((terminal_event, tick)) or True
         ),
     )
     stream_id = asyncio.run(app_module.auditory_pcm_stream_open())["stream_id"]
@@ -285,7 +285,13 @@ def test_continuous_full_field_terminal_opens_one_existing_reply_door(
     assert result["spoken_word_recognition"]["recognized_form"] == (
         "hello guala"
     )
-    assert [value[0] for value in replies] == ["hello guala"]
+    assert [value[0].tutor_label for value in replies] == ["hello guala"]
+    assert replies[0][0].event_id == result["spoken_word_recognition"][
+        "causal_experience_id"
+    ]
+    assert replies[0][0].as_record()["authority_receipt_sha256"] == (
+        replies[0][0].authority_receipt_sha256
+    )
 
 
 def test_pcm_source_interval_is_derived_from_sample_identity() -> None:

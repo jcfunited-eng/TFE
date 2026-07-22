@@ -175,7 +175,7 @@ def test_remote_transport_preserves_explicit_boundary(monkeypatch) -> None:
     assert calls[0][1]["data"]["auditory_event_boundary"] == "utterance"
 
 
-def test_http_reply_door_is_closed_for_ambient_and_open_for_utterance(
+def test_http_reply_door_requires_continuous_terminal_not_label_only_utterance(
     engine: Guala,
     monkeypatch,
 ) -> None:
@@ -220,7 +220,9 @@ def test_http_reply_door_is_closed_for_ambient_and_open_for_utterance(
     utterance = post("utterance")
     assert utterance["spoken_word_recognition"]["status"] == "unique"
     assert utterance["transcript"] == "hello guala"
-    assert [value[0] for value in reply_calls] == ["hello guala"]
+    assert utterance["terminal_event_id"] is None
+    assert utterance["reply_admitted"] is None
+    assert reply_calls == []
 
 
 def test_browser_has_no_manual_utterance_control_or_labeling_path() -> None:

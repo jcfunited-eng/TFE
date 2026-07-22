@@ -298,6 +298,43 @@ def test_no_speech_is_honest_and_never_reaches_converse(
     assert len(frames) == 1, "raw sound still processed"
 
 
+def test_label_only_encoded_recognition_cannot_open_cognition_door(
+        clean_frame_state, monkeypatch):
+    monkeypatch.delenv("VOICE_WHISPER", raising=False)
+    guala, sentences, frames, converses = _recording_guala()
+    guala.auditory_l5_status = lambda: {
+        "latest_experience_id": "0" * 64,
+        "recognition_boundary": "utterance",
+        "recognition_attempted": True,
+        "recognitions": [
+            {
+                "kind": "spoken_form",
+                "state": "unique",
+                "tutor_label": "hello guala",
+                "candidate_labels": ["hello guala"],
+            },
+            {
+                "kind": "source_continuity",
+                "state": "unknown",
+                "tutor_label": None,
+                "candidate_labels": [],
+            },
+        ],
+    }
+    appmod._guala = guala
+
+    resp = _post_sound_frame()
+
+    assert resp["ok"] is True
+    assert resp["spoken_word_recognition"]["status"] == "unique"
+    assert resp["transcript"] == "hello guala"
+    assert resp["terminal_event_id"] is None
+    assert resp["reply_admitted"] is None
+    assert converses == []
+    assert sentences == []
+    assert len(frames) == 1
+
+
 def test_transcription_error_is_loud_and_never_fabricates(
         clean_frame_state, monkeypatch):
     monkeypatch.setenv("VOICE_WHISPER", "1")
