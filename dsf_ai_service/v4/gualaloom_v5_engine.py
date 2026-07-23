@@ -3393,6 +3393,10 @@ class Guala:
         self._latest_auditory_incremental_advance = None
         self._auditory_token_sequence_authority = None
         self._latest_auditory_token_sequence_observation = None
+        self._auditory_batch_causal_intake_authority = None
+        self._causal_language_authority = None
+        self._latest_auditory_causal_language_observation = None
+        self._auditory_sequence_transaction_context = None
         self._latest_auditory_recognitions = ()
         self._latest_auditory_recognition_boundary = "ambient"
         from dsf_ai_service.substrate.exact_causal_experience import (
@@ -3437,9 +3441,32 @@ class Guala:
                 b"guala-auditory-token-sequence-authority-v1",
                 _hashlib.sha256,
             ).digest()
+            _auditory_causal_language_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-auditory-causal-language-authority-v1",
+                _hashlib.sha256,
+            ).digest()
             self._auditory_token_sequence_authority = (
                 _AuditoryTokenSequenceAuthority(
                     authority_secret=_auditory_token_sequence_key,
+                )
+            )
+            from dsf_ai_service.substrate.auditory_batch_causal_intake import (
+                AuditoryBatchCausalIntakeAuthority as
+                _AuditoryBatchCausalIntakeAuthority,
+            )
+            from dsf_ai_service.substrate.causal_language_construction import (
+                CausalLanguageConstructionAuthority as
+                _CausalLanguageConstructionAuthority,
+            )
+            self._auditory_batch_causal_intake_authority = (
+                _AuditoryBatchCausalIntakeAuthority(
+                    authority_key=_auditory_causal_language_key,
+                )
+            )
+            self._causal_language_authority = (
+                _CausalLanguageConstructionAuthority(
+                    authority_key=_auditory_causal_language_key,
                 )
             )
         self._causal_action_cycle = (
@@ -8900,6 +8927,7 @@ class Guala:
                 self._auditory_incremental_terminals.status()
             ),
             "token_sequence": self.auditory_token_sequence_status(),
+            "causal_language": self.auditory_causal_language_status(),
             "latest_incremental_status": (
                 self._latest_auditory_incremental_advance.status.value
                 if self._latest_auditory_incremental_advance is not None
@@ -9034,6 +9062,175 @@ class Guala:
                 if sequence is not None else None
             ),
             "status": "settled" if sequence is not None else "not_observed",
+        }
+
+    def _verify_auditory_causal_language_observation(self, record):
+        expected = {
+            "advance_authority_receipt_sha256",
+            "batch_authority_receipt_sha256",
+            "causal_intake",
+            "causal_intake_reason",
+            "causal_intake_state",
+            "episode",
+            "episode_reason",
+            "episode_state",
+            "episode_stored",
+            "schema",
+            "sequence_id",
+            "status",
+        }
+        if (
+            not isinstance(record, dict)
+            or set(record) != expected
+            or record.get("schema")
+            != "guala.auditory.causal_language_observation.v1"
+            or record.get("status") != "settled"
+        ):
+            raise ValueError(
+                "auditory causal language observation is malformed"
+            )
+        for field in (
+            "advance_authority_receipt_sha256",
+            "batch_authority_receipt_sha256",
+            "sequence_id",
+        ):
+            value = record.get(field)
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(
+                    f"auditory causal language {field} changed"
+                )
+        if (
+            record.get("causal_intake_state")
+            not in {"unique", "unknown", "ambiguous"}
+            or record.get("episode_state")
+            not in {"unique", "unknown", "ambiguous"}
+            or not isinstance(record.get("causal_intake_reason"), str)
+            or not record.get("causal_intake_reason")
+            or not isinstance(record.get("episode_reason"), str)
+            or not record.get("episode_reason")
+            or not isinstance(record.get("episode_stored"), bool)
+        ):
+            raise ValueError(
+                "auditory causal language disposition changed"
+            )
+        token_observation = self._latest_auditory_token_sequence_observation
+        sequence = self._verify_auditory_token_sequence_observation(
+            token_observation
+        )
+        if (
+            record["advance_authority_receipt_sha256"]
+            != token_observation["advance_authority_receipt_sha256"]
+            or record["batch_authority_receipt_sha256"]
+            != token_observation["batch_authority_receipt_sha256"]
+            or record["sequence_id"] != sequence.sequence_id
+        ):
+            raise ValueError(
+                "auditory causal language names another token sequence"
+            )
+        intake_record = record.get("causal_intake")
+        intake = None
+        if intake_record is not None:
+            from dsf_ai_service.substrate.auditory_batch_causal_intake import (
+                AuditoryBatchCausalIntakeReceipt,
+            )
+            intake = AuditoryBatchCausalIntakeReceipt.from_record(
+                intake_record
+            )
+            if self._auditory_batch_causal_intake_authority is None:
+                raise ValueError(
+                    "auditory causal intake authority key is unavailable"
+                )
+            self._auditory_batch_causal_intake_authority.verify_intake(intake)
+            if (
+                intake.advance_authority_receipt_sha256
+                != record["advance_authority_receipt_sha256"]
+                or intake.batch_authority_receipt_sha256
+                != record["batch_authority_receipt_sha256"]
+                or intake.token_sequence_id != record["sequence_id"]
+            ):
+                raise ValueError(
+                    "auditory causal intake observation links changed"
+                )
+        if (record["causal_intake_state"] == "unique") != (intake is not None):
+            raise ValueError(
+                "auditory causal intake disposition lost its receipt"
+            )
+        episode_record = record.get("episode")
+        episode = None
+        if episode_record is not None:
+            if self._causal_language_authority is None:
+                raise ValueError(
+                    "causal language authority key is unavailable"
+                )
+            episode = self._causal_language_authority.verify_episode_record(
+                episode_record
+            )
+            if (
+                intake is None
+                or episode.causal_intake_id != intake.intake_id
+                or episode.sequence_id != record["sequence_id"]
+            ):
+                raise ValueError(
+                    "auditory causal language episode links changed"
+                )
+        if (record["episode_state"] == "unique") != (episode is not None):
+            raise ValueError(
+                "auditory causal language disposition lost its episode"
+            )
+        return intake, episode
+
+    def auditory_causal_language_status(self):
+        if (
+            self._auditory_batch_causal_intake_authority is None
+            or self._causal_language_authority is None
+        ):
+            return {
+                "available": False,
+                "construction_count": 0,
+                "latest": None,
+                "status": "unavailable",
+                "working_episode_count": 0,
+            }
+        observation = self._latest_auditory_causal_language_observation
+        intake = episode = None
+        if observation is not None:
+            intake, episode = (
+                self._verify_auditory_causal_language_observation(
+                    observation
+                )
+            )
+        return {
+            "available": True,
+            "construction_count": (
+                self._causal_language_authority.construction_count
+            ),
+            "latest": (
+                {
+                    "causal_intake_id": (
+                        intake.intake_id if intake is not None else None
+                    ),
+                    "causal_intake_reason": observation[
+                        "causal_intake_reason"
+                    ],
+                    "causal_intake_state": observation[
+                        "causal_intake_state"
+                    ],
+                    "episode_id": (
+                        episode.episode_id if episode is not None else None
+                    ),
+                    "episode_reason": observation["episode_reason"],
+                    "episode_state": observation["episode_state"],
+                    "episode_stored": observation["episode_stored"],
+                    "sequence_id": observation["sequence_id"],
+                }
+                if observation is not None else None
+            ),
+            "status": "settled" if observation is not None else "not_observed",
+            "working_episode_count": self._causal_language_authority.working_count,
         }
 
     def _organism_worker_loop(self):
@@ -15953,12 +16150,14 @@ class Guala:
         return receipt
 
     def _settle_released_auditory_token_sequence(self, advance):
-        """Atomically transfer one multi-terminal release into token order.
+        """Atomically transfer one multi-terminal release into causal language.
 
         A singular release remains owned by the existing causal-conversation
-        claim path.  Multi-release tutor labels are never joined or admitted
-        to language here: each complete L5 event is authenticated and the
-        physical order alone becomes one bounded observation.
+        claim path.  For a multi-release event, the complete ordered L5
+        witnesses, joint auditory settlement, and immutable six-sense causal
+        settlement are one transaction.  Unknown or ambiguous token classes
+        are consumed as an explicit no-episode result; no tutor label or text
+        is joined into the experienced sequence.
         """
         from dsf_ai_service.substrate.auditory_incremental_terminal import (
             AuditoryIncrementalAdvance,
@@ -15977,11 +16176,31 @@ class Guala:
             raise RuntimeError(
                 "auditory token sequence authority key is unavailable"
             )
+        intake_authority = self._auditory_batch_causal_intake_authority
+        language_authority = self._causal_language_authority
+        if intake_authority is None or language_authority is None:
+            raise RuntimeError(
+                "auditory causal language authority key is unavailable"
+            )
+        transaction_context = self._auditory_sequence_transaction_context
+        if transaction_context is None:
+            joint_settlement = self._latest_auditory_stream_settlement_receipt
+            causal_settlement = self._latest_causal_settlement
+        else:
+            joint_settlement, causal_settlement = transaction_context
+        if joint_settlement is None or causal_settlement is None:
+            raise RuntimeError(
+                "auditory token sequence lacks its causal settlement"
+            )
         registry = self._auditory_incremental_terminals
         batch = registry.materialize_batch(advance)
         batch.verify()
         token_snapshot = authority.snapshot()
+        language_snapshot = language_authority.snapshot()
         prior_observation = self._latest_auditory_token_sequence_observation
+        prior_language_observation = (
+            self._latest_auditory_causal_language_observation
+        )
         claim = registry.claim_batch(batch)
         try:
             claimed = registry.verify_batch_claim(claim)
@@ -15990,6 +16209,25 @@ class Guala:
                 for entry in claimed.entries
             )
             sequence = authority.settle_sequence(admitted)
+            intake_admission = intake_authority.bind(
+                registry=registry,
+                claim=claim,
+                advance=advance,
+                token_authority=authority,
+                sequence=sequence,
+                joint_settlement=joint_settlement,
+                causal_settlement=causal_settlement,
+            )
+            if intake_admission.intake is None:
+                episode_admission = None
+            else:
+                episode_admission = language_authority.admit_episode(
+                    intake_authority=intake_authority,
+                    intake=intake_admission.intake,
+                    token_authority=authority,
+                    sequence=sequence,
+                    settlement=causal_settlement,
+                )
             observation = {
                 "advance_authority_receipt_sha256": (
                     claimed.advance_authority_receipt_sha256
@@ -16001,9 +16239,53 @@ class Guala:
                 "sequence": sequence.as_record(),
                 "status": "settled",
             }
+            language_observation = {
+                "advance_authority_receipt_sha256": (
+                    claimed.advance_authority_receipt_sha256
+                ),
+                "batch_authority_receipt_sha256": (
+                    claimed.authority_receipt_sha256
+                ),
+                "causal_intake": (
+                    intake_admission.intake.as_record()
+                    if intake_admission.intake is not None
+                    else None
+                ),
+                "causal_intake_reason": intake_admission.reason,
+                "causal_intake_state": intake_admission.state,
+                "episode": (
+                    episode_admission.episode.as_record()
+                    if (
+                        episode_admission is not None
+                        and episode_admission.episode is not None
+                    )
+                    else None
+                ),
+                "episode_reason": (
+                    episode_admission.reason
+                    if episode_admission is not None
+                    else "causal_intake_incomplete"
+                ),
+                "episode_state": (
+                    episode_admission.state
+                    if episode_admission is not None
+                    else "unknown"
+                ),
+                "episode_stored": (
+                    episode_admission.stored
+                    if episode_admission is not None
+                    else False
+                ),
+                "schema": "guala.auditory.causal_language_observation.v1",
+                "sequence_id": sequence.sequence_id,
+                "status": "settled",
+            }
 
             def commit_observation():
                 self._latest_auditory_token_sequence_observation = observation
+                self._latest_auditory_causal_language_observation = (
+                    language_observation
+                )
 
             registry.consume_batch(
                 claim,
@@ -16011,7 +16293,11 @@ class Guala:
             )
         except Exception:
             authority.restore(token_snapshot)
+            language_authority.restore(language_snapshot)
             self._latest_auditory_token_sequence_observation = prior_observation
+            self._latest_auditory_causal_language_observation = (
+                prior_language_observation
+            )
             try:
                 registry.rollback_batch(claim)
             except ValueError:
@@ -16023,6 +16309,12 @@ class Guala:
                 sequence_id=sequence.sequence_id,
                 stream_id=sequence.stream_id,
                 occurrences=len(sequence.occurrences),
+                causal_intake_state=intake_admission.state,
+                causal_language_episode_state=(
+                    episode_admission.state
+                    if episode_admission is not None
+                    else "unknown"
+                ),
                 advance_authority_receipt_sha256=(
                     advance.authority_receipt_sha256
                 ),
@@ -16064,6 +16356,7 @@ class Guala:
                 auditory_l5=auditory_l5,
                 causal_settlement=settlement,
             )
+            prior_joint = self._latest_auditory_stream_settlement_receipt
             result = self._auditory_incremental_terminals.advance(
                 pcm_s16le=pcm_s16le,
                 capture=capture,
@@ -16072,12 +16365,24 @@ class Guala:
                 cochlear=cochlear,
                 joint_settlement=joint,
             )
-            self._settle_released_auditory_token_sequence(result)
+            self._latest_auditory_stream_settlement_receipt = joint
+            if self._auditory_sequence_transaction_context is not None:
+                self._latest_auditory_stream_settlement_receipt = prior_joint
+                raise RuntimeError(
+                    "auditory causal language transaction capacity is full"
+                )
+            self._auditory_sequence_transaction_context = (joint, settlement)
+            try:
+                self._settle_released_auditory_token_sequence(result)
+            except Exception:
+                self._latest_auditory_stream_settlement_receipt = prior_joint
+                raise
+            finally:
+                self._auditory_sequence_transaction_context = None
             del self._auditory_capture_authorities[
                 transport.receipt_sha256
             ]
             del self._auditory_l5_by_assembly[settlement.assembly_id]
-            self._latest_auditory_stream_settlement_receipt = joint
             self._latest_auditory_incremental_advance = result
             return joint, result
 
@@ -18803,6 +19108,14 @@ class Guala:
             "latest_auditory_token_sequence": (
                 self._latest_auditory_token_sequence_observation
             ),
+            "causal_language": (
+                self._causal_language_authority.snapshot()
+                if self._causal_language_authority is not None
+                else None
+            ),
+            "latest_auditory_causal_language": (
+                self._latest_auditory_causal_language_observation
+            ),
             "auditory_v4_archive": self._auditory_v4_archive,
             "causal_action": (
                 self._causal_action_owner.encoded_snapshot()
@@ -18898,6 +19211,14 @@ class Guala:
                 and self._auditory_token_sequence_authority.binding_count
             )
             or self._latest_auditory_token_sequence_observation is not None
+            or (
+                self._causal_language_authority is not None
+                and (
+                    self._causal_language_authority.working_count
+                    or self._causal_language_authority.construction_count
+                )
+            )
+            or self._latest_auditory_causal_language_observation is not None
             or action["actions"]
             or action["witnesses"]
             or action["working_experiences"]
@@ -21611,6 +21932,30 @@ class Guala:
                     else:
                         self._latest_auditory_token_sequence_observation = None
 
+                    causal_language_snapshot = tdata.get("causal_language")
+                    causal_language_observation = tdata.get(
+                        "latest_auditory_causal_language"
+                    )
+                    if causal_language_snapshot is not None:
+                        if self._causal_language_authority is None:
+                            raise ValueError(
+                                "causal language authority key is missing"
+                            )
+                        self._causal_language_authority.restore(
+                            causal_language_snapshot
+                        )
+                    if causal_language_observation is not None:
+                        self._latest_auditory_causal_language_observation = (
+                            json.loads(self._canonical_persistence_bytes(
+                                causal_language_observation
+                            ))
+                        )
+                        self._verify_auditory_causal_language_observation(
+                            self._latest_auditory_causal_language_observation
+                        )
+                    else:
+                        self._latest_auditory_causal_language_observation = None
+
                     if (
                         auditory_schema
                         != LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
@@ -23261,13 +23606,26 @@ class Guala:
             embodiment = {
                 "status": "observed",
                 "location": {
-                    "room_id": world.room_id,
+                    "region_id": world.room_id,
                     "revision": world.revision,
                 },
                 "self_body_id": world.self_body_id,
                 "bodies": [item.as_record() for item in world.bodies],
                 "objects": [item.as_record() for item in world.objects],
                 "room_bounds": world.room_bounds.as_record(),
+                "topology": {
+                    "current_region_id": world.room_id,
+                    "portals": [
+                        item.as_record() for item in world.portals
+                    ],
+                    "regions": [
+                        item.as_record() for item in world.regions
+                    ],
+                },
+                "ownership": {
+                    "status": "unlearned",
+                    "relations": [],
+                },
                 "authority_receipt_sha256": (
                     world.authority_receipt_sha256
                 ),
@@ -23309,7 +23667,7 @@ class Guala:
             }
         )
         payload = {
-            "schema": "guala.observation_snapshot.v2",
+            "schema": "guala.observation_snapshot.v3",
             "observed_at_tick": tick,
             "identity": identity,
             "embodiment": embodiment,
@@ -23342,6 +23700,9 @@ class Guala:
             },
             "auditory_token_sequence": (
                 self.auditory_token_sequence_status()
+            ),
+            "auditory_causal_language": (
+                self.auditory_causal_language_status()
             ),
         }
         encoded = json.dumps(

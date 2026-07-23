@@ -221,11 +221,44 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
             "admit",
             original_admit,
         )
+        before_language = engine._causal_language_authority.snapshot()
+        original_episode_admit = (
+            engine._causal_language_authority.admit_episode
+        )
+
+        def fail_episode_admit(**_kwargs):
+            raise RuntimeError("injected causal language admission failure")
+
+        monkeypatch.setattr(
+            engine._causal_language_authority,
+            "admit_episode",
+            fail_episode_admit,
+        )
+        with pytest.raises(RuntimeError, match="language admission failure"):
+            settle(advance)
+        assert engine._auditory_token_sequence_authority.snapshot() == before_token
+        assert engine._causal_language_authority.snapshot() == before_language
+        assert engine._latest_auditory_token_sequence_observation is None
+        assert engine._latest_auditory_causal_language_observation is None
+        assert engine._auditory_incremental_terminals.status()[
+            "issued_terminal_authorities"
+        ] == 2
+        monkeypatch.setattr(
+            engine._causal_language_authority,
+            "admit_episode",
+            original_episode_admit,
+        )
         sequence = settle(advance)
         assert sequence is not None
         assert _states(engine) == (
             TokenClassificationState.UNKNOWN.value,
             TokenClassificationState.UNKNOWN.value,
+        )
+        causal_language = engine.auditory_causal_language_status()
+        assert causal_language["latest"]["causal_intake_state"] == "unique"
+        assert causal_language["latest"]["episode_state"] == "unknown"
+        assert causal_language["latest"]["episode_reason"] == (
+            "token_classification_not_unique"
         )
         assert engine._auditory_incremental_terminals.status()[
             "issued_terminal_authorities"
@@ -247,6 +280,10 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
             TokenClassificationState.UNIQUE.value,
             TokenClassificationState.UNIQUE.value,
         )
+        causal_language = engine.auditory_causal_language_status()
+        assert causal_language["latest"]["episode_state"] == "unique"
+        assert causal_language["latest"]["episode_stored"] is True
+        assert causal_language["working_episode_count"] == 1
 
         ambiguous = (
             engine._auditory_token_sequence_authority.issue_teacher_designation(
@@ -310,6 +347,9 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
             TokenClassificationState.AMBIGUOUS.value,
         )
         assert restarted._auditory_token_sequence_authority.binding_count == 2
+        assert restarted.auditory_causal_language_status()[
+            "working_episode_count"
+        ] == 1
     finally:
         if engine is not None:
             engine.strict_shutdown(timeout=30.0)
