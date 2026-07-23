@@ -272,6 +272,20 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     episode.verify(b"c" * 32)
 
     assert len(episode.blocks) == 2
+    assert len(prepared.prediction_blocks) == 2
+    assert all(
+        prediction.execution_receipt.authority_receipt_sha256
+        == block.world_execution_receipt_sha256
+        and prediction.causal_settlement.authority_receipt_sha256
+        == block.causal_settlement_receipt_sha256
+        and prediction.evidence_receipt.authority_receipt_sha256
+        == block.physical_evidence_receipt_sha256
+        and prediction.anonymous_av_continuity.authority_receipt_sha256
+        == block.anonymous_av_continuity_receipt_sha256
+        for prediction, block in zip(
+            prepared.prediction_blocks, episode.blocks, strict=True
+        )
+    )
     assert tuple(block.sequence for block in episode.blocks) == (0, 1)
     assert tuple(
         (block.source_sample_start, block.source_sample_end)
@@ -317,9 +331,13 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     ] == 2
     assert physical._binaural_auditory_l5_owner.latest is None
     persisted = json.dumps(episode.persistence_record(b"c" * 32))
+    prepared_prediction = repr(prepared.prediction_blocks)
     assert "pcm_s16le" not in persisted
     assert "left_pcm_s16le" not in persisted
     assert "right_pcm_s16le" not in persisted
+    assert "pcm_s16le" not in prepared_prediction
+    assert "left_pcm_s16le" not in prepared_prediction
+    assert "right_pcm_s16le" not in prepared_prediction
     assert "anonymous_av_correspondence_authority" in persisted
     assert len(persisted.encode("utf-8")) <= 8 * 1024 * 1024
 

@@ -33,6 +33,12 @@ from dsf_ai_service.substrate.auditory_token_sequence import (
     AuditoryTokenSequenceAuthority,
     AuditoryTokenSequenceReceipt,
 )
+from dsf_ai_service.substrate.auditory_pcm_stream import (
+    AuditoryPCMContinuityReceipt,
+)
+from dsf_ai_service.substrate.auditory_stream_settlement import (
+    AuditoryStreamSettlementReceipt,
+)
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AUDITORY_CHANNELS,
     COCHLEAR_ORDER,
@@ -64,6 +70,13 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
     W1PhysicalEvidenceReceipt,
+)
+from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+    W1AnonymousAudiovisualContinuityExperience,
+    W1AnonymousAudiovisualContinuityOwner,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AuditoryGammatoneContinuationReceipt,
 )
 
 
@@ -277,7 +290,7 @@ def _episode_structure(
     return {
         "auditory": (
             _auditory_structure(auditory["sequence"])
-            if auditory is not None
+            if auditory is not None and auditory.get("sequence") is not None
             else None
         ),
         "full_field": _full_field_structure(witness),
@@ -990,6 +1003,19 @@ class FullFieldPredictionAuthority:
             OutcomeObservationReceipt | W1PhysicalEvidenceReceipt | None
         ) = None,
         execution_receipt: ActionExecutionReceipt | None = None,
+        continuity_authority: (
+            W1AnonymousAudiovisualContinuityOwner | None
+        ) = None,
+        continuity_experience: (
+            W1AnonymousAudiovisualContinuityExperience | None
+        ) = None,
+        auditory_transport: AuditoryPCMContinuityReceipt | None = None,
+        auditory_cochlear: (
+            AuditoryGammatoneContinuationReceipt | None
+        ) = None,
+        auditory_stream_settlement: (
+            AuditoryStreamSettlementReceipt | None
+        ) = None,
     ) -> PredictiveEpisodeReceipt:
         witness = _settlement_witness(
             settlement, max_bytes=self._max_witness_bytes
@@ -1033,6 +1059,74 @@ class FullFieldPredictionAuthority:
         elif language_authority is not None or language_episode is not None:
             raise ValueError("language episode requires authenticated auditory intake")
 
+        stream_values = (
+            auditory_transport,
+            auditory_cochlear,
+            auditory_stream_settlement,
+        )
+        if any(value is not None for value in stream_values):
+            if not all(value is not None for value in stream_values):
+                raise ValueError(
+                    "continuous auditory prediction authority is incomplete"
+                )
+            auditory_transport.verify()
+            auditory_cochlear.verify()
+            auditory_stream_settlement.verify()
+            if (
+                auditory_cochlear.stream_id != auditory_transport.stream_id
+                or auditory_cochlear.sequence != auditory_transport.sequence
+                or auditory_cochlear.first_sample_index
+                != auditory_transport.first_sample_index
+                or auditory_cochlear.sample_count
+                != auditory_transport.sample_count
+                or auditory_cochlear.transport_receipt_sha256
+                != auditory_transport.receipt_sha256
+                or auditory_stream_settlement.transport_receipt_sha256
+                != auditory_transport.receipt_sha256
+                or auditory_stream_settlement.cochlear_receipt_sha256
+                != auditory_cochlear.receipt_sha256
+                or auditory_stream_settlement
+                .causal_settlement_authority_receipt_sha256
+                != settlement.authority_receipt_sha256
+                or auditory_stream_settlement.source_time_start
+                != settlement.source_time_start
+                or auditory_stream_settlement.source_time_end
+                != settlement.source_time_end
+            ):
+                raise ValueError(
+                    "continuous auditory authority names another experience"
+                )
+            if auditory is None:
+                auditory = {}
+            auditory["continuous_stream"] = {
+                "cochlear_prior_state_receipt_sha256": (
+                    auditory_cochlear.prior_state_receipt_sha256
+                ),
+                "cochlear_receipt_sha256": auditory_cochlear.receipt_sha256,
+                "first_sample_index": auditory_transport.first_sample_index,
+                "joint_settlement_receipt_sha256": (
+                    auditory_stream_settlement.authority_receipt_sha256
+                ),
+                "prior_transport_receipt_sha256": (
+                    auditory_transport.prior_receipt_sha256
+                ),
+                "sample_count": auditory_transport.sample_count,
+                "sequence": auditory_transport.sequence,
+                "source_epoch_start_ns": (
+                    auditory_transport.source_epoch_start_ns
+                ),
+                "source_time_end": str(
+                    auditory_stream_settlement.source_time_end
+                ),
+                "source_time_start": str(
+                    auditory_stream_settlement.source_time_start
+                ),
+                "stream_id": auditory_transport.stream_id,
+                "transport_receipt_sha256": (
+                    auditory_transport.receipt_sha256
+                ),
+            }
+
         w1_values = (
             world_authority,
             sensory_authority,
@@ -1059,6 +1153,69 @@ class FullFieldPredictionAuthority:
                 ),
                 "observation": observation.as_record(),
                 "outcome_observation": outcome_receipt.as_record(),
+            }
+        continuity_values = (
+            continuity_authority,
+            continuity_experience,
+        )
+        if any(value is not None for value in continuity_values):
+            if not all(value is not None for value in continuity_values):
+                raise ValueError(
+                    "audiovisual prediction continuity is incomplete"
+                )
+            if (
+                w1 is None
+                or not isinstance(
+                    sensory_authority,
+                    W1AudiovisualPhysicalEvidenceAuthority,
+                )
+                or not isinstance(
+                    outcome_receipt,
+                    W1PhysicalEvidenceReceipt,
+                )
+            ):
+                raise ValueError(
+                    "audiovisual prediction continuity lacks W1 evidence"
+                )
+            continuity_authority.verify_experience(
+                continuity_experience
+            )
+            if (
+                continuity_experience
+                .physical_evidence_receipt_sha256
+                != outcome_receipt.authority_receipt_sha256
+                or continuity_experience
+                .world_observation_before_receipt_sha256
+                != outcome_receipt
+                .world_observation_before_receipt_sha256
+                or continuity_experience
+                .world_observation_after_receipt_sha256
+                != outcome_receipt
+                .world_observation_after_receipt_sha256
+            ):
+                raise ValueError(
+                    "audiovisual prediction continuity names another boundary"
+                )
+            w1["anonymous_audiovisual_continuity"] = {
+                "authority_receipt_sha256": (
+                    continuity_experience.authority_receipt_sha256
+                ),
+                "prior_continuity_receipt_sha256": (
+                    continuity_experience
+                    .prior_continuity_receipt_sha256
+                ),
+                "schema": (
+                    "guala.full_field_prediction."
+                    "anonymous_audiovisual_continuity.v1"
+                ),
+                "world_observation_after_receipt_sha256": (
+                    continuity_experience
+                    .world_observation_after_receipt_sha256
+                ),
+                "world_observation_before_receipt_sha256": (
+                    continuity_experience
+                    .world_observation_before_receipt_sha256
+                ),
             }
         structure_id = _digest(_episode_structure(witness, auditory, w1))
         payload = {
@@ -1105,6 +1262,66 @@ class FullFieldPredictionAuthority:
                     )
                     self._encoded_locked()
         return episode
+
+    def is_exact_passive_continuation(
+        self,
+        context: PredictiveEpisodeReceipt,
+        actual: PredictiveEpisodeReceipt,
+    ) -> bool:
+        """Prove one passive edge from authenticated physical continuity."""
+        self._verify_episode(context)
+        self._verify_episode(actual)
+        left_w1 = context.w1_attachment
+        right_w1 = actual.w1_attachment
+        left = (
+            left_w1.get("anonymous_audiovisual_continuity")
+            if isinstance(left_w1, Mapping) else None
+        )
+        right = (
+            right_w1.get("anonymous_audiovisual_continuity")
+            if isinstance(right_w1, Mapping) else None
+        )
+        if not isinstance(left, Mapping) or not isinstance(right, Mapping):
+            w1_continuous = False
+        else:
+            w1_continuous = (
+                right.get("prior_continuity_receipt_sha256")
+                == left.get("authority_receipt_sha256")
+                and right.get(
+                    "world_observation_before_receipt_sha256"
+                )
+                == left.get("world_observation_after_receipt_sha256")
+            )
+        if w1_continuous:
+            return True
+        left_auditory = context.auditory_attachment
+        right_auditory = actual.auditory_attachment
+        if not isinstance(left_auditory, Mapping) or not isinstance(
+            right_auditory, Mapping
+        ):
+            return False
+        left_stream = left_auditory.get("continuous_stream")
+        right_stream = right_auditory.get("continuous_stream")
+        if not isinstance(left_stream, Mapping) or not isinstance(
+            right_stream, Mapping
+        ):
+            return False
+        return (
+            right_stream.get("stream_id") == left_stream.get("stream_id")
+            and right_stream.get("source_epoch_start_ns")
+            == left_stream.get("source_epoch_start_ns")
+            and right_stream.get("sequence")
+            == left_stream.get("sequence") + 1
+            and right_stream.get("first_sample_index")
+            == left_stream.get("first_sample_index")
+            + left_stream.get("sample_count")
+            and right_stream.get("prior_transport_receipt_sha256")
+            == left_stream.get("transport_receipt_sha256")
+            and right_stream.get("cochlear_prior_state_receipt_sha256")
+            == left_stream.get("cochlear_receipt_sha256")
+            and right_stream.get("source_time_start")
+            == left_stream.get("source_time_end")
+        )
 
     def _relation_candidates_locked(
         self,
@@ -1633,6 +1850,61 @@ class FullFieldPredictionAuthority:
                 self._relations[key].as_record()
                 for key in sorted(self._relations)
             )
+
+    def observer_summary(self) -> dict[str, object]:
+        """Return bounded receipt-linked display data, never decision input."""
+        with self._lock:
+            pending = self._pending
+            resolution = self._latest_resolution
+            resolution_summary = None
+            if resolution is not None:
+                candidate_summaries = []
+                for candidate in resolution.candidate_outcomes:
+                    counts = {
+                        "ambiguous": 0,
+                        "exact": 0,
+                        "mismatch": 0,
+                        "unknown_unobserved": 0,
+                    }
+                    for outcome in candidate.get("field_outcomes", ()):
+                        state = outcome.get("state")
+                        if state in counts:
+                            counts[state] += 1
+                    candidate_summaries.append({
+                        "candidate_episode_id": candidate.get(
+                            "candidate_episode_id"
+                        ),
+                        "field_state_counts": counts,
+                        "state": candidate.get("state"),
+                    })
+                resolution_summary = {
+                    "actual_episode_id": resolution.actual_episode_record.get(
+                        "episode_id"
+                    ),
+                    "candidate_summaries": candidate_summaries,
+                    "matching_candidate_episode_ids": list(
+                        resolution.matching_candidate_episode_ids
+                    ),
+                    "resolution_id": resolution.resolution_id,
+                    "verification": resolution.verification,
+                }
+            return {
+                "latest_resolution": resolution_summary,
+                "pending": (
+                    {
+                        "attempt_id": pending.attempt_id,
+                        "candidate_episode_ids": [
+                            candidate.get("episode_id")
+                            for candidate in pending.candidates
+                        ],
+                        "context_episode_id": pending.context_episode_id,
+                        "mode": pending.mode,
+                        "status": pending.status,
+                    }
+                    if pending is not None else None
+                ),
+                "schema": "guala.full_field_prediction.observer_summary.v1",
+            }
 
     def status(self) -> dict[str, object]:
         with self._lock:

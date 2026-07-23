@@ -786,8 +786,12 @@ function renderObservation(value){
       : `unavailable · ${conversation.reason||'no conversation observed'}`;
   renderFullFieldAuthority(value.full_field_authority||{});
   const prediction=value.full_field_prediction||{};
+  const predictionObserver=prediction.observer||{};
+  const predictionResolution=predictionObserver.latest_resolution||null;
   document.getElementById('predictionCell').textContent=prediction.available
-    ? `${prediction.status||'status unavailable'} · latest ${prediction.latest&&prediction.latest.status||'not observed'}`
+    ? `${prediction.status||'status unavailable'} · ${predictionResolution
+        ? `${predictionResolution.verification} · ${predictionResolution.candidate_summaries.length} candidate${predictionResolution.candidate_summaries.length===1?'':'s'} · receipt ${(predictionResolution.resolution_id||'').slice(0,12)||'unavailable'}`
+        : `pending ${predictionObserver.pending&&predictionObserver.pending.status||'not observed'}`}`
     :'authority unavailable';
   const causal=value.causal_action||{};
   document.getElementById('causalActionCell').textContent=

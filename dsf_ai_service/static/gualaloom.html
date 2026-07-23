@@ -1663,6 +1663,8 @@ function renderCausalObservation(snapshot){
   target.textContent='';
   const exchange=snapshot.conversation||{};
   const prediction=snapshot.full_field_prediction||{};
+  const predictionObserver=prediction.observer||{};
+  const predictionResolution=predictionObserver.latest_resolution||null;
   const authority=snapshot.full_field_authority||{};
   const causalAction=snapshot.causal_action||{};
   const rows=[
@@ -1674,7 +1676,9 @@ function renderCausalObservation(snapshot){
       ? `${authority.episode_id||'episode unavailable'} · ${authority.senses.length} sensed fields · receipt ${(authority.settlement_receipt_sha256||'').slice(0,12)||'unavailable'}`
       :'not observed'],
     ['prediction',prediction.available
-      ? `${prediction.status||'status unavailable'} · latest ${prediction.latest&&prediction.latest.status||'not observed'}`
+      ? `${prediction.status||'status unavailable'} · ${predictionResolution
+          ? `${predictionResolution.verification} · ${predictionResolution.candidate_summaries.length} candidate${predictionResolution.candidate_summaries.length===1?'':'s'} · receipt ${(predictionResolution.resolution_id||'').slice(0,12)||'unavailable'}`
+          : `pending ${predictionObserver.pending&&predictionObserver.pending.status||'not observed'}`}`
       :'authority unavailable'],
     ['action cycle',causalAction.cycle&&causalAction.cycle.available===false
       ? 'unavailable'

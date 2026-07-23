@@ -37,6 +37,7 @@ def engine(monkeypatch) -> Guala:
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
     monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "pcm-http-transport-key")
     value = Guala()
     monkeypatch.setattr(app_module, "_guala", value)
     monkeypatch.setattr(app_module, "_is_remote", lambda: False)
@@ -120,6 +121,16 @@ def test_pcm_chunks_enter_existing_full_field_without_ffmpeg(
     assert first["observed_senses"] == ["sound"]
     assert second["observed_senses"] == ["sound"]
     assert engine.auditory_l5_status()["l5_owner"]["settled"] == 2
+    assert engine._full_field_prediction.status()["passive_relations"] == 1
+    assert engine._latest_full_field_prediction_observation["reason"] == (
+        "exact_audiovisual_transition_observed"
+    )
+    prediction = engine.observation_snapshot()["full_field_prediction"]
+    assert prediction["status"] in {"unknown", "predicted", "ambiguous"}
+    assert prediction["observer"]["latest_resolution"]["resolution_id"]
+    assert prediction["observer"]["latest_resolution"][
+        "verification"
+    ] == "unknown_observed"
 
 
 def test_continuity_receipts_are_mounted_into_causal_settlement(
@@ -228,6 +239,36 @@ def test_duplicate_chunk_fails_closed_and_terminates_stream(engine: Guala) -> No
     assert app_module._auditory_pcm_streams.status()["active_streams"] == 0
 
 
+def test_distinct_stream_epochs_do_not_create_a_prediction_edge(
+    engine: Guala,
+) -> None:
+    first_stream = asyncio.run(
+        app_module.auditory_pcm_stream_open()
+    )["stream_id"]
+    second_stream = asyncio.run(
+        app_module.auditory_pcm_stream_open()
+    )["stream_id"]
+    pcm = _pcm(offset=0, count=16_000)
+
+    assert _post(
+        stream_id=first_stream,
+        sequence=0,
+        first_sample_index=0,
+        pcm=pcm,
+    )["ok"] is True
+    assert _post(
+        stream_id=second_stream,
+        sequence=0,
+        first_sample_index=0,
+        pcm=pcm,
+    )["ok"] is True
+
+    assert engine._full_field_prediction.status()["passive_relations"] == 0
+    assert engine._latest_full_field_prediction_observation["reason"] == (
+        "context_rebased_without_relation"
+    )
+
+
 def test_pcm_interval_contains_the_complete_paired_sight_field(
     engine: Guala,
 ) -> None:
@@ -243,6 +284,22 @@ def test_pcm_interval_contains_the_complete_paired_sight_field(
     assert response["ok"] is True
     assert response["causal_boundary"] == "audiovisual"
     assert response["observed_senses"] == ["sight", "sound"]
+    second = _post(
+        stream_id=stream_id,
+        sequence=1,
+        first_sample_index=80_000,
+        pcm=_pcm(offset=80_000, count=80_000),
+        sight_b64=_jpeg_b64(),
+        sight_captured_ms=6_000,
+    )
+    assert second["ok"] is True
+    assert second["causal_boundary"] == "audiovisual"
+    assert second["observed_senses"] == ["sight", "sound"]
+    assert engine._full_field_prediction.status()["passive_relations"] == 1
+    relation = engine._full_field_prediction.relation_records()[0]
+    context_id = relation["latest_evidence"]["context_episode_id"]
+    target_id = relation["latest_evidence"]["target_episode_id"]
+    assert context_id != target_id
     assert "sensory_errors" not in response
     assert len(
         response["pcm_continuity"]["causal_settlement_receipt_sha256"]

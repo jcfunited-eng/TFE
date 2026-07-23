@@ -3374,6 +3374,8 @@ class Guala:
         self._auditory_capture_authorities = OrderedDict()
         self._auditory_l5_by_assembly = OrderedDict()
         self._latest_auditory_continuation_receipt = None
+        self._auditory_prediction_transport_in_commit = None
+        self._auditory_prediction_joint_by_transport = OrderedDict()
         self._latest_auditory_stream_settlement_receipt = None
         from dsf_ai_service.substrate.auditory_reciprocity import (
             AuditoryReciprocityOwner as _AuditoryReciprocityOwner)
@@ -7998,6 +8000,10 @@ class Guala:
         world_observation=None,
         outcome_observation_receipt=None,
         world_execution_receipt=None,
+        anonymous_av_continuity=None,
+        auditory_transport=None,
+        auditory_cochlear=None,
+        auditory_stream_settlement=None,
     ):
         """Admit one explicit prediction edge without temporal inference."""
         authority = self._full_field_prediction
@@ -8053,6 +8059,14 @@ class Guala:
                 observation=world_observation,
                 outcome_receipt=outcome_observation_receipt,
                 execution_receipt=world_execution_receipt,
+                continuity_authority=(
+                    self._w1_anonymous_av_continuity_owner
+                    if anonymous_av_continuity is not None else None
+                ),
+                continuity_experience=anonymous_av_continuity,
+                auditory_transport=auditory_transport,
+                auditory_cochlear=auditory_cochlear,
+                auditory_stream_settlement=auditory_stream_settlement,
             )
         except RuntimeError as error:
             if str(error) != "prediction_capacity_full":
@@ -8119,6 +8133,11 @@ class Guala:
             authority.stop_context()
             next_attempt = authority.open_context(episode)
             status = "action_outcome_unconditioned"
+        elif authority.is_exact_passive_continuation(current, episode):
+            step = authority.observe_next(episode)
+            transition = step.transition
+            next_attempt = step.next_prediction
+            status = "exact_audiovisual_transition_observed"
         elif prediction_transition:
             step = authority.observe_next(episode)
             transition = step.transition
@@ -8265,8 +8284,15 @@ class Guala:
         world_observation=None,
         outcome_observation_receipt=None,
         world_execution_receipt=None,
+        anonymous_av_continuity=None,
+        publish_acceptance=True,
+        auditory_transport=None,
+        auditory_cochlear=None,
+        auditory_stream_settlement=None,
     ):
         """Record one exact perception and one explicitly licensed edge."""
+        if not isinstance(publish_acceptance, bool):
+            raise TypeError("causal acceptance publication flag must be boolean")
         try:
             self._full_field_prediction_observe(
                 settlement,
@@ -8278,6 +8304,10 @@ class Guala:
                 world_observation=world_observation,
                 outcome_observation_receipt=outcome_observation_receipt,
                 world_execution_receipt=world_execution_receipt,
+                anonymous_av_continuity=anonymous_av_continuity,
+                auditory_transport=auditory_transport,
+                auditory_cochlear=auditory_cochlear,
+                auditory_stream_settlement=auditory_stream_settlement,
             )
         except RuntimeError as error:
             if str(error) != "prediction_capacity_full":
@@ -8299,6 +8329,11 @@ class Guala:
             self._causal_settlement_accepted += 1
         else:
             return
+        if publish_acceptance:
+            self._publish_causal_experience_accepted(settlement)
+
+    def _publish_causal_experience_accepted(self, settlement):
+        """Publish telemetry only after the owning authority has committed."""
         try:
             self._log_substrate_event(
                 "causal_experience_accepted",
@@ -8471,6 +8506,9 @@ class Guala:
                     world_observation=prepared.execution_receipt.after,
                     outcome_observation_receipt=mount.observation_receipt,
                     world_execution_receipt=prepared.execution_receipt,
+                    anonymous_av_continuity=(
+                        mount.anonymous_av_continuity
+                    ),
                 )
                 if self._causal_action_cycle is not None:
                     self._causal_action_cycle.accept(settlement)
@@ -8563,19 +8601,69 @@ class Guala:
             raise TypeError("companion vocal episode pressure must be PCM16 bytes")
         with self._causal_cycle_bridge_lock:
             before = self._embodiment_world.observation_snapshot()
+            prediction_snapshot = (
+                self._full_field_prediction.encoded_snapshot()
+                if self._full_field_prediction is not None else None
+            )
+            prior_prediction_intent = (
+                self._prediction_conditioned_intent_receipt
+            )
+            prior_prediction_binding = (
+                self._prediction_conditioned_binding_id
+            )
+            prior_prediction_observation = (
+                self._latest_full_field_prediction_observation
+            )
+            prior_latest_settlement = self._latest_causal_settlement
+            prior_accepted = self._causal_settlement_accepted
             prepared = None
+            committed = False
             try:
                 prepared = authority.prepare_episode(pcm_s16le=pcm_s16le)
                 episode = prepared.episode
                 authority.verify_episode(episode)
                 after = self._embodiment_world.observation_snapshot()
+                for block in prepared.prediction_blocks:
+                    self._record_causal_perception_without_dispatch(
+                        block.causal_settlement,
+                        world_observation=block.execution_receipt.after,
+                        outcome_observation_receipt=block.evidence_receipt,
+                        world_execution_receipt=block.execution_receipt,
+                        anonymous_av_continuity=(
+                            block.anonymous_av_continuity
+                        ),
+                        publish_acceptance=False,
+                    )
                 authority.commit_episode(prepared)
+                committed = True
+                for block in prepared.prediction_blocks:
+                    self._publish_causal_experience_accepted(
+                        block.causal_settlement
+                    )
             except BaseException:
-                if prepared is not None:
+                if prepared is not None and not committed:
                     try:
                         authority.discard_episode(prepared)
                     except ValueError:
                         pass
+                if (
+                    prediction_snapshot is not None
+                    and self._full_field_prediction is not None
+                ):
+                    self._full_field_prediction.restore_encoded(
+                        prediction_snapshot
+                    )
+                self._prediction_conditioned_intent_receipt = (
+                    prior_prediction_intent
+                )
+                self._prediction_conditioned_binding_id = (
+                    prior_prediction_binding
+                )
+                self._latest_full_field_prediction_observation = (
+                    prior_prediction_observation
+                )
+                self._latest_causal_settlement = prior_latest_settlement
+                self._causal_settlement_accepted = prior_accepted
                 raise
             return {
                 "block_count": len(episode.blocks),
@@ -8969,6 +9057,60 @@ class Guala:
             and experience.assembly_id == settlement.assembly_id
         )
 
+    def _continuous_auditory_prediction_authority(self, settlement):
+        """Bind the live sample chain to this exact causal settlement."""
+        cochlear = self._latest_auditory_continuation_receipt
+        auditory_l5 = self._latest_auditory_l5_experience
+        if (
+            cochlear is None
+            or auditory_l5 is None
+            or auditory_l5.assembly_id != settlement.assembly_id
+        ):
+            return None, None, None
+        transport = self._auditory_prediction_transport_in_commit
+        if (
+            transport is None
+            or transport.receipt_sha256
+            != cochlear.transport_receipt_sha256
+        ):
+            mounted = self._auditory_capture_authorities.get(
+                cochlear.transport_receipt_sha256
+            )
+            if mounted is None:
+                raise RuntimeError(
+                    "continuous auditory settlement lost its transport authority"
+                )
+            transport, capture, mounted_cochlear = mounted
+            if (
+                mounted_cochlear.receipt_sha256 != cochlear.receipt_sha256
+                or capture.continuation_receipt_sha256
+                != cochlear.receipt_sha256
+            ):
+                raise RuntimeError(
+                    "continuous auditory settlement changed its cochlear authority"
+                )
+        from dsf_ai_service.substrate.auditory_stream_settlement import (
+            bind_auditory_stream_settlement,
+        )
+        joint = bind_auditory_stream_settlement(
+            transport=transport,
+            cochlear=cochlear,
+            auditory_l5=auditory_l5,
+            causal_settlement=settlement,
+        )
+        self._auditory_prediction_joint_by_transport[
+            transport.receipt_sha256
+        ] = joint
+        self._auditory_prediction_joint_by_transport.move_to_end(
+            transport.receipt_sha256
+        )
+        while (
+            len(self._auditory_prediction_joint_by_transport)
+            > self._auditory_transaction_capacity
+        ):
+            self._auditory_prediction_joint_by_transport.popitem(last=False)
+        return transport, cochlear, joint
+
     def _dispatch_recorded_causal_settlement(
             self, settlement, *, require_teaching_evidence=False):
         """Select and dispatch one already-recorded causal settlement."""
@@ -9151,11 +9293,21 @@ class Guala:
         defer_auditory_action = (
             self._causal_settlement_awaits_auditory_terminal(settlement)
         )
+        (
+            auditory_transport,
+            auditory_cochlear,
+            auditory_stream_settlement,
+        ) = self._continuous_auditory_prediction_authority(settlement)
         if self._causal_action_dispatcher is not None:
             with self._causal_cycle_bridge_lock:
                 self._record_causal_perception_without_dispatch(
                     settlement,
                     prediction_transition=False,
+                    auditory_transport=auditory_transport,
+                    auditory_cochlear=auditory_cochlear,
+                    auditory_stream_settlement=(
+                        auditory_stream_settlement
+                    ),
                 )
                 dispatch_result = (
                     None
@@ -9168,6 +9320,9 @@ class Guala:
             self._record_causal_perception_without_dispatch(
                 settlement,
                 prediction_transition=False,
+                auditory_transport=auditory_transport,
+                auditory_cochlear=auditory_cochlear,
+                auditory_stream_settlement=auditory_stream_settlement,
             )
             dispatch_result = (
                 None
@@ -17271,7 +17426,14 @@ class Guala:
             )
         return resolution, dispatch
 
-    def _settle_released_auditory_token_sequence(self, advance):
+    def _settle_released_auditory_token_sequence(
+        self,
+        advance,
+        *,
+        auditory_transport=None,
+        auditory_cochlear=None,
+        auditory_stream_settlement=None,
+    ):
         """Atomically transfer one multi-terminal release into causal language.
 
         A singular release remains owned by the existing causal-conversation
@@ -17309,7 +17471,18 @@ class Guala:
             joint_settlement = self._latest_auditory_stream_settlement_receipt
             causal_settlement = self._latest_causal_settlement
         else:
-            joint_settlement, causal_settlement = transaction_context
+            (
+                joint_settlement,
+                causal_settlement,
+                transaction_transport,
+                transaction_cochlear,
+            ) = transaction_context
+            if auditory_transport is None:
+                auditory_transport = transaction_transport
+            if auditory_cochlear is None:
+                auditory_cochlear = transaction_cochlear
+            if auditory_stream_settlement is None:
+                auditory_stream_settlement = joint_settlement
         if joint_settlement is None or causal_settlement is None:
             raise RuntimeError(
                 "auditory token sequence lacks its causal settlement"
@@ -17449,6 +17622,9 @@ class Guala:
                 )
                 else None
             ),
+            auditory_transport=auditory_transport,
+            auditory_cochlear=auditory_cochlear,
+            auditory_stream_settlement=auditory_stream_settlement,
         )
         if language_resolution is not None:
             # Re-run the authority check after the sensory/prediction commit;
@@ -17512,15 +17688,34 @@ class Guala:
                 raise RuntimeError(
                     "continuous auditory transport authority changed"
                 )
-            from dsf_ai_service.substrate.auditory_stream_settlement import (
-                bind_auditory_stream_settlement,
+            joint = self._auditory_prediction_joint_by_transport.get(
+                transport.receipt_sha256
             )
-            joint = bind_auditory_stream_settlement(
-                transport=transport,
-                cochlear=cochlear,
-                auditory_l5=auditory_l5,
-                causal_settlement=settlement,
-            )
+            if joint is None:
+                from dsf_ai_service.substrate.auditory_stream_settlement import (
+                    bind_auditory_stream_settlement,
+                )
+                joint = bind_auditory_stream_settlement(
+                    transport=transport,
+                    cochlear=cochlear,
+                    auditory_l5=auditory_l5,
+                    causal_settlement=settlement,
+                )
+            else:
+                joint.verify()
+                if (
+                    joint.transport_receipt_sha256
+                    != transport.receipt_sha256
+                    or joint.cochlear_receipt_sha256
+                    != cochlear.receipt_sha256
+                    or joint.auditory_l5_authority_receipt_sha256
+                    != auditory_l5.authority_receipt_sha256
+                    or joint.causal_settlement_authority_receipt_sha256
+                    != settlement.authority_receipt_sha256
+                ):
+                    raise RuntimeError(
+                        "continuous auditory prediction joint changed"
+                    )
             prior_joint = self._latest_auditory_stream_settlement_receipt
             result = self._auditory_incremental_terminals.advance(
                 pcm_s16le=pcm_s16le,
@@ -17536,7 +17731,12 @@ class Guala:
                 raise RuntimeError(
                     "auditory causal language transaction capacity is full"
                 )
-            self._auditory_sequence_transaction_context = (joint, settlement)
+            self._auditory_sequence_transaction_context = (
+                joint,
+                settlement,
+                transport,
+                cochlear,
+            )
             try:
                 sequence = self._settle_released_auditory_token_sequence(
                     result
@@ -17562,6 +17762,10 @@ class Guala:
                 transport.receipt_sha256
             ]
             del self._auditory_l5_by_assembly[settlement.assembly_id]
+            self._auditory_prediction_joint_by_transport.pop(
+                transport.receipt_sha256,
+                None,
+            )
             self._latest_auditory_incremental_advance = result
             return joint, result
 
@@ -17731,13 +17935,19 @@ class Guala:
             # a first-entry validation raise has already created the
             # context; end_context on a never-created one is a no-op.
             if _frame_owns_context:
-                _closed_window_id, _settlement = (
-                    self.window_manager.end_context(
-                        _frame_context_id,
-                        "sound_frame_complete",
-                        return_settlement=True,
-                    )
+                self._auditory_prediction_transport_in_commit = (
+                    auditory_pcm_continuity
                 )
+                try:
+                    _closed_window_id, _settlement = (
+                        self.window_manager.end_context(
+                            _frame_context_id,
+                            "sound_frame_complete",
+                            return_settlement=True,
+                        )
+                    )
+                finally:
+                    self._auditory_prediction_transport_in_commit = None
             else:
                 _closed_window_id = None
                 _settlement = None
@@ -25249,6 +25459,13 @@ class Guala:
                     **self._full_field_prediction.status(),
                     "available": True,
                     "latest": self._latest_full_field_prediction_observation,
+                    "observer": (
+                        self._full_field_prediction.observer_summary()
+                    ),
+                    "status": (
+                        self._full_field_prediction.status()["pending_status"]
+                        or "inactive"
+                    ),
                 }
                 if self._full_field_prediction is not None
                 else {"available": False}

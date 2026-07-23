@@ -2455,7 +2455,7 @@ class AuditoryIncrementalTerminalOwner:
         # Verification is intentionally before duplicate recognition: the
         # receipt alone cannot authorize a result for different chunk bytes or
         # a different full-field graph.
-        self._verify_chunk(
+        verified_frames = self._verify_chunk(
             pcm_s16le,
             capture,
             auditory_l5,
@@ -2482,6 +2482,7 @@ class AuditoryIncrementalTerminalOwner:
                     transport=transport,
                     cochlear=cochlear,
                     joint_settlement=joint_settlement,
+                    verified_frames=verified_frames,
                 )
             except Exception as advance_error:
                 try:
@@ -2504,15 +2505,16 @@ class AuditoryIncrementalTerminalOwner:
         transport: AuditoryPCMContinuityReceipt,
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint_settlement: AuditoryStreamSettlementReceipt,
+        verified_frames: tuple[
+            tuple[
+                int,
+                tuple[float, ...],
+                tuple[float, ...],
+                tuple[float, ...],
+            ], ...
+        ],
     ) -> AuditoryIncrementalAdvance:
-        frames = self._verify_chunk(
-            pcm_s16le,
-            capture,
-            auditory_l5,
-            transport,
-            cochlear,
-            joint_settlement,
-        )
+        frames = verified_frames
         with self._lock:
             if (
                 self._last_committed_receipt_sha256 is not None

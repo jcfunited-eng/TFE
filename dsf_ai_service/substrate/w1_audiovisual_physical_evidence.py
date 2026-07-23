@@ -1760,6 +1760,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             raise TypeError("W1 physical evidence receipt is required")
         receipt.verify(self._key)
 
+    def verify_anonymous_av_continuity(
+        self,
+        experience: W1AnonymousAudiovisualContinuityExperience,
+    ) -> None:
+        """Verify one typed continuity authority without a transient mount."""
+        self._anonymous_av_continuity_owner.verify_experience(experience)
+
     def _mount_anonymous_physical_boundary(
         self,
         *,

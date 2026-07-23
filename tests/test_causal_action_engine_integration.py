@@ -1064,7 +1064,7 @@ def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
         assert len(result[
             "anonymous_av_continuity_authority_receipt_sha256s"
         ]) == 2
-        assert guala._causal_settlement_accepted == accepted_before
+        assert guala._causal_settlement_accepted == accepted_before + 2
         assert guala._embodiment_outcome_causal_owner.status()["settled"] == 2
         assert guala._embodiment_outcome_causal_owner.status()[
             "atomic_sequence"
@@ -1077,5 +1077,73 @@ def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
         assert guala._w1_companion_vocal_experience.status()[
             "has_latest_episode"
         ] is True
+        assert guala._full_field_prediction.status()[
+            "passive_relations"
+        ] == 1
+
+        first_current = guala._full_field_prediction.current_episode()
+        assert first_current is not None
+        second = guala.experience_companion_vocal_episode(chunk)
+        second_current = guala._full_field_prediction.current_episode()
+        assert second["block_count"] == 1
+        assert second_current is not None
+        assert second_current.episode_id != first_current.episode_id
+        assert guala._causal_settlement_accepted == accepted_before + 3
+        assert any(
+            relation["latest_evidence"]["context_episode_id"]
+            == first_current.episode_id
+            and relation["latest_evidence"]["target_episode_id"]
+            == second_current.episode_id
+            for relation in guala._full_field_prediction.relation_records()
+        )
+    finally:
+        guala.shutdown()
+
+
+def test_companion_vocal_episode_prediction_rolls_back_with_failed_commit(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "episode-prediction-rollback-key")
+    guala = Guala()
+    try:
+        prediction_before = guala._full_field_prediction.encoded_snapshot()
+        world_before = guala._embodiment_world.encoded_snapshot()
+        accepted_before = guala._causal_settlement_accepted
+        settlement_before = guala._latest_causal_settlement
+        observation_before = guala._latest_full_field_prediction_observation
+        events_before = tuple(guala._substrate_events)
+
+        def fail_commit(_prepared):
+            raise RuntimeError("injected companion episode commit failure")
+
+        monkeypatch.setattr(
+            guala._w1_companion_vocal_experience,
+            "commit_episode",
+            fail_commit,
+        )
+        with pytest.raises(RuntimeError, match="episode commit failure"):
+            guala.experience_companion_vocal_episode(
+                _companion_pcm_chunk()
+            )
+
+        assert guala._full_field_prediction.encoded_snapshot() == prediction_before
+        assert guala._embodiment_world.encoded_snapshot() == world_before
+        assert guala._causal_settlement_accepted == accepted_before
+        assert guala._latest_causal_settlement is settlement_before
+        assert (
+            guala._latest_full_field_prediction_observation
+            == observation_before
+        )
+        new_events = tuple(guala._substrate_events)[len(events_before):]
+        assert all(
+            event.kind != "causal_experience_accepted"
+            for event in new_events
+        )
+        assert guala._embodiment_outcome_causal_owner.status()["settled"] == 0
+        assert guala._w1_physical_evidence.status()["active_epochs"] == 0
+        assert guala._w1_anonymous_av_continuity_owner.status()["settled"] == 0
     finally:
         guala.shutdown()

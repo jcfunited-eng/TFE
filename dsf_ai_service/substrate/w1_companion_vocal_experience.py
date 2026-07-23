@@ -22,6 +22,9 @@ from dsf_ai_service.substrate.embodiment_world import (
     VocalizeCommand,
     encode_command,
 )
+from dsf_ai_service.substrate.exact_causal_experience import (
+    CausalExperienceSettlement,
+)
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     AuthenticatedW1AcousticEmission,
     MAX_EMITTED_PCM_SAMPLES,
@@ -32,6 +35,10 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
     W1EvidenceState,
     W1PhysicalEvidenceMount,
+    W1PhysicalEvidenceReceipt,
+)
+from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+    W1AnonymousAudiovisualContinuityExperience,
 )
 from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
     W1BinauralAuditoryL5Experience,
@@ -389,11 +396,20 @@ class PreparedCompanionVocalExperience:
 
 
 @dataclass(frozen=True, slots=True)
+class PreparedCompanionVocalPredictionBlock:
+    execution_receipt: ActionExecutionReceipt
+    causal_settlement: CausalExperienceSettlement
+    evidence_receipt: W1PhysicalEvidenceReceipt
+    anonymous_av_continuity: W1AnonymousAudiovisualContinuityExperience
+
+
+@dataclass(frozen=True, slots=True)
 class PreparedCompanionVocalEpisode:
     epoch_token: str
     world_snapshot: bytes
     intent_receipt: CompanionVocalEpisodeIntentReceipt
     episode: W1CompanionVocalEpisode
+    prediction_blocks: tuple[PreparedCompanionVocalPredictionBlock, ...]
 
 
 class W1CompanionVocalExperienceAuthority:
@@ -635,6 +651,7 @@ class W1CompanionVocalExperienceAuthority:
             epoch_token = self._physical.begin_atomic_episode()
             mounted: W1PhysicalEvidenceMount | None = None
             episode_blocks = []
+            prediction_blocks = []
             sample_start = 0
             try:
                 epoch_commitment = hashlib.sha256(
@@ -719,6 +736,16 @@ class W1CompanionVocalExperienceAuthority:
                             mounted.anonymous_av_correspondence
                         ),
                     ))
+                    prediction_blocks.append(
+                        PreparedCompanionVocalPredictionBlock(
+                            execution_receipt=execution,
+                            causal_settlement=mounted.causal_settlement,
+                            evidence_receipt=mounted.evidence_receipt,
+                            anonymous_av_continuity=(
+                                mounted.anonymous_av_continuity
+                            ),
+                        )
+                    )
                     mounted = None
                     sample_start += block_count
                 episode = self._build_episode(
@@ -737,6 +764,7 @@ class W1CompanionVocalExperienceAuthority:
                     world_snapshot=world_snapshot,
                     intent_receipt=intent,
                     episode=episode,
+                    prediction_blocks=tuple(prediction_blocks),
                 )
                 self._prepared_episode = prepared
                 return prepared
@@ -762,6 +790,37 @@ class W1CompanionVocalExperienceAuthority:
             raise ValueError("companion vocal episode preparation changed")
         current.intent_receipt.verify(self._key)
         current.episode.verify(self._key)
+        if len(current.prediction_blocks) != len(current.episode.blocks):
+            raise ValueError("companion prediction block extent changed")
+        for block, prediction in zip(
+            current.episode.blocks,
+            current.prediction_blocks,
+            strict=True,
+        ):
+            self._world.verify_execution_receipt(
+                prediction.execution_receipt
+            )
+            prediction.causal_settlement.verify()
+            self._physical.verify_evidence_receipt(
+                prediction.evidence_receipt
+            )
+            self._physical.verify_anonymous_av_continuity(
+                prediction.anonymous_av_continuity
+            )
+            if (
+                block.world_execution_receipt_sha256
+                != prediction.execution_receipt.authority_receipt_sha256
+                or block.causal_settlement_receipt_sha256
+                != prediction.causal_settlement.authority_receipt_sha256
+                or block.physical_evidence_receipt_sha256
+                != prediction.evidence_receipt.authority_receipt_sha256
+                or block.anonymous_av_continuity_receipt_sha256
+                != prediction.anonymous_av_continuity
+                .authority_receipt_sha256
+            ):
+                raise ValueError(
+                    "companion prediction block authority changed"
+                )
         return current
 
     def verify_episode(self, episode: W1CompanionVocalEpisode) -> None:
@@ -964,6 +1023,7 @@ __all__ = (
     "MAX_COMPANION_VOCAL_EPISODE_SAMPLES",
     "PreparedCompanionVocalExperience",
     "PreparedCompanionVocalEpisode",
+    "PreparedCompanionVocalPredictionBlock",
     "W1CompanionVocalEpisode",
     "W1CompanionVocalEpisodeBlock",
     "W1CompanionVocalExperienceAuthority",
