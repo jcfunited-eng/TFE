@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import base64
 from dataclasses import replace
+import hashlib
+import json
 import math
 import struct
 from io import BytesIO
@@ -20,6 +22,11 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
 )
 from dsf_ai_service.substrate.auditory_stream_settlement import (
     bind_auditory_stream_settlement,
+)
+from dsf_ai_service.substrate.auditory_incremental_terminal import (
+    AuditoryIncrementalAdvance,
+    AuditoryIncrementalStatus,
+    _advance_payload,
 )
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
@@ -141,6 +148,86 @@ def test_pcm_chunks_enter_existing_full_field_without_ffmpeg(
     assert prediction["observer"]["latest_resolution"][
         "verification"
     ] == "unknown_observed"
+
+
+def test_paired_pcm_windows_settle_anonymous_encounter_not_sound_source(
+    engine: Guala, monkeypatch,
+) -> None:
+    stream_id = asyncio.run(app_module.auditory_pcm_stream_open())["stream_id"]
+    first = _post(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        pcm=_pcm(offset=0, count=80_000),
+        sight_frames=_sight_frames(1_000),
+    )
+    assert first["ok"] is True
+    first_status = engine.auditory_l5_status()["live_anonymous_encounter"]
+    assert first_status["state"] == "unknown"
+    assert first_status["acoustic_source"] == "unknown"
+
+    second = _post(
+        stream_id=stream_id,
+        sequence=1,
+        first_sample_index=80_000,
+        pcm=_pcm(offset=80_000, count=80_000),
+        sight_frames=_sight_frames(6_000),
+    )
+    assert second["ok"] is True
+    second_status = engine.auditory_l5_status()[
+        "live_anonymous_encounter"
+    ]
+    assert second_status["state"] == "unique"
+    assert second_status["active"] is True
+    assert second_status["acoustic_source"] == "unknown"
+    assert second_status["latest"]["assembly_id"] == (
+        engine._latest_auditory_stream_settlement_receipt.assembly_id
+    )
+
+    discontinuity_payload = _advance_payload(
+        status=AuditoryIncrementalStatus.DISCONTINUITY,
+        released_terminals=(),
+        processed_hops=0,
+        active_tracker_count=0,
+    )
+    discontinuity = AuditoryIncrementalAdvance(
+        status=AuditoryIncrementalStatus.DISCONTINUITY,
+        released_terminals=(),
+        processed_hops=0,
+        active_tracker_count=0,
+        authority_receipt_sha256=hashlib.sha256(json.dumps(
+            discontinuity_payload,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")).hexdigest(),
+    )
+    discontinuity.verify()
+    monkeypatch.setattr(
+        engine._auditory_incremental_terminals,
+        "advance",
+        lambda **_values: discontinuity,
+    )
+    third = _post(
+        stream_id=stream_id,
+        sequence=2,
+        first_sample_index=160_000,
+        pcm=_pcm(offset=160_000, count=80_000),
+        sight_frames=_sight_frames(11_000),
+    )
+    assert third["ok"] is True
+    assert third["pcm_continuity"]["incremental_terminal_status"] == (
+        "discontinuity"
+    )
+    rejected = engine.auditory_l5_status()["live_anonymous_encounter"]
+    assert rejected["active"] is False
+    assert rejected["state"] == "unknown"
+
+    engine.close_auditory_pcm_stream(stream_id)
+    closed = engine.auditory_l5_status()["live_anonymous_encounter"]
+    assert closed["active"] is False
+    assert closed["state"] == "unknown"
 
 
 def test_continuity_receipts_are_mounted_into_causal_settlement(

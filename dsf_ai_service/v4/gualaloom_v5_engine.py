@@ -3712,6 +3712,8 @@ class Guala:
         self._full_field_prediction = None
         self._visual_region_continuity_key = None
         self._visual_region_continuity = None
+        self._live_anonymous_encounter_continuity = None
+        self._latest_visual_region_settlement = None
         self._latest_visual_region_observation = None
         self._latest_visual_region_rejection = None
         self._prediction_conditioned_intent_receipt = None
@@ -3744,6 +3746,20 @@ class Guala:
             self._visual_region_continuity = (
                 _DeterministicVisualRegionContinuityAuthority(
                     authority_key=self._visual_region_continuity_key,
+                )
+            )
+            from dsf_ai_service.substrate.live_anonymous_encounter_continuity import (
+                LiveAnonymousEncounterContinuityAuthority as
+                _LiveAnonymousEncounterContinuityAuthority,
+            )
+            self._live_anonymous_encounter_continuity = (
+                _LiveAnonymousEncounterContinuityAuthority(
+                    authority_key=_hmac.new(
+                        _causal_cycle_key.encode("utf-8"),
+                        b"guala-live-anonymous-encounter-authority-v1",
+                        _hashlib.sha256,
+                    ).digest(),
+                    visual_authority=self._visual_region_continuity,
                 )
             )
         self._causal_cycle_bridge_lock = threading.RLock()
@@ -7852,6 +7868,7 @@ class Guala:
             states=states,
         )
         visual_snapshot = None
+        prior_visual_settlement = self._latest_visual_region_settlement
         prior_visual_observation = self._latest_visual_region_observation
         prior_visual_rejection = self._latest_visual_region_rejection
         sight_inputs = ordered_observed.get(PhysicalSense.SIGHT, ())
@@ -7864,10 +7881,12 @@ class Guala:
                     built.boundary,
                     built.receipt_registry,
                 )
+                self._latest_visual_region_settlement = visual_l5
                 self._latest_visual_region_observation = visual_l5.as_record()
                 self._latest_visual_region_rejection = None
             except Exception:
                 self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                self._latest_visual_region_settlement = prior_visual_settlement
                 self._latest_visual_region_observation = prior_visual_observation
                 self._latest_visual_region_rejection = prior_visual_rejection
                 raise
@@ -7923,6 +7942,7 @@ class Guala:
         except Exception:
             if visual_snapshot is not None:
                 self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                self._latest_visual_region_settlement = prior_visual_settlement
                 self._latest_visual_region_observation = prior_visual_observation
                 self._latest_visual_region_rejection = prior_visual_rejection
             raise
@@ -10280,6 +10300,20 @@ class Guala:
             ),
             "l5_owner": self._auditory_l5_owner.status(),
             "reciprocity": reciprocity_status,
+            "live_anonymous_encounter": (
+                self._live_anonymous_encounter_continuity.status()
+                if self._live_anonymous_encounter_continuity is not None
+                else {
+                    "active": False,
+                    "state": "unknown",
+                    "reason": "authority_unavailable",
+                    "acoustic_source": "unknown",
+                    "source_attribution": (
+                        "unavailable_without_physical_acoustic_source_"
+                        "correspondence"
+                    ),
+                }
+            ),
             "persistence_transition": {
                 "active_envelope_schema": (
                     AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
@@ -17648,6 +17682,10 @@ class Guala:
             ):
                 if value[0].stream_id == stream_id:
                     del self._auditory_capture_authorities[receipt_sha256]
+            if self._live_anonymous_encounter_continuity is not None:
+                self._live_anonymous_encounter_continuity.clear_stream(
+                    stream_id
+                )
         self._latest_auditory_incremental_advance = terminal
         return {
             "closed": field_closed or terminal is not None,
@@ -18013,17 +18051,47 @@ class Guala:
                         "continuous auditory prediction joint changed"
                     )
             prior_joint = self._latest_auditory_stream_settlement_receipt
-            result = self._auditory_incremental_terminals.advance(
-                pcm_s16le=pcm_s16le,
-                capture=capture,
-                auditory_l5=auditory_l5,
-                transport=transport,
-                cochlear=cochlear,
-                joint_settlement=joint,
-            )
+            encounter_snapshot = None
+            encounter_owner = self._live_anonymous_encounter_continuity
+            if encounter_owner is not None:
+                encounter_snapshot = encounter_owner.snapshot_encoded()
+            prepared_encounter = None
+            try:
+                if encounter_owner is not None:
+                    visual = self._latest_visual_region_settlement
+                    if (
+                        visual is not None
+                        and visual.assembly_id == joint.assembly_id
+                    ):
+                        prepared_encounter = encounter_owner.prepare(
+                            visual=visual,
+                            auditory=joint,
+                            causal_settlement=settlement,
+                        )
+                result = self._auditory_incremental_terminals.advance(
+                    pcm_s16le=pcm_s16le,
+                    capture=capture,
+                    auditory_l5=auditory_l5,
+                    transport=transport,
+                    cochlear=cochlear,
+                    joint_settlement=joint,
+                )
+                if encounter_owner is not None:
+                    if result.status.value == "discontinuity":
+                        encounter_owner.clear_live_continuity()
+                    elif prepared_encounter is not None:
+                        encounter_owner.commit(prepared_encounter)
+                    else:
+                        encounter_owner.clear_live_continuity()
+            except Exception:
+                if encounter_snapshot is not None:
+                    encounter_owner.rollback_encoded(encounter_snapshot)
+                raise
             self._latest_auditory_stream_settlement_receipt = joint
             if self._auditory_sequence_transaction_context is not None:
                 self._latest_auditory_stream_settlement_receipt = prior_joint
+                if encounter_snapshot is not None:
+                    encounter_owner.rollback_encoded(encounter_snapshot)
                 raise RuntimeError(
                     "auditory causal language transaction capacity is full"
                 )
@@ -18051,6 +18119,8 @@ class Guala:
                     self._dispatch_recorded_causal_settlement(settlement)
             except Exception:
                 self._latest_auditory_stream_settlement_receipt = prior_joint
+                if encounter_snapshot is not None:
+                    encounter_owner.rollback_encoded(encounter_snapshot)
                 raise
             finally:
                 self._auditory_sequence_transaction_context = None
@@ -20926,6 +20996,14 @@ class Guala:
                 if self._visual_region_continuity is not None
                 else None
             ),
+            "live_anonymous_encounter_continuity": (
+                json.loads(
+                    self._live_anonymous_encounter_continuity
+                    .snapshot_encoded().decode("utf-8")
+                )
+                if self._live_anonymous_encounter_continuity is not None
+                else None
+            ),
             "latest_visual_region_observation": (
                 self._latest_visual_region_observation
             ),
@@ -21725,6 +21803,28 @@ class Guala:
             ):
                 raise ValueError(
                     "teaching visual region continuity changed"
+                )
+        live_encounter = data.get(
+            "live_anonymous_encounter_continuity"
+        )
+        if live_encounter is not None:
+            from dsf_ai_service.substrate.live_anonymous_encounter_continuity import (
+                MAX_LIVE_ANONYMOUS_ENCOUNTER_STATE_BYTES,
+            )
+            live_encounter_bytes = cls._canonical_persistence_bytes(
+                live_encounter
+            )
+            if (
+                visual_continuity is None
+                or len(live_encounter_bytes)
+                > MAX_LIVE_ANONYMOUS_ENCOUNTER_STATE_BYTES
+                or not isinstance(live_encounter, dict)
+                or set(live_encounter) != {
+                    "payload", "state_hmac_sha256"
+                }
+            ):
+                raise ValueError(
+                    "teaching live anonymous encounter continuity changed"
                 )
         latest_visual_region = data.get(
             "latest_visual_region_observation"
@@ -23947,6 +24047,24 @@ class Guala:
                                     visual_continuity
                                 )
                             )
+                        live_encounter = tdata.get(
+                            "live_anonymous_encounter_continuity"
+                        )
+                        if live_encounter is not None:
+                            if (
+                                self._live_anonymous_encounter_continuity
+                                is None
+                            ):
+                                raise ValueError(
+                                    "live encounter continuity authority key "
+                                    "is missing"
+                                )
+                            self._live_anonymous_encounter_continuity.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    live_encounter
+                                )
+                            )
+                        self._latest_visual_region_settlement = None
                         latest_visual_region = tdata.get(
                             "latest_visual_region_observation"
                         )
@@ -25862,6 +25980,14 @@ class Guala:
                 if self._visual_region_continuity is not None
                 else {"available": False}
             ),
+            "live_anonymous_encounter": (
+                {
+                    **self._live_anonymous_encounter_continuity.status(),
+                    "available": True,
+                }
+                if self._live_anonymous_encounter_continuity is not None
+                else {"available": False, "state": "unknown"}
+            ),
         }
         encoded = json.dumps(
             payload,
@@ -25929,6 +26055,14 @@ class Guala:
                 }
                 if self._visual_region_continuity is not None
                 else {"available": False}
+            ),
+            "live_anonymous_encounter": (
+                {
+                    **self._live_anonymous_encounter_continuity.status(),
+                    "available": True,
+                }
+                if self._live_anonymous_encounter_continuity is not None
+                else {"available": False, "state": "unknown"}
             ),
             # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's
             # backgrounding ruling: "dropped/queued counts visible in

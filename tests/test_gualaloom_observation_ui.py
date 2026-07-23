@@ -89,6 +89,10 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
                 "C_k", "P_k", "B_k",
             ],
         }
+        assert value["live_anonymous_encounter"]["state"] == "unknown"
+        assert value["live_anonymous_encounter"]["acoustic_source"] == (
+            "unknown"
+        )
         assert set(value["causal_action"]) == {
             "cycle", "dispatcher", "speech_output"
         }
@@ -152,6 +156,8 @@ def test_loom_scan_separates_embodied_state_from_lexical_scene_lanes() -> None:
     assert "body state" in page
     assert "embodied action" in page
     assert "observed conversation" in page
+    assert "live audiovisual encounter" in page
+    assert "acoustic source" in page
     assert "lexical place lane" in page
     assert "lexical ambient lane" in page
     assert "cdef9bcf" not in page

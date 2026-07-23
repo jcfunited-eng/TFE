@@ -11,9 +11,10 @@ This is an explicitly tutor-grounded deterministic geometric rule, not a
 claim that the interpolation geometry is DSF physics.
 
 The microphone is monaural.  It cannot provide physical agent identity.
-``source_continuity`` consequently remains UNKNOWN unless a future caller
-mounts an uninterrupted, receipted stream-continuity authority.  This module
-does not turn an acoustic resemblance or a client source string into one.
+``source_continuity`` consequently remains UNKNOWN without independently
+receipted acoustic-source correspondence.  Uninterrupted acquisition proves
+only microphone-stream continuity, not who spoke.  This module does not turn
+an acoustic resemblance or a client source string into an agent.
 
 Witnesses are packed as sixteen physical cochlear channels.  Each channel
 contains one binary64 pressure/phase-advance sample pair and two independent
@@ -1861,7 +1862,8 @@ class AuditoryReciprocityOwner:
             )
         if kind is AuditoryReciprocityKind.SOURCE_CONTINUITY:
             raise ValueError(
-                "monaural audio has no uninterrupted receipted source-continuity authority"
+                "monaural audio has no physical acoustic-source "
+                "correspondence authority"
             )
         label = _label(tutor_label)
         witness = _pack_experience(experience)
@@ -2447,7 +2449,7 @@ class AuditoryReciprocityOwner:
                     self._resource_exhausted_recognitions
                 ),
                 "source_continuity": (
-                    "unknown_without_uninterrupted_receipted_stream_authority"
+                    "unknown_without_physical_acoustic_source_correspondence"
                 ),
             }
 

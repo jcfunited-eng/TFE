@@ -167,7 +167,7 @@ def test_monaural_source_identity_fails_closed_and_source_strings_are_inert(
     engine: Guala,
 ) -> None:
     experience = _hear(engine, source="claims-to-be-joe")
-    with pytest.raises(ValueError, match="no uninterrupted receipted"):
+    with pytest.raises(ValueError, match="no physical acoustic-source"):
         engine.teach_latest_auditory_experience(
             experience_id=experience.experience_id,
             kind="source_continuity",

@@ -29,7 +29,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
 )
 
 
-AUDITORY_STREAM_SETTLEMENT_SCHEMA = "guala.auditory.stream_settlement.v1"
+AUDITORY_STREAM_SETTLEMENT_SCHEMA = "guala.auditory.stream_settlement.v2"
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -62,7 +62,9 @@ class AuditoryStreamSettlementReceipt:
     source_time_end: Fraction
     assembly_id: str
     transport_receipt_sha256: str
+    prior_transport_receipt_sha256: str | None
     cochlear_receipt_sha256: str
+    prior_cochlear_state_receipt_sha256: str | None
     auditory_l5_authority_receipt_sha256: str
     causal_settlement_authority_receipt_sha256: str
     authority_receipt_sha256: str
@@ -85,6 +87,12 @@ class AuditoryStreamSettlementReceipt:
             "source_time_end": _fraction_text(self.source_time_end),
             "source_time_start": _fraction_text(self.source_time_start),
             "stream_id": self.stream_id,
+            "prior_cochlear_state_receipt_sha256": (
+                self.prior_cochlear_state_receipt_sha256
+            ),
+            "prior_transport_receipt_sha256": (
+                self.prior_transport_receipt_sha256
+            ),
             "transport_receipt_sha256": self.transport_receipt_sha256,
         }
 
@@ -114,6 +122,33 @@ class AuditoryStreamSettlementReceipt:
             ),
         ):
             sha256_digest(value, f"auditory stream settlement {name}")
+        for value, name in (
+            (
+                self.prior_transport_receipt_sha256,
+                "prior transport receipt",
+            ),
+            (
+                self.prior_cochlear_state_receipt_sha256,
+                "prior cochlear state receipt",
+            ),
+        ):
+            if value is not None:
+                sha256_digest(value, f"auditory stream settlement {name}")
+        if self.sequence == 0:
+            if (
+                self.prior_transport_receipt_sha256 is not None
+                or self.prior_cochlear_state_receipt_sha256 is not None
+            ):
+                raise ValueError(
+                    "auditory stream settlement epoch has prior authority"
+                )
+        elif (
+            self.prior_transport_receipt_sha256 is None
+            or self.prior_cochlear_state_receipt_sha256 is None
+        ):
+            raise ValueError(
+                "auditory stream settlement continuation lost prior authority"
+            )
         if _digest(self.payload()) != sha256_digest(
             self.authority_receipt_sha256,
             "auditory stream settlement authority receipt",
@@ -175,7 +210,11 @@ def bind_auditory_stream_settlement(
         source_time_end=expected_end,
         assembly_id=causal_settlement.assembly_id,
         transport_receipt_sha256=transport.receipt_sha256,
+        prior_transport_receipt_sha256=transport.prior_receipt_sha256,
         cochlear_receipt_sha256=cochlear.receipt_sha256,
+        prior_cochlear_state_receipt_sha256=(
+            cochlear.prior_state_receipt_sha256
+        ),
         auditory_l5_authority_receipt_sha256=(
             auditory_l5.authority_receipt_sha256
         ),
@@ -193,7 +232,13 @@ def bind_auditory_stream_settlement(
         source_time_end=provisional.source_time_end,
         assembly_id=provisional.assembly_id,
         transport_receipt_sha256=provisional.transport_receipt_sha256,
+        prior_transport_receipt_sha256=(
+            provisional.prior_transport_receipt_sha256
+        ),
         cochlear_receipt_sha256=provisional.cochlear_receipt_sha256,
+        prior_cochlear_state_receipt_sha256=(
+            provisional.prior_cochlear_state_receipt_sha256
+        ),
         auditory_l5_authority_receipt_sha256=(
             provisional.auditory_l5_authority_receipt_sha256
         ),

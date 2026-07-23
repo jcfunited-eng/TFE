@@ -177,6 +177,7 @@ footer b{color:var(--ink);font-weight:normal}
   <div class="cell lc"><b>observed conversation</b><span id="conversationCell">loading…</span></div>
   <div class="cell lc"><b>full-field prediction</b><span id="predictionCell">loading…</span></div>
   <div class="cell lc"><b>visual regions</b><span id="visualRegionCell">loading…</span></div>
+  <div class="cell lc"><b>live audiovisual encounter</b><span id="encounterCell">loading…</span></div>
   <div class="cell lc"><b>causal action authority</b><span id="causalActionCell">loading…</span></div>
   <div class="cell lc"><b>observation receipt</b><span id="observationReceiptCell">loading…</span></div>
   <div class="cell lc"><b>lexical place lane</b><span id="placeCell">loading…</span></div>
@@ -798,6 +799,13 @@ function renderObservation(value){
         ? `latest sequence rejected · ${visual.latest_rejection.reason||'unknown reason'}`
         : 'no temporal camera settlement observed'
     : 'authority unavailable';
+  const encounter=value.live_anonymous_encounter||{};
+  const encounterLatest=encounter.latest||{};
+  const encounterCandidates=Array.isArray(encounterLatest.candidate_visual_lineage_receipt_sha256s)
+    ? encounterLatest.candidate_visual_lineage_receipt_sha256s.length:0;
+  document.getElementById('encounterCell').textContent=encounter.available
+    ? `${encounter.state||'unknown'} visual continuity · ${encounterCandidates} continuing lineage${encounterCandidates===1?'':'s'} · acoustic source ${encounter.acoustic_source||'unknown'} · ${encounter.source_attribution||encounter.reason||'no physical source authority'}`
+    : 'authority unavailable';
   const prediction=value.full_field_prediction||{};
   const predictionObserver=prediction.observer||{};
   const predictionResolution=predictionObserver.latest_resolution||null;
@@ -981,6 +989,7 @@ async function pollObservation(){
     document.getElementById('embodiedActionCell').textContent='observation unavailable';
     document.getElementById('conversationCell').textContent='observation unavailable';
     document.getElementById('predictionCell').textContent='observation unavailable';
+    document.getElementById('encounterCell').textContent='observation unavailable';
     document.getElementById('causalActionCell').textContent='observation unavailable';
     document.getElementById('observationReceiptCell').textContent='observation unavailable';
     renderFullFieldAuthority({});

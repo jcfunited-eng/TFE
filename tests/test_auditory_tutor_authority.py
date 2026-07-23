@@ -118,7 +118,7 @@ def test_authenticated_malformed_experience_id_returns_bounded_4xx(
 def test_monaural_source_label_is_not_a_tutoring_option(monkeypatch) -> None:
     def reject_source(**_values):
         raise ValueError(
-            "monaural audio has no uninterrupted receipted source-continuity authority"
+            "monaural audio has no physical acoustic-source correspondence authority"
         )
 
     monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "auditory-secret")

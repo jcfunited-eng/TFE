@@ -413,6 +413,8 @@ def test_bind_rejects_wrong_joint_evidence_assembly_and_causal_settlement(
     wrong_sequence = replace(
         joint,
         sequence=joint.sequence + 1,
+        prior_transport_receipt_sha256="a" * 64,
+        prior_cochlear_state_receipt_sha256="b" * 64,
         authority_receipt_sha256="0" * 64,
     )
     wrong_sequence = replace(
