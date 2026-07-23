@@ -2727,6 +2727,26 @@ def handle_auditory_l5_teach(args):
         return {"error": str(error)}
 
 
+def handle_embodied_action_demonstrate(args):
+    """Durably teach one canonical W1 command received over typed API."""
+    try:
+        encoded = args.get("command_payload_base64")
+        if not isinstance(encoded, str) or len(encoded) > 8192:
+            raise ValueError("embodied command transport exceeds boundary")
+        command_payload = base64.b64decode(encoded, validate=True)
+        if base64.b64encode(command_payload).decode("ascii") != encoded:
+            raise ValueError("embodied command transport is not canonical")
+        return _guala.durably_demonstrate_embodied_action(
+            tutor_id=args.get("tutor_id"),
+            nonce=args.get("nonce"),
+            port_id=args.get("port_id"),
+            command_payload=command_payload,
+            state_dir=STATE_DIR,
+        )
+    except (PermissionError, RuntimeError, ValueError) as error:
+        return {"error": str(error)}
+
+
 # ── Curriculum ops ─────────────────────────────────────────────
 
 # Corpus load results — populated by background thread, polled via corpus_status.
@@ -4007,6 +4027,7 @@ OP_HANDLERS = {
     "observation_snapshot": handle_observation_snapshot,
     "auditory_l5_status": handle_auditory_l5_status,
     "auditory_l5_teach": handle_auditory_l5_teach,
+    "embodied_action_demonstrate": handle_embodied_action_demonstrate,
     "load_corpus": handle_load_corpus,
     "corpus_status": handle_corpus_status,
 }

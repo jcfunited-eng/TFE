@@ -20,6 +20,7 @@ import logging
 import statistics
 import hashlib as _hashlib
 import traceback
+import base64
 
 
 def deterministic_motif_id(name):
@@ -6416,6 +6417,36 @@ class CausalActionTeachRequest(BaseModel):
     source: Optional[str] = "joe"
 
 
+class EmbodiedPositionRequest(BaseModel):
+    x_mm: int
+    y_mm: int
+    z_mm: int = 0
+
+    class Config:
+        extra = "forbid"
+
+
+class EmbodiedPoseRequest(BaseModel):
+    position: EmbodiedPositionRequest
+    heading_millidegrees: int
+
+    class Config:
+        extra = "forbid"
+
+
+class EmbodiedActionDemonstrationRequest(BaseModel):
+    tutor_id: Literal["joe", "wc"]
+    nonce: str
+    port_id: str
+    operation: Literal["move", "pick", "place"]
+    target_pose: Optional[EmbodiedPoseRequest] = None
+    object_id: Optional[str] = None
+    target_position: Optional[EmbodiedPositionRequest] = None
+
+    class Config:
+        extra = "forbid"
+
+
 @app.get("/api/v1/auditory/status")
 async def auditory_l5_status():
     if _is_remote():
@@ -6565,6 +6596,97 @@ async def causal_action_teach(req: CausalActionTeachRequest):
 
     try:
         return await _run_lifecycle_executor(_teach_and_commit)
+    except (RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
+    "/api/v1/embodiment/demonstrate",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def embodied_action_demonstrate(
+    req: EmbodiedActionDemonstrationRequest,
+):
+    """Teach one exact typed W1 transition, never a text command."""
+    from dsf_ai_service.substrate.embodiment_world import (
+        MoveCommand,
+        PickCommand,
+        PlaceCommand,
+        PoseMM,
+        PositionMM,
+        encode_command,
+    )
+
+    def _position(value):
+        return PositionMM(value.x_mm, value.y_mm, value.z_mm)
+
+    try:
+        if req.operation == "move":
+            if (
+                req.target_pose is None
+                or req.object_id is not None
+                or req.target_position is not None
+            ):
+                raise ValueError("move requires only target_pose")
+            command = MoveCommand(PoseMM(
+                _position(req.target_pose.position),
+                req.target_pose.heading_millidegrees,
+            ))
+        elif req.operation == "pick":
+            if (
+                req.object_id is None
+                or req.target_pose is not None
+                or req.target_position is not None
+            ):
+                raise ValueError("pick requires only object_id")
+            command = PickCommand(req.object_id)
+        else:
+            if (
+                req.object_id is None
+                or req.target_position is None
+                or req.target_pose is not None
+            ):
+                raise ValueError(
+                    "place requires only object_id and target_position"
+                )
+            command = PlaceCommand(
+                req.object_id,
+                _position(req.target_position),
+            )
+        command_payload = encode_command(command)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+    if _is_remote():
+        client = _get_substrate_client()
+        result = await client.call(
+            "embodied_action_demonstrate",
+            tutor_id=req.tutor_id,
+            nonce=req.nonce,
+            port_id=req.port_id,
+            command_payload_base64=base64.b64encode(
+                command_payload
+            ).decode("ascii"),
+        )
+        if isinstance(result, dict) and result.get("error"):
+            raise HTTPException(status_code=409, detail=result["error"])
+        return result
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+
+    def _demonstrate_and_commit():
+        return _guala.durably_demonstrate_embodied_action(
+            tutor_id=req.tutor_id,
+            nonce=req.nonce,
+            port_id=req.port_id,
+            command_payload=command_payload,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(_demonstrate_and_commit)
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
     except (RuntimeError, ValueError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 

@@ -3478,6 +3478,33 @@ class Guala:
             if _causal_cycle_key
             else None
         )
+        self._embodied_action_teaching_key = None
+        self._embodied_action_teaching = None
+        if _causal_cycle_key:
+            import hmac as _hmac
+            from dsf_ai_service.substrate.embodied_action_teaching import (
+                EmbodiedActionTeachingAuthority as
+                _EmbodiedActionTeachingAuthority,
+            )
+            self._embodied_action_teaching_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-embodied-action-teaching-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._embodied_action_teaching = (
+                _EmbodiedActionTeachingAuthority(
+                    authority_key=self._embodied_action_teaching_key,
+                    authorized_tutors=("joe", "wc"),
+                    world_authority=self._embodiment_world,
+                    sensory_authority=(
+                        self._embodiment_sensory_outcome_authority
+                    ),
+                    action_cycle=self._causal_action_cycle,
+                    demonstration_capacity=64,
+                    max_command_bytes=4096,
+                    max_encoded_state_bytes=2 * 1024 * 1024,
+                )
+            )
         self._causal_dispatcher_key = None
         self._causal_speech_executor_key = None
         self._causal_speech_delivery_key = None
@@ -7980,6 +8007,253 @@ class Guala:
             except BaseException:
                 self._causal_action_cycle.restore_encoded(prior)
                 raise
+
+    @_engine_mutation_entry
+    def durably_demonstrate_embodied_action(
+        self,
+        *,
+        tutor_id,
+        nonce,
+        port_id,
+        command_payload,
+        state_dir,
+    ):
+        """Execute and durably teach one exact authenticated W1 transition.
+
+        The tutor supplies only a typed W1 command.  The engine itself owns
+        the pre-state observation, self-port execution, post-state sensory
+        transduction, causal binding, and one authoritative persistence
+        publication.  Any failure restores every in-memory authority to its
+        exact prior snapshot before the error is exposed.
+        """
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative embodied teaching durability is unavailable"
+            )
+        if (
+            self._embodied_action_teaching is None
+            or self._embodiment_world is None
+            or self._embodiment_sensory_outcome_authority is None
+            or self._causal_action_cycle is None
+        ):
+            raise RuntimeError(
+                "embodied action teaching authority is unavailable"
+            )
+        if tutor_id not in ("joe", "wc"):
+            raise PermissionError("embodied action tutor is not authorized")
+        if (
+            not isinstance(nonce, str)
+            or nonce.strip() != nonce
+            or len(nonce) < 16
+            or len(nonce.encode("utf-8")) > 256
+        ):
+            raise ValueError(
+                "embodied demonstration nonce is not bounded and canonical"
+            )
+        if port_id != self._embodiment_world.port_id:
+            raise ValueError("guided action must use Guala's self-body port")
+        if (
+            not isinstance(command_payload, bytes)
+            or not command_payload
+            or len(command_payload) > 4096
+        ):
+            raise ValueError("embodied demonstration command exceeds boundary")
+        from dsf_ai_service.substrate.embodiment_world import (
+            decode_command,
+            encode_command,
+        )
+        command = decode_command(command_payload, max_command_bytes=4096)
+        if encode_command(command) != command_payload:
+            raise ValueError("embodied demonstration command is not canonical")
+
+        with self.persistence_transaction():
+            with self._causal_cycle_bridge_lock:
+                prior_world = self._embodiment_world.encoded_snapshot()
+                prior_cycle = self._causal_action_cycle.encoded_snapshot()
+                prior_teaching = (
+                    self._embodied_action_teaching.encoded_snapshot()
+                )
+                try:
+                    before = self._embodiment_world.observation_snapshot()
+                    pre_outcome = (
+                        self._embodiment_sensory_outcome_authority.transduce(
+                            before,
+                            causal_owner=self._embodiment_outcome_causal_owner,
+                            commit=False,
+                        )
+                    )
+                    intent_payload = json.dumps(
+                        {
+                            "command_sha256": _hashlib.sha256(
+                                command_payload
+                            ).hexdigest(),
+                            "nonce": nonce,
+                            "port_id": port_id,
+                            "pre_observation_receipt_sha256": (
+                                before.authority_receipt_sha256
+                            ),
+                            "schema": (
+                                "guala.embodied_action_teaching.intent.v1"
+                            ),
+                            "tutor_id": tutor_id,
+                        },
+                        allow_nan=False,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    ).encode("utf-8")
+                    execution = self._embodiment_world.execute_port_command(
+                        port_id=port_id,
+                        command_payload=command_payload,
+                        causal_intent_receipt_sha256=(
+                            _hashlib.sha256(intent_payload).hexdigest()
+                        ),
+                        expected_revision=before.revision,
+                    )
+                    if execution.disposition != "applied":
+                        raise ValueError(
+                            "guided W1 execution was rejected: "
+                            + execution.reason
+                        )
+                    if (
+                        execution.before.authority_receipt_sha256
+                        != before.authority_receipt_sha256
+                        or execution.actor_body_id != before.self_body_id
+                        or execution.port_id != self._embodiment_world.port_id
+                    ):
+                        raise RuntimeError(
+                            "guided execution lost exact self-body authority"
+                        )
+                    post_outcome = (
+                        self._embodiment_sensory_outcome_authority.transduce(
+                            execution.after,
+                            causal_owner=self._embodiment_outcome_causal_owner,
+                            execution_receipt=execution,
+                            commit=False,
+                        )
+                    )
+                    guided = self._embodied_action_teaching.demonstrate(
+                        tutor_id=tutor_id,
+                        nonce=nonce,
+                        command_payload=command_payload,
+                        pre_outcome=pre_outcome,
+                        execution_receipt=execution,
+                        post_outcome=post_outcome,
+                    )
+                    selection = self._causal_action_cycle.select(
+                        pre_outcome.causal_settlement
+                    )
+                    if (
+                        selection.status != "committed"
+                        or selection.intent is None
+                        or selection.intent.binding_id != guided.binding_id
+                    ):
+                        raise RuntimeError(
+                            "guided binding did not issue its exact causal intent"
+                        )
+                    causal_execution = (
+                        self._causal_action_cycle.record_execution(
+                            intent_receipt_sha256=(
+                                selection.intent.authority_receipt_sha256
+                            ),
+                            executor_receipt_sha256=(
+                                execution.authority_receipt_sha256
+                            ),
+                            disposition="executed",
+                        )
+                    )
+                    causal_outcome = self._causal_action_cycle.observe_outcome(
+                        execution_receipt_sha256=(
+                            causal_execution.authority_receipt_sha256
+                        ),
+                        settlement=post_outcome.causal_settlement,
+                    )
+                    self._causal_action_cycle.close_observed(
+                        outcome_receipt_sha256=(
+                            causal_outcome.authority_receipt_sha256
+                        )
+                    )
+                    self._embodied_action_teaching \
+                        .verify_demonstration_receipt(
+                            guided.demonstration
+                        )
+                    current = self._embodiment_world.observation_snapshot()
+                    relation_evidence = tuple(
+                        item for item in self._causal_action_cycle
+                        .verified_relation_evidence()
+                        if item.binding_id == guided.binding_id
+                    )
+                    if (
+                        current.authority_receipt_sha256
+                        != execution.after.authority_receipt_sha256
+                        or current.self_body_id != execution.actor_body_id
+                        or len(relation_evidence) != 1
+                        or relation_evidence[0]
+                        .latest_closure_receipt_sha256 is None
+                        or relation_evidence[0]
+                        .trigger_witness.settlement_receipt_sha256
+                        != pre_outcome.causal_settlement
+                        .authority_receipt_sha256
+                        or relation_evidence[0].outcome_witness is None
+                        or relation_evidence[0]
+                        .outcome_witness.settlement_receipt_sha256
+                        != post_outcome.causal_settlement
+                        .authority_receipt_sha256
+                        or not self._causal_action_cycle
+                        .verify_teaching_evidence_binding(
+                            binding_id=guided.binding_id,
+                            teaching_evidence_receipt_sha256=(
+                                guided.demonstration
+                                .authority_receipt_sha256
+                            ),
+                            source=tutor_id,
+                            nonce=nonce,
+                        )
+                    ):
+                        raise RuntimeError(
+                            "guided proof, binding, and W1 world diverged"
+                        )
+                    self.save_hot_state(state_dir)
+                    return {
+                        "binding_id": guided.binding_id,
+                        "closure_receipt_sha256": (
+                            relation_evidence[0]
+                            .latest_closure_receipt_sha256
+                        ),
+                        "demonstration_receipt_sha256": (
+                            guided.demonstration.authority_receipt_sha256
+                        ),
+                        "execution_receipt_sha256": (
+                            execution.authority_receipt_sha256
+                        ),
+                        "port_id": port_id,
+                        "post_observation_receipt_sha256": (
+                            current.authority_receipt_sha256
+                        ),
+                        "pre_observation_receipt_sha256": (
+                            before.authority_receipt_sha256
+                        ),
+                        "world_revision_after": current.revision,
+                        "world_revision_before": before.revision,
+                    }
+                except BaseException:
+                    self._embodiment_world.restore_encoded(prior_world)
+                    self._causal_action_cycle.restore_encoded(prior_cycle)
+                    self._embodied_action_teaching.restore_encoded(
+                        prior_teaching
+                    )
+                    if (
+                        self._embodiment_world.encoded_snapshot() != prior_world
+                        or self._causal_action_cycle.encoded_snapshot()
+                        != prior_cycle
+                        or self._embodied_action_teaching.encoded_snapshot()
+                        != prior_teaching
+                    ):
+                        raise RuntimeError(
+                            "embodied teaching rollback failed closed"
+                        )
+                    raise
 
     @_engine_mutation_entry
     def review_causal_action_emission(
@@ -18256,6 +18530,14 @@ class Guala:
                 if self._embodiment_world is not None
                 else None
             ),
+            "embodied_action_teaching": (
+                json.loads(
+                    self._embodied_action_teaching
+                    .encoded_snapshot().decode("utf-8")
+                )
+                if self._embodied_action_teaching is not None
+                else None
+            ),
             "causal_prediction": (
                 json.loads(
                     self._causal_prediction.encoded_snapshot().decode("utf-8")
@@ -18960,6 +19242,23 @@ class Guala:
             if len(embodiment_bytes) > embodiment_limit:
                 raise ValueError(
                     "teaching.embodiment_world exceeds its encoded boundary"
+                )
+        embodied_action_teaching = data.get("embodied_action_teaching")
+        if embodied_action_teaching is not None:
+            embodied_teaching_bytes = cls._canonical_persistence_bytes(
+                embodied_action_teaching
+            )
+            if (
+                len(embodied_teaching_bytes) > 2 * 1024 * 1024
+                or not isinstance(embodied_action_teaching, dict)
+                or set(embodied_action_teaching) != {
+                    "authority_hmac_sha256", "payload_base64", "schema"
+                }
+                or embodied_action_teaching.get("schema")
+                != "guala.embodied_action_teaching.state.hmac.v1"
+            ):
+                raise ValueError(
+                    "teaching.embodied_action_teaching exceeds its boundary"
                 )
         causal_prediction = data.get("causal_prediction")
         if causal_prediction is not None:
@@ -21058,6 +21357,19 @@ class Guala:
                                     embodiment_world
                                 )
                             )
+                        embodied_action_teaching = tdata.get(
+                            "embodied_action_teaching"
+                        )
+                        if embodied_action_teaching is not None:
+                            if self._embodied_action_teaching is None:
+                                raise ValueError(
+                                    "embodied teaching authority key is missing"
+                                )
+                            self._embodied_action_teaching.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    embodied_action_teaching
+                                )
+                            )
                         causal_prediction = tdata.get("causal_prediction")
                         if causal_prediction is not None:
                             if self._causal_prediction is None:
@@ -22633,6 +22945,11 @@ class Guala:
             "identity": identity,
             "embodiment": embodiment,
             "embodied_action": action,
+            "embodied_action_teaching": (
+                self._embodied_action_teaching.status()
+                if self._embodied_action_teaching is not None
+                else {"available": False}
+            ),
             "conversation": conversation,
             "cognition_activity": (
                 {"status": "observed", "activity": activity}
@@ -22751,6 +23068,11 @@ class Guala:
                 "embodiment_world": (
                     self._embodiment_world.status()
                     if self._embodiment_world is not None
+                    else {"available": False}
+                ),
+                "embodied_action_teaching": (
+                    self._embodied_action_teaching.status()
+                    if self._embodied_action_teaching is not None
                     else {"available": False}
                 ),
                 "causal_prediction": (
