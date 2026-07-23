@@ -14,6 +14,7 @@ import os
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import traceback
@@ -2272,15 +2273,21 @@ def _synthesize_voice(text):
         except Exception:
             pass
         text = text[:TTS_MAX_CHARS]
-    wav_path = "/tmp/guala_utt.wav"
     try:
-        subprocess.run([
-            "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
-            "-w", wav_path, text,
-        ], check=True, timeout=5, capture_output=True)
-        with open(wav_path, "rb") as f:
-            wav_bytes = f.read()
-        return base64.b64encode(wav_bytes).decode("ascii")
+        # Each mouth act owns a private output directory.  A shared WAV path
+        # lets overlapping conversational/autonomous releases overwrite one
+        # another between synthesis and read, binding the wrong physical
+        # waveform to a causal execution.  TemporaryDirectory gives every call
+        # an unshared path and removes it on success, timeout, and read failure.
+        with tempfile.TemporaryDirectory(prefix="guala_tts_") as tts_dir:
+            wav_path = os.path.join(tts_dir, "utterance.wav")
+            subprocess.run([
+                "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
+                "-w", wav_path, text,
+            ], check=True, timeout=5, capture_output=True)
+            with open(wav_path, "rb") as f:
+                wav_bytes = f.read()
+            return base64.b64encode(wav_bytes).decode("ascii")
     except Exception:
         return None
 
