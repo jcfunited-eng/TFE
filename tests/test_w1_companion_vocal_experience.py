@@ -28,6 +28,9 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
 from dsf_ai_service.substrate.w1_companion_vocal_experience import (
     W1CompanionVocalExperienceAuthority,
 )
+from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+    W1BinauralAuditoryL5Owner,
+)
 
 
 def _pcm() -> bytes:
@@ -87,6 +90,7 @@ def _authorities(on_settlement):
             authority_key=b"a" * 32,
             world_authority=world,
         ),
+        binaural_auditory_l5_owner=W1BinauralAuditoryL5Owner(),
     )
     companion = W1CompanionVocalExperienceAuthority(
         authority_key=b"c" * 32,
@@ -183,6 +187,7 @@ def test_receipt_verification_failure_releases_every_transaction_owner(
     assert physical.status()["pending_multisensory_reservation"] == 0
     assert physical.status()["prepared_multisensory_mount"] == 0
     assert physical.status()["active_epochs"] == 0
+    assert physical.status()["binaural_auditory_l5"]["prepared"] == 0
     assert companion.status()["prepared"] == 0
 
 

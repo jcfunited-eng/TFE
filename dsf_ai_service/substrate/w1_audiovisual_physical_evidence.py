@@ -78,11 +78,15 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
     PCM_SAMPLE_RATE_HZ,
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+    W1BinauralAuditoryL5Experience,
+    W1BinauralAuditoryL5Owner,
+)
 
 
-EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v6"
-PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v6"
-AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v6\0"
+EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v7"
+PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v7"
+AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v7\0"
 
 PCM_SAMPLE_WIDTH_BYTES = 2
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
@@ -739,6 +743,7 @@ class W1PhysicalEvidenceReceipt:
     somatic_series_sha256: str
     acoustic_emission_receipt_sha256s: tuple[str, ...]
     binaural_commitment: Mapping[str, object]
+    binaural_auditory_l5_authority_receipt_sha256: str | None
     causal_settlement_receipt_sha256: str
     authority_hmac_sha256: str
     authority_receipt_sha256: str
@@ -749,6 +754,9 @@ class W1PhysicalEvidenceReceipt:
                 self.acoustic_emission_receipt_sha256s
             ),
             "binaural_commitment": dict(self.binaural_commitment),
+            "binaural_auditory_l5_authority_receipt_sha256": (
+                self.binaural_auditory_l5_authority_receipt_sha256
+            ),
             "causal_settlement_receipt_sha256": (
                 self.causal_settlement_receipt_sha256
             ),
@@ -828,6 +836,17 @@ class W1PhysicalEvidenceReceipt:
             raise ValueError(
                 "W1 acoustic contribution lost its binaural commitment"
             )
+        if self.binaural_auditory_l5_authority_receipt_sha256 is not None:
+            _sha256(
+                self.binaural_auditory_l5_authority_receipt_sha256,
+                "W1 binaural auditory L5 authority",
+            )
+        if bool(self.acoustic_emission_receipt_sha256s) != bool(
+            self.binaural_auditory_l5_authority_receipt_sha256
+        ):
+            raise ValueError(
+                "W1 acoustic contribution lost its binaural L5 authority"
+            )
         _sha256(
             self.causal_settlement_receipt_sha256,
             "W1 causal settlement",
@@ -856,6 +875,7 @@ class W1PhysicalEvidenceMount:
     evidence_receipt: W1PhysicalEvidenceReceipt | None = None
     binaural_pcm: W1BinauralPCM | None = None
     causal_settlement: CausalExperienceSettlement | None = None
+    binaural_auditory_l5: W1BinauralAuditoryL5Experience | None = None
 
     @property
     def observation_receipt(self) -> W1PhysicalEvidenceReceipt | None:
@@ -880,6 +900,8 @@ class W1PhysicalEvidenceMount:
         if self.evidence_receipt is None:
             if self.binaural_pcm is not None or self.causal_settlement is not None:
                 raise ValueError("unsettled W1 evidence retained physical payload")
+            if self.binaural_auditory_l5 is not None:
+                raise ValueError("unsettled W1 evidence retained auditory L5")
             return
         self.evidence_receipt.verify(authority_key)
         if (
@@ -894,14 +916,26 @@ class W1PhysicalEvidenceMount:
         if acoustic:
             if self.binaural_pcm is None:
                 raise ValueError("settled W1 acoustic evidence is incomplete")
+            if self.binaural_auditory_l5 is None:
+                raise ValueError("settled W1 acoustic L5 evidence is incomplete")
             self.binaural_pcm.verify()
+            self.binaural_auditory_l5.verify()
             if self.binaural_pcm.commitment_record() != dict(
                 self.evidence_receipt.binaural_commitment
             ):
                 raise ValueError("W1 physical evidence differs from its receipt")
+            if (
+                self.binaural_auditory_l5.authority_receipt_sha256
+                != self.evidence_receipt
+                .binaural_auditory_l5_authority_receipt_sha256
+                or self.binaural_auditory_l5
+                .upstream_causal_settlement_receipt_sha256
+                != self.causal_settlement.authority_receipt_sha256
+            ):
+                raise ValueError("W1 auditory L5 differs from physical evidence")
         elif self.binaural_pcm is not None or dict(
             self.evidence_receipt.binaural_commitment
-        ):
+        ) or self.binaural_auditory_l5 is not None:
             raise ValueError("W1 unavailable sound retained acoustic payload")
         if self.causal_settlement.authority_receipt_sha256 != (
             self.evidence_receipt.causal_settlement_receipt_sha256
@@ -960,6 +994,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         world_authority: EmbodimentWorldAuthority,
         causal_owner: ExactCausalExperienceOwner,
         acoustic_emitter: W1AcousticEmitterAuthority,
+        binaural_auditory_l5_owner: W1BinauralAuditoryL5Owner,
         calibration: W1BinauralCalibration | None = None,
     ) -> None:
         if not isinstance(world_authority, EmbodimentWorldAuthority):
@@ -968,19 +1003,27 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             raise TypeError("W1 evidence requires an exact causal owner")
         if not isinstance(acoustic_emitter, W1AcousticEmitterAuthority):
             raise TypeError("W1 evidence requires the acoustic emitter authority")
+        if not isinstance(
+            binaural_auditory_l5_owner,
+            W1BinauralAuditoryL5Owner,
+        ):
+            raise TypeError("W1 evidence requires the binaural auditory L5 owner")
         if not acoustic_emitter.owns_world(world_authority):
             raise ValueError("W1 acoustic emitter belongs to another world")
         self._key = _key(authority_key)
         self._world = world_authority
         self._causal_owner = causal_owner
         self._acoustic_emitter = acoustic_emitter
+        self._binaural_auditory_l5_owner = binaural_auditory_l5_owner
         self._calibration = calibration or W1BinauralCalibration()
         self._calibration.verify()
         self._epoch_capacity = len(world_authority.actor_ports)
         self._epochs: dict[str, _Epoch] = {}
         self._prepared_mount: _PreparedAudiovisualMount | None = None
         self._pending_reservation: tuple[
-            str, CausalExperienceSettlement
+            str,
+            CausalExperienceSettlement,
+            W1BinauralAuditoryL5Experience | None,
         ] | None = None
         self._lock = threading.RLock()
 
@@ -1003,6 +1046,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 )
             pending = self._pending_reservation
             if pending is not None and pending[0] == epoch_token:
+                if pending[2] is not None:
+                    self._binaural_auditory_l5_owner.discard_prepared(
+                        pending[2]
+                    )
                 self._causal_owner.discard_prepared(pending[1])
                 self._pending_reservation = None
             return self._epochs.pop(epoch_token, None) is not None
@@ -1142,6 +1189,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         payload = {
             "acoustic_emission_receipt_sha256s": [],
             "binaural_commitment": {},
+            "binaural_auditory_l5_authority_receipt_sha256": None,
             "causal_settlement_receipt_sha256": (
                 settlement.authority_receipt_sha256
             ),
@@ -1185,6 +1233,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             somatic_series_sha256=somatic_commitment,
             acoustic_emission_receipt_sha256s=(),
             binaural_commitment={},
+            binaural_auditory_l5_authority_receipt_sha256=None,
             causal_settlement_receipt_sha256=(
                 settlement.authority_receipt_sha256
             ),
@@ -1701,7 +1750,20 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 commit=False,
                 reserve=True,
             )
-            self._pending_reservation = (epoch_token, settlement)
+            self._pending_reservation = (epoch_token, settlement, None)
+            try:
+                binaural_auditory_l5 = (
+                    self._binaural_auditory_l5_owner.prepare(settlement)
+                )
+            except BaseException:
+                self._causal_owner.discard_prepared(settlement)
+                self._pending_reservation = None
+                raise
+            self._pending_reservation = (
+                epoch_token,
+                settlement,
+                binaural_auditory_l5,
+            )
             state = W1EvidenceState.OBSERVED
             reason = "anonymous_multisensory_evidence_observed"
             commitment = binaural.commitment_record()
@@ -1710,6 +1772,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     rendered.contributing_receipt_sha256s
                 ),
                 "binaural_commitment": commitment,
+                "binaural_auditory_l5_authority_receipt_sha256": (
+                    binaural_auditory_l5.authority_receipt_sha256
+                ),
                 "causal_settlement_receipt_sha256": (
                     settlement.authority_receipt_sha256
                 ),
@@ -1763,6 +1828,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     rendered.contributing_receipt_sha256s
                 ),
                 binaural_commitment=commitment,
+                binaural_auditory_l5_authority_receipt_sha256=(
+                    binaural_auditory_l5.authority_receipt_sha256
+                ),
                 causal_settlement_receipt_sha256=(
                     settlement.authority_receipt_sha256
                 ),
@@ -1775,6 +1843,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             try:
                 receipt.verify(self._key)
             except BaseException:
+                self._binaural_auditory_l5_owner.discard_prepared(
+                    binaural_auditory_l5
+                )
                 self._causal_owner.discard_prepared(settlement)
                 self._pending_reservation = None
                 raise
@@ -1822,10 +1893,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 evidence_receipt=receipt,
                 binaural_pcm=binaural,
                 causal_settlement=settlement,
+                binaural_auditory_l5=binaural_auditory_l5,
             )
             try:
                 result.verify(self._key)
             except BaseException:
+                self._binaural_auditory_l5_owner.discard_prepared(
+                    binaural_auditory_l5
+                )
                 self._causal_owner.discard_prepared(settlement)
                 self._pending_reservation = None
                 raise
@@ -1867,11 +1942,27 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         current = self._epochs.get(prepared.epoch_token)
         if current != prepared.prior_epoch:
             raise RuntimeError("W1 audiovisual epoch changed before commit")
-        self._epochs[prepared.epoch_token] = prepared.next_epoch
+        auditory_l5 = mount.binaural_auditory_l5
+        if auditory_l5 is None:
+            raise RuntimeError("W1 audiovisual commit lost binaural L5")
+        try:
+            undo = self._binaural_auditory_l5_owner.commit_prepared(
+                auditory_l5
+            )
+        except BaseException:
+            try:
+                self._binaural_auditory_l5_owner.discard_prepared(
+                    auditory_l5
+                )
+            except ValueError:
+                pass
+            self._causal_owner.discard_prepared(mount.causal_settlement)
+            self._prepared_mount = None
+            raise
         try:
             self._causal_owner.commit_prepared(mount.causal_settlement)
         except BaseException:
-            self._epochs[prepared.epoch_token] = prepared.prior_epoch
+            self._binaural_auditory_l5_owner.rollback_committed(undo)
             try:
                 self._causal_owner.discard_prepared(
                     mount.causal_settlement
@@ -1880,6 +1971,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 pass
             self._prepared_mount = None
             raise
+        self._epochs[prepared.epoch_token] = prepared.next_epoch
         if close_epoch:
             del self._epochs[prepared.epoch_token]
         self._prepared_mount = None
@@ -1911,6 +2003,11 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             if self._epochs.get(prepared.epoch_token) != prepared.prior_epoch:
                 raise RuntimeError(
                     "W1 audiovisual epoch changed before discard"
+            )
+            if mount.binaural_auditory_l5 is None:
+                raise RuntimeError("W1 audiovisual discard lost binaural L5")
+            self._binaural_auditory_l5_owner.discard_prepared(
+                mount.binaural_auditory_l5
             )
             self._causal_owner.discard_prepared(mount.causal_settlement)
             if close_epoch:
@@ -2011,7 +2108,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "retained_raw_media_kind": (
                     "bounded_transient_acoustic_delay_lines"
                 ),
-                "schema": "guala.w1.anonymous_multisensory_status.v2",
+                "binaural_auditory_l5": (
+                    self._binaural_auditory_l5_owner.status()
+                ),
+                "schema": "guala.w1.anonymous_multisensory_status.v3",
             }
 
 

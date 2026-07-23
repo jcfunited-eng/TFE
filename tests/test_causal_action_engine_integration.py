@@ -971,6 +971,13 @@ def test_companion_vocal_pressure_enters_live_engine_as_binaural_w1_experience(
         assert result["causal_settlement_receipt_sha256"] == (
             guala._latest_causal_settlement.authority_receipt_sha256
         )
+        assert result[
+            "binaural_auditory_l5_authority_receipt_sha256"
+        ] == (
+            guala._w1_binaural_auditory_l5_owner.latest
+            .authority_receipt_sha256
+        )
+        assert guala._w1_binaural_auditory_l5_owner.status()["settled"] == 1
         assert guala._w1_companion_vocal_experience.status()[
             "retained_raw_media_bytes"
         ] == 0

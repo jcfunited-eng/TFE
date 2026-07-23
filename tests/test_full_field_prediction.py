@@ -59,6 +59,9 @@ from dsf_ai_service.substrate.full_field_prediction import (
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+    W1BinauralAuditoryL5Owner,
+)
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
 )
@@ -505,6 +508,7 @@ def test_anonymous_w1_attachment_reproduces_full_field_without_fake_sound() -> N
             authority_key=KEY,
             world_authority=world,
         ),
+        binaural_auditory_l5_owner=W1BinauralAuditoryL5Owner(),
     )
     observation = world.observation_snapshot()
     mounted = sensory.mount_current_observation(commit=False)

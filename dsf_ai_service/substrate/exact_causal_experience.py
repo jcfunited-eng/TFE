@@ -965,7 +965,16 @@ class ExactCausalExperienceOwner:
                 raise ValueError(
                     "prepared causal settlement has no live reservation"
                 )
-            self._commit_prepared_locked(settlement)
+            prior_previous_by_sense = dict(self._previous_by_sense)
+            prior_transitions = OrderedDict(self._transitions)
+            prior_settled = self._settled
+            try:
+                self._commit_prepared_locked(settlement)
+            except BaseException:
+                self._previous_by_sense = prior_previous_by_sense
+                self._transitions = prior_transitions
+                self._settled = prior_settled
+                raise
             self._prepared_reservation = None
             self._reservation_condition.notify_all()
 

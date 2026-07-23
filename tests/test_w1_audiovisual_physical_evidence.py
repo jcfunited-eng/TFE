@@ -47,6 +47,9 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
     AuthenticatedW1AcousticEmission,
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+    W1BinauralAuditoryL5Owner,
+)
 
 
 WORLD_KEY = b"world-authority-key-for-w1-tests"
@@ -167,6 +170,7 @@ def _authority(world, owner=None):
             authority_key=EMISSION_KEY,
             world_authority=world,
         ),
+        binaural_auditory_l5_owner=W1BinauralAuditoryL5Owner(),
     )
 
 
@@ -1254,6 +1258,8 @@ def test_resource_bounds_and_transaction_rollback_preserve_epoch():
             acoustic_emission=emission,
         )
     assert owner.status()["prepared_reservation"] == 0
+    assert authority.status()["binaural_auditory_l5"]["settled"] == 0
+    assert authority.status()["binaural_auditory_l5"]["prepared"] == 0
 
     result = authority.mount(
         epoch_token=epoch,

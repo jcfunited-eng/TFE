@@ -3518,6 +3518,7 @@ class Guala:
             else None
         )
         self._w1_acoustic_emitter = None
+        self._w1_binaural_auditory_l5_owner = None
         self._w1_physical_evidence = None
         self._w1_companion_vocal_experience = None
         if _causal_cycle_key:
@@ -3529,6 +3530,10 @@ class Guala:
                 W1AudiovisualPhysicalEvidenceAuthority as
                 _W1AudiovisualPhysicalEvidenceAuthority,
             )
+            from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+                W1BinauralAuditoryL5Owner as
+                _W1BinauralAuditoryL5Owner,
+            )
             _root_key = _causal_cycle_key.encode("utf-8")
             _w1_acoustic_key = _hmac.new(
                 _root_key,
@@ -3537,7 +3542,7 @@ class Guala:
             ).digest()
             _w1_physical_key = _hmac.new(
                 _root_key,
-                b"guala-w1-anonymous-multisensory-evidence-v6",
+                b"guala-w1-anonymous-multisensory-evidence-v7",
                 _hashlib.sha256,
             ).digest()
             _w1_companion_key = _hmac.new(
@@ -3549,12 +3554,20 @@ class Guala:
                 authority_key=_w1_acoustic_key,
                 world_authority=self._embodiment_world,
             )
+            self._w1_binaural_auditory_l5_owner = (
+                _W1BinauralAuditoryL5Owner(
+                    max_transitions=64,
+                )
+            )
             self._w1_physical_evidence = (
                 _W1AudiovisualPhysicalEvidenceAuthority(
                     authority_key=_w1_physical_key,
                     world_authority=self._embodiment_world,
                     causal_owner=self._embodiment_outcome_causal_owner,
                     acoustic_emitter=self._w1_acoustic_emitter,
+                    binaural_auditory_l5_owner=(
+                        self._w1_binaural_auditory_l5_owner
+                    ),
                 )
             )
             from dsf_ai_service.substrate.w1_companion_vocal_experience import (
@@ -8489,6 +8502,9 @@ class Guala:
                 "causal_event_id": settlement.event_id,
                 "causal_settlement_receipt_sha256": (
                     settlement.authority_receipt_sha256
+                ),
+                "binaural_auditory_l5_authority_receipt_sha256": (
+                    mount.binaural_auditory_l5.authority_receipt_sha256
                 ),
                 "dispatch_status": (
                     "deferred_to_causal_cycle"
@@ -25227,6 +25243,11 @@ class Guala:
                 "companion_vocal_experience": (
                     self._w1_companion_vocal_experience.status()
                     if self._w1_companion_vocal_experience is not None
+                    else {"available": False}
+                ),
+                "w1_binaural_auditory_l5": (
+                    self._w1_binaural_auditory_l5_owner.status()
+                    if self._w1_binaural_auditory_l5_owner is not None
                     else {"available": False}
                 ),
                 "embodied_action_teaching": (
