@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
+import math
 import os
 import sys
+import wave
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from fractions import Fraction
@@ -77,6 +80,23 @@ def _digest(value: object) -> str:
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")).hexdigest()
+
+
+def _actual_causal_speech_wav() -> bytes:
+    samples = np.asarray(
+        [
+            int(12_000 * math.sin(2 * math.pi * 440 * index / 16_000))
+            for index in range(800)
+        ],
+        dtype="<i2",
+    )
+    output = io.BytesIO()
+    with wave.open(output, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(16_000)
+        wav.writeframes(samples.tobytes())
+    return output.getvalue()
 
 
 def _full_field(
@@ -365,7 +385,10 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
             source="joe",
         )
         assert review["status"] == "queued_until_outcome"
-        guala._accept_causal_settlement(action)
+        speech_outcome = guala.observe_causal_speech_output(
+            _actual_causal_speech_wav()
+        )
+        assert speech_outcome["status"] == "completed"
         reviewed_status = guala._causal_action_cycle.status()
         assert reviewed_status["binding_statuses"]["confirmed"] == 1
         assert guala._causal_cycle_pending_review is None
@@ -388,6 +411,7 @@ def test_unknown_causal_action_is_typed_silence_not_organism_empty(
         guala._brain_emission_candidates = _forbidden_legacy
         guala._emit_dynamics = _forbidden_legacy
         guala._compose_organism_attempt = _forbidden_legacy
+        guala._accept_causal_settlement(trigger)
         settlement = guala._emit_from_invariants(
             (),
             ("hello", "guala"),
@@ -588,7 +612,7 @@ def test_full_engine_restart_preserves_exact_learned_action(
             restored.shutdown()
 
 
-def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
+def test_full_field_intent_executes_embodiment_and_closes_on_exact_w1_outcome(
     monkeypatch,
     learned_artifacts,
 ) -> None:
@@ -624,17 +648,17 @@ def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
             nonce="embodiment-teacher-nonce-0001",
         )
 
+        guala._accept_causal_settlement(trigger)
         emission = guala._emit_from_invariants(
             (), (), causal_settlement=trigger
         )
         assert guala._committed_emission_response(emission) == (
             "",
-            "causal_action_embodiment_executed",
+            "causal_action_cycle_closed",
         )
         observed = guala._embodiment_world.observation_snapshot()
         assert observed.revision == 1
         assert observed.body.pose.position == PositionMM(1000, 2000, 0)
-        assert guala._causal_cycle_pending_execution_receipt is not None
         surface = guala.observation_snapshot()
         assert surface["embodied_action"]["status"] == "completed"
         assert surface["embodied_action"]["after_revision"] == 1
@@ -644,14 +668,13 @@ def test_full_field_intent_executes_embodiment_and_closes_on_later_outcome(
             "z_mm": 0,
         }
 
-        guala._accept_causal_settlement(outcome)
         status = guala._causal_action_cycle.status()
         assert status["closures"] == 1
         assert status["intents"] == 0
         assert status["executions"] == 0
         assert status["outcomes"] == 0
-        assert guala._causal_cycle_pending_execution_receipt is None
-        assert guala._causal_cycle_pending_trigger_receipt is None
+        assert guala._causal_action_dispatcher.status()["active"] is False
+        assert guala._latest_causal_settlement != outcome
     finally:
         guala.shutdown()
 

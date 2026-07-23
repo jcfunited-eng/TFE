@@ -15,6 +15,7 @@ from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 from dsf_ai_service.substrate.exact_causal_experience import (
     MAX_CAUSAL_RESERVATION_WAITERS,
 )
+from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
 from tests.test_auditory_causal_conversation_boundary import _issue, _terminal
 from tests.test_exact_causal_experience import _boundary
 
@@ -244,11 +245,44 @@ def test_rollback_restores_original_authority_position(guala):
 
 
 @pytest.mark.parametrize("phased", ("0", "1"))
-def test_emission_failure_restores_utterance_for_exact_retry(
+def test_emission_failure_retains_committed_action_for_exact_retry(
         guala, monkeypatch, phased):
     monkeypatch.setenv("CONVERSE_PHASED", phased)
     terminal = _issue(guala, _terminal(f"emission failure {phased}"))
     prior = _prior_record(guala)
+    registry = guala._auditory_incremental_terminals
+
+    teaching_claim = registry.claim(terminal)
+    guala.read_sentence(
+        terminal.tutor_label,
+        source="auditory:unresolved_source",
+        causal_intake=teaching_claim,
+        _defer_causal_commit=True,
+    )
+    teaching_settlement = registry.prepared_settlement_from_claim(
+        teaching_claim
+    )
+    guala._causal_action_cycle.accept(teaching_settlement)
+    guala._causal_action_cycle.teach(
+        trigger_reference=teaching_settlement.event_id,
+        action=ActionCommand.speech("exact retry"),
+        source="joe",
+        nonce=f"emission-failure-{phased}-teacher-nonce",
+    )
+    guala._rollback_auditory_conversation_claim(teaching_claim)
+    with guala._causal_action_cycle._lock:
+        guala._causal_action_cycle._working.clear()
+        guala._causal_action_cycle._working_by_receipt.clear()
+        guala._causal_action_cycle._working_by_source_event.clear()
+
+    dispatch_receipts = []
+    real_dispatch = guala._causal_action_dispatcher.dispatch
+
+    def track_dispatch(settlement):
+        dispatch_receipts.append(settlement.authority_receipt_sha256)
+        return real_dispatch(settlement)
+
+    guala._causal_action_dispatcher.dispatch = track_dispatch
     real_emit = guala._emit_from_invariants
 
     def fail_emission(*_args, **_kwargs):
@@ -263,24 +297,32 @@ def test_emission_failure_restores_utterance_for_exact_retry(
         )
 
     status = guala._auditory_incremental_terminals.status()
-    assert status["issued_terminal_authorities"] == 1
+    assert status["issued_terminal_authorities"] == 0
     assert status["in_flight_terminal_authorities"] == 0
-    assert guala._latest_auditory_causal_event_record == prior
-    assert guala._causal_experience_owner.status()["settled"] == 0
-    assert guala._causal_settlement_accepted == 0
-    assert guala._causal_action_cycle.status()["working_perceptions"] == 0
+    assert guala._latest_auditory_causal_event_record == terminal.as_record()
+    assert guala._latest_auditory_causal_event_record != prior
+    assert guala._causal_experience_owner.status()["settled"] == 1
+    assert guala._causal_settlement_accepted == 1
+    assert len(dispatch_receipts) == 1
+    queued = guala.causal_speech_output_status()
+    assert queued["status"] == "queued"
+    request_receipt = queued["request_receipt_sha256"]
 
     monkeypatch.setattr(guala, "_emit_from_invariants", real_emit)
-    turn = guala.converse(
-        terminal.tutor_label,
-        source="auditory:unresolved_source",
-        causal_intake=terminal,
+    released = guala._emit_from_invariants(
+        (), (), causal_settlement=guala._latest_causal_settlement
     )
-    assert turn.causal_experience_id == terminal.event_id
-    assert guala._auditory_incremental_terminals.status()[
-        "issued_terminal_authorities"
-    ] == 0
-    assert guala._causal_experience_owner.status()["settled"] == 1
+    assert released.content == "exact retry"
+    assert released.status == "committed"
+    assert guala.causal_speech_output_status()[
+        "request_receipt_sha256"
+    ] == request_receipt
+    duplicate = guala._emit_from_invariants(
+        (), (), causal_settlement=guala._latest_causal_settlement
+    )
+    assert duplicate.content == ""
+    assert duplicate.stop_reason == "causal_speech_audio_outcome_pending"
+    assert len(dispatch_receipts) == 1
 
 
 @pytest.mark.parametrize("log_boundary", ("owner", "engine"))
@@ -323,7 +365,7 @@ def test_final_settlement_log_failure_is_nonfatal_after_atomic_commit(
         guala._auditory_incremental_terminals.claim(terminal)
 
 
-def test_concurrent_camera_settlement_waits_for_deferred_conversation(
+def test_concurrent_camera_settlement_is_independent_of_deferred_transport(
         guala, monkeypatch):
     monkeypatch.setenv("CONVERSE_PHASED", "1")
     terminal = _issue(guala, _terminal("reserved causal ordering"))
@@ -370,25 +412,20 @@ def test_concurrent_camera_settlement_waits_for_deferred_conversation(
     assert emit_entered.wait(5.0)
     assert guala._causal_experience_owner.status()[
         "prepared_reservation"
-    ] == 1
+    ] == 0
+    assert guala._causal_experience_owner.status()["settled"] == 1
 
     camera = threading.Thread(target=camera_worker)
     camera.start()
     assert ambient_started.wait(1.0)
-    deadline = time.monotonic() + 2.0
-    while (
-        guala._causal_experience_owner.status()["reservation_waiters"] != 1
-        and time.monotonic() < deadline
-    ):
-        time.sleep(0.005)
-    assert guala._causal_experience_owner.status()["reservation_waiters"] == 1
-    assert not ambient_done.is_set()
+    camera.join(5.0)
+    assert not camera.is_alive()
+    assert ambient_done.is_set()
+    assert guala._causal_experience_owner.status()["settled"] == 2
 
     release_emit.set()
     conversation.join(5.0)
-    camera.join(5.0)
     assert not conversation.is_alive()
-    assert not camera.is_alive()
     assert errors == []
     assert len(turns) == 1
     assert turns[0].causal_experience_id == terminal.event_id
@@ -400,31 +437,15 @@ def test_concurrent_camera_settlement_waits_for_deferred_conversation(
 
 def test_reservation_waiters_are_bounded_and_release_without_leaks(
         guala, monkeypatch):
-    monkeypatch.setenv("CONVERSE_PHASED", "1")
-    terminal = _issue(guala, _terminal("bounded reservation waiters"))
-    emit_entered = threading.Event()
-    release_emit = threading.Event()
-    conversation_errors = []
-    turns = []
     waiter_results = []
     waiter_errors = []
-    real_emit = guala._emit_from_invariants
-
-    def blocked_emit(*args, **kwargs):
-        emit_entered.set()
-        if not release_emit.wait(10.0):
-            raise RuntimeError("test did not release bounded emission")
-        return real_emit(*args, **kwargs)
-
-    def converse_worker():
-        try:
-            turns.append(guala.converse(
-                terminal.tutor_label,
-                source="auditory:unresolved_source",
-                causal_intake=terminal,
-            ))
-        except BaseException as error:
-            conversation_errors.append(error)
+    reserved = guala._causal_experience_owner.settle(
+        _boundary("bounded-reservation-owner"),
+        routing_chis=(0,),
+        source_tags=("reservation-owner",),
+        commit=False,
+        reserve=True,
+    )
 
     boundaries = tuple(
         _boundary(f"bounded-reservation-waiter-{index}")
@@ -445,10 +466,6 @@ def test_reservation_waiters_are_bounded_and_release_without_leaks(
         except BaseException as error:
             waiter_errors.append(error)
 
-    monkeypatch.setattr(guala, "_emit_from_invariants", blocked_emit)
-    conversation = threading.Thread(target=converse_worker)
-    conversation.start()
-    assert emit_entered.wait(10.0)
     assert guala._causal_experience_owner.status()[
         "prepared_reservation"
     ] == 1
@@ -497,16 +514,12 @@ def test_reservation_waiters_are_bounded_and_release_without_leaks(
     )
     with guala._engine_mutation_condition:
         active_while_reserved = guala._engine_active_mutations
-    assert active_while_reserved >= MAX_CAUSAL_RESERVATION_WAITERS + 1
+    assert active_while_reserved >= MAX_CAUSAL_RESERVATION_WAITERS
 
-    release_emit.set()
-    conversation.join(10.0)
+    guala._causal_experience_owner.discard_prepared(reserved)
     for thread in admitted:
         thread.join(10.0)
-    assert not conversation.is_alive()
     assert all(not thread.is_alive() for thread in admitted)
-    assert conversation_errors == []
-    assert len(turns) == 1
     assert len(waiter_results) == MAX_CAUSAL_RESERVATION_WAITERS
 
     deadline = time.monotonic() + 5.0
@@ -520,10 +533,6 @@ def test_reservation_waiters_are_bounded_and_release_without_leaks(
     owner_status = guala._causal_experience_owner.status()
     assert owner_status["prepared_reservation"] == 0
     assert owner_status["reservation_waiters"] == 0
-    assert guala._auditory_incremental_terminals.authority_counts() == {
-        "issued_terminal_authorities": 0,
-        "in_flight_terminal_authorities": 0,
-    }
 
 
 def test_failed_concurrent_read_does_not_clobber_newer_witness(
