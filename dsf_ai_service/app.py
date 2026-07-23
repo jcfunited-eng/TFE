@@ -1818,6 +1818,7 @@ _generation_owner_lock = None
 _loaded_generation = None
 _deployment_baseline_generation = None
 _live_recovery_store = None
+_authoritative_cold_store = None
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
 _seed_load_progress = None
@@ -2330,23 +2331,101 @@ def _prepare_generation_boot():
     """Acquire the sole EFS owner and activate fully verified CURRENT state."""
     global _generation_owner_lock, _loaded_generation
     global _deployment_baseline_generation, _live_recovery_store
+    global _authoritative_cold_store
     if not _REQUIRE_SEALED_STATE:
         return None
     if _generation_owner_lock is not None:
         return _loaded_generation
     from dsf_ai_service.substrate.deployment_generation import (
+        DEPLOYMENT_SEAL_NAME,
         ProcessLifetimeEFSOwnerLock,
-        materialize_current,
+        load_and_verify_deployment_seal,
+        load_generation_deployment_seal,
+        materialize_verified_generation,
+        persist_generation_deployment_seal,
+        reconcile_generation_deployment_seals,
+        reconcile_remote_generation_prefixes,
+    )
+    from dsf_ai_service.substrate.authoritative_cold_generation_store import (
+        AuthoritativeColdGenerationStore,
     )
     from dsf_ai_service.substrate.live_recovery_generation import (
         LiveRecoveryGenerationStore,
     )
     owner = ProcessLifetimeEFSOwnerLock(OWNER_LOCK_PATH).acquire()
     try:
-        baseline = materialize_current(
-            store_root=GENERATION_STORE_ROOT,
+        (
+            max_generation_bytes,
+            max_required_files,
+            max_path_bytes,
+        ) = _authoritative_cold_limits()
+        deployment_seal = load_and_verify_deployment_seal(
+            GENERATION_STORE_ROOT,
+            hmac_key=_deploy_hmac_key(),
+        )
+        cold_store = AuthoritativeColdGenerationStore(
+            GENERATION_STORE_ROOT,
+            identity=deployment_seal["identity"],
+            required_files=None,
+            max_encoded_generation_bytes=max_generation_bytes,
+            max_dynamic_required_files=max_required_files,
+            max_dynamic_path_bytes=max_path_bytes,
+            pre_publish_validator=_validate_runtime_generation_cold_restore,
+        )
+        cold_state = cold_store.reconcile_verified_retention()
+        try:
+            load_generation_deployment_seal(
+                GENERATION_STORE_ROOT,
+                cold_state.current.generation_uuid,
+                hmac_key=_deploy_hmac_key(),
+            )
+        except Exception:
+            if (
+                deployment_seal["generation_uuid"]
+                != cold_state.current.generation_uuid
+            ):
+                raise RuntimeError(
+                    "CURRENT has no matching generation-bound deployment seal")
+            legacy_seal_path = os.path.join(
+                GENERATION_STORE_ROOT,
+                DEPLOYMENT_SEAL_NAME,
+            )
+            with open(legacy_seal_path, "rb") as handle:
+                legacy_seal_bytes = handle.read()
+            import base64
+            persist_generation_deployment_seal(
+                GENERATION_STORE_ROOT,
+                legacy_seal_bytes,
+                hmac_key=_deploy_hmac_key(),
+                expected_nonce=base64.b64decode(
+                    deployment_seal["nonce_base64"],
+                    validate=True,
+                ),
+            )
+        retained_generation_uuids = tuple(
+            record.generation_uuid
+            for record in cold_state.census
+        )
+        reconcile_generation_deployment_seals(
+            GENERATION_STORE_ROOT,
+            retained_generation_uuids=retained_generation_uuids,
+        )
+        import boto3
+        reconcile_remote_generation_prefixes(
+            s3_client=boto3.client("s3", region_name="us-east-1"),
+            bucket=os.environ.get(
+                "GUALA_S3_BACKUP_BUCKET",
+                "dsf-ai-site-backups",
+            ),
+            prefix=os.environ.get(
+                "GUALA_GENERATION_S3_PREFIX",
+                "guala/generations",
+            ),
+            retained_generation_uuids=retained_generation_uuids,
+        )
+        baseline = materialize_verified_generation(
+            generation=cold_state.current,
             active_directory=STATE_DIR,
-            retained_generations=3,
         )
         live_store = LiveRecoveryGenerationStore(
             LIVE_RECOVERY_STORE_ROOT,
@@ -2363,10 +2442,12 @@ def _prepare_generation_boot():
     _loaded_generation = materialized
     _deployment_baseline_generation = baseline
     _live_recovery_store = live_store
+    _authoritative_cold_store = cold_store
     app.state.generation_owner = owner
     app.state.loaded_generation = materialized
     app.state.deployment_baseline_generation = baseline
     app.state.live_recovery_store = live_store
+    app.state.authoritative_cold_store = cold_store
     return materialized
 
 
@@ -2420,6 +2501,7 @@ def _boot_generation_and_guala():
     """Boot under the process-lifetime owner lock, releasing it on failure."""
     global _generation_owner_lock, _loaded_generation
     global _deployment_baseline_generation, _live_recovery_store
+    global _authoritative_cold_store
     try:
         _prepare_generation_boot()
         _gl_init()
@@ -2430,10 +2512,12 @@ def _boot_generation_and_guala():
             _loaded_generation = None
             _deployment_baseline_generation = None
             _live_recovery_store = None
+            _authoritative_cold_store = None
             app.state.generation_owner = None
             app.state.loaded_generation = None
             app.state.deployment_baseline_generation = None
             app.state.live_recovery_store = None
+            app.state.authoritative_cold_store = None
         raise
 
 
@@ -8438,14 +8522,16 @@ def _production_runtime_proof(nonce=None):
         raise RuntimeError("process does not hold the EFS owner lease")
     if (_loaded_generation is None
             or _deployment_baseline_generation is None
-            or _live_recovery_store is None):
+            or _live_recovery_store is None
+            or _authoritative_cold_store is None):
         raise RuntimeError("no immutable generation was materialized")
 
     from dsf_ai_service.substrate.deployment_generation import (
-        load_and_verify_deployment_seal,
+        load_generation_deployment_seal,
     )
-    certificate = load_and_verify_deployment_seal(
+    certificate = load_generation_deployment_seal(
         GENERATION_STORE_ROOT,
+        _deployment_baseline_generation.generation_uuid,
         hmac_key=_deploy_hmac_key(),
         expected_nonce=nonce,
     )
@@ -8458,6 +8544,11 @@ def _production_runtime_proof(nonce=None):
     for field, value in expected.items():
         if certificate.get(field) != value:
             raise RuntimeError(f"deployment seal {field} mismatch")
+    cold_state = _authoritative_cold_store.inspect()
+    for field, value in expected.items():
+        if getattr(cold_state.current, field) != value:
+            raise RuntimeError(
+                f"authoritative cold CURRENT {field} mismatch")
     if getattr(_guala, "_guala_identity", None) != expected["identity"]:
         raise RuntimeError("live Guala identity differs from immutable generation")
     live_current = _live_recovery_store.load_current()
@@ -8626,9 +8717,9 @@ def _flush_v7_sessions_for_seal():
     return {"v7_sessions_flushed": len(sessions)}
 
 
-def _copy_generation_auxiliary_tree(source, destination, *, suffixes):
+def _copy_generation_auxiliary_tree(
+        source, destination, *, suffixes, admission):
     """Copy a finite, validated auxiliary tree without following links."""
-    import shutil
     import stat
     if not os.path.exists(source):
         return 0
@@ -8642,7 +8733,6 @@ def _copy_generation_auxiliary_tree(source, destination, *, suffixes):
         target_root = (
             destination if relative_root == "."
             else os.path.join(destination, relative_root))
-        os.makedirs(target_root, exist_ok=True)
         for name in directory_names:
             path = os.path.join(current, name)
             if os.path.islink(path) or not stat.S_ISDIR(os.lstat(path).st_mode):
@@ -8658,13 +8748,16 @@ def _copy_generation_auxiliary_tree(source, destination, *, suffixes):
                 raise RuntimeError(f"unsafe auxiliary file: {path}")
             if not name.endswith(tuple(suffixes)):
                 raise RuntimeError(f"unexpected auxiliary file: {path}")
-            shutil.copy2(path, os.path.join(target_root, name))
+            admission.copy_regular_file(
+                path,
+                os.path.join(target_root, name),
+            )
             copied += 1
     return copied
 
 
-def _copy_generation_file(source, destination, *, required=False):
-    import shutil
+def _copy_generation_file(
+        source, destination, *, admission, required=False):
     import stat
     try:
         info = os.lstat(source)
@@ -8680,22 +8773,23 @@ def _copy_generation_file(source, destination, *, required=False):
     # rejected.
     if os.path.islink(source) or not stat.S_ISREG(info.st_mode):
         raise RuntimeError(f"generation source is not a regular file: {source}")
-    shutil.copy2(source, destination)
+    admission.copy_regular_file(source, destination)
     return True
 
 
-def _write_runtime_generation_stage(stage):
+def _write_runtime_generation_stage(stage, admission):
     """Write the complete runtime recovery contract into one private stage."""
-    _guala.save_full_state(str(stage), publish_generation=False)
-    _guala._save_wave_atlas(str(stage))
+    with _guala.bounded_persistence_admission(admission):
+        _guala.save_full_state(str(stage), publish_generation=False)
+        _guala._save_wave_atlas(str(stage))
     if (os.environ.get("WAVE_ATLAS_ENABLED", "0") == "1"
             and (getattr(_guala, "wave_atlas", None) is None
                  or not os.path.isfile(stage / "wave_atlas.npz"))):
         raise RuntimeError(
             "configured WaveAtlas is absent from the generation stage")
-    identity_source = os.path.join(STATE_DIR, _guala.IDENTITY_FILE)
-    _copy_generation_file(
-        identity_source, stage / _guala.IDENTITY_FILE, required=True)
+    if not os.path.isfile(stage / _guala.IDENTITY_FILE):
+        raise RuntimeError(
+            "full-state save omitted the required identity record")
     for relative_path in (
             "dream_gate_cleared.json",
             "guala_runtime_config.json",
@@ -8703,26 +8797,104 @@ def _write_runtime_generation_stage(stage):
             "curriculum.json",
             "world_state.json"):
         source = os.path.join(STATE_DIR, relative_path)
-        _copy_generation_file(source, stage / relative_path)
+        _copy_generation_file(
+            source,
+            stage / relative_path,
+            admission=admission,
+        )
     _copy_generation_auxiliary_tree(
         os.path.join(STATE_DIR, "v7_sessions"),
         os.path.join(stage, "v7_sessions"),
         suffixes=(".json", ".events.jsonl"),
+        admission=admission,
     )
     _copy_generation_auxiliary_tree(
         os.path.join(STATE_DIR, "sounds"),
         os.path.join(stage, "sounds"),
         suffixes=(".audio",),
+        admission=admission,
     )
 
 
-def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
+def _authoritative_cold_limits():
+    names = (
+        "GUALA_MAX_COLD_GENERATION_BYTES",
+        "GUALA_MAX_COLD_REQUIRED_FILES",
+        "GUALA_MAX_COLD_PATH_BYTES",
+    )
+    values = []
+    for name in names:
+        raw = os.environ.get(name)
+        try:
+            value = int(raw)
+        except (TypeError, ValueError) as error:
+            raise RuntimeError(
+                f"{name} must be configured as a positive integer"
+            ) from error
+        if value <= 0:
+            raise RuntimeError(
+                f"{name} must be configured as a positive integer")
+        values.append(value)
+    return tuple(values)
+
+
+def _validate_runtime_generation_cold_restore(generation):
+    """Prove one immutable candidate through the exact engine load boundary."""
+    import tempfile
+    from dsf_ai_service.substrate.deployment_generation import (
+        materialize_verified_generation,
+    )
+
+    probe = None
+    with tempfile.TemporaryDirectory(
+            prefix="guala-cold-restore-") as validation_root:
+        active = os.path.join(validation_root, "active")
+        materialized = materialize_verified_generation(
+            generation=generation,
+            active_directory=active,
+        )
+        try:
+            probe = Guala()
+            for corpus_id, corpus in SEED_CORPORA.items():
+                probe.add_corpus(
+                    corpus_id,
+                    corpus["title"],
+                    corpus["lines"],
+                )
+            probe.load_full_state(
+                active,
+                require_exact_binary=True,
+            )
+            if not bool(getattr(probe, "_load_successful", False)):
+                raise RuntimeError(
+                    "cold-restore probe did not complete an exact engine load")
+            if (
+                getattr(probe, "_guala_identity", None)
+                != generation.identity
+            ):
+                raise RuntimeError(
+                    "cold-restore probe identity differs from generation")
+            if int(probe.tick) != int(generation.tick):
+                raise RuntimeError(
+                    "cold-restore probe tick differs from generation")
+            if materialized.generation_uuid != generation.generation_uuid:
+                raise RuntimeError(
+                    "cold-restore materialization differs from generation")
+            return True
+        finally:
+            if probe is not None:
+                _strict_discard_guala(
+                    probe,
+                    reason="authoritative cold-restore validation",
+                )
+
+
+def _seal_runtime_generation(nonce):
     """Create, upload, read back, and publish one exact stopped generation."""
     global _deployment_baseline_generation, _loaded_generation
     import boto3
     from dsf_ai_service.substrate.deployment_generation import (
-        persist_deployment_seal,
-        stage_commit_upload,
+        stage_authoritative_commit_upload,
         verify_deployment_seal,
     )
 
@@ -8736,7 +8908,12 @@ def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
     prefix = os.environ.get(
         "GUALA_GENERATION_S3_PREFIX", "guala/generations")
     key = _deploy_hmac_key()
-    result = stage_commit_upload(
+    (
+        max_generation_bytes,
+        max_required_files,
+        max_path_bytes,
+    ) = _authoritative_cold_limits()
+    result = stage_authoritative_commit_upload(
         store_root=GENERATION_STORE_ROOT,
         identity=identity,
         tick=tick,
@@ -8746,17 +8923,14 @@ def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
         prefix=prefix,
         hmac_key=key,
         nonce=nonce,
-        pre_publish_validator=pre_publish_validator,
+        max_encoded_generation_bytes=max_generation_bytes,
+        max_dynamic_required_files=max_required_files,
+        max_dynamic_path_bytes=max_path_bytes,
+        cold_restore_validator=_validate_runtime_generation_cold_restore,
     )
     certificate_bytes = result.seal_certificate_bytes()
     certificate = verify_deployment_seal(
         certificate_bytes, hmac_key=key, expected_nonce=nonce)
-    persist_deployment_seal(
-        GENERATION_STORE_ROOT,
-        certificate_bytes,
-        hmac_key=key,
-        expected_nonce=nonce,
-    )
     if _live_recovery_store is not None:
         hot_payloads = {
             name: (json.dumps(
@@ -8789,18 +8963,6 @@ def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
         )
         app.state.deployment_baseline_generation = result.generation
         app.state.loaded_generation = _loaded_generation
-    from dsf_ai_service.substrate.immutable_generation_store import (
-        ImmutableGenerationStore,
-    )
-    generation_store = ImmutableGenerationStore(
-        GENERATION_STORE_ROOT,
-        identity=result.generation.identity,
-        required_files=result.generation.required_files,
-    )
-    generation_store.prune_generations(
-        retain=3,
-        verified_current=result.generation,
-    )
     return certificate
 
 

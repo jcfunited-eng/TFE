@@ -20,6 +20,7 @@ import json
 import os
 import shutil
 import stat
+import threading
 import uuid
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -63,6 +64,10 @@ class GenerationStoreError(RuntimeError):
 
 class GenerationValidationError(GenerationStoreError):
     """A generation, manifest, payload, or required path is invalid."""
+
+
+class GenerationCapacityError(GenerationStoreError):
+    """A candidate generation exceeds its configured encoded-byte capacity."""
 
 
 class CurrentPointerError(GenerationStoreError):
@@ -183,7 +188,9 @@ def _write_new_bytes(path: Path, data: bytes) -> tuple[str, int]:
     return _sha256_bytes(data), len(data)
 
 
-def _copy_new_file(source: Path, destination: Path) -> tuple[str, int]:
+def _copy_new_file(
+        source: Path, destination: Path, *,
+        max_bytes: int | None = None) -> tuple[str, int]:
     digest = hashlib.sha256()
     size = 0
     with source.open("rb") as source_handle:
@@ -191,12 +198,20 @@ def _copy_new_file(source: Path, destination: Path) -> tuple[str, int]:
         if not stat.S_ISREG(source_stat.st_mode):
             raise GenerationValidationError(
                 f"generation source {source} is not a regular file")
+        if max_bytes is not None and source_stat.st_size > max_bytes:
+            raise GenerationCapacityError(
+                f"binary payload {source} exceeds remaining encoded-byte "
+                f"capacity: {source_stat.st_size}>{max_bytes}")
         fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
             while True:
                 chunk = source_handle.read(1024 * 1024)
                 if not chunk:
                     break
+                if max_bytes is not None and size + len(chunk) > max_bytes:
+                    raise GenerationCapacityError(
+                        f"binary payload {source} changed beyond remaining "
+                        "encoded-byte capacity while copied")
                 _write_all(fd, chunk)
                 digest.update(chunk)
                 size += len(chunk)
@@ -205,6 +220,47 @@ def _copy_new_file(source: Path, destination: Path) -> tuple[str, int]:
         finally:
             os.close(fd)
     return digest.hexdigest(), size
+
+
+def _read_regular_file(
+        source: Path, description: str, *,
+        max_bytes: int | None = None) -> bytes:
+    chunks = []
+    size = 0
+    try:
+        with source.open("rb") as handle:
+            source_stat = os.fstat(handle.fileno())
+            if not stat.S_ISREG(source_stat.st_mode):
+                raise GenerationValidationError(
+                    f"{description} source is not a regular file")
+            if max_bytes is not None and source_stat.st_size > max_bytes:
+                raise GenerationCapacityError(
+                    f"{description} exceeds remaining encoded-byte capacity: "
+                    f"{source_stat.st_size}>{max_bytes}")
+            while True:
+                read_size = 1024 * 1024
+                if max_bytes is not None:
+                    read_size = min(read_size, max_bytes - size + 1)
+                chunk = handle.read(read_size)
+                if not chunk:
+                    break
+                size += len(chunk)
+                if max_bytes is not None and size > max_bytes:
+                    raise GenerationCapacityError(
+                        f"{description} grew beyond remaining encoded-byte "
+                        "capacity while read")
+                chunks.append(chunk)
+            final_stat = os.fstat(handle.fileno())
+            if (
+                size != source_stat.st_size
+                or final_stat.st_size != source_stat.st_size
+            ):
+                raise GenerationValidationError(
+                    f"{description} changed size while read")
+    except OSError as error:
+        raise GenerationValidationError(
+            f"{description} source cannot be read: {error}") from error
+    return b"".join(chunks)
 
 
 def _fsync_directory(path: Path) -> None:
@@ -290,20 +346,54 @@ class ImmutableGenerationStore:
     """Commits and verifies one fixed required-file set for one identity."""
 
     def __init__(self, root: str | os.PathLike[str], *, identity: str,
-                 required_files: Sequence[str]):
+                 required_files: Sequence[str] | None,
+                 max_encoded_generation_bytes: int | None = None,
+                 max_dynamic_required_files: int | None = None,
+                 max_dynamic_path_bytes: int | None = None):
         self.root = Path(root)
         self.identity = _validated_identity(identity)
-        if isinstance(required_files, (str, bytes)):
+        if max_encoded_generation_bytes is not None and (
+            isinstance(max_encoded_generation_bytes, bool)
+            or not isinstance(max_encoded_generation_bytes, int)
+            or max_encoded_generation_bytes <= 0
+        ):
             raise GenerationValidationError(
-                "required_files must be a sequence of relative paths")
-        validated = tuple(_validated_relative_path(item) for item in required_files)
-        if not validated:
-            raise GenerationValidationError("at least one required file is mandatory")
-        if len(set(validated)) != len(validated):
-            raise GenerationValidationError("required file paths must be unique")
-        self.required_files = tuple(sorted(validated))
-        self._required_set = frozenset(self.required_files)
-        self._expected_directories = _expected_directories(self.required_files)
+                "encoded generation capacity must be a positive integer")
+        self.max_encoded_generation_bytes = max_encoded_generation_bytes
+        if required_files is None:
+            for value, description in (
+                (max_dynamic_required_files, "dynamic required-file count"),
+                (max_dynamic_path_bytes, "dynamic required-path bytes"),
+            ):
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, int)
+                    or value <= 0
+                ):
+                    raise GenerationValidationError(
+                        f"{description} capacity must be a positive integer")
+            self.required_files: tuple[str, ...] | None = None
+            self._required_set: frozenset[str] | None = None
+            self.max_dynamic_required_files = max_dynamic_required_files
+            self.max_dynamic_path_bytes = max_dynamic_path_bytes
+        else:
+            if isinstance(required_files, (str, bytes)):
+                raise GenerationValidationError(
+                    "required_files must be a sequence of relative paths")
+            validated = tuple(
+                _validated_relative_path(item)
+                for item in required_files
+            )
+            if not validated:
+                raise GenerationValidationError(
+                    "at least one required file is mandatory")
+            if len(set(validated)) != len(validated):
+                raise GenerationValidationError(
+                    "required file paths must be unique")
+            self.required_files = tuple(sorted(validated))
+            self._required_set = frozenset(self.required_files)
+            self.max_dynamic_required_files = None
+            self.max_dynamic_path_bytes = None
 
         self.root.mkdir(parents=True, exist_ok=True)
         self.generations_directory = self.root / GENERATIONS_DIRECTORY
@@ -316,41 +406,82 @@ class ImmutableGenerationStore:
                 "generation directory must be a real directory")
         _fsync_directory(self.generations_directory)
         _fsync_directory(self.root)
+        self._writer_local = threading.local()
 
     @contextlib.contextmanager
     def _exclusive_writer(self) -> Iterator[None]:
+        depth = getattr(self._writer_local, "depth", 0)
+        if depth:
+            self._writer_local.depth = depth + 1
+            try:
+                yield
+            finally:
+                self._writer_local.depth = depth
+            return
+
         lock_path = self.root / LOCK_NAME
         fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX)
+            self._writer_local.depth = 1
             yield
         finally:
+            self._writer_local.depth = 0
             fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
 
+    @contextlib.contextmanager
+    def exclusive_transaction(self) -> Iterator[None]:
+        """Hold the store's inter-process writer lock across one transaction."""
+        with self._exclusive_writer():
+            yield
+
     @staticmethod
-    def _source_bytes(source: Any, description: str) -> bytes:
+    def _source_bytes(
+        source: Any,
+        description: str,
+        *,
+        max_bytes: int | None = None,
+    ) -> bytes:
         if isinstance(source, bytes):
+            if max_bytes is not None and len(source) > max_bytes:
+                raise GenerationCapacityError(
+                    f"{description} exceeds remaining encoded-byte capacity: "
+                    f"{len(source)}>{max_bytes}"
+                )
             return source
-        if isinstance(source, (bytearray, memoryview)):
+        if isinstance(source, bytearray):
+            if max_bytes is not None and len(source) > max_bytes:
+                raise GenerationCapacityError(
+                    f"{description} exceeds remaining encoded-byte capacity: "
+                    f"{len(source)}>{max_bytes}"
+                )
             return bytes(source)
+        if isinstance(source, memoryview):
+            if max_bytes is not None and source.nbytes > max_bytes:
+                raise GenerationCapacityError(
+                    f"{description} exceeds remaining encoded-byte capacity: "
+                    f"{source.nbytes}>{max_bytes}"
+                )
+            return source.tobytes()
         if isinstance(source, (str, os.PathLike)):
             source_path = Path(source)
-            try:
-                info = source_path.stat()
-            except OSError as error:
-                raise GenerationValidationError(
-                    f"{description} source cannot be read: {error}") from error
-            if not stat.S_ISREG(info.st_mode):
-                raise GenerationValidationError(
-                    f"{description} source is not a regular file")
-            return source_path.read_bytes()
+            return _read_regular_file(
+                source_path,
+                description,
+                max_bytes=max_bytes,
+            )
         raise GenerationValidationError(
             f"{description} source must be bytes or a filesystem path")
 
     def _json_envelope(self, relative_path: str, source: Any,
-                       generation_uuid: str, tick: int) -> bytes:
-        raw = self._source_bytes(source, f"JSON payload {relative_path!r}")
+                       generation_uuid: str, tick: int,
+                       *, max_source_bytes: int | None = None) -> bytes:
+        raw = self._source_bytes(
+            source,
+            f"JSON payload {relative_path!r}",
+            max_bytes=max_source_bytes,
+        )
         payload = _strict_json_loads(raw, f"JSON payload {relative_path!r}")
         return _canonical_json({
             "schema": ENVELOPE_SCHEMA,
@@ -361,47 +492,141 @@ class ImmutableGenerationStore:
             "payload": payload,
         })
 
-    def _create_required_directories(self, building: Path) -> None:
+    @staticmethod
+    def _create_required_directories(
+        building: Path,
+        expected_directories: set[str],
+    ) -> None:
         for relative_directory in sorted(
-                self._expected_directories,
+                expected_directories,
                 key=lambda value: (len(PurePosixPath(value).parts), value)):
             (building / Path(relative_directory)).mkdir(exist_ok=False)
 
-    def _freeze_and_sync_directories(self, generation_directory: Path) -> None:
+    @staticmethod
+    def _freeze_and_sync_directories(
+        generation_directory: Path,
+        expected_directories: set[str],
+    ) -> None:
         directories = [generation_directory]
         directories.extend(
             generation_directory / Path(relative)
-            for relative in self._expected_directories)
+            for relative in expected_directories)
         for directory in sorted(
                 directories, key=lambda path: len(path.parts), reverse=True):
             os.chmod(directory, 0o555)
             _fsync_directory(directory)
 
-    def _write_generation_directory(self, building: Path, generation_uuid: str,
-                                    tick: int, files: Mapping[str, Any]) -> None:
-        building.mkdir(mode=0o700)
-        self._create_required_directories(building)
-        records = []
+    def _admit_encoded_bytes(
+            self, *, accumulated: int, additional: int,
+            description: str) -> None:
+        if isinstance(additional, bool) or additional < 0:
+            raise GenerationValidationError(
+                f"{description} encoded size is invalid")
+        capacity = self.max_encoded_generation_bytes
+        if capacity is not None and accumulated + additional > capacity:
+            raise GenerationCapacityError(
+                f"candidate generation exceeds encoded-byte capacity: "
+                f"{accumulated + additional}>{capacity} while admitting "
+                f"{description}")
 
-        for relative_path in self.required_files:
+    @staticmethod
+    def _verified_encoded_bytes(generation: LoadedGeneration) -> int:
+        certificate = generation.recovery_certificate()
+        return sum(
+            int(record["size_bytes"])
+            for record in certificate["required_files"]
+        ) + (generation.directory / MANIFEST_NAME).stat().st_size
+
+    def _enforce_verified_capacity(
+            self, generation: LoadedGeneration, *,
+            description: str) -> int:
+        encoded_bytes = self._verified_encoded_bytes(generation)
+        capacity = self.max_encoded_generation_bytes
+        if capacity is not None and encoded_bytes > capacity:
+            raise GenerationCapacityError(
+                f"{description} exceeds encoded-byte capacity: "
+                f"{encoded_bytes}>{capacity}")
+        return encoded_bytes
+
+    def _write_generation_directory(
+        self,
+        building: Path,
+        generation_uuid: str,
+        tick: int,
+        files: Mapping[str, Any],
+        required_files: tuple[str, ...],
+    ) -> int:
+        expected_directories = _expected_directories(required_files)
+        building.mkdir(mode=0o700)
+        self._create_required_directories(building, expected_directories)
+        records = []
+        encoded_bytes = 0
+
+        for relative_path in required_files:
             destination = building / Path(relative_path)
             source = files[relative_path]
             if relative_path.endswith(".json"):
+                remaining = (
+                    None
+                    if self.max_encoded_generation_bytes is None
+                    else self.max_encoded_generation_bytes - encoded_bytes
+                )
                 stored = self._json_envelope(
-                    relative_path, source, generation_uuid, tick)
+                    relative_path,
+                    source,
+                    generation_uuid,
+                    tick,
+                    max_source_bytes=remaining,
+                )
+                self._admit_encoded_bytes(
+                    accumulated=encoded_bytes,
+                    additional=len(stored),
+                    description=relative_path,
+                )
                 digest, size = _write_new_bytes(destination, stored)
             elif isinstance(source, (str, os.PathLike)):
                 source_path = Path(source)
                 try:
-                    digest, size = _copy_new_file(source_path, destination)
+                    source_size = source_path.stat().st_size
+                    self._admit_encoded_bytes(
+                        accumulated=encoded_bytes,
+                        additional=source_size,
+                        description=relative_path,
+                    )
+                    remaining = (
+                        None
+                        if self.max_encoded_generation_bytes is None
+                        else self.max_encoded_generation_bytes - encoded_bytes
+                    )
+                    if remaining is None:
+                        digest, size = _copy_new_file(
+                            source_path,
+                            destination,
+                        )
+                    else:
+                        digest, size = _copy_new_file(
+                            source_path,
+                            destination,
+                            max_bytes=remaining,
+                        )
                 except OSError as error:
                     raise GenerationValidationError(
                         f"binary payload {relative_path!r} cannot be copied: {error}") from error
+                if size != source_size:
+                    raise GenerationValidationError(
+                        f"binary payload {relative_path!r} changed while copied")
             elif isinstance(source, (bytes, bytearray, memoryview)):
-                digest, size = _write_new_bytes(destination, bytes(source))
+                stored = bytes(source)
+                self._admit_encoded_bytes(
+                    accumulated=encoded_bytes,
+                    additional=len(stored),
+                    description=relative_path,
+                )
+                digest, size = _write_new_bytes(destination, stored)
             else:
                 raise GenerationValidationError(
                     f"binary payload {relative_path!r} must be bytes or a filesystem path")
+            encoded_bytes += size
 
             records.append({
                 "schema": FILE_RECORD_SCHEMA,
@@ -421,8 +646,20 @@ class ImmutableGenerationStore:
             "tick": tick,
             "required_files": records,
         }
-        _write_new_bytes(building / MANIFEST_NAME, _canonical_json(manifest))
-        self._freeze_and_sync_directories(building)
+        manifest_bytes = _canonical_json(manifest)
+        self._admit_encoded_bytes(
+            accumulated=encoded_bytes,
+            additional=len(manifest_bytes),
+            description=MANIFEST_NAME,
+        )
+        _, manifest_size = _write_new_bytes(
+            building / MANIFEST_NAME, manifest_bytes)
+        encoded_bytes += manifest_size
+        self._freeze_and_sync_directories(
+            building,
+            expected_directories,
+        )
+        return encoded_bytes
 
     def _actual_tree(self, generation_directory: Path) -> tuple[set[str], set[str]]:
         actual_files: set[str] = set()
@@ -464,19 +701,6 @@ class ImmutableGenerationStore:
                 or stat.S_IMODE(directory_info.st_mode) != 0o555):
             raise GenerationValidationError(
                 f"generation directory {generation_uuid!r} is mutable or invalid")
-
-        actual_files, actual_directories = self._actual_tree(generation_directory)
-        expected_files = set(self.required_files) | {MANIFEST_NAME}
-        if actual_files != expected_files:
-            missing = sorted(expected_files - actual_files)
-            extra = sorted(actual_files - expected_files)
-            raise GenerationValidationError(
-                f"generation required-file set mismatch: missing={missing}, extra={extra}")
-        if actual_directories != self._expected_directories:
-            missing = sorted(self._expected_directories - actual_directories)
-            extra = sorted(actual_directories - self._expected_directories)
-            raise GenerationValidationError(
-                f"generation directory set mismatch: missing={missing}, extra={extra}")
 
         manifest_path = generation_directory / MANIFEST_NAME
         manifest, manifest_bytes = _read_strict_json_file(
@@ -520,15 +744,50 @@ class ImmutableGenerationStore:
             if isinstance(size, bool) or not isinstance(size, int) or size < 0:
                 raise GenerationValidationError(
                     f"manifest record {relative_path!r} has invalid size")
+
+        generation_required_files = tuple(record_paths)
+        if not generation_required_files:
+            raise GenerationValidationError(
+                "generation manifest must contain at least one required file")
+        if generation_required_files != tuple(sorted(set(record_paths))):
+            raise GenerationValidationError(
+                "manifest required-file records are duplicated or unordered")
+        if (
+            self.required_files is not None
+            and generation_required_files != self.required_files
+        ):
+            raise GenerationValidationError(
+                "manifest required-file records differ from the fixed "
+                "store contract")
+        expected_directories = _expected_directories(
+            generation_required_files)
+        actual_files, actual_directories = self._actual_tree(
+            generation_directory)
+        expected_files = set(generation_required_files) | {MANIFEST_NAME}
+        if actual_files != expected_files:
+            missing = sorted(expected_files - actual_files)
+            extra = sorted(actual_files - expected_files)
+            raise GenerationValidationError(
+                f"generation required-file set mismatch: missing={missing}, "
+                f"extra={extra}")
+        if actual_directories != expected_directories:
+            missing = sorted(expected_directories - actual_directories)
+            extra = sorted(actual_directories - expected_directories)
+            raise GenerationValidationError(
+                f"generation directory set mismatch: missing={missing}, "
+                f"extra={extra}")
+
+        for record in records:
+            relative_path = record["relative_path"]
             actual_digest, actual_size = _sha256_file(
                 generation_directory / Path(relative_path))
-            if actual_digest != digest or actual_size != size:
+            if (
+                actual_digest != record["sha256"]
+                or actual_size != record["size_bytes"]
+            ):
                 raise GenerationValidationError(
                     f"required file {relative_path!r} hash or size mismatch")
 
-        if tuple(record_paths) != self.required_files:
-            raise GenerationValidationError(
-                "manifest required-file records are missing, duplicated, extra, or unordered")
         if manifest_bytes != _canonical_json(manifest):
             raise GenerationValidationError(
                 "generation manifest is not canonical JSON")
@@ -536,7 +795,7 @@ class ImmutableGenerationStore:
         # Verification above must use the supplied directory, including during
         # pre-publication verification.  Envelope verification is therefore
         # performed directly here rather than through CURRENT.
-        for relative_path in self.required_files:
+        for relative_path in generation_required_files:
             if not relative_path.endswith(".json"):
                 continue
             envelope, envelope_bytes = _read_strict_json_file(
@@ -577,7 +836,7 @@ class ImmutableGenerationStore:
             directory=generation_directory,
             manifest_sha256=manifest_sha256,
             _certificate_json=certificate_json,
-            _required_files=self.required_files,
+            _required_files=generation_required_files,
         )
 
     def _write_current(self, loaded: LoadedGeneration) -> None:
@@ -614,15 +873,37 @@ class ImmutableGenerationStore:
             raise GenerationValidationError("files must be a mapping of path to source")
         supplied_paths = set()
         canonical_files = {}
+        dynamic_path_bytes = 0
         for relative_path, source in files.items():
             canonical = _validated_relative_path(relative_path)
             supplied_paths.add(canonical)
             canonical_files[canonical] = source
-        if supplied_paths != self._required_set or len(canonical_files) != len(files):
-            missing = sorted(self._required_set - supplied_paths)
-            extra = sorted(supplied_paths - self._required_set)
+            if self._required_set is None:
+                dynamic_path_bytes += len(canonical.encode("utf-8"))
+                if (
+                    len(canonical_files)
+                    > self.max_dynamic_required_files
+                ):
+                    raise GenerationCapacityError(
+                        "dynamic generation exceeds required-file count "
+                        "capacity before staging")
+                if dynamic_path_bytes > self.max_dynamic_path_bytes:
+                    raise GenerationCapacityError(
+                        "dynamic generation exceeds required-path byte "
+                        "capacity before staging")
+        if len(canonical_files) != len(files) or not canonical_files:
             raise GenerationValidationError(
-                f"caller file set mismatch: missing={missing}, extra={extra}")
+                "caller file set is empty, duplicated, or noncanonical")
+        if self._required_set is None:
+            required_files = tuple(sorted(canonical_files))
+        else:
+            if supplied_paths != self._required_set:
+                missing = sorted(self._required_set - supplied_paths)
+                extra = sorted(supplied_paths - self._required_set)
+                raise GenerationValidationError(
+                    f"caller file set mismatch: missing={missing}, "
+                    f"extra={extra}")
+            required_files = self.required_files
 
         if generation_uuid is None:
             generation_uuid = str(uuid.uuid4())
@@ -636,9 +917,21 @@ class ImmutableGenerationStore:
                 raise GenerationStoreError(
                     f"generation UUID collision {generation_uuid}")
             try:
-                self._write_generation_directory(
-                    building, generation_uuid, tick, canonical_files)
+                encoded_bytes = self._write_generation_directory(
+                    building,
+                    generation_uuid,
+                    tick,
+                    canonical_files,
+                    required_files,
+                )
                 prepublication = self._verify_directory(building, generation_uuid)
+                certificate_bytes = self._enforce_verified_capacity(
+                    prepublication,
+                    description="candidate generation",
+                )
+                if certificate_bytes != encoded_bytes:
+                    raise GenerationValidationError(
+                        "candidate encoded-byte census changed before publication")
                 os.rename(building, final)
                 _fsync_directory(self.generations_directory)
                 published = self._verify_directory(final, generation_uuid)
@@ -660,7 +953,10 @@ class ImmutableGenerationStore:
             raise TypeError("generation must be a LoadedGeneration")
         if generation.identity != self.identity:
             raise GenerationValidationError("generation identity mismatch")
-        if tuple(generation.required_files) != self.required_files:
+        if (
+            self.required_files is not None
+            and tuple(generation.required_files) != self.required_files
+        ):
             raise GenerationValidationError("generation file contract mismatch")
         generation_uuid = _canonical_generation_uuid(
             generation.generation_uuid)
@@ -673,6 +969,10 @@ class ImmutableGenerationStore:
                     != generation.recovery_certificate_bytes()):
                 raise GenerationValidationError(
                     "generation changed before CURRENT publication")
+            self._enforce_verified_capacity(
+                verified,
+                description="published generation",
+            )
             self._write_current(verified)
             return verified
 
@@ -771,7 +1071,11 @@ class ImmutableGenerationStore:
                 if (
                     not isinstance(verified_current, LoadedGeneration)
                     or verified_current.identity != self.identity
-                    or verified_current.required_files != self.required_files
+                    or (
+                        self.required_files is not None
+                        and verified_current.required_files
+                        != self.required_files
+                    )
                     or verified_current.directory.parent
                     != self.generations_directory
                 ):
@@ -848,6 +1152,28 @@ class ImmutableGenerationStore:
             os.chmod(current_root, 0o700)
         shutil.rmtree(building)
 
+    def discard_orphan_building_directories(self) -> tuple[str, ...]:
+        """Remove never-published private build trees under the writer lock."""
+        removed = []
+        with self._exclusive_writer():
+            for building in self.generations_directory.iterdir():
+                if not building.name.startswith(".building-"):
+                    continue
+                generation_uuid = building.name.removeprefix(".building-")
+                _canonical_generation_uuid(generation_uuid)
+                try:
+                    info = building.lstat()
+                except FileNotFoundError:
+                    continue
+                if building.is_symlink() or not stat.S_ISDIR(info.st_mode):
+                    raise GenerationValidationError(
+                        f"orphan building path {building.name!r} is unsafe")
+                self._remove_building_directory(building)
+                removed.append(generation_uuid)
+            if removed:
+                _fsync_directory(self.generations_directory)
+        return tuple(removed)
+
     def verify_generation(self, generation_uuid: str) -> LoadedGeneration:
         """Verify a named immutable generation without changing CURRENT."""
         generation_uuid = _canonical_generation_uuid(generation_uuid)
@@ -855,6 +1181,48 @@ class ImmutableGenerationStore:
             self.generations_directory / generation_uuid,
             generation_uuid,
         )
+
+    def discard_unpublished(self, generation: LoadedGeneration) -> None:
+        """Remove one verified candidate only when CURRENT cannot reference it."""
+        if not isinstance(generation, LoadedGeneration):
+            raise TypeError("generation must be a LoadedGeneration")
+        if generation.identity != self.identity:
+            raise GenerationValidationError("generation identity mismatch")
+        if (
+            self.required_files is not None
+            and tuple(generation.required_files) != self.required_files
+        ):
+            raise GenerationValidationError("generation file contract mismatch")
+        generation_uuid = _canonical_generation_uuid(
+            generation.generation_uuid)
+
+        with self._exclusive_writer():
+            current_path = self.root / CURRENT_NAME
+            try:
+                current_path.lstat()
+            except FileNotFoundError:
+                pass
+            else:
+                pointer, canonical = self._read_current()
+                if not canonical:
+                    raise CurrentPointerError(
+                        "CURRENT pointer is not canonical JSON")
+                if pointer["generation_uuid"] == generation_uuid:
+                    raise GenerationValidationError(
+                        "refusing to discard the CURRENT generation")
+
+            verified = self._verify_directory(
+                self.generations_directory / generation_uuid,
+                generation_uuid,
+            )
+            if (
+                verified.recovery_certificate_bytes()
+                != generation.recovery_certificate_bytes()
+            ):
+                raise GenerationValidationError(
+                    "unpublished generation changed before discard")
+            self._remove_retired_generation(verified.directory)
+            _fsync_directory(self.generations_directory)
 
     def _read_current(self) -> tuple[dict, bool]:
         current_path = self.root / CURRENT_NAME
@@ -909,6 +1277,13 @@ class ImmutableGenerationStore:
             raise CurrentPointerError("CURRENT pointer manifest hash mismatch")
         if not current_is_canonical:
             raise CurrentPointerError("CURRENT pointer is not canonical JSON")
+        try:
+            self._enforce_verified_capacity(
+                loaded,
+                description="CURRENT generation",
+            )
+        except GenerationCapacityError as error:
+            raise CurrentPointerError(str(error)) from error
         return loaded
 
 
@@ -916,6 +1291,7 @@ __all__ = [
     "CERTIFICATE_SCHEMA",
     "CURRENT_NAME",
     "CurrentPointerError",
+    "GenerationCapacityError",
     "GenerationStoreError",
     "GenerationValidationError",
     "ImmutableGenerationStore",

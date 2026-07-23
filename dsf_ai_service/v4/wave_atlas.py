@@ -261,7 +261,7 @@ class WaveAtlas:
             }
         return {"version": 1, "cells": cells_out}
 
-    def to_npz(self, path: str) -> None:
+    def to_npz(self, path) -> None:
         """GL-CMD-WAVE-SEMANTICS-85 Part C.1: persist as numpy .npz (compressed).
         Phase vecs stored as float32 re/im arrays; bindings as gzip-compressed JSON.
         Target: <5MB after Part B.3 migration collapses to ~8-25k bindings."""
@@ -290,7 +290,7 @@ class WaveAtlas:
         # Write via file object — numpy.savez_compressed auto-appends .npz when given a
         # path string, which breaks the .tmp atomic-rename pattern. File objects are
         # written as-is with no extension modification.
-        with open(path, "wb") as _npz_f:
+        def write_npz(_npz_f):
             np.savez_compressed(
                 _npz_f,
                 chi_indices=np.array(chi_idxs, dtype=np.int32),
@@ -302,6 +302,11 @@ class WaveAtlas:
                 phase_vecs_valid=pv_valid,
                 bindings_gz=bindings_arr,
             )
+        if callable(getattr(path, "write", None)):
+            write_npz(path)
+        else:
+            with open(path, "wb") as _npz_f:
+                write_npz(_npz_f)
 
     def load_from_npz(self, path: str) -> int:
         """Restore WaveAtlas from .npz file. Returns number of cells loaded."""

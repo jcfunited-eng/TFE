@@ -70,6 +70,9 @@ def test_runtime_generation_contains_complete_contract_and_excludes_transients(
     monkeypatch.setattr(appmod, "STATE_DIR", str(active))
     monkeypatch.setattr(appmod, "GENERATION_STORE_ROOT", str(store))
     monkeypatch.setattr(appmod, "_GUALALOOM_API_KEY", "test-control-secret")
+    monkeypatch.setenv("GUALA_MAX_COLD_GENERATION_BYTES", str(64 * 1024 * 1024))
+    monkeypatch.setenv("GUALA_MAX_COLD_REQUIRED_FILES", "16384")
+    monkeypatch.setenv("GUALA_MAX_COLD_PATH_BYTES", str(2 * 1024 * 1024))
 
     proof = appmod._seal_runtime_generation("nonce-for-state-contract-0001")
     generation = discover_and_load_current(store).generation

@@ -1,0 +1,560 @@
+"""Single-authority bounded persistence for complete Guala generations.
+
+This facade narrows :class:`ImmutableGenerationStore` to the persistence
+contract required by the live substrate:
+
+* one CURRENT generation;
+* one fully verified predecessor;
+* one transient candidate during an atomic commit;
+* an exact encoded-byte ceiling for every generation;
+* a caller-supplied cold-restore proof before CURRENT can change.
+
+It owns storage mechanics only.  It does not interpret, score, merge, prune,
+or otherwise alter cognition or any DSF field.
+"""
+
+from __future__ import annotations
+
+import os
+import uuid
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable, Mapping, Sequence
+
+from dsf_ai_service.substrate.immutable_generation_store import (
+    CURRENT_NAME,
+    GENERATIONS_DIRECTORY,
+    MANIFEST_NAME,
+    CurrentPointerError,
+    GenerationStoreError,
+    ImmutableGenerationStore,
+    LoadedGeneration,
+)
+
+
+RETAINED_AUTHORITATIVE_GENERATIONS = 2
+TRANSIENT_AUTHORITATIVE_GENERATIONS = 3
+
+
+class AuthoritativeColdGenerationError(RuntimeError):
+    """The sole cold-generation authority is absent, ambiguous, or unsafe."""
+
+
+@dataclass(frozen=True)
+class EncodedGenerationCensus:
+    generation_uuid: str
+    tick: int
+    encoded_bytes: int
+    current: bool
+
+
+@dataclass(frozen=True)
+class AuthoritativeColdState:
+    current: LoadedGeneration
+    predecessor: LoadedGeneration | None
+    census: tuple[EncodedGenerationCensus, ...]
+
+
+class AuthoritativeColdGenerationStore:
+    """Commit complete state through one bounded immutable authority."""
+
+    def __init__(
+        self,
+        root: str | os.PathLike[str],
+        *,
+        identity: str,
+        required_files: Sequence[str] | None,
+        max_encoded_generation_bytes: int,
+        pre_publish_validator: Callable[[LoadedGeneration], bool],
+        max_dynamic_required_files: int | None = None,
+        max_dynamic_path_bytes: int | None = None,
+    ):
+        if (
+            isinstance(max_encoded_generation_bytes, bool)
+            or not isinstance(max_encoded_generation_bytes, int)
+            or max_encoded_generation_bytes <= 0
+        ):
+            raise AuthoritativeColdGenerationError(
+                "cold-generation encoded capacity must be a positive integer"
+            )
+        if not callable(pre_publish_validator):
+            raise AuthoritativeColdGenerationError(
+                "cold-generation pre-publication validator must be callable"
+            )
+        self.root = Path(root)
+        self.max_encoded_generation_bytes = max_encoded_generation_bytes
+        self.max_transient_encoded_bytes = (
+            TRANSIENT_AUTHORITATIVE_GENERATIONS
+            * max_encoded_generation_bytes
+        )
+        self._pre_publish_validator = pre_publish_validator
+        self._store = ImmutableGenerationStore(
+            self.root,
+            identity=identity,
+            required_files=required_files,
+            max_encoded_generation_bytes=max_encoded_generation_bytes,
+            max_dynamic_required_files=max_dynamic_required_files,
+            max_dynamic_path_bytes=max_dynamic_path_bytes,
+        )
+        self._blocked_reason: str | None = None
+
+    @property
+    def blocked_reason(self) -> str | None:
+        return self._blocked_reason
+
+    def _block(self, reason: object) -> None:
+        self._blocked_reason = str(reason)
+
+    @staticmethod
+    def _encoded_bytes(generation: LoadedGeneration) -> int:
+        certificate = generation.recovery_certificate()
+        return sum(
+            int(record["size_bytes"])
+            for record in certificate["required_files"]
+        ) + (generation.directory / MANIFEST_NAME).stat().st_size
+
+    def _generation_paths(self) -> tuple[Path, ...]:
+        directory = self.root / GENERATIONS_DIRECTORY
+        if not directory.is_dir():
+            raise AuthoritativeColdGenerationError(
+                "cold-generation directory is absent"
+            )
+        paths = []
+        for path in directory.iterdir():
+            if path.name.startswith(".building-"):
+                raise AuthoritativeColdGenerationError(
+                    "unfinished cold generation requires inspection"
+                )
+            try:
+                canonical = str(uuid.UUID(path.name))
+            except (ValueError, AttributeError) as error:
+                raise AuthoritativeColdGenerationError(
+                    f"unexpected cold-generation path {path.name!r}"
+                ) from error
+            if canonical != path.name:
+                raise AuthoritativeColdGenerationError(
+                    f"noncanonical cold-generation path {path.name!r}"
+                )
+            paths.append(path)
+        return tuple(paths)
+
+    def _audit(
+        self,
+        *,
+        require_predecessor: bool,
+        allow_empty: bool,
+        maximum_generations: int = RETAINED_AUTHORITATIVE_GENERATIONS,
+    ) -> AuthoritativeColdState | None:
+        current_path = self.root / CURRENT_NAME
+        paths = self._generation_paths()
+        try:
+            current_path.lstat()
+        except FileNotFoundError:
+            if allow_empty and not paths:
+                return None
+            raise AuthoritativeColdGenerationError(
+                "cold-generation store has no authoritative CURRENT"
+            )
+        try:
+            current = self._store.load_current()
+            verified = tuple(
+                self._store.verify_generation(path.name)
+                for path in paths
+            )
+        except Exception as error:
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation verification failed: {error}"
+            ) from error
+        if len(verified) > maximum_generations:
+            if maximum_generations == RETAINED_AUTHORITATIVE_GENERATIONS:
+                raise AuthoritativeColdGenerationError(
+                    "cold-generation authority exceeds CURRENT plus predecessor"
+                )
+            raise AuthoritativeColdGenerationError(
+                "cold-generation authority exceeds verified reconciliation "
+                "retention"
+            )
+        by_uuid = {
+            generation.generation_uuid: generation
+            for generation in verified
+        }
+        if len(by_uuid) != len(verified) or current.generation_uuid not in by_uuid:
+            raise AuthoritativeColdGenerationError(
+                "cold-generation CURRENT is absent or duplicated"
+            )
+        if require_predecessor and len(verified) < 2:
+            raise AuthoritativeColdGenerationError(
+                "cold-generation authority has no verified predecessor"
+            )
+
+        predecessor_candidates = sorted(
+            (
+                generation
+                for generation in verified
+                if generation.generation_uuid != current.generation_uuid
+            ),
+            key=lambda generation: (
+                generation.tick,
+                generation.generation_uuid,
+            ),
+            reverse=True,
+        )
+        if any(
+            generation.tick > current.tick
+            for generation in predecessor_candidates
+        ):
+            raise AuthoritativeColdGenerationError(
+                "cold-generation predecessor is newer than CURRENT"
+            )
+        predecessor = (
+            predecessor_candidates[0]
+            if predecessor_candidates
+            else None
+        )
+        census = tuple(
+            EncodedGenerationCensus(
+                generation_uuid=generation.generation_uuid,
+                tick=generation.tick,
+                encoded_bytes=self._encoded_bytes(generation),
+                current=(
+                    generation.generation_uuid
+                    == current.generation_uuid
+                ),
+            )
+            for generation in sorted(
+                verified,
+                key=lambda item: (item.tick, item.generation_uuid),
+                reverse=True,
+            )
+        )
+        for record in census:
+            if record.encoded_bytes > self.max_encoded_generation_bytes:
+                raise AuthoritativeColdGenerationError(
+                    f"cold generation {record.generation_uuid} exceeds "
+                    f"encoded capacity: {record.encoded_bytes}>"
+                    f"{self.max_encoded_generation_bytes}"
+                )
+        if (
+            sum(record.encoded_bytes for record in census)
+            > maximum_generations * self.max_encoded_generation_bytes
+        ):
+            raise AuthoritativeColdGenerationError(
+                "cold-generation census exceeds its exact capacity"
+            )
+        return AuthoritativeColdState(
+            current=current,
+            predecessor=predecessor,
+            census=census,
+        )
+
+    def _retire_interrupted_unpublished_candidates(self) -> tuple[str, ...]:
+        """Retire verified newer non-CURRENT state left by an abrupt crash."""
+        self._store.discard_orphan_building_directories()
+        current_path = self.root / CURRENT_NAME
+        try:
+            current_path.lstat()
+        except FileNotFoundError:
+            paths = self._generation_paths()
+            if not paths:
+                return ()
+            try:
+                never_published = tuple(
+                    self._store.verify_generation(path.name)
+                    for path in paths
+                )
+            except Exception as error:
+                raise AuthoritativeColdGenerationError(
+                    f"never-published candidate verification failed: {error}"
+                ) from error
+            for generation in never_published:
+                if (
+                    self._encoded_bytes(generation)
+                    > self.max_encoded_generation_bytes
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "never-published cold generation exceeds encoded "
+                        "capacity"
+                    )
+            for generation in never_published:
+                self._store.discard_unpublished(generation)
+            return tuple(
+                generation.generation_uuid
+                for generation in never_published
+            )
+
+        paths = self._generation_paths()
+        try:
+            current = self._store.load_current()
+            verified = tuple(
+                self._store.verify_generation(path.name)
+                for path in paths
+            )
+        except Exception as error:
+            raise AuthoritativeColdGenerationError(
+                f"interrupted-candidate verification failed: {error}"
+            ) from error
+        by_uuid = {
+            generation.generation_uuid: generation
+            for generation in verified
+        }
+        if len(by_uuid) != len(verified) or current.generation_uuid not in by_uuid:
+            raise AuthoritativeColdGenerationError(
+                "interrupted-candidate census does not contain unique CURRENT"
+            )
+        for generation in verified:
+            encoded_bytes = self._encoded_bytes(generation)
+            if encoded_bytes > self.max_encoded_generation_bytes:
+                raise AuthoritativeColdGenerationError(
+                    f"interrupted cold generation {generation.generation_uuid} "
+                    f"exceeds encoded capacity: {encoded_bytes}>"
+                    f"{self.max_encoded_generation_bytes}"
+                )
+        interrupted = tuple(
+            generation
+            for generation in verified
+            if (
+                generation.generation_uuid != current.generation_uuid
+                and generation.tick > current.tick
+            )
+        )
+        for generation in interrupted:
+            self._store.discard_unpublished(generation)
+        return tuple(
+            generation.generation_uuid
+            for generation in interrupted
+        )
+
+    def inspect(
+        self,
+        *,
+        require_predecessor: bool = True,
+    ) -> AuthoritativeColdState:
+        if self._blocked_reason is not None:
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation authority is blocked: "
+                f"{self._blocked_reason}"
+            )
+        with self._store.exclusive_transaction():
+            self._retire_interrupted_unpublished_candidates()
+            state = self._audit(
+                require_predecessor=require_predecessor,
+                allow_empty=False,
+            )
+        if state is None:
+            raise AuthoritativeColdGenerationError(
+                "cold-generation authority is empty"
+            )
+        return state
+
+    def _discard_candidate_when_provably_unpublished(
+        self,
+        candidate: LoadedGeneration,
+    ) -> None:
+        try:
+            current = self._store.load_current()
+        except CurrentPointerError:
+            current_path = self.root / CURRENT_NAME
+            try:
+                current_path.lstat()
+            except FileNotFoundError:
+                self._store.discard_unpublished(candidate)
+            return
+        if current.generation_uuid != candidate.generation_uuid:
+            self._store.discard_unpublished(candidate)
+
+    def _raise_transaction_error(self, error: Exception) -> None:
+        if isinstance(error, AuthoritativeColdGenerationError):
+            raise error
+        if isinstance(error, GenerationStoreError):
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation commit failed: {error}"
+            ) from error
+        raise AuthoritativeColdGenerationError(
+            f"cold-generation transaction failed: {error}"
+        ) from error
+
+    def commit(
+        self,
+        *,
+        tick: int,
+        files: Mapping[str, Any],
+        generation_uuid: str | None = None,
+        pre_publish_action: Callable[[LoadedGeneration], bool] | None = None,
+    ) -> AuthoritativeColdState:
+        if self._blocked_reason is not None:
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation authority is blocked: "
+                f"{self._blocked_reason}"
+            )
+        if pre_publish_action is not None and not callable(pre_publish_action):
+            raise AuthoritativeColdGenerationError(
+                "cold-generation pre-publication action must be callable"
+            )
+        candidate: LoadedGeneration | None = None
+        try:
+            with self._store.exclusive_transaction():
+                self._retire_interrupted_unpublished_candidates()
+                before = self._audit(
+                    require_predecessor=False,
+                    allow_empty=True,
+                )
+                if (
+                    before is not None
+                    and (
+                        isinstance(tick, bool)
+                        or not isinstance(tick, int)
+                        or tick <= before.current.tick
+                    )
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "candidate tick must be strictly newer than CURRENT"
+                    )
+
+                candidate = self._store.commit(
+                    tick=tick,
+                    files=files,
+                    generation_uuid=generation_uuid,
+                    publish_current=False,
+                )
+                candidate_bytes = self._encoded_bytes(candidate)
+                retained_bytes = (
+                    0
+                    if before is None
+                    else sum(record.encoded_bytes for record in before.census)
+                )
+                if (
+                    retained_bytes + candidate_bytes
+                    > self.max_transient_encoded_bytes
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation candidate exceeds exact transient "
+                        "CURRENT plus predecessor plus candidate capacity"
+                    )
+
+                validation_result = self._pre_publish_validator(candidate)
+                if validation_result is not True:
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation candidate failed cold-restore validation"
+                    )
+                if (
+                    pre_publish_action is not None
+                    and pre_publish_action(candidate) is not True
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation candidate failed its pre-publication "
+                        "action"
+                    )
+
+                published = self._store.publish(candidate)
+                self._store.prune_generations(
+                    retain=RETAINED_AUTHORITATIVE_GENERATIONS,
+                    verified_current=published,
+                )
+                after = self._audit(
+                    require_predecessor=before is not None,
+                    allow_empty=False,
+                )
+                if after is None:
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation commit produced no CURRENT"
+                    )
+                return after
+        except Exception as error:
+            cleanup_error: Exception | None = None
+            if candidate is not None:
+                try:
+                    with self._store.exclusive_transaction():
+                        self._discard_candidate_when_provably_unpublished(
+                            candidate
+                        )
+                except Exception as failure:
+                    cleanup_error = failure
+            if cleanup_error is not None:
+                error = AuthoritativeColdGenerationError(
+                    f"{error}; unpublished-candidate cleanup was unsafe: "
+                    f"{cleanup_error}"
+                )
+            self._block(error)
+            self._raise_transaction_error(error)
+
+    def reconcile_verified_retention(self) -> AuthoritativeColdState:
+        """Reduce a verified legacy retain-three store to CURRENT plus predecessor."""
+        try:
+            with self._store.exclusive_transaction():
+                self._retire_interrupted_unpublished_candidates()
+                state = self._audit(
+                    require_predecessor=False,
+                    allow_empty=False,
+                    maximum_generations=TRANSIENT_AUTHORITATIVE_GENERATIONS,
+                )
+                if state is None:
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation reconciliation found no CURRENT"
+                    )
+                if self._pre_publish_validator(state.current) is not True:
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation CURRENT failed cold-restore "
+                        "validation during reconciliation"
+                    )
+                if (
+                    state.predecessor is not None
+                    and self._pre_publish_validator(state.predecessor) is not True
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation predecessor failed cold-restore "
+                        "validation during reconciliation"
+                    )
+                reverified_current = self._store.verify_generation(
+                    state.current.generation_uuid
+                )
+                if (
+                    reverified_current.recovery_certificate_bytes()
+                    != state.current.recovery_certificate_bytes()
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation CURRENT changed during reconciliation "
+                        "validation"
+                    )
+                if state.predecessor is not None:
+                    reverified_predecessor = self._store.verify_generation(
+                        state.predecessor.generation_uuid
+                    )
+                    if (
+                        reverified_predecessor.recovery_certificate_bytes()
+                        != state.predecessor.recovery_certificate_bytes()
+                    ):
+                        raise AuthoritativeColdGenerationError(
+                            "cold-generation predecessor changed during "
+                            "reconciliation validation"
+                        )
+                self._store.prune_generations(
+                    retain=RETAINED_AUTHORITATIVE_GENERATIONS,
+                    verified_current=reverified_current,
+                )
+                reconciled = self._audit(
+                    require_predecessor=state.predecessor is not None,
+                    allow_empty=False,
+                )
+                if reconciled is None:
+                    raise AuthoritativeColdGenerationError(
+                        "cold-generation reconciliation produced no CURRENT"
+                    )
+            self._blocked_reason = None
+            return reconciled
+        except Exception as error:
+            self._block(error)
+            if isinstance(error, AuthoritativeColdGenerationError):
+                raise
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation reconciliation failed: {error}"
+            ) from error
+
+
+__all__ = [
+    "AuthoritativeColdGenerationError",
+    "AuthoritativeColdGenerationStore",
+    "AuthoritativeColdState",
+    "EncodedGenerationCensus",
+    "RETAINED_AUTHORITATIVE_GENERATIONS",
+    "TRANSIENT_AUTHORITATIVE_GENERATIONS",
+]

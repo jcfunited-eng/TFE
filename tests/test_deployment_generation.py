@@ -20,9 +20,11 @@ from dsf_ai_service.substrate.deployment_generation import (
     StageValidationError,
     discover_and_load_current,
     load_and_verify_deployment_seal,
+    load_generation_deployment_seal,
     materialize_current,
     materialize_verified_generation,
     persist_deployment_seal,
+    stage_authoritative_commit_upload,
     stage_commit_upload,
     upload_verified_generation,
     verify_deployment_seal,
@@ -31,6 +33,9 @@ from dsf_ai_service.substrate.immutable_generation_store import (
     CURRENT_NAME,
     ImmutableGenerationStore,
     MANIFEST_NAME,
+)
+from dsf_ai_service.substrate.authoritative_cold_generation_store import (
+    AuthoritativeColdGenerationError,
 )
 
 
@@ -78,13 +83,29 @@ class FakeS3:
             data = data + b"corrupt"
         return {"Body": io.BytesIO(data)}
 
+    def delete_objects(self, *, Bucket, Delete):
+        for record in Delete["Objects"]:
+            self.objects.pop((Bucket, record["Key"]), None)
+        return {"Deleted": list(Delete["Objects"])}
 
-def _save_callback(stage, *, marker="one"):
+
+def _save_callback(stage, admission=None, *, marker="one"):
     nested = stage / "nested"
     nested.mkdir()
-    (stage / "core.json").write_text(json.dumps({"marker": marker, "tick": 7}))
-    (nested / "atlas.json").write_text(json.dumps({"chis": [-2, 0, 9]}))
-    (stage / "organism.bin").write_bytes(b"\x00organism\xff" + marker.encode())
+    core = json.dumps({"marker": marker, "tick": 7})
+    atlas = json.dumps({"chis": [-2, 0, 9]})
+    organism = b"\x00organism\xff" + marker.encode()
+    if admission is None:
+        (stage / "core.json").write_text(core)
+        (nested / "atlas.json").write_text(atlas)
+        (stage / "organism.bin").write_bytes(organism)
+        return
+    with admission.open_text(stage / "core.json") as handle:
+        handle.write(core)
+    with admission.open_text(nested / "atlas.json") as handle:
+        handle.write(atlas)
+    with admission.open_binary(stage / "organism.bin") as handle:
+        handle.write(organism)
 
 
 def _committed_generation(tmp_path, *, marker="one"):
@@ -153,6 +174,132 @@ def test_stage_commit_upload_reads_every_object_back_and_seals(tmp_path):
         )
 
 
+def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
+    tmp_path,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+    validated = []
+
+    def validate(generation):
+        validated.append((
+            generation.tick,
+            generation.required_files,
+        ))
+        return True
+
+    first = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=88,
+        save_callback=_save_callback,
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=validate,
+    )
+
+    def save_with_learned_media(stage, admission):
+        _save_callback(stage, admission, marker="two")
+        learned = stage / "assets" / "pictures"
+        learned.mkdir(parents=True)
+        with admission.open_binary(learned / "learned.bin") as handle:
+            handle.write(b"learned-picture")
+
+    second = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=89,
+        save_callback=save_with_learned_media,
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=validate,
+    )
+    def save_third_contract(stage, admission):
+        with admission.open_text(stage / "core.json") as handle:
+            handle.write('{"marker":"three"}')
+        learned = stage / "sounds"
+        learned.mkdir()
+        with admission.open_binary(learned / "third.audio") as handle:
+            handle.write(b"third-sound")
+
+    third = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=90,
+        save_callback=save_third_contract,
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=validate,
+    )
+    assert (
+        "assets/pictures/learned.bin"
+        not in first.generation.required_files
+    )
+    assert (
+        "assets/pictures/learned.bin"
+        in second.generation.required_files
+    )
+    retained_local = {
+        path.name
+        for path in (root / "generations").iterdir()
+    }
+    assert retained_local == {
+        second.generation.generation_uuid,
+        third.generation.generation_uuid,
+    }
+    assert {
+        path.stem
+        for path in (root / deployment.DEPLOYMENT_SEALS_DIRECTORY).iterdir()
+    } == retained_local
+    assert {
+        key.split("/")[2]
+        for bucket, key in fake.objects
+        if bucket == "test-bucket"
+    } == retained_local
+    dynamic_store = ImmutableGenerationStore(
+        root,
+        identity=IDENTITY,
+        required_files=None,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+    )
+    assert dynamic_store.load_current().tick == 90
+    assert [tick for tick, _contract in validated] == [
+        88,
+        88,
+        89,
+        89,
+        88,
+        90,
+    ]
+    loaded_seal = load_generation_deployment_seal(
+        root,
+        third.generation.generation_uuid,
+        hmac_key=HMAC_KEY,
+        expected_nonce=NONCE,
+    )
+    assert loaded_seal["generation_uuid"] == third.generation.generation_uuid
+
+
 def test_remote_failure_never_publishes_unsealed_current(tmp_path):
     with pytest.raises(RemoteGenerationVerificationError):
         stage_commit_upload(
@@ -167,6 +314,339 @@ def test_remote_failure_never_publishes_unsealed_current(tmp_path):
             nonce=NONCE,
         )
     assert not (tmp_path / "store" / CURRENT_NAME).exists()
+
+
+def test_authoritative_remote_failure_cleans_candidate_prefix_and_seal(
+    tmp_path,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3(corrupt_every_read=True)
+    with pytest.raises(AuthoritativeColdGenerationError):
+        stage_authoritative_commit_upload(
+            store_root=root,
+            identity=IDENTITY,
+            tick=88,
+            save_callback=_save_callback,
+            s3_client=fake,
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+    assert not (root / CURRENT_NAME).exists()
+    assert list((root / "generations").iterdir()) == []
+    assert fake.objects == {}
+    seals = root / deployment.DEPLOYMENT_SEALS_DIRECTORY
+    assert not seals.exists() or list(seals.iterdir()) == []
+
+
+def test_authoritative_stage_rejects_write_before_crossing_byte_capacity(
+    tmp_path,
+) -> None:
+    observed_size = []
+
+    def oversized_save(stage, admission):
+        target = stage / "oversized.bin"
+        with pytest.raises(
+            StageValidationError,
+            match="aggregate byte capacity",
+        ):
+            with admission.open_binary(target) as handle:
+                handle.write(b"x" * 1024)
+                handle.write(b"y")
+        observed_size.append(target.stat().st_size)
+        raise RuntimeError("stop after observing bounded write")
+
+    with pytest.raises(RuntimeError, match="bounded write"):
+        stage_authoritative_commit_upload(
+            store_root=tmp_path / "store",
+            identity=IDENTITY,
+            tick=88,
+            save_callback=oversized_save,
+            s3_client=FakeS3(),
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+    assert observed_size == [1024]
+
+
+def test_authoritative_stage_rejects_unadmitted_writer(
+    tmp_path,
+) -> None:
+    def bypass_admission(stage, admission):
+        del admission
+        (stage / "unadmitted.json").write_text("{}")
+
+    with pytest.raises(
+        StageValidationError,
+        match="admission ledger",
+    ):
+        stage_authoritative_commit_upload(
+            store_root=tmp_path / "store",
+            identity=IDENTITY,
+            tick=88,
+            save_callback=bypass_admission,
+            s3_client=FakeS3(),
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+
+
+def test_authoritative_stage_rejects_unrepresented_empty_directories(
+    tmp_path,
+) -> None:
+    def empty_directory_bypass(stage, admission):
+        with admission.open_text(stage / "core.json") as handle:
+            handle.write("{}")
+        (stage / "unrepresented" / "empty").mkdir(parents=True)
+
+    with pytest.raises(
+        StageValidationError,
+        match="directory tree",
+    ):
+        stage_authoritative_commit_upload(
+            store_root=tmp_path / "store",
+            identity=IDENTITY,
+            tick=88,
+            save_callback=empty_directory_bypass,
+            s3_client=FakeS3(),
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+
+
+def test_authoritative_seal_failure_removes_remote_and_candidate(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+
+    def reject_seal(*args, **kwargs):
+        raise SealValidationError("injected immutable-seal failure")
+
+    monkeypatch.setattr(
+        deployment,
+        "persist_generation_deployment_seal",
+        reject_seal,
+    )
+    with pytest.raises(AuthoritativeColdGenerationError):
+        stage_authoritative_commit_upload(
+            store_root=root,
+            identity=IDENTITY,
+            tick=88,
+            save_callback=_save_callback,
+            s3_client=fake,
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+
+    assert not (root / CURRENT_NAME).exists()
+    assert list((root / "generations").iterdir()) == []
+    assert fake.objects == {}
+
+
+def test_authoritative_current_failure_before_swap_removes_prepared_state(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+
+    def reject_current(self, generation):
+        raise OSError("injected CURRENT pre-swap failure")
+
+    monkeypatch.setattr(
+        ImmutableGenerationStore,
+        "_write_current",
+        reject_current,
+    )
+    with pytest.raises(AuthoritativeColdGenerationError):
+        stage_authoritative_commit_upload(
+            store_root=root,
+            identity=IDENTITY,
+            tick=88,
+            save_callback=_save_callback,
+            s3_client=fake,
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+
+    assert not (root / CURRENT_NAME).exists()
+    assert list((root / "generations").iterdir()) == []
+    assert fake.objects == {}
+    seals = root / deployment.DEPLOYMENT_SEALS_DIRECTORY
+    assert not seals.exists() or list(seals.iterdir()) == []
+
+
+def test_authoritative_current_post_swap_failure_preserves_recoverable_state(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+    original = ImmutableGenerationStore._write_current
+
+    def publish_then_fail(self, generation):
+        original(self, generation)
+        raise OSError("injected CURRENT post-swap acknowledgement failure")
+
+    monkeypatch.setattr(
+        ImmutableGenerationStore,
+        "_write_current",
+        publish_then_fail,
+    )
+    with pytest.raises(AuthoritativeColdGenerationError):
+        stage_authoritative_commit_upload(
+            store_root=root,
+            identity=IDENTITY,
+            tick=88,
+            save_callback=_save_callback,
+            s3_client=fake,
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+
+    monkeypatch.setattr(
+        ImmutableGenerationStore,
+        "_write_current",
+        original,
+    )
+    store = ImmutableGenerationStore(
+        root,
+        identity=IDENTITY,
+        required_files=None,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+    )
+    current = store.load_current()
+    seal = load_generation_deployment_seal(
+        root,
+        current.generation_uuid,
+        hmac_key=HMAC_KEY,
+        expected_nonce=NONCE,
+    )
+    assert current.tick == 88
+    assert seal["generation_uuid"] == current.generation_uuid
+    assert {
+        key.split("/")[2]
+        for _, key in fake.objects
+    } == {current.generation_uuid}
+
+
+def test_authoritative_restart_retires_first_boot_prepublication_crash(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+    original = deployment.persist_generation_deployment_seal
+
+    def persist_then_crash(*args, **kwargs):
+        original(*args, **kwargs)
+        raise KeyboardInterrupt(
+            "injected process death after seal and before CURRENT")
+
+    monkeypatch.setattr(
+        deployment,
+        "persist_generation_deployment_seal",
+        persist_then_crash,
+    )
+    with pytest.raises(KeyboardInterrupt):
+        stage_authoritative_commit_upload(
+            store_root=root,
+            identity=IDENTITY,
+            tick=88,
+            save_callback=_save_callback,
+            s3_client=fake,
+            bucket="test-bucket",
+            prefix="ae/state",
+            hmac_key=HMAC_KEY,
+            nonce=NONCE,
+            max_encoded_generation_bytes=64 * 1024,
+            max_dynamic_required_files=128,
+            max_dynamic_path_bytes=16 * 1024,
+            cold_restore_validator=lambda generation: True,
+        )
+    stale_uuid = next(
+        (root / deployment.DEPLOYMENT_SEALS_DIRECTORY).iterdir()
+    ).stem
+    assert not (root / CURRENT_NAME).exists()
+
+    monkeypatch.setattr(
+        deployment,
+        "persist_generation_deployment_seal",
+        original,
+    )
+    result = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=89,
+        save_callback=_save_callback,
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=lambda generation: True,
+    )
+
+    assert result.generation.tick == 89
+    assert stale_uuid != result.generation.generation_uuid
+    assert {
+        path.stem
+        for path in (
+            root / deployment.DEPLOYMENT_SEALS_DIRECTORY
+        ).iterdir()
+    } == {result.generation.generation_uuid}
+    assert {
+        key.split("/")[2]
+        for _, key in fake.objects
+    } == {result.generation.generation_uuid}
 
 
 def test_failed_pre_publish_cold_validation_writes_no_remote_or_current(tmp_path):

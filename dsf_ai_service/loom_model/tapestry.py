@@ -186,7 +186,7 @@ class LoomTapestry:
     # winding/familiarity history round-trips, not a hand-picked subset.
     # ------------------------------------------------------------------
 
-    def save_full_state(self, path):
+    def save_full_state(self, path, *, persistence_admission=None):
         """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
         fsync + os.replace), same fix as Embryo.save_full_state -- this
         exact file truncated once already on 07-05 ("Compressed file ended
@@ -196,10 +196,26 @@ class LoomTapestry:
         d = os.path.dirname(path) or "."
         os.makedirs(d, exist_ok=True)
         tmp_path = path + ".tmp"
-        with gzip.open(tmp_path, "wb") as f:
-            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
-            f.flush()
-            os.fsync(f.fileno())
+        if persistence_admission is None:
+            with gzip.open(tmp_path, "wb") as f:
+                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+                f.flush()
+                os.fsync(f.fileno())
+        else:
+            with persistence_admission.open_binary(
+                    tmp_path,
+                    logical_path=path) as raw:
+                with gzip.GzipFile(
+                        filename="",
+                        mode="wb",
+                        fileobj=raw,
+                        mtime=0) as f:
+                    pickle.dump(
+                        self,
+                        f,
+                        protocol=pickle.HIGHEST_PROTOCOL,
+                    )
+                    f.flush()
         os.replace(tmp_path, path)
 
     @staticmethod

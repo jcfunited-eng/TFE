@@ -1129,7 +1129,7 @@ class Embryo:
     # has). No unpicklable state lives on Embryo/LoomBrain/LoomNeuron (pure
     # Python + numpy; no threads, sockets, or db handles), so this is a real,
     # boring primitive — not a workaround.
-    def save_full_state(self, path):
+    def save_full_state(self, path, *, persistence_admission=None):
         """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
         fsync + os.replace) -- a process killed mid-write (deploy cycling,
         OOM, container restart) used to leave a truncated .pkl.gz that
@@ -1141,10 +1141,26 @@ class Embryo:
         d = os.path.dirname(path) or "."
         os.makedirs(d, exist_ok=True)
         tmp_path = path + ".tmp"
-        with gzip.open(tmp_path, "wb") as f:
-            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
-            f.flush()
-            os.fsync(f.fileno())
+        if persistence_admission is None:
+            with gzip.open(tmp_path, "wb") as f:
+                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+                f.flush()
+                os.fsync(f.fileno())
+        else:
+            with persistence_admission.open_binary(
+                    tmp_path,
+                    logical_path=path) as raw:
+                with gzip.GzipFile(
+                        filename="",
+                        mode="wb",
+                        fileobj=raw,
+                        mtime=0) as f:
+                    pickle.dump(
+                        self,
+                        f,
+                        protocol=pickle.HIGHEST_PROTOCOL,
+                    )
+                    f.flush()
         os.replace(tmp_path, path)
 
     @staticmethod

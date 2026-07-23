@@ -416,6 +416,13 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
         "_live_recovery_store",
         SimpleNamespace(load_current=lambda: None),
     )
+    monkeypatch.setattr(
+        appmod,
+        "_authoritative_cold_store",
+        SimpleNamespace(
+            inspect=lambda: SimpleNamespace(current=generation),
+        ),
+    )
 
     actual_git = "1" * 40
     expected_git = "2" * 40 if mismatch == "build" else actual_git
@@ -444,15 +451,16 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
     elif mismatch == "manifest":
         certificate["manifest_sha256"] = "9" * 64
 
-    def load_seal(_root, *, hmac_key, expected_nonce):
+    def load_seal(_root, generation_uuid, *, hmac_key, expected_nonce):
         assert hmac_key == appmod._deploy_hmac_key()
+        assert generation_uuid == generation.generation_uuid
         if mismatch == "nonce" or expected_nonce != "readiness-nonce":
             raise RuntimeError("deployment seal nonce mismatch")
         return certificate
 
     monkeypatch.setattr(
         deployment_generation,
-        "load_and_verify_deployment_seal",
+        "load_generation_deployment_seal",
         load_seal,
     )
 
@@ -514,6 +522,13 @@ def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
         "_live_recovery_store",
         SimpleNamespace(load_current=lambda: overlay),
     )
+    monkeypatch.setattr(
+        appmod,
+        "_authoritative_cold_store",
+        SimpleNamespace(
+            inspect=lambda: SimpleNamespace(current=baseline),
+        ),
+    )
 
     actual_git = "1" * 40
     actual_task = "dsf-ai:41"
@@ -531,14 +546,15 @@ def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
         },
     )
 
-    def load_seal(_root, *, hmac_key, expected_nonce):
+    def load_seal(_root, generation_uuid, *, hmac_key, expected_nonce):
         assert hmac_key == appmod._deploy_hmac_key()
+        assert generation_uuid == baseline.generation_uuid
         assert expected_nonce == "readiness-nonce"
         return _certificate()
 
     monkeypatch.setattr(
         deployment_generation,
-        "load_and_verify_deployment_seal",
+        "load_generation_deployment_seal",
         load_seal,
     )
 

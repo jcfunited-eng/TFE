@@ -31,15 +31,17 @@ import errno
 import fcntl
 import hashlib
 import hmac
+import io
 import json
 import os
 import shutil
 import stat
 import tempfile
+import threading
 import uuid
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Iterator, Mapping, Optional
+from typing import Any, Callable, Iterator, Mapping, Optional, Sequence
 
 from dsf_ai_service.substrate.immutable_generation_store import (
     CURRENT_NAME,
@@ -59,6 +61,7 @@ DEPLOYMENT_SEAL_SCHEMA = "deployment_generation_seal_v1"
 MATERIALIZATION_SCHEMA = "deployment_generation_materialization_v1"
 OWNER_LOCK_SCHEMA = "deployment_generation_efs_owner_v1"
 DEPLOYMENT_SEAL_NAME = "DEPLOYMENT_SEAL.json"
+DEPLOYMENT_SEALS_DIRECTORY = "deployment-seals"
 DEPLOYMENT_TRANSACTION_LOCK_NAME = ".deployment-transaction.lock"
 
 _CURRENT_KEYS = {
@@ -111,6 +114,311 @@ class AtomicDirectorySwapUnsupported(MaterializationError):
 
 class EFSOwnerLockUnavailable(DeploymentGenerationError):
     """Another process already owns the nonblocking persistence lock."""
+
+
+class _BoundedStageBinaryWriter:
+    """Binary file surface whose growth is admitted before each write."""
+
+    def __init__(
+            self,
+            raw: Any,
+            admission: "BoundedStageAdmission",
+            relative_path: str):
+        self._raw = raw
+        self._admission = admission
+        self._relative_path = relative_path
+
+    @property
+    def closed(self) -> bool:
+        return self._raw.closed
+
+    def writable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        return True
+
+    def readable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return self._raw.tell()
+
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        return self._raw.seek(offset, whence)
+
+    def flush(self) -> None:
+        self._raw.flush()
+
+    def read(self, size: int = -1) -> bytes:
+        return self._raw.read(size)
+
+    def write(self, value: Any) -> int:
+        try:
+            data = memoryview(value)
+        except TypeError as error:
+            raise TypeError("bounded stage writes require bytes") from error
+        start = self._raw.tell()
+        end = start + data.nbytes
+        self._admission._admit_file_extent(
+            self._relative_path,
+            end,
+        )
+        written = self._raw.write(data)
+        if written != data.nbytes:
+            raise StageValidationError(
+                f"short write while staging {self._relative_path!r}")
+        return written
+
+
+class _BoundedStageTextWriter:
+    """UTF-8 text surface backed by the same byte-exact admission."""
+
+    def __init__(self, binary: _BoundedStageBinaryWriter):
+        self._binary = binary
+
+    @property
+    def closed(self) -> bool:
+        return self._binary.closed
+
+    def flush(self) -> None:
+        self._binary.flush()
+
+    def write(self, value: str) -> int:
+        if not isinstance(value, str):
+            raise TypeError("bounded stage text writes require strings")
+        self._binary.write(value.encode("utf-8"))
+        return len(value)
+
+
+class BoundedStageAdmission:
+    """Synchronous byte/file/path admission for one private save tree.
+
+    Every file must be opened or copied through this object.  Growth is
+    rejected before the underlying write crosses the configured aggregate
+    boundary.  Final discovery is then compared with this ledger, so an
+    unadmitted writer cannot silently bypass the boundary.
+    """
+
+    def __init__(
+            self,
+            root: str | os.PathLike[str],
+            *,
+            max_total_bytes: int,
+            max_required_files: int,
+            max_path_bytes: int):
+        for value, description in (
+            (max_total_bytes, "staged byte"),
+            (max_required_files, "staged file-count"),
+            (max_path_bytes, "staged path-byte"),
+        ):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value <= 0
+            ):
+                raise StageValidationError(
+                    f"{description} capacity must be a positive integer")
+        self.root = Path(root)
+        try:
+            root_info = self.root.lstat()
+        except FileNotFoundError as error:
+            raise StageValidationError(
+                "bounded stage root is absent") from error
+        if (
+            not stat.S_ISDIR(root_info.st_mode)
+            or self.root.is_symlink()
+        ):
+            raise StageValidationError(
+                "bounded stage root is not a real directory")
+        self.max_total_bytes = max_total_bytes
+        self.max_required_files = max_required_files
+        self.max_path_bytes = max_path_bytes
+        self._sizes: dict[str, int] = {}
+        self._total_bytes = 0
+        self._path_bytes = 0
+        self._lock = threading.RLock()
+
+    def _relative_target(
+            self,
+            path: str | os.PathLike[str]) -> str:
+        candidate = Path(path)
+        if not candidate.is_absolute():
+            candidate = self.root / candidate
+        try:
+            relative = candidate.relative_to(self.root).as_posix()
+        except ValueError as error:
+            raise StageValidationError(
+                "staged output escapes the bounded stage root") from error
+        return _relative_path(relative)
+
+    def _register(self, relative_path: str) -> None:
+        with self._lock:
+            if relative_path in self._sizes:
+                raise StageValidationError(
+                    f"staged file {relative_path!r} was opened twice")
+            next_count = len(self._sizes) + 1
+            if next_count > self.max_required_files:
+                raise StageValidationError(
+                    "staged write exceeds required-file count capacity")
+            next_path_bytes = (
+                self._path_bytes
+                + len(relative_path.encode("utf-8"))
+            )
+            if next_path_bytes > self.max_path_bytes:
+                raise StageValidationError(
+                    "staged write exceeds required-path byte capacity")
+            self._sizes[relative_path] = 0
+            self._path_bytes = next_path_bytes
+
+    def _admit_file_extent(
+            self,
+            relative_path: str,
+            new_extent: int) -> None:
+        if (
+            isinstance(new_extent, bool)
+            or not isinstance(new_extent, int)
+            or new_extent < 0
+        ):
+            raise StageValidationError(
+                "staged file extent is invalid")
+        with self._lock:
+            prior = self._sizes.get(relative_path)
+            if prior is None:
+                raise StageValidationError(
+                    f"staged file {relative_path!r} is not admitted")
+            if new_extent <= prior:
+                return
+            additional = new_extent - prior
+            next_total = self._total_bytes + additional
+            if next_total > self.max_total_bytes:
+                raise StageValidationError(
+                    "staged write exceeds aggregate byte capacity")
+            self._sizes[relative_path] = new_extent
+            self._total_bytes = next_total
+
+    @contextlib.contextmanager
+    def open_binary(
+            self,
+            path: str | os.PathLike[str],
+            *,
+            logical_path: str | os.PathLike[str] | None = None,
+            expected_size: int | None = None,
+            ) -> Iterator[_BoundedStageBinaryWriter]:
+        if expected_size is not None and (
+            isinstance(expected_size, bool)
+            or not isinstance(expected_size, int)
+            or expected_size < 0
+        ):
+            raise StageValidationError(
+                "expected staged file size is invalid")
+        actual = Path(path)
+        if not actual.is_absolute():
+            actual = self.root / actual
+        relative = self._relative_target(
+            actual if logical_path is None else logical_path)
+        self._relative_target(actual)
+        self._register(relative)
+        if expected_size is not None:
+            self._admit_file_extent(relative, expected_size)
+        actual.parent.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(
+            actual,
+            os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+        )
+        raw = os.fdopen(descriptor, "w+b", buffering=0)
+        writer = _BoundedStageBinaryWriter(
+            raw,
+            self,
+            relative,
+        )
+        try:
+            yield writer
+            writer.flush()
+            os.fsync(raw.fileno())
+            info = os.fstat(raw.fileno())
+            if info.st_size != self._sizes[relative]:
+                raise StageValidationError(
+                    f"staged file {relative!r} bypassed byte admission")
+        finally:
+            raw.close()
+
+    @contextlib.contextmanager
+    def open_text(
+            self,
+            path: str | os.PathLike[str],
+            *,
+            logical_path: str | os.PathLike[str] | None = None
+            ) -> Iterator[_BoundedStageTextWriter]:
+        with self.open_binary(
+                path,
+                logical_path=logical_path) as binary:
+            yield _BoundedStageTextWriter(binary)
+
+    def copy_regular_file(
+            self,
+            source: str | os.PathLike[str],
+            destination: str | os.PathLike[str],
+            *,
+            logical_path: str | os.PathLike[str] | None = None) -> int:
+        source_path = Path(source)
+        descriptor = os.open(
+            source_path,
+            os.O_RDONLY | os.O_NOFOLLOW,
+        )
+        try:
+            before = os.fstat(descriptor)
+            if not stat.S_ISREG(before.st_mode):
+                raise StageValidationError(
+                    f"staged source is not a regular file: {source_path}")
+            copied = 0
+            with os.fdopen(descriptor, "rb", closefd=False) as source_file:
+                with self.open_binary(
+                        destination,
+                        logical_path=logical_path,
+                        expected_size=before.st_size) as target:
+                    while True:
+                        block = source_file.read(1024 * 1024)
+                        if not block:
+                            break
+                        target.write(block)
+                        copied += len(block)
+            after = os.fstat(descriptor)
+            if (
+                copied != before.st_size
+                or after.st_size != before.st_size
+                or after.st_mtime_ns != before.st_mtime_ns
+            ):
+                raise StageValidationError(
+                    f"staged source changed while copied: {source_path}")
+            return copied
+        finally:
+            os.close(descriptor)
+
+    def verify_complete(
+            self,
+            files: Mapping[str, Path]) -> None:
+        discovered = {
+            relative: path.stat().st_size
+            for relative, path in files.items()
+        }
+        with self._lock:
+            if discovered != self._sizes:
+                missing = sorted(set(self._sizes) - set(discovered))
+                unadmitted = sorted(set(discovered) - set(self._sizes))
+                changed = sorted(
+                    relative
+                    for relative in set(discovered) & set(self._sizes)
+                    if discovered[relative] != self._sizes[relative]
+                )
+                raise StageValidationError(
+                    "staged tree differs from its admission ledger: "
+                    f"missing={missing}, unadmitted={unadmitted}, "
+                    f"changed={changed}")
+            if sum(discovered.values()) != self._total_bytes:
+                raise StageValidationError(
+                    "staged byte census differs from its admission ledger")
 
 
 def _reject_json_constant(value: str) -> None:
@@ -376,7 +684,23 @@ def discover_and_load_current(
     return DiscoveredCurrent(store=store, generation=generation)
 
 
-def _discover_staged_files(stage_directory: Path) -> dict[str, Path]:
+def _discover_staged_files(
+        stage_directory: Path, *,
+        max_total_bytes: int | None = None,
+        max_required_files: int | None = None,
+        max_path_bytes: int | None = None) -> dict[str, Path]:
+    for value, description in (
+        (max_total_bytes, "staged byte"),
+        (max_required_files, "staged file-count"),
+        (max_path_bytes, "staged path-byte"),
+    ):
+        if value is not None and (
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or value <= 0
+        ):
+            raise StageValidationError(
+                f"{description} capacity must be a positive integer")
     try:
         root_info = stage_directory.lstat()
     except FileNotFoundError as error:
@@ -385,6 +709,9 @@ def _discover_staged_files(stage_directory: Path) -> dict[str, Path]:
         raise StageValidationError("save callback replaced its staging directory")
 
     files: dict[str, Path] = {}
+    actual_directories: set[str] = set()
+    total_bytes = 0
+    total_path_bytes = 0
     for current_root, directory_names, file_names in os.walk(
             stage_directory, topdown=True, followlinks=False):
         current = Path(current_root)
@@ -398,6 +725,7 @@ def _discover_staged_files(stage_directory: Path) -> dict[str, Path]:
             if not stat.S_ISDIR(info.st_mode) or path.is_symlink():
                 raise StageValidationError(
                     f"staged tree contains special directory node {relative!r}")
+            actual_directories.add(_relative_path(relative))
         for name in file_names:
             path = current / name
             relative = path.relative_to(stage_directory).as_posix()
@@ -412,9 +740,42 @@ def _discover_staged_files(stage_directory: Path) -> dict[str, Path]:
                 raise StageValidationError(
                     f"staged file {relative!r} has hard links")
             canonical = _relative_path(relative)
+            next_file_count = len(files) + 1
+            if (
+                max_required_files is not None
+                and next_file_count > max_required_files
+            ):
+                raise StageValidationError(
+                    "staged tree exceeds required-file count capacity")
+            total_path_bytes += len(canonical.encode("utf-8"))
+            if (
+                max_path_bytes is not None
+                and total_path_bytes > max_path_bytes
+            ):
+                raise StageValidationError(
+                    "staged tree exceeds required-path byte capacity")
+            total_bytes += info.st_size
+            if (
+                max_total_bytes is not None
+                and total_bytes > max_total_bytes
+            ):
+                raise StageValidationError(
+                    "staged tree exceeds aggregate byte capacity")
             files[canonical] = path
     if not files:
         raise StageValidationError("save callback produced no regular files")
+    expected_directories: set[str] = set()
+    for relative in files:
+        parent = PurePosixPath(relative).parent
+        while parent.as_posix() != ".":
+            expected_directories.add(parent.as_posix())
+            parent = parent.parent
+    if actual_directories != expected_directories:
+        extra = sorted(actual_directories - expected_directories)
+        missing = sorted(expected_directories - actual_directories)
+        raise StageValidationError(
+            "staged directory tree is not exactly implied by admitted files: "
+            f"extra={extra}, missing={missing}")
     return files
 
 
@@ -631,6 +992,105 @@ def upload_verified_generation(
     return _canonical_json({**unsigned, "seal_hmac_sha256": seal})
 
 
+def reconcile_remote_generation_prefixes(
+        *, s3_client: Any, bucket: str, prefix: str,
+        retained_generation_uuids: Sequence[str]) -> tuple[str, ...]:
+    """Delete every exact UUID prefix not retained by the local authority."""
+    retained = {
+        str(uuid.UUID(value))
+        for value in retained_generation_uuids
+    }
+    if not retained:
+        raise RemoteGenerationVerificationError(
+            "remote reconciliation requires retained generations")
+    normalized = _normalized_s3_prefix(prefix)
+    base = normalized + "/"
+    keys = _list_s3_keys(s3_client, bucket, base)
+    by_generation: dict[str, list[str]] = {}
+    for key in keys:
+        remainder = key[len(base):]
+        generation_part, separator, relative = remainder.partition("/")
+        if not separator or not relative:
+            raise RemoteGenerationVerificationError(
+                f"remote generation key {key!r} is noncanonical")
+        try:
+            generation_uuid = str(uuid.UUID(generation_part))
+        except (ValueError, AttributeError) as error:
+            raise RemoteGenerationVerificationError(
+                f"remote generation key {key!r} has a non-UUID prefix"
+            ) from error
+        if generation_part != generation_uuid:
+            raise RemoteGenerationVerificationError(
+                f"remote generation key {key!r} has a noncanonical UUID")
+        by_generation.setdefault(generation_uuid, []).append(key)
+
+    removed = []
+    delete_objects = getattr(s3_client, "delete_objects", None)
+    delete_object = getattr(s3_client, "delete_object", None)
+    for generation_uuid, generation_keys in sorted(by_generation.items()):
+        if generation_uuid in retained:
+            continue
+        if callable(delete_objects):
+            for offset in range(0, len(generation_keys), 1000):
+                delete_objects(
+                    Bucket=bucket,
+                    Delete={
+                        "Objects": [
+                            {"Key": key}
+                            for key in generation_keys[offset:offset + 1000]
+                        ],
+                        "Quiet": True,
+                    },
+                )
+        elif callable(delete_object):
+            for key in generation_keys:
+                delete_object(Bucket=bucket, Key=key)
+        else:
+            raise RemoteGenerationVerificationError(
+                "S3 client cannot delete retired generation objects")
+        removed.append(generation_uuid)
+    remaining = _list_s3_keys(s3_client, bucket, base)
+    for key in remaining:
+        generation_uuid = key[len(base):].split("/", 1)[0]
+        if generation_uuid not in retained:
+            raise RemoteGenerationVerificationError(
+                "retired remote generation remains after deletion")
+    return tuple(removed)
+
+
+def delete_remote_generation_prefix(
+        *, s3_client: Any, bucket: str, prefix: str,
+        generation_uuid: str) -> None:
+    """Delete one exact UUID-bound remote generation and verify its absence."""
+    generation_uuid = str(uuid.UUID(generation_uuid))
+    normalized = _normalized_s3_prefix(prefix)
+    exact_prefix = f"{normalized}/{generation_uuid}/"
+    keys = sorted(_list_s3_keys(s3_client, bucket, exact_prefix))
+    delete_objects = getattr(s3_client, "delete_objects", None)
+    delete_object = getattr(s3_client, "delete_object", None)
+    if keys and callable(delete_objects):
+        for offset in range(0, len(keys), 1000):
+            delete_objects(
+                Bucket=bucket,
+                Delete={
+                    "Objects": [
+                        {"Key": key}
+                        for key in keys[offset:offset + 1000]
+                    ],
+                    "Quiet": True,
+                },
+            )
+    elif keys and callable(delete_object):
+        for key in keys:
+            delete_object(Bucket=bucket, Key=key)
+    elif keys:
+        raise RemoteGenerationVerificationError(
+            "S3 client cannot delete failed generation objects")
+    if _list_s3_keys(s3_client, bucket, exact_prefix):
+        raise RemoteGenerationVerificationError(
+            "failed remote generation remains after deletion")
+
+
 def verify_deployment_seal(
         certificate: bytes | Mapping[str, Any], *, hmac_key: bytes,
         expected_nonce: bytes | str) -> dict:
@@ -728,22 +1188,227 @@ def persist_deployment_seal(
     return destination
 
 
+def _read_immutable_seal_file(
+        path: Path,
+        description: str) -> bytes:
+    try:
+        descriptor = os.open(
+            path,
+            os.O_RDONLY | os.O_NOFOLLOW,
+        )
+    except FileNotFoundError as error:
+        raise SealValidationError(
+            f"{description} is missing") from error
+    except OSError as error:
+        raise SealValidationError(
+            f"{description} cannot be opened safely: {error}") from error
+    try:
+        before = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(before.st_mode)
+            or stat.S_IMODE(before.st_mode) != 0o444
+            or before.st_nlink != 1
+        ):
+            raise SealValidationError(
+                f"{description} is not an immutable unique regular file")
+        chunks = []
+        read_bytes = 0
+        while True:
+            block = os.read(descriptor, 1024 * 1024)
+            if not block:
+                break
+            chunks.append(block)
+            read_bytes += len(block)
+        after = os.fstat(descriptor)
+        if (
+            read_bytes != before.st_size
+            or after.st_size != before.st_size
+            or after.st_mtime_ns != before.st_mtime_ns
+        ):
+            raise SealValidationError(
+                f"{description} changed while read")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
+def persist_generation_deployment_seal(
+        store_root: str | os.PathLike[str], certificate: bytes, *,
+        hmac_key: bytes, expected_nonce: bytes | str) -> Path:
+    """Persist one immutable seal named by its exact generation UUID."""
+    verified = verify_deployment_seal(
+        certificate,
+        hmac_key=hmac_key,
+        expected_nonce=expected_nonce,
+    )
+    root = Path(store_root)
+    if root.is_symlink() or not root.is_dir():
+        raise SealValidationError(
+            "generation-store root is not a real directory")
+    seals = root / DEPLOYMENT_SEALS_DIRECTORY
+    seals.mkdir(mode=0o700, exist_ok=True)
+    if seals.is_symlink() or not seals.is_dir():
+        raise SealValidationError(
+            "generation-seal directory is not a real directory")
+    destination = seals / f"{verified['generation_uuid']}.json"
+    try:
+        destination.lstat()
+    except FileNotFoundError:
+        pass
+    else:
+        existing = _read_immutable_seal_file(
+            destination,
+            "generation-bound deployment seal",
+        )
+        if existing != certificate:
+            raise SealValidationError(
+                "generation already has a different immutable deployment seal")
+        verify_deployment_seal(
+            existing,
+            hmac_key=hmac_key,
+            expected_nonce=expected_nonce,
+        )
+        return destination
+    file_descriptor = os.open(
+        destination,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+        0o600,
+    )
+    try:
+        _write_all(file_descriptor, certificate)
+        os.fchmod(file_descriptor, 0o444)
+        os.fsync(file_descriptor)
+    finally:
+        os.close(file_descriptor)
+    _fsync_directory(seals)
+    return destination
+
+
+def load_generation_deployment_seal(
+        store_root: str | os.PathLike[str], generation_uuid: str, *,
+        hmac_key: bytes,
+    expected_nonce: bytes | str | None = None) -> dict:
+    """Load the immutable seal bound to one exact generation UUID."""
+    generation_uuid = _canonical_uuid(
+        generation_uuid,
+        "generation-bound deployment seal UUID",
+    )
+    path = (
+        Path(store_root)
+        / DEPLOYMENT_SEALS_DIRECTORY
+        / f"{generation_uuid}.json"
+    )
+    certificate = _read_immutable_seal_file(
+        path,
+        "generation-bound deployment seal",
+    )
+    if expected_nonce is None:
+        value = _strict_json_bytes(
+            certificate,
+            "generation-bound deployment seal",
+        )
+        encoded = value.get("nonce_base64") if isinstance(value, dict) else None
+        if not isinstance(encoded, str):
+            raise SealValidationError(
+                "generation-bound deployment seal nonce is missing")
+        try:
+            expected_nonce = base64.b64decode(encoded, validate=True)
+        except (ValueError, base64.binascii.Error) as error:
+            raise SealValidationError(
+                "generation-bound deployment seal nonce is invalid") from error
+    verified = verify_deployment_seal(
+        certificate,
+        hmac_key=hmac_key,
+        expected_nonce=expected_nonce,
+    )
+    if verified["generation_uuid"] != generation_uuid:
+        raise SealValidationError(
+            "generation-bound deployment seal UUID mismatch")
+    return verified
+
+
+def reconcile_generation_deployment_seals(
+        store_root: str | os.PathLike[str],
+        *,
+        retained_generation_uuids: Sequence[str],
+) -> tuple[str, ...]:
+    """Retain seal files for exactly the locally retained generations."""
+    retained = {
+        str(uuid.UUID(value))
+        for value in retained_generation_uuids
+    }
+    if not retained:
+        raise SealValidationError(
+            "generation-seal reconciliation requires retained generations")
+    seals = Path(store_root) / DEPLOYMENT_SEALS_DIRECTORY
+    if not seals.exists():
+        return ()
+    if seals.is_symlink() or not seals.is_dir():
+        raise SealValidationError(
+            "generation-seal directory is not a real directory")
+    removed = []
+    for path in seals.iterdir():
+        if path.suffix != ".json":
+            raise SealValidationError(
+                f"unexpected generation-seal path {path.name!r}")
+        generation_uuid = str(uuid.UUID(path.stem))
+        if path.stem != generation_uuid:
+            raise SealValidationError(
+                f"noncanonical generation-seal path {path.name!r}")
+        info = path.lstat()
+        if (
+            path.is_symlink()
+            or not stat.S_ISREG(info.st_mode)
+            or stat.S_IMODE(info.st_mode) != 0o444
+            or info.st_nlink != 1
+        ):
+            raise SealValidationError(
+                f"unsafe generation-seal path {path.name!r}")
+        if generation_uuid not in retained:
+            path.unlink()
+            removed.append(generation_uuid)
+    if removed:
+        _fsync_directory(seals)
+    return tuple(sorted(removed))
+
+
+def delete_generation_deployment_seal(
+        store_root: str | os.PathLike[str],
+        *,
+        generation_uuid: str,
+) -> None:
+    """Delete one exact non-authoritative generation seal."""
+    generation_uuid = str(uuid.UUID(generation_uuid))
+    path = (
+        Path(store_root)
+        / DEPLOYMENT_SEALS_DIRECTORY
+        / f"{generation_uuid}.json"
+    )
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return
+    if (
+        path.is_symlink()
+        or not stat.S_ISREG(info.st_mode)
+        or stat.S_IMODE(info.st_mode) != 0o444
+        or info.st_nlink != 1
+    ):
+        raise SealValidationError(
+            "failed generation seal is not an immutable regular file")
+    path.unlink()
+    _fsync_directory(path.parent)
+
+
 def load_and_verify_deployment_seal(
         store_root: str | os.PathLike[str], *, hmac_key: bytes,
         expected_nonce: bytes | str | None = None) -> dict:
     """Load the immutable cross-process seal and verify its nonce and HMAC."""
     path = Path(store_root) / DEPLOYMENT_SEAL_NAME
-    try:
-        info = path.lstat()
-    except FileNotFoundError as error:
-        raise SealValidationError("deployment seal pointer is missing") from error
-    if (not stat.S_ISREG(info.st_mode)
-            or stat.S_IMODE(info.st_mode) != 0o444
-            or info.st_nlink != 1
-            or path.is_symlink()):
-        raise SealValidationError(
-            "deployment seal pointer is not an immutable unique regular file")
-    certificate = path.read_bytes()
+    certificate = _read_immutable_seal_file(
+        path,
+        "deployment seal pointer",
+    )
     if expected_nonce is None:
         value = _strict_json_bytes(certificate, "deployment seal")
         encoded = value.get("nonce_base64") if isinstance(value, dict) else None
@@ -806,6 +1471,152 @@ def stage_commit_upload(
                 generation=generation,
                 _seal_json=seal_json,
             )
+        finally:
+            if stage.exists():
+                _remove_private_tree(stage)
+
+
+def stage_authoritative_commit_upload(
+        *, store_root: str | os.PathLike[str], identity: str, tick: int,
+        save_callback: Callable[[Path, BoundedStageAdmission], Any],
+        s3_client: Any, bucket: str,
+        prefix: str, hmac_key: bytes, nonce: bytes | str,
+        max_encoded_generation_bytes: int,
+        max_dynamic_required_files: int,
+        max_dynamic_path_bytes: int,
+        cold_restore_validator: Callable[[LoadedGeneration], bool],
+        ) -> DeploymentGenerationResult:
+    """Stage and publish through the bounded sole cold-state authority."""
+    if not callable(save_callback):
+        raise TypeError("save_callback must be callable")
+    if not callable(cold_restore_validator):
+        raise TypeError("cold_restore_validator must be callable")
+    from dsf_ai_service.substrate.authoritative_cold_generation_store import (
+        AuthoritativeColdGenerationStore,
+    )
+
+    root = Path(store_root)
+    root.mkdir(parents=True, exist_ok=True)
+    with _exclusive_deployment_transaction(root):
+        reconciliation_authority = AuthoritativeColdGenerationStore(
+            root,
+            identity=_identity(identity),
+            required_files=None,
+            max_encoded_generation_bytes=max_encoded_generation_bytes,
+            max_dynamic_required_files=max_dynamic_required_files,
+            max_dynamic_path_bytes=max_dynamic_path_bytes,
+            pre_publish_validator=cold_restore_validator,
+        )
+        try:
+            (root / CURRENT_NAME).lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            reconciliation_authority.reconcile_verified_retention()
+
+        stage = Path(tempfile.mkdtemp(
+            prefix=".authoritative-generation-stage-",
+        ))
+        os.chmod(stage, 0o700)
+        admission = BoundedStageAdmission(
+            stage,
+            max_total_bytes=max_encoded_generation_bytes,
+            max_required_files=max_dynamic_required_files,
+            max_path_bytes=max_dynamic_path_bytes,
+        )
+        seal_json: bytes | None = None
+        prepared_generation_uuid: str | None = None
+        try:
+            save_callback(stage, admission)
+            staged_files = _discover_staged_files(
+                stage,
+                max_total_bytes=max_encoded_generation_bytes,
+                max_required_files=max_dynamic_required_files,
+                max_path_bytes=max_dynamic_path_bytes,
+            )
+            admission.verify_complete(staged_files)
+
+            def validate_after_stage_release(
+                    generation: LoadedGeneration) -> bool:
+                if stage.exists():
+                    _remove_private_tree(stage)
+                return cold_restore_validator(generation)
+
+            def upload_before_publication(
+                    generation: LoadedGeneration) -> bool:
+                nonlocal seal_json, prepared_generation_uuid
+                prepared_generation_uuid = generation.generation_uuid
+                seal_json = upload_verified_generation(
+                    generation,
+                    s3_client=s3_client,
+                    bucket=bucket,
+                    prefix=prefix,
+                    hmac_key=hmac_key,
+                    nonce=nonce,
+                )
+                persist_generation_deployment_seal(
+                    root,
+                    seal_json,
+                    hmac_key=hmac_key,
+                    expected_nonce=nonce,
+                )
+                return True
+
+            authority = AuthoritativeColdGenerationStore(
+                root,
+                identity=_identity(identity),
+                required_files=None,
+                max_encoded_generation_bytes=max_encoded_generation_bytes,
+                max_dynamic_required_files=max_dynamic_required_files,
+                max_dynamic_path_bytes=max_dynamic_path_bytes,
+                pre_publish_validator=validate_after_stage_release,
+            )
+            state = authority.commit(
+                tick=_tick(tick),
+                files=staged_files,
+                pre_publish_action=upload_before_publication,
+            )
+            if seal_json is None:
+                raise DeploymentGenerationError(
+                    "authoritative generation published without a remote seal"
+                )
+            retained = tuple(
+                record.generation_uuid
+                for record in state.census
+            )
+            reconcile_generation_deployment_seals(
+                root,
+                retained_generation_uuids=retained,
+            )
+            reconcile_remote_generation_prefixes(
+                s3_client=s3_client,
+                bucket=bucket,
+                prefix=prefix,
+                retained_generation_uuids=retained,
+            )
+            return DeploymentGenerationResult(
+                generation=state.current,
+                _seal_json=seal_json,
+            )
+        except Exception:
+            if prepared_generation_uuid is not None:
+                generation_directory = (
+                    root
+                    / GENERATIONS_DIRECTORY
+                    / prepared_generation_uuid
+                )
+                if not generation_directory.exists():
+                    delete_generation_deployment_seal(
+                        root,
+                        generation_uuid=prepared_generation_uuid,
+                    )
+                    delete_remote_generation_prefix(
+                        s3_client=s3_client,
+                        bucket=bucket,
+                        prefix=prefix,
+                        generation_uuid=prepared_generation_uuid,
+                    )
+            raise
         finally:
             if stage.exists():
                 _remove_private_tree(stage)
@@ -1153,9 +1964,16 @@ __all__ = [
     "SealValidationError",
     "StageValidationError",
     "discover_and_load_current",
+    "delete_generation_deployment_seal",
+    "delete_remote_generation_prefix",
     "load_and_verify_deployment_seal",
+    "load_generation_deployment_seal",
     "materialize_current",
     "persist_deployment_seal",
+    "persist_generation_deployment_seal",
+    "reconcile_generation_deployment_seals",
+    "reconcile_remote_generation_prefixes",
+    "stage_authoritative_commit_upload",
     "stage_commit_upload",
     "upload_verified_generation",
     "verify_deployment_seal",

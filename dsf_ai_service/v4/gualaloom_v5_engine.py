@@ -22319,12 +22319,19 @@ class Guala:
             }
         return records, assets
 
-    @staticmethod
-    def _copy_regular_file(source, target):
+    def _copy_regular_file(self, source, target):
         import shutil
         if not os.path.isfile(source) or os.path.islink(source):
             raise ValueError(f"referenced media is not a regular file: {source}")
         os.makedirs(os.path.dirname(target), exist_ok=True)
+        admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
+        if admission is not None:
+            admission.copy_regular_file(source, target)
+            return
         shutil.copy2(source, target)
         with open(target, "rb") as fh:
             os.fsync(fh.fileno())
@@ -22342,8 +22349,23 @@ class Guala:
 
         os.makedirs(state_dir, exist_ok=True)
         token = uuid.uuid4().hex
-        staging = os.path.join(state_dir, f".assets.{token}.tmp")
+        admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
+        if (
+            admission is not None
+            and not picture_assets
+            and not video_assets
+        ):
+            return []
         final = os.path.join(state_dir, "assets")
+        staging = (
+            final
+            if admission is not None
+            else os.path.join(state_dir, f".assets.{token}.tmp")
+        )
         previous = os.path.join(state_dir, f".assets.{token}.previous")
         os.makedirs(staging)
         moved_previous = False
@@ -22353,10 +22375,15 @@ class Guala:
                 if spec["grid_path"]:
                     grid_target = os.path.join(staging, *spec["grid_path"].split("/")[1:])
                     os.makedirs(os.path.dirname(grid_target), exist_ok=True)
-                    with open(grid_target, "wb") as fh:
-                        np.save(fh, spec["grid"])
-                        fh.flush()
-                        os.fsync(fh.fileno())
+                    if admission is None:
+                        with open(grid_target, "wb") as fh:
+                            np.save(fh, spec["grid"])
+                            fh.flush()
+                            os.fsync(fh.fileno())
+                    else:
+                        with admission.open_binary(
+                                grid_target) as fh:
+                            np.save(fh, spec["grid"])
                 if spec["original_path"]:
                     # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: a picture
                     # ORIGINAL lost from disk (live incident: one missing
@@ -22392,7 +22419,6 @@ class Guala:
                         f"{source_frames}")
                 frame_target = os.path.join(
                     staging, *spec["frame_dir"].split("/")[1:])
-                os.makedirs(frame_target, exist_ok=True)
                 for root, dirs, files in os.walk(source_frames):
                     dirs.sort()
                     files.sort()
@@ -22402,7 +22428,6 @@ class Guala:
                     relative_root = os.path.relpath(root, source_frames)
                     target_root = (frame_target if relative_root == "." else
                                    os.path.join(frame_target, relative_root))
-                    os.makedirs(target_root, exist_ok=True)
                     for name in files:
                         self._copy_regular_file(
                             os.path.join(root, name),
@@ -22412,12 +22437,13 @@ class Guala:
                         staging, *spec["audio_path"].split("/")[1:])
                     self._copy_regular_file(spec["source_audio"], audio_target)
 
-            if os.path.exists(final):
-                os.rename(final, previous)
-                moved_previous = True
-            os.rename(staging, final)
-            if moved_previous:
-                shutil.rmtree(previous)
+            if admission is None:
+                if os.path.exists(final):
+                    os.rename(final, previous)
+                    moved_previous = True
+                os.rename(staging, final)
+                if moved_previous:
+                    shutil.rmtree(previous)
 
             # Loaded objects must continue to point at the newly installed
             # self-contained tree after the old source directory is retired.
@@ -22549,6 +22575,37 @@ class Guala:
             ] if hasattr(self, 'sight') else [],
         })
 
+    @contextlib.contextmanager
+    def bounded_persistence_admission(self, admission):
+        """Bind one synchronous storage admission to every cold-save writer."""
+        if admission is None:
+            raise TypeError("bounded persistence admission is required")
+        for method in (
+            "open_binary",
+            "open_text",
+            "copy_regular_file",
+        ):
+            if not callable(getattr(admission, method, None)):
+                raise TypeError(
+                    "bounded persistence admission is missing "
+                    f"{method}()")
+        prior = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
+        if prior is not None:
+            if prior is not admission:
+                raise RuntimeError(
+                    "a different bounded persistence admission is active")
+            yield
+            return
+        self._active_persistence_admission = admission
+        try:
+            yield
+        finally:
+            self._active_persistence_admission = None
+
     def save_hot_state(self, state_dir="state"):
         """Persist the hot lane as one serialized multi-file generation."""
         with self.persistence_transaction():
@@ -22568,7 +22625,8 @@ class Guala:
             ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
-            self._ensure_identity_in_target(state_dir)
+            else:
+                self._ensure_identity_in_target(state_dir)
 
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
                                   "lines": list(c.lines),
@@ -22837,7 +22895,8 @@ class Guala:
 
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
-            self._ensure_identity_in_target(state_dir)
+            else:
+                self._ensure_identity_in_target(state_dir)
 
             # 1. Core
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
@@ -23045,6 +23104,11 @@ class Guala:
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
         ]
+        bounded_admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
         # GL-CMD-PERSIST-FIX-74: per-file error isolation. Prior to this fix, any
         # single atomic_write failure aborted the entire save loop, dropping every
         # subsequent file (visual, sounds, videos) and leaving _last_save_tick=0.
@@ -23054,6 +23118,8 @@ class Guala:
             try:
                 results[filename] = self._atomic_write(path, data)
             except Exception as _we:
+                if bounded_admission is not None:
+                    raise
                 _save_failures.append((filename, str(_we)))
                 print(f"[GualaLoom] save failed for {filename}: {_we}")
                 _tmp = path + ".tmp"
@@ -23076,6 +23142,8 @@ class Guala:
         try:
             self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
         except Exception as _te:
+            if bounded_admission is not None:
+                raise
             _save_failures.append(("guala_teaching.json", str(_te)))
             print(f"[GualaLoom] save failed for guala_teaching.json: {_te}")
             _tmp = os.path.join(state_dir, "guala_teaching.json.tmp")
@@ -23095,6 +23163,8 @@ class Guala:
         try:
             self._atomic_write(os.path.join(state_dir, "guala_episodic.json"), snap_episodic)
         except Exception as _ee:
+            if bounded_admission is not None:
+                raise
             _save_failures.append(("guala_episodic.json", str(_ee)))
             print(f"[GualaLoom] save failed for guala_episodic.json: {_ee}")
             _tmp = os.path.join(state_dir, "guala_episodic.json.tmp")
@@ -23175,12 +23245,23 @@ class Guala:
                     _pickle_attempt += 1
                     try:
                         with self._organism_lock:
-                            self.organism.save_full_state(organism_path)
+                            self.organism.save_full_state(
+                                organism_path,
+                                persistence_admission=getattr(
+                                    self,
+                                    "_active_persistence_admission",
+                                    None,
+                                ),
+                            )
                         break
                     except RuntimeError as _re:
                         _racey = ("mutated during iteration" in str(_re)
                                   or "changed size during" in str(_re))
-                        if not _racey or _pickle_attempt >= 4:
+                        if (
+                            bounded_admission is not None
+                            or not _racey
+                            or _pickle_attempt >= 4
+                        ):
                             raise
                         print(f"[GualaLoom] organism pickle hit live "
                               f"mutation (attempt {_pickle_attempt}/4), "
@@ -23198,6 +23279,8 @@ class Guala:
                         pass
                 self._organism_pause_req.clear()
         except Exception as _oe:
+            if bounded_admission is not None:
+                raise
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
             print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
 
@@ -23214,12 +23297,21 @@ class Guala:
                 self.tapestry._engine_prev_word = self._tapestry_prev_word
                 tapestry_path = os.path.join(
                     state_dir, "guala_tapestry.pkl.gz")
-                self.tapestry.save_full_state(tapestry_path)
+                self.tapestry.save_full_state(
+                    tapestry_path,
+                    persistence_admission=getattr(
+                        self,
+                        "_active_persistence_admission",
+                        None,
+                    ),
+                )
                 tapestry_binding = self._write_binary_binding(
                     tapestry_path, save_tick)
                 results[os.path.basename(tapestry_binding)] = os.path.getsize(
                     tapestry_binding)
         except Exception as _te:
+            if bounded_admission is not None:
+                raise
             _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
             print(f"[GualaLoom] save failed for guala_tapestry.pkl.gz: {_te}")
 
@@ -23330,7 +23422,18 @@ class Guala:
         try:
             n_cells = len(self.wave_atlas.cells)
             n_bind = sum(len(c.bindings) for c in self.wave_atlas.cells.values())
-            self.wave_atlas.to_npz(tmp_path)
+            admission = getattr(
+                self,
+                "_active_persistence_admission",
+                None,
+            )
+            if admission is None:
+                self.wave_atlas.to_npz(tmp_path)
+            else:
+                with admission.open_binary(
+                        tmp_path,
+                        logical_path=npz_path) as target:
+                    self.wave_atlas.to_npz(target)
             # GL-RPT-PERSIST-FIX-74 discipline: fsync data + directory before rename
             with open(tmp_path, "rb") as _f:
                 os.fsync(_f.fileno())
@@ -25643,14 +25746,25 @@ class Guala:
 
     def _atomic_write(self, path, data, fsync=False):
         tmp = path + ".tmp"
-        with open(tmp, "w") as f:
-            json.dump(data, f)
-            # GL-CMD-PERSIST-FIX-74: always flush before rename. On EFS (NFSv4)
-            # the kernel page cache is not flushed to the server at close() time,
-            # so os.rename finds no tmp file (ENOENT) despite it being written.
-            # f.flush() pushes Python buffer to OS; fsync() commits to NFS server.
-            f.flush()
-            os.fsync(f.fileno())
+        admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
+        if admission is None:
+            with open(tmp, "w") as f:
+                json.dump(data, f)
+                # GL-CMD-PERSIST-FIX-74: always flush before rename. On EFS (NFSv4)
+                # the kernel page cache is not flushed to the server at close() time,
+                # so os.rename finds no tmp file (ENOENT) despite it being written.
+                # f.flush() pushes Python buffer to OS; fsync() commits to NFS server.
+                f.flush()
+                os.fsync(f.fileno())
+        else:
+            with admission.open_text(
+                    tmp,
+                    logical_path=path) as f:
+                json.dump(data, f)
         size = os.path.getsize(tmp)
         # GL-FIX-STAGED-SET-FLIP-20260718 (Joe: "break the saves up into
         # manageable chunks or put packet ids on the saves"): inside a
