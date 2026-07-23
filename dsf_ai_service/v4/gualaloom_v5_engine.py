@@ -3542,7 +3542,7 @@ class Guala:
             ).digest()
             _w1_physical_key = _hmac.new(
                 _root_key,
-                b"guala-w1-anonymous-multisensory-evidence-v7",
+                b"guala-w1-anonymous-multisensory-evidence-v8",
                 _hashlib.sha256,
             ).digest()
             _w1_companion_key = _hmac.new(

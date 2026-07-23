@@ -79,6 +79,7 @@ def _world(
     *,
     external_position: PositionMM = PositionMM(3_500, 2_500, 0),
     self_heading_millidegrees: int = 0,
+    additional_objects: tuple[EmbodiedObject, ...] = (),
 ) -> EmbodimentWorldAuthority:
     return EmbodimentWorldAuthority(
         authority_key=WORLD_KEY,
@@ -110,6 +111,7 @@ def _world(
                 mass_grams=500,
                 position=PositionMM(1_500, 1_000, 0),
             ),
+            *additional_objects,
         ),
     )
 
@@ -232,6 +234,60 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
         result.binaural_pcm.left_pcm_s16le
         != result.binaural_pcm.right_pcm_s16le
     )
+    correspondence = result.anonymous_av_correspondence
+    assert correspondence is not None
+    correspondence.verify(EVIDENCE_KEY)
+    assert (
+        correspondence.observed_acoustic_path
+        == correspondence.candidates[
+            correspondence.matched_ordinal
+        ].predicted_acoustic_path
+    )
+    assert len(tuple(
+        candidate for candidate in correspondence.candidates
+        if candidate.predicted_acoustic_path
+        == correspondence.observed_acoustic_path
+    )) == 1
+    tampered_correspondence = replace(
+        correspondence,
+        matched_ordinal=(
+            correspondence.matched_ordinal + 1
+        ) % len(correspondence.candidates),
+    )
+    with pytest.raises(
+        ValueError,
+        match="anonymous audiovisual source is not unique",
+    ):
+        replace(
+            result,
+            anonymous_av_correspondence=tampered_correspondence,
+        ).verify(EVIDENCE_KEY)
+    assert len(correspondence.auditory_l5.ears) == 2
+    assert all(
+        len(ear.channels) == 16
+        for ear in correspondence.auditory_l5.ears
+    )
+    assert all(
+        tuple(name for name, _value in field_tuple.fields)
+        == DSF_FIELD_ORDER
+        for ear in correspondence.auditory_l5.ears
+        for channel in ear.channels
+        for component in (
+            channel.pressure,
+            channel.carrier_phase_advance,
+        )
+        for field_tuple in component.field_tuples
+    )
+    assert all(
+        tuple(name for name, _value in field_tuple.fields)
+        == DSF_FIELD_ORDER
+        for sense in (
+            correspondence.sight_interpretation,
+            correspondence.body_interpretation,
+        )
+        for substream in sense.substreams
+        for field_tuple in substream.field_tuples
+    )
     settlement = result.causal_settlement
     assert settlement is not None
     assert settlement.source_tags == ()
@@ -285,12 +341,48 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
         "pcm_s16le",
     ):
         assert forbidden not in persisted
+    assert "anonymous_av_correspondence" in persisted
+    assert "auditory_l5_authority" in persisted
     status = authority.status()
     assert 0 < status["retained_raw_media_bytes"] <= (
         status["max_retained_raw_media_bytes"]
     )
     assert authority.close_epoch(epoch)
     assert authority.status()["retained_raw_media_bytes"] == 0
+
+
+def test_acoustic_visual_correspondence_fails_closed_when_two_visible_paths_match():
+    external_position = PositionMM(1_800, 2_500, 0)
+    world = _world(
+        external_position=external_position,
+        additional_objects=(
+            EmbodiedObject(
+                "same-path-object",
+                radius_mm=75,
+                mass_grams=250,
+                position=PositionMM(200, 2_500, 0),
+            ),
+        ),
+    )
+    owner = _owner()
+    authority = _authority(world, owner)
+    epoch = authority.open_epoch()
+    execution = _vocal_execution(world, epoch)
+
+    result = authority.mount(
+        epoch_token=epoch,
+        sequence=0,
+        execution_receipt=execution,
+        acoustic_emission=_emission(authority, epoch, execution),
+    )
+
+    assert result.state is W1EvidenceState.AMBIGUOUS
+    assert result.reason == "anonymous_av_source_correspondence_is_not_unique"
+    assert result.evidence_receipt is None
+    assert result.anonymous_av_correspondence is None
+    assert owner.status()["settled"] == 0
+    assert owner.status()["prepared_reservation"] == 0
+    assert authority.status()["active_epochs"] == 0
 
 
 def test_multisensory_mount_can_prepare_commit_or_discard_atomically():
@@ -545,6 +637,7 @@ def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
                 Fraction(0),
                 Fraction(1, 8),
             ),
+            PositionMM(x, 0, 0),
         )
 
     def probe(before, after):
@@ -561,7 +654,7 @@ def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
             source_time_end=Fraction(1),
         )
 
-    appeared, _commitment, appeared_ambiguous = probe(
+    appeared, _commitment, appeared_ambiguous, _candidates = probe(
         (
             detection("control-A-identity", 1),
             detection("control-C-identity", 3),
@@ -591,7 +684,7 @@ def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
         for value in appeared
     )
 
-    disappeared, _commitment, disappeared_ambiguous = probe(
+    disappeared, _commitment, disappeared_ambiguous, _candidates = probe(
         (
             detection("control-A-identity", 1),
             detection("control-C-identity", 3),
@@ -608,7 +701,7 @@ def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
         if item.substream_id.endswith("-radius")
     )
 
-    incomparable, _commitment, incomparable_ambiguous = probe(
+    incomparable, _commitment, incomparable_ambiguous, _candidates = probe(
         (
             detection("control-A-identity", 1),
             detection("control-C-identity", 3),
@@ -621,7 +714,7 @@ def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
     assert incomparable_ambiguous is True
     assert incomparable == ()
 
-    crossed, _commitment, crossed_ambiguous = probe(
+    crossed, _commitment, crossed_ambiguous, _candidates = probe(
         (
             detection("control-A-identity", 1),
             detection("control-B-identity", 2),

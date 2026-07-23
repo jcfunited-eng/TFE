@@ -271,6 +271,15 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
         and all(len(ear.channels) == 16 for ear in block.binaural_l5.ears)
         for block in episode.blocks
     )
+    assert all(
+        block.anonymous_av_correspondence.matched_ordinal
+        < len(block.anonymous_av_correspondence.candidates)
+        and block.anonymous_av_correspondence.observed_acoustic_path
+        == block.anonymous_av_correspondence.candidates[
+            block.anonymous_av_correspondence.matched_ordinal
+        ].predicted_acoustic_path
+        for block in episode.blocks
+    )
     assert accepted == []
     assert world.observation_snapshot().revision == before.revision + 2
     assert owner.status()["settled"] == 0
@@ -286,6 +295,8 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     assert "pcm_s16le" not in persisted
     assert "left_pcm_s16le" not in persisted
     assert "right_pcm_s16le" not in persisted
+    assert "anonymous_av_correspondence_authority" in persisted
+    assert len(persisted.encode("utf-8")) <= 8 * 1024 * 1024
 
     companion.commit_episode(prepared)
 

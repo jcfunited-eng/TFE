@@ -28,6 +28,7 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
     MIN_EMITTED_PCM_SAMPLES,
 )
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+    W1AnonymousAcousticVisualCorrespondence,
     W1AudiovisualPhysicalEvidenceAuthority,
     W1EvidenceState,
     W1PhysicalEvidenceMount,
@@ -205,11 +206,17 @@ class W1CompanionVocalEpisodeBlock:
     world_execution_receipt_sha256: str
     physical_evidence_receipt_sha256: str
     causal_settlement_receipt_sha256: str
-    binaural_l5: W1BinauralAuditoryL5Experience
+    anonymous_av_correspondence: W1AnonymousAcousticVisualCorrespondence
+
+    @property
+    def binaural_l5(self) -> W1BinauralAuditoryL5Experience:
+        return self.anonymous_av_correspondence.auditory_l5
 
     def structural_payload(self) -> dict[str, object]:
         return {
-            "binaural_l5": self.binaural_l5.structural_payload(),
+            "anonymous_av_correspondence": (
+                self.anonymous_av_correspondence.structural_payload()
+            ),
             "sequence": self.sequence,
             "source_sample_end": self.source_sample_end,
             "source_sample_start": self.source_sample_start,
@@ -217,7 +224,9 @@ class W1CompanionVocalEpisodeBlock:
 
     def authority_payload(self) -> dict[str, object]:
         return {
-            "binaural_l5_authority": self.binaural_l5.persistence_record(),
+            "anonymous_av_correspondence_authority": (
+                self.anonymous_av_correspondence.authority_record()
+            ),
             "causal_settlement_receipt_sha256": (
                 self.causal_settlement_receipt_sha256
             ),
@@ -233,7 +242,7 @@ class W1CompanionVocalEpisodeBlock:
         }
 
     def verify(self) -> None:
-        self.binaural_l5.verify()
+        self.anonymous_av_correspondence.verify_structure()
         if (
             isinstance(self.sequence, bool)
             or not isinstance(self.sequence, int)
@@ -257,7 +266,8 @@ class W1CompanionVocalEpisodeBlock:
         ):
             _sha256(value, f"companion episode {name}")
         if (
-            self.binaural_l5.upstream_causal_settlement_receipt_sha256
+            self.anonymous_av_correspondence
+            .causal_settlement_receipt_sha256
             != self.causal_settlement_receipt_sha256
             or self.binaural_l5.source_time_start
             != Fraction(self.source_sample_start, 16_000)
@@ -672,6 +682,7 @@ class W1CompanionVocalExperienceAuthority:
                         or mounted.evidence_receipt is None
                         or mounted.causal_settlement is None
                         or mounted.binaural_auditory_l5 is None
+                        or mounted.anonymous_av_correspondence is None
                     ):
                         raise RuntimeError(
                             "companion vocal episode block did not settle"
@@ -691,7 +702,9 @@ class W1CompanionVocalExperienceAuthority:
                         causal_settlement_receipt_sha256=(
                             mounted.causal_settlement.authority_receipt_sha256
                         ),
-                        binaural_l5=mounted.binaural_auditory_l5,
+                        anonymous_av_correspondence=(
+                            mounted.anonymous_av_correspondence
+                        ),
                     ))
                     mounted = None
                     sample_start += block_count

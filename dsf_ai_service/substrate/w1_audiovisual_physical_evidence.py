@@ -63,6 +63,7 @@ from dsf_ai_service.substrate.embodiment_world import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
     ExactCausalExperienceOwner,
+    ExactSenseInterpretation,
 )
 from dsf_ai_service.substrate.auditory_kernel_mount import (
     AUDITORY_KERNEL_COMPONENT_COUNT,
@@ -84,9 +85,17 @@ from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
 )
 
 
-EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v7"
-PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v7"
-AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v7\0"
+EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v8"
+PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v8"
+AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v8\0"
+CORRESPONDENCE_SCHEMA = "guala.w1.anonymous_av_correspondence.v1"
+CORRESPONDENCE_AUTHORITY_SCHEMA = (
+    "guala.w1.anonymous_av_correspondence.authority.v1"
+)
+CORRESPONDENCE_AUTHORITY_DOMAIN = (
+    b"guala.w1.anonymous_av_correspondence.authority.v1\0"
+)
+MAX_CORRESPONDENCE_AUTHORITY_BYTES = 4 * 1024 * 1024
 
 PCM_SAMPLE_WIDTH_BYTES = 2
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
@@ -320,10 +329,19 @@ def _exact_binary_float(value: Fraction) -> float:
 class _AnonymousDetection:
     control_track_id: str
     values: tuple[Fraction, Fraction, Fraction, Fraction]
+    position: PositionMM
 
     @property
     def anonymous_order_key(self) -> tuple[Fraction, ...]:
         return self.values
+
+
+@dataclass(frozen=True, slots=True)
+class _AnonymousVisualSeriesCandidate:
+    ordinal: int
+    before_geometry: tuple[Fraction, Fraction, Fraction, Fraction]
+    after_geometry: tuple[Fraction, Fraction, Fraction, Fraction]
+    after_position: PositionMM | None
 
 
 def _anonymous_detections(
@@ -355,6 +373,7 @@ def _anonymous_detections(
                 Fraction(position.z - origin.z, scale_z),
                 Fraction(body.radius_mm, _PHYSICAL_RADIUS_SCALE),
             ),
+            position=position,
         ))
     body_by_id = {item.body_id: item for item in snapshot.bodies}
     for item in snapshot.objects:
@@ -374,6 +393,7 @@ def _anonymous_detections(
                 Fraction(position.z - origin.z, scale_z),
                 Fraction(item.radius_mm, _PHYSICAL_RADIUS_SCALE),
             ),
+            position=position,
         ))
     return tuple(sorted(values, key=lambda item: item.anonymous_order_key))
 
@@ -388,11 +408,12 @@ def _visual_inputs(
     tuple[NativeSensorySubstreamInput, ...],
     str,
     bool,
+    tuple[_AnonymousVisualSeriesCandidate, ...],
 ]:
     first = _anonymous_detections(before)
     second = _anonymous_detections(after)
     if not first and not second:
-        return (), _digest({"before": (), "after": ()}), False
+        return (), _digest({"before": (), "after": ()}), False, ()
     order_ambiguous = (
         len({item.anonymous_order_key for item in first}) != len(first)
         or len({item.anonymous_order_key for item in second}) != len(second)
@@ -424,6 +445,7 @@ def _visual_inputs(
     absent = (Fraction(0), Fraction(0), Fraction(0), Fraction(-1))
     witness = []
     inputs = []
+    candidates = []
     for ordinal, track in enumerate(merged_order):
         left_values = (
             first_by_track[track].values
@@ -433,6 +455,15 @@ def _visual_inputs(
             second_by_track[track].values
             if track in second_by_track else absent
         )
+        candidates.append(_AnonymousVisualSeriesCandidate(
+            ordinal=ordinal,
+            before_geometry=left_values,
+            after_geometry=right_values,
+            after_position=(
+                second_by_track[track].position
+                if track in second_by_track else None
+            ),
+        ))
         for axis_index, axis in enumerate(_VISUAL_AXES):
             exact_values = (
                 left_values[axis_index], right_values[axis_index]
@@ -461,10 +492,15 @@ def _visual_inputs(
                 ),
                 phase_turns=(Fraction(0), Fraction(0)),
             ))
-    return tuple(inputs), _digest({
-        "schema": "guala.w1.anonymous_visual_series.v1",
-        "substreams": witness,
-    }), order_ambiguous
+    return (
+        tuple(inputs),
+        _digest({
+            "schema": "guala.w1.anonymous_visual_series.v1",
+            "substreams": witness,
+        }),
+        order_ambiguous,
+        tuple(candidates),
+    )
 
 
 def _held_physical_values(
@@ -729,6 +765,328 @@ class W1BinauralPCM:
 
 
 @dataclass(frozen=True, slots=True)
+class W1AnonymousAcousticPath:
+    left_delay_samples: int
+    right_delay_samples: int
+    left_attenuation: Fraction
+    right_attenuation: Fraction
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "left_attenuation": _fraction_text(self.left_attenuation),
+            "left_delay_samples": self.left_delay_samples,
+            "right_attenuation": _fraction_text(self.right_attenuation),
+            "right_delay_samples": self.right_delay_samples,
+        }
+
+    def verify(self) -> None:
+        if (
+            isinstance(self.left_delay_samples, bool)
+            or not isinstance(self.left_delay_samples, int)
+            or self.left_delay_samples < 0
+            or isinstance(self.right_delay_samples, bool)
+            or not isinstance(self.right_delay_samples, int)
+            or self.right_delay_samples < 0
+        ):
+            raise ValueError("anonymous acoustic path delay changed")
+        for value in (self.left_attenuation, self.right_attenuation):
+            if not isinstance(value, Fraction) or not 0 < value <= 1:
+                raise ValueError("anonymous acoustic path attenuation changed")
+
+
+@dataclass(frozen=True, slots=True)
+class W1AnonymousVisualCandidate:
+    ordinal: int
+    before_geometry: tuple[Fraction, Fraction, Fraction, Fraction]
+    after_geometry: tuple[Fraction, Fraction, Fraction, Fraction]
+    predicted_acoustic_path: W1AnonymousAcousticPath | None
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "after_geometry": [
+                _fraction_text(value) for value in self.after_geometry
+            ],
+            "before_geometry": [
+                _fraction_text(value) for value in self.before_geometry
+            ],
+            "ordinal": self.ordinal,
+            "predicted_acoustic_path": (
+                self.predicted_acoustic_path.payload()
+                if self.predicted_acoustic_path is not None else None
+            ),
+        }
+
+    def verify(self) -> None:
+        if (
+            isinstance(self.ordinal, bool)
+            or not isinstance(self.ordinal, int)
+            or self.ordinal < 0
+            or len(self.before_geometry) != 4
+            or len(self.after_geometry) != 4
+            or any(
+                not isinstance(value, Fraction)
+                for value in self.before_geometry + self.after_geometry
+            )
+        ):
+            raise ValueError("anonymous visual candidate geometry changed")
+        if self.predicted_acoustic_path is not None:
+            self.predicted_acoustic_path.verify()
+
+
+def _exact_sense_payload(
+    sense: ExactSenseInterpretation,
+    *,
+    authority: bool,
+) -> dict[str, object]:
+    result = {
+        "relation": sense.relation,
+        "sense": sense.sense,
+        "state": sense.state,
+        "structural_fingerprint": sense.structural_fingerprint,
+        "substreams": [
+            {
+                "coordinates": [list(value) for value in substream.coordinates],
+                "field_tuples": [
+                    {
+                        **({
+                            "authority_receipt_sha256": (
+                                field_tuple.authority_receipt_sha256
+                            )
+                        } if authority else {}),
+                        "fields": [
+                            [name, _fraction_text(value)]
+                            for name, value in field_tuple.fields
+                        ],
+                        "tuple_index": field_tuple.tuple_index,
+                    }
+                    for field_tuple in substream.field_tuples
+                ],
+                **({
+                    "kernel_basin_receipt_sha256": (
+                        substream.kernel_basin_receipt_sha256
+                    ),
+                    "profile_receipt_sha256": substream.profile_receipt_sha256,
+                    "source_evidence_stream_receipt_sha256": (
+                        substream.source_evidence_stream_receipt_sha256
+                    ),
+                    "source_sample_commitment_sha256": (
+                        substream.source_sample_commitment_sha256
+                    ),
+                    "source_sample_count": substream.source_sample_count,
+                } if authority else {}),
+                "physical_quantity": substream.physical_quantity,
+                "physical_unit": substream.physical_unit,
+                "sensor_id": substream.sensor_id,
+                "substream_id": substream.substream_id,
+                "topology_index": substream.topology_index,
+            }
+            for substream in sense.substreams
+        ],
+        "topology_receipt_sha256": (
+            sense.topology_receipt_sha256 if authority else None
+        ),
+    }
+    return result
+
+
+@dataclass(frozen=True, slots=True)
+class W1AnonymousAcousticVisualCorrespondence:
+    correspondence_id: str
+    structural_fingerprint: str
+    candidates: tuple[W1AnonymousVisualCandidate, ...]
+    matched_ordinal: int
+    observed_acoustic_path: W1AnonymousAcousticPath
+    sight_interpretation: ExactSenseInterpretation
+    body_interpretation: ExactSenseInterpretation
+    auditory_l5: W1BinauralAuditoryL5Experience
+    visual_series_sha256: str
+    somatic_series_sha256: str
+    physical_evidence_core_sha256: str
+    causal_settlement_receipt_sha256: str
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def structural_payload(self) -> dict[str, object]:
+        return {
+            "auditory_l5": self.auditory_l5.structural_payload(),
+            "body": _exact_sense_payload(
+                self.body_interpretation, authority=False
+            ),
+            "candidates": [value.payload() for value in self.candidates],
+            "matched_ordinal": self.matched_ordinal,
+            "observed_acoustic_path": self.observed_acoustic_path.payload(),
+            "schema": CORRESPONDENCE_SCHEMA,
+            "sight": _exact_sense_payload(
+                self.sight_interpretation, authority=False
+            ),
+        }
+
+    def authority_payload(self) -> dict[str, object]:
+        return {
+            "auditory_l5_authority": self.auditory_l5.persistence_record(),
+            "body_authority": _exact_sense_payload(
+                self.body_interpretation, authority=True
+            ),
+            "candidates": [value.payload() for value in self.candidates],
+            "causal_settlement_receipt_sha256": (
+                self.causal_settlement_receipt_sha256
+            ),
+            "correspondence_id": self.correspondence_id,
+            "matched_ordinal": self.matched_ordinal,
+            "observed_acoustic_path": self.observed_acoustic_path.payload(),
+            "physical_evidence_core_sha256": (
+                self.physical_evidence_core_sha256
+            ),
+            "schema": CORRESPONDENCE_AUTHORITY_SCHEMA,
+            "sight_authority": _exact_sense_payload(
+                self.sight_interpretation, authority=True
+            ),
+            "somatic_series_sha256": self.somatic_series_sha256,
+            "structural_fingerprint": self.structural_fingerprint,
+            "visual_series_sha256": self.visual_series_sha256,
+        }
+
+    def verify_structure(self) -> None:
+        if (
+            not self.candidates
+            or tuple(value.ordinal for value in self.candidates)
+            != tuple(range(len(self.candidates)))
+        ):
+            raise ValueError("anonymous audiovisual candidate order changed")
+        for candidate in self.candidates:
+            candidate.verify()
+        self.observed_acoustic_path.verify()
+        matches = tuple(
+            value.ordinal for value in self.candidates
+            if value.predicted_acoustic_path == self.observed_acoustic_path
+        )
+        if matches != (self.matched_ordinal,):
+            raise ValueError("anonymous audiovisual source is not unique")
+        if (
+            self.sight_interpretation.sense != "sight"
+            or self.sight_interpretation.state != "observed"
+            or self.body_interpretation.sense != "body"
+            or self.body_interpretation.state != "observed"
+        ):
+            raise ValueError("anonymous audiovisual full field changed")
+        for sense in (self.sight_interpretation, self.body_interpretation):
+            if any(
+                tuple(name for name, _value in field_tuple.fields)
+                != DSF_FIELD_ORDER
+                for substream in sense.substreams
+                for field_tuple in substream.field_tuples
+            ):
+                raise ValueError("anonymous audiovisual DSF field order changed")
+        self.auditory_l5.verify()
+        if (
+            self.auditory_l5.upstream_causal_settlement_receipt_sha256
+            != self.causal_settlement_receipt_sha256
+        ):
+            raise ValueError("anonymous audiovisual causal authority changed")
+        for value, name in (
+            (self.visual_series_sha256, "visual series"),
+            (self.somatic_series_sha256, "somatic series"),
+            (self.physical_evidence_core_sha256, "physical evidence core"),
+            (self.causal_settlement_receipt_sha256, "causal settlement"),
+        ):
+            _sha256(value, f"anonymous audiovisual {name}")
+        structural = _digest(self.structural_payload())
+        if (
+            structural != self.structural_fingerprint
+            or self.correspondence_id
+            != _digest({"anonymous_av_structure": structural})
+        ):
+            raise ValueError("anonymous audiovisual structure changed")
+
+    def authority_record(self) -> dict[str, object]:
+        return {
+            **self.authority_payload(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
+
+    def verify(self, authority_key: bytes | str) -> None:
+        key = _key(authority_key)
+        self.verify_structure()
+        payload = self.authority_payload()
+        encoded = _canonical(payload)
+        signature = hmac.new(
+            key,
+            CORRESPONDENCE_AUTHORITY_DOMAIN + encoded,
+            hashlib.sha256,
+        ).hexdigest()
+        if (
+            len(encoded) > MAX_CORRESPONDENCE_AUTHORITY_BYTES
+            or not hmac.compare_digest(signature, self.authority_hmac_sha256)
+            or self.authority_receipt_sha256
+            != _digest({
+                "authority_hmac_sha256": signature,
+                "payload": payload,
+            })
+        ):
+            raise ValueError("anonymous audiovisual authority changed")
+
+    def persistence_record(self, authority_key: bytes | str) -> dict[str, object]:
+        self.verify(authority_key)
+        return self.authority_record()
+
+
+def _anonymous_path_for_position(
+    position: PositionMM,
+    *,
+    left_ear: PositionMM,
+    right_ear: PositionMM,
+    reference_distance_mm: int,
+) -> W1AnonymousAcousticPath:
+    left_squared = _distance_squared(position, left_ear)
+    right_squared = _distance_squared(position, right_ear)
+    reference_squared = reference_distance_mm**2
+    result = W1AnonymousAcousticPath(
+        left_delay_samples=_delay_samples(left_squared),
+        right_delay_samples=_delay_samples(right_squared),
+        left_attenuation=Fraction(
+            reference_squared,
+            max(reference_squared, left_squared),
+        ),
+        right_attenuation=Fraction(
+            reference_squared,
+            max(reference_squared, right_squared),
+        ),
+    )
+    result.verify()
+    return result
+
+
+def _public_visual_candidates(
+    candidates: tuple[_AnonymousVisualSeriesCandidate, ...],
+    *,
+    left_ear: PositionMM,
+    right_ear: PositionMM,
+    reference_distance_mm: int,
+) -> tuple[W1AnonymousVisualCandidate, ...]:
+    result = tuple(
+        W1AnonymousVisualCandidate(
+            ordinal=value.ordinal,
+            before_geometry=value.before_geometry,
+            after_geometry=value.after_geometry,
+            predicted_acoustic_path=(
+                _anonymous_path_for_position(
+                    value.after_position,
+                    left_ear=left_ear,
+                    right_ear=right_ear,
+                    reference_distance_mm=reference_distance_mm,
+                )
+                if value.after_position is not None else None
+            ),
+        )
+        for value in candidates
+    )
+    for value in result:
+        value.verify()
+    return result
+
+
+@dataclass(frozen=True, slots=True)
 class W1PhysicalEvidenceReceipt:
     state: W1EvidenceState
     reason: str
@@ -744,6 +1102,7 @@ class W1PhysicalEvidenceReceipt:
     acoustic_emission_receipt_sha256s: tuple[str, ...]
     binaural_commitment: Mapping[str, object]
     binaural_auditory_l5_authority_receipt_sha256: str | None
+    anonymous_av_correspondence_receipt_sha256: str | None
     causal_settlement_receipt_sha256: str
     authority_hmac_sha256: str
     authority_receipt_sha256: str
@@ -756,6 +1115,9 @@ class W1PhysicalEvidenceReceipt:
             "binaural_commitment": dict(self.binaural_commitment),
             "binaural_auditory_l5_authority_receipt_sha256": (
                 self.binaural_auditory_l5_authority_receipt_sha256
+            ),
+            "anonymous_av_correspondence_receipt_sha256": (
+                self.anonymous_av_correspondence_receipt_sha256
             ),
             "causal_settlement_receipt_sha256": (
                 self.causal_settlement_receipt_sha256
@@ -847,6 +1209,17 @@ class W1PhysicalEvidenceReceipt:
             raise ValueError(
                 "W1 acoustic contribution lost its binaural L5 authority"
             )
+        if self.anonymous_av_correspondence_receipt_sha256 is not None:
+            _sha256(
+                self.anonymous_av_correspondence_receipt_sha256,
+                "W1 anonymous audiovisual correspondence",
+            )
+        if bool(self.acoustic_emission_receipt_sha256s) != bool(
+            self.anonymous_av_correspondence_receipt_sha256
+        ):
+            raise ValueError(
+                "W1 acoustic contribution lost audiovisual correspondence"
+            )
         _sha256(
             self.causal_settlement_receipt_sha256,
             "W1 causal settlement",
@@ -876,6 +1249,9 @@ class W1PhysicalEvidenceMount:
     binaural_pcm: W1BinauralPCM | None = None
     causal_settlement: CausalExperienceSettlement | None = None
     binaural_auditory_l5: W1BinauralAuditoryL5Experience | None = None
+    anonymous_av_correspondence: (
+        W1AnonymousAcousticVisualCorrespondence | None
+    ) = None
 
     @property
     def observation_receipt(self) -> W1PhysicalEvidenceReceipt | None:
@@ -884,6 +1260,10 @@ class W1PhysicalEvidenceMount:
     def persistence_record(self) -> dict[str, object]:
         """Return a raw-media-free record safe for bounded persistence."""
         return {
+            "anonymous_av_correspondence": (
+                self.anonymous_av_correspondence.authority_record()
+                if self.anonymous_av_correspondence is not None else None
+            ),
             "evidence": (
                 self.evidence_receipt.as_record()
                 if self.evidence_receipt is not None
@@ -902,6 +1282,10 @@ class W1PhysicalEvidenceMount:
                 raise ValueError("unsettled W1 evidence retained physical payload")
             if self.binaural_auditory_l5 is not None:
                 raise ValueError("unsettled W1 evidence retained auditory L5")
+            if self.anonymous_av_correspondence is not None:
+                raise ValueError(
+                    "unsettled W1 evidence retained audiovisual correspondence"
+                )
             return
         self.evidence_receipt.verify(authority_key)
         if (
@@ -918,8 +1302,17 @@ class W1PhysicalEvidenceMount:
                 raise ValueError("settled W1 acoustic evidence is incomplete")
             if self.binaural_auditory_l5 is None:
                 raise ValueError("settled W1 acoustic L5 evidence is incomplete")
+            if self.anonymous_av_correspondence is None:
+                raise ValueError(
+                    "settled W1 audiovisual correspondence is incomplete"
+                )
             self.binaural_pcm.verify()
             self.binaural_auditory_l5.verify()
+            self.anonymous_av_correspondence.verify(authority_key)
+            physical_core = self.evidence_receipt.payload()
+            physical_core.pop(
+                "anonymous_av_correspondence_receipt_sha256"
+            )
             if self.binaural_pcm.commitment_record() != dict(
                 self.evidence_receipt.binaural_commitment
             ):
@@ -931,11 +1324,26 @@ class W1PhysicalEvidenceMount:
                 or self.binaural_auditory_l5
                 .upstream_causal_settlement_receipt_sha256
                 != self.causal_settlement.authority_receipt_sha256
+                or self.anonymous_av_correspondence.authority_receipt_sha256
+                != self.evidence_receipt
+                .anonymous_av_correspondence_receipt_sha256
+                or self.anonymous_av_correspondence
+                .causal_settlement_receipt_sha256
+                != self.causal_settlement.authority_receipt_sha256
+                or self.anonymous_av_correspondence.visual_series_sha256
+                != self.evidence_receipt.visual_series_sha256
+                or self.anonymous_av_correspondence.somatic_series_sha256
+                != self.evidence_receipt.somatic_series_sha256
+                or self.anonymous_av_correspondence
+                .physical_evidence_core_sha256
+                != _digest(physical_core)
             ):
                 raise ValueError("W1 auditory L5 differs from physical evidence")
         elif self.binaural_pcm is not None or dict(
             self.evidence_receipt.binaural_commitment
-        ) or self.binaural_auditory_l5 is not None:
+        ) or self.binaural_auditory_l5 is not None or (
+            self.anonymous_av_correspondence is not None
+        ):
             raise ValueError("W1 unavailable sound retained acoustic payload")
         if self.causal_settlement.authority_receipt_sha256 != (
             self.evidence_receipt.causal_settlement_receipt_sha256
@@ -1244,7 +1652,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             raise ValueError("W1 physical boundary cannot reserve and commit")
         source_time_start = Fraction(0)
         source_time_end = Fraction(1)
-        visual_inputs, visual_commitment, visual_order_crossed = _visual_inputs(
+        (
+            visual_inputs,
+            visual_commitment,
+            visual_order_crossed,
+            _visual_candidates,
+        ) = _visual_inputs(
             before,
             after,
             source_time_start=source_time_start,
@@ -1318,6 +1731,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             "acoustic_emission_receipt_sha256s": [],
             "binaural_commitment": {},
             "binaural_auditory_l5_authority_receipt_sha256": None,
+            "anonymous_av_correspondence_receipt_sha256": None,
             "causal_settlement_receipt_sha256": (
                 settlement.authority_receipt_sha256
             ),
@@ -1362,6 +1776,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             acoustic_emission_receipt_sha256s=(),
             binaural_commitment={},
             binaural_auditory_l5_authority_receipt_sha256=None,
+            anonymous_av_correspondence_receipt_sha256=None,
             causal_settlement_receipt_sha256=(
                 settlement.authority_receipt_sha256
             ),
@@ -1758,7 +2173,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             source_time_end = source_time_start + Fraction(
                 len(emitted_samples), PCM_SAMPLE_RATE_HZ
             )
-            visual_inputs, visual_commitment, visual_order_crossed = (
+            (
+                visual_inputs,
+                visual_commitment,
+                visual_order_crossed,
+                transient_visual_candidates,
+            ) = (
                 _visual_inputs(
                     execution_receipt.before,
                     execution_receipt.after,
@@ -1783,6 +2203,47 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 return self._unsettled(
                     W1EvidenceState.UNKNOWN,
                     "anonymous_visual_series_is_incomplete",
+                )
+            self_body = _body(
+                execution_receipt.after,
+                execution_receipt.after.self_body_id,
+            )
+            ears = _ear_positions(
+                self_body,
+                self._calibration.ear_separation_mm,
+            )
+            if ears is None:
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.UNAVAILABLE,
+                    "anonymous_av_ear_geometry_is_unavailable",
+                )
+            public_visual_candidates = _public_visual_candidates(
+                transient_visual_candidates,
+                left_ear=ears[0],
+                right_ear=ears[1],
+                reference_distance_mm=(
+                    self._calibration.reference_distance_mm
+                ),
+            )
+            observed_acoustic_path = W1AnonymousAcousticPath(
+                left_delay_samples=binaural.left_delay_samples,
+                right_delay_samples=binaural.right_delay_samples,
+                left_attenuation=binaural.left_attenuation,
+                right_attenuation=binaural.right_attenuation,
+            )
+            observed_acoustic_path.verify()
+            correspondence_matches = tuple(
+                value.ordinal for value in public_visual_candidates
+                if value.predicted_acoustic_path == observed_acoustic_path
+            )
+            if len(correspondence_matches) != 1:
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.UNKNOWN
+                    if not correspondence_matches
+                    else W1EvidenceState.AMBIGUOUS,
+                    "anonymous_av_source_correspondence_is_not_unique",
                 )
             if not (
                 any(_signed_pcm_samples(binaural.left_pcm_s16le))
@@ -1903,7 +2364,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             state = W1EvidenceState.OBSERVED
             reason = "anonymous_multisensory_evidence_observed"
             commitment = binaural.commitment_record()
-            payload = {
+            physical_core = {
                 "acoustic_emission_receipt_sha256s": list(
                     rendered.contributing_receipt_sha256s
                 ),
@@ -1933,6 +2394,114 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 ),
                 "world_observation_before_receipt_sha256": (
                     execution_receipt.before.authority_receipt_sha256
+                ),
+            }
+            sight_interpretation = next(
+                value for value in settlement.interpretations
+                if value.sense == "sight"
+            )
+            body_interpretation = next(
+                value for value in settlement.interpretations
+                if value.sense == "body"
+            )
+            structural_payload = {
+                "auditory_l5": binaural_auditory_l5.structural_payload(),
+                "body": _exact_sense_payload(
+                    body_interpretation, authority=False
+                ),
+                "candidates": [
+                    value.payload() for value in public_visual_candidates
+                ],
+                "matched_ordinal": correspondence_matches[0],
+                "observed_acoustic_path": observed_acoustic_path.payload(),
+                "schema": CORRESPONDENCE_SCHEMA,
+                "sight": _exact_sense_payload(
+                    sight_interpretation, authority=False
+                ),
+            }
+            correspondence_fingerprint = _digest(structural_payload)
+            correspondence_provisional = (
+                W1AnonymousAcousticVisualCorrespondence(
+                    correspondence_id=_digest({
+                        "anonymous_av_structure": correspondence_fingerprint
+                    }),
+                    structural_fingerprint=correspondence_fingerprint,
+                    candidates=public_visual_candidates,
+                    matched_ordinal=correspondence_matches[0],
+                    observed_acoustic_path=observed_acoustic_path,
+                    sight_interpretation=sight_interpretation,
+                    body_interpretation=body_interpretation,
+                    auditory_l5=binaural_auditory_l5,
+                    visual_series_sha256=visual_commitment,
+                    somatic_series_sha256=somatic_commitment,
+                    physical_evidence_core_sha256=_digest(physical_core),
+                    causal_settlement_receipt_sha256=(
+                        settlement.authority_receipt_sha256
+                    ),
+                    authority_hmac_sha256="0" * 64,
+                    authority_receipt_sha256="0" * 64,
+                )
+            )
+            correspondence_payload = (
+                correspondence_provisional.authority_payload()
+            )
+            correspondence_signature = hmac.new(
+                self._key,
+                CORRESPONDENCE_AUTHORITY_DOMAIN
+                + _canonical(correspondence_payload),
+                hashlib.sha256,
+            ).hexdigest()
+            correspondence = W1AnonymousAcousticVisualCorrespondence(
+                correspondence_id=(
+                    correspondence_provisional.correspondence_id
+                ),
+                structural_fingerprint=(
+                    correspondence_provisional.structural_fingerprint
+                ),
+                candidates=correspondence_provisional.candidates,
+                matched_ordinal=correspondence_provisional.matched_ordinal,
+                observed_acoustic_path=(
+                    correspondence_provisional.observed_acoustic_path
+                ),
+                sight_interpretation=(
+                    correspondence_provisional.sight_interpretation
+                ),
+                body_interpretation=(
+                    correspondence_provisional.body_interpretation
+                ),
+                auditory_l5=correspondence_provisional.auditory_l5,
+                visual_series_sha256=(
+                    correspondence_provisional.visual_series_sha256
+                ),
+                somatic_series_sha256=(
+                    correspondence_provisional.somatic_series_sha256
+                ),
+                physical_evidence_core_sha256=(
+                    correspondence_provisional.physical_evidence_core_sha256
+                ),
+                causal_settlement_receipt_sha256=(
+                    correspondence_provisional
+                    .causal_settlement_receipt_sha256
+                ),
+                authority_hmac_sha256=correspondence_signature,
+                authority_receipt_sha256=_digest({
+                    "authority_hmac_sha256": correspondence_signature,
+                    "payload": correspondence_payload,
+                }),
+            )
+            try:
+                correspondence.verify(self._key)
+            except BaseException:
+                self._binaural_auditory_l5_owner.discard_prepared(
+                    binaural_auditory_l5
+                )
+                self._causal_owner.discard_prepared(settlement)
+                self._pending_reservation = None
+                raise
+            payload = {
+                **physical_core,
+                "anonymous_av_correspondence_receipt_sha256": (
+                    correspondence.authority_receipt_sha256
                 ),
             }
             signature = hmac.new(
@@ -1966,6 +2535,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 binaural_commitment=commitment,
                 binaural_auditory_l5_authority_receipt_sha256=(
                     binaural_auditory_l5.authority_receipt_sha256
+                ),
+                anonymous_av_correspondence_receipt_sha256=(
+                    correspondence.authority_receipt_sha256
                 ),
                 causal_settlement_receipt_sha256=(
                     settlement.authority_receipt_sha256
@@ -2030,6 +2602,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 binaural_pcm=binaural,
                 causal_settlement=settlement,
                 binaural_auditory_l5=binaural_auditory_l5,
+                anonymous_av_correspondence=correspondence,
             )
             try:
                 result.verify(self._key)
@@ -2258,6 +2831,9 @@ __all__ = (
     "MIN_EMITTED_PCM_SAMPLES",
     "PCM_SAMPLE_RATE_HZ",
     "W1AudiovisualPhysicalEvidenceAuthority",
+    "W1AnonymousAcousticPath",
+    "W1AnonymousAcousticVisualCorrespondence",
+    "W1AnonymousVisualCandidate",
     "W1BinauralCalibration",
     "W1BinauralPCM",
     "W1EvidenceState",
