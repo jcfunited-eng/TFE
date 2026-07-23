@@ -216,6 +216,40 @@ export function reanchoredStopPrice(fillPrice, slPct = CH3_STOP_PCT) {
   return parseFloat((fillPrice * (1 - slPct)).toFixed(2));
 }
 
+// ── Stale CH3 entry cancel ────────────────────────────────────────────────
+// A marketable-limit scalp entry that hasn't filled within minutes means the
+// momentum stalled; left resting, the limit becomes a falling-knife catcher
+// (FOA 2026-07-23: rested 11 min, filled INTO a collapse at 13:58:28, stop
+// blown through 8 seconds later at -4.2%).
+export const CH3_ENTRY_STALE_MS = 3 * 60 * 1000;
+export function isStaleCh3Entry(submittedAt, nowMs = Date.now()) {
+  if (!submittedAt) return false;
+  const t = new Date(submittedAt).getTime();
+  if (!Number.isFinite(t)) return false;
+  return nowMs - t > CH3_ENTRY_STALE_MS;
+}
+
+// ── Bracket-close fill recovery ───────────────────────────────────────────
+// FOA 2026-07-23: entry and stop both filled inside one sentinel gap, so the
+// row was marked closed with NULL fills — a ghost trade invisible to the
+// dashboard, overstating realized P&L. Recover both fills from the parent
+// order (nested) before closing the row.
+export function bracketCloseFill(parentOrder) {
+  const entry   = parseFloat(parentOrder?.filled_avg_price ?? "0") || null;
+  const entryAt = parentOrder?.filled_at ?? null;
+  let exit = null, exitAt = null, exitOrderId = null;
+  for (const leg of parentOrder?.legs ?? []) {
+    const legFill = parseFloat(leg?.filled_avg_price ?? "0");
+    if (leg?.status === "filled" && legFill > 0) {
+      exit = legFill;
+      exitAt = leg.filled_at ?? null;
+      exitOrderId = leg.id ?? null;
+      break;
+    }
+  }
+  return { entry, entryAt, exit, exitAt, exitOrderId };
+}
+
 // ── Cancel open bracket legs before liquidating ──────────────────────────
 async function cancelOrder(orderId, base) {
   try {
@@ -800,6 +834,24 @@ export async function runSentinel() {
               }
             }
           }
+        } else if (
+          String(pos.signal_class ?? "").trim().toUpperCase() === "CH3" &&
+          ["new", "accepted", "pending_new", "held"].includes(order?.status) &&
+          parseFloat(order?.filled_qty ?? "0") === 0 &&
+          isStaleCh3Entry(order?.submitted_at ?? pos.created_at)
+        ) {
+          // Momentum stalled — cancel the resting entry before it catches a knife
+          try {
+            await fetch(`${ALPACA_BASE}/v2/orders/${pos.alpaca_order_id}`, { method: "DELETE", headers: alpacaHeaders() });
+            await pool.query(
+              `UPDATE personal_trade_ledger SET status='cancelled', exit_reason='ch3_entry_stale_cancel' WHERE id=$1 AND status='submitted'`,
+              [pos.id]
+            );
+            console.log(`[SENTINEL] CH3 ${pos.ticker} entry unfilled past ${CH3_ENTRY_STALE_MS / 60000} min — canceled (momentum passed)`);
+            pos.status = "cancelled";
+          } catch (cxErr) {
+            console.warn(`[SENTINEL] CH3 ${pos.ticker} stale-entry cancel failed: ${cxErr.message}`);
+          }
         } else if ((order?.status === "canceled" || order?.status === "expired") && parseFloat(order.filled_qty ?? "0") === 0) {
           // Order was cancelled or expired before filling — mark ledger record as cancelled
           // REGN was stuck as "submitted" for 8 days because "expired" wasn't handled.
@@ -1171,9 +1223,36 @@ export async function runSentinel() {
         const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
         if (!alpacaPos) {
           console.log(`[SENTINEL] CH3 ${pos.ticker} — position closed by bracket (TP/SL). Marking DB closed.`);
-          await ledgerClose(pos.id, "ch3_bracket_exit", null).catch(e => {
-            console.error(`[SENTINEL] CH3 ledger close failed for ${pos.ticker}:`, e.message);
-          });
+          let closedWithFills = false;
+          if (pos.alpaca_order_id) {
+            try {
+              const parent = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}?nested=true`, ALPACA_BASE);
+              const f = bracketCloseFill(parent);
+              if (f.entry && !(parseFloat(pos.entry_filled_price ?? "0") > 0)) {
+                await pool.query(
+                  `UPDATE personal_trade_ledger
+                   SET entry_filled_price=$1, entry_filled_at=COALESCE(entry_filled_at,$2)
+                   WHERE id=$3`,
+                  [f.entry, f.entryAt, pos.id]
+                ).catch(() => {});
+              }
+              if (f.exit) {
+                await ledgerClose(pos.id, "ch3_bracket_exit", f.exitOrderId, f.exit);
+                console.log(
+                  `[SENTINEL] CH3 ${pos.ticker} bracket fills recovered: ` +
+                  `entry $${f.entry ?? "?"} exit $${f.exit}`
+                );
+                closedWithFills = true;
+              }
+            } catch (bfErr) {
+              console.warn(`[SENTINEL] CH3 ${pos.ticker} bracket-fill recovery failed: ${bfErr.message}`);
+            }
+          }
+          if (!closedWithFills) {
+            await ledgerClose(pos.id, "ch3_bracket_exit", null).catch(e => {
+              console.error(`[SENTINEL] CH3 ledger close failed for ${pos.ticker}:`, e.message);
+            });
+          }
           continue;
         }
 

@@ -214,6 +214,9 @@ function parseCandidate(row) {
   const sector   = String(row.sector ?? "").trim();
 
   if (!ticker || !runId) return null;
+  // Dot-class shares (CWEN.A, BRK.A) — Alpaca rejects them as inactive
+  // assets (422, CWEN.A 2026-07-23), which burns a slot at the bridge.
+  if (ticker.includes(".")) return null;
   if (!isFinite(barCount) || barCount < CH3_BAR_COUNT_MIN) return null;
   if (price === null || price < 1) return null;
 
