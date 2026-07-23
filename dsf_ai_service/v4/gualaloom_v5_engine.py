@@ -8552,6 +8552,14 @@ class Guala:
                 self._causal_settlement_accepted = prior_accepted
                 raise
 
+            causal_play = self._run_causal_play_episode(
+                trigger="external_world_change",
+                committed_settlement=settlement,
+                committed_observation_receipt=mount.observation_receipt,
+                committed_world_observation=(
+                    prepared.execution_receipt.after
+                ),
+            )
             sound = next(
                 item for item in settlement.interpretations
                 if item.sense == "sound"
@@ -8568,10 +8576,10 @@ class Guala:
                     mount.anonymous_av_continuity.authority_receipt_sha256
                 ),
                 "dispatch_status": (
-                    "deferred_to_causal_cycle"
-                    if self._causal_action_cycle is not None
-                    else "unavailable"
+                    causal_play["dispatch_status"]
+                    if causal_play is not None else "unavailable"
                 ),
+                "causal_play": causal_play,
                 "schema": "guala.w1.companion_vocal_experience.v1",
                 "sound_substream_count": len(sound.substreams),
                 "world_execution_receipt_sha256": (
@@ -8665,6 +8673,17 @@ class Guala:
                 self._latest_causal_settlement = prior_latest_settlement
                 self._causal_settlement_accepted = prior_accepted
                 raise
+            final_block = prepared.prediction_blocks[-1]
+            causal_play = self._run_causal_play_episode(
+                trigger="external_world_change",
+                committed_settlement=final_block.causal_settlement,
+                committed_observation_receipt=(
+                    final_block.evidence_receipt
+                ),
+                committed_world_observation=(
+                    final_block.execution_receipt.after
+                ),
+            )
             return {
                 "block_count": len(episode.blocks),
                 "binaural_l5_authority_receipt_sha256s": [
@@ -8679,6 +8698,7 @@ class Guala:
                     episode.authority_receipt_sha256
                 ),
                 "episode_id": episode.episode_id,
+                "causal_play": causal_play,
                 "schema": "guala.w1.companion_vocal_episode.v1",
                 "total_sample_count": episode.total_sample_count,
                 "world_revision_after": after.revision,
@@ -8690,8 +8710,16 @@ class Guala:
         *,
         trigger,
         state_dir=None,
+        committed_settlement=None,
+        committed_observation_receipt=None,
+        committed_world_observation=None,
     ):
-        """Run one bounded exact W1 causal chain without scalar scheduling."""
+        """Run one bounded exact W1 causal chain without scalar scheduling.
+
+        A committed external W1 event may supply its exact full-field
+        settlement and physical receipt.  That event remains the causal
+        trigger; it is never replaced by a fresh, silent world remount.
+        """
 
         required = (
             self._embodiment_world,
@@ -8705,25 +8733,74 @@ class Guala:
         with self._causal_cycle_bridge_lock:
             if self._causal_action_dispatcher.status()["active"]:
                 return None
-            before = self._embodiment_world.observation_snapshot()
-            embodied = self._w1_physical_evidence.mount_current_observation(
-                commit=True,
+            supplied = (
+                committed_settlement,
+                committed_observation_receipt,
+                committed_world_observation,
             )
-            if (
-                embodied.causal_settlement is None
-                or embodied.observation_receipt is None
+            if any(value is not None for value in supplied) and not all(
+                value is not None for value in supplied
             ):
-                raise RuntimeError(
-                    "W1 current physical field did not settle"
+                raise ValueError(
+                    "committed W1 deliberation evidence is incomplete"
                 )
-            self._w1_physical_evidence.verify_mount(embodied)
-            self._record_causal_perception_without_dispatch(
-                embodied.causal_settlement,
-                world_observation=before,
-                outcome_observation_receipt=(
-                    embodied.observation_receipt
-                ),
+            if committed_settlement is None:
+                before = self._embodiment_world.observation_snapshot()
+                embodied = (
+                    self._w1_physical_evidence
+                    .mount_current_observation(commit=True)
+                )
+                if (
+                    embodied.causal_settlement is None
+                    or embodied.observation_receipt is None
+                ):
+                    raise RuntimeError(
+                        "W1 current physical field did not settle"
+                    )
+                self._w1_physical_evidence.verify_mount(embodied)
+                self._record_causal_perception_without_dispatch(
+                    embodied.causal_settlement,
+                    world_observation=before,
+                    outcome_observation_receipt=(
+                        embodied.observation_receipt
+                    ),
+                )
+            else:
+                committed_settlement.verify()
+                self._w1_physical_evidence.verify_evidence_receipt(
+                    committed_observation_receipt
+                )
+                self._embodiment_world.verify_observation_snapshot(
+                    committed_world_observation
+                )
+                if (
+                    committed_observation_receipt
+                    .causal_settlement_receipt_sha256
+                    != committed_settlement.authority_receipt_sha256
+                    or committed_observation_receipt
+                    .world_observation_after_receipt_sha256
+                    != committed_world_observation.authority_receipt_sha256
+                    or self._embodiment_world.observation_snapshot()
+                    .authority_receipt_sha256
+                    != committed_world_observation.authority_receipt_sha256
+                ):
+                    raise RuntimeError(
+                        "committed W1 event lost physical authority"
+                    )
+                before = committed_world_observation
+                embodied = None
+            trigger_settlement = (
+                committed_settlement
+                if committed_settlement is not None
+                else embodied.causal_settlement
             )
+            trigger_observation_receipt = (
+                committed_observation_receipt
+                if committed_observation_receipt is not None
+                else embodied.observation_receipt
+            )
+            current_settlement = trigger_settlement
+            current_observation_receipt = trigger_observation_receipt
             admitted = (
                 self._embodied_action_teaching
                 .verified_guided_relation_evidence()
@@ -8731,7 +8808,7 @@ class Guala:
             turn = self._causal_deliberation.current_turn()
             if turn is None:
                 turn = self._causal_deliberation.start(
-                    embodied.causal_settlement,
+                    trigger_settlement,
                     admitted_evidence=admitted,
                 )
             else:
@@ -8739,11 +8816,11 @@ class Guala:
                 if (
                     active is None
                     or active["current"]["structural_fingerprint"]
-                    != embodied.causal_settlement.structural_fingerprint
+                    != trigger_settlement.structural_fingerprint
                 ):
                     evidence = _hashlib.sha256(
                         (
-                            embodied.causal_settlement
+                            trigger_settlement
                             .authority_receipt_sha256
                             + ":restore-evidence-mismatch"
                         ).encode("ascii")
@@ -8790,7 +8867,7 @@ class Guala:
                 )
                 try:
                     selection = self._causal_action_cycle.select_expected(
-                        embodied.causal_settlement,
+                        current_settlement,
                         binding_id=turn.binding_id,
                         action_receipt_sha256=(
                             turn.action_receipt_sha256
@@ -8805,7 +8882,7 @@ class Guala:
                     )
                     dispatch = self._causal_action_dispatcher \
                         .dispatch_expected(
-                            embodied.causal_settlement,
+                            current_settlement,
                             binding_id=turn.binding_id,
                             action_receipt_sha256=(
                                 turn.action_receipt_sha256
@@ -8853,8 +8930,7 @@ class Guala:
                 ):
                     evidence = (
                         dispatch.request_receipt_sha256
-                        or embodied.causal_settlement
-                        .authority_receipt_sha256
+                        or current_settlement.authority_receipt_sha256
                     )
                     turn = self._causal_deliberation.terminate_active(
                         reason="dispatch_identity_mismatch",
@@ -8874,8 +8950,7 @@ class Guala:
                 if dispatch.status != "pending":
                     evidence = (
                         dispatch.request_receipt_sha256
-                        or embodied.causal_settlement
-                        .authority_receipt_sha256
+                        or current_settlement.authority_receipt_sha256
                     )
                     turn = self._causal_deliberation.terminate_active(
                         reason="dispatch_identity_mismatch",
@@ -8918,8 +8993,7 @@ class Guala:
                 ):
                     evidence = (
                         completed.request_receipt_sha256
-                        or embodied.causal_settlement
-                        .authority_receipt_sha256
+                        or current_settlement.authority_receipt_sha256
                     )
                     turn = self._causal_deliberation.terminate_active(
                         reason="dispatch_identity_mismatch",
@@ -8958,6 +9032,8 @@ class Guala:
                         embodied.observation_receipt
                     ),
                 )
+                current_settlement = embodied.causal_settlement
+                current_observation_receipt = embodied.observation_receipt
                 admitted = (
                     self._embodied_action_teaching
                     .verified_guided_relation_evidence()
@@ -8993,10 +9069,10 @@ class Guala:
             )
             record = {
                 "causal_event_id": (
-                    embodied.causal_settlement.event_id
+                    trigger_settlement.event_id
                 ),
                 "causal_settlement_receipt_sha256": (
-                    embodied.causal_settlement.authority_receipt_sha256
+                    trigger_settlement.authority_receipt_sha256
                 ),
                 "dispatch_phase": (
                     last_dispatch.phase
@@ -9025,7 +9101,7 @@ class Guala:
                 ),
                 "episode_id": turn.episode_id,
                 "outcome_observation_receipt_sha256": (
-                    embodied.observation_receipt.authority_receipt_sha256
+                    current_observation_receipt.authority_receipt_sha256
                 ),
                 "schema": PLAY_CAUSAL_ADMISSION_SCHEMA,
                 "steps": steps,

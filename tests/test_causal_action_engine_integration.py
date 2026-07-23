@@ -996,6 +996,135 @@ def test_companion_vocal_pressure_enters_live_engine_as_binaural_w1_experience(
         guala.shutdown()
 
 
+def test_committed_companion_event_is_the_exact_autonomous_trigger(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY",
+        "companion-committed-trigger-key",
+    )
+    guala = Guala()
+    try:
+        started = []
+        real_start = guala._causal_deliberation.start
+
+        def capture_start(settlement, **values):
+            started.append(settlement)
+            return real_start(settlement, **values)
+
+        def reject_silent_remount(*_args, **_kwargs):
+            raise AssertionError(
+                "committed auditory trigger was replaced by a silent remount"
+            )
+
+        monkeypatch.setattr(
+            guala._causal_deliberation,
+            "start",
+            capture_start,
+        )
+        monkeypatch.setattr(
+            guala._w1_physical_evidence,
+            "mount_current_observation",
+            reject_silent_remount,
+        )
+
+        result = guala.experience_companion_vocal_pressure(
+            _companion_pcm_chunk()
+        )
+
+        assert len(started) == 1
+        assert started[0].authority_receipt_sha256 == (
+            result["causal_settlement_receipt_sha256"]
+        )
+        assert result["causal_play"][
+            "causal_settlement_receipt_sha256"
+        ] == result["causal_settlement_receipt_sha256"]
+        assert result["causal_play"]["trigger"] == "external_world_change"
+        assert result["causal_play"]["dispatch_reason"] == "action_unknown"
+    finally:
+        guala.shutdown()
+
+
+def test_committed_single_event_rejects_forged_world_observation(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY",
+        "companion-forged-single-world-key",
+    )
+    guala = Guala()
+    try:
+        authority = guala._w1_companion_vocal_experience
+        prepared = authority.prepare(pcm_s16le=_companion_pcm_chunk())
+        authority.commit(prepared)
+        mount = prepared.physical_mount
+        forged = replace(prepared.execution_receipt.after, revision=999)
+        world_before = guala._embodiment_world.encoded_snapshot()
+        cycle_before = guala._causal_action_cycle.encoded_snapshot()
+
+        with pytest.raises(ValueError, match="authentication changed"):
+            guala._run_causal_play_episode(
+                trigger="external_world_change",
+                committed_settlement=mount.causal_settlement,
+                committed_observation_receipt=mount.observation_receipt,
+                committed_world_observation=forged,
+            )
+
+        assert guala._embodiment_world.encoded_snapshot() == world_before
+        assert guala._causal_action_cycle.encoded_snapshot() == cycle_before
+    finally:
+        guala.shutdown()
+
+
+def test_committed_multiblock_event_rejects_forged_world_observation(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY",
+        "companion-forged-episode-world-key",
+    )
+    guala = Guala()
+    try:
+        chunk = _companion_pcm_chunk()
+        required_samples = (
+            MAX_EMITTED_PCM_SAMPLES + MIN_EMITTED_PCM_SAMPLES
+        )
+        pcm = chunk * (
+            (required_samples + len(chunk) // 2 - 1)
+            // (len(chunk) // 2)
+        )
+        authority = guala._w1_companion_vocal_experience
+        prepared = authority.prepare_episode(pcm_s16le=pcm)
+        authority.verify_episode(prepared.episode)
+        authority.commit_episode(prepared)
+        final_block = prepared.prediction_blocks[-1]
+        forged = replace(final_block.execution_receipt.after, revision=999)
+        world_before = guala._embodiment_world.encoded_snapshot()
+        cycle_before = guala._causal_action_cycle.encoded_snapshot()
+
+        with pytest.raises(ValueError, match="authentication changed"):
+            guala._run_causal_play_episode(
+                trigger="external_world_change",
+                committed_settlement=final_block.causal_settlement,
+                committed_observation_receipt=final_block.evidence_receipt,
+                committed_world_observation=forged,
+            )
+
+        assert guala._embodiment_world.encoded_snapshot() == world_before
+        assert guala._causal_action_cycle.encoded_snapshot() == cycle_before
+    finally:
+        guala.shutdown()
+
+
 def test_companion_vocal_engine_failure_restores_world_and_causal_reservation(
     monkeypatch,
 ) -> None:
