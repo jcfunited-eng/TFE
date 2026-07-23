@@ -857,7 +857,7 @@ def test_unrelated_settlements_rebase_prediction_without_adjacency_learning(
             "action_relations": 0,
             "active_context": True,
             "armed_action": False,
-            "episodes": 4,
+            "episodes": 1,
             "passive_relations": 0,
             "pending_status": "unknown",
         }
