@@ -54,6 +54,11 @@ from dsf_ai_service.substrate.embodiment_world import (
 )
 from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
+    ExactCausalExperienceOwner,
+)
+from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+    W1AudiovisualPhysicalEvidenceAuthority,
+    W1PhysicalEvidenceReceipt,
 )
 
 
@@ -751,14 +756,22 @@ class FullFieldPredictionAuthority:
         *,
         settlement: CausalExperienceSettlement,
         world_authority: EmbodimentWorldAuthority,
-        sensory_authority: EmbodimentSensoryOutcomeAuthority,
+        sensory_authority: (
+            EmbodimentSensoryOutcomeAuthority
+            | W1AudiovisualPhysicalEvidenceAuthority
+        ),
         observation: ObservationSnapshot,
-        outcome_receipt: OutcomeObservationReceipt,
+        outcome_receipt: (
+            OutcomeObservationReceipt | W1PhysicalEvidenceReceipt
+        ),
         execution_receipt: ActionExecutionReceipt | None,
     ) -> None:
         if not isinstance(world_authority, EmbodimentWorldAuthority):
             raise TypeError("W1 attachment requires world authority")
-        if not isinstance(sensory_authority, EmbodimentSensoryOutcomeAuthority):
+        if not isinstance(sensory_authority, (
+            EmbodimentSensoryOutcomeAuthority,
+            W1AudiovisualPhysicalEvidenceAuthority,
+        )):
             raise TypeError("W1 attachment requires sensory authority")
         if not isinstance(observation, ObservationSnapshot):
             raise TypeError("W1 attachment observation is not typed")
@@ -769,36 +782,84 @@ class FullFieldPredictionAuthority:
             world_authority.verify_execution_receipt(execution_receipt)
             if execution_receipt.after != observation:
                 raise ValueError("W1 execution does not end at attached observation")
-        sensory_authority.verify_outcome_observation_receipt(outcome_receipt)
-        if (
-            outcome_receipt.world_observation_receipt_sha256
-            != observation.authority_receipt_sha256
-            or outcome_receipt.world_revision != observation.revision
-            or outcome_receipt.execution_receipt_sha256
-            != (
-                execution_receipt.authority_receipt_sha256
-                if execution_receipt is not None
-                else None
-            )
+        if isinstance(
+            sensory_authority, W1AudiovisualPhysicalEvidenceAuthority
         ):
-            raise ValueError("W1 outcome receipt names another observation")
+            if not isinstance(outcome_receipt, W1PhysicalEvidenceReceipt):
+                raise TypeError(
+                    "anonymous W1 attachment requires physical evidence receipt"
+                )
+            sensory_authority.verify_evidence_receipt(outcome_receipt)
+            expected_execution = (
+                execution_receipt.authority_receipt_sha256
+                if execution_receipt is not None else None
+            )
+            if (
+                outcome_receipt.world_execution_receipt_sha256
+                != expected_execution
+                or outcome_receipt.world_observation_after_receipt_sha256
+                != observation.authority_receipt_sha256
+                or (
+                    execution_receipt is not None
+                    and outcome_receipt
+                    .world_observation_before_receipt_sha256
+                    != execution_receipt.before.authority_receipt_sha256
+                )
+                or (
+                    execution_receipt is None
+                    and outcome_receipt
+                    .world_observation_before_receipt_sha256
+                    != observation.authority_receipt_sha256
+                )
+                or outcome_receipt.acoustic_emission_receipt_sha256s
+            ):
+                raise ValueError(
+                    "anonymous W1 receipt is not a reproducible physical boundary"
+                )
+            reproduced_mount = (
+                sensory_authority.mount_authenticated_action_outcome(
+                    execution_receipt, commit=False
+                )
+                if execution_receipt is not None
+                else sensory_authority.mount_current_observation(commit=False)
+            )
+            reproduced = reproduced_mount.causal_settlement
+            if reproduced is None:
+                raise ValueError("anonymous W1 field could not be reproduced")
+        else:
+            if not isinstance(outcome_receipt, OutcomeObservationReceipt):
+                raise TypeError(
+                    "legacy W1 attachment requires geometry outcome receipt"
+                )
+            sensory_authority.verify_outcome_observation_receipt(
+                outcome_receipt
+            )
+            if (
+                outcome_receipt.world_observation_receipt_sha256
+                != observation.authority_receipt_sha256
+                or outcome_receipt.world_revision != observation.revision
+                or outcome_receipt.execution_receipt_sha256
+                != (
+                    execution_receipt.authority_receipt_sha256
+                    if execution_receipt is not None
+                    else None
+                )
+            ):
+                raise ValueError("W1 outcome receipt names another observation")
+            reproduced_outcome = sensory_authority.transduce(
+                observation,
+                causal_owner=ExactCausalExperienceOwner(
+                    on_settlement=lambda _value: None,
+                    log_event=lambda *_args, **_kwargs: None,
+                ),
+                execution_receipt=execution_receipt,
+                commit=False,
+            )
+            reproduced = reproduced_outcome.causal_settlement
         # Re-run the canonical stateless transducer.  This proves the supplied
         # full field is the physical field produced by this exact geometry.
-        from dsf_ai_service.substrate.exact_causal_experience import (
-            ExactCausalExperienceOwner,
-        )
-
-        reproduced = sensory_authority.transduce(
-            observation,
-            causal_owner=ExactCausalExperienceOwner(
-                on_settlement=lambda _value: None,
-                log_event=lambda *_args, **_kwargs: None,
-            ),
-            execution_receipt=execution_receipt,
-            commit=False,
-        )
         if (
-            reproduced.causal_settlement.structural_fingerprint
+            reproduced.structural_fingerprint
             != settlement.structural_fingerprint
         ):
             raise ValueError("W1 geometry does not produce attached causal field")
@@ -814,9 +875,15 @@ class FullFieldPredictionAuthority:
         language_authority: CausalLanguageConstructionAuthority | None = None,
         language_episode: CausalLanguageEpisode | None = None,
         world_authority: EmbodimentWorldAuthority | None = None,
-        sensory_authority: EmbodimentSensoryOutcomeAuthority | None = None,
+        sensory_authority: (
+            EmbodimentSensoryOutcomeAuthority
+            | W1AudiovisualPhysicalEvidenceAuthority
+            | None
+        ) = None,
         observation: ObservationSnapshot | None = None,
-        outcome_receipt: OutcomeObservationReceipt | None = None,
+        outcome_receipt: (
+            OutcomeObservationReceipt | W1PhysicalEvidenceReceipt | None
+        ) = None,
         execution_receipt: ActionExecutionReceipt | None = None,
     ) -> PredictiveEpisodeReceipt:
         witness = _settlement_witness(

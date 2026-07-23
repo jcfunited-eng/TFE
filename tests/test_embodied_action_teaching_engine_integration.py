@@ -188,25 +188,21 @@ def test_tampered_post_sensory_proof_rolls_back_without_closure(
             "tampered demonstration reached persistence"
         )
         before = _snapshots(guala)
-        authority = guala._embodiment_sensory_outcome_authority
-        transduce = authority.transduce
+        authority = guala._w1_physical_evidence
+        mount_action_outcome = authority.mount_action_outcome
 
-        def tamper_post(observation, **values):
-            outcome = transduce(observation, **values)
-            if values.get("execution_receipt") is None:
-                return outcome
+        def tamper_post(execution_receipt, **values):
+            outcome = mount_action_outcome(execution_receipt, **values)
             return replace(
                 outcome,
-                observation_receipt=replace(
-                    outcome.observation_receipt,
-                    world_revision=(
-                        outcome.observation_receipt.world_revision + 1
-                    ),
+                evidence_receipt=replace(
+                    outcome.evidence_receipt,
+                    world_observation_after_receipt_sha256="0" * 64,
                 ),
             )
 
-        authority.transduce = tamper_post
-        with pytest.raises(ValueError, match="outcome observation HMAC changed"):
+        authority.mount_action_outcome = tamper_post
+        with pytest.raises(ValueError, match="W1 evidence HMAC changed"):
             guala.durably_demonstrate_embodied_action(
                 tutor_id="joe",
                 nonce="engine-guided-demonstration-0006",

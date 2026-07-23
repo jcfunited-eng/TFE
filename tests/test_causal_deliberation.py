@@ -222,6 +222,44 @@ def test_exact_outcome_advances_a_multi_step_chain() -> None:
     assert stopped.stop_reason == "action_unknown"
 
 
+def test_transition_outcome_closes_action_while_stable_state_selects_next() -> None:
+    first = _settlement("separated-first", frequency=31)
+    transition = _settlement("separated-transition", frequency=32)
+    stable = _settlement("separated-stable", frequency=33)
+    final = _settlement("separated-final", frequency=34)
+    cycle = CausalActionCycle(authority_key="separated-cycle")
+    first_action = ActionCommand.embodiment("body.motion", b"one")
+    second_action = ActionCommand.embodiment("body.motion", b"two")
+    _learn_transition(
+        cycle,
+        first,
+        first_action,
+        transition,
+        "separated-teacher-0001",
+    )
+    _learn_transition(
+        cycle,
+        stable,
+        second_action,
+        final,
+        "separated-teacher-0002",
+    )
+    core = CausalDeliberation(authority_key="separated-core")
+
+    assert core.start(first, action_cycle=cycle).action == first_action
+    continued = core.advance(
+        stable,
+        action_outcome=transition,
+        action_cycle=cycle,
+    )
+
+    assert continued.status == "action"
+    assert continued.action == second_action
+    assert continued.expected_outcome.structural_fingerprint == (
+        final.structural_fingerprint
+    )
+
+
 def test_verified_mismatch_becomes_one_counterexample_and_ambiguous() -> None:
     trigger = _settlement("mismatch-trigger", frequency=8)
     expected = _settlement("mismatch-expected", frequency=9)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import struct
 from dataclasses import replace
 from fractions import Fraction
@@ -8,7 +9,13 @@ from fractions import Fraction
 import pytest
 
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
+from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    MAX_NATIVE_SIGHT_SUBSTREAMS,
+)
+import dsf_ai_service.substrate.w1_audiovisual_physical_evidence as evidence_module
 from dsf_ai_service.substrate.embodiment_world import (
+    DEFAULT_MAX_BODIES,
+    DEFAULT_MAX_OBJECTS,
     PORT_ID,
     EmbodiedBody,
     EmbodiedObject,
@@ -28,9 +35,11 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     MAX_EMITTED_PCM_SAMPLES,
     W1AudiovisualPhysicalEvidenceAuthority,
     W1EvidenceState,
+    _AnonymousDetection,
     _BODY_AXES,
     _TOUCH_AXES,
     _anonymous_detections,
+    _visual_inputs,
 )
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     AuthenticatedW1AcousticEmission,
@@ -234,6 +243,283 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
     )
     assert authority.close_epoch(epoch)
     assert authority.status()["retained_raw_media_bytes"] == 0
+
+
+def test_action_outcome_settles_anonymous_body_contact_without_fake_sound():
+    accepted = []
+    world = _world()
+    owner = _owner(accepted.append)
+    authority = _authority(world, owner)
+    execution = _execution(world)
+
+    result = authority.mount_action_outcome(execution)
+
+    assert result.state is W1EvidenceState.OBSERVED
+    assert result.reason == "anonymous_action_outcome_observed"
+    assert result.binaural_pcm is None
+    assert result.evidence_receipt is not None
+    assert result.evidence_receipt.acoustic_emission_receipt_sha256s == ()
+    assert result.evidence_receipt.binaural_commitment == {}
+    assert result.evidence_receipt.world_execution_receipt_sha256 == (
+        execution.authority_receipt_sha256
+    )
+    assert len(accepted) == 1
+    settlement = result.causal_settlement
+    assert settlement is not None
+    assert settlement.source_tags == ()
+    assert settlement.routing_chis == ()
+    observed = {
+        item.sense for item in settlement.interpretations
+        if item.state == "observed"
+    }
+    unavailable = {
+        item.sense for item in settlement.interpretations
+        if item.state == "sensor_unavailable"
+    }
+    assert observed == {"sight", "touch", "body"}
+    assert unavailable == {"sound", "smell", "taste"}
+    with pytest.raises(ValueError, match="mount differs"):
+        authority.verify_mount(replace(result, reason="changed"))
+
+
+def test_current_observation_can_be_reproduced_without_committing_state():
+    accepted = []
+    world = _world()
+    owner = _owner(accepted.append)
+    authority = _authority(world, owner)
+
+    first = authority.mount_current_observation(commit=False)
+    second = authority.mount_current_observation(commit=False)
+
+    assert first.state is W1EvidenceState.OBSERVED
+    assert second.state is W1EvidenceState.OBSERVED
+    assert first.evidence_receipt is not None
+    assert first.evidence_receipt.world_execution_receipt_sha256 is None
+    assert first.causal_settlement is not None
+    assert second.causal_settlement is not None
+    assert first.causal_settlement.structural_fingerprint == (
+        second.causal_settlement.structural_fingerprint
+    )
+    assert accepted == []
+    assert owner.status()["settled"] == 0
+
+
+def test_authenticated_historical_action_can_be_reproduced_after_world_advances():
+    world = _world()
+    authority = _authority(world)
+    picked = _execution(world)
+    original = authority.mount_action_outcome(picked, commit=False)
+    current = world.observation_snapshot()
+    placed = world.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(
+            PlaceCommand("teaching-object", PositionMM(1_600, 1_000, 0))
+        ),
+        causal_intent_receipt_sha256="2" * 64,
+        expected_revision=current.revision,
+    )
+    assert placed.disposition == "applied"
+
+    with pytest.raises(ValueError, match="not the current world"):
+        authority.mount_action_outcome(picked, commit=False)
+    reproduced = authority.mount_authenticated_action_outcome(
+        picked, commit=False
+    )
+
+    assert original.causal_settlement is not None
+    assert reproduced.causal_settlement is not None
+    assert reproduced.causal_settlement.structural_fingerprint == (
+        original.causal_settlement.structural_fingerprint
+    )
+
+
+def test_rejected_world_command_cannot_be_mounted_as_an_action_outcome():
+    world = _world()
+    authority = _authority(world)
+    before = world.observation_snapshot()
+    rejected = world.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(PickCommand("missing-object")),
+        causal_intent_receipt_sha256="3" * 64,
+        expected_revision=before.revision,
+    )
+    assert rejected.disposition == "rejected"
+
+    with pytest.raises(ValueError, match="applied"):
+        authority.mount_action_outcome(rejected, commit=False)
+    with pytest.raises(ValueError, match="applied"):
+        authority.mount_authenticated_action_outcome(
+            rejected, commit=False
+        )
+
+
+def test_visual_transport_capacity_equals_exact_W1_inventory() -> None:
+    assert MAX_NATIVE_SIGHT_SUBSTREAMS == (
+        (DEFAULT_MAX_BODIES - 1 + DEFAULT_MAX_OBJECTS) * 4
+    )
+
+
+def test_max_inventory_mount_preserves_all_sight_ports_and_full_fields():
+    center = PositionMM(2_500, 2_500, 0)
+    points = tuple(
+        PositionMM(
+            2_500 + round(1_500 * math.cos(2 * math.pi * index / 19)),
+            2_500 + round(1_500 * math.sin(2 * math.pi * index / 19)),
+            0,
+        )
+        for index in range(19)
+    )
+    bodies = [EmbodiedBody("self", PoseMM(center, 0), 50, 800)]
+    ports = [EmbodimentPort(PORT_ID, "self")]
+    for index, position in enumerate(points[:3]):
+        body_id = f"external-{index:02d}"
+        bodies.append(
+            EmbodiedBody(body_id, PoseMM(position, 180_000), 1, 100)
+        )
+        ports.append(
+            EmbodimentPort(f"w1.external-{index:02d}", body_id)
+        )
+    objects = tuple(
+        EmbodiedObject(f"object-{index:02d}", 1, 1, position)
+        for index, position in enumerate(points[3:])
+    )
+    world = EmbodimentWorldAuthority(
+        authority_key=WORLD_KEY,
+        bodies=tuple(bodies),
+        self_body_id="self",
+        actor_ports=tuple(ports),
+        initial_objects=objects,
+    )
+    authority = _authority(world)
+    assert len(_anonymous_detections(world.observation_snapshot())) == 19
+
+    first = authority.mount_current_observation(commit=False)
+    second = authority.mount_current_observation(commit=False)
+
+    assert first.causal_settlement is not None
+    assert second.causal_settlement is not None
+    sight = next(
+        item for item in first.causal_settlement.interpretations
+        if item.sense == "sight"
+    )
+    assert len(sight.substreams) == MAX_NATIVE_SIGHT_SUBSTREAMS
+    assert all(
+        tuple(name for name, _value in field_tuple.fields)
+        == DSF_FIELD_ORDER
+        for substream in sight.substreams
+        for field_tuple in substream.field_tuples
+    )
+    assert first.causal_settlement.structural_fingerprint == (
+        second.causal_settlement.structural_fingerprint
+    )
+    settlement_payload = first.causal_settlement.receipt_registry.resolve(
+        first.causal_settlement.authority_receipt_sha256,
+        "maximum W1 causal settlement",
+    )
+    assert len(settlement_payload) <= 2 * 1024 * 1024
+    assert len(json.dumps(first.persistence_record()).encode("utf-8")) <= 4096
+
+
+def test_visual_appearance_disappearance_is_exact_anonymous_and_fail_closed(
+    monkeypatch,
+) -> None:
+    def detection(control_id: str, x: int) -> _AnonymousDetection:
+        return _AnonymousDetection(
+            control_id,
+            (
+                Fraction(x, 8),
+                Fraction(0),
+                Fraction(0),
+                Fraction(1, 8),
+            ),
+        )
+
+    def probe(before, after):
+        sequences = iter((before, after))
+        monkeypatch.setattr(
+            evidence_module,
+            "_anonymous_detections",
+            lambda _snapshot: next(sequences),
+        )
+        return _visual_inputs(
+            object(),
+            object(),
+            source_time_start=Fraction(0),
+            source_time_end=Fraction(1),
+        )
+
+    appeared, _commitment, appeared_ambiguous = probe(
+        (
+            detection("control-A-identity", 1),
+            detection("control-C-identity", 3),
+        ),
+        (
+            detection("control-A-identity", 1),
+            detection("control-B-identity", 2),
+            detection("control-C-identity", 3),
+        ),
+    )
+    assert appeared_ambiguous is False
+    assert len(appeared) == 12
+    radius_signals = tuple(
+        item.normalized_signal for item in appeared
+        if item.substream_id.endswith("-radius")
+    )
+    assert (-1.0, 0.125) in radius_signals
+    assert all(
+        "control-" not in json.dumps({
+            "coordinates": [
+                [item.axis_id, item.coordinate_id]
+                for item in value.coordinates
+            ],
+            "sensor_id": value.sensor_id,
+            "substream_id": value.substream_id,
+        })
+        for value in appeared
+    )
+
+    disappeared, _commitment, disappeared_ambiguous = probe(
+        (
+            detection("control-A-identity", 1),
+            detection("control-C-identity", 3),
+        ),
+        (
+            detection("control-C-identity", 3),
+            detection("control-B-identity", 4),
+        ),
+    )
+    assert disappeared_ambiguous is False
+    assert len(disappeared) == 12
+    assert (0.125, -1.0) in tuple(
+        item.normalized_signal for item in disappeared
+        if item.substream_id.endswith("-radius")
+    )
+
+    incomparable, _commitment, incomparable_ambiguous = probe(
+        (
+            detection("control-A-identity", 1),
+            detection("control-C-identity", 3),
+        ),
+        (
+            detection("control-B-identity", 1),
+            detection("control-C-identity", 3),
+        ),
+    )
+    assert incomparable_ambiguous is True
+    assert incomparable == ()
+
+    crossed, _commitment, crossed_ambiguous = probe(
+        (
+            detection("control-A-identity", 1),
+            detection("control-B-identity", 2),
+        ),
+        (
+            detection("control-B-identity", 1),
+            detection("control-A-identity", 2),
+        ),
+    )
+    assert crossed_ambiguous is True
+    assert crossed == ()
 
 
 def test_visual_geometry_is_exactly_binary_representable_at_native_boundary():

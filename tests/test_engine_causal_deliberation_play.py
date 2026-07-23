@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import inspect
+from dataclasses import replace
+
+import pytest
 
 from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
 from dsf_ai_service.substrate.embodiment_world import (
@@ -48,6 +51,27 @@ def test_guided_relations_drive_two_actual_w1_steps_then_recurrence(
             state_dir="unused",
         )
         assert first["causal_play"]["steps"] == []
+        action_outcomes = []
+        advances = []
+        mount_action_outcome = (
+            guala._w1_physical_evidence.mount_action_outcome
+        )
+        advance = guala._causal_deliberation.advance
+
+        def capture_action_outcome(execution, *, commit=True):
+            mounted = mount_action_outcome(execution, commit=commit)
+            if commit:
+                action_outcomes.append((execution, mounted))
+            return mounted
+
+        def capture_advance(settlement, **values):
+            advances.append((settlement, values.get("action_outcome")))
+            return advance(settlement, **values)
+
+        guala._w1_physical_evidence.mount_action_outcome = (
+            capture_action_outcome
+        )
+        guala._causal_deliberation.advance = capture_advance
 
         second = guala.durably_demonstrate_embodied_action(
             tutor_id="joe",
@@ -65,6 +89,111 @@ def test_guided_relations_drive_two_actual_w1_steps_then_recurrence(
         )
         assert guala._causal_action_dispatcher.status()["active"] is False
         assert guala._causal_action_cycle.status()["closures"] == 2
+        assert len(action_outcomes) == len(advances) == 2
+        for (execution, mounted), (stable, transition) in zip(
+            action_outcomes, advances, strict=True
+        ):
+            receipt = mounted.evidence_receipt
+            assert receipt.world_execution_receipt_sha256 == (
+                execution.authority_receipt_sha256
+            )
+            assert receipt.world_observation_before_receipt_sha256 == (
+                execution.before.authority_receipt_sha256
+            )
+            assert receipt.world_observation_after_receipt_sha256 == (
+                execution.after.authority_receipt_sha256
+            )
+            assert transition == mounted.causal_settlement
+            assert stable.authority_receipt_sha256 != (
+                transition.authority_receipt_sha256
+            )
+    finally:
+        guala.shutdown()
+
+
+def test_live_play_never_calls_legacy_geometry_transducer(monkeypatch) -> None:
+    _configure(monkeypatch, "deliberation-no-legacy-key")
+    guala = Guala()
+    try:
+        _enable_test_publisher(guala)
+
+        def reject_legacy(*_args, **_kwargs):
+            raise AssertionError("legacy geometry transducer was called")
+
+        guala._embodiment_sensory_outcome_authority.transduce = reject_legacy
+        guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="deliberation-no-legacy-demo-0001",
+            port_id=PORT_ID,
+            command_payload=_move(1400, 90_000),
+            state_dir="unused",
+        )
+        result = guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="deliberation-no-legacy-demo-0002",
+            port_id=PORT_ID,
+            command_payload=_move(1000, 0),
+            state_dir="unused",
+        )
+
+        assert len(result["causal_play"]["steps"]) == 2
+    finally:
+        guala.shutdown()
+
+
+def test_unsettled_w1_action_evidence_rolls_back_the_entire_live_step(
+    monkeypatch,
+) -> None:
+    _configure(monkeypatch, "deliberation-unsettled-w1-key")
+    guala = Guala()
+    try:
+        _enable_test_publisher(guala)
+        guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="deliberation-unsettled-w1-demo-0001",
+            port_id=PORT_ID,
+            command_payload=_move(1400, 90_000),
+            state_dir="unused",
+        )
+        current = guala._embodiment_world.observation_snapshot()
+        returned = guala._embodiment_world.execute_port_command(
+            port_id=PORT_ID,
+            command_payload=_move(1000, 0),
+            causal_intent_receipt_sha256="4" * 64,
+            expected_revision=current.revision,
+        )
+        assert returned.disposition == "applied"
+        before_world = guala._embodiment_world.encoded_snapshot()
+        before_cycle = guala._causal_action_cycle.encoded_snapshot()
+        before_dispatcher = (
+            guala._causal_action_dispatcher.encoded_snapshot()
+        )
+        mount_action_outcome = (
+            guala._w1_physical_evidence.mount_action_outcome
+        )
+
+        def unsettle(execution, *, commit=True):
+            assert commit is True
+            mounted = mount_action_outcome(
+                execution, commit=False
+            )
+            return replace(
+                mounted,
+                evidence_receipt=None,
+                causal_settlement=None,
+            )
+
+        guala._w1_physical_evidence.mount_action_outcome = unsettle
+        with pytest.raises(RuntimeError, match="did not produce"):
+            guala._run_causal_play_episode(trigger="test")
+
+        assert guala._embodiment_world.encoded_snapshot() == before_world
+        assert guala._causal_action_cycle.encoded_snapshot() == before_cycle
+        assert (
+            guala._causal_action_dispatcher.encoded_snapshot()
+            == before_dispatcher
+        )
+        assert guala._causal_action_dispatcher.status()["active"] is False
     finally:
         guala.shutdown()
 

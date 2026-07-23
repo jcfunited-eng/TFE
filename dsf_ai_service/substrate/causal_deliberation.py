@@ -936,6 +936,7 @@ class CausalDeliberation:
         self,
         settlement: CausalExperienceSettlement,
         *,
+        action_outcome: CausalExperienceSettlement | None = None,
         action_cycle: CausalActionCycle | None = None,
         admitted_evidence: tuple[
             VerifiedActionRelationEvidence, ...
@@ -943,6 +944,12 @@ class CausalDeliberation:
     ) -> DeliberationTurn:
         world = DeliberationWitness.from_settlement(
             settlement, max_bytes=self._max_witness_bytes
+        )
+        outcome_world = (
+            DeliberationWitness.from_settlement(
+                action_outcome, max_bytes=self._max_witness_bytes
+            )
+            if action_outcome is not None else world
         )
         with self._lock:
             if self._episode is None:
@@ -964,7 +971,7 @@ class CausalDeliberation:
             verified_receipts = {
                 item.settlement_receipt_sha256 for item in relation.outcomes
             }
-            if world.settlement_receipt_sha256 not in verified_receipts:
+            if outcome_world.settlement_receipt_sha256 not in verified_receipts:
                 with self._atomic():
                     return self._stop(
                         world=world,
@@ -972,9 +979,8 @@ class CausalDeliberation:
                         episode_id=episode.episode_id,
                         depth=episode.depth,
                     )
-            if (
-                world.structural_fingerprint
-                != episode.expected_outcome.structural_fingerprint
+            if outcome_world.structural_fingerprint != (
+                episode.expected_outcome.structural_fingerprint
             ):
                 with self._atomic():
                     return self._stop(

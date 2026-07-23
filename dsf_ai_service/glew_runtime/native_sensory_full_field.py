@@ -59,6 +59,9 @@ ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v
 # the historical unbounded-memory failure.
 MAX_NATIVE_SUBSTREAMS_PER_SENSE = 16
 MAX_NATIVE_SOUND_SUBSTREAMS = 32
+# W1 admits at most 3 non-self bodies plus 16 objects, each preserving four
+# independent physical axes: (3 + 16) * 4 = 76 scalar structural ports.
+MAX_NATIVE_SIGHT_SUBSTREAMS = 76
 MAX_NATIVE_SAMPLES_PER_SUBSTREAM = 2048
 MAX_NATIVE_SAMPLES_PER_SETTLEMENT = 32768
 
@@ -305,6 +308,8 @@ def build_six_sense_full_field(
             substream_capacity = (
                 MAX_NATIVE_SOUND_SUBSTREAMS
                 if sense is PhysicalSense.SOUND
+                else MAX_NATIVE_SIGHT_SUBSTREAMS
+                if sense is PhysicalSense.SIGHT
                 else MAX_NATIVE_SUBSTREAMS_PER_SENSE
             )
             if len(native_ports) > substream_capacity:
@@ -442,6 +447,7 @@ __all__ = (
     "MAX_NATIVE_SAMPLES_PER_SETTLEMENT",
     "MAX_NATIVE_SAMPLES_PER_SUBSTREAM",
     "MAX_NATIVE_SOUND_SUBSTREAMS",
+    "MAX_NATIVE_SIGHT_SUBSTREAMS",
     "MAX_NATIVE_SUBSTREAMS_PER_SENSE",
     "NativeSensorySubstreamInput",
     "build_six_sense_full_field",

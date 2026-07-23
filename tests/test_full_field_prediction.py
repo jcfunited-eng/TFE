@@ -56,6 +56,12 @@ from dsf_ai_service.substrate.full_field_prediction import (
     _compare_structures,
     _overall,
 )
+from dsf_ai_service.substrate.w1_acoustic_emitter import (
+    W1AcousticEmitterAuthority,
+)
+from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+    W1AudiovisualPhysicalEvidenceAuthority,
+)
 
 
 KEY = b"full-field-prediction-test-key-" * 2
@@ -474,6 +480,45 @@ def test_w1_attachment_retains_exact_bodies_objects_and_topology() -> None:
             observation=changed,
             outcome_receipt=outcome.observation_receipt,
         )
+
+
+def test_anonymous_w1_attachment_reproduces_full_field_without_fake_sound() -> None:
+    world = EmbodimentWorldAuthority(authority_key=KEY)
+    owner = ExactCausalExperienceOwner(
+        on_settlement=lambda _value: None,
+        log_event=lambda *_args, **_kwargs: None,
+    )
+    sensory = W1AudiovisualPhysicalEvidenceAuthority(
+        authority_key=KEY,
+        world_authority=world,
+        causal_owner=owner,
+        acoustic_emitter=W1AcousticEmitterAuthority(
+            authority_key=KEY,
+            world_authority=world,
+        ),
+    )
+    observation = world.observation_snapshot()
+    mounted = sensory.mount_current_observation(commit=False)
+    assert mounted.causal_settlement is not None
+    assert mounted.evidence_receipt is not None
+    authority = FullFieldPredictionAuthority(authority_key=KEY)
+
+    episode = authority.admit_episode(
+        mounted.causal_settlement,
+        world_authority=world,
+        sensory_authority=sensory,
+        observation=observation,
+        outcome_receipt=mounted.evidence_receipt,
+    )
+
+    attachment = episode.w1_attachment
+    assert attachment is not None
+    assert attachment["outcome_observation"][
+        "acoustic_emission_receipt_sha256s"
+    ] == []
+    assert attachment["outcome_observation"][
+        "causal_settlement_receipt_sha256"
+    ] == mounted.causal_settlement.authority_receipt_sha256
 
 
 def _teach_action(cycle: CausalActionCycle, trigger, action: ActionCommand):

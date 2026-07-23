@@ -6,6 +6,7 @@ import pytest
 
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     MAX_NATIVE_SOUND_SUBSTREAMS,
+    MAX_NATIVE_SIGHT_SUBSTREAMS,
     MAX_NATIVE_SUBSTREAMS_PER_SENSE,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
@@ -69,6 +70,13 @@ def test_sound_rejects_thirty_third_component_before_building() -> None:
         _build(PhysicalSense.SOUND, MAX_NATIVE_SOUND_SUBSTREAMS + 1)
 
 
-def test_non_sound_senses_keep_the_sixteen_component_boundary() -> None:
+def test_sight_admits_exact_W1_inventory_and_rejects_overflow() -> None:
+    built = _build(PhysicalSense.SIGHT, MAX_NATIVE_SIGHT_SUBSTREAMS)
+    built.boundary.verify(built.receipt_registry)
     with pytest.raises(ValueError, match="topology exceeds"):
-        _build(PhysicalSense.SIGHT, MAX_NATIVE_SUBSTREAMS_PER_SENSE + 1)
+        _build(PhysicalSense.SIGHT, MAX_NATIVE_SIGHT_SUBSTREAMS + 1)
+
+
+def test_other_non_sound_senses_keep_sixteen_component_boundary() -> None:
+    with pytest.raises(ValueError, match="topology exceeds"):
+        _build(PhysicalSense.BODY, MAX_NATIVE_SUBSTREAMS_PER_SENSE + 1)

@@ -40,6 +40,10 @@ from dsf_ai_service.substrate.embodiment_world import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
+from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+    W1AudiovisualPhysicalEvidenceAuthority,
+    W1PhysicalEvidenceMount,
+)
 
 
 DEMONSTRATION_SCHEMA = "guala.embodied_action_teaching.demonstration.v1"
@@ -193,7 +197,10 @@ class EmbodiedActionTeachingAuthority:
         authority_key: bytes | str,
         authorized_tutors: Sequence[str],
         world_authority: EmbodimentWorldAuthority,
-        sensory_authority: EmbodimentSensoryOutcomeAuthority,
+        sensory_authority: (
+            EmbodimentSensoryOutcomeAuthority
+            | W1AudiovisualPhysicalEvidenceAuthority
+        ),
         action_cycle: CausalActionCycle,
         demonstration_capacity: int = DEFAULT_DEMONSTRATION_CAPACITY,
         max_command_bytes: int = DEFAULT_MAX_COMMAND_BYTES,
@@ -201,7 +208,10 @@ class EmbodiedActionTeachingAuthority:
     ) -> None:
         if not isinstance(world_authority, EmbodimentWorldAuthority):
             raise ValueError("embodied teaching requires the W1 world authority")
-        if not isinstance(sensory_authority, EmbodimentSensoryOutcomeAuthority):
+        if not isinstance(sensory_authority, (
+            EmbodimentSensoryOutcomeAuthority,
+            W1AudiovisualPhysicalEvidenceAuthority,
+        )):
             raise ValueError("embodied teaching requires the sensory authority")
         if not isinstance(action_cycle, CausalActionCycle):
             raise ValueError("embodied teaching requires the causal action cycle")
@@ -243,7 +253,7 @@ class EmbodiedActionTeachingAuthority:
 
     def _verify_outcome(
         self,
-        outcome: EmbodiedSensoryOutcome,
+        outcome: EmbodiedSensoryOutcome | W1PhysicalEvidenceMount,
         *,
         observation: ObservationSnapshot,
         execution_receipt: ActionExecutionReceipt | None,
@@ -251,6 +261,53 @@ class EmbodiedActionTeachingAuthority:
         execution_receipt_sha256: str | None,
         revision: int,
     ) -> None:
+        if isinstance(self._sensory, W1AudiovisualPhysicalEvidenceAuthority):
+            if not isinstance(outcome, W1PhysicalEvidenceMount):
+                raise ValueError(
+                    "demonstration requires typed anonymous W1 evidence"
+                )
+            self._sensory.verify_mount(outcome)
+            receipt = outcome.evidence_receipt
+            settlement = outcome.causal_settlement
+            if receipt is None or settlement is None:
+                raise ValueError("demonstration W1 evidence did not settle")
+            if (
+                receipt.world_observation_after_receipt_sha256
+                != observation_receipt_sha256
+                or receipt.world_execution_receipt_sha256
+                != execution_receipt_sha256
+                or (
+                    execution_receipt is not None
+                    and receipt.world_observation_before_receipt_sha256
+                    != execution_receipt.before.authority_receipt_sha256
+                )
+                or (
+                    execution_receipt is None
+                    and receipt.world_observation_before_receipt_sha256
+                    != observation_receipt_sha256
+                )
+            ):
+                raise ValueError(
+                    "anonymous W1 field names different world evidence"
+                )
+            expected = (
+                self._sensory.mount_authenticated_action_outcome(
+                    execution_receipt, commit=False
+                )
+                if execution_receipt is not None
+                else self._sensory.mount_authenticated_observation(
+                    observation, commit=False
+                )
+            )
+            if (
+                expected.causal_settlement is None
+                or expected.causal_settlement.structural_fingerprint
+                != settlement.structural_fingerprint
+            ):
+                raise ValueError(
+                    "anonymous W1 full field differs from exact physical boundary"
+                )
+            return
         if not isinstance(outcome, EmbodiedSensoryOutcome):
             raise ValueError("demonstration requires a typed embodied full field")
         self._sensory.verify_outcome_observation_receipt(
@@ -306,8 +363,8 @@ class EmbodiedActionTeachingAuthority:
         nonce: str,
         action: ActionCommand,
         execution: ActionExecutionReceipt,
-        pre_outcome: EmbodiedSensoryOutcome,
-        post_outcome: EmbodiedSensoryOutcome,
+        pre_outcome: EmbodiedSensoryOutcome | W1PhysicalEvidenceMount,
+        post_outcome: EmbodiedSensoryOutcome | W1PhysicalEvidenceMount,
     ) -> EmbodiedActionDemonstrationReceipt:
         unsigned = {
             "action_receipt_sha256": action.authority_receipt_sha256,
@@ -436,9 +493,9 @@ class EmbodiedActionTeachingAuthority:
         tutor_id: str,
         nonce: str,
         command_payload: bytes,
-        pre_outcome: EmbodiedSensoryOutcome,
+        pre_outcome: EmbodiedSensoryOutcome | W1PhysicalEvidenceMount,
         execution_receipt: ActionExecutionReceipt,
-        post_outcome: EmbodiedSensoryOutcome,
+        post_outcome: EmbodiedSensoryOutcome | W1PhysicalEvidenceMount,
     ) -> GuidedActionBinding:
         """Learn only from one complete authenticated physical transition."""
 

@@ -3517,6 +3517,40 @@ class Guala:
             if _causal_cycle_key
             else None
         )
+        self._w1_acoustic_emitter = None
+        self._w1_physical_evidence = None
+        if _causal_cycle_key:
+            import hmac as _hmac
+            from dsf_ai_service.substrate.w1_acoustic_emitter import (
+                W1AcousticEmitterAuthority as _W1AcousticEmitterAuthority,
+            )
+            from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+                W1AudiovisualPhysicalEvidenceAuthority as
+                _W1AudiovisualPhysicalEvidenceAuthority,
+            )
+            _root_key = _causal_cycle_key.encode("utf-8")
+            _w1_acoustic_key = _hmac.new(
+                _root_key,
+                b"guala-w1-authenticated-acoustic-emitter-v2",
+                _hashlib.sha256,
+            ).digest()
+            _w1_physical_key = _hmac.new(
+                _root_key,
+                b"guala-w1-anonymous-multisensory-evidence-v6",
+                _hashlib.sha256,
+            ).digest()
+            self._w1_acoustic_emitter = _W1AcousticEmitterAuthority(
+                authority_key=_w1_acoustic_key,
+                world_authority=self._embodiment_world,
+            )
+            self._w1_physical_evidence = (
+                _W1AudiovisualPhysicalEvidenceAuthority(
+                    authority_key=_w1_physical_key,
+                    world_authority=self._embodiment_world,
+                    causal_owner=self._embodiment_outcome_causal_owner,
+                    acoustic_emitter=self._w1_acoustic_emitter,
+                )
+            )
         self._embodied_action_teaching_key = None
         self._embodied_action_teaching = None
         self._causal_deliberation_key = None
@@ -3539,7 +3573,7 @@ class Guala:
                     authorized_tutors=("joe", "wc"),
                     world_authority=self._embodiment_world,
                     sensory_authority=(
-                        self._embodiment_sensory_outcome_authority
+                        self._w1_physical_evidence
                     ),
                     action_cycle=self._causal_action_cycle,
                     demonstration_capacity=64,
@@ -7930,6 +7964,17 @@ class Guala:
         ):
             raise ValueError("prediction W1 attachment is incomplete")
         try:
+            from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+                W1PhysicalEvidenceReceipt,
+            )
+            physical_authority = (
+                self._w1_physical_evidence
+                if isinstance(
+                    outcome_observation_receipt,
+                    W1PhysicalEvidenceReceipt,
+                )
+                else self._embodiment_sensory_outcome_authority
+            )
             episode = authority.admit_episode(
                 settlement,
                 intake_authority=(
@@ -7952,7 +7997,7 @@ class Guala:
                     if world_observation is not None else None
                 ),
                 sensory_authority=(
-                    self._embodiment_sensory_outcome_authority
+                    physical_authority
                     if world_observation is not None else None
                 ),
                 observation=world_observation,
@@ -8243,24 +8288,22 @@ class Guala:
             raise RuntimeError(
                 "embodiment execution lost its dispatcher authority"
             )
-        if (
-            self._embodiment_sensory_outcome_authority is None
-            or self._embodiment_outcome_causal_owner is None
-        ):
-            raise RuntimeError("embodiment sensory outcome authority is unavailable")
+        if self._w1_physical_evidence is None:
+            raise RuntimeError("W1 physical outcome authority is unavailable")
         world_execution = pending["world_execution"]
-        embodied_outcome = (
-            self._embodiment_sensory_outcome_authority.transduce(
-                world_execution.after,
-                causal_owner=self._embodiment_outcome_causal_owner,
-                execution_receipt=world_execution,
-                commit=True,
-            )
+        embodied_outcome = self._w1_physical_evidence.mount_action_outcome(
+            world_execution,
+            commit=True,
         )
-        self._embodiment_sensory_outcome_authority \
-            .verify_outcome_observation_receipt(
-                embodied_outcome.observation_receipt
+        if (
+            embodied_outcome.causal_settlement is None
+            or embodied_outcome.evidence_receipt is None
+            or embodied_outcome.state.value != "observed"
+        ):
+            raise RuntimeError(
+                "W1 action outcome did not produce causal physical evidence"
             )
+        self._w1_physical_evidence.verify_mount(embodied_outcome)
         from dsf_ai_service.substrate.causal_settlement_dispatcher import (
             authenticate_outcome_observation,
         )
@@ -8274,7 +8317,7 @@ class Guala:
                 embodied_outcome.causal_settlement.authority_receipt_sha256
             ),
             observation_nonce=(
-                "w1:" + embodied_outcome.observation_receipt
+                "w1-physical:" + embodied_outcome.observation_receipt
                 .authority_receipt_sha256
             ),
         )
@@ -8312,8 +8355,7 @@ class Guala:
 
         required = (
             self._embodiment_world,
-            self._embodiment_sensory_outcome_authority,
-            self._embodiment_outcome_causal_owner,
+            self._w1_physical_evidence,
             self._embodied_action_teaching,
             self._causal_deliberation,
             self._causal_action_dispatcher,
@@ -8324,15 +8366,17 @@ class Guala:
             if self._causal_action_dispatcher.status()["active"]:
                 return None
             before = self._embodiment_world.observation_snapshot()
-            embodied = self._embodiment_sensory_outcome_authority.transduce(
-                before,
-                causal_owner=self._embodiment_outcome_causal_owner,
+            embodied = self._w1_physical_evidence.mount_current_observation(
                 commit=True,
             )
-            self._embodiment_sensory_outcome_authority \
-                .verify_outcome_observation_receipt(
-                    embodied.observation_receipt
+            if (
+                embodied.causal_settlement is None
+                or embodied.observation_receipt is None
+            ):
+                raise RuntimeError(
+                    "W1 current physical field did not settle"
                 )
+            self._w1_physical_evidence.verify_mount(embodied)
             self._record_causal_perception_without_dispatch(
                 embodied.causal_settlement,
                 world_observation=before,
@@ -8392,6 +8436,10 @@ class Guala:
                     )
                     break
                 cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
+                dispatcher_snapshot = (
+                    self._causal_action_dispatcher.encoded_snapshot()
+                )
+                world_snapshot = self._embodiment_world.encoded_snapshot()
                 prediction_snapshot = (
                     self._full_field_prediction.encoded_snapshot()
                     if self._full_field_prediction is not None
@@ -8494,12 +8542,33 @@ class Guala:
                         evidence_receipt_sha256=evidence,
                     )
                     break
-                completed, actual = (
-                    self._settle_executed_embodiment_outcome(
-                        dispatch,
-                        return_outcome=True,
+                try:
+                    completed, actual = (
+                        self._settle_executed_embodiment_outcome(
+                            dispatch,
+                            return_outcome=True,
+                        )
                     )
-                )
+                except Exception:
+                    self._embodiment_world.restore_encoded(world_snapshot)
+                    self._causal_action_cycle.restore_encoded(cycle_snapshot)
+                    self._causal_action_dispatcher.restore_encoded(
+                        dispatcher_snapshot
+                    )
+                    if (
+                        prediction_snapshot is not None
+                        and self._full_field_prediction is not None
+                    ):
+                        self._full_field_prediction.restore_encoded(
+                            prediction_snapshot
+                        )
+                    self._prediction_conditioned_intent_receipt = None
+                    self._prediction_conditioned_binding_id = None
+                    self._latest_full_field_prediction_observation = (
+                        prediction_observation
+                    )
+                    self._causal_embodiment_execution = None
+                    raise
                 if (
                     actual is None
                     or completed.status != "completed"
@@ -8527,13 +8596,35 @@ class Guala:
                         actual.causal_settlement.authority_receipt_sha256
                     ),
                 })
-                embodied = actual
+                current_observation = (
+                    self._embodiment_world.observation_snapshot()
+                )
+                embodied = (
+                    self._w1_physical_evidence
+                    .mount_current_observation(commit=True)
+                )
+                if (
+                    embodied.causal_settlement is None
+                    or embodied.observation_receipt is None
+                ):
+                    raise RuntimeError(
+                        "W1 post-action physical field did not settle"
+                    )
+                self._w1_physical_evidence.verify_mount(embodied)
+                self._record_causal_perception_without_dispatch(
+                    embodied.causal_settlement,
+                    world_observation=current_observation,
+                    outcome_observation_receipt=(
+                        embodied.observation_receipt
+                    ),
+                )
                 admitted = (
                     self._embodied_action_teaching
                     .verified_guided_relation_evidence()
                 )
                 turn = self._causal_deliberation.advance(
-                    actual.causal_settlement,
+                    embodied.causal_settlement,
+                    action_outcome=actual.causal_settlement,
                     admitted_evidence=admitted,
                 )
                 last_dispatch = completed
@@ -8971,7 +9062,7 @@ class Guala:
         if (
             self._embodied_action_teaching is None
             or self._embodiment_world is None
-            or self._embodiment_sensory_outcome_authority is None
+            or self._w1_physical_evidence is None
             or self._causal_action_cycle is None
         ):
             raise RuntimeError(
@@ -9038,11 +9129,8 @@ class Guala:
                 try:
                     before = self._embodiment_world.observation_snapshot()
                     pre_outcome = (
-                        self._embodiment_sensory_outcome_authority.transduce(
-                            before,
-                            causal_owner=self._embodiment_outcome_causal_owner,
-                            commit=False,
-                        )
+                        self._w1_physical_evidence
+                        .mount_current_observation(commit=False)
                     )
                     intent_payload = json.dumps(
                         {
@@ -9087,10 +9175,8 @@ class Guala:
                             "guided execution lost exact self-body authority"
                         )
                     post_outcome = (
-                        self._embodiment_sensory_outcome_authority.transduce(
-                            execution.after,
-                            causal_owner=self._embodiment_outcome_causal_owner,
-                            execution_receipt=execution,
+                        self._w1_physical_evidence.mount_action_outcome(
+                            execution,
                             commit=False,
                         )
                     )

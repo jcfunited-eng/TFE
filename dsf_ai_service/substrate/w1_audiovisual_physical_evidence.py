@@ -70,9 +70,9 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
 )
 
 
-EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v4"
-PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v4"
-AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v4\0"
+EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v6"
+PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v6"
+AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v6\0"
 
 PCM_SAMPLE_WIDTH_BYTES = 2
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
@@ -377,22 +377,52 @@ def _visual_inputs(
 ]:
     first = _anonymous_detections(before)
     second = _anonymous_detections(after)
-    if not first or not second or len(first) != len(second):
+    if not first and not second:
         return (), _digest({"before": (), "after": ()}), False
-    order_crossed = tuple(
-        item.control_track_id for item in first
-    ) != tuple(item.control_track_id for item in second)
-    order_crossed = order_crossed or (
+    order_ambiguous = (
         len({item.anonymous_order_key for item in first}) != len(first)
         or len({item.anonymous_order_key for item in second}) != len(second)
     )
+    first_by_track = {item.control_track_id: item for item in first}
+    second_by_track = {item.control_track_id: item for item in second}
+    tracks = set(first_by_track) | set(second_by_track)
+    edges = {track: set() for track in tracks}
+    indegree = {track: 0 for track in tracks}
+    for sequence in (first, second):
+        for left, right in zip(sequence, sequence[1:]):
+            if right.control_track_id not in edges[left.control_track_id]:
+                edges[left.control_track_id].add(right.control_track_id)
+                indegree[right.control_track_id] += 1
+    merged_order = []
+    remaining = set(tracks)
+    while remaining:
+        available = tuple(
+            track for track in remaining if indegree[track] == 0
+        )
+        if len(available) != 1:
+            order_ambiguous = True
+            break
+        track = available[0]
+        merged_order.append(track)
+        remaining.remove(track)
+        for target in edges[track]:
+            indegree[target] -= 1
+    absent = (Fraction(0), Fraction(0), Fraction(0), Fraction(-1))
     witness = []
     inputs = []
-    for ordinal, (left, right) in enumerate(
-        zip(first, second, strict=True)
-    ):
+    for ordinal, track in enumerate(merged_order):
+        left_values = (
+            first_by_track[track].values
+            if track in first_by_track else absent
+        )
+        right_values = (
+            second_by_track[track].values
+            if track in second_by_track else absent
+        )
         for axis_index, axis in enumerate(_VISUAL_AXES):
-            exact_values = (left.values[axis_index], right.values[axis_index])
+            exact_values = (
+                left_values[axis_index], right_values[axis_index]
+            )
             witness.append({
                 "axis": axis,
                 "ordinal": ordinal,
@@ -420,7 +450,7 @@ def _visual_inputs(
     return tuple(inputs), _digest({
         "schema": "guala.w1.anonymous_visual_series.v1",
         "substreams": witness,
-    }), order_crossed
+    }), order_ambiguous
 
 
 def _held_physical_values(
@@ -686,6 +716,9 @@ class W1PhysicalEvidenceReceipt:
     reason: str
     sequence: int
     prior_evidence_receipt_sha256: str | None
+    world_execution_receipt_sha256: str | None
+    world_observation_before_receipt_sha256: str
+    world_observation_after_receipt_sha256: str
     source_time_start: Fraction
     source_time_end: Fraction
     visual_series_sha256: str
@@ -716,6 +749,15 @@ class W1PhysicalEvidenceReceipt:
             "state": self.state.value,
             "somatic_series_sha256": self.somatic_series_sha256,
             "visual_series_sha256": self.visual_series_sha256,
+            "world_execution_receipt_sha256": (
+                self.world_execution_receipt_sha256
+            ),
+            "world_observation_after_receipt_sha256": (
+                self.world_observation_after_receipt_sha256
+            ),
+            "world_observation_before_receipt_sha256": (
+                self.world_observation_before_receipt_sha256
+            ),
         }
 
     def as_record(self) -> dict[str, object]:
@@ -743,13 +785,25 @@ class W1PhysicalEvidenceReceipt:
                 self.prior_evidence_receipt_sha256,
                 "prior W1 evidence receipt",
             )
+        if self.world_execution_receipt_sha256 is not None:
+            _sha256(
+                self.world_execution_receipt_sha256,
+                "W1 world execution receipt",
+            )
+        _sha256(
+            self.world_observation_before_receipt_sha256,
+            "W1 before observation receipt",
+        )
+        _sha256(
+            self.world_observation_after_receipt_sha256,
+            "W1 after observation receipt",
+        )
         _sha256(self.visual_series_sha256, "W1 visual series")
         _sha256(self.somatic_series_sha256, "W1 somatic series")
-        if (
-            not isinstance(self.acoustic_emission_receipt_sha256s, tuple)
-            or not self.acoustic_emission_receipt_sha256s
-            or len(set(self.acoustic_emission_receipt_sha256s))
-            != len(self.acoustic_emission_receipt_sha256s)
+        if not isinstance(
+            self.acoustic_emission_receipt_sha256s, tuple
+        ) or len(set(self.acoustic_emission_receipt_sha256s)) != len(
+            self.acoustic_emission_receipt_sha256s
         ):
             raise ValueError("W1 acoustic contribution boundary changed")
         for receipt in self.acoustic_emission_receipt_sha256s:
@@ -783,6 +837,10 @@ class W1PhysicalEvidenceMount:
     binaural_pcm: W1BinauralPCM | None = None
     causal_settlement: CausalExperienceSettlement | None = None
 
+    @property
+    def observation_receipt(self) -> W1PhysicalEvidenceReceipt | None:
+        return self.evidence_receipt
+
     def persistence_record(self) -> dict[str, object]:
         """Return a raw-media-free record safe for bounded persistence."""
         return {
@@ -804,15 +862,29 @@ class W1PhysicalEvidenceMount:
                 raise ValueError("unsettled W1 evidence retained physical payload")
             return
         self.evidence_receipt.verify(authority_key)
-        if self.binaural_pcm is None or self.causal_settlement is None:
-            raise ValueError("settled W1 evidence is incomplete")
-        self.binaural_pcm.verify()
-        self.causal_settlement.verify()
         if (
-            self.binaural_pcm.commitment_record()
-            != dict(self.evidence_receipt.binaural_commitment)
-            or self.causal_settlement.authority_receipt_sha256
-            != self.evidence_receipt.causal_settlement_receipt_sha256
+            self.state is not self.evidence_receipt.state
+            or self.reason != self.evidence_receipt.reason
+        ):
+            raise ValueError("W1 physical mount differs from its receipt")
+        if self.causal_settlement is None:
+            raise ValueError("settled W1 evidence is incomplete")
+        self.causal_settlement.verify()
+        acoustic = self.evidence_receipt.acoustic_emission_receipt_sha256s
+        if acoustic:
+            if self.binaural_pcm is None:
+                raise ValueError("settled W1 acoustic evidence is incomplete")
+            self.binaural_pcm.verify()
+            if self.binaural_pcm.commitment_record() != dict(
+                self.evidence_receipt.binaural_commitment
+            ):
+                raise ValueError("W1 physical evidence differs from its receipt")
+        elif self.binaural_pcm is not None or dict(
+            self.evidence_receipt.binaural_commitment
+        ):
+            raise ValueError("W1 unavailable sound retained acoustic payload")
+        if self.causal_settlement.authority_receipt_sha256 != (
+            self.evidence_receipt.causal_settlement_receipt_sha256
         ):
             raise ValueError("W1 physical evidence differs from its receipt")
         for sense in self.causal_settlement.interpretations:
@@ -921,6 +993,222 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         result = W1PhysicalEvidenceMount(state=state, reason=reason)
         result.verify(b"x" * 32)
         return result
+
+    def verify_mount(self, mount: W1PhysicalEvidenceMount) -> None:
+        if not isinstance(mount, W1PhysicalEvidenceMount):
+            raise TypeError("W1 physical evidence mount is required")
+        mount.verify(self._key)
+
+    def verify_evidence_receipt(
+        self, receipt: W1PhysicalEvidenceReceipt
+    ) -> None:
+        if not isinstance(receipt, W1PhysicalEvidenceReceipt):
+            raise TypeError("W1 physical evidence receipt is required")
+        receipt.verify(self._key)
+
+    def _mount_anonymous_physical_boundary(
+        self,
+        *,
+        before: ObservationSnapshot,
+        after: ObservationSnapshot,
+        execution_receipt_sha256: str | None,
+        reason: str,
+        commit: bool,
+    ) -> W1PhysicalEvidenceMount:
+        if not isinstance(commit, bool):
+            raise TypeError("W1 physical boundary commit flag must be boolean")
+        source_time_start = Fraction(0)
+        source_time_end = Fraction(1)
+        visual_inputs, visual_commitment, visual_order_crossed = _visual_inputs(
+            before,
+            after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        )
+        if visual_order_crossed:
+            return self._unsettled(
+                W1EvidenceState.AMBIGUOUS,
+                "anonymous_visual_order_crossed",
+            )
+        if not visual_inputs:
+            return self._unsettled(
+                W1EvidenceState.UNKNOWN,
+                "anonymous_visual_series_is_incomplete",
+            )
+        somatic_inputs, somatic_commitment = _somatic_inputs(
+            before,
+            after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        )
+        states = {
+            sense: (
+                SenseBoundaryState.OBSERVED
+                if sense in (
+                    PhysicalSense.SIGHT,
+                    PhysicalSense.TOUCH,
+                    PhysicalSense.BODY,
+                )
+                else SenseBoundaryState.SENSOR_UNAVAILABLE
+            )
+            for sense in SENSE_ORDER
+        }
+        assembly_id = "w1-anonymous-physical-boundary-" + _digest({
+            "after_observation_receipt_sha256": (
+                after.authority_receipt_sha256
+            ),
+            "before_observation_receipt_sha256": (
+                before.authority_receipt_sha256
+            ),
+            "execution_receipt_sha256": execution_receipt_sha256,
+            "somatic_series_sha256": somatic_commitment,
+            "visual_series_sha256": visual_commitment,
+        })
+        built = build_six_sense_full_field(
+            assembly_id=assembly_id,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+            observed_substreams={
+                PhysicalSense.SIGHT: visual_inputs,
+                **somatic_inputs,
+            },
+            states=states,
+        )
+        settlement = self._causal_owner.settle(
+            built,
+            routing_chis=(),
+            source_tags=(),
+            commit=commit,
+        )
+        payload = {
+            "acoustic_emission_receipt_sha256s": [],
+            "binaural_commitment": {},
+            "causal_settlement_receipt_sha256": (
+                settlement.authority_receipt_sha256
+            ),
+            "prior_evidence_receipt_sha256": None,
+            "reason": reason,
+            "schema": EVIDENCE_SCHEMA,
+            "sequence": 0,
+            "source_time_end": _fraction_text(source_time_end),
+            "source_time_start": _fraction_text(source_time_start),
+            "state": W1EvidenceState.OBSERVED.value,
+            "somatic_series_sha256": somatic_commitment,
+            "visual_series_sha256": visual_commitment,
+            "world_execution_receipt_sha256": execution_receipt_sha256,
+            "world_observation_after_receipt_sha256": (
+                after.authority_receipt_sha256
+            ),
+            "world_observation_before_receipt_sha256": (
+                before.authority_receipt_sha256
+            ),
+        }
+        signature = hmac.new(
+            self._key,
+            AUTHORITY_DOMAIN + _canonical(payload),
+            hashlib.sha256,
+        ).hexdigest()
+        receipt = W1PhysicalEvidenceReceipt(
+            state=W1EvidenceState.OBSERVED,
+            reason=reason,
+            sequence=0,
+            prior_evidence_receipt_sha256=None,
+            world_execution_receipt_sha256=execution_receipt_sha256,
+            world_observation_before_receipt_sha256=(
+                before.authority_receipt_sha256
+            ),
+            world_observation_after_receipt_sha256=(
+                after.authority_receipt_sha256
+            ),
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+            visual_series_sha256=visual_commitment,
+            somatic_series_sha256=somatic_commitment,
+            acoustic_emission_receipt_sha256s=(),
+            binaural_commitment={},
+            causal_settlement_receipt_sha256=(
+                settlement.authority_receipt_sha256
+            ),
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=_digest({
+                "authority_hmac_sha256": signature,
+                "payload": payload,
+            }),
+        )
+        result = W1PhysicalEvidenceMount(
+            state=W1EvidenceState.OBSERVED,
+            reason=reason,
+            evidence_receipt=receipt,
+            causal_settlement=settlement,
+        )
+        self.verify_mount(result)
+        return result
+
+    def mount_current_observation(
+        self, *, commit: bool = True
+    ) -> W1PhysicalEvidenceMount:
+        observation = self._world.observation_snapshot()
+        return self.mount_authenticated_observation(
+            observation, commit=commit
+        )
+
+    def mount_authenticated_observation(
+        self,
+        observation: ObservationSnapshot,
+        *,
+        commit: bool = False,
+    ) -> W1PhysicalEvidenceMount:
+        self._world.verify_observation_snapshot(observation)
+        return self._mount_anonymous_physical_boundary(
+            before=observation,
+            after=observation,
+            execution_receipt_sha256=None,
+            reason="anonymous_current_physical_field_observed",
+            commit=commit,
+        )
+
+    def mount_action_outcome(
+        self,
+        execution_receipt: ActionExecutionReceipt,
+        *,
+        commit: bool = True,
+    ) -> W1PhysicalEvidenceMount:
+        self._world.verify_execution_receipt(execution_receipt)
+        current = self._world.observation_snapshot()
+        if current != execution_receipt.after:
+            raise ValueError("W1 action outcome is not the current world")
+        return self.mount_authenticated_action_outcome(
+            execution_receipt, commit=commit
+        )
+
+    def mount_authenticated_action_outcome(
+        self,
+        execution_receipt: ActionExecutionReceipt,
+        *,
+        commit: bool = False,
+    ) -> W1PhysicalEvidenceMount:
+        """Reproduce one authority-verified historical physical transition."""
+
+        self._world.verify_execution_receipt(execution_receipt)
+        if (
+            execution_receipt.disposition != "applied"
+            or execution_receipt.after.revision
+            != execution_receipt.before.revision + 1
+            or execution_receipt.observed_revision
+            != execution_receipt.before.revision
+        ):
+            raise ValueError(
+                "W1 action outcome requires one applied physical transition"
+            )
+        return self._mount_anonymous_physical_boundary(
+            before=execution_receipt.before,
+            after=execution_receipt.after,
+            execution_receipt_sha256=(
+                execution_receipt.authority_receipt_sha256
+            ),
+            reason="anonymous_action_outcome_observed",
+            commit=commit,
+        )
 
     def _binaural(
         self,
@@ -1199,12 +1487,6 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     source_time_end=source_time_end,
                 )
             )
-            if not visual_inputs:
-                del self._epochs[epoch_token]
-                return self._unsettled(
-                    W1EvidenceState.UNKNOWN,
-                    "anonymous_visual_series_is_incomplete",
-                )
             somatic_inputs, somatic_commitment = _somatic_inputs(
                 execution_receipt.before,
                 execution_receipt.after,
@@ -1216,6 +1498,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 return self._unsettled(
                     W1EvidenceState.AMBIGUOUS,
                     "anonymous_visual_order_crossed",
+                )
+            if not visual_inputs:
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.UNKNOWN,
+                    "anonymous_visual_series_is_incomplete",
                 )
             if not (
                 any(_signed_pcm_samples(binaural.left_pcm_s16le))
@@ -1293,6 +1581,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "sequence": sequence,
                 "somatic_series_sha256": somatic_commitment,
                 "visual_series_sha256": visual_commitment,
+                "world_execution_receipt_sha256": (
+                    execution_receipt.authority_receipt_sha256
+                ),
             })
             built = build_six_sense_full_field(
                 assembly_id=assembly_id,
@@ -1334,6 +1625,15 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "state": state.value,
                 "somatic_series_sha256": somatic_commitment,
                 "visual_series_sha256": visual_commitment,
+                "world_execution_receipt_sha256": (
+                    execution_receipt.authority_receipt_sha256
+                ),
+                "world_observation_after_receipt_sha256": (
+                    execution_receipt.after.authority_receipt_sha256
+                ),
+                "world_observation_before_receipt_sha256": (
+                    execution_receipt.before.authority_receipt_sha256
+                ),
             }
             signature = hmac.new(
                 self._key,
@@ -1346,6 +1646,15 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 sequence=sequence,
                 prior_evidence_receipt_sha256=(
                     epoch.prior_evidence_receipt_sha256
+                ),
+                world_execution_receipt_sha256=(
+                    execution_receipt.authority_receipt_sha256
+                ),
+                world_observation_before_receipt_sha256=(
+                    execution_receipt.before.authority_receipt_sha256
+                ),
+                world_observation_after_receipt_sha256=(
+                    execution_receipt.after.authority_receipt_sha256
                 ),
                 source_time_start=source_time_start,
                 source_time_end=source_time_end,
