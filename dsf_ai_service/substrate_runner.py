@@ -2360,39 +2360,92 @@ def _synthesize_released_voice(text, response_source):
                 n_chars=len(text),
             )
 
-    wav = _synthesize_voice(text)
     if not causal_release:
-        return wav
-    if not wav:
-        _raise_causal_speech_output_error(
-            "synthesis",
-            RuntimeError("espeak-ng returned no WAV"),
-            n_chars=len(text),
-        )
+        return _synthesize_voice(text)
 
-    try:
-        wav_bytes = base64.b64decode(wav, validate=True)
-        if not wav_bytes:
-            raise ValueError("decoded WAV is empty")
-    except Exception as error:
-        _raise_causal_speech_output_error(
-            "wav_decode", error, n_chars=len(text))
-
+    prepare = getattr(_guala, "prepare_causal_speech_delivery", None)
+    record_wav = getattr(_guala, "record_causal_speech_wav", None)
+    begin_observation = getattr(
+        _guala, "begin_causal_speech_observation", None
+    )
     observer = getattr(_guala, "observe_causal_speech_output", None)
-    if not callable(observer):
+    complete = getattr(_guala, "complete_causal_speech_delivery", None)
+    fail = getattr(_guala, "fail_causal_speech_delivery", None)
+    if not all(callable(value) for value in (
+        prepare, record_wav, begin_observation, observer, complete, fail
+    )):
         _raise_causal_speech_output_error(
             "engine_boundary",
             RuntimeError(
-                "engine does not expose observe_causal_speech_output(wav_bytes)"
+                "engine does not expose the durable causal speech transaction"
             ),
             n_chars=len(text),
         )
-    try:
-        observer(wav_bytes)
-    except Exception as error:
-        _raise_causal_speech_output_error(
-            "engine_observation", error, n_chars=len(text))
-    return wav
+
+    while True:
+        prepared = prepare(text, state_dir=STATE_DIR)
+        phase = prepared["phase"]
+        if phase == "attempt_started":
+            try:
+                wav = _synthesize_voice(text)
+                if not wav:
+                    raise RuntimeError("espeak-ng returned no WAV")
+            except Exception as error:
+                status = fail(
+                    stage="synthesis",
+                    error=error,
+                    state_dir=STATE_DIR,
+                )
+                if status["status"] == "retryable":
+                    continue
+                return None
+            try:
+                wav_bytes = base64.b64decode(wav, validate=True)
+                if not wav_bytes:
+                    raise ValueError("decoded WAV is empty")
+                record_wav(wav_bytes, state_dir=STATE_DIR)
+            except Exception as error:
+                status = fail(
+                    stage="wav_decode_or_boundary",
+                    error=error,
+                    state_dir=STATE_DIR,
+                )
+                if status["status"] == "retryable":
+                    continue
+                return None
+        elif phase != "wav_ready":
+            raise RuntimeError(
+                f"causal speech delivery cannot resume from {phase}"
+            )
+
+        exact_wav = begin_observation(state_dir=STATE_DIR)
+        try:
+            observer(exact_wav)
+        except Exception as error:
+            fail(
+                stage="engine_observation",
+                error=error,
+                state_dir=STATE_DIR,
+                uncertain_observation=True,
+            )
+            return None
+        complete(exact_wav, state_dir=STATE_DIR)
+        return base64.b64encode(exact_wav).decode("ascii")
+
+
+def resume_pending_causal_speech_delivery():
+    """One boot event resumes the persisted transaction without a timer."""
+    if _guala is None:
+        return None
+    status = _guala.causal_speech_output_status()
+    phase = status.get("delivery_phase") or status.get("status")
+    if phase not in {"queued", "retryable", "wav_ready"}:
+        return None
+    queued = getattr(_guala, "_causal_speech_release", None)
+    if queued is None:
+        return None
+    text = _guala._causal_speech_action_text(queued)
+    return _synthesize_released_voice(text, "causal_action_cycle_commit")
 
 
 def _cmd_converse(text, source, emission_mode=None):

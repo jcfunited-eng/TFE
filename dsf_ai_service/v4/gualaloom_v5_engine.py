@@ -3462,10 +3462,12 @@ class Guala:
         )
         self._causal_dispatcher_key = None
         self._causal_speech_executor_key = None
+        self._causal_speech_delivery_key = None
         self._causal_embodiment_executor_key = None
         self._causal_outcome_observer_key = None
         self._causal_action_dispatcher = None
         self._causal_speech_release = None
+        self._causal_speech_delivery_state = None
         self._causal_dispatch_rejection_reason = None
         self._causal_embodiment_rejection_reason = None
         self._causal_embodiment_execution = None
@@ -3481,6 +3483,11 @@ class Guala:
             self._causal_speech_executor_key = _hmac.new(
                 _root_key,
                 b"guala-causal-speech-executor-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._causal_speech_delivery_key = _hmac.new(
+                _root_key,
+                b"guala-causal-speech-delivery-authority-v1",
                 _hashlib.sha256,
             ).digest()
             self._causal_embodiment_executor_key = _hmac.new(
@@ -7588,6 +7595,8 @@ class Guala:
                 and self._causal_speech_release["request"] != request
             ):
                 raise RuntimeError("causal speech release capacity is full")
+            if self._causal_speech_release is None:
+                self._causal_speech_delivery_state = None
             self._causal_speech_release = {
                 "request": request,
                 "binding_id": None,
@@ -9864,6 +9873,13 @@ class Guala:
                     )
                 queued["delivered_to_transport"] = True
                 queued["failure"] = None
+                try:
+                    self._ensure_causal_speech_delivery_state_locked()
+                    self._persist_causal_speech_checkpoint_if_configured_locked()
+                except Exception:
+                    queued["delivered_to_transport"] = False
+                    self._causal_speech_delivery_state = None
+                    raise
                 provenance = CausalDispatchSpeechProvenance(
                     binding_id=binding_id,
                     trigger_settlement_receipt_sha256=(
@@ -9915,10 +9931,22 @@ class Guala:
         with self._causal_cycle_bridge_lock:
             queued = self._causal_speech_release
             if queued is None:
+                delivery = self._causal_speech_delivery_state
                 return {
                     "schema": "guala.causal_speech_output.status.v1",
-                    "status": "idle",
+                    "status": (
+                        "exhausted"
+                        if delivery is not None
+                        and delivery.phase == "exhausted"
+                        else "idle"
+                    ),
                     "retryable": False,
+                    "attempts": (
+                        delivery.attempts if delivery is not None else 0
+                    ),
+                    "delivery_phase": (
+                        delivery.phase if delivery is not None else None
+                    ),
                 }
             execution_receipt = queued["execution_receipt_sha256"]
             live = (
@@ -9931,16 +9959,24 @@ class Guala:
             if not live:
                 raise RuntimeError("queued causal speech execution is not live")
             failure = queued["failure"]
+            delivery = self._causal_speech_delivery_state
             return {
                 "schema": "guala.causal_speech_output.status.v1",
                 "status": (
                     "retryable"
                     if failure is not None
+                    else delivery.phase
+                    if delivery is not None
+                    and delivery.phase != "queued"
                     else "awaiting_audio_outcome"
                     if queued["delivered_to_transport"]
                     else "queued"
                 ),
                 "retryable": failure is not None,
+                "attempts": delivery.attempts if delivery is not None else 0,
+                "delivery_phase": (
+                    delivery.phase if delivery is not None else None
+                ),
                 "delivered_to_transport": queued["delivered_to_transport"],
                 "request_receipt_sha256": (
                     queued["request"].authority_receipt_sha256
@@ -9948,6 +9984,260 @@ class Guala:
                 "execution_receipt_sha256": execution_receipt,
                 "failure": dict(failure) if failure is not None else None,
             }
+
+    @staticmethod
+    def _causal_speech_action_text(queued):
+        return "".join(
+            chr(value) for value in queued["request"].action.unicode_scalars
+        )
+
+    def _ensure_causal_speech_delivery_state_locked(self):
+        from dsf_ai_service.substrate.causal_speech_delivery import (
+            CausalSpeechDeliveryState,
+        )
+
+        queued = self._causal_speech_release
+        if queued is None:
+            raise ValueError("no causal speech execution is pending")
+        request = queued["request"]
+        execution_receipt = queued["execution_receipt_sha256"]
+        if execution_receipt is None:
+            raise RuntimeError("causal speech delivery lacks execution authority")
+        action_text = self._causal_speech_action_text(queued)
+        state = self._causal_speech_delivery_state
+        if state is None:
+            state = CausalSpeechDeliveryState.queued(
+                request_receipt_sha256=request.authority_receipt_sha256,
+                execution_receipt_sha256=execution_receipt,
+                action_text=action_text,
+            )
+            self._causal_speech_delivery_state = state
+        state.verify()
+        state.verify_action_text(action_text)
+        if (
+            state.request_receipt_sha256 != request.authority_receipt_sha256
+            or state.execution_receipt_sha256 != execution_receipt
+        ):
+            raise RuntimeError("causal speech delivery names another execution")
+        return state
+
+    def _causal_speech_checkpoint_payload_locked(self):
+        import base64 as _base64
+        import hmac as _hmac
+
+        from dsf_ai_service.substrate.causal_speech_delivery import encode_state
+
+        state = self._causal_speech_delivery_state
+        if state is None:
+            raise ValueError("causal speech delivery has no authoritative state")
+        state.verify()
+        payload = {
+            "causal_action_cycle": self._causal_action_cycle.encoded_snapshot(),
+            "causal_action_dispatcher": (
+                self._causal_action_dispatcher.encoded_snapshot()
+            ),
+            "causal_action_dispatcher_active": (
+                self._causal_action_dispatcher.status()["active"]
+            ),
+            "causal_speech_delivery": encode_state(
+                state, authority_key=self._causal_speech_delivery_key
+            ),
+            "causal_speech_release": (
+                self._causal_speech_release_persistence_record()
+                if self._causal_speech_release is not None
+                else None
+            ),
+            "guala_identity": self._guala_identity,
+            "schema": "guala.causal_speech_delivery.checkpoint.payload.v1",
+        }
+        canonical = self._canonical_persistence_bytes(payload)
+        if len(canonical) > 40 * 1024 * 1024:
+            raise RuntimeError("causal speech delivery checkpoint exceeds 40 MiB")
+        return {
+            "payload_base64": _base64.b64encode(canonical).decode("ascii"),
+            "schema": "guala.causal_speech_delivery.checkpoint.hmac.v1",
+            "state_hmac_sha256": _hmac.new(
+                self._causal_speech_delivery_key,
+                b"guala-causal-speech-delivery-checkpoint-v1\0" + canonical,
+                _hashlib.sha256,
+            ).hexdigest(),
+        }
+
+    def _persist_causal_speech_checkpoint_locked(self, state_dir):
+        if not isinstance(state_dir, str) or not state_dir:
+            raise ValueError("causal speech checkpoint requires a state directory")
+        os.makedirs(state_dir, exist_ok=True)
+        return self._atomic_write(
+            os.path.join(state_dir, "guala_causal_speech_delivery.json"),
+            self._causal_speech_checkpoint_payload_locked(),
+        )
+
+    def _persist_causal_speech_checkpoint_if_configured_locked(self):
+        state_dir = os.environ.get("STATE_DIR")
+        if state_dir:
+            self._persist_causal_speech_checkpoint_locked(state_dir)
+
+    @_engine_mutation_entry
+    def prepare_causal_speech_delivery(self, action_text, *, state_dir):
+        """Persist one attempt before the server synthesizer is invoked."""
+        with self._causal_cycle_bridge_lock:
+            state = self._ensure_causal_speech_delivery_state_locked()
+            state.verify_action_text(action_text)
+            if state.phase in {"queued", "retryable"}:
+                state = state.begin_attempt()
+                self._causal_speech_delivery_state = state
+                self._persist_causal_speech_checkpoint_locked(state_dir)
+            return {
+                "phase": state.phase,
+                "attempts": state.attempts,
+                "request_receipt_sha256": state.request_receipt_sha256,
+                "execution_receipt_sha256": state.execution_receipt_sha256,
+                "wav_bytes": state.wav_bytes,
+            }
+
+    @_engine_mutation_entry
+    def record_causal_speech_wav(self, wav_bytes, *, state_dir):
+        """Persist the exact bounded WAV before auditory observation."""
+        with self._causal_cycle_bridge_lock:
+            state = self._ensure_causal_speech_delivery_state_locked()
+            state = state.record_wav(wav_bytes)
+            self._causal_speech_delivery_state = state
+            self._persist_causal_speech_checkpoint_locked(state_dir)
+            return self.causal_speech_output_status()
+
+    @_engine_mutation_entry
+    def begin_causal_speech_observation(self, *, state_dir):
+        """Persist observation authority before re-admitting the exact WAV."""
+        with self._causal_cycle_bridge_lock:
+            state = self._ensure_causal_speech_delivery_state_locked()
+            state = state.begin_observation()
+            self._causal_speech_delivery_state = state
+            self._persist_causal_speech_checkpoint_locked(state_dir)
+            return state.wav_bytes
+
+    def _settle_causal_speech_unavailable_locked(self):
+        """Close an exhausted mouth as unavailable, never as heard speech."""
+        from fractions import Fraction as _Fraction
+
+        from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+            build_six_sense_full_field,
+        )
+        from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+            SENSE_ORDER,
+            SenseBoundaryState,
+        )
+        from dsf_ai_service.substrate.causal_settlement_dispatcher import (
+            authenticate_outcome_observation,
+        )
+
+        state = self._ensure_causal_speech_delivery_state_locked()
+        if state.phase != "exhausted":
+            raise ValueError("causal speech delivery is not exhausted")
+        queued = self._causal_speech_release
+        binding_id = queued["binding_id"]
+        review = self._causal_cycle_pending_review
+        if review is not None and (
+            review["binding_id"] != binding_id
+            or review["execution_receipt_sha256"]
+            != state.execution_receipt_sha256
+        ):
+            raise RuntimeError("pending teacher review changed failed action")
+        built = build_six_sense_full_field(
+            assembly_id=(
+                "speech-unavailable-" + state.request_receipt_sha256
+            ),
+            source_time_start=_Fraction(0, 1),
+            source_time_end=_Fraction(1, 1),
+            observed_substreams={},
+            states={
+                sense: SenseBoundaryState.SENSOR_UNAVAILABLE
+                for sense in SENSE_ORDER
+            },
+        )
+        settlement = self._embodiment_outcome_causal_owner.settle(
+            built,
+            routing_chis=(),
+            source_tags=("actuator:speech_unavailable",),
+            commit=True,
+        )
+        attestation = authenticate_outcome_observation(
+            observer_id="guala.exact.sensory.outcome.v1",
+            authority_key=self._causal_outcome_observer_key,
+            execution_receipt_sha256=state.execution_receipt_sha256,
+            outcome_settlement_receipt_sha256=(
+                settlement.authority_receipt_sha256
+            ),
+            observation_nonce=(
+                "speech-unavailable:" + state.request_receipt_sha256
+            ),
+        )
+        binding = self._causal_action_dispatcher.bind_outcome_observation(
+            settlement=settlement,
+            attestation=attestation,
+        )
+        result = self._causal_action_dispatcher.close_bound_outcome(
+            binding=binding,
+            settlement=settlement,
+        )
+        self._causal_speech_release = None
+        self._causal_last_dispatch_result = result
+        self._record_causal_perception_without_dispatch(settlement)
+        if review is not None:
+            try:
+                self._causal_action_cycle.review_latest_closure(
+                    binding_id=binding_id,
+                    decision=review["decision"],
+                    source=review["source"],
+                    nonce=review["nonce"],
+                )
+            except Exception as error:
+                print(
+                    "[causal-speech] unavailable closure completed but "
+                    f"teacher review failed: {type(error).__name__}: "
+                    f"{error}",
+                    flush=True,
+                )
+            finally:
+                self._causal_cycle_pending_review = None
+        return result
+
+    @_engine_mutation_entry
+    def fail_causal_speech_delivery(
+        self, *, stage, error, state_dir, uncertain_observation=False
+    ):
+        """Persist failure; retry once or close with unavailable senses."""
+        detail = f"{type(error).__name__}: {error}"
+        if len(detail.encode("utf-8")) > 1024:
+            detail = detail.encode("utf-8")[:1024].decode("utf-8", "ignore")
+        with self._causal_cycle_bridge_lock:
+            state = self._ensure_causal_speech_delivery_state_locked()
+            state = state.fail(
+                stage=stage,
+                detail=detail,
+                uncertain_observation=uncertain_observation,
+            )
+            self._causal_speech_delivery_state = state
+            self._persist_causal_speech_checkpoint_locked(state_dir)
+            if state.phase == "exhausted":
+                self._settle_causal_speech_unavailable_locked()
+                self._persist_causal_speech_checkpoint_locked(state_dir)
+            return self.causal_speech_output_status()
+
+    @_engine_mutation_entry
+    def complete_causal_speech_delivery(self, wav_bytes, *, state_dir):
+        """Persist terminal delivery after the exact WAV closed the cycle."""
+        with self._causal_cycle_bridge_lock:
+            state = self._causal_speech_delivery_state
+            if state is None:
+                raise ValueError("causal speech delivery has no transaction")
+            state.verify()
+            if state.wav_bytes != wav_bytes:
+                raise ValueError("completed causal speech WAV changed")
+            if state.phase != "completed":
+                state = state.complete()
+                self._causal_speech_delivery_state = state
+                self._persist_causal_speech_checkpoint_locked(state_dir)
+            return self.causal_speech_output_status()
 
     @_engine_mutation_entry
     def report_causal_speech_output_failure(self, stage, error):
@@ -10006,8 +10296,41 @@ class Guala:
             raise ValueError("causal speech output requires nonempty WAV bytes")
         with self._causal_cycle_bridge_lock:
             queued = self._causal_speech_release
+            delivery = self._causal_speech_delivery_state
+            if queued is None and delivery is not None:
+                delivery.verify()
+                if delivery.phase == "completed" and delivery.wav_bytes == wav_bytes:
+                    return {
+                        "schema": "guala.causal_speech_output.observation.v1",
+                        "status": "already_completed",
+                        "request_receipt_sha256": (
+                            delivery.request_receipt_sha256
+                        ),
+                        "execution_receipt_sha256": (
+                            delivery.execution_receipt_sha256
+                        ),
+                        "wav_sha256": delivery.wav_sha256,
+                    }
             if queued is None or not queued["delivered_to_transport"]:
                 raise ValueError("no delivered causal speech execution is pending")
+            if delivery is not None:
+                delivery.verify()
+                if delivery.phase in {"queued", "retryable"}:
+                    delivery = delivery.begin_attempt()
+                    self._causal_speech_delivery_state = delivery
+                    self._persist_causal_speech_checkpoint_if_configured_locked()
+                    delivery = delivery.record_wav(wav_bytes)
+                    self._causal_speech_delivery_state = delivery
+                    self._persist_causal_speech_checkpoint_if_configured_locked()
+                    delivery = delivery.begin_observation()
+                    self._causal_speech_delivery_state = delivery
+                    self._persist_causal_speech_checkpoint_if_configured_locked()
+                if delivery.phase != "observation_started":
+                    raise ValueError(
+                        "causal speech observation authority was not persisted"
+                    )
+                if delivery.wav_bytes != wav_bytes:
+                    raise ValueError("causal speech observation WAV changed")
             execution_receipt = queued["execution_receipt_sha256"]
             binding_id = queued["binding_id"]
             if not self._causal_action_cycle.verify_live_execution_receipt(
@@ -10021,6 +10344,13 @@ class Guala:
                 != binding_id
             ):
                 raise RuntimeError("causal speech outcome binding changed")
+            review = self._causal_cycle_pending_review
+            if review is not None and (
+                review["binding_id"] != binding_id
+                or review["execution_receipt_sha256"]
+                != execution_receipt
+            ):
+                raise RuntimeError("pending teacher review changed action")
         auditory = self.process_sound_frame(
             wav_bytes,
             source="voice:causal_output",
@@ -10064,23 +10394,29 @@ class Guala:
                 binding=outcome_binding,
                 settlement=settlement,
             )
-            review = self._causal_cycle_pending_review
-            if review is not None:
-                if (
-                    review["binding_id"] != binding_id
-                    or review["execution_receipt_sha256"]
-                    != execution_receipt
-                ):
-                    raise RuntimeError("pending teacher review changed action")
-                self._causal_action_cycle.review_latest_closure(
-                    binding_id=binding_id,
-                    decision=review["decision"],
-                    source=review["source"],
-                    nonce=review["nonce"],
-                )
-                self._causal_cycle_pending_review = None
             self._causal_speech_release = None
             self._causal_last_dispatch_result = result
+            if self._causal_speech_delivery_state is not None:
+                self._causal_speech_delivery_state = (
+                    self._causal_speech_delivery_state.complete()
+                )
+                self._persist_causal_speech_checkpoint_if_configured_locked()
+            if review is not None:
+                try:
+                    self._causal_action_cycle.review_latest_closure(
+                        binding_id=binding_id,
+                        decision=review["decision"],
+                        source=review["source"],
+                        nonce=review["nonce"],
+                    )
+                except Exception as error:
+                    print(
+                        "[causal-speech] speech closed but teacher review "
+                        f"failed: {type(error).__name__}: {error}",
+                        flush=True,
+                    )
+                finally:
+                    self._causal_cycle_pending_review = None
             return {
                 "schema": "guala.causal_speech_output.observation.v1",
                 "status": "completed",
@@ -17555,6 +17891,119 @@ class Guala:
             ),
         }
 
+    def restore_causal_speech_delivery_checkpoint(self, state_dir):
+        """Restore the one receipt-bound actuator transaction, if present."""
+        import base64 as _base64
+        import hmac as _hmac
+
+        from dsf_ai_service.substrate.causal_speech_delivery import decode_state
+
+        path = os.path.join(state_dir, "guala_causal_speech_delivery.json")
+        if not os.path.isfile(path):
+            return False
+        if os.path.getsize(path) > 56 * 1024 * 1024:
+            raise ValueError("causal speech delivery checkpoint exceeds 56 MiB")
+        with open(path) as checkpoint_file:
+            envelope = json.load(checkpoint_file)
+        if not isinstance(envelope, dict) or set(envelope) != {
+            "payload_base64",
+            "schema",
+            "state_hmac_sha256",
+        } or envelope.get("schema") != (
+            "guala.causal_speech_delivery.checkpoint.hmac.v1"
+        ):
+            raise ValueError("causal speech delivery checkpoint envelope changed")
+        try:
+            canonical = _base64.b64decode(
+                envelope["payload_base64"], validate=True
+            )
+        except Exception as error:
+            raise ValueError(
+                "causal speech delivery checkpoint is not canonical base64"
+            ) from error
+        if not canonical or len(canonical) > 40 * 1024 * 1024:
+            raise ValueError("causal speech delivery checkpoint exceeds 40 MiB")
+        supplied = envelope.get("state_hmac_sha256")
+        if not isinstance(supplied, str) or len(supplied) != 64:
+            raise ValueError("causal speech delivery checkpoint HMAC changed")
+        expected = _hmac.new(
+            self._causal_speech_delivery_key,
+            b"guala-causal-speech-delivery-checkpoint-v1\0" + canonical,
+            _hashlib.sha256,
+        ).hexdigest()
+        if not _hmac.compare_digest(supplied, expected):
+            raise ValueError("causal speech delivery checkpoint HMAC changed")
+        try:
+            payload = json.loads(canonical)
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError(
+                "causal speech delivery checkpoint payload is invalid"
+            ) from error
+        if self._canonical_persistence_bytes(payload) != canonical:
+            raise ValueError("causal speech delivery checkpoint is not canonical")
+        if not isinstance(payload, dict) or set(payload) != {
+            "causal_action_cycle",
+            "causal_action_dispatcher",
+            "causal_action_dispatcher_active",
+            "causal_speech_delivery",
+            "causal_speech_release",
+            "guala_identity",
+            "schema",
+        } or payload.get("schema") != (
+            "guala.causal_speech_delivery.checkpoint.payload.v1"
+        ):
+            raise ValueError("causal speech delivery checkpoint fields changed")
+        checkpoint_identity = payload["guala_identity"]
+        if (
+            checkpoint_identity is not None
+            and self._guala_identity is not None
+            and checkpoint_identity != self._guala_identity
+        ):
+            raise ValueError("causal speech delivery checkpoint identity changed")
+        state = decode_state(
+            payload["causal_speech_delivery"],
+            authority_key=self._causal_speech_delivery_key,
+        )
+        checkpoint_active = payload["causal_action_dispatcher_active"]
+        if not isinstance(checkpoint_active, bool):
+            raise ValueError(
+                "causal speech delivery dispatcher activity changed"
+            )
+        release = payload["causal_speech_release"]
+        current_active = self._causal_action_dispatcher.status()["active"]
+        current_same_execution = (
+            self._causal_action_cycle.verify_live_execution_receipt(
+                state.execution_receipt_sha256
+            )
+        )
+        if (
+            not state.live
+            and not checkpoint_active
+            and not current_same_execution
+        ):
+            if not current_active:
+                self._causal_speech_delivery_state = state
+            return True
+        with self._causal_cycle_bridge_lock:
+            self._causal_action_cycle.restore_encoded(
+                payload["causal_action_cycle"]
+            )
+            self._causal_action_dispatcher.restore_encoded(
+                payload["causal_action_dispatcher"]
+            )
+            self._restore_causal_speech_release(release)
+            if state.live and self._causal_speech_release is None:
+                raise ValueError("live causal speech checkpoint lost its release")
+            self._causal_speech_delivery_state = state
+            recovered = state.recover_after_restart()
+            if recovered != state:
+                self._causal_speech_delivery_state = recovered
+                self._persist_causal_speech_checkpoint_locked(state_dir)
+            if recovered.phase == "exhausted" and checkpoint_active:
+                self._settle_causal_speech_unavailable_locked()
+                self._persist_causal_speech_checkpoint_locked(state_dir)
+        return True
+
     def _teaching_persistence_payload(self):
         if self._auditory_v4_archive is not None:
             self._validate_auditory_v4_archive(self._auditory_v4_archive)
@@ -20354,6 +20803,13 @@ class Guala:
                             f"required teaching restore failed: {error}") from error
             elif exact_binary:
                 raise ValueError("required guala_teaching.json is missing")
+
+            # The actuator checkpoint is deliberately outside the periodic
+            # multi-file save cadence.  It atomically carries the complete
+            # live dispatcher transaction before each external mouth/sense
+            # operation, so a task replacement cannot reset the two-attempt
+            # boundary or replay an uncertain auditory observation.
+            self.restore_causal_speech_delivery_checkpoint(state_dir)
 
             # GL-CMD-EPISODIC-MEMORY: real, situational memories (backward-
             # compatible -- absent entirely on any organism saved before

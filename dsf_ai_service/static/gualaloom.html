@@ -305,8 +305,13 @@ async function _pollAuditoryReply(terminalEventId){
         addMsg('replying to: "'+heard+'"','system');
         addEmissionMsg(result.speech,result.emission_id||null,heard);
         _rememberBounded(deliveredEmissionIds,result.emission_id);
-        gualaSpeak(result.speech);
+        if(result.response_source==='causal_action_cycle_commit'){
+          if(result.speech_audio)gualaPlayExactWav(result.speech_audio);
+        }else gualaSpeak(result.speech);
       }
+    }else if(result.status==='completed_without_speech'&&result.speech_output_status==='actuator_unavailable'){
+      const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
+      addMsg('speech actuator unavailable — intended reply to "'+heard+'": "'+(result.intended_speech||'')+'"','system');
     }else if(result.status==='completed_without_speech'){
       const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
       addMsg('no learned causal action for: "'+heard+'" ('+(result.response_source||'unknown')+')','system');
@@ -730,6 +735,18 @@ function gualaSpeak(text){
       badge.innerHTML='\ud83d\udd07 utterance dropped — tap to retry';
     },2000);
   }catch(e){badge.innerHTML='\ud83d\udd07 speak threw: '+e.message}
+}
+function gualaPlayExactWav(wavBase64){
+  const badge=document.getElementById('speaker-badge');
+  if(!wavBase64||muted)return;
+  if(!audioUnlocked){badge.innerHTML='🔇 tap anywhere to enable audio';return}
+  try{
+    const audio=new Audio('data:audio/wav;base64,'+wavBase64);
+    audio.onplay=()=>{badge.innerHTML='🔊 speaking...'};
+    audio.onended=()=>{badge.innerHTML='🔊 ready'};
+    audio.onerror=()=>{badge.innerHTML='🔇 exact WAV playback failed'};
+    audio.play().catch(e=>{badge.innerHTML='🔇 exact WAV playback failed: '+e.message});
+  }catch(e){badge.innerHTML='🔇 exact WAV playback failed: '+e.message}
 }
 // C4: cancel speech on page hide
 document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
@@ -1172,7 +1189,14 @@ async function _converseAndRender(text,source){
     }else if(resp&&d.response_source==='composed_attempt'){
       window._lastAttemptText=resp;
       addEmissionMsg(resp+'  (composed)',d.emission_id||null,text);gualaSpeak(resp);
-    }else if(resp){addEmissionMsg(resp,d.emission_id||null,text);gualaSpeak(resp);}
+    }else if(resp&&d.response_source==='causal_action_cycle_commit'){
+      if(d.speech_audio){
+        addEmissionMsg(resp,d.emission_id||null,text);
+        gualaPlayExactWav(d.speech_audio);
+      }else addMsg('speech actuator unavailable — intended reply: "'+resp+'"','system');
+    }else if(resp){
+      addEmissionMsg(resp,d.emission_id||null,text);gualaSpeak(resp);
+    }
     else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);
   }else{
@@ -1407,7 +1431,7 @@ function _handleEvent(ev){
     el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
     evDiv.insertBefore(el,evDiv.firstChild);
     while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-    if(ev.kind==='emission'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
+    if(ev.kind==='emission'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');if(d.response_source!=='causal_action_cycle_commit')gualaSpeak(d.content)}
     if(ev.kind==='dream_artifact'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
   }catch(e){}
 }
@@ -1457,7 +1481,7 @@ async function pollEvents(){
       let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
       el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
       evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
+      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');if(ev.detail.response_source!=='causal_action_cycle_commit')gualaSpeak(ev.detail.content)}
       if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
     }_backoff.events=0}catch(e){_backoff.events=Math.min((_backoff.events*2)||_BASE.events*2,30000)}
   finally{_inflight.events=false;_schedNext('events',pollEvents)}
@@ -1672,9 +1696,15 @@ async function pollAutonomousThought(){
     if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
       _lastThoughtTick=d.tick;
       if(!d.emission_id||!deliveredEmissionIds.has(d.emission_id)){
-        addEmissionMsg(d.speech,d.emission_id||null);
         _rememberBounded(deliveredEmissionIds,d.emission_id);
-        gualaSpeak(d.speech);
+        if(d.response_source==='causal_action_cycle_commit'){
+          if(d.speech_audio){
+            addEmissionMsg(d.speech,d.emission_id||null);
+            gualaPlayExactWav(d.speech_audio);
+          }else addMsg('speech actuator unavailable — intended autonomous reply: "'+d.speech+'"','system');
+        }else{
+          addEmissionMsg(d.speech,d.emission_id||null);gualaSpeak(d.speech);
+        }
       }
     }
   }catch(e){}

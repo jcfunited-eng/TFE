@@ -210,6 +210,17 @@ def _run_voice_reply(terminal_event, tick_hint):
               f"committed={bool(content)}")
         if not content:
             return
+        speech_audio = None
+        speech_output_status = "browser_noncausal"
+        if response_source == "causal_action_cycle_commit":
+            speech_audio = _sr._synthesize_released_voice(
+                content, response_source
+            )
+            speech_output_status = (
+                "delivered"
+                if speech_audio is not None
+                else "actuator_unavailable"
+            )
         with _sr._autonomous_thought_lock:
             _sr._last_autonomous_thought = {
                 "speech": content,
@@ -226,13 +237,25 @@ def _run_voice_reply(terminal_event, tick_hint):
                 "commit_provenance": [
                     p.as_record() if hasattr(p, "as_record") else p
                     for p in turn_result.commit_provenance],
+                "speech_audio": speech_audio,
+                "speech_output_status": speech_output_status,
             }
         delivery = {
-            "status": "completed",
+            "status": (
+                "completed_without_speech"
+                if speech_output_status == "actuator_unavailable"
+                else "completed"
+            ),
             "terminal_event_id": terminal_event_id,
             "causal_experience_id": terminal_event_id,
             "causal_intake_receipt_sha256": terminal_receipt,
-            "speech": content,
+            (
+                "intended_speech"
+                if speech_output_status == "actuator_unavailable"
+                else "speech"
+            ): content,
+            "speech_audio": speech_audio,
+            "speech_output_status": speech_output_status,
             "tick": _guala.tick,
             "response_source": response_source,
             "emission_id": turn_result.emission_id,
@@ -865,6 +888,7 @@ async def _run_converse(
         return
     task["status"] = "settling"
     task["phase"] = "processing"
+    speech_audio = None
     # GL-BUG-CURRICULUM-LOCK-PRIORITY (Joe, 2026-07-06): "let talking be its
     # own thing" -- live conversation and her own autonomous background
     # reading (curriculum/worldfeed/lookup) both serialize through the same
@@ -940,6 +964,8 @@ async def _run_converse(
             committed_sections = result.get("committed_sections", [])
             picture_refs = result.get("pictures", [])
             source_turn_index = result.get("source_turn_index")
+            if response_source == "causal_action_cycle_commit":
+                speech_audio = result.get("speech")
         else:
             if _guala is None:
                 raise RuntimeError("guala_not_ready")
@@ -990,6 +1016,13 @@ async def _run_converse(
                                      "title": picture.title})
                 if len(picture_refs) >= 4:
                     break
+            if response and response_source == "causal_action_cycle_commit":
+                import dsf_ai_service.substrate_runner as _sr
+                speech_audio = await _run_lifecycle_executor(
+                    lambda: _sr._synthesize_released_voice(
+                        response, response_source
+                    )
+                )
 
         # This write is part of the accepted turn.  Await it so deployment
         # quiescence cannot certify the turn complete while its event writer
@@ -1011,6 +1044,15 @@ async def _run_converse(
         task["committed_sections"] = committed_sections
         task["pictures"] = picture_refs
         task["source_turn_index"] = source_turn_index
+        task["speech_audio"] = speech_audio
+        task["speech_output_status"] = (
+            "delivered"
+            if response_source == "causal_action_cycle_commit"
+            and speech_audio is not None
+            else "actuator_unavailable"
+            if response_source == "causal_action_cycle_commit"
+            else "browser_noncausal"
+        )
         task["completed_tick"] = _guala.tick if _guala else 0
         task["completed_at"] = time.time()
     except Exception as _e:
@@ -2704,6 +2746,25 @@ def _embedded_post_boot(g):
 
     # Wire _guala into substrate_runner so OP_HANDLERS can find it.
     _sr._guala = g
+
+    # A task replacement is itself the retry event.  Resume the one durable
+    # receipt-bound mouth transaction once, without a timer loop and without
+    # requiring the browser or Joe to resend anything.
+    def _resume_causal_speech_once():
+        try:
+            _sr.resume_pending_causal_speech_delivery()
+        except Exception as error:
+            print(
+                "[causal-speech-output] boot recovery failed loudly: "
+                f"{type(error).__name__}: {error}",
+                file=sys.stderr,
+                flush=True,
+            )
+
+    _sr._start_background_thread(
+        _resume_causal_speech_once,
+        "causal-speech-delivery-recovery",
+    )
 
     # Ring buffers — needed for event streaming and ring consumers (T6).
     try:
@@ -4843,6 +4904,8 @@ async def get_converse_task(task_id: str):
             "committed_sections": task.get("committed_sections", []),
             "pictures": task.get("pictures", []),
             "source_turn_index": task.get("source_turn_index"),
+            "speech_audio": task.get("speech_audio"),
+            "speech_output_status": task.get("speech_output_status"),
             "started_tick": task["started_tick"],
             "completed_tick": task.get("completed_tick"),
             "elapsed_ms": int((task.get("completed_at", time.time()) - task["started_at"]) * 1000),

@@ -20,12 +20,58 @@ class _ObservedEngine:
         self.observed_wavs = []
         self.failures = []
         self.events = []
+        self.phase = "queued"
+        self.attempts = 0
+        self.wav_bytes = None
+
+    def prepare_causal_speech_delivery(self, action_text, *, state_dir):
+        assert action_text
+        if self.phase in {"queued", "retryable"}:
+            self.attempts += 1
+            self.phase = "attempt_started"
+        return {
+            "phase": self.phase,
+            "attempts": self.attempts,
+            "request_receipt_sha256": "1" * 64,
+            "execution_receipt_sha256": "2" * 64,
+            "wav_bytes": self.wav_bytes,
+        }
+
+    def record_causal_speech_wav(self, wav_bytes, *, state_dir):
+        self.wav_bytes = wav_bytes
+        self.phase = "wav_ready"
+        return {"status": self.phase}
+
+    def begin_causal_speech_observation(self, *, state_dir):
+        self.phase = "observation_started"
+        return self.wav_bytes
 
     def observe_causal_speech_output(self, wav_bytes):
         self.observed_wavs.append(wav_bytes)
         if self.observation_error is not None:
             raise self.observation_error
         return {"status": "observed"}
+
+    def complete_causal_speech_delivery(self, wav_bytes, *, state_dir):
+        assert wav_bytes == self.wav_bytes
+        self.phase = "completed"
+        return {"status": "idle"}
+
+    def fail_causal_speech_delivery(
+        self,
+        *,
+        stage,
+        error,
+        state_dir,
+        uncertain_observation=False,
+    ):
+        self.failures.append((stage, f"{type(error).__name__}: {error}"))
+        self.phase = (
+            "exhausted"
+            if uncertain_observation or self.attempts >= 2
+            else "retryable"
+        )
+        return {"status": self.phase}
 
     def report_causal_speech_output_failure(self, stage, error):
         self.failures.append((stage, error))
@@ -134,6 +180,30 @@ def test_non_causal_voice_behavior_does_not_enter_actuator_observer(
     assert engine.failures == []
 
 
+def test_causal_release_fails_closed_on_pretransaction_engine(monkeypatch):
+    class _OldEngine:
+        def observe_causal_speech_output(self, _wav_bytes):
+            raise AssertionError("old observer must not be called")
+
+        def _log_substrate_event(self, *_args, **_kwargs):
+            return None
+
+    monkeypatch.setattr(runner, "_guala", _OldEngine())
+    synthesis_calls = []
+    monkeypatch.setattr(
+        runner,
+        "_synthesize_voice",
+        lambda text: synthesis_calls.append(text),
+    )
+
+    with pytest.raises(RuntimeError, match="durable causal speech transaction"):
+        runner._synthesize_released_voice(
+            "hello daddy", "causal_action_cycle_commit"
+        )
+
+    assert synthesis_calls == []
+
+
 def test_overlength_causal_action_fails_before_synthesis_without_truncation(
     monkeypatch,
 ):
@@ -159,22 +229,23 @@ def test_overlength_causal_action_fails_before_synthesis_without_truncation(
     assert engine.events[0][1]["n_chars"] == len(action)
 
 
-def test_missing_causal_wav_is_reported_retryable_and_raises(monkeypatch):
+def test_missing_causal_wav_exhausts_two_attempts_without_speech(monkeypatch):
     engine = _ObservedEngine()
     monkeypatch.setattr(runner, "_guala", engine)
     monkeypatch.setattr(runner, "_synthesize_voice", lambda text: None)
 
-    with pytest.raises(RuntimeError, match="synthesis"):
-        runner._synthesize_released_voice(
-            "hello daddy", "causal_action_cycle_commit"
-        )
+    released = runner._synthesize_released_voice(
+        "hello daddy", "causal_action_cycle_commit"
+    )
 
+    assert released is None
     assert engine.observed_wavs == []
     assert engine.failures[0][0] == "synthesis"
-    assert engine.events[0][0] == "causal_speech_output_error"
+    assert len(engine.failures) == 2
+    assert engine.phase == "exhausted"
 
 
-def test_invalid_causal_wav_transport_is_reported_and_never_observed(
+def test_invalid_causal_wav_transport_exhausts_and_is_never_observed(
     monkeypatch,
 ):
     engine = _ObservedEngine()
@@ -183,16 +254,18 @@ def test_invalid_causal_wav_transport_is_reported_and_never_observed(
         runner, "_synthesize_voice", lambda text: "not valid base64!"
     )
 
-    with pytest.raises(RuntimeError, match="wav_decode"):
-        runner._synthesize_released_voice(
-            "hello daddy", "causal_action_cycle_commit"
-        )
+    released = runner._synthesize_released_voice(
+        "hello daddy", "causal_action_cycle_commit"
+    )
 
+    assert released is None
     assert engine.observed_wavs == []
-    assert engine.failures[0][0] == "wav_decode"
+    assert engine.failures[0][0] == "wav_decode_or_boundary"
+    assert len(engine.failures) == 2
+    assert engine.phase == "exhausted"
 
 
-def test_engine_observation_failure_is_reported_retryable_and_raises(
+def test_engine_observation_failure_exhausts_without_replaying_wav(
     monkeypatch,
 ):
     exact_wav = b"RIFF\x18\x00\x00\x00WAVEfailed-observation"
@@ -206,12 +279,12 @@ def test_engine_observation_failure_is_reported_retryable_and_raises(
         lambda text: base64.b64encode(exact_wav).decode("ascii"),
     )
 
-    with pytest.raises(RuntimeError, match="engine_observation"):
-        runner._synthesize_released_voice(
-            "hello daddy", "causal_action_cycle_commit"
-        )
+    released = runner._synthesize_released_voice(
+        "hello daddy", "causal_action_cycle_commit"
+    )
 
+    assert released is None
     assert engine.observed_wavs == [exact_wav]
     assert engine.failures[0][0] == "engine_observation"
     assert "auditory outcome rejected" in engine.failures[0][1]
-    assert engine.events[0][0] == "causal_speech_output_error"
+    assert engine.phase == "exhausted"
