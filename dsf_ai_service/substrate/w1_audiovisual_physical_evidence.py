@@ -39,7 +39,6 @@ from typing import Mapping
 
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-    MAX_NATIVE_SAMPLES_PER_SUBSTREAM,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
@@ -61,17 +60,22 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
     ExactCausalExperienceOwner,
 )
+from dsf_ai_service.substrate.w1_acoustic_emitter import (
+    AuthenticatedW1AcousticEmission,
+    MAX_EMITTED_PCM_SAMPLES,
+    MIN_EMITTED_PCM_SAMPLES,
+    PCM_SAMPLE_RATE_HZ,
+    W1AcousticEmitterAuthority,
+)
 
 
-EVIDENCE_SCHEMA = "guala.w1.anonymous_audiovisual_evidence.v1"
-PERSISTENCE_SCHEMA = "guala.w1.anonymous_audiovisual_persistence.v1"
-AUTHORITY_DOMAIN = b"guala-w1-anonymous-audiovisual-evidence-v1\0"
+EVIDENCE_SCHEMA = "guala.w1.anonymous_audiovisual_evidence.v2"
+PERSISTENCE_SCHEMA = "guala.w1.anonymous_audiovisual_persistence.v2"
+AUTHORITY_DOMAIN = b"guala-w1-anonymous-audiovisual-evidence-v2\0"
 
-PCM_SAMPLE_RATE_HZ = 16_000
 PCM_SAMPLE_WIDTH_BYTES = 2
-MIN_EMITTED_PCM_SAMPLES = 160
-MAX_EMITTED_PCM_SAMPLES = MAX_NATIVE_SAMPLES_PER_SUBSTREAM
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
+MAX_PROPAGATION_DELAY_SAMPLES = MAX_EMITTED_PCM_SAMPLES
 
 _VISUAL_AXES = ("relative-x", "relative-y", "relative-z", "apparent-radius")
 _CARDINAL_HEADINGS = (0, 90_000, 180_000, 270_000)
@@ -168,7 +172,8 @@ def _render_ear(
     source: PositionMM,
     ear: PositionMM,
     reference_distance_mm: int,
-) -> tuple[bytes, int, Fraction]:
+    pending_samples: tuple[int, ...],
+) -> tuple[bytes, tuple[int, ...], int, Fraction]:
     distance_squared = _distance_squared(source, ear)
     delay = _delay_samples(distance_squared)
     reference_squared = reference_distance_mm**2
@@ -176,13 +181,17 @@ def _render_ear(
         reference_squared,
         max(reference_squared, distance_squared),
     )
-    rendered = [0] * len(samples)
-    for source_index, sample in enumerate(samples):
-        target_index = source_index + delay
-        if target_index >= len(rendered):
-            break
-        rendered[target_index] = _scaled_sample(sample, attenuation)
-    return _pcm_bytes(tuple(rendered)), delay, attenuation
+    if pending_samples and len(pending_samples) != delay:
+        raise ValueError("W1 acoustic propagation path changed inside epoch")
+    pending = pending_samples or (0,) * delay
+    continuous = pending + tuple(
+        _scaled_sample(sample, attenuation) for sample in samples
+    )
+    rendered = continuous[:len(samples)]
+    next_pending = continuous[len(samples):]
+    if len(next_pending) != delay:
+        raise RuntimeError("W1 acoustic delay line cardinality changed")
+    return _pcm_bytes(rendered), next_pending, delay, attenuation
 
 
 def _body(snapshot: ObservationSnapshot, body_id: str) -> EmbodiedBody:
@@ -232,6 +241,19 @@ def _global_spans(snapshot: ObservationSnapshot) -> tuple[int, int, int, int]:
     return span_x, span_y, span_z, max(span_x, span_y)
 
 
+def _binary_scale(maximum_magnitude: int) -> int:
+    if maximum_magnitude <= 0:
+        raise ValueError("W1 physical normalization span is not positive")
+    return 1 << (maximum_magnitude - 1).bit_length()
+
+
+def _exact_binary_float(value: Fraction) -> float:
+    result = float(value)
+    if Fraction.from_float(result) != value:
+        raise ValueError("W1 native signal is not exactly binary representable")
+    return result
+
+
 @dataclass(frozen=True, slots=True)
 class _AnonymousDetection:
     control_body_id: str
@@ -248,6 +270,10 @@ def _anonymous_detections(
     self_body = _body(snapshot, snapshot.self_body_id)
     origin = self_body.pose.position
     span_x, span_y, span_z, planar_span = _global_spans(snapshot)
+    scale_x = _binary_scale(span_x)
+    scale_y = _binary_scale(span_y)
+    scale_z = _binary_scale(span_z)
+    planar_scale = _binary_scale(planar_span)
     values = []
     for body in snapshot.bodies:
         if body.body_id == snapshot.self_body_id:
@@ -263,10 +289,10 @@ def _anonymous_detections(
         values.append(_AnonymousDetection(
             control_body_id=body.body_id,
             values=(
-                Fraction(position.x - origin.x, span_x),
-                Fraction(position.y - origin.y, span_y),
-                Fraction(position.z - origin.z, span_z),
-                Fraction(body.radius_mm, planar_span),
+                Fraction(position.x - origin.x, scale_x),
+                Fraction(position.y - origin.y, scale_y),
+                Fraction(position.z - origin.z, scale_z),
+                Fraction(body.radius_mm, planar_scale),
             ),
         ))
     return tuple(sorted(values, key=lambda item: item.anonymous_order_key))
@@ -316,8 +342,10 @@ def _visual_inputs(
                 physical_quantity="normalized-visual-body-geometry",
                 physical_unit="dimensionless",
                 source_times=(source_time_start, source_time_end),
-                normalized_signal=tuple(float(item) for item in exact_values),
-                phase_turns=(Fraction(0), Fraction(1)),
+                normalized_signal=tuple(
+                    _exact_binary_float(item) for item in exact_values
+                ),
+                phase_turns=(Fraction(0), Fraction(0)),
             ))
     return tuple(inputs), _digest({
         "schema": "guala.w1.anonymous_visual_series.v1",
@@ -351,11 +379,9 @@ def _sound_input(
         physical_unit="signed-pcm16-full-scale",
         source_times=source_times,
         normalized_signal=tuple(
-            float(Fraction(item, 32_768)) for item in samples
+            _exact_binary_float(Fraction(item, 32_768)) for item in samples
         ),
-        phase_turns=tuple(
-            Fraction(index + 1, count) for index in range(count)
-        ),
+        phase_turns=tuple(Fraction(0) for _sample in samples),
     )
 
 
@@ -393,7 +419,9 @@ class W1BinauralCalibration:
 class W1BinauralPCM:
     left_pcm_s16le: bytes
     right_pcm_s16le: bytes
-    sample_count: int
+    emitted_sample_count: int
+    left_sample_count: int
+    right_sample_count: int
     left_delay_samples: int
     right_delay_samples: int
     left_attenuation: Fraction
@@ -403,23 +431,41 @@ class W1BinauralPCM:
         return {
             "left_attenuation": _fraction_text(self.left_attenuation),
             "left_delay_samples": self.left_delay_samples,
+            "left_sample_count": self.left_sample_count,
             "left_pcm_sha256": hashlib.sha256(
                 self.left_pcm_s16le
             ).hexdigest(),
             "right_attenuation": _fraction_text(self.right_attenuation),
             "right_delay_samples": self.right_delay_samples,
+            "right_sample_count": self.right_sample_count,
             "right_pcm_sha256": hashlib.sha256(
                 self.right_pcm_s16le
             ).hexdigest(),
-            "sample_count": self.sample_count,
+            "emitted_sample_count": self.emitted_sample_count,
             "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
         }
 
     def verify(self) -> None:
-        expected_byte_count = self.sample_count * PCM_SAMPLE_WIDTH_BYTES
+        for name, value in (
+            ("emitted", self.emitted_sample_count),
+            ("left", self.left_sample_count),
+            ("right", self.right_sample_count),
+        ):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or not MIN_EMITTED_PCM_SAMPLES
+                <= value
+                <= MAX_EMITTED_PCM_SAMPLES
+            ):
+                raise ValueError(f"binaural {name} sample boundary changed")
         if (
-            len(self.left_pcm_s16le) != expected_byte_count
-            or len(self.right_pcm_s16le) != expected_byte_count
+            len(self.left_pcm_s16le)
+            != self.left_sample_count * PCM_SAMPLE_WIDTH_BYTES
+            or len(self.right_pcm_s16le)
+            != self.right_sample_count * PCM_SAMPLE_WIDTH_BYTES
+            or self.left_sample_count != self.emitted_sample_count
+            or self.right_sample_count != self.emitted_sample_count
         ):
             raise ValueError("binaural PCM cardinality changed")
         _signed_pcm_samples(self.left_pcm_s16le)
@@ -440,6 +486,7 @@ class W1PhysicalEvidenceReceipt:
     source_time_start: Fraction
     source_time_end: Fraction
     visual_series_sha256: str
+    acoustic_emission_receipt_sha256: str
     binaural_commitment: Mapping[str, object]
     causal_settlement_receipt_sha256: str
     authority_hmac_sha256: str
@@ -447,6 +494,9 @@ class W1PhysicalEvidenceReceipt:
 
     def payload(self) -> dict[str, object]:
         return {
+            "acoustic_emission_receipt_sha256": (
+                self.acoustic_emission_receipt_sha256
+            ),
             "binaural_commitment": dict(self.binaural_commitment),
             "causal_settlement_receipt_sha256": (
                 self.causal_settlement_receipt_sha256
@@ -489,6 +539,10 @@ class W1PhysicalEvidenceReceipt:
                 "prior W1 evidence receipt",
             )
         _sha256(self.visual_series_sha256, "W1 visual series")
+        _sha256(
+            self.acoustic_emission_receipt_sha256,
+            "W1 authenticated acoustic emission",
+        )
         _sha256(
             self.causal_settlement_receipt_sha256,
             "W1 causal settlement",
@@ -556,7 +610,16 @@ class W1PhysicalEvidenceMount:
                     if tuple(name for name, _value in field_tuple.fields) != (
                         DSF_FIELD_ORDER
                     ):
-                        raise ValueError("W1 evidence lost full DSF field order")
+                        raise ValueError(
+                            "W1 evidence lost full DSF field order"
+                        )
+
+
+@dataclass(frozen=True, slots=True)
+class _BinauralRender:
+    binaural: W1BinauralPCM
+    left_pending_samples: tuple[int, ...]
+    right_pending_samples: tuple[int, ...]
 
 
 @dataclass(slots=True)
@@ -565,6 +628,8 @@ class _Epoch:
     next_source_sample_index: int = 0
     prior_evidence_receipt_sha256: str | None = None
     previous_after_observation_receipt_sha256: str | None = None
+    left_pending_samples: tuple[int, ...] = ()
+    right_pending_samples: tuple[int, ...] = ()
 
 
 class W1AudiovisualPhysicalEvidenceAuthority:
@@ -576,15 +641,21 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         authority_key: bytes | str,
         world_authority: EmbodimentWorldAuthority,
         causal_owner: ExactCausalExperienceOwner,
+        acoustic_emitter: W1AcousticEmitterAuthority,
         calibration: W1BinauralCalibration | None = None,
     ) -> None:
         if not isinstance(world_authority, EmbodimentWorldAuthority):
             raise TypeError("W1 evidence requires the world authority")
         if not isinstance(causal_owner, ExactCausalExperienceOwner):
             raise TypeError("W1 evidence requires an exact causal owner")
+        if not isinstance(acoustic_emitter, W1AcousticEmitterAuthority):
+            raise TypeError("W1 evidence requires the acoustic emitter authority")
+        if not acoustic_emitter.owns_world(world_authority):
+            raise ValueError("W1 acoustic emitter belongs to another world")
         self._key = _key(authority_key)
         self._world = world_authority
         self._causal_owner = causal_owner
+        self._acoustic_emitter = acoustic_emitter
         self._calibration = calibration or W1BinauralCalibration()
         self._calibration.verify()
         self._epoch_capacity = len(world_authority.actor_ports)
@@ -605,6 +676,26 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         with self._lock:
             return self._epochs.pop(epoch_token, None) is not None
 
+    def emit_acoustic_pressure(
+        self,
+        *,
+        epoch_token: str,
+        sequence: int,
+        source_sample_start: int,
+        execution_receipt: ActionExecutionReceipt,
+        emitter_port_id: str,
+        pcm_s16le: bytes,
+    ) -> AuthenticatedW1AcousticEmission:
+        """Execute the authenticated transient W1 emitter transaction."""
+        return self._acoustic_emitter.emit(
+            epoch_token=epoch_token,
+            sequence=sequence,
+            source_sample_start=source_sample_start,
+            execution_receipt=execution_receipt,
+            emitter_port_id=emitter_port_id,
+            pcm_s16le=pcm_s16le,
+        )
+
     @staticmethod
     def _unsettled(
         state: W1EvidenceState, reason: str
@@ -619,7 +710,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         execution: ActionExecutionReceipt,
         emitter_port_id: str,
         emitted_samples: tuple[int, ...],
-    ) -> W1BinauralPCM | W1PhysicalEvidenceMount:
+        left_pending_samples: tuple[int, ...],
+        right_pending_samples: tuple[int, ...],
+    ) -> _BinauralRender | W1PhysicalEvidenceMount:
         actor_by_port = {
             item.port_id: item.actor_body_id
             for item in self._world.actor_ports
@@ -673,29 +766,66 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "noncardinal_two_ear_calibration_is_unavailable",
             )
         left, right = ears
-        left_pcm, left_delay, left_attenuation = _render_ear(
+        prospective_left_delay = _delay_samples(
+            _distance_squared(after_emitter.pose.position, left)
+        )
+        prospective_right_delay = _delay_samples(
+            _distance_squared(after_emitter.pose.position, right)
+        )
+        if (
+            prospective_left_delay > MAX_PROPAGATION_DELAY_SAMPLES
+            or prospective_right_delay > MAX_PROPAGATION_DELAY_SAMPLES
+        ):
+            return self._unsettled(
+                W1EvidenceState.UNAVAILABLE,
+                "acoustic_path_exceeds_bounded_delay_line",
+            )
+        (
+            left_pcm,
+            next_left_pending,
+            left_delay,
+            left_attenuation,
+        ) = _render_ear(
             emitted_samples,
             source=after_emitter.pose.position,
             ear=left,
             reference_distance_mm=self._calibration.reference_distance_mm,
+            pending_samples=left_pending_samples,
         )
-        right_pcm, right_delay, right_attenuation = _render_ear(
+        (
+            right_pcm,
+            next_right_pending,
+            right_delay,
+            right_attenuation,
+        ) = _render_ear(
             emitted_samples,
             source=after_emitter.pose.position,
             ear=right,
             reference_distance_mm=self._calibration.reference_distance_mm,
+            pending_samples=right_pending_samples,
         )
+        if (
+            left_delay != prospective_left_delay
+            or right_delay != prospective_right_delay
+        ):
+            raise RuntimeError("W1 acoustic path changed during rendering")
         result = W1BinauralPCM(
             left_pcm_s16le=left_pcm,
             right_pcm_s16le=right_pcm,
-            sample_count=len(emitted_samples),
+            emitted_sample_count=len(emitted_samples),
+            left_sample_count=len(left_pcm) // PCM_SAMPLE_WIDTH_BYTES,
+            right_sample_count=len(right_pcm) // PCM_SAMPLE_WIDTH_BYTES,
             left_delay_samples=left_delay,
             right_delay_samples=right_delay,
             left_attenuation=left_attenuation,
             right_attenuation=right_attenuation,
         )
         result.verify()
-        return result
+        return _BinauralRender(
+            binaural=result,
+            left_pending_samples=next_left_pending,
+            right_pending_samples=next_right_pending,
+        )
 
     def mount(
         self,
@@ -703,10 +833,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         epoch_token: str,
         sequence: int,
         execution_receipt: ActionExecutionReceipt,
-        emitter_port_id: str,
-        emitted_pcm_s16le: bytes,
+        acoustic_emission: AuthenticatedW1AcousticEmission,
     ) -> W1PhysicalEvidenceMount:
-        if not isinstance(epoch_token, str) or not epoch_token:
+        if (
+            not isinstance(epoch_token, str)
+            or not epoch_token
+            or len(epoch_token.encode("utf-8")) > 256
+        ):
             raise ValueError("W1 audiovisual epoch token is required")
         if (
             isinstance(sequence, bool)
@@ -714,11 +847,25 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             or sequence < 0
         ):
             raise ValueError("W1 audiovisual sequence is invalid")
-        if not isinstance(emitter_port_id, str) or not emitter_port_id:
-            raise ValueError("W1 acoustic emitter port is required")
+        self._world.verify_execution_receipt(execution_receipt)
+        if not isinstance(
+            acoustic_emission, AuthenticatedW1AcousticEmission
+        ):
+            raise TypeError("W1 authenticated acoustic emission is required")
+        self._acoustic_emitter.verify_emission(
+            acoustic_emission,
+            execution_receipt=execution_receipt,
+        )
+        emission_receipt = acoustic_emission.receipt
+        if (
+            emission_receipt.epoch_commitment_sha256
+            != hashlib.sha256(epoch_token.encode("utf-8")).hexdigest()
+            or emission_receipt.sequence != sequence
+        ):
+            raise ValueError("W1 acoustic emission belongs to another epoch")
+        emitted_pcm_s16le = acoustic_emission.pcm_s16le
         emitted_samples = _signed_pcm_samples(emitted_pcm_s16le)
         emission_sha256 = hashlib.sha256(emitted_pcm_s16le).hexdigest()
-        self._world.verify_execution_receipt(execution_receipt)
         if (
             execution_receipt.disposition != "applied"
             or execution_receipt.after.revision
@@ -744,6 +891,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     W1EvidenceState.UNKNOWN,
                     "audiovisual_sequence_gap_closed_the_epoch",
                 )
+            if emission_receipt.source_sample_start != (
+                epoch.next_source_sample_index
+            ):
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.UNKNOWN,
+                    "acoustic_sample_gap_closed_the_epoch",
+                )
             if (
                 epoch.previous_after_observation_receipt_sha256 is not None
                 and execution_receipt.before.authority_receipt_sha256
@@ -755,13 +910,17 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     "W1_observation_gap_closed_the_epoch",
                 )
 
-            binaural = self._binaural(
+            rendered = self._binaural(
                 execution=execution_receipt,
-                emitter_port_id=emitter_port_id,
+                emitter_port_id=emission_receipt.emitter_port_id,
                 emitted_samples=emitted_samples,
+                left_pending_samples=epoch.left_pending_samples,
+                right_pending_samples=epoch.right_pending_samples,
             )
-            if isinstance(binaural, W1PhysicalEvidenceMount):
-                return binaural
+            if isinstance(rendered, W1PhysicalEvidenceMount):
+                del self._epochs[epoch_token]
+                return rendered
+            binaural = rendered.binaural
 
             source_time_start = Fraction(
                 epoch.next_source_sample_index, PCM_SAMPLE_RATE_HZ
@@ -778,24 +937,24 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 )
             )
             if not visual_inputs:
+                del self._epochs[epoch_token]
                 return self._unsettled(
                     W1EvidenceState.UNKNOWN,
                     "anonymous_visual_series_is_incomplete",
                 )
-            sound_inputs = (
-                _sound_input(
-                    ear="left",
-                    topology_index=0,
-                    pcm=binaural.left_pcm_s16le,
-                    source_time_start=source_time_start,
-                ),
-                _sound_input(
-                    ear="right",
-                    topology_index=1,
-                    pcm=binaural.right_pcm_s16le,
-                    source_time_start=source_time_start,
-                ),
+            left_sound = _sound_input(
+                ear="left",
+                topology_index=0,
+                pcm=binaural.left_pcm_s16le,
+                source_time_start=source_time_start,
             )
+            right_sound = _sound_input(
+                ear="right",
+                topology_index=1,
+                pcm=binaural.right_pcm_s16le,
+                source_time_start=source_time_start,
+            )
+            sound_inputs = (left_sound, right_sound)
             states = {
                 sense: (
                     SenseBoundaryState.OBSERVED
@@ -805,6 +964,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 for sense in SENSE_ORDER
             }
             assembly_id = "w1-anonymous-av-" + _digest({
+                "acoustic_emission_receipt_sha256": (
+                    emission_receipt.authority_receipt_sha256
+                ),
                 "emission_sha256": emission_sha256,
                 "execution_receipt_sha256": (
                     execution_receipt.authority_receipt_sha256
@@ -834,7 +996,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             )
             state = (
                 W1EvidenceState.UNKNOWN
-                if not any(emitted_samples)
+                if not (
+                    any(_signed_pcm_samples(binaural.left_pcm_s16le))
+                    or any(_signed_pcm_samples(binaural.right_pcm_s16le))
+                )
                 else W1EvidenceState.AMBIGUOUS
                 if (
                     visual_order_crossed
@@ -843,7 +1008,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 else W1EvidenceState.OBSERVED
             )
             reason = {
-                W1EvidenceState.UNKNOWN: "emitted_pressure_is_silent",
+                W1EvidenceState.UNKNOWN: "received_pressure_is_silent",
                 W1EvidenceState.AMBIGUOUS: (
                     "anonymous_visual_order_crossed"
                     if visual_order_crossed
@@ -855,6 +1020,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             }[state]
             commitment = binaural.commitment_record()
             payload = {
+                "acoustic_emission_receipt_sha256": (
+                    emission_receipt.authority_receipt_sha256
+                ),
                 "binaural_commitment": commitment,
                 "causal_settlement_receipt_sha256": (
                     settlement.authority_receipt_sha256
@@ -885,6 +1053,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 source_time_start=source_time_start,
                 source_time_end=source_time_end,
                 visual_series_sha256=visual_commitment,
+                acoustic_emission_receipt_sha256=(
+                    emission_receipt.authority_receipt_sha256
+                ),
                 binaural_commitment=commitment,
                 causal_settlement_receipt_sha256=(
                     settlement.authority_receipt_sha256
@@ -905,9 +1076,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 previous_after_observation_receipt_sha256=(
                     epoch.previous_after_observation_receipt_sha256
                 ),
+                left_pending_samples=epoch.left_pending_samples,
+                right_pending_samples=epoch.right_pending_samples,
             )
             epoch.expected_sequence += 1
-            epoch.next_source_sample_index += len(emitted_samples)
+            epoch.next_source_sample_index = emission_receipt.source_sample_end
+            epoch.left_pending_samples = rendered.left_pending_samples
+            epoch.right_pending_samples = rendered.right_pending_samples
             epoch.prior_evidence_receipt_sha256 = (
                 receipt.authority_receipt_sha256
             )
@@ -935,11 +1110,30 @@ class W1AudiovisualPhysicalEvidenceAuthority:
 
     def status(self) -> dict[str, object]:
         with self._lock:
+            retained_delay_line_bytes = sum(
+                (
+                    len(epoch.left_pending_samples)
+                    + len(epoch.right_pending_samples)
+                ) * PCM_SAMPLE_WIDTH_BYTES
+                for epoch in self._epochs.values()
+            )
             return {
                 "active_epochs": len(self._epochs),
                 "epoch_capacity": self._epoch_capacity,
                 "max_pcm_samples_per_capture": MAX_EMITTED_PCM_SAMPLES,
-                "retained_raw_media_bytes": 0,
+                "max_propagation_delay_samples": (
+                    MAX_PROPAGATION_DELAY_SAMPLES
+                ),
+                "max_retained_raw_media_bytes": (
+                    self._epoch_capacity
+                    * 2
+                    * MAX_PROPAGATION_DELAY_SAMPLES
+                    * PCM_SAMPLE_WIDTH_BYTES
+                ),
+                "retained_raw_media_bytes": retained_delay_line_bytes,
+                "retained_raw_media_kind": (
+                    "bounded_transient_acoustic_delay_lines"
+                ),
                 "schema": "guala.w1.anonymous_audiovisual_status.v1",
             }
 
