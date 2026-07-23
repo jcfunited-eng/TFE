@@ -992,6 +992,18 @@ class ActionSelection:
             raise ValueError("selection status changed")
 
 
+@dataclass(frozen=True, slots=True)
+class VerifiedActionRelationEvidence:
+    """Read-only, reverified evidence for one learned action relation."""
+
+    binding_id: str
+    status: str
+    trigger_witness: PerceptionWitness
+    action: ActionCommand
+    latest_closure_receipt_sha256: str | None
+    outcome_witness: PerceptionWitness | None
+
+
 class CausalActionCycle:
     """One serial, bounded owner for perception-to-action transactions."""
 
@@ -1394,6 +1406,70 @@ class CausalActionCycle:
                 and relation.source == teacher_source
                 and relation.nonce == teacher_nonce
             )
+
+    def verified_relation_evidence(
+        self,
+    ) -> tuple[VerifiedActionRelationEvidence, ...]:
+        """Return immutable, fully reverified learned relation evidence.
+
+        This is a read-only internal boundary for deterministic deliberation.
+        It exposes complete perception witnesses rather than fingerprints
+        alone; consumers must recompute every witness before using the
+        fingerprints as indexes.
+        """
+
+        verified = []
+        with self._lock:
+            for binding_id in sorted(self._bindings):
+                binding = self._bindings[binding_id]
+                binding.verify(
+                    self._key,
+                    max_scalars=self._max_speech_scalars,
+                    max_command_bytes=self._max_command_bytes,
+                )
+                trigger = self._evidence.get(
+                    binding.trigger_witness_receipt_sha256
+                )
+                if trigger is None:
+                    raise ValueError("action relation lost trigger evidence")
+                trigger.verify(max_bytes=self._max_witness_bytes)
+                if (
+                    trigger.structural_fingerprint
+                    != binding.trigger_structural_fingerprint
+                ):
+                    raise ValueError("action trigger field evidence changed")
+                closure = binding.latest_closure
+                closure_receipt = None
+                outcome = None
+                if closure is not None:
+                    closure.verify(
+                        self._key,
+                        max_scalars=self._max_speech_scalars,
+                        max_command_bytes=self._max_command_bytes,
+                    )
+                    closure_receipt = closure.authority_receipt_sha256
+                    outcome = self._evidence.get(
+                        closure.outcome.outcome_settlement_receipt_sha256
+                    )
+                    if outcome is None:
+                        raise ValueError("action relation lost outcome evidence")
+                    outcome.verify(max_bytes=self._max_witness_bytes)
+                    if (
+                        outcome.structural_fingerprint
+                        != closure.outcome.outcome_structural_fingerprint
+                    ):
+                        raise ValueError("action outcome field evidence changed")
+                verified.append(
+                    VerifiedActionRelationEvidence(
+                        binding_id=binding.binding_id,
+                        status=binding.status,
+                        trigger_witness=trigger,
+                        action=binding.action,
+                        latest_closure_receipt_sha256=closure_receipt,
+                        outcome_witness=outcome,
+                    )
+                )
+        return tuple(verified)
 
     def select(self, settlement: CausalExperienceSettlement) -> ActionSelection:
         witness = self.accept(settlement)
@@ -2078,4 +2154,5 @@ __all__ = (
     "PerceptionWitness",
     "TeacherRelation",
     "TEACHER_EVIDENCE_SCHEMA",
+    "VerifiedActionRelationEvidence",
 )
