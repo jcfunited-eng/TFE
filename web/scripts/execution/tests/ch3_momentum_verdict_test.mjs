@@ -62,5 +62,19 @@ console.log("\n4. Original gates unchanged");
   assert(ch3MomentumVerdict({ ...base, gap_pct: -0.02 }).passes === false, "gap-down -2% → COLD");
 }
 
+
+console.log("\n5. Thin-book guard + bid-based floor (LINK 2026-07-21 replay)");
+{
+  const link = ch3MomentumVerdict({ day_pct: 0.02, momentum_pct: 0.01, rvol: 8.0, gap_pct: 0.01, current_price: 5.02, bid_price: 4.57, spread_pct: 0.03 });
+  assert(link.passes === false && link.subMinPrice === true,
+    "LINK replay: stale $5.02 last trade, real bid $4.57 → floor uses BID, excluded");
+  const thin = ch3MomentumVerdict({ ...{ day_pct: 0.025, momentum_pct: 0.012, rvol: 5.0, gap_pct: 0.012, current_price: 40.0 }, bid_price: 39.5, spread_pct: 0.025 });
+  assert(thin.passes === false && thin.tooThin === true, "2.5% spread → too thin to scalp");
+  const tight = ch3MomentumVerdict({ day_pct: 0.025, momentum_pct: 0.012, rvol: 5.0, gap_pct: 0.012, current_price: 40.0, bid_price: 39.96, spread_pct: 0.002 });
+  assert(tight.passes === true, "0.2% spread, bid $39.96 → passes");
+  const noquote = ch3MomentumVerdict({ day_pct: 0.025, momentum_pct: 0.012, rvol: 5.0, gap_pct: 0.012, current_price: 40.0, bid_price: null, spread_pct: null });
+  assert(noquote.passes === true, "no quote data → falls back to last trade, passes");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
