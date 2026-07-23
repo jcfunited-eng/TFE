@@ -1019,6 +1019,7 @@ def test_advertised_maximum_emission_is_mountable_with_propagation():
         MAX_EMITTED_PCM_SAMPLES
     )
     assert result.state is W1EvidenceState.OBSERVED
+    assert authority.status()["max_propagation_delay_samples"] == 2_048
 
 
 def test_superseded_world_execution_cannot_be_replayed_as_current_sound():

@@ -15,12 +15,10 @@ import json
 import struct
 from dataclasses import dataclass
 
-from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-    MAX_NATIVE_SAMPLES_PER_SUBSTREAM,
-)
 from dsf_ai_service.substrate.embodiment_world import (
     ActionExecutionReceipt,
     EmbodimentWorldAuthority,
+    MAX_VOCAL_SAMPLE_COUNT,
     ObservationSnapshot,
     VOCAL_SAMPLE_RATE_HZ,
     VocalizeCommand,
@@ -31,10 +29,10 @@ from dsf_ai_service.substrate.embodiment_world import (
 
 EMISSION_SCHEMA = "guala.w1.authenticated_acoustic_emission.v3"
 AUTHORITY_DOMAIN = b"guala-w1-authenticated-acoustic-emitter-v3\0"
-PCM_SAMPLE_RATE_HZ = 16_000
+PCM_SAMPLE_RATE_HZ = VOCAL_SAMPLE_RATE_HZ
 PCM_SAMPLE_WIDTH_BYTES = 2
 MIN_EMITTED_PCM_SAMPLES = 160
-MAX_EMITTED_PCM_SAMPLES = MAX_NATIVE_SAMPLES_PER_SUBSTREAM
+MAX_EMITTED_PCM_SAMPLES = MAX_VOCAL_SAMPLE_COUNT
 MAX_SOURCE_SAMPLE_INDEX = (1 << 63) - 1
 
 

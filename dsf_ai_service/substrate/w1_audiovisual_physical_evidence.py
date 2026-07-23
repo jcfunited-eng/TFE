@@ -42,6 +42,8 @@ import numpy as np
 
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    MAX_NATIVE_SAMPLES_PER_SETTLEMENT,
+    MAX_NATIVE_SIGHT_SUBSTREAMS,
     MAX_NATIVE_SOUND_SUBSTREAMS,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
@@ -70,6 +72,7 @@ from dsf_ai_service.substrate.auditory_kernel_mount import (
     auditory_kernel_component_inputs,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    OBSERVATION_HOP_SAMPLES,
     transduce_auditory_full_field,
 )
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
@@ -105,7 +108,12 @@ MAX_CORRESPONDENCE_AUTHORITY_BYTES = 4 * 1024 * 1024
 
 PCM_SAMPLE_WIDTH_BYTES = 2
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
-MAX_PROPAGATION_DELAY_SAMPLES = MAX_EMITTED_PCM_SAMPLES
+# Propagation history is an independent 128 ms physical/resource admission
+# wall.  It must not expand when the duration of one emitted action expands.
+MAX_PROPAGATION_DELAY_MILLISECONDS = 128
+MAX_PROPAGATION_DELAY_SAMPLES = (
+    MAX_PROPAGATION_DELAY_MILLISECONDS * PCM_SAMPLE_RATE_HZ // 1_000
+)
 
 _VISUAL_AXES = ("relative-x", "relative-y", "relative-z", "apparent-radius")
 _BODY_AXES = (
@@ -122,6 +130,25 @@ _CARDINAL_HEADINGS = (0, 90_000, 180_000, 270_000)
 _PHYSICAL_RADIUS_SCALE = 1 << 20
 _BODY_REACH_SCALE = 1 << 20
 _OBJECT_MASS_SCALE = 1 << 30
+
+# Prove at import that one complete live PCM transport window fits the exact
+# native full-field wall even at W1's largest admitted visual topology.  Each
+# sight/body/touch port contributes the exact before/after pair; each of the
+# 64 two-ear cochlear components contributes one value per physical hop.
+_MAX_W1_NON_SOUND_NATIVE_SAMPLES = 2 * (
+    MAX_NATIVE_SIGHT_SUBSTREAMS + len(_BODY_AXES) + len(_TOUCH_AXES)
+)
+_MAX_W1_SOUND_NATIVE_SAMPLES = (
+    MAX_NATIVE_SOUND_SUBSTREAMS
+    * (MAX_EMITTED_PCM_SAMPLES // OBSERVATION_HOP_SAMPLES)
+)
+if (
+    _MAX_W1_SOUND_NATIVE_SAMPLES + _MAX_W1_NON_SOUND_NATIVE_SAMPLES
+    > MAX_NATIVE_SAMPLES_PER_SETTLEMENT
+):
+    raise RuntimeError(
+        "W1 live PCM window exceeds the exact full-field settlement boundary"
+    )
 
 
 def _canonical(value: object) -> bytes:

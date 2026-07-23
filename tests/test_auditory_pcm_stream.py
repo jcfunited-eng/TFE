@@ -10,9 +10,14 @@ import pytest
 
 from dsf_ai_service.substrate.auditory_pcm_stream import (
     AuditoryPCMStreamRegistry,
+    PCM_CHUNK_SAMPLES,
     PCM_RING_BYTES,
     PCM_SAMPLE_RATE_HZ,
     pcm_s16le_wav,
+)
+from dsf_ai_service.substrate.embodiment_world import MAX_VOCAL_SAMPLE_COUNT
+from dsf_ai_service.substrate.w1_acoustic_emitter import (
+    MAX_EMITTED_PCM_SAMPLES,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AUDITORY_GAMMATONE_CONTINUATION_SCHEMA,
@@ -36,6 +41,12 @@ def _field(pcm: bytes):
     return transduce_auditory_full_field(
         samples, sample_rate_hz=PCM_SAMPLE_RATE_HZ
     )
+
+
+def test_live_transport_window_is_one_physical_vocal_action() -> None:
+    assert PCM_CHUNK_SAMPLES == 80_000
+    assert MAX_VOCAL_SAMPLE_COUNT == PCM_CHUNK_SAMPLES
+    assert MAX_EMITTED_PCM_SAMPLES == PCM_CHUNK_SAMPLES
 
 
 def test_contiguous_chunks_reconstruct_identical_unsplit_auditory_field() -> None:

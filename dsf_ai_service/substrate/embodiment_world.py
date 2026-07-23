@@ -71,7 +71,11 @@ OPTICAL_BANDS = 6
 MAX_PHYSICAL_PPM = 1_000_000
 VOCAL_SAMPLE_RATE_HZ = 16_000
 MIN_VOCAL_SAMPLE_COUNT = 160
-MAX_VOCAL_SAMPLE_COUNT = 2_048
+# One physical vocal action spans exactly one admitted continuous microphone
+# transport window.  The five-second interval is the existing live sample
+# clock contract, not a semantic timeout; keeping it whole prevents one
+# physical experience from being fragmented into dozens of control actions.
+MAX_VOCAL_SAMPLE_COUNT = 5 * VOCAL_SAMPLE_RATE_HZ
 
 
 def _canonical(value: object) -> bytes:

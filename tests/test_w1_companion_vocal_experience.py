@@ -20,6 +20,8 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
+    MAX_EMITTED_PCM_SAMPLES,
+    MIN_EMITTED_PCM_SAMPLES,
     W1AcousticEmitterAuthority,
 )
 from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
@@ -61,6 +63,11 @@ def _long_tone(frequency_hz: int, sample_count: int) -> bytes:
         for index in range(sample_count)
     )
     return struct.pack(f"<{sample_count}h", *values)
+
+
+MULTIBLOCK_TEST_SAMPLES = (
+    MAX_EMITTED_PCM_SAMPLES + MIN_EMITTED_PCM_SAMPLES
+)
 
 
 def _authorities(on_settlement):
@@ -259,7 +266,7 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     before = world.observation_snapshot()
 
     prepared = companion.prepare_episode(
-        pcm_s16le=_long_tone(440, 4096),
+        pcm_s16le=_long_tone(440, MULTIBLOCK_TEST_SAMPLES),
     )
     episode = prepared.episode
     episode.verify(b"c" * 32)
@@ -269,7 +276,10 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     assert tuple(
         (block.source_sample_start, block.source_sample_end)
         for block in episode.blocks
-    ) == ((0, 2048), (2048, 4096))
+    ) == (
+        (0, MULTIBLOCK_TEST_SAMPLES // 2),
+        (MULTIBLOCK_TEST_SAMPLES // 2, MULTIBLOCK_TEST_SAMPLES),
+    )
     assert all(
         sum(len(channel.pressure.field_tuples)
             + len(channel.carrier_phase_advance.field_tuples)
@@ -335,7 +345,7 @@ def test_multiblock_episode_discard_restores_world_causal_and_l5_state():
     before = world.encoded_snapshot()
 
     prepared = companion.prepare_episode(
-        pcm_s16le=_long_tone(660, 4096),
+        pcm_s16le=_long_tone(660, MULTIBLOCK_TEST_SAMPLES),
     )
     companion.discard_episode(prepared)
 
@@ -367,7 +377,7 @@ def test_second_block_failure_rolls_back_the_complete_episode(monkeypatch):
     monkeypatch.setattr(physical, "mount", fail_second_block)
     with pytest.raises(RuntimeError, match="second block failure"):
         companion.prepare_episode(
-            pcm_s16le=_long_tone(880, 4096),
+            pcm_s16le=_long_tone(880, MULTIBLOCK_TEST_SAMPLES),
         )
 
     assert world.encoded_snapshot() == before
@@ -389,7 +399,7 @@ def test_episode_commit_failure_restores_l5_publication_and_remains_discardable(
     world, owner, physical, companion = _authorities(accepted.append)
     before = world.encoded_snapshot()
     prepared = companion.prepare_episode(
-        pcm_s16le=_long_tone(550, 4096),
+        pcm_s16le=_long_tone(550, MULTIBLOCK_TEST_SAMPLES),
     )
     original_commit = owner.commit_atomic_sequence
 
@@ -429,9 +439,9 @@ def test_episode_commit_failure_restores_l5_publication_and_remains_discardable(
 
 def test_episode_partition_never_creates_an_undersized_terminal_block():
     blocks = W1CompanionVocalExperienceAuthority._episode_blocks(
-        _long_tone(440, 2049)
+        _long_tone(440, MAX_EMITTED_PCM_SAMPLES + 1)
     )
-    assert tuple(len(block) // 2 for block in blocks) == (1025, 1024)
+    assert tuple(len(block) // 2 for block in blocks) == (40_001, 40_000)
 
 
 def test_oversize_episode_fails_before_any_authority_mutates():

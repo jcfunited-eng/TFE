@@ -69,6 +69,10 @@ from dsf_ai_service.substrate.embodiment_world import (
     PositionMM,
     encode_command,
 )
+from dsf_ai_service.substrate.w1_acoustic_emitter import (
+    MAX_EMITTED_PCM_SAMPLES,
+    MIN_EMITTED_PCM_SAMPLES,
+)
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
@@ -1039,7 +1043,14 @@ def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
     monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "companion-episode-key")
     guala = Guala()
     try:
-        pcm = _companion_pcm_chunk() * 4
+        chunk = _companion_pcm_chunk()
+        required_samples = (
+            MAX_EMITTED_PCM_SAMPLES + MIN_EMITTED_PCM_SAMPLES
+        )
+        pcm = chunk * (
+            (required_samples + len(chunk) // 2 - 1)
+            // (len(chunk) // 2)
+        )
         before = guala._embodiment_world.observation_snapshot()
         accepted_before = guala._causal_settlement_accepted
 
