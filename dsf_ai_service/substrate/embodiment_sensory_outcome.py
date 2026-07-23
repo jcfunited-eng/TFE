@@ -36,8 +36,8 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 from dsf_ai_service.substrate.embodiment_world import (
     EXECUTION_DOMAIN,
     OBSERVATION_DOMAIN,
-    PORT_ID,
     ActionExecutionReceipt,
+    EmbodiedBody,
     EmbodiedObject,
     ObservationSnapshot,
     PositionMM,
@@ -54,6 +54,7 @@ TRANSDUCER_PROFILE = "guala.embodiment.exact_geometry_transducer.v1"
 
 MAX_AUTHORITY_KEY_BYTES = 4096
 MAX_WORLD_OBJECTS = 8
+MAX_WORLD_BODIES = 4
 MAX_WORLD_REVISION = (1 << 63) - 1
 
 
@@ -117,7 +118,18 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
     ):
         raise ValueError("world observation revision is invalid")
     observation.room_bounds.verify()
-    observation.body.verify()
+    if not 2 <= len(observation.bodies) <= MAX_WORLD_BODIES:
+        raise ValueError("world observation body inventory exceeds W1 capacity")
+    if tuple(sorted(observation.bodies, key=lambda item: item.body_id)) != observation.bodies:
+        raise ValueError("world observation bodies are not in canonical identity order")
+    body_by_id = {item.body_id: item for item in observation.bodies}
+    if (
+        len(body_by_id) != len(observation.bodies)
+        or observation.self_body_id not in body_by_id
+    ):
+        raise ValueError("world observation self-body topology changed")
+    for body in observation.bodies:
+        body.verify()
     if not 1 <= len(observation.objects) <= MAX_WORLD_OBJECTS:
         raise ValueError("world observation object inventory exceeds W1 capacity")
     if tuple(sorted(observation.objects, key=lambda item: item.object_id)) != observation.objects:
@@ -125,7 +137,9 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
     if len({item.object_id for item in observation.objects}) != len(observation.objects):
         raise ValueError("world observation object identities are not unique")
 
-    held: list[EmbodiedObject] = []
+    held_by_body: dict[str, list[EmbodiedObject]] = {
+        item.body_id: [] for item in observation.bodies
+    }
     placed: list[EmbodiedObject] = []
     for item in observation.objects:
         item.verify()
@@ -136,28 +150,41 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
                 raise ValueError("world observation object is outside room geometry")
             placed.append(item)
         else:
-            if item.held_by_body_id != observation.body.body_id:
+            if item.held_by_body_id not in held_by_body:
                 raise ValueError("world observation object belongs to another body")
-            held.append(item)
-    expected_held = held[0].object_id if len(held) == 1 else None
-    if len(held) > 1 or observation.body.held_object_id != expected_held:
-        raise ValueError("world observation holding relation is not reciprocal")
-
-    carried_radius = max(
-        (observation.body.radius_mm, *(item.radius_mm for item in held))
-    )
-    if not observation.room_bounds.contains_floor_disc(
-        observation.body.pose.position, carried_radius
-    ):
-        raise ValueError("world observation body is outside room geometry")
-    for item in placed:
-        if _floor_discs_overlap(
-            observation.body.pose.position,
-            carried_radius,
-            item.position,
-            item.radius_mm,
+            held_by_body[item.held_by_body_id].append(item)
+    occupied: list[tuple[EmbodiedBody, int]] = []
+    for body in observation.bodies:
+        held = held_by_body[body.body_id]
+        expected_held = held[0].object_id if len(held) == 1 else None
+        if len(held) > 1 or body.held_object_id != expected_held:
+            raise ValueError("world observation holding relation is not reciprocal")
+        carried_radius = max(
+            (body.radius_mm, *(item.radius_mm for item in held))
+        )
+        if not observation.room_bounds.contains_floor_disc(
+            body.pose.position, carried_radius
         ):
-            raise ValueError("world observation body intersects a placed object")
+            raise ValueError("world observation body is outside room geometry")
+        occupied.append((body, carried_radius))
+    for index, (left, left_radius) in enumerate(occupied):
+        for right, right_radius in occupied[index + 1 :]:
+            if _floor_discs_overlap(
+                left.pose.position,
+                left_radius,
+                right.pose.position,
+                right_radius,
+            ):
+                raise ValueError("world observation bodies intersect")
+    for body, carried_radius in occupied:
+        for item in placed:
+            if _floor_discs_overlap(
+                body.pose.position,
+                carried_radius,
+                item.position,
+                item.radius_mm,
+            ):
+                raise ValueError("world observation body intersects a placed object")
     for index, left in enumerate(placed):
         for right in placed[index + 1 :]:
             if _floor_discs_overlap(
@@ -171,11 +198,12 @@ def _verify_observation(key: bytes, observation: ObservationSnapshot) -> None:
         raise ValueError("embodiment sensory input must be an observation snapshot")
     _verify_world_geometry(observation)
     state_record = {
-        "body": observation.body.as_record(),
+        "bodies": [item.as_record() for item in observation.bodies],
         "objects": [item.as_record() for item in observation.objects],
         "revision": observation.revision,
         "room_bounds": observation.room_bounds.as_record(),
         "room_id": observation.room_id,
+        "self_body_id": observation.self_body_id,
     }
     if _digest(state_record) != observation.state_sha256:
         raise ValueError("world observation state identity changed")
@@ -201,8 +229,10 @@ def _verify_execution(
     _verify_observation(key, receipt.after)
     if receipt.after != observation:
         raise ValueError("execution receipt does not end at the supplied observation")
-    if receipt.port_id != PORT_ID:
-        raise ValueError("execution receipt belongs to another embodiment port")
+    if receipt.actor_body_id not in {
+        item.body_id for item in observation.bodies
+    }:
+        raise ValueError("execution receipt belongs to another embodiment actor")
     if receipt.disposition != "applied" or receipt.reason != "applied":
         raise ValueError("action outcome requires an applied execution")
     if receipt.lifecycle[-2:] != ("geometry_validated", "applied"):
@@ -284,7 +314,8 @@ def _spatial_substreams(
     source_time_end: Fraction,
 ) -> dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]]:
     bounds = observation.room_bounds
-    body = observation.body
+    body_by_id = {item.body_id: item for item in observation.bodies}
+    body = body_by_id[observation.self_body_id]
     position = body.pose.position
     span_x = bounds.maximum.x - bounds.minimum.x
     span_y = bounds.maximum.y - bounds.minimum.y
@@ -316,19 +347,51 @@ def _spatial_substreams(
             source_time_end=source_time_end,
         )
     ]
-    for item in observation.objects:
-        if item.position is None:
+    for other_body in observation.bodies:
+        if other_body.body_id == observation.self_body_id:
             continue
-        dx = item.position.x - position.x
-        dy = item.position.y - position.y
-        dz = item.position.z - position.z
+        other_position = other_body.pose.position
+        values = (
+            _bounded_ratio(other_position.x - position.x, span_x, "body relative x"),
+            _bounded_ratio(other_position.y - position.y, span_y, "body relative y"),
+            _bounded_ratio(other_position.z - position.z, vertical_denominator, "body relative z"),
+            _unit_interval(other_position.x, bounds.minimum.x, bounds.maximum.x, "body absolute x"),
+            _unit_interval(other_position.y, bounds.minimum.y, bounds.maximum.y, "body absolute y"),
+            _bounded_ratio(other_body.radius_mm, planar_span, "visible body radius"),
+            _bounded_ratio(other_body.pose.heading_millidegrees, 360_000, "visible body heading"),
+            Fraction(1) if other_body.held_object_id is not None else Fraction(-1),
+        )
+        sight.append(
+            _native_signal(
+                sense=PhysicalSense.SIGHT,
+                sensor_id="W1-exact-geometry-sight",
+                substream_id=f"W1-visible-body-{other_body.body_id}",
+                topology_index=len(sight),
+                coordinates=(
+                    NativeAxisCoordinate("reference-frame", "body-centered"),
+                    NativeAxisCoordinate("physical-body-track", other_body.body_id),
+                ),
+                values=values,
+                source_time_start=source_time_start,
+                source_time_end=source_time_end,
+            )
+        )
+
+    for item in observation.objects:
+        item_position = item.position
+        if item_position is None:
+            item_position = body_by_id[item.held_by_body_id].pose.position
+        dx = item_position.x - position.x
+        dy = item_position.y - position.y
+        dz = item_position.z - position.z
         values = (
             _bounded_ratio(dx, span_x, "object relative x"),
             _bounded_ratio(dy, span_y, "object relative y"),
             _bounded_ratio(dz, vertical_denominator, "object relative z"),
-            _unit_interval(item.position.x, bounds.minimum.x, bounds.maximum.x, "object absolute x"),
-            _unit_interval(item.position.y, bounds.minimum.y, bounds.maximum.y, "object absolute y"),
+            _unit_interval(item_position.x, bounds.minimum.x, bounds.maximum.x, "object absolute x"),
+            _unit_interval(item_position.y, bounds.minimum.y, bounds.maximum.y, "object absolute y"),
             _bounded_ratio(item.radius_mm, planar_span, "object apparent radius"),
+            Fraction(1) if item.held_by_body_id is not None else Fraction(-1),
         )
         sight.append(
             _native_signal(
@@ -372,7 +435,11 @@ def _spatial_substreams(
     )
 
     held = next(
-        (item for item in observation.objects if item.held_by_body_id is not None),
+        (
+            item
+            for item in observation.objects
+            if item.held_by_body_id == observation.self_body_id
+        ),
         None,
     )
     touch_values = (

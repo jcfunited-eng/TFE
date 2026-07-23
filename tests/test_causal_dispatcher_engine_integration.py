@@ -17,6 +17,7 @@ from dsf_ai_service.substrate.auditory_tutor_authority import (
 )
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
+    SECOND_BODY_PORT_ID,
     MoveCommand,
     PoseMM,
     PositionMM,
@@ -99,7 +100,10 @@ def test_w1_dispatch_closes_on_exact_embodied_outcome_without_recursive_action(
 
         observed = guala._embodiment_world.observation_snapshot()
         assert observed.revision == 1
-        assert observed.body.pose.position == PositionMM(1000, 2000, 0)
+        assert next(
+            item for item in observed.bodies
+            if item.body_id == observed.self_body_id
+        ).pose.position == PositionMM(1000, 2000, 0)
         assert len(dispatches) == 1
         assert guala._causal_settlement_accepted == 2
         assert guala._latest_causal_settlement != trigger
@@ -117,6 +121,34 @@ def test_w1_dispatch_closes_on_exact_embodied_outcome_without_recursive_action(
             "latest_terminal_status": "completed",
             "phase": "idle",
         }
+    finally:
+        guala.shutdown()
+
+
+def test_guala_causal_dispatcher_cannot_control_the_other_body_port(
+    monkeypatch,
+) -> None:
+    _configure(monkeypatch, "dispatcher-engine-other-body-key")
+    guala = Guala()
+    try:
+        taught = _settlement("engine-other-body-teach")
+        trigger = _settlement("engine-other-body-trigger")
+        command = ActionCommand.embodiment(
+            SECOND_BODY_PORT_ID,
+            encode_command(
+                MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000))
+            ),
+        )
+        _teach(guala, taught, command, "engine-other-body-nonce-0001")
+        result = guala._accept_causal_settlement(trigger)
+        observed = guala._embodiment_world.observation_snapshot()
+        assert observed.revision == 0
+        assert result.status == "rejected"
+        assert guala._causal_embodiment_rejection_reason == {
+            "reason": "self_action_port_mismatch",
+            "request_receipt_sha256": result.request_receipt_sha256,
+        }
+        assert guala._causal_action_cycle.status()["bindings"] == 1
     finally:
         guala.shutdown()
 

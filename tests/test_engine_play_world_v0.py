@@ -190,7 +190,10 @@ def test_learned_exact_body_action_executes_once_and_closes_on_w1_outcome(
         assert record["world_revision_before"] == 0
         assert record["world_revision_after"] == 1
         assert observed.revision == 1
-        assert observed.body.pose.position == PositionMM(1000, 2000, 0)
+        assert next(
+            item for item in observed.bodies
+            if item.body_id == observed.self_body_id
+        ).pose.position == PositionMM(1000, 2000, 0)
         assert guala._embodiment_outcome_causal_owner.status()["settled"] == 2
         status = guala._causal_action_cycle.status()
         assert status["closures"] == 1

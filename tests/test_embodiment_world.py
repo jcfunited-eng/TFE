@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -9,6 +12,8 @@ import pytest
 
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
+    SECOND_BODY_PORT_ID,
+    EmbodiedBody,
     EmbodiedObject,
     EmbodimentWorldAuthority,
     MoveCommand,
@@ -35,19 +40,84 @@ def _execute(authority, command, *, intent_number: int, expected_revision: int |
     )
 
 
+def _body(observation, body_id="guala-body-1"):
+    return next(item for item in observation.bodies if item.body_id == body_id)
+
+
+def _legacy_snapshot(key: str, *, body=None, objects=None, revision=0) -> bytes:
+    legacy_body = body or EmbodiedBody(
+        body_id="guala-body-1",
+        pose=PoseMM(PositionMM(1000, 1000, 0), 0),
+        radius_mm=250,
+        reach_mm=800,
+    )
+    legacy_objects = objects or (
+        EmbodiedObject(
+            object_id="W1-object-1",
+            radius_mm=100,
+            mass_grams=500,
+            position=PositionMM(1500, 1000, 0),
+        ),
+    )
+    payload_value = {
+        "limits": {
+            "max_command_bytes": 4096,
+            "max_encoded_state_bytes": 8 * 1024 * 1024,
+            "max_objects": 8,
+            "receipt_capacity": 64,
+        },
+        "port_id": PORT_ID,
+        "recent_applied_receipts": [],
+        "schema": "guala.embodiment.state.v1",
+        "world": {
+            "body": legacy_body.as_record(),
+            "objects": [item.as_record() for item in legacy_objects],
+            "revision": revision,
+            "room_bounds": {
+                "maximum": {"x_mm": 5000, "y_mm": 5000, "z_mm": 3000},
+                "minimum": {"x_mm": 0, "y_mm": 0, "z_mm": 0},
+            },
+            "room_id": "W1",
+        },
+    }
+    canonical = lambda value: json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    payload = canonical(payload_value)
+    envelope = {
+        "authority_hmac_sha256": hmac.new(
+            key.encode("utf-8"),
+            b"guala-embodiment-state-v1\0" + payload,
+            hashlib.sha256,
+        ).hexdigest(),
+        "payload_base64": base64.b64encode(payload).decode("ascii"),
+        "schema": "guala.embodiment.state.hmac.v1",
+    }
+    return canonical(envelope)
+
+
 def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
     authority = EmbodimentWorldAuthority(authority_key="embodiment-test-key")
     initial = authority.observation_snapshot()
     assert initial.room_id == "W1"
     assert initial.revision == 0
-    assert initial.body.pose.position == PositionMM(1000, 1000, 0)
+    assert initial.self_body_id == "guala-body-1"
+    assert tuple(item.body_id for item in initial.bodies) == (
+        "guala-body-1", "w1-body-2"
+    )
+    assert _body(initial).pose.position == PositionMM(1000, 1000, 0)
     assert tuple(item.object_id for item in initial.objects) == ("W1-object-1",)
 
     pick = _execute(authority, PickCommand("W1-object-1"), intent_number=1)
     assert pick.disposition == "applied"
     assert pick.before == initial
     assert pick.after.revision == 1
-    assert pick.after.body.held_object_id == "W1-object-1"
+    assert pick.actor_body_id == "guala-body-1"
+    assert _body(pick.after).held_object_id == "W1-object-1"
     assert pick.after.objects[0].position is None
     assert pick.after.objects[0].held_by_body_id == "guala-body-1"
     assert pick.lifecycle == (
@@ -61,8 +131,8 @@ def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
     moved_pose = PoseMM(PositionMM(1200, 1200, 0), 90_000)
     moved = _execute(authority, MoveCommand(moved_pose), intent_number=2)
     assert moved.disposition == "applied"
-    assert moved.after.body.pose == moved_pose
-    assert moved.after.body.held_object_id == "W1-object-1"
+    assert _body(moved.after).pose == moved_pose
+    assert _body(moved.after).held_object_id == "W1-object-1"
 
     placed_position = PositionMM(1800, 1200, 0)
     placed = _execute(
@@ -72,7 +142,7 @@ def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
     )
     assert placed.disposition == "applied"
     assert placed.after.revision == 3
-    assert placed.after.body.held_object_id is None
+    assert _body(placed.after).held_object_id is None
     assert placed.after.objects[0].position == placed_position
     assert placed.after.objects[0].held_by_body_id is None
     assert len({
@@ -294,7 +364,7 @@ def test_object_inventory_and_retained_receipts_are_strictly_bounded_long_run() 
     byte_bounded = EmbodimentWorldAuthority(
         authority_key="embodiment-byte-capacity-key",
         receipt_capacity=64,
-        max_encoded_state_bytes=4096,
+        max_encoded_state_bytes=8192,
     )
     _execute(byte_bounded, PickCommand("W1-object-1"), intent_number=600)
     for number in range(1, 20):
@@ -305,7 +375,7 @@ def test_object_inventory_and_retained_receipts_are_strictly_bounded_long_run() 
             intent_number=600 + number,
         )
         assert result.disposition == "applied"
-        assert len(byte_bounded.encoded_snapshot()) <= 4096
+        assert len(byte_bounded.encoded_snapshot()) <= 8192
     assert byte_bounded.status()["retained_applied_receipts"] == 1
 
 
@@ -327,9 +397,193 @@ def test_observation_snapshot_is_immutable_and_reports_only_owned_world_truth() 
     authority = EmbodimentWorldAuthority(authority_key="embodiment-observation-key")
     observation = authority.observation_snapshot()
     assert observation.room_id == authority.status()["room_id"]
-    assert observation.body.body_id == authority.status()["body_id"]
+    assert observation.self_body_id == authority.status()["self_body_id"]
+    assert len(observation.bodies) == authority.status()["body_count"]
     assert observation.state_sha256
     assert observation.authority_hmac_sha256
     assert observation.authority_receipt_sha256
     with pytest.raises(FrozenInstanceError):
         observation.revision = 99
+
+
+def test_actor_specific_ports_move_only_their_owned_physical_body() -> None:
+    authority = EmbodimentWorldAuthority(authority_key="multi-port-key")
+    before = authority.observation_snapshot()
+    result = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000))
+        ),
+        causal_intent_receipt_sha256=_intent(900),
+        expected_revision=before.revision,
+    )
+    assert result.disposition == "applied"
+    assert result.actor_body_id == "w1-body-2"
+    assert _body(result.after).pose == _body(before).pose
+    assert _body(result.after, "w1-body-2").pose == PoseMM(
+        PositionMM(4000, 4000, 0), 90_000
+    )
+
+    rejected = authority.execute_port_command(
+        port_id="guala.embodiment.w1.unknown",
+        command_payload=encode_command(
+            MoveCommand(PoseMM(PositionMM(1100, 1000, 0), 0))
+        ),
+        causal_intent_receipt_sha256=_intent(901),
+        expected_revision=result.after.revision,
+    )
+    assert rejected.reason == "port_mismatch"
+    assert rejected.actor_body_id is None
+    assert rejected.after == result.after
+
+
+def test_multi_body_collision_and_holding_reciprocity_fail_closed() -> None:
+    bodies = (
+        EmbodiedBody(
+            "guala-body-1", PoseMM(PositionMM(1000, 1000, 0), 0), 250, 800
+        ),
+        EmbodiedBody(
+            "w1-body-2", PoseMM(PositionMM(2200, 1000, 0), 180_000), 250, 1000
+        ),
+    )
+    objects = (
+        EmbodiedObject(
+            "W1-object-1", 100, 500, PositionMM(2700, 1000, 0)
+        ),
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="multi-physics-key",
+        bodies=bodies,
+        initial_objects=objects,
+    )
+    collision = _execute(
+        authority,
+        MoveCommand(PoseMM(PositionMM(3000, 1000, 0), 0)),
+        intent_number=910,
+    )
+    assert collision.reason == "move_path_intersects_body"
+    assert collision.before == collision.after
+
+    before = authority.observation_snapshot()
+    picked = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(PickCommand("W1-object-1")),
+        causal_intent_receipt_sha256=_intent(911),
+        expected_revision=before.revision,
+    )
+    assert picked.disposition == "applied"
+    assert _body(picked.after, "w1-body-2").held_object_id == "W1-object-1"
+    assert picked.after.objects[0].held_by_body_id == "w1-body-2"
+
+    unavailable = _execute(
+        authority, PickCommand("W1-object-1"), intent_number=912
+    )
+    assert unavailable.reason == "pick_object_unavailable"
+    assert unavailable.before == unavailable.after
+
+    blocked_place = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            PlaceCommand("W1-object-1", PositionMM(1200, 1000, 0))
+        ),
+        causal_intent_receipt_sha256=_intent(913),
+        expected_revision=picked.after.revision,
+    )
+    assert blocked_place.reason == "place_intersects_body"
+    assert blocked_place.before == blocked_place.after
+
+
+def test_concurrent_actor_ports_share_one_exact_world_revision() -> None:
+    authority = EmbodimentWorldAuthority(authority_key="multi-concurrency-key")
+    barrier = threading.Barrier(3)
+
+    def move(port_id, target, intent):
+        barrier.wait()
+        return authority.execute_port_command(
+            port_id=port_id,
+            command_payload=encode_command(MoveCommand(target)),
+            causal_intent_receipt_sha256=_intent(intent),
+            expected_revision=0,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = (
+            pool.submit(
+                move,
+                PORT_ID,
+                PoseMM(PositionMM(1000, 1200, 0), 0),
+                920,
+            ),
+            pool.submit(
+                move,
+                SECOND_BODY_PORT_ID,
+                PoseMM(PositionMM(4000, 4000, 0), 180_000),
+                921,
+            ),
+        )
+        barrier.wait()
+        results = [item.result() for item in futures]
+    assert sorted(item.disposition for item in results) == ["applied", "rejected"]
+    assert next(item for item in results if item.disposition == "rejected").reason == "stale_world_revision"
+    assert authority.observation_snapshot().revision == 1
+
+
+def test_authenticated_v1_state_migrates_once_without_rewriting_prior_world() -> None:
+    key = "legacy-migration-key"
+    encoded = _legacy_snapshot(key, revision=7)
+    authority = EmbodimentWorldAuthority(authority_key=key)
+    authority.restore_encoded(encoded)
+    observed = authority.observation_snapshot()
+    assert observed.revision == 8
+    assert observed.self_body_id == "guala-body-1"
+    assert _body(observed).pose.position == PositionMM(1000, 1000, 0)
+    assert _body(observed, "w1-body-2").pose.position == PositionMM(
+        4750, 4750, 0
+    )
+    assert observed.objects[0].position == PositionMM(1500, 1000, 0)
+    status = authority.status()
+    assert len(status["migration_receipt_sha256"]) == 64
+    migrated = authority.encoded_snapshot()
+    assert json.loads(migrated)["schema"] == "guala.embodiment.state.hmac.v2"
+    restored = EmbodimentWorldAuthority(authority_key=key)
+    restored.restore_encoded(migrated)
+    assert restored.encoded_snapshot() == migrated
+    assert restored.observation_snapshot() == observed
+
+
+def test_v1_migration_rejects_occupied_added_body_geometry_atomically() -> None:
+    key = "legacy-migration-collision-key"
+    occupied = (
+        EmbodiedObject(
+            "W1-object-1", 100, 500, PositionMM(4750, 4750, 0)
+        ),
+    )
+    encoded = _legacy_snapshot(key, objects=occupied)
+    authority = EmbodimentWorldAuthority(authority_key=key)
+    before = authority.encoded_snapshot()
+    with pytest.raises(ValueError, match="not physically valid"):
+        authority.restore_encoded(encoded)
+    assert authority.encoded_snapshot() == before
+
+
+def test_body_inventory_and_new_state_are_hard_bounded() -> None:
+    bodies = tuple(
+        EmbodiedBody(
+            f"body-{index}",
+            PoseMM(PositionMM(500 + index * 800, 4000, 0), 0),
+            100,
+            400,
+        )
+        for index in range(5)
+    )
+    with pytest.raises(ValueError, match="body inventory"):
+        EmbodimentWorldAuthority(
+            authority_key="body-capacity-key",
+            self_body_id="body-0",
+            bodies=bodies,
+            max_bodies=4,
+        )
+    authority = EmbodimentWorldAuthority(authority_key="world-two-mib-key")
+    assert len(authority.encoded_snapshot()) <= 2 * 1024 * 1024
+    assert authority.status()["body_capacity"] == 4
+    assert authority.status()["receipt_capacity"] == 64

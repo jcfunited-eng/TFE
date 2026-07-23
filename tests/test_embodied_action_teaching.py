@@ -19,6 +19,7 @@ from dsf_ai_service.substrate.embodiment_sensory_outcome import (
 )
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
+    SECOND_BODY_PORT_ID,
     EmbodimentWorldAuthority,
     MoveCommand,
     PoseMM,
@@ -210,6 +211,73 @@ def test_rejected_w1_execution_teaches_nothing() -> None:
         )
     assert cycle.status()["bindings"] == 0
     assert teaching.status()["demonstrations"] == 0
+
+
+def test_other_body_execution_is_perceived_but_never_taught_as_self_action() -> None:
+    world, sensory, cycle, teaching = _authorities()
+    owner = _owner()
+    before = world.observation_snapshot()
+    pre = sensory.transduce(before, causal_owner=owner, commit=False)
+    payload = encode_command(
+        MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000))
+    )
+    execution = world.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=payload,
+        causal_intent_receipt_sha256=f"{301:064x}",
+        expected_revision=before.revision,
+    )
+    assert execution.disposition == "applied"
+    assert execution.actor_body_id == "w1-body-2"
+    post = sensory.transduce(
+        execution.after,
+        causal_owner=owner,
+        execution_receipt=execution,
+        commit=False,
+    )
+    with pytest.raises(ValueError, match="self-body"):
+        teaching.demonstrate(
+            tutor_id="joe",
+            nonce="guided-body-other-0301",
+            command_payload=payload,
+            pre_outcome=pre,
+            execution_receipt=execution,
+            post_outcome=post,
+        )
+    assert cycle.status()["bindings"] == 0
+    assert teaching.status()["demonstrations"] == 0
+
+
+def test_prior_exact_body_binding_is_preserved_but_dormant_after_topology_change() -> None:
+    world, sensory, cycle, teaching = _authorities()
+    proof = _move_proof(world, sensory, y_mm=1400, intent=302)
+    teaching.demonstrate(
+        tutor_id="joe",
+        nonce="guided-body-dormant-0302",
+        command_payload=proof[0],
+        pre_outcome=proof[1],
+        execution_receipt=proof[2],
+        post_outcome=proof[3],
+    )
+    assert cycle.status()["bindings"] == 1
+
+    changed_world = EmbodimentWorldAuthority(authority_key=WORLD_KEY)
+    before = changed_world.observation_snapshot()
+    changed_world.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000))
+        ),
+        causal_intent_receipt_sha256=f"{303:064x}",
+        expected_revision=before.revision,
+    )
+    changed = sensory.transduce(
+        changed_world.observation_snapshot(),
+        causal_owner=_owner(),
+        commit=False,
+    )
+    assert cycle.select(changed.causal_settlement).status == "unknown"
+    assert cycle.status()["bindings"] == 1
 
 
 def test_nonce_replay_mismatch_and_capacity_fail_before_learning() -> None:

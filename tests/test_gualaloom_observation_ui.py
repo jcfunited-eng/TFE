@@ -32,7 +32,7 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
         )
         assert response.status_code == 200
         value = response.json()
-        assert value["schema"] == "guala.observation_snapshot.v1"
+        assert value["schema"] == "guala.observation_snapshot.v2"
         assert value["embodiment"]["status"] == "observed"
         assert value["embodiment"]["location"] == {
             "room_id": "W1",
@@ -42,9 +42,15 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
             "minimum": {"x_mm": 0, "y_mm": 0, "z_mm": 0},
             "maximum": {"x_mm": 5000, "y_mm": 5000, "z_mm": 3000},
         }
-        assert value["embodiment"]["body"]["pose"] == {
+        assert value["embodiment"]["self_body_id"] == "guala-body-1"
+        assert value["embodiment"]["bodies"][0]["pose"] == {
             "heading_millidegrees": 0,
             "position": {"x_mm": 1000, "y_mm": 1000, "z_mm": 0},
+        }
+        assert value["embodiment"]["bodies"][1]["body_id"] == "w1-body-2"
+        assert value["embodiment"]["bodies"][1]["pose"] == {
+            "heading_millidegrees": 180000,
+            "position": {"x_mm": 4750, "y_mm": 4750, "z_mm": 0},
         }
         assert value["embodiment"]["objects"] == [
             {
@@ -191,16 +197,29 @@ def _nondefault_observation() -> dict:
             "minimum": {"x_mm": -200, "y_mm": -100, "z_mm": 0},
             "maximum": {"x_mm": 1800, "y_mm": 900, "z_mm": 2400},
         },
-        "body": {
-            "body_id": "observed-body-19",
-            "held_object_id": "held-object-47",
-            "pose": {
-                "position": {"x_mm": 300, "y_mm": 650, "z_mm": 0},
-                "heading_millidegrees": 123456,
+        "self_body_id": "observed-body-19",
+        "bodies": [
+            {
+                "body_id": "observed-body-19",
+                "held_object_id": "held-object-47",
+                "pose": {
+                    "position": {"x_mm": 300, "y_mm": 650, "z_mm": 0},
+                    "heading_millidegrees": 123456,
+                },
+                "radius_mm": 125,
+                "reach_mm": 700,
             },
-            "radius_mm": 125,
-            "reach_mm": 700,
-        },
+            {
+                "body_id": "observed-body-27",
+                "held_object_id": None,
+                "pose": {
+                    "position": {"x_mm": 900, "y_mm": 600, "z_mm": 0},
+                    "heading_millidegrees": 270000,
+                },
+                "radius_mm": 100,
+                "reach_mm": 600,
+            },
+        ],
         "objects": [
             {
                 "object_id": "placed-object-31",
@@ -229,18 +248,37 @@ def test_spatial_view_projects_only_live_observation_coordinates(page: Path) -> 
     assert value["revision"] == 41
     assert value["xSpan"] == 2000
     assert value["ySpan"] == 1000
-    assert value["body"] == {
-        "body_id": "observed-body-19",
-        "radius_mm": 125,
-        "heading_millidegrees": 123456,
-        "point": {
-            "leftPercent": 25,
-            "topPercent": 25,
-            "x_mm": 300,
-            "y_mm": 650,
-            "z_mm": 0,
+    assert value["selfBodyId"] == "observed-body-19"
+    assert value["bodies"] == [
+        {
+            "body_id": "observed-body-19",
+            "radius_mm": 125,
+            "heading_millidegrees": 123456,
+            "held_object_id": "held-object-47",
+            "is_self": True,
+            "point": {
+                "leftPercent": 25,
+                "topPercent": 25,
+                "x_mm": 300,
+                "y_mm": 650,
+                "z_mm": 0,
+            },
         },
-    }
+        {
+            "body_id": "observed-body-27",
+            "radius_mm": 100,
+            "heading_millidegrees": 270000,
+            "held_object_id": None,
+            "is_self": False,
+            "point": {
+                "leftPercent": 55,
+                "topPercent": 30,
+                "x_mm": 900,
+                "y_mm": 600,
+                "z_mm": 0,
+            },
+        },
+    ]
     assert value["objects"][0]["point"] == {
         "leftPercent": 75,
         "topPercent": 80,
@@ -268,7 +306,7 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
     )
     assert rendered["markers"] == [
         {
-            "className": "w1-marker body",
+            "className": "w1-marker body self",
             "left": "25%",
             "top": "25%",
             "width": "12.5%",
@@ -278,6 +316,18 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
                 "observed-body-19 at 300, 650, 0 millimetres"
             ),
             "label": "observed-body-19",
+        },
+        {
+            "className": "w1-marker body other",
+            "left": "55%",
+            "top": "30%",
+            "width": "10%",
+            "height": "20%",
+            "rotate": "270deg",
+            "ariaLabel": (
+                "observed-body-27 at 900, 600, 0 millimetres"
+            ),
+            "label": "observed-body-27",
         },
         {
             "className": "w1-marker object",

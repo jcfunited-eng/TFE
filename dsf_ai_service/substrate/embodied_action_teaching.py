@@ -458,10 +458,16 @@ class EmbodiedActionTeachingAuthority:
         self._world.verify_execution_receipt(execution_receipt)
         if (
             execution_receipt.port_id != self._world.port_id
+            or execution_receipt.actor_body_id
+            != execution_receipt.before.self_body_id
+            or execution_receipt.actor_body_id
+            != execution_receipt.after.self_body_id
             or execution_receipt.command_sha256
             != hashlib.sha256(command_payload).hexdigest()
         ):
-            raise ValueError("demonstration command differs from W1 execution")
+            raise ValueError(
+                "demonstration command differs from an exact self-body W1 execution"
+            )
         self._verify_outcome(
             pre_outcome,
             observation=execution_receipt.before,

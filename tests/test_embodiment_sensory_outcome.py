@@ -10,6 +10,7 @@ from dsf_ai_service.substrate.embodiment_sensory_outcome import (
 )
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
+    SECOND_BODY_PORT_ID,
     EmbodimentWorldAuthority,
     MoveCommand,
     PickCommand,
@@ -32,10 +33,10 @@ def _owner():
     )
 
 
-def _execute(world, command, intent: int):
+def _execute(world, command, intent: int, *, port_id=PORT_ID):
     before = world.observation_snapshot()
     return world.execute_port_command(
-        port_id=PORT_ID,
+        port_id=port_id,
         command_payload=encode_command(command),
         causal_intent_receipt_sha256=f"{intent:064x}",
         expected_revision=before.revision,
@@ -178,3 +179,42 @@ def test_applied_execution_receipt_is_authenticated_and_bound_to_after_field() -
             execution_receipt=replace(execution, command_sha256="0" * 64),
             commit=False,
         )
+
+
+def test_other_body_is_visual_while_body_and_touch_remain_self_only() -> None:
+    world = EmbodimentWorldAuthority(authority_key=AUTHORITY_KEY)
+    transducer = EmbodimentSensoryOutcomeAuthority(authority_key=AUTHORITY_KEY)
+    before = transducer.transduce(
+        world.observation_snapshot(), causal_owner=_owner(), commit=False
+    )
+    moved = _execute(
+        world,
+        MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000)),
+        70,
+        port_id=SECOND_BODY_PORT_ID,
+    )
+    after = transducer.transduce(
+        moved.after,
+        causal_owner=_owner(),
+        execution_receipt=moved,
+        commit=False,
+    )
+    before_sight = _observed(before.causal_settlement, "sight")
+    after_sight = _observed(after.causal_settlement, "sight")
+    assert before_sight.structural_fingerprint != after_sight.structural_fingerprint
+    assert any(
+        item.substream_id == "W1-visible-body-w1-body-2"
+        and ("physical-body-track", "w1-body-2") in item.coordinates
+        for item in after_sight.substreams
+    )
+    assert (
+        _observed(before.causal_settlement, "body").structural_fingerprint
+        == _observed(after.causal_settlement, "body").structural_fingerprint
+    )
+    assert (
+        _observed(before.causal_settlement, "touch").structural_fingerprint
+        == _observed(after.causal_settlement, "touch").structural_fingerprint
+    )
+    for sense in ("sound", "smell", "taste"):
+        assert _observed(after.causal_settlement, sense).state == "sensor_unavailable"
+    assert after.causal_settlement.routing_chis == ()

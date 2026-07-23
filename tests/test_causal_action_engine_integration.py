@@ -658,11 +658,18 @@ def test_full_field_intent_executes_embodiment_and_closes_on_exact_w1_outcome(
         )
         observed = guala._embodiment_world.observation_snapshot()
         assert observed.revision == 1
-        assert observed.body.pose.position == PositionMM(1000, 2000, 0)
+        assert next(
+            item for item in observed.bodies
+            if item.body_id == observed.self_body_id
+        ).pose.position == PositionMM(1000, 2000, 0)
         surface = guala.observation_snapshot()
         assert surface["embodied_action"]["status"] == "completed"
         assert surface["embodied_action"]["after_revision"] == 1
-        assert surface["embodiment"]["body"]["pose"]["position"] == {
+        self_body = next(
+            item for item in surface["embodiment"]["bodies"]
+            if item["body_id"] == surface["embodiment"]["self_body_id"]
+        )
+        assert self_body["pose"]["position"] == {
             "x_mm": 1000,
             "y_mm": 2000,
             "z_mm": 0,

@@ -1,8 +1,11 @@
-"""Deterministic bounded authority for Guala's first embodied world.
+"""Deterministic bounded authority for Guala's first multi-body world.
 
-This module owns one room, one body, and a bounded set of physical objects.  It
+This module owns one room, a bounded set of physical bodies, and a bounded set
+of physical objects.  One body is the substrate's self-body.  Every body has a
+separate physical command port; those ports are control topology, never names,
+language meanings, or sensory identity.
 does not choose actions or assign meaning to them.  It executes canonical typed
-commands arriving as opaque bytes on one embodiment port, using exact integer
+commands arriving as opaque bytes on actor-specific embodiment ports, using exact integer
 geometry.  Each accepted transition is atomic and produces authenticated
 before/after observations and an authenticated execution receipt.
 
@@ -23,21 +26,33 @@ from typing import Mapping, Sequence
 
 
 PORT_ID = "guala.embodiment.w1"
+SECOND_BODY_PORT_ID = "guala.embodiment.w1.body-2"
 
 COMMAND_SCHEMA = "guala.embodiment.command.v1"
-OBSERVATION_SCHEMA = "guala.embodiment.observation.v1"
-EXECUTION_SCHEMA = "guala.embodiment.execution.v1"
-STATE_SCHEMA = "guala.embodiment.state.v1"
-ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v1"
+OBSERVATION_SCHEMA = "guala.embodiment.observation.v2"
+EXECUTION_SCHEMA = "guala.embodiment.execution.v2"
+STATE_SCHEMA = "guala.embodiment.state.v2"
+ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v2"
+MIGRATION_SCHEMA = "guala.embodiment.migration.v1"
 
-OBSERVATION_DOMAIN = b"guala-embodiment-observation-v1\0"
-EXECUTION_DOMAIN = b"guala-embodiment-execution-v1\0"
-STATE_DOMAIN = b"guala-embodiment-state-v1\0"
+LEGACY_OBSERVATION_SCHEMA = "guala.embodiment.observation.v1"
+LEGACY_STATE_SCHEMA = "guala.embodiment.state.v1"
+LEGACY_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v1"
+
+OBSERVATION_DOMAIN = b"guala-embodiment-observation-v2\0"
+EXECUTION_DOMAIN = b"guala-embodiment-execution-v2\0"
+STATE_DOMAIN = b"guala-embodiment-state-v2\0"
+MIGRATION_DOMAIN = b"guala-embodiment-migration-v1\0"
+
+LEGACY_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v1\0"
+LEGACY_STATE_DOMAIN = b"guala-embodiment-state-v1\0"
 
 DEFAULT_MAX_OBJECTS = 8
+DEFAULT_MAX_BODIES = 4
 DEFAULT_RECEIPT_CAPACITY = 64
 DEFAULT_MAX_COMMAND_BYTES = 4096
-DEFAULT_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
+DEFAULT_MAX_ENCODED_STATE_BYTES = 2 * 1024 * 1024
+LEGACY_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
 MAX_IDENTIFIER_BYTES = 256
 MAX_REVISION = (1 << 63) - 1
 
@@ -244,6 +259,23 @@ class EmbodiedObject:
 
 
 @dataclass(frozen=True, slots=True)
+class EmbodimentPort:
+    port_id: str
+    actor_body_id: str
+
+    def verify(self) -> None:
+        _identifier(self.port_id, "embodiment port id")
+        _identifier(self.actor_body_id, "embodiment port actor body id")
+
+    def as_record(self) -> dict[str, str]:
+        self.verify()
+        return {
+            "actor_body_id": self.actor_body_id,
+            "port_id": self.port_id,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class MoveCommand:
     target_pose: PoseMM
 
@@ -349,16 +381,18 @@ class _WorldState:
     revision: int
     room_id: str
     room_bounds: RoomBoundsMM
-    body: EmbodiedBody
+    self_body_id: str
+    bodies: tuple[EmbodiedBody, ...]
     objects: tuple[EmbodiedObject, ...]
 
     def as_record(self) -> dict[str, object]:
         return {
-            "body": self.body.as_record(),
+            "bodies": [item.as_record() for item in self.bodies],
             "objects": [item.as_record() for item in self.objects],
             "revision": self.revision,
             "room_bounds": self.room_bounds.as_record(),
             "room_id": self.room_id,
+            "self_body_id": self.self_body_id,
         }
 
 
@@ -367,7 +401,8 @@ class ObservationSnapshot:
     revision: int
     room_id: str
     room_bounds: RoomBoundsMM
-    body: EmbodiedBody
+    self_body_id: str
+    bodies: tuple[EmbodiedBody, ...]
     objects: tuple[EmbodiedObject, ...]
     state_sha256: str
     authority_hmac_sha256: str
@@ -375,12 +410,13 @@ class ObservationSnapshot:
 
     def unsigned_record(self) -> dict[str, object]:
         return {
-            "body": self.body.as_record(),
+            "bodies": [item.as_record() for item in self.bodies],
             "objects": [item.as_record() for item in self.objects],
             "revision": self.revision,
             "room_bounds": self.room_bounds.as_record(),
             "room_id": self.room_id,
             "schema": OBSERVATION_SCHEMA,
+            "self_body_id": self.self_body_id,
             "state_sha256": self.state_sha256,
         }
 
@@ -395,6 +431,7 @@ class ObservationSnapshot:
 @dataclass(frozen=True, slots=True)
 class ActionExecutionReceipt:
     port_id: str
+    actor_body_id: str | None
     causal_intent_receipt_sha256: str
     command_sha256: str
     expected_revision: int
@@ -409,6 +446,7 @@ class ActionExecutionReceipt:
 
     def unsigned_record(self) -> dict[str, object]:
         return {
+            "actor_body_id": self.actor_body_id,
             "after": self.after.as_record(),
             "before": self.before.as_record(),
             "causal_intent_receipt_sha256": self.causal_intent_receipt_sha256,
@@ -434,6 +472,43 @@ class ActionExecutionReceipt:
 class _AuthorityState:
     world: _WorldState
     recent_applied_receipts: tuple[ActionExecutionReceipt, ...]
+    migration_receipt: "WorldMigrationReceipt | None" = None
+
+
+@dataclass(frozen=True, slots=True)
+class WorldMigrationReceipt:
+    legacy_envelope_sha256: str
+    prior_observation_receipt_sha256: str
+    resulting_observation_receipt_sha256: str
+    prior_revision: int
+    resulting_revision: int
+    added_body_id: str
+    added_port_id: str
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def unsigned_record(self) -> dict[str, object]:
+        return {
+            "added_body_id": self.added_body_id,
+            "added_port_id": self.added_port_id,
+            "legacy_envelope_sha256": self.legacy_envelope_sha256,
+            "prior_observation_receipt_sha256": (
+                self.prior_observation_receipt_sha256
+            ),
+            "prior_revision": self.prior_revision,
+            "resulting_observation_receipt_sha256": (
+                self.resulting_observation_receipt_sha256
+            ),
+            "resulting_revision": self.resulting_revision,
+            "schema": MIGRATION_SCHEMA,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            **self.unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
 
 
 def _distance_squared(left: PositionMM, right: PositionMM) -> int:
@@ -520,24 +595,28 @@ def _object_from(value: object) -> EmbodiedObject:
 
 
 class EmbodimentWorldAuthority:
-    """Atomic authority for one exact W1 room/body/object world."""
+    """Atomic authority for one exact W1 multi-body/object world."""
 
     def __init__(
         self,
         *,
         authority_key: bytes | str,
-        port_id: str = PORT_ID,
         room_id: str = "W1",
         room_bounds: RoomBoundsMM | None = None,
-        body: EmbodiedBody | None = None,
+        self_body_id: str = "guala-body-1",
+        bodies: Sequence[EmbodiedBody] | None = None,
+        actor_ports: Sequence[EmbodimentPort] | None = None,
         initial_objects: Sequence[EmbodiedObject] | None = None,
+        max_bodies: int = DEFAULT_MAX_BODIES,
         max_objects: int = DEFAULT_MAX_OBJECTS,
         receipt_capacity: int = DEFAULT_RECEIPT_CAPACITY,
         max_command_bytes: int = DEFAULT_MAX_COMMAND_BYTES,
         max_encoded_state_bytes: int = DEFAULT_MAX_ENCODED_STATE_BYTES,
     ) -> None:
         self._key = _authority_key(authority_key)
-        self._port_id = _identifier(port_id, "embodiment port id")
+        self._max_bodies = _bounded_integer(
+            max_bodies, "body capacity", minimum=2, maximum=16
+        )
         self._max_objects = _bounded_integer(max_objects, "object capacity", minimum=1, maximum=1024)
         self._receipt_capacity = _bounded_integer(receipt_capacity, "receipt capacity", minimum=1, maximum=4096)
         self._max_command_bytes = _bounded_integer(max_command_bytes, "command byte capacity", minimum=64, maximum=1024 * 1024)
@@ -551,11 +630,69 @@ class EmbodimentWorldAuthority:
             minimum=PositionMM(0, 0, 0),
             maximum=PositionMM(5000, 5000, 3000),
         )
-        embodied_body = body or EmbodiedBody(
-            body_id="guala-body-1",
-            pose=PoseMM(PositionMM(1000, 1000, 0), 0),
-            radius_mm=250,
-            reach_mm=800,
+        canonical_self_body_id = _identifier(self_body_id, "self body id")
+        if bodies is None:
+            embodied_bodies = (
+                EmbodiedBody(
+                    body_id=canonical_self_body_id,
+                    pose=PoseMM(PositionMM(1000, 1000, 0), 0),
+                    radius_mm=250,
+                    reach_mm=800,
+                ),
+                EmbodiedBody(
+                    body_id="w1-body-2",
+                    pose=PoseMM(
+                        PositionMM(
+                            bounds.maximum.x - 250,
+                            bounds.maximum.y - 250,
+                            bounds.minimum.z,
+                        ),
+                        180_000,
+                    ),
+                    radius_mm=250,
+                    reach_mm=800,
+                ),
+            )
+        else:
+            if (
+                not isinstance(bodies, Sequence)
+                or isinstance(bodies, (str, bytes, bytearray))
+                or not 2 <= len(bodies) <= self._max_bodies
+                or any(not isinstance(item, EmbodiedBody) for item in bodies)
+            ):
+                raise ValueError("world body inventory exceeds its exact capacity")
+            embodied_bodies = tuple(bodies)
+        embodied_bodies = tuple(
+            sorted(embodied_bodies, key=lambda item: item.body_id)
+        )
+        if actor_ports is None:
+            other_ids = tuple(
+                item.body_id
+                for item in embodied_bodies
+                if item.body_id != canonical_self_body_id
+            )
+            if len(other_ids) != 1:
+                raise ValueError(
+                    "custom multi-body worlds require explicit actor ports"
+                )
+            embodied_ports = (
+                EmbodimentPort(PORT_ID, canonical_self_body_id),
+                EmbodimentPort(SECOND_BODY_PORT_ID, other_ids[0]),
+            )
+        else:
+            if (
+                not isinstance(actor_ports, Sequence)
+                or isinstance(actor_ports, (str, bytes, bytearray))
+                or len(actor_ports) != len(embodied_bodies)
+                or any(not isinstance(item, EmbodimentPort) for item in actor_ports)
+            ):
+                raise ValueError("actor port topology differs from body topology")
+            embodied_ports = tuple(actor_ports)
+        self._actor_ports = tuple(
+            sorted(embodied_ports, key=lambda item: item.port_id)
+        )
+        self._validate_port_topology(
+            canonical_self_body_id, embodied_bodies, self._actor_ports
         )
         if initial_objects is None:
             objects = (
@@ -580,23 +717,77 @@ class EmbodimentWorldAuthority:
             revision=0,
             room_id=_identifier(room_id, "room id"),
             room_bounds=bounds,
-            body=embodied_body,
+            self_body_id=canonical_self_body_id,
+            bodies=embodied_bodies,
             objects=tuple(sorted(objects, key=lambda item: item.object_id)),
         )
         self._validate_world(world)
-        self._state = _AuthorityState(world=world, recent_applied_receipts=())
+        self._state = _AuthorityState(
+            world=world,
+            recent_applied_receipts=(),
+            migration_receipt=None,
+        )
         self._lock = threading.RLock()
         self._encoded_state_for(self._state)
 
     @property
     def port_id(self) -> str:
-        return self._port_id
+        return next(
+            item.port_id
+            for item in self._actor_ports
+            if item.actor_body_id == self._state.world.self_body_id
+        )
+
+    @property
+    def self_body_id(self) -> str:
+        return self._state.world.self_body_id
+
+    @property
+    def actor_ports(self) -> tuple[EmbodimentPort, ...]:
+        return self._actor_ports
+
+    def _validate_port_topology(
+        self,
+        self_body_id: str,
+        bodies: tuple[EmbodiedBody, ...],
+        ports: tuple[EmbodimentPort, ...],
+    ) -> None:
+        if len(ports) != len(bodies):
+            raise ValueError("every body requires exactly one actor port")
+        for item in ports:
+            item.verify()
+        if tuple(sorted(ports, key=lambda item: item.port_id)) != ports:
+            raise ValueError("actor ports are not in canonical port order")
+        port_ids = tuple(item.port_id for item in ports)
+        actor_ids = tuple(item.actor_body_id for item in ports)
+        body_ids = tuple(item.body_id for item in bodies)
+        if len(set(port_ids)) != len(port_ids):
+            raise ValueError("actor port identities repeat")
+        if len(set(actor_ids)) != len(actor_ids) or set(actor_ids) != set(body_ids):
+            raise ValueError("actor port/body reciprocity changed")
+        self_ports = tuple(
+            item for item in ports if item.actor_body_id == self_body_id
+        )
+        if len(self_ports) != 1 or self_ports[0].port_id != PORT_ID:
+            raise ValueError("self body must retain the canonical self port")
 
     def _validate_world(self, world: _WorldState) -> None:
         _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
         _identifier(world.room_id, "room id")
         world.room_bounds.verify()
-        world.body.verify()
+        _identifier(world.self_body_id, "self body id")
+        if not 2 <= len(world.bodies) <= self._max_bodies:
+            raise ValueError("world body inventory exceeds its exact capacity")
+        if tuple(sorted(world.bodies, key=lambda item: item.body_id)) != world.bodies:
+            raise ValueError("world bodies are not in canonical identity order")
+        body_ids = [item.body_id for item in world.bodies]
+        if len(body_ids) != len(set(body_ids)) or world.self_body_id not in body_ids:
+            raise ValueError("world body identities or self-body changed")
+        for body in world.bodies:
+            body.verify()
+        self._validate_port_topology(
+            world.self_body_id, world.bodies, self._actor_ports
+        )
         if not 1 <= len(world.objects) <= self._max_objects:
             raise ValueError("world object inventory exceeds its exact capacity")
         if tuple(sorted(world.objects, key=lambda item: item.object_id)) != world.objects:
@@ -604,44 +795,55 @@ class EmbodimentWorldAuthority:
         ids = [item.object_id for item in world.objects]
         if len(ids) != len(set(ids)):
             raise ValueError("world object identities are not unique")
-        held = []
+        held_by_body: dict[str, list[str]] = {
+            item.body_id: [] for item in world.bodies
+        }
         placed = []
         for item in world.objects:
             item.verify()
             if item.held_by_body_id is not None:
-                if item.held_by_body_id != world.body.body_id:
+                if item.held_by_body_id not in held_by_body:
                     raise ValueError("object is held by a body outside this authority")
-                held.append(item.object_id)
+                held_by_body[item.held_by_body_id].append(item.object_id)
             else:
                 if not world.room_bounds.contains_floor_disc(item.position, item.radius_mm):
                     raise ValueError("object position is outside room geometry")
+                placed.append(item)
+        object_by_id = {item.object_id: item for item in world.objects}
+        occupied: list[tuple[EmbodiedBody, int]] = []
+        for body in world.bodies:
+            held = held_by_body[body.body_id]
+            expected_held = held[0] if len(held) == 1 else None
+            if len(held) > 1 or body.held_object_id != expected_held:
+                raise ValueError("body/object holding relation is not reciprocal")
+            carried_radius = body.radius_mm
+            if expected_held is not None:
+                carried_radius = max(
+                    carried_radius, object_by_id[expected_held].radius_mm
+                )
+            if not world.room_bounds.contains_floor_disc(
+                body.pose.position, carried_radius
+            ):
+                raise ValueError("body and held object are outside room geometry")
+            occupied.append((body, carried_radius))
+        for index, (left, left_radius) in enumerate(occupied):
+            for right, right_radius in occupied[index + 1 :]:
                 if _floor_discs_overlap(
-                    world.body.pose.position,
-                    world.body.radius_mm,
+                    left.pose.position,
+                    left_radius,
+                    right.pose.position,
+                    right_radius,
+                ):
+                    raise ValueError("body geometries intersect")
+        for body, carried_radius in occupied:
+            for item in placed:
+                if _floor_discs_overlap(
+                    body.pose.position,
+                    carried_radius,
                     item.position,
                     item.radius_mm,
                 ):
-                    raise ValueError("placed object intersects body geometry")
-                placed.append(item)
-        expected_held = held[0] if len(held) == 1 else None
-        if len(held) > 1 or world.body.held_object_id != expected_held:
-            raise ValueError("body/object holding relation is not reciprocal")
-        carried_radius = world.body.radius_mm
-        if expected_held is not None:
-            carried_radius = max(
-                carried_radius,
-                next(item.radius_mm for item in world.objects if item.object_id == expected_held),
-            )
-        if not world.room_bounds.contains_floor_disc(world.body.pose.position, carried_radius):
-            raise ValueError("body and held object are outside room geometry")
-        for item in placed:
-            if _floor_discs_overlap(
-                world.body.pose.position,
-                carried_radius,
-                item.position,
-                item.radius_mm,
-            ):
-                raise ValueError("body or held object intersects placed object geometry")
+                    raise ValueError("body or held object intersects placed object geometry")
         for index, left in enumerate(placed):
             for right in placed[index + 1 :]:
                 if _floor_discs_overlap(left.position, left.radius_mm, right.position, right.radius_mm):
@@ -661,7 +863,8 @@ class EmbodimentWorldAuthority:
             revision=world.revision,
             room_id=world.room_id,
             room_bounds=world.room_bounds,
-            body=world.body,
+            self_body_id=world.self_body_id,
+            bodies=world.bodies,
             objects=world.objects,
             state_sha256=state_sha,
             authority_hmac_sha256=signature,
@@ -685,6 +888,7 @@ class EmbodimentWorldAuthority:
         self,
         *,
         port_id: str,
+        actor_body_id: str | None,
         causal_intent_receipt_sha256: str,
         command_sha256: str,
         expected_revision: int,
@@ -695,6 +899,7 @@ class EmbodimentWorldAuthority:
         after: ObservationSnapshot,
     ) -> ActionExecutionReceipt:
         unsigned = {
+            "actor_body_id": actor_body_id,
             "after": after.as_record(),
             "before": before.as_record(),
             "causal_intent_receipt_sha256": causal_intent_receipt_sha256,
@@ -711,6 +916,7 @@ class EmbodimentWorldAuthority:
         receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
         return ActionExecutionReceipt(
             port_id=port_id,
+            actor_body_id=actor_body_id,
             causal_intent_receipt_sha256=causal_intent_receipt_sha256,
             command_sha256=command_sha256,
             expected_revision=expected_revision,
@@ -728,6 +934,7 @@ class EmbodimentWorldAuthority:
         self,
         *,
         port_id: str,
+        actor_body_id: str | None,
         causal_intent_receipt_sha256: str,
         command_sha256: str,
         expected_revision: int,
@@ -737,6 +944,7 @@ class EmbodimentWorldAuthority:
     ) -> ActionExecutionReceipt:
         return self._execution_receipt(
             port_id=port_id,
+            actor_body_id=actor_body_id,
             causal_intent_receipt_sha256=causal_intent_receipt_sha256,
             command_sha256=command_sha256,
             expected_revision=expected_revision,
@@ -747,21 +955,42 @@ class EmbodimentWorldAuthority:
             after=before,
         )
 
-    def _transition(self, world: _WorldState, command: EmbodimentCommand) -> tuple[_WorldState | None, str]:
-        body = world.body
+    def _transition(
+        self,
+        world: _WorldState,
+        actor_body_id: str,
+        command: EmbodimentCommand,
+    ) -> tuple[_WorldState | None, str]:
+        bodies = list(world.bodies)
+        body_index = next(
+            index
+            for index, item in enumerate(bodies)
+            if item.body_id == actor_body_id
+        )
+        body = bodies[body_index]
         objects = list(world.objects)
         by_id = {item.object_id: (index, item) for index, item in enumerate(objects)}
 
+        def occupied_radius(value: EmbodiedBody) -> int:
+            if value.held_object_id is None:
+                return value.radius_mm
+            return max(value.radius_mm, by_id[value.held_object_id][1].radius_mm)
+
         if isinstance(command, MoveCommand):
             target = command.target_pose
-            carried_radius = body.radius_mm
-            if body.held_object_id is not None:
-                carried_radius = max(
-                    carried_radius,
-                    by_id[body.held_object_id][1].radius_mm,
-                )
+            carried_radius = occupied_radius(body)
             if not world.room_bounds.contains_floor_disc(target.position, carried_radius):
                 return None, "move_outside_room"
+            for other in bodies:
+                if other.body_id == body.body_id:
+                    continue
+                if _straight_path_intersects_disc(
+                    body.pose.position,
+                    target.position,
+                    other.pose.position,
+                    carried_radius + occupied_radius(other),
+                ):
+                    return None, "move_path_intersects_body"
             for item in objects:
                 if item.position is not None and _straight_path_intersects_disc(
                     body.pose.position,
@@ -770,7 +999,8 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                 ):
                     return None, "move_path_intersects_object"
-            return replace(world, body=replace(body, pose=target)), "applied"
+            bodies[body_index] = replace(body, pose=target)
+            return replace(world, bodies=tuple(bodies)), "applied"
 
         if isinstance(command, PickCommand):
             found = by_id.get(command.object_id)
@@ -789,9 +1019,12 @@ class EmbodimentWorldAuthority:
             ):
                 return None, "pick_carried_geometry_outside_room"
             objects[index] = replace(item, position=None, held_by_body_id=body.body_id)
+            bodies[body_index] = replace(
+                body, held_object_id=item.object_id
+            )
             return replace(
                 world,
-                body=replace(body, held_object_id=item.object_id),
+                bodies=tuple(bodies),
                 objects=tuple(objects),
             ), "applied"
 
@@ -806,13 +1039,14 @@ class EmbodimentWorldAuthority:
                 return None, "place_outside_room"
             if _distance_squared(body.pose.position, command.target_position) > body.reach_mm**2:
                 return None, "place_out_of_reach"
-            if _floor_discs_overlap(
-                body.pose.position,
-                body.radius_mm,
-                command.target_position,
-                item.radius_mm,
-            ):
-                return None, "place_intersects_body"
+            for other in bodies:
+                if _floor_discs_overlap(
+                    other.pose.position,
+                    occupied_radius(other),
+                    command.target_position,
+                    item.radius_mm,
+                ):
+                    return None, "place_intersects_body"
             for other in objects:
                 if other.object_id != item.object_id and other.position is not None and _floor_discs_overlap(
                     command.target_position,
@@ -822,9 +1056,10 @@ class EmbodimentWorldAuthority:
                 ):
                     return None, "place_intersects_object"
             objects[index] = replace(item, position=command.target_position, held_by_body_id=None)
+            bodies[body_index] = replace(body, held_object_id=None)
             return replace(
                 world,
-                body=replace(body, held_object_id=None),
+                bodies=tuple(bodies),
                 objects=tuple(objects),
             ), "applied"
 
@@ -863,9 +1098,14 @@ class EmbodimentWorldAuthority:
             before_state = self._state
             before = self._observation_for(before_state.world)
             lifecycle = ("received",)
-            if port != self._port_id:
+            actor_by_port = {
+                item.port_id: item.actor_body_id for item in self._actor_ports
+            }
+            actor_body_id = actor_by_port.get(port)
+            if actor_body_id is None:
                 return self._reject(
                     port_id=port,
+                    actor_body_id=None,
                     causal_intent_receipt_sha256=intent,
                     command_sha256=command_sha,
                     expected_revision=revision,
@@ -877,6 +1117,7 @@ class EmbodimentWorldAuthority:
             if revision != before.revision:
                 return self._reject(
                     port_id=port,
+                    actor_body_id=actor_body_id,
                     causal_intent_receipt_sha256=intent,
                     command_sha256=command_sha,
                     expected_revision=revision,
@@ -887,6 +1128,7 @@ class EmbodimentWorldAuthority:
             if before.revision == MAX_REVISION:
                 return self._reject(
                     port_id=port,
+                    actor_body_id=actor_body_id,
                     causal_intent_receipt_sha256=intent,
                     command_sha256=command_sha,
                     expected_revision=revision,
@@ -899,6 +1141,7 @@ class EmbodimentWorldAuthority:
             except ValueError:
                 return self._reject(
                     port_id=port,
+                    actor_body_id=actor_body_id,
                     causal_intent_receipt_sha256=intent,
                     command_sha256=command_sha,
                     expected_revision=revision,
@@ -907,10 +1150,13 @@ class EmbodimentWorldAuthority:
                     before=before,
                 )
             lifecycle += ("command_decoded",)
-            transitioned, reason = self._transition(before_state.world, command)
+            transitioned, reason = self._transition(
+                before_state.world, actor_body_id, command
+            )
             if transitioned is None:
                 return self._reject(
                     port_id=port,
+                    actor_body_id=actor_body_id,
                     causal_intent_receipt_sha256=intent,
                     command_sha256=command_sha,
                     expected_revision=revision,
@@ -923,6 +1169,7 @@ class EmbodimentWorldAuthority:
             after = self._observation_for(transitioned)
             receipt = self._execution_receipt(
                 port_id=port,
+                actor_body_id=actor_body_id,
                 causal_intent_receipt_sha256=intent,
                 command_sha256=command_sha,
                 expected_revision=revision,
@@ -934,7 +1181,11 @@ class EmbodimentWorldAuthority:
             )
             retained = (before_state.recent_applied_receipts + (receipt,))[-self._receipt_capacity :]
             while True:
-                candidate = _AuthorityState(world=transitioned, recent_applied_receipts=retained)
+                candidate = _AuthorityState(
+                    world=transitioned,
+                    recent_applied_receipts=retained,
+                    migration_receipt=before_state.migration_receipt,
+                )
                 try:
                     self._encoded_state_for(candidate)
                     break
@@ -946,6 +1197,7 @@ class EmbodimentWorldAuthority:
                         continue
                     return self._reject(
                         port_id=port,
+                        actor_body_id=actor_body_id,
                         causal_intent_receipt_sha256=intent,
                         command_sha256=command_sha,
                         expected_revision=revision,
@@ -982,7 +1234,8 @@ class EmbodimentWorldAuthority:
             revision=observation.revision,
             room_id=observation.room_id,
             room_bounds=observation.room_bounds,
-            body=observation.body,
+            self_body_id=observation.self_body_id,
+            bodies=observation.bodies,
             objects=observation.objects,
         )
         self._validate_world(world)
@@ -995,7 +1248,15 @@ class EmbodimentWorldAuthority:
             raise ValueError("retained execution must be applied")
         if receipt.lifecycle[-2:] != ("geometry_validated", "applied"):
             raise ValueError("retained execution lifecycle changed")
-        if receipt.port_id != self._port_id:
+        port_actor = next(
+            (
+                item.actor_body_id
+                for item in self._actor_ports
+                if item.port_id == receipt.port_id
+            ),
+            None,
+        )
+        if port_actor is None or receipt.actor_body_id != port_actor:
             raise ValueError("retained execution port changed")
         _sha256_identity(receipt.causal_intent_receipt_sha256, "causal intent receipt")
         _sha256_identity(receipt.command_sha256, "command identity")
@@ -1017,13 +1278,19 @@ class EmbodimentWorldAuthority:
 
     def _state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
         return {
+            "actor_ports": [item.as_record() for item in self._actor_ports],
             "limits": {
+                "max_bodies": self._max_bodies,
                 "max_command_bytes": self._max_command_bytes,
                 "max_encoded_state_bytes": self._max_encoded_state_bytes,
                 "max_objects": self._max_objects,
                 "receipt_capacity": self._receipt_capacity,
             },
-            "port_id": self._port_id,
+            "migration_receipt": (
+                state.migration_receipt.as_record()
+                if state.migration_receipt is not None
+                else None
+            ),
             "recent_applied_receipts": [item.as_record() for item in state.recent_applied_receipts],
             "schema": STATE_SCHEMA,
             "world": state.world.as_record(),
@@ -1052,24 +1319,29 @@ class EmbodimentWorldAuthority:
         expected = {
             "authority_hmac_sha256",
             "authority_receipt_sha256",
-            "body",
+            "bodies",
             "objects",
             "revision",
             "room_bounds",
             "room_id",
             "schema",
+            "self_body_id",
             "state_sha256",
         }
         if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != OBSERVATION_SCHEMA:
             raise ValueError("observation record fields changed")
         raw_objects = value.get("objects")
+        raw_bodies = value.get("bodies")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("observation bodies changed")
         if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
             raise ValueError("observation objects changed")
         result = ObservationSnapshot(
             revision=value.get("revision"),
             room_id=value.get("room_id"),
             room_bounds=_room_from(value.get("room_bounds")),
-            body=_body_from(value.get("body")),
+            self_body_id=_identifier(value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=tuple(_object_from(item) for item in raw_objects),
             state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
@@ -1082,6 +1354,7 @@ class EmbodimentWorldAuthority:
 
     def _execution_from_record(self, value: object) -> ActionExecutionReceipt:
         expected = {
+            "actor_body_id",
             "after",
             "authority_hmac_sha256",
             "authority_receipt_sha256",
@@ -1103,6 +1376,9 @@ class EmbodimentWorldAuthority:
             raise ValueError("execution lifecycle changed")
         result = ActionExecutionReceipt(
             port_id=_identifier(value.get("port_id"), "execution port id"),
+            actor_body_id=_identifier(
+                value.get("actor_body_id"), "execution actor body id"
+            ),
             causal_intent_receipt_sha256=_sha256_identity(value.get("causal_intent_receipt_sha256"), "causal intent receipt"),
             command_sha256=_sha256_identity(value.get("command_sha256"), "command identity"),
             expected_revision=_bounded_integer(value.get("expected_revision"), "expected revision", minimum=0, maximum=MAX_REVISION),
@@ -1120,40 +1396,384 @@ class EmbodimentWorldAuthority:
         self._verify_execution(result)
         return result
 
-    def restore_encoded(self, encoded: bytes) -> None:
-        """Atomically restore one exact authenticated authority snapshot."""
+    def _migration_receipt_for(
+        self,
+        *,
+        legacy_envelope_sha256: str,
+        prior_observation_receipt_sha256: str,
+        resulting_observation_receipt_sha256: str,
+        prior_revision: int,
+        resulting_revision: int,
+        added_body_id: str,
+        added_port_id: str,
+    ) -> WorldMigrationReceipt:
+        unsigned = {
+            "added_body_id": added_body_id,
+            "added_port_id": added_port_id,
+            "legacy_envelope_sha256": legacy_envelope_sha256,
+            "prior_observation_receipt_sha256": prior_observation_receipt_sha256,
+            "prior_revision": prior_revision,
+            "resulting_observation_receipt_sha256": resulting_observation_receipt_sha256,
+            "resulting_revision": resulting_revision,
+            "schema": MIGRATION_SCHEMA,
+        }
+        signature = _sign(self._key, MIGRATION_DOMAIN, unsigned)
+        return WorldMigrationReceipt(
+            legacy_envelope_sha256=legacy_envelope_sha256,
+            prior_observation_receipt_sha256=prior_observation_receipt_sha256,
+            resulting_observation_receipt_sha256=resulting_observation_receipt_sha256,
+            prior_revision=prior_revision,
+            resulting_revision=resulting_revision,
+            added_body_id=added_body_id,
+            added_port_id=added_port_id,
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=_digest(
+                {"authority_hmac_sha256": signature, "payload": unsigned}
+            ),
+        )
 
-        if not isinstance(encoded, bytes) or not encoded or len(encoded) > self._max_encoded_state_bytes:
+    def _verify_migration_receipt(
+        self, receipt: WorldMigrationReceipt, world: _WorldState
+    ) -> None:
+        if not isinstance(receipt, WorldMigrationReceipt):
+            raise ValueError("world migration receipt is not typed")
+        for value, name in (
+            (receipt.legacy_envelope_sha256, "legacy envelope"),
+            (receipt.prior_observation_receipt_sha256, "prior observation"),
+            (receipt.resulting_observation_receipt_sha256, "resulting observation"),
+        ):
+            _sha256_identity(value, name)
+        _bounded_integer(
+            receipt.prior_revision,
+            "migration prior revision",
+            minimum=0,
+            maximum=MAX_REVISION,
+        )
+        _bounded_integer(
+            receipt.resulting_revision,
+            "migration resulting revision",
+            minimum=1,
+            maximum=MAX_REVISION,
+        )
+        if (
+            receipt.resulting_revision != receipt.prior_revision + 1
+            or receipt.resulting_revision > world.revision
+            or receipt.added_body_id not in {
+                item.body_id for item in world.bodies
+            }
+            or not any(
+                item.port_id == receipt.added_port_id
+                and item.actor_body_id == receipt.added_body_id
+                for item in self._actor_ports
+            )
+        ):
+            raise ValueError("world migration causal chain changed")
+        unsigned = receipt.unsigned_record()
+        expected_hmac = _sign(self._key, MIGRATION_DOMAIN, unsigned)
+        if not hmac.compare_digest(
+            expected_hmac, receipt.authority_hmac_sha256
+        ):
+            raise ValueError("world migration HMAC changed")
+        if receipt.authority_receipt_sha256 != _digest(
+            {"authority_hmac_sha256": expected_hmac, "payload": unsigned}
+        ):
+            raise ValueError("world migration identity changed")
+
+    def _migration_from_record(
+        self, value: object, world: _WorldState
+    ) -> WorldMigrationReceipt:
+        expected = {
+            "added_body_id",
+            "added_port_id",
+            "authority_hmac_sha256",
+            "authority_receipt_sha256",
+            "legacy_envelope_sha256",
+            "prior_observation_receipt_sha256",
+            "prior_revision",
+            "resulting_observation_receipt_sha256",
+            "resulting_revision",
+            "schema",
+        }
+        if (
+            not isinstance(value, Mapping)
+            or set(value) != expected
+            or value.get("schema") != MIGRATION_SCHEMA
+        ):
+            raise ValueError("world migration fields changed")
+        result = WorldMigrationReceipt(
+            legacy_envelope_sha256=_sha256_identity(
+                value.get("legacy_envelope_sha256"), "legacy envelope"
+            ),
+            prior_observation_receipt_sha256=_sha256_identity(
+                value.get("prior_observation_receipt_sha256"),
+                "prior observation",
+            ),
+            resulting_observation_receipt_sha256=_sha256_identity(
+                value.get("resulting_observation_receipt_sha256"),
+                "resulting observation",
+            ),
+            prior_revision=_bounded_integer(
+                value.get("prior_revision"),
+                "migration prior revision",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            resulting_revision=_bounded_integer(
+                value.get("resulting_revision"),
+                "migration resulting revision",
+                minimum=1,
+                maximum=MAX_REVISION,
+            ),
+            added_body_id=_identifier(
+                value.get("added_body_id"), "migration added body"
+            ),
+            added_port_id=_identifier(
+                value.get("added_port_id"), "migration added port"
+            ),
+            authority_hmac_sha256=_sha256_identity(
+                value.get("authority_hmac_sha256"), "migration HMAC"
+            ),
+            authority_receipt_sha256=_sha256_identity(
+                value.get("authority_receipt_sha256"), "migration receipt"
+            ),
+        )
+        if result.as_record() != dict(value):
+            raise ValueError("world migration record is not canonical")
+        self._verify_migration_receipt(result, world)
+        return result
+
+    def _decode_authenticated_envelope(
+        self, encoded: bytes, *, envelope_schema: str, domain: bytes, limit: int
+    ) -> tuple[Mapping[str, object], bytes]:
+        if not isinstance(encoded, bytes) or not encoded or len(encoded) > limit:
             raise ValueError("encoded embodiment state exceeds its exact byte capacity")
         try:
             envelope = json.loads(encoded.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             raise ValueError("embodiment state envelope is not canonical JSON") from error
         expected_envelope = {"authority_hmac_sha256", "payload_base64", "schema"}
-        if not isinstance(envelope, Mapping) or set(envelope) != expected_envelope or envelope.get("schema") != ENVELOPE_SCHEMA:
+        if (
+            not isinstance(envelope, Mapping)
+            or set(envelope) != expected_envelope
+            or envelope.get("schema") != envelope_schema
+        ):
             raise ValueError("embodiment state envelope fields changed")
         if _canonical(envelope) != encoded:
             raise ValueError("embodiment state envelope is not canonical")
         try:
-            payload = base64.b64decode(envelope.get("payload_base64"), validate=True)
+            payload = base64.b64decode(
+                envelope.get("payload_base64"), validate=True
+            )
         except Exception as error:
             raise ValueError("embodiment state payload is not canonical base64") from error
-        if len(payload) > self._max_encoded_state_bytes:
+        if not payload or len(payload) > limit:
             raise ValueError("embodiment state payload exceeds its exact byte capacity")
-        provided_hmac = _sha256_identity(envelope.get("authority_hmac_sha256"), "state HMAC")
-        expected_hmac = hmac.new(self._key, STATE_DOMAIN + payload, hashlib.sha256).hexdigest()
+        provided_hmac = _sha256_identity(
+            envelope.get("authority_hmac_sha256"), "state HMAC"
+        )
+        expected_hmac = hmac.new(
+            self._key, domain + payload, hashlib.sha256
+        ).hexdigest()
         if not hmac.compare_digest(expected_hmac, provided_hmac):
             raise ValueError("embodiment state HMAC changed")
         try:
             decoded = json.loads(payload.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             raise ValueError("embodiment state payload is not canonical JSON") from error
-        if _canonical(decoded) != payload:
+        if not isinstance(decoded, Mapping) or _canonical(decoded) != payload:
             raise ValueError("embodiment state payload is not canonical")
-        expected_state = {"limits", "port_id", "recent_applied_receipts", "schema", "world"}
+        return decoded, payload
+
+    def _restore_legacy_encoded(self, encoded: bytes) -> None:
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=LEGACY_ENVELOPE_SCHEMA,
+            domain=LEGACY_STATE_DOMAIN,
+            limit=LEGACY_MAX_ENCODED_STATE_BYTES,
+        )
+        expected_state = {
+            "limits", "port_id", "recent_applied_receipts", "schema", "world"
+        }
+        if set(decoded) != expected_state or decoded.get("schema") != LEGACY_STATE_SCHEMA:
+            raise ValueError("legacy embodiment state fields changed")
+        legacy_limits = decoded.get("limits")
+        if (
+            not isinstance(legacy_limits, Mapping)
+            or set(legacy_limits)
+            != {
+                "max_command_bytes",
+                "max_encoded_state_bytes",
+                "max_objects",
+                "receipt_capacity",
+            }
+            or _bounded_integer(
+                legacy_limits.get("max_command_bytes"),
+                "legacy command capacity",
+                minimum=64,
+                maximum=self._max_command_bytes,
+            )
+            != legacy_limits.get("max_command_bytes")
+            or _bounded_integer(
+                legacy_limits.get("max_encoded_state_bytes"),
+                "legacy encoded state capacity",
+                minimum=4096,
+                maximum=LEGACY_MAX_ENCODED_STATE_BYTES,
+            )
+            != legacy_limits.get("max_encoded_state_bytes")
+            or _bounded_integer(
+                legacy_limits.get("max_objects"),
+                "legacy object capacity",
+                minimum=1,
+                maximum=self._max_objects,
+            )
+            != legacy_limits.get("max_objects")
+            or _bounded_integer(
+                legacy_limits.get("receipt_capacity"),
+                "legacy receipt capacity",
+                minimum=1,
+                maximum=self._receipt_capacity,
+            )
+            != legacy_limits.get("receipt_capacity")
+            or decoded.get("port_id") != PORT_ID
+        ):
+            raise ValueError("legacy embodiment authority limits or port changed")
+        if len(encoded) > legacy_limits["max_encoded_state_bytes"]:
+            raise ValueError("legacy embodiment state exceeded its own byte capacity")
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if (
+            not isinstance(raw_receipts, list)
+            or len(raw_receipts) > legacy_limits["receipt_capacity"]
+            or any(not isinstance(item, Mapping) for item in raw_receipts)
+        ):
+            raise ValueError("legacy retained execution receipts changed")
+        world_value = decoded.get("world")
+        expected_world = {"body", "objects", "revision", "room_bounds", "room_id"}
+        if not isinstance(world_value, Mapping) or set(world_value) != expected_world:
+            raise ValueError("legacy world state fields changed")
+        raw_objects = world_value.get("objects")
+        if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= legacy_limits["max_objects"]:
+            raise ValueError("legacy world object inventory changed")
+        prior_revision = _bounded_integer(
+            world_value.get("revision"),
+            "legacy world revision",
+            minimum=0,
+            maximum=MAX_REVISION - 1,
+        )
+        room_bounds = _room_from(world_value.get("room_bounds"))
+        legacy_body = _body_from(world_value.get("body"))
+        objects = tuple(_object_from(item) for item in raw_objects)
+        other_ports = tuple(
+            item for item in self._actor_ports if item.actor_body_id != legacy_body.body_id
+        )
+        if len(other_ports) != 1:
+            raise ValueError("legacy migration requires exactly one added physical body")
+        template = next(
+            (
+                item
+                for item in self._state.world.bodies
+                if item.body_id == other_ports[0].actor_body_id
+            ),
+            None,
+        )
+        if template is None:
+            raise ValueError("legacy migration added-body topology is unavailable")
+        added_body = replace(
+            template,
+            pose=PoseMM(
+                PositionMM(
+                    room_bounds.maximum.x - template.radius_mm,
+                    room_bounds.maximum.y - template.radius_mm,
+                    room_bounds.minimum.z,
+                ),
+                template.pose.heading_millidegrees,
+            ),
+            held_object_id=None,
+        )
+        migrated_world = _WorldState(
+            revision=prior_revision + 1,
+            room_id=_identifier(world_value.get("room_id"), "room id"),
+            room_bounds=room_bounds,
+            self_body_id=legacy_body.body_id,
+            bodies=tuple(sorted((legacy_body, added_body), key=lambda item: item.body_id)),
+            objects=objects,
+        )
+        try:
+            self._validate_world(migrated_world)
+        except ValueError as error:
+            raise ValueError(
+                "legacy migration added-body geometry is not physically valid"
+            ) from error
+        legacy_state_record = {
+            "body": legacy_body.as_record(),
+            "objects": [item.as_record() for item in objects],
+            "revision": prior_revision,
+            "room_bounds": room_bounds.as_record(),
+            "room_id": migrated_world.room_id,
+        }
+        if legacy_state_record != dict(world_value):
+            raise ValueError("legacy world state is not canonical")
+        legacy_unsigned = {
+            **legacy_state_record,
+            "schema": LEGACY_OBSERVATION_SCHEMA,
+            "state_sha256": _digest(legacy_state_record),
+        }
+        legacy_hmac = _sign(
+            self._key, LEGACY_OBSERVATION_DOMAIN, legacy_unsigned
+        )
+        prior_observation_receipt = _digest(
+            {"authority_hmac_sha256": legacy_hmac, "payload": legacy_unsigned}
+        )
+        resulting_observation = self._observation_for(migrated_world)
+        migration = self._migration_receipt_for(
+            legacy_envelope_sha256=hashlib.sha256(encoded).hexdigest(),
+            prior_observation_receipt_sha256=prior_observation_receipt,
+            resulting_observation_receipt_sha256=(
+                resulting_observation.authority_receipt_sha256
+            ),
+            prior_revision=prior_revision,
+            resulting_revision=migrated_world.revision,
+            added_body_id=added_body.body_id,
+            added_port_id=other_ports[0].port_id,
+        )
+        candidate = _AuthorityState(
+            world=migrated_world,
+            recent_applied_receipts=(),
+            migration_receipt=migration,
+        )
+        self._encoded_state_for(candidate)
+        with self._lock:
+            before_state = self._state
+            try:
+                self._commit_authority_state(candidate)
+            except BaseException:
+                self._state = before_state
+                raise
+
+    def restore_encoded(self, encoded: bytes) -> None:
+        """Atomically restore one exact authenticated authority snapshot."""
+        if not isinstance(encoded, bytes) or not encoded or len(encoded) > LEGACY_MAX_ENCODED_STATE_BYTES:
+            raise ValueError("encoded embodiment state exceeds its exact byte capacity")
+        try:
+            envelope_probe = json.loads(encoded.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("embodiment state envelope is not canonical JSON") from error
+        if isinstance(envelope_probe, Mapping) and envelope_probe.get("schema") == LEGACY_ENVELOPE_SCHEMA:
+            self._restore_legacy_encoded(encoded)
+            return
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=ENVELOPE_SCHEMA,
+            domain=STATE_DOMAIN,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports", "limits", "migration_receipt",
+            "recent_applied_receipts", "schema", "world"
+        }
         if not isinstance(decoded, Mapping) or set(decoded) != expected_state or decoded.get("schema") != STATE_SCHEMA:
             raise ValueError("embodiment state fields changed")
         expected_limits = {
+            "max_bodies": self._max_bodies,
             "max_command_bytes": self._max_command_bytes,
             "max_encoded_state_bytes": self._max_encoded_state_bytes,
             "max_objects": self._max_objects,
@@ -1161,20 +1781,27 @@ class EmbodimentWorldAuthority:
         }
         if decoded.get("limits") != expected_limits:
             raise ValueError("embodiment state limits changed")
-        if decoded.get("port_id") != self._port_id:
-            raise ValueError("embodiment state port changed")
+        if decoded.get("actor_ports") != [item.as_record() for item in self._actor_ports]:
+            raise ValueError("embodiment actor port topology changed")
         world_value = decoded.get("world")
-        world_expected = {"body", "objects", "revision", "room_bounds", "room_id"}
+        world_expected = {
+            "bodies", "objects", "revision", "room_bounds", "room_id",
+            "self_body_id"
+        }
         if not isinstance(world_value, Mapping) or set(world_value) != world_expected:
             raise ValueError("world state fields changed")
         raw_objects = world_value.get("objects")
+        raw_bodies = world_value.get("bodies")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("world body inventory changed")
         if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
             raise ValueError("world object inventory changed")
         world = _WorldState(
             revision=_bounded_integer(world_value.get("revision"), "world revision", minimum=0, maximum=MAX_REVISION),
             room_id=_identifier(world_value.get("room_id"), "room id"),
             room_bounds=_room_from(world_value.get("room_bounds")),
-            body=_body_from(world_value.get("body")),
+            self_body_id=_identifier(world_value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=tuple(_object_from(item) for item in raw_objects),
         )
         self._validate_world(world)
@@ -1189,7 +1816,19 @@ class EmbodimentWorldAuthority:
                 raise ValueError("retained execution chain changed")
         if receipts and receipts[-1].after != self._observation_for(world):
             raise ValueError("retained execution chain does not end at current world")
-        candidate = _AuthorityState(world=world, recent_applied_receipts=receipts)
+        migration_value = decoded.get("migration_receipt")
+        migration = (
+            self._migration_from_record(migration_value, world)
+            if migration_value is not None
+            else None
+        )
+        candidate = _AuthorityState(
+            world=world,
+            recent_applied_receipts=receipts,
+            migration_receipt=migration,
+        )
+        if self._encoded_state_for(candidate) != encoded:
+            raise ValueError("embodiment state is not canonical")
         with self._lock:
             before_state = self._state
             try:
@@ -1201,12 +1840,25 @@ class EmbodimentWorldAuthority:
     def status(self) -> dict[str, object]:
         with self._lock:
             world = self._state.world
+            self_body = next(
+                item for item in world.bodies
+                if item.body_id == world.self_body_id
+            )
             return {
-                "body_id": world.body.body_id,
-                "held_object_id": world.body.held_object_id,
+                "body_capacity": self._max_bodies,
+                "body_count": len(world.bodies),
+                "body_ids": [item.body_id for item in world.bodies],
+                "self_body_id": world.self_body_id,
+                "held_object_id": self_body.held_object_id,
                 "object_capacity": self._max_objects,
                 "object_count": len(world.objects),
-                "port_id": self._port_id,
+                "port_id": self.port_id,
+                "actor_ports": [item.as_record() for item in self._actor_ports],
+                "migration_receipt_sha256": (
+                    self._state.migration_receipt.authority_receipt_sha256
+                    if self._state.migration_receipt is not None
+                    else None
+                ),
                 "receipt_capacity": self._receipt_capacity,
                 "retained_applied_receipts": len(self._state.recent_applied_receipts),
                 "revision": world.revision,
@@ -1218,15 +1870,18 @@ __all__ = [
     "ActionExecutionReceipt",
     "EmbodiedBody",
     "EmbodiedObject",
+    "EmbodimentPort",
     "EmbodimentWorldAuthority",
     "MoveCommand",
     "ObservationSnapshot",
     "PORT_ID",
+    "SECOND_BODY_PORT_ID",
     "PickCommand",
     "PlaceCommand",
     "PoseMM",
     "PositionMM",
     "RoomBoundsMM",
+    "WorldMigrationReceipt",
     "decode_command",
     "encode_command",
 ]

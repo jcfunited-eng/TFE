@@ -81,6 +81,7 @@ svg text{font-family:var(--mono)}
 .w1-marker{position:absolute;box-sizing:border-box;transform:translate(-50%,-50%);min-width:3px;min-height:3px}
 .w1-marker.body{border:1px solid var(--cyan);border-radius:50%;background:rgba(79,198,242,.18)}
 .w1-marker.body::after{content:'';position:absolute;left:50%;top:50%;width:48%;height:1px;background:var(--cyan);transform-origin:left center}
+.w1-marker.body.other{border-color:#c4a7e7;background:rgba(196,167,231,.18)}
 .w1-marker.object{border:1px solid var(--green);border-radius:50%;background:rgba(79,190,123,.18)}
 .w1-marker-label{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);color:var(--ink-bright);font-size:9px;white-space:nowrap;text-shadow:0 1px 2px var(--bg)}
 
@@ -580,15 +581,6 @@ function buildW1SpatialModel(embodiment){
      minimum.x_mm>=maximum.x_mm||minimum.y_mm>=maximum.y_mm||minimum.z_mm>maximum.z_mm){
     return unavailable('authoritative room bounds unavailable');
   }
-  const body=embodiment.body;
-  const pose=body&&body.pose;
-  const position=pose&&pose.position;
-  if(!body||!identifier(body.body_id)||!position||
-     !integer(position.x_mm)||!integer(position.y_mm)||!integer(position.z_mm)||
-     !integer(pose.heading_millidegrees)||pose.heading_millidegrees<0||pose.heading_millidegrees>359999||
-     !integer(body.radius_mm)||body.radius_mm<=0){
-    return unavailable('authoritative body pose unavailable');
-  }
   const xSpan=maximum.x_mm-minimum.x_mm;
   const ySpan=maximum.y_mm-minimum.y_mm;
   const project=point=>{
@@ -602,8 +594,31 @@ function buildW1SpatialModel(embodiment){
       x_mm:point.x_mm,y_mm:point.y_mm,z_mm:point.z_mm,
     };
   };
-  const bodyPoint=project(position);
-  if(!bodyPoint)return unavailable('body pose is outside authoritative room bounds');
+  const selfBodyId=embodiment.self_body_id;
+  if(!identifier(selfBodyId)||!Array.isArray(embodiment.bodies)||embodiment.bodies.length<2){
+    return unavailable('authoritative multi-body topology unavailable');
+  }
+  const bodies=[];
+  const bodyIds=new Set();
+  for(const body of embodiment.bodies){
+    const pose=body&&body.pose;
+    const position=pose&&pose.position;
+    if(!body||!identifier(body.body_id)||bodyIds.has(body.body_id)||!position||
+       !integer(position.x_mm)||!integer(position.y_mm)||!integer(position.z_mm)||
+       !integer(pose.heading_millidegrees)||pose.heading_millidegrees<0||pose.heading_millidegrees>359999||
+       !integer(body.radius_mm)||body.radius_mm<=0){
+      return unavailable('authoritative body pose unavailable');
+    }
+    const point=project(position);
+    if(!point)return unavailable('body pose is outside authoritative room bounds');
+    bodyIds.add(body.body_id);
+    bodies.push({body_id:body.body_id,radius_mm:body.radius_mm,
+      heading_millidegrees:pose.heading_millidegrees,
+      held_object_id:body.held_object_id||null,is_self:body.body_id===selfBodyId,point});
+  }
+  if(!bodyIds.has(selfBodyId)||bodies.filter(item=>item.is_self).length!==1){
+    return unavailable('authoritative self-body unavailable');
+  }
   if(!Array.isArray(embodiment.objects))return unavailable('authoritative object inventory unavailable');
   const objects=[];
   for(const item of embodiment.objects){
@@ -611,7 +626,7 @@ function buildW1SpatialModel(embodiment){
       return unavailable('authoritative object geometry unavailable');
     }
     if(item.position===null){
-      if(!identifier(item.held_by_body_id))return unavailable('authoritative held-object state unavailable');
+      if(!identifier(item.held_by_body_id)||!bodyIds.has(item.held_by_body_id))return unavailable('authoritative held-object state unavailable');
       objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:item.held_by_body_id,point:null});
       continue;
     }
@@ -626,7 +641,7 @@ function buildW1SpatialModel(embodiment){
   return {
     available:true,room_id:location.room_id,revision:location.revision,
     minimum,maximum,xSpan,ySpan,
-    body:{body_id:body.body_id,radius_mm:body.radius_mm,heading_millidegrees:pose.heading_millidegrees,point:bodyPoint},
+    selfBodyId,bodies,
     objects,
   };
 }
@@ -661,11 +676,13 @@ function renderW1SpatialObservation(embodiment){
     label.className='w1-marker-label';label.textContent=id;
     marker.appendChild(label);room.appendChild(marker);
   };
-  addMarker('body',model.body.body_id,model.body.radius_mm,model.body.point,model.body.heading_millidegrees);
+  for(const body of model.bodies){
+    addMarker(`body ${body.is_self?'self':'other'}`,body.body_id,body.radius_mm,body.point,body.heading_millidegrees);
+  }
   for(const item of model.objects){
     if(item.point)addMarker('object',item.object_id,item.radius_mm,item.point,null);
   }
-  const exact=[`${model.body.body_id}: (${model.body.point.x_mm}, ${model.body.point.y_mm}, ${model.body.point.z_mm}) mm · heading ${model.body.heading_millidegrees} mdeg`];
+  const exact=model.bodies.map(body=>`${body.body_id}${body.is_self?' [self]':' [other]'}: (${body.point.x_mm}, ${body.point.y_mm}, ${body.point.z_mm}) mm · heading ${body.heading_millidegrees} mdeg · holding ${body.held_object_id||'nothing'}`);
   for(const item of model.objects){
     exact.push(item.point
       ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
@@ -676,7 +693,7 @@ function renderW1SpatialObservation(embodiment){
 // --- End authoritative W1 spatial observation ---
 
 function renderObservation(value){
-  if(value.schema!=='guala.observation_snapshot.v1'){
+  if(value.schema!=='guala.observation_snapshot.v2'){
     throw new Error('observation schema unavailable');
   }
   document.getElementById('hdr-id').textContent=
@@ -685,13 +702,14 @@ function renderObservation(value){
   renderW1SpatialObservation(embodiment);
   if(embodiment.status==='observed'){
     const location=embodiment.location||{};
-    const body=embodiment.body||{};
+    const bodies=Array.isArray(embodiment.bodies)?embodiment.bodies:[];
+    const body=bodies.find(item=>item.body_id===embodiment.self_body_id)||{};
     const pose=body.pose||{};
     const position=pose.position||{};
     document.getElementById('embodiedLocationCell').textContent=
       `${location.room_id||'unknown room'} · revision ${location.revision}`;
     document.getElementById('bodyCell').textContent=
-      `${body.body_id||'unknown body'} at (${position.x_mm}, ${position.y_mm}, ${position.z_mm}) mm · heading ${pose.heading_millidegrees} mdeg · holding ${body.held_object_id||'nothing'}`;
+      `${body.body_id||'unknown body'} [self] at (${position.x_mm}, ${position.y_mm}, ${position.z_mm}) mm · heading ${pose.heading_millidegrees} mdeg · holding ${body.held_object_id||'nothing'} · ${bodies.length} bodies observed`;
   }else{
     document.getElementById('embodiedLocationCell').textContent=
       `unavailable · ${embodiment.reason||'unknown reason'}`;
@@ -700,7 +718,7 @@ function renderObservation(value){
   const action=value.embodied_action||{};
   document.getElementById('embodiedActionCell').textContent=
     action.status==='completed'
-      ? `${action.disposition||'unknown'} · ${action.reason||'no reason'} · revision ${action.before_revision}→${action.after_revision}`
+      ? `${action.actor_body_id||'unknown body'} · ${action.disposition||'unknown'} · ${action.reason||'no reason'} · revision ${action.before_revision}→${action.after_revision}`
       : action.status==='idle'
         ? `idle · world revision ${action.world_revision}`
         : `unavailable · ${action.reason||'unknown reason'}`;

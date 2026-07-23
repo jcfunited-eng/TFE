@@ -7651,6 +7651,22 @@ class Guala:
                 executor_action_receipt_sha256=unavailable,
                 disposition="rejected",
             )
+        if request.action.port_id != self._embodiment_world.port_id:
+            unavailable = _hashlib.sha256(
+                b"guala-self-embodiment-port-rejected-v2\0"
+                + request.authority_receipt_sha256.encode("ascii")
+            ).hexdigest()
+            self._causal_embodiment_rejection_reason = {
+                "reason": "self_action_port_mismatch",
+                "request_receipt_sha256": request.authority_receipt_sha256,
+            }
+            return authenticate_executor_acknowledgement(
+                request=request,
+                executor_id="guala.embodiment.w1",
+                authority_key=self._causal_embodiment_executor_key,
+                executor_action_receipt_sha256=unavailable,
+                disposition="rejected",
+            )
         observation = self._embodiment_world.observation_snapshot()
         world_execution = self._embodiment_world.execute_port_command(
             port_id=request.action.port_id,
@@ -18930,7 +18946,18 @@ class Guala:
             embodiment_bytes = cls._canonical_persistence_bytes(
                 embodiment_world
             )
-            if len(embodiment_bytes) > 8 * 1024 * 1024:
+            embodiment_schema = (
+                embodiment_world.get("schema")
+                if isinstance(embodiment_world, dict)
+                else None
+            )
+            embodiment_limit = (
+                8 * 1024 * 1024
+                if embodiment_schema
+                == "guala.embodiment.state.hmac.v1"
+                else 2 * 1024 * 1024
+            )
+            if len(embodiment_bytes) > embodiment_limit:
                 raise ValueError(
                     "teaching.embodiment_world exceeds its encoded boundary"
                 )
@@ -22556,7 +22583,8 @@ class Guala:
                     "room_id": world.room_id,
                     "revision": world.revision,
                 },
-                "body": world.body.as_record(),
+                "self_body_id": world.self_body_id,
+                "bodies": [item.as_record() for item in world.bodies],
                 "objects": [item.as_record() for item in world.objects],
                 "room_bounds": world.room_bounds.as_record(),
                 "authority_receipt_sha256": (
@@ -22574,6 +22602,8 @@ class Guala:
                     "disposition": latest_action.disposition,
                     "reason": latest_action.reason,
                     "lifecycle": list(latest_action.lifecycle),
+                    "actor_body_id": latest_action.actor_body_id,
+                    "port_id": latest_action.port_id,
                     "before_revision": latest_action.before.revision,
                     "after_revision": latest_action.after.revision,
                     "authority_receipt_sha256": (
@@ -22598,7 +22628,7 @@ class Guala:
             }
         )
         payload = {
-            "schema": "guala.observation_snapshot.v1",
+            "schema": "guala.observation_snapshot.v2",
             "observed_at_tick": tick,
             "identity": identity,
             "embodiment": embodiment,
