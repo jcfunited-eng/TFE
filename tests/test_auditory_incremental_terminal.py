@@ -32,6 +32,7 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
     PCM_SAMPLE_RATE_HZ,
 )
 from dsf_ai_service.substrate.auditory_reciprocity import (
+    AuditoryRecognitionState,
     AuditoryReciprocityKind,
     AuditoryReciprocityOwner,
 )
@@ -354,6 +355,89 @@ def test_same_terminal_is_found_at_137_seconds_across_chunk_partitions() -> None
             event.tutor_label,
         ))
     assert extents == [(offset, offset + LEARNED_SAMPLES, "learned-form")] * 3
+
+
+def _two_terminal_signal() -> tuple[int, ...]:
+    return (
+        (0,) * 3_200
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * 3_200
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * TRAILING_SAMPLES
+    )
+
+
+def test_one_advance_preserves_two_independently_verified_terminals() -> None:
+    owner = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    mounted = _MountedStream()
+    result = owner.advance(**mounted.mount(
+        _pcm(_two_terminal_signal()),
+        sequence=0,
+        first_sample_index=0,
+    ))
+
+    result.verify()
+    assert result.status is AuditoryIncrementalStatus.RELEASED_UNIQUE
+    assert result.reply_candidate is None
+    assert len(result.released_terminals) == 2
+    assert tuple(
+        (event.source_sample_start, event.source_sample_end)
+        for event in result.released_terminals
+    ) == (
+        (3_200, 3_200 + LEARNED_SAMPLES),
+        (12_800, 12_800 + LEARNED_SAMPLES),
+    )
+    assert all(
+        event.recognition_occurrence is not None
+        and event.recognition_occurrence.state
+        is AuditoryRecognitionState.UNIQUE
+        for event in result.released_terminals
+    )
+    assert len(owner._released_full_fields) == 2
+
+
+def test_registry_issues_a_multi_terminal_advance_atomically_in_order() -> None:
+    registry = AuditoryIncrementalTerminalRegistry(
+        reciprocity_owner=_learned_owner(),
+        terminal_authority_capacity=2,
+    )
+    mounted = _MountedStream()
+    result = registry.advance(**mounted.mount(
+        _pcm(_two_terminal_signal()),
+        sequence=0,
+        first_sample_index=0,
+    ))
+
+    assert len(result.released_terminals) == 2
+    assert registry.status()["issued_terminal_authorities"] == 2
+    assert registry._authority_order == [
+        event.event_id for event in result.released_terminals
+    ]
+    claims = tuple(registry.claim(event) for event in result.released_terminals)
+    assert tuple(claim.event for claim in claims) == result.released_terminals
+
+
+def test_registry_capacity_rejects_the_whole_release_set_without_partial_issue(
+) -> None:
+    registry = AuditoryIncrementalTerminalRegistry(
+        reciprocity_owner=_learned_owner(),
+        terminal_authority_capacity=1,
+    )
+    mounted = _MountedStream()
+    authorities = mounted.mount(
+        _pcm(_two_terminal_signal()),
+        sequence=0,
+        first_sample_index=0,
+    )
+
+    with pytest.raises(RuntimeError, match="authority capacity is full"):
+        registry.advance(**authorities)
+    status = registry.status()
+    assert status["issued_terminal_authorities"] == 0
+    assert status["in_flight_terminal_authorities"] == 0
+    assert status["active_streams"] == 0
 
 
 def test_same_terminal_is_found_at_642_seconds_across_chunk_partitions() -> None:
@@ -775,6 +859,43 @@ def test_registry_reject_discards_but_graceful_close_releases_terminal() -> None
     assert registry.status()["issued_terminal_authorities"] == 0
     with pytest.raises(ValueError, match="not issued or was already consumed"):
         registry.claim(released.reply_candidate)
+
+
+def test_registry_close_capacity_failure_restores_the_exact_pending_stream(
+) -> None:
+    registry = AuditoryIncrementalTerminalRegistry(
+        reciprocity_owner=_learned_owner(),
+        terminal_authority_capacity=1,
+    )
+    learned_pcm = _pcm(_tone_values(LEARNED_SAMPLES, 440))
+
+    first_stream = _MountedStream()
+    first_advance = registry.advance(**first_stream.mount(
+        learned_pcm, sequence=0, first_sample_index=0
+    ))
+    assert first_advance.status is AuditoryIncrementalStatus.CONTINUING
+    first_release = registry.close(
+        first_stream.stream_id, release_terminal=True
+    )
+    assert first_release is not None
+    assert first_release.reply_candidate is not None
+
+    second_stream = _MountedStream()
+    second_advance = registry.advance(**second_stream.mount(
+        learned_pcm, sequence=0, first_sample_index=0
+    ))
+    assert second_advance.status is AuditoryIncrementalStatus.CONTINUING
+    with pytest.raises(RuntimeError, match="authority capacity is full"):
+        registry.close(second_stream.stream_id, release_terminal=True)
+    failed_status = registry.status()
+    assert failed_status["active_streams"] == 1
+    assert failed_status["issued_terminal_authorities"] == 1
+
+    assert registry.discard_unadmitted(first_release.reply_candidate)
+    retried = registry.close(second_stream.stream_id, release_terminal=True)
+    assert retried is not None
+    assert retried.reply_candidate is not None
+    assert registry.status()["issued_terminal_authorities"] == 1
 
 
 def test_claim_completion_joins_paired_field_and_source_evidence() -> None:

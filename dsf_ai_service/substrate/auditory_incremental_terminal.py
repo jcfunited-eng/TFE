@@ -113,7 +113,7 @@ AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2 = (
 AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3 = (
     "guala.auditory.incremental_terminal.v3"
 )
-AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v1"
+AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v2"
 MAX_EVENT_SAMPLES = PCM_SAMPLE_RATE_HZ * MAX_CAPTURE_SECONDS
 MAX_EVENT_HOPS = MAX_EVENT_SAMPLES // OBSERVATION_HOP_SAMPLES
 # This is a resource boundary, never a semantic threshold.  Exceeding the
@@ -126,6 +126,11 @@ MAX_ACTIVE_TRACKERS = max(
 # multiply this authority.
 MAX_FULL_GATE_WORK_PER_ADVANCE = MAX_REACHABILITY_CELLS_PER_RECOGNITION
 MAX_FULL_GATE_FIELD_SAMPLES_PER_ADVANCE = MAX_NATIVE_SAMPLES_PER_SETTLEMENT
+# One terminal needs at least one native hop, so an advance can never release
+# more terminals than the maximum hop count already admitted for one event.
+# This is a resource capacity only; terminal identity and closure never depend
+# on it.
+MAX_RELEASED_TERMINALS_PER_ADVANCE = MAX_EVENT_HOPS
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -510,13 +515,19 @@ class AuditoryIncrementalTerminalEvent:
 def _advance_payload(
     *,
     status: AuditoryIncrementalStatus,
-    reply_candidate: AuditoryIncrementalTerminalEvent | None,
+    released_terminals: tuple[AuditoryIncrementalTerminalEvent, ...],
     processed_hops: int,
     active_tracker_count: int,
 ) -> dict[str, object]:
+    reply_candidate = (
+        released_terminals[0] if len(released_terminals) == 1 else None
+    )
     return {
         "active_tracker_count": active_tracker_count,
         "processed_hops": processed_hops,
+        "released_terminal_receipt_sha256s": [
+            value.authority_receipt_sha256 for value in released_terminals
+        ],
         "reply_candidate_receipt_sha256": (
             reply_candidate.authority_receipt_sha256
             if reply_candidate is not None else None
@@ -529,10 +540,18 @@ def _advance_payload(
 @dataclass(frozen=True, slots=True)
 class AuditoryIncrementalAdvance:
     status: AuditoryIncrementalStatus
-    reply_candidate: AuditoryIncrementalTerminalEvent | None
+    released_terminals: tuple[AuditoryIncrementalTerminalEvent, ...]
     processed_hops: int
     active_tracker_count: int
     authority_receipt_sha256: str
+
+    @property
+    def reply_candidate(self) -> AuditoryIncrementalTerminalEvent | None:
+        """Compatibility view for callers that can consume exactly one event."""
+        return (
+            self.released_terminals[0]
+            if len(self.released_terminals) == 1 else None
+        )
 
     def verify(self) -> None:
         if not isinstance(self.status, AuditoryIncrementalStatus):
@@ -545,15 +564,36 @@ class AuditoryIncrementalAdvance:
                 raise ValueError(f"incremental auditory {name} is invalid")
         if self.active_tracker_count > MAX_ACTIVE_TRACKERS:
             raise ValueError("incremental auditory tracker boundary was exceeded")
+        if (
+            not isinstance(self.released_terminals, tuple)
+            or len(self.released_terminals) > MAX_RELEASED_TERMINALS_PER_ADVANCE
+        ):
+            raise ValueError("incremental auditory release boundary was exceeded")
         if self.status is AuditoryIncrementalStatus.RELEASED_UNIQUE:
-            if self.reply_candidate is None:
-                raise ValueError("unique auditory release has no candidate")
-            self.reply_candidate.verify()
-        elif self.reply_candidate is not None:
-            raise ValueError("non-unique auditory state exposed a reply candidate")
+            if not self.released_terminals:
+                raise ValueError("unique auditory release has no terminals")
+        elif self.released_terminals:
+            raise ValueError("non-release auditory state exposed terminals")
+        prior: AuditoryIncrementalTerminalEvent | None = None
+        seen: set[str] = set()
+        for terminal in self.released_terminals:
+            if not isinstance(terminal, AuditoryIncrementalTerminalEvent):
+                raise TypeError("incremental auditory release is not a terminal")
+            terminal.verify()
+            if terminal.event_id in seen:
+                raise ValueError("incremental auditory release repeats a terminal")
+            if prior is not None and (
+                terminal.stream_id != prior.stream_id
+                or terminal.source_sample_start < prior.source_sample_end
+            ):
+                raise ValueError(
+                    "incremental auditory terminals are not in physical source order"
+                )
+            seen.add(terminal.event_id)
+            prior = terminal
         payload = _advance_payload(
             status=self.status,
-            reply_candidate=self.reply_candidate,
+            released_terminals=self.released_terminals,
             processed_hops=self.processed_hops,
             active_tracker_count=self.active_tracker_count,
         )
@@ -1261,6 +1301,7 @@ class AuditoryIncrementalTerminalOwner:
         *,
         reciprocity_owner: AuditoryReciprocityOwner,
         max_active_trackers: int = MAX_ACTIVE_TRACKERS,
+        released_terminal_capacity: int = MAX_RELEASED_TERMINALS_PER_ADVANCE,
         log_event=None,
         _prepared_cells: tuple[_Cell, ...] | None = None,
     ) -> None:
@@ -1273,8 +1314,17 @@ class AuditoryIncrementalTerminalOwner:
             or max_active_trackers > MAX_ACTIVE_TRACKERS
         ):
             raise ValueError("incremental tracker capacity is invalid")
+        if (
+            isinstance(released_terminal_capacity, bool)
+            or not isinstance(released_terminal_capacity, int)
+            or released_terminal_capacity <= 0
+            or released_terminal_capacity
+            > MAX_RELEASED_TERMINALS_PER_ADVANCE
+        ):
+            raise ValueError("incremental released-terminal capacity is invalid")
         self._reciprocity_owner = reciprocity_owner
         self._max_active_trackers = max_active_trackers
+        self._released_terminal_capacity = released_terminal_capacity
         self._log_event = log_event or (lambda *_args, **_kwargs: None)
         self._cells = (
             _cells_from_owner(reciprocity_owner)
@@ -1442,18 +1492,20 @@ class AuditoryIncrementalTerminalOwner:
         self,
         status: AuditoryIncrementalStatus,
         *,
-        reply_candidate: AuditoryIncrementalTerminalEvent | None = None,
+        released_terminals: tuple[
+            AuditoryIncrementalTerminalEvent, ...
+        ] = (),
         processed_hops: int = 0,
     ) -> AuditoryIncrementalAdvance:
         payload = _advance_payload(
             status=status,
-            reply_candidate=reply_candidate,
+            released_terminals=released_terminals,
             processed_hops=processed_hops,
             active_tracker_count=self.active_tracker_count,
         )
         result = AuditoryIncrementalAdvance(
             status=status,
-            reply_candidate=reply_candidate,
+            released_terminals=released_terminals,
             processed_hops=processed_hops,
             active_tracker_count=self.active_tracker_count,
             authority_receipt_sha256=_digest(payload),
@@ -1949,7 +2001,11 @@ class AuditoryIncrementalTerminalOwner:
             raise RuntimeError(
                 "incremental auditory terminal released two full fields"
             )
-        if existing is None and self._released_full_fields:
+        if (
+            existing is None
+            and len(self._released_full_fields)
+            >= self._released_terminal_capacity
+        ):
             raise RuntimeError(
                 "incremental auditory released-field capacity is full"
             )
@@ -2356,28 +2412,33 @@ class AuditoryIncrementalTerminalOwner:
                         break
                     if terminal is not None:
                         released.append(terminal)
-                    if len(released) > 1:
+                    if (
+                        len(released)
+                        > self._released_terminal_capacity
+                        - len(self._released_full_fields)
+                    ):
                         released.clear()
                         resource = True
                         self._native_proposals.clear()
                         self._pending.clear()
                         break
-            reply = self._event(released[0]) if len(released) == 1 else None
             if resource:
-                reply = None
+                terminals: tuple[AuditoryIncrementalTerminalEvent, ...] = ()
+            else:
+                terminals = tuple(self._event(value) for value in released)
+            if resource:
                 status = AuditoryIncrementalStatus.INDETERMINATE_RESOURCE
-            elif ambiguous:
-                reply = None
-                status = AuditoryIncrementalStatus.AMBIGUOUS
-            elif reply is not None:
+            elif terminals:
                 status = AuditoryIncrementalStatus.RELEASED_UNIQUE
+            elif ambiguous:
+                status = AuditoryIncrementalStatus.AMBIGUOUS
             elif self.active_tracker_count or self._pending:
                 status = AuditoryIncrementalStatus.CONTINUING
             else:
                 status = AuditoryIncrementalStatus.UNKNOWN
             result = self._make_result(
                 status,
-                reply_candidate=reply,
+                released_terminals=terminals,
                 processed_hops=processed_hops,
             )
             self._log_event(
@@ -2385,7 +2446,10 @@ class AuditoryIncrementalTerminalOwner:
                 status=status.value,
                 processed_hops=processed_hops,
                 active_tracker_count=self.active_tracker_count,
-                reply_candidate_count=1 if reply is not None else 0,
+                reply_candidate_count=(
+                    1 if len(terminals) == 1 else 0
+                ),
+                released_terminal_count=len(terminals),
                 full_gate_reachability_cells=(
                     full_gate_work.reachability_consumed
                 ),
@@ -2396,16 +2460,26 @@ class AuditoryIncrementalTerminalOwner:
     def close_stream(self) -> AuditoryIncrementalAdvance:
         with self._lock:
             chosen, ambiguous = self._resolve_closed(list(self._pending.values()))
-            reply = self._event(chosen) if chosen is not None else None
+            resource = bool(
+                chosen is not None
+                and len(self._released_full_fields)
+                >= self._released_terminal_capacity
+            )
+            terminals = (
+                (self._event(chosen),)
+                if chosen is not None and not resource else ()
+            )
             self._clear_live_state()
             status = (
-                AuditoryIncrementalStatus.AMBIGUOUS
-                if ambiguous
+                AuditoryIncrementalStatus.INDETERMINATE_RESOURCE
+                if resource
                 else AuditoryIncrementalStatus.RELEASED_UNIQUE
-                if reply is not None
+                if terminals
+                else AuditoryIncrementalStatus.AMBIGUOUS
+                if ambiguous
                 else AuditoryIncrementalStatus.UNKNOWN
             )
-            return self._make_result(status, reply_candidate=reply)
+            return self._make_result(status, released_terminals=terminals)
 
 
 @dataclass(slots=True)
@@ -2448,6 +2522,7 @@ class AuditoryIncrementalTerminalRegistry:
         reciprocity_owner: AuditoryReciprocityOwner,
         clock=time.monotonic,
         stream_capacity: int = PCM_STREAM_CAPACITY,
+        terminal_authority_capacity: int = PCM_STREAM_CAPACITY,
         idle_seconds: int = PCM_STREAM_IDLE_SECONDS,
         log_event=None,
     ) -> None:
@@ -2457,6 +2532,11 @@ class AuditoryIncrementalTerminalRegistry:
             isinstance(stream_capacity, bool)
             or not isinstance(stream_capacity, int)
             or stream_capacity <= 0
+            or isinstance(terminal_authority_capacity, bool)
+            or not isinstance(terminal_authority_capacity, int)
+            or terminal_authority_capacity <= 0
+            or terminal_authority_capacity
+            > MAX_RELEASED_TERMINALS_PER_ADVANCE
             or isinstance(idle_seconds, bool)
             or not isinstance(idle_seconds, int)
             or idle_seconds <= 0
@@ -2465,6 +2545,7 @@ class AuditoryIncrementalTerminalRegistry:
         self._reciprocity_owner = reciprocity_owner
         self._clock = clock
         self._stream_capacity = stream_capacity
+        self._terminal_authority_capacity = terminal_authority_capacity
         self._idle_seconds = idle_seconds
         self._log_event = log_event or (lambda *_args, **_kwargs: None)
         self._lock = threading.RLock()
@@ -2534,40 +2615,71 @@ class AuditoryIncrementalTerminalRegistry:
                     "incremental terminal identity changed while claimed"
                 )
             return
-        if len(self._authority_order) >= self._stream_capacity:
+        if len(self._authority_order) >= self._terminal_authority_capacity:
             raise RuntimeError(
                 "incremental terminal authority capacity is full"
             )
         self._issued[event.event_id] = _IssuedTerminal(event, auditory_l5)
         self._authority_order.append(event.event_id)
 
-    def _issue_from_owner_locked(
+    def _issue_batch_from_owner_locked(
         self,
         owner: AuditoryIncrementalTerminalOwner,
-        event: AuditoryIncrementalTerminalEvent,
+        events: tuple[AuditoryIncrementalTerminalEvent, ...],
     ) -> None:
-        existing = self._issued.get(event.event_id)
-        if existing is not None:
-            if existing.event != event:
-                raise RuntimeError(
-                    "incremental terminal identity was issued twice differently"
-                )
-            return
-        reserved = self._in_flight.get(event.event_id)
-        if reserved is not None:
-            if reserved.issued.event != event:
-                raise RuntimeError(
-                    "incremental terminal identity changed while claimed"
-                )
-            return
-        if len(self._authority_order) >= self._stream_capacity:
+        """Transfer one ordered release set into registry ownership atomically."""
+        if not isinstance(events, tuple):
+            raise TypeError("incremental terminal release batch must be a tuple")
+        if len(events) > self._terminal_authority_capacity:
             raise RuntimeError(
                 "incremental terminal authority capacity is full"
             )
-        self._issue_locked(
-            event,
-            owner.claim_released_full_field(event),
+        prior: AuditoryIncrementalTerminalEvent | None = None
+        seen: set[str] = set()
+        new_events = []
+        for event in events:
+            if not isinstance(event, AuditoryIncrementalTerminalEvent):
+                raise TypeError("incremental terminal release batch is untyped")
+            event.verify()
+            if event.event_id in seen:
+                raise ValueError("incremental terminal release batch repeats an event")
+            if prior is not None and (
+                event.stream_id != prior.stream_id
+                or event.source_sample_start < prior.source_sample_end
+            ):
+                raise ValueError(
+                    "incremental terminal release batch is not in source order"
+                )
+            seen.add(event.event_id)
+            prior = event
+            existing = self._issued.get(event.event_id)
+            if existing is not None:
+                if existing.event != event:
+                    raise RuntimeError(
+                        "incremental terminal identity was issued twice differently"
+                    )
+                continue
+            reserved = self._in_flight.get(event.event_id)
+            if reserved is not None:
+                if reserved.issued.event != event:
+                    raise RuntimeError(
+                        "incremental terminal identity changed while claimed"
+                    )
+                continue
+            new_events.append(event)
+        if (
+            len(self._authority_order) + len(new_events)
+            > self._terminal_authority_capacity
+        ):
+            raise RuntimeError(
+                "incremental terminal authority capacity is full"
+            )
+        issued = tuple(
+            _IssuedTerminal(event, owner.claim_released_full_field(event))
+            for event in new_events
         )
+        for value in issued:
+            self._issue_locked(value.event, value.auditory_l5)
 
     def claim(
         self,
@@ -2950,9 +3062,9 @@ class AuditoryIncrementalTerminalRegistry:
                     if result.status is AuditoryIncrementalStatus.DISCONTINUITY:
                         self._streams.pop(transport.stream_id, None)
                         return result
-                    if result.reply_candidate is not None:
-                        self._issue_from_owner_locked(
-                            mounted.owner, result.reply_candidate
+                    if result.released_terminals:
+                        self._issue_batch_from_owner_locked(
+                            mounted.owner, result.released_terminals
                         )
                 except Exception as advance_error:
                     self._issued = prior_issued
@@ -2984,18 +3096,42 @@ class AuditoryIncrementalTerminalRegistry:
         if not isinstance(stream_id, str) or not stream_id:
             raise ValueError("incremental stream id is required")
         with self._lock:
-            mounted = self._streams.pop(stream_id, None)
-        if mounted is None or not release_terminal:
-            return None
-        result = mounted.owner.close_stream()
-        if result.reply_candidate is not None:
-            now = self._clock()
-            with self._lock:
-                self._expire_locked(now)
-                self._issue_from_owner_locked(
-                    mounted.owner, result.reply_candidate
+            mounted = self._streams.get(stream_id)
+            if mounted is None:
+                return None
+            if not release_terminal:
+                del self._streams[stream_id]
+                return None
+            prior_issued = OrderedDict(self._issued)
+            prior_authority_order = list(self._authority_order)
+            with mounted.owner._lock:
+                checkpoint = mounted.owner._transaction_checkpoint()
+                try:
+                    result = mounted.owner.close_stream()
+                    if result.released_terminals:
+                        self._issue_batch_from_owner_locked(
+                            mounted.owner, result.released_terminals
+                        )
+                except Exception as close_error:
+                    self._issued = prior_issued
+                    self._authority_order = prior_authority_order
+                    try:
+                        mounted.owner._restore_transaction_checkpoint(
+                            checkpoint
+                        )
+                    except Exception as rollback_error:
+                        raise ExceptionGroup(
+                            "incremental auditory registry close and rollback "
+                            "failed",
+                            [close_error, rollback_error],
+                        )
+                    raise
+            removed = self._streams.pop(stream_id, None)
+            if removed is not mounted:
+                raise RuntimeError(
+                    "incremental auditory stream changed during close"
                 )
-        return result
+            return result
 
     def refresh_learning(self) -> int:
         """Atomically rebuild tutor cells and discard provisional streams."""
@@ -3025,7 +3161,7 @@ class AuditoryIncrementalTerminalRegistry:
                 "learned_cells": len(self._cells),
                 "issued_terminal_authorities": len(self._issued),
                 "in_flight_terminal_authorities": len(self._in_flight),
-                "issued_terminal_capacity": self._stream_capacity,
+                "issued_terminal_capacity": self._terminal_authority_capacity,
             }
 
     def authority_counts(self) -> dict[str, int]:
@@ -3050,4 +3186,5 @@ __all__ = (
     "MAX_ACTIVE_TRACKERS",
     "MAX_EVENT_SAMPLES",
     "MAX_EVENT_HOPS",
+    "MAX_RELEASED_TERMINALS_PER_ADVANCE",
 )
