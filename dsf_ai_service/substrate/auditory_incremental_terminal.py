@@ -29,8 +29,10 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
 import math
+import secrets
 import struct
 import threading
 import time
@@ -114,6 +116,12 @@ AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3 = (
     "guala.auditory.incremental_terminal.v3"
 )
 AUDITORY_INCREMENTAL_ADVANCE_SCHEMA = "guala.auditory.incremental_advance.v2"
+AUDITORY_INCREMENTAL_BATCH_SCHEMA = (
+    "guala.auditory.incremental_terminal_batch.v1"
+)
+_AUDITORY_INCREMENTAL_BATCH_KEY_DOMAIN = (
+    b"guala.auditory.incremental_terminal_batch.v1\0"
+)
 MAX_EVENT_SAMPLES = PCM_SAMPLE_RATE_HZ * MAX_CAPTURE_SECONDS
 MAX_EVENT_HOPS = MAX_EVENT_SAMPLES // OBSERVATION_HOP_SAMPLES
 # This is a resource boundary, never a semantic threshold.  Exceeding the
@@ -145,6 +153,10 @@ def _canonical_bytes(value: object) -> bytes:
 
 def _digest(value: object) -> str:
     return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def _hmac(key: bytes, value: object) -> str:
+    return hmac.new(key, _canonical_bytes(value), hashlib.sha256).hexdigest()
 
 
 def _canonical_digest(value: object, name: str) -> str:
@@ -602,6 +614,167 @@ class AuditoryIncrementalAdvance:
             "incremental auditory advance receipt",
         ):
             raise ValueError("incremental auditory advance receipt was altered")
+
+
+def _batch_entry_payload(
+    value: "AuditoryIncrementalTerminalBatchEntry",
+) -> dict[str, object]:
+    return {
+        "l5_authority_receipt_sha256": (
+            value.auditory_l5.authority_receipt_sha256
+        ),
+        "l5_experience_id": value.auditory_l5.experience_id,
+        "source_sample_end": value.event.source_sample_end,
+        "source_sample_start": value.event.source_sample_start,
+        "source_time_end": [
+            value.auditory_l5.source_time_end.numerator,
+            value.auditory_l5.source_time_end.denominator,
+        ],
+        "source_time_start": [
+            value.auditory_l5.source_time_start.numerator,
+            value.auditory_l5.source_time_start.denominator,
+        ],
+        "stream_id": value.event.stream_id,
+        "structural_fingerprint": value.event.structural_fingerprint,
+        "terminal_authority_receipt_sha256": (
+            value.event.authority_receipt_sha256
+        ),
+        "terminal_event_id": value.event.event_id,
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryIncrementalTerminalBatchEntry:
+    """One exact terminal and the complete L5 field released with it."""
+
+    event: AuditoryIncrementalTerminalEvent
+    auditory_l5: AuditoryL5Experience
+
+    def verify(self) -> None:
+        self._verify(verify_full_field=True)
+
+    def _verify(self, *, verify_full_field: bool) -> None:
+        if not isinstance(self.event, AuditoryIncrementalTerminalEvent):
+            raise TypeError("incremental auditory batch entry has no terminal")
+        if not isinstance(self.auditory_l5, AuditoryL5Experience):
+            raise TypeError("incremental auditory batch entry has no L5 field")
+        self.event.verify()
+        if verify_full_field:
+            self.auditory_l5.verify()
+        if (
+            self.event.schema != AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3
+            or self.auditory_l5.event_boundary != "utterance"
+            or self.auditory_l5.structural_fingerprint
+            != self.event.structural_fingerprint
+            or self.auditory_l5.authority_receipt_sha256
+            != self.event.l5_authority_receipt_sha256
+            or self.auditory_l5.source_time_end
+            - self.auditory_l5.source_time_start
+            != Fraction(self.event.sample_count, PCM_SAMPLE_RATE_HZ)
+        ):
+            raise ValueError(
+                "incremental auditory batch terminal and full field disagree"
+            )
+
+
+def _batch_payload(
+    *,
+    advance_authority_receipt_sha256: str,
+    entries: tuple[AuditoryIncrementalTerminalBatchEntry, ...],
+) -> dict[str, object]:
+    return {
+        "advance_authority_receipt_sha256": (
+            advance_authority_receipt_sha256
+        ),
+        "entries": [_batch_entry_payload(value) for value in entries],
+        "schema": AUDITORY_INCREMENTAL_BATCH_SCHEMA,
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryIncrementalTerminalBatch:
+    """Canonical ordered authority for every terminal in one release.
+
+    The receipt binds order and every exact terminal/L5 authority graph.  The
+    full immutable L5 objects remain present; this is not a compatibility
+    vector or a reduced projection of their explicit fields.
+    """
+
+    advance_authority_receipt_sha256: str
+    entries: tuple[AuditoryIncrementalTerminalBatchEntry, ...]
+    authority_receipt_sha256: str
+    authority_hmac_sha256: str
+
+    def verify(self) -> None:
+        self._verify(verify_full_fields=True)
+
+    def _verify(self, *, verify_full_fields: bool) -> None:
+        _canonical_digest(
+            self.advance_authority_receipt_sha256,
+            "incremental auditory batch advance receipt",
+        )
+        if (
+            not isinstance(self.entries, tuple)
+            or not self.entries
+            or len(self.entries) > MAX_RELEASED_TERMINALS_PER_ADVANCE
+        ):
+            raise ValueError("incremental auditory batch boundary is invalid")
+        prior: AuditoryIncrementalTerminalBatchEntry | None = None
+        seen: set[str] = set()
+        epoch: Fraction | None = None
+        for entry in self.entries:
+            if not isinstance(entry, AuditoryIncrementalTerminalBatchEntry):
+                raise TypeError("incremental auditory batch entry is untyped")
+            entry._verify(verify_full_field=verify_full_fields)
+            event = entry.event
+            current_epoch = entry.auditory_l5.source_time_start - Fraction(
+                event.source_sample_start,
+                PCM_SAMPLE_RATE_HZ,
+            )
+            if epoch is None:
+                epoch = current_epoch
+            elif current_epoch != epoch:
+                raise ValueError(
+                    "incremental auditory batch source clocks disagree"
+                )
+            if event.event_id in seen:
+                raise ValueError("incremental auditory batch repeats a terminal")
+            if prior is not None and (
+                event.stream_id != prior.event.stream_id
+                or event.source_sample_start < prior.event.source_sample_end
+                or entry.auditory_l5.source_time_start
+                < prior.auditory_l5.source_time_end
+            ):
+                raise ValueError(
+                    "incremental auditory batch is not in physical order"
+                )
+            seen.add(event.event_id)
+            prior = entry
+        payload = _batch_payload(
+            advance_authority_receipt_sha256=(
+                self.advance_authority_receipt_sha256
+            ),
+            entries=self.entries,
+        )
+        if _digest(payload) != _canonical_digest(
+            self.authority_receipt_sha256,
+            "incremental auditory batch authority receipt",
+        ):
+            raise ValueError("incremental auditory batch receipt was altered")
+        _canonical_digest(
+            self.authority_hmac_sha256,
+            "incremental auditory batch authority HMAC",
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryIncrementalTerminalBatchClaim:
+    """Opaque immutable reservation for one complete release batch."""
+
+    batch: AuditoryIncrementalTerminalBatch
+    authority_positions: tuple[int, ...]
+    owner_token: object = field(compare=False, repr=False)
+    reservation_token: object = field(compare=False, repr=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -2513,6 +2686,13 @@ class _InFlightTerminal:
     authority_position: int
 
 
+@dataclass(frozen=True, slots=True)
+class _InFlightTerminalBatch:
+    batch: AuditoryIncrementalTerminalBatch
+    reservation_token: object
+    authority_positions: tuple[int, ...]
+
+
 class AuditoryIncrementalTerminalRegistry:
     """Bound one incremental terminal owner to each live PCM stream epoch."""
 
@@ -2555,8 +2735,16 @@ class AuditoryIncrementalTerminalRegistry:
         )
         self._issued: OrderedDict[str, _IssuedTerminal] = OrderedDict()
         self._in_flight: OrderedDict[str, _InFlightTerminal] = OrderedDict()
+        self._in_flight_batches: OrderedDict[
+            str, _InFlightTerminalBatch
+        ] = OrderedDict()
         self._authority_order: list[str] = []
         self._claim_token = object()
+        self._batch_claim_token = object()
+        batch_root = secrets.token_bytes(32)
+        self._batch_authority_key = hashlib.sha256(
+            _AUDITORY_INCREMENTAL_BATCH_KEY_DOMAIN + batch_root
+        ).digest()
 
     def _order_issued_locked(self) -> None:
         self._issued = OrderedDict(
@@ -2680,6 +2868,282 @@ class AuditoryIncrementalTerminalRegistry:
         )
         for value in issued:
             self._issue_locked(value.event, value.auditory_l5)
+
+    def materialize_batch(
+        self,
+        advance: AuditoryIncrementalAdvance,
+    ) -> AuditoryIncrementalTerminalBatch:
+        """Expose one complete release without consuming live authority.
+
+        Materialization is a pure bounded view over already-issued registry
+        authority.  It never stores a copy, and therefore repeated reads cannot
+        grow live state.
+        """
+        if not isinstance(advance, AuditoryIncrementalAdvance):
+            raise TypeError("incremental auditory batch requires an advance")
+        advance.verify()
+        if (
+            advance.status is not AuditoryIncrementalStatus.RELEASED_UNIQUE
+            or not advance.released_terminals
+        ):
+            raise ValueError(
+                "incremental auditory batch requires released terminals"
+            )
+        with self._lock:
+            entries = []
+            positions = []
+            for event in advance.released_terminals:
+                issued = self._issued.get(event.event_id)
+                if issued is None or issued.event != event:
+                    raise ValueError(
+                        "incremental auditory batch terminal is not issued"
+                    )
+                try:
+                    position = self._authority_order.index(event.event_id)
+                except ValueError as error:
+                    raise RuntimeError(
+                        "incremental auditory batch lost issued order"
+                    ) from error
+                positions.append(position)
+                entries.append(AuditoryIncrementalTerminalBatchEntry(
+                    event=event,
+                    auditory_l5=issued.auditory_l5,
+                ))
+            if positions != list(range(positions[0], positions[0] + len(positions))):
+                raise RuntimeError(
+                    "incremental auditory release is not one authority batch"
+                )
+        immutable_entries = tuple(entries)
+        payload = _batch_payload(
+            advance_authority_receipt_sha256=(
+                advance.authority_receipt_sha256
+            ),
+            entries=immutable_entries,
+        )
+        batch = AuditoryIncrementalTerminalBatch(
+            advance_authority_receipt_sha256=(
+                advance.authority_receipt_sha256
+            ),
+            entries=immutable_entries,
+            authority_receipt_sha256=_digest(payload),
+            authority_hmac_sha256=_hmac(self._batch_authority_key, payload),
+        )
+        batch._verify(verify_full_fields=False)
+        return batch
+
+    def _verify_materialized_batch_locked(
+        self,
+        batch: AuditoryIncrementalTerminalBatch,
+    ) -> None:
+        batch._verify(verify_full_fields=False)
+        payload = _batch_payload(
+            advance_authority_receipt_sha256=(
+                batch.advance_authority_receipt_sha256
+            ),
+            entries=batch.entries,
+        )
+        if not hmac.compare_digest(
+            batch.authority_hmac_sha256,
+            _hmac(self._batch_authority_key, payload),
+        ):
+            raise ValueError(
+                "incremental auditory batch owner authentication changed"
+            )
+
+    def claim_batch(
+        self,
+        batch: AuditoryIncrementalTerminalBatch,
+    ) -> AuditoryIncrementalTerminalBatchClaim:
+        """Atomically reserve every exact terminal in a materialized batch."""
+        if not isinstance(batch, AuditoryIncrementalTerminalBatch):
+            raise TypeError("incremental auditory batch claim is untyped")
+        now = self._clock()
+        with self._lock:
+            self._expire_locked(now)
+            self._verify_materialized_batch_locked(batch)
+            if batch.authority_receipt_sha256 in self._in_flight_batches:
+                raise ValueError("incremental auditory batch is already claimed")
+            issued_values = []
+            positions = []
+            for entry in batch.entries:
+                event = entry.event
+                if event.event_id in self._in_flight:
+                    raise ValueError(
+                        "incremental auditory batch terminal is already claimed"
+                    )
+                issued = self._issued.get(event.event_id)
+                if issued != _IssuedTerminal(event, entry.auditory_l5):
+                    raise ValueError(
+                        "incremental auditory batch terminal is not issued"
+                    )
+                try:
+                    position = self._authority_order.index(event.event_id)
+                except ValueError as error:
+                    raise RuntimeError(
+                        "incremental auditory batch lost authority order"
+                    ) from error
+                issued_values.append(issued)
+                positions.append(position)
+            if positions != list(range(positions[0], positions[0] + len(positions))):
+                raise RuntimeError(
+                    "incremental auditory batch authority is no longer contiguous"
+                )
+            reservation_token = object()
+            prospective_issued = OrderedDict(self._issued)
+            prospective_in_flight = OrderedDict(self._in_flight)
+            for issued, position in zip(
+                issued_values,
+                positions,
+                strict=True,
+            ):
+                del prospective_issued[issued.event.event_id]
+                prospective_in_flight[issued.event.event_id] = (
+                    _InFlightTerminal(
+                        issued=issued,
+                        reservation_token=reservation_token,
+                        authority_position=position,
+                    )
+                )
+            reservation = _InFlightTerminalBatch(
+                batch=batch,
+                reservation_token=reservation_token,
+                authority_positions=tuple(positions),
+            )
+            prospective_batches = OrderedDict(self._in_flight_batches)
+            prospective_batches[batch.authority_receipt_sha256] = reservation
+            self._issued = prospective_issued
+            self._in_flight = prospective_in_flight
+            self._in_flight_batches = prospective_batches
+            return AuditoryIncrementalTerminalBatchClaim(
+                batch=batch,
+                authority_positions=tuple(positions),
+                owner_token=self._batch_claim_token,
+                reservation_token=reservation_token,
+            )
+
+    def _verify_batch_claim_identity(
+        self,
+        claim: AuditoryIncrementalTerminalBatchClaim,
+    ) -> None:
+        if (
+            not isinstance(claim, AuditoryIncrementalTerminalBatchClaim)
+            or claim.owner_token is not self._batch_claim_token
+        ):
+            raise ValueError(
+                "incremental auditory batch claim has no owner authority"
+            )
+        if not isinstance(claim.batch, AuditoryIncrementalTerminalBatch):
+            raise TypeError("incremental auditory batch claim is untyped")
+        if (
+            not isinstance(claim.authority_positions, tuple)
+            or len(claim.authority_positions) != len(claim.batch.entries)
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+                for value in claim.authority_positions
+            )
+        ):
+            raise ValueError(
+                "incremental auditory batch claim positions are invalid"
+            )
+
+    def verify_batch_claim(
+        self,
+        claim: AuditoryIncrementalTerminalBatchClaim,
+    ) -> AuditoryIncrementalTerminalBatch:
+        """Return only a complete live batch reservation."""
+        self._verify_batch_claim_identity(claim)
+        with self._lock:
+            self._verify_materialized_batch_locked(claim.batch)
+            reserved = self._in_flight_batches.get(
+                claim.batch.authority_receipt_sha256
+            )
+            if (
+                reserved is None
+                or reserved.batch != claim.batch
+                or reserved.reservation_token is not claim.reservation_token
+                or reserved.authority_positions != claim.authority_positions
+            ):
+                raise ValueError(
+                    "incremental auditory batch claim is not live"
+                )
+            for entry, position in zip(
+                claim.batch.entries,
+                claim.authority_positions,
+                strict=True,
+            ):
+                terminal = self._in_flight.get(entry.event.event_id)
+                if (
+                    terminal is None
+                    or terminal.reservation_token is not claim.reservation_token
+                    or terminal.authority_position != position
+                    or terminal.issued
+                    != _IssuedTerminal(entry.event, entry.auditory_l5)
+                ):
+                    raise ValueError(
+                        "incremental auditory batch lost a terminal reservation"
+                    )
+                if (
+                    position >= len(self._authority_order)
+                    or self._authority_order[position] != entry.event.event_id
+                ):
+                    raise ValueError(
+                        "incremental auditory batch authority order changed"
+                    )
+        return claim.batch
+
+    def consume_batch(
+        self,
+        claim: AuditoryIncrementalTerminalBatchClaim,
+        *,
+        commit_batch: Callable[[], None] | None = None,
+    ) -> AuditoryIncrementalTerminalBatch:
+        """Atomically commit downstream work and consume the whole batch."""
+        if commit_batch is not None and not callable(commit_batch):
+            raise TypeError("incremental auditory batch commit must be callable")
+        with self._lock:
+            batch = self.verify_batch_claim(claim)
+            prospective_in_flight = OrderedDict(self._in_flight)
+            prospective_order = list(self._authority_order)
+            for entry in batch.entries:
+                del prospective_in_flight[entry.event.event_id]
+                try:
+                    prospective_order.remove(entry.event.event_id)
+                except ValueError as error:
+                    raise RuntimeError(
+                        "incremental auditory batch lost consumed order"
+                    ) from error
+            prospective_batches = OrderedDict(self._in_flight_batches)
+            del prospective_batches[batch.authority_receipt_sha256]
+            if commit_batch is not None:
+                commit_batch()
+            self._in_flight = prospective_in_flight
+            self._authority_order = prospective_order
+            self._in_flight_batches = prospective_batches
+            return batch
+
+    def rollback_batch(
+        self,
+        claim: AuditoryIncrementalTerminalBatchClaim,
+    ) -> None:
+        """Atomically restore every reserved terminal to its original order."""
+        with self._lock:
+            batch = self.verify_batch_claim(claim)
+            prospective_issued = OrderedDict(self._issued)
+            prospective_in_flight = OrderedDict(self._in_flight)
+            for entry in batch.entries:
+                del prospective_in_flight[entry.event.event_id]
+                prospective_issued[entry.event.event_id] = _IssuedTerminal(
+                    entry.event,
+                    entry.auditory_l5,
+                )
+            prospective_batches = OrderedDict(self._in_flight_batches)
+            del prospective_batches[batch.authority_receipt_sha256]
+            self._issued = prospective_issued
+            self._in_flight = prospective_in_flight
+            self._in_flight_batches = prospective_batches
+            self._order_issued_locked()
 
     def claim(
         self,
@@ -3172,14 +3636,23 @@ class AuditoryIncrementalTerminalRegistry:
                 "in_flight_terminal_authorities": len(self._in_flight),
             }
 
+    def batch_claim_count(self) -> int:
+        """Read bounded batch reservations without changing legacy status."""
+        with self._lock:
+            return len(self._in_flight_batches)
+
 
 __all__ = (
     "AUDITORY_INCREMENTAL_ADVANCE_SCHEMA",
+    "AUDITORY_INCREMENTAL_BATCH_SCHEMA",
     "AUDITORY_INCREMENTAL_EVENT_SCHEMA",
     "AUDITORY_INCREMENTAL_EVENT_SCHEMA_V2",
     "AUDITORY_INCREMENTAL_EVENT_SCHEMA_V3",
     "AuditoryIncrementalAdvance",
     "AuditoryIncrementalStatus",
+    "AuditoryIncrementalTerminalBatch",
+    "AuditoryIncrementalTerminalBatchClaim",
+    "AuditoryIncrementalTerminalBatchEntry",
     "AuditoryIncrementalTerminalEvent",
     "AuditoryIncrementalTerminalOwner",
     "AuditoryIncrementalTerminalRegistry",

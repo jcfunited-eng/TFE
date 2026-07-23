@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import math
 import struct
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from fractions import Fraction
 
 import pytest
@@ -17,6 +19,7 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SenseBoundaryState,
 )
 from dsf_ai_service.substrate.auditory_incremental_terminal import (
+    AuditoryIncrementalTerminalBatch,
     AuditoryIncrementalTerminalRegistry,
     AuditoryIncrementalTerminalEvent,
     AuditoryIncrementalStatus,
@@ -415,8 +418,113 @@ def test_registry_issues_a_multi_terminal_advance_atomically_in_order() -> None:
     assert registry._authority_order == [
         event.event_id for event in result.released_terminals
     ]
-    claims = tuple(registry.claim(event) for event in result.released_terminals)
-    assert tuple(claim.event for claim in claims) == result.released_terminals
+    batch = registry.materialize_batch(result)
+    assert isinstance(batch, AuditoryIncrementalTerminalBatch)
+    batch.verify()
+    assert tuple(entry.event for entry in batch.entries) == (
+        result.released_terminals
+    )
+    assert tuple(
+        entry.auditory_l5.authority_receipt_sha256
+        for entry in batch.entries
+    ) == tuple(
+        event.l5_authority_receipt_sha256
+        for event in result.released_terminals
+    )
+    for entry in batch.entries:
+        assert len(entry.auditory_l5.channels) == 16
+        assert all(
+            channel.pressure.l4_field_tuples
+            and channel.carrier_phase_advance.l4_field_tuples
+            for channel in entry.auditory_l5.channels
+        )
+
+    before = (
+        registry.authority_counts(),
+        tuple(registry._issued.items()),
+        tuple(registry._authority_order),
+        registry.batch_claim_count(),
+    )
+    assert registry.materialize_batch(result) == batch
+    mismatched = replace(
+        batch,
+        entries=(
+            replace(
+                batch.entries[0],
+                auditory_l5=batch.entries[1].auditory_l5,
+            ),
+            batch.entries[1],
+        ),
+    )
+    with pytest.raises(ValueError, match="terminal and full field disagree"):
+        registry.claim_batch(mismatched)
+    tampered = replace(batch, authority_receipt_sha256="0" * 64)
+    with pytest.raises(ValueError, match="batch receipt was altered"):
+        registry.claim_batch(tampered)
+    unauthenticated = replace(batch, authority_hmac_sha256="0" * 64)
+    with pytest.raises(ValueError, match="owner authentication changed"):
+        registry.claim_batch(unauthenticated)
+    assert (
+        registry.authority_counts(),
+        tuple(registry._issued.items()),
+        tuple(registry._authority_order),
+        registry.batch_claim_count(),
+    ) == before
+
+    def attempt_claim():
+        try:
+            return registry.claim_batch(batch)
+        except ValueError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = tuple(
+            executor.map(lambda _value: attempt_claim(), range(2))
+        )
+    claims = tuple(
+        value for value in outcomes if not isinstance(value, Exception)
+    )
+    failures = tuple(
+        value for value in outcomes if isinstance(value, Exception)
+    )
+    assert len(claims) == 1
+    assert len(failures) == 1
+    assert isinstance(failures[0], ValueError)
+    assert registry.verify_batch_claim(claims[0]) == batch
+    assert registry.authority_counts() == {
+        "issued_terminal_authorities": 0,
+        "in_flight_terminal_authorities": 2,
+    }
+    assert registry.batch_claim_count() == 1
+
+    registry.rollback_batch(claims[0])
+    for _index in range(8):
+        repeated = registry.claim_batch(batch)
+        registry.rollback_batch(repeated)
+        assert registry.authority_counts() == {
+            "issued_terminal_authorities": 2,
+            "in_flight_terminal_authorities": 0,
+        }
+        assert registry.batch_claim_count() == 0
+        assert registry._authority_order == [
+            entry.event.event_id for entry in batch.entries
+        ]
+
+    claim = registry.claim_batch(batch)
+
+    def fail_commit() -> None:
+        raise RuntimeError("downstream settlement failed")
+
+    with pytest.raises(RuntimeError, match="downstream settlement failed"):
+        registry.consume_batch(claim, commit_batch=fail_commit)
+    assert registry.verify_batch_claim(claim) == batch
+    assert registry.consume_batch(claim) == batch
+    assert registry.authority_counts() == {
+        "issued_terminal_authorities": 0,
+        "in_flight_terminal_authorities": 0,
+    }
+    assert registry._authority_order == []
+    assert registry.batch_claim_count() == 0
 
 
 def test_registry_capacity_rejects_the_whole_release_set_without_partial_issue(
