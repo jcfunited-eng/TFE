@@ -56,6 +56,15 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .ps-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
 .ps-row{display:flex;justify-content:space-between;padding:1px 0}
 .ps-row .l{color:var(--text-muted)}.ps-row .v{color:var(--text)}
+.w1-observation{margin:5px 0 7px}
+.w1-meta,.w1-inventory{color:var(--text-muted);font-size:8px;line-height:1.45;white-space:normal;word-break:break-word}
+.w1-room{position:relative;width:100%;min-height:150px;margin:5px 0;border:1px solid var(--border);background:#0d1117;overflow:hidden}
+.w1-room[hidden]{display:none}
+.w1-marker{position:absolute;box-sizing:border-box;transform:translate(-50%,-50%);min-width:2px;min-height:2px}
+.w1-marker.body{border:1px solid var(--accent);border-radius:50%;background:rgba(88,166,255,.2)}
+.w1-marker.body::after{content:'';position:absolute;left:50%;top:50%;width:48%;height:1px;background:var(--accent);transform-origin:left center}
+.w1-marker.object{border:1px solid var(--ev-motif);border-radius:50%;background:rgba(63,185,80,.2)}
+.w1-marker-label{position:absolute;left:50%;top:100%;transform:translate(-50%,2px);color:#f0f6fc;font-size:7px;white-space:nowrap;text-shadow:0 1px 2px #000}
 .nmda-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
 .nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
 .ev{padding:2px 6px;font-size:8px;color:var(--text-muted);border-bottom:1px solid #21262d}
@@ -163,7 +172,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </div>
 <div id="state-panel">
-  <div class="ps"><div class="ps-title">Embodied State</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
+  <div class="ps"><div class="ps-title">Embodied State</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div><div class="w1-observation"><div id="w1-spatial-meta" class="w1-meta">spatial observation unavailable</div><div id="w1-spatial-room" class="w1-room" role="img" aria-label="W1 spatial observation unavailable" hidden></div><div id="w1-spatial-inventory" class="w1-inventory"></div></div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
   <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
@@ -1466,6 +1475,118 @@ async function backgroundReplay(){
   finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
+// --- Authoritative W1 spatial observation ---
+function buildW1SpatialModel(embodiment){
+  const unavailable=reason=>({available:false,reason:String(reason||'spatial observation unavailable')});
+  if(!embodiment||embodiment.status!=='observed'){
+    return unavailable(embodiment&&embodiment.reason);
+  }
+  const integer=value=>Number.isSafeInteger(value);
+  const identifier=value=>typeof value==='string'&&value.length>0;
+  const bounds=embodiment.room_bounds;
+  const minimum=bounds&&bounds.minimum;
+  const maximum=bounds&&bounds.maximum;
+  if(!minimum||!maximum||
+     !integer(minimum.x_mm)||!integer(minimum.y_mm)||!integer(minimum.z_mm)||
+     !integer(maximum.x_mm)||!integer(maximum.y_mm)||!integer(maximum.z_mm)||
+     minimum.x_mm>=maximum.x_mm||minimum.y_mm>=maximum.y_mm||minimum.z_mm>maximum.z_mm){
+    return unavailable('authoritative room bounds unavailable');
+  }
+  const body=embodiment.body;
+  const pose=body&&body.pose;
+  const position=pose&&pose.position;
+  if(!body||!identifier(body.body_id)||!position||
+     !integer(position.x_mm)||!integer(position.y_mm)||!integer(position.z_mm)||
+     !integer(pose.heading_millidegrees)||pose.heading_millidegrees<0||pose.heading_millidegrees>359999||
+     !integer(body.radius_mm)||body.radius_mm<=0){
+    return unavailable('authoritative body pose unavailable');
+  }
+  const xSpan=maximum.x_mm-minimum.x_mm;
+  const ySpan=maximum.y_mm-minimum.y_mm;
+  const project=point=>{
+    if(!point||!integer(point.x_mm)||!integer(point.y_mm)||!integer(point.z_mm)||
+       point.x_mm<minimum.x_mm||point.x_mm>maximum.x_mm||
+       point.y_mm<minimum.y_mm||point.y_mm>maximum.y_mm||
+       point.z_mm<minimum.z_mm||point.z_mm>maximum.z_mm)return null;
+    return {
+      leftPercent:100*(point.x_mm-minimum.x_mm)/xSpan,
+      topPercent:100*(maximum.y_mm-point.y_mm)/ySpan,
+      x_mm:point.x_mm,y_mm:point.y_mm,z_mm:point.z_mm,
+    };
+  };
+  const bodyPoint=project(position);
+  if(!bodyPoint)return unavailable('body pose is outside authoritative room bounds');
+  if(!Array.isArray(embodiment.objects))return unavailable('authoritative object inventory unavailable');
+  const objects=[];
+  for(const item of embodiment.objects){
+    if(!item||!identifier(item.object_id)||!integer(item.radius_mm)||item.radius_mm<=0){
+      return unavailable('authoritative object geometry unavailable');
+    }
+    if(item.position===null){
+      if(!identifier(item.held_by_body_id))return unavailable('authoritative held-object state unavailable');
+      objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:item.held_by_body_id,point:null});
+      continue;
+    }
+    const point=project(item.position);
+    if(!point)return unavailable('object position is outside authoritative room bounds');
+    objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:null,point});
+  }
+  const location=embodiment.location;
+  if(!location||!identifier(location.room_id)||!integer(location.revision)){
+    return unavailable('authoritative room identity unavailable');
+  }
+  return {
+    available:true,room_id:location.room_id,revision:location.revision,
+    minimum,maximum,xSpan,ySpan,
+    body:{body_id:body.body_id,radius_mm:body.radius_mm,heading_millidegrees:pose.heading_millidegrees,point:bodyPoint},
+    objects,
+  };
+}
+
+function renderW1SpatialObservation(embodiment){
+  const model=buildW1SpatialModel(embodiment);
+  const meta=document.getElementById('w1-spatial-meta');
+  const room=document.getElementById('w1-spatial-room');
+  const inventory=document.getElementById('w1-spatial-inventory');
+  room.textContent='';
+  inventory.textContent='';
+  if(!model.available){
+    room.hidden=true;
+    room.setAttribute('aria-label',model.reason);
+    meta.textContent=model.reason;
+    return;
+  }
+  meta.textContent=`${model.room_id} · ${model.xSpan} × ${model.ySpan} mm · revision ${model.revision}`;
+  room.hidden=false;
+  room.style.aspectRatio=`${model.xSpan} / ${model.ySpan}`;
+  room.setAttribute('aria-label',`${model.room_id} top-down spatial observation at revision ${model.revision}`);
+  const addMarker=(kind,id,radius,point,heading)=>{
+    const marker=document.createElement('div');
+    marker.className=`w1-marker ${kind}`;
+    marker.style.left=`${point.leftPercent}%`;
+    marker.style.top=`${point.topPercent}%`;
+    marker.style.width=`${200*radius/model.xSpan}%`;
+    marker.style.height=`${200*radius/model.ySpan}%`;
+    if(heading!==null)marker.style.rotate=`${heading/1000}deg`;
+    marker.setAttribute('aria-label',`${id} at ${point.x_mm}, ${point.y_mm}, ${point.z_mm} millimetres`);
+    const label=document.createElement('span');
+    label.className='w1-marker-label';label.textContent=id;
+    marker.appendChild(label);room.appendChild(marker);
+  };
+  addMarker('body',model.body.body_id,model.body.radius_mm,model.body.point,model.body.heading_millidegrees);
+  for(const item of model.objects){
+    if(item.point)addMarker('object',item.object_id,item.radius_mm,item.point,null);
+  }
+  const exact=[`${model.body.body_id}: (${model.body.point.x_mm}, ${model.body.point.y_mm}, ${model.body.point.z_mm}) mm · heading ${model.body.heading_millidegrees} mdeg`];
+  for(const item of model.objects){
+    exact.push(item.point
+      ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
+      : `${item.object_id}: held by ${item.held_by_body_id}`);
+  }
+  inventory.textContent=exact.join(' · ');
+}
+// --- End authoritative W1 spatial observation ---
+
 // --- Room state polling ---
 async function pollObservation(){
   if(_inflight.observation)return;
@@ -1487,6 +1608,7 @@ async function pollObservation(){
     document.getElementById('obs-reply').textContent=reply;
 
     const embodiment=d.embodiment||{};
+    renderW1SpatialObservation(embodiment);
     if(embodiment.status==='observed'){
       const location=embodiment.location||{};
       const body=embodiment.body||{};
@@ -1530,6 +1652,7 @@ async function pollObservation(){
     document.getElementById('obs-reply').textContent='reply observation unavailable';
     document.getElementById('obs-location').textContent='embodiment observation unavailable';
     document.getElementById('obs-action').textContent=`observation failed: ${e.message}`;
+    renderW1SpatialObservation({status:'unavailable',reason:'observation unavailable'});
     _backoff.observation=Math.min((_backoff.observation*2)||3000,30000);
   }finally{
     _inflight.observation=false;

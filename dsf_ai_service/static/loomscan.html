@@ -73,6 +73,17 @@ svg text{font-family:var(--mono)}
 .scene .cell{border:1px dashed var(--hair);border-radius:2px;padding:10px;min-height:44px;color:var(--ink-dim);font-size:10px}
 .scene .cell b{display:block;color:var(--ink-dim);font-weight:normal;letter-spacing:.1em;margin-bottom:4px}
 
+.w1-observation{padding:12px 0;border-top:1px solid var(--hair)}
+.w1-observation h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin-bottom:8px}
+.w1-meta,.w1-inventory{font-size:10px;color:var(--ink-dim);line-height:1.55;word-break:break-word}
+.w1-room{position:relative;width:100%;max-height:520px;min-height:220px;margin:8px 0;border:1px solid var(--hair);background:var(--panel);overflow:hidden}
+.w1-room[hidden]{display:none}
+.w1-marker{position:absolute;box-sizing:border-box;transform:translate(-50%,-50%);min-width:3px;min-height:3px}
+.w1-marker.body{border:1px solid var(--cyan);border-radius:50%;background:rgba(79,198,242,.18)}
+.w1-marker.body::after{content:'';position:absolute;left:50%;top:50%;width:48%;height:1px;background:var(--cyan);transform-origin:left center}
+.w1-marker.object{border:1px solid var(--green);border-radius:50%;background:rgba(79,190,123,.18)}
+.w1-marker-label{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);color:var(--ink-bright);font-size:9px;white-space:nowrap;text-shadow:0 1px 2px var(--bg)}
+
 .feed{padding:12px 0;border-top:1px solid var(--hair)}
 .feed h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin-bottom:8px}
 .frow{display:grid;grid-template-columns:92px 96px 1fr 110px;gap:12px;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px;align-items:baseline}
@@ -167,6 +178,13 @@ footer b{color:var(--ink);font-weight:normal}
   <div class="cell lc"><b>lexical ambient lane</b><span id="ambientCell">loading…</span></div>
   <div class="cell lc"><b>registered presence</b><span id="whoCell">loading…</span></div>
 </div>
+
+<section class="w1-observation" aria-labelledby="w1-spatial-title">
+  <h3 class="lc" id="w1-spatial-title">authoritative W1 spatial observation</h3>
+  <div id="w1-spatial-meta" class="w1-meta">spatial observation unavailable</div>
+  <div id="w1-spatial-room" class="w1-room" role="img" aria-label="W1 spatial observation unavailable" hidden></div>
+  <div id="w1-spatial-inventory" class="w1-inventory"></div>
+</section>
 
 <div class="feed">
   <h3 class="lc">experience feed — live window classification</h3>
@@ -545,6 +563,118 @@ function renderScene(status){
     ambient.length?ambient.join(' · '):'no ambient words in the last sentence read';
 }
 
+// --- Authoritative W1 spatial observation ---
+function buildW1SpatialModel(embodiment){
+  const unavailable=reason=>({available:false,reason:String(reason||'spatial observation unavailable')});
+  if(!embodiment||embodiment.status!=='observed'){
+    return unavailable(embodiment&&embodiment.reason);
+  }
+  const integer=value=>Number.isSafeInteger(value);
+  const identifier=value=>typeof value==='string'&&value.length>0;
+  const bounds=embodiment.room_bounds;
+  const minimum=bounds&&bounds.minimum;
+  const maximum=bounds&&bounds.maximum;
+  if(!minimum||!maximum||
+     !integer(minimum.x_mm)||!integer(minimum.y_mm)||!integer(minimum.z_mm)||
+     !integer(maximum.x_mm)||!integer(maximum.y_mm)||!integer(maximum.z_mm)||
+     minimum.x_mm>=maximum.x_mm||minimum.y_mm>=maximum.y_mm||minimum.z_mm>maximum.z_mm){
+    return unavailable('authoritative room bounds unavailable');
+  }
+  const body=embodiment.body;
+  const pose=body&&body.pose;
+  const position=pose&&pose.position;
+  if(!body||!identifier(body.body_id)||!position||
+     !integer(position.x_mm)||!integer(position.y_mm)||!integer(position.z_mm)||
+     !integer(pose.heading_millidegrees)||pose.heading_millidegrees<0||pose.heading_millidegrees>359999||
+     !integer(body.radius_mm)||body.radius_mm<=0){
+    return unavailable('authoritative body pose unavailable');
+  }
+  const xSpan=maximum.x_mm-minimum.x_mm;
+  const ySpan=maximum.y_mm-minimum.y_mm;
+  const project=point=>{
+    if(!point||!integer(point.x_mm)||!integer(point.y_mm)||!integer(point.z_mm)||
+       point.x_mm<minimum.x_mm||point.x_mm>maximum.x_mm||
+       point.y_mm<minimum.y_mm||point.y_mm>maximum.y_mm||
+       point.z_mm<minimum.z_mm||point.z_mm>maximum.z_mm)return null;
+    return {
+      leftPercent:100*(point.x_mm-minimum.x_mm)/xSpan,
+      topPercent:100*(maximum.y_mm-point.y_mm)/ySpan,
+      x_mm:point.x_mm,y_mm:point.y_mm,z_mm:point.z_mm,
+    };
+  };
+  const bodyPoint=project(position);
+  if(!bodyPoint)return unavailable('body pose is outside authoritative room bounds');
+  if(!Array.isArray(embodiment.objects))return unavailable('authoritative object inventory unavailable');
+  const objects=[];
+  for(const item of embodiment.objects){
+    if(!item||!identifier(item.object_id)||!integer(item.radius_mm)||item.radius_mm<=0){
+      return unavailable('authoritative object geometry unavailable');
+    }
+    if(item.position===null){
+      if(!identifier(item.held_by_body_id))return unavailable('authoritative held-object state unavailable');
+      objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:item.held_by_body_id,point:null});
+      continue;
+    }
+    const point=project(item.position);
+    if(!point)return unavailable('object position is outside authoritative room bounds');
+    objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:null,point});
+  }
+  const location=embodiment.location;
+  if(!location||!identifier(location.room_id)||!integer(location.revision)){
+    return unavailable('authoritative room identity unavailable');
+  }
+  return {
+    available:true,room_id:location.room_id,revision:location.revision,
+    minimum,maximum,xSpan,ySpan,
+    body:{body_id:body.body_id,radius_mm:body.radius_mm,heading_millidegrees:pose.heading_millidegrees,point:bodyPoint},
+    objects,
+  };
+}
+
+function renderW1SpatialObservation(embodiment){
+  const model=buildW1SpatialModel(embodiment);
+  const meta=document.getElementById('w1-spatial-meta');
+  const room=document.getElementById('w1-spatial-room');
+  const inventory=document.getElementById('w1-spatial-inventory');
+  room.textContent='';
+  inventory.textContent='';
+  if(!model.available){
+    room.hidden=true;
+    room.setAttribute('aria-label',model.reason);
+    meta.textContent=model.reason;
+    return;
+  }
+  meta.textContent=`${model.room_id} · ${model.xSpan} × ${model.ySpan} mm · revision ${model.revision}`;
+  room.hidden=false;
+  room.style.aspectRatio=`${model.xSpan} / ${model.ySpan}`;
+  room.setAttribute('aria-label',`${model.room_id} top-down spatial observation at revision ${model.revision}`);
+  const addMarker=(kind,id,radius,point,heading)=>{
+    const marker=document.createElement('div');
+    marker.className=`w1-marker ${kind}`;
+    marker.style.left=`${point.leftPercent}%`;
+    marker.style.top=`${point.topPercent}%`;
+    marker.style.width=`${200*radius/model.xSpan}%`;
+    marker.style.height=`${200*radius/model.ySpan}%`;
+    if(heading!==null)marker.style.rotate=`${heading/1000}deg`;
+    marker.setAttribute('aria-label',`${id} at ${point.x_mm}, ${point.y_mm}, ${point.z_mm} millimetres`);
+    const label=document.createElement('span');
+    label.className='w1-marker-label';label.textContent=id;
+    marker.appendChild(label);room.appendChild(marker);
+  };
+  addMarker('body',model.body.body_id,model.body.radius_mm,model.body.point,model.body.heading_millidegrees);
+  for(const item of model.objects){
+    if(item.point)addMarker('object',item.object_id,item.radius_mm,item.point,null);
+  }
+  const exact=[`${model.body.body_id}: (${model.body.point.x_mm}, ${model.body.point.y_mm}, ${model.body.point.z_mm}) mm · heading ${model.body.heading_millidegrees} mdeg`];
+  for(const item of model.objects){
+    exact.push(item.point
+      ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
+      : `${item.object_id}: held by ${item.held_by_body_id}`);
+  }
+  inventory.textContent=exact.join(' · ');
+}
+// --- End authoritative W1 spatial observation ---
+
 function renderObservation(value){
   if(value.schema!=='guala.observation_snapshot.v1'){
     throw new Error('observation schema unavailable');
@@ -552,6 +682,7 @@ function renderObservation(value){
   document.getElementById('hdr-id').textContent=
     `guala · ${value.identity||'identity unavailable'}`;
   const embodiment=value.embodiment||{};
+  renderW1SpatialObservation(embodiment);
   if(embodiment.status==='observed'){
     const location=embodiment.location||{};
     const body=embodiment.body||{};
@@ -764,6 +895,7 @@ async function pollObservation(){
     document.getElementById('bodyCell').textContent='observation unavailable';
     document.getElementById('embodiedActionCell').textContent='observation unavailable';
     document.getElementById('conversationCell').textContent='observation unavailable';
+    renderW1SpatialObservation({status:'unavailable',reason:'observation unavailable'});
   }finally{_observationBusy=false;}
 }
 
