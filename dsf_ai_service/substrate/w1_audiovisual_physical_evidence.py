@@ -38,8 +38,11 @@ from enum import Enum
 from fractions import Fraction
 from typing import Mapping
 
+import numpy as np
+
 from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    MAX_NATIVE_SOUND_SUBSTREAMS,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
 )
@@ -60,6 +63,13 @@ from dsf_ai_service.substrate.embodiment_world import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
     ExactCausalExperienceOwner,
+)
+from dsf_ai_service.substrate.auditory_kernel_mount import (
+    AUDITORY_KERNEL_COMPONENT_COUNT,
+    auditory_kernel_component_inputs,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    transduce_auditory_full_field,
 )
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     AuthenticatedW1AcousticEmission,
@@ -586,35 +596,39 @@ def _somatic_inputs(
     })
 
 
-def _sound_input(
+def _sound_inputs(
     *,
     ear: str,
     topology_index: int,
     pcm: bytes,
     source_time_start: Fraction,
-) -> NativeSensorySubstreamInput:
+) -> tuple[NativeSensorySubstreamInput, ...]:
     samples = _signed_pcm_samples(pcm)
-    count = len(samples)
-    source_times = tuple(
-        source_time_start + Fraction(index + 1, PCM_SAMPLE_RATE_HZ)
-        for index in range(count)
+    capture = transduce_auditory_full_field(
+        np.asarray(samples, dtype=np.float64) / 32_768.0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
     )
-    return NativeSensorySubstreamInput(
-        sense=PhysicalSense.SOUND,
-        sensor_id=f"W1-calibrated-{ear}-ear",
-        substream_id=f"binaural-{ear}-pressure",
-        topology_index=topology_index,
-        coordinates=(
-            NativeAxisCoordinate("acoustic-receptor", ear),
-            NativeAxisCoordinate("sample-rate-hz", str(PCM_SAMPLE_RATE_HZ)),
-        ),
-        physical_quantity="acoustic-pressure",
-        physical_unit="signed-pcm16-full-scale",
-        source_times=source_times,
-        normalized_signal=tuple(
-            _exact_binary_float(Fraction(item, 32_768)) for item in samples
-        ),
-        phase_turns=tuple(Fraction(0) for _sample in samples),
+    mounted = auditory_kernel_component_inputs(
+        capture,
+        source_anchor=source_time_start,
+    )
+    return tuple(
+        NativeSensorySubstreamInput(
+            sense=PhysicalSense.SOUND,
+            sensor_id=f"W1-calibrated-{ear}-cochlear-field",
+            substream_id=f"{ear}-{item.substream_id}",
+            topology_index=topology_index + item.topology_index,
+            coordinates=(
+                NativeAxisCoordinate("acoustic-receptor", ear),
+                *item.coordinates,
+            ),
+            physical_quantity=item.physical_quantity,
+            physical_unit=item.physical_unit,
+            source_times=item.source_times,
+            normalized_signal=item.normalized_signal,
+            phase_turns=item.phase_turns,
+        )
+        for item in mounted
     )
 
 
@@ -808,6 +822,12 @@ class W1PhysicalEvidenceReceipt:
             raise ValueError("W1 acoustic contribution boundary changed")
         for receipt in self.acoustic_emission_receipt_sha256s:
             _sha256(receipt, "W1 authenticated acoustic emission")
+        if bool(self.acoustic_emission_receipt_sha256s) != bool(
+            self.binaural_commitment
+        ):
+            raise ValueError(
+                "W1 acoustic contribution lost its binaural commitment"
+            )
         _sha256(
             self.causal_settlement_receipt_sha256,
             "W1 causal settlement",
@@ -922,6 +942,14 @@ class _Epoch:
     path_commitment_sha256: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class _PreparedAudiovisualMount:
+    epoch_token: str
+    prior_epoch: _Epoch
+    next_epoch: _Epoch
+    mount: W1PhysicalEvidenceMount
+
+
 class W1AudiovisualPhysicalEvidenceAuthority:
     """Transient bounded owner of anonymous W1 audiovisual captures."""
 
@@ -950,6 +978,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         self._calibration.verify()
         self._epoch_capacity = len(world_authority.actor_ports)
         self._epochs: dict[str, _Epoch] = {}
+        self._prepared_mount: _PreparedAudiovisualMount | None = None
+        self._pending_reservation: tuple[
+            str, CausalExperienceSettlement
+        ] | None = None
         self._lock = threading.RLock()
 
     def open_epoch(self) -> str:
@@ -964,6 +996,15 @@ class W1AudiovisualPhysicalEvidenceAuthority:
 
     def close_epoch(self, epoch_token: str) -> bool:
         with self._lock:
+            prepared = self._prepared_mount
+            if prepared is not None and prepared.epoch_token == epoch_token:
+                raise RuntimeError(
+                    "W1 audiovisual epoch has a prepared transaction"
+                )
+            pending = self._pending_reservation
+            if pending is not None and pending[0] == epoch_token:
+                self._causal_owner.discard_prepared(pending[1])
+                self._pending_reservation = None
             return self._epochs.pop(epoch_token, None) is not None
 
     def emit_acoustic_pressure(
@@ -973,6 +1014,8 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         sequence: int,
         source_sample_start: int,
         observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+        command_payload: bytes,
         emitter_port_id: str,
         pcm_s16le: bytes,
     ) -> AuthenticatedW1AcousticEmission:
@@ -982,6 +1025,8 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             sequence=sequence,
             source_sample_start=source_sample_start,
             observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
+            command_payload=command_payload,
             emitter_port_id=emitter_port_id,
             pcm_s16le=pcm_s16le,
         )
@@ -1412,7 +1457,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         sequence: int,
         execution_receipt: ActionExecutionReceipt,
         acoustic_emission: AuthenticatedW1AcousticEmission,
+        commit: bool = True,
     ) -> W1PhysicalEvidenceMount:
+        if not isinstance(commit, bool):
+            raise TypeError("W1 audiovisual commit flag must be boolean")
         if (
             not isinstance(epoch_token, str)
             or not epoch_token
@@ -1433,6 +1481,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         self._acoustic_emitter.verify_emission(
             acoustic_emission,
             observation_snapshot=execution_receipt.after,
+            execution_receipt=execution_receipt,
         )
         emission_receipt = acoustic_emission.receipt
         if (
@@ -1456,6 +1505,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             )
 
         with self._lock:
+            if (
+                self._prepared_mount is not None
+                or self._pending_reservation is not None
+            ):
+                raise RuntimeError(
+                    "W1 audiovisual mount already has a prepared transaction"
+                )
             epoch = self._epochs.get(epoch_token)
             if epoch is None:
                 return self._unsettled(
@@ -1579,19 +1635,23 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 raise RuntimeError(
                     "received pressure lost authenticated source provenance"
                 )
-            left_sound = _sound_input(
+            left_sound = _sound_inputs(
                 ear="left",
                 topology_index=0,
                 pcm=binaural.left_pcm_s16le,
                 source_time_start=source_time_start,
             )
-            right_sound = _sound_input(
+            right_sound = _sound_inputs(
                 ear="right",
-                topology_index=1,
+                topology_index=AUDITORY_KERNEL_COMPONENT_COUNT,
                 pcm=binaural.right_pcm_s16le,
                 source_time_start=source_time_start,
             )
-            sound_inputs = (left_sound, right_sound)
+            sound_inputs = (*left_sound, *right_sound)
+            if len(sound_inputs) != MAX_NATIVE_SOUND_SUBSTREAMS:
+                raise RuntimeError(
+                    "W1 binaural cochlear topology lost a native component"
+                )
             states = {
                 sense: (
                     SenseBoundaryState.OBSERVED
@@ -1641,6 +1701,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 commit=False,
                 reserve=True,
             )
+            self._pending_reservation = (epoch_token, settlement)
             state = W1EvidenceState.OBSERVED
             reason = "anonymous_multisensory_evidence_observed"
             commitment = binaural.commitment_record()
@@ -1711,7 +1772,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     "payload": payload,
                 }),
             )
-            receipt.verify(self._key)
+            try:
+                receipt.verify(self._key)
+            except BaseException:
+                self._causal_owner.discard_prepared(settlement)
+                self._pending_reservation = None
+                raise
             prior_epoch = _Epoch(
                 expected_sequence=epoch.expected_sequence,
                 next_source_sample_index=epoch.next_source_sample_index,
@@ -1731,32 +1797,25 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 ),
                 path_commitment_sha256=epoch.path_commitment_sha256,
             )
-            epoch.expected_sequence += 1
-            epoch.next_source_sample_index = emission_receipt.source_sample_end
-            epoch.left_pending_samples = rendered.left_pending_samples
-            epoch.right_pending_samples = rendered.right_pending_samples
-            epoch.left_pending_receipt_sha256s = (
-                rendered.left_pending_receipt_sha256s
+            next_epoch = _Epoch(
+                expected_sequence=epoch.expected_sequence + 1,
+                next_source_sample_index=emission_receipt.source_sample_end,
+                prior_evidence_receipt_sha256=(
+                    receipt.authority_receipt_sha256
+                ),
+                previous_after_observation_receipt_sha256=(
+                    execution_receipt.after.authority_receipt_sha256
+                ),
+                left_pending_samples=rendered.left_pending_samples,
+                right_pending_samples=rendered.right_pending_samples,
+                left_pending_receipt_sha256s=(
+                    rendered.left_pending_receipt_sha256s
+                ),
+                right_pending_receipt_sha256s=(
+                    rendered.right_pending_receipt_sha256s
+                ),
+                path_commitment_sha256=rendered.path_commitment_sha256,
             )
-            epoch.right_pending_receipt_sha256s = (
-                rendered.right_pending_receipt_sha256s
-            )
-            epoch.path_commitment_sha256 = rendered.path_commitment_sha256
-            epoch.prior_evidence_receipt_sha256 = (
-                receipt.authority_receipt_sha256
-            )
-            epoch.previous_after_observation_receipt_sha256 = (
-                execution_receipt.after.authority_receipt_sha256
-            )
-            try:
-                self._causal_owner.commit_prepared(settlement)
-            except BaseException:
-                self._epochs[epoch_token] = prior_epoch
-                try:
-                    self._causal_owner.discard_prepared(settlement)
-                except ValueError:
-                    pass
-                raise
             result = W1PhysicalEvidenceMount(
                 state=state,
                 reason=reason,
@@ -1764,8 +1823,99 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 binaural_pcm=binaural,
                 causal_settlement=settlement,
             )
-            result.verify(self._key)
+            try:
+                result.verify(self._key)
+            except BaseException:
+                self._causal_owner.discard_prepared(settlement)
+                self._pending_reservation = None
+                raise
+            self._prepared_mount = _PreparedAudiovisualMount(
+                epoch_token=epoch_token,
+                prior_epoch=prior_epoch,
+                next_epoch=next_epoch,
+                mount=result,
+            )
+            self._pending_reservation = None
+            if commit:
+                self._commit_prepared_multisensory_mount(result)
             return result
+
+    def _prepared_for(
+        self, mount: W1PhysicalEvidenceMount
+    ) -> _PreparedAudiovisualMount:
+        self.verify_mount(mount)
+        prepared = self._prepared_mount
+        if (
+            prepared is None
+            or mount.causal_settlement is None
+            or prepared.mount.causal_settlement is None
+            or mount.causal_settlement.authority_receipt_sha256
+            != prepared.mount.causal_settlement.authority_receipt_sha256
+        ):
+            raise ValueError("W1 audiovisual prepared mount changed")
+        return prepared
+
+    def _commit_prepared_multisensory_mount(
+        self,
+        mount: W1PhysicalEvidenceMount,
+        *,
+        close_epoch: bool = False,
+    ) -> None:
+        if not isinstance(close_epoch, bool):
+            raise TypeError("W1 audiovisual close-epoch flag must be boolean")
+        prepared = self._prepared_for(mount)
+        current = self._epochs.get(prepared.epoch_token)
+        if current != prepared.prior_epoch:
+            raise RuntimeError("W1 audiovisual epoch changed before commit")
+        self._epochs[prepared.epoch_token] = prepared.next_epoch
+        try:
+            self._causal_owner.commit_prepared(mount.causal_settlement)
+        except BaseException:
+            self._epochs[prepared.epoch_token] = prepared.prior_epoch
+            try:
+                self._causal_owner.discard_prepared(
+                    mount.causal_settlement
+                )
+            except ValueError:
+                pass
+            self._prepared_mount = None
+            raise
+        if close_epoch:
+            del self._epochs[prepared.epoch_token]
+        self._prepared_mount = None
+
+    def commit_prepared_multisensory_mount(
+        self,
+        mount: W1PhysicalEvidenceMount,
+        *,
+        close_epoch: bool = False,
+    ) -> None:
+        with self._lock:
+            self._commit_prepared_multisensory_mount(
+                mount,
+                close_epoch=close_epoch,
+            )
+
+    def discard_prepared_multisensory_mount(
+        self,
+        mount: W1PhysicalEvidenceMount,
+        *,
+        close_epoch: bool = False,
+    ) -> None:
+        with self._lock:
+            if not isinstance(close_epoch, bool):
+                raise TypeError(
+                    "W1 audiovisual close-epoch flag must be boolean"
+                )
+            prepared = self._prepared_for(mount)
+            if self._epochs.get(prepared.epoch_token) != prepared.prior_epoch:
+                raise RuntimeError(
+                    "W1 audiovisual epoch changed before discard"
+            )
+            self._causal_owner.discard_prepared(mount.causal_settlement)
+            if close_epoch:
+                del self._epochs[prepared.epoch_token]
+            self._prepared_mount = None
 
     def status(self) -> dict[str, object]:
         with self._lock:
@@ -1785,8 +1935,47 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 )
                 if receipt is not None
             )
+            prepared_binaural_bytes = (
+                len(self._prepared_mount.mount.binaural_pcm.left_pcm_s16le)
+                + len(
+                    self._prepared_mount.mount.binaural_pcm.right_pcm_s16le
+                )
+                if (
+                    self._prepared_mount is not None
+                    and self._prepared_mount.mount.binaural_pcm is not None
+                )
+                else 0
+            )
+            prepared_pending_bytes = (
+                (
+                    len(self._prepared_mount.next_epoch.left_pending_samples)
+                    + len(
+                        self._prepared_mount.next_epoch.right_pending_samples
+                    )
+                ) * PCM_SAMPLE_WIDTH_BYTES
+                if self._prepared_mount is not None else 0
+            )
+            prepared_provenance_bytes = (
+                sum(
+                    64
+                    for receipt in (
+                        self._prepared_mount.next_epoch
+                        .left_pending_receipt_sha256s
+                        + self._prepared_mount.next_epoch
+                        .right_pending_receipt_sha256s
+                    )
+                    if receipt is not None
+                )
+                if self._prepared_mount is not None else 0
+            )
             return {
                 "active_epochs": len(self._epochs),
+                "prepared_multisensory_mount": int(
+                    self._prepared_mount is not None
+                ),
+                "pending_multisensory_reservation": int(
+                    self._pending_reservation is not None
+                ),
                 "epoch_capacity": self._epoch_capacity,
                 "max_pcm_samples_per_capture": MAX_EMITTED_PCM_SAMPLES,
                 "max_propagation_delay_samples": (
@@ -1797,15 +1986,28 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     * 2
                     * MAX_PROPAGATION_DELAY_SAMPLES
                     * PCM_SAMPLE_WIDTH_BYTES
+                    + 2
+                    * MAX_EMITTED_PCM_SAMPLES
+                    * PCM_SAMPLE_WIDTH_BYTES
+                    + 2
+                    * MAX_PROPAGATION_DELAY_SAMPLES
+                    * PCM_SAMPLE_WIDTH_BYTES
                 ),
-                "retained_raw_media_bytes": retained_delay_line_bytes,
+                "retained_raw_media_bytes": (
+                    retained_delay_line_bytes
+                    + prepared_binaural_bytes
+                    + prepared_pending_bytes
+                ),
                 "max_retained_provenance_bytes": (
                     self._epoch_capacity
                     * 2
                     * MAX_PROPAGATION_DELAY_SAMPLES
                     * 64
+                    + 2 * MAX_PROPAGATION_DELAY_SAMPLES * 64
                 ),
-                "retained_provenance_bytes": retained_provenance_bytes,
+                "retained_provenance_bytes": (
+                    retained_provenance_bytes + prepared_provenance_bytes
+                ),
                 "retained_raw_media_kind": (
                     "bounded_transient_acoustic_delay_lines"
                 ),

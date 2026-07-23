@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import struct
 from dataclasses import replace
@@ -26,6 +27,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     PlaceCommand,
     PoseMM,
     PositionMM,
+    VocalizeCommand,
     encode_command,
 )
 from dsf_ai_service.substrate.exact_causal_experience import (
@@ -128,6 +130,34 @@ def _execution(world: EmbodimentWorldAuthority):
     return receipt
 
 
+def _vocal_execution(
+    world: EmbodimentWorldAuthority,
+    epoch: str,
+    *,
+    sequence: int = 0,
+    source_sample_start: int = 0,
+    emitter_port_id: str = EMITTER_PORT,
+    pcm: bytes | None = None,
+):
+    pressure = pcm or _pcm()
+    command = VocalizeCommand(
+        epoch_commitment_sha256=hashlib.sha256(epoch.encode("utf-8")).hexdigest(),
+        sequence=sequence,
+        source_sample_start=source_sample_start,
+        pcm_sha256=hashlib.sha256(pressure).hexdigest(),
+        sample_count=len(pressure) // 2,
+    )
+    before = world.observation_snapshot()
+    receipt = world.execute_port_command(
+        port_id=emitter_port_id,
+        command_payload=encode_command(command),
+        causal_intent_receipt_sha256=INTENT_RECEIPT,
+        expected_revision=before.revision,
+    )
+    assert receipt.disposition == "applied"
+    return receipt
+
+
 def _authority(world, owner=None):
     return W1AudiovisualPhysicalEvidenceAuthority(
         authority_key=EVIDENCE_KEY,
@@ -150,13 +180,23 @@ def _emission(
     emitter_port_id=EMITTER_PORT,
     pcm=None,
 ):
+    pressure = pcm or _pcm()
+    command_payload = encode_command(VocalizeCommand(
+        epoch_commitment_sha256=hashlib.sha256(epoch.encode("utf-8")).hexdigest(),
+        sequence=sequence,
+        source_sample_start=source_sample_start,
+        pcm_sha256=hashlib.sha256(pressure).hexdigest(),
+        sample_count=len(pressure) // 2,
+    ))
     return authority.emit_acoustic_pressure(
         epoch_token=epoch,
         sequence=sequence,
         source_sample_start=source_sample_start,
         observation_snapshot=execution.after,
+        execution_receipt=execution,
+        command_payload=command_payload,
         emitter_port_id=emitter_port_id,
-        pcm_s16le=pcm or _pcm(),
+        pcm_s16le=pressure,
     )
 
 
@@ -165,7 +205,7 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
     world = _world()
     authority = _authority(world, _owner(accepted.append))
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     emission = _emission(authority, epoch, execution)
 
     result = authority.mount(
@@ -199,7 +239,11 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
     }
     assert set(observed) == {"sight", "sound", "touch", "body"}
     assert len(observed["sight"].substreams) == 8
-    assert len(observed["sound"].substreams) == 2
+    assert len(observed["sound"].substreams) == 64
+    assert {
+        dict(substream.coordinates)["acoustic-receptor"]
+        for substream in observed["sound"].substreams
+    } == {"left", "right"}
     assert len(observed["touch"].substreams) == len(_TOUCH_AXES)
     assert len(observed["body"].substreams) == len(_BODY_AXES)
     encoded_settlement = json.dumps(
@@ -243,6 +287,42 @@ def test_mount_retains_full_fields_but_no_perceptual_identity_or_raw_media():
     )
     assert authority.close_epoch(epoch)
     assert authority.status()["retained_raw_media_bytes"] == 0
+
+
+def test_multisensory_mount_can_prepare_commit_or_discard_atomically():
+    accepted = []
+    world = _world()
+    owner = _owner(accepted.append)
+    authority = _authority(world, owner)
+    epoch = authority.open_epoch()
+    execution = _vocal_execution(world, epoch)
+    emission = _emission(authority, epoch, execution)
+
+    prepared = authority.mount(
+        epoch_token=epoch,
+        sequence=0,
+        execution_receipt=execution,
+        acoustic_emission=emission,
+        commit=False,
+    )
+    assert accepted == []
+    assert owner.status()["prepared_reservation"] == 1
+    assert authority.status()["prepared_multisensory_mount"] == 1
+    authority.discard_prepared_multisensory_mount(prepared)
+    assert accepted == []
+    assert owner.status()["prepared_reservation"] == 0
+
+    prepared_again = authority.mount(
+        epoch_token=epoch,
+        sequence=0,
+        execution_receipt=execution,
+        acoustic_emission=emission,
+        commit=False,
+    )
+    authority.commit_prepared_multisensory_mount(prepared_again)
+    assert accepted == [prepared_again.causal_settlement]
+    assert owner.status()["prepared_reservation"] == 0
+    assert authority.status()["prepared_multisensory_mount"] == 0
 
 
 def test_action_outcome_settles_anonymous_body_contact_without_fake_sound():
@@ -597,7 +677,7 @@ def test_maximum_valid_body_reach_has_its_own_exact_physical_scale():
     )
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
 
     result = authority.mount(
         epoch_token=epoch,
@@ -614,7 +694,7 @@ def test_tampered_world_receipt_is_rejected_before_mounting():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     tampered = replace(execution, authority_hmac_sha256="0" * 64)
     emission = _emission(authority, epoch, execution)
 
@@ -634,7 +714,7 @@ def test_sequence_gap_and_process_restart_fail_unknown_and_close_state():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch, sequence=1)
 
     gap = authority.mount(
         epoch_token=epoch,
@@ -652,11 +732,14 @@ def test_sequence_gap_and_process_restart_fail_unknown_and_close_state():
     assert authority.status()["active_epochs"] == 0
 
     replacement = _authority(world)
+    restarted_execution = _vocal_execution(world, epoch)
     restarted = replacement.mount(
         epoch_token=epoch,
         sequence=0,
-        execution_receipt=execution,
-        acoustic_emission=_emission(replacement, epoch, execution),
+        execution_receipt=restarted_execution,
+        acoustic_emission=_emission(
+            replacement, epoch, restarted_execution
+        ),
     )
     assert restarted.state is W1EvidenceState.UNKNOWN
     assert restarted.reason == "audiovisual_epoch_unknown_after_gap_or_restart"
@@ -667,7 +750,7 @@ def test_pcm_tamper_is_rejected_before_perceptual_settlement():
     world = _world()
     authority = _authority(world, _owner(accepted.append))
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     emission = _emission(authority, epoch, execution)
     tampered = AuthenticatedW1AcousticEmission(
         receipt=emission.receipt,
@@ -690,8 +773,8 @@ def test_propagation_delay_retains_the_entire_received_waveform():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
     emitted = _last_sample_impulse_pcm()
+    execution = _vocal_execution(world, epoch, pcm=emitted)
     first_emission = _emission(
         authority,
         epoch,
@@ -711,23 +794,21 @@ def test_propagation_delay_retains_the_entire_received_waveform():
     assert first.binaural_pcm is None
     assert first.causal_settlement is None
     assert authority.status()["active_epochs"] == 1
-    second_execution = world.execute_port_command(
-        port_id=PORT_ID,
-        command_payload=encode_command(PlaceCommand(
-            "teaching-object",
-            PositionMM(1_500, 1_200, 0),
-        )),
-        causal_intent_receipt_sha256="4" * 64,
-        expected_revision=execution.after.revision,
+    silent = b"\x00\x00" * (len(emitted) // 2)
+    second_execution = _vocal_execution(
+        world,
+        epoch,
+        sequence=1,
+        source_sample_start=len(emitted) // 2,
+        pcm=silent,
     )
-    assert second_execution.disposition == "applied"
     second_emission = _emission(
         authority,
         epoch,
         second_execution,
         sequence=1,
         source_sample_start=len(emitted) // 2,
-        pcm=b"\x00\x00" * (len(emitted) // 2),
+        pcm=silent,
     )
     second = authority.mount(
         epoch_token=epoch,
@@ -759,7 +840,7 @@ def test_consecutive_captures_keep_one_exact_emitted_sample_clock():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    first_execution = _execution(world)
+    first_execution = _vocal_execution(world, epoch)
     first = authority.mount(
         epoch_token=epoch,
         sequence=0,
@@ -775,16 +856,12 @@ def test_consecutive_captures_keep_one_exact_emitted_sample_clock():
         first.binaural_pcm.left_sample_count,
         first.binaural_pcm.right_sample_count,
     )
-    second_execution = world.execute_port_command(
-        port_id=PORT_ID,
-        command_payload=encode_command(PlaceCommand(
-            "teaching-object",
-            PositionMM(1_500, 1_200, 0),
-        )),
-        causal_intent_receipt_sha256="3" * 64,
-        expected_revision=first_execution.after.revision,
+    second_execution = _vocal_execution(
+        world,
+        epoch,
+        sequence=1,
+        source_sample_start=first_emitted_count,
     )
-    assert second_execution.disposition == "applied"
 
     second = authority.mount(
         epoch_token=epoch,
@@ -813,8 +890,8 @@ def test_advertised_maximum_emission_is_mountable_with_propagation():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
     maximum = _pcm(MAX_EMITTED_PCM_SAMPLES)
+    execution = _vocal_execution(world, epoch, pcm=maximum)
 
     result = authority.mount(
         epoch_token=epoch,
@@ -842,7 +919,7 @@ def test_superseded_world_execution_cannot_be_replayed_as_current_sound():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     superseding = world.execute_port_command(
         port_id=EMITTER_PORT,
         command_payload=encode_command(MoveCommand(
@@ -864,7 +941,7 @@ def test_acoustic_sample_gap_closes_epoch_without_settlement():
     world = _world()
     authority = _authority(world, _owner(accepted.append))
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch, source_sample_start=1)
     emission = _emission(
         authority,
         epoch,
@@ -889,7 +966,7 @@ def test_symmetric_two_ear_field_is_explicitly_ambiguous():
     world = _world(external_position=PositionMM(3_500, 1_000, 0))
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
 
     result = authority.mount(
         epoch_token=epoch,
@@ -909,7 +986,7 @@ def test_unsettled_physical_capture_closes_continuity_epoch():
     world = _world(self_heading_millidegrees=1_000)
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
 
     result = authority.mount(
         epoch_token=epoch,
@@ -933,7 +1010,9 @@ def test_self_port_cannot_authenticate_external_pressure():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(
+        world, epoch, emitter_port_id=PORT_ID
+    )
 
     with pytest.raises(ValueError, match="self port"):
         _emission(
@@ -946,11 +1025,11 @@ def test_self_port_cannot_authenticate_external_pressure():
     assert authority.status()["active_epochs"] == 1
 
 
-def test_external_sound_and_self_action_share_one_authenticated_outcome():
+def test_companion_vocal_action_is_the_authenticated_acoustic_cause():
     world = _world()
     authority = _authority(world)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     emission = _emission(authority, epoch, execution)
 
     result = authority.mount(
@@ -960,56 +1039,49 @@ def test_external_sound_and_self_action_share_one_authenticated_outcome():
         acoustic_emission=emission,
     )
 
-    assert execution.port_id == PORT_ID
+    assert execution.port_id == EMITTER_PORT
     assert emission.receipt.emitter_port_id == EMITTER_PORT
+    assert emission.receipt.world_execution_receipt_sha256 == (
+        execution.authority_receipt_sha256
+    )
     assert emission.receipt.world_observation_receipt_sha256 == (
         execution.after.authority_receipt_sha256
     )
     assert result.state is W1EvidenceState.OBSERVED
     assert result.causal_settlement is not None
-    observed = {
-        item.sense: item for item in result.causal_settlement.interpretations
-        if item.state == "observed"
-    }
-    assert any(
-        field_tuple.fields != substream.field_tuples[0].fields
-        for sense in ("touch", "body")
-        for substream in observed[sense].substreams
-        for field_tuple in substream.field_tuples[1:]
+    sound = next(
+        item for item in result.causal_settlement.interpretations
+        if item.sense == "sound"
     )
+    assert len(sound.substreams) == 64
 
 
-def test_self_navigation_and_external_sound_share_post_action_receptors():
+def test_nonvocal_world_action_cannot_mint_external_pressure():
     world = _world()
     before = world.observation_snapshot()
+    move_payload = encode_command(MoveCommand(PoseMM(
+        PositionMM(3_500, 2_700, 0), 180_000
+    )))
     execution = world.execute_port_command(
-        port_id=PORT_ID,
-        command_payload=encode_command(MoveCommand(PoseMM(
-            PositionMM(1_000, 1_200, 0), 0
-        ))),
+        port_id=EMITTER_PORT,
+        command_payload=move_payload,
         causal_intent_receipt_sha256=INTENT_RECEIPT,
         expected_revision=before.revision,
     )
     assert execution.disposition == "applied"
     authority = _authority(world)
     epoch = authority.open_epoch()
-
-    result = authority.mount(
-        epoch_token=epoch,
-        sequence=0,
-        execution_receipt=execution,
-        acoustic_emission=_emission(authority, epoch, execution),
-    )
-
-    assert execution.port_id == PORT_ID
-    assert execution.before.bodies != execution.after.bodies
-    assert result.state is W1EvidenceState.OBSERVED
-    assert result.causal_settlement is not None
-    observed = {
-        item.sense: item for item in result.causal_settlement.interpretations
-        if item.state == "observed"
-    }
-    assert set(observed) == {"sight", "sound", "touch", "body"}
+    with pytest.raises(ValueError, match="requires a vocal action"):
+        authority.emit_acoustic_pressure(
+            epoch_token=epoch,
+            sequence=0,
+            source_sample_start=0,
+            observation_snapshot=execution.after,
+            execution_receipt=execution,
+            command_payload=move_payload,
+            emitter_port_id=EMITTER_PORT,
+            pcm_s16le=_pcm(),
+        )
 
 
 def test_visual_order_crossing_fails_closed_without_causal_settlement():
@@ -1058,14 +1130,7 @@ def test_visual_order_crossing_fails_closed_without_causal_settlement():
     assert execution.disposition == "applied"
     owner = _owner(accepted.append)
     authority = _authority(world, owner)
-    epoch = authority.open_epoch()
-
-    result = authority.mount(
-        epoch_token=epoch,
-        sequence=0,
-        execution_receipt=execution,
-        acoustic_emission=_emission(authority, epoch, execution),
-    )
+    result = authority.mount_action_outcome(execution)
 
     assert result.state is W1EvidenceState.AMBIGUOUS
     assert result.reason == "anonymous_visual_order_crossed"
@@ -1121,7 +1186,9 @@ def test_changed_acoustic_path_cannot_relabel_delayed_pressure():
     owner = _owner(accepted.append)
     authority = _authority(world, owner)
     epoch = authority.open_epoch()
-    first_execution = _execution(world)
+    first_execution = _vocal_execution(
+        world, epoch, emitter_port_id=source_a
+    )
     first = authority.mount(
         epoch_token=epoch,
         sequence=0,
@@ -1134,15 +1201,13 @@ def test_changed_acoustic_path_cannot_relabel_delayed_pressure():
         ),
     )
     assert first.state is W1EvidenceState.OBSERVED
-    second_execution = world.execute_port_command(
-        port_id=PORT_ID,
-        command_payload=encode_command(PlaceCommand(
-            "teaching-object", PositionMM(1_500, 1_200, 0)
-        )),
-        causal_intent_receipt_sha256="9" * 64,
-        expected_revision=first_execution.after.revision,
+    second_execution = _vocal_execution(
+        world,
+        epoch,
+        sequence=1,
+        source_sample_start=1_024,
+        emitter_port_id=source_b,
     )
-    assert second_execution.disposition == "applied"
 
     second = authority.mount(
         epoch_token=epoch,
@@ -1178,7 +1243,7 @@ def test_resource_bounds_and_transaction_rollback_preserve_epoch():
     world = _world()
     authority = _authority(world, owner)
     epoch = authority.open_epoch()
-    execution = _execution(world)
+    execution = _vocal_execution(world, epoch)
     emission = _emission(authority, epoch, execution)
 
     with pytest.raises(RuntimeError, match="downstream settlement rejected"):
@@ -1203,11 +1268,23 @@ def test_resource_bounds_and_transaction_rollback_preserve_epoch():
         authority.open_epoch()
     assert authority.close_epoch(second)
 
-    with pytest.raises(ValueError, match="sample boundary"):
+    with pytest.raises(ValueError, match="sample count"):
         authority.emit_acoustic_pressure(
             epoch_token=second,
             sequence=1,
             observation_snapshot=execution.after,
+            execution_receipt=execution,
+            command_payload=encode_command(VocalizeCommand(
+                epoch_commitment_sha256=hashlib.sha256(
+                    second.encode("utf-8")
+                ).hexdigest(),
+                sequence=1,
+                source_sample_start=0,
+                pcm_sha256=hashlib.sha256(
+                    _pcm(MAX_EMITTED_PCM_SAMPLES + 1)
+                ).hexdigest(),
+                sample_count=MAX_EMITTED_PCM_SAMPLES + 1,
+            )),
             emitter_port_id=EMITTER_PORT,
             source_sample_start=0,
             pcm_s16le=_pcm(MAX_EMITTED_PCM_SAMPLES + 1),

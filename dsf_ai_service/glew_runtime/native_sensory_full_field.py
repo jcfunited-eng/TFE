@@ -58,7 +58,10 @@ ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v
 # settlement that this live adapter will admit so one request cannot recreate
 # the historical unbounded-memory failure.
 MAX_NATIVE_SUBSTREAMS_PER_SENSE = 16
-MAX_NATIVE_SOUND_SUBSTREAMS = 32
+# Two physical ears, each retaining the canonical sixteen cochlear bands as
+# independent pressure and phase-advance components: 2 * 16 * 2 = 64.
+# This is a transport/resource boundary only; frozen L0--L4 is unchanged.
+MAX_NATIVE_SOUND_SUBSTREAMS = 64
 # W1 admits at most 3 non-self bodies plus 16 objects, each preserving four
 # independent physical axes: (3 + 16) * 4 = 76 scalar structural ports.
 MAX_NATIVE_SIGHT_SUBSTREAMS = 76

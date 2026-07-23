@@ -21,6 +21,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     PlaceCommand,
     PoseMM,
     PositionMM,
+    VocalizeCommand,
     decode_command,
     encode_command,
 )
@@ -208,6 +209,14 @@ def test_command_language_is_typed_canonical_and_bounded() -> None:
     move = MoveCommand(PoseMM(PositionMM(1100, 1200, 0), 180_000))
     payload = encode_command(move)
     assert decode_command(payload) == move
+    vocal = VocalizeCommand(
+        epoch_commitment_sha256="a" * 64,
+        sequence=3,
+        source_sample_start=2_048,
+        pcm_sha256="b" * 64,
+        sample_count=1_024,
+    )
+    assert decode_command(encode_command(vocal)) == vocal
     assert payload == json.dumps(
         json.loads(payload),
         allow_nan=False,

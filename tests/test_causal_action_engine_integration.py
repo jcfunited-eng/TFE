@@ -102,6 +102,16 @@ def _actual_causal_speech_wav() -> bytes:
     return output.getvalue()
 
 
+def _companion_pcm_chunk() -> bytes:
+    return np.asarray(
+        [
+            int(12_000 * math.sin(2 * math.pi * 440 * index / 16_000))
+            for index in range(1_024)
+        ],
+        dtype="<i2",
+    ).tobytes()
+
+
 def _full_field(
     name: str,
     values: tuple[Fraction, ...],
@@ -931,5 +941,74 @@ def test_pre_execution_dispatch_failure_rolls_back_intent_and_prediction(
         assert guala._causal_action_cycle.status()["intents"] == 0
         assert guala._full_field_prediction.status()["armed_action"] is False
         assert guala._full_field_prediction.current_attempt().mode == "passive"
+    finally:
+        guala.shutdown()
+
+
+def test_companion_vocal_pressure_enters_live_engine_as_binaural_w1_experience(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "companion-engine-key")
+    guala = Guala()
+    try:
+        before = guala._embodiment_world.observation_snapshot()
+        accepted_before = guala._causal_settlement_accepted
+
+        result = guala.experience_companion_vocal_pressure(
+            _companion_pcm_chunk()
+        )
+
+        after = guala._embodiment_world.observation_snapshot()
+        assert result["sound_substream_count"] == 64
+        assert result["world_revision_before"] == before.revision
+        assert result["world_revision_after"] == before.revision + 1
+        assert after.revision >= result["world_revision_after"]
+        assert guala._causal_settlement_accepted == accepted_before + 1
+        assert guala._latest_causal_settlement is not None
+        assert result["causal_settlement_receipt_sha256"] == (
+            guala._latest_causal_settlement.authority_receipt_sha256
+        )
+        assert guala._w1_companion_vocal_experience.status()[
+            "retained_raw_media_bytes"
+        ] == 0
+        assert guala._w1_physical_evidence.status()["active_epochs"] == 0
+    finally:
+        guala.shutdown()
+
+
+def test_companion_vocal_engine_failure_restores_world_and_causal_reservation(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "companion-rollback-key")
+    guala = Guala()
+    try:
+        world_before = guala._embodiment_world.encoded_snapshot()
+        accepted_before = guala._causal_settlement_accepted
+
+        def fail_record(*_args, **_kwargs):
+            raise RuntimeError("injected companion recording failure")
+
+        monkeypatch.setattr(
+            guala,
+            "_record_causal_perception_without_dispatch",
+            fail_record,
+        )
+        with pytest.raises(RuntimeError, match="recording failure"):
+            guala.experience_companion_vocal_pressure(
+                _companion_pcm_chunk()
+            )
+
+        assert guala._embodiment_world.encoded_snapshot() == world_before
+        assert guala._causal_settlement_accepted == accepted_before
+        assert guala._embodiment_outcome_causal_owner.status()[
+            "prepared_reservation"
+        ] == 0
+        assert guala._w1_physical_evidence.status()["active_epochs"] == 0
     finally:
         guala.shutdown()

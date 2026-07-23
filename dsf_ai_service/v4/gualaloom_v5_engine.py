@@ -3519,6 +3519,7 @@ class Guala:
         )
         self._w1_acoustic_emitter = None
         self._w1_physical_evidence = None
+        self._w1_companion_vocal_experience = None
         if _causal_cycle_key:
             import hmac as _hmac
             from dsf_ai_service.substrate.w1_acoustic_emitter import (
@@ -3531,12 +3532,17 @@ class Guala:
             _root_key = _causal_cycle_key.encode("utf-8")
             _w1_acoustic_key = _hmac.new(
                 _root_key,
-                b"guala-w1-authenticated-acoustic-emitter-v2",
+                b"guala-w1-authenticated-acoustic-emitter-v3",
                 _hashlib.sha256,
             ).digest()
             _w1_physical_key = _hmac.new(
                 _root_key,
                 b"guala-w1-anonymous-multisensory-evidence-v6",
+                _hashlib.sha256,
+            ).digest()
+            _w1_companion_key = _hmac.new(
+                _root_key,
+                b"guala-w1-companion-vocal-intent-v2",
                 _hashlib.sha256,
             ).digest()
             self._w1_acoustic_emitter = _W1AcousticEmitterAuthority(
@@ -3549,6 +3555,17 @@ class Guala:
                     world_authority=self._embodiment_world,
                     causal_owner=self._embodiment_outcome_causal_owner,
                     acoustic_emitter=self._w1_acoustic_emitter,
+                )
+            )
+            from dsf_ai_service.substrate.w1_companion_vocal_experience import (
+                W1CompanionVocalExperienceAuthority as
+                _W1CompanionVocalExperienceAuthority,
+            )
+            self._w1_companion_vocal_experience = (
+                _W1CompanionVocalExperienceAuthority(
+                    authority_key=_w1_companion_key,
+                    world_authority=self._embodiment_world,
+                    physical_authority=self._w1_physical_evidence,
                 )
             )
         self._embodied_action_teaching_key = None
@@ -8362,6 +8379,132 @@ class Guala:
             if return_outcome
             else completed
         )
+
+    @_engine_mutation_entry
+    def experience_companion_vocal_pressure(self, pcm_s16le):
+        """Admit one bounded companion vocal act as one W1 experience.
+
+        This is physical intake, not a transcript or a scripted answer.  The
+        companion control port causes authenticated pressure; anonymous sight,
+        two independent cochleae, touch, and body fields settle together.
+        """
+        authority = self._w1_companion_vocal_experience
+        if (
+            authority is None
+            or self._embodiment_world is None
+            or self._w1_physical_evidence is None
+        ):
+            raise RuntimeError(
+                "companion vocal experience authority is unavailable"
+            )
+        if not isinstance(pcm_s16le, bytes):
+            raise TypeError("companion vocal pressure must be PCM16 bytes")
+        before = self._embodiment_world.observation_snapshot()
+
+        with self._causal_cycle_bridge_lock:
+            cycle_snapshot = (
+                self._causal_action_cycle.encoded_snapshot()
+                if self._causal_action_cycle is not None else None
+            )
+            dispatcher_snapshot = (
+                self._causal_action_dispatcher.encoded_snapshot()
+                if self._causal_action_dispatcher is not None else None
+            )
+            prediction_snapshot = (
+                self._full_field_prediction.encoded_snapshot()
+                if self._full_field_prediction is not None else None
+            )
+            prior_prediction_intent = (
+                self._prediction_conditioned_intent_receipt
+            )
+            prior_prediction_binding = (
+                self._prediction_conditioned_binding_id
+            )
+            prior_prediction_observation = (
+                self._latest_full_field_prediction_observation
+            )
+            prior_latest_settlement = self._latest_causal_settlement
+            prior_accepted = self._causal_settlement_accepted
+            prepared = None
+            committed = False
+            try:
+                prepared = authority.prepare(
+                    pcm_s16le=pcm_s16le,
+                )
+                mount = prepared.physical_mount
+                settlement = mount.causal_settlement
+                self._record_causal_perception_without_dispatch(
+                    settlement,
+                    world_observation=prepared.execution_receipt.after,
+                    outcome_observation_receipt=mount.observation_receipt,
+                    world_execution_receipt=prepared.execution_receipt,
+                )
+                if self._causal_action_cycle is not None:
+                    self._causal_action_cycle.accept(settlement)
+                authority.commit(prepared)
+                committed = True
+            except BaseException:
+                if prepared is not None and not committed:
+                    try:
+                        authority.discard(prepared)
+                    except ValueError:
+                        pass
+                if (
+                    cycle_snapshot is not None
+                    and self._causal_action_cycle is not None
+                ):
+                    self._causal_action_cycle.restore_encoded(cycle_snapshot)
+                if (
+                    dispatcher_snapshot is not None
+                    and self._causal_action_dispatcher is not None
+                ):
+                    self._causal_action_dispatcher.restore_encoded(
+                        dispatcher_snapshot
+                    )
+                if (
+                    prediction_snapshot is not None
+                    and self._full_field_prediction is not None
+                ):
+                    self._full_field_prediction.restore_encoded(
+                        prediction_snapshot
+                    )
+                self._prediction_conditioned_intent_receipt = (
+                    prior_prediction_intent
+                )
+                self._prediction_conditioned_binding_id = (
+                    prior_prediction_binding
+                )
+                self._latest_full_field_prediction_observation = (
+                    prior_prediction_observation
+                )
+                self._latest_causal_settlement = prior_latest_settlement
+                self._causal_settlement_accepted = prior_accepted
+                raise
+
+            sound = next(
+                item for item in settlement.interpretations
+                if item.sense == "sound"
+            )
+            return {
+                "causal_event_id": settlement.event_id,
+                "causal_settlement_receipt_sha256": (
+                    settlement.authority_receipt_sha256
+                ),
+                "dispatch_status": (
+                    "deferred_to_causal_cycle"
+                    if self._causal_action_cycle is not None
+                    else "unavailable"
+                ),
+                "schema": "guala.w1.companion_vocal_experience.v1",
+                "sound_substream_count": len(sound.substreams),
+                "world_execution_receipt_sha256": (
+                    prepared.execution_receipt.authority_receipt_sha256
+                ),
+                "world_revision_after": (
+                    prepared.execution_receipt.after.revision
+                ),
+                "world_revision_before": before.revision,
+            }
 
     def _run_causal_play_episode(
         self,
@@ -25079,6 +25222,11 @@ class Guala:
                 "embodiment_world": (
                     self._embodiment_world.status()
                     if self._embodiment_world is not None
+                    else {"available": False}
+                ),
+                "companion_vocal_experience": (
+                    self._w1_companion_vocal_experience.status()
+                    if self._w1_companion_vocal_experience is not None
                     else {"available": False}
                 ),
                 "embodied_action_teaching": (

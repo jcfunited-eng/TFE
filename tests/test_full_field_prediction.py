@@ -142,6 +142,15 @@ def _settlement(
     )
 
 
+def test_w1_acoustic_prediction_rejects_legacy_single_sound_stream() -> None:
+    legacy = _settlement("legacy-acoustic", sound_frequency=12)
+
+    with pytest.raises(ValueError, match="two complete cochleae"):
+        FullFieldPredictionAuthority._verify_binaural_cochlear_topology(
+            legacy
+        )
+
+
 def _teach_passive(
     authority: FullFieldPredictionAuthority,
     before,

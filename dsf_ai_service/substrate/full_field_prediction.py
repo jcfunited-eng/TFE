@@ -33,6 +33,11 @@ from dsf_ai_service.substrate.auditory_token_sequence import (
     AuditoryTokenSequenceAuthority,
     AuditoryTokenSequenceReceipt,
 )
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    AUDITORY_CHANNELS,
+    COCHLEAR_ORDER,
+    OBSERVATION_HOP_SAMPLES,
+)
 from dsf_ai_service.substrate.causal_action_cycle import (
     DEFAULT_MAX_COMMAND_BYTES,
     DEFAULT_MAX_SPEECH_SCALARS,
@@ -752,6 +757,81 @@ class FullFieldPredictionAuthority:
             raise ValueError("auditory language episode authority changed")
 
     @staticmethod
+    def _verify_binaural_cochlear_topology(
+        settlement: CausalExperienceSettlement,
+    ) -> None:
+        sound = next(
+            (
+                item for item in settlement.interpretations
+                if item.sense == "sound"
+            ),
+            None,
+        )
+        if sound is None or sound.state != "observed" or len(sound.substreams) != 64:
+            raise ValueError(
+                "W1 acoustic prediction requires two complete cochleae"
+            )
+        coordinate_axes = (
+            "acoustic-receptor",
+            "cochlear-channel",
+            "kernel-component",
+            "centre-hz",
+            "erb-width-hz",
+            "gammatone-order",
+            "observation-hop-samples",
+        )
+        for topology_index, substream in enumerate(sound.substreams):
+            ear = "left" if topology_index < 32 else "right"
+            local_index = topology_index % 32
+            channel_index = local_index // 2
+            pressure = local_index % 2 == 0
+            channel = AUDITORY_CHANNELS[channel_index]
+            component = (
+                "pressure-envelope"
+                if pressure else "carrier-phase-advance"
+            )
+            expected_coordinates = (
+                ("acoustic-receptor", ear),
+                ("cochlear-channel", channel.name),
+                ("kernel-component", component),
+                ("centre-hz", str(channel.centre_hz)),
+                ("erb-width-hz", str(channel.erb_width_hz)),
+                ("gammatone-order", str(COCHLEAR_ORDER)),
+                (
+                    "observation-hop-samples",
+                    str(OBSERVATION_HOP_SAMPLES),
+                ),
+            )
+            expected_suffix = (
+                "pressure" if pressure else "phase_advance"
+            )
+            expected_quantity = (
+                "cochlear-pressure-envelope"
+                if pressure
+                else "cochlear-carrier-phase-advance"
+            )
+            expected_unit = (
+                "full-scale-pressure"
+                if pressure
+                else "nyquist-fraction-per-observation-hop"
+            )
+            if (
+                substream.topology_index != topology_index
+                or tuple(axis for axis, _value in substream.coordinates)
+                != coordinate_axes
+                or substream.coordinates != expected_coordinates
+                or substream.sensor_id
+                != f"W1-calibrated-{ear}-cochlear-field"
+                or substream.substream_id
+                != f"{ear}-{channel.name}_{expected_suffix}"
+                or substream.physical_quantity != expected_quantity
+                or substream.physical_unit != expected_unit
+            ):
+                raise ValueError(
+                    "W1 acoustic prediction cochlear topology changed"
+                )
+
+    @staticmethod
     def _verify_w1(
         *,
         settlement: CausalExperienceSettlement,
@@ -811,10 +891,35 @@ class FullFieldPredictionAuthority:
                     .world_observation_before_receipt_sha256
                     != observation.authority_receipt_sha256
                 )
-                or outcome_receipt.acoustic_emission_receipt_sha256s
+                or outcome_receipt.causal_settlement_receipt_sha256
+                != settlement.authority_receipt_sha256
             ):
                 raise ValueError(
                     "anonymous W1 receipt is not a reproducible physical boundary"
+                )
+            acoustic = bool(
+                outcome_receipt.acoustic_emission_receipt_sha256s
+            )
+            if acoustic:
+                if (
+                    execution_receipt is None
+                    or not outcome_receipt.binaural_commitment
+                ):
+                    raise ValueError(
+                        "anonymous W1 acoustic receipt lost its physical cause"
+                    )
+                FullFieldPredictionAuthority._verify_binaural_cochlear_topology(
+                    settlement
+                )
+                # Raw pressure is deliberately transient.  The evidence
+                # authority has already signed its exact emission receipts,
+                # binaural commitment, full-field settlement, and world
+                # execution as one boundary.  Reconstructing discarded PCM
+                # here would require retaining the sensory firehose.
+                return
+            if outcome_receipt.binaural_commitment:
+                raise ValueError(
+                    "anonymous W1 nonacoustic receipt carries sound state"
                 )
             reproduced_mount = (
                 sensory_authority.mount_authenticated_action_outcome(

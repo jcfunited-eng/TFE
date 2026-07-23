@@ -19,13 +19,18 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     MAX_NATIVE_SAMPLES_PER_SUBSTREAM,
 )
 from dsf_ai_service.substrate.embodiment_world import (
+    ActionExecutionReceipt,
     EmbodimentWorldAuthority,
     ObservationSnapshot,
+    VOCAL_SAMPLE_RATE_HZ,
+    VocalizeCommand,
+    decode_command,
+    encode_command,
 )
 
 
-EMISSION_SCHEMA = "guala.w1.authenticated_acoustic_emission.v2"
-AUTHORITY_DOMAIN = b"guala-w1-authenticated-acoustic-emitter-v2\0"
+EMISSION_SCHEMA = "guala.w1.authenticated_acoustic_emission.v3"
+AUTHORITY_DOMAIN = b"guala-w1-authenticated-acoustic-emitter-v3\0"
 PCM_SAMPLE_RATE_HZ = 16_000
 PCM_SAMPLE_WIDTH_BYTES = 2
 MIN_EMITTED_PCM_SAMPLES = 160
@@ -86,6 +91,7 @@ class W1AcousticEmissionReceipt:
     source_sample_start: int
     source_sample_end: int
     emitter_port_id: str
+    world_execution_receipt_sha256: str
     world_observation_receipt_sha256: str
     pcm_sha256: str
     sample_count: int
@@ -103,6 +109,9 @@ class W1AcousticEmissionReceipt:
             "sequence": self.sequence,
             "source_sample_end": self.source_sample_end,
             "source_sample_start": self.source_sample_start,
+            "world_execution_receipt_sha256": (
+                self.world_execution_receipt_sha256
+            ),
             "world_observation_receipt_sha256": (
                 self.world_observation_receipt_sha256
             ),
@@ -111,6 +120,10 @@ class W1AcousticEmissionReceipt:
     def verify(self, authority_key: bytes | str) -> None:
         key = _key(authority_key)
         _sha256(self.epoch_commitment_sha256, "W1 emission epoch")
+        _sha256(
+            self.world_execution_receipt_sha256,
+            "W1 vocal execution receipt",
+        )
         _sha256(
             self.world_observation_receipt_sha256,
             "W1 world observation receipt",
@@ -165,9 +178,11 @@ class AuthenticatedW1AcousticEmission:
         authority_key: bytes | str,
         world_authority: EmbodimentWorldAuthority,
         observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
     ) -> None:
         self.receipt.verify(authority_key)
         world_authority.verify_observation_snapshot(observation_snapshot)
+        world_authority.verify_execution_receipt(execution_receipt)
         current = world_authority.observation_snapshot()
         count = _pcm_sample_count(self.pcm_s16le)
         if (
@@ -176,6 +191,11 @@ class AuthenticatedW1AcousticEmission:
             != self.receipt.pcm_sha256
             or observation_snapshot.authority_receipt_sha256
             != self.receipt.world_observation_receipt_sha256
+            or execution_receipt.authority_receipt_sha256
+            != self.receipt.world_execution_receipt_sha256
+            or execution_receipt.after.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+            or execution_receipt.port_id != self.receipt.emitter_port_id
             or current.authority_receipt_sha256
             != observation_snapshot.authority_receipt_sha256
         ):
@@ -215,6 +235,7 @@ class W1AcousticEmitterAuthority:
         emission: AuthenticatedW1AcousticEmission,
         *,
         observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
     ) -> None:
         if not isinstance(emission, AuthenticatedW1AcousticEmission):
             raise TypeError("W1 authenticated acoustic emission is required")
@@ -222,6 +243,7 @@ class W1AcousticEmitterAuthority:
             authority_key=self._key,
             world_authority=self._world,
             observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
         )
 
     def emit(
@@ -231,6 +253,8 @@ class W1AcousticEmitterAuthority:
         sequence: int,
         source_sample_start: int,
         observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+        command_payload: bytes,
         emitter_port_id: str,
         pcm_s16le: bytes,
     ) -> AuthenticatedW1AcousticEmission:
@@ -241,12 +265,34 @@ class W1AcousticEmitterAuthority:
         ):
             raise ValueError("W1 acoustic emission epoch is required")
         self._world.verify_observation_snapshot(observation_snapshot)
+        self._world.verify_execution_receipt(execution_receipt)
         current = self._world.observation_snapshot()
         if current.authority_receipt_sha256 != (
             observation_snapshot.authority_receipt_sha256
         ):
             raise ValueError("W1 acoustic emission requires the current world")
         count = _pcm_sample_count(pcm_s16le)
+        command = decode_command(command_payload)
+        if not isinstance(command, VocalizeCommand):
+            raise ValueError("W1 acoustic emission requires a vocal action")
+        if (
+            encode_command(command) != command_payload
+            or execution_receipt.command_sha256
+            != hashlib.sha256(command_payload).hexdigest()
+            or execution_receipt.after.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+            or execution_receipt.port_id != emitter_port_id
+            or command.epoch_commitment_sha256
+            != hashlib.sha256(epoch_token.encode("utf-8")).hexdigest()
+            or command.sequence != sequence
+            or command.source_sample_start != source_sample_start
+            or command.pcm_sha256 != hashlib.sha256(pcm_s16le).hexdigest()
+            or command.sample_count != count
+            or VOCAL_SAMPLE_RATE_HZ != PCM_SAMPLE_RATE_HZ
+        ):
+            raise ValueError(
+                "W1 emitted pressure differs from its vocal execution"
+            )
         if (
             isinstance(sequence, bool)
             or not isinstance(sequence, int)
@@ -269,6 +315,9 @@ class W1AcousticEmitterAuthority:
             "sequence": sequence,
             "source_sample_end": source_sample_start + count,
             "source_sample_start": source_sample_start,
+            "world_execution_receipt_sha256": (
+                execution_receipt.authority_receipt_sha256
+            ),
             "world_observation_receipt_sha256": (
                 observation_snapshot.authority_receipt_sha256
             ),
@@ -284,6 +333,9 @@ class W1AcousticEmitterAuthority:
             source_sample_start=source_sample_start,
             source_sample_end=source_sample_start + count,
             emitter_port_id=emitter_port_id,
+            world_execution_receipt_sha256=(
+                execution_receipt.authority_receipt_sha256
+            ),
             world_observation_receipt_sha256=(
                 observation_snapshot.authority_receipt_sha256
             ),
@@ -300,7 +352,9 @@ class W1AcousticEmitterAuthority:
             pcm_s16le=pcm_s16le,
         )
         self.verify_emission(
-            result, observation_snapshot=observation_snapshot
+            result,
+            observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
         )
         return result
 

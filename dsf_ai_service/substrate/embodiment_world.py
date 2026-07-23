@@ -69,6 +69,9 @@ MAX_IDENTIFIER_BYTES = 256
 MAX_REVISION = (1 << 63) - 1
 OPTICAL_BANDS = 6
 MAX_PHYSICAL_PPM = 1_000_000
+VOCAL_SAMPLE_RATE_HZ = 16_000
+MIN_VOCAL_SAMPLE_COUNT = 160
+MAX_VOCAL_SAMPLE_COUNT = 2_048
 
 
 def _canonical(value: object) -> bytes:
@@ -410,7 +413,18 @@ class PlaceCommand:
     target_position: PositionMM
 
 
-EmbodimentCommand = MoveCommand | PickCommand | PlaceCommand
+@dataclass(frozen=True, slots=True)
+class VocalizeCommand:
+    """One bounded physical pressure actuation by the addressed body."""
+
+    epoch_commitment_sha256: str
+    sequence: int
+    source_sample_start: int
+    pcm_sha256: str
+    sample_count: int
+
+
+EmbodimentCommand = MoveCommand | PickCommand | PlaceCommand | VocalizeCommand
 
 
 def command_record(command: EmbodimentCommand) -> dict[str, object]:
@@ -434,6 +448,38 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
             "operation": "place",
             "schema": COMMAND_SCHEMA,
             "target_position": command.target_position.as_record(),
+        }
+    if isinstance(command, VocalizeCommand):
+        sample_count = _bounded_integer(
+            command.sample_count,
+            "vocal sample count",
+            minimum=MIN_VOCAL_SAMPLE_COUNT,
+            maximum=MAX_VOCAL_SAMPLE_COUNT,
+        )
+        return {
+            "epoch_commitment_sha256": _sha256_identity(
+                command.epoch_commitment_sha256,
+                "vocal epoch commitment",
+            ),
+            "operation": "vocalize",
+            "pcm_sha256": _sha256_identity(
+                command.pcm_sha256, "vocal pressure identity"
+            ),
+            "sample_count": sample_count,
+            "sample_rate_hz": VOCAL_SAMPLE_RATE_HZ,
+            "sequence": _bounded_integer(
+                command.sequence,
+                "vocal sequence",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            "schema": COMMAND_SCHEMA,
+            "source_sample_start": _bounded_integer(
+                command.source_sample_start,
+                "vocal source sample start",
+                minimum=0,
+                maximum=MAX_REVISION - sample_count,
+            ),
         }
     raise ValueError("unsupported embodiment command type")
 
@@ -487,6 +533,44 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
         result = PlaceCommand(
             _identifier(decoded.get("object_id"), "place object id"),
             _position_from(decoded.get("target_position"), "place target position"),
+        )
+    elif operation == "vocalize" and set(decoded) == {
+        "epoch_commitment_sha256", "operation", "pcm_sha256", "sample_count",
+        "sample_rate_hz", "schema", "sequence", "source_sample_start"
+    }:
+        if decoded.get("sample_rate_hz") != VOCAL_SAMPLE_RATE_HZ:
+            raise ValueError("vocal sample rate changed")
+        result = VocalizeCommand(
+            epoch_commitment_sha256=_sha256_identity(
+                decoded.get("epoch_commitment_sha256"),
+                "vocal epoch commitment",
+            ),
+            sequence=_bounded_integer(
+                decoded.get("sequence"),
+                "vocal sequence",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            source_sample_start=_bounded_integer(
+                decoded.get("source_sample_start"),
+                "vocal source sample start",
+                minimum=0,
+                maximum=MAX_REVISION - _bounded_integer(
+                    decoded.get("sample_count"),
+                    "vocal sample count",
+                    minimum=MIN_VOCAL_SAMPLE_COUNT,
+                    maximum=MAX_VOCAL_SAMPLE_COUNT,
+                ),
+            ),
+            pcm_sha256=_sha256_identity(
+                decoded.get("pcm_sha256"), "vocal pressure identity"
+            ),
+            sample_count=_bounded_integer(
+                decoded.get("sample_count"),
+                "vocal sample count",
+                minimum=MIN_VOCAL_SAMPLE_COUNT,
+                maximum=MAX_VOCAL_SAMPLE_COUNT,
+            ),
         )
     else:
         raise ValueError("embodiment command operation or fields changed")
@@ -1604,6 +1688,14 @@ class EmbodimentWorldAuthority:
                 objects=tuple(objects),
             ), "applied"
 
+        if isinstance(command, VocalizeCommand):
+            # Pressure is transient and therefore does not become retained
+            # world state.  The authenticated execution still advances the
+            # causal revision exactly once; the acoustic authority separately
+            # proves that the emitted bytes match this command commitment.
+            command_record(command)
+            return world, "applied"
+
         raise ValueError("unsupported embodiment command type")
 
     def _commit_authority_state(self, candidate: _AuthorityState) -> None:
@@ -1706,6 +1798,11 @@ class EmbodimentWorldAuthority:
                     before=before,
                 )
             transitioned = replace(transitioned, revision=before.revision + 1)
+            consequence_lifecycle = (
+                "vocal_commitment_validated"
+                if isinstance(command, VocalizeCommand)
+                else "geometry_validated"
+            )
             self._validate_world(transitioned)
             after = self._observation_for(transitioned)
             receipt = self._execution_receipt(
@@ -1716,7 +1813,7 @@ class EmbodimentWorldAuthority:
                 expected_revision=revision,
                 disposition="applied",
                 reason="applied",
-                lifecycle=lifecycle + ("geometry_validated", "applied"),
+                lifecycle=lifecycle + (consequence_lifecycle, "applied"),
                 before=before,
                 after=after,
             )
@@ -1739,7 +1836,7 @@ class EmbodimentWorldAuthority:
                     expected_revision=revision,
                     reason="state_capacity_exhausted",
                     lifecycle=lifecycle + (
-                        "geometry_validated",
+                        consequence_lifecycle,
                         "state_capacity_rejected",
                     ),
                     before=before,
@@ -1797,7 +1894,10 @@ class EmbodimentWorldAuthority:
     def _verify_execution(self, receipt: ActionExecutionReceipt) -> None:
         if receipt.disposition != "applied" or receipt.reason != "applied":
             raise ValueError("retained execution must be applied")
-        if receipt.lifecycle[-2:] != ("geometry_validated", "applied"):
+        if receipt.lifecycle[-2:] not in (
+            ("geometry_validated", "applied"),
+            ("vocal_commitment_validated", "applied"),
+        ):
             raise ValueError("retained execution lifecycle changed")
         port_actor = next(
             (
@@ -2706,11 +2806,15 @@ __all__ = [
     "EmbodimentPort",
     "EmbodimentWorldAuthority",
     "MoveCommand",
+    "MAX_VOCAL_SAMPLE_COUNT",
+    "MIN_VOCAL_SAMPLE_COUNT",
     "ObservationSnapshot",
     "PORT_ID",
     "SECOND_BODY_PORT_ID",
     "PickCommand",
     "PlaceCommand",
+    "VocalizeCommand",
+    "VOCAL_SAMPLE_RATE_HZ",
     "PoseMM",
     "PositionMM",
     "PhysicalPortal",
