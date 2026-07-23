@@ -74,6 +74,18 @@ def test_durable_demonstration_executes_once_and_closes_exact_outcome(
         assert cycle["executions"] == 0
         assert cycle["outcomes"] == 0
         relation = guala._causal_action_cycle.verified_relation_evidence()[0]
+        guided = (
+            guala._embodied_action_teaching
+            .verified_guided_relation_evidence()
+        )
+        assert guided == (relation,)
+        assert relation.teacher_schema == (
+            "guala.causal_action_cycle.teacher.v2"
+        )
+        assert relation.teacher_source == "joe"
+        assert relation.teaching_evidence_receipt_sha256 == (
+            result["demonstration_receipt_sha256"]
+        )
         assert relation.latest_closure_receipt_sha256 == (
             result["closure_receipt_sha256"]
         )

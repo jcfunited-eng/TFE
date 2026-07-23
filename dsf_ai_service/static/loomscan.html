@@ -512,7 +512,7 @@ function renderActivity(status){
   const kindMap={
     ATTENDING_VISUAL:'attending_visual',ATTENDING_AUDIO:'attending_audio',
     SLEEPING:'sleeping',DREAMING:'dreaming',EMITTING:'emitting',
-    IDLE:'idle',PLAYING:'free-settle',READING:'reading'
+    IDLE:'idle',PLAYING:'learned physical action',READING:'reading'
   };
   let label=kindMap[act.kind]||act.kind||'—';
   let target='';

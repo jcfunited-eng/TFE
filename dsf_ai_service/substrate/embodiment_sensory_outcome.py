@@ -50,7 +50,7 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 
 OUTCOME_OBSERVATION_SCHEMA = "guala.embodiment.sensory_outcome_observation.v1"
 OUTCOME_OBSERVATION_DOMAIN = b"guala-embodiment-sensory-outcome-observation-v1\0"
-TRANSDUCER_PROFILE = "guala.embodiment.exact_geometry_transducer.v1"
+TRANSDUCER_PROFILE = "guala.embodiment.exact_geometry_transducer.v2"
 
 MAX_AUTHORITY_KEY_BYTES = 4096
 MAX_WORLD_OBJECTS = 8
@@ -588,8 +588,12 @@ class EmbodimentSensoryOutcomeAuthority:
 
         outcome_receipt = self._observation_receipt(observation, execution_receipt)
         self.verify_outcome_observation_receipt(outcome_receipt)
-        source_time_start = Fraction(observation.revision)
-        source_time_end = source_time_start + 1
+        # The revision authenticates causal order in the observation receipt;
+        # it is not a sensed physical coordinate.  Native W1 waveforms use a
+        # local observation interval so identical geometry yields identical
+        # structural perception at different revisions.
+        source_time_start = Fraction(0)
+        source_time_end = Fraction(1)
         observed = _spatial_substreams(
             observation,
             source_time_start=source_time_start,

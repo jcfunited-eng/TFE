@@ -481,3 +481,42 @@ def test_forbidden_mechanisms_are_absent() -> None:
     assert "weighted score" not in source
     assert "top_k" not in source
     assert "sleep(" not in source
+
+
+def test_filtered_evidence_turn_identity_resume_and_authenticated_stop() -> None:
+    trigger = _settlement("filtered-trigger", frequency=41)
+    outcome = _settlement("filtered-outcome", frequency=42)
+    cycle = CausalActionCycle(authority_key="filtered-cycle")
+    cycle.accept(trigger)
+    binding = cycle.teach(
+        trigger_reference=trigger.event_id,
+        action=ActionCommand.embodiment("guala.embodiment.w1", b"move"),
+        source="joe",
+        nonce="filtered-v2-teacher-0001",
+        teaching_evidence_receipt_sha256="a" * 64,
+    )
+    _close(cycle, trigger, outcome, "filtered-executor")
+    admitted = tuple(
+        item for item in cycle.verified_relation_evidence()
+        if item.binding_id == binding.binding_id
+    )
+    core = CausalDeliberation(authority_key="filtered-core")
+    turn = core.start(trigger, admitted_evidence=admitted)
+    assert turn.status == "action"
+    assert turn.binding_id == binding.binding_id
+    assert turn.action_receipt_sha256 == (
+        turn.action.authority_receipt_sha256
+    )
+    assert core.current_turn() == turn
+    active = core.active_episode_record()
+    assert active["current"]["structural_fingerprint"] == (
+        trigger.structural_fingerprint
+    )
+    stopped = core.terminate_active(
+        reason="dispatcher_rejected",
+        evidence_receipt_sha256="b" * 64,
+    )
+    assert stopped.stop_reason == "dispatcher_rejected"
+    restored = CausalDeliberation(authority_key="filtered-core")
+    restored.restore_encoded(core.encoded_snapshot())
+    assert restored.status()["terminal_reason"] == "dispatcher_rejected"

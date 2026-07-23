@@ -1000,6 +1000,10 @@ class VerifiedActionRelationEvidence:
     status: str
     trigger_witness: PerceptionWitness
     action: ActionCommand
+    teacher_schema: str
+    teacher_source: str
+    teacher_nonce: str
+    teaching_evidence_receipt_sha256: str | None
     latest_closure_receipt_sha256: str | None
     outcome_witness: PerceptionWitness | None
 
@@ -1320,6 +1324,14 @@ class CausalActionCycle:
                     ):
                         return prior
                     raise ValueError("teacher nonce was already used")
+            existing = self._bindings.get(binding_id)
+            if existing is not None:
+                existing.verify(
+                    self._key,
+                    max_scalars=self._max_speech_scalars,
+                    max_command_bytes=self._max_command_bytes,
+                )
+                return existing
             if len(self._bindings) >= self._binding_capacity:
                 raise RuntimeError("causal action binding capacity is full")
             binding = ActionBinding(
@@ -1465,6 +1477,18 @@ class CausalActionCycle:
                         status=binding.status,
                         trigger_witness=trigger,
                         action=binding.action,
+                        teacher_schema=(
+                            TEACHER_EVIDENCE_SCHEMA
+                            if binding.teacher_relation
+                            .teaching_evidence_receipt_sha256 is not None
+                            else TEACHER_SCHEMA
+                        ),
+                        teacher_source=binding.teacher_relation.source,
+                        teacher_nonce=binding.teacher_relation.nonce,
+                        teaching_evidence_receipt_sha256=(
+                            binding.teacher_relation
+                            .teaching_evidence_receipt_sha256
+                        ),
                         latest_closure_receipt_sha256=closure_receipt,
                         outcome_witness=outcome,
                     )
@@ -1504,6 +1528,87 @@ class CausalActionCycle:
                 action=binding.action,
                 authority_hmac_sha256=_sign(
                     self._key, INTENT_DOMAIN, _canonical(unsigned)
+                ),
+            )
+            intent.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            receipt = intent.authority_receipt_sha256
+            existing = self._intents.get(receipt)
+            if existing is not None:
+                return ActionSelection(status="committed", intent=existing)
+            if len(self._intents) >= self._transaction_capacity:
+                raise RuntimeError("causal action intent capacity is full")
+            with self._atomic():
+                self._retain_evidence_locked(witness)
+                self._intents[receipt] = intent
+        self._emit(
+            "causal_action_cycle_intent_issued",
+            intent_receipt_sha256=receipt,
+            action_kind=binding.action.kind,
+        )
+        return ActionSelection(status="committed", intent=intent)
+
+    def select_expected(
+        self,
+        settlement: CausalExperienceSettlement,
+        *,
+        binding_id: str,
+        action_receipt_sha256: str,
+    ) -> ActionSelection:
+        """Issue only one already verified relation named by its authority."""
+
+        identity = sha256_digest(binding_id, "expected action binding")
+        action_identity = sha256_digest(
+            action_receipt_sha256,
+            "expected action receipt",
+        )
+        witness = self.accept(settlement)
+        with self._lock:
+            binding = self._bindings.get(identity)
+            if binding is None:
+                raise ValueError("expected action binding is absent")
+            binding.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            if (
+                binding.status == "revoked"
+                or binding.trigger_structural_fingerprint
+                != witness.structural_fingerprint
+                or binding.action.authority_receipt_sha256
+                != action_identity
+            ):
+                raise ValueError(
+                    "expected action binding differs from present evidence"
+                )
+            unsigned = {
+                "action": binding.action.as_record(),
+                "binding_id": binding.binding_id,
+                "schema": INTENT_SCHEMA,
+                "trigger_settlement_receipt_sha256": (
+                    witness.settlement_receipt_sha256
+                ),
+                "trigger_structural_fingerprint": (
+                    witness.structural_fingerprint
+                ),
+            }
+            intent = ActionIntent(
+                binding_id=binding.binding_id,
+                trigger_settlement_receipt_sha256=(
+                    witness.settlement_receipt_sha256
+                ),
+                trigger_structural_fingerprint=(
+                    witness.structural_fingerprint
+                ),
+                action=binding.action,
+                authority_hmac_sha256=_sign(
+                    self._key,
+                    INTENT_DOMAIN,
+                    _canonical(unsigned),
                 ),
             )
             intent.verify(

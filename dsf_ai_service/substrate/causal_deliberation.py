@@ -46,9 +46,9 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 WITNESS_SCHEMA = "guala.causal_deliberation.witness.v1"
 RELATION_SCHEMA = "guala.causal_deliberation.relation.v1"
 EPISODE_SCHEMA = "guala.causal_deliberation.episode.v1"
-TERMINAL_SCHEMA = "guala.causal_deliberation.terminal.v1"
-STATE_SCHEMA = "guala.causal_deliberation.state.v1"
-ENVELOPE_SCHEMA = "guala.causal_deliberation.hmac.v1"
+TERMINAL_SCHEMA = "guala.causal_deliberation.terminal.v2"
+STATE_SCHEMA = "guala.causal_deliberation.state.v2"
+ENVELOPE_SCHEMA = "guala.causal_deliberation.hmac.v2"
 
 STATE_DOMAIN = b"guala-causal-deliberation-state-v1\0"
 
@@ -518,6 +518,7 @@ class DeliberationTerminal:
     world_structural_fingerprint: str
     relation_state_sha256: str
     reason: str
+    evidence_receipt_sha256: str | None = None
 
     def verify(self) -> None:
         sha256_digest(
@@ -533,11 +534,20 @@ class DeliberationTerminal:
             "outcome_mismatch",
             "recurrence",
             "visited_capacity",
+            "dispatcher_rejected",
+            "dispatch_identity_mismatch",
+            "restore_evidence_mismatch",
         }:
             raise ValueError("deliberation terminal reason changed")
+        if self.evidence_receipt_sha256 is not None:
+            sha256_digest(
+                self.evidence_receipt_sha256,
+                "deliberation terminal evidence",
+            )
 
     def as_record(self) -> dict[str, object]:
         return {
+            "evidence_receipt_sha256": self.evidence_receipt_sha256,
             "reason": self.reason,
             "relation_state_sha256": self.relation_state_sha256,
             "schema": TERMINAL_SCHEMA,
@@ -552,6 +562,9 @@ class DeliberationTurn:
     depth: int
     action: ActionCommand | None = None
     expected_outcome: DeliberationWitness | None = None
+    binding_id: str | None = None
+    relation_id: str | None = None
+    action_receipt_sha256: str | None = None
     stop_reason: str | None = None
 
     def __post_init__(self) -> None:
@@ -561,6 +574,10 @@ class DeliberationTurn:
                 or self.depth <= 0
                 or self.action is None
                 or self.expected_outcome is None
+                or self.binding_id is None
+                or self.relation_id is None
+                or self.action_receipt_sha256
+                != self.action.authority_receipt_sha256
                 or self.stop_reason is not None
             ):
                 raise ValueError("deliberation action turn changed")
@@ -568,6 +585,9 @@ class DeliberationTurn:
             if (
                 self.action is not None
                 or self.expected_outcome is not None
+                or self.binding_id is not None
+                or self.relation_id is not None
+                or self.action_receipt_sha256 is not None
                 or self.stop_reason is None
                 or self.depth < 0
             ):
@@ -704,9 +724,8 @@ class CausalDeliberation:
                     closure_receipts.append(
                         evidence.latest_closure_receipt_sha256
                     )
-            elif outcomes[index].settlement_receipt_sha256 == (
-                outcome.settlement_receipt_sha256
-            ):
+            else:
+                outcomes[index] = outcome
                 closure_receipts[index] = evidence.latest_closure_receipt_sha256
         relation = DeliberationRelation(
             binding_id=evidence.binding_id,
@@ -728,10 +747,18 @@ class CausalDeliberation:
             raise ValueError("verified action relation changed identity")
         return relation
 
-    def _synchronize(self, action_cycle: CausalActionCycle) -> None:
-        if not isinstance(action_cycle, CausalActionCycle):
-            raise TypeError("deliberation requires a causal action cycle")
-        evidence = action_cycle.verified_relation_evidence()
+    def _synchronize(
+        self,
+        evidence: tuple[VerifiedActionRelationEvidence, ...],
+    ) -> None:
+        if (
+            not isinstance(evidence, tuple)
+            or any(
+                not isinstance(item, VerifiedActionRelationEvidence)
+                for item in evidence
+            )
+        ):
+            raise TypeError("deliberation requires verified relation evidence")
         current_ids = set()
         replacements = []
         for item in evidence:
@@ -750,6 +777,22 @@ class CausalDeliberation:
                 self._relations[relation_id] = relation
                 self._relations.move_to_end(relation_id)
             self._reindex()
+
+    @staticmethod
+    def _evidence_for(
+        *,
+        action_cycle: CausalActionCycle | None,
+        admitted_evidence: tuple[VerifiedActionRelationEvidence, ...] | None,
+    ) -> tuple[VerifiedActionRelationEvidence, ...]:
+        if admitted_evidence is not None:
+            if action_cycle is not None:
+                raise ValueError(
+                    "deliberation received two relation authorities"
+                )
+            return admitted_evidence
+        if not isinstance(action_cycle, CausalActionCycle):
+            raise TypeError("deliberation requires a causal action cycle")
+        return action_cycle.verified_relation_evidence()
 
     def _stop(
         self,
@@ -833,19 +876,28 @@ class CausalDeliberation:
             depth=episode.depth,
             action=relation.action,
             expected_outcome=relation.outcomes[0],
+            binding_id=relation.binding_id,
+            relation_id=relation.relation_id,
+            action_receipt_sha256=relation.action.authority_receipt_sha256,
         )
 
     def start(
         self,
         settlement: CausalExperienceSettlement,
         *,
-        action_cycle: CausalActionCycle,
+        action_cycle: CausalActionCycle | None = None,
+        admitted_evidence: tuple[
+            VerifiedActionRelationEvidence, ...
+        ] | None = None,
     ) -> DeliberationTurn:
         world = DeliberationWitness.from_settlement(
             settlement, max_bytes=self._max_witness_bytes
         )
         with self._lock:
-            self._synchronize(action_cycle)
+            self._synchronize(self._evidence_for(
+                action_cycle=action_cycle,
+                admitted_evidence=admitted_evidence,
+            ))
             relation_state = self._relation_state_sha256()
             if self._episode is not None:
                 return DeliberationTurn(
@@ -884,7 +936,10 @@ class CausalDeliberation:
         self,
         settlement: CausalExperienceSettlement,
         *,
-        action_cycle: CausalActionCycle,
+        action_cycle: CausalActionCycle | None = None,
+        admitted_evidence: tuple[
+            VerifiedActionRelationEvidence, ...
+        ] | None = None,
     ) -> DeliberationTurn:
         world = DeliberationWitness.from_settlement(
             settlement, max_bytes=self._max_witness_bytes
@@ -892,7 +947,10 @@ class CausalDeliberation:
         with self._lock:
             if self._episode is None:
                 raise RuntimeError("causal deliberation has no active episode")
-            self._synchronize(action_cycle)
+            self._synchronize(self._evidence_for(
+                action_cycle=action_cycle,
+                admitted_evidence=admitted_evidence,
+            ))
             episode = self._episode
             relation = self._relations.get(episode.relation_id)
             if relation is None or relation.status == "revoked":
@@ -954,6 +1012,81 @@ class CausalDeliberation:
                     world=world,
                     episode_id=episode.episode_id,
                     visited=visited,
+                )
+
+    def current_turn(self) -> DeliberationTurn | None:
+        """Return the exact active turn without selecting or mutating."""
+
+        with self._lock:
+            if self._episode is None:
+                return None
+            relation = self._relations.get(self._episode.relation_id)
+            if relation is None:
+                raise ValueError("active deliberation lost its relation")
+            return DeliberationTurn(
+                status="action",
+                episode_id=self._episode.episode_id,
+                depth=self._episode.depth,
+                action=relation.action,
+                expected_outcome=self._episode.expected_outcome,
+                binding_id=relation.binding_id,
+                relation_id=relation.relation_id,
+                action_receipt_sha256=(
+                    relation.action.authority_receipt_sha256
+                ),
+            )
+
+    def active_episode_record(self) -> dict[str, object] | None:
+        """Return a verified copy of the active episode for restore checks."""
+
+        with self._lock:
+            if self._episode is None:
+                return None
+            self._episode.verify(
+                max_bytes=self._max_witness_bytes,
+                visited_capacity=self._visited_capacity,
+            )
+            return dict(self._episode.as_record())
+
+    def terminate_active(
+        self,
+        *,
+        reason: str,
+        evidence_receipt_sha256: str,
+    ) -> DeliberationTurn:
+        """Fail closed from an authenticated dispatcher or restore result."""
+
+        sha256_digest(
+            evidence_receipt_sha256,
+            "deliberation terminal evidence",
+        )
+        if reason not in {
+            "dispatcher_rejected",
+            "dispatch_identity_mismatch",
+            "restore_evidence_mismatch",
+        }:
+            raise ValueError("external deliberation terminal reason changed")
+        with self._lock:
+            if self._episode is None:
+                raise RuntimeError("causal deliberation has no active episode")
+            episode = self._episode
+            with self._atomic():
+                terminal = DeliberationTerminal(
+                    world_structural_fingerprint=(
+                        episode.current.structural_fingerprint
+                    ),
+                    relation_state_sha256=self._relation_state_sha256(),
+                    reason=reason,
+                    evidence_receipt_sha256=evidence_receipt_sha256,
+                )
+                terminal.verify()
+                self._episode = None
+                self._terminal = terminal
+                return DeliberationTurn(
+                    status="stopped",
+                    episode_id=episode.episode_id,
+                    depth=episode.depth,
+                    stop_reason=reason,
                 )
 
     def encoded_snapshot(self) -> dict[str, object]:
@@ -1062,6 +1195,7 @@ class CausalDeliberation:
         terminal = None
         if raw_terminal is not None:
             fields = {
+                "evidence_receipt_sha256",
                 "reason",
                 "relation_state_sha256",
                 "schema",
@@ -1079,6 +1213,9 @@ class CausalDeliberation:
                 ),
                 relation_state_sha256=raw_terminal.get("relation_state_sha256"),
                 reason=raw_terminal.get("reason"),
+                evidence_receipt_sha256=raw_terminal.get(
+                    "evidence_receipt_sha256"
+                ),
             )
             terminal.verify()
         if episode is not None and terminal is not None:
@@ -1121,6 +1258,17 @@ class CausalDeliberation:
                 ),
                 "terminal_reason": (
                     self._terminal.reason if self._terminal else None
+                ),
+                "episode_id": (
+                    self._episode.episode_id if self._episode else None
+                ),
+                "depth": self._episode.depth if self._episode else 0,
+                "binding_id": (
+                    self.current_turn().binding_id if self._episode else None
+                ),
+                "action_receipt_sha256": (
+                    self.current_turn().action_receipt_sha256
+                    if self._episode else None
                 ),
                 "visited": (
                     len(self._episode.visited_structural_fingerprints)

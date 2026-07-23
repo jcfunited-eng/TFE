@@ -113,6 +113,38 @@ def test_repeated_exact_world_state_is_byte_identity_deterministic() -> None:
     assert left.causal_settlement == right.causal_settlement
 
 
+def test_same_geometry_at_later_revision_has_same_structural_identity() -> None:
+    world = EmbodimentWorldAuthority(authority_key=AUTHORITY_KEY)
+    transducer = EmbodimentSensoryOutcomeAuthority(authority_key=AUTHORITY_KEY)
+    initial = transducer.transduce(
+        world.observation_snapshot(), causal_owner=_owner(), commit=False
+    )
+    _execute(
+        world,
+        MoveCommand(PoseMM(PositionMM(1000, 1400, 0), 90_000)),
+        30,
+    )
+    returned = _execute(
+        world,
+        MoveCommand(PoseMM(PositionMM(1000, 1000, 0), 0)),
+        31,
+    )
+    later = transducer.transduce(
+        returned.after,
+        causal_owner=_owner(),
+        execution_receipt=returned,
+        commit=False,
+    )
+
+    assert initial.observation_receipt.world_revision == 0
+    assert later.observation_receipt.world_revision == 2
+    assert initial.observation_receipt != later.observation_receipt
+    assert (
+        initial.causal_settlement.structural_fingerprint
+        == later.causal_settlement.structural_fingerprint
+    )
+
+
 def test_world_observation_and_outcome_receipt_tamper_fail_closed() -> None:
     world = EmbodimentWorldAuthority(authority_key=AUTHORITY_KEY)
     observation = world.observation_snapshot()

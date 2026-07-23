@@ -140,6 +140,32 @@ def _attestation(pending, outcome, *, nonce="observation-nonce-0001"):
     )
 
 
+def test_expected_dispatch_correlates_exact_binding_and_action() -> None:
+    trigger = _settlement("expected-dispatch-trigger", frequency=51)
+    cycle = CausalActionCycle(authority_key="expected-dispatch-cycle")
+    action = ActionCommand.embodiment("body.primary", b"step")
+    _teach(cycle, trigger, action)
+    evidence = cycle.verified_relation_evidence()[0]
+    speech = _Executor("speech.primary", SPEECH_KEY)
+    body = _Executor("body.primary", BODY_KEY)
+    dispatcher = _dispatcher(cycle, speech, body)
+
+    with pytest.raises(ValueError, match="expected action binding"):
+        dispatcher.dispatch_expected(
+            trigger,
+            binding_id="0" * 64,
+            action_receipt_sha256=action.authority_receipt_sha256,
+        )
+    assert dispatcher.status()["active"] is False
+    pending = dispatcher.dispatch_expected(
+        trigger,
+        binding_id=evidence.binding_id,
+        action_receipt_sha256=action.authority_receipt_sha256,
+    )
+    assert pending.binding_id == evidence.binding_id
+    assert pending.action_receipt_sha256 == action.authority_receipt_sha256
+
+
 def test_capacity_one_speech_dispatch_is_idempotent_and_closes_only_bound_outcome():
     taught = _settlement("dispatch-teach", routing_chis=(3,), source_tag="teacher")
     trigger = _settlement("dispatch-trigger", routing_chis=(99,), source_tag="microphone")

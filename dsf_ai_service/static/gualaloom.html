@@ -1287,7 +1287,7 @@ async function pollStatus(){
     const act=d.current_activity;
     const actLine=document.getElementById('activity-text')||document.getElementById('activity-line');
     if(act&&act.kind){
-      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'free-settle (exploring chi space)'};
+      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'following a learned physical action'};
       let actText=labels[act.kind]||act.kind.toLowerCase();
       let picTitle=null,picId=null;
       if(act.target&&act.kind!=='SLEEPING'&&act.kind!=='IDLE'&&act.kind!=='PLAYING'){
@@ -1847,8 +1847,8 @@ const COGMETER_AUDIT_ARCHIVE=[
     firing:'same real mechanism as "aware gate" above -- no longer fires inside a copy of a session Joe never talks to; fires from the organism\'s own real intro-section state on the real conversation path',
     impact:'FIX SHIPPED 2026-07-11 -- old intro_krimelack_count live-check dropped, same reasoning as aware gate'},
   {name:'play',connected:'yes',pointer:'-185',
-    firing:'LIVE -- _atick_playing (gualaloom_v5_engine.py:9552) calls _play_revisit_known_pairing() (:9580) every 500 ticks, no flag gates it; PLAYING is an unconditional activity-selection candidate (:8498)',
-    impact:'FIX SHIPPED 2026-07-11: real mechanic built per the standing Engine·Play·World design item (docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md, 8/8 tests pass), per Joe\'s explicit sign-off, not a shim. Caveat: honestly fires zero events until she has both attended a real picture AND holds a recent word sharing its chi -- true no-op on a substrate with little visual grounding yet, that\'s correct behavior, not a bug'},
+    firing:'RETIRED 2026-07-23: PLAYING is not a tick scheduler candidate and does not revisit chi neighbors; exact guided W1 causal evidence is the only action authority',
+    impact:'Current production play is event-driven and bounded: present W1 perception selects one verified guided self-body action, observes the actual physical outcome, and continues only through verified causal relations'},
   {name:'teaching survives to sleep',connected:'yes',pointer:'-163',
     firing:'same fix as "retention" above -- taught bindings are now protected from redistribution theft for a bounded window, giving them a real chance to reach a consolidation cycle instead of being erased first',
     impact:'FIX SHIPPED 2026-07-11: see "retention" row for the measurement'},

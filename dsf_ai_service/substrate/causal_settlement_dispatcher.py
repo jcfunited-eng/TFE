@@ -517,6 +517,8 @@ class DispatchResult:
     phase: str
     trigger_settlement_receipt_sha256: str
     reason: str
+    binding_id: str | None = None
+    action_receipt_sha256: str | None = None
     request_receipt_sha256: str | None = None
     execution_receipt_sha256: str | None = None
     executor_acknowledgement_receipt_sha256: str | None = None
@@ -542,6 +544,8 @@ class DispatchResult:
         _sha256(self.trigger_settlement_receipt_sha256, "dispatch trigger")
         _identifier(self.reason, "dispatch reason")
         for value, name in (
+            (self.binding_id, "dispatch binding"),
+            (self.action_receipt_sha256, "dispatch action"),
             (self.request_receipt_sha256, "dispatch request"),
             (self.execution_receipt_sha256, "dispatch execution"),
             (
@@ -557,6 +561,8 @@ class DispatchResult:
                 value is not None
                 for value in (
                     self.request_receipt_sha256,
+                    self.binding_id,
+                    self.action_receipt_sha256,
                     self.execution_receipt_sha256,
                     self.executor_acknowledgement_receipt_sha256,
                     self.closure_feedback_receipt_sha256,
@@ -564,11 +570,18 @@ class DispatchResult:
             ):
                 raise ValueError("silent dispatch result exposed action authority")
         elif self.status == "pending":
-            if self.request_receipt_sha256 is None or self.phase == "closed":
+            if (
+                self.binding_id is None
+                or self.action_receipt_sha256 is None
+                or self.request_receipt_sha256 is None
+                or self.phase == "closed"
+            ):
                 raise ValueError("pending dispatch lost its request")
         elif self.status == "rejected":
             if (
                 self.phase != "closed"
+                or self.binding_id is None
+                or self.action_receipt_sha256 is None
                 or self.request_receipt_sha256 is None
                 or self.executor_acknowledgement_receipt_sha256 is None
                 or self.execution_receipt_sha256 is not None
@@ -576,6 +589,8 @@ class DispatchResult:
                 raise ValueError("rejected dispatch lost executor authority")
         elif (
             self.phase != "closed"
+            or self.binding_id is None
+            or self.action_receipt_sha256 is None
             or self.request_receipt_sha256 is None
             or self.execution_receipt_sha256 is None
             or self.executor_acknowledgement_receipt_sha256 is None
@@ -586,6 +601,8 @@ class DispatchResult:
     def as_record(self) -> dict[str, object]:
         self.verify()
         return {
+            "action_receipt_sha256": self.action_receipt_sha256,
+            "binding_id": self.binding_id,
             "closure_feedback_receipt_sha256": self.closure_feedback_receipt_sha256,
             "execution_receipt_sha256": self.execution_receipt_sha256,
             "executor_acknowledgement_receipt_sha256": (
@@ -604,6 +621,8 @@ class DispatchResult:
 
 def _result_from(value: object) -> DispatchResult:
     expected = {
+        "action_receipt_sha256",
+        "binding_id",
         "closure_feedback_receipt_sha256",
         "execution_receipt_sha256",
         "executor_acknowledgement_receipt_sha256",
@@ -627,6 +646,8 @@ def _result_from(value: object) -> DispatchResult:
             "trigger_settlement_receipt_sha256"
         ),
         reason=value.get("reason"),
+        binding_id=value.get("binding_id"),
+        action_receipt_sha256=value.get("action_receipt_sha256"),
         request_receipt_sha256=value.get("request_receipt_sha256"),
         execution_receipt_sha256=value.get("execution_receipt_sha256"),
         executor_acknowledgement_receipt_sha256=value.get(
@@ -644,6 +665,7 @@ def _result_from(value: object) -> DispatchResult:
 class _ActiveDispatch:
     phase: str
     trigger_settlement_receipt_sha256: str
+    binding_id: str
     request: ExecutorRequest
     acknowledgement: ExecutorAcknowledgement | None = None
     execution_receipt_sha256: str | None = None
@@ -657,6 +679,7 @@ class _ActiveDispatch:
                 if self.acknowledgement is not None
                 else None
             ),
+            "binding_id": self.binding_id,
             "cycle_outcome_receipt_sha256": self.cycle_outcome_receipt_sha256,
             "execution_receipt_sha256": self.execution_receipt_sha256,
             "outcome_binding": (
@@ -765,6 +788,10 @@ class CausalSettlementDispatcher:
                 active.trigger_settlement_receipt_sha256
             ),
             reason=reason,
+            binding_id=active.binding_id,
+            action_receipt_sha256=(
+                active.request.action.authority_receipt_sha256
+            ),
             request_receipt_sha256=active.request.authority_receipt_sha256,
             execution_receipt_sha256=active.execution_receipt_sha256,
             executor_acknowledgement_receipt_sha256=(
@@ -777,6 +804,30 @@ class CausalSettlementDispatcher:
         return result
 
     def dispatch(self, settlement: CausalExperienceSettlement) -> DispatchResult:
+        return self._dispatch(settlement)
+
+    def dispatch_expected(
+        self,
+        settlement: CausalExperienceSettlement,
+        *,
+        binding_id: str,
+        action_receipt_sha256: str,
+    ) -> DispatchResult:
+        _sha256(binding_id, "expected binding")
+        _sha256(action_receipt_sha256, "expected action")
+        return self._dispatch(
+            settlement,
+            expected_binding_id=binding_id,
+            expected_action_receipt_sha256=action_receipt_sha256,
+        )
+
+    def _dispatch(
+        self,
+        settlement: CausalExperienceSettlement,
+        *,
+        expected_binding_id: str | None = None,
+        expected_action_receipt_sha256: str | None = None,
+    ) -> DispatchResult:
         witness = PerceptionWitness.from_settlement(
             settlement, max_bytes=self._max_witness_bytes
         )
@@ -786,8 +837,31 @@ class CausalSettlementDispatcher:
                 and self._latest_terminal.trigger_settlement_receipt_sha256
                 == witness.settlement_receipt_sha256
             ):
+                if (
+                    expected_binding_id is not None
+                    and (
+                        self._latest_terminal.binding_id
+                        != expected_binding_id
+                        or self._latest_terminal.action_receipt_sha256
+                        != expected_action_receipt_sha256
+                    )
+                ):
+                    raise ValueError(
+                        "dispatcher terminal differs from deliberation authority"
+                    )
                 return self._latest_terminal
             if self._active is not None:
+                if (
+                    expected_binding_id is not None
+                    and (
+                        self._active.binding_id != expected_binding_id
+                        or self._active.request.action.authority_receipt_sha256
+                        != expected_action_receipt_sha256
+                    )
+                ):
+                    raise ValueError(
+                        "dispatcher live request differs from deliberation authority"
+                    )
                 if (
                     self._active.trigger_settlement_receipt_sha256
                     == witness.settlement_receipt_sha256
@@ -803,7 +877,17 @@ class CausalSettlementDispatcher:
                 return self._pending_result(
                     self._active, "causal_action_capacity_one_busy"
                 )
-            selection = self._cycle.select(settlement)
+            selection = (
+                self._cycle.select_expected(
+                    settlement,
+                    binding_id=expected_binding_id,
+                    action_receipt_sha256=(
+                        expected_action_receipt_sha256
+                    ),
+                )
+                if expected_binding_id is not None
+                else self._cycle.select(settlement)
+            )
             if selection.status in {"unknown", "ambiguous"}:
                 result = DispatchResult(
                     status=selection.status,
@@ -815,10 +899,22 @@ class CausalSettlementDispatcher:
                 )
                 result.verify()
                 return result
+            if (
+                expected_binding_id is not None
+                and (
+                    selection.intent.binding_id != expected_binding_id
+                    or selection.intent.action.authority_receipt_sha256
+                    != expected_action_receipt_sha256
+                )
+            ):
+                raise ValueError(
+                    "dispatcher selection differs from deliberation authority"
+                )
             request = self._request(selection.intent)
             self._active = _ActiveDispatch(
                 phase="executor_acknowledgement",
                 trigger_settlement_receipt_sha256=witness.settlement_receipt_sha256,
+                binding_id=selection.intent.binding_id,
                 request=request,
             )
             self._encoded_locked()
@@ -884,6 +980,10 @@ class CausalSettlementDispatcher:
                         active.trigger_settlement_receipt_sha256
                     ),
                     reason="authenticated_executor_rejected",
+                    binding_id=active.binding_id,
+                    action_receipt_sha256=(
+                        active.request.action.authority_receipt_sha256
+                    ),
                     request_receipt_sha256=(
                         active.request.authority_receipt_sha256
                     ),
@@ -901,6 +1001,7 @@ class CausalSettlementDispatcher:
                 trigger_settlement_receipt_sha256=(
                     active.trigger_settlement_receipt_sha256
                 ),
+                binding_id=active.binding_id,
                 request=active.request,
                 acknowledgement=acknowledgement,
                 execution_receipt_sha256=execution.authority_receipt_sha256,
@@ -982,6 +1083,7 @@ class CausalSettlementDispatcher:
                 trigger_settlement_receipt_sha256=(
                     active.trigger_settlement_receipt_sha256
                 ),
+                binding_id=active.binding_id,
                 request=active.request,
                 acknowledgement=active.acknowledgement,
                 execution_receipt_sha256=active.execution_receipt_sha256,
@@ -1025,6 +1127,7 @@ class CausalSettlementDispatcher:
                     trigger_settlement_receipt_sha256=(
                         active.trigger_settlement_receipt_sha256
                     ),
+                    binding_id=active.binding_id,
                     request=active.request,
                     acknowledgement=active.acknowledgement,
                     execution_receipt_sha256=active.execution_receipt_sha256,
@@ -1045,6 +1148,10 @@ class CausalSettlementDispatcher:
                     active.trigger_settlement_receipt_sha256
                 ),
                 reason="causal_action_cycle_closed",
+                binding_id=active.binding_id,
+                action_receipt_sha256=(
+                    active.request.action.authority_receipt_sha256
+                ),
                 request_receipt_sha256=active.request.authority_receipt_sha256,
                 execution_receipt_sha256=active.execution_receipt_sha256,
                 executor_acknowledgement_receipt_sha256=(
@@ -1143,6 +1250,7 @@ class CausalSettlementDispatcher:
         if active_value is not None:
             expected = {
                 "acknowledgement",
+                "binding_id",
                 "cycle_outcome_receipt_sha256",
                 "execution_receipt_sha256",
                 "outcome_binding",
@@ -1180,6 +1288,7 @@ class CausalSettlementDispatcher:
                 trigger_settlement_receipt_sha256=active_value.get(
                     "trigger_settlement_receipt_sha256"
                 ),
+                binding_id=active_value.get("binding_id"),
                 request=request,
                 acknowledgement=acknowledgement,
                 execution_receipt_sha256=active_value.get(
@@ -1216,6 +1325,7 @@ class CausalSettlementDispatcher:
         }:
             raise ValueError("active dispatcher phase changed")
         _sha256(active.trigger_settlement_receipt_sha256, "active trigger")
+        _sha256(active.binding_id, "active binding")
         active.request.verify(self._key)
         if (
             active.request.trigger_settlement_receipt_sha256

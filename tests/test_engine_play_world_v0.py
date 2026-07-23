@@ -113,10 +113,10 @@ def test_playing_admits_current_w1_once_and_bypasses_legacy_authorities(
         record = activity.metadata["_causal_play_admission"]
         assert record["schema"] == PLAY_CAUSAL_ADMISSION_SCHEMA
         assert record["dispatch_status"] == "unknown"
-        assert record["dispatch_reason"] == "causal_action_unknown"
+        assert record["dispatch_reason"] == "action_unknown"
         assert record["world_revision_before"] == 0
         assert record["world_revision_after"] == 0
-        assert len(accepted) == 1
+        assert len(accepted) == 0
         assert guala._embodiment_outcome_causal_owner.status()["settled"] == 1
         assert guala._embodiment_world.encoded_snapshot() == before
 
@@ -131,14 +131,14 @@ def test_playing_admits_current_w1_once_and_bypasses_legacy_authorities(
             guala.tick = tick
             guala._atick_playing(activity)
         assert guala.needs.snapshot() == needs_before
-        assert len(accepted) == 1
+        assert len(accepted) == 0
         assert guala._admit_playing_world_experience(activity) is True
-        assert len(accepted) == 1
+        assert len(accepted) == 0
     finally:
         guala.shutdown()
 
 
-def test_ambiguous_playing_action_is_an_honest_physical_noop(
+def test_legacy_ambiguous_actions_are_excluded_from_guided_play(
     monkeypatch,
 ) -> None:
     key = "play-admission-ambiguous-key"
@@ -160,8 +160,8 @@ def test_ambiguous_playing_action_is_an_honest_physical_noop(
         activity = _playing(guala)
         assert guala._start_activity(activity) is True
         record = activity.metadata["_causal_play_admission"]
-        assert record["dispatch_status"] == "ambiguous"
-        assert record["dispatch_reason"] == "causal_action_ambiguous"
+        assert record["dispatch_status"] == "unknown"
+        assert record["dispatch_reason"] == "action_unknown"
         assert record["world_revision_before"] == record["world_revision_after"]
         assert guala._embodiment_world.encoded_snapshot() == before
         assert guala._causal_action_cycle.status()["intents"] == 0
@@ -171,7 +171,7 @@ def test_ambiguous_playing_action_is_an_honest_physical_noop(
         guala.shutdown()
 
 
-def test_learned_exact_body_action_executes_once_and_closes_on_w1_outcome(
+def test_legacy_body_action_cannot_execute_through_guided_play(
     monkeypatch,
 ) -> None:
     key = "play-admission-action-key"
@@ -185,18 +185,18 @@ def test_learned_exact_body_action_executes_once_and_closes_on_w1_outcome(
 
         observed = guala._embodiment_world.observation_snapshot()
         record = activity.metadata["_causal_play_admission"]
-        assert record["dispatch_status"] == "completed"
-        assert record["dispatch_phase"] == "closed"
+        assert record["dispatch_status"] == "unknown"
+        assert record["dispatch_phase"] == "selection"
         assert record["world_revision_before"] == 0
-        assert record["world_revision_after"] == 1
-        assert observed.revision == 1
+        assert record["world_revision_after"] == 0
+        assert observed.revision == 0
         assert next(
             item for item in observed.bodies
             if item.body_id == observed.self_body_id
-        ).pose.position == PositionMM(1000, 2000, 0)
-        assert guala._embodiment_outcome_causal_owner.status()["settled"] == 2
+        ).pose.position == PositionMM(1000, 1000, 0)
+        assert guala._embodiment_outcome_causal_owner.status()["settled"] == 1
         status = guala._causal_action_cycle.status()
-        assert status["closures"] == 1
+        assert status["closures"] == 0
         assert status["intents"] == status["executions"] == status["outcomes"] == 0
         assert guala._causal_action_dispatcher.status()["active"] is False
 
@@ -204,7 +204,7 @@ def test_learned_exact_body_action_executes_once_and_closes_on_w1_outcome(
         assert guala._admit_playing_world_experience(activity) is True
         guala._atick_playing(activity)
         assert guala._embodiment_world.encoded_snapshot() == world_after
-        assert guala._causal_action_cycle.status()["closures"] == 1
+        assert guala._causal_action_cycle.status()["closures"] == 0
     finally:
         guala.shutdown()
 
@@ -240,7 +240,7 @@ def test_busy_dispatcher_refuses_playing_without_any_play_admission_mutation(
         guala.shutdown()
 
 
-def test_rejected_geometry_is_recorded_without_false_action_success(
+def test_legacy_rejected_geometry_is_never_dispatched_by_guided_play(
     monkeypatch,
 ) -> None:
     key = "play-admission-rejected-key"
@@ -254,10 +254,10 @@ def test_rejected_geometry_is_recorded_without_false_action_success(
         assert guala._start_activity(activity) is True
 
         record = activity.metadata["_causal_play_admission"]
-        assert record["dispatch_status"] == "rejected"
-        assert record["dispatch_phase"] == "closed"
-        assert record["dispatch_reason"] == "authenticated_executor_rejected"
-        assert record["embodiment_rejection_reason"] == "move_outside_room"
+        assert record["dispatch_status"] == "unknown"
+        assert record["dispatch_phase"] == "selection"
+        assert record["dispatch_reason"] == "action_unknown"
+        assert record["embodiment_rejection_reason"] is None
         assert record["world_revision_before"] == record["world_revision_after"]
         assert guala._embodiment_world.encoded_snapshot() == world_before
         assert guala._causal_action_cycle.status()["closures"] == 0
@@ -266,7 +266,7 @@ def test_rejected_geometry_is_recorded_without_false_action_success(
         guala.shutdown()
 
 
-def test_restored_playing_activity_never_duplicates_its_completed_action(
+def test_restored_legacy_play_marker_never_dispatches_an_action(
     monkeypatch,
     tmp_path,
 ) -> None:
@@ -280,8 +280,8 @@ def test_restored_playing_activity_never_duplicates_its_completed_action(
         activity = _playing(writer)
         assert writer._start_activity(activity) is True
         marker = deepcopy(activity.metadata["_causal_play_admission"])
-        assert marker["dispatch_status"] == "completed"
-        assert writer._embodiment_world.observation_snapshot().revision == 1
+        assert marker["dispatch_status"] == "unknown"
+        assert writer._embodiment_world.observation_snapshot().revision == 0
         writer.save_full_state(str(tmp_path))
         writer.shutdown()
         writer = None
@@ -294,13 +294,13 @@ def test_restored_playing_activity_never_duplicates_its_completed_action(
             restored._current_activity.metadata["_causal_play_admission"]
             == marker
         )
-        assert restored._embodiment_world.observation_snapshot().revision == 1
-        assert restored._causal_action_cycle.status()["closures"] == 1
+        assert restored._embodiment_world.observation_snapshot().revision == 0
+        assert restored._causal_action_cycle.status()["closures"] == 0
 
         world_before_tick = restored._embodiment_world.encoded_snapshot()
         restored._atick_playing(restored._current_activity)
         assert restored._embodiment_world.encoded_snapshot() == world_before_tick
-        assert restored._causal_action_cycle.status()["closures"] == 1
+        assert restored._causal_action_cycle.status()["closures"] == 0
     finally:
         if writer is not None:
             writer.shutdown()

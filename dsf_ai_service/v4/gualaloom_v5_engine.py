@@ -3480,6 +3480,9 @@ class Guala:
         )
         self._embodied_action_teaching_key = None
         self._embodied_action_teaching = None
+        self._causal_deliberation_key = None
+        self._causal_deliberation = None
+        self._causal_play_observation = None
         if _causal_cycle_key:
             import hmac as _hmac
             from dsf_ai_service.substrate.embodied_action_teaching import (
@@ -3504,6 +3507,20 @@ class Guala:
                     max_command_bytes=4096,
                     max_encoded_state_bytes=2 * 1024 * 1024,
                 )
+            )
+            from dsf_ai_service.substrate.causal_deliberation import (
+                CausalDeliberation as _CausalDeliberation,
+            )
+            self._causal_deliberation_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-causal-deliberation-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._causal_deliberation = _CausalDeliberation(
+                authority_key=self._causal_deliberation_key,
+                relation_capacity=64,
+                max_witness_bytes=2 * 1024 * 1024,
+                encoded_state_capacity=32 * 1024 * 1024,
             )
         self._causal_dispatcher_key = None
         self._causal_speech_executor_key = None
@@ -7760,10 +7777,16 @@ class Guala:
                 flush=True,
             )
 
-    def _settle_executed_embodiment_outcome(self, dispatch_result):
+    def _settle_executed_embodiment_outcome(
+        self, dispatch_result, *, return_outcome=False
+    ):
         pending = self._causal_embodiment_execution
         if pending is None:
-            return dispatch_result
+            return (
+                (dispatch_result, None)
+                if return_outcome
+                else dispatch_result
+            )
         if (
             dispatch_result.status != "pending"
             or dispatch_result.phase != "outcome_observation"
@@ -7821,7 +7844,268 @@ class Guala:
         self._record_causal_perception_without_dispatch(
             embodied_outcome.causal_settlement
         )
-        return completed
+        return (
+            (completed, embodied_outcome)
+            if return_outcome
+            else completed
+        )
+
+    def _run_causal_play_episode(
+        self,
+        *,
+        trigger,
+        state_dir=None,
+    ):
+        """Run one bounded exact W1 causal chain without scalar scheduling."""
+
+        required = (
+            self._embodiment_world,
+            self._embodiment_sensory_outcome_authority,
+            self._embodiment_outcome_causal_owner,
+            self._embodied_action_teaching,
+            self._causal_deliberation,
+            self._causal_action_dispatcher,
+        )
+        if any(item is None for item in required):
+            return None
+        with self._causal_cycle_bridge_lock:
+            if self._causal_action_dispatcher.status()["active"]:
+                return None
+            before = self._embodiment_world.observation_snapshot()
+            embodied = self._embodiment_sensory_outcome_authority.transduce(
+                before,
+                causal_owner=self._embodiment_outcome_causal_owner,
+                commit=True,
+            )
+            self._embodiment_sensory_outcome_authority \
+                .verify_outcome_observation_receipt(
+                    embodied.observation_receipt
+                )
+            self._record_causal_perception_without_dispatch(
+                embodied.causal_settlement
+            )
+            admitted = (
+                self._embodied_action_teaching
+                .verified_guided_relation_evidence()
+            )
+            turn = self._causal_deliberation.current_turn()
+            if turn is None:
+                turn = self._causal_deliberation.start(
+                    embodied.causal_settlement,
+                    admitted_evidence=admitted,
+                )
+            else:
+                active = self._causal_deliberation.active_episode_record()
+                if (
+                    active is None
+                    or active["current"]["structural_fingerprint"]
+                    != embodied.causal_settlement.structural_fingerprint
+                ):
+                    evidence = _hashlib.sha256(
+                        (
+                            embodied.causal_settlement
+                            .authority_receipt_sha256
+                            + ":restore-evidence-mismatch"
+                        ).encode("ascii")
+                    ).hexdigest()
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="restore_evidence_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+
+            steps = []
+            last_dispatch = None
+            while turn.status == "action":
+                if len(steps) >= 65:
+                    raise RuntimeError(
+                        "causal play exceeded deliberation visit capacity"
+                    )
+                if (
+                    turn.action.kind != "embodiment_port"
+                    or turn.action.port_id != self._embodiment_world.port_id
+                ):
+                    evidence = _hashlib.sha256(
+                        (
+                            turn.action_receipt_sha256
+                            + ":non-self-action"
+                        ).encode("ascii")
+                    ).hexdigest()
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatch_identity_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+                    break
+                try:
+                    dispatch = self._causal_action_dispatcher \
+                        .dispatch_expected(
+                            embodied.causal_settlement,
+                            binding_id=turn.binding_id,
+                            action_receipt_sha256=(
+                                turn.action_receipt_sha256
+                            ),
+                        )
+                except ValueError:
+                    evidence = _hashlib.sha256(
+                        (
+                            turn.binding_id
+                            + turn.action_receipt_sha256
+                            + ":dispatch-identity-mismatch"
+                        ).encode("ascii")
+                    ).hexdigest()
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatch_identity_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+                    break
+                last_dispatch = dispatch
+                if (
+                    dispatch.binding_id != turn.binding_id
+                    or dispatch.action_receipt_sha256
+                    != turn.action_receipt_sha256
+                ):
+                    evidence = (
+                        dispatch.request_receipt_sha256
+                        or embodied.causal_settlement
+                        .authority_receipt_sha256
+                    )
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatch_identity_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+                    break
+                if dispatch.status == "rejected":
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatcher_rejected",
+                        evidence_receipt_sha256=(
+                            dispatch
+                            .executor_acknowledgement_receipt_sha256
+                        ),
+                    )
+                    break
+                if dispatch.status != "pending":
+                    evidence = (
+                        dispatch.request_receipt_sha256
+                        or embodied.causal_settlement
+                        .authority_receipt_sha256
+                    )
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatch_identity_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+                    break
+                completed, actual = (
+                    self._settle_executed_embodiment_outcome(
+                        dispatch,
+                        return_outcome=True,
+                    )
+                )
+                if (
+                    actual is None
+                    or completed.status != "completed"
+                    or completed.binding_id != turn.binding_id
+                    or completed.action_receipt_sha256
+                    != turn.action_receipt_sha256
+                ):
+                    evidence = (
+                        completed.request_receipt_sha256
+                        or embodied.causal_settlement
+                        .authority_receipt_sha256
+                    )
+                    turn = self._causal_deliberation.terminate_active(
+                        reason="dispatch_identity_mismatch",
+                        evidence_receipt_sha256=evidence,
+                    )
+                    break
+                steps.append({
+                    "action_receipt_sha256": turn.action_receipt_sha256,
+                    "binding_id": turn.binding_id,
+                    "closure_receipt_sha256": (
+                        completed.closure_feedback_receipt_sha256
+                    ),
+                    "outcome_settlement_receipt_sha256": (
+                        actual.causal_settlement.authority_receipt_sha256
+                    ),
+                })
+                embodied = actual
+                admitted = (
+                    self._embodied_action_teaching
+                    .verified_guided_relation_evidence()
+                )
+                turn = self._causal_deliberation.advance(
+                    actual.causal_settlement,
+                    admitted_evidence=admitted,
+                )
+                last_dispatch = completed
+                if (
+                    state_dir is not None
+                    and callable(getattr(
+                        self,
+                        "_authoritative_hot_generation_publisher",
+                        None,
+                    ))
+                ):
+                    self.save_hot_state(state_dir)
+
+            after = self._embodiment_world.observation_snapshot()
+            stop_reason = turn.stop_reason
+            dispatch_status = (
+                last_dispatch.status
+                if last_dispatch is not None
+                else (
+                    "unknown"
+                    if stop_reason == "action_unknown"
+                    else "ambiguous"
+                    if stop_reason == "action_ambiguous"
+                    else "stopped"
+                )
+            )
+            record = {
+                "causal_event_id": (
+                    embodied.causal_settlement.event_id
+                ),
+                "causal_settlement_receipt_sha256": (
+                    embodied.causal_settlement.authority_receipt_sha256
+                ),
+                "dispatch_phase": (
+                    last_dispatch.phase
+                    if last_dispatch is not None
+                    else "selection"
+                ),
+                "dispatch_reason": (
+                    stop_reason
+                    or (
+                        last_dispatch.reason
+                        if last_dispatch is not None
+                        else "deliberation_stopped"
+                    )
+                ),
+                "dispatch_status": dispatch_status,
+                "embodiment_rejection_reason": (
+                    self._causal_embodiment_rejection_reason["reason"]
+                    if (
+                        dispatch_status == "rejected"
+                        and isinstance(
+                            self._causal_embodiment_rejection_reason,
+                            dict,
+                        )
+                    )
+                    else None
+                ),
+                "episode_id": turn.episode_id,
+                "outcome_observation_receipt_sha256": (
+                    embodied.observation_receipt.authority_receipt_sha256
+                ),
+                "schema": PLAY_CAUSAL_ADMISSION_SCHEMA,
+                "steps": steps,
+                "trigger": trigger,
+                "world_observation_receipt_sha256": (
+                    before.authority_receipt_sha256
+                ),
+                "world_revision_after": after.revision,
+                "world_revision_before": before.revision,
+            }
+            self._causal_play_observation = record
+            return record
 
     def _accept_causal_settlement(self, settlement):
         """Dispatch exactly once from the committed full-field owner."""
@@ -8074,6 +8358,16 @@ class Guala:
                 prior_teaching = (
                     self._embodied_action_teaching.encoded_snapshot()
                 )
+                prior_deliberation = (
+                    self._causal_deliberation.encoded_snapshot()
+                )
+                prior_dispatcher = (
+                    self._causal_action_dispatcher.encoded_snapshot()
+                )
+                prior_embodiment_execution = (
+                    self._causal_embodiment_execution
+                )
+                prior_play_observation = self._causal_play_observation
                 try:
                     before = self._embodiment_world.observation_snapshot()
                     pre_outcome = (
@@ -8214,6 +8508,10 @@ class Guala:
                         raise RuntimeError(
                             "guided proof, binding, and W1 world diverged"
                         )
+                    causal_play = self._run_causal_play_episode(
+                        trigger="guided_demonstration",
+                        state_dir=state_dir,
+                    )
                     self.save_hot_state(state_dir)
                     return {
                         "binding_id": guided.binding_id,
@@ -8236,6 +8534,7 @@ class Guala:
                         ),
                         "world_revision_after": current.revision,
                         "world_revision_before": before.revision,
+                        "causal_play": causal_play,
                     }
                 except BaseException:
                     self._embodiment_world.restore_encoded(prior_world)
@@ -8243,12 +8542,28 @@ class Guala:
                     self._embodied_action_teaching.restore_encoded(
                         prior_teaching
                     )
+                    self._causal_deliberation.restore_encoded(
+                        prior_deliberation
+                    )
+                    self._causal_action_dispatcher.restore_encoded(
+                        prior_dispatcher
+                    )
+                    self._causal_embodiment_execution = (
+                        prior_embodiment_execution
+                    )
+                    self._causal_play_observation = (
+                        prior_play_observation
+                    )
                     if (
                         self._embodiment_world.encoded_snapshot() != prior_world
                         or self._causal_action_cycle.encoded_snapshot()
                         != prior_cycle
                         or self._embodied_action_teaching.encoded_snapshot()
                         != prior_teaching
+                        or self._causal_deliberation.encoded_snapshot()
+                        != prior_deliberation
+                        or self._causal_action_dispatcher.encoded_snapshot()
+                        != prior_dispatcher
                     ):
                         raise RuntimeError(
                             "embodied teaching rollback failed closed"
@@ -13601,7 +13916,7 @@ class Guala:
         """All activities currently possible as (kind, target) tuples."""
         # GL-CMD-DAYDREAM-PARALLEL-42: DAYDREAMING removed from scheduler (now background thread)
         # GL-CMD-REST-RETIRE-73: REST removed. IDLE remains as the low-engagement waking option.
-        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None)]
+        candidates = [("IDLE", None), ("SLEEPING", None)]
         for cid in self._corpora:
             candidates.append(("READING", cid))
         for sid in self._sensory_items:
@@ -14003,8 +14318,11 @@ class Guala:
             "dispatch_reason",
             "dispatch_status",
             "embodiment_rejection_reason",
+            "episode_id",
             "outcome_observation_receipt_sha256",
             "schema",
+            "steps",
+            "trigger",
             "world_observation_receipt_sha256",
             "world_revision_after",
             "world_revision_before",
@@ -14014,7 +14332,8 @@ class Guala:
             or set(value) != expected
             or value.get("schema") != PLAY_CAUSAL_ADMISSION_SCHEMA
             or value.get("dispatch_status") not in {
-                "ambiguous", "completed", "pending", "rejected", "unknown"
+                "ambiguous", "completed", "pending", "rejected", "stopped",
+                "unknown"
             }
             or value.get("dispatch_phase") not in {
                 "closed", "executor_acknowledgement", "outcome_observation",
@@ -14023,6 +14342,14 @@ class Guala:
             or not isinstance(value.get("dispatch_reason"), str)
             or not value["dispatch_reason"]
             or len(value["dispatch_reason"].encode("utf-8")) > 256
+            or value.get("trigger") not in {
+                "boot_reconciliation",
+                "external_world_change",
+                "guided_demonstration",
+                "manual_observation",
+            }
+            or not isinstance(value.get("steps"), list)
+            or len(value["steps"]) > 65
             or (
                 value.get("embodiment_rejection_reason") is not None
                 and (
@@ -14037,6 +14364,35 @@ class Guala:
             )
         ):
             raise ValueError("PLAYING causal admission record changed")
+        if value.get("episode_id") is not None:
+            receipt = value["episode_id"]
+            if (
+                not isinstance(receipt, str)
+                or len(receipt) != 64
+                or any(item not in "0123456789abcdef" for item in receipt)
+            ):
+                raise ValueError("PLAYING episode identity changed")
+        for step in value["steps"]:
+            if (
+                not isinstance(step, dict)
+                or set(step) != {
+                    "action_receipt_sha256",
+                    "binding_id",
+                    "closure_receipt_sha256",
+                    "outcome_settlement_receipt_sha256",
+                }
+            ):
+                raise ValueError("PLAYING causal step changed")
+            for receipt in step.values():
+                if (
+                    not isinstance(receipt, str)
+                    or len(receipt) != 64
+                    or any(
+                        item not in "0123456789abcdef"
+                        for item in receipt
+                    )
+                ):
+                    raise ValueError("PLAYING causal step identity changed")
         for name in (
             "causal_event_id",
             "causal_settlement_receipt_sha256",
@@ -14102,66 +14458,14 @@ class Guala:
                 flush=True,
             )
             return False
-        with self._causal_cycle_bridge_lock:
-            if self._causal_action_dispatcher.status()["active"]:
-                print(
-                    "[GualaLoom][play] causal dispatcher busy; PLAYING not "
-                    "entered and no W1 experience admitted",
-                    file=sys.stderr,
-                    flush=True,
-                )
-                return False
-            before = self._embodiment_world.observation_snapshot()
-            embodied = self._embodiment_sensory_outcome_authority.transduce(
-                before,
-                causal_owner=self._embodiment_outcome_causal_owner,
-                commit=True,
-            )
-            self._embodiment_sensory_outcome_authority \
-                .verify_outcome_observation_receipt(
-                    embodied.observation_receipt
-                )
-            dispatch = self._accept_causal_settlement(
-                embodied.causal_settlement
-            )
-            if dispatch is None:
-                raise RuntimeError("PLAYING causal dispatcher returned no result")
-            after = self._embodiment_world.observation_snapshot()
-            embodiment_rejection = self._causal_embodiment_rejection_reason
-            embodiment_rejection_reason = (
-                embodiment_rejection["reason"]
-                if (
-                    dispatch.status == "rejected"
-                    and dispatch.request_receipt_sha256 is not None
-                    and isinstance(embodiment_rejection, dict)
-                    and embodiment_rejection.get(
-                        "request_receipt_sha256"
-                    ) == dispatch.request_receipt_sha256
-                )
-                else None
-            )
-            record = {
-                "causal_event_id": embodied.causal_settlement.event_id,
-                "causal_settlement_receipt_sha256": (
-                    embodied.causal_settlement.authority_receipt_sha256
-                ),
-                "dispatch_phase": dispatch.phase,
-                "dispatch_reason": dispatch.reason,
-                "dispatch_status": dispatch.status,
-                "embodiment_rejection_reason": embodiment_rejection_reason,
-                "outcome_observation_receipt_sha256": (
-                    embodied.observation_receipt.authority_receipt_sha256
-                ),
-                "schema": PLAY_CAUSAL_ADMISSION_SCHEMA,
-                "world_observation_receipt_sha256": (
-                    before.authority_receipt_sha256
-                ),
-                "world_revision_after": after.revision,
-                "world_revision_before": before.revision,
-            }
-            activity.metadata["_causal_play_admission"] = (
-                self._verify_play_causal_admission_record(record)
-            )
+        record = self._run_causal_play_episode(
+            trigger="manual_observation",
+        )
+        if record is None:
+            return False
+        activity.metadata["_causal_play_admission"] = (
+            self._verify_play_causal_admission_record(record)
+        )
         return True
 
     def _start_activity(self, activity):
@@ -18538,6 +18842,18 @@ class Guala:
                 if self._embodied_action_teaching is not None
                 else None
             ),
+            "causal_deliberation": (
+                self._causal_deliberation.encoded_snapshot()
+                if self._causal_deliberation is not None
+                else None
+            ),
+            "causal_play_observation": (
+                self._verify_play_causal_admission_record(
+                    self._causal_play_observation
+                )
+                if self._causal_play_observation is not None
+                else None
+            ),
             "causal_prediction": (
                 json.loads(
                     self._causal_prediction.encoded_snapshot().decode("utf-8")
@@ -19260,6 +19576,29 @@ class Guala:
                 raise ValueError(
                     "teaching.embodied_action_teaching exceeds its boundary"
                 )
+        causal_deliberation = data.get("causal_deliberation")
+        if causal_deliberation is not None:
+            if (
+                not isinstance(causal_deliberation, dict)
+                or set(causal_deliberation) != {
+                    "payload_base64", "schema", "state_hmac_sha256"
+                }
+                or causal_deliberation.get("schema")
+                != "guala.causal_deliberation.hmac.v2"
+                or len(cls._canonical_persistence_bytes(
+                    causal_deliberation
+                )) > 48 * 1024 * 1024
+            ):
+                raise ValueError(
+                    "teaching.causal_deliberation exceeds its boundary"
+                )
+        causal_play_observation = data.get(
+            "causal_play_observation"
+        )
+        if causal_play_observation is not None:
+            cls._verify_play_causal_admission_record(
+                causal_play_observation
+            )
         causal_prediction = data.get("causal_prediction")
         if causal_prediction is not None:
             prediction_bytes = cls._canonical_persistence_bytes(
@@ -21370,6 +21709,26 @@ class Guala:
                                     embodied_action_teaching
                                 )
                             )
+                        causal_deliberation = tdata.get(
+                            "causal_deliberation"
+                        )
+                        if causal_deliberation is not None:
+                            if self._causal_deliberation is None:
+                                raise ValueError(
+                                    "causal deliberation authority key is missing"
+                                )
+                            self._causal_deliberation.restore_encoded(
+                                causal_deliberation
+                            )
+                        self._causal_play_observation = (
+                            self._verify_play_causal_admission_record(
+                                tdata["causal_play_observation"]
+                            )
+                            if tdata.get(
+                                "causal_play_observation"
+                            ) is not None
+                            else None
+                        )
                         causal_prediction = tdata.get("causal_prediction")
                         if causal_prediction is not None:
                             if self._causal_prediction is None:
@@ -21740,6 +22099,16 @@ class Guala:
                 if missing_binary:
                     raise ValueError(
                         f"required binary restore proof absent: {missing_binary}")
+            if (
+                self._embodied_action_teaching is not None
+                and self._embodied_action_teaching.status()[
+                    "demonstrations"
+                ]
+            ):
+                self._run_causal_play_episode(
+                    trigger="boot_reconciliation",
+                    state_dir=state_dir,
+                )
             self._load_successful = True
 
         except Exception as e:
@@ -22950,6 +23319,14 @@ class Guala:
                 if self._embodied_action_teaching is not None
                 else {"available": False}
             ),
+            "causal_deliberation": (
+                {
+                    **self._causal_deliberation.status(),
+                    "latest_play": self._causal_play_observation,
+                }
+                if self._causal_deliberation is not None
+                else {"available": False}
+            ),
             "conversation": conversation,
             "cognition_activity": (
                 {"status": "observed", "activity": activity}
@@ -23073,6 +23450,14 @@ class Guala:
                 "embodied_action_teaching": (
                     self._embodied_action_teaching.status()
                     if self._embodied_action_teaching is not None
+                    else {"available": False}
+                ),
+                "causal_deliberation": (
+                    {
+                        **self._causal_deliberation.status(),
+                        "latest_play": self._causal_play_observation,
+                    }
+                    if self._causal_deliberation is not None
                     else {"available": False}
                 ),
                 "causal_prediction": (

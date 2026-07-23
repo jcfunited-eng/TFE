@@ -22,6 +22,8 @@ from dsf_ai_service.substrate.causal_action_cycle import (
     ActionBinding,
     ActionCommand,
     CausalActionCycle,
+    TEACHER_EVIDENCE_SCHEMA,
+    VerifiedActionRelationEvidence,
 )
 from dsf_ai_service.substrate.embodiment_sensory_outcome import (
     EmbodiedSensoryOutcome,
@@ -756,6 +758,57 @@ class EmbodiedActionTeachingAuthority:
                 "demonstrations": len(self._records),
                 "encoded_state_bytes": len(self._encoded_state_for(self._records)),
             }
+
+    def verified_guided_relation_evidence(
+        self,
+    ) -> tuple[VerifiedActionRelationEvidence, ...]:
+        """Return only exact, closed, self-body v2 demonstration relations."""
+
+        with self._lock:
+            guided_by_binding = {
+                item.binding_id: item for item in self._records.values()
+            }
+            if len(guided_by_binding) != len(self._records):
+                raise ValueError("guided demonstrations repeat a semantic binding")
+            for guided in guided_by_binding.values():
+                self.verify_demonstration_receipt(guided.demonstration)
+
+        admitted = []
+        for evidence in self._cycle.verified_relation_evidence():
+            guided = guided_by_binding.get(evidence.binding_id)
+            if guided is None:
+                continue
+            receipt = guided.demonstration
+            if (
+                evidence.action.kind != "embodiment_port"
+                or evidence.action.port_id != self._world.port_id
+                or evidence.teacher_schema != TEACHER_EVIDENCE_SCHEMA
+                or evidence.teacher_source != receipt.tutor_id
+                or evidence.teacher_nonce != receipt.nonce
+                or evidence.teaching_evidence_receipt_sha256
+                != receipt.authority_receipt_sha256
+                or evidence.action.authority_receipt_sha256
+                != receipt.action_receipt_sha256
+                or evidence.trigger_witness.settlement_receipt_sha256
+                != receipt.pre_settlement_receipt_sha256
+                or evidence.latest_closure_receipt_sha256 is None
+                or evidence.outcome_witness is None
+                or not self._cycle.verify_teaching_evidence_binding(
+                    binding_id=evidence.binding_id,
+                    teaching_evidence_receipt_sha256=(
+                        receipt.authority_receipt_sha256
+                    ),
+                    source=receipt.tutor_id,
+                    nonce=receipt.nonce,
+                )
+            ):
+                raise ValueError(
+                    "guided relation lost exact v2 self-body authority"
+                )
+            admitted.append(evidence)
+        if len(admitted) != len(guided_by_binding):
+            raise ValueError("guided relation is absent from the causal cycle")
+        return tuple(admitted)
 
 
 __all__ = (
