@@ -873,6 +873,13 @@ class CausalLanguageConstructionAuthority:
                 self._working, self._constructions, self._ambiguous_families
             )
 
+    def verify_episode_record(
+        self, record: object
+    ) -> CausalLanguageEpisode:
+        """Reverify one immutable episode record without retaining it."""
+
+        return self._episode_from_record(record)
+
     def restore(self, snapshot: object) -> None:
         if (
             not isinstance(snapshot, Mapping)
