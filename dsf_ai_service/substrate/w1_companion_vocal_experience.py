@@ -206,6 +206,7 @@ class W1CompanionVocalEpisodeBlock:
     world_execution_receipt_sha256: str
     physical_evidence_receipt_sha256: str
     causal_settlement_receipt_sha256: str
+    anonymous_av_continuity_receipt_sha256: str
     anonymous_av_correspondence: W1AnonymousAcousticVisualCorrespondence
 
     @property
@@ -229,6 +230,9 @@ class W1CompanionVocalEpisodeBlock:
             ),
             "causal_settlement_receipt_sha256": (
                 self.causal_settlement_receipt_sha256
+            ),
+            "anonymous_av_continuity_receipt_sha256": (
+                self.anonymous_av_continuity_receipt_sha256
             ),
             "physical_evidence_receipt_sha256": (
                 self.physical_evidence_receipt_sha256
@@ -263,6 +267,10 @@ class W1CompanionVocalEpisodeBlock:
             (self.world_execution_receipt_sha256, "world execution"),
             (self.physical_evidence_receipt_sha256, "physical evidence"),
             (self.causal_settlement_receipt_sha256, "causal settlement"),
+            (
+                self.anonymous_av_continuity_receipt_sha256,
+                "audiovisual continuity",
+            ),
         ):
             _sha256(value, f"companion episode {name}")
         if (
@@ -683,6 +691,7 @@ class W1CompanionVocalExperienceAuthority:
                         or mounted.causal_settlement is None
                         or mounted.binaural_auditory_l5 is None
                         or mounted.anonymous_av_correspondence is None
+                        or mounted.anonymous_av_continuity is None
                     ):
                         raise RuntimeError(
                             "companion vocal episode block did not settle"
@@ -701,6 +710,10 @@ class W1CompanionVocalExperienceAuthority:
                         ),
                         causal_settlement_receipt_sha256=(
                             mounted.causal_settlement.authority_receipt_sha256
+                        ),
+                        anonymous_av_continuity_receipt_sha256=(
+                            mounted.anonymous_av_continuity
+                            .authority_receipt_sha256
                         ),
                         anonymous_av_correspondence=(
                             mounted.anonymous_av_correspondence

@@ -47,6 +47,9 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
     AuthenticatedW1AcousticEmission,
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+    W1AnonymousAudiovisualContinuityOwner,
+)
 from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
     W1BinauralAuditoryL5Owner,
 )
@@ -173,6 +176,12 @@ def _authority(world, owner=None):
             world_authority=world,
         ),
         binaural_auditory_l5_owner=W1BinauralAuditoryL5Owner(),
+        anonymous_av_continuity_owner=(
+            W1AnonymousAudiovisualContinuityOwner(
+                authority_key=b"continuity-authority-key-for-w1-tests",
+                physical_authority_key=EVIDENCE_KEY,
+            )
+        ),
     )
 
 

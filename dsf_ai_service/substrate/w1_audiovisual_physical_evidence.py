@@ -36,7 +36,7 @@ import threading
 from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
 
@@ -83,6 +83,12 @@ from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
     W1BinauralAuditoryL5Experience,
     W1BinauralAuditoryL5Owner,
 )
+
+if TYPE_CHECKING:
+    from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+        W1AnonymousAudiovisualContinuityExperience,
+        W1AnonymousAudiovisualContinuityOwner,
+    )
 
 
 EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v8"
@@ -1252,6 +1258,9 @@ class W1PhysicalEvidenceMount:
     anonymous_av_correspondence: (
         W1AnonymousAcousticVisualCorrespondence | None
     ) = None
+    anonymous_av_continuity: (
+        W1AnonymousAudiovisualContinuityExperience | None
+    ) = None
 
     @property
     def observation_receipt(self) -> W1PhysicalEvidenceReceipt | None:
@@ -1263,6 +1272,10 @@ class W1PhysicalEvidenceMount:
             "anonymous_av_correspondence": (
                 self.anonymous_av_correspondence.authority_record()
                 if self.anonymous_av_correspondence is not None else None
+            ),
+            "anonymous_av_continuity": (
+                self.anonymous_av_continuity.authority_record()
+                if self.anonymous_av_continuity is not None else None
             ),
             "evidence": (
                 self.evidence_receipt.as_record()
@@ -1286,6 +1299,10 @@ class W1PhysicalEvidenceMount:
                 raise ValueError(
                     "unsettled W1 evidence retained audiovisual correspondence"
                 )
+            if self.anonymous_av_continuity is not None:
+                raise ValueError(
+                    "unsettled W1 evidence retained audiovisual continuity"
+                )
             return
         self.evidence_receipt.verify(authority_key)
         if (
@@ -1306,9 +1323,14 @@ class W1PhysicalEvidenceMount:
                 raise ValueError(
                     "settled W1 audiovisual correspondence is incomplete"
                 )
+            if self.anonymous_av_continuity is None:
+                raise ValueError(
+                    "settled W1 audiovisual continuity is incomplete"
+                )
             self.binaural_pcm.verify()
             self.binaural_auditory_l5.verify()
             self.anonymous_av_correspondence.verify(authority_key)
+            self.anonymous_av_continuity.verify_structure()
             physical_core = self.evidence_receipt.payload()
             physical_core.pop(
                 "anonymous_av_correspondence_receipt_sha256"
@@ -1337,12 +1359,20 @@ class W1PhysicalEvidenceMount:
                 or self.anonymous_av_correspondence
                 .physical_evidence_core_sha256
                 != _digest(physical_core)
+                or self.anonymous_av_continuity
+                .correspondence.authority_receipt_sha256
+                != self.anonymous_av_correspondence
+                .authority_receipt_sha256
+                or self.anonymous_av_continuity
+                .physical_evidence_receipt_sha256
+                != self.evidence_receipt.authority_receipt_sha256
             ):
                 raise ValueError("W1 auditory L5 differs from physical evidence")
         elif self.binaural_pcm is not None or dict(
             self.evidence_receipt.binaural_commitment
         ) or self.binaural_auditory_l5 is not None or (
             self.anonymous_av_correspondence is not None
+            or self.anonymous_av_continuity is not None
         ):
             raise ValueError("W1 unavailable sound retained acoustic payload")
         if self.causal_settlement.authority_receipt_sha256 != (
@@ -1397,6 +1427,7 @@ class _AtomicAudiovisualEpisode:
     epoch_token: str
     causal_sequence_token: str
     binaural_l5_sequence_token: str
+    continuity_sequence_token: str
 
 
 class W1AudiovisualPhysicalEvidenceAuthority:
@@ -1410,8 +1441,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         causal_owner: ExactCausalExperienceOwner,
         acoustic_emitter: W1AcousticEmitterAuthority,
         binaural_auditory_l5_owner: W1BinauralAuditoryL5Owner,
+        anonymous_av_continuity_owner: (
+            W1AnonymousAudiovisualContinuityOwner
+        ),
         calibration: W1BinauralCalibration | None = None,
     ) -> None:
+        from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+            W1AnonymousAudiovisualContinuityOwner,
+        )
         if not isinstance(world_authority, EmbodimentWorldAuthority):
             raise TypeError("W1 evidence requires the world authority")
         if not isinstance(causal_owner, ExactCausalExperienceOwner):
@@ -1423,6 +1460,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             W1BinauralAuditoryL5Owner,
         ):
             raise TypeError("W1 evidence requires the binaural auditory L5 owner")
+        if not isinstance(
+            anonymous_av_continuity_owner,
+            W1AnonymousAudiovisualContinuityOwner,
+        ):
+            raise TypeError(
+                "W1 evidence requires the anonymous audiovisual continuity owner"
+            )
         if not acoustic_emitter.owns_world(world_authority):
             raise ValueError("W1 acoustic emitter belongs to another world")
         self._key = _key(authority_key)
@@ -1430,6 +1474,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         self._causal_owner = causal_owner
         self._acoustic_emitter = acoustic_emitter
         self._binaural_auditory_l5_owner = binaural_auditory_l5_owner
+        self._anonymous_av_continuity_owner = (
+            anonymous_av_continuity_owner
+        )
         self._calibration = calibration or W1BinauralCalibration()
         self._calibration.verify()
         self._epoch_capacity = len(world_authority.actor_ports)
@@ -1439,6 +1486,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             str,
             CausalExperienceSettlement,
             W1BinauralAuditoryL5Experience | None,
+            W1AnonymousAudiovisualContinuityExperience | None,
         ] | None = None
         self._atomic_episode: _AtomicAudiovisualEpisode | None = None
         self._lock = threading.RLock()
@@ -1464,6 +1512,17 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             except BaseException:
                 self._causal_owner.rollback_atomic_sequence(causal_token)
                 raise
+            try:
+                continuity_token = (
+                    self._anonymous_av_continuity_owner
+                    .begin_atomic_sequence()
+                )
+            except BaseException:
+                self._binaural_auditory_l5_owner.rollback_atomic_sequence(
+                    l5_token
+                )
+                self._causal_owner.rollback_atomic_sequence(causal_token)
+                raise
             while True:
                 epoch_token = secrets.token_urlsafe(24)
                 if epoch_token not in self._epochs:
@@ -1473,6 +1532,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 epoch_token=epoch_token,
                 causal_sequence_token=causal_token,
                 binaural_l5_sequence_token=l5_token,
+                continuity_sequence_token=continuity_token,
             )
             return epoch_token
 
@@ -1494,9 +1554,27 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             self._binaural_auditory_l5_owner.verify_atomic_sequence(
                 transaction.binaural_l5_sequence_token
             )
-            l5_undo = self._binaural_auditory_l5_owner.commit_atomic_sequence(
-                transaction.binaural_l5_sequence_token
+            self._anonymous_av_continuity_owner.verify_atomic_sequence(
+                transaction.continuity_sequence_token
             )
+            continuity_undo = (
+                self._anonymous_av_continuity_owner
+                .commit_atomic_sequence(
+                    transaction.continuity_sequence_token
+                )
+            )
+            try:
+                l5_undo = (
+                    self._binaural_auditory_l5_owner
+                    .commit_atomic_sequence(
+                        transaction.binaural_l5_sequence_token
+                    )
+                )
+            except BaseException:
+                self._anonymous_av_continuity_owner.rollback_committed_atomic_sequence(
+                    continuity_undo
+                )
+                raise
             try:
                 self._causal_owner.commit_atomic_sequence(
                     transaction.causal_sequence_token
@@ -1504,6 +1582,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             except BaseException:
                 self._binaural_auditory_l5_owner.rollback_committed_atomic_sequence(
                     l5_undo
+                )
+                self._anonymous_av_continuity_owner.rollback_committed_atomic_sequence(
+                    continuity_undo
                 )
                 raise
             del self._epochs[epoch_token]
@@ -1531,6 +1612,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     raise RuntimeError(
                         "another causal reservation entered an atomic episode"
                     )
+                if pending[3] is not None:
+                    self._anonymous_av_continuity_owner.discard_prepared(
+                        pending[3]
+                    )
                 if pending[2] is not None:
                     self._binaural_auditory_l5_owner.discard_prepared(
                         pending[2]
@@ -1542,6 +1627,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             )
             self._binaural_auditory_l5_owner.verify_atomic_sequence(
                 transaction.binaural_l5_sequence_token
+            )
+            self._anonymous_av_continuity_owner.verify_atomic_sequence(
+                transaction.continuity_sequence_token
+            )
+            self._anonymous_av_continuity_owner.rollback_atomic_sequence(
+                transaction.continuity_sequence_token
             )
             self._binaural_auditory_l5_owner.rollback_atomic_sequence(
                 transaction.binaural_l5_sequence_token
@@ -1582,6 +1673,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 )
             pending = self._pending_reservation
             if pending is not None and pending[0] == epoch_token:
+                if pending[3] is not None:
+                    self._anonymous_av_continuity_owner.discard_prepared(
+                        pending[3]
+                    )
                 if pending[2] is not None:
                     self._binaural_auditory_l5_owner.discard_prepared(
                         pending[2]
@@ -1626,6 +1721,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         if not isinstance(mount, W1PhysicalEvidenceMount):
             raise TypeError("W1 physical evidence mount is required")
         mount.verify(self._key)
+        if mount.anonymous_av_continuity is not None:
+            self._anonymous_av_continuity_owner.verify_experience(
+                mount.anonymous_av_continuity
+            )
 
     def verify_evidence_receipt(
         self, receipt: W1PhysicalEvidenceReceipt
@@ -2347,7 +2446,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 commit=False,
                 reserve=True,
             )
-            self._pending_reservation = (epoch_token, settlement, None)
+            self._pending_reservation = (
+                epoch_token,
+                settlement,
+                None,
+                None,
+            )
             try:
                 binaural_auditory_l5 = (
                     self._binaural_auditory_l5_owner.prepare(settlement)
@@ -2360,6 +2464,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 epoch_token,
                 settlement,
                 binaural_auditory_l5,
+                None,
             )
             state = W1EvidenceState.OBSERVED
             reason = "anonymous_multisensory_evidence_observed"
@@ -2557,6 +2662,24 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 self._causal_owner.discard_prepared(settlement)
                 self._pending_reservation = None
                 raise
+            try:
+                continuity = self._anonymous_av_continuity_owner.prepare(
+                    correspondence,
+                    receipt,
+                )
+            except BaseException:
+                self._binaural_auditory_l5_owner.discard_prepared(
+                    binaural_auditory_l5
+                )
+                self._causal_owner.discard_prepared(settlement)
+                self._pending_reservation = None
+                raise
+            self._pending_reservation = (
+                epoch_token,
+                settlement,
+                binaural_auditory_l5,
+                continuity,
+            )
             prior_epoch = _Epoch(
                 expected_sequence=epoch.expected_sequence,
                 next_source_sample_index=epoch.next_source_sample_index,
@@ -2603,10 +2726,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 causal_settlement=settlement,
                 binaural_auditory_l5=binaural_auditory_l5,
                 anonymous_av_correspondence=correspondence,
+                anonymous_av_continuity=continuity,
             )
             try:
                 result.verify(self._key)
             except BaseException:
+                self._anonymous_av_continuity_owner.discard_prepared(
+                    continuity
+                )
                 self._binaural_auditory_l5_owner.discard_prepared(
                     binaural_auditory_l5
                 )
@@ -2654,11 +2781,36 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         auditory_l5 = mount.binaural_auditory_l5
         if auditory_l5 is None:
             raise RuntimeError("W1 audiovisual commit lost binaural L5")
+        continuity = mount.anonymous_av_continuity
+        if continuity is None:
+            raise RuntimeError("W1 audiovisual commit lost continuity")
         try:
-            undo = self._binaural_auditory_l5_owner.commit_prepared(
+            continuity_undo = (
+                self._anonymous_av_continuity_owner.commit_prepared(
+                    continuity
+                )
+            )
+        except BaseException:
+            try:
+                self._anonymous_av_continuity_owner.discard_prepared(
+                    continuity
+                )
+            except ValueError:
+                pass
+            self._binaural_auditory_l5_owner.discard_prepared(
+                auditory_l5
+            )
+            self._causal_owner.discard_prepared(mount.causal_settlement)
+            self._prepared_mount = None
+            raise
+        try:
+            l5_undo = self._binaural_auditory_l5_owner.commit_prepared(
                 auditory_l5
             )
         except BaseException:
+            self._anonymous_av_continuity_owner.rollback_committed(
+                continuity_undo
+            )
             try:
                 self._binaural_auditory_l5_owner.discard_prepared(
                     auditory_l5
@@ -2671,7 +2823,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         try:
             self._causal_owner.commit_prepared(mount.causal_settlement)
         except BaseException:
-            self._binaural_auditory_l5_owner.rollback_committed(undo)
+            self._binaural_auditory_l5_owner.rollback_committed(l5_undo)
+            self._anonymous_av_continuity_owner.rollback_committed(
+                continuity_undo
+            )
             try:
                 self._causal_owner.discard_prepared(
                     mount.causal_settlement
@@ -2715,6 +2870,11 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             )
             if mount.binaural_auditory_l5 is None:
                 raise RuntimeError("W1 audiovisual discard lost binaural L5")
+            if mount.anonymous_av_continuity is None:
+                raise RuntimeError("W1 audiovisual discard lost continuity")
+            self._anonymous_av_continuity_owner.discard_prepared(
+                mount.anonymous_av_continuity
+            )
             self._binaural_auditory_l5_owner.discard_prepared(
                 mount.binaural_auditory_l5
             )
@@ -2821,7 +2981,10 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "binaural_auditory_l5": (
                     self._binaural_auditory_l5_owner.status()
                 ),
-                "schema": "guala.w1.anonymous_multisensory_status.v3",
+                "anonymous_av_continuity": (
+                    self._anonymous_av_continuity_owner.status()
+                ),
+                "schema": "guala.w1.anonymous_multisensory_status.v4",
             }
 
 

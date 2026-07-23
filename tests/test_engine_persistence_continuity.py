@@ -3,6 +3,7 @@
 import json
 import hashlib
 import shutil
+import struct
 from pathlib import Path
 
 import numpy as np
@@ -42,6 +43,10 @@ def _disable_background_substrate(monkeypatch):
 def test_full_state_round_trip_is_exact_and_media_is_relocatable(
         tmp_path, monkeypatch):
     _disable_background_substrate(monkeypatch)
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY",
+        "anonymous-continuity-round-trip-key",
+    )
     identity_source = tmp_path / "identity-source"
     state_dir = tmp_path / "sealed-staging"
     source_media = tmp_path / "source-media"
@@ -129,6 +134,23 @@ def test_full_state_round_trip_is_exact_and_media_is_relocatable(
             shown_at_tick=120, times_attended=5, last_attended_tick=405)
         writer._videos[video.item_id] = video
 
+        vocal_result = writer.experience_companion_vocal_pressure(
+            struct.pack(
+                "<1024h",
+                *(
+                    12_000 if index % 16 < 8 else -12_000
+                    for index in range(1_024)
+                ),
+            )
+        )
+        continuity_status = (
+            writer._w1_anonymous_av_continuity_owner.status()
+        )
+        assert continuity_status["settled"] == 1
+        assert len(vocal_result[
+            "anonymous_av_continuity_authority_receipt_sha256"
+        ]) == 64
+
         writer.save_full_state(str(state_dir))
 
         core_record = json.loads((state_dir / "guala_core.json").read_text())
@@ -168,6 +190,9 @@ def test_full_state_round_trip_is_exact_and_media_is_relocatable(
         restored = Guala()
         restored.load_full_state(str(relocated))
         assert restored._load_successful, restored._load_errors
+        assert restored._w1_anonymous_av_continuity_owner.status() == (
+            continuity_status
+        )
         assert restored._guala_identity == identity
         restored_section = restored.sections["modifier"]
         assert restored_section._mode_last_active_tick == [333]
@@ -284,7 +309,9 @@ def test_teaching_state_refuses_oversize_before_json_parse(
         tmp_path, monkeypatch):
     teaching_path = tmp_path / "guala_teaching.json"
     with teaching_path.open("wb") as output:
-        output.truncate(engine_module.TEACHING_STATE_MAX_BYTES + 1)
+        output.truncate(
+            engine_module.TEACHING_WITH_PREDICTION_MAX_BYTES + 1
+        )
 
     def forbidden_parse(*_args, **_kwargs):
         raise AssertionError("oversized teaching state reached json.load")

@@ -978,6 +978,12 @@ def test_companion_vocal_pressure_enters_live_engine_as_binaural_w1_experience(
             .authority_receipt_sha256
         )
         assert guala._w1_binaural_auditory_l5_owner.status()["settled"] == 1
+        assert len(result[
+            "anonymous_av_continuity_authority_receipt_sha256"
+        ]) == 64
+        assert guala._w1_anonymous_av_continuity_owner.status()[
+            "settled"
+        ] == 1
         assert guala._w1_companion_vocal_experience.status()[
             "retained_raw_media_bytes"
         ] == 0
@@ -1017,6 +1023,9 @@ def test_companion_vocal_engine_failure_restores_world_and_causal_reservation(
             "prepared_reservation"
         ] == 0
         assert guala._w1_physical_evidence.status()["active_epochs"] == 0
+        assert guala._w1_anonymous_av_continuity_owner.status()[
+            "settled"
+        ] == 0
     finally:
         guala.shutdown()
 
@@ -1041,6 +1050,9 @@ def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
         assert result["world_revision_before"] == before.revision
         assert result["world_revision_after"] == before.revision + 2
         assert len(result["binaural_l5_authority_receipt_sha256s"]) == 2
+        assert len(result[
+            "anonymous_av_continuity_authority_receipt_sha256s"
+        ]) == 2
         assert guala._causal_settlement_accepted == accepted_before
         assert guala._embodiment_outcome_causal_owner.status()["settled"] == 2
         assert guala._embodiment_outcome_causal_owner.status()[
@@ -1048,6 +1060,9 @@ def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
         ] == 0
         assert guala._w1_physical_evidence.status()["active_epochs"] == 0
         assert guala._w1_physical_evidence.status()["atomic_episode"] == 0
+        assert guala._w1_anonymous_av_continuity_owner.status()[
+            "settled"
+        ] == 2
         assert guala._w1_companion_vocal_experience.status()[
             "has_latest_episode"
         ] is True

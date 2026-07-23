@@ -22,6 +22,9 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+    W1AnonymousAudiovisualContinuityOwner,
+)
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
     W1PhysicalEvidenceReceipt,
@@ -103,6 +106,12 @@ def _authorities(on_settlement):
             world_authority=world,
         ),
         binaural_auditory_l5_owner=W1BinauralAuditoryL5Owner(),
+        anonymous_av_continuity_owner=(
+            W1AnonymousAudiovisualContinuityOwner(
+                authority_key=b"v" * 32,
+                physical_authority_key=b"p" * 32,
+            )
+        ),
     )
     companion = W1CompanionVocalExperienceAuthority(
         authority_key=b"c" * 32,
@@ -200,6 +209,8 @@ def test_receipt_verification_failure_releases_every_transaction_owner(
     assert physical.status()["prepared_multisensory_mount"] == 0
     assert physical.status()["active_epochs"] == 0
     assert physical.status()["binaural_auditory_l5"]["prepared"] == 0
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 0
+    assert physical.status()["anonymous_av_continuity"]["prepared"] == 0
     assert companion.status()["prepared"] == 0
 
 
@@ -290,6 +301,10 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     assert physical.status()["binaural_auditory_l5"][
         "atomic_sequence_staged_settled"
     ] == 2
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 0
+    assert physical.status()["anonymous_av_continuity"][
+        "atomic_sequence_staged_settled"
+    ] == 2
     assert physical._binaural_auditory_l5_owner.latest is None
     persisted = json.dumps(episode.persistence_record(b"c" * 32))
     assert "pcm_s16le" not in persisted
@@ -306,6 +321,10 @@ def test_known_length_multiblock_episode_preserves_every_full_field():
     assert owner.status()["atomic_sequence"] == 0
     assert owner.status()["settled"] == 2
     assert physical.status()["binaural_auditory_l5"]["settled"] == 2
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 2
+    assert physical.status()["anonymous_av_continuity"][
+        "has_latest"
+    ] is True
     assert companion.status()["has_latest_episode"] is True
     assert companion.status()["prepared_episode"] == 0
 
@@ -328,6 +347,10 @@ def test_multiblock_episode_discard_restores_world_causal_and_l5_state():
     assert physical.status()["atomic_episode"] == 0
     assert physical.status()["binaural_auditory_l5"]["settled"] == 0
     assert physical.status()["binaural_auditory_l5"]["has_latest"] is False
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 0
+    assert physical.status()["anonymous_av_continuity"][
+        "has_latest"
+    ] is False
 
 
 def test_second_block_failure_rolls_back_the_complete_episode(monkeypatch):
@@ -381,6 +404,10 @@ def test_episode_commit_failure_restores_l5_publication_and_remains_discardable(
     assert physical.status()["active_epochs"] == 1
     assert physical.status()["binaural_auditory_l5"]["settled"] == 0
     assert physical.status()["binaural_auditory_l5"]["atomic_sequence"] == 1
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 0
+    assert physical.status()["anonymous_av_continuity"][
+        "atomic_sequence"
+    ] == 1
     assert companion.status()["prepared_episode"] == 1
 
     monkeypatch.setattr(owner, "commit_atomic_sequence", original_commit)
@@ -394,6 +421,10 @@ def test_episode_commit_failure_restores_l5_publication_and_remains_discardable(
     assert physical.status()["active_epochs"] == 0
     assert physical.status()["binaural_auditory_l5"]["settled"] == 0
     assert physical.status()["binaural_auditory_l5"]["atomic_sequence"] == 0
+    assert physical.status()["anonymous_av_continuity"]["settled"] == 0
+    assert physical.status()["anonymous_av_continuity"][
+        "atomic_sequence"
+    ] == 0
 
 
 def test_episode_partition_never_creates_an_undersized_terminal_block():

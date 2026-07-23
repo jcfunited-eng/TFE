@@ -32,6 +32,9 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 from dsf_ai_service.substrate.w1_acoustic_emitter import (
     W1AcousticEmitterAuthority,
 )
+from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+    W1AnonymousAudiovisualContinuityOwner,
+)
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
     _sound_inputs,
@@ -100,6 +103,13 @@ def _authorities():
             world_authority=world,
         ),
         binaural_auditory_l5_owner=auditory_l5,
+        anonymous_av_continuity_owner=(
+            W1AnonymousAudiovisualContinuityOwner(
+                authority_key=b"v" * 32,
+                physical_authority_key=b"p" * 32,
+                max_transitions=4,
+            )
+        ),
     )
     companion = W1CompanionVocalExperienceAuthority(
         authority_key=b"c" * 32,

@@ -3519,6 +3519,7 @@ class Guala:
         )
         self._w1_acoustic_emitter = None
         self._w1_binaural_auditory_l5_owner = None
+        self._w1_anonymous_av_continuity_owner = None
         self._w1_physical_evidence = None
         self._w1_companion_vocal_experience = None
         if _causal_cycle_key:
@@ -3533,6 +3534,10 @@ class Guala:
             from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
                 W1BinauralAuditoryL5Owner as
                 _W1BinauralAuditoryL5Owner,
+            )
+            from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+                W1AnonymousAudiovisualContinuityOwner as
+                _W1AnonymousAudiovisualContinuityOwner,
             )
             _root_key = _causal_cycle_key.encode("utf-8")
             _w1_acoustic_key = _hmac.new(
@@ -3550,12 +3555,24 @@ class Guala:
                 b"guala-w1-companion-vocal-intent-v2",
                 _hashlib.sha256,
             ).digest()
+            _w1_continuity_key = _hmac.new(
+                _root_key,
+                b"guala-w1-anonymous-audiovisual-continuity-v1",
+                _hashlib.sha256,
+            ).digest()
             self._w1_acoustic_emitter = _W1AcousticEmitterAuthority(
                 authority_key=_w1_acoustic_key,
                 world_authority=self._embodiment_world,
             )
             self._w1_binaural_auditory_l5_owner = (
                 _W1BinauralAuditoryL5Owner(
+                    max_transitions=64,
+                )
+            )
+            self._w1_anonymous_av_continuity_owner = (
+                _W1AnonymousAudiovisualContinuityOwner(
+                    authority_key=_w1_continuity_key,
+                    physical_authority_key=_w1_physical_key,
                     max_transitions=64,
                 )
             )
@@ -3567,6 +3584,9 @@ class Guala:
                     acoustic_emitter=self._w1_acoustic_emitter,
                     binaural_auditory_l5_owner=(
                         self._w1_binaural_auditory_l5_owner
+                    ),
+                    anonymous_av_continuity_owner=(
+                        self._w1_anonymous_av_continuity_owner
                     ),
                 )
             )
@@ -8506,6 +8526,9 @@ class Guala:
                 "binaural_auditory_l5_authority_receipt_sha256": (
                     mount.binaural_auditory_l5.authority_receipt_sha256
                 ),
+                "anonymous_av_continuity_authority_receipt_sha256": (
+                    mount.anonymous_av_continuity.authority_receipt_sha256
+                ),
                 "dispatch_status": (
                     "deferred_to_causal_cycle"
                     if self._causal_action_cycle is not None
@@ -8558,6 +8581,10 @@ class Guala:
                 "block_count": len(episode.blocks),
                 "binaural_l5_authority_receipt_sha256s": [
                     block.binaural_l5.authority_receipt_sha256
+                    for block in episode.blocks
+                ],
+                "anonymous_av_continuity_authority_receipt_sha256s": [
+                    block.anonymous_av_continuity_receipt_sha256
                     for block in episode.blocks
                 ],
                 "episode_authority_receipt_sha256": (
@@ -20377,6 +20404,14 @@ class Guala:
                 if self._embodiment_world is not None
                 else None
             ),
+            "anonymous_audiovisual_continuity": (
+                json.loads(
+                    self._w1_anonymous_av_continuity_owner
+                    .encoded_snapshot().decode("utf-8")
+                )
+                if self._w1_anonymous_av_continuity_owner is not None
+                else None
+            ),
             "embodied_action_teaching": (
                 json.loads(
                     self._embodied_action_teaching
@@ -21136,6 +21171,28 @@ class Guala:
             if len(embodiment_bytes) > embodiment_limit:
                 raise ValueError(
                     "teaching.embodiment_world exceeds its encoded boundary"
+                )
+        anonymous_continuity = data.get(
+            "anonymous_audiovisual_continuity"
+        )
+        if anonymous_continuity is not None:
+            from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
+                MAX_CONTINUITY_AUTHORITY_BYTES,
+            )
+            continuity_bytes = cls._canonical_persistence_bytes(
+                anonymous_continuity
+            )
+            if (
+                len(continuity_bytes) > MAX_CONTINUITY_AUTHORITY_BYTES
+                or not isinstance(anonymous_continuity, dict)
+                or set(anonymous_continuity) != {
+                    "authority_hmac_sha256",
+                    "authority_receipt_sha256",
+                    "payload",
+                }
+            ):
+                raise ValueError(
+                    "teaching anonymous audiovisual continuity changed"
                 )
         embodied_action_teaching = data.get("embodied_action_teaching")
         if embodied_action_teaching is not None:
@@ -23320,6 +23377,19 @@ class Guala:
                                     embodiment_world
                                 )
                             )
+                        anonymous_continuity = tdata.get(
+                            "anonymous_audiovisual_continuity"
+                        )
+                        if anonymous_continuity is not None:
+                            if self._w1_anonymous_av_continuity_owner is None:
+                                raise ValueError(
+                                    "audiovisual continuity authority key is missing"
+                                )
+                            self._w1_anonymous_av_continuity_owner.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    anonymous_continuity
+                                )
+                            )
                         embodied_action_teaching = tdata.get(
                             "embodied_action_teaching"
                         )
@@ -25296,6 +25366,11 @@ class Guala:
                 "w1_binaural_auditory_l5": (
                     self._w1_binaural_auditory_l5_owner.status()
                     if self._w1_binaural_auditory_l5_owner is not None
+                    else {"available": False}
+                ),
+                "w1_anonymous_av_continuity": (
+                    self._w1_anonymous_av_continuity_owner.status()
+                    if self._w1_anonymous_av_continuity_owner is not None
                     else {"available": False}
                 ),
                 "embodied_action_teaching": (
