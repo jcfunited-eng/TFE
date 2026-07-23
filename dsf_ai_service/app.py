@@ -3891,7 +3891,7 @@ async def gualaloom_observation():
         return await client.call("observation_snapshot")
     if _guala is None:
         return {
-            "schema": "guala.observation_snapshot.v2",
+            "schema": "guala.observation_snapshot.v3",
             "status": "unavailable",
             "reason": "embedded_substrate_unavailable",
         }

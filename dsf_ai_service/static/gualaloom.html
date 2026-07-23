@@ -1508,15 +1508,43 @@ function buildW1SpatialModel(embodiment){
   }
   const integer=value=>Number.isSafeInteger(value);
   const identifier=value=>typeof value==='string'&&value.length>0;
-  const bounds=embodiment.room_bounds;
-  const minimum=bounds&&bounds.minimum;
-  const maximum=bounds&&bounds.maximum;
-  if(!minimum||!maximum||
-     !integer(minimum.x_mm)||!integer(minimum.y_mm)||!integer(minimum.z_mm)||
-     !integer(maximum.x_mm)||!integer(maximum.y_mm)||!integer(maximum.z_mm)||
-     minimum.x_mm>=maximum.x_mm||minimum.y_mm>=maximum.y_mm||minimum.z_mm>maximum.z_mm){
-    return unavailable('authoritative room bounds unavailable');
+  const topology=embodiment.topology;
+  if(!topology||!identifier(topology.current_region_id)||
+     !Array.isArray(topology.regions)||topology.regions.length<3||
+     !Array.isArray(topology.portals)||topology.portals.length<2){
+    return unavailable('authoritative physical topology unavailable');
   }
+  const regions=[];
+  const regionIds=new Set();
+  for(const region of topology.regions){
+    const bounds=region&&region.bounds;
+    const minimum=bounds&&bounds.minimum;
+    const maximum=bounds&&bounds.maximum;
+    if(!region||!identifier(region.region_id)||regionIds.has(region.region_id)||
+       !minimum||!maximum||
+       !integer(minimum.x_mm)||!integer(minimum.y_mm)||!integer(minimum.z_mm)||
+       !integer(maximum.x_mm)||!integer(maximum.y_mm)||!integer(maximum.z_mm)||
+       minimum.x_mm>=maximum.x_mm||minimum.y_mm>=maximum.y_mm||
+       minimum.z_mm>maximum.z_mm){
+      return unavailable('authoritative region geometry unavailable');
+    }
+    regionIds.add(region.region_id);
+    regions.push({region_id:region.region_id,minimum,maximum,
+      ceiling_height_mm:region.ceiling_height_mm});
+  }
+  if(!regionIds.has(topology.current_region_id)){
+    return unavailable('authoritative current region unavailable');
+  }
+  const minimum={
+    x_mm:Math.min(...regions.map(item=>item.minimum.x_mm)),
+    y_mm:Math.min(...regions.map(item=>item.minimum.y_mm)),
+    z_mm:Math.min(...regions.map(item=>item.minimum.z_mm)),
+  };
+  const maximum={
+    x_mm:Math.max(...regions.map(item=>item.maximum.x_mm)),
+    y_mm:Math.max(...regions.map(item=>item.maximum.y_mm)),
+    z_mm:Math.max(...regions.map(item=>item.maximum.z_mm)),
+  };
   const xSpan=maximum.x_mm-minimum.x_mm;
   const ySpan=maximum.y_mm-minimum.y_mm;
   const project=point=>{
@@ -1570,15 +1598,34 @@ function buildW1SpatialModel(embodiment){
     if(!point)return unavailable('object position is outside authoritative room bounds');
     objects.push({object_id:item.object_id,radius_mm:item.radius_mm,held_by_body_id:null,point});
   }
+  const portals=[];
+  const portalIds=new Set();
+  for(const portal of topology.portals){
+    if(!portal||!identifier(portal.portal_id)||portalIds.has(portal.portal_id)||
+       !Array.isArray(portal.region_ids)||portal.region_ids.length!==2||
+       portal.region_ids.some(item=>!regionIds.has(item))||
+       !['x','y'].includes(portal.axis)||!integer(portal.plane_mm)||
+       !integer(portal.aperture_min_mm)||!integer(portal.aperture_max_mm)||
+       portal.aperture_min_mm>=portal.aperture_max_mm){
+      return unavailable('authoritative portal geometry unavailable');
+    }
+    portalIds.add(portal.portal_id);
+    portals.push(portal);
+  }
   const location=embodiment.location;
-  if(!location||!identifier(location.room_id)||!integer(location.revision)){
-    return unavailable('authoritative room identity unavailable');
+  if(!location||location.region_id!==topology.current_region_id||
+     !integer(location.revision)){
+    return unavailable('authoritative region identity unavailable');
+  }
+  const ownership=embodiment.ownership;
+  if(!ownership||ownership.status!=='unlearned'||
+     !Array.isArray(ownership.relations)||ownership.relations.length!==0){
+    return unavailable('authoritative ownership learning state unavailable');
   }
   return {
-    available:true,room_id:location.room_id,revision:location.revision,
+    available:true,region_id:location.region_id,revision:location.revision,
     minimum,maximum,xSpan,ySpan,
-    selfBodyId,bodies,
-    objects,
+    selfBodyId,bodies,objects,regions,portals,ownership,
   };
 }
 
@@ -1595,10 +1642,45 @@ function renderW1SpatialObservation(embodiment){
     meta.textContent=model.reason;
     return;
   }
-  meta.textContent=`${model.room_id} · ${model.xSpan} × ${model.ySpan} mm · revision ${model.revision}`;
+  meta.textContent=`${model.region_id} · ${model.regions.length} regions · ${model.portals.length} portals · ownership unlearned · revision ${model.revision}`;
   room.hidden=false;
   room.style.aspectRatio=`${model.xSpan} / ${model.ySpan}`;
-  room.setAttribute('aria-label',`${model.room_id} top-down spatial observation at revision ${model.revision}`);
+  room.setAttribute('aria-label',`${model.region_id} in the authoritative top-down physical topology at revision ${model.revision}`);
+  for(const region of model.regions){
+    const area=document.createElement('div');
+    area.style.position='absolute';
+    area.style.left=`${100*(region.minimum.x_mm-model.minimum.x_mm)/model.xSpan}%`;
+    area.style.top=`${100*(model.maximum.y_mm-region.maximum.y_mm)/model.ySpan}%`;
+    area.style.width=`${100*(region.maximum.x_mm-region.minimum.x_mm)/model.xSpan}%`;
+    area.style.height=`${100*(region.maximum.y_mm-region.minimum.y_mm)/model.ySpan}%`;
+    area.style.border='1px solid #31516b';
+    area.style.boxSizing='border-box';
+    area.setAttribute('aria-label',`${region.region_id} physical region`);
+    const label=document.createElement('span');
+    label.className='w1-marker-label';label.textContent=region.region_id;
+    area.appendChild(label);room.appendChild(area);
+  }
+  for(const portal of model.portals){
+    const edge=document.createElement('div');
+    edge.style.position='absolute';
+    edge.style.background='#67d4ff';
+    if(portal.axis==='x'){
+      edge.style.left=`${100*(portal.plane_mm-model.minimum.x_mm)/model.xSpan}%`;
+      edge.style.top=`${100*(model.maximum.y_mm-portal.aperture_max_mm)/model.ySpan}%`;
+      edge.style.width='2px';
+      edge.style.height=`${100*(portal.aperture_max_mm-portal.aperture_min_mm)/model.ySpan}%`;
+    }else{
+      edge.style.left=`${100*(portal.aperture_min_mm-model.minimum.x_mm)/model.xSpan}%`;
+      edge.style.top=`${100*(model.maximum.y_mm-portal.plane_mm)/model.ySpan}%`;
+      edge.style.width=`${100*(portal.aperture_max_mm-portal.aperture_min_mm)/model.xSpan}%`;
+      edge.style.height='2px';
+    }
+    edge.setAttribute('aria-label',`${portal.portal_id} physical portal`);
+    const label=document.createElement('span');
+    label.className='w1-marker-label';label.textContent=portal.portal_id;
+    edge.appendChild(label);
+    room.appendChild(edge);
+  }
   const addMarker=(kind,id,radius,point,heading)=>{
     const marker=document.createElement('div');
     marker.className=`w1-marker ${kind}`;
@@ -1624,6 +1706,7 @@ function renderW1SpatialObservation(embodiment){
       ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
       : `${item.object_id}: held by ${item.held_by_body_id}`);
   }
+  exact.push('ownership: unlearned');
   inventory.textContent=exact.join(' · ');
 }
 // --- End authoritative W1 spatial observation ---
@@ -1657,18 +1740,19 @@ async function pollObservation(){
       const pose=body.pose||{};
       const p=pose.position||{};
       document.getElementById('obs-location').textContent=
-        `${location.room_id||'unknown room'} body ${body.body_id||'unknown'} at (${p.x_mm}, ${p.y_mm}, ${p.z_mm}) mm · revision ${location.revision}`;
+        `${location.region_id||'unknown region'} body ${body.body_id||'unknown'} at (${p.x_mm}, ${p.y_mm}, ${p.z_mm}) mm · revision ${location.revision}`;
       const held=body.held_object_id||'nothing';
       const room=document.getElementById('sp-room');
       while(room.firstChild)room.removeChild(room.firstChild);
       const rows=[
-        ['room',location.room_id],
+        ['region',location.region_id],
         ['revision',location.revision],
         ['self body',body.body_id],
         ['position',`(${p.x_mm}, ${p.y_mm}, ${p.z_mm}) mm`],
         ['held',held],
         ['bodies',bodies.length],
         ['objects',(embodiment.objects||[]).length],
+        ['ownership',(embodiment.ownership||{}).status||'unavailable'],
       ];
       for(const [label,value] of rows){
         const row=document.createElement('div');row.className='ps-row';

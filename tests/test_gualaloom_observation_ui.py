@@ -32,10 +32,10 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
         )
         assert response.status_code == 200
         value = response.json()
-        assert value["schema"] == "guala.observation_snapshot.v2"
+        assert value["schema"] == "guala.observation_snapshot.v3"
         assert value["embodiment"]["status"] == "observed"
         assert value["embodiment"]["location"] == {
-            "room_id": "W1",
+            "region_id": "W1-region-A",
             "revision": 0,
         }
         assert value["embodiment"]["room_bounds"] == {
@@ -52,15 +52,23 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
             "heading_millidegrees": 180000,
             "position": {"x_mm": 4750, "y_mm": 4750, "z_mm": 0},
         }
-        assert value["embodiment"]["objects"] == [
-            {
-                "held_by_body_id": None,
-                "mass_grams": 500,
-                "object_id": "W1-object-1",
-                "position": {"x_mm": 1500, "y_mm": 1000, "z_mm": 0},
-                "radius_mm": 100,
-            }
-        ]
+        assert [
+            item["object_id"]
+            for item in value["embodiment"]["objects"]
+        ] == [f"W1-object-{number}" for number in range(1, 7)]
+        assert all(
+            len(item["reflectance_ppm"]) == 6
+            for item in value["embodiment"]["objects"]
+        )
+        assert value["embodiment"]["topology"]["current_region_id"] == (
+            "W1-region-A"
+        )
+        assert len(value["embodiment"]["topology"]["regions"]) == 3
+        assert len(value["embodiment"]["topology"]["portals"]) == 2
+        assert value["embodiment"]["ownership"] == {
+            "status": "unlearned",
+            "relations": [],
+        }
         assert value["embodied_action"] == {
             "status": "idle",
             "world_revision": 0,
@@ -167,7 +175,7 @@ def _rendered_spatial_view_from_page(page: Path, embodiment: dict) -> dict:
         hidden:room.hidden,
         aspectRatio:room.style.aspectRatio,
         ariaLabel:room.attributes['aria-label'],
-        markers:room.children.map(marker=>({{
+        markers:room.children.filter(marker=>marker.className.startsWith('w1-marker')).map(marker=>({{
           className:marker.className,
           left:marker.style.left,
           top:marker.style.top,
@@ -192,11 +200,77 @@ def _rendered_spatial_view_from_page(page: Path, embodiment: dict) -> dict:
 def _nondefault_observation() -> dict:
     return {
         "status": "observed",
-        "location": {"room_id": "observed-room-73", "revision": 41},
+        "location": {"region_id": "observed-region-73", "revision": 41},
         "room_bounds": {
             "minimum": {"x_mm": -200, "y_mm": -100, "z_mm": 0},
-            "maximum": {"x_mm": 1800, "y_mm": 900, "z_mm": 2400},
+            "maximum": {"x_mm": 500, "y_mm": 900, "z_mm": 2400},
         },
+        "topology": {
+            "current_region_id": "observed-region-73",
+            "regions": [
+                {
+                    "region_id": "observed-region-73",
+                    "bounds": {
+                        "minimum": {
+                            "x_mm": -200, "y_mm": -100, "z_mm": 0
+                        },
+                        "maximum": {
+                            "x_mm": 500, "y_mm": 900, "z_mm": 2400
+                        },
+                    },
+                    "ceiling_height_mm": 2400,
+                },
+                {
+                    "region_id": "observed-region-81",
+                    "bounds": {
+                        "minimum": {
+                            "x_mm": 500, "y_mm": -100, "z_mm": 0
+                        },
+                        "maximum": {
+                            "x_mm": 1200, "y_mm": 900, "z_mm": 2400
+                        },
+                    },
+                    "ceiling_height_mm": None,
+                },
+                {
+                    "region_id": "observed-region-96",
+                    "bounds": {
+                        "minimum": {
+                            "x_mm": 1200, "y_mm": -100, "z_mm": 0
+                        },
+                        "maximum": {
+                            "x_mm": 1800, "y_mm": 900, "z_mm": 2400
+                        },
+                    },
+                    "ceiling_height_mm": 2400,
+                },
+            ],
+            "portals": [
+                {
+                    "portal_id": "observed-portal-11",
+                    "region_ids": [
+                        "observed-region-73", "observed-region-81"
+                    ],
+                    "axis": "x",
+                    "plane_mm": 500,
+                    "aperture_min_mm": 200,
+                    "aperture_max_mm": 700,
+                    "height_mm": 2000,
+                },
+                {
+                    "portal_id": "observed-portal-12",
+                    "region_ids": [
+                        "observed-region-81", "observed-region-96"
+                    ],
+                    "axis": "x",
+                    "plane_mm": 1200,
+                    "aperture_min_mm": 200,
+                    "aperture_max_mm": 700,
+                    "height_mm": 2000,
+                },
+            ],
+        },
+        "ownership": {"status": "unlearned", "relations": []},
         "self_body_id": "observed-body-19",
         "bodies": [
             {
@@ -244,7 +318,7 @@ def test_spatial_view_projects_only_live_observation_coordinates(page: Path) -> 
     value = _spatial_model_from_page(page, _nondefault_observation())
 
     assert value["available"] is True
-    assert value["room_id"] == "observed-room-73"
+    assert value["region_id"] == "observed-region-73"
     assert value["revision"] == 41
     assert value["xSpan"] == 2000
     assert value["ySpan"] == 1000
@@ -299,10 +373,12 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
     assert rendered["hidden"] is False
     assert rendered["aspectRatio"] == "2000 / 1000"
     assert rendered["ariaLabel"] == (
-        "observed-room-73 top-down spatial observation at revision 41"
+        "observed-region-73 in the authoritative top-down physical topology "
+        "at revision 41"
     )
     assert rendered["meta"] == (
-        "observed-room-73 · 2000 × 1000 mm · revision 41"
+        "observed-region-73 · 3 regions · 2 portals · ownership unlearned · "
+        "revision 41"
     )
     assert rendered["markers"] == [
         {
@@ -348,12 +424,12 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
 @pytest.mark.parametrize("page", OBSERVATION_PAGES)
 def test_spatial_view_fails_closed_without_authoritative_geometry(page: Path) -> None:
     observation = _nondefault_observation()
-    observation.pop("room_bounds")
+    observation.pop("topology")
     value = _spatial_model_from_page(page, observation)
 
     assert value == {
         "available": False,
-        "reason": "authoritative room bounds unavailable",
+        "reason": "authoritative physical topology unavailable",
     }
     source = page.read_text(encoding="utf-8")
     model_source = source[

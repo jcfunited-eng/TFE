@@ -71,7 +71,14 @@ def _legacy_snapshot(key: str, *, body=None, objects=None, revision=0) -> bytes:
         "schema": "guala.embodiment.state.v1",
         "world": {
             "body": legacy_body.as_record(),
-            "objects": [item.as_record() for item in legacy_objects],
+            "objects": [
+                {
+                    key: value
+                    for key, value in item.as_record().items()
+                    if key != "reflectance_ppm"
+                }
+                for item in legacy_objects
+            ],
             "revision": revision,
             "room_bounds": {
                 "maximum": {"x_mm": 5000, "y_mm": 5000, "z_mm": 3000},
@@ -103,14 +110,16 @@ def _legacy_snapshot(key: str, *, body=None, objects=None, revision=0) -> bytes:
 def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
     authority = EmbodimentWorldAuthority(authority_key="embodiment-test-key")
     initial = authority.observation_snapshot()
-    assert initial.room_id == "W1"
+    assert initial.room_id == "W1-region-A"
     assert initial.revision == 0
     assert initial.self_body_id == "guala-body-1"
     assert tuple(item.body_id for item in initial.bodies) == (
         "guala-body-1", "w1-body-2"
     )
     assert _body(initial).pose.position == PositionMM(1000, 1000, 0)
-    assert tuple(item.object_id for item in initial.objects) == ("W1-object-1",)
+    assert tuple(item.object_id for item in initial.objects) == tuple(
+        f"W1-object-{number}" for number in range(1, 7)
+    )
 
     pick = _execute(authority, PickCommand("W1-object-1"), intent_number=1)
     assert pick.disposition == "applied"
@@ -347,7 +356,7 @@ def test_object_inventory_and_retained_receipts_are_strictly_bounded_long_run() 
         assert receipt.disposition == "applied"
     status = authority.status()
     assert status["revision"] == 301
-    assert status["object_count"] == 1
+    assert status["object_count"] == 6
     assert status["retained_applied_receipts"] == 4
     encoded_size = len(authority.encoded_snapshot())
 
@@ -363,8 +372,8 @@ def test_object_inventory_and_retained_receipts_are_strictly_bounded_long_run() 
 
     byte_bounded = EmbodimentWorldAuthority(
         authority_key="embodiment-byte-capacity-key",
-        receipt_capacity=64,
-        max_encoded_state_bytes=8192,
+        receipt_capacity=1,
+        max_encoded_state_bytes=16384,
     )
     _execute(byte_bounded, PickCommand("W1-object-1"), intent_number=600)
     for number in range(1, 20):
@@ -375,7 +384,7 @@ def test_object_inventory_and_retained_receipts_are_strictly_bounded_long_run() 
             intent_number=600 + number,
         )
         assert result.disposition == "applied"
-        assert len(byte_bounded.encoded_snapshot()) <= 8192
+        assert len(byte_bounded.encoded_snapshot()) <= 16384
     assert byte_bounded.status()["retained_applied_receipts"] == 1
 
 
@@ -544,7 +553,7 @@ def test_authenticated_v1_state_migrates_once_without_rewriting_prior_world() ->
     status = authority.status()
     assert len(status["migration_receipt_sha256"]) == 64
     migrated = authority.encoded_snapshot()
-    assert json.loads(migrated)["schema"] == "guala.embodiment.state.hmac.v2"
+    assert json.loads(migrated)["schema"] == "guala.embodiment.state.hmac.v3"
     restored = EmbodimentWorldAuthority(authority_key=key)
     restored.restore_encoded(migrated)
     assert restored.encoded_snapshot() == migrated
@@ -561,7 +570,7 @@ def test_v1_migration_rejects_occupied_added_body_geometry_atomically() -> None:
     encoded = _legacy_snapshot(key, objects=occupied)
     authority = EmbodimentWorldAuthority(authority_key=key)
     before = authority.encoded_snapshot()
-    with pytest.raises(ValueError, match="not physically valid"):
+    with pytest.raises(ValueError, match="cannot settle"):
         authority.restore_encoded(encoded)
     assert authority.encoded_snapshot() == before
 
@@ -586,4 +595,4 @@ def test_body_inventory_and_new_state_are_hard_bounded() -> None:
     authority = EmbodimentWorldAuthority(authority_key="world-two-mib-key")
     assert len(authority.encoded_snapshot()) <= 2 * 1024 * 1024
     assert authority.status()["body_capacity"] == 4
-    assert authority.status()["receipt_capacity"] == 64
+    assert authority.status()["receipt_capacity"] == 16

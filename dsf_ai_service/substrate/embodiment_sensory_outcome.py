@@ -40,6 +40,8 @@ from dsf_ai_service.substrate.embodiment_world import (
     EmbodiedBody,
     EmbodiedObject,
     ObservationSnapshot,
+    PhysicalPortal,
+    PhysicalRegion,
     PositionMM,
 )
 from dsf_ai_service.substrate.exact_causal_experience import (
@@ -48,13 +50,15 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 )
 
 
-OUTCOME_OBSERVATION_SCHEMA = "guala.embodiment.sensory_outcome_observation.v1"
-OUTCOME_OBSERVATION_DOMAIN = b"guala-embodiment-sensory-outcome-observation-v1\0"
-TRANSDUCER_PROFILE = "guala.embodiment.exact_geometry_transducer.v2"
+OUTCOME_OBSERVATION_SCHEMA = "guala.embodiment.sensory_outcome_observation.v2"
+OUTCOME_OBSERVATION_DOMAIN = b"guala-embodiment-sensory-outcome-observation-v2\0"
+TRANSDUCER_PROFILE = "guala.embodiment.exact_geometry_transducer.v3"
 
 MAX_AUTHORITY_KEY_BYTES = 4096
-MAX_WORLD_OBJECTS = 8
+MAX_WORLD_OBJECTS = 16
 MAX_WORLD_BODIES = 4
+MAX_WORLD_REGIONS = 4
+MAX_WORLD_PORTALS = 6
 MAX_WORLD_REVISION = (1 << 63) - 1
 
 
@@ -110,6 +114,93 @@ def _floor_discs_overlap(
     )
 
 
+def _region_for(
+    regions: tuple[PhysicalRegion, ...],
+    position: PositionMM,
+    radius_mm: int,
+) -> PhysicalRegion | None:
+    containing = tuple(
+        item
+        for item in regions
+        if item.bounds.contains_floor_disc(position, radius_mm)
+    )
+    return containing[0] if len(containing) == 1 else None
+
+
+def _portal_between(
+    portals: tuple[PhysicalPortal, ...],
+    left_region_id: str,
+    right_region_id: str,
+) -> PhysicalPortal | None:
+    pair = tuple(sorted((left_region_id, right_region_id)))
+    return next((item for item in portals if item.region_ids == pair), None)
+
+
+def _portal_line_of_sight(
+    start: PositionMM,
+    finish: PositionMM,
+    portal: PhysicalPortal,
+) -> bool:
+    if portal.axis == "x":
+        start_axis, finish_axis = start.x, finish.x
+        start_aperture, finish_aperture = start.y, finish.y
+    else:
+        start_axis, finish_axis = start.y, finish.y
+        start_aperture, finish_aperture = start.x, finish.x
+    delta_axis = finish_axis - start_axis
+    if delta_axis == 0:
+        return False
+    plane_offset = portal.plane_mm - start_axis
+    if not (
+        (0 <= plane_offset <= delta_axis)
+        if delta_axis > 0
+        else (delta_axis <= plane_offset <= 0)
+    ):
+        return False
+    aperture_numerator = (
+        start_aperture * delta_axis
+        + (finish_aperture - start_aperture) * plane_offset
+    )
+    height_numerator = (
+        start.z * delta_axis + (finish.z - start.z) * plane_offset
+    )
+    if delta_axis < 0:
+        delta_axis = -delta_axis
+        aperture_numerator = -aperture_numerator
+        height_numerator = -height_numerator
+    return (
+        portal.aperture_min_mm * delta_axis
+        <= aperture_numerator
+        <= portal.aperture_max_mm * delta_axis
+        and 0 <= height_numerator <= portal.height_mm * delta_axis
+    )
+
+
+def _is_visible(
+    observation: ObservationSnapshot,
+    observer_position: PositionMM,
+    target_position: PositionMM,
+    target_radius_mm: int,
+) -> bool:
+    observer_region = _region_for(observation.regions, observer_position, 0)
+    target_region = _region_for(
+        observation.regions, target_position, target_radius_mm
+    )
+    if observer_region is None or target_region is None:
+        return False
+    if observer_region.region_id == target_region.region_id:
+        return True
+    portal = _portal_between(
+        observation.portals,
+        observer_region.region_id,
+        target_region.region_id,
+    )
+    return (
+        portal is not None
+        and _portal_line_of_sight(observer_position, target_position, portal)
+    )
+
+
 def _verify_world_geometry(observation: ObservationSnapshot) -> None:
     if (
         isinstance(observation.revision, bool)
@@ -117,7 +208,69 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
         or not 0 <= observation.revision <= MAX_WORLD_REVISION
     ):
         raise ValueError("world observation revision is invalid")
-    observation.room_bounds.verify()
+    if (
+        not 3 <= len(observation.regions) <= MAX_WORLD_REGIONS
+        or observation.regions
+        != tuple(sorted(observation.regions, key=lambda item: item.region_id))
+        or len({item.region_id for item in observation.regions})
+        != len(observation.regions)
+    ):
+        raise ValueError("world observation region topology changed")
+    for region in observation.regions:
+        region.verify()
+    if (
+        not 2 <= len(observation.portals) <= MAX_WORLD_PORTALS
+        or observation.portals
+        != tuple(sorted(observation.portals, key=lambda item: item.portal_id))
+        or len({item.portal_id for item in observation.portals})
+        != len(observation.portals)
+    ):
+        raise ValueError("world observation portal topology changed")
+    region_ids = {item.region_id for item in observation.regions}
+    region_by_id = {item.region_id: item for item in observation.regions}
+    portal_pairs: set[tuple[str, str]] = set()
+    for portal in observation.portals:
+        portal.verify()
+        if (
+            any(item not in region_ids for item in portal.region_ids)
+            or portal.region_ids in portal_pairs
+        ):
+            raise ValueError("world observation portal edge changed")
+        portal_pairs.add(portal.region_ids)
+        left, right = (region_by_id[item] for item in portal.region_ids)
+        if portal.axis == "x":
+            shared = {
+                left.bounds.minimum.x, left.bounds.maximum.x
+            }.intersection(
+                {right.bounds.minimum.x, right.bounds.maximum.x}
+            )
+            overlap_min = max(
+                left.bounds.minimum.y, right.bounds.minimum.y
+            )
+            overlap_max = min(
+                left.bounds.maximum.y, right.bounds.maximum.y
+            )
+        else:
+            shared = {
+                left.bounds.minimum.y, left.bounds.maximum.y
+            }.intersection(
+                {right.bounds.minimum.y, right.bounds.maximum.y}
+            )
+            overlap_min = max(
+                left.bounds.minimum.x, right.bounds.minimum.x
+            )
+            overlap_max = min(
+                left.bounds.maximum.x, right.bounds.maximum.x
+            )
+        if (
+            shared != {portal.plane_mm}
+            or not overlap_min <= portal.aperture_min_mm
+            < portal.aperture_max_mm <= overlap_max
+            or portal.height_mm > min(
+                left.bounds.maximum.z, right.bounds.maximum.z
+            )
+        ):
+            raise ValueError("world observation portal aperture changed")
     if not 2 <= len(observation.bodies) <= MAX_WORLD_BODIES:
         raise ValueError("world observation body inventory exceeds W1 capacity")
     if tuple(sorted(observation.bodies, key=lambda item: item.body_id)) != observation.bodies:
@@ -144,10 +297,10 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
     for item in observation.objects:
         item.verify()
         if item.held_by_body_id is None:
-            if item.position is None or not observation.room_bounds.contains_floor_disc(
-                item.position, item.radius_mm
-            ):
-                raise ValueError("world observation object is outside room geometry")
+            if item.position is None or _region_for(
+                observation.regions, item.position, item.radius_mm
+            ) is None:
+                raise ValueError("world observation object is outside region geometry")
             placed.append(item)
         else:
             if item.held_by_body_id not in held_by_body:
@@ -162,35 +315,71 @@ def _verify_world_geometry(observation: ObservationSnapshot) -> None:
         carried_radius = max(
             (body.radius_mm, *(item.radius_mm for item in held))
         )
-        if not observation.room_bounds.contains_floor_disc(
-            body.pose.position, carried_radius
-        ):
-            raise ValueError("world observation body is outside room geometry")
+        if _region_for(
+            observation.regions, body.pose.position, carried_radius
+        ) is None:
+            raise ValueError("world observation body is outside region geometry")
         occupied.append((body, carried_radius))
     for index, (left, left_radius) in enumerate(occupied):
         for right, right_radius in occupied[index + 1 :]:
-            if _floor_discs_overlap(
+            if (
+                _region_for(
+                    observation.regions, left.pose.position, left_radius
+                )
+                == _region_for(
+                    observation.regions, right.pose.position, right_radius
+                )
+                and _floor_discs_overlap(
                 left.pose.position,
                 left_radius,
                 right.pose.position,
                 right_radius,
+                )
             ):
                 raise ValueError("world observation bodies intersect")
     for body, carried_radius in occupied:
         for item in placed:
-            if _floor_discs_overlap(
+            if (
+                _region_for(
+                    observation.regions, body.pose.position, carried_radius
+                )
+                == _region_for(
+                    observation.regions, item.position, item.radius_mm
+                )
+                and _floor_discs_overlap(
                 body.pose.position,
                 carried_radius,
                 item.position,
                 item.radius_mm,
+                )
             ):
                 raise ValueError("world observation body intersects a placed object")
     for index, left in enumerate(placed):
         for right in placed[index + 1 :]:
-            if _floor_discs_overlap(
+            if (
+                _region_for(
+                    observation.regions, left.position, left.radius_mm
+                )
+                == _region_for(
+                    observation.regions, right.position, right.radius_mm
+                )
+                and _floor_discs_overlap(
                 left.position, left.radius_mm, right.position, right.radius_mm
+                )
             ):
                 raise ValueError("world observation placed objects intersect")
+    self_body = body_by_id[observation.self_body_id]
+    self_region = _region_for(
+        observation.regions,
+        self_body.pose.position,
+        self_body.radius_mm,
+    )
+    if (
+        self_region is None
+        or observation.room_id != self_region.region_id
+        or observation.room_bounds != self_region.bounds
+    ):
+        raise ValueError("world observation current-region projection changed")
 
 
 def _verify_observation(key: bytes, observation: ObservationSnapshot) -> None:
@@ -200,6 +389,8 @@ def _verify_observation(key: bytes, observation: ObservationSnapshot) -> None:
     state_record = {
         "bodies": [item.as_record() for item in observation.bodies],
         "objects": [item.as_record() for item in observation.objects],
+        "portals": [item.as_record() for item in observation.portals],
+        "regions": [item.as_record() for item in observation.regions],
         "revision": observation.revision,
         "room_bounds": observation.room_bounds.as_record(),
         "room_id": observation.room_id,
@@ -314,6 +505,19 @@ def _spatial_substreams(
     source_time_end: Fraction,
 ) -> dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]]:
     bounds = observation.room_bounds
+    global_min_x = min(item.bounds.minimum.x for item in observation.regions)
+    global_max_x = max(item.bounds.maximum.x for item in observation.regions)
+    global_min_y = min(item.bounds.minimum.y for item in observation.regions)
+    global_max_y = max(item.bounds.maximum.y for item in observation.regions)
+    global_min_z = min(item.bounds.minimum.z for item in observation.regions)
+    global_max_z = max(item.bounds.maximum.z for item in observation.regions)
+    global_span_x = global_max_x - global_min_x
+    global_span_y = global_max_y - global_min_y
+    global_span_z = global_max_z - global_min_z
+    global_planar_span = max(global_span_x, global_span_y)
+    current_region = next(
+        item for item in observation.regions if item.region_id == observation.room_id
+    )
     body_by_id = {item.body_id: item for item in observation.bodies}
     body = body_by_id[observation.self_body_id]
     position = body.pose.position
@@ -331,6 +535,15 @@ def _spatial_substreams(
         _signed_interval(position.x, bounds.minimum.x, bounds.maximum.x, "body sight x"),
         _signed_interval(position.y, bounds.minimum.y, bounds.maximum.y, "body sight y"),
         _bounded_ratio(body.pose.heading_millidegrees, 360_000, "body sight heading"),
+        Fraction(1) if current_region.ceiling_height_mm is not None else Fraction(-1),
+        *(
+            Fraction(value, 1_000_000)
+            for value in current_region.reflectance_ppm
+        ),
+        *(
+            Fraction(value, 1_000_000)
+            for value in current_region.illumination_ppm
+        ),
     )
     sight: list[NativeSensorySubstreamInput] = [
         _native_signal(
@@ -340,24 +553,98 @@ def _spatial_substreams(
             topology_index=0,
             coordinates=(
                 NativeAxisCoordinate("reference-frame", "body-centered"),
-                NativeAxisCoordinate("physical-domain", "room-boundary"),
+                NativeAxisCoordinate("physical-domain", current_region.region_id),
             ),
             values=sight_values,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
         )
     ]
+    for portal in observation.portals:
+        if current_region.region_id not in portal.region_ids:
+            continue
+        if portal.axis == "x":
+            portal_values = (
+                _signed_interval(
+                    portal.plane_mm,
+                    global_min_x,
+                    global_max_x,
+                    "portal plane x",
+                ),
+                _signed_interval(
+                    portal.aperture_min_mm,
+                    global_min_y,
+                    global_max_y,
+                    "portal aperture minimum y",
+                ),
+                _signed_interval(
+                    portal.aperture_max_mm,
+                    global_min_y,
+                    global_max_y,
+                    "portal aperture maximum y",
+                ),
+            )
+        else:
+            portal_values = (
+                _signed_interval(
+                    portal.plane_mm,
+                    global_min_y,
+                    global_max_y,
+                    "portal plane y",
+                ),
+                _signed_interval(
+                    portal.aperture_min_mm,
+                    global_min_x,
+                    global_max_x,
+                    "portal aperture minimum x",
+                ),
+                _signed_interval(
+                    portal.aperture_max_mm,
+                    global_min_x,
+                    global_max_x,
+                    "portal aperture maximum x",
+                ),
+            )
+        sight.append(
+            _native_signal(
+                sense=PhysicalSense.SIGHT,
+                sensor_id="W1-exact-geometry-sight",
+                substream_id=f"W1-visible-portal-{portal.portal_id}",
+                topology_index=len(sight),
+                coordinates=(
+                    NativeAxisCoordinate("reference-frame", "body-centered"),
+                    NativeAxisCoordinate("physical-portal", portal.portal_id),
+                ),
+                values=(
+                    *portal_values,
+                    _bounded_ratio(
+                        portal.height_mm,
+                        max(global_span_z, 1),
+                        "portal height",
+                    ),
+                ),
+                source_time_start=source_time_start,
+                source_time_end=source_time_end,
+            )
+        )
     for other_body in observation.bodies:
         if other_body.body_id == observation.self_body_id:
             continue
         other_position = other_body.pose.position
+        if not _is_visible(
+            observation,
+            position,
+            other_position,
+            other_body.radius_mm,
+        ):
+            continue
         values = (
-            _bounded_ratio(other_position.x - position.x, span_x, "body relative x"),
-            _bounded_ratio(other_position.y - position.y, span_y, "body relative y"),
-            _bounded_ratio(other_position.z - position.z, vertical_denominator, "body relative z"),
-            _unit_interval(other_position.x, bounds.minimum.x, bounds.maximum.x, "body absolute x"),
-            _unit_interval(other_position.y, bounds.minimum.y, bounds.maximum.y, "body absolute y"),
-            _bounded_ratio(other_body.radius_mm, planar_span, "visible body radius"),
+            _bounded_ratio(other_position.x - position.x, global_span_x, "body relative x"),
+            _bounded_ratio(other_position.y - position.y, global_span_y, "body relative y"),
+            _bounded_ratio(other_position.z - position.z, max(global_span_z, 1), "body relative z"),
+            _unit_interval(other_position.x, global_min_x, global_max_x, "body absolute x"),
+            _unit_interval(other_position.y, global_min_y, global_max_y, "body absolute y"),
+            _bounded_ratio(other_body.radius_mm, global_planar_span, "visible body radius"),
             _bounded_ratio(other_body.pose.heading_millidegrees, 360_000, "visible body heading"),
             Fraction(1) if other_body.held_object_id is not None else Fraction(-1),
         )
@@ -381,17 +668,25 @@ def _spatial_substreams(
         item_position = item.position
         if item_position is None:
             item_position = body_by_id[item.held_by_body_id].pose.position
+        if item.held_by_body_id != observation.self_body_id and not _is_visible(
+            observation,
+            position,
+            item_position,
+            item.radius_mm,
+        ):
+            continue
         dx = item_position.x - position.x
         dy = item_position.y - position.y
         dz = item_position.z - position.z
         values = (
-            _bounded_ratio(dx, span_x, "object relative x"),
-            _bounded_ratio(dy, span_y, "object relative y"),
-            _bounded_ratio(dz, vertical_denominator, "object relative z"),
-            _unit_interval(item_position.x, bounds.minimum.x, bounds.maximum.x, "object absolute x"),
-            _unit_interval(item_position.y, bounds.minimum.y, bounds.maximum.y, "object absolute y"),
-            _bounded_ratio(item.radius_mm, planar_span, "object apparent radius"),
+            _bounded_ratio(dx, global_span_x, "object relative x"),
+            _bounded_ratio(dy, global_span_y, "object relative y"),
+            _bounded_ratio(dz, max(global_span_z, 1), "object relative z"),
+            _unit_interval(item_position.x, global_min_x, global_max_x, "object absolute x"),
+            _unit_interval(item_position.y, global_min_y, global_max_y, "object absolute y"),
+            _bounded_ratio(item.radius_mm, global_planar_span, "object apparent radius"),
             Fraction(1) if item.held_by_body_id is not None else Fraction(-1),
+            *(Fraction(value, 1_000_000) for value in item.reflectance_ppm),
         )
         sight.append(
             _native_signal(
@@ -445,6 +740,9 @@ def _spatial_substreams(
     touch_values = (
         Fraction(1) if held is not None else Fraction(-1),
         _bounded_ratio(held.radius_mm, planar_span, "held object radius")
+        if held is not None
+        else Fraction(0),
+        _bounded_ratio(held.mass_grams, 1_000_000_000, "held object mass")
         if held is not None
         else Fraction(0),
         _bounded_ratio(body.radius_mm, planar_span, "contact body radius"),
