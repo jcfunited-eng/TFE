@@ -8,6 +8,10 @@ from dsf_ai_service.substrate.visual_region_continuity import (
     CanonicalVisualFrame,
 )
 from dsf_ai_service.substrate.ring_buffer import InputRing
+from dsf_ai_service.substrate.auditory_pcm_stream import (
+    AuditoryPCMStreamRegistry,
+    PCM_SAMPLE_RATE_HZ,
+)
 import dsf_ai_service.app as app_module
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
@@ -93,6 +97,51 @@ def test_visual_l5_rolls_back_if_causal_owner_rejects(monkeypatch):
         assert engine._latest_visual_region_observation == prior
         assert engine._latest_visual_region_rejection == prior_rejection
         assert engine.window_manager.open_context_ids("sense:sight:") == ()
+    finally:
+        engine.shutdown()
+
+
+def test_visual_exposure_epoch_rolls_back_with_causal_owner(monkeypatch):
+    engine = _engine(monkeypatch)
+    auditory = AuditoryPCMStreamRegistry()
+    stream_id = auditory.open()["stream_id"]
+    try:
+        first_frames = _frames()
+        first_audio = auditory.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=b"\0\0" * 8,
+        ).receipt
+        engine.process_live_visual_region_sequence(
+            first_frames,
+            auditory_pcm_continuity=first_audio,
+        )
+        before = engine._visual_exposure_epoch.snapshot_encoded()
+        monkeypatch.setattr(
+            engine._causal_experience_owner,
+            "settle",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                RuntimeError("injected causal owner rejection")
+            ),
+        )
+        second_audio = auditory.accept(
+            stream_id=stream_id,
+            sequence=1,
+            first_sample_index=8,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=1_000_000_000,
+            pcm_s16le=b"\0\0" * 8,
+        ).receipt
+        second_origin = first_frames[-1].source_time_ns + 1_000_000
+        with pytest.raises(RuntimeError, match="injected causal owner"):
+            engine.process_live_visual_region_sequence(
+                _frames(offset=1, origin=second_origin),
+                auditory_pcm_continuity=second_audio,
+            )
+        assert engine._visual_exposure_epoch.snapshot_encoded() == before
     finally:
         engine.shutdown()
 

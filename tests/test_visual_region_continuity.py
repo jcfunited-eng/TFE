@@ -20,6 +20,13 @@ from dsf_ai_service.substrate.visual_region_continuity import (
     RETINA_RECEPTOR_COUNT,
     decode_visual_image_bytes,
 )
+from dsf_ai_service.substrate.auditory_pcm_stream import (
+    AuditoryPCMStreamRegistry,
+    PCM_SAMPLE_RATE_HZ,
+)
+from dsf_ai_service.substrate.visual_exposure_epoch import (
+    VisualExposureEpochAuthority,
+)
 import dsf_ai_service.substrate.visual_region_continuity as visual_module
 
 
@@ -148,6 +155,94 @@ def test_l5_reads_full_field_and_static_scene_is_only_a_recurrence_candidate():
         for value in second.regions
     )
     assert second.window_relation == "touching_window_bounds"
+
+
+def test_authenticated_acquisition_predecessor_is_candidate_not_identity():
+    exposure = VisualExposureEpochAuthority(authority_key=KEY)
+    authority = DeterministicVisualRegionContinuityAuthority(
+        authority_key=KEY,
+        exposure_epoch_authority=exposure,
+    )
+    auditory = AuditoryPCMStreamRegistry()
+    stream_id = auditory.open()["stream_id"]
+
+    prepared = authority.prepare_retinotopic_inputs(_frames())
+    first_audio = auditory.accept(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=b"\0\0" * 8,
+    ).receipt
+    first_evidence = exposure.prepare(
+        auditory=first_audio,
+        frame_receipt_sha256s=prepared.frame_receipt_sha256s,
+        preparation_receipt_sha256=prepared.preparation_receipt_sha256,
+    )
+    exposure.commit(first_evidence)
+    first_built = _built(prepared, "authenticated-first")
+    first = authority.settle_l5(
+        first_built.boundary,
+        first_built.receipt_registry,
+        exposure_evidence=first_evidence,
+        preparation_receipt_sha256=prepared.preparation_receipt_sha256,
+    )
+    assert first.window_relation == "first"
+
+    second_prepared = authority.prepare_retinotopic_inputs(
+        _frames(source_base_seconds=5)
+    )
+    second_audio = auditory.accept(
+        stream_id=stream_id,
+        sequence=1,
+        first_sample_index=8,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=b"\0\0" * 8,
+    ).receipt
+    second_evidence = exposure.prepare(
+        auditory=second_audio,
+        frame_receipt_sha256s=second_prepared.frame_receipt_sha256s,
+        preparation_receipt_sha256=(
+            second_prepared.preparation_receipt_sha256
+        ),
+    )
+    before = authority.snapshot_encoded()
+    forged_built = _built(
+        second_prepared,
+        "authenticated-second-forged",
+        source_start=5,
+    )
+    with pytest.raises(ValueError, match="crossed preparation authority"):
+        authority.settle_l5(
+            forged_built.boundary,
+            forged_built.receipt_registry,
+            exposure_evidence=second_evidence,
+            preparation_receipt_sha256="f" * 64,
+        )
+    assert authority.snapshot_encoded() == before
+
+    exposure.commit(second_evidence)
+    second_built = _built(
+        second_prepared,
+        "authenticated-second",
+        source_start=5,
+    )
+    second = authority.settle_l5(
+        second_built.boundary,
+        second_built.receipt_registry,
+        exposure_evidence=second_evidence,
+        preparation_receipt_sha256=(
+            second_prepared.preparation_receipt_sha256
+        ),
+    )
+    assert second.window_relation == "authenticated_predecessor_evidence"
+    assert {region.continuity for region in second.regions} == {"ambiguous"}
+    assert all(
+        region.continuity_basis.startswith("authenticated_")
+        for region in second.regions
+    )
 
 
 def test_static_distinct_light_levels_remain_distinct_at_l4():

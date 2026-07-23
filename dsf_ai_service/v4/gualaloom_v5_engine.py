@@ -3712,6 +3712,7 @@ class Guala:
         self._full_field_prediction = None
         self._visual_region_continuity_key = None
         self._visual_region_continuity = None
+        self._visual_exposure_epoch = None
         self._live_anonymous_encounter_continuity = None
         self._latest_visual_region_settlement = None
         self._latest_visual_region_observation = None
@@ -3743,9 +3744,21 @@ class Guala:
                 b"guala-visual-region-continuity-authority-v1",
                 _hashlib.sha256,
             ).digest()
+            from dsf_ai_service.substrate.visual_exposure_epoch import (
+                VisualExposureEpochAuthority as
+                _VisualExposureEpochAuthority,
+            )
+            self._visual_exposure_epoch = _VisualExposureEpochAuthority(
+                authority_key=_hmac.new(
+                    _causal_cycle_key.encode("utf-8"),
+                    b"guala-visual-exposure-epoch-authority-v1",
+                    _hashlib.sha256,
+                ).digest(),
+            )
             self._visual_region_continuity = (
                 _DeterministicVisualRegionContinuityAuthority(
                     authority_key=self._visual_region_continuity_key,
+                    exposure_epoch_authority=self._visual_exposure_epoch,
                 )
             )
             from dsf_ai_service.substrate.live_anonymous_encounter_continuity import (
@@ -7674,6 +7687,8 @@ class Guala:
         if owner is None:
             raise RuntimeError("causal experience owner is not initialized")
         native_inputs = []
+        visual_preparation_receipt = None
+        visual_exposure_evidence_record = None
         for entry in record.get("entries") or ():
             provenance = entry.get("provenance") or {}
             detail = provenance.get("detail") or {}
@@ -7692,6 +7707,19 @@ class Guala:
                         "atomic native sensory input batch changed shape"
                     )
                 native_inputs.extend(values)
+                current_preparation = detail.get(
+                    "visual_preparation_receipt_sha256"
+                )
+                current_exposure = detail.get(
+                    "visual_exposure_epoch_evidence"
+                )
+                if current_preparation is not None:
+                    if visual_preparation_receipt is not None:
+                        raise RuntimeError(
+                            "causal window repeated visual preparation authority"
+                        )
+                    visual_preparation_receipt = current_preparation
+                    visual_exposure_evidence_record = current_exposure
         if not native_inputs:
             return None
 
@@ -7867,6 +7895,17 @@ class Guala:
             observed_substreams=ordered_observed,
             states=states,
         )
+        exposure_evidence = None
+        exposure_snapshot = None
+        if visual_exposure_evidence_record is not None:
+            if self._visual_exposure_epoch is None:
+                raise RuntimeError(
+                    "visual exposure epoch authority is unavailable"
+                )
+            exposure_evidence = self._visual_exposure_epoch.from_record(
+                visual_exposure_evidence_record
+            )
+            exposure_snapshot = self._visual_exposure_epoch.snapshot_encoded()
         visual_snapshot = None
         prior_visual_settlement = self._latest_visual_region_settlement
         prior_visual_observation = self._latest_visual_region_observation
@@ -7877,15 +7916,25 @@ class Guala:
                 raise RuntimeError("visual L5 authority is unavailable")
             visual_snapshot = self._visual_region_continuity.snapshot_encoded()
             try:
+                if exposure_evidence is not None:
+                    self._visual_exposure_epoch.commit(exposure_evidence)
                 visual_l5 = self._visual_region_continuity.settle_l5(
                     built.boundary,
                     built.receipt_registry,
+                    exposure_evidence=exposure_evidence,
+                    preparation_receipt_sha256=(
+                        visual_preparation_receipt
+                    ),
                 )
                 self._latest_visual_region_settlement = visual_l5
                 self._latest_visual_region_observation = visual_l5.as_record()
                 self._latest_visual_region_rejection = None
             except Exception:
                 self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                if exposure_snapshot is not None:
+                    self._visual_exposure_epoch.rollback_encoded(
+                        exposure_snapshot
+                    )
                 self._latest_visual_region_settlement = prior_visual_settlement
                 self._latest_visual_region_observation = prior_visual_observation
                 self._latest_visual_region_rejection = prior_visual_rejection
@@ -7942,6 +7991,10 @@ class Guala:
         except Exception:
             if visual_snapshot is not None:
                 self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                if exposure_snapshot is not None:
+                    self._visual_exposure_epoch.rollback_encoded(
+                        exposure_snapshot
+                    )
                 self._latest_visual_region_settlement = prior_visual_settlement
                 self._latest_visual_region_observation = prior_visual_observation
                 self._latest_visual_region_rejection = prior_visual_rejection
@@ -10312,6 +10365,15 @@ class Guala:
                         "unavailable_without_physical_acoustic_source_"
                         "correspondence"
                     ),
+                }
+            ),
+            "visual_exposure_epoch": (
+                self._visual_exposure_epoch.status()
+                if self._visual_exposure_epoch is not None
+                else {
+                    "active_streams": 0,
+                    "identity_authority": False,
+                    "persistence": "disabled",
                 }
             ),
             "persistence_transition": {
@@ -17087,6 +17149,7 @@ class Guala:
         *,
         source_time_start_ns=None,
         source_time_end_ns=None,
+        auditory_pcm_continuity=None,
     ):
         """Bind one complete temporal camera field as one atomic window fact.
 
@@ -17103,6 +17166,19 @@ class Guala:
         try:
             canonical_frames = tuple(frames)
             prepared = authority.prepare_retinotopic_inputs(canonical_frames)
+            exposure_evidence = None
+            if auditory_pcm_continuity is not None:
+                if self._visual_exposure_epoch is None:
+                    raise RuntimeError(
+                        "visual exposure epoch authority is unavailable"
+                    )
+                exposure_evidence = self._visual_exposure_epoch.prepare(
+                    auditory=auditory_pcm_continuity,
+                    frame_receipt_sha256s=prepared.frame_receipt_sha256s,
+                    preparation_receipt_sha256=(
+                        prepared.preparation_receipt_sha256
+                    ),
+                )
             frame_times_ns = tuple(
                 value.source_time_ns for value in canonical_frames
             )
@@ -17171,6 +17247,11 @@ class Guala:
                         "native_full_field_inputs": list(native_records),
                         "visual_preparation_receipt_sha256": (
                             prepared.preparation_receipt_sha256
+                        ),
+                        "visual_exposure_epoch_evidence": (
+                            exposure_evidence.as_record()
+                            if exposure_evidence is not None
+                            else None
                         ),
                     },
                     **self._affect_kwargs(),
@@ -17686,6 +17767,8 @@ class Guala:
                 self._live_anonymous_encounter_continuity.clear_stream(
                     stream_id
                 )
+            if self._visual_exposure_epoch is not None:
+                self._visual_exposure_epoch.clear(stream_id)
         self._latest_auditory_incremental_advance = terminal
         return {
             "closed": field_closed or terminal is not None,
@@ -18079,6 +18162,10 @@ class Guala:
                 if encounter_owner is not None:
                     if result.status.value == "discontinuity":
                         encounter_owner.clear_live_continuity()
+                        if self._visual_exposure_epoch is not None:
+                            self._visual_exposure_epoch.clear(
+                                transport.stream_id
+                            )
                     elif prepared_encounter is not None:
                         encounter_owner.commit(prepared_encounter)
                     else:
@@ -25975,6 +26062,11 @@ class Guala:
                 {
                     **self._visual_region_continuity.status(),
                     "available": True,
+                    "exposure_epoch": (
+                        self._visual_exposure_epoch.status()
+                        if self._visual_exposure_epoch is not None
+                        else {"active_streams": 0}
+                    ),
                     "latest_rejection": self._latest_visual_region_rejection,
                 }
                 if self._visual_region_continuity is not None

@@ -789,12 +789,13 @@ function renderObservation(value){
   renderFullFieldAuthority(value.full_field_authority||{});
   const visual=value.visual_region_authority||{};
   const visualLatest=visual.latest||{};
+  const visualExposure=visual.exposure_epoch||{};
   const visualRegions=Array.isArray(visualLatest.regions)?visualLatest.regions:[];
   const continuityCounts={unknown:0,unique:0,ambiguous:0};
   for(const region of visualRegions)if(Object.prototype.hasOwnProperty.call(continuityCounts,region.continuity))continuityCounts[region.continuity]++;
   document.getElementById('visualRegionCell').textContent=visual.available
     ? visualRegions.length
-      ? `${visual.active?'live':'inactive after restart'} · ${visualLatest.window_relation||'unverified'} window relation (not camera-sample adjacency) · identity continuity unavailable without authenticated shared exposure · ${visualRegions.length} structural region${visualRegions.length===1?'':'s'} from 64×64 grayscale → 8×8 area-mean receptors (within-receptor pixel arrangement not retained) · one physical pixel-reset reference then window exposures · explicit full D/M/R/U/C/P/B retained per receptor · ${continuityCounts.unique} unique · ${continuityCounts.unknown} unknown · ${continuityCounts.ambiguous} ambiguous · receipt ${(visualLatest.authority_receipt_sha256||'').slice(0,12)||'unavailable'}`
+      ? `${visual.active?'live':'inactive after restart'} · ${visualLatest.window_relation||'unverified'} window relation · acquisition epochs ${visualExposure.active_streams||0}/${visualExposure.stream_capacity||0} · no object-identity authority · ${visualRegions.length} structural region${visualRegions.length===1?'':'s'} from 64×64 grayscale → 8×8 area-mean receptors (within-receptor pixel arrangement not retained) · one physical pixel-reset reference then window exposures · explicit full D/M/R/U/C/P/B retained per receptor · ${continuityCounts.unique} unique · ${continuityCounts.unknown} unknown · ${continuityCounts.ambiguous} ambiguous · receipt ${(visualLatest.authority_receipt_sha256||'').slice(0,12)||'unavailable'}`
       : visual.latest_rejection
         ? `latest sequence rejected · ${visual.latest_rejection.reason||'unknown reason'}`
         : 'no temporal camera settlement observed'

@@ -3631,6 +3631,11 @@ async def sound_frame(msg: GLMessage):
                                     "source_time_start_ns"],
                                 source_time_end_ns=capture_times[
                                     "source_time_end_ns"],
+                                auditory_pcm_continuity=(
+                                    pcm_acceptance.receipt
+                                    if pcm_acceptance is not None
+                                    else None
+                                ),
                             )
                         )
                         if sight_receipt and sight_receipt.get("accepted"):

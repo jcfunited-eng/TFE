@@ -165,6 +165,9 @@ def test_paired_pcm_windows_settle_anonymous_encounter_not_sound_source(
     first_status = engine.auditory_l5_status()["live_anonymous_encounter"]
     assert first_status["state"] == "unknown"
     assert first_status["acoustic_source"] == "unknown"
+    assert engine._latest_visual_region_observation["window_relation"] == (
+        "first"
+    )
 
     second = _post(
         stream_id=stream_id,
@@ -184,6 +187,16 @@ def test_paired_pcm_windows_settle_anonymous_encounter_not_sound_source(
     assert second_status["latest"]["assembly_id"] == (
         engine._latest_auditory_stream_settlement_receipt.assembly_id
     )
+    visual = engine._latest_visual_region_observation
+    assert visual["window_relation"] == (
+        "authenticated_predecessor_evidence"
+    )
+    assert all(
+        region["continuity"] == "ambiguous"
+        and region["continuity_basis"].startswith("authenticated_")
+        for region in visual["regions"]
+    )
+    assert engine._visual_exposure_epoch.status()["active_streams"] == 1
 
     discontinuity_payload = _advance_payload(
         status=AuditoryIncrementalStatus.DISCONTINUITY,
@@ -224,10 +237,12 @@ def test_paired_pcm_windows_settle_anonymous_encounter_not_sound_source(
     rejected = engine.auditory_l5_status()["live_anonymous_encounter"]
     assert rejected["active"] is False
     assert rejected["state"] == "unknown"
+    assert engine._visual_exposure_epoch.status()["active_streams"] == 0
 
     engine.close_auditory_pcm_stream(stream_id)
     closed = engine.auditory_l5_status()["live_anonymous_encounter"]
     assert closed["active"] is False
+    assert engine._visual_exposure_epoch.status()["active_streams"] == 0
     assert closed["state"] == "unknown"
 
 

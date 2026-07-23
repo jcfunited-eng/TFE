@@ -59,8 +59,8 @@ MAX_VISUAL_STATE_BYTES = 2 * 1024 * 1024
 MAX_VISUAL_IMAGE_BYTES = 256 * 1024
 MAX_VISUAL_SEQUENCE_BYTES = 2 * 1024 * 1024
 VISUAL_SOURCE_CLOCK_QUANTUM_NS = 1_000_000
-_STATE_SCHEMA = "guala.visual_region_continuity.state.v2"
-_SETTLEMENT_SCHEMA = "guala.visual_region_continuity.settlement.v2"
+_STATE_SCHEMA = "guala.visual_region_continuity.state.v3"
+_SETTLEMENT_SCHEMA = "guala.visual_region_continuity.settlement.v3"
 
 
 def _region_field_record(value: tuple) -> list[dict[str, object]]:
@@ -434,6 +434,10 @@ class VisualRegionObservation:
             raise ValueError("visual continuity state changed")
         if self.continuity_basis not in {
             "no_live_predecessor",
+            "authenticated_exact_structural_recurrence_candidate",
+            "authenticated_reciprocal_retinotopic_overlap_candidate",
+            "authenticated_competing_candidates",
+            "authenticated_no_candidate",
             "touching_exact_structural_recurrence_candidate",
             "touching_reciprocal_retinotopic_overlap_candidate",
             "touching_competing_candidates",
@@ -482,6 +486,7 @@ class VisualL5Settlement:
             raise ValueError("visual L5 settlement source interval changed")
         if self.window_relation not in {
             "first",
+            "authenticated_predecessor_evidence",
             "touching_window_bounds",
             "gap",
         }:
@@ -579,6 +584,7 @@ class DeterministicVisualRegionContinuityAuthority:
         self,
         *,
         authority_key: bytes,
+        exposure_epoch_authority=None,
         history_capacity: int = DEFAULT_VISUAL_L5_HISTORY,
     ) -> None:
         if not isinstance(authority_key, bytes) or len(authority_key) < 32:
@@ -590,9 +596,19 @@ class DeterministicVisualRegionContinuityAuthority:
         ):
             raise ValueError("visual continuity history capacity is invalid")
         self._key = authority_key
+        if exposure_epoch_authority is not None:
+            from dsf_ai_service.substrate.visual_exposure_epoch import (
+                VisualExposureEpochAuthority,
+            )
+            if not isinstance(
+                exposure_epoch_authority, VisualExposureEpochAuthority
+            ):
+                raise TypeError("visual continuity exposure authority changed")
+        self._exposure_epoch_authority = exposure_epoch_authority
         self._history_capacity = history_capacity
         self._prior_regions: tuple[dict[str, object], ...] = ()
         self._prior_source_time_end: Fraction | None = None
+        self._prior_exposure_epoch_receipt: str | None = None
         self._live = False
         self._history: tuple[dict[str, object], ...] = ()
 
@@ -768,6 +784,9 @@ class DeterministicVisualRegionContinuityAuthority:
         self,
         boundary: SixSenseFullFieldBoundary,
         receipt_registry: ReceiptRegistry,
+        *,
+        exposure_evidence=None,
+        preparation_receipt_sha256: str | None = None,
     ) -> VisualL5Settlement:
         if not isinstance(boundary, SixSenseFullFieldBoundary):
             raise TypeError("visual L5 requires a six-sense full-field boundary")
@@ -786,7 +805,35 @@ class DeterministicVisualRegionContinuityAuthority:
             raise ValueError("visual L5 requires an observed sight boundary")
         receptor_fields = self._explicit_receptor_fields(sight)
         components = _region_components(receptor_fields)
-        if self._live and self._prior_source_time_end is not None:
+        current_exposure_epoch_receipt = None
+        authenticated_predecessor = False
+        if exposure_evidence is not None:
+            if self._exposure_epoch_authority is None:
+                raise ValueError("visual exposure evidence has no authority")
+            self._exposure_epoch_authority.verify(exposure_evidence)
+            if (
+                preparation_receipt_sha256
+                != exposure_evidence.current_preparation_receipt_sha256
+            ):
+                raise ValueError(
+                    "visual exposure evidence crossed preparation authority"
+                )
+            current_exposure_epoch_receipt = (
+                exposure_evidence.authority_receipt_sha256
+            )
+            authenticated_predecessor = bool(
+                self._live
+                and self._prior_source_time_end is not None
+                and sight.source_time_start == self._prior_source_time_end
+                and exposure_evidence.relation
+                == "authenticated_predecessor_evidence"
+                and exposure_evidence.authenticated_predecessor_epoch_receipt_sha256
+                == self._prior_exposure_epoch_receipt
+            )
+        if authenticated_predecessor:
+            window_relation = "authenticated_predecessor_evidence"
+            prior = self._prior_regions
+        elif self._live and self._prior_source_time_end is not None:
             if sight.source_time_start < self._prior_source_time_end:
                 raise ValueError(
                     "visual source interval overlaps or reorders its predecessor"
@@ -843,7 +890,10 @@ class DeterministicVisualRegionContinuityAuthority:
         exact_claimed_prior: set[int] = set()
         exact_claimed_current: set[int] = set()
         exact_unique_pairs: dict[int, int] = {}
-        if window_relation == "touching_window_bounds":
+        if window_relation in {
+            "authenticated_predecessor_evidence",
+            "touching_window_bounds",
+        }:
             for descriptor in current_descriptors:
                 region_index = int(descriptor["region_index"])
                 exact_prior = tuple(
@@ -886,7 +936,9 @@ class DeterministicVisualRegionContinuityAuthority:
             if chosen_prior is not None:
                 continuity = "ambiguous"
                 continuity_basis = (
-                    "touching_exact_structural_recurrence_candidate"
+                    "authenticated_exact_structural_recurrence_candidate"
+                    if window_relation == "authenticated_predecessor_evidence"
+                    else "touching_exact_structural_recurrence_candidate"
                 )
                 candidates = (
                     str(prior[chosen_prior]["lineage_receipt_sha256"]),
@@ -894,7 +946,10 @@ class DeterministicVisualRegionContinuityAuthority:
                 lineage = self._lineage_anchor(
                     boundary.assembly_id, region_index, structure
                 )
-            elif window_relation == "touching_window_bounds":
+            elif window_relation in {
+                "authenticated_predecessor_evidence",
+                "touching_window_bounds",
+            }:
                 unmatched_overlap = tuple(
                     (prior_index, value)
                     for prior_index, value in overlap_matches
@@ -912,7 +967,10 @@ class DeterministicVisualRegionContinuityAuthority:
                 if len(reciprocal) == 1 and len(unmatched_overlap) == 1:
                     continuity = "ambiguous"
                     continuity_basis = (
-                        "touching_reciprocal_retinotopic_overlap_candidate"
+                        "authenticated_reciprocal_retinotopic_overlap_candidate"
+                        if window_relation
+                        == "authenticated_predecessor_evidence"
+                        else "touching_reciprocal_retinotopic_overlap_candidate"
                     )
                     candidates = (
                         str(reciprocal[0][1]["lineage_receipt_sha256"]),
@@ -927,11 +985,18 @@ class DeterministicVisualRegionContinuityAuthority:
                     }
                     candidates = tuple(sorted(candidate_values))
                     continuity = "ambiguous" if candidates else "unknown"
-                    continuity_basis = (
-                        "touching_competing_candidates"
-                        if candidates
-                        else "touching_no_candidate"
-                    )
+                    if window_relation == "authenticated_predecessor_evidence":
+                        continuity_basis = (
+                            "authenticated_competing_candidates"
+                            if candidates
+                            else "authenticated_no_candidate"
+                        )
+                    else:
+                        continuity_basis = (
+                            "touching_competing_candidates"
+                            if candidates
+                            else "touching_no_candidate"
+                        )
                     lineage = self._lineage_anchor(
                         boundary.assembly_id, region_index, structure
                     )
@@ -1028,6 +1093,7 @@ class DeterministicVisualRegionContinuityAuthority:
         history = (*self._history, record)[-self._history_capacity :]
         self._prior_regions = tuple(next_prior)
         self._prior_source_time_end = sight.source_time_end
+        self._prior_exposure_epoch_receipt = current_exposure_epoch_receipt
         self._live = True
         self._history = tuple(history)
         return settlement
@@ -1081,6 +1147,9 @@ class DeterministicVisualRegionContinuityAuthority:
             "history": list(self._history),
             "history_capacity": self._history_capacity,
             "live": self._live,
+            "prior_exposure_epoch_receipt": (
+                self._prior_exposure_epoch_receipt
+            ),
             "prior_source_time_end": (
                 f"{self._prior_source_time_end.numerator}/"
                 f"{self._prior_source_time_end.denominator}"
@@ -1137,6 +1206,7 @@ class DeterministicVisualRegionContinuityAuthority:
                 "history",
                 "history_capacity",
                 "live",
+                "prior_exposure_epoch_receipt",
                 "prior_regions",
                 "prior_source_time_end",
                 "schema",
@@ -1155,6 +1225,14 @@ class DeterministicVisualRegionContinuityAuthority:
         )
         if not hmac.compare_digest(expected, envelope["state_hmac_sha256"]):
             raise ValueError("visual continuity state authentication failed")
+        prior_exposure_epoch_receipt = payload[
+            "prior_exposure_epoch_receipt"
+        ]
+        if prior_exposure_epoch_receipt is not None:
+            prior_exposure_epoch_receipt = _require_sha256(
+                prior_exposure_epoch_receipt,
+                "visual prior exposure epoch receipt",
+            )
         prior_source_time_end = payload["prior_source_time_end"]
         if prior_source_time_end is not None:
             if (
@@ -1241,6 +1319,11 @@ class DeterministicVisualRegionContinuityAuthority:
             if activate and payload["live"]
             else None
         )
+        self._prior_exposure_epoch_receipt = (
+            prior_exposure_epoch_receipt
+            if activate and payload["live"]
+            else None
+        )
         self._live = bool(activate and payload["live"])
         self._history = tuple(history)
 
@@ -1253,7 +1336,7 @@ class DeterministicVisualRegionContinuityAuthority:
     def status(self) -> dict[str, object]:
         latest = self._history[-1] if self._history else None
         return {
-            "schema": "guala.visual_region_continuity.status.v2",
+            "schema": "guala.visual_region_continuity.status.v3",
             "retina_rows": RETINA_ROWS,
             "retina_columns": RETINA_COLUMNS,
             "receptor_count": RETINA_RECEPTOR_COUNT,
@@ -1277,12 +1360,14 @@ class DeterministicVisualRegionContinuityAuthority:
                     "is retained"
                 ),
                 "window_relation": (
-                    "touching_window_bounds compares only declared outer "
-                    "interval bounds; it is not camera-sample adjacency"
+                    "authenticated_predecessor_evidence proves successive "
+                    "server-owned acquisition windows; touching_window_bounds "
+                    "proves only declared interval contact; neither proves "
+                    "object identity"
                 ),
                 "unique_continuity_authority": (
-                    "unavailable until transport supplies an authenticated "
-                    "shared terminal-to-initial visual exposure"
+                    "unavailable without an independently continuous camera "
+                    "stream or overlapping visual causal windows"
                 ),
             },
         }
