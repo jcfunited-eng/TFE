@@ -2285,6 +2285,109 @@ def _synthesize_voice(text):
         return None
 
 
+def _raise_causal_speech_output_error(stage, error, *, n_chars):
+    """Expose a failed causal actuator boundary and stop the release.
+
+    A learned causal action cannot be reported as spoken unless the exact WAV
+    produced by the mouth has crossed back into the substrate as its observed
+    actuator outcome.  Unlike legacy TTS, this boundary therefore fails closed
+    and visibly instead of converting a synthesis or observation fault into a
+    successful text-only reply.
+    """
+    message = (
+        "causal speech actuator output failed at "
+        f"{stage}: {type(error).__name__}: {error}"
+    )
+    print(f"[causal-speech-output] {message}", file=sys.stderr, flush=True)
+    if _guala is not None:
+        reporter = getattr(
+            _guala, "report_causal_speech_output_failure", None)
+        if callable(reporter):
+            try:
+                reporter(stage=stage, error=message)
+            except Exception as report_error:
+                print(
+                    "[causal-speech-output] engine failure report failed: "
+                    f"{type(report_error).__name__}: {report_error}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+        try:
+            _guala._log_substrate_event(
+                "causal_speech_output_error",
+                stage=stage,
+                n_chars=int(n_chars),
+                error_type=type(error).__name__,
+                error=str(error),
+            )
+        except Exception as log_error:
+            print(
+                "[causal-speech-output] error telemetry failed: "
+                f"{type(log_error).__name__}: {log_error}",
+                file=sys.stderr,
+                flush=True,
+            )
+    raise RuntimeError(message) from error
+
+
+def _synthesize_released_voice(text, response_source):
+    """Synthesize one released utterance and close causal mouth output.
+
+    Non-causal releases retain the historical TTS behavior.  A learned causal
+    action is different: the engine has already admitted its exact bounded
+    action, so runner truncation would execute a different action.  The actual
+    synthesized WAV bytes are therefore returned to the engine unchanged as
+    the physical actuator observation before the reply is reported as spoken.
+    """
+    causal_release = response_source == "causal_action_cycle_commit"
+    if causal_release:
+        from dsf_ai_service.v4.gualaloom_v5_engine import TTS_MAX_CHARS
+
+        if len(text) > TTS_MAX_CHARS:
+            _raise_causal_speech_output_error(
+                "action_length_contract",
+                ValueError(
+                    "learned causal speech action exceeds engine TTS_MAX_CHARS "
+                    f"({len(text)} > {TTS_MAX_CHARS})"
+                ),
+                n_chars=len(text),
+            )
+
+    wav = _synthesize_voice(text)
+    if not causal_release:
+        return wav
+    if not wav:
+        _raise_causal_speech_output_error(
+            "synthesis",
+            RuntimeError("espeak-ng returned no WAV"),
+            n_chars=len(text),
+        )
+
+    try:
+        wav_bytes = base64.b64decode(wav, validate=True)
+        if not wav_bytes:
+            raise ValueError("decoded WAV is empty")
+    except Exception as error:
+        _raise_causal_speech_output_error(
+            "wav_decode", error, n_chars=len(text))
+
+    observer = getattr(_guala, "observe_causal_speech_output", None)
+    if not callable(observer):
+        _raise_causal_speech_output_error(
+            "engine_boundary",
+            RuntimeError(
+                "engine does not expose observe_causal_speech_output(wav_bytes)"
+            ),
+            n_chars=len(text),
+        )
+    try:
+        observer(wav_bytes)
+    except Exception as error:
+        _raise_causal_speech_output_error(
+            "engine_observation", error, n_chars=len(text))
+    return wav
+
+
 def _cmd_converse(text, source, emission_mode=None):
     """Run one conversation turn and transport the engine's emission truth.
 
@@ -2400,7 +2503,7 @@ def _cmd_converse(text, source, emission_mode=None):
     # Silence and retired legacy labels are never voiced.
     from dsf_ai_service.v4.gualaloom_v5_engine import VOICED_RELEASE_SOURCES
     if response and response_source in VOICED_RELEASE_SOURCES:
-        wav = _synthesize_voice(response)
+        wav = _synthesize_released_voice(response, response_source)
         if wav:
             result["speech"] = wav
     if committed_sections_out:
