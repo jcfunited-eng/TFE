@@ -3618,6 +3618,19 @@ async def sound_frame(msg: GLMessage):
                 stream_settlement_receipt.verify()
                 incremental_terminal.verify()
             auditory_status = _guala.auditory_l5_status()
+            token_sequence_status = auditory_status.get(
+                "token_sequence", {}
+            )
+            token_sequence_observation = None
+            if incremental_terminal is not None:
+                latest_token_sequence = token_sequence_status.get("latest")
+                if (
+                    isinstance(latest_token_sequence, dict)
+                    and latest_token_sequence.get(
+                        "advance_authority_receipt_sha256"
+                    ) == incremental_terminal.authority_receipt_sha256
+                ):
+                    token_sequence_observation = latest_token_sequence
             current_experience = getattr(
                 _guala, "_latest_auditory_l5_experience", None)
             current_recognition_is_causal = (
@@ -3735,6 +3748,14 @@ async def sound_frame(msg: GLMessage):
                         "incremental_terminal_receipt_sha256": (
                             incremental_terminal.authority_receipt_sha256
                         ),
+                        "auditory_token_sequence_status": (
+                            "settled"
+                            if token_sequence_observation is not None
+                            else "not_settled"
+                        ),
+                        "auditory_token_sequence": (
+                            token_sequence_observation
+                        ),
                     }
                 if learned_spoken:
                     result["transcript"] = learned_spoken
@@ -3818,6 +3839,12 @@ async def sound_frame(msg: GLMessage):
                     "incremental_terminal_receipt_sha256": (
                         incremental_terminal.authority_receipt_sha256
                     ),
+                    "auditory_token_sequence_status": (
+                        "settled"
+                        if token_sequence_observation is not None
+                        else "not_settled"
+                    ),
+                    "auditory_token_sequence": token_sequence_observation,
                 }
             if learned_spoken:
                 result["transcript"] = learned_spoken

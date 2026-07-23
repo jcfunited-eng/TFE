@@ -3391,6 +3391,8 @@ class Guala:
         self._latest_auditory_causal_event_record = None
         self._latest_auditory_full_field_capture = None
         self._latest_auditory_incremental_advance = None
+        self._auditory_token_sequence_authority = None
+        self._latest_auditory_token_sequence_observation = None
         self._latest_auditory_recognitions = ()
         self._latest_auditory_recognition_boundary = "ambient"
         from dsf_ai_service.substrate.exact_causal_experience import (
@@ -3424,6 +3426,22 @@ class Guala:
             os.environ.get("GUALA_CAUSAL_ACTION_KEY")
             or os.environ.get("GUALALOOM_API_KEY")
         )
+        if _causal_cycle_key:
+            import hmac as _hmac
+            from dsf_ai_service.substrate.auditory_token_sequence import (
+                AuditoryTokenSequenceAuthority as
+                _AuditoryTokenSequenceAuthority,
+            )
+            _auditory_token_sequence_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-auditory-token-sequence-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._auditory_token_sequence_authority = (
+                _AuditoryTokenSequenceAuthority(
+                    authority_secret=_auditory_token_sequence_key,
+                )
+            )
         self._causal_action_cycle = (
             _CausalActionCycle(
                 log_event=self._log_substrate_event,
@@ -8276,6 +8294,7 @@ class Guala:
             "incremental_terminal": (
                 self._auditory_incremental_terminals.status()
             ),
+            "token_sequence": self.auditory_token_sequence_status(),
             "latest_incremental_status": (
                 self._latest_auditory_incremental_advance.status.value
                 if self._latest_auditory_incremental_advance is not None
@@ -8328,6 +8347,88 @@ class Guala:
                 }
                 for value in self._latest_auditory_recognitions
             ],
+        }
+
+    def _verify_auditory_token_sequence_observation(self, record):
+        if not isinstance(record, dict) or set(record) != {
+            "advance_authority_receipt_sha256",
+            "batch_authority_receipt_sha256",
+            "schema",
+            "sequence",
+            "status",
+        }:
+            raise ValueError(
+                "auditory token sequence observation is malformed"
+            )
+        if (
+            record.get("schema")
+            != "guala.auditory_token.sequence_observation.v1"
+            or record.get("status") != "settled"
+        ):
+            raise ValueError(
+                "auditory token sequence observation state changed"
+            )
+        for field in (
+            "advance_authority_receipt_sha256",
+            "batch_authority_receipt_sha256",
+        ):
+            value = record.get(field)
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(
+                    f"auditory token sequence observation {field} changed"
+                )
+        authority = self._auditory_token_sequence_authority
+        if authority is None:
+            raise ValueError(
+                "auditory token sequence authority key is unavailable"
+            )
+        sequence = authority.sequence_from_record(record.get("sequence"))
+        if len(sequence.occurrences) <= 1:
+            raise ValueError(
+                "auditory token sequence observation is not multi-terminal"
+            )
+        return sequence
+
+    def auditory_token_sequence_status(self):
+        authority = self._auditory_token_sequence_authority
+        if authority is None:
+            return {
+                "available": False,
+                "binding_count": 0,
+                "latest": None,
+                "status": "unavailable",
+            }
+        observation = self._latest_auditory_token_sequence_observation
+        sequence = (
+            self._verify_auditory_token_sequence_observation(observation)
+            if observation is not None else None
+        )
+        return {
+            "available": True,
+            "binding_count": authority.binding_count,
+            "latest": (
+                {
+                    "advance_authority_receipt_sha256": observation[
+                        "advance_authority_receipt_sha256"
+                    ],
+                    "batch_authority_receipt_sha256": observation[
+                        "batch_authority_receipt_sha256"
+                    ],
+                    "occurrence_count": len(sequence.occurrences),
+                    "occurrences": [
+                        occurrence.as_record()
+                        for occurrence in sequence.occurrences
+                    ],
+                    "sequence_id": sequence.sequence_id,
+                    "stream_id": sequence.stream_id,
+                }
+                if sequence is not None else None
+            ),
+            "status": "settled" if sequence is not None else "not_observed",
         }
 
     def _organism_worker_loop(self):
@@ -15257,6 +15358,89 @@ class Guala:
         self._latest_auditory_stream_settlement_receipt = receipt
         return receipt
 
+    def _settle_released_auditory_token_sequence(self, advance):
+        """Atomically transfer one multi-terminal release into token order.
+
+        A singular release remains owned by the existing causal-conversation
+        claim path.  Multi-release tutor labels are never joined or admitted
+        to language here: each complete L5 event is authenticated and the
+        physical order alone becomes one bounded observation.
+        """
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalAdvance,
+            AuditoryIncrementalStatus,
+        )
+        if not isinstance(advance, AuditoryIncrementalAdvance):
+            raise TypeError("auditory token settlement requires an advance")
+        advance.verify()
+        if (
+            advance.status is not AuditoryIncrementalStatus.RELEASED_UNIQUE
+            or len(advance.released_terminals) <= 1
+        ):
+            return None
+        authority = self._auditory_token_sequence_authority
+        if authority is None:
+            raise RuntimeError(
+                "auditory token sequence authority key is unavailable"
+            )
+        registry = self._auditory_incremental_terminals
+        batch = registry.materialize_batch(advance)
+        batch.verify()
+        token_snapshot = authority.snapshot()
+        prior_observation = self._latest_auditory_token_sequence_observation
+        claim = registry.claim_batch(batch)
+        try:
+            claimed = registry.verify_batch_claim(claim)
+            admitted = tuple(
+                authority.admit(entry.event, entry.auditory_l5)
+                for entry in claimed.entries
+            )
+            sequence = authority.settle_sequence(admitted)
+            observation = {
+                "advance_authority_receipt_sha256": (
+                    claimed.advance_authority_receipt_sha256
+                ),
+                "batch_authority_receipt_sha256": (
+                    claimed.authority_receipt_sha256
+                ),
+                "schema": "guala.auditory_token.sequence_observation.v1",
+                "sequence": sequence.as_record(),
+                "status": "settled",
+            }
+
+            def commit_observation():
+                self._latest_auditory_token_sequence_observation = observation
+
+            registry.consume_batch(
+                claim,
+                commit_batch=commit_observation,
+            )
+        except Exception:
+            authority.restore(token_snapshot)
+            self._latest_auditory_token_sequence_observation = prior_observation
+            try:
+                registry.rollback_batch(claim)
+            except ValueError:
+                pass
+            raise
+        try:
+            self._log_substrate_event(
+                "auditory_token_sequence_settled",
+                sequence_id=sequence.sequence_id,
+                stream_id=sequence.stream_id,
+                occurrences=len(sequence.occurrences),
+                advance_authority_receipt_sha256=(
+                    advance.authority_receipt_sha256
+                ),
+            )
+        except Exception as error:
+            print(
+                "[GualaLoom] auditory token sequence telemetry failed: "
+                f"{type(error).__name__}: {error}",
+                file=sys.stderr,
+            )
+        return sequence
+
     @_engine_mutation_entry
     def advance_continuous_auditory_terminal(
             self, *, pcm_s16le, transport, settlement):
@@ -15294,6 +15478,7 @@ class Guala:
                 cochlear=cochlear,
                 joint_settlement=joint,
             )
+            self._settle_released_auditory_token_sequence(result)
             del self._auditory_capture_authorities[
                 transport.receipt_sha256
             ]
@@ -18016,6 +18201,14 @@ class Guala:
             "auditory_reciprocity": (
                 self._auditory_reciprocity_owner.encoded_snapshot()
             ),
+            "auditory_token_bindings": (
+                self._auditory_token_sequence_authority.snapshot()
+                if self._auditory_token_sequence_authority is not None
+                else None
+            ),
+            "latest_auditory_token_sequence": (
+                self._latest_auditory_token_sequence_observation
+            ),
             "auditory_v4_archive": self._auditory_v4_archive,
             "causal_action": (
                 self._causal_action_owner.encoded_snapshot()
@@ -18086,6 +18279,11 @@ class Guala:
             or incremental["learned_cells"]
             or incremental["issued_terminal_authorities"]
             or incremental["in_flight_terminal_authorities"]
+            or (
+                self._auditory_token_sequence_authority is not None
+                and self._auditory_token_sequence_authority.binding_count
+            )
+            or self._latest_auditory_token_sequence_observation is not None
             or action["actions"]
             or action["witnesses"]
             or action["working_experiences"]
@@ -18554,6 +18752,48 @@ class Guala:
         ):
             raise ValueError(
                 "teaching state cannot contain active and archived v4 state"
+            )
+        token_bindings = data.get("auditory_token_bindings")
+        latest_token_sequence = data.get("latest_auditory_token_sequence")
+        if token_bindings is not None:
+            from dsf_ai_service.substrate.auditory_token_sequence import (
+                MAX_SNAPSHOT_BYTES as _MAX_AUDITORY_TOKEN_SNAPSHOT_BYTES,
+            )
+            if (
+                not isinstance(token_bindings, dict)
+                or len(cls._canonical_persistence_bytes(token_bindings))
+                > _MAX_AUDITORY_TOKEN_SNAPSHOT_BYTES
+            ):
+                raise ValueError(
+                    "teaching.auditory_token_bindings exceeds its boundary"
+                )
+        if latest_token_sequence is not None:
+            from dsf_ai_service.substrate.auditory_token_sequence import (
+                MAX_SEQUENCE_BYTES as _MAX_AUDITORY_TOKEN_SEQUENCE_BYTES,
+            )
+            if (
+                token_bindings is None
+                or not isinstance(latest_token_sequence, dict)
+                or len(cls._canonical_persistence_bytes(latest_token_sequence))
+                > _MAX_AUDITORY_TOKEN_SEQUENCE_BYTES + 2048
+            ):
+                raise ValueError(
+                    "teaching.latest_auditory_token_sequence exceeds its boundary"
+                )
+        token_binding_payload = (
+            token_bindings.get("payload")
+            if isinstance(token_bindings, dict) else None
+        )
+        token_has_active_bindings = bool(
+            isinstance(token_binding_payload, dict)
+            and token_binding_payload.get("bindings")
+        )
+        if (
+            auditory_schema == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
+            and (token_has_active_bindings or latest_token_sequence is not None)
+        ):
+            raise ValueError(
+                "legacy auditory state cannot carry active token authority"
             )
         causal_action = data.get("causal_action")
         if causal_action is not None:
@@ -20682,6 +20922,30 @@ class Guala:
                     else:
                         self._auditory_v4_archive = pending_auditory_archive
 
+                    token_snapshot = tdata.get("auditory_token_bindings")
+                    token_observation = tdata.get(
+                        "latest_auditory_token_sequence"
+                    )
+                    if token_snapshot is not None:
+                        if self._auditory_token_sequence_authority is None:
+                            raise ValueError(
+                                "auditory token sequence authority key is missing"
+                            )
+                        self._auditory_token_sequence_authority.restore(
+                            token_snapshot
+                        )
+                    if token_observation is not None:
+                        self._verify_auditory_token_sequence_observation(
+                            token_observation
+                        )
+                        self._latest_auditory_token_sequence_observation = (
+                            json.loads(self._canonical_persistence_bytes(
+                                token_observation
+                            ))
+                        )
+                    else:
+                        self._latest_auditory_token_sequence_observation = None
+
                     if (
                         auditory_schema
                         != LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA
@@ -22352,6 +22616,9 @@ class Guala:
                 "status": "observed",
                 "presence": participants,
             },
+            "auditory_token_sequence": (
+                self.auditory_token_sequence_status()
+            ),
         }
         encoded = json.dumps(
             payload,

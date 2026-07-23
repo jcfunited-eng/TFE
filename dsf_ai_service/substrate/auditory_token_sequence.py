@@ -89,6 +89,24 @@ def _fraction_text(value: Fraction) -> str:
     return f"{value.numerator}/{value.denominator}"
 
 
+def _fraction_from_text(value: object, name: str) -> Fraction:
+    if not isinstance(value, str) or value.count("/") != 1:
+        raise ValueError(f"{name} is not an exact fraction")
+    numerator_text, denominator_text = value.split("/", 1)
+    if (
+        not numerator_text
+        or not denominator_text
+        or not numerator_text.lstrip("-").isdigit()
+        or not denominator_text.isdigit()
+        or int(denominator_text) <= 0
+    ):
+        raise ValueError(f"{name} is not an exact fraction")
+    result = Fraction(int(numerator_text), int(denominator_text))
+    if _fraction_text(result) != value:
+        raise ValueError(f"{name} is not canonical")
+    return result
+
+
 def _identifier(value: object, name: str, *, maximum_bytes: int = 256) -> str:
     if not isinstance(value, str) or not value:
         raise ValueError(f"{name} must be nonempty text")
@@ -285,6 +303,12 @@ class AuditoryTokenSequenceReceipt:
             "schema": TOKEN_SEQUENCE_SCHEMA,
             "sequence_id": self.sequence_id,
             "stream_id": self.stream_id,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            **self.payload(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
         }
 
 
@@ -820,6 +844,145 @@ class AuditoryTokenSequenceAuthority:
             _hmac(self._sequence_key, payload),
         ):
             raise ValueError("auditory token sequence authority changed")
+
+    def sequence_from_record(
+        self, record: object
+    ) -> AuditoryTokenSequenceReceipt:
+        """Restore one bounded observation without creating an event index."""
+        if not isinstance(record, Mapping) or set(record) != {
+            "authority_hmac_sha256",
+            "binding_state_sha256",
+            "occurrences",
+            "schema",
+            "sequence_id",
+            "stream_id",
+        }:
+            raise ValueError("auditory token sequence record is malformed")
+        if record.get("schema") != TOKEN_SEQUENCE_SCHEMA:
+            raise ValueError("auditory token sequence record schema changed")
+        raw_occurrences = record.get("occurrences")
+        if (
+            not isinstance(raw_occurrences, list)
+            or not raw_occurrences
+            or len(raw_occurrences) > MAX_TOKEN_OCCURRENCES_PER_SEQUENCE
+        ):
+            raise ValueError("auditory token sequence record boundary changed")
+        occurrences = []
+        occurrence_fields = {
+            "classification_authority_hmac_sha256",
+            "classification_state",
+            "l5_authority_receipt_sha256",
+            "ordinal",
+            "source_sample_end",
+            "source_sample_start",
+            "source_time_end",
+            "source_time_start",
+            "structural_fingerprint",
+            "sub_event_admission_hmac_sha256",
+            "sub_event_id",
+            "terminal_authority_receipt_sha256",
+            "token_candidates",
+        }
+        candidate_fields = {"token_class_id", "token_form"}
+        for raw in raw_occurrences:
+            if not isinstance(raw, Mapping) or set(raw) != occurrence_fields:
+                raise ValueError(
+                    "auditory token sequence occurrence record is malformed"
+                )
+            raw_candidates = raw.get("token_candidates")
+            if not isinstance(raw_candidates, list):
+                raise ValueError(
+                    "auditory token sequence candidates are malformed"
+                )
+            candidates = []
+            for raw_candidate in raw_candidates:
+                if (
+                    not isinstance(raw_candidate, Mapping)
+                    or set(raw_candidate) != candidate_fields
+                ):
+                    raise ValueError(
+                        "auditory token sequence candidate is malformed"
+                    )
+                token_class_id = _sha256(
+                    raw_candidate.get("token_class_id"),
+                    "auditory token sequence class id",
+                )
+                token_form, _ = _token_form(raw_candidate.get("token_form"))
+                candidates.append(TokenClassIdentity(
+                    token_class_id=token_class_id,
+                    token_form=token_form,
+                ))
+            try:
+                state = TokenClassificationState(raw.get("classification_state"))
+            except ValueError as error:
+                raise ValueError(
+                    "auditory token sequence classification state changed"
+                ) from error
+            for field in ("ordinal", "source_sample_start", "source_sample_end"):
+                value = raw.get(field)
+                if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                    raise ValueError(
+                        f"auditory token sequence {field} is invalid"
+                    )
+            occurrences.append(OrderedAuditoryTokenOccurrence(
+                ordinal=raw.get("ordinal"),
+                sub_event_id=_sha256(
+                    raw.get("sub_event_id"), "auditory token sequence sub-event"
+                ),
+                source_sample_start=raw.get("source_sample_start"),
+                source_sample_end=raw.get("source_sample_end"),
+                source_time_start=_fraction_from_text(
+                    raw.get("source_time_start"),
+                    "auditory token sequence source start",
+                ),
+                source_time_end=_fraction_from_text(
+                    raw.get("source_time_end"),
+                    "auditory token sequence source end",
+                ),
+                structural_fingerprint=_sha256(
+                    raw.get("structural_fingerprint"),
+                    "auditory token sequence structural fingerprint",
+                ),
+                l5_authority_receipt_sha256=_sha256(
+                    raw.get("l5_authority_receipt_sha256"),
+                    "auditory token sequence L5 authority",
+                ),
+                terminal_authority_receipt_sha256=_sha256(
+                    raw.get("terminal_authority_receipt_sha256"),
+                    "auditory token sequence terminal authority",
+                ),
+                sub_event_admission_hmac_sha256=_sha256(
+                    raw.get("sub_event_admission_hmac_sha256"),
+                    "auditory token sequence admission authority",
+                ),
+                classification_state=state,
+                token_candidates=tuple(candidates),
+                classification_authority_hmac_sha256=_sha256(
+                    raw.get("classification_authority_hmac_sha256"),
+                    "auditory token sequence classification authority",
+                ),
+            ))
+        receipt = AuditoryTokenSequenceReceipt(
+            sequence_id=_sha256(
+                record.get("sequence_id"), "auditory token sequence id"
+            ),
+            stream_id=_identifier(
+                record.get("stream_id"), "auditory token sequence stream"
+            ),
+            binding_state_sha256=_sha256(
+                record.get("binding_state_sha256"),
+                "auditory token sequence binding state",
+            ),
+            occurrences=tuple(occurrences),
+            authority_hmac_sha256=_sha256(
+                record.get("authority_hmac_sha256"),
+                "auditory token sequence authority",
+            ),
+        )
+        self.verify_sequence(receipt)
+        if receipt.as_record() != record:
+            raise ValueError("auditory token sequence record is not canonical")
+        return receipt
 
     def _snapshot_payload(
         self,
