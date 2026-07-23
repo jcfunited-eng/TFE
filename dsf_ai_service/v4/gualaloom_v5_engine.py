@@ -1118,63 +1118,6 @@ def _organism_signal_with_senses(word, transducer, sight_signal=None,
     return sig
 
 
-# GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): fixed per-channel point
-# count for the organism-lane reduction of the 16-channel gammatone full
-# field. 16 channels x 100 points = 1600 values total -- exactly the retired
-# one-dimensional cache's own hard ceiling (8 s at 200 Hz), so every
-# downstream consumer (resonant_response's outer product, experience_word's
-# rfft composite) pays at most the cost it already paid before the full-field
-# stack landed. Fixed size by construction: never grows with frame duration,
-# channel count is pinned by AUDITORY_CHANNELS' frozen topology.
-AUDITORY_ORGANISM_ENVELOPE_POINTS = 100
-
-
-def _auditory_field_organism_reduction(auditory_field):
-    """Bounded, deterministic organism-lane reduction of one settled
-    auditory full-field capture (GL-FIX-AUDITORY-ORGANISM-RECONNECT,
-    2026-07-22).
-
-    The has_sound:false defect: the full-field stack retired the 1-D
-    `_last_sound_signal` cache (commit 5489d74c, "cannot represent this
-    topology without flattening it") but `_enqueue_organism_remember`
-    still reads that slot to bind what she was hearing into each word's
-    organism experience -- so the organism went permanently deaf while
-    the auditory L5 pipeline stayed fully live.
-
-    This is the substrate-true flattening the retirement comment said it
-    would not improvise in place: each of the 16 cochlear channels'
-    REAL pressure-envelope readings (the same
-    `pressure_envelope_full_scale` values already bound into the causal
-    window entries), resampled onto a fixed
-    AUDITORY_ORGANISM_ENVELOPE_POINTS-point time grid via linear
-    interpolation between adjacent real readings -- the same class of
-    operation as the retired path's own `samples[::step]` decimation
-    and process_sight_frame's `_flat[::_step][:100]` pixel subsample.
-    No invented data: every output value lies on the segment between
-    two measured envelope readings of THIS physical frame. Deterministic:
-    numpy interp on the frame's own numbers, no randomness, no state.
-    Fixed size: always 16 x AUDITORY_ORGANISM_ENVELOPE_POINTS, regardless
-    of frame duration. Channels concatenate in the provider's frozen
-    topology order (low to high centre frequency), so identical captures
-    produce identical arrays.
-
-    Consumers downstream are unchanged and shape-agnostic: lane_features
-    -> resonant_response (any 1-D array), experience_word's charge/fold
-    composite (np.concatenate + rfft). An all-silent frame never reaches
-    here (caller gates on n_bands_fired), so a zero-energy placeholder
-    can never masquerade as heard audio."""
-    n_points = AUDITORY_ORGANISM_ENVELOPE_POINTS
-    parts = []
-    for channel in auditory_field.channels:
-        env = np.asarray(channel.pressure_envelope_full_scale, dtype=float)
-        if env.size == 0:
-            parts.append(np.zeros(n_points))
-            continue
-        grid = np.linspace(0.0, env.size - 1, n_points)
-        parts.append(np.interp(grid, np.arange(env.size), env))
-    return np.concatenate(parts)
-
-
 def _organism_query_signal_auditory(sound_signal):
     """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208: the auditory-only
     mirror of _organism_signal's language-only base -- a genuine SENSORY
@@ -1244,11 +1187,6 @@ ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 2000, "DREAMING": 3000,
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
-    # GL world-actions-in-process (2026-07-22): DOING = one real verb on one
-    # real object in her room (WorldState.apply_verb), then experiencing the
-    # room's resulting ambient words. Short budget: an action is a moment,
-    # not a session.
-    "DOING": 200,
     # DAYDREAMING removed GL-CMD-DAYDREAM-PARALLEL-42: now a background thread, not an activity
     # GL-CMD-REST-RETIRE-73: REST removed. _atick_rest kept for persisted-state tail-out only.
 }
@@ -1260,11 +1198,6 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
-    # GL world-actions-in-process: an untouched object/verb is genuinely
-    # novel first-hand experience (between ATTENDING 0.8 and PLAYING 0.3 —
-    # it is real interaction, but her room's repertoire is small and
-    # re-doable); a repeat is familiar, same shape as every other kind.
-    "DOING_NEW": 0.6, "DOING_REPEAT": 0.05,
     # DAYDREAMING removed (-42): now a background thread
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
@@ -1275,11 +1208,6 @@ ACTIVITY_STABILITY_PAYOFF = {
     "DREAMING": 0.2,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
-    # GL world-actions-in-process: 0.0 is the BASE only. A comfort action's
-    # real stability payoff is derived per target from the verb's own
-    # experience words (see _world_action_comfort_payoff) — data-driven from
-    # virtual_home.OBJECTS, never a per-object script here.
-    "DOING": 0.0,
     # DAYDREAMING removed (-42): now a background thread
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
@@ -1288,36 +1216,8 @@ ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
-    "DOING": 0.0,  # solitary world action — no social content to credit
     # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
-
-# ── GL world-actions-in-process (2026-07-22) ────────────────────────────────
-# The :8090 organ-brain sidecar (the only actuator for her virtual room) was
-# never launched in this stack — world ACTIONS were doubly severed (seam map
-# GL-RPT-SEAM-MAP-C1-20260722-v1). DOING ports the actuator in-process:
-# selected by the same drive-physics scoring as every other activity,
-# executed as WorldState.apply_verb on the shared world_state.json, and the
-# consequence experienced honestly by reading the room's resulting
-# ambient_words through read_sentence(source="world").
-#
-# Cooldown: bounded frequency — one world action, then at least this many
-# ticks before DOING candidates re-enter selection. 10x EMISSION_COOLDOWN_
-# TICKS: acting on the room is rarer than speaking, and the small W1 verb
-# repertoire would otherwise habituate to nothing within an hour.
-WORLD_ACTION_COOLDOWN_TICKS = 2000
-# Comfort words: the stability-restoring sensory vocabulary her own world
-# already uses (virtual_home ambient/night-light words + WORLD_ATLAS_SEEDS
-# comfort pairs). A verb whose experience words overlap this set is a real
-# comfort action (lie under blanket, turn on night light) — its stability
-# payoff scales with the overlap fraction, deterministically from the
-# object definition, never a hand-picked object list.
-WORLD_COMFORT_WORDS = frozenset(
-    {"warm", "soft", "safe", "cozy", "quiet", "rest"})
-# Max stability payoff for a fully-comfort verb (every experience word in
-# WORLD_COMFORT_WORDS). Same scale as DREAMING's 0.2 — comfort-seeking in
-# her room competes with, but does not dominate, real consolidation.
-DOING_STABILITY_PAYOFF_MAX = 0.2
 
 EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
@@ -3232,14 +3132,6 @@ class Guala:
         self._dp_last_write_count = 0
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
-        # GL world-actions-in-process (2026-07-22): per-action habituation
-        # record {"obj:verb": {"times_done", "last_done_tick"}} + cooldown
-        # tick — persisted with the core (same lifecycle as
-        # target_familiarity). WorldState instance is lazy (EFS I/O only on
-        # first real use).
-        self._world_actions = {}
-        self._last_world_action_tick = -100_000
-        self._world_state_obj = None
         self._last_emission_record = None  # {emission_id, text, tick, ...}
         # GL-CMD-AUTONOMOUS-EMISSION-39
         self.last_autonomous_emission_tick = -100_000
@@ -4335,36 +4227,15 @@ class Guala:
                 # scan (boot/restore), not instantly here, since reinforcement
                 # of an existing mode doesn't change len(modes) and so never
                 # reaches this incremental branch at all.
-                # GL-FIX-HEARD-GROUNDING-C1-20260722 completion: the gate
-                # above fires only for BRAND-NEW modes. On an aged brain a
-                # heard common word usually REINFORCES a mode it founded
-                # ungrounded during reading — the comment above defers that
-                # word to "the next full scan (boot/restore)", i.e. never
-                # in practice. The grounded reinforcement already writes
-                # real_grounding=True to the atlas record (which is exactly
-                # what the boot rebuild would index), so index it now:
-                # same evidence, no reboot. Honesty guard: only when the
-                # reinforced mode is genuinely THIS word's mode (the
-                # selector reads the mode's own word label; indexing a
-                # different word's mode would misattribute speech).
                 if (primary_section in self._EMISSION_SECTIONS
-                        and _committed
+                        and len(self.sections[primary_section].modes) > n_modes_before
                         and (not _require_grounded_speech() or _akw.get("real_grounding"))):
                     wl = word.lower()
-                    _sec_modes = self.sections[primary_section].modes
-                    if len(_sec_modes) > n_modes_before:
-                        mi = len(_sec_modes) - 1
-                    elif (_mode_idx is not None
-                            and _mode_idx < len(_sec_modes)
-                            and (_sec_modes[_mode_idx][2] or "").lower() == wl):
-                        mi = _mode_idx
-                    else:
-                        mi = None
-                    if mi is not None:
-                        locs = self._word_to_emission_sections.setdefault(wl, [])
-                        if not any(s == primary_section and m == mi
-                                   for s, m, *_ in locs):
-                            locs.append((primary_section, mi, word))
+                    mi = len(self.sections[primary_section].modes) - 1
+                    if wl not in self._word_to_emission_sections:
+                        self._word_to_emission_sections[wl] = []
+                    self._word_to_emission_sections[wl].append(
+                        (primary_section, mi, word))
             _prof_t0 = _prof_mark("primary_sections_receive", _prof_t0)
 
             if senses:
@@ -5665,48 +5536,6 @@ class Guala:
                 trigger_reason="language_experience",
                 context_detail=_context_detail,
             )
-            if _causal_intake_record is not None:
-                # GL-FIX-HEARD-GROUNDING-C1-20260722: the heard sentence's
-                # verified sound is part of THIS experience — bind one real
-                # auditory entry citing the settled terminal event, so the
-                # causal window carries real grounding
-                # (_current_window_has_real_grounding matches the "audio_"
-                # prefix). Before this, a heard sentence's window held only
-                # language_fact/story_* entries, so heard words never
-                # passed the speakable-index insert gate: nothing Joe SAID
-                # to her could ever become a word she may SAY — live
-                # emission_diag n_with_section_home=0 → organism_empty
-                # silence (trace 2026-07-22). chi is the terminal's own
-                # physical coordinate (where in the receipted stream this
-                # experience began), never an invented number.
-                # mirror_atlas=False: the terminal event's structural home
-                # is the auditory L5/reciprocity store (Sol's causal
-                # boundary, live task :723) — this entry is a citation of
-                # it, not a second copy (lean doctrine: no new store).
-                self.window_manager.add_entry(
-                    modality="sound", section="audio_terminal",
-                    motif_id=deterministic_motif_id("auditory_terminal"),
-                    chi=int(_causal_intake_record["source_sample_start"])
-                        % 100,
-                    tick=self.tick, source_tag=source,
-                    trigger_reason="sound",
-                    context_id=_fact_context_id,
-                    salience=1.0, dwell_ticks=2,
-                    mirror_atlas=False,
-                    structural_fact={
-                        "schema": "guala.auditory_terminal_citation.v1",
-                        "causal_experience_id": (
-                            _causal_intake_record["event_id"]),
-                        "causal_intake_receipt_sha256": (
-                            _causal_intake_record[
-                                "authority_receipt_sha256"]),
-                        "stream_id": _causal_intake_record["stream_id"],
-                        "source_sample_start": (
-                            _causal_intake_record["source_sample_start"]),
-                        "source_sample_end": (
-                            _causal_intake_record["source_sample_end"]),
-                    },
-                )
         _sentence_complete = False
         try:
             self._add_canonical_scene_entries(
@@ -8248,7 +8077,7 @@ class Guala:
         extended = list(candidates) + [n for _, _, n in pool[:extra_needed]]
         return extended
 
-    def _brain_emission_candidates(self, input_words, input_chis=None):
+    def _brain_emission_candidates(self, input_words):
         """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8, extended
         by GL-CMD-EMISSION-SHADOW-EVE-20260709 (design only -- NOT
         enabled by default, NOT deployed; see that dispatch's report for
@@ -8286,8 +8115,7 @@ class Guala:
         if backend == "stdp":
             return self._brain_emission_candidates_membrane(input_words)
         elif backend == "shadow":
-            legacy_candidates = self._brain_emission_candidates_legacy(
-                input_words, input_chis)
+            legacy_candidates = self._brain_emission_candidates_legacy(input_words)
             try:
                 membrane_candidates = self._brain_emission_candidates_membrane(input_words)
                 self._log_emission_shadow_comparison(legacy_candidates, membrane_candidates, input_words)
@@ -8295,7 +8123,7 @@ class Guala:
                 print(f"[GualaLoom] membrane shadow emission comparison failed "
                       f"(non-fatal, legacy candidates still returned): {_se}")
             return legacy_candidates
-        return self._brain_emission_candidates_legacy(input_words, input_chis)
+        return self._brain_emission_candidates_legacy(input_words)
 
     def _brain_emission_candidates_membrane(self, input_words):
         """New (not production-serving during Phase 1) emission backend:
@@ -8470,41 +8298,7 @@ class Guala:
             top5_jaccard=top5_jaccard,
         )
 
-    def _candidate_word_chi(self, word_lower, input_chis=None):
-        """GL-FIX-CANDIDATE-CHI-C1-20260722: real chi address for an
-        emission candidate word.
-
-        The candidate evidence dicts below historically carried no "chi"
-        key, so every physics consumer read the placeholder 0 —
-        _grandurun_select_candidates' de.get("chi", 0) phase term, the
-        Path-A agency backtrack, gp goal bias, attend proximity. With all
-        candidates sitting at chi=0 the backtrack measured |0 − input
-        centroid| and stripped the top candidate whenever the turn's
-        centroid exceeded the radius: replies died with real candidates
-        in hand (live trace 2026-07-22, "your name is guala": 3
-        candidates, 3 agency_backtrack pops, silence).
-
-        A word's real addresses are the recall reverse index
-        (_word_to_chi_index, GL-CMD-RECALL-WORD-INDEX-57). A word bound
-        at several addresses contributes the binding nearest this turn's
-        centroid — the backtrack's question is "does this word have a
-        binding near the input", so the nearest binding is the honest
-        witness; ties break low for determinism. A word with a section
-        home but no atlas binding yet falls back to the same
-        LanguageKrimelack transduction that assigns the INPUT chis in
-        converse Phase 1 — symmetric physics, never an invented number.
-        """
-        chis = self._word_to_chi_index.get(word_lower)
-        if chis:
-            if input_chis:
-                _centroid = sum(input_chis) / len(input_chis)
-                return min(chis, key=lambda c: (abs(c - _centroid), c))
-            return min(chis)
-        temp_krim = LanguageKrimelack()
-        temp_krim.transduce(word_lower)
-        return temp_krim.winding
-
-    def _brain_emission_candidates_legacy(self, input_words, input_chis=None):
+    def _brain_emission_candidates_legacy(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
         on -169's Embryo + real experience via read_word's tap) supplies
@@ -8600,8 +8394,7 @@ class Guala:
             section, mode_idx, _matched_word = self._best_fit_location(locations)
             weight = (n_votes / total) if total else 0.0
             co = {section: {mode_idx: weight}}
-            de = {"co_occurrence": co, "clarity": weight, "origin": "brain",
-                  "chi": self._candidate_word_chi(w.lower(), input_chis)}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
             candidates.append((de, co, weight))
             input_words_lower.add(w.lower())  # don't also deep-atlas-surface this word below
 
@@ -8667,8 +8460,7 @@ class Guala:
                 DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED * (n_distinct_queries - 1))
             weight = best_weight * relevance_boost
             co = {section: {str(mode_idx): weight}}
-            de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas",
-                  "chi": self._candidate_word_chi(wl, input_chis)}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas"}
             candidates.append((de, co, weight))
             input_words_lower.add(wl)
             n_deep_candidates += 1
@@ -8689,10 +8481,7 @@ class Guala:
                     if n_imagination_candidates >= IMAGINATION_MAX_CANDIDATES_PER_TURN:
                         break
                     co = {section: {str(mode_idx): weight}}
-                    de = {"co_occurrence": co, "clarity": weight,
-                          "origin": "imagination",
-                          "chi": self._candidate_word_chi(word_label.lower(),
-                                                          input_chis)}
+                    de = {"co_occurrence": co, "clarity": weight, "origin": "imagination"}
                     candidates.append((de, co, weight))
                     input_words_lower.add(word_label.lower())
                     n_imagination_candidates += 1
@@ -8715,10 +8504,7 @@ class Guala:
                     if n_reflection_candidates >= REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN:
                         break
                     co = {section: {str(mode_idx): weight}}
-                    de = {"co_occurrence": co, "clarity": weight,
-                          "origin": "reflection",
-                          "chi": self._candidate_word_chi(word_label.lower(),
-                                                          input_chis)}
+                    de = {"co_occurrence": co, "clarity": weight, "origin": "reflection"}
                     candidates.append((de, co, weight))
                     input_words_lower.add(word_label.lower())
                     n_reflection_candidates += 1
@@ -9082,106 +8868,13 @@ class Guala:
                 return EmissionSettlement(tick=self.tick)
 
             input_words_set = set(w.lower() for w in input_words)
-            deep_candidates = self._brain_emission_candidates(
-                input_words, input_chis=input_chis)
+            deep_candidates = self._brain_emission_candidates(input_words)
             if not deep_candidates:
                 return EmissionSettlement(tick=self.tick)
 
-            first = self._emit_dynamics(
+            return self._emit_dynamics(
                 input_chis, input_words_set, deep_candidates,
                 v7_session=v7_session, input_words=input_words)
-
-            # GL-FEAT-UTTERANCE-WALK-C1-20260722: an utterance is a walk,
-            # not a single shot. The settle above commits 0-2 words and
-            # stops by construction — there was no mechanism for a
-            # committed word to carry the utterance forward, which is why
-            # replies were one word while the atlas holds a library. Each
-            # further step is the IDENTICAL physics run again: candidates
-            # re-gathered with the just-committed words as the organism/
-            # deep-atlas queries (the utterance's own associations drive
-            # the continuation), anchors extended by the committed words'
-            # real chi (the walk stays tethered to the conversation and
-            # drifts only through lived bindings), every gate — agency
-            # backtrack, dead-zone, NMDA, wall budget — unchanged per
-            # step. Already-spoken words join the anti-echo set, so the
-            # walk can never loop. It ends the honest way: the dynamics
-            # themselves go quiet (a step with no commit), or the bounded
-            # walk budget/word cap is reached. No new store, no new
-            # index, no new process — iteration of what exists, bounded:
-            # UTTERANCE_WALK_MAX_WORDS total words (0/1 disables the
-            # walk), UTTERANCE_WALK_BUDGET_S wall clock for the extra
-            # steps (same kind of budget bound as EMISSION_WALL_BUDGET_S).
-            _walk_cap = int(os.environ.get("UTTERANCE_WALK_MAX_WORDS", "5"))
-            _walk_budget = float(os.environ.get(
-                "UTTERANCE_WALK_BUDGET_S", "8.0"))
-            if first.n_commits == 0 or _walk_cap <= 1:
-                return first
-
-            _walk_deadline = time.monotonic() + _walk_budget
-            chain_words = list(first.content.split())
-            chain_sections = list(first.committed_sections)
-            chain_prov = list(first.commit_provenance)
-            n_commits_total = first.n_commits
-            organ_any = first.organ_in_commits
-            spoken = set(input_words_set)
-            anchors = list(input_chis)
-            step_words = chain_words
-            n_steps = 1
-            while (len(chain_words) < _walk_cap
-                    and step_words
-                    and time.monotonic() < _walk_deadline):
-                for w in step_words:
-                    wl = w.lower()
-                    spoken.add(wl)
-                    anchors.append(self._candidate_word_chi(wl, anchors))
-                step_candidates = self._brain_emission_candidates(
-                    step_words, input_chis=anchors)
-                if not step_candidates:
-                    break
-                step = self._emit_dynamics(
-                    anchors, spoken, step_candidates,
-                    v7_session=v7_session, input_words=list(spoken))
-                if step.n_commits == 0 or not step.content:
-                    break
-                step_words = [w for w in step.content.split()
-                              if w.lower() not in spoken]
-                if not step_words:
-                    break
-                room = _walk_cap - len(chain_words)
-                step_words = step_words[:room]
-                chain_words.extend(step_words)
-                chain_sections.extend(step.committed_sections)
-                chain_prov.extend(step.commit_provenance)
-                n_commits_total += step.n_commits
-                organ_any = organ_any or step.organ_in_commits
-                n_steps += 1
-
-            if n_steps == 1:
-                return first
-            walk_text = " ".join(chain_words)
-            self._log_substrate_event(
-                "utterance_walk", content=walk_text, n_steps=n_steps,
-                n_words=len(chain_words),
-                n_commits=n_commits_total)
-            walk_settlement = EmissionSettlement(
-                content=walk_text,
-                committed_sections=tuple(chain_sections),
-                n_commits=n_commits_total,
-                organ_in_commits=organ_any,
-                tick=self.tick,
-                commit_provenance=tuple(chain_prov))
-            self._last_dynamics_result = {
-                "content": walk_text,
-                "committed_sections": list(chain_sections),
-                "n_commits": n_commits_total,
-                "dynamics_commits": n_commits_total,
-                "organ_in_commits": organ_any,
-                "commit_provenance": [
-                    p.as_record() if hasattr(p, "as_record") else p
-                    for p in chain_prov],
-                "tick": self.tick,
-            }
-            return walk_settlement
 
     # Phase 3b constants — context prior weights
     INTRO_RECENCY_BOOST = 2.0
@@ -11759,8 +11452,6 @@ class Guala:
                     self._atick_attending_audio(a)
                 elif a.kind == "ATTENDING_VIDEO":
                     self._atick_attending_video(a)
-                elif a.kind == "DOING":
-                    self._atick_doing(a)
                 elif a.kind == "EMITTING":
                     self._atick_emitting(a)
                 # Non-reading: manual atlas decay + coordinator
@@ -11820,94 +11511,7 @@ class Guala:
                 for s in PAIR_BOND_SOURCES)
                 and self.tick - self._last_emission_tick > EMISSION_COOLDOWN_TICKS):
             candidates.append(("EMITTING", None))
-        # GL world-actions-in-process: acting on her own room — cooldown-
-        # bounded, block-schedule-respecting, same (kind, target) shape as
-        # every other candidate (target = "object_id:verb").
-        if self._world_actions_available():
-            for wa in self._world_action_candidates():
-                candidates.append(("DOING", wa))
         return candidates
-
-    def _world_actions_available(self):
-        """GL world-actions-in-process: may DOING candidates enter selection
-        right now? Two real bounds, no randomness:
-        1. Cooldown — at least WORLD_ACTION_COOLDOWN_TICKS since her last
-           world action (mirrors EMITTING's cooldown gate above).
-        2. Block schedule — no NEW world actions during the "quiet" block
-           (GL-SPC-EXPERIENCE-FIRST §8, same block the machine feeders
-           already respect). If the runner module isn't loaded (unit
-           tests, engine-only use), the gate honestly reports the only
-           bound it can verify: the cooldown."""
-        if (self.tick - getattr(self, "_last_world_action_tick", -100_000)
-                <= WORLD_ACTION_COOLDOWN_TICKS):
-            return False
-        try:
-            import sys as _sys
-            _sr = _sys.modules.get("dsf_ai_service.substrate_runner")
-            if _sr is not None and _sr._current_block() == "quiet":
-                return False
-        except Exception:
-            pass
-        return True
-
-    def _world_action_candidates(self):
-        """Every (object, verb) currently reachable in her room, as
-        "object_id:verb" targets. Data-driven straight from
-        virtual_home.OBJECTS + the live WorldState — no scripted list:
-        - fixtures/objects placed in her_room are always reachable;
-        - an object placed INSIDE a closable container (toy chest) is
-          reachable only while that container's real state is open —
-          she cannot wind the music box through a closed lid.
-        Sorted for determinism (dict order is never load-bearing here)."""
-        try:
-            from dsf_ai_service.virtual_home import OBJECTS
-            ws = self._world_state()
-        except Exception:
-            return []
-        out = []
-        for obj_id in sorted(OBJECTS):
-            defn = OBJECTS[obj_id]
-            place = defn.get("place")
-            if place != "her_room":
-                container = OBJECTS.get(place)
-                if container is None:
-                    continue
-                if ("open" in (container.get("states") or [])
-                        and ws.get(place).get("state") != "open"):
-                    continue
-            for verb in sorted(defn.get("verbs") or {}):
-                out.append(f"{obj_id}:{verb}")
-        return out
-
-    def _world_state(self):
-        """Lazy shared WorldState on STATE_DIR's world_state.json — the SAME
-        file _current_situation() and /room already read. Single writer:
-        this engine (the :8090 sidecar actuator was never launched and is
-        retired); writes are atomic (WorldState._save tmp+os.replace)."""
-        ws = getattr(self, "_world_state_obj", None)
-        if ws is None:
-            from dsf_ai_service.virtual_home import WorldState
-            ws = WorldState(os.environ.get("STATE_DIR", "/mnt/efs/guala"))
-            self._world_state_obj = ws
-        return ws
-
-    def _world_action_comfort_payoff(self, target):
-        """Per-target stability payoff, derived deterministically from the
-        verb's own experience words in virtual_home.OBJECTS: overlap
-        fraction with WORLD_COMFORT_WORDS × DOING_STABILITY_PAYOFF_MAX.
-        "lie under" the blanket (warm/soft/safe/cozy → 1.0 overlap) is a
-        full comfort action; "ring" the bell (bright/clear/sharp) is 0."""
-        obj_id, _, verb = (target or "").partition(":")
-        try:
-            from dsf_ai_service.virtual_home import OBJECTS
-        except Exception:
-            return 0.0
-        vd = ((OBJECTS.get(obj_id) or {}).get("verbs") or {}).get(verb) or {}
-        words = (vd.get("experience") or {}).get("words") or []
-        if not words:
-            return 0.0
-        overlap = sum(1 for w in words if w in WORLD_COMFORT_WORDS)
-        return DOING_STABILITY_PAYOFF_MAX * overlap / len(words)
 
     # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B2: same reference scale
     # _Corpus.is_new() already uses for "not recently read" -- reused, not
@@ -12074,27 +11678,10 @@ class Guala:
                 v.times_attended, self.tick - v.last_attended_tick)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"] * (1.0 - fresh))
-        elif kind == "DOING" and target:
-            # GL world-actions-in-process: same continuous habituation curve
-            # as every other target-based kind. A never-done action record
-            # is honestly absent → times_done=0 → fully fresh; disuse
-            # recovers freshness exactly like the ATTENDING_* kinds.
-            _habituation_eligible = True
-            rec = self._world_actions.get(target) or {}
-            fresh = self._habituation_freshness(
-                rec.get("times_done", 0),
-                self.tick - rec.get("last_done_tick", 0))
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["DOING_NEW"] * fresh
-                          + ACTIVITY_NOVELTY_PAYOFF["DOING_REPEAT"] * (1.0 - fresh))
         else:
             nov_payoff = ACTIVITY_NOVELTY_PAYOFF.get(kind, 0.0)
 
         stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
-        if kind == "DOING" and target:
-            # Comfort actions carry a real, data-derived stability payoff —
-            # a stability deficit steers her toward the blanket/night light,
-            # never via a scripted object list (see _world_action_comfort_payoff).
-            stab_payoff = self._world_action_comfort_payoff(target)
         conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
 
         # GL-CMD-SLEEP-CALIBRATION-JOE-20260704, dial 1: a seen picture (or
@@ -12223,12 +11810,6 @@ class Guala:
             return self._sounds[target].get("last_attended_tick", 0)
         if kind == "ATTENDING_VIDEO" and target in self._videos:
             return self._videos[target].last_attended_tick
-        if kind == "DOING":
-            # Never-done actions report 0 (oldest possible) — the LRU
-            # tie-break then genuinely prefers untouched objects, the
-            # -181 rotation guarantee extended to world actions.
-            rec = self._world_actions.get(target)
-            return rec.get("last_done_tick", 0) if rec else 0
         return None
 
     def _select_next_activity(self):
@@ -12618,37 +12199,6 @@ class Guala:
         """Whether an admitted word experience has not finished integration."""
         queue = getattr(self, "_organism_queue", None)
         return bool(queue is not None and queue.unfinished_tasks > 0)
-
-    # GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: ~two sentences of words.
-    # Bound chosen against the worker queue's hard maxsize (2000) — this
-    # is ~1% of it; binding lag at the limit is ≤2 sentences.
-    ORGANISM_INTAKE_BACKLOG_LIMIT = 24
-
-    def organism_experience_backlogged(self, limit=None):
-        """GL-FIX-INTAKE-BACKPRESSURE-C1-20260722: bounded-backlog form of
-        organism_experience_pending() for the autonomous curriculum feed.
-
-        The exact-zero form above is correct where it guards one
-        in-window sentence whose words must finish binding before the
-        window closes (_atick_reading). As the per-sentence AUTONOMOUS
-        INTAKE gate, though, it shut the reading valve almost completely:
-        every word read enqueues one item to the single organism worker
-        (which also drains the sensory queue on the same thread), so the
-        queue is virtually never empty at the next sentence's re-check.
-        Live block_intake_ledger evidence: planned=30 actual=1
-        capped=true every scaffold cycle — reading throughput ~1
-        sentence/cycle, starving association growth, which is the fuel
-        for organism recall and babble replies.
-
-        This form yields only when a small bounded backlog is exceeded.
-        The bounds above it are unchanged and real: the worker queue's
-        hard maxsize, the 15/min scaffold rate cap, the block schedule.
-        Lean doctrine: bound stated here, decay untouched, no new store.
-        """
-        if limit is None:
-            limit = self.ORGANISM_INTAKE_BACKLOG_LIMIT
-        queue = getattr(self, "_organism_queue", None)
-        return bool(queue is not None and queue.unfinished_tasks > limit)
 
     def _atick_sleeping(self, a):
         """Sleep restores stability TOWARD target. Transitions to dream at
@@ -13413,68 +12963,6 @@ class Guala:
             si.times_attended += 1
             si.last_attended_tick = self.tick
 
-    def _atick_doing(self, a):
-        """GL world-actions-in-process: execute the selected world action
-        ONCE (first tick of the activity), through the same shared actuator
-        the /action command uses. The remaining budget ticks are the
-        moment's settle — decay/regulate housekeeping runs in the loop as
-        for every non-reading activity; nothing extra is fabricated."""
-        if a.metadata.get("_world_action_done"):
-            return
-        a.metadata["_world_action_done"] = True
-        obj_id, _, verb = (a.target or "").partition(":")
-        self.perform_world_action(obj_id, verb, trigger="autonomy")
-
-    def perform_world_action(self, obj_id, verb, trigger="autonomy"):
-        """The ONE in-process actuator for her virtual room (ports the
-        retired :8090 sidecar's /action, substrate-true):
-        1. WorldState.apply_verb on the shared world_state.json (atomic
-           save; same file every existing world read uses).
-        2. Log a real world_action substrate event (verb + resulting
-           state + the room's real resulting ambient words).
-        3. Experience the consequence honestly: read the NEW state's
-           ambient_words through the existing real read path
-           (read_sentence, source="world"). No fabricated senses — the
-           words are exactly what the room's live object states emit.
-        Called from _atick_doing (autonomy) and _cmd_action (/action,
-        trigger="external"). Returns the same response shape the sidecar's
-        /action returned, for the surviving route."""
-        ws = self._world_state()
-        result = ws.apply_verb(obj_id, verb)
-        if not result:
-            self._log_substrate_event("world_action_invalid",
-                                      object=obj_id, verb=verb,
-                                      trigger=trigger)
-            return {"ok": False,
-                    "reason": f"no verb '{verb}' on '{obj_id}'"}
-        target = f"{obj_id}:{verb}"
-        with self.lock:
-            rec = self._world_actions.setdefault(
-                target, {"times_done": 0, "last_done_tick": 0})
-            first_time = rec["times_done"] == 0
-            rec["times_done"] += 1
-            rec["last_done_tick"] = self.tick
-            self._last_world_action_tick = self.tick
-            ambient = ws.ambient_words("her_room")
-            self._log_substrate_event(
-                "world_action", object=obj_id, verb=verb, trigger=trigger,
-                next_state=result.get("next_state"),
-                says=result.get("says", ""),
-                ambient_words=list(ambient))
-            if first_time:
-                # A genuinely new first-hand action satisfies novelty —
-                # same magnitude as a new sensory item (_atick_attending).
-                self.needs.novelty = saturate(self.needs.novelty, 0.002)
-        # Consequence, experienced through the one real intake door.
-        # read_sentence manages its own per-word locking (RLock-safe from
-        # the autonomy tick, lock-free entry from the /action route).
-        if ambient:
-            self.read_sentence(" ".join(ambient), source="world")
-        return {"ok": True, "object": obj_id, "verb": verb,
-                "says": result.get("says", ""),
-                "next_state": result.get("next_state"),
-                "ambient_words": list(ambient)}
-
     @_engine_mutation_entry
     @_live_sensory_entry
     def process_sight_frame(
@@ -14082,18 +13570,9 @@ class Guala:
             self._latest_auditory_continuation_receipt = continuation_receipt
         self._latest_auditory_full_field_capture = auditory_field
 
-        # GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): a new physical
-        # capture supersedes the organism sound snapshot immediately, same
-        # discipline as the status-surface resets above -- if this frame
-        # fails to settle, the previous frame's audio must not appear to
-        # belong to this event. The slot is REFILLED after successful
-        # settle below with _auditory_field_organism_reduction(), the
-        # bounded per-channel envelope summary of this frame's real
-        # gammatone field. (The 2026-07-15 full-field deploy retired the
-        # old 1-D cache here without rewiring its consumer -- see
-        # _enqueue_organism_remember -- which left every organism
-        # experience binding has_sound:false while auditory L5 ran fully
-        # live: the organism was deaf to audio the substrate really heard.)
+        # The retired one-dimensional organism cache cannot represent this
+        # topology without flattening it.  Do not route the full field through
+        # that compatibility path; auditory L5 consumes the structured field.
         self._last_sound_signal = None
         self._last_sound_wall_time = None
         # GL-RPT-WAL-BLOAT F2 (2026-07-15): this frame is one complete
@@ -14215,33 +13694,6 @@ class Guala:
             else:
                 _closed_window_id = None
                 _settlement = None
-        # GL-FIX-AUDITORY-ORGANISM-RECONNECT (2026-07-22): the frame settled
-        # (every channel bound, context closed at its real boundary -- an
-        # exception anywhere above skips this, leaving the slot honestly
-        # None). Refill the organism sense-snapshot slot with the bounded,
-        # deterministic per-channel envelope reduction of THIS frame's real
-        # gammatone field, wall-clock stamped so _enqueue_organism_remember's
-        # existing SENSE_BINDING_WINDOW_SEC snapshot-at-enqueue discipline
-        # (untouched) binds it into any word read within the window --
-        # has_sound becomes true again for words heard alongside real audio.
-        # Gated on n_bands_fired (real acoustic energy in at least one
-        # cochlear channel): an all-silent settled frame leaves the slot
-        # cleared by the supersede reset above -- she is hearing silence
-        # NOW, so the previous sound has ended and a word read during the
-        # silence binds no audio, rather than a zero-energy placeholder or
-        # an already-over sound.
-        # Same non-fatal try/except convention as process_sight_frame's
-        # sight cache -- a snapshot failure means the sense stays honestly
-        # absent, never a broken frame receipt.
-        if n_bands_fired > 0:
-            try:
-                self._last_sound_signal = (
-                    _auditory_field_organism_reduction(auditory_field))
-                self._last_sound_wall_time = time.time()
-            except Exception as _osre:
-                print(f"[GualaLoom] process_sound_frame: organism sound "
-                      f"snapshot failed (non-fatal, sense stays honestly "
-                      f"absent): {_osre}")
         if auditory_pcm_continuity is not None:
             with self._auditory_transaction_lock:
                 receipt_sha256 = auditory_pcm_continuity.receipt_sha256
@@ -15468,8 +14920,6 @@ class Guala:
                     self._atick_attending_audio(activity_ref)
                 elif activity_kind == "ATTENDING_VIDEO":
                     self._atick_attending_video(activity_ref)
-                elif activity_kind == "DOING":
-                    self._atick_doing(activity_ref)
 
         # Phase C (self.lock brief): post-activity housekeeping
         with self.lock:
@@ -17507,8 +16957,6 @@ class Guala:
                 "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
                 "autonomous_emissions_count": self.autonomous_emissions_count,
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
-                "world_actions": {k: dict(v) for k, v in self._world_actions.items()},
-                "last_world_action_tick": self._last_world_action_tick,
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
                 "current_activity": (
@@ -17791,8 +17239,6 @@ class Guala:
                 "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
                 "autonomous_emissions_count": self.autonomous_emissions_count,
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
-                "world_actions": {k: dict(v) for k, v in self._world_actions.items()},
-                "last_world_action_tick": self._last_world_action_tick,
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
                 "current_activity": (
@@ -19234,15 +18680,6 @@ class Guala:
         self.last_autonomous_attempt_tick = int(core.get("last_autonomous_attempt_tick", -100_000))
         self.autonomous_emissions_count = int(core.get("autonomous_emissions_count", 0))
         self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
-        # GL world-actions-in-process: restore per-action habituation + the
-        # cooldown tick. Absent in older states → honest empty (fresh).
-        self._world_actions = {
-            k: {"times_done": int(v.get("times_done", 0)),
-                "last_done_tick": int(v.get("last_done_tick", 0))}
-            for k, v in core.get("world_actions", {}).items()
-            if isinstance(v, dict)}
-        self._last_world_action_tick = int(
-            core.get("last_world_action_tick", -100_000))
         corpora_state = core.get("corpora_state", {})
         if strict:
             restored_corpora = {}

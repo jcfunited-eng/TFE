@@ -117,19 +117,13 @@ def _stub_stage1(*_a, **_kw):
 
 
 def _make_engine():
-    # GL-FEAT-UTTERANCE-WALK-C1-20260722: these tests time ONE settle's
-    # wall budget; the walk layer adds bounded extra settles on top and
-    # has its own bound + tests (test_utterance_walk.py). Disable it here
-    # so the per-settle budget contract stays what's measured.
-    os.environ["UTTERANCE_WALK_MAX_WORDS"] = "1"
     g = Guala()
     # Real committed-section-home gate (_word_to_emission_sections) is
     # bypassed via a minimal non-empty Stage-1 source, same convention
     # test_reflection_emission_candidates.py's _stub_organism_self_echo
     # uses -- isolates Stage 2 (the settling loop under test) from Stage
     # 1's own, separately-validated selection logic.
-    g._brain_emission_candidates = (
-        lambda input_words, input_chis=None: [({}, {}, 1.0)])
+    g._brain_emission_candidates = lambda input_words: [({}, {}, 1.0)]
     return g
 
 

@@ -19,11 +19,8 @@ Gates:
    transcript and unresolved auditory-source provenance -- not read_sentence
    and never a fabricated Joe identity.
 2. While a reply is composing, one additional recognized terminal is
-   admitted to the single pending slot and composed afterward. A newer
-   terminal REPLACES the pending one (visible "superseded" result, physical
-   event discarded through the real mechanism) -- replies never overlap, no
-   backlog can grow, and nothing is ever dropped silently
-   (GL-FIX-VOICE-LOOP-UX-20260722).
+   admitted to the single pending slot and composed afterward. A third is
+   rejected, so replies never overlap and no backlog can grow.
 3. The busy flag clears after completion, success or failure, so the
    NEXT utterance after the current one finishes is not permanently
    blocked.
@@ -171,7 +168,7 @@ def test_gate1_recognized_speech_calls_converse_not_read_sentence():
     appmod._guala = fake
     terminal = _terminal("hello guala")
     ok = appmod._maybe_trigger_voice_reply(terminal, fake.tick)
-    assert ok == "started"
+    assert ok is True
     for _ in range(50):
         if not appmod._voice_reply_busy.is_set():
             break
@@ -183,8 +180,8 @@ def test_gate1_recognized_speech_calls_converse_not_read_sentence():
     print("  PASS: converse() called exactly once, correct args")
 
 
-def test_gate2_pending_slot_is_bounded_and_replaces_with_newest():
-    print("Gate 2: bounded pending slot holds the NEWEST utterance...")
+def test_gate2_one_pending_utterance_is_bounded_and_serial():
+    print("Gate 2: one pending utterance is admitted without overlap...")
     _reset()
     fake = _FakeGuala(reply="reply one", delay=0.3)
     appmod._guala = fake
@@ -192,37 +189,23 @@ def test_gate2_pending_slot_is_bounded_and_replaces_with_newest():
     second_terminal = _terminal("second utterance", 2)
     third_terminal = _terminal("third utterance", 3)
     first = appmod._maybe_trigger_voice_reply(first_terminal, fake.tick)
-    assert first == "started"
+    assert first is True
     assert appmod._voice_reply_busy.is_set()
     second = appmod._maybe_trigger_voice_reply(second_terminal, fake.tick)
     third = appmod._maybe_trigger_voice_reply(third_terminal, fake.tick)
-    assert second == "queued", "one pending utterance must be admitted"
-    assert third == "queued", (
-        "a newer utterance must REPLACE the pending one, never drop silently"
-    )
+    assert second is True, "one pending utterance must be admitted"
+    assert third is False, "the bounded pending slot must reject a third"
     for _ in range(50):
         if not appmod._voice_reply_busy.is_set():
             break
         time.sleep(0.05)
     assert fake.converse_calls == [
         ("first utterance", "auditory:unresolved_source"),
-        ("third utterance", "auditory:unresolved_source"),
+        ("second utterance", "auditory:unresolved_source"),
     ], fake.converse_calls
-    assert fake.causal_intakes == [first_terminal, third_terminal]
-    assert fake.discarded_terminals == [second_terminal], (
-        "the replaced pending terminal's physical event must be discarded "
-        "through the real mechanism"
-    )
-    superseded = asyncio.run(
-        appmod.auditory_terminal_reply(second_terminal.event_id)
-    )
-    assert superseded["status"] == "superseded", (
-        "a replaced utterance must resolve to a VISIBLE terminal state"
-    )
-    assert superseded["heard"] == "second utterance"
-    assert (superseded["superseded_by_terminal_event_id"]
-            == third_terminal.event_id)
-    print("  PASS: newest utterance kept, replaced one visibly superseded")
+    assert fake.causal_intakes == [first_terminal, second_terminal]
+    assert fake.discarded_terminals == [third_terminal]
+    print("  PASS: one pending utterance composed serially; third rejected")
 
 
 def test_duplicate_active_event_does_not_revoke_its_authority():
@@ -231,7 +214,7 @@ def test_duplicate_active_event_does_not_revoke_its_authority():
     appmod._guala = fake
     terminal = _terminal("one physical event", 30)
 
-    assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) == "started"
+    assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) is True
     assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) is False
     assert fake.discarded_terminals == []
     for _ in range(50):
@@ -415,7 +398,7 @@ def test_gate8_only_one_verified_terminal_identity_enters_cognition():
     except ValueError as error:
         assert "receipt was altered" in str(error)
 
-    assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) == "started"
+    assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) is True
     assert appmod._maybe_trigger_voice_reply(terminal, fake.tick) is False
     for _ in range(50):
         if not appmod._voice_reply_busy.is_set():
@@ -426,189 +409,13 @@ def test_gate8_only_one_verified_terminal_identity_enters_cognition():
     print("  PASS: exactly one verified physical event entered cognition")
 
 
-def test_gate9_delivery_and_thought_carry_the_real_heard_form():
-    print("Gate 9: reply delivery + /thought carry the recognizer's form...")
-    _reset()
-    srmod._last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
-    fake = _FakeGuala(reply="a real committed reply")
-    appmod._guala = fake
-    terminal = _terminal("what she actually heard", 40)
-    appmod._maybe_trigger_voice_reply(terminal, fake.tick)
-    for _ in range(50):
-        if not appmod._voice_reply_busy.is_set():
-            break
-        time.sleep(0.05)
-    delivered = asyncio.run(appmod.auditory_terminal_reply(terminal.event_id))
-    assert delivered["heard"] == "what she actually heard", (
-        "the delivery must carry the recognizer's released form so the "
-        "dialog and teacher thumbs never invent the heard input"
-    )
-    with srmod._autonomous_thought_lock:
-        thought = dict(srmod._last_autonomous_thought)
-    assert thought["heard"] == "what she actually heard"
-    print("  PASS: heard form rides delivery and thought unchanged")
-
-
-def _pcm_message(sight_captured_ms):
-    return appmod.GLMessage(
-        text="AA==",
-        audio_encoding="pcm_s16le",
-        audio_stream_id="stream",
-        audio_sequence=0,
-        audio_first_sample_index=0,
-        audio_sample_count=80_000,
-        audio_sample_rate_hz=16_000,
-        audio_source_epoch_ms=10_000,
-        sight_b64="Zg==",
-        sight_captured_ms=sight_captured_ms,
-    )
-
-
-def test_gate10_out_of_interval_sight_drops_pairing_never_kills_sound():
-    print("Gate 10: bad sight pairing drops the pairing, keeps hearing...")
-    # Chunk interval: [10s, 15s). In-interval pairing anchors normally.
-    inside = appmod._authoritative_capture_times(
-        _pcm_message(12_000), paired_sight=True
-    )
-    assert inside["sight_pairing_dropped"] is None
-    assert inside["sight_source_anchor_ns"] == 12_000 * 1_000_000
-    # A jitter-late capture outside the interval must NOT raise (a raise
-    # used to terminally reject the PCM epoch and kill hearing) -- the
-    # pairing is dropped, honestly named, and sound continuity is intact.
-    outside = appmod._authoritative_capture_times(
-        _pcm_message(15_500), paired_sight=True
-    )
-    assert outside["sight_pairing_dropped"] is not None
-    assert "outside the PCM interval" in outside["sight_pairing_dropped"]
-    assert outside["sight_source_anchor_ns"] is None
-    assert outside["source_time_start_ns"] == 10_000 * 1_000_000
-    assert outside["source_time_end_ns"] == 15_000 * 1_000_000
-    # Same for a missing timestamp: unprovable pairing, not a stream fault.
-    missing = appmod._authoritative_capture_times(
-        _pcm_message(None), paired_sight=True
-    )
-    assert missing["sight_pairing_dropped"] is not None
-    assert missing["sight_source_anchor_ns"] is None
-    # The legacy (non-PCM) branch keeps its strict behaviour unchanged.
-    legacy = appmod.GLMessage(
-        text="AA==", capture_started_ms=1_000, capture_ended_ms=2_000,
-        sight_b64="Zg==", sight_captured_ms=5_000,
-    )
-    try:
-        appmod._authoritative_capture_times(legacy, paired_sight=True)
-        raise AssertionError("legacy paired-sight validation must still raise")
-    except ValueError as error:
-        assert "outside the audio interval" in str(error)
-    print("  PASS: pairing dropped honestly; sound authority untouched")
-
-
-class _TeachableGuala(_FakeGuala):
-    """Records exist exactly as converse() writes them; no new stores."""
-
-    def __init__(self):
-        super().__init__(reply="")
-        self._emission_records = {
-            "voice-emission-1": {
-                "emission_id": "voice-emission-1",
-                "text": "her committed voice reply",
-                "input_text": "what she actually heard",
-                "response_source": "assemblage_commit",
-                "n_commits": 3,
-                "tick": 12345,
-            },
-            "stale-uncommitted": {
-                "emission_id": "stale-uncommitted",
-                "text": "fabricated",
-                "input_text": "x",
-                "response_source": "silence_no_commit",
-                "n_commits": 0,
-                "tick": 12345,
-            },
-        }
-        self.corrections = []
-
-    def _certified_emission_record(self, emission_id):
-        return None  # voice replies are never fact-certified
-
-    def apply_teacher_correction(self, **kw):
-        self.corrections.append(kw)
-        return {"ok": True, "affected": []}
-
-
-def test_gate11_voice_replies_are_teachable_via_existing_gateway():
-    print("Gate 11: teacher thumbs work on voice replies, real errors...")
-    from fastapi import HTTPException
-    _reset()
-    fake = _TeachableGuala()
-    appmod._guala = fake
-
-    # 1. A committed (assemblage) voice reply resolves through the engine's
-    #    own emission record -- heard input becomes original_input.
-    req = appmod.TeacherFeedbackRequest(
-        emission_id="voice-emission-1", source="joe"
-    )
-    result = appmod.handle_teacher_feedback_local(req)
-    assert result["ok"] is True
-    assert fake.corrections[-1]["original_input"] == "what she actually heard"
-    assert fake.corrections[-1]["her_emission"] == "her committed voice reply"
-    assert fake.corrections[-1]["correct"] is True
-
-    # 2. An organism-attempt voice reply (no record, emission_id=None)
-    #    teaches through the SAME gateway with the displayed real pair.
-    req = appmod.TeacherFeedbackRequest(
-        emission_id=None, source="joe",
-        original_input="what she actually heard",
-        her_emission="the and of",
-    )
-    result = appmod.handle_teacher_feedback_local(req)
-    assert result["ok"] is True
-    assert fake.corrections[-1]["her_emission"] == "the and of"
-
-    # 3. A record without a real commit stays ineligible (nothing
-    #    fabricated can be reinforced), and the error text is REAL.
-    req = appmod.TeacherFeedbackRequest(
-        emission_id="stale-uncommitted", source="joe"
-    )
-    try:
-        appmod.handle_teacher_feedback_local(req)
-        raise AssertionError("uncommitted record must stay unteachable")
-    except HTTPException as error:
-        assert error.status_code == 400
-        assert "not teachable" in error.detail
-
-    # 4. Corrections accept the same resolution (thumbs-down path).
-    creq = appmod.TeacherCorrectionRequest(
-        emission_id="voice-emission-1", corrected_text="say this instead",
-        source="joe",
-    )
-    result = appmod.handle_teacher_correction_local(creq)
-    assert result["ok"] is True
-    assert fake.corrections[-1]["correct"] is False
-    assert fake.corrections[-1]["original_input"] == "what she actually heard"
-    assert fake.corrections[-1]["corrected_text"] == "say this instead"
-
-    # 5. The correction model actually declares the page-supplied pair
-    #    (it was silently discarded by pydantic before this fix).
-    creq = appmod.TeacherCorrectionRequest(
-        emission_id=None, corrected_text="say this instead", source="joe",
-        original_input="what she actually heard", her_emission="the and of",
-    )
-    result = appmod.handle_teacher_correction_local(creq)
-    assert result["ok"] is True
-    assert fake.corrections[-1]["her_emission"] == "the and of"
-    print("  PASS: voice replies teachable; unteachable stays refused loudly")
-
-
 if __name__ == "__main__":
     test_gate1_recognized_speech_calls_converse_not_read_sentence()
-    test_gate2_pending_slot_is_bounded_and_replaces_with_newest()
+    test_gate2_one_pending_utterance_is_bounded_and_serial()
     test_gate3_busy_flag_clears_after_completion()
     test_gate4_real_reply_reaches_last_autonomous_thought()
     test_gate5_real_reply_self_hears()
     test_gate6_empty_reply_does_not_surface_or_self_hear()
     test_gate7_structural_silence_uses_typed_organism_fallthrough()
     test_gate8_only_one_verified_terminal_identity_enters_cognition()
-    test_gate9_delivery_and_thought_carry_the_real_heard_form()
-    test_gate10_out_of_interval_sight_drops_pairing_never_kills_sound()
-    test_gate11_voice_replies_are_teachable_via_existing_gateway()
     print("\nAll voice-reply-door gates pass.")

@@ -33,15 +33,6 @@ interface LedgerRow {
   created_at: string;
 }
 
-// Entry-time coupled read, persisted in rationale_json.v3_basin since
-// 2026-07-21. Older rows predate the recording and show "—".
-function basinOf(row: LedgerRow): { acc: number | null; brk: number | null } {
-  const b = (row.rationale_json as { v3_basin?: { accumulate_basin?: unknown; break_agreement?: unknown } } | null)?.v3_basin;
-  const acc = typeof b?.accumulate_basin === "number" ? b.accumulate_basin : null;
-  const brk = typeof b?.break_agreement === "number" ? b.break_agreement : null;
-  return { acc, brk };
-}
-
 interface StealthRow {
   id: number;
   parent_ledger_id: number | null;
@@ -137,14 +128,10 @@ function exportCSV(rows: LedgerRow[]) {
   ];
   const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
-    [...headers, "accumulate_basin", "break_agreement"].join(","),
-    ...rows.map(r => {
-      const basin = basinOf(r);
-      return [
-        ...headers.map(h => esc((r as unknown as Record<string, unknown>)[h])),
-        esc(basin.acc), esc(basin.brk),
-      ].join(",");
-    }),
+    headers.join(","),
+    ...rows.map(r =>
+      headers.map(h => esc((r as unknown as Record<string, unknown>)[h])).join(",")
+    ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv" });
   const a    = document.createElement("a");
@@ -166,8 +153,6 @@ export default function AuditorReport() {
 
   // Expanded row details
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [basinSort, setBasinSort] = useState<"acc" | "brk" | null>(null);
-  const [basinSortDir, setBasinSortDir] = useState<1 | -1>(-1);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -191,25 +176,6 @@ export default function AuditorReport() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const { summary, rows, stealth, circuitBreaker } = data ?? {};
-
-  // Client-side sort of the fetched page by entry-time basin values.
-  // Rows without a recorded coupled read (pre-2026-07-21) sort last.
-  const sortedRows = React.useMemo(() => {
-    if (!rows || !basinSort) return rows;
-    return [...rows].sort((a, b) => {
-      const av = basinOf(a)[basinSort];
-      const bv = basinOf(b)[basinSort];
-      if (av === null && bv === null) return 0;
-      if (av === null) return 1;
-      if (bv === null) return -1;
-      return (av - bv) * basinSortDir;
-    });
-  }, [rows, basinSort, basinSortDir]);
-
-  const basinHeaderClick = (key: "acc" | "brk") => {
-    setBasinSortDir(d => (basinSort === key ? ((d * -1) as 1 | -1) : -1));
-    setBasinSort(key);
-  };
 
   return (
     <div className="space-y-6 font-mono text-xs">
@@ -328,25 +294,15 @@ export default function AuditorReport() {
                 <th scope="col" style={{textAlign:"right"}}>s_uf</th>
                 <th scope="col" style={{textAlign:"right"}}>bar</th>
                 <th scope="col" style={{textAlign:"right"}}>f_n</th>
-                <th scope="col" style={{textAlign:"right", cursor:"pointer", whiteSpace:"nowrap"}}
-                    title="accumulate_basin at entry (coupled read) — click to sort"
-                    onClick={() => basinHeaderClick("acc")}>
-                  acc{basinSort === "acc" ? (basinSortDir === -1 ? " ↓" : " ↑") : ""}
-                </th>
-                <th scope="col" style={{textAlign:"right", cursor:"pointer", whiteSpace:"nowrap"}}
-                    title="break_agreement at entry (coupled read) — click to sort"
-                    onClick={() => basinHeaderClick("brk")}>
-                  brk{basinSort === "brk" ? (basinSortDir === -1 ? " ↓" : " ↑") : ""}
-                </th>
                 <th scope="col" style={{textAlign:"left"}}>Exit Reason</th>
                 <th scope="col" style={{textAlign:"left"}}>Order ID</th>
               </tr>
             </thead>
             <tbody>
-              {(!sortedRows || sortedRows.length === 0) && (
-                <tr><td colSpan={19} style={{textAlign:"center"}}>No rows</td></tr>
+              {rows.length === 0 && (
+                <tr><td colSpan={17} style={{textAlign:"center"}}>No rows</td></tr>
               )}
-              {(sortedRows ?? []).map(row => (
+              {rows.map(row => (
                 <React.Fragment key={row.id}>
                   <tr
                     className="border-b border-gray-800 hover:bg-gray-800/40 cursor-pointer"
@@ -373,8 +329,6 @@ export default function AuditorReport() {
                     <td style={{textAlign:"right"}}>{fmt(row.s_uf, 3)}</td>
                     <td style={{textAlign:"right"}}>{row.bar_count ?? "—"}</td>
                     <td style={{textAlign:"right"}}>{fmt(row.f_n, 3)}</td>
-                    <td style={{textAlign:"right", color:"#16a34a"}}>{basinOf(row).acc?.toFixed(3) ?? "—"}</td>
-                    <td style={{textAlign:"right", color:"#f59e0b"}}>{basinOf(row).brk?.toFixed(3) ?? "—"}</td>
                     <td style={{textAlign:"left"}}>{row.exit_reason ?? "—"}</td>
                     <td style={{textAlign:"left"}}>{row.alpaca_order_id ?? "—"}</td>
                   </tr>
@@ -382,7 +336,7 @@ export default function AuditorReport() {
                   {/* Expanded detail row — signal provenance + rationale */}
                   {expandedId === row.id && (
                     <tr className="bg-gray-900/60 border-b border-gray-700">
-                      <td colSpan={19} className="py-3 px-4">
+                      <td colSpan={17} className="py-3 px-4">
                         <div className="grid grid-cols-2 gap-4 text-[10px]">
                           <div>
                             <div className="text-gray-500 font-semibold mb-1">Signal Provenance</div>

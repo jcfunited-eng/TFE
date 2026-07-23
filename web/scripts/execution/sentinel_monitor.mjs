@@ -110,23 +110,6 @@ export function shouldCh3StallExit(entryFilledAt, plPct, nowMs = Date.now()) {
   return plPct > -0.01 && plPct < 0.005;
 }
 
-// ── CH2 profit protection (free-fall guard for big winners) ───────────────
-// Engages ONLY after +25% unrealized gain — normal positions are never
-// touched, so EXIT-A's winner-capping sin (GL-BRIEF-039) stays dead. Tracks
-// the position's peak price (persisted in rationale_json across restarts)
-// and exits if price gives back more than a third of the peak gain: a +90%
-// peak ratchets a floor at +60%. 2026-07-21 UTZ sat at +90% ($2,204) with
-// zero resting orders and only the -10%-from-entry floor ($6.66) beneath it.
-export const PROFIT_PROTECT_ENGAGE   = 0.25;
-export const PROFIT_PROTECT_GIVEBACK = 1 / 3;
-export function profitProtectFloor(entryPrice, peakPrice) {
-  if (!Number.isFinite(entryPrice) || !Number.isFinite(peakPrice)) return null;
-  if (entryPrice <= 0 || peakPrice <= entryPrice) return null;
-  const peakGain = peakPrice / entryPrice - 1;
-  if (peakGain < PROFIT_PROTECT_ENGAGE) return null;
-  return entryPrice * (1 + peakGain * (1 - PROFIT_PROTECT_GIVEBACK));
-}
-
 // ── Phantom cleanup grace period (prevents killing orders still filling) ──
 // GENB was submitted at 13:34, zombie check at 13:39 (5 min) declared it
 // phantom because Alpaca hadn't filled yet. Grace period: 30 minutes.
@@ -190,30 +173,6 @@ async function alpacaPost(path, payload, base) {
   const body = await res.json();
   if (!res.ok) throw new Error(`Alpaca POST ${path} → ${res.status}: ${JSON.stringify(body)}`);
   return body;
-}
-
-async function alpacaPatch(path, payload, base) {
-  const res = await fetch(`${base}${path}`, {
-    method: "PATCH",
-    headers: alpacaHeaders(),
-    body: JSON.stringify(payload),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`Alpaca PATCH ${path} → ${res.status}: ${JSON.stringify(body)}`);
-  return body;
-}
-
-// ── CH3 stop re-anchor ────────────────────────────────────────────────────
-// Brackets are placed against the worst-case limit BEFORE the fill exists.
-// A fill below the cap otherwise leaves the stop at or even above the fill:
-// 2026-07-22 EOLS's stop sat exactly at its own fill (first downtick sold);
-// 2026-07-21 AFRI's sat above its fill. Once the real fill is known, the
-// stop moves to fill × (1 - 1%). The TP stays cap-anchored — fills below
-// the cap only ever widen the win (BLFS +1.75% on a +1.5% design).
-export const CH3_STOP_PCT = 0.01; // keep in sync with ch3_scalp_strategist CH3_STOP_LOSS_PCT
-export function reanchoredStopPrice(fillPrice, slPct = CH3_STOP_PCT) {
-  if (!Number.isFinite(fillPrice) || fillPrice <= 0) return null;
-  return parseFloat((fillPrice * (1 - slPct)).toFixed(2));
 }
 
 // ── Cancel open bracket legs before liquidating ──────────────────────────
@@ -283,7 +242,7 @@ async function fetchOpenPositions() {
     `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
             entry_filled_at, entry_filled_price, signal_detected_at, created_at,
-            take_profit_price, stop_loss_price, status, rationale_json
+            take_profit_price, stop_loss_price, status
      FROM personal_trade_ledger
      WHERE status IN ('pending', 'submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
@@ -766,39 +725,6 @@ export async function runSentinel() {
             );
             console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
             pos.status = "filled"; // update in-memory so exit checks work
-
-            // CH3: re-anchor the stop leg to the actual fill (see
-            // reanchoredStopPrice). Replace returns a NEW order id — the
-            // ledger must track it or the stored id goes stale.
-            if (String(pos.signal_class ?? "").trim().toUpperCase() === "CH3" && pos.alpaca_stop_loss_order_id) {
-              try {
-                const newStop = reanchoredStopPrice(filledPrice);
-                const slOrder = await alpacaGet(`/v2/orders/${pos.alpaca_stop_loss_order_id}`, ALPACA_BASE);
-                const curStop = parseFloat(slOrder?.stop_price ?? "0");
-                const replaceable = slOrder && ["new", "accepted", "held"].includes(slOrder.status);
-                if (newStop !== null && replaceable && curStop > newStop + 0.005) {
-                  const replaced = await alpacaPatch(
-                    `/v2/orders/${pos.alpaca_stop_loss_order_id}`,
-                    { stop_price: String(newStop) },
-                    ALPACA_BASE
-                  );
-                  const newId = replaced?.id ?? null;
-                  if (newId) {
-                    await pool.query(
-                      `UPDATE personal_trade_ledger SET alpaca_stop_loss_order_id=$1, stop_loss_price=$2 WHERE id=$3`,
-                      [newId, newStop, pos.id]
-                    ).catch(() => {});
-                    pos.alpaca_stop_loss_order_id = newId;
-                  }
-                  console.log(
-                    `[SENTINEL] CH3 ${pos.ticker} stop re-anchored to fill: ` +
-                    `$${curStop} → $${newStop} (fill $${filledPrice})`
-                  );
-                }
-              } catch (reErr) {
-                console.warn(`[SENTINEL] CH3 ${pos.ticker} stop re-anchor failed (bracket stays cap-anchored): ${reErr.message}`);
-              }
-            }
           }
         } else if ((order?.status === "canceled" || order?.status === "expired") && parseFloat(order.filled_qty ?? "0") === 0) {
           // Order was cancelled or expired before filling — mark ledger record as cancelled
@@ -1012,8 +938,6 @@ export async function runSentinel() {
 
     // Pre-check current P&L (used by minimum hold guard AND structural exit assessment)
     let currentPnlPct = null;
-    let livePosEntry = null;
-    let livePosPrice = null;
     try {
       const alpacaPosCheck = await alpacaGet(
         `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
@@ -1023,8 +947,6 @@ export async function runSentinel() {
         const checkCurrent = parseFloat(alpacaPosCheck.current_price ?? "0");
         if (checkEntry > 0 && checkCurrent > 0) {
           currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
-          livePosEntry = checkEntry;
-          livePosPrice = checkCurrent;
         }
       }
     } catch { /* non-fatal */ }
@@ -1039,29 +961,6 @@ export async function runSentinel() {
     if (signalClass === "CH2") {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
-
-      // ── PROFIT PROTECT: free-fall guard (engages only above +25%) ────
-      if (livePosEntry !== null && livePosPrice !== null) {
-        const peakStored = parseFloat(pos.rationale_json?.peak_price ?? "") || 0;
-        const peakNow = Math.max(peakStored, livePosPrice);
-        if (peakNow > peakStored) {
-          const nextRationale = { ...(pos.rationale_json ?? {}), peak_price: peakNow };
-          await pool.query(
-            `UPDATE personal_trade_ledger SET rationale_json = $1 WHERE id = $2`,
-            [JSON.stringify(nextRationale), pos.id]
-          ).catch(() => {});
-        }
-        const floor = profitProtectFloor(livePosEntry, peakNow);
-        if (floor !== null && livePosPrice <= floor && isMarketHoursForExitF()) {
-          console.log(
-            `[SENTINEL] CH2 ${pos.ticker} PROFIT PROTECT | peak=${peakNow.toFixed(2)} ` +
-            `floor=${floor.toFixed(2)} price=${livePosPrice.toFixed(2)} ` +
-            `(P&L=${currentPnlPct?.toFixed(1) ?? "?"}%) — banking the win`
-          );
-          await killPosition(pos, "ch2_profit_protect", ALPACA_BASE);
-          continue;
-        }
-      }
 
       // EXIT-A REMOVED. S_UF >= 0.75 trigger had no derivation. Capped winners
       // at +3.25% avg / 4.4 days vs April's +12.34% / 23-30 days. Same class

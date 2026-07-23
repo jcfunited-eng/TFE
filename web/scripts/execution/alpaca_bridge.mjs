@@ -787,12 +787,6 @@ export async function executeCh2BracketOrder(signal) {
         exit_trigger_b:   "d_k != 1",
         run_id:           signal.run_id,
         vault_equity:     vaultEquity,
-        // The WHY of the trade, permanently: entry-time coupled read.
-        // Pass logs age out in ~7 days; without this, outcomes have no
-        // recorded cause and edge attribution is impossible (the UTZ
-        // unicorn forensics had to reconstruct these from history tables).
-        v3_basin:         signal.v3_basin ?? null,
-        epoch_pressure:   signal.epoch_pressure ?? null,
       },
     });
   } catch (err) {

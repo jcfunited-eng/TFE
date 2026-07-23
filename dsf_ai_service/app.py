@@ -184,7 +184,7 @@ def _compose_conversational_organism_fallthrough(text):
             organism_votes=votes, conversational=True)
 
 
-def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
+def _run_voice_reply(terminal_event, tick_hint):
     """Runs on the single voice-reply worker thread, never the request
     thread. Mirrors substrate_runner's autonomous-emission loop's own
     result contract (_last_autonomous_thought) so the existing /thought
@@ -193,14 +193,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
     authority (one mouth, GL Change 4)."""
     import dsf_ai_service.substrate_runner as _sr
     t0 = time.time()
-    # GL-FIX-VOICE-LOOP-UX-20260722: queue wait measured separately from
-    # compose so the [voice-reply] log line answers "where did the minutes
-    # go" (CloudWatch 2026-07-21/22: composes measured 4.8-50.7s each; a
-    # pending utterance waits a full compose behind the active one).
-    queue_wait_s = (
-        time.monotonic() - queued_monotonic
-        if queued_monotonic is not None else 0.0
-    )
     terminal_event.verify()
     terminal_event_id = terminal_event.event_id
     terminal_receipt = terminal_event.authority_receipt_sha256
@@ -210,7 +202,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
         "terminal_event_id": terminal_event_id,
         "causal_experience_id": terminal_event_id,
         "causal_intake_receipt_sha256": terminal_receipt,
-        "heard": spoken_text,
     }
     try:
         if _guala is None:
@@ -244,7 +235,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
             "committed_sections": list(turn_result.committed_sections),
         })
         print(f"[voice-reply] {time.time()-t0:.3f}s "
-              f"queue_wait={queue_wait_s:.3f}s "
               f"response_source={response_source} "
               f"committed={bool(content)}")
         if not content:
@@ -256,7 +246,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
                 "ts": time.time(),
                 "category": "voice_reply",
                 "source": "guala",
-                "heard": spoken_text,
                 "response_source": response_source,
                 "emission_id": turn_result.emission_id,
                 "terminal_event_id": terminal_event_id,
@@ -287,7 +276,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
             "response_source": response_source,
             "emission_id": turn_result.emission_id,
             "committed_sections": list(turn_result.committed_sections),
-            "heard": spoken_text,
         }
     except Exception as error:
         delivery = {
@@ -295,7 +283,6 @@ def _run_voice_reply(terminal_event, tick_hint, queued_monotonic=None):
             "terminal_event_id": terminal_event_id,
             "causal_experience_id": terminal_event_id,
             "causal_intake_receipt_sha256": terminal_receipt,
-            "heard": spoken_text,
             "error": f"{type(error).__name__}: {error}",
         }
         print(f"[voice-reply] error after {time.time()-t0:.3f}s: "
@@ -356,20 +343,7 @@ def _maybe_trigger_voice_reply(terminal_event, tick_hint):
     dedicated voice-reply worker. Called right after a real transcript is
     recognized; never called from read_sentence's own path (that would
     double-process the same words -- converse() already reads its input
-    into the substrate as part of composing a reply).
-
-    Returns an admission state the caller surfaces verbatim:
-      "started"  -- composing now on the worker
-      "queued"   -- held in the single bounded pending slot (visible wait)
-      False      -- duplicate / replayed / submit failure (never silent:
-                    the /sound_frame response carries the state)
-
-    GL-FIX-VOICE-LOOP-UX-20260722 (silent-deafness fix): while busy with a
-    pending utterance already held, a NEWER utterance REPLACES the pending
-    one instead of being dropped. The replaced terminal's physical event is
-    discarded through the existing mechanism and its poll slot resolves to
-    a terminal "superseded" result, so nothing ever just vanishes. She
-    answers the latest thing said; the wait is bounded to one compose."""
+    into the substrate as part of composing a reply)."""
     if not isinstance(terminal_event, AuditoryIncrementalTerminalEvent):
         raise TypeError(
             "voice reply admission requires an auditory terminal event"
@@ -401,32 +375,17 @@ def _maybe_trigger_voice_reply(terminal_event, tick_hint):
             return False
         if _voice_reply_busy.is_set():
             if _voice_reply_pending is not None:
-                replaced_event = _voice_reply_pending[0]
                 if _guala is not None:
                     _guala.discard_unadmitted_auditory_terminal(
-                        replaced_event
+                        terminal_event
                     )
                     _guala._log_substrate_event(
-                        "auditory_reply_pending_replaced",
-                        superseded_terminal_event_id=replaced_event.event_id,
+                        "auditory_reply_admission_full",
                         terminal_event_id=terminal_event_id,
                     )
-                _voice_turn_results[replaced_event.event_id] = {
-                    "status": "superseded",
-                    "terminal_event_id": replaced_event.event_id,
-                    "causal_experience_id": replaced_event.event_id,
-                    "causal_intake_receipt_sha256": (
-                        replaced_event.authority_receipt_sha256
-                    ),
-                    "heard": replaced_event.tutor_label,
-                    "superseded_by_terminal_event_id": terminal_event_id,
-                }
-                while len(_voice_turn_results) > _VOICE_TURN_RESULT_CAPACITY:
-                    del _voice_turn_results[next(iter(_voice_turn_results))]
-            _voice_reply_pending = (
-                terminal_event, tick_hint, time.monotonic()
-            )
-            return "queued"
+                return False
+            _voice_reply_pending = (terminal_event, tick_hint)
+            return True
         _voice_reply_busy.set()
         _voice_reply_active_event_id = terminal_event_id
         try:
@@ -435,7 +394,7 @@ def _maybe_trigger_voice_reply(terminal_event, tick_hint):
                 terminal_event,
                 tick_hint,
             )
-            return "started"
+            return True
         except Exception:
             _voice_reply_active_event_id = None
             _voice_reply_busy.clear()
@@ -2800,9 +2759,9 @@ def _embedded_post_boot(g):
     except Exception as _e:
         print(f"[substrate] Ring init skipped (non-fatal): {_e}")
 
-    # Background loops: autonomous emission, input ring consumer, curriculum.
-    # GL world-actions-in-process: organ surface poll deleted (dead :8090 sidecar).
+    # Background loops: organ surface poll, autonomous emission, input ring consumer, curriculum.
     try:
+        _sr._start_organ_surface_poll()
         _sr._start_autonomous_emission_loop()
         _sr._start_input_ring_consumer()
         _sr._start_curriculum_orchestrator()  # 65-A: density engine (retired, no-op unless CURRICULUM_AUTOSTART=1)
@@ -2948,33 +2907,26 @@ async def gualaloom_organs():
 
 @app.get("/api/v1/gualaloom/thought")
 async def organ_thought():
-    """Her real last autonomous thought — from the substrate's own emission
-    loop (GL world-actions-in-process 2026-07-22: this used to poll the
-    retired, never-launched :8090 sidecar and always fell back to an empty
-    stub; now it serves the same in-process _cmd_thought the POST /thought
-    command already uses)."""
-    if _is_remote():
-        client = _get_substrate_client()
-        try:
-            return await client.call("gualaloom_post", command="/thought",
-                                     text="", timeout=5.0)
-        except Exception:
-            return {"speech": "", "tick": 0}
-    import dsf_ai_service.substrate_runner as _sr
-    return _sr._cmd_thought()
+    """Current autonomous thought from the organ-brain — poll for independence."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/thought", timeout=3))
+        return resp
+    except Exception:
+        return {"speech": "", "tick": 0}
 
 
 @app.get("/api/v1/gualaloom/organ_brain_status")
 async def organ_brain_status():
-    """GL world-actions-in-process (2026-07-22), real-or-gone: this route
-    used to poll the retired :8090 sidecar and, on the inevitable failure,
-    FABRICATE {"warming": true, "neurons": 0} — a warming state that did
-    not exist. The sidecar is gone; the answer is now honestly gone too.
-    There is ONE brain: the substrate (see /api/v1/gualaloom/organs)."""
-    return JSONResponse(status_code=410, content={
-        "available": False,
-        "reason": "organ-brain sidecar retired; the substrate is the one brain",
-        "see": "/api/v1/gualaloom/organs"})
+    """Per-organ neuron counts and coupling strengths — feeds the brain visualization."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/status", timeout=3))
+        return resp
+    except Exception:
+        return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
 
 
 @app.get("/api/v1/gualaloom/chi_density")
@@ -3061,8 +3013,7 @@ def _close_auditory_pcm_epoch(
             "recognized_form": (
                 candidate.tutor_label if candidate is not None else None
             ),
-            "reply_admitted": admitted in ("started", "queued"),
-            "reply_state": admitted,
+            "reply_admitted": admitted,
         }
 
 
@@ -3178,36 +3129,17 @@ def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
             msg.sight_captured_ms * 1_000_000
             if msg.sight_captured_ms is not None else None
         )
-        sight_pairing_dropped = None
         if paired_sight and (
             isinstance(msg.sight_captured_ms, bool)
             or sight_ns is None
             or sight_ns < start_ns
             or sight_ns >= end_ns
         ):
-            # GL-FIX-VOICE-LOOP-UX-20260722 (camera-kill fix): a paired
-            # sight whose capture timestamp falls outside this PCM interval
-            # is NOT paired -- the causal claim is unprovable, so the sight
-            # pairing is dropped. It must never be an error that terminally
-            # rejects the whole PCM epoch: browser timer jitter (throttled
-            # setTimeout scheduling the per-chunk sight capture) can land a
-            # genuine frame a moment outside the interval, and one such
-            # frame used to kill hearing for the rest of the session
-            # (live-observed 2026-07-22 11:22:56Z). Sound continuity is its
-            # own authority; only the pairing is refused.
-            sight_pairing_dropped = (
-                "paired sight timestamp is outside the PCM interval — "
-                "sight pairing dropped, sound continuity kept"
-            )
+            raise ValueError("paired sight timestamp is outside the PCM interval")
         return {
             "source_time_start_ns": start_ns,
             "source_time_end_ns": end_ns,
-            "sight_source_anchor_ns": (
-                sight_ns
-                if paired_sight and sight_pairing_dropped is None
-                else None
-            ),
-            "sight_pairing_dropped": sight_pairing_dropped,
+            "sight_source_anchor_ns": sight_ns if paired_sight else None,
         }
     start_ms = msg.capture_started_ms
     end_ms = msg.capture_ended_ms
@@ -3227,7 +3159,6 @@ def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
         "source_time_end_ns": int(end_ms) * 1_000_000,
         "sight_source_anchor_ns": (
             int(sight_ms) * 1_000_000 if paired_sight else None),
-        "sight_pairing_dropped": None,
     }
 
 
@@ -3374,10 +3305,6 @@ async def sound_frame(msg: GLMessage):
             return {"ok": False, "error": str(capture_error),
                     "causal_boundary": "unsettled",
                     "spoken_word_recognition": recognition}
-        sight_pairing_dropped = capture_times.pop(
-            "sight_pairing_dropped", None)
-        if sight_pairing_dropped:
-            paired_sight_b64 = ""
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
@@ -3392,8 +3319,6 @@ async def sound_frame(msg: GLMessage):
             if not isinstance(result, dict):
                 raise TypeError("ring write returned a non-object result")
             result["spoken_word_recognition"] = recognition
-            if sight_pairing_dropped:
-                result["sight_pairing"] = sight_pairing_dropped
             result["causal_boundary"] = (
                 "queued_audiovisual"
                 if result.get("ok") is True and paired_sight_b64
@@ -3449,10 +3374,6 @@ async def sound_frame(msg: GLMessage):
         return {"ok": False, "error": str(capture_error),
                 "causal_boundary": "unsettled",
                 "spoken_word_recognition": recognition}
-    # GL-FIX-VOICE-LOOP-UX-20260722: an unprovable sight pairing drops the
-    # pairing only -- the sound continues as a sound-only frame and the
-    # response says so honestly. Never a stream-killing error.
-    sight_pairing_dropped = capture_times.pop("sight_pairing_dropped", None)
     if not _frame_backpressure_acquire("sound"):
         if msg.audio_stream_id:
             await _run_lifecycle_executor(
@@ -3518,8 +3439,6 @@ async def sound_frame(msg: GLMessage):
                 recognition_future = _speech_recognition_executor.submit(
                     transcribe_sound, wav)
             paired_sight_b64 = (msg.sight_b64 or "").strip()
-            if sight_pairing_dropped:
-                paired_sight_b64 = ""
             observed_senses = []
             sensory_errors = {}
             boundary_settled = False
@@ -3762,8 +3681,6 @@ async def sound_frame(msg: GLMessage):
                     "spoken_word_recognition": deterministic_recognition,
                     "auditory_l5": auditory_status,
                 }
-                if sight_pairing_dropped:
-                    result["sight_pairing"] = sight_pairing_dropped
                 if pcm_acceptance is not None:
                     cochlear_receipt = (
                         sound_receipt.get("auditory_continuation_receipt")
@@ -3848,8 +3765,6 @@ async def sound_frame(msg: GLMessage):
                     transcript=spoken or None),
                 "auditory_l5": auditory_status,
             }
-            if sight_pairing_dropped:
-                result["sight_pairing"] = sight_pairing_dropped
             if pcm_acceptance is not None:
                 cochlear_receipt = (
                     sound_receipt.get("auditory_continuation_receipt")
@@ -3884,10 +3799,7 @@ async def sound_frame(msg: GLMessage):
             if learned_spoken:
                 result["transcript"] = learned_spoken
                 result["terminal_event_id"] = terminal_event_id
-                result["reply_admitted"] = (
-                    None if reply_admitted is None
-                    else reply_admitted in ("started", "queued"))
-                result["reply_state"] = reply_admitted
+                result["reply_admitted"] = reply_admitted
             if spoken:
                 result["boundary_transcript"] = spoken
             if recognition_status == "error":
@@ -3993,22 +3905,20 @@ async def gualaloom_chat(msg: GLMessage):
         })
     if _cmd.startswith("/tablet"):
         return {"ok": False, "note": "tablet re-wiring pending W2"}
-    if _cmd.startswith("/action"):
+    if _cmd.startswith("/action "):
         # format: /action object_id:verb
-        # GL world-actions-in-process (2026-07-22): used to post to the dead
-        # sidecar port via an undefined url variable (NameError on every
-        # call). Now routed to the substrate's ONE in-process actuator
-        # (perform_world_action — the same path autonomy's DOING uses).
-        if _is_remote():
-            client = _get_substrate_client()
-            try:
-                return await client.call("gualaloom_post", command=_cmd,
-                                         text="", source=msg.source or "joe",
-                                         timeout=15.0)
-            except Exception as e:
-                return {"ok": False, "error": str(e)}
-        import dsf_ai_service.substrate_runner as _sr
-        return _sr._cmd_action(_cmd)
+        try:
+            import urllib.request as _ur, json as _js
+            parts = _cmd[len("/action "):].split(":", 1)
+            if len(parts) == 2:
+                body = _js.dumps({"object_id": parts[0].strip(),
+                                  "verb": parts[1].strip()}).encode()
+                req2 = _ur.Request(f"{_ob_url}/action", data=body,
+                                   headers={"content-type": "application/json"})
+                resp = _js.load(_ur.urlopen(req2, timeout=5))
+                return resp
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
     if (msg.command or "").strip().lower() == "/organ_voice":
         # Stage 2 (bigram retired -23, deleted -34): silenced organ_voice path.
         # Learn from what Joe says, compose from her succession, return as speech.
@@ -6412,12 +6322,6 @@ async def v7_feedback(req: V7FeedbackRequest):
 class TeacherFeedbackRequest(BaseModel):
     emission_id: Optional[str] = None
     source: Optional[str] = "joe"
-    # GL-FIX-VOICE-LOOP-UX-20260722: replies with no resolvable emission
-    # record (organism-attempt voice replies carry emission_id=None) stay
-    # teachable through the SAME gateway -- the page supplies the real
-    # displayed pair, exactly as TeacherCorrectionRequest already does.
-    original_input: Optional[str] = None
-    her_emission: Optional[str] = None
 
 class TeacherCorrectionRequest(BaseModel):
     emission_id: Optional[str] = None
@@ -6426,13 +6330,6 @@ class TeacherCorrectionRequest(BaseModel):
     temporal: Optional[str] = None
     sensory_freetext: Optional[str] = None
     source: Optional[str] = "joe"
-    # GL-FIX-VOICE-LOOP-UX-20260722: these were always read by
-    # handle_teacher_correction_local's attempt-reply fallback and always
-    # sent by the page, but were missing from the model -- pydantic
-    # silently discarded them and the fallback raised AttributeError (a
-    # 500 the page rendered as "unknown error"). Declared now.
-    original_input: Optional[str] = None
-    her_emission: Optional[str] = None
     # 2026-07-16 (Joe: "corrections should work always"): attempts carry no
     # certified emission record, so the page supplies the conversation pair
     # directly -- the question it answered and the attempt text itself.
@@ -6585,54 +6482,13 @@ async def teacher_correction(req: TeacherCorrectionRequest):
     return handle_teacher_correction_local(req)
 
 
-def _teachable_emission_record(emission_id):
-    """Resolve an emission id to a teachable record via existing state only.
-
-    Order of authority (GL-FIX-VOICE-LOOP-UX-20260722):
-    1. The certified record (fact-strand provenance verified live).
-    2. The engine's own emission record for a real committed reply
-       (response_source == "assemblage_commit" -- written by converse()
-       itself at commit time, input_text = the exact heard/typed input).
-       Voice replies land here: they are real commits, but were never
-       fact-certified, so the old certified-only gate 400'd every thumb.
-    Pre-provenance records and anything without a real commit stay
-    ineligible, exactly as before -- nothing fabricated can be reinforced.
-    """
-    if not emission_id:
-        return None
-    rec = _guala._certified_emission_record(emission_id)
-    if rec is not None:
-        return rec
-    rec = _guala._emission_records.get(emission_id)
-    if (isinstance(rec, dict)
-            and rec.get("response_source") == "assemblage_commit"
-            and rec.get("n_commits", 0) >= 1
-            and rec.get("text")
-            and rec.get("input_text")):
-        return rec
-    return None
-
-
 def handle_teacher_feedback_local(req):
-    rec = _teachable_emission_record(req.emission_id)
-    if rec is not None:
-        original_input = rec.get("input_text", "")
-        her_emission = rec.get("text", "")
-    else:
-        # Replies with no resolvable record (organism-attempt voice
-        # replies carry emission_id=None) stay teachable: the page
-        # supplies the real displayed pair, same as corrections below.
-        original_input = (req.original_input or "").strip()
-        her_emission = (req.her_emission or "").strip()
-        if not original_input or not her_emission:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "emission is not teachable: no certified or committed "
-                    "record for this emission id, and no displayed "
-                    "input/reply pair was supplied"
-                ),
-            )
+    rec = _guala._certified_emission_record(req.emission_id)
+    if rec is None:
+        raise HTTPException(status_code=400,
+                            detail="emission is not source-certified")
+    original_input = rec.get("input_text", "")
+    her_emission = rec.get("text", "")
     if not original_input or not her_emission:
         raise HTTPException(status_code=400, detail="no conversation context")
     return _guala.apply_teacher_correction(
@@ -6641,7 +6497,7 @@ def handle_teacher_feedback_local(req):
 
 
 def handle_teacher_correction_local(req):
-    rec = _teachable_emission_record(req.emission_id)
+    rec = _guala._certified_emission_record(req.emission_id)
     if rec is not None:
         original_input = rec.get("input_text", "")
         her_emission = rec.get("text", "")

@@ -150,7 +150,7 @@ def test_ranked_non_dynamics_paths_are_retired_as_voice(monkeypatch):
     g.tick = 0
     g._emission_lock = threading.RLock()
 
-    def must_not_gather(_words, input_chis=None):
+    def must_not_gather(_words):
         raise AssertionError("uncommitted candidate gathering must not run")
 
     g._brain_emission_candidates = must_not_gather
@@ -573,7 +573,7 @@ def test_emit_from_invariants_serializes_every_direct_call(monkeypatch):
     call_count = {"n": 0}
     errors = []
 
-    def gather(_words, input_chis=None):
+    def gather(_words):
         with call_lock:
             call_count["n"] += 1
             call_number = call_count["n"]
@@ -774,22 +774,12 @@ def test_teacher_handlers_and_ui_consume_certified_truth_only():
     import dsf_ai_service.app as appmod
     import dsf_ai_service.substrate_runner as runner
 
-    # WS1 2026-07-22: app-side handlers consume _teachable_emission_record —
-    # certified records FIRST, then converse's real assemblage-commit
-    # records (voice replies became teachable). Still record-gated truth:
-    # uncommitted/silence stays refused. The runner handlers keep the
-    # original certified-only resolver.
     for handler in (
             appmod.handle_teacher_feedback_local,
-            appmod.handle_teacher_correction_local):
-        assert "_teachable_emission_record" in inspect.getsource(handler)
-    for handler in (
+            appmod.handle_teacher_correction_local,
             runner.handle_teacher_feedback,
             runner.handle_teacher_correction):
         assert "_certified_emission_record" in inspect.getsource(handler)
-    resolver_source = inspect.getsource(appmod._teachable_emission_record)
-    assert "_certified_emission_record" in resolver_source, (
-        "the teachable resolver must still consult certified records first")
 
     ui = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
     assert "const resp=d.response||'...';" not in ui

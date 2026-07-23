@@ -42,19 +42,6 @@ DEFAULT_CURRICULUM = [
     {"book_id": 113,   "title": "The Secret Garden"},
     {"book_id": 45,    "title": "Anne of Green Gables"},
     {"book_id": 514,   "title": "Little Women"},
-    # GL-CMD-STAGE-CURRICULUM-SEED-20260722: Eve's graded sensory-caption
-    # curriculum (tools/curriculum_seed.json, authored 2026-06-30, built
-    # weeks ago and never staged).  Appended AFTER the 10-book carousel so
-    # persisted progress indexes 0-9 keep their meaning on live resume.
-    # The file's own bundle order IS the grade — themes ordered by her
-    # real attendance density (moon → family → ocean → bell → cat → sun →
-    # flower → balloon → misc) — and is preserved verbatim: captions feed
-    # in file order through the SAME gated chunk path as every book.
-    # Bounds: ~100 captions, one small local JSON read per visit, held in
-    # the existing single-entry book cache; no network, no new store.
-    {"book_id": "seed:curriculum_seed_v1",
-     "title": "Sensory Curriculum Seed v1 (graded captions)",
-     "seed_path": "tools/curriculum_seed.json"},
 ]
 
 PROGRESS_FILE = "curriculum_progress.json"
@@ -147,40 +134,9 @@ class CurriculumScheduler:
         lines, _meta = fetch_and_parse(url)
         return lines
 
-    def _seed_caption_lines(self, rel_path):
-        """GL-CMD-STAGE-CURRICULUM-SEED-20260722: load the graded caption
-        curriculum from a local bundled JSON, captions in FILE ORDER (the
-        file's bundle order is its grade).  Resolution order: explicit env
-        override, repo-relative (dev), /app-relative (container).  Raises
-        if absent — study_once's existing fetch wall then skips the entry
-        exactly like an unreachable book (exception-walled, never boots
-        a failure into her)."""
-        candidates = []
-        envp = (os.environ.get("CURRICULUM_SEED_PATH", "") or "").strip()
-        if envp:
-            candidates.append(envp)
-        here = os.path.dirname(os.path.abspath(__file__))
-        candidates.append(os.path.abspath(os.path.join(here, "..", "..", rel_path)))
-        candidates.append(os.path.join("/app", rel_path))
-        for path in candidates:
-            if os.path.exists(path):
-                with open(path) as f:
-                    data = json.load(f)
-                return [str(b["caption"]).strip()
-                        for b in data.get("bundles", []) if b.get("caption")]
-        raise FileNotFoundError(
-            f"curriculum seed not found at any of: {candidates}")
-
-    def _book_lines(self, book):
-        book_id = book["book_id"]
+    def _book_lines(self, book_id):
         if book_id not in self._book_cache:
-            # Seed entries load from the local bundled JSON; every other
-            # entry fetches over the network exactly as before.
-            if book.get("seed_path"):
-                lines = self._seed_caption_lines(book["seed_path"])
-            else:
-                lines = self._fetch(book_id)
-            self._book_cache = {book_id: lines}  # keep only current
+            self._book_cache = {book_id: self._fetch(book_id)}  # keep only current
         return self._book_cache[book_id]
 
     # ── one study step ─────────────────────────────────────────────
@@ -194,7 +150,7 @@ class CurriculumScheduler:
             book_id, title = book["book_id"], book.get("title", str(book["book_id"]))
 
             try:
-                lines = self._book_lines(book)
+                lines = self._book_lines(book_id)
             except Exception as e:
                 # Skip a bad/unreachable book; advance to the next one.
                 self._log("curriculum_error", where="fetch",
