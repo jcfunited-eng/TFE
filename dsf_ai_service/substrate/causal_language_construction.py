@@ -26,6 +26,10 @@ from collections import OrderedDict
 from dataclasses import dataclass, replace
 from typing import Mapping, Sequence
 
+from dsf_ai_service.substrate.auditory_batch_causal_intake import (
+    AuditoryBatchCausalIntakeAuthority,
+    AuditoryBatchCausalIntakeReceipt,
+)
 from dsf_ai_service.substrate.auditory_token_sequence import (
     MAX_TOKEN_OCCURRENCES_PER_SEQUENCE,
     AuditoryTokenSequenceAuthority,
@@ -130,10 +134,12 @@ class ConstructionToken:
 class CausalLanguageEpisode:
     episode_id: str
     structure_id: str
+    causal_intake_id: str
     sequence_id: str
     settlement_receipt_sha256: str
     tokens: tuple[ConstructionToken, ...]
     field_roots: tuple[tuple[str, object], ...]
+    causal_intake_record: Mapping[str, object]
     sequence_record: Mapping[str, object]
     settlement_witness: Mapping[str, object]
     authority_hmac_sha256: str
@@ -141,6 +147,8 @@ class CausalLanguageEpisode:
     def as_record(self) -> dict[str, object]:
         return {
             "authority_hmac_sha256": self.authority_hmac_sha256,
+            "causal_intake_id": self.causal_intake_id,
+            "causal_intake_record": dict(self.causal_intake_record),
             "episode_id": self.episode_id,
             "field_roots": [[key, value] for key, value in self.field_roots],
             "schema": EPISODE_SCHEMA,
@@ -317,8 +325,14 @@ def _field_roots(witness: Mapping[str, object]) -> tuple[tuple[str, object], ...
         if not isinstance(sense, Mapping):
             raise ValueError("causal language witness sense changed")
         name = _identifier(sense.get("sense"), "causal language sense")
+        # Until physical source separation exists, the whole sound sense is
+        # the language carrier.  It remains complete in settlement_witness but
+        # cannot also be treated as the independently changing referent.
+        if name == "sound":
+            continue
+        # Relation is derived settlement history, not a physical referent.
+        # Preserve it in settlement_witness; only availability is a candidate.
         roots[f"sense:{name}:boundary"] = {
-            "relation": sense.get("relation"),
             "state": sense.get("state"),
         }
         substreams = sense.get("substreams")
@@ -418,6 +432,7 @@ class CausalLanguageConstructionAuthority:
     def _episode_payload(
         self,
         *,
+        intake: AuditoryBatchCausalIntakeReceipt,
         sequence: AuditoryTokenSequenceReceipt,
         settlement: CausalExperienceSettlement,
         tokens: tuple[ConstructionToken, ...],
@@ -426,6 +441,8 @@ class CausalLanguageConstructionAuthority:
         witness: Mapping[str, object],
     ) -> dict[str, object]:
         return {
+            "causal_intake_id": intake.intake_id,
+            "causal_intake_record": intake.as_record(),
             "field_roots": [[key, value] for key, value in roots],
             "schema": EPISODE_SCHEMA,
             "sequence_id": sequence.sequence_id,
@@ -438,10 +455,18 @@ class CausalLanguageConstructionAuthority:
     def admit_episode(
         self,
         *,
+        intake_authority: AuditoryBatchCausalIntakeAuthority,
+        intake: AuditoryBatchCausalIntakeReceipt,
         token_authority: AuditoryTokenSequenceAuthority,
         sequence: AuditoryTokenSequenceReceipt,
         settlement: CausalExperienceSettlement,
     ) -> EpisodeAdmission:
+        if not isinstance(
+            intake_authority, AuditoryBatchCausalIntakeAuthority
+        ):
+            raise TypeError("causal language episode requires intake authority")
+        if not isinstance(intake, AuditoryBatchCausalIntakeReceipt):
+            raise TypeError("causal language episode requires causal intake")
         if not isinstance(token_authority, AuditoryTokenSequenceAuthority):
             raise TypeError("causal language episode requires token authority")
         if not isinstance(sequence, AuditoryTokenSequenceReceipt):
@@ -450,6 +475,11 @@ class CausalLanguageConstructionAuthority:
             raise TypeError("causal language episode requires a causal settlement")
         token_authority.verify_sequence(sequence)
         settlement.verify()
+        intake_authority.verify_for_episode(
+            intake=intake,
+            sequence=sequence,
+            settlement=settlement,
+        )
         if any(
             occurrence.source_time_start < settlement.source_time_start
             or occurrence.source_time_end > settlement.source_time_end
@@ -474,6 +504,7 @@ class CausalLanguageConstructionAuthority:
         roots = _field_roots(witness)
         sequence_record = sequence.as_record()
         payload = self._episode_payload(
+            intake=intake,
             sequence=sequence,
             settlement=settlement,
             tokens=tokens,
@@ -486,6 +517,7 @@ class CausalLanguageConstructionAuthority:
             "tokens": payload["tokens"],
         })
         episode_id = _digest({
+            "causal_intake_id": intake.intake_id,
             "sequence_id": sequence.sequence_id,
             "settlement_receipt_sha256": settlement.authority_receipt_sha256,
             "structure_id": structure_id,
@@ -493,10 +525,12 @@ class CausalLanguageConstructionAuthority:
         episode = CausalLanguageEpisode(
             episode_id=episode_id,
             structure_id=structure_id,
+            causal_intake_id=intake.intake_id,
             sequence_id=sequence.sequence_id,
             settlement_receipt_sha256=settlement.authority_receipt_sha256,
             tokens=tokens,
             field_roots=roots,
+            causal_intake_record=intake.as_record(),
             sequence_record=sequence_record,
             settlement_witness=witness,
             authority_hmac_sha256=_sign(self._episode_key, EPISODE_DOMAIN, payload),
@@ -910,12 +944,16 @@ class CausalLanguageConstructionAuthority:
         episode = CausalLanguageEpisode(
             episode_id=_sha256(record.get("episode_id"), "episode id"),
             structure_id=_sha256(record.get("structure_id"), "episode structure"),
+            causal_intake_id=_sha256(
+                record.get("causal_intake_id"), "episode causal intake"
+            ),
             sequence_id=_sha256(record.get("sequence_id"), "episode sequence"),
             settlement_receipt_sha256=_sha256(
                 record.get("settlement_receipt_sha256"), "episode settlement"
             ),
             tokens=tokens,
             field_roots=roots,
+            causal_intake_record=dict(record.get("causal_intake_record") or {}),
             sequence_record=dict(record.get("sequence_record") or {}),
             settlement_witness=dict(record.get("settlement_witness") or {}),
             authority_hmac_sha256=_sha256(record.get("authority_hmac_sha256"), "episode HMAC"),
@@ -932,7 +970,13 @@ class CausalLanguageConstructionAuthority:
         expected_structure = _digest({
             "field_roots": payload["field_roots"], "tokens": payload["tokens"]
         })
+        if (
+            episode.causal_intake_record.get("intake_id")
+            != episode.causal_intake_id
+        ):
+            raise ValueError("causal language episode intake identity changed")
         expected_episode = _digest({
+            "causal_intake_id": episode.causal_intake_id,
             "sequence_id": episode.sequence_id,
             "settlement_receipt_sha256": episode.settlement_receipt_sha256,
             "structure_id": expected_structure,

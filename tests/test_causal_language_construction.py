@@ -11,6 +11,7 @@ from fractions import Fraction
 
 import pytest
 
+import dsf_ai_service.substrate.auditory_batch_causal_intake as intake_module
 import dsf_ai_service.substrate.auditory_token_sequence as token_module
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
@@ -21,6 +22,11 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
     SENSE_ORDER,
     SenseBoundaryState,
+)
+from dsf_ai_service.substrate.auditory_batch_causal_intake import (
+    AuditoryBatchCausalEntryLink,
+    AuditoryBatchCausalIntakeAuthority,
+    AuditoryBatchCausalIntakeReceipt,
 )
 from dsf_ai_service.substrate.auditory_token_sequence import (
     AuditoryTokenSequenceAuthority,
@@ -39,6 +45,7 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 
 TOKEN_SECRET = b"causal-language-token-test-secret" * 2
 CONSTRUCTION_SECRET = b"causal-language-construction-test-secret" * 2
+INTAKE_SECRET = b"causal-language-intake-test-secret" * 2
 
 
 def _canonical(value: object) -> bytes:
@@ -130,6 +137,96 @@ def _sequence(
     return receipt
 
 
+def _intake(
+    sequence: AuditoryTokenSequenceReceipt,
+    settlement,
+) -> tuple[
+    AuditoryBatchCausalIntakeAuthority,
+    AuditoryBatchCausalIntakeReceipt,
+]:
+    authority = AuditoryBatchCausalIntakeAuthority(
+        authority_key=INTAKE_SECRET
+    )
+    entries = tuple(
+        AuditoryBatchCausalEntryLink(
+            ordinal=value.ordinal,
+            sub_event_id=value.sub_event_id,
+            source_sample_start=value.source_sample_start,
+            source_sample_end=value.source_sample_end,
+            source_time_start=value.source_time_start,
+            source_time_end=value.source_time_end,
+            structural_fingerprint=value.structural_fingerprint,
+            terminal_authority_receipt_sha256=(
+                value.terminal_authority_receipt_sha256
+            ),
+            l5_authority_receipt_sha256=(
+                value.l5_authority_receipt_sha256
+            ),
+        )
+        for value in sequence.occurrences
+    )
+    payload = intake_module._intake_payload(
+        advance_authority_receipt_sha256=_sha("advance"),
+        batch_authority_receipt_sha256=_sha("batch"),
+        token_sequence_id=sequence.sequence_id,
+        token_sequence_authority_hmac_sha256=(
+            sequence.authority_hmac_sha256
+        ),
+        joint_settlement_authority_receipt_sha256=_sha("joint"),
+        causal_settlement_authority_receipt_sha256=(
+            settlement.authority_receipt_sha256
+        ),
+        assembly_id=settlement.assembly_id,
+        stream_id=sequence.stream_id,
+        source_time_start=settlement.source_time_start,
+        source_time_end=settlement.source_time_end,
+        entries=entries,
+    )
+    receipt = AuditoryBatchCausalIntakeReceipt(
+        intake_id=intake_module._digest(payload),
+        advance_authority_receipt_sha256=_sha("advance"),
+        batch_authority_receipt_sha256=_sha("batch"),
+        token_sequence_id=sequence.sequence_id,
+        token_sequence_authority_hmac_sha256=(
+            sequence.authority_hmac_sha256
+        ),
+        joint_settlement_authority_receipt_sha256=_sha("joint"),
+        causal_settlement_authority_receipt_sha256=(
+            settlement.authority_receipt_sha256
+        ),
+        assembly_id=settlement.assembly_id,
+        stream_id=sequence.stream_id,
+        source_time_start=settlement.source_time_start,
+        source_time_end=settlement.source_time_end,
+        entries=entries,
+        authority_hmac_sha256=intake_module._sign(
+            authority._intake_key, payload
+        ),
+    )
+    authority.verify_for_episode(
+        intake=receipt,
+        sequence=sequence,
+        settlement=settlement,
+    )
+    return authority, receipt
+
+
+def _episode_admission(
+    authority,
+    token_authority,
+    sequence,
+    settlement,
+):
+    intake_authority, intake = _intake(sequence, settlement)
+    return authority.admit_episode(
+        intake_authority=intake_authority,
+        intake=intake,
+        token_authority=token_authority,
+        sequence=sequence,
+        settlement=settlement,
+    )
+
+
 def _substream(
     sense: PhysicalSense,
     *,
@@ -158,6 +255,7 @@ def _settlement(
     *,
     sight: str = "red",
     touch: str = "soft",
+    sound: str | None = None,
     routing_chis: tuple[int, ...] = (),
 ):
     observed = {
@@ -168,6 +266,12 @@ def _settlement(
             PhysicalSense.TOUCH, substream_id="touch-referent", axis_value=touch
         ),),
     }
+    if sound is not None:
+        observed[PhysicalSense.SOUND] = (_substream(
+            PhysicalSense.SOUND,
+            substream_id="auditory-language-carrier",
+            axis_value=sound,
+        ),)
     built = build_six_sense_full_field(
         assembly_id=f"causal-language-{label}",
         source_time_start=Fraction(0),
@@ -193,10 +297,11 @@ def _settlement(
 
 
 def _admit(authority, token_authority, forms, settlement, label):
-    result = authority.admit_episode(
-        token_authority=token_authority,
-        sequence=_sequence(token_authority, forms, label=label),
-        settlement=settlement,
+    result = _episode_admission(
+        authority,
+        token_authority,
+        _sequence(token_authority, forms, label=label),
+        settlement,
     )
     assert result.state == "unique"
     assert result.episode is not None
@@ -326,12 +431,14 @@ def test_comprehension_is_separate_and_requires_sequence_causal_agreement() -> N
 def test_non_unique_token_classification_is_an_explicit_noop(state) -> None:
     tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
     authority = CausalLanguageConstructionAuthority(authority_key=CONSTRUCTION_SECRET)
-    result = authority.admit_episode(
-        token_authority=tokens,
-        sequence=_sequence(
+    settlement = _settlement(f"classification-{state.value}")
+    result = _episode_admission(
+        authority,
+        tokens,
+        _sequence(
             tokens, ("unsettled",), label=state.value, state_overrides={0: state}
         ),
-        settlement=_settlement(f"classification-{state.value}"),
+        settlement,
     )
     assert result.state == state.value
     assert not result.stored
@@ -345,10 +452,14 @@ def test_routing_chi_is_irrelevant_but_full_field_change_is_authoritative() -> N
         authority, tokens, ("same",),
         _settlement("chi-a", sight="red", routing_chis=(3,)), "chi-a",
     )
-    same = authority.admit_episode(
-        token_authority=tokens,
-        sequence=_sequence(tokens, ("same",), label="chi-b"),
-        settlement=_settlement("chi-b", sight="red", routing_chis=(91,)),
+    same_settlement = _settlement(
+        "chi-b", sight="red", routing_chis=(91,)
+    )
+    same = _episode_admission(
+        authority,
+        tokens,
+        _sequence(tokens, ("same",), label="chi-b"),
+        same_settlement,
     )
     changed = _admit(
         authority, tokens, ("changed",),
@@ -403,10 +514,14 @@ def test_capacity_duplicate_idempotence_and_constant_state() -> None:
     )
     before = _canonical(authority.snapshot())
     for index in range(25):
-        duplicate = authority.admit_episode(
-            token_authority=tokens,
-            sequence=_sequence(tokens, ("one",), label=f"duplicate-{index}"),
-            settlement=_settlement(f"duplicate-{index}", sight="red"),
+        duplicate_settlement = _settlement(
+            f"duplicate-{index}", sight="red"
+        )
+        duplicate = _episode_admission(
+            authority,
+            tokens,
+            _sequence(tokens, ("one",), label=f"duplicate-{index}"),
+            duplicate_settlement,
         )
         assert duplicate.reason == "duplicate_structure"
     assert _canonical(authority.snapshot()) == before
@@ -415,10 +530,12 @@ def test_capacity_duplicate_idempotence_and_constant_state() -> None:
         "capacity-two",
     )
     full_before = _canonical(authority.snapshot())
-    refused = authority.admit_episode(
-        token_authority=tokens,
-        sequence=_sequence(tokens, ("three",), label="capacity-three"),
-        settlement=_settlement("capacity-three", sight="green"),
+    refused_settlement = _settlement("capacity-three", sight="green")
+    refused = _episode_admission(
+        authority,
+        tokens,
+        _sequence(tokens, ("three",), label="capacity-three"),
+        refused_settlement,
     )
     assert refused.reason == "working_capacity_full"
     assert _canonical(authority.snapshot()) == full_before
@@ -521,3 +638,84 @@ def test_forbidden_legacy_dependencies_are_absent() -> None:
         CausalLanguageConstructionAuthority._learn_locked
     )
     assert all(term not in source for term in ("recall_fast(", "most_common(", "np."))
+
+def test_intake_is_required_embedded_persistent_and_tamper_evident() -> None:
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    settlement = _settlement("intake-proof", sight="red")
+    sequence = _sequence(tokens, ("red", "appears"), label="intake-proof")
+    intake_authority, intake = _intake(sequence, settlement)
+    admitted = authority.admit_episode(
+        intake_authority=intake_authority,
+        intake=intake,
+        token_authority=tokens,
+        sequence=sequence,
+        settlement=settlement,
+    )
+    assert admitted.state == "unique"
+    record = admitted.episode.as_record()
+    assert record["causal_intake_id"] == intake.intake_id
+    assert record["causal_intake_record"] == intake.as_record()
+    snapshot = authority.snapshot()
+    restored = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    restored.restore(snapshot)
+    assert restored.snapshot() == snapshot
+
+    tampered = copy.deepcopy(intake.as_record())
+    tampered["entries"][0]["source_sample_end"] += 1
+    changed = AuditoryBatchCausalIntakeReceipt.from_record(tampered)
+    with pytest.raises(ValueError, match="clocks disagree|identity changed|authority changed"):
+        authority.admit_episode(
+            intake_authority=intake_authority,
+            intake=changed,
+            token_authority=tokens,
+            sequence=sequence,
+            settlement=settlement,
+        )
+
+
+def test_sound_carrier_and_boundary_relation_are_witnessed_not_referents() -> None:
+    import dsf_ai_service.substrate.causal_language_construction as module
+
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    red = _admit(
+        authority,
+        tokens,
+        ("red", "first"),
+        _settlement("carrier-red", sight="red", sound="carrier-a"),
+        "carrier-red",
+    )
+    blue = _admit(
+        authority,
+        tokens,
+        ("blue", "first"),
+        _settlement("carrier-blue", sight="blue", sound="carrier-b"),
+        "carrier-blue",
+    )
+    assert red.episode.settlement_witness["interpretations"][1][
+        "sense"
+    ] == "sound"
+    assert red.episode.settlement_witness != blue.episode.settlement_witness
+    assert all(
+        not key.startswith("sense:sound")
+        for key, _value in red.episode.field_roots
+    )
+    learned = authority.learn_construction((
+        red.episode.structure_id,
+        blue.episode.structure_id,
+    ))
+    assert learned.state == "unique"
+    assert learned.construction.elements[0].kind == "slot"
+
+    witness = copy.deepcopy(red.episode.settlement_witness)
+    roots_before = module._field_roots(witness)
+    for sense in witness["interpretations"]:
+        sense["relation"] = "structural_change"
+    assert module._field_roots(witness) == roots_before
