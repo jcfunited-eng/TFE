@@ -100,4 +100,3 @@ def test_autonomous_reading_waits_for_prior_organism_settlement():
 
     Guala._atick_reading(
         _Engine(), SimpleNamespace(target="corpus", kind="READING"))
-
