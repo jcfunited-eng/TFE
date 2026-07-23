@@ -21,8 +21,9 @@ def _engine(monkeypatch):
     return Guala()
 
 
-def _frames(offset=0):
-    origin = time.time_ns()
+def _frames(offset=0, origin=None):
+    if origin is None:
+        origin = time.time_ns()
     values = []
     for index in range(4):
         rows, columns = np.indices((64, 64))
@@ -66,7 +67,8 @@ def test_live_visual_sequence_uses_complete_retina_and_not_random_fovea(
 def test_visual_l5_rolls_back_if_causal_owner_rejects(monkeypatch):
     engine = _engine(monkeypatch)
     try:
-        engine.process_live_visual_region_sequence(_frames())
+        first_frames = _frames()
+        engine.process_live_visual_region_sequence(first_frames)
         before = engine._visual_region_continuity.snapshot_encoded()
         prior = engine._latest_visual_region_observation
         prior_rejection = engine.record_live_visual_rejection(
@@ -80,8 +82,13 @@ def test_visual_l5_rolls_back_if_causal_owner_rejects(monkeypatch):
                 RuntimeError("injected causal owner rejection")
             ),
         )
+        second_origin = (
+            first_frames[-1].source_time_ns + 1_000_000
+        )
         with pytest.raises(RuntimeError, match="injected causal owner"):
-            engine.process_live_visual_region_sequence(_frames(offset=1))
+            engine.process_live_visual_region_sequence(
+                _frames(offset=1, origin=second_origin)
+            )
         assert engine._visual_region_continuity.snapshot_encoded() == before
         assert engine._latest_visual_region_observation == prior
         assert engine._latest_visual_region_rejection == prior_rejection

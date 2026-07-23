@@ -93,7 +93,10 @@ def _auditory(
     sequence=0,
     prior=None,
     stream_id="browser-microphone-epoch",
+    source_start=None,
 ):
+    if source_start is None:
+        source_start = sequence * 5
     transport_receipt = hashlib.sha256(
         f"transport-{assembly_id}-{sequence}".encode()
     ).hexdigest()
@@ -105,8 +108,8 @@ def _auditory(
         sequence=sequence,
         first_sample_index=sequence * 80_000,
         sample_count=80_000,
-        source_time_start=Fraction(sequence * 5),
-        source_time_end=Fraction((sequence + 1) * 5),
+        source_time_start=Fraction(source_start),
+        source_time_end=Fraction(source_start + 5),
         assembly_id=assembly_id,
         transport_receipt_sha256=transport_receipt,
         prior_transport_receipt_sha256=(
@@ -136,7 +139,7 @@ def _auditory(
     )
 
 
-def test_encounter_is_unknown_then_unique_without_claiming_sound_source():
+def test_encounter_remains_unknown_without_proven_visual_continuity():
     visual_owner = DeterministicVisualRegionContinuityAuthority(
         authority_key=KEY
     )
@@ -170,13 +173,14 @@ def test_encounter_is_unknown_then_unique_without_claiming_sound_source():
         ),
         causal_settlement=second_causal,
     )
-    assert second.state == "unique"
-    assert second.continuing_visual_lineage_receipt_sha256 is not None
+    assert second.state == "unknown"
+    assert second.reason == "no_continuing_visual_lineage"
+    assert second.continuing_visual_lineage_receipt_sha256 is None
     assert second.acoustic_source == "unknown"
     assert owner.status()["source_attribution"].startswith("unavailable")
 
 
-def test_multiple_continuing_regions_remain_ambiguous():
+def test_multiple_visual_recurrence_candidates_do_not_claim_continuity():
     visual_owner = DeterministicVisualRegionContinuityAuthority(
         authority_key=KEY
     )
@@ -205,8 +209,9 @@ def test_multiple_continuing_regions_remain_ambiguous():
         ),
         causal_settlement=second_causal,
     )
-    assert observed.state == "ambiguous"
-    assert len(observed.candidate_visual_lineage_receipt_sha256s) == 2
+    assert observed.state == "unknown"
+    assert observed.reason == "no_continuing_visual_lineage"
+    assert observed.candidate_visual_lineage_receipt_sha256s == ()
     assert observed.continuing_visual_lineage_receipt_sha256 is None
 
 
@@ -267,12 +272,13 @@ def test_gap_and_new_stream_rebase_before_continuity_can_resume():
     assert owner.clear_stream(first_auditory.stream_id) is True
 
     restart_visual, restart_causal, _ = _visual(
-        visual_owner, "gap-restart"
+        visual_owner, "gap-restart", window_index=1
     )
     restart_auditory = _auditory(
         "gap-restart",
         restart_causal,
         stream_id="new-microphone-epoch",
+        source_start=5,
     )
     restarted = owner.observe(
         visual=restart_visual,
@@ -283,7 +289,7 @@ def test_gap_and_new_stream_rebase_before_continuity_can_resume():
     assert restarted.reason == "no_prior_adjacent_audiovisual_encounter"
 
     next_visual, next_causal, _ = _visual(
-        visual_owner, "gap-next", window_index=1
+        visual_owner, "gap-next", window_index=2
     )
     resumed = owner.observe(
         visual=next_visual,
@@ -293,13 +299,15 @@ def test_gap_and_new_stream_rebase_before_continuity_can_resume():
             sequence=1,
             prior=restart_auditory,
             stream_id="new-microphone-epoch",
+            source_start=10,
         ),
         causal_settlement=next_causal,
     )
-    assert resumed.state == "unique"
+    assert resumed.state == "unknown"
+    assert resumed.reason == "no_continuing_visual_lineage"
 
     third_visual, third_causal, _ = _visual(
-        visual_owner, "unclosed-new-stream"
+        visual_owner, "unclosed-new-stream", window_index=3
     )
     rebased = owner.observe(
         visual=third_visual,
@@ -307,6 +315,7 @@ def test_gap_and_new_stream_rebase_before_continuity_can_resume():
             "unclosed-new-stream",
             third_causal,
             stream_id="third-microphone-epoch",
+            source_start=15,
         ),
         causal_settlement=third_causal,
     )
@@ -314,51 +323,30 @@ def test_gap_and_new_stream_rebase_before_continuity_can_resume():
     assert rebased.prior_encounter_authority_receipt_sha256 is None
 
 
-def test_camera_only_lineages_cannot_enter_an_adjacent_paired_encounter():
+def test_overlapping_visual_settlement_is_rejected_without_mutation():
     visual_owner = DeterministicVisualRegionContinuityAuthority(
         authority_key=KEY
     )
-    owner = LiveAnonymousEncounterContinuityAuthority(
-        authority_key=KEY, visual_authority=visual_owner
-    )
-    first_visual, first_causal, _ = _visual(
+    _visual(
         visual_owner, "paired-before-camera-only"
     )
-    first_auditory = _auditory(
-        "paired-before-camera-only", first_causal
-    )
-    first = owner.observe(
-        visual=first_visual,
-        auditory=first_auditory,
-        causal_settlement=first_causal,
-    )
-    assert len(first.current_visual_lineage_receipt_sha256s) == 1
-
+    before = visual_owner.snapshot_encoded()
     _visual(
         visual_owner,
         "camera-only-intervening",
         split=True,
         window_index=1,
     )
-    paired_visual, paired_causal, _ = _visual(
-        visual_owner,
-        "paired-after-camera-only",
-        split=True,
-        window_index=1,
-    )
-    observed = owner.observe(
-        visual=paired_visual,
-        auditory=_auditory(
+    after = visual_owner.snapshot_encoded()
+    with pytest.raises(ValueError, match="overlaps or reorders"):
+        _visual(
+            visual_owner,
             "paired-after-camera-only",
-            paired_causal,
-            sequence=1,
-            prior=first_auditory,
-        ),
-        causal_settlement=paired_causal,
-    )
-    assert observed.state == "unknown"
-    assert observed.reason == "no_continuing_visual_lineage"
-    assert observed.candidate_visual_lineage_receipt_sha256s == ()
+            split=True,
+            window_index=1,
+        )
+    assert visual_owner.snapshot_encoded() == after
+    assert after != before
 
 
 def test_persistence_is_capacity_one_and_inactive_after_restart():
@@ -431,11 +419,13 @@ def test_rollback_restores_the_prior_live_observation():
     owner.restore_encoded(persisted)
     inactive = owner.snapshot_encoded()
     third_visual, third_causal, _ = _visual(
-        visual_owner, "rollback-third"
+        visual_owner, "rollback-third", window_index=2
     )
     owner.observe(
         visual=third_visual,
-        auditory=_auditory("rollback-third", third_causal),
+        auditory=_auditory(
+            "rollback-third", third_causal, source_start=10
+        ),
         causal_settlement=third_causal,
     )
     owner.rollback_encoded(inactive)

@@ -434,6 +434,9 @@ class LiveAnonymousEncounterContinuityAuthority:
         if (
             visual.full_field_receipt_sha256
             != causal_settlement.assembly_receipt_sha256
+            or visual.source_time_start
+            != causal_settlement.source_time_start
+            or visual.source_time_end != causal_settlement.source_time_end
             or auditory.causal_settlement_authority_receipt_sha256
             != causal_settlement.authority_receipt_sha256
             or auditory.source_time_start

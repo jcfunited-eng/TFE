@@ -11,9 +11,10 @@ model participates.
 Visual L5 runs only after the owning causal window has produced one verified
 ``SixSenseFullFieldBoundary``.  It reads every exact D/M/R/U/C/P/B tuple,
 forms maximal four-connected regions only where complete structural histories
-are exactly equal, and carries an anonymous lineage forward only when one
-prior region is the unique overlapping exact continuation.  Unknown and
-ambiguous continuity remain explicit.
+are exactly equal. Recurrence and retinotopic overlap across separate camera
+windows remain candidates, never object identity: every new window receives
+fresh anonymous lineage unless a future transport supplies an authenticated
+shared exposure. Unknown and ambiguous continuity remain explicit.
 """
 
 from __future__ import annotations
@@ -53,13 +54,107 @@ RECEPTOR_WIDTH = VISUAL_FRAME_WIDTH // RETINA_COLUMNS
 MIN_VISUAL_FRAMES = 4
 MAX_VISUAL_FRAMES = 8
 DEFAULT_VISUAL_L5_HISTORY = 1
-MAX_VISUAL_L5_HISTORY = 64
+MAX_VISUAL_L5_HISTORY = 8
 MAX_VISUAL_STATE_BYTES = 2 * 1024 * 1024
 MAX_VISUAL_IMAGE_BYTES = 256 * 1024
 MAX_VISUAL_SEQUENCE_BYTES = 2 * 1024 * 1024
 VISUAL_SOURCE_CLOCK_QUANTUM_NS = 1_000_000
-_STATE_SCHEMA = "guala.visual_region_continuity.state.v1"
-_SETTLEMENT_SCHEMA = "guala.visual_region_continuity.settlement.v1"
+_STATE_SCHEMA = "guala.visual_region_continuity.state.v2"
+_SETTLEMENT_SCHEMA = "guala.visual_region_continuity.settlement.v2"
+
+
+def _region_field_record(value: tuple) -> list[dict[str, object]]:
+    if not isinstance(value, tuple) or not value:
+        raise ValueError("visual explicit region field changed")
+    record = []
+    for receptor in value:
+        if not isinstance(receptor, tuple) or len(receptor) != 3:
+            raise ValueError("visual explicit receptor field changed")
+        row, column, field_history = receptor
+        if (
+            isinstance(row, bool)
+            or not isinstance(row, int)
+            or isinstance(column, bool)
+            or not isinstance(column, int)
+            or not isinstance(field_history, tuple)
+            or not field_history
+        ):
+            raise ValueError("visual explicit receptor field changed")
+        encoded_history = []
+        for field_tuple in field_history:
+            if not isinstance(field_tuple, tuple) or len(field_tuple) != 7:
+                raise ValueError("visual complete DSF tuple changed")
+            if any(not isinstance(field, Fraction) for field in field_tuple):
+                raise ValueError("visual exact DSF fraction changed")
+            encoded_history.append([
+                [field.numerator, field.denominator]
+                for field in field_tuple
+            ])
+        record.append({
+            "exact_D_M_R_U_C_P_B": encoded_history,
+            "relative_retinotopic_coordinate": [row, column],
+        })
+    return record
+
+
+def _region_field_from_record(value: object) -> tuple:
+    if not isinstance(value, list) or not value:
+        raise ValueError("visual explicit region field changed")
+    result = []
+    for expected_index, receptor in enumerate(value):
+        if not isinstance(receptor, dict) or set(receptor) != {
+            "exact_D_M_R_U_C_P_B",
+            "relative_retinotopic_coordinate",
+        }:
+            raise ValueError("visual explicit receptor field changed")
+        coordinate = receptor["relative_retinotopic_coordinate"]
+        if (
+            not isinstance(coordinate, list)
+            or len(coordinate) != 2
+            or any(
+                isinstance(item, bool) or not isinstance(item, int)
+                for item in coordinate
+            )
+            or any(item < -7 or item > 7 for item in coordinate)
+            or (expected_index == 0 and coordinate != [0, 0])
+        ):
+            raise ValueError("visual relative receptor coordinate changed")
+        histories = receptor["exact_D_M_R_U_C_P_B"]
+        if not isinstance(histories, list) or not histories:
+            raise ValueError("visual receptor field history is empty")
+        parsed_history = []
+        for field_tuple in histories:
+            if not isinstance(field_tuple, list) or len(field_tuple) != 7:
+                raise ValueError("visual complete DSF tuple changed")
+            parsed_tuple = []
+            for pair in field_tuple:
+                if (
+                    not isinstance(pair, list)
+                    or len(pair) != 2
+                    or any(
+                        isinstance(item, bool) or not isinstance(item, int)
+                        for item in pair
+                    )
+                    or pair[1] == 0
+                ):
+                    raise ValueError("visual exact DSF fraction changed")
+                fraction = Fraction(pair[0], pair[1])
+                if [fraction.numerator, fraction.denominator] != pair:
+                    raise ValueError("visual exact DSF fraction is not canonical")
+                parsed_tuple.append(fraction)
+            parsed_history.append(tuple(parsed_tuple))
+        result.append((coordinate[0], coordinate[1], tuple(parsed_history)))
+    return tuple(result)
+
+
+def _region_structure_receipt(value: tuple) -> str:
+    return _digest_payload(
+        b"guala-visual-l5-region-structure-v2",
+        {
+            "explicit_receptor_fields": _region_field_record(value),
+            "schema": "guala.visual_l5.explicit_region_structure.v2",
+        },
+    )
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -290,8 +385,10 @@ class PreparedRetinotopicSight:
 class VisualRegionObservation:
     region_index: int
     receptor_indices: tuple[int, ...]
+    explicit_structural_field: tuple
     structural_receipt_sha256: str
     continuity: str
+    continuity_basis: str
     lineage_receipt_sha256: str | None
     candidate_lineage_receipt_sha256s: tuple[str, ...]
     authority_receipt_sha256: str
@@ -308,9 +405,48 @@ class VisualRegionObservation:
             for value in self.receptor_indices
         ):
             raise ValueError("visual region receptor lies outside the retina")
+        parsed_field = _region_field_from_record(
+            _region_field_record(self.explicit_structural_field)
+        )
+        if (
+            parsed_field != self.explicit_structural_field
+            or len(parsed_field) != len(self.receptor_indices)
+        ):
+            raise ValueError("visual explicit region field lost receptor coverage")
+        origin_row, origin_column = divmod(
+            self.receptor_indices[0], RETINA_COLUMNS
+        )
+        expected_coordinates = tuple(
+            (
+                receptor // RETINA_COLUMNS - origin_row,
+                receptor % RETINA_COLUMNS - origin_column,
+            )
+            for receptor in self.receptor_indices
+        )
+        if tuple(
+            (row, column)
+            for row, column, _history in parsed_field
+        ) != expected_coordinates:
+            raise ValueError(
+                "visual explicit region field lost retinotopic correspondence"
+            )
         if self.continuity not in {"unknown", "unique", "ambiguous"}:
             raise ValueError("visual continuity state changed")
+        if self.continuity_basis not in {
+            "no_live_predecessor",
+            "touching_exact_structural_recurrence_candidate",
+            "touching_reciprocal_retinotopic_overlap_candidate",
+            "touching_competing_candidates",
+            "touching_no_candidate",
+            "source_gap_structural_recurrence",
+            "source_gap_no_recurrence",
+        }:
+            raise ValueError("visual continuity basis changed")
         _require_sha256(self.structural_receipt_sha256, "visual structure receipt")
+        if self.structural_receipt_sha256 != _region_structure_receipt(
+            self.explicit_structural_field
+        ):
+            raise ValueError("visual structure receipt differs from explicit field")
         _require_sha256(self.authority_receipt_sha256, "visual region receipt")
         if self.lineage_receipt_sha256 is not None:
             _require_sha256(self.lineage_receipt_sha256, "visual lineage receipt")
@@ -318,15 +454,19 @@ class VisualRegionObservation:
             _require_sha256(digest, "visual candidate lineage receipt")
         if self.continuity == "unique" and self.lineage_receipt_sha256 is None:
             raise ValueError("unique visual continuity lost its anonymous lineage")
-        if self.continuity == "ambiguous" and len(
-            self.candidate_lineage_receipt_sha256s
-        ) < 2:
-            raise ValueError("ambiguous visual continuity lacks alternatives")
+        if (
+            self.continuity == "ambiguous"
+            and not self.candidate_lineage_receipt_sha256s
+        ):
+            raise ValueError("ambiguous visual continuity lacks a candidate")
 
 
 @dataclass(frozen=True, slots=True)
 class VisualL5Settlement:
     assembly_id: str
+    source_time_start: Fraction
+    source_time_end: Fraction
+    window_relation: str
     full_field_receipt_sha256: str
     regions: tuple[VisualRegionObservation, ...]
     authority_receipt_sha256: str
@@ -334,6 +474,18 @@ class VisualL5Settlement:
     def __post_init__(self) -> None:
         if not isinstance(self.assembly_id, str) or not self.assembly_id:
             raise ValueError("visual L5 settlement requires an assembly id")
+        if (
+            not isinstance(self.source_time_start, Fraction)
+            or not isinstance(self.source_time_end, Fraction)
+            or self.source_time_end <= self.source_time_start
+        ):
+            raise ValueError("visual L5 settlement source interval changed")
+        if self.window_relation not in {
+            "first",
+            "touching_window_bounds",
+            "gap",
+        }:
+            raise ValueError("visual L5 window relation changed")
         _require_sha256(self.full_field_receipt_sha256, "visual full-field receipt")
         _require_sha256(self.authority_receipt_sha256, "visual L5 receipt")
         if not self.regions:
@@ -356,15 +508,28 @@ class VisualL5Settlement:
         return {
             "schema": _SETTLEMENT_SCHEMA,
             "assembly_id": self.assembly_id,
+            "source_time_start": (
+                f"{self.source_time_start.numerator}/"
+                f"{self.source_time_start.denominator}"
+            ),
+            "source_time_end": (
+                f"{self.source_time_end.numerator}/"
+                f"{self.source_time_end.denominator}"
+            ),
+            "window_relation": self.window_relation,
             "full_field_receipt_sha256": self.full_field_receipt_sha256,
             "regions": [
                 {
                     "region_index": value.region_index,
                     "receptor_indices": list(value.receptor_indices),
+                    "explicit_structural_field": _region_field_record(
+                        value.explicit_structural_field
+                    ),
                     "structural_receipt_sha256": (
                         value.structural_receipt_sha256
                     ),
                     "continuity": value.continuity,
+                    "continuity_basis": value.continuity_basis,
                     "lineage_receipt_sha256": value.lineage_receipt_sha256,
                     "candidate_lineage_receipt_sha256s": list(
                         value.candidate_lineage_receipt_sha256s
@@ -377,7 +542,7 @@ class VisualL5Settlement:
         }
 
 
-def _region_components(signatures: tuple[str, ...]) -> tuple[tuple[int, ...], ...]:
+def _region_components(signatures: tuple[object, ...]) -> tuple[tuple[int, ...], ...]:
     remaining = set(range(RETINA_RECEPTOR_COUNT))
     components = []
     while remaining:
@@ -427,6 +592,8 @@ class DeterministicVisualRegionContinuityAuthority:
         self._key = authority_key
         self._history_capacity = history_capacity
         self._prior_regions: tuple[dict[str, object], ...] = ()
+        self._prior_source_time_end: Fraction | None = None
+        self._live = False
         self._history: tuple[dict[str, object], ...] = ()
 
     @staticmethod
@@ -526,10 +693,10 @@ class DeterministicVisualRegionContinuityAuthority:
         )
 
     @staticmethod
-    def _structural_signatures(sight_boundary) -> tuple[str, ...]:
+    def _explicit_receptor_fields(sight_boundary) -> tuple[tuple, ...]:
         if len(sight_boundary.substreams) != RETINA_RECEPTOR_COUNT:
             raise ValueError("visual L5 requires every 8x8 retina receptor")
-        signatures = []
+        fields = []
         for index, value in enumerate(sight_boundary.substreams):
             profile = value.profile
             if (
@@ -549,20 +716,10 @@ class DeterministicVisualRegionContinuityAuthority:
             }:
                 raise ValueError("visual receptor coordinates changed")
             exact_tuples = value.kernel_basin.exact_dsf_field_tuples
-            payload = {
-                "exact_D_M_R_U_C_P_B": [
-                    [
-                        [field.numerator, field.denominator]
-                        for field in exact.as_tuple()
-                    ]
-                    for exact in exact_tuples
-                ],
-                "schema": "guala.visual_l5.complete_receptor_structure.v1",
-            }
-            signatures.append(
-                _digest_payload(b"guala-visual-l5-receptor-structure-v1", payload)
+            fields.append(
+                tuple(exact.as_tuple() for exact in exact_tuples)
             )
-        return tuple(signatures)
+        return tuple(fields)
 
     def _lineage_anchor(
         self, assembly_id: str, region_index: int, structure: str
@@ -584,8 +741,10 @@ class DeterministicVisualRegionContinuityAuthority:
         full_field_receipt_sha256: str,
         region_index: int,
         receptors: tuple[int, ...],
+        explicit_structural_field: tuple,
         structure: str,
         continuity: str,
+        continuity_basis: str,
         lineage: str | None,
         candidates: tuple[str, ...],
     ) -> dict[str, object]:
@@ -593,6 +752,10 @@ class DeterministicVisualRegionContinuityAuthority:
             "assembly_id": assembly_id,
             "candidate_lineage_receipt_sha256s": list(candidates),
             "continuity": continuity,
+            "continuity_basis": continuity_basis,
+            "explicit_structural_field": _region_field_record(
+                explicit_structural_field
+            ),
             "full_field_receipt_sha256": full_field_receipt_sha256,
             "lineage_receipt_sha256": lineage,
             "receptor_indices": list(receptors),
@@ -612,55 +775,184 @@ class DeterministicVisualRegionContinuityAuthority:
             raise TypeError("visual L5 requires the mounted receipt registry")
         boundary.verify(receipt_registry)
         sight = next(
-            (value for value in boundary.boundaries if value.sense is PhysicalSense.SIGHT),
+            (
+                value
+                for value in boundary.boundaries
+                if value.sense is PhysicalSense.SIGHT
+            ),
             None,
         )
         if sight is None or sight.state is not SenseBoundaryState.OBSERVED:
             raise ValueError("visual L5 requires an observed sight boundary")
-        signatures = self._structural_signatures(sight)
-        components = _region_components(signatures)
-        prior = self._prior_regions
-        regions = []
-        next_prior = []
+        receptor_fields = self._explicit_receptor_fields(sight)
+        components = _region_components(receptor_fields)
+        if self._live and self._prior_source_time_end is not None:
+            if sight.source_time_start < self._prior_source_time_end:
+                raise ValueError(
+                    "visual source interval overlaps or reorders its predecessor"
+                )
+            window_relation = (
+                "touching_window_bounds"
+                if sight.source_time_start == self._prior_source_time_end
+                else "gap"
+            )
+            prior = self._prior_regions
+        else:
+            window_relation = "first"
+            prior = ()
+
+        current_descriptors = []
         for region_index, receptors in enumerate(components):
-            component_signatures = tuple(signatures[index] for index in receptors)
             origin_row, origin_column = divmod(receptors[0], RETINA_COLUMNS)
-            relative_shape = tuple(
+            explicit_structural_field = tuple(
                 (
                     index // RETINA_COLUMNS - origin_row,
                     index % RETINA_COLUMNS - origin_column,
+                    receptor_fields[index],
                 )
                 for index in receptors
             )
-            structure = _digest_payload(
-                b"guala-visual-l5-region-structure-v1",
-                {
-                    "receptor_structural_receipt_sha256s": list(
-                        component_signatures
-                    ),
-                    "relative_retinotopic_shape": [
-                        list(value) for value in relative_shape
-                    ],
-                },
+            structure = _region_structure_receipt(explicit_structural_field)
+            current_descriptors.append({
+                "explicit_structural_field": explicit_structural_field,
+                "region_index": region_index,
+                "receptor_indices": receptors,
+                "structural_receipt_sha256": structure,
+            })
+
+        exact_current_by_prior: dict[int, tuple[int, ...]] = {}
+        overlap_current_by_prior: dict[int, tuple[int, ...]] = {}
+        for prior_index, prior_region in enumerate(prior):
+            prior_receptors = set(prior_region["receptor_indices"])
+            exact_current_by_prior[prior_index] = tuple(
+                value["region_index"]
+                for value in current_descriptors
+                if value["structural_receipt_sha256"]
+                == prior_region["structural_receipt_sha256"]
+                and value["explicit_structural_field"]
+                == prior_region["explicit_structural_field"]
+            )
+            overlap_current_by_prior[prior_index] = tuple(
+                value["region_index"]
+                for value in current_descriptors
+                if prior_receptors.intersection(value["receptor_indices"])
+            )
+
+        regions = []
+        next_prior = []
+        exact_claimed_prior: set[int] = set()
+        exact_claimed_current: set[int] = set()
+        exact_unique_pairs: dict[int, int] = {}
+        if window_relation == "touching_window_bounds":
+            for descriptor in current_descriptors:
+                region_index = int(descriptor["region_index"])
+                exact_prior = tuple(
+                    prior_index
+                    for prior_index, prior_region in enumerate(prior)
+                    if prior_region["structural_receipt_sha256"]
+                    == descriptor["structural_receipt_sha256"]
+                    and prior_region["explicit_structural_field"]
+                    == descriptor["explicit_structural_field"]
+                )
+                if (
+                    len(exact_prior) == 1
+                    and len(exact_current_by_prior[exact_prior[0]]) == 1
+                ):
+                    exact_unique_pairs[region_index] = exact_prior[0]
+                    exact_claimed_prior.add(exact_prior[0])
+                    exact_claimed_current.add(region_index)
+
+        for descriptor in current_descriptors:
+            region_index = int(descriptor["region_index"])
+            receptors = tuple(descriptor["receptor_indices"])
+            structure = str(descriptor["structural_receipt_sha256"])
+            explicit_structural_field = tuple(
+                descriptor["explicit_structural_field"]
             )
             receptor_set = set(receptors)
-            matches = tuple(
-                value
-                for value in prior
+            exact_matches = tuple(
+                (prior_index, value)
+                for prior_index, value in enumerate(prior)
                 if value["structural_receipt_sha256"] == structure
-                and receptor_set.intersection(value["receptor_indices"])
+                and value["explicit_structural_field"]
+                == explicit_structural_field
             )
-            candidates = tuple(
-                sorted(str(value["lineage_receipt_sha256"]) for value in matches)
+            overlap_matches = tuple(
+                (prior_index, value)
+                for prior_index, value in enumerate(prior)
+                if receptor_set.intersection(value["receptor_indices"])
             )
-            if len(matches) == 1:
-                continuity = "unique"
-                lineage = str(matches[0]["lineage_receipt_sha256"])
-            elif len(matches) > 1:
+            chosen_prior = exact_unique_pairs.get(region_index)
+            if chosen_prior is not None:
                 continuity = "ambiguous"
-                lineage = None
+                continuity_basis = (
+                    "touching_exact_structural_recurrence_candidate"
+                )
+                candidates = (
+                    str(prior[chosen_prior]["lineage_receipt_sha256"]),
+                )
+                lineage = self._lineage_anchor(
+                    boundary.assembly_id, region_index, structure
+                )
+            elif window_relation == "touching_window_bounds":
+                unmatched_overlap = tuple(
+                    (prior_index, value)
+                    for prior_index, value in overlap_matches
+                    if prior_index not in exact_claimed_prior
+                )
+                reciprocal = tuple(
+                    (prior_index, value)
+                    for prior_index, value in unmatched_overlap
+                    if tuple(
+                        current_index
+                        for current_index in overlap_current_by_prior[prior_index]
+                        if current_index not in exact_claimed_current
+                    ) == (region_index,)
+                )
+                if len(reciprocal) == 1 and len(unmatched_overlap) == 1:
+                    continuity = "ambiguous"
+                    continuity_basis = (
+                        "touching_reciprocal_retinotopic_overlap_candidate"
+                    )
+                    candidates = (
+                        str(reciprocal[0][1]["lineage_receipt_sha256"]),
+                    )
+                    lineage = self._lineage_anchor(
+                        boundary.assembly_id, region_index, structure
+                    )
+                else:
+                    candidate_values = {
+                        str(value["lineage_receipt_sha256"])
+                        for _, value in (*exact_matches, *unmatched_overlap)
+                    }
+                    candidates = tuple(sorted(candidate_values))
+                    continuity = "ambiguous" if candidates else "unknown"
+                    continuity_basis = (
+                        "touching_competing_candidates"
+                        if candidates
+                        else "touching_no_candidate"
+                    )
+                    lineage = self._lineage_anchor(
+                        boundary.assembly_id, region_index, structure
+                    )
+            elif window_relation == "gap" and exact_matches:
+                continuity = "ambiguous"
+                continuity_basis = "source_gap_structural_recurrence"
+                candidates = tuple(sorted({
+                    str(value["lineage_receipt_sha256"])
+                    for _, value in exact_matches
+                }))
+                lineage = self._lineage_anchor(
+                    boundary.assembly_id, region_index, structure
+                )
             else:
                 continuity = "unknown"
+                continuity_basis = (
+                    "source_gap_no_recurrence"
+                    if window_relation == "gap"
+                    else "no_live_predecessor"
+                )
+                candidates = ()
                 lineage = self._lineage_anchor(
                     boundary.assembly_id, region_index, structure
                 )
@@ -669,8 +961,10 @@ class DeterministicVisualRegionContinuityAuthority:
                 full_field_receipt_sha256=boundary.authority_receipt_sha256,
                 region_index=region_index,
                 receptors=receptors,
+                explicit_structural_field=explicit_structural_field,
                 structure=structure,
                 continuity=continuity,
+                continuity_basis=continuity_basis,
                 lineage=lineage,
                 candidates=candidates,
             )
@@ -681,8 +975,10 @@ class DeterministicVisualRegionContinuityAuthority:
                 VisualRegionObservation(
                     region_index=region_index,
                     receptor_indices=receptors,
+                    explicit_structural_field=explicit_structural_field,
                     structural_receipt_sha256=structure,
                     continuity=continuity,
+                    continuity_basis=continuity_basis,
                     lineage_receipt_sha256=lineage,
                     candidate_lineage_receipt_sha256s=candidates,
                     authority_receipt_sha256=region_receipt,
@@ -693,12 +989,24 @@ class DeterministicVisualRegionContinuityAuthority:
                     {
                         "lineage_receipt_sha256": lineage,
                         "receptor_indices": list(receptors),
+                        "explicit_structural_field": (
+                            explicit_structural_field
+                        ),
                         "structural_receipt_sha256": structure,
                     }
                 )
         settlement_payload = {
             "assembly_id": boundary.assembly_id,
             "full_field_receipt_sha256": boundary.authority_receipt_sha256,
+            "window_relation": window_relation,
+            "source_time_end": (
+                f"{sight.source_time_end.numerator}/"
+                f"{sight.source_time_end.denominator}"
+            ),
+            "source_time_start": (
+                f"{sight.source_time_start.numerator}/"
+                f"{sight.source_time_start.denominator}"
+            ),
             "region_receipt_sha256s": [
                 value.authority_receipt_sha256 for value in regions
             ],
@@ -706,6 +1014,9 @@ class DeterministicVisualRegionContinuityAuthority:
         }
         settlement = VisualL5Settlement(
             assembly_id=boundary.assembly_id,
+            source_time_start=sight.source_time_start,
+            source_time_end=sight.source_time_end,
+            window_relation=window_relation,
             full_field_receipt_sha256=boundary.authority_receipt_sha256,
             regions=tuple(regions),
             authority_receipt_sha256=_hmac_hex(
@@ -716,6 +1027,8 @@ class DeterministicVisualRegionContinuityAuthority:
         record = settlement.as_record()
         history = (*self._history, record)[-self._history_capacity :]
         self._prior_regions = tuple(next_prior)
+        self._prior_source_time_end = sight.source_time_end
+        self._live = True
         self._history = tuple(history)
         return settlement
 
@@ -728,8 +1041,10 @@ class DeterministicVisualRegionContinuityAuthority:
                 full_field_receipt_sha256=settlement.full_field_receipt_sha256,
                 region_index=region.region_index,
                 receptors=region.receptor_indices,
+                explicit_structural_field=region.explicit_structural_field,
                 structure=region.structural_receipt_sha256,
                 continuity=region.continuity,
+                continuity_basis=region.continuity_basis,
                 lineage=region.lineage_receipt_sha256,
                 candidates=region.candidate_lineage_receipt_sha256s,
             )
@@ -741,6 +1056,15 @@ class DeterministicVisualRegionContinuityAuthority:
         payload = {
             "assembly_id": settlement.assembly_id,
             "full_field_receipt_sha256": settlement.full_field_receipt_sha256,
+            "window_relation": settlement.window_relation,
+            "source_time_end": (
+                f"{settlement.source_time_end.numerator}/"
+                f"{settlement.source_time_end.denominator}"
+            ),
+            "source_time_start": (
+                f"{settlement.source_time_start.numerator}/"
+                f"{settlement.source_time_start.denominator}"
+            ),
             "region_receipt_sha256s": [
                 value.authority_receipt_sha256 for value in settlement.regions
             ],
@@ -756,7 +1080,26 @@ class DeterministicVisualRegionContinuityAuthority:
         payload = {
             "history": list(self._history),
             "history_capacity": self._history_capacity,
-            "prior_regions": list(self._prior_regions),
+            "live": self._live,
+            "prior_source_time_end": (
+                f"{self._prior_source_time_end.numerator}/"
+                f"{self._prior_source_time_end.denominator}"
+                if self._prior_source_time_end is not None
+                else None
+            ),
+            "prior_regions": [
+                {
+                    **{
+                        key: value
+                        for key, value in region.items()
+                        if key != "explicit_structural_field"
+                    },
+                    "explicit_structural_field": _region_field_record(
+                        region["explicit_structural_field"]
+                    ),
+                }
+                for region in self._prior_regions
+            ],
             "schema": _STATE_SCHEMA,
         }
         envelope = {
@@ -770,7 +1113,7 @@ class DeterministicVisualRegionContinuityAuthority:
             raise RuntimeError("visual continuity state exceeds its byte boundary")
         return encoded
 
-    def restore_encoded(self, encoded: bytes) -> None:
+    def _restore_encoded(self, encoded: bytes, *, activate: bool) -> None:
         if not isinstance(encoded, bytes) or not encoded:
             raise ValueError("visual continuity state must be nonempty bytes")
         if len(encoded) > MAX_VISUAL_STATE_BYTES:
@@ -790,10 +1133,18 @@ class DeterministicVisualRegionContinuityAuthority:
         if (
             not isinstance(payload, dict)
             or set(payload)
-            != {"history", "history_capacity", "prior_regions", "schema"}
+            != {
+                "history",
+                "history_capacity",
+                "live",
+                "prior_regions",
+                "prior_source_time_end",
+                "schema",
+            }
             or payload["schema"] != _STATE_SCHEMA
             or payload["history_capacity"] != self._history_capacity
             or not isinstance(payload["history"], list)
+            or not isinstance(payload["live"], bool)
             or not isinstance(payload["prior_regions"], list)
             or len(payload["history"]) > self._history_capacity
             or len(payload["prior_regions"]) > RETINA_RECEPTOR_COUNT
@@ -804,9 +1155,32 @@ class DeterministicVisualRegionContinuityAuthority:
         )
         if not hmac.compare_digest(expected, envelope["state_hmac_sha256"]):
             raise ValueError("visual continuity state authentication failed")
+        prior_source_time_end = payload["prior_source_time_end"]
+        if prior_source_time_end is not None:
+            if (
+                not isinstance(prior_source_time_end, str)
+                or prior_source_time_end.count("/") != 1
+            ):
+                raise ValueError("visual prior source time changed")
+            numerator, denominator = prior_source_time_end.split("/", 1)
+            try:
+                prior_source_time_end_value = Fraction(
+                    int(numerator), int(denominator)
+                )
+            except (TypeError, ValueError, ZeroDivisionError) as error:
+                raise ValueError("visual prior source time changed") from error
+            if (
+                f"{prior_source_time_end_value.numerator}/"
+                f"{prior_source_time_end_value.denominator}"
+                != prior_source_time_end
+            ):
+                raise ValueError("visual prior source time is not canonical")
+        else:
+            prior_source_time_end_value = None
         prior = []
         for value in payload["prior_regions"]:
             if not isinstance(value, dict) or set(value) != {
+                "explicit_structural_field",
                 "lineage_receipt_sha256",
                 "receptor_indices",
                 "structural_receipt_sha256",
@@ -818,9 +1192,19 @@ class DeterministicVisualRegionContinuityAuthority:
             structure = _require_sha256(
                 value["structural_receipt_sha256"], "visual structure receipt"
             )
+            explicit_structural_field = _region_field_from_record(
+                value["explicit_structural_field"]
+            )
+            if structure != _region_structure_receipt(
+                explicit_structural_field
+            ):
+                raise ValueError(
+                    "visual prior structure receipt differs from explicit field"
+                )
             receptors = tuple(value["receptor_indices"])
             if (
                 not receptors
+                or len(explicit_structural_field) != len(receptors)
                 or tuple(sorted(receptors)) != receptors
                 or any(
                     isinstance(item, bool)
@@ -833,29 +1217,47 @@ class DeterministicVisualRegionContinuityAuthority:
                 raise ValueError("visual prior-region receptors changed")
             prior.append(
                 {
+                    "explicit_structural_field": explicit_structural_field,
                     "lineage_receipt_sha256": lineage,
                     "receptor_indices": list(receptors),
                     "structural_receipt_sha256": structure,
                 }
             )
+        if payload["live"] != bool(prior) or (
+            payload["live"] != (prior_source_time_end_value is not None)
+        ):
+            raise ValueError("visual live continuity state changed")
         history = []
         for record in payload["history"]:
-            if not isinstance(record, dict) or record.get("schema") != _SETTLEMENT_SCHEMA:
+            if (
+                not isinstance(record, dict)
+                or record.get("schema") != _SETTLEMENT_SCHEMA
+            ):
                 raise ValueError("visual history record changed")
             history.append(record)
-        self._prior_regions = tuple(prior)
+        self._prior_regions = tuple(prior) if activate and payload["live"] else ()
+        self._prior_source_time_end = (
+            prior_source_time_end_value
+            if activate and payload["live"]
+            else None
+        )
+        self._live = bool(activate and payload["live"])
         self._history = tuple(history)
 
+    def restore_encoded(self, encoded: bytes) -> None:
+        self._restore_encoded(encoded, activate=False)
+
     def rollback_encoded(self, encoded: bytes) -> None:
-        self.restore_encoded(encoded)
+        self._restore_encoded(encoded, activate=True)
 
     def status(self) -> dict[str, object]:
         latest = self._history[-1] if self._history else None
         return {
-            "schema": "guala.visual_region_continuity.status.v1",
+            "schema": "guala.visual_region_continuity.status.v2",
             "retina_rows": RETINA_ROWS,
             "retina_columns": RETINA_COLUMNS,
             "receptor_count": RETINA_RECEPTOR_COUNT,
+            "active": self._live,
             "history_count": len(self._history),
             "latest": latest,
             "field_contract": {
@@ -873,6 +1275,14 @@ class DeterministicVisualRegionContinuityAuthority:
                     "within-receptor 8x8 pixel arrangement is not retained; "
                     "every receptor trajectory and every resulting DSF field "
                     "is retained"
+                ),
+                "window_relation": (
+                    "touching_window_bounds compares only declared outer "
+                    "interval bounds; it is not camera-sample adjacency"
+                ),
+                "unique_continuity_authority": (
+                    "unavailable until transport supplies an authenticated "
+                    "shared terminal-to-initial visual exposure"
                 ),
             },
         }

@@ -177,7 +177,8 @@ def test_paired_pcm_windows_settle_anonymous_encounter_not_sound_source(
     second_status = engine.auditory_l5_status()[
         "live_anonymous_encounter"
     ]
-    assert second_status["state"] == "unique"
+    assert second_status["state"] == "unknown"
+    assert second_status["reason"] == "no_continuing_visual_lineage"
     assert second_status["active"] is True
     assert second_status["acoustic_source"] == "unknown"
     assert second_status["latest"]["assembly_id"] == (

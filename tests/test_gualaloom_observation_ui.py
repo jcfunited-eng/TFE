@@ -158,6 +158,13 @@ def test_loom_scan_separates_embodied_state_from_lexical_scene_lanes() -> None:
     assert "observed conversation" in page
     assert "live audiovisual encounter" in page
     assert "acoustic source" in page
+    assert "inactive after restart" in page
+    assert "not camera-sample adjacency" in page
+    assert (
+        "identity continuity unavailable without authenticated shared exposure"
+        in page
+    )
+    assert "explicit full D/M/R/U/C/P/B retained per receptor" in page
     assert "lexical place lane" in page
     assert "lexical ambient lane" in page
     assert "cdef9bcf" not in page
