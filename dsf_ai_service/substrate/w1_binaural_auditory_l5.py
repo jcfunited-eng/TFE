@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -413,6 +414,26 @@ class _CommitUndo:
     prior_transitions: tuple[tuple[tuple[str, str], int], ...]
     prior_settled: int
     prior_generation: int
+    atomic_sequence_token: str | None
+
+
+@dataclass(slots=True)
+class _AtomicSequenceState:
+    token: str
+    owner_thread_id: int
+    latest: W1BinauralAuditoryL5Experience | None
+    transitions: OrderedDict[tuple[str, str], int]
+    settled: int
+    generation: int
+
+
+@dataclass(frozen=True, slots=True)
+class _AtomicSequenceCommitUndo:
+    sequence: _AtomicSequenceState
+    prior_latest: W1BinauralAuditoryL5Experience | None
+    prior_transitions: tuple[tuple[tuple[str, str], int], ...]
+    prior_settled: int
+    prior_generation: int
 
 
 class W1BinauralAuditoryL5Owner:
@@ -435,7 +456,100 @@ class W1BinauralAuditoryL5Owner:
         self._transitions: OrderedDict[tuple[str, str], int] = OrderedDict()
         self._settled = 0
         self._generation = 0
+        self._atomic_sequence: _AtomicSequenceState | None = None
         self._lock = threading.RLock()
+
+    def _require_sequence_owner_locked(self) -> None:
+        sequence = self._atomic_sequence
+        if (
+            sequence is not None
+            and sequence.owner_thread_id != threading.get_ident()
+        ):
+            raise RuntimeError(
+                "W1 binaural L5 is reserved by an atomic sensory sequence"
+            )
+
+    def begin_atomic_sequence(self) -> str:
+        with self._lock:
+            if self._prepared is not None:
+                raise RuntimeError("W1 binaural L5 has a prepared experience")
+            if self._atomic_sequence is not None:
+                raise RuntimeError(
+                    "W1 binaural L5 already has an atomic sensory sequence"
+                )
+            token = secrets.token_urlsafe(24)
+            self._atomic_sequence = _AtomicSequenceState(
+                token=token,
+                owner_thread_id=threading.get_ident(),
+                latest=self._latest,
+                transitions=OrderedDict(self._transitions),
+                settled=self._settled,
+                generation=self._generation,
+            )
+            return token
+
+    def verify_atomic_sequence(self, token: str) -> None:
+        with self._lock:
+            sequence = self._atomic_sequence
+            if (
+                sequence is None
+                or sequence.token != token
+                or sequence.owner_thread_id != threading.get_ident()
+                or self._prepared is not None
+            ):
+                raise ValueError("W1 binaural L5 atomic sequence changed")
+
+    def commit_atomic_sequence(self, token: str) -> _AtomicSequenceCommitUndo:
+        with self._lock:
+            self.verify_atomic_sequence(token)
+            sequence = self._atomic_sequence
+            if sequence is None:
+                raise RuntimeError("W1 binaural L5 atomic sequence disappeared")
+            undo = _AtomicSequenceCommitUndo(
+                sequence=sequence,
+                prior_latest=self._latest,
+                prior_transitions=tuple(self._transitions.items()),
+                prior_settled=self._settled,
+                prior_generation=self._generation,
+            )
+            self._latest = sequence.latest
+            self._transitions = sequence.transitions
+            self._settled = sequence.settled
+            self._generation = sequence.generation
+            self._atomic_sequence = None
+            return undo
+
+    def rollback_committed_atomic_sequence(
+        self,
+        undo: _AtomicSequenceCommitUndo,
+    ) -> None:
+        with self._lock:
+            if (
+                not isinstance(undo, _AtomicSequenceCommitUndo)
+                or self._atomic_sequence is not None
+                or self._latest != undo.sequence.latest
+                or self._transitions != undo.sequence.transitions
+                or self._settled != undo.sequence.settled
+                or self._generation != undo.sequence.generation
+            ):
+                raise ValueError("W1 binaural L5 published sequence changed")
+            self._latest = undo.prior_latest
+            self._transitions = OrderedDict(undo.prior_transitions)
+            self._settled = undo.prior_settled
+            self._generation = undo.prior_generation
+            self._atomic_sequence = undo.sequence
+
+    def rollback_atomic_sequence(self, token: str) -> None:
+        with self._lock:
+            sequence = self._atomic_sequence
+            if (
+                sequence is None
+                or sequence.token != token
+                or sequence.owner_thread_id != threading.get_ident()
+                or self._prepared is not None
+            ):
+                raise ValueError("W1 binaural L5 atomic sequence changed")
+            self._atomic_sequence = None
 
     def prepare(
         self,
@@ -451,11 +565,14 @@ class W1BinauralAuditoryL5Owner:
         }
         fingerprint = _digest(structural_payload)
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared is not None:
                 raise RuntimeError("W1 binaural L5 transaction is already active")
+            sequence = self._atomic_sequence
+            prior_latest = sequence.latest if sequence is not None else self._latest
             previous = (
-                self._latest.structural_fingerprint
-                if self._latest is not None else None
+                prior_latest.structural_fingerprint
+                if prior_latest is not None else None
             )
             relation = (
                 "first_observation"
@@ -504,50 +621,90 @@ class W1BinauralAuditoryL5Owner:
         experience: W1BinauralAuditoryL5Experience,
     ) -> _CommitUndo:
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared != experience:
                 raise ValueError("W1 binaural L5 has no matching preparation")
+            sequence = self._atomic_sequence
+            prior_latest = sequence.latest if sequence is not None else self._latest
+            transitions = (
+                sequence.transitions if sequence is not None else self._transitions
+            )
+            settled = sequence.settled if sequence is not None else self._settled
+            generation = (
+                sequence.generation if sequence is not None else self._generation
+            )
             undo = _CommitUndo(
                 authority_receipt_sha256=experience.authority_receipt_sha256,
-                prior_latest=self._latest,
-                prior_transitions=tuple(self._transitions.items()),
-                prior_settled=self._settled,
-                prior_generation=self._generation,
+                prior_latest=prior_latest,
+                prior_transitions=tuple(transitions.items()),
+                prior_settled=settled,
+                prior_generation=generation,
+                atomic_sequence_token=(
+                    sequence.token if sequence is not None else None
+                ),
             )
-            if self._latest is not None:
+            if prior_latest is not None:
                 key = (
-                    self._latest.structural_fingerprint,
+                    prior_latest.structural_fingerprint,
                     experience.structural_fingerprint,
                 )
-                self._transitions[key] = self._transitions.get(key, 0) + 1
-                self._transitions.move_to_end(key)
-                while len(self._transitions) > self._max_transitions:
-                    self._transitions.popitem(last=False)
-            self._latest = experience
-            self._settled += 1
-            self._generation += 1
+                transitions[key] = transitions.get(key, 0) + 1
+                transitions.move_to_end(key)
+                while len(transitions) > self._max_transitions:
+                    transitions.popitem(last=False)
+            if sequence is not None:
+                sequence.latest = experience
+                sequence.settled += 1
+                sequence.generation += 1
+            else:
+                self._latest = experience
+                self._settled += 1
+                self._generation += 1
             self._prepared = None
             return undo
 
     def rollback_committed(self, undo: _CommitUndo) -> None:
         with self._lock:
+            self._require_sequence_owner_locked()
+            sequence = self._atomic_sequence
+            if undo.atomic_sequence_token is None:
+                latest = self._latest
+                settled = self._settled
+                generation = self._generation
+            elif (
+                sequence is not None
+                and sequence.token == undo.atomic_sequence_token
+            ):
+                latest = sequence.latest
+                settled = sequence.settled
+                generation = sequence.generation
+            else:
+                raise ValueError("W1 binaural L5 rollback sequence changed")
             if (
-                self._latest is None
-                or self._latest.authority_receipt_sha256
+                latest is None
+                or latest.authority_receipt_sha256
                 != undo.authority_receipt_sha256
-                or self._settled != undo.prior_settled + 1
-                or self._generation != undo.prior_generation + 1
+                or settled != undo.prior_settled + 1
+                or generation != undo.prior_generation + 1
             ):
                 raise ValueError("W1 binaural L5 rollback authority changed")
-            self._latest = undo.prior_latest
-            self._transitions = OrderedDict(undo.prior_transitions)
-            self._settled = undo.prior_settled
-            self._generation = undo.prior_generation
+            if sequence is not None:
+                sequence.latest = undo.prior_latest
+                sequence.transitions = OrderedDict(undo.prior_transitions)
+                sequence.settled = undo.prior_settled
+                sequence.generation = undo.prior_generation
+            else:
+                self._latest = undo.prior_latest
+                self._transitions = OrderedDict(undo.prior_transitions)
+                self._settled = undo.prior_settled
+                self._generation = undo.prior_generation
 
     def discard_prepared(
         self,
         experience: W1BinauralAuditoryL5Experience,
     ) -> None:
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared != experience:
                 raise ValueError("W1 binaural L5 has no matching preparation")
             self._prepared = None
@@ -563,6 +720,11 @@ class W1BinauralAuditoryL5Owner:
                 "has_latest": self._latest is not None,
                 "max_authority_bytes": MAX_W1_BINAURAL_AUDITORY_L5_BYTES,
                 "prepared": int(self._prepared is not None),
+                "atomic_sequence": int(self._atomic_sequence is not None),
+                "atomic_sequence_staged_settled": (
+                    self._atomic_sequence.settled - self._settled
+                    if self._atomic_sequence is not None else 0
+                ),
                 "settled": self._settled,
                 "transition_capacity": self._max_transitions,
                 "transition_relations": len(self._transitions),

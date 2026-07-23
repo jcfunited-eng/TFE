@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -64,6 +65,23 @@ SOURCE_SAMPLE_COMMITMENT_SCHEMA = (
     "guala.exact_causal_experience.source_samples.v1"
 )
 MAX_CAUSAL_RESERVATION_WAITERS = len(SENSE_ORDER)
+
+
+@dataclass(slots=True)
+class _AtomicSequenceState:
+    token: str
+    owner_thread_id: int
+    previous_by_sense: dict[str, str]
+    transitions: OrderedDict[tuple[str, str, str], int]
+    settled: int
+
+
+@dataclass(frozen=True, slots=True)
+class _AtomicSequenceCommitUndo:
+    sequence: _AtomicSequenceState
+    prior_previous_by_sense: tuple[tuple[str, str], ...]
+    prior_transitions: tuple[tuple[tuple[str, str, str], int], ...]
+    prior_settled: int
 
 
 def _exact_fraction(value: object, name: str) -> Fraction:
@@ -637,6 +655,101 @@ class ExactCausalExperienceOwner:
         self._previous_by_sense: dict[str, str] = {}
         self._transitions: OrderedDict[tuple[str, str, str], int] = OrderedDict()
         self._settled = 0
+        self._atomic_sequence: _AtomicSequenceState | None = None
+
+    def _require_sequence_owner_locked(self) -> None:
+        sequence = self._atomic_sequence
+        if (
+            sequence is not None
+            and sequence.owner_thread_id != threading.get_ident()
+        ):
+            raise RuntimeError(
+                "causal owner is reserved by an atomic sensory sequence"
+            )
+
+    def begin_atomic_sequence(self) -> str:
+        """Reserve rollback authority for one same-thread sensory sequence."""
+        with self._lock:
+            if self._prepared_reservation is not None:
+                raise RuntimeError(
+                    "causal owner has a prepared settlement"
+                )
+            if self._atomic_sequence is not None:
+                raise RuntimeError(
+                    "causal owner already has an atomic sensory sequence"
+                )
+            token = secrets.token_urlsafe(24)
+            self._atomic_sequence = _AtomicSequenceState(
+                token=token,
+                owner_thread_id=threading.get_ident(),
+                previous_by_sense=dict(self._previous_by_sense),
+                transitions=OrderedDict(self._transitions),
+                settled=self._settled,
+            )
+            return token
+
+    def verify_atomic_sequence(self, token: str) -> None:
+        with self._lock:
+            sequence = self._atomic_sequence
+            if (
+                sequence is None
+                or sequence.token != token
+                or sequence.owner_thread_id != threading.get_ident()
+                or self._prepared_reservation is not None
+            ):
+                raise ValueError("causal atomic sensory sequence changed")
+
+    def commit_atomic_sequence(self, token: str) -> _AtomicSequenceCommitUndo:
+        """Publish sequence state without replaying per-block callbacks."""
+        with self._lock:
+            self.verify_atomic_sequence(token)
+            sequence = self._atomic_sequence
+            if sequence is None:
+                raise RuntimeError("causal atomic sensory sequence disappeared")
+            undo = _AtomicSequenceCommitUndo(
+                sequence=sequence,
+                prior_previous_by_sense=tuple(
+                    self._previous_by_sense.items()
+                ),
+                prior_transitions=tuple(self._transitions.items()),
+                prior_settled=self._settled,
+            )
+            self._previous_by_sense = sequence.previous_by_sense
+            self._transitions = sequence.transitions
+            self._settled = sequence.settled
+            self._atomic_sequence = None
+            return undo
+
+    def rollback_committed_atomic_sequence(
+        self,
+        undo: _AtomicSequenceCommitUndo,
+    ) -> None:
+        with self._lock:
+            if (
+                not isinstance(undo, _AtomicSequenceCommitUndo)
+                or self._atomic_sequence is not None
+                or self._previous_by_sense != undo.sequence.previous_by_sense
+                or self._transitions != undo.sequence.transitions
+                or self._settled != undo.sequence.settled
+            ):
+                raise ValueError("causal published atomic sequence changed")
+            self._previous_by_sense = dict(undo.prior_previous_by_sense)
+            self._transitions = OrderedDict(undo.prior_transitions)
+            self._settled = undo.prior_settled
+            self._atomic_sequence = undo.sequence
+
+    def rollback_atomic_sequence(self, token: str) -> None:
+        """Restore the exact pre-sequence relation state."""
+        with self._lock:
+            sequence = self._atomic_sequence
+            if (
+                sequence is None
+                or sequence.token != token
+                or sequence.owner_thread_id != threading.get_ident()
+                or self._prepared_reservation is not None
+            ):
+                raise ValueError("causal atomic sensory sequence changed")
+            self._atomic_sequence = None
 
     @staticmethod
     def _source_commitment(
@@ -769,6 +882,7 @@ class ExactCausalExperienceOwner:
             raise ValueError("causal settlement cannot reserve and commit together")
         built.boundary.verify(built.receipt_registry)
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared_reservation is not None:
                 if (
                     self._reservation_waiters
@@ -785,6 +899,12 @@ class ExactCausalExperienceOwner:
                     self._reservation_waiters -= 1
             interpretations = []
             current_by_sense = {}
+            sequence_state = self._atomic_sequence
+            previous_by_sense = (
+                sequence_state.previous_by_sense
+                if sequence_state is not None
+                else self._previous_by_sense
+            )
             for boundary in built.boundary.boundaries:
                 substreams = tuple(
                     self._exact_substream(
@@ -796,7 +916,7 @@ class ExactCausalExperienceOwner:
                 )
                 fingerprint = self._sense_fingerprint(
                     boundary.state.value, substreams)
-                previous = self._previous_by_sense.get(boundary.sense.value)
+                previous = previous_by_sense.get(boundary.sense.value)
                 relation = (
                     "not_observed"
                     if boundary.state.value != "observed"
@@ -906,8 +1026,19 @@ class ExactCausalExperienceOwner:
             for item in settlement.interpretations
             if item.state == "observed"
         }
+        sequence_state = self._atomic_sequence
+        previous_by_sense = (
+            sequence_state.previous_by_sense
+            if sequence_state is not None
+            else self._previous_by_sense
+        )
+        transitions = (
+            sequence_state.transitions
+            if sequence_state is not None
+            else self._transitions
+        )
         for item in settlement.interpretations:
-            previous = self._previous_by_sense.get(item.sense)
+            previous = previous_by_sense.get(item.sense)
             expected_relation = (
                 "not_observed"
                 if item.state != "observed"
@@ -921,17 +1052,21 @@ class ExactCausalExperienceOwner:
                 raise RuntimeError(
                     "prepared causal settlement state changed before commit"
                 )
-        self._on_settlement(settlement)
+        if self._atomic_sequence is None:
+            self._on_settlement(settlement)
         for sense, current in current_by_sense.items():
-            previous = self._previous_by_sense.get(sense)
+            previous = previous_by_sense.get(sense)
             if previous is not None:
                 key = (sense, previous, current)
-                self._transitions[key] = self._transitions.get(key, 0) + 1
-                self._transitions.move_to_end(key)
-                while len(self._transitions) > self._max_transitions:
-                    self._transitions.popitem(last=False)
-            self._previous_by_sense[sense] = current
-        self._settled += 1
+                transitions[key] = transitions.get(key, 0) + 1
+                transitions.move_to_end(key)
+                while len(transitions) > self._max_transitions:
+                    transitions.popitem(last=False)
+            previous_by_sense[sense] = current
+        if sequence_state is not None:
+            sequence_state.settled += 1
+        else:
+            self._settled += 1
         try:
             self._log_event(
                 "causal_experience_settled",
@@ -961,19 +1096,39 @@ class ExactCausalExperienceOwner:
             raise TypeError("prepared causal settlement has the wrong type")
         settlement.verify()
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared_reservation != settlement:
                 raise ValueError(
                     "prepared causal settlement has no live reservation"
                 )
-            prior_previous_by_sense = dict(self._previous_by_sense)
-            prior_transitions = OrderedDict(self._transitions)
-            prior_settled = self._settled
+            sequence_state = self._atomic_sequence
+            previous_by_sense = (
+                sequence_state.previous_by_sense
+                if sequence_state is not None
+                else self._previous_by_sense
+            )
+            transitions = (
+                sequence_state.transitions
+                if sequence_state is not None
+                else self._transitions
+            )
+            prior_previous_by_sense = dict(previous_by_sense)
+            prior_transitions = OrderedDict(transitions)
+            prior_settled = (
+                sequence_state.settled
+                if sequence_state is not None else self._settled
+            )
             try:
                 self._commit_prepared_locked(settlement)
             except BaseException:
-                self._previous_by_sense = prior_previous_by_sense
-                self._transitions = prior_transitions
-                self._settled = prior_settled
+                if sequence_state is not None:
+                    sequence_state.previous_by_sense = prior_previous_by_sense
+                    sequence_state.transitions = prior_transitions
+                    sequence_state.settled = prior_settled
+                else:
+                    self._previous_by_sense = prior_previous_by_sense
+                    self._transitions = prior_transitions
+                    self._settled = prior_settled
                 raise
             self._prepared_reservation = None
             self._reservation_condition.notify_all()
@@ -987,6 +1142,7 @@ class ExactCausalExperienceOwner:
             raise TypeError("prepared causal settlement has the wrong type")
         settlement.verify()
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared_reservation is not None:
                 if (
                     self._reservation_waiters
@@ -1001,8 +1157,14 @@ class ExactCausalExperienceOwner:
                         self._reservation_condition.wait()
                 finally:
                     self._reservation_waiters -= 1
+            sequence_state = self._atomic_sequence
+            previous_by_sense = (
+                sequence_state.previous_by_sense
+                if sequence_state is not None
+                else self._previous_by_sense
+            )
             for item in settlement.interpretations:
-                previous = self._previous_by_sense.get(item.sense)
+                previous = previous_by_sense.get(item.sense)
                 expected_relation = (
                     "not_observed"
                     if item.state != "observed"
@@ -1027,6 +1189,7 @@ class ExactCausalExperienceOwner:
             raise TypeError("prepared causal settlement has the wrong type")
         settlement.verify()
         with self._lock:
+            self._require_sequence_owner_locked()
             if self._prepared_reservation != settlement:
                 raise ValueError(
                     "prepared causal settlement has no live reservation"
@@ -1063,6 +1226,11 @@ class ExactCausalExperienceOwner:
                 "reservation_waiters": self._reservation_waiters,
                 "reservation_waiter_capacity": (
                     MAX_CAUSAL_RESERVATION_WAITERS
+                ),
+                "atomic_sequence": int(self._atomic_sequence is not None),
+                "atomic_sequence_staged_settled": (
+                    self._atomic_sequence.settled - self._settled
+                    if self._atomic_sequence is not None else 0
                 ),
             }
 

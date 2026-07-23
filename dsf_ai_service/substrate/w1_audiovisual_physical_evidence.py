@@ -984,6 +984,13 @@ class _PreparedAudiovisualMount:
     mount: W1PhysicalEvidenceMount
 
 
+@dataclass(frozen=True, slots=True)
+class _AtomicAudiovisualEpisode:
+    epoch_token: str
+    causal_sequence_token: str
+    binaural_l5_sequence_token: str
+
+
 class W1AudiovisualPhysicalEvidenceAuthority:
     """Transient bounded owner of anonymous W1 audiovisual captures."""
 
@@ -1025,10 +1032,124 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             CausalExperienceSettlement,
             W1BinauralAuditoryL5Experience | None,
         ] | None = None
+        self._atomic_episode: _AtomicAudiovisualEpisode | None = None
         self._lock = threading.RLock()
+
+    def begin_atomic_episode(self) -> str:
+        """Open one rollback-capable, exact multi-mount W1 episode."""
+        with self._lock:
+            if (
+                self._atomic_episode is not None
+                or self._prepared_mount is not None
+                or self._pending_reservation is not None
+            ):
+                raise RuntimeError(
+                    "W1 audiovisual authority already has an active transaction"
+                )
+            if len(self._epochs) >= self._epoch_capacity:
+                raise RuntimeError("W1 audiovisual epoch capacity is full")
+            causal_token = self._causal_owner.begin_atomic_sequence()
+            try:
+                l5_token = (
+                    self._binaural_auditory_l5_owner.begin_atomic_sequence()
+                )
+            except BaseException:
+                self._causal_owner.rollback_atomic_sequence(causal_token)
+                raise
+            while True:
+                epoch_token = secrets.token_urlsafe(24)
+                if epoch_token not in self._epochs:
+                    break
+            self._epochs[epoch_token] = _Epoch()
+            self._atomic_episode = _AtomicAudiovisualEpisode(
+                epoch_token=epoch_token,
+                causal_sequence_token=causal_token,
+                binaural_l5_sequence_token=l5_token,
+            )
+            return epoch_token
+
+    def commit_atomic_episode(self, epoch_token: str) -> None:
+        """Publish one fully prepared multi-mount episode and close its epoch."""
+        with self._lock:
+            transaction = self._atomic_episode
+            if (
+                transaction is None
+                or transaction.epoch_token != epoch_token
+                or epoch_token not in self._epochs
+                or self._prepared_mount is not None
+                or self._pending_reservation is not None
+            ):
+                raise ValueError("W1 atomic audiovisual episode changed")
+            self._causal_owner.verify_atomic_sequence(
+                transaction.causal_sequence_token
+            )
+            self._binaural_auditory_l5_owner.verify_atomic_sequence(
+                transaction.binaural_l5_sequence_token
+            )
+            l5_undo = self._binaural_auditory_l5_owner.commit_atomic_sequence(
+                transaction.binaural_l5_sequence_token
+            )
+            try:
+                self._causal_owner.commit_atomic_sequence(
+                    transaction.causal_sequence_token
+                )
+            except BaseException:
+                self._binaural_auditory_l5_owner.rollback_committed_atomic_sequence(
+                    l5_undo
+                )
+                raise
+            del self._epochs[epoch_token]
+            self._atomic_episode = None
+
+    def rollback_atomic_episode(self, epoch_token: str) -> None:
+        """Erase all causal/L5 relation changes made by one W1 episode."""
+        with self._lock:
+            transaction = self._atomic_episode
+            if (
+                transaction is None
+                or transaction.epoch_token != epoch_token
+            ):
+                raise ValueError("W1 atomic audiovisual episode changed")
+            prepared = self._prepared_mount
+            if prepared is not None:
+                if prepared.epoch_token != epoch_token:
+                    raise RuntimeError(
+                        "another audiovisual mount entered an atomic episode"
+                    )
+                self.discard_prepared_multisensory_mount(prepared.mount)
+            pending = self._pending_reservation
+            if pending is not None:
+                if pending[0] != epoch_token:
+                    raise RuntimeError(
+                        "another causal reservation entered an atomic episode"
+                    )
+                if pending[2] is not None:
+                    self._binaural_auditory_l5_owner.discard_prepared(
+                        pending[2]
+                    )
+                self._causal_owner.discard_prepared(pending[1])
+                self._pending_reservation = None
+            self._causal_owner.verify_atomic_sequence(
+                transaction.causal_sequence_token
+            )
+            self._binaural_auditory_l5_owner.verify_atomic_sequence(
+                transaction.binaural_l5_sequence_token
+            )
+            self._binaural_auditory_l5_owner.rollback_atomic_sequence(
+                transaction.binaural_l5_sequence_token
+            )
+            self._causal_owner.rollback_atomic_sequence(
+                transaction.causal_sequence_token
+            )
+            self._epochs.pop(epoch_token, None)
+            self._atomic_episode = None
 
     def open_epoch(self) -> str:
         with self._lock:
+            if self._atomic_episode is not None:
+                raise RuntimeError(
+                    "W1 audiovisual atomic episode owns the authority"
+                )
             if len(self._epochs) >= self._epoch_capacity:
                 raise RuntimeError("W1 audiovisual epoch capacity is full")
             while True:
@@ -1039,6 +1160,13 @@ class W1AudiovisualPhysicalEvidenceAuthority:
 
     def close_epoch(self, epoch_token: str) -> bool:
         with self._lock:
+            if (
+                self._atomic_episode is not None
+                and self._atomic_episode.epoch_token == epoch_token
+            ):
+                raise RuntimeError(
+                    "W1 atomic audiovisual episode requires commit or rollback"
+                )
             prepared = self._prepared_mount
             if prepared is not None and prepared.epoch_token == epoch_token:
                 raise RuntimeError(
@@ -1561,6 +1689,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 raise RuntimeError(
                     "W1 audiovisual mount already has a prepared transaction"
                 )
+            atomic_episode = self._atomic_episode
+            if (
+                atomic_episode is not None
+                and atomic_episode.epoch_token != epoch_token
+            ):
+                raise RuntimeError(
+                    "W1 audiovisual atomic episode owns another epoch"
+                )
             epoch = self._epochs.get(epoch_token)
             if epoch is None:
                 return self._unsettled(
@@ -2073,6 +2209,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "pending_multisensory_reservation": int(
                     self._pending_reservation is not None
                 ),
+                "atomic_episode": int(self._atomic_episode is not None),
                 "epoch_capacity": self._epoch_capacity,
                 "max_pcm_samples_per_capture": MAX_EMITTED_PCM_SAMPLES,
                 "max_propagation_delay_samples": (

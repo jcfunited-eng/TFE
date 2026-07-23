@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import json
 import struct
 
 import pytest
@@ -26,6 +27,7 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1PhysicalEvidenceReceipt,
 )
 from dsf_ai_service.substrate.w1_companion_vocal_experience import (
+    MAX_COMPANION_VOCAL_EPISODE_SAMPLES,
     W1CompanionVocalExperienceAuthority,
 )
 from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
@@ -46,6 +48,16 @@ def _tone(frequency_hz: int) -> bytes:
         for index in range(1024)
     )
     return struct.pack("<1024h", *values)
+
+
+def _long_tone(frequency_hz: int, sample_count: int) -> bytes:
+    values = tuple(
+        int(12_000 * math.sin(
+            2 * math.pi * frequency_hz * index / 16_000
+        ))
+        for index in range(sample_count)
+    )
+    return struct.pack(f"<{sample_count}h", *values)
 
 
 def _authorities(on_settlement):
@@ -228,3 +240,169 @@ def test_different_pressure_waves_produce_different_cochlear_fields():
 
     first.discard(first_prepared)
     second.discard(second_prepared)
+
+
+def test_known_length_multiblock_episode_preserves_every_full_field():
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    before = world.observation_snapshot()
+
+    prepared = companion.prepare_episode(
+        pcm_s16le=_long_tone(440, 4096),
+    )
+    episode = prepared.episode
+    episode.verify(b"c" * 32)
+
+    assert len(episode.blocks) == 2
+    assert tuple(block.sequence for block in episode.blocks) == (0, 1)
+    assert tuple(
+        (block.source_sample_start, block.source_sample_end)
+        for block in episode.blocks
+    ) == ((0, 2048), (2048, 4096))
+    assert all(
+        sum(len(channel.pressure.field_tuples)
+            + len(channel.carrier_phase_advance.field_tuples)
+            for ear in block.binaural_l5.ears
+            for channel in ear.channels) > 0
+        for block in episode.blocks
+    )
+    assert all(
+        len(block.binaural_l5.ears) == 2
+        and all(len(ear.channels) == 16 for ear in block.binaural_l5.ears)
+        for block in episode.blocks
+    )
+    assert accepted == []
+    assert world.observation_snapshot().revision == before.revision + 2
+    assert owner.status()["settled"] == 0
+    assert owner.status()["atomic_sequence"] == 1
+    assert owner.status()["atomic_sequence_staged_settled"] == 2
+    assert physical.status()["atomic_episode"] == 1
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 0
+    assert physical.status()["binaural_auditory_l5"][
+        "atomic_sequence_staged_settled"
+    ] == 2
+    assert physical._binaural_auditory_l5_owner.latest is None
+    persisted = json.dumps(episode.persistence_record(b"c" * 32))
+    assert "pcm_s16le" not in persisted
+    assert "left_pcm_s16le" not in persisted
+    assert "right_pcm_s16le" not in persisted
+
+    companion.commit_episode(prepared)
+
+    assert accepted == []
+    assert physical.status()["atomic_episode"] == 0
+    assert physical.status()["active_epochs"] == 0
+    assert owner.status()["atomic_sequence"] == 0
+    assert owner.status()["settled"] == 2
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 2
+    assert companion.status()["has_latest_episode"] is True
+    assert companion.status()["prepared_episode"] == 0
+
+
+def test_multiblock_episode_discard_restores_world_causal_and_l5_state():
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    before = world.encoded_snapshot()
+
+    prepared = companion.prepare_episode(
+        pcm_s16le=_long_tone(660, 4096),
+    )
+    companion.discard_episode(prepared)
+
+    assert world.encoded_snapshot() == before
+    assert accepted == []
+    assert owner.status()["settled"] == 0
+    assert owner.status()["atomic_sequence"] == 0
+    assert physical.status()["active_epochs"] == 0
+    assert physical.status()["atomic_episode"] == 0
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 0
+    assert physical.status()["binaural_auditory_l5"]["has_latest"] is False
+
+
+def test_second_block_failure_rolls_back_the_complete_episode(monkeypatch):
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    before = world.encoded_snapshot()
+    original_mount = physical.mount
+
+    def fail_second_block(**kwargs):
+        if kwargs["sequence"] == 1:
+            raise RuntimeError("injected second block failure")
+        return original_mount(**kwargs)
+
+    monkeypatch.setattr(physical, "mount", fail_second_block)
+    with pytest.raises(RuntimeError, match="second block failure"):
+        companion.prepare_episode(
+            pcm_s16le=_long_tone(880, 4096),
+        )
+
+    assert world.encoded_snapshot() == before
+    assert accepted == []
+    assert owner.status()["settled"] == 0
+    assert owner.status()["prepared_reservation"] == 0
+    assert owner.status()["atomic_sequence"] == 0
+    assert physical.status()["active_epochs"] == 0
+    assert physical.status()["atomic_episode"] == 0
+    assert physical.status()["prepared_multisensory_mount"] == 0
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 0
+    assert physical.status()["binaural_auditory_l5"]["prepared"] == 0
+
+
+def test_episode_commit_failure_restores_l5_publication_and_remains_discardable(
+    monkeypatch,
+):
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    before = world.encoded_snapshot()
+    prepared = companion.prepare_episode(
+        pcm_s16le=_long_tone(550, 4096),
+    )
+    original_commit = owner.commit_atomic_sequence
+
+    def fail_causal_publish(_token):
+        raise RuntimeError("injected causal episode publish failure")
+
+    monkeypatch.setattr(owner, "commit_atomic_sequence", fail_causal_publish)
+    with pytest.raises(RuntimeError, match="episode publish failure"):
+        companion.commit_episode(prepared)
+
+    assert physical.status()["atomic_episode"] == 1
+    assert physical.status()["active_epochs"] == 1
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 0
+    assert physical.status()["binaural_auditory_l5"]["atomic_sequence"] == 1
+    assert companion.status()["prepared_episode"] == 1
+
+    monkeypatch.setattr(owner, "commit_atomic_sequence", original_commit)
+    companion.discard_episode(prepared)
+
+    assert world.encoded_snapshot() == before
+    assert accepted == []
+    assert owner.status()["settled"] == 0
+    assert owner.status()["atomic_sequence"] == 0
+    assert physical.status()["atomic_episode"] == 0
+    assert physical.status()["active_epochs"] == 0
+    assert physical.status()["binaural_auditory_l5"]["settled"] == 0
+    assert physical.status()["binaural_auditory_l5"]["atomic_sequence"] == 0
+
+
+def test_episode_partition_never_creates_an_undersized_terminal_block():
+    blocks = W1CompanionVocalExperienceAuthority._episode_blocks(
+        _long_tone(440, 2049)
+    )
+    assert tuple(len(block) // 2 for block in blocks) == (1025, 1024)
+
+
+def test_oversize_episode_fails_before_any_authority_mutates():
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    before = world.encoded_snapshot()
+    pcm = b"\x00\x00" * (MAX_COMPANION_VOCAL_EPISODE_SAMPLES + 1)
+
+    with pytest.raises(ValueError, match="exact sample boundary"):
+        companion.prepare_episode(pcm_s16le=pcm)
+
+    assert world.encoded_snapshot() == before
+    assert accepted == []
+    assert owner.status()["settled"] == 0
+    assert physical.status()["active_epochs"] == 0
+    assert physical.status()["atomic_episode"] == 0

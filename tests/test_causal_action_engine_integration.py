@@ -1019,3 +1019,37 @@ def test_companion_vocal_engine_failure_restores_world_and_causal_reservation(
         assert guala._w1_physical_evidence.status()["active_epochs"] == 0
     finally:
         guala.shutdown()
+
+
+def test_companion_vocal_multiblock_episode_publishes_only_after_completion(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "companion-episode-key")
+    guala = Guala()
+    try:
+        pcm = _companion_pcm_chunk() * 4
+        before = guala._embodiment_world.observation_snapshot()
+        accepted_before = guala._causal_settlement_accepted
+
+        result = guala.experience_companion_vocal_episode(pcm)
+
+        assert result["block_count"] == 2
+        assert result["total_sample_count"] == len(pcm) // 2
+        assert result["world_revision_before"] == before.revision
+        assert result["world_revision_after"] == before.revision + 2
+        assert len(result["binaural_l5_authority_receipt_sha256s"]) == 2
+        assert guala._causal_settlement_accepted == accepted_before
+        assert guala._embodiment_outcome_causal_owner.status()["settled"] == 2
+        assert guala._embodiment_outcome_causal_owner.status()[
+            "atomic_sequence"
+        ] == 0
+        assert guala._w1_physical_evidence.status()["active_epochs"] == 0
+        assert guala._w1_physical_evidence.status()["atomic_episode"] == 0
+        assert guala._w1_companion_vocal_experience.status()[
+            "has_latest_episode"
+        ] is True
+    finally:
+        guala.shutdown()

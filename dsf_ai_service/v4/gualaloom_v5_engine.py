@@ -8522,6 +8522,54 @@ class Guala:
                 "world_revision_before": before.revision,
             }
 
+    @_engine_mutation_entry
+    def experience_companion_vocal_episode(self, pcm_s16le):
+        """Admit one already-bounded vocal act as a full-field W1 episode.
+
+        The exact byte extent is the physical terminal supplied by the caller.
+        It is not inferred from a timeout, transcript, stream id, source tag,
+        or chi.  Every W1 block settles atomically, while only the completed
+        episode is published outside the transaction.
+        """
+        authority = self._w1_companion_vocal_experience
+        if authority is None or self._embodiment_world is None:
+            raise RuntimeError(
+                "companion vocal episode authority is unavailable"
+            )
+        if not isinstance(pcm_s16le, bytes):
+            raise TypeError("companion vocal episode pressure must be PCM16 bytes")
+        with self._causal_cycle_bridge_lock:
+            before = self._embodiment_world.observation_snapshot()
+            prepared = None
+            try:
+                prepared = authority.prepare_episode(pcm_s16le=pcm_s16le)
+                episode = prepared.episode
+                authority.verify_episode(episode)
+                after = self._embodiment_world.observation_snapshot()
+                authority.commit_episode(prepared)
+            except BaseException:
+                if prepared is not None:
+                    try:
+                        authority.discard_episode(prepared)
+                    except ValueError:
+                        pass
+                raise
+            return {
+                "block_count": len(episode.blocks),
+                "binaural_l5_authority_receipt_sha256s": [
+                    block.binaural_l5.authority_receipt_sha256
+                    for block in episode.blocks
+                ],
+                "episode_authority_receipt_sha256": (
+                    episode.authority_receipt_sha256
+                ),
+                "episode_id": episode.episode_id,
+                "schema": "guala.w1.companion_vocal_episode.v1",
+                "total_sample_count": episode.total_sample_count,
+                "world_revision_after": after.revision,
+                "world_revision_before": before.revision,
+            }
+
     def _run_causal_play_episode(
         self,
         *,
