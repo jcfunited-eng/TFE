@@ -39,7 +39,8 @@ time check. It combines:
       driven through the same real turns — the ultimate backstop, since
       it doesn't depend on how the real path would have reached it
   (4) a call-count assertion that _emit_from_invariants (the one real
-      reply composer) runs exactly once per real turn.
+      non-causal reply composer) runs exactly once per real turn, while the
+      retired Fact-Strand replay composer is never consulted.
 """
 
 import ast
@@ -177,6 +178,7 @@ def _run_real_turn_with_hostile_v7_session(converse_phased):
     Guala._emit_from_invariants = _counting_emit
     Guala._compose_language_fact_settlement = _counting_fact_compose
 
+    g = None
     try:
         g = Guala()
         g._v7_session = _NeverTouchedV7Session()
@@ -185,25 +187,14 @@ def _run_real_turn_with_hostile_v7_session(converse_phased):
         assert isinstance(reply, ConversationTurnResult), (
             f"expected an immutable turn result, got {reply!r}")
         assert isinstance(reply.response, str)
-        # Joe's 2026-07-16 ruling (spec v3 release-policy row): the
-        # substrate's own assemblage settlement is a legitimate SECOND
-        # release authority when the certified composer has nothing —
-        # so on this fresh organism the assemblage voice may be consulted
-        # exactly once, strictly AFTER the one canonical Fact-Strand
-        # composer.  What stays forbidden forever: any V7 access (the
-        # hostile spy raises), any second reply generator, or the
-        # assemblage running before/without the certified composer.
-        assert authority_calls[:1] == ["fact"], (
-            "the canonical Fact-Strand composer must be consulted first, "
-            f"got {authority_calls}")
-        assert authority_calls.count("fact") == 1, (
-            "expected the one canonical Fact-Strand composer exactly once, "
-            f"got {authority_calls}")
-        assert authority_calls.count("assemblage") <= 1, (
-            "the assemblage voice may settle a turn at most once, "
+        assert authority_calls == ["assemblage"], (
+            "one real turn must consult exactly one substrate assemblage "
+            "authority and never the retired Fact-Strand replay path, "
             f"got {authority_calls}")
         return reply
     finally:
+        if g is not None:
+            g.shutdown()
         V7Session.converse = orig_v7_converse
         Guala._emit_from_invariants = orig_emit
         Guala._compose_language_fact_settlement = orig_fact_compose
@@ -242,6 +233,7 @@ def test_autonomous_emission_never_touches_hostile_v7_session():
         raise AssertionError("V7Session.converse() called from autonomous emission")
 
     V7Session.converse = _forbidden_converse
+    g = None
     try:
         g = Guala()
         g._v7_session = _NeverTouchedV7Session()
@@ -255,6 +247,8 @@ def test_autonomous_emission_never_touches_hostile_v7_session():
         print("  OK: compose_autonomous()/_do_emit() never touched "
               "v7_session, never called V7Session.converse()")
     finally:
+        if g is not None:
+            g.shutdown()
         V7Session.converse = orig_v7_converse
 
 

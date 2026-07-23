@@ -53,7 +53,7 @@ def _build(sense: PhysicalSense, count: int):
     )
 
 
-def test_sound_admits_exactly_thirty_two_bounded_components() -> None:
+def test_sound_admits_exactly_sixty_four_bounded_components() -> None:
     built = _build(PhysicalSense.SOUND, MAX_NATIVE_SOUND_SUBSTREAMS)
 
     built.boundary.verify(built.receipt_registry)
@@ -62,10 +62,11 @@ def test_sound_admits_exactly_thirty_two_bounded_components() -> None:
         for boundary in built.boundary.boundaries
         if boundary.sense is PhysicalSense.SOUND
     )
-    assert len(sound.substreams) == 32
+    assert MAX_NATIVE_SOUND_SUBSTREAMS == 64
+    assert len(sound.substreams) == MAX_NATIVE_SOUND_SUBSTREAMS
 
 
-def test_sound_rejects_thirty_third_component_before_building() -> None:
+def test_sound_rejects_sixty_fifth_component_before_building() -> None:
     with pytest.raises(ValueError, match="topology exceeds"):
         _build(PhysicalSense.SOUND, MAX_NATIVE_SOUND_SUBSTREAMS + 1)
 

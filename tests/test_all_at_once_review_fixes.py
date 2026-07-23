@@ -66,10 +66,17 @@ def test_self_heard_windows_never_accrete_for_any_release_kind(engine):
     # ...but the exclusion was loud, once per window...
     excluded = _events_of(g, "self_heard_window_excluded_from_certification")
     assert len(excluded) == 3
-    # ...and the windows themselves persist as recallable experience.
+    # ...and the transient verbatim windows are released after their
+    # structural settlement.  The close receipt remains observable, but the
+    # manager must not retain a lifetime copy of every self-heard utterance.
     assert all(e.get("window_id") for e in excluded)
+    closed_ids = {
+        e.get("window_id")
+        for e in _events_of(g, "window_closed")
+    }
     for e in excluded:
-        assert g.window_manager.closed_window(e["window_id"]) is not None
+        assert e["window_id"] in closed_ids
+        assert g.window_manager.closed_window(e["window_id"]) is None
 
 
 def test_self_heard_is_a_valid_origin_and_junk_origins_still_raise(engine):
@@ -128,7 +135,11 @@ def test_tier3_refuses_recall_under_lock_and_uses_precomputed_votes(engine):
     g.organism.recall_fast = spying_recall
     try:
         with g.lock:
-            g.compose_autonomous(seed_attempts=seeds, organism_votes=None)
+            g.compose_autonomous(
+                seed_attempts=seeds,
+                organism_votes=None,
+                organ_candidates=(),
+            )
         assert calls["n"] == 0, "tier 3 recalled under self.lock"
         refusals = _events_of(g, "autonomous_organism_attempt")
         assert any(e.get("stop_reason") == "votes_not_precomputed"
@@ -141,9 +152,33 @@ def test_tier3_refuses_recall_under_lock_and_uses_precomputed_votes(engine):
             assert calls["n"] > 0
             with g.lock:
                 g.compose_autonomous(seed_attempts=seeds,
-                                     organism_votes=votes)
+                                     organism_votes=votes,
+                                     organ_candidates=())
     finally:
         g.organism.recall_fast = real_recall
+
+
+def test_live_autonomous_emission_precomputes_outside_engine_lock(engine):
+    g = engine
+    g.read_sentence(
+        "blue bird sings",
+        source="joe",
+        experience_origin="observed",
+    )
+    lock_states = []
+    real_precompute = g.precompute_emission_candidates
+
+    def observing_precompute(*args, **kwargs):
+        lock_states.append(g.lock._is_owned())
+        return ()
+
+    g.precompute_emission_candidates = observing_precompute
+    try:
+        with g.lock:
+            assert g._do_emit() is False
+    finally:
+        g.precompute_emission_candidates = real_precompute
+    assert lock_states == [False]
 
 
 def test_daughters_are_rewired_into_spike_bus_after_fold(engine):
@@ -182,49 +217,42 @@ def test_daughters_are_rewired_into_spike_bus_after_fold(engine):
         "daughter neuron was invisible to the spike bus"
 
 
-def test_taught_correction_answers_the_question_next_time(engine):
-    """Joe 2026-07-16: corrections work always. A question asked (and
-    therefore minted as terminal windows), then corrected, must answer
-    with the taught continuation on the next ask -- terminal ask-windows
-    no longer veto (composer law), and the correction teaches the whole
-    exchange as one observed window."""
+def test_typed_correction_does_not_become_a_scripted_answer(engine):
+    """Correction metadata may judge an action, but typed correction text
+    is not a separately experienced spoken action and therefore cannot mint
+    a prompt-to-answer continuation."""
     g = engine
-    # Ask twice first: mints terminal windows ending at the question.
     for _ in range(2):
         g.read_sentence("who are you", source="joe",
                         experience_origin="observed")
-    # Correction teaches the exchange.
+    windows_before = len(g._ordered_language_windows)
     g.apply_teacher_correction(
         original_input="who are you", her_emission="pray you wretched",
         correct=False, corrected_text="i am guala", source="joe")
-    # The certified composer must now continue the question with the answer.
+    assert len(g._ordered_language_windows) == windows_before
     settlement = g._compose_language_fact_settlement(
         ["who", "are", "you"])
-    assert settlement is not None, "no certified settlement after correction"
-    text = " ".join(
-        t if isinstance(t, str) else getattr(t, "word", str(t))
-        for t in getattr(settlement, "content", "").split()) \
-        if hasattr(settlement, "content") else None
-    content = getattr(settlement, "content", None) or text
-    assert content and "guala" in str(content).lower(), content
+    content = getattr(settlement, "content", "") if settlement else ""
+    assert "guala" not in content.lower()
+    corrections = _events_of(g, "teacher_correction")
+    assert corrections
+    assert corrections[-1]["corrected_text"] == "i am guala"
 
 
-def test_teaching_outranks_conflicting_history(engine):
-    """2026-07-17: when lived history conflicts about a continuation, the
-    teacher's correction wins (a parent's correction outranks overheard
-    noise). Reproduces Joe's 'who are you' case: a historical window gives
-    a different continuation than the taught exchange."""
+def test_typed_correction_cannot_override_lived_history(engine):
+    """Teacher authority is preserved as feedback, not converted into a
+    scripted language lookup that silently outranks lived experience."""
     g = engine
-    # Historical conflicting testimony: sensory-bearing so it accretes.
     g.read_sentence("who are you warm sun", source="corpus",
                     experience_origin="observed")
-    # Teaching: the exchange through the correction gateway.
+    windows_before = len(g._ordered_language_windows)
     g.apply_teacher_correction(
         original_input="who are you", her_emission="warm sun",
         correct=False, corrected_text="i am guala", source="joe")
+    assert len(g._ordered_language_windows) == windows_before
     settlement = g._compose_language_fact_settlement(["who", "are", "you"])
     content = getattr(settlement, "content", "") or ""
-    assert "guala" in content.lower(), repr(content)
+    assert "guala" not in content.lower(), repr(content)
 
 
 def test_conversational_repeat_shifts_votes_autonomous_stays_strict(engine):

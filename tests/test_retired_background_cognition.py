@@ -69,7 +69,20 @@ def test_density_orchestrator_cannot_be_reenabled_by_environment(
     assert started == []
 
 
-def test_thought_surface_reports_retirement_without_invented_speech() -> None:
+def test_thought_surface_reports_retirement_without_invented_speech(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        substrate_runner,
+        "_last_autonomous_thought",
+        {
+            "speech": "",
+            "tick": 0,
+            "ts": 0.0,
+            **substrate_runner._RETIRED_BACKGROUND_COGNITION,
+        },
+    )
+
     observed = substrate_runner._cmd_thought()
 
     assert observed["speech"] == ""

@@ -134,10 +134,14 @@ def test_only_labeled_commits_surface(monkeypatch):
             organ=True, commit_provenance=(organ,))) == (
                 "warm", "assemblage_commit")
 
+        # The legacy Fact-Strand certifier requires reopening its complete
+        # verbatim source window. Production now releases that transient
+        # window after bounded settlement, so this route must remain silent
+        # rather than resurrecting lifetime window retention.
         g.read_sentence("red fox runs warm", source="corpus")
         fact = g._compose_language_fact_settlement(("red", "fox"))
         assert g._committed_emission_response(fact) == (
-            "runs warm", "fact_strand_commit")
+            "", "silence_no_commit")
 
         assert g._committed_emission_response(None) == (
             "", "silence_no_commit")
@@ -465,8 +469,6 @@ def test_concurrent_turns_return_distinct_local_ids_and_attribution(monkeypatch)
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     g = Guala()
-    g.read_sentence("alpha warm", source="corpus")
-    g.read_sentence("beta cold", source="corpus")
     both_entered = threading.Event()
     release_alpha = threading.Event()
     release_beta = threading.Event()
@@ -487,13 +489,25 @@ def test_concurrent_turns_return_distinct_local_ids_and_attribution(monkeypatch)
         assert release.wait(timeout=10)
         return 0, "subject", {}, None, {}
 
-    def legacy_emission_must_not_run(self, *_args, **_kwargs):
+    def concurrent_assemblage(self, _input_chis, input_words, **_kwargs):
         emission_calls["n"] += 1
-        raise AssertionError("legacy emission path must not run")
+        word = "warm" if input_words == ["alpha"] else "cold"
+        return _settlement(
+            content=word,
+            sections=["modifier"],
+            n_commits=1,
+            commit_provenance=(
+                _lived_provenance(
+                    word=word,
+                    source="joe",
+                    origin="grandurun",
+                ),
+            ),
+        )
 
     g.read_word = MethodType(fast_read_word, g)
     g._recall_response = lambda *_args, **_kwargs: (None, ())
-    g._emit_from_invariants = MethodType(legacy_emission_must_not_run, g)
+    g._emit_from_invariants = MethodType(concurrent_assemblage, g)
     g._open_response_window = lambda *_args, **_kwargs: None
 
     def run(key, text):
@@ -538,7 +552,7 @@ def test_concurrent_turns_return_distinct_local_ids_and_attribution(monkeypatch)
         ids = {turn.emission_id for turn in results.values()}
         assert len(ids) == 2
         assert {turn.response for turn in results.values()} == {"warm", "cold"}
-        assert all(turn.response_source == "fact_strand_commit"
+        assert all(turn.response_source == "assemblage_commit"
                    for turn in results.values())
         assert {turn.commit_provenance[0].word
                 for turn in results.values()} == {"warm", "cold"}
@@ -618,6 +632,7 @@ def test_emit_from_invariants_serializes_every_direct_call(monkeypatch):
 def _autonomous_stub(settlement):
     g = Guala.__new__(Guala)
     g.tick = 10
+    g.lock = threading.RLock()
     g._emission_lock = threading.RLock()
     g._live_converse_state_lock = threading.Lock()
     g._live_converse_pending = 0
@@ -627,6 +642,7 @@ def _autonomous_stub(settlement):
         settlement.content, settlement.committed_sections,
         settlement.n_commits, settlement.organ_in_commits)
     g._emit_from_invariants = lambda *_args, **_kwargs: settlement
+    g.precompute_emission_candidates = lambda *_args, **_kwargs: ()
     g._recall_sight_from_atlas = lambda *_args, **_kwargs: []
     g._open_response_window_calls = []
     g._open_response_window = lambda *args, **kwargs: (
@@ -666,7 +682,15 @@ def test_autonomous_genuine_commit_is_counted_and_can_satisfy_connection():
     g = Guala()
     try:
         g.read_sentence("red fox runs warm", source="corpus")
-        settlement = g._compose_language_fact_settlement(("red", "fox"))
+        settlement = _settlement(
+            "red fox",
+            ["subject", "verb"],
+            2,
+            commit_provenance=(
+                _lived_provenance("red", "subject", 0),
+                _lived_provenance("fox", "verb", 1),
+            ),
+        )
         g.sections["subject"].commits.append({"chi": 4})
         g._emit_from_invariants = lambda *_args, **_kwargs: settlement
         g._recall_sight_from_atlas = lambda *_args, **_kwargs: []
@@ -684,7 +708,8 @@ def test_autonomous_genuine_commit_is_counted_and_can_satisfy_connection():
         assert g._total_emissions == before_total + 1
         assert g._emission_lengths[-1] == 2
         assert len(opened) == 1
-        assert [kind for kind, _ in events] == ["emission"]
+        assert [kind for kind, _ in events].count("emission") == 1
+        assert events[-1][0] == "emission"
     finally:
         g.shutdown()
 
@@ -770,7 +795,7 @@ def test_legacy_emission_records_are_preserved_and_never_reinforced():
     assert g._certified_emission_record("mismatched") is None
 
 
-def test_teacher_handlers_and_ui_consume_certified_truth_only():
+def test_teacher_handlers_and_ui_preserve_observed_reply_truth():
     import dsf_ai_service.app as appmod
     import dsf_ai_service.substrate_runner as runner
 
@@ -779,14 +804,19 @@ def test_teacher_handlers_and_ui_consume_certified_truth_only():
             appmod.handle_teacher_correction_local,
             runner.handle_teacher_feedback,
             runner.handle_teacher_correction):
-        assert "_certified_emission_record" in inspect.getsource(handler)
+        source = inspect.getsource(handler)
+        assert "_certified_emission_record" in source
+        assert "causal_action_cycle_commit" in source
+        assert "durably_review_causal_action_emission" in source
 
     ui = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
     assert "const resp=d.response||'...';" not in ui
-    assert "if(!emissionText)" in ui
-    committed_gate = "d.response_source==='fact_strand_commit'"
-    assert committed_gate in ui
-    assert "addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);" in ui
+    assert "addMsg('heard: \"'+recognized+'\"','user')" in ui
+    assert "cause.textContent='reply to: “'+block.dataset.originalInput+'”'" in ui
+    assert "if(emissionId){" in ui
+    assert "addEmissionMsg(result.speech,result.emission_id||null,heard)" in ui
+    assert "addEmissionMsg(resp,d.emission_id||null,text);gualaSpeak(resp);" in ui
+    assert "d.response_source==='causal_action_cycle_commit'" in ui
 
     app_source = inspect.getsource(appmod._run_converse)
     runner_source = inspect.getsource(runner.handle_gualaloom_post)

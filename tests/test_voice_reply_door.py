@@ -46,6 +46,7 @@ import json
 import threading
 import time
 from dataclasses import replace
+import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import dsf_ai_service.app as appmod
@@ -199,6 +200,26 @@ def _reset():
         appmod._voice_reply_pending = None
         appmod._voice_reply_active_event_id = None
         appmod._voice_turn_results.clear()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_voice_reply_globals():
+    original_guala = appmod._guala
+    with srmod._autonomous_thought_lock:
+        original_thought = dict(srmod._last_autonomous_thought)
+    try:
+        yield
+    finally:
+        deadline = time.monotonic() + 5.0
+        while (
+            appmod._voice_reply_busy.is_set()
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.02)
+        _reset()
+        appmod._guala = original_guala
+        with srmod._autonomous_thought_lock:
+            srmod._last_autonomous_thought = original_thought
 
 
 def test_gate1_recognized_speech_calls_converse_not_read_sentence():

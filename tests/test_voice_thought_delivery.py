@@ -23,7 +23,11 @@ def test_embedded_thought_route_delivers_live_substrate_reply(monkeypatch):
     }
     monkeypatch.setattr(appmod, "SUBSTRATE_MODE", "embedded")
     with substrate_runner._autonomous_thought_lock:
-        substrate_runner._last_autonomous_thought = dict(expected)
+        monkeypatch.setattr(
+            substrate_runner,
+            "_last_autonomous_thought",
+            dict(expected),
+        )
 
     async def request_thought():
         transport = httpx.ASGITransport(
@@ -43,4 +47,3 @@ def test_embedded_thought_route_delivers_live_substrate_reply(monkeypatch):
 
     assert response.status_code == 200
     assert response.json() == expected
-

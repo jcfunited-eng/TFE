@@ -222,7 +222,9 @@ class _FakeGualaForBoot:
     def add_corpus(self, *a, **kw):
         pass
 
-    def load_full_state(self, state_dir):
+    def load_full_state(
+            self, state_dir, *, allow_authenticated_legacy_pickle=False):
+        assert allow_authenticated_legacy_pickle is False
         pass  # _load_successful already True; no-op "load"
 
     def start_autonomy_loop(self, interval=0.2):

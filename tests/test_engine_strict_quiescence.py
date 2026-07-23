@@ -3,6 +3,7 @@ import queue
 import sys
 import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 
@@ -29,6 +30,12 @@ def _bare_engine():
     engine._daydream_thread = None
     engine._live_converse_pending = 0
     engine._live_converse_state_lock = threading.Lock()
+    engine._auditory_incremental_terminals = SimpleNamespace(
+        authority_counts=lambda: {
+            "issued_terminal_authorities": 0,
+            "in_flight_terminal_authorities": 0,
+        }
+    )
     engine._organism_queue = None
     engine._organism_worker_thread = None
     engine._organism_sensory_queue = queue.Queue()

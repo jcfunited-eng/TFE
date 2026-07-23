@@ -7079,6 +7079,14 @@ class Guala:
                                 _bind_count += 1
         _t_tag = time.monotonic()
 
+        emission_candidates = (
+            self.precompute_emission_candidates(
+                words, mode_override=emission_mode)
+            if (causal_settlement is None
+                and getattr(fact_settlement, "n_commits", 0) <= 0)
+            else ()
+        )
+
         # Phase 6: emission (self._emission_lock — serializes _emit_dynamics mutation
         # of _emission_system.sections; curriculum and /converse can interleave here
         # via self.lock, but only one thread enters _emit_dynamics at a time)
@@ -7100,7 +7108,8 @@ class Guala:
                 # RLock; _emit_from_invariants re-acquires it safely inline.
                 settlement = self._emit_from_invariants(
                     input_chis, words, mode_override=emission_mode,
-                    v7_session=getattr(self, "_v7_session", None))
+                    v7_session=getattr(self, "_v7_session", None),
+                    organ_candidates=emission_candidates)
             reply, response_source = self._committed_emission_response(
                 settlement)
             if reply:
@@ -12945,7 +12954,11 @@ class Guala:
                 return EmissionSettlement(tick=self.tick)
 
             input_words_set = set(w.lower() for w in input_words)
-            deep_candidates = self._brain_emission_candidates(input_words)
+            deep_candidates = (
+                self._brain_emission_candidates(input_words)
+                if organ_candidates is None
+                else list(organ_candidates)
+            )
             if not deep_candidates:
                 return EmissionSettlement(tick=self.tick)
 
@@ -19113,7 +19126,7 @@ class Guala:
 
     @_engine_mutation_entry
     def compose_autonomous(self, seed_attempts=None, organism_votes=None,
-                           proposal=None):
+                           proposal=None, organ_candidates=None):
         """One autonomous release attempt through the one release policy.
         Returns dict with content/metadata if a release fires; None
         otherwise. The first authority is the substrate's structural
@@ -19164,7 +19177,8 @@ class Guala:
             try:
                 settlement = self._emit_from_invariants(
                     input_chis, [],
-                    v7_session=getattr(self, '_v7_session', None))
+                    v7_session=getattr(self, '_v7_session', None),
+                    organ_candidates=organ_candidates)
             finally:
                 self._emission_lock.release()
             content, response_source = self._committed_emission_response(
@@ -19247,6 +19261,21 @@ class Guala:
         for q in queries:
             merged.pop(q, None)
         return {"queries": queries, "merged": merged}
+
+    def precompute_emission_candidates(self, input_words, mode_override=None):
+        """Compute organism emission candidates without ``self.lock``.
+
+        Population recall is duration-unbounded relative to a live sensory
+        turn.  Callers perform this read before entering the engine or mouth
+        transaction and pass the immutable candidate tuple to
+        ``_emit_from_invariants``.  An inactive dynamics mode has no
+        candidates to compute.
+        """
+        mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
+        if (os.environ.get("EMISSION_DYNAMICS", "0") != "1"
+                or mode != "grandurun"):
+            return ()
+        return tuple(self._brain_emission_candidates(input_words))
 
     # ── GL-CMD-SYNTAX-ARC-20260718 Piece 2: the proposal composer ──────
     # Statistics propose, the organism disposes.  Candidates are walks
@@ -19682,6 +19711,7 @@ class Guala:
                 return False
 
         # Phase 2 (self._emission_lock): emit dynamics + SVO fallback
+        emission_candidates = self.precompute_emission_candidates([])
         # Non-blocking acquire: if /converse holds _emission_lock, skip this tick.
         # Autonomous emission fires every 0.2s so one missed tick is harmless;
         # blocking here would add up to 5s latency to every /converse call.
@@ -19693,7 +19723,8 @@ class Guala:
         try:
             input_words = []
             content = self._emit_from_invariants(recent_chis, input_words,
-                                                  v7_session=getattr(self, '_v7_session', None))
+                                                  v7_session=getattr(self, '_v7_session', None),
+                                                  organ_candidates=emission_candidates)
             content, response_source = self._committed_emission_response(content)
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
         finally:
@@ -19773,12 +19804,29 @@ class Guala:
 
         # Use the invariants path (grandurun or topk per EMISSION_MODE)
         input_words = []  # autonomous — no input words to exclude
+        # The stable autonomy path enters here with ``self.lock`` held.
+        # Population recall must not run beneath that global engine lock:
+        # release it only for the read-only candidate snapshot, then restore
+        # the caller's ownership before mutating emission state. Direct test
+        # callers that do not own the lock simply compute in place.
+        engine_lock_owned = bool(
+            getattr(self.lock, "_is_owned", lambda: False)()
+        )
+        if engine_lock_owned:
+            self.lock.release()
+        try:
+            emission_candidates = self.precompute_emission_candidates(
+                input_words)
+        finally:
+            if engine_lock_owned:
+                self.lock.acquire()
         if not self._try_acquire_autonomous_emission():
             return False
         try:
             settlement = self._emit_from_invariants(
                 recent_chis, input_words,
-                v7_session=getattr(self, '_v7_session', None))
+                v7_session=getattr(self, '_v7_session', None),
+                organ_candidates=emission_candidates)
         finally:
             self._emission_lock.release()
         content, response_source = self._committed_emission_response(
@@ -20106,82 +20154,16 @@ class Guala:
 
                 effective_correction = corrected_text or expected_response
                 if effective_correction:
-                    # GL-CMD-TEACHER-SUBSTRATE-TRUE: corrected_text enters substrate
-                    # at natural source-weight salience (no TEACHER_INPUT_SALIENCE_MULTIPLIER
-                    # — pair_bond + source_weight already elevate joe/wc inputs).
-                    #
-                    # 2026-07-16 (Joe: "corrections should work always"): a
-                    # correction also teaches the WHOLE EXCHANGE as one
-                    # observed language window -- question words followed by
-                    # the corrected answer -- exactly like a parent modeling
-                    # the exchange out loud. The certified composer's
-                    # unique-successor law then answers the next identical
-                    # question with the taught continuation (terminal
-                    # ask-windows no longer veto; see language_fact_composer).
-                    try:
-                        _exchange_q = " ".join(_normalize_text(
-                            original_input or ""))
-                        if _exchange_q:
-                            self.read_sentence(
-                                f"{_exchange_q} {effective_correction}",
-                                source=source, teaching=True)
-                    except Exception as _ex_e:
-                        print(f"[teacher-correction] exchange-window teach "
-                              f"failed (non-fatal): {_ex_e}", flush=True)
-                    try:
-                        self.read_sentence(effective_correction, source=source)
-                    except Exception:
-                        for w in _normalize_text(effective_correction):
-                            k = LanguageKrimelack()
-                            k.transduce(w)
-                            self._atlas_record(
-                                "object", deterministic_motif_id(w),
-                                k.winding, tick=correction_tick,
-                                salience=self._compute_salience(source=source),
-                                dwell_ticks=5,
-                                source=source,
-                            )
-
-                    # GL-CMD-TEACHER-SUBSTRATE-TRUE: native episode_ref back-reference
-                    # (replaces teaching_correction_for tag — same pattern as atlas
-                    # episode_refs list on existing bindings).
-                    if emission_id:
-                        ep_ref = f"correction:{emission_id}"
-                        for w in _normalize_text(effective_correction):
-                            k = LanguageKrimelack()
-                            k.transduce(w)
-                            for d in range(-self.atlas.band, self.atlas.band + 1):
-                                for e in self.atlas.entries.get(k.winding + d, []):
-                                    if e.get("last_tick", 0) >= correction_tick:
-                                        ep_refs = e.get("episode_refs", [])
-                                        e["episode_refs"] = (ep_refs + [ep_ref])[-4:]
-
-                    # Compute expected chis for cofire binding
-                    expected_words = _normalize_text(effective_correction)
-                    expected_chis = []
-                    for w in expected_words:
-                        k = LanguageKrimelack()
-                        k.transduce(w)
-                        expected_chis.append(k.winding)
-
-                    # Cofire-bind input↔expected with HIGH salience
-                    for in_chi in input_chis:
-                        for ex_chi in expected_chis:
-                            self._atlas_record(
-                                "verb",
-                                deterministic_motif_id("correction_bind"),
-                                (in_chi + ex_chi) // 2,
-                                tick=correction_tick,
-                                salience=2.0,
-                                dwell_ticks=5,
-                                source=source,
-                                sensory_refs=[
-                                    f"correction:{source}:thumbs_down",
-                                    f"correction_context:True",
-                                ],
-                            )
+                    # A typed correction is teacher feedback about the
+                    # released action. It is not the physical performance of
+                    # a new spoken action and must never be laundered into a
+                    # question-to-answer window, Atlas cofire binding, or
+                    # direct language memory. The causal-action learner
+                    # admits an answer only after the triggering causal
+                    # experience and a separately experienced spoken action
+                    # are joined under explicit teacher authority.
                     affected.append({
-                        "action": "ingest_expected",
+                        "action": "correction_recorded_not_ingested",
                         "expected": effective_correction,
                         "source": source,
                     })

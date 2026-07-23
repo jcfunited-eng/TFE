@@ -19,7 +19,6 @@ PROFILE = (
     / "glew_runtime"
     / "GLEW_UPSTREAM_PROFILE_v1.json"
 )
-OLD_PROPOSED_PROFILE = ROOT / "docs" / "Guala_Language_Experience_Weave_v1_0.json"
 FIXED_IDENTITY = uuid.UUID("00000000-0000-4000-8000-000000000001")
 
 
@@ -248,6 +247,10 @@ def test_genesis_contains_no_fixed_or_hash_derived_field_dimension(
 
 def test_old_proposed_full_profile_is_rejected_before_mutation(tmp_path):
     store_root = tmp_path / "glew"
+    proposed_profile = tmp_path / "proposed-profile.json"
+    proposed = json.loads(PROFILE.read_text())
+    proposed["schema"] = "guala.language.experience.weave.v1"
+    proposed_profile.write_bytes(_canonical_json(proposed))
 
     with pytest.raises(
         genesis.GenesisAuthorityError,
@@ -255,7 +258,7 @@ def test_old_proposed_full_profile_is_rejected_before_mutation(tmp_path):
     ):
         genesis.create_clean_genesis(
             store_root,
-            profile_path=OLD_PROPOSED_PROFILE,
+            profile_path=proposed_profile,
             fixed42_provider=l6,
             field_provider=field,
         )

@@ -3,11 +3,9 @@
 Port of tests/test_stt_runtime_ownership.py from stranded commit a8277fa
 ("fix(stt): own recognizer lifecycle and fail visibly") onto the live
 lineage, extended with real functional wiring proofs against the current
-/sound_frame handler: the transducer runs at the boundary, the FULL
-transcript enters through converse(source="auditory:unresolved_source") --
-DOOR-20260720: was read_sentence() until confirmed live that path updates
-memory/presence but never composes a reply -- and every failure is loud,
-never fabricated or silently-empty words.
+/sound_frame handler: the transducer runs at the observational boundary,
+raw sound settles through auditory L5, and every transcription failure is
+loud. Whisper text never becomes recognition or cognition authority.
 
 Stubbing discipline: only the model-inference call (transcribe_sound /
 _run_transcription) is ever replaced, with a recorded known output; the
@@ -177,12 +175,7 @@ class _FakeTurnResult:
 
 
 def _recording_guala(*, reply=""):
-    """GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech now enters
-    through converse() (composes a real reply), not read_sentence() (memory-
-    only, never replies) -- see test_voice_reply_door.py for the exhaustive
-    proof of that routing. read_sentence stays on the fake for callers
-    unrelated to voice (none remain in this file) and so a stray call is
-    still visible rather than an AttributeError."""
+    """Build the smallest boundary double that owns a full sensory window."""
     sentences = []
     converses = []
     frames = []
@@ -209,6 +202,40 @@ def _recording_guala(*, reply=""):
             ],
         },
     )
+
+    class _WindowManager:
+        def __init__(self):
+            self.active_context_id = None
+
+        def begin_context(
+                self, context_id, trigger_reason, context_detail):
+            assert self.active_context_id is None
+            assert trigger_reason == "audiovisual_capture"
+            assert context_detail["experience_origin"] == "live_audiovisual"
+            self.active_context_id = context_id
+
+        def end_context(
+                self, context_id, close_reason, return_settlement=False):
+            assert context_id == self.active_context_id
+            assert close_reason == "audiovisual_capture_complete"
+            assert return_settlement is True
+            self.active_context_id = None
+            window_id = "test-sound-window"
+            settlement = SimpleNamespace(
+                assembly_id=f"causal-{window_id}",
+                interpretations=(
+                    SimpleNamespace(sense="sound", state="observed"),
+                ),
+                verify=lambda: None,
+            )
+            return window_id, settlement
+
+        def discard_unsettled_context(self, context_id, _reason):
+            if self.active_context_id == context_id:
+                self.active_context_id = None
+
+    guala.window_manager = _WindowManager()
+
     def process_sound_frame(wav, source=None, **_kwargs):
         frames.append((wav, source))
         window_id = "test-sound-window"
@@ -242,16 +269,9 @@ def _post_sound_frame(source="joe_voice", capture_purpose="utterance"):
                          capture_ended_ms=6_000)))
 
 
-def test_transcribed_speech_enters_through_converse(
+def test_transcribed_speech_is_display_only_and_raw_sound_settles(
         clean_frame_state, monkeypatch):
-    """GL-FIX-VOICE-REPLY-DOOR-20260720: renamed from ..._read_sentence --
-    confirmed live 2026-07-20 that read_sentence updates memory/presence
-    but never composes a reply, so a full minute of successfully
-    recognized speech produced zero replies. converse() is the one real
-    door that does both; see test_voice_reply_door.py for the exhaustive
-    proof of the trigger/busy-gate/self-hear contract this test doesn't
-    re-cover -- this test's job is only "does a real transcript reach it
-    through the real /sound_frame handler.\""""
+    """Whisper reports words but cannot bypass auditory L5 cognition."""
     monkeypatch.setenv("VOICE_WHISPER", "1")
     guala, sentences, frames, converses = _recording_guala(reply="hi joe")
     appmod._guala = guala
@@ -271,12 +291,9 @@ def test_transcribed_speech_enters_through_converse(
     assert resp["spoken_word_recognition"]["available"] is True
     # Raw sound STILL reached the substrate (transducer is additive).
     assert frames == [(b"RIFFwav", "joe_voice")]
-    # The FULL transcript entered through converse() -- the one real door
-    # that both establishes presence AND can compose a reply.
+    # Boundary transcription is observational only. Auditory L5 is the
+    # authority that may release a learned spoken form into cognition.
     assert converses == []
-    # read_sentence is NOT also called -- that would process the same
-    # transcript twice (converse() reads its input into the substrate
-    # itself as part of composing a reply).
     assert sentences == []
 
 

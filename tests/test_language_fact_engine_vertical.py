@@ -1,8 +1,11 @@
-"""End-to-end gates for the canonical language Fact-Strand voice path."""
+"""Vertical gates for bounded language experience settlement.
+
+Completed sentence windows are transient causal workspaces. Their explicit
+DSF fields and source-linked Atlas effects remain available to cognition, but
+the verbatim windows and the retired Fact-Strand replay index do not persist.
+"""
 
 import copy
-import json
-
 import pytest
 
 from dsf_ai_service.substrate.language_fact_strand import DSF_FIELD_NAMES
@@ -21,82 +24,97 @@ def guala(monkeypatch):
         engine.shutdown()
 
 
-def test_sentence_is_one_completed_full_field_emulated_experience(guala):
+def _events(engine, kind):
+    return [event for event in engine._substrate_events
+            if event.kind == kind]
+
+
+def _mode_words(engine):
+    return {
+        word
+        for section in engine.sections.values()
+        for _left, _right, word in section.modes
+        if isinstance(word, str) and word
+    }
+
+
+def test_sentence_settles_one_bounded_full_field_experience(
+        guala, monkeypatch):
+    captured = []
+    real_add_entry = guala.window_manager.add_entry
+
+    def capture_entry(*args, **kwargs):
+        captured.append(copy.deepcopy(kwargs))
+        return real_add_entry(*args, **kwargs)
+
+    monkeypatch.setattr(
+        guala.window_manager, "add_entry", capture_entry)
     guala.read_sentence("red fox runs warm", source="corpus")
 
-    windows = guala.window_manager.snapshot()["windows"]
-    assert len(windows) == 1
-    window = next(iter(windows.values()))
-    assert window["close_reason"] == "context_complete"
-    assert window["context_detail"]["experience_origin"] == "emulated"
+    word_entries = [
+        entry for entry in captured if entry.get("modality") == "word"
+    ]
+    assert [entry["detail"]["language_form"]
+            for entry in word_entries] == ["red", "fox", "runs", "warm"]
+    assert [entry["language_position"]
+            for entry in word_entries] == [0, 1, 2, 3]
+    for entry in word_entries:
+        structural_fact = entry["structural_fact"]
+        assert set(structural_fact["dsf"]) == set(DSF_FIELD_NAMES)
+        assert structural_fact["events"]
+        assert structural_fact["structural_fingerprint"]
 
-    words = [entry for entry in window["entries"]
-             if entry["modality"] == "word"]
-    assert [entry["provenance"]["detail"]["language_form"]
-            for entry in words] == ["red", "fox", "runs", "warm"]
-    assert [entry["language_position"] for entry in words] == [0, 1, 2, 3]
-    assert all(entry["section"] == "language_fact" for entry in words)
+    touch_entries = [
+        entry for entry in captured if entry.get("modality") == "touch"
+    ]
+    assert touch_entries
+    for entry in touch_entries:
+        structural_fact = entry["structural_fact"]
+        assert structural_fact["schema"] == "canonical_sensory_field_v1"
+        assert structural_fact["waveform"]
+        assert set(structural_fact["dsf"]) == set(DSF_FIELD_NAMES)
 
-    touch = [entry for entry in window["entries"]
-             if entry["modality"] == "touch"]
-    assert touch
-    for entry in touch:
-        sensory = entry["provenance"]["structural_fact"]
-        assert sensory["schema"] == "canonical_sensory_field_v1"
-        assert sensory["waveform"]
-        assert set(sensory["dsf"]) == set(DSF_FIELD_NAMES)
+    closed = _events(guala, "window_closed")
+    released = _events(guala, "binding_context_released_to_atlas")
+    assert len(closed) == 1
+    assert closed[0].detail["close_reason"] == "context_complete"
+    assert released[-1].detail["window_id"] == closed[0].detail["window_id"]
+    assert guala.window_manager.closed_window(
+        closed[0].detail["window_id"]) is None
+    assert not guala.window_manager.snapshot()["windows"]
+    assert len(guala.language_fact_memory) == 0
+    assert not guala._ordered_language_windows
+    assert {"red", "fox", "runs", "warm"} <= _mode_words(guala)
 
-    assert len(guala.language_fact_memory) == 4
-    assert len(guala._ordered_language_windows) == 1
+
+def test_repeated_sentences_never_recreate_lifetime_verbatim_index(guala):
+    guala.read_sentence("red fox runs warm", source="corpus")
+    guala.read_sentence("blue fox sleeps cold", source="corpus")
+
+    assert len(_events(guala, "window_closed")) == 2
+    assert len(_events(
+        guala, "binding_context_released_to_atlas")) == 2
+    assert not guala.window_manager.snapshot()["windows"]
+    assert len(guala.language_fact_memory) == 0
+    assert not guala._ordered_language_windows
+    assert {"red", "blue", "fox", "runs", "sleeps", "warm", "cold"} <= (
+        _mode_words(guala)
+    )
 
 
-def test_prior_memory_produces_certified_multiword_fact_emission(guala):
+def test_retired_fact_composer_cannot_reopen_released_window(guala):
     guala.read_sentence("red fox runs warm", source="corpus")
 
     settlement = guala._compose_language_fact_settlement(("red", "fox"))
 
-    assert settlement.content == "runs warm"
-    assert settlement.n_commits == 2
+    assert settlement.content == ""
+    assert settlement.n_commits == 0
     assert guala._committed_emission_response(settlement) == (
-        "runs warm", "fact_strand_commit")
-    assert all(item.supports for item in settlement.commit_provenance)
+        "", "silence_no_commit")
 
 
-def test_multiword_context_distinguishes_successor_and_single_word_stops(guala):
-    guala.read_sentence("red fox runs warm", source="corpus")
-    guala.read_sentence("blue fox sleeps cold", source="corpus")
-
-    red = guala._compose_language_fact_settlement(("red", "fox"))
-    blue = guala._compose_language_fact_settlement(("blue", "fox"))
-    lone = guala._compose_language_fact_settlement(("fox",))
-
-    assert red.content == "runs warm"
-    assert blue.content == "sleeps cold"
-    assert lone.content == ""
-
-
-def test_label_only_observed_sight_cannot_certify_language(guala):
-    guala.window_manager.open(
-        "give_experience", experience_origin="observed", bundle_name="fox")
-    outer_context = guala.window_manager.active_context_id
-    guala.window_manager.add_entry(
-        modality="sight", section="sight", motif_id=7, chi=11,
-        tick=guala.tick, source_tag="joe", mirror_atlas=False)
-
-    guala.read_sentence("red fox", source="joe")
-
-    assert guala.window_manager.active_context_id == outer_context
-    assert not guala.window_manager.snapshot()["windows"]
-    window_id = guala.window_manager.close("give_experience_complete")
-    with pytest.raises(ValueError, match="lacks certified native sight"):
-        guala._remember_closed_language_window(window_id)
-    window = guala.window_manager.closed_window(window_id)
-    assert {entry["modality"] for entry in window["entries"]} >= {
-        "sight", "word"}
-    assert not guala._ordered_language_windows
-
-
-def test_failed_partial_sentence_never_enters_memory_or_rebuild(guala, monkeypatch):
+def test_failed_partial_sentence_leaves_no_replay_state(
+        guala, monkeypatch):
     real_read_word = guala.read_word
     calls = 0
 
@@ -111,61 +129,52 @@ def test_failed_partial_sentence_never_enters_memory_or_rebuild(guala, monkeypat
     with pytest.raises(RuntimeError, match="injected word failure"):
         guala.read_sentence("red fox runs warm", source="corpus")
 
-    window = next(iter(guala.window_manager.snapshot()["windows"].values()))
-    assert window["close_reason"] == "context_failed"
-    assert len(guala.language_fact_memory) == 0
-    guala._rebuild_language_fact_memory_from_windows()
+    closed = _events(guala, "window_closed")
+    assert closed[-1].detail["close_reason"] == "context_failed"
+    assert not guala.window_manager.snapshot()["windows"]
+    assert not guala.window_manager.open_context_ids()
     assert len(guala.language_fact_memory) == 0
     assert not guala._ordered_language_windows
 
 
-def test_window_restore_rebuild_is_bit_exact_and_tampering_silences(
-        guala, monkeypatch):
+def test_label_only_observed_sight_cannot_become_language_authority(guala):
+    guala.window_manager.open(
+        "give_experience", experience_origin="observed", bundle_name="fox")
+    outer_context = guala.window_manager.active_context_id
+    guala.window_manager.add_entry(
+        modality="sight", section="sight", motif_id=7, chi=11,
+        tick=guala.tick, source_tag="joe", mirror_atlas=False)
+
+    guala.read_sentence("red fox", source="joe")
+
+    assert guala.window_manager.active_context_id == outer_context
+    window_id = guala.window_manager.close("give_experience_complete")
+    assert guala.window_manager.closed_window(window_id) is None
+    with pytest.raises(RuntimeError, match="is absent"):
+        guala._remember_closed_language_window(window_id)
+    assert len(guala.language_fact_memory) == 0
+    assert not guala._ordered_language_windows
+
+
+def test_transient_snapshot_restore_cannot_resurrect_fact_replay(guala):
     guala.read_sentence("red fox runs warm", source="corpus")
     snapshot = guala.window_manager.snapshot()
-    settlement = guala._compose_language_fact_settlement(("red", "fox"))
+    assert not snapshot["windows"]
 
     restored = Guala()
     try:
         restored.window_manager.restore(snapshot)
         restored._rebuild_language_fact_memory_from_windows()
         assert restored.window_manager.snapshot() == snapshot
-        rebuilt = restored._compose_language_fact_settlement(("red", "fox"))
-        assert rebuilt.content == settlement.content
-        assert restored._committed_emission_response(rebuilt) == (
-            "runs warm", "fact_strand_commit")
-
-        broken = copy.deepcopy(rebuilt)
-        support = broken.commit_provenance[0].supports[0]
-        object.__setattr__(support, "entry_index", support.entry_index + 1000)
-        assert restored._committed_emission_response(broken) == (
+        assert len(restored.language_fact_memory) == 0
+        settlement = restored._compose_language_fact_settlement(("red", "fox"))
+        assert restored._committed_emission_response(settlement) == (
             "", "silence_no_commit")
     finally:
         restored.shutdown()
 
 
-@pytest.mark.parametrize("phased", ("0", "1"))
-def test_converse_uses_fact_path_and_never_calls_legacy_emission(
-        guala, monkeypatch, phased):
-    monkeypatch.setenv("CONVERSE_PHASED", phased)
-    guala.read_sentence("red fox runs warm", source="corpus")
-    monkeypatch.setattr(
-        guala,
-        "_emit_from_invariants",
-        lambda *_args, **_kwargs: pytest.fail(
-            "legacy reduced emission path must not run"),
-    )
-
-    turn = guala.converse("red fox", source="joe")
-
-    assert turn.response == "runs warm"
-    assert turn.response_source == "fact_strand_commit"
-    assert turn.committed_sections == ("language_fact", "language_fact")
-    assert guala._fact_record_has_certified_provenance(
-        guala._last_emission_record)
-
-
-def test_full_save_restart_restores_windows_facts_and_composition(
+def test_full_save_restart_preserves_atlas_not_verbatim_windows(
         tmp_path, monkeypatch):
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
@@ -174,38 +183,20 @@ def test_full_save_restart_restores_windows_facts_and_composition(
     try:
         first._generate_genesis_identity(str(tmp_path))
         first.read_sentence("red fox runs warm", source="corpus")
-        expected = first.window_manager.snapshot()
+        expected_words = _mode_words(first)
         result = first.save_full_state(str(tmp_path))
-        assert result["guala_windows.json"] > 0
+        assert "guala_windows.json" not in result
+        assert not (tmp_path / "guala_windows.json").exists()
         first.shutdown()
         first = None
 
         second = Guala()
         second.load_full_state(str(tmp_path))
         assert second._load_successful
-        # GL-FIX-CHI-INDEX-ELIMINATION-20260720: chi_index is deliberately
-        # NOT restored at boot anymore -- chi routing lives on the atlas
-        # now, and nothing else reads the window store's own copy, so
-        # rebuilding it from her whole history at every boot was pure cost
-        # with no reader. window_manager.snapshot() (unlike the real WAL
-        # boot path) still self-validates that chi_index exactly derives
-        # from window content -- a real, still-correct invariant for that
-        # LEGACY full-snapshot format, just no longer true immediately
-        # after a real boot, so it can't be called here anymore. Compare
-        # windows/open_contexts/sequences directly instead -- everything
-        # actually restored, and the only things save/restart ever
-        # promised to preserve going forward.
-        first_window_ids = tuple(expected["windows"])
-        assert set(second.window_manager.window_ids()) == set(first_window_ids)
-        for window_id in first_window_ids:
-            assert (second.window_manager.closed_window(window_id)
-                    == expected["windows"][window_id])
-        assert (second.window_manager.snapshot_incremental()["open_contexts"]
-                == expected["open_contexts"])
-        assert len(second.language_fact_memory) == 4
-        settlement = second._compose_language_fact_settlement(("red", "fox"))
-        assert second._committed_emission_response(settlement) == (
-            "runs warm", "fact_strand_commit")
+        assert not second.window_manager.window_ids()
+        assert len(second.language_fact_memory) == 0
+        assert not second._ordered_language_windows
+        assert expected_words <= _mode_words(second)
     finally:
         if first is not None:
             first.shutdown()
@@ -213,41 +204,28 @@ def test_full_save_restart_restores_windows_facts_and_composition(
             second.shutdown()
 
 
-def test_v73_missing_window_state_fails_closed_but_v72_migrates_empty(
+def test_current_save_set_does_not_reintroduce_window_store(
         tmp_path, monkeypatch):
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
     writer = Guala()
-    current_reader = None
-    legacy_reader = None
+    reader = None
     try:
         writer._generate_genesis_identity(str(tmp_path))
         writer.read_sentence("red fox runs warm", source="corpus")
-        writer.save_full_state(str(tmp_path))
+        result = writer.save_full_state(str(tmp_path))
+        assert "guala_windows.json" not in result
+        assert not (tmp_path / "guala_windows.json").exists()
         writer.shutdown()
         writer = None
-        (tmp_path / "guala_windows.json").unlink()
 
-        current_reader = Guala()
-        current_reader.load_full_state(str(tmp_path))
-        assert not current_reader._load_successful
-        assert "guala_windows.json" in " ".join(current_reader._load_errors)
-        current_reader.shutdown()
-        current_reader = None
-
-        core_path = tmp_path / "guala_core.json"
-        core = json.loads(core_path.read_text())
-        core["schema_version"] = "v7.2.0"
-        core_path.write_text(json.dumps(core))
-        legacy_reader = Guala()
-        legacy_reader.load_full_state(str(tmp_path))
-        assert legacy_reader._load_successful
-        assert len(legacy_reader.language_fact_memory) == 0
-        assert not legacy_reader.window_manager.snapshot()["windows"]
+        reader = Guala()
+        reader.load_full_state(str(tmp_path))
+        assert reader._load_successful
+        assert len(reader.language_fact_memory) == 0
+        assert not reader.window_manager.window_ids()
     finally:
         if writer is not None:
             writer.shutdown()
-        if current_reader is not None:
-            current_reader.shutdown()
-        if legacy_reader is not None:
-            legacy_reader.shutdown()
+        if reader is not None:
+            reader.shutdown()

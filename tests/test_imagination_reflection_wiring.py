@@ -9,9 +9,9 @@ Embryo.imagine()/reflect() were built + tested 2026-07-11. This proves:
     a real organism_reflection event (honest empty=True when the bounded
     snapshot history hasn't accrued yet);
   - imagined content re-enters as real experience tagged
-    origin='imagined' and is EXCLUDED from language-fact accretion (the
-    certified composer's corpus) with a loud exclusion event -- imagined
-    content never certifies as lived fact for speech.
+    origin='imagined' and is EXCLUDED from language-fact accretion with a
+    loud exclusion event -- imagined content never certifies as lived fact
+    for speech, and no completed verbatim window is retained.
 """
 
 import os
@@ -32,13 +32,14 @@ def _events(g, kind):
     return [ev for ev in g._substrate_events if ev.kind == kind]
 
 
-def test_imagined_origin_is_real_experience_but_never_certifies():
+def test_imagined_origin_is_real_experience_but_never_certifies_or_retains():
     g = Guala()
     try:
         facts_before = len(g.language_fact_memory)
         g.read_sentence("blue river", source="imagination",
                         experience_origin="imagined")
-        # The window closed as real experience...
+        # The window settled as real experience without becoming a retained
+        # verbal replay source.
         assert len(g.language_fact_memory) == facts_before, (
             "imagined content accreted into language-fact memory -- it "
             "would be citable as lived fact for certified speech")
@@ -47,15 +48,26 @@ def test_imagined_origin_is_real_experience_but_never_certifies():
                       "either silently swallowed or silently certified")
         assert excl[-1].detail.get("window_id"), (
             "exclusion event carries no window id -- the imagined window "
-            "did not actually close/persist as experience")
+            "did not actually settle as experience")
+        imagined_window_id = excl[-1].detail["window_id"]
+        assert g.window_manager.closed_window(imagined_window_id) is None
 
-        # Control: the same sentence as lived (emulated) experience DOES
-        # accrete -- proving the gate discriminates on origin, not text.
+        # Control: the same sentence as lived (emulated) experience follows
+        # the ordinary bounded settlement lane rather than the imagined
+        # exclusion lane. Neither route resurrects lifetime verbatim memory.
+        released_before = len(_events(g, "binding_context_released_to_atlas"))
+        excluded_before = len(excl)
         g.read_sentence("blue river", source="test",
                         experience_origin="emulated")
-        assert len(g.language_fact_memory) > facts_before, (
-            "control failed: an emulated window did not accrete facts, "
-            "so the imagined assertion above proves nothing")
+        released = _events(g, "binding_context_released_to_atlas")
+        assert len(released) == released_before + 1
+        assert len(_events(
+            g, "imagined_window_excluded_from_certification"
+        )) == excluded_before
+        emulated_window_id = released[-1].detail["window_id"]
+        assert emulated_window_id != imagined_window_id
+        assert g.window_manager.closed_window(emulated_window_id) is None
+        assert len(g.language_fact_memory) == facts_before
         print("test_imagined_origin_is_real_experience_but_never_certifies: "
               "PASS")
     finally:
@@ -140,7 +152,7 @@ def test_activity_end_triggers_reflection():
 
 
 if __name__ == "__main__":
-    test_imagined_origin_is_real_experience_but_never_certifies()
+    test_imagined_origin_is_real_experience_but_never_certifies_or_retains()
     test_meaning_origins_do_not_contain_imagined()
     test_imagine_tick_logs_event_even_when_young()
     test_playing_tick_never_uses_imagination_as_its_authority()

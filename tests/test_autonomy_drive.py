@@ -70,6 +70,11 @@ def test_gate2_activity_scheduler():
     # Add sensory item
     g._sensory_items["pic1"] = SensoryItem(
         item_id="pic1", kind="picture", title="test picture")
+    # This gate tests scheduler transitions, not the separately covered
+    # physical reading/integration path.  A tight synthetic tick loop cannot
+    # represent real worker settlement, so give READING its clock-only test
+    # double and leave the production backpressure intact.
+    g._atick_reading = lambda _activity: setattr(g, "tick", g.tick + 1)
 
     # Run 6000 ticks of autonomy (simulated, no thread)
     # Enough for multiple activity cycles
@@ -90,6 +95,7 @@ def test_gate3_event_stream():
     print("\nGate 3: Event stream...")
     g = Guala()
     g.add_corpus("test", "Test", ["hello world", "test sentence"])
+    g._atick_reading = lambda _activity: setattr(g, "tick", g.tick + 1)
 
     for _ in range(3000):
         g._autonomy_tick()
