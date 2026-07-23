@@ -964,6 +964,19 @@ class EmbodimentWorldAuthority:
         with self._lock:
             return self._state.recent_applied_receipts
 
+    def verify_execution_receipt(self, receipt: ActionExecutionReceipt) -> None:
+        """Verify one self-contained applied W1 execution authority.
+
+        Verification authenticates the exact before/after geometry and command
+        identity.  It does not require the receipt to remain in the bounded
+        recent-receipt window.
+        """
+
+        if not isinstance(receipt, ActionExecutionReceipt):
+            raise ValueError("execution receipt is not typed")
+        with self._lock:
+            self._verify_execution(receipt)
+
     def _verify_observation(self, observation: ObservationSnapshot) -> None:
         world = _WorldState(
             revision=observation.revision,

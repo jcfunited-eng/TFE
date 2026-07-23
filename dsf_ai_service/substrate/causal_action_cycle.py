@@ -40,6 +40,7 @@ STATE_SCHEMA = "guala.causal_action_cycle.state.v2"
 ENVELOPE_SCHEMA = "guala.causal_action_cycle.hmac.v2"
 ACTION_SCHEMA = "guala.causal_action_cycle.action.v1"
 TEACHER_SCHEMA = "guala.causal_action_cycle.teacher.v1"
+TEACHER_EVIDENCE_SCHEMA = "guala.causal_action_cycle.teacher.v2"
 INTENT_SCHEMA = "guala.causal_action_cycle.intent.v1"
 EXECUTION_SCHEMA = "guala.causal_action_cycle.execution.v1"
 OUTCOME_SCHEMA = "guala.causal_action_cycle.outcome.v1"
@@ -379,18 +380,28 @@ class TeacherRelation:
     source: str
     nonce: str
     authority_hmac_sha256: str
+    teaching_evidence_receipt_sha256: str | None = None
 
     def payload(self) -> dict[str, object]:
-        return {
+        payload = {
             "action_receipt_sha256": self.action_receipt_sha256,
             "nonce": self.nonce,
-            "schema": TEACHER_SCHEMA,
+            "schema": (
+                TEACHER_EVIDENCE_SCHEMA
+                if self.teaching_evidence_receipt_sha256 is not None
+                else TEACHER_SCHEMA
+            ),
             "source": self.source,
             "trigger_settlement_receipt_sha256": (
                 self.trigger_settlement_receipt_sha256
             ),
             "trigger_structural_fingerprint": self.trigger_structural_fingerprint,
         }
+        if self.teaching_evidence_receipt_sha256 is not None:
+            payload["teaching_evidence_receipt_sha256"] = (
+                self.teaching_evidence_receipt_sha256
+            )
+        return payload
 
     @property
     def relation_id(self) -> str:
@@ -402,6 +413,11 @@ class TeacherRelation:
         sha256_digest(self.action_receipt_sha256, "teacher action")
         _identifier(self.source, "teacher source")
         _nonce(self.nonce, "teacher nonce")
+        if self.teaching_evidence_receipt_sha256 is not None:
+            sha256_digest(
+                self.teaching_evidence_receipt_sha256,
+                "teacher evidence receipt",
+            )
         _verify_signed(
             key=key,
             domain=TEACHER_DOMAIN,
@@ -416,7 +432,7 @@ class TeacherRelation:
 
 
 def _teacher_from(value: object, *, key: bytes) -> TeacherRelation:
-    expected = {
+    v1_fields = {
         "action_receipt_sha256",
         "authority_hmac_sha256",
         "nonce",
@@ -425,7 +441,22 @@ def _teacher_from(value: object, *, key: bytes) -> TeacherRelation:
         "trigger_settlement_receipt_sha256",
         "trigger_structural_fingerprint",
     }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    v2_fields = v1_fields | {"teaching_evidence_receipt_sha256"}
+    if (
+        not isinstance(value, Mapping)
+        or (
+            value.get("schema") == TEACHER_SCHEMA
+            and set(value) != v1_fields
+        )
+        or (
+            value.get("schema") == TEACHER_EVIDENCE_SCHEMA
+            and set(value) != v2_fields
+        )
+        or value.get("schema") not in {
+            TEACHER_SCHEMA,
+            TEACHER_EVIDENCE_SCHEMA,
+        }
+    ):
         raise ValueError("teacher relation fields changed")
     relation = TeacherRelation(
         trigger_settlement_receipt_sha256=value.get(
@@ -436,6 +467,9 @@ def _teacher_from(value: object, *, key: bytes) -> TeacherRelation:
         source=value.get("source"),
         nonce=value.get("nonce"),
         authority_hmac_sha256=value.get("authority_hmac_sha256"),
+        teaching_evidence_receipt_sha256=value.get(
+            "teaching_evidence_receipt_sha256"
+        ),
     )
     relation.verify(key)
     return relation
@@ -1185,6 +1219,7 @@ class CausalActionCycle:
         action: ActionCommand,
         source: str,
         nonce: str,
+        teaching_evidence_receipt_sha256: str | None = None,
     ) -> TeacherRelation:
         witness = self._working_witness(trigger_reference)
         action.verify(
@@ -1193,20 +1228,34 @@ class CausalActionCycle:
         )
         _identifier(source, "teacher source")
         _nonce(nonce, "teacher nonce")
+        if teaching_evidence_receipt_sha256 is not None:
+            sha256_digest(
+                teaching_evidence_receipt_sha256,
+                "teacher evidence receipt",
+            )
         with self._lock:
             if any(
                 item.teacher_relation.nonce == nonce
                 for item in self._bindings.values()
             ):
                 raise ValueError("teacher nonce was already used")
+        schema = (
+            TEACHER_EVIDENCE_SCHEMA
+            if teaching_evidence_receipt_sha256 is not None
+            else TEACHER_SCHEMA
+        )
         unsigned = {
             "action_receipt_sha256": action.authority_receipt_sha256,
             "nonce": nonce,
-            "schema": TEACHER_SCHEMA,
+            "schema": schema,
             "source": source,
             "trigger_settlement_receipt_sha256": witness.settlement_receipt_sha256,
             "trigger_structural_fingerprint": witness.structural_fingerprint,
         }
+        if teaching_evidence_receipt_sha256 is not None:
+            unsigned["teaching_evidence_receipt_sha256"] = (
+                teaching_evidence_receipt_sha256
+            )
         relation = TeacherRelation(
             trigger_settlement_receipt_sha256=witness.settlement_receipt_sha256,
             trigger_structural_fingerprint=witness.structural_fingerprint,
@@ -1215,6 +1264,9 @@ class CausalActionCycle:
             nonce=nonce,
             authority_hmac_sha256=_sign(
                 self._key, TEACHER_DOMAIN, _canonical(unsigned)
+            ),
+            teaching_evidence_receipt_sha256=(
+                teaching_evidence_receipt_sha256
             ),
         )
         relation.verify(self._key)
@@ -1286,18 +1338,62 @@ class CausalActionCycle:
         action: ActionCommand,
         source: str,
         nonce: str,
+        teaching_evidence_receipt_sha256: str | None = None,
     ) -> ActionBinding:
         relation = self.issue_teacher_relation(
             trigger_reference=trigger_reference,
             action=action,
             source=source,
             nonce=nonce,
+            teaching_evidence_receipt_sha256=(
+                teaching_evidence_receipt_sha256
+            ),
         )
         return self.learn(
             trigger_reference=trigger_reference,
             action=action,
             teacher_relation=relation,
         )
+
+    def verify_teaching_evidence_binding(
+        self,
+        *,
+        binding_id: str,
+        teaching_evidence_receipt_sha256: str,
+        source: str,
+        nonce: str,
+    ) -> bool:
+        """Verify that one learned relation retains its exact evidence link."""
+
+        try:
+            binding_identity = sha256_digest(binding_id, "teaching binding")
+            evidence_identity = sha256_digest(
+                teaching_evidence_receipt_sha256,
+                "teaching evidence receipt",
+            )
+            teacher_source = _identifier(source, "teacher source")
+            teacher_nonce = _nonce(nonce, "teacher nonce")
+        except (TypeError, ValueError):
+            return False
+        with self._lock:
+            binding = self._bindings.get(binding_identity)
+            if binding is None:
+                return False
+            try:
+                binding.verify(
+                    self._key,
+                    max_scalars=self._max_speech_scalars,
+                    max_command_bytes=self._max_command_bytes,
+                )
+            except (TypeError, ValueError):
+                return False
+            relation = binding.teacher_relation
+            return (
+                relation.teaching_evidence_receipt_sha256
+                == evidence_identity
+                and relation.source == teacher_source
+                and relation.nonce == teacher_nonce
+            )
 
     def select(self, settlement: CausalExperienceSettlement) -> ActionSelection:
         witness = self.accept(settlement)
@@ -1981,4 +2077,5 @@ __all__ = (
     "CausalActionCycle",
     "PerceptionWitness",
     "TeacherRelation",
+    "TEACHER_EVIDENCE_SCHEMA",
 )
