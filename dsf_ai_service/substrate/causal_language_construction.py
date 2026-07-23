@@ -21,6 +21,7 @@ import hashlib
 import hmac
 import itertools
 import json
+import math
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass, replace
@@ -567,8 +568,136 @@ class CausalLanguageConstructionAuthority:
                 return LearningResult("unknown", "episode_not_available")
             return self._learn_locked(episodes)
 
+    @staticmethod
+    def _contrast_connected(
+        left: CausalLanguageEpisode,
+        right: CausalLanguageEpisode,
+    ) -> bool:
+        """Return whether one exact token contrast has one exact causal contrast."""
+
+        if len(left.tokens) != len(right.tokens):
+            return False
+        left_roots = dict(left.field_roots)
+        right_roots = dict(right.field_roots)
+        if set(left_roots) != set(right_roots):
+            return False
+        token_changes = sum(
+            left_token.token_class_id != right_token.token_class_id
+            for left_token, right_token in zip(
+                left.tokens, right.tokens, strict=True
+            )
+        )
+        causal_changes = sum(
+            left_roots[key] != right_roots[key]
+            for key in left_roots
+        )
+        return token_changes == 1 and causal_changes == 1
+
+    def _verified_consolidation_pool_locked(
+        self,
+    ) -> OrderedDict[str, CausalLanguageEpisode]:
+        """Reverify every retained proof before it can participate in learning."""
+
+        pool: OrderedDict[str, CausalLanguageEpisode] = OrderedDict()
+        for structure_id in sorted(self._working):
+            episode = self._working[structure_id]
+            verified = self._episode_from_record(episode.as_record())
+            if verified != episode:
+                raise ValueError("working causal language episode changed")
+            pool[structure_id] = episode
+        for construction_id in sorted(self._constructions):
+            construction = self._constructions[construction_id]
+            if construction.state != "unique":
+                continue
+            if (
+                len(construction.proof_episodes) < 2
+                or len(construction.proof_episodes) > self._working_capacity
+            ):
+                raise ValueError("construction proof exceeds its episode boundary")
+            for record in construction.proof_episodes:
+                episode = self._episode_from_record(record)
+                existing = pool.get(episode.structure_id)
+                if existing is None:
+                    pool[episode.structure_id] = episode
+                    continue
+                if (
+                    existing.tokens != episode.tokens
+                    or existing.field_roots != episode.field_roots
+                ):
+                    raise ValueError(
+                        "one episode structure has conflicting causal evidence"
+                    )
+        return pool
+
+    @classmethod
+    def _contrast_components(
+        cls,
+        pool: Mapping[str, CausalLanguageEpisode],
+    ) -> tuple[tuple[CausalLanguageEpisode, ...], ...]:
+        """Partition the finite proof pool by exact one-to-one causal edges."""
+
+        episode_ids = tuple(sorted(pool))
+        neighbours = {value: set() for value in episode_ids}
+        for left_index, left_id in enumerate(episode_ids):
+            for right_id in episode_ids[left_index + 1:]:
+                if cls._contrast_connected(pool[left_id], pool[right_id]):
+                    neighbours[left_id].add(right_id)
+                    neighbours[right_id].add(left_id)
+        remaining = set(episode_ids)
+        components = []
+        while remaining:
+            first = min(remaining)
+            frontier = [first]
+            component = set()
+            while frontier:
+                current = frontier.pop()
+                if current in component:
+                    continue
+                component.add(current)
+                frontier.extend(sorted(neighbours[current] - component, reverse=True))
+            remaining.difference_update(component)
+            components.append(tuple(pool[value] for value in sorted(component)))
+        return tuple(components)
+
+    def settle_complete_constructions(self) -> tuple[LearningResult, ...]:
+        """Learn whole authenticated contrast lattices without subset search.
+
+        The returned tuple contains at most ``working_capacity`` typed results.
+        A component with no current working episode is retained proof, not new
+        evidence, and is never relearned.  Every connected component is passed
+        whole to the lattice verifier; no subset is enumerated, scored, voted,
+        or preferred.
+        """
+
+        with self._lock:
+            pool = self._verified_consolidation_pool_locked()
+            working_ids = set(self._working)
+            components = self._contrast_components(pool)
+            results = []
+            for episodes in components:
+                component_ids = {value.structure_id for value in episodes}
+                if not component_ids.intersection(working_ids):
+                    continue
+                if len(episodes) > self._working_capacity:
+                    results.append(LearningResult(
+                        "unknown", "contrast_lattice_exceeds_episode_boundary"
+                    ))
+                    continue
+                results.append(self._learn_locked(
+                    episodes,
+                    allow_structural_subsumption=True,
+                    reject_unresolved_overlap=True,
+                ))
+            if len(results) > self._working_capacity:
+                raise RuntimeError("construction settlement result boundary changed")
+            return tuple(results)
+
     def _learn_locked(
-        self, episodes: tuple[CausalLanguageEpisode, ...]
+        self,
+        episodes: tuple[CausalLanguageEpisode, ...],
+        *,
+        allow_structural_subsumption: bool = False,
+        reject_unresolved_overlap: bool = False,
     ) -> LearningResult:
         lengths = {len(value.tokens) for value in episodes}
         if len(lengths) != 1:
@@ -637,9 +766,13 @@ class CausalLanguageConstructionAuthority:
             tuple(episode.tokens[position].token_class_id for position in variable_positions)
             for episode in episodes
         }
-        required_lattice = set(itertools.product(*(
+        variant_axes = tuple(
             tuple(sorted(variants[position])) for position in variable_positions
-        )))
+        )
+        required_count = math.prod(len(value) for value in variant_axes)
+        if required_count != len(observed_lattice):
+            return LearningResult("unknown", "independence_lattice_incomplete")
+        required_lattice = set(itertools.product(*variant_axes))
         if observed_lattice != required_lattice:
             return LearningResult("unknown", "independence_lattice_incomplete")
 
@@ -724,12 +857,49 @@ class CausalLanguageConstructionAuthority:
             )
             self._working = prospective_working
             return LearningResult(existing.state, "construction_duplicate", existing)
-        if len(self._constructions) >= self._construction_capacity:
+
+        candidate = LearnedConstruction(
+            construction_id=construction_id,
+            family_id=family_id,
+            state="unique",
+            elements=tuple(elements),
+            background_roots=background_roots,
+            proof_episodes=proof,
+            authority_hmac_sha256=_sign(
+                self._construction_key, CONSTRUCTION_DOMAIN, payload
+            ),
+        )
+        subsumed_ids = {
+            key
+            for key, value in self._constructions.items()
+            if (
+                allow_structural_subsumption
+                and value.state == "unique"
+                and self._strictly_subsumes(candidate, value)
+            )
+        }
+        remaining_constructions = {
+            key: value
+            for key, value in self._constructions.items()
+            if key not in subsumed_ids
+        }
+        if (
+            len(remaining_constructions) >= self._construction_capacity
+        ):
             return LearningResult("unknown", "construction_capacity_full")
 
         conflict = family_id in self._ambiguous_families or any(
-            value.family_id == family_id for value in self._constructions.values()
+            value.family_id == family_id
+            for value in remaining_constructions.values()
         )
+        unresolved_overlap = any(
+            self._constructions_overlap(candidate, value)
+            for value in remaining_constructions.values()
+        )
+        if reject_unresolved_overlap and (conflict or unresolved_overlap):
+            return LearningResult(
+                "ambiguous", "construction_overlap_not_subsumed"
+            )
         state = "ambiguous" if conflict else "unique"
         construction = LearnedConstruction(
             construction_id=construction_id,
@@ -741,6 +911,8 @@ class CausalLanguageConstructionAuthority:
             authority_hmac_sha256=_sign(self._construction_key, CONSTRUCTION_DOMAIN, payload),
         )
         prospective_constructions = OrderedDict(self._constructions)
+        for key in subsumed_ids:
+            prospective_constructions.pop(key)
         prospective_ambiguous = set(self._ambiguous_families)
         if conflict:
             prospective_ambiguous.add(family_id)
@@ -759,9 +931,128 @@ class CausalLanguageConstructionAuthority:
         self._ambiguous_families = prospective_ambiguous
         return LearningResult(
             state,
-            "construction_conflict" if conflict else "construction_learned",
+            (
+                "construction_conflict"
+                if conflict
+                else "construction_expanded"
+                if subsumed_ids
+                else "construction_learned"
+            ),
             construction,
         )
+
+    @staticmethod
+    def _root_constraints(
+        construction: LearnedConstruction,
+    ) -> dict[str, tuple[tuple[str, object], ...]]:
+        constraints = {
+            key: ((_digest(value), value),)
+            for key, value in construction.background_roots
+        }
+        for element in construction.elements:
+            if element.kind != "slot":
+                continue
+            constraints[element.referent_root] = tuple(
+                (
+                    alternative.causal_value_sha256,
+                    alternative.causal_value,
+                )
+                for alternative in element.alternatives
+            )
+        return constraints
+
+    @classmethod
+    def _constructions_overlap(
+        cls,
+        left: LearnedConstruction,
+        right: LearnedConstruction,
+    ) -> bool:
+        """Return whether both authorities can generate for one exact field."""
+
+        left_constraints = cls._root_constraints(left)
+        right_constraints = cls._root_constraints(right)
+        if set(left_constraints) != set(right_constraints):
+            return False
+        for key in left_constraints:
+            left_values = {
+                (identity, _canonical(value))
+                for identity, value in left_constraints[key]
+            }
+            right_values = {
+                (identity, _canonical(value))
+                for identity, value in right_constraints[key]
+            }
+            if left_values.isdisjoint(right_values):
+                return False
+        return True
+
+    @classmethod
+    def _strictly_subsumes(
+        cls,
+        broad: LearnedConstruction,
+        narrow: LearnedConstruction,
+    ) -> bool:
+        """Prove that every narrow field/token relation is inside ``broad``."""
+
+        if (
+            broad.construction_id == narrow.construction_id
+            or len(broad.elements) != len(narrow.elements)
+        ):
+            return False
+        broad_background = dict(broad.background_roots)
+        narrow_background = dict(narrow.background_roots)
+        if any(
+            narrow_background.get(key) != value
+            for key, value in broad_background.items()
+        ):
+            return False
+        for broad_element, narrow_element in zip(
+            broad.elements, narrow.elements, strict=True
+        ):
+            if broad_element.ordinal != narrow_element.ordinal:
+                return False
+            if broad_element.kind == "fixed":
+                if (
+                    narrow_element.kind != "fixed"
+                    or broad_element.fixed_token != narrow_element.fixed_token
+                ):
+                    return False
+                continue
+            broad_alternatives = {
+                (
+                    value.causal_value_sha256,
+                    _canonical(value.causal_value),
+                    value.token,
+                )
+                for value in broad_element.alternatives
+            }
+            if narrow_element.kind == "fixed":
+                referent_value = narrow_background.get(
+                    broad_element.referent_root
+                )
+                if referent_value is None:
+                    return False
+                relation = (
+                    _digest(referent_value),
+                    _canonical(referent_value),
+                    narrow_element.fixed_token,
+                )
+                if relation not in broad_alternatives:
+                    return False
+                continue
+            if broad_element.referent_root != narrow_element.referent_root:
+                return False
+            narrow_alternatives = {
+                (
+                    value.causal_value_sha256,
+                    _canonical(value.causal_value),
+                    value.token,
+                )
+                for value in narrow_element.alternatives
+            }
+            if not narrow_alternatives.issubset(broad_alternatives):
+                return False
+        return True
 
     @staticmethod
     def _match_background(

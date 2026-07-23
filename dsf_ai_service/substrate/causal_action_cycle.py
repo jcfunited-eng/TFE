@@ -1331,6 +1331,28 @@ class CausalActionCycle:
                     max_scalars=self._max_speech_scalars,
                     max_command_bytes=self._max_command_bytes,
                 )
+                if (
+                    existing.teacher_relation
+                    .teaching_evidence_receipt_sha256 is None
+                    and teacher_relation
+                    .teaching_evidence_receipt_sha256 is not None
+                ):
+                    upgraded = replace(
+                        existing,
+                        teacher_relation=teacher_relation,
+                    )
+                    upgraded.verify(
+                        self._key,
+                        max_scalars=self._max_speech_scalars,
+                        max_command_bytes=self._max_command_bytes,
+                    )
+                    with self._atomic():
+                        self._bindings[binding_id] = upgraded
+                    self._emit(
+                        "causal_action_cycle_evidence_upgraded",
+                        binding_id=binding_id,
+                    )
+                    return upgraded
                 return existing
             if len(self._bindings) >= self._binding_capacity:
                 raise RuntimeError("causal action binding capacity is full")

@@ -19,6 +19,9 @@ from dsf_ai_service.substrate.auditory_pcm_stream import (
 from dsf_ai_service.substrate.auditory_token_sequence import (
     TokenClassificationState,
 )
+from dsf_ai_service.substrate.causal_language_construction import (
+    LanguageResolution,
+)
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
 
@@ -50,6 +53,14 @@ def _two_terminal_pcm() -> bytes:
         + learned
         + bytes(3_200 * 2)
         + learned
+        + bytes(TRAILING_SAMPLES * 2)
+    )
+
+
+def _one_terminal_pcm() -> bytes:
+    return (
+        bytes(3_200 * 2)
+        + _pcm_tone(count=LEARNED_SAMPLES)
         + bytes(TRAILING_SAMPLES * 2)
     )
 
@@ -420,5 +431,142 @@ def test_http_multi_release_exposes_order_without_joining_or_replying(
         snapshot = engine.observation_snapshot()
         assert snapshot["auditory_token_sequence"]["status"] == "settled"
         assert snapshot["auditory_token_sequence"]["latest"] == observation
+    finally:
+        engine.strict_shutdown(timeout=30.0)
+
+
+def test_utterance_action_waits_for_terminal_and_language_precedes_selection(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        _teach_physical_form(engine)
+        registry = AuditoryPCMStreamRegistry()
+        opened = registry.open()
+        pcm = _two_terminal_pcm()
+        epoch_ns = 9_000_000_000
+        accepted = registry.accept(
+            stream_id=opened["stream_id"],
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=epoch_ns,
+            pcm_s16le=pcm,
+        )
+        order = []
+        real_select = engine._causal_action_cycle.select
+        real_comprehend = engine._causal_language_authority.comprehend
+
+        def tracked_select(settlement):
+            order.append("action_selection")
+            return real_select(settlement)
+
+        def unique_comprehend(**kwargs):
+            order.append("language_comprehension")
+            real_comprehend(**kwargs)
+            return LanguageResolution(
+                state="unique",
+                reason="test_verified_unique_construction",
+                construction_id=_sha("verified-construction"),
+            )
+
+        monkeypatch.setattr(
+            engine._causal_action_cycle, "select", tracked_select
+        )
+        sound = engine.process_sound_frame(
+            pcm_s16le_wav(pcm),
+            source="browser_microphone",
+            source_anchor_ns=epoch_ns,
+            source_time_end_ns=(
+                epoch_ns
+                + len(pcm) // 2 * 1_000_000_000 // PCM_SAMPLE_RATE_HZ
+            ),
+            auditory_event_boundary="utterance",
+            auditory_pcm_continuity=accepted.receipt,
+            auditory_pcm_s16le=pcm,
+        )
+        assert order == []
+        monkeypatch.setattr(
+            engine._causal_language_authority,
+            "comprehend",
+            unique_comprehend,
+        )
+        _joint, advance = engine.advance_continuous_auditory_terminal(
+            pcm_s16le=pcm,
+            transport=accepted.receipt,
+            settlement=sound["settlement"],
+        )
+        assert len(advance.released_terminals) == 2
+        assert order[0] == "language_comprehension"
+        assert "action_selection" in order[1:]
+        engine.close_auditory_pcm_stream(
+            opened["stream_id"], release_terminal=False
+        )
+    finally:
+        engine.strict_shutdown(timeout=30.0)
+
+
+def test_single_terminal_utterance_releases_existing_action_path(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        _teach_physical_form(engine)
+        registry = AuditoryPCMStreamRegistry()
+        opened = registry.open()
+        pcm = _one_terminal_pcm()
+        epoch_ns = 12_000_000_000
+        accepted = registry.accept(
+            stream_id=opened["stream_id"],
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=epoch_ns,
+            pcm_s16le=pcm,
+        )
+        selections = []
+        real_select = engine._causal_action_cycle.select
+
+        def tracked_select(settlement):
+            selections.append(settlement.authority_receipt_sha256)
+            return real_select(settlement)
+
+        monkeypatch.setattr(
+            engine._causal_action_cycle, "select", tracked_select
+        )
+        sound = engine.process_sound_frame(
+            pcm_s16le_wav(pcm),
+            source="browser_microphone",
+            source_anchor_ns=epoch_ns,
+            source_time_end_ns=(
+                epoch_ns
+                + len(pcm) // 2 * 1_000_000_000 // PCM_SAMPLE_RATE_HZ
+            ),
+            auditory_event_boundary="utterance",
+            auditory_pcm_continuity=accepted.receipt,
+            auditory_pcm_s16le=pcm,
+        )
+        assert selections == []
+        _joint, advance = engine.advance_continuous_auditory_terminal(
+            pcm_s16le=pcm,
+            transport=accepted.receipt,
+            settlement=sound["settlement"],
+        )
+        assert len(advance.released_terminals) == 1
+        assert selections
+        assert set(selections) == {
+            sound["settlement"].authority_receipt_sha256
+        }
+        terminal = advance.released_terminals[0]
+        engine.converse(
+            terminal.tutor_label,
+            source="auditory:unresolved_source",
+            causal_intake=terminal,
+        )
+        engine.close_auditory_pcm_stream(
+            opened["stream_id"], release_terminal=False
+        )
     finally:
         engine.strict_shutdown(timeout=30.0)

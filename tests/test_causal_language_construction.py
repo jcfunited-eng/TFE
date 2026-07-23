@@ -719,3 +719,230 @@ def test_sound_carrier_and_boundary_relation_are_witnessed_not_referents() -> No
     for sense in witness["interpretations"]:
         sense["relation"] = "structural_change"
     assert module._field_roots(witness) == roots_before
+
+
+def test_settlement_learns_only_the_whole_complete_contrast_component() -> None:
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    episodes = []
+    for sight, touch in (
+        ("red", "soft"),
+        ("blue", "soft"),
+        ("red", "hard"),
+        ("blue", "hard"),
+        ("green", "soft"),
+    ):
+        episodes.append(_admit(
+            authority,
+            tokens,
+            (sight, "is", touch),
+            _settlement(
+                f"whole-component-{sight}-{touch}",
+                sight=sight,
+                touch=touch,
+            ),
+            f"whole-component-{sight}-{touch}",
+        ))
+
+    before = authority.snapshot()
+    results = authority.settle_complete_constructions()
+
+    assert len(results) == 1
+    assert results[0].state == "unknown"
+    assert results[0].reason == "independence_lattice_incomplete"
+    assert authority.snapshot() == before
+    assert authority.construction_count == 0
+    assert authority.working_count == 5
+
+
+def test_settlement_expands_a_narrow_proof_without_overlap() -> None:
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    for sight in ("red", "blue"):
+        _admit(
+            authority,
+            tokens,
+            (sight, "is", "soft"),
+            _settlement(
+                f"narrow-{sight}", sight=sight, touch="soft"
+            ),
+            f"narrow-{sight}",
+        )
+    first = authority.settle_complete_constructions()
+    assert len(first) == 1
+    assert first[0].reason == "construction_learned"
+    narrow_id = first[0].construction.construction_id
+    assert authority.construction_count == 1
+
+    for sight in ("red", "blue"):
+        _admit(
+            authority,
+            tokens,
+            (sight, "is", "hard"),
+            _settlement(
+                f"broad-{sight}", sight=sight, touch="hard"
+            ),
+            f"broad-{sight}",
+        )
+    expanded = authority.settle_complete_constructions()
+
+    assert len(expanded) == 1
+    assert expanded[0].state == "unique"
+    assert expanded[0].reason == "construction_expanded"
+    assert expanded[0].construction.construction_id != narrow_id
+    assert [value.kind for value in expanded[0].construction.elements] == [
+        "slot", "fixed", "slot"
+    ]
+    assert len(expanded[0].construction.proof_episodes) == 4
+    assert authority.construction_count == 1
+    assert authority.working_count == 0
+    generated = authority.generate(
+        _settlement("expanded-current", sight="blue", touch="hard")
+    )
+    assert generated.state == "unique"
+    assert tuple(value.token_form for value in generated.tokens) == (
+        "blue", "is", "hard"
+    )
+
+    snapshot = authority.snapshot()
+    restored = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    restored.restore(snapshot)
+    assert restored.snapshot() == snapshot
+    assert restored.generate(
+        _settlement("expanded-restored", sight="red", touch="soft")
+    ).state == "unique"
+
+
+def test_settlement_rejects_overlap_that_is_not_structural_subsumption() -> None:
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    for sight in ("red", "blue"):
+        _admit(
+            authority,
+            tokens,
+            (sight, "here"),
+            _settlement(f"overlap-first-{sight}", sight=sight),
+            f"overlap-first-{sight}",
+        )
+    learned = authority.settle_complete_constructions()
+    assert learned[0].reason == "construction_learned"
+    original = authority.snapshot()
+
+    for sight in ("red", "blue"):
+        _admit(
+            authority,
+            tokens,
+            ("here", sight),
+            _settlement(f"overlap-second-{sight}", sight=sight),
+            f"overlap-second-{sight}",
+        )
+    before_refusal = authority.snapshot()
+    refused = authority.settle_complete_constructions()
+
+    assert len(refused) == 1
+    assert refused[0].state == "ambiguous"
+    assert refused[0].reason == "construction_overlap_not_subsumed"
+    assert authority.snapshot() == before_refusal
+    assert authority.construction_count == 1
+    assert authority.working_count == 2
+    assert original["payload"]["constructions"] == (
+        authority.snapshot()["payload"]["constructions"]
+    )
+
+
+def test_settlement_result_and_expansion_proof_stay_inside_episode_boundary() -> None:
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    colors = tuple(f"color-{index}" for index in range(8))
+    for color in colors:
+        _admit(
+            authority,
+            tokens,
+            (color, "seen"),
+            _settlement(f"boundary-{color}", sight=color),
+            f"boundary-{color}",
+        )
+    settled = authority.settle_complete_constructions()
+    assert len(settled) == 1
+    assert settled[0].reason == "construction_learned"
+    assert len(settled[0].construction.proof_episodes) == 8
+
+    _admit(
+        authority,
+        tokens,
+        ("color-8", "seen"),
+        _settlement("boundary-color-8", sight="color-8"),
+        "boundary-color-8",
+    )
+    before = authority.snapshot()
+    refused = authority.settle_complete_constructions()
+
+    assert len(refused) == 1
+    assert refused[0].reason == "contrast_lattice_exceeds_episode_boundary"
+    assert authority.snapshot() == before
+    assert authority.construction_count == 1
+    assert authority.working_count == 1
+
+
+def test_settlement_reverifies_retained_episode_hmac_before_consolidation() -> None:
+    import dsf_ai_service.substrate.causal_language_construction as module
+
+    tokens = AuditoryTokenSequenceAuthority(authority_secret=TOKEN_SECRET)
+    authority = CausalLanguageConstructionAuthority(
+        authority_key=CONSTRUCTION_SECRET
+    )
+    for sight in ("red", "blue"):
+        _admit(
+            authority,
+            tokens,
+            (sight, "appears"),
+            _settlement(f"reverify-{sight}", sight=sight),
+            f"reverify-{sight}",
+        )
+    authority.settle_complete_constructions()
+    _admit(
+        authority,
+        tokens,
+        ("green", "appears"),
+        _settlement("reverify-green", sight="green"),
+        "reverify-green",
+    )
+
+    construction = next(iter(authority._constructions.values()))
+    damaged_proof = copy.deepcopy(construction.proof_episodes)
+    damaged_proof[0]["tokens"][0]["token_form"] = "forged"
+    payload = {
+        **construction.payload(),
+        "proof_episodes": damaged_proof,
+    }
+    damaged = module.LearnedConstruction(
+        construction_id=construction.construction_id,
+        family_id=construction.family_id,
+        state=construction.state,
+        elements=construction.elements,
+        background_roots=construction.background_roots,
+        proof_episodes=tuple(damaged_proof),
+        authority_hmac_sha256=module._sign(
+            authority._construction_key,
+            module.CONSTRUCTION_DOMAIN,
+            payload,
+        ),
+    )
+    authority._constructions[construction.construction_id] = damaged
+    before_working = tuple(authority._working)
+
+    with pytest.raises(ValueError, match="episode authority changed"):
+        authority.settle_complete_constructions()
+
+    assert tuple(authority._working) == before_working
+    assert authority.working_count == 1

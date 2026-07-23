@@ -342,6 +342,17 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
         assert binding["action_reference_id"] == action_terminal.event_id
         assert binding["trigger_experience_id"] == trigger.event_id
         assert binding["action_experience_id"] == action.event_id
+        assert binding["action_evidence_receipt_sha256"] == (
+            action.authority_receipt_sha256
+        )
+        learned_evidence = (
+            guala._causal_action_cycle.verified_relation_evidence()
+        )
+        assert len(learned_evidence) == 1
+        assert (
+            learned_evidence[0].teaching_evidence_receipt_sha256
+            == action.authority_receipt_sha256
+        )
         guala._brain_emission_candidates = _forbidden_legacy
         guala._emit_dynamics = _forbidden_legacy
         guala._compose_organism_attempt = _forbidden_legacy

@@ -150,6 +150,49 @@ def test_full_field_identity_ignores_chi_and_distinguishes_changed_field() -> No
     assert unknown.stop_reason == "causal_action_unknown"
 
 
+def test_exact_relation_upgrades_once_to_independent_teaching_evidence() -> None:
+    trigger = _settlement("evidence-upgrade-trigger")
+    cycle = CausalActionCycle(authority_key="cycle-evidence-upgrade-key")
+    cycle.accept(trigger)
+    action = ActionCommand.speech("experienced reply")
+    nonce = "evidence-upgrade-teacher-nonce-0001"
+    legacy = cycle.teach(
+        trigger_reference=trigger.event_id,
+        action=action,
+        source="joe",
+        nonce=nonce,
+    )
+    assert (
+        legacy.teacher_relation.teaching_evidence_receipt_sha256
+        is None
+    )
+    evidence = hashlib.sha256(
+        b"separately-experienced-spoken-action"
+    ).hexdigest()
+    upgraded = cycle.teach(
+        trigger_reference=trigger.event_id,
+        action=action,
+        source="joe",
+        nonce="evidence-upgrade-teacher-nonce-0002",
+        teaching_evidence_receipt_sha256=evidence,
+    )
+    assert upgraded.binding_id == legacy.binding_id
+    assert (
+        upgraded.teacher_relation.teaching_evidence_receipt_sha256
+        == evidence
+    )
+    verified = cycle.verified_relation_evidence()
+    assert len(verified) == 1
+    assert verified[0].teaching_evidence_receipt_sha256 == evidence
+    restored = CausalActionCycle(authority_key="cycle-evidence-upgrade-key")
+    restored.restore_encoded(cycle.encoded_snapshot())
+    assert (
+        restored.verified_relation_evidence()[0]
+        .teaching_evidence_receipt_sha256
+        == evidence
+    )
+
+
 def test_embodiment_cycle_closes_and_restores_with_full_receipt_chain() -> None:
     trigger = _settlement("embodiment-trigger", routing_chis=(4, 12))
     repeated = _settlement("embodiment-repeat", routing_chis=(77,))

@@ -8492,111 +8492,178 @@ class Guala:
             self._causal_play_observation = record
             return record
 
+    def _causal_settlement_awaits_auditory_terminal(self, settlement):
+        """Return whether physical utterance segmentation still owns action.
+
+        Continuous microphone input closes its full-field sensory settlement
+        before the incremental auditory owner can release and authenticate the
+        ordered terminal sequence.  Selecting an action at that earlier point
+        bypasses language comprehension.  This check uses only the explicit
+        utterance event boundary and the exact L5/assembly/PCM authority chain;
+        transcript text, source tags, routing chi, and Atlas are not consulted.
+        """
+        experience = self._latest_auditory_l5_experience
+        return bool(
+            self._latest_auditory_recognition_boundary == "utterance"
+            and self._latest_auditory_continuation_receipt is not None
+            and experience is not None
+            and experience.assembly_id == settlement.assembly_id
+        )
+
+    def _dispatch_recorded_causal_settlement(
+            self, settlement, *, require_teaching_evidence=False):
+        """Select and dispatch one already-recorded causal settlement."""
+        if not isinstance(require_teaching_evidence, bool):
+            raise TypeError("causal action evidence requirement must be boolean")
+        if self._causal_action_dispatcher is None:
+            if self._causal_action_cycle is not None:
+                self._causal_action_cycle.accept(settlement)
+            return None
+        with self._causal_cycle_bridge_lock:
+            dispatcher_was_active = self._causal_action_dispatcher.status()[
+                "active"
+            ]
+            if dispatcher_was_active:
+                dispatch_result = self._causal_action_dispatcher.dispatch(
+                    settlement
+                )
+            else:
+                cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
+                prediction_snapshot = (
+                    self._full_field_prediction.encoded_snapshot()
+                    if self._full_field_prediction is not None
+                    else None
+                )
+                prediction_observation = (
+                    self._latest_full_field_prediction_observation
+                )
+                selection = self._causal_action_cycle.select(settlement)
+                if selection.status == "committed":
+                    if require_teaching_evidence:
+                        matching_evidence = tuple(
+                            value
+                            for value in (
+                                self._causal_action_cycle
+                                .verified_relation_evidence()
+                            )
+                            if (
+                                value.binding_id
+                                == selection.intent.binding_id
+                                and value.action == selection.intent.action
+                                and value.status != "revoked"
+                                and value
+                                .teaching_evidence_receipt_sha256
+                                is not None
+                            )
+                        )
+                        if len(matching_evidence) != 1:
+                            self._causal_action_cycle.restore_encoded(
+                                cycle_snapshot
+                            )
+                            self._log_substrate_event(
+                                "causal_language_action_stopped",
+                                resolution_state="unknown",
+                                reason=(
+                                    "learned_action_lacks_independent_"
+                                    "teaching_evidence"
+                                ),
+                            )
+                            return None
+                    try:
+                        self._condition_full_field_prediction_on_action(
+                            selection.intent
+                        )
+                        dispatch_result = (
+                            self._causal_action_dispatcher.dispatch_expected(
+                                settlement,
+                                binding_id=selection.intent.binding_id,
+                                action_receipt_sha256=(
+                                    selection.intent.action
+                                    .authority_receipt_sha256
+                                ),
+                            )
+                        )
+                    except BaseException:
+                        if not self._causal_action_dispatcher.status()["active"]:
+                            self._causal_action_cycle.restore_encoded(
+                                cycle_snapshot
+                            )
+                            if (
+                                prediction_snapshot is not None
+                                and self._full_field_prediction is not None
+                            ):
+                                self._full_field_prediction.restore_encoded(
+                                    prediction_snapshot
+                                )
+                            self._prediction_conditioned_intent_receipt = None
+                            self._prediction_conditioned_binding_id = None
+                            self._latest_full_field_prediction_observation = (
+                                prediction_observation
+                            )
+                        raise
+                else:
+                    dispatch_result = self._causal_action_dispatcher.dispatch(
+                        settlement
+                    )
+            if dispatch_result.status == "rejected":
+                self._cancel_full_field_prediction_action()
+            if self._causal_speech_release is not None:
+                queued = self._causal_speech_release
+                if (
+                    dispatch_result.request_receipt_sha256
+                    == queued["request"].authority_receipt_sha256
+                    and dispatch_result.execution_receipt_sha256 is not None
+                ):
+                    binding_id = (
+                        self._causal_action_cycle.live_execution_binding_id(
+                            dispatch_result.execution_receipt_sha256
+                        )
+                    )
+                    if binding_id is None:
+                        raise RuntimeError(
+                            "speech release lost its learned binding"
+                        )
+                    queued["binding_id"] = binding_id
+                    queued["execution_receipt_sha256"] = (
+                        dispatch_result.execution_receipt_sha256
+                    )
+            dispatch_result = self._settle_executed_embodiment_outcome(
+                dispatch_result
+            )
+            self._causal_last_dispatch_result = dispatch_result
+            return dispatch_result
+
     def _accept_causal_settlement(self, settlement):
-        """Dispatch exactly once from the committed full-field owner."""
+        """Record once, then dispatch unless auditory authority is incomplete."""
         if self._engine_quiesced:
             raise RuntimeError("causal settlement rejected after quiescence")
         settlement.verify()
-        dispatch_result = None
+        defer_auditory_action = (
+            self._causal_settlement_awaits_auditory_terminal(settlement)
+        )
         if self._causal_action_dispatcher is not None:
             with self._causal_cycle_bridge_lock:
-                dispatcher_was_active = self._causal_action_dispatcher.status()[
-                    "active"
-                ]
                 self._record_causal_perception_without_dispatch(
                     settlement,
                     prediction_transition=False,
                 )
-                if dispatcher_was_active:
-                    dispatch_result = self._causal_action_dispatcher.dispatch(
+                dispatch_result = (
+                    None
+                    if defer_auditory_action
+                    else self._dispatch_recorded_causal_settlement(
                         settlement
                     )
-                else:
-                    cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
-                    prediction_snapshot = (
-                        self._full_field_prediction.encoded_snapshot()
-                        if self._full_field_prediction is not None
-                        else None
-                    )
-                    prediction_observation = (
-                        self._latest_full_field_prediction_observation
-                    )
-                    selection = self._causal_action_cycle.select(settlement)
-                    if selection.status == "committed":
-                        try:
-                            self._condition_full_field_prediction_on_action(
-                                selection.intent
-                            )
-                            dispatch_result = (
-                                self._causal_action_dispatcher
-                                .dispatch_expected(
-                                    settlement,
-                                    binding_id=selection.intent.binding_id,
-                                    action_receipt_sha256=(
-                                        selection.intent.action
-                                        .authority_receipt_sha256
-                                    ),
-                                )
-                            )
-                        except BaseException:
-                            if not self._causal_action_dispatcher.status()[
-                                "active"
-                            ]:
-                                self._causal_action_cycle.restore_encoded(
-                                    cycle_snapshot
-                                )
-                                if (
-                                    prediction_snapshot is not None
-                                    and self._full_field_prediction is not None
-                                ):
-                                    self._full_field_prediction.restore_encoded(
-                                        prediction_snapshot
-                                    )
-                                self._prediction_conditioned_intent_receipt = None
-                                self._prediction_conditioned_binding_id = None
-                                self._latest_full_field_prediction_observation = (
-                                    prediction_observation
-                                )
-                            raise
-                    else:
-                        dispatch_result = (
-                            self._causal_action_dispatcher.dispatch(settlement)
-                        )
-                if dispatch_result.status == "rejected":
-                    self._cancel_full_field_prediction_action()
-                if self._causal_speech_release is not None:
-                    queued = self._causal_speech_release
-                    if (
-                        dispatch_result.request_receipt_sha256
-                        == queued["request"].authority_receipt_sha256
-                        and dispatch_result.execution_receipt_sha256 is not None
-                    ):
-                        binding_id = (
-                            self._causal_action_cycle
-                            .live_execution_binding_id(
-                                dispatch_result.execution_receipt_sha256
-                            )
-                        )
-                        if binding_id is None:
-                            raise RuntimeError(
-                                "speech release lost its learned binding"
-                            )
-                        queued["binding_id"] = binding_id
-                        queued["execution_receipt_sha256"] = (
-                            dispatch_result.execution_receipt_sha256
-                        )
-                self._causal_last_dispatch_result = dispatch_result
-        elif self._causal_action_cycle is not None:
-            self._record_causal_perception_without_dispatch(settlement)
-            self._causal_action_cycle.accept(settlement)
-        else:
-            self._record_causal_perception_without_dispatch(settlement)
-        if dispatch_result is not None:
-            with self._causal_cycle_bridge_lock:
-                dispatch_result = self._settle_executed_embodiment_outcome(
-                    dispatch_result
                 )
-                self._causal_last_dispatch_result = dispatch_result
+        else:
+            self._record_causal_perception_without_dispatch(
+                settlement,
+                prediction_transition=False,
+            )
+            dispatch_result = (
+                None
+                if defer_auditory_action
+                else self._dispatch_recorded_causal_settlement(settlement)
+            )
         try:
             self._log_substrate_event(
                 "causal_settlement_dispatched",
@@ -8605,7 +8672,11 @@ class Guala:
                 ),
                 dispatch_status=(
                     dispatch_result.status
-                    if dispatch_result is not None else "unavailable"
+                    if dispatch_result is not None
+                    else (
+                        "awaiting_auditory_terminal"
+                        if defer_auditory_action else "unavailable"
+                    )
                 ),
                 dispatch_phase=(
                     dispatch_result.phase
@@ -8670,8 +8741,20 @@ class Guala:
         action = ActionCommand.speech(
             "".join(chr(value) for value in scalars)
         )
+        action_evidence_receipt_sha256 = _hashlib.sha256(
+            json.dumps(
+                action_record,
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        ).hexdigest()
         nonce_payload = json.dumps(
             {
+                "action_evidence_receipt_sha256": (
+                    action_evidence_receipt_sha256
+                ),
                 "action_reference": action_reference_id,
                 "source": source,
                 "trigger_reference": trigger_reference_id,
@@ -8686,6 +8769,9 @@ class Guala:
             action=action,
             source=source,
             nonce="teach:" + _hashlib.sha256(nonce_payload).hexdigest(),
+            teaching_evidence_receipt_sha256=(
+                action_evidence_receipt_sha256
+            ),
         )
         trigger_experience_id = trigger_record["event_id"]
         action_experience_id = action_record["event_id"]
@@ -8704,6 +8790,9 @@ class Guala:
             "action_experience_id": action_experience_id,
             "trigger_reference_id": trigger_reference_id,
             "action_reference_id": action_reference_id,
+            "action_evidence_receipt_sha256": (
+                action_evidence_receipt_sha256
+            ),
             "unicode_scalars": list(binding.action.unicode_scalars),
         }
 
@@ -16622,6 +16711,54 @@ class Guala:
         self._latest_auditory_stream_settlement_receipt = receipt
         return receipt
 
+    def _dispatch_unique_causal_language_resolution(
+            self, *, sequence, settlement):
+        """Gate one learned causal action through exact language agreement.
+
+        The construction authority interprets the authenticated ordered token
+        sequence against the same immutable six-sense settlement.  It does not
+        create an action.  Only an independently learned action relation for
+        that exact full-field condition may enter the existing intent,
+        prediction, dispatcher, executor, and outcome chain.
+        """
+        language_authority = self._causal_language_authority
+        token_authority = self._auditory_token_sequence_authority
+        if language_authority is None or token_authority is None:
+            raise RuntimeError("causal language action authority is unavailable")
+        resolution = language_authority.comprehend(
+            token_authority=token_authority,
+            sequence=sequence,
+            settlement=settlement,
+        )
+        if resolution.state != "unique":
+            self._log_substrate_event(
+                "causal_language_action_stopped",
+                sequence_id=sequence.sequence_id,
+                resolution_state=resolution.state,
+                reason=resolution.reason,
+            )
+            return resolution, None
+        dispatch = self._dispatch_recorded_causal_settlement(
+            settlement,
+            require_teaching_evidence=True,
+        )
+        if dispatch is None:
+            self._log_substrate_event(
+                "causal_language_action_stopped",
+                sequence_id=sequence.sequence_id,
+                construction_id=resolution.construction_id,
+                resolution_state="unique",
+                reason="independently_learned_action_unavailable",
+            )
+        else:
+            self._log_substrate_event(
+                "causal_language_action_dispatched",
+                sequence_id=sequence.sequence_id,
+                construction_id=resolution.construction_id,
+                dispatch_status=dispatch.status,
+            )
+        return resolution, dispatch
+
     def _settle_released_auditory_token_sequence(self, advance):
         """Atomically transfer one multi-terminal release into causal language.
 
@@ -16693,10 +16830,22 @@ class Guala:
             )
             if intake_admission.intake is None:
                 episode_admission = None
+                language_learning = ()
+                language_resolution = None
             else:
                 episode_admission = language_authority.admit_episode(
                     intake_authority=intake_authority,
                     intake=intake_admission.intake,
+                    token_authority=authority,
+                    sequence=sequence,
+                    settlement=causal_settlement,
+                )
+                language_learning = (
+                    language_authority.settle_complete_constructions()
+                    if episode_admission.episode is not None
+                    else ()
+                )
+                language_resolution = language_authority.comprehend(
                     token_authority=authority,
                     sequence=sequence,
                     settlement=causal_settlement,
@@ -16789,6 +16938,16 @@ class Guala:
                 else None
             ),
         )
+        if language_resolution is not None:
+            # Re-run the authority check after the sensory/prediction commit;
+            # the pre-commit resolution above only proves that construction
+            # learning itself belonged inside the rollback boundary.
+            language_resolution, _dispatch = (
+                self._dispatch_unique_causal_language_resolution(
+                    sequence=sequence,
+                    settlement=causal_settlement,
+                )
+            )
         try:
             self._log_substrate_event(
                 "auditory_token_sequence_settled",
@@ -16799,6 +16958,14 @@ class Guala:
                 causal_language_episode_state=(
                     episode_admission.state
                     if episode_admission is not None
+                    else "unknown"
+                ),
+                causal_language_learning_attempt_count=len(
+                    language_learning
+                ),
+                causal_language_resolution_state=(
+                    language_resolution.state
+                    if language_resolution is not None
                     else "unknown"
                 ),
                 advance_authority_receipt_sha256=(
@@ -16859,7 +17026,21 @@ class Guala:
                 )
             self._auditory_sequence_transaction_context = (joint, settlement)
             try:
-                self._settle_released_auditory_token_sequence(result)
+                sequence = self._settle_released_auditory_token_sequence(
+                    result
+                )
+                if (
+                    sequence is None
+                    and result.status.value == "released_unique"
+                    and len(result.released_terminals) == 1
+                    and self._causal_settlement_awaits_auditory_terminal(
+                        settlement
+                    )
+                ):
+                    # One authenticated terminal follows the established
+                    # exact-action path.  Multi-terminal input is dispatched
+                    # only inside the causal-language comprehension gate.
+                    self._dispatch_recorded_causal_settlement(settlement)
             except Exception:
                 self._latest_auditory_stream_settlement_receipt = prior_joint
                 raise
