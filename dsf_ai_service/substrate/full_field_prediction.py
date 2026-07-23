@@ -664,6 +664,49 @@ class FullFieldPredictionAuthority:
         self._latest_resolution: FullFieldPredictionResolution | None = None
         self._lock = threading.RLock()
 
+    def _referenced_episode_ids_locked(self) -> set[str]:
+        required: set[str] = set()
+        if self._current_episode_id is not None:
+            required.add(self._current_episode_id)
+        for relation in self._relations.values():
+            required.add(relation.latest_evidence.context_episode_id)
+            required.add(relation.latest_evidence.target_episode_id)
+        if self._pending is not None:
+            required.add(self._pending.context_episode_id)
+            for record in self._pending.candidates:
+                episode_id = record.get("episode_id")
+                if isinstance(episode_id, str):
+                    required.add(episode_id)
+        if self._latest_resolution is not None:
+            actual_id = self._latest_resolution.actual_episode_record.get(
+                "episode_id"
+            )
+            if isinstance(actual_id, str):
+                required.add(actual_id)
+            attempt = self._latest_resolution.attempt_record
+            context_id = attempt.get("context_episode_id")
+            if isinstance(context_id, str):
+                required.add(context_id)
+            for record in attempt.get("candidates", ()):
+                if isinstance(record, Mapping):
+                    episode_id = record.get("episode_id")
+                    if isinstance(episode_id, str):
+                        required.add(episode_id)
+        return required
+
+    def _compact_unreferenced_episodes_locked(
+        self, *, retain: tuple[str, ...] = ()
+    ) -> int:
+        """Discard only witnesses with no live or learned reference."""
+        required = self._referenced_episode_ids_locked()
+        required.update(retain)
+        removable = tuple(
+            key for key in sorted(self._episodes) if key not in required
+        )
+        for key in removable:
+            del self._episodes[key]
+        return len(removable)
+
     def _verify_episode(self, episode: PredictiveEpisodeReceipt) -> None:
         if not isinstance(episode, PredictiveEpisodeReceipt):
             raise TypeError("prediction episode is not typed")
@@ -876,8 +919,19 @@ class FullFieldPredictionAuthority:
                 return existing
             with self._atomic():
                 if len(self._episodes) >= self._episode_capacity:
+                    self._compact_unreferenced_episodes_locked()
+                if len(self._episodes) >= self._episode_capacity:
                     raise RuntimeError("prediction_capacity_full")
                 self._episodes[episode.episode_id] = episode
+                try:
+                    self._encoded_locked()
+                except RuntimeError as error:
+                    if str(error) != "prediction_capacity_full":
+                        raise
+                    self._compact_unreferenced_episodes_locked(
+                        retain=(episode.episode_id,)
+                    )
+                    self._encoded_locked()
         return episode
 
     def _relation_candidates_locked(
@@ -1326,6 +1380,77 @@ class FullFieldPredictionAuthority:
         with self._lock:
             return self._pending
 
+    def current_episode(self) -> PredictiveEpisodeReceipt | None:
+        """Return the authenticated active episode without changing state."""
+        with self._lock:
+            if self._current_episode_id is None:
+                return None
+            episode = self._episodes.get(self._current_episode_id)
+            if episode is None:
+                raise ValueError("prediction active episode is missing")
+            self._verify_episode(episode)
+            return episode
+
+    def cancel_conditioned_action(
+        self, intent_receipt_sha256: object
+    ) -> FullFieldPredictionAttempt:
+        """Return an unexecuted exact action context to passive prediction."""
+        receipt = _sha256(
+            intent_receipt_sha256, "cancelled prediction intent"
+        )
+        with self._lock:
+            if (
+                self._current_episode_id is None
+                or self._pending is None
+                or self._armed_intent is None
+                or self._armed_intent.authority_receipt_sha256 != receipt
+                or self._pending.mode != "action_conditioned"
+            ):
+                raise ValueError(
+                    "prediction has no matching conditioned action"
+                )
+            context = self._episodes[self._current_episode_id]
+            with self._atomic():
+                self._armed_intent = None
+                self._pending = self._issue_locked(
+                    context, mode="passive", intent=None
+                )
+            return self._pending
+
+    def replace_current_episode(
+        self, episode: PredictiveEpisodeReceipt
+    ) -> FullFieldPredictionAttempt:
+        """Replace one active receipt with richer proof of the same event.
+
+        This is attachment completion, not a temporal transition.  It is
+        permitted only before an action is conditioned and only when the
+        immutable causal-settlement receipt is identical.
+        """
+        self._verify_episode(episode)
+        with self._lock:
+            if self._current_episode_id is None or self._pending is None:
+                raise ValueError("full-field prediction context is not active")
+            if self._armed_intent is not None:
+                raise ValueError(
+                    "conditioned prediction cannot replace its context"
+                )
+            if self._episodes.get(episode.episode_id) != episode:
+                raise ValueError("replacement prediction episode is not retained")
+            current = self._episodes[self._current_episode_id]
+            if (
+                current.settlement_receipt_sha256
+                != episode.settlement_receipt_sha256
+            ):
+                raise ValueError(
+                    "replacement prediction episode names another event"
+                )
+            with self._atomic():
+                self._current_episode_id = episode.episode_id
+                self._pending = self._issue_locked(
+                    episode, mode="passive", intent=None
+                )
+            return self._pending
+
     def latest_resolution(self) -> FullFieldPredictionResolution | None:
         with self._lock:
             return self._latest_resolution
@@ -1576,6 +1701,69 @@ class FullFieldPredictionAuthority:
             self._pending = pending
             self._latest_resolution = latest
             try:
+                for relation in self._relations.values():
+                    evidence = relation.latest_evidence
+                    context_episode = self._episodes.get(
+                        evidence.context_episode_id
+                    )
+                    target_episode = self._episodes.get(
+                        evidence.target_episode_id
+                    )
+                    if (
+                        context_episode is None
+                        or target_episode is None
+                        or evidence.mode != relation.mode
+                        or context_episode.structure_id
+                        != relation.context_structure_id
+                        or target_episode.structure_id
+                        != relation.target_structure_id
+                    ):
+                        raise ValueError(
+                            "prediction relation lost its retained episodes"
+                        )
+                    intent_record = evidence.action_intent_record
+                    if relation.mode == "action_conditioned":
+                        action_record = (
+                            intent_record.get("action")
+                            if isinstance(intent_record, Mapping)
+                            else None
+                        )
+                        if (
+                            not isinstance(action_record, Mapping)
+                            or _digest(action_record)
+                            != relation.action_receipt_sha256
+                        ):
+                            raise ValueError(
+                                "prediction action relation changed"
+                            )
+                if self._current_episode_id is not None:
+                    expected_pending = self._issue_locked(
+                        self._episodes[self._current_episode_id],
+                        mode="passive",
+                        intent=None,
+                    )
+                    if self._pending != expected_pending:
+                        raise ValueError(
+                            "prediction pending relation graph changed"
+                        )
+                if self._latest_resolution is not None:
+                    actual_record = (
+                        self._latest_resolution.actual_episode_record
+                    )
+                    actual_id = actual_record.get("episode_id")
+                    actual = self._episodes.get(actual_id)
+                    restored_attempt = self._attempt_from_record(
+                        self._latest_resolution.attempt_record
+                    )
+                    if (
+                        actual is None
+                        or actual.as_record() != actual_record
+                        or self._resolve_locked(restored_attempt, actual)
+                        != self._latest_resolution
+                    ):
+                        raise ValueError(
+                            "prediction latest resolution graph changed"
+                        )
                 if self._encoded_locked() != canonical_input:
                     raise ValueError("prediction snapshot is not canonical")
             except BaseException:

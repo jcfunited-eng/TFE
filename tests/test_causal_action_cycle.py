@@ -411,6 +411,10 @@ def test_read_only_perception_copy_and_live_intent_verifier() -> None:
     )
     selection = cycle.select(_settlement("read-only-repeat", routing_chis=(88,)))
     assert cycle.verify_live_intent(selection.intent)
+    assert cycle.live_intent(
+        selection.intent.authority_receipt_sha256
+    ) == selection.intent
+    assert cycle.live_intent("not-a-receipt") is None
     assert "TRUSTED-INTERNAL" in CausalActionCycle.record_execution.__doc__
     cycle.record_execution(
         intent_receipt_sha256=selection.intent.authority_receipt_sha256,
@@ -418,6 +422,9 @@ def test_read_only_perception_copy_and_live_intent_verifier() -> None:
         disposition="rejected",
     )
     assert not cycle.verify_live_intent(selection.intent)
+    assert cycle.live_intent(
+        selection.intent.authority_receipt_sha256
+    ) is None
 
 
 def test_capacity_and_state_hmac_reject_without_partial_mutation() -> None:

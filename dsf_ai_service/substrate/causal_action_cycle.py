@@ -1648,6 +1648,52 @@ class CausalActionCycle:
         with self._lock:
             return self._intents.get(receipt) == intent
 
+    def live_intent(self, intent_receipt_sha256: object) -> ActionIntent | None:
+        """Return one still-live authenticated intent by its exact receipt."""
+        try:
+            receipt = sha256_digest(
+                intent_receipt_sha256, "live intent receipt"
+            )
+        except (TypeError, ValueError):
+            return None
+        with self._lock:
+            intent = self._intents.get(receipt)
+            if intent is None:
+                return None
+            intent.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            return intent
+
+    def latest_closure_record(
+        self, binding_id: object
+    ) -> dict[str, object] | None:
+        """Return one fully verified latest closure as an independent record."""
+        try:
+            identity = sha256_digest(binding_id, "closure binding")
+        except (TypeError, ValueError):
+            return None
+        with self._lock:
+            binding = self._bindings.get(identity)
+            if binding is None:
+                return None
+            binding.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            closure = binding.latest_closure
+            if closure is None:
+                return None
+            closure.verify(
+                self._key,
+                max_scalars=self._max_speech_scalars,
+                max_command_bytes=self._max_command_bytes,
+            )
+            return json.loads(_canonical(closure.as_record()))
+
     def verify_live_execution_receipt(self, receipt: object) -> bool:
         """Return whether an authenticated execution is awaiting outcome."""
         try:

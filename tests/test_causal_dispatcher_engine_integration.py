@@ -89,13 +89,17 @@ def test_w1_dispatch_closes_on_exact_embodied_outcome_without_recursive_action(
             "engine-w1-teacher-nonce-0001",
         )
         dispatches = []
-        dispatch = guala._causal_action_dispatcher.dispatch
+        dispatch_expected = guala._causal_action_dispatcher.dispatch_expected
 
-        def tracked(settlement):
+        def tracked(settlement, *, binding_id, action_receipt_sha256):
             dispatches.append(settlement.authority_receipt_sha256)
-            return dispatch(settlement)
+            return dispatch_expected(
+                settlement,
+                binding_id=binding_id,
+                action_receipt_sha256=action_receipt_sha256,
+            )
 
-        guala._causal_action_dispatcher.dispatch = tracked
+        guala._causal_action_dispatcher.dispatch_expected = tracked
         guala._accept_causal_settlement(trigger)
 
         observed = guala._embodiment_world.observation_snapshot()
@@ -149,6 +153,8 @@ def test_guala_causal_dispatcher_cannot_control_the_other_body_port(
             "request_receipt_sha256": result.request_receipt_sha256,
         }
         assert guala._causal_action_cycle.status()["bindings"] == 1
+        assert guala._full_field_prediction.status()["armed_action"] is False
+        assert guala._full_field_prediction.relation_records() == ()
     finally:
         guala.shutdown()
 
@@ -204,13 +210,17 @@ def test_speech_release_is_consumed_once_and_only_actual_wav_closes(
             "engine-speech-teacher-nonce-0001",
         )
         dispatches = []
-        dispatch = guala._causal_action_dispatcher.dispatch
+        dispatch_expected = guala._causal_action_dispatcher.dispatch_expected
 
-        def tracked(settlement):
+        def tracked(settlement, *, binding_id, action_receipt_sha256):
             dispatches.append(settlement.authority_receipt_sha256)
-            return dispatch(settlement)
+            return dispatch_expected(
+                settlement,
+                binding_id=binding_id,
+                action_receipt_sha256=action_receipt_sha256,
+            )
 
-        guala._causal_action_dispatcher.dispatch = tracked
+        guala._causal_action_dispatcher.dispatch_expected = tracked
         guala._accept_causal_settlement(trigger)
         released = guala._emit_from_invariants(
             (), (), causal_settlement=trigger
@@ -232,6 +242,8 @@ def test_speech_release_is_consumed_once_and_only_actual_wav_closes(
         assert pending["executions"] == 1
         assert pending["outcomes"] == 0
         assert guala._causal_action_dispatcher.status()["active"] is True
+        assert guala._full_field_prediction.status()["armed_action"] is True
+        assert guala._full_field_prediction.relation_records() == ()
 
         outcome = guala.observe_causal_speech_output(_wav_bytes())
         assert outcome["status"] == "completed"
@@ -243,6 +255,8 @@ def test_speech_release_is_consumed_once_and_only_actual_wav_closes(
         assert closed["outcomes"] == 0
         assert guala._causal_action_dispatcher.status()["active"] is False
         assert guala.causal_speech_output_status()["status"] == "idle"
+        assert guala._full_field_prediction.status()["armed_action"] is False
+        assert len(guala._full_field_prediction.relation_records()) == 1
         with pytest.raises(ValueError, match="no delivered"):
             guala.observe_causal_speech_output(_wav_bytes(frequency_hz=550))
     finally:
@@ -386,6 +400,8 @@ def test_speech_over_tts_boundary_is_authenticated_rejection_not_truncation(
         assert guala._causal_speech_release is None
         assert guala._causal_action_dispatcher.status()["active"] is False
         assert guala._causal_action_cycle.status()["intents"] == 0
+        assert guala._full_field_prediction.status()["armed_action"] is False
+        assert guala._full_field_prediction.relation_records() == ()
     finally:
         guala.shutdown()
 

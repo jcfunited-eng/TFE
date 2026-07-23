@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
+import hmac
 import json
 import math
 from concurrent.futures import ThreadPoolExecutor
@@ -13,6 +14,7 @@ import pytest
 
 import dsf_ai_service.substrate.auditory_batch_causal_intake as intake_module
 import dsf_ai_service.substrate.auditory_token_sequence as token_module
+import dsf_ai_service.substrate.full_field_prediction as prediction_module
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
@@ -524,10 +526,10 @@ def test_action_conditioned_relation_requires_live_intent_and_closed_outcome() -
         source="teacher",
         nonce="full-field-action-feedback-0001",
     )
-    cycle_state = json.loads(
-        base64.b64decode(cycle.encoded_snapshot()["payload_base64"])
+    closure_record = cycle.latest_closure_record(
+        selection.intent.binding_id
     )
-    closure_record = cycle_state["bindings"][0]["latest_closure"]
+    assert closure_record is not None
     step = prediction.observe_next(
         outcome_episode,
         action_cycle=cycle,
@@ -557,6 +559,64 @@ def test_action_conditioned_relation_requires_live_intent_and_closed_outcome() -
             outcome_episode,
             action_cycle=cycle,
             closure_record=closure_record,
+        )
+
+
+def test_cancelled_action_returns_exact_context_to_passive_prediction() -> None:
+    learned_trigger = _settlement("cancel-teach", sight_frequency=8)
+    live_trigger = _settlement("cancel-live", sight_frequency=8)
+    cycle = CausalActionCycle(authority_key=KEY)
+    command = ActionCommand.embodiment("body.motion.primary", b"exact-stop")
+    _teach_action(cycle, learned_trigger, command)
+    selection = cycle.select(live_trigger)
+    prediction = FullFieldPredictionAuthority(authority_key=KEY)
+    context = prediction.admit_episode(live_trigger)
+    prediction.open_context(context)
+    prediction.condition_on_action(
+        intent=selection.intent, action_cycle=cycle
+    )
+
+    assert prediction.current_episode() == context
+    passive = prediction.cancel_conditioned_action(
+        selection.intent.authority_receipt_sha256
+    )
+    assert passive.mode == "passive"
+    assert prediction.current_episode() == context
+    with pytest.raises(ValueError, match="no matching conditioned action"):
+        prediction.cancel_conditioned_action(
+            selection.intent.authority_receipt_sha256
+        )
+
+
+def test_same_event_attachment_completion_replaces_without_learning() -> None:
+    settlement = _settlement("attachment-completion", sound_frequency=12)
+    token_authority = AuditoryTokenSequenceAuthority(
+        authority_secret=TOKEN_KEY
+    )
+    sequence = _token_sequence(
+        token_authority, ("hello",), label="attachment-completion"
+    )
+    intake_authority, intake = _intake(sequence, settlement)
+    prediction = FullFieldPredictionAuthority(authority_key=KEY)
+    bare = prediction.admit_episode(settlement)
+    prediction.open_context(bare)
+    enriched = prediction.admit_episode(
+        settlement,
+        intake_authority=intake_authority,
+        intake=intake,
+        token_authority=token_authority,
+        token_sequence=sequence,
+    )
+
+    attempt = prediction.replace_current_episode(enriched)
+    assert prediction.current_episode() == enriched
+    assert attempt.context_episode_id == enriched.episode_id
+    assert prediction.relation_records() == ()
+    with pytest.raises(ValueError, match="another event"):
+        prediction.replace_current_episode(
+            prediction.admit_episode(
+                _settlement("different-event", sound_frequency=12)
+            )
         )
 
 
@@ -604,6 +664,29 @@ def test_capacity_is_atomic_and_never_evicts() -> None:
     assert len(prior) <= 32 * 1024 * 1024
 
 
+def test_unreferenced_episode_compaction_preserves_learned_evidence() -> None:
+    authority = FullFieldPredictionAuthority(authority_key=KEY)
+    before, after, _step = _teach_passive(
+        authority,
+        _settlement("gc-before", sight_frequency=8),
+        _settlement("gc-after", sight_frequency=15),
+    )
+    authority.stop_context()
+    for index in range(160):
+        authority.admit_episode(
+            _settlement(
+                f"gc-transient-{index}",
+                sight_frequency=20 + (index % 11),
+            )
+        )
+    assert authority.status()["episodes"] <= 132
+    assert len(authority.relation_records()) == 1
+    authority.open_context(before)
+    attempt = authority.current_attempt()
+    assert attempt.status == "predicted"
+    assert attempt.candidates[0]["structure_id"] == after.structure_id
+
+
 def test_snapshot_restart_and_every_episode_tamper_fail_closed() -> None:
     authority = FullFieldPredictionAuthority(authority_key=KEY)
     before, after, _step = _teach_passive(
@@ -633,6 +716,61 @@ def test_snapshot_restart_and_every_episode_tamper_fail_closed() -> None:
     restored.stop_context()
     with pytest.raises(ValueError):
         restored.open_context(tampered)
+
+
+def test_hmac_valid_snapshot_cannot_cross_bind_relation_episodes() -> None:
+    authority = FullFieldPredictionAuthority(authority_key=KEY)
+    before, after, _step = _teach_passive(
+        authority,
+        _settlement("cross-bind-before", sight_frequency=8),
+        _settlement("cross-bind-after", sight_frequency=15),
+    )
+    authority.stop_context()
+    envelope = json.loads(authority.encoded_snapshot())
+    state = json.loads(base64.b64decode(envelope["payload_base64"]))
+    relation = state["relations"][0]
+    evidence = relation["latest_evidence"]
+    assert evidence["context_episode_id"] == before.episode_id
+    evidence["context_episode_id"] = after.episode_id
+    evidence_payload = {
+        key: value for key, value in evidence.items()
+        if key not in {"authority_hmac_sha256", "transition_id"}
+    }
+    evidence["transition_id"] = prediction_module._digest(
+        evidence_payload
+    )
+    evidence["authority_hmac_sha256"] = prediction_module._sign(
+        authority._key,
+        prediction_module.TRANSITION_DOMAIN,
+        evidence_payload,
+    )
+    relation_payload = {
+        "action_receipt_sha256": relation["action_receipt_sha256"],
+        "context_structure_id": relation["context_structure_id"],
+        "latest_evidence": evidence,
+        "mode": relation["mode"],
+        "relation_id": relation["relation_id"],
+        "schema": relation["schema"],
+        "target_structure_id": relation["target_structure_id"],
+    }
+    relation["authority_hmac_sha256"] = prediction_module._sign(
+        authority._key,
+        prediction_module.RELATION_DOMAIN,
+        relation_payload,
+    )
+    payload = prediction_module._canonical(state)
+    changed = prediction_module._canonical({
+        "authority_hmac_sha256": hmac.new(
+            authority._key,
+            prediction_module.STATE_DOMAIN + payload,
+            hashlib.sha256,
+        ).hexdigest(),
+        "payload_base64": base64.b64encode(payload).decode("ascii"),
+        "schema": prediction_module.ENVELOPE_SCHEMA,
+    })
+    restored = FullFieldPredictionAuthority(authority_key=KEY)
+    with pytest.raises(ValueError, match="lost its retained episodes"):
+        restored.restore_encoded(changed)
 
 
 def test_public_language_episode_verifier_is_read_only_and_exact() -> None:

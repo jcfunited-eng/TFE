@@ -59,6 +59,9 @@ from dsf_ai_service.substrate.causal_action import (
     CausalActionSettlement,
 )
 from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
+from dsf_ai_service.substrate.causal_prediction import (
+    CausalPredictionAuthority,
+)
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     MoveCommand,
@@ -373,7 +376,9 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
             "emission_id": turn.emission_id,
         }
         assert observation["embodiment"]["status"] == "observed"
-        assert observation["embodiment"]["location"]["room_id"] == "W1"
+        assert observation["embodiment"]["location"]["region_id"] == (
+            "W1-region-A"
+        )
         assert guala._latest_causal_settlement is not None
         guala._latest_causal_settlement.verify()
         cycle_status = guala._causal_action_cycle.status()
@@ -392,6 +397,10 @@ def test_spoken_turn_releases_only_its_learned_causal_action(
         reviewed_status = guala._causal_action_cycle.status()
         assert reviewed_status["binding_statuses"]["confirmed"] == 1
         assert guala._causal_cycle_pending_review is None
+        prediction = guala._full_field_prediction.status()
+        assert prediction["action_relations"] == 1
+        assert prediction["passive_relations"] == 0
+        assert prediction["armed_action"] is False
     finally:
         guala.shutdown()
 
@@ -590,7 +599,19 @@ def test_full_engine_restart_preserves_exact_learned_action(
             action_experience_id=action.event_id,
             source="joe",
         )
+        writer._record_causal_perception_without_dispatch(trigger)
+        writer._record_causal_perception_without_dispatch(
+            action,
+            prediction_transition=True,
+        )
         expected = writer._causal_action_cycle.encoded_snapshot()
+        expected_prediction_relations = (
+            writer._full_field_prediction.relation_records()
+        )
+        expected_prediction_latest = (
+            writer._latest_full_field_prediction_observation
+        )
+        assert len(expected_prediction_relations) == 1
         writer.save_full_state(str(tmp_path))
         identity = writer._guala_identity
         writer.shutdown()
@@ -602,9 +623,65 @@ def test_full_engine_restart_preserves_exact_learned_action(
         assert restored._load_successful, restored._load_errors
         assert restored._guala_identity == identity
         assert restored._causal_action_cycle.encoded_snapshot() == expected
+        assert restored._full_field_prediction.relation_records() == (
+            expected_prediction_relations
+        )
+        assert restored._full_field_prediction.status()["active_context"] is False
+        assert restored._latest_full_field_prediction_observation == (
+            expected_prediction_latest
+        )
         formed = restored._causal_action_cycle.select(trigger)
         assert formed.intent.action == ActionCommand.speech("hello daddy")
         assert restored._causal_action_cycle.verify_live_intent(formed.intent)
+    finally:
+        if writer is not None:
+            writer.shutdown()
+        if restored is not None:
+            restored.shutdown()
+
+
+def test_legacy_adjacency_prediction_is_verified_and_retired_not_migrated(
+    monkeypatch,
+    tmp_path,
+    learned_artifacts,
+) -> None:
+    _reciprocity, trigger_artifacts, action_artifacts = learned_artifacts
+    _trigger_built, _trigger_l5, _trigger_terminal, trigger = (
+        trigger_artifacts
+    )
+    _action_built, _action_l5, _action_terminal, action = action_artifacts
+    key = "legacy-prediction-retirement-key"
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", key)
+    writer = Guala()
+    restored = None
+    try:
+        legacy = CausalPredictionAuthority(authority_key=key)
+        legacy.start(trigger)
+        legacy.advance(action)
+        assert legacy.status()["relations"] == 1
+        payload = writer._teaching_persistence_payload()
+        payload.pop("full_field_prediction")
+        payload["causal_prediction"] = json.loads(
+            legacy.encoded_snapshot()
+        )
+        writer._teaching_persistence_payload = lambda: payload
+        writer.save_full_state(str(tmp_path))
+        writer.shutdown()
+        writer = None
+
+        restored = Guala()
+        restored.load_full_state(str(tmp_path))
+
+        assert restored._load_successful, restored._load_errors
+        assert restored._full_field_prediction.relation_records() == ()
+        assert restored._legacy_causal_prediction_disposition == {
+            "legacy_relations": 1,
+            "reason": "automatic_adjacency_is_not_causal_evidence",
+            "status": "verified_and_retired",
+        }
     finally:
         if writer is not None:
             writer.shutdown()
@@ -647,6 +724,19 @@ def test_full_field_intent_executes_embodiment_and_closes_on_exact_w1_outcome(
             source="joe",
             nonce="embodiment-teacher-nonce-0001",
         )
+        execute = guala._causal_action_dispatcher._embodiment_executor
+
+        def assert_conditioned_before_execution(request):
+            status = guala._full_field_prediction.status()
+            assert status["armed_action"] is True
+            assert guala._full_field_prediction.current_attempt().mode == (
+                "action_conditioned"
+            )
+            return execute(request)
+
+        guala._causal_action_dispatcher._embodiment_executor = (
+            assert_conditioned_before_execution
+        )
 
         guala._accept_causal_settlement(trigger)
         emission = guala._emit_from_invariants(
@@ -682,11 +772,19 @@ def test_full_field_intent_executes_embodiment_and_closes_on_exact_w1_outcome(
         assert status["outcomes"] == 0
         assert guala._causal_action_dispatcher.status()["active"] is False
         assert guala._latest_causal_settlement != outcome
+        prediction = guala._full_field_prediction
+        relations = prediction.relation_records()
+        assert len(relations) == 1
+        assert relations[0]["mode"] == "action_conditioned"
+        assert prediction.current_episode().w1_attachment is not None
+        assert prediction.current_episode().w1_attachment[
+            "observation"
+        ]["revision"] == 1
     finally:
         guala.shutdown()
 
 
-def test_full_field_prediction_is_issued_before_and_verified_by_next_settlement(
+def test_unrelated_settlements_rebase_prediction_without_adjacency_learning(
     monkeypatch,
     learned_artifacts,
 ) -> None:
@@ -715,25 +813,112 @@ def test_full_field_prediction_is_issued_before_and_verified_by_next_settlement(
     monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "prediction-engine-key")
     guala = Guala()
     try:
-        guala._accept_causal_settlement(trigger)
-        first = guala._causal_prediction.current_prediction()
-        assert first is not None
-        assert first.status == "unknown"
+        for settlement in (
+            trigger,
+            action,
+            trigger_repeat,
+            action_repeat,
+        ):
+            guala._accept_causal_settlement(settlement)
 
-        guala._accept_causal_settlement(action)
-        assert guala._causal_prediction.latest_resolution().verification == (
-            "unknown_observed"
+        prediction = guala._full_field_prediction
+        assert prediction.current_episode().settlement_receipt_sha256 == (
+            action_repeat.authority_receipt_sha256
         )
-        assert guala._causal_prediction.status()["relations"] == 1
+        assert prediction.current_attempt().status == "unknown"
+        assert prediction.latest_resolution() is None
+        assert prediction.relation_records() == ()
+        assert prediction.status() == {
+            "action_relations": 0,
+            "active_context": True,
+            "armed_action": False,
+            "episodes": 4,
+            "passive_relations": 0,
+            "pending_status": "unknown",
+        }
+    finally:
+        guala.shutdown()
 
-        guala._accept_causal_settlement(trigger_repeat)
-        next_attempt = guala._causal_prediction.current_prediction()
-        assert next_attempt is not None
-        assert next_attempt.status == "predicted"
 
-        guala._accept_causal_settlement(action_repeat)
-        assert guala._causal_prediction.latest_resolution().verification == (
-            "predicted_match"
+def test_prediction_capacity_is_visible_without_rejecting_causal_settlement(
+    monkeypatch,
+    learned_artifacts,
+) -> None:
+    _reciprocity, trigger_artifacts, action_artifacts = learned_artifacts
+    _trigger_built, _trigger_l5, _trigger_terminal, trigger = (
+        trigger_artifacts
+    )
+    _action_built, _action_l5, _action_terminal, action = action_artifacts
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "prediction-capacity-key")
+    guala = Guala()
+    try:
+        guala._record_causal_perception_without_dispatch(trigger)
+
+        def capacity_full(_episode):
+            raise RuntimeError("prediction_capacity_full")
+
+        monkeypatch.setattr(
+            guala._full_field_prediction,
+            "observe_next",
+            capacity_full,
         )
+        guala._record_causal_perception_without_dispatch(
+            action,
+            prediction_transition=True,
+        )
+
+        assert guala._latest_causal_settlement == action
+        assert guala._full_field_prediction.status()["active_context"] is False
+        assert guala._latest_full_field_prediction_observation == {
+            "reason": "prediction_capacity_full",
+            "schema": "guala.full_field_prediction.engine_observation.v1",
+            "settlement_receipt_sha256": action.authority_receipt_sha256,
+            "status": "capacity_full",
+        }
+    finally:
+        guala.shutdown()
+
+
+def test_pre_execution_dispatch_failure_rolls_back_intent_and_prediction(
+    monkeypatch,
+    learned_artifacts,
+) -> None:
+    _reciprocity, trigger_artifacts, action_artifacts = learned_artifacts
+    _trigger_built, _trigger_l5, trigger_terminal, trigger = (
+        trigger_artifacts
+    )
+    _action_built, _action_l5, action_terminal, action = action_artifacts
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "dispatch-rollback-key")
+    guala = Guala()
+    try:
+        guala._causal_action_cycle.accept(trigger)
+        guala._causal_action_cycle.accept(action)
+        guala.teach_causal_action(
+            trigger_experience_id=trigger_terminal.event_id,
+            action_experience_id=action_terminal.event_id,
+            source="joe",
+        )
+
+        def fail_before_execution(*_args, **_kwargs):
+            raise ValueError("injected pre-execution dispatch failure")
+
+        monkeypatch.setattr(
+            guala._causal_action_dispatcher,
+            "dispatch_expected",
+            fail_before_execution,
+        )
+        with pytest.raises(ValueError, match="pre-execution dispatch failure"):
+            guala._accept_causal_settlement(trigger)
+
+        assert guala._causal_action_dispatcher.status()["active"] is False
+        assert guala._causal_action_cycle.status()["intents"] == 0
+        assert guala._full_field_prediction.status()["armed_action"] is False
+        assert guala._full_field_prediction.current_attempt().mode == "passive"
     finally:
         guala.shutdown()

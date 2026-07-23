@@ -37,6 +37,7 @@ def _snapshots(guala: Guala):
         guala._embodiment_world.encoded_snapshot(),
         guala._causal_action_cycle.encoded_snapshot(),
         guala._embodied_action_teaching.encoded_snapshot(),
+        guala._full_field_prediction.encoded_snapshot(),
     )
 
 

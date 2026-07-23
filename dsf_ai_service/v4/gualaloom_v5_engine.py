@@ -87,6 +87,10 @@ SOUNDS_STATE_MAX_BYTES = 16 * 1024 * 1024
 # resource admission boundary, not a semantic limit or a truncation rule:
 # oversized state fails closed before json.load can allocate it.
 TEACHING_STATE_MAX_BYTES = AUDITORY_SNAPSHOT_MAX_DECODED_BYTES
+FULL_FIELD_PREDICTION_STATE_MAX_BYTES = 32 * 1024 * 1024
+TEACHING_WITH_PREDICTION_MAX_BYTES = (
+    TEACHING_STATE_MAX_BYTES + FULL_FIELD_PREDICTION_STATE_MAX_BYTES
+)
 AUDITORY_V4_ARCHIVE_SCHEMA = "guala.auditory.persistence_archive.v1"
 # One already-sealed production generation predates the bounded causal
 # provenance schema and contains 1,164,724 repeated recognized-strand IDs in
@@ -3430,6 +3434,7 @@ class Guala:
             os.environ.get("GUALA_CAUSAL_ACTION_KEY")
             or os.environ.get("GUALALOOM_API_KEY")
         )
+        self._causal_cycle_key = _causal_cycle_key
         if _causal_cycle_key:
             import hmac as _hmac
             from dsf_ai_service.substrate.auditory_token_sequence import (
@@ -3610,17 +3615,26 @@ class Guala:
                     self._causal_outcome_observer_key
                 ),
             )
-        from dsf_ai_service.substrate.causal_prediction import (
-            CausalPredictionAuthority as _CausalPredictionAuthority,
-        )
-        self._causal_prediction = (
-            _CausalPredictionAuthority(
-                authority_key=_causal_cycle_key,
-                log_event=self._log_substrate_event,
+        self._full_field_prediction_key = None
+        self._full_field_prediction = None
+        self._prediction_conditioned_intent_receipt = None
+        self._prediction_conditioned_binding_id = None
+        self._latest_full_field_prediction_observation = None
+        self._legacy_causal_prediction_disposition = None
+        if _causal_cycle_key:
+            import hmac as _hmac
+            from dsf_ai_service.substrate.full_field_prediction import (
+                FullFieldPredictionAuthority as
+                _FullFieldPredictionAuthority,
             )
-            if _causal_cycle_key
-            else None
-        )
+            self._full_field_prediction_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-full-field-prediction-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._full_field_prediction = _FullFieldPredictionAuthority(
+                authority_key=self._full_field_prediction_key,
+            )
         self._causal_cycle_bridge_lock = threading.RLock()
         self._causal_cycle_pending_review = None
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
@@ -7772,19 +7786,308 @@ class Guala:
             disposition=disposition,
         )
 
-    def _record_causal_perception_without_dispatch(self, settlement):
-        """Record an exact outcome already admitted by the live dispatcher."""
-        if self._causal_prediction is not None:
-            pending_prediction = self._causal_prediction.current_prediction()
-            if pending_prediction is None:
-                self._causal_prediction.start(settlement)
-            elif (
-                pending_prediction.context_settlement_receipt_sha256
-                != settlement.authority_receipt_sha256
+    def _full_field_prediction_observe(
+        self,
+        settlement,
+        *,
+        prediction_transition=False,
+        action_outcome=False,
+        intake=None,
+        token_sequence=None,
+        language_episode=None,
+        world_observation=None,
+        outcome_observation_receipt=None,
+        world_execution_receipt=None,
+    ):
+        """Admit one explicit prediction edge without temporal inference."""
+        authority = self._full_field_prediction
+        if authority is None:
+            return None
+        auditory_values = (intake, token_sequence)
+        if any(value is not None for value in auditory_values) and not all(
+            value is not None for value in auditory_values
+        ):
+            raise ValueError("prediction auditory attachment is incomplete")
+        w1_values = (world_observation, outcome_observation_receipt)
+        if any(value is not None for value in w1_values) and not all(
+            value is not None for value in w1_values
+        ):
+            raise ValueError("prediction W1 attachment is incomplete")
+        try:
+            episode = authority.admit_episode(
+                settlement,
+                intake_authority=(
+                    self._auditory_batch_causal_intake_authority
+                    if intake is not None else None
+                ),
+                intake=intake,
+                token_authority=(
+                    self._auditory_token_sequence_authority
+                    if token_sequence is not None else None
+                ),
+                token_sequence=token_sequence,
+                language_authority=(
+                    self._causal_language_authority
+                    if language_episode is not None else None
+                ),
+                language_episode=language_episode,
+                world_authority=(
+                    self._embodiment_world
+                    if world_observation is not None else None
+                ),
+                sensory_authority=(
+                    self._embodiment_sensory_outcome_authority
+                    if world_observation is not None else None
+                ),
+                observation=world_observation,
+                outcome_receipt=outcome_observation_receipt,
+                execution_receipt=world_execution_receipt,
+            )
+        except RuntimeError as error:
+            if str(error) != "prediction_capacity_full":
+                raise
+            self._latest_full_field_prediction_observation = {
+                "reason": "prediction_capacity_full",
+                "schema": "guala.full_field_prediction.engine_observation.v1",
+                "settlement_receipt_sha256": (
+                    settlement.authority_receipt_sha256
+                ),
+                "status": "capacity_full",
+            }
+            return None
+        current = authority.current_episode()
+        attempt = authority.current_attempt()
+        transition = None
+        if current is None or attempt is None:
+            next_attempt = authority.open_context(episode)
+            status = (
+                "action_outcome_unconditioned"
+                if action_outcome else "context_opened"
+            )
+        elif current.episode_id == episode.episode_id:
+            next_attempt = attempt
+            status = "duplicate_current_episode"
+        elif (
+            current.settlement_receipt_sha256
+            == episode.settlement_receipt_sha256
+        ):
+            if authority.status()["armed_action"]:
+                next_attempt = attempt
+                status = "attachment_deferred_for_live_action"
+            else:
+                next_attempt = authority.replace_current_episode(episode)
+                status = "current_episode_attachment_completed"
+        elif attempt.mode == "action_conditioned":
+            if not action_outcome:
+                next_attempt = attempt
+                status = "action_outcome_pending"
+            else:
+                binding_id = self._prediction_conditioned_binding_id
+                if binding_id is None:
+                    raise RuntimeError(
+                        "conditioned prediction lost its action binding"
+                    )
+                closure = self._causal_action_cycle.latest_closure_record(
+                    binding_id
+                )
+                if closure is None:
+                    raise RuntimeError(
+                        "conditioned prediction lacks its closed outcome"
+                    )
+                step = authority.observe_next(
+                    episode,
+                    action_cycle=self._causal_action_cycle,
+                    closure_record=closure,
+                )
+                transition = step.transition
+                next_attempt = step.next_prediction
+                status = "action_outcome_observed"
+                self._prediction_conditioned_intent_receipt = None
+                self._prediction_conditioned_binding_id = None
+        elif action_outcome:
+            authority.stop_context()
+            next_attempt = authority.open_context(episode)
+            status = "action_outcome_unconditioned"
+        elif prediction_transition:
+            step = authority.observe_next(episode)
+            transition = step.transition
+            next_attempt = step.next_prediction
+            status = "passive_transition_observed"
+        else:
+            authority.stop_context()
+            next_attempt = authority.open_context(episode)
+            status = "context_rebased_without_relation"
+        self._latest_full_field_prediction_observation = {
+            "attempt_id": next_attempt.attempt_id,
+            "attempt_status": next_attempt.status,
+            "episode_id": episode.episode_id,
+            "reason": status,
+            "schema": "guala.full_field_prediction.engine_observation.v1",
+            "settlement_receipt_sha256": (
+                settlement.authority_receipt_sha256
+            ),
+            "status": "observed",
+            "transition_id": (
+                transition.transition_id if transition is not None else None
+            ),
+        }
+        return episode
+
+    @staticmethod
+    def _verify_full_field_prediction_engine_observation(record):
+        if not isinstance(record, dict) or record.get("schema") != (
+            "guala.full_field_prediction.engine_observation.v1"
+        ):
+            raise ValueError("full-field prediction observation is malformed")
+        status = record.get("status")
+        expected = {
+            "deferred": {
+                "reason", "schema", "settlement_receipt_sha256", "status",
+            },
+            "capacity_full": {
+                "reason", "schema", "settlement_receipt_sha256", "status",
+            },
+            "observed": {
+                "attempt_id", "attempt_status", "episode_id", "reason",
+                "schema", "settlement_receipt_sha256", "status",
+                "transition_id",
+            },
+            "conditioned": {
+                "attempt_id", "attempt_status", "binding_id",
+                "intent_receipt_sha256", "reason", "schema", "status",
+            },
+            "cancelled": {
+                "attempt_id", "attempt_status", "reason", "schema", "status",
+            },
+        }
+        if status not in expected or set(record) != expected[status]:
+            raise ValueError("full-field prediction observation fields changed")
+        for field in (
+            "attempt_id",
+            "binding_id",
+            "episode_id",
+            "intent_receipt_sha256",
+            "settlement_receipt_sha256",
+            "transition_id",
+        ):
+            if field not in record or record[field] is None:
+                continue
+            value = record[field]
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
             ):
-                self._causal_prediction.advance(settlement)
+                raise ValueError(
+                    f"full-field prediction observation {field} changed"
+                )
+        if (
+            not isinstance(record.get("reason"), str)
+            or not record["reason"]
+            or (
+                "attempt_status" in record
+                and record["attempt_status"]
+                not in {"unknown", "predicted", "ambiguous"}
+            )
+            or len(json.dumps(
+                record,
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")) > 4096
+        ):
+            raise ValueError("full-field prediction observation changed")
+        return record
+
+    def _condition_full_field_prediction_on_action(self, intent):
+        authority = self._full_field_prediction
+        if authority is None:
+            return None
+        attempt = authority.condition_on_action(
+            intent=intent,
+            action_cycle=self._causal_action_cycle,
+        )
+        self._prediction_conditioned_intent_receipt = (
+            intent.authority_receipt_sha256
+        )
+        self._prediction_conditioned_binding_id = intent.binding_id
+        self._latest_full_field_prediction_observation = {
+            "attempt_id": attempt.attempt_id,
+            "attempt_status": attempt.status,
+            "binding_id": intent.binding_id,
+            "intent_receipt_sha256": intent.authority_receipt_sha256,
+            "reason": "action_conditioned_before_execution",
+            "schema": "guala.full_field_prediction.engine_observation.v1",
+            "status": "conditioned",
+        }
+        return attempt
+
+    def _cancel_full_field_prediction_action(self):
+        receipt = self._prediction_conditioned_intent_receipt
+        if receipt is None or self._full_field_prediction is None:
+            return None
+        attempt = self._full_field_prediction.cancel_conditioned_action(
+            receipt
+        )
+        self._prediction_conditioned_intent_receipt = None
+        self._prediction_conditioned_binding_id = None
+        self._latest_full_field_prediction_observation = {
+            "attempt_id": attempt.attempt_id,
+            "attempt_status": attempt.status,
+            "reason": "executor_rejected_before_outcome",
+            "schema": "guala.full_field_prediction.engine_observation.v1",
+            "status": "cancelled",
+        }
+        return attempt
+
+    def _record_causal_perception_without_dispatch(
+        self,
+        settlement,
+        *,
+        prediction_transition=False,
+        action_outcome=False,
+        already_recorded=False,
+        intake=None,
+        token_sequence=None,
+        language_episode=None,
+        world_observation=None,
+        outcome_observation_receipt=None,
+        world_execution_receipt=None,
+    ):
+        """Record one exact perception and one explicitly licensed edge."""
+        try:
+            self._full_field_prediction_observe(
+                settlement,
+                prediction_transition=prediction_transition,
+                action_outcome=action_outcome,
+                intake=intake,
+                token_sequence=token_sequence,
+                language_episode=language_episode,
+                world_observation=world_observation,
+                outcome_observation_receipt=outcome_observation_receipt,
+                world_execution_receipt=world_execution_receipt,
+            )
+        except RuntimeError as error:
+            if str(error) != "prediction_capacity_full":
+                raise
+            if self._full_field_prediction is not None:
+                self._full_field_prediction.stop_context()
+            self._prediction_conditioned_intent_receipt = None
+            self._prediction_conditioned_binding_id = None
+            self._latest_full_field_prediction_observation = {
+                "reason": "prediction_capacity_full",
+                "schema": "guala.full_field_prediction.engine_observation.v1",
+                "settlement_receipt_sha256": (
+                    settlement.authority_receipt_sha256
+                ),
+                "status": "capacity_full",
+            }
         self._latest_causal_settlement = settlement
-        self._causal_settlement_accepted += 1
+        if not already_recorded:
+            self._causal_settlement_accepted += 1
+        else:
+            return
         try:
             self._log_substrate_event(
                 "causal_experience_accepted",
@@ -7869,7 +8172,13 @@ class Guala:
         )
         self._causal_embodiment_execution = None
         self._record_causal_perception_without_dispatch(
-            embodied_outcome.causal_settlement
+            embodied_outcome.causal_settlement,
+            action_outcome=True,
+            world_observation=world_execution.after,
+            outcome_observation_receipt=(
+                embodied_outcome.observation_receipt
+            ),
+            world_execution_receipt=world_execution,
         )
         return (
             (completed, embodied_outcome)
@@ -7909,7 +8218,11 @@ class Guala:
                     embodied.observation_receipt
                 )
             self._record_causal_perception_without_dispatch(
-                embodied.causal_settlement
+                embodied.causal_settlement,
+                world_observation=before,
+                outcome_observation_receipt=(
+                    embodied.observation_receipt
+                ),
             )
             admitted = (
                 self._embodied_action_teaching
@@ -7962,7 +8275,30 @@ class Guala:
                         evidence_receipt_sha256=evidence,
                     )
                     break
+                cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
+                prediction_snapshot = (
+                    self._full_field_prediction.encoded_snapshot()
+                    if self._full_field_prediction is not None
+                    else None
+                )
+                prediction_observation = (
+                    self._latest_full_field_prediction_observation
+                )
                 try:
+                    selection = self._causal_action_cycle.select_expected(
+                        embodied.causal_settlement,
+                        binding_id=turn.binding_id,
+                        action_receipt_sha256=(
+                            turn.action_receipt_sha256
+                        ),
+                    )
+                    if selection.status != "committed":
+                        raise ValueError(
+                            "deliberation action was not causally selectable"
+                        )
+                    self._condition_full_field_prediction_on_action(
+                        selection.intent
+                    )
                     dispatch = self._causal_action_dispatcher \
                         .dispatch_expected(
                             embodied.causal_settlement,
@@ -7971,7 +8307,28 @@ class Guala:
                                 turn.action_receipt_sha256
                             ),
                         )
-                except ValueError:
+                except Exception as error:
+                    dispatcher_active = (
+                        self._causal_action_dispatcher.status()["active"]
+                    )
+                    if not dispatcher_active:
+                        self._causal_action_cycle.restore_encoded(
+                            cycle_snapshot
+                        )
+                        if (
+                            prediction_snapshot is not None
+                            and self._full_field_prediction is not None
+                        ):
+                            self._full_field_prediction.restore_encoded(
+                                prediction_snapshot
+                            )
+                        self._prediction_conditioned_intent_receipt = None
+                        self._prediction_conditioned_binding_id = None
+                        self._latest_full_field_prediction_observation = (
+                            prediction_observation
+                        )
+                    if dispatcher_active or not isinstance(error, ValueError):
+                        raise
                     evidence = _hashlib.sha256(
                         (
                             turn.binding_id
@@ -8001,6 +8358,7 @@ class Guala:
                     )
                     break
                 if dispatch.status == "rejected":
+                    self._cancel_full_field_prediction_action()
                     turn = self._causal_deliberation.terminate_active(
                         reason="dispatcher_rejected",
                         evidence_receipt_sha256=(
@@ -8142,9 +8500,70 @@ class Guala:
         dispatch_result = None
         if self._causal_action_dispatcher is not None:
             with self._causal_cycle_bridge_lock:
-                dispatch_result = self._causal_action_dispatcher.dispatch(
-                    settlement
+                dispatcher_was_active = self._causal_action_dispatcher.status()[
+                    "active"
+                ]
+                self._record_causal_perception_without_dispatch(
+                    settlement,
+                    prediction_transition=False,
                 )
+                if dispatcher_was_active:
+                    dispatch_result = self._causal_action_dispatcher.dispatch(
+                        settlement
+                    )
+                else:
+                    cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
+                    prediction_snapshot = (
+                        self._full_field_prediction.encoded_snapshot()
+                        if self._full_field_prediction is not None
+                        else None
+                    )
+                    prediction_observation = (
+                        self._latest_full_field_prediction_observation
+                    )
+                    selection = self._causal_action_cycle.select(settlement)
+                    if selection.status == "committed":
+                        try:
+                            self._condition_full_field_prediction_on_action(
+                                selection.intent
+                            )
+                            dispatch_result = (
+                                self._causal_action_dispatcher
+                                .dispatch_expected(
+                                    settlement,
+                                    binding_id=selection.intent.binding_id,
+                                    action_receipt_sha256=(
+                                        selection.intent.action
+                                        .authority_receipt_sha256
+                                    ),
+                                )
+                            )
+                        except BaseException:
+                            if not self._causal_action_dispatcher.status()[
+                                "active"
+                            ]:
+                                self._causal_action_cycle.restore_encoded(
+                                    cycle_snapshot
+                                )
+                                if (
+                                    prediction_snapshot is not None
+                                    and self._full_field_prediction is not None
+                                ):
+                                    self._full_field_prediction.restore_encoded(
+                                        prediction_snapshot
+                                    )
+                                self._prediction_conditioned_intent_receipt = None
+                                self._prediction_conditioned_binding_id = None
+                                self._latest_full_field_prediction_observation = (
+                                    prediction_observation
+                                )
+                            raise
+                    else:
+                        dispatch_result = (
+                            self._causal_action_dispatcher.dispatch(settlement)
+                        )
+                if dispatch_result.status == "rejected":
+                    self._cancel_full_field_prediction_action()
                 if self._causal_speech_release is not None:
                     queued = self._causal_speech_release
                     if (
@@ -8168,8 +8587,10 @@ class Guala:
                         )
                 self._causal_last_dispatch_result = dispatch_result
         elif self._causal_action_cycle is not None:
+            self._record_causal_perception_without_dispatch(settlement)
             self._causal_action_cycle.accept(settlement)
-        self._record_causal_perception_without_dispatch(settlement)
+        else:
+            self._record_causal_perception_without_dispatch(settlement)
         if dispatch_result is not None:
             with self._causal_cycle_bridge_lock:
                 dispatch_result = self._settle_executed_embodiment_outcome(
@@ -8391,6 +8812,20 @@ class Guala:
                 prior_dispatcher = (
                     self._causal_action_dispatcher.encoded_snapshot()
                 )
+                prior_prediction = (
+                    self._full_field_prediction.encoded_snapshot()
+                    if self._full_field_prediction is not None
+                    else None
+                )
+                prior_prediction_intent = (
+                    self._prediction_conditioned_intent_receipt
+                )
+                prior_prediction_binding = (
+                    self._prediction_conditioned_binding_id
+                )
+                prior_prediction_observation = (
+                    self._latest_full_field_prediction_observation
+                )
                 prior_embodiment_execution = (
                     self._causal_embodiment_execution
                 )
@@ -8575,6 +9010,22 @@ class Guala:
                     self._causal_action_dispatcher.restore_encoded(
                         prior_dispatcher
                     )
+                    if (
+                        prior_prediction is not None
+                        and self._full_field_prediction is not None
+                    ):
+                        self._full_field_prediction.restore_encoded(
+                            prior_prediction
+                        )
+                    self._prediction_conditioned_intent_receipt = (
+                        prior_prediction_intent
+                    )
+                    self._prediction_conditioned_binding_id = (
+                        prior_prediction_binding
+                    )
+                    self._latest_full_field_prediction_observation = (
+                        prior_prediction_observation
+                    )
                     self._causal_embodiment_execution = (
                         prior_embodiment_execution
                     )
@@ -8591,6 +9042,12 @@ class Guala:
                         != prior_deliberation
                         or self._causal_action_dispatcher.encoded_snapshot()
                         != prior_dispatcher
+                        or (
+                            prior_prediction is not None
+                            and self._full_field_prediction is not None
+                            and self._full_field_prediction.encoded_snapshot()
+                            != prior_prediction
+                        )
                     ):
                         raise RuntimeError(
                             "embodied teaching rollback failed closed"
@@ -10942,6 +11399,14 @@ class Guala:
             "causal_action_dispatcher_active": (
                 self._causal_action_dispatcher.status()["active"]
             ),
+            "full_field_prediction": (
+                json.loads(
+                    self._full_field_prediction
+                    .encoded_snapshot().decode("utf-8")
+                )
+                if self._full_field_prediction is not None
+                else None
+            ),
             "causal_speech_delivery": encode_state(
                 state, authority_key=self._causal_speech_delivery_key
             ),
@@ -10951,17 +11416,17 @@ class Guala:
                 else None
             ),
             "guala_identity": self._guala_identity,
-            "schema": "guala.causal_speech_delivery.checkpoint.payload.v1",
+            "schema": "guala.causal_speech_delivery.checkpoint.payload.v2",
         }
         canonical = self._canonical_persistence_bytes(payload)
-        if len(canonical) > 40 * 1024 * 1024:
-            raise RuntimeError("causal speech delivery checkpoint exceeds 40 MiB")
+        if len(canonical) > 72 * 1024 * 1024:
+            raise RuntimeError("causal speech delivery checkpoint exceeds 72 MiB")
         return {
             "payload_base64": _base64.b64encode(canonical).decode("ascii"),
-            "schema": "guala.causal_speech_delivery.checkpoint.hmac.v1",
+            "schema": "guala.causal_speech_delivery.checkpoint.hmac.v2",
             "state_hmac_sha256": _hmac.new(
                 self._causal_speech_delivery_key,
-                b"guala-causal-speech-delivery-checkpoint-v1\0" + canonical,
+                b"guala-causal-speech-delivery-checkpoint-v2\0" + canonical,
                 _hashlib.sha256,
             ).hexdigest(),
         }
@@ -11084,7 +11549,6 @@ class Guala:
         )
         self._causal_speech_release = None
         self._causal_last_dispatch_result = result
-        self._record_causal_perception_without_dispatch(settlement)
         if review is not None:
             try:
                 self._causal_action_cycle.review_latest_closure(
@@ -11102,6 +11566,10 @@ class Guala:
                 )
             finally:
                 self._causal_cycle_pending_review = None
+        self._record_causal_perception_without_dispatch(
+            settlement,
+            action_outcome=True,
+        )
         return result
 
     @_engine_mutation_entry
@@ -11320,6 +11788,11 @@ class Guala:
                     )
                 finally:
                     self._causal_cycle_pending_review = None
+            self._record_causal_perception_without_dispatch(
+                settlement,
+                action_outcome=True,
+                already_recorded=True,
+            )
             return {
                 "schema": "guala.causal_speech_output.observation.v1",
                 "status": "completed",
@@ -16303,6 +16776,19 @@ class Guala:
             except ValueError:
                 pass
             raise
+        self._full_field_prediction_observe(
+            causal_settlement,
+            intake=intake_admission.intake,
+            token_sequence=sequence,
+            language_episode=(
+                episode_admission.episode
+                if (
+                    episode_admission is not None
+                    and episode_admission.episode is not None
+                )
+                else None
+            ),
+        )
         try:
             self._log_substrate_event(
                 "auditory_token_sequence_settled",
@@ -18985,17 +19471,18 @@ class Guala:
         path = os.path.join(state_dir, "guala_causal_speech_delivery.json")
         if not os.path.isfile(path):
             return False
-        if os.path.getsize(path) > 56 * 1024 * 1024:
-            raise ValueError("causal speech delivery checkpoint exceeds 56 MiB")
+        if os.path.getsize(path) > 100 * 1024 * 1024:
+            raise ValueError("causal speech delivery checkpoint exceeds 100 MiB")
         with open(path) as checkpoint_file:
             envelope = json.load(checkpoint_file)
         if not isinstance(envelope, dict) or set(envelope) != {
             "payload_base64",
             "schema",
             "state_hmac_sha256",
-        } or envelope.get("schema") != (
-            "guala.causal_speech_delivery.checkpoint.hmac.v1"
-        ):
+        } or envelope.get("schema") not in {
+            "guala.causal_speech_delivery.checkpoint.hmac.v1",
+            "guala.causal_speech_delivery.checkpoint.hmac.v2",
+        }:
             raise ValueError("causal speech delivery checkpoint envelope changed")
         try:
             canonical = _base64.b64decode(
@@ -19005,14 +19492,22 @@ class Guala:
             raise ValueError(
                 "causal speech delivery checkpoint is not canonical base64"
             ) from error
-        if not canonical or len(canonical) > 40 * 1024 * 1024:
-            raise ValueError("causal speech delivery checkpoint exceeds 40 MiB")
+        envelope_v2 = envelope["schema"].endswith(".v2")
+        canonical_limit = 72 if envelope_v2 else 40
+        if not canonical or len(canonical) > canonical_limit * 1024 * 1024:
+            raise ValueError(
+                "causal speech delivery checkpoint exceeds its boundary"
+            )
         supplied = envelope.get("state_hmac_sha256")
         if not isinstance(supplied, str) or len(supplied) != 64:
             raise ValueError("causal speech delivery checkpoint HMAC changed")
         expected = _hmac.new(
             self._causal_speech_delivery_key,
-            b"guala-causal-speech-delivery-checkpoint-v1\0" + canonical,
+            (
+                b"guala-causal-speech-delivery-checkpoint-v2\0"
+                if envelope_v2
+                else b"guala-causal-speech-delivery-checkpoint-v1\0"
+            ) + canonical,
             _hashlib.sha256,
         ).hexdigest()
         if not _hmac.compare_digest(supplied, expected):
@@ -19025,7 +19520,7 @@ class Guala:
             ) from error
         if self._canonical_persistence_bytes(payload) != canonical:
             raise ValueError("causal speech delivery checkpoint is not canonical")
-        if not isinstance(payload, dict) or set(payload) != {
+        expected_fields = {
             "causal_action_cycle",
             "causal_action_dispatcher",
             "causal_action_dispatcher_active",
@@ -19033,8 +19528,17 @@ class Guala:
             "causal_speech_release",
             "guala_identity",
             "schema",
-        } or payload.get("schema") != (
-            "guala.causal_speech_delivery.checkpoint.payload.v1"
+        }
+        if envelope_v2:
+            expected_fields.add("full_field_prediction")
+        if (
+            not isinstance(payload, dict)
+            or set(payload) != expected_fields
+            or payload.get("schema") != (
+                "guala.causal_speech_delivery.checkpoint.payload.v2"
+                if envelope_v2
+                else "guala.causal_speech_delivery.checkpoint.payload.v1"
+            )
         ):
             raise ValueError("causal speech delivery checkpoint fields changed")
         checkpoint_identity = payload["guala_identity"]
@@ -19075,6 +19579,19 @@ class Guala:
             self._causal_action_dispatcher.restore_encoded(
                 payload["causal_action_dispatcher"]
             )
+            if envelope_v2 and payload["full_field_prediction"] is not None:
+                if self._full_field_prediction is None:
+                    raise ValueError(
+                        "full-field prediction authority key is missing"
+                    )
+                self._full_field_prediction.restore_encoded(
+                    self._canonical_persistence_bytes(
+                        payload["full_field_prediction"]
+                    )
+                )
+                self._full_field_prediction.stop_context()
+                self._prediction_conditioned_intent_receipt = None
+                self._prediction_conditioned_binding_id = None
             self._restore_causal_speech_release(release)
             if state.live and self._causal_speech_release is None:
                 raise ValueError("live causal speech checkpoint lost its release")
@@ -19167,12 +19684,22 @@ class Guala:
                 if self._causal_play_observation is not None
                 else None
             ),
-            "causal_prediction": (
+            "full_field_prediction": (
                 json.loads(
-                    self._causal_prediction.encoded_snapshot().decode("utf-8")
+                    self._full_field_prediction.encoded_snapshot().decode("utf-8")
                 )
-                if self._causal_prediction is not None
+                if self._full_field_prediction is not None
                 else None
+            ),
+            "latest_full_field_prediction": (
+                self._verify_full_field_prediction_engine_observation(
+                    self._latest_full_field_prediction_observation
+                )
+                if self._latest_full_field_prediction_observation is not None
+                else None
+            ),
+            "legacy_causal_prediction_disposition": (
+                self._legacy_causal_prediction_disposition
             ),
             "latest_auditory_causal_event": (
                 self._latest_auditory_causal_event_record
@@ -19180,15 +19707,32 @@ class Guala:
         }
 
     def _bounded_teaching_envelope(self, *, saved_at_tick=None):
+        payload = self._teaching_persistence_payload()
+        base_payload = dict(payload)
+        base_payload.pop("full_field_prediction", None)
+        base_envelope = self._envelope(
+            base_payload,
+            saved_at_tick=saved_at_tick,
+        )
+        try:
+            base_serialized = json.dumps(
+                base_envelope, allow_nan=False
+            ).encode("utf-8")
+        except (TypeError, ValueError) as error:
+            raise ValueError("guala_teaching.json is not serializable") from error
+        if len(base_serialized) > TEACHING_STATE_MAX_BYTES:
+            raise RuntimeError(
+                "guala_teaching.json base state exceeds its byte boundary"
+            )
         envelope = self._envelope(
-            self._teaching_persistence_payload(),
+            payload,
             saved_at_tick=saved_at_tick,
         )
         try:
             serialized = json.dumps(envelope, allow_nan=False).encode("utf-8")
         except (TypeError, ValueError) as error:
             raise ValueError("guala_teaching.json is not serializable") from error
-        if len(serialized) > TEACHING_STATE_MAX_BYTES:
+        if len(serialized) > TEACHING_WITH_PREDICTION_MAX_BYTES:
             raise RuntimeError(
                 "guala_teaching.json exceeds the aggregate byte boundary"
             )
@@ -19929,6 +20473,27 @@ class Guala:
                 raise ValueError(
                     "teaching.causal_prediction exceeds its encoded boundary"
                 )
+        full_field_prediction = data.get("full_field_prediction")
+        if full_field_prediction is not None:
+            base_state = dict(data)
+            base_state.pop("full_field_prediction", None)
+            if len(cls._canonical_persistence_bytes(
+                base_state
+            )) > TEACHING_STATE_MAX_BYTES:
+                raise ValueError(
+                    "teaching base state exceeds its encoded boundary"
+                )
+            prediction_bytes = cls._canonical_persistence_bytes(
+                full_field_prediction
+            )
+            if len(prediction_bytes) > 32 * 1024 * 1024:
+                raise ValueError(
+                    "teaching.full_field_prediction exceeds its encoded boundary"
+                )
+        if causal_prediction is not None and full_field_prediction is not None:
+            raise ValueError(
+                "legacy and full-field prediction state cannot coexist"
+            )
         causal_event = data.get("latest_auditory_causal_event")
         if causal_event is not None:
             if auditory_schema == LEGACY_AUDITORY_RECIPROCITY_ENVELOPE_SCHEMA:
@@ -20077,7 +20642,8 @@ class Guala:
     def _load_teaching_state_file(path, *, allow_legacy_migration=False):
         """Admit a larger legacy artifact only from verified exact state."""
         boundary = (LEGACY_TEACHING_STATE_MIGRATION_MAX_BYTES
-                    if allow_legacy_migration else TEACHING_STATE_MAX_BYTES)
+                    if allow_legacy_migration
+                    else TEACHING_WITH_PREDICTION_MAX_BYTES)
         if os.path.getsize(path) > boundary:
             raise ValueError(
                 "guala_teaching.json exceeds the pre-parse byte boundary")
@@ -22074,21 +22640,99 @@ class Guala:
                             ) is not None
                             else None
                         )
-                        causal_prediction = tdata.get("causal_prediction")
-                        if causal_prediction is not None:
-                            if self._causal_prediction is None:
+                        legacy_prediction = tdata.get("causal_prediction")
+                        full_prediction = tdata.get(
+                            "full_field_prediction"
+                        )
+                        if (
+                            legacy_prediction is not None
+                            and full_prediction is not None
+                        ):
+                            raise ValueError(
+                                "legacy and full-field prediction coexist"
+                            )
+                        if legacy_prediction is not None:
+                            if self._causal_cycle_key is None:
                                 raise ValueError(
-                                    "causal prediction authority key is missing"
+                                    "legacy prediction authority key is missing"
                                 )
-                            self._causal_prediction.restore_encoded(
+                            from dsf_ai_service.substrate.causal_prediction import (
+                                CausalPredictionAuthority,
+                            )
+                            legacy_authority = CausalPredictionAuthority(
+                                authority_key=self._causal_cycle_key,
+                            )
+                            legacy_authority.restore_encoded(
                                 self._canonical_persistence_bytes(
-                                    causal_prediction
+                                    legacy_prediction
                                 )
                             )
-                            # A process restart is a real temporal boundary.
-                            # Retain learned transitions, but never infer one
-                            # across an interval in which no senses were live.
-                            self._causal_prediction.stop()
+                            self._legacy_causal_prediction_disposition = {
+                                "legacy_relations": legacy_authority.status()[
+                                    "relations"
+                                ],
+                                "reason": (
+                                    "automatic_adjacency_is_not_causal_evidence"
+                                ),
+                                "status": "verified_and_retired",
+                            }
+                        elif full_prediction is not None:
+                            if self._full_field_prediction is None:
+                                raise ValueError(
+                                    "full-field prediction authority key is missing"
+                                )
+                            self._full_field_prediction.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    full_prediction
+                                )
+                            )
+                            self._full_field_prediction.stop_context()
+                            legacy_disposition = tdata.get(
+                                "legacy_causal_prediction_disposition"
+                            )
+                            if legacy_disposition is not None:
+                                if (
+                                    not isinstance(legacy_disposition, dict)
+                                    or set(legacy_disposition) != {
+                                        "legacy_relations", "reason", "status"
+                                    }
+                                    or legacy_disposition.get("status")
+                                    != "verified_and_retired"
+                                    or legacy_disposition.get("reason")
+                                    != (
+                                        "automatic_adjacency_is_not_causal_evidence"
+                                    )
+                                    or isinstance(
+                                        legacy_disposition.get(
+                                            "legacy_relations"
+                                        ), bool
+                                    )
+                                    or not isinstance(
+                                        legacy_disposition.get(
+                                            "legacy_relations"
+                                        ), int
+                                    )
+                                    or legacy_disposition[
+                                        "legacy_relations"
+                                    ] < 0
+                                ):
+                                    raise ValueError(
+                                        "legacy prediction disposition changed"
+                                    )
+                                self._legacy_causal_prediction_disposition = (
+                                    dict(legacy_disposition)
+                                )
+                        latest_prediction = tdata.get(
+                            "latest_full_field_prediction"
+                        )
+                        self._latest_full_field_prediction_observation = (
+                            self._verify_full_field_prediction_engine_observation(
+                                json.loads(self._canonical_persistence_bytes(
+                                    latest_prediction
+                                ))
+                            )
+                            if latest_prediction is not None else None
+                        )
                         causal_event = tdata.get(
                             "latest_auditory_causal_event"
                         )
@@ -23704,6 +24348,15 @@ class Guala:
             "auditory_causal_language": (
                 self.auditory_causal_language_status()
             ),
+            "full_field_prediction": (
+                {
+                    **self._full_field_prediction.status(),
+                    "available": True,
+                    "latest": self._latest_full_field_prediction_observation,
+                }
+                if self._full_field_prediction is not None
+                else {"available": False}
+            ),
         }
         encoded = json.dumps(
             payload,
@@ -23821,9 +24474,18 @@ class Guala:
                     if self._causal_deliberation is not None
                     else {"available": False}
                 ),
-                "causal_prediction": (
-                    self._causal_prediction.status()
-                    if self._causal_prediction is not None
+                "full_field_prediction": (
+                    {
+                        **self._full_field_prediction.status(),
+                        "available": True,
+                        "latest": (
+                            self._latest_full_field_prediction_observation
+                        ),
+                        "legacy_disposition": (
+                            self._legacy_causal_prediction_disposition
+                        ),
+                    }
+                    if self._full_field_prediction is not None
                     else {"available": False}
                 ),
                 "auditory_l5": self.auditory_l5_status(),

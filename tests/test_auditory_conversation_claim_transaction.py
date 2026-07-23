@@ -276,13 +276,17 @@ def test_emission_failure_retains_committed_action_for_exact_retry(
         guala._causal_action_cycle._working_by_source_event.clear()
 
     dispatch_receipts = []
-    real_dispatch = guala._causal_action_dispatcher.dispatch
+    real_dispatch = guala._causal_action_dispatcher.dispatch_expected
 
-    def track_dispatch(settlement):
+    def track_dispatch(settlement, *, binding_id, action_receipt_sha256):
         dispatch_receipts.append(settlement.authority_receipt_sha256)
-        return real_dispatch(settlement)
+        return real_dispatch(
+            settlement,
+            binding_id=binding_id,
+            action_receipt_sha256=action_receipt_sha256,
+        )
 
-    guala._causal_action_dispatcher.dispatch = track_dispatch
+    guala._causal_action_dispatcher.dispatch_expected = track_dispatch
     real_emit = guala._emit_from_invariants
 
     def fail_emission(*_args, **_kwargs):

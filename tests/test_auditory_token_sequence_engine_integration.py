@@ -263,6 +263,12 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
         assert engine._auditory_incremental_terminals.status()[
             "issued_terminal_authorities"
         ] == 0
+        prediction_episode = engine._full_field_prediction.current_episode()
+        assert prediction_episode.auditory_attachment is not None
+        assert prediction_episode.auditory_attachment[
+            "language_episode"
+        ] is None
+        assert engine._full_field_prediction.relation_records() == ()
 
         unique = engine._auditory_token_sequence_authority.issue_teacher_designation(
             admitted,
@@ -284,6 +290,11 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
         assert causal_language["latest"]["episode_state"] == "unique"
         assert causal_language["latest"]["episode_stored"] is True
         assert causal_language["working_episode_count"] == 1
+        prediction_episode = engine._full_field_prediction.current_episode()
+        assert prediction_episode.auditory_attachment[
+            "language_episode"
+        ] is not None
+        assert engine._full_field_prediction.relation_records() == ()
 
         ambiguous = (
             engine._auditory_token_sequence_authority.issue_teacher_designation(
@@ -350,6 +361,10 @@ def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartabl
         assert restarted.auditory_causal_language_status()[
             "working_episode_count"
         ] == 1
+        assert restarted._full_field_prediction.relation_records() == ()
+        assert restarted._full_field_prediction.status()[
+            "active_context"
+        ] is False
     finally:
         if engine is not None:
             engine.strict_shutdown(timeout=30.0)

@@ -344,11 +344,17 @@ def test_restart_at_each_persisted_phase_never_duplicates_observation(
             writer.begin_causal_speech_observation(
                 state_dir=str(tmp_path)
             )
+        assert writer._full_field_prediction.status()["armed_action"] is True
+        assert writer._full_field_prediction.relation_records() == ()
 
         restored = Guala()
         assert restored.restore_causal_speech_delivery_checkpoint(
             str(tmp_path)
         ) is True
+        assert restored._full_field_prediction.status()["armed_action"] is False
+        attempt = restored._full_field_prediction.current_attempt()
+        if attempt is not None:
+            assert attempt.mode == "passive"
         calls = []
         monkeypatch.setattr(runner, "_guala", restored)
         monkeypatch.setattr(
@@ -364,6 +370,7 @@ def test_restart_at_each_persisted_phase_never_duplicates_observation(
         assert restored._causal_speech_delivery_state.phase == terminal
         assert restored._causal_speech_delivery_state.attempts == expected_attempts
         assert restored._causal_action_dispatcher.status()["active"] is False
+        assert restored._full_field_prediction.relation_records() == ()
         if terminal == "completed":
             assert base64.b64decode(result, validate=True) == exact_wav
             assert {
