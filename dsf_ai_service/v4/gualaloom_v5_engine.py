@@ -1294,24 +1294,7 @@ PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 # far above the 4-dp metadata rounding.
 SALIENCE_TIE_EPSILON = 0.005
 
-# GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: how often, within a single
-# PLAYING activity, _atick_playing checks for a real, already-known
-# picture+word pairing to revisit (see docs/GL-DES-ENGINE-PLAY-WORLD-V0-
-# C1-20260711-v1.md §3.1). 500 keeps this cheaper than the codebase's
-# existing amortized-check cadences (target_familiarity decay/snapshot
-# and forget_stale_* both run at tick%200; Play's own emission-trigger
-# check already runs at tick%300) -- roughly 2-3 checks per full
-# 1500-tick PLAYING session (ACTIVITY_TICK_BUDGETS["PLAYING"]), not a
-# per-tick cost. _atick_playing runs inside the caller's already-held
-# self.lock (an RLock, 5Hz nominal tick rate) -- see the design doc §3.3
-# for the full cost/lock analysis behind this choice.
-PLAY_REVISIT_INTERVAL_TICKS = 500
-# Deliberately ~10x smaller than ATTENDING_VISUAL's up-to-0.2-per-full-
-# session familiarity step (GL-CMD-ATTEND-GROOVE-107): a brief, passing
-# re-notice during play is not a dedicated viewing session and should
-# not earn as much familiarity as one. Same field, same 0.9 cap, smaller
-# step -- see design doc §3.1 step 4.
-PLAY_FAMILIARITY_BUMP = 0.02
+PLAY_CAUSAL_ADMISSION_SCHEMA = "guala.play.causal_admission.v1"
 
 # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure accumulates from
 # unjudged backlog (real substrate load since the last EXECUTED dream
@@ -3484,6 +3467,7 @@ class Guala:
         self._causal_action_dispatcher = None
         self._causal_speech_release = None
         self._causal_dispatch_rejection_reason = None
+        self._causal_embodiment_rejection_reason = None
         self._causal_embodiment_execution = None
         self._causal_last_dispatch_result = None
         if _causal_cycle_key:
@@ -7648,6 +7632,7 @@ class Guala:
             expected_revision=observation.revision,
         )
         if world_execution.disposition == "applied":
+            self._causal_embodiment_rejection_reason = None
             if self._causal_embodiment_execution is not None:
                 raise RuntimeError("causal embodiment execution capacity is full")
             self._causal_embodiment_execution = {
@@ -7656,6 +7641,12 @@ class Guala:
             }
             disposition = "executed"
         else:
+            self._causal_embodiment_rejection_reason = {
+                "reason": world_execution.reason,
+                "request_receipt_sha256": (
+                    request.authority_receipt_sha256
+                ),
+            }
             disposition = "rejected"
         return authenticate_executor_acknowledgement(
             request=request,
@@ -7827,6 +7818,7 @@ class Guala:
                 file=sys.stderr,
                 flush=True,
             )
+        return dispatch_result
 
     @_engine_mutation_entry
     def teach_causal_action(
@@ -13275,7 +13267,182 @@ class Guala:
                       "needs_sd": needs_sd},
         )
 
+    @staticmethod
+    def _verify_play_causal_admission_record(value):
+        expected = {
+            "causal_event_id",
+            "causal_settlement_receipt_sha256",
+            "dispatch_phase",
+            "dispatch_reason",
+            "dispatch_status",
+            "embodiment_rejection_reason",
+            "outcome_observation_receipt_sha256",
+            "schema",
+            "world_observation_receipt_sha256",
+            "world_revision_after",
+            "world_revision_before",
+        }
+        if (
+            not isinstance(value, dict)
+            or set(value) != expected
+            or value.get("schema") != PLAY_CAUSAL_ADMISSION_SCHEMA
+            or value.get("dispatch_status") not in {
+                "ambiguous", "completed", "pending", "rejected", "unknown"
+            }
+            or value.get("dispatch_phase") not in {
+                "closed", "executor_acknowledgement", "outcome_observation",
+                "selection",
+            }
+            or not isinstance(value.get("dispatch_reason"), str)
+            or not value["dispatch_reason"]
+            or len(value["dispatch_reason"].encode("utf-8")) > 256
+            or (
+                value.get("embodiment_rejection_reason") is not None
+                and (
+                    not isinstance(
+                        value["embodiment_rejection_reason"], str
+                    )
+                    or not value["embodiment_rejection_reason"]
+                    or len(
+                        value["embodiment_rejection_reason"].encode("utf-8")
+                    ) > 256
+                )
+            )
+        ):
+            raise ValueError("PLAYING causal admission record changed")
+        for name in (
+            "causal_event_id",
+            "causal_settlement_receipt_sha256",
+            "outcome_observation_receipt_sha256",
+            "world_observation_receipt_sha256",
+        ):
+            receipt = value.get(name)
+            if (
+                not isinstance(receipt, str)
+                or len(receipt) != 64
+                or any(character not in "0123456789abcdef" for character in receipt)
+            ):
+                raise ValueError(
+                    f"PLAYING causal admission {name} changed"
+                )
+        for name in ("world_revision_before", "world_revision_after"):
+            revision = value.get(name)
+            if (
+                isinstance(revision, bool)
+                or not isinstance(revision, int)
+                or revision < 0
+                or revision > (1 << 63) - 1
+            ):
+                raise ValueError(
+                    f"PLAYING causal admission {name} changed"
+                )
+        if value["world_revision_after"] < value["world_revision_before"]:
+            raise ValueError("PLAYING causal admission revision order changed")
+        if (
+            value["dispatch_status"] != "rejected"
+            and value["embodiment_rejection_reason"] is not None
+        ):
+            raise ValueError(
+                "PLAYING causal admission carries a false embodiment rejection"
+            )
+        return dict(value)
+
+    def _admit_playing_world_experience(self, activity):
+        """Admit one exact current W1 experience before PLAYING begins.
+
+        The capacity-one dispatcher is checked while holding the same bridge
+        lock used by every live dispatch.  A busy dispatcher therefore leaves
+        the activity, W1 world, causal owner, and action cycle untouched.  A
+        successful admission records its authenticated identities in the
+        activity itself, making restore idempotent without a lifetime ledger.
+        """
+        if activity.kind != "PLAYING":
+            raise ValueError("PLAYING admission received another activity")
+        existing = activity.metadata.get("_causal_play_admission")
+        if existing is not None:
+            self._verify_play_causal_admission_record(existing)
+            return True
+        if (
+            self._embodiment_world is None
+            or self._embodiment_sensory_outcome_authority is None
+            or self._embodiment_outcome_causal_owner is None
+            or self._causal_action_dispatcher is None
+        ):
+            print(
+                "[GualaLoom][play] exact W1 causal authority unavailable; "
+                "PLAYING not entered",
+                file=sys.stderr,
+                flush=True,
+            )
+            return False
+        with self._causal_cycle_bridge_lock:
+            if self._causal_action_dispatcher.status()["active"]:
+                print(
+                    "[GualaLoom][play] causal dispatcher busy; PLAYING not "
+                    "entered and no W1 experience admitted",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                return False
+            before = self._embodiment_world.observation_snapshot()
+            embodied = self._embodiment_sensory_outcome_authority.transduce(
+                before,
+                causal_owner=self._embodiment_outcome_causal_owner,
+                commit=True,
+            )
+            self._embodiment_sensory_outcome_authority \
+                .verify_outcome_observation_receipt(
+                    embodied.observation_receipt
+                )
+            dispatch = self._accept_causal_settlement(
+                embodied.causal_settlement
+            )
+            if dispatch is None:
+                raise RuntimeError("PLAYING causal dispatcher returned no result")
+            after = self._embodiment_world.observation_snapshot()
+            embodiment_rejection = self._causal_embodiment_rejection_reason
+            embodiment_rejection_reason = (
+                embodiment_rejection["reason"]
+                if (
+                    dispatch.status == "rejected"
+                    and dispatch.request_receipt_sha256 is not None
+                    and isinstance(embodiment_rejection, dict)
+                    and embodiment_rejection.get(
+                        "request_receipt_sha256"
+                    ) == dispatch.request_receipt_sha256
+                )
+                else None
+            )
+            record = {
+                "causal_event_id": embodied.causal_settlement.event_id,
+                "causal_settlement_receipt_sha256": (
+                    embodied.causal_settlement.authority_receipt_sha256
+                ),
+                "dispatch_phase": dispatch.phase,
+                "dispatch_reason": dispatch.reason,
+                "dispatch_status": dispatch.status,
+                "embodiment_rejection_reason": embodiment_rejection_reason,
+                "outcome_observation_receipt_sha256": (
+                    embodied.observation_receipt.authority_receipt_sha256
+                ),
+                "schema": PLAY_CAUSAL_ADMISSION_SCHEMA,
+                "world_observation_receipt_sha256": (
+                    before.authority_receipt_sha256
+                ),
+                "world_revision_after": after.revision,
+                "world_revision_before": before.revision,
+            }
+            activity.metadata["_causal_play_admission"] = (
+                self._verify_play_causal_admission_record(record)
+            )
+        return True
+
     def _start_activity(self, activity):
+        if (
+            activity.kind == "PLAYING"
+            and not self._admit_playing_world_experience(activity)
+        ):
+            return False
         self._current_activity = activity
         if activity.kind == "SLEEPING":
             # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: fresh cycle, no dream
@@ -13288,6 +13455,7 @@ class Guala:
                                  salience=activity.metadata.get("salience"),
                                  top_scores=activity.metadata.get("top_scores"),
                                  needs_sd=activity.metadata.get("needs_sd"))
+        return True
 
     def _end_activity(self):
         if self._current_activity:
@@ -14233,104 +14401,15 @@ class Guala:
             pop_mean_delta=round(float(_pop.get("delta", 0.0)), 4))
 
     def _atick_playing(self, a):
-        """Free-settle: chi space walk. No novelty gain — internal
-        exploration doesn't introduce new experience.
+        """Continue an already admitted exact W1 PLAYING activity.
 
-        GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: shares IDLE's coherence-
-        gated stability restore below (real, unchanged, legitimate shared
-        physics -- both are low-engagement waking states) plus the
-        existing emission-trigger check, and adds the one thing this
-        activity genuinely didn't do before tonight: an occasional, cheap
-        check for a real picture+word pairing she has already,
-        independently formed (both sides really attended/committed
-        through their normal production paths), just to notice it again.
-        See docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md for the
-        full design reasoning, honesty checks, and scope limits -- in
-        particular §3.2 for why novelty/connection are deliberately NOT
-        touched here."""
-        # Occasionally check for emission trigger during play
-        if self.tick % 300 == 0:
-            self._check_emission_trigger("play_cohesion")
-        if self.tick % PLAY_REVISIT_INTERVAL_TICKS == 0:
-            self._play_revisit_known_pairing()
-        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination is
-        # part of PLAYING -- same interval idiom as the revisit above,
-        # bounded cost (see _organism_imagine_tick's constants).
-        if self.tick % self.IMAGINE_PLAY_INTERVAL_TICKS == 0:
-            self._organism_imagine_tick(context="play")
-        # GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore (same as IDLE)
-        _n_total = sum(len(v) for v in self.atlas.entries.values())
-        _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
-        _dstab = (_coherence * max(0.0, NEEDS_TARGET_V7 - self.needs.stability)
-                  * NEEDS_DRIFT_RATE / NEEDS_TARGET_V7)
-        self.needs.stability = saturate(self.needs.stability, _dstab)
-
-    def _play_revisit_known_pairing(self):
-        """GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: one real "revisit".
-
-        Picks a word she has actually, recently processed (the same
-        bounded last-10-commits-per-section snapshot _daydream_tick
-        already takes -- reused, not reinvented), looks for a picture
-        ALREADY bound near that word's real chi neighborhood via the
-        existing recall path (_recall_sight_from_atlas -- the same
-        function _recall_response already calls on the live
-        conversational recall path; no new chi-distance metric is
-        invented here), and requires the picture to be one she has
-        genuinely, previously looked at (times_attended > 0). A picture
-        that only happens to sit near this word's chi but has never
-        actually been attended is a fresh discovery, not a revisit --
-        that belongs to ATTENDING_VISUAL / daydream's novel-jump, not to
-        play; crediting it here would quietly fabricate a "known" pairing
-        that isn't real.
-
-        On a real hit: logs a play_revisit event carrying only real,
-        already-true values (the word, its real chi, the picture's real
-        id/title/times_attended, familiarity before/after) and nudges
-        target_familiarity -- the same field ATTENDING_VISUAL writes, by
-        a much smaller step (PLAY_FAMILIARITY_BUMP vs. ATTENDING_VISUAL's
-        up-to-0.2-per-session step). Does NOT touch needs.novelty (this
-        is explicitly non-novel content -- see _atick_playing's own long-
-        standing "No novelty gain" docstring line, finally honored) or
-        needs.connection (no real social content in an internal, solitary
-        re-notice -- crediting it would fabricate a social meaning that
-        isn't there; see design doc §3.2).
-
-        Returns True if a revisit was logged, False on an honest empty
-        (no eligible pairing found -- not padded with anything
-        invented)."""
-        recent_words = []
-        for sec in self.sections.values():
-            for c in sec.commits[-10:]:
-                w = c.get("word", "")
-                if w:
-                    recent_words.append((w, c.get("chi")))
-        if not recent_words:
-            return False
-        # seed_chi is the REAL chi that commit was written at (not
-        # recomputed) -- used only for the logged event below;
-        # _recall_sight_from_atlas resolves its own chi neighborhood
-        # internally from _word_to_chi_index (populated at the same real
-        # commit time), not from the chi this call passes it, so no
-        # separate re-derivation is needed here.
-        word, seed_chi = recent_words[self.tick % len(recent_words)]
-        pairs = self._recall_sight_from_atlas([seed_chi], [word])
-        if not pairs:
-            return False
-        for motif, source_id in pairs:
-            pic = self._pictures.get(source_id)
-            if pic is None or pic.times_attended <= 0:
-                continue
-            old_fam = self.target_familiarity.get(source_id, 0.0)
-            new_fam = min(0.9, old_fam + PLAY_FAMILIARITY_BUMP)
-            self.target_familiarity[source_id] = new_fam
-            self._log_substrate_event(
-                "play_revisit",
-                word=word, chi=seed_chi, picture_id=source_id,
-                picture_title=pic.title, times_attended=pic.times_attended,
-                familiarity_before=round(old_fam, 4),
-                familiarity_after=round(new_fam, 4))
-            return True
-        return False
+        Entry, perception, action selection, execution, and exact sensed
+        outcome settlement are owned by ``_start_activity`` and the causal
+        dispatcher.  Ticks do not revisit χ-near pictures, mine imagined
+        word pairs, alter needs, or fabricate another experience from elapsed
+        time.  Unknown and ambiguous learned action states are literal no-ops.
+        """
+        return None
 
     def _atick_idle(self, a):
         """GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore gain.
@@ -20727,6 +20806,13 @@ class Guala:
             kind = activity.get("kind")
             if not isinstance(kind, str):
                 raise ValueError("current_activity.kind must be a string")
+            play_admission = metadata.get("_causal_play_admission")
+            if play_admission is not None:
+                if kind != "PLAYING":
+                    raise ValueError(
+                        "non-PLAYING activity carries a causal play admission"
+                    )
+                self._verify_play_causal_admission_record(play_admission)
             self._current_activity = Activity(
                 kind=kind,
                 target=activity.get("target"),

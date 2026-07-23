@@ -2,10 +2,9 @@
 GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination + reflection
 wired into the live activity loop.
 
-Embryo.imagine()/reflect() were built + tested 2026-07-11 and called by
-NOTHING. This proves the wiring:
-  - imagine() runs from the PLAYING tick (interval) and from the dream
-    cycle, and its output lands as a real imagination_formed event;
+Embryo.imagine()/reflect() were built + tested 2026-07-11. This proves:
+  - imagine() remains available to the dream cycle, but PLAYING does not
+    use imagined word pairs as its perception or action authority;
   - reflect() runs at the activity boundary (_end_activity) and lands as
     a real organism_reflection event (honest empty=True when the bounded
     snapshot history hasn't accrued yet);
@@ -86,7 +85,7 @@ def test_imagine_tick_logs_event_even_when_young():
         g.shutdown()
 
 
-def test_playing_tick_triggers_imagination_at_interval():
+def test_playing_tick_never_uses_imagination_as_its_authority():
     g = Guala()
     try:
         from dsf_ai_service.v4.gualaloom_v5_engine import Activity
@@ -96,9 +95,10 @@ def test_playing_tick_triggers_imagination_at_interval():
                      expected_end_tick=g.tick + 1500)
         with g.lock:
             g._atick_playing(a)
-        assert _events(g, "imagination_formed"), (
-            "PLAYING tick at the imagine interval did not run imagination")
-        print("test_playing_tick_triggers_imagination_at_interval: PASS")
+        assert not _events(g, "imagination_formed"), (
+            "PLAYING tick used organism imagination instead of its admitted "
+            "exact W1 causal experience")
+        print("test_playing_tick_never_uses_imagination_as_its_authority: PASS")
     finally:
         g.shutdown()
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     test_imagined_origin_is_real_experience_but_never_certifies()
     test_meaning_origins_do_not_contain_imagined()
     test_imagine_tick_logs_event_even_when_young()
-    test_playing_tick_triggers_imagination_at_interval()
+    test_playing_tick_never_uses_imagination_as_its_authority()
     test_dream_cycle_triggers_imagination()
     test_activity_end_triggers_reflection()
     print("ALL PASS: test_imagination_reflection_wiring")
