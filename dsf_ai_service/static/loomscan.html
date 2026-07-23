@@ -176,6 +176,7 @@ footer b{color:var(--ink);font-weight:normal}
   <div class="cell lc"><b>embodied action</b><span id="embodiedActionCell">loading…</span></div>
   <div class="cell lc"><b>observed conversation</b><span id="conversationCell">loading…</span></div>
   <div class="cell lc"><b>full-field prediction</b><span id="predictionCell">loading…</span></div>
+  <div class="cell lc"><b>visual regions</b><span id="visualRegionCell">loading…</span></div>
   <div class="cell lc"><b>causal action authority</b><span id="causalActionCell">loading…</span></div>
   <div class="cell lc"><b>observation receipt</b><span id="observationReceiptCell">loading…</span></div>
   <div class="cell lc"><b>lexical place lane</b><span id="placeCell">loading…</span></div>
@@ -785,6 +786,18 @@ function renderObservation(value){
         (response.emission_id?` [emission ${response.emission_id}]`:'')
       : `unavailable · ${conversation.reason||'no conversation observed'}`;
   renderFullFieldAuthority(value.full_field_authority||{});
+  const visual=value.visual_region_authority||{};
+  const visualLatest=visual.latest||{};
+  const visualRegions=Array.isArray(visualLatest.regions)?visualLatest.regions:[];
+  const continuityCounts={unknown:0,unique:0,ambiguous:0};
+  for(const region of visualRegions)if(Object.prototype.hasOwnProperty.call(continuityCounts,region.continuity))continuityCounts[region.continuity]++;
+  document.getElementById('visualRegionCell').textContent=visual.available
+    ? visualRegions.length
+      ? `${visualRegions.length} structural region${visualRegions.length===1?'':'s'} from 64×64 grayscale → 8×8 area-mean receptors (within-receptor pixel arrangement not retained) · one physical pixel-reset reference then window exposures · full D/M/R/U/C/P/B retained per receptor · ${continuityCounts.unique} unique · ${continuityCounts.unknown} unknown · ${continuityCounts.ambiguous} ambiguous · receipt ${(visualLatest.authority_receipt_sha256||'').slice(0,12)||'unavailable'}`
+      : visual.latest_rejection
+        ? `latest sequence rejected · ${visual.latest_rejection.reason||'unknown reason'}`
+        : 'no temporal camera settlement observed'
+    : 'authority unavailable';
   const prediction=value.full_field_prediction||{};
   const predictionObserver=prediction.observer||{};
   const predictionResolution=predictionObserver.latest_resolution||null;

@@ -1073,6 +1073,33 @@ def _start_input_ring_consumer():
 
     import base64 as _b64
 
+    def _report_visual_rejection(error, *, source):
+        error_type = type(error).__name__
+        reason = str(error)
+        if len(error_type.encode("utf-8")) > 128:
+            error_type = "VisualRejection"
+        if len(reason.encode("utf-8")) > 1024:
+            reason = "visual rejection description exceeded its telemetry boundary"
+        try:
+            _guala.record_live_visual_rejection(
+                error_type=error_type,
+                reason=reason,
+            )
+        except Exception as telemetry_error:
+            telemetry_type = type(telemetry_error).__name__
+            try:
+                _guala._log_substrate_event(
+                    "visual_rejection_telemetry_failed",
+                    source=source,
+                    error_type=telemetry_type,
+                )
+            except Exception as log_error:
+                print(
+                    "[sight] visual rejection telemetry and event log failed: "
+                    f"{telemetry_type}/{type(log_error).__name__}"
+                )
+        return error_type, reason
+
     def _drain_loop():
         while not _shutdown:
             if _input_ring is None or _guala is None:
@@ -1084,30 +1111,59 @@ def _start_input_ring_consumer():
                 for ev in events:
                     kind = ev.get("kind")
                     data = ev.get("data", {})
-                    if kind == "sight_frame":
+                    if kind == "sight_sequence":
                         try:
-                            img_bytes = _b64.b64decode(data.get("frame_b64", ""))
-                            if not img_bytes:
-                                continue
-                            # Inline decode — substrate must not import the FastAPI app
-                            from PIL import Image as _PIL_Image
-                            import io as _sio
-                            _img = _PIL_Image.open(_sio.BytesIO(img_bytes)).convert('L').resize((64, 64))
-                            grid = __import__('numpy').array(_img, dtype=__import__('numpy').float64) / 255.0
-                            _guala.process_sight_frame(
-                                grid,
-                                source_anchor_ns=data.get("source_anchor_ns"),
+                            from dsf_ai_service.substrate.visual_region_continuity import (
+                                canonical_visual_frames_from_claims,
                             )
-                            from dsf_ai_service.substrate.grounded_vocab_integration import (
-                                object_name_recognition_unavailable)
-                            object_name_recognition_unavailable(
-                                _guala, source=ev.get("source", "camera_stream"))
+                            source_start_ns = data.get("source_time_start_ns")
+                            source_end_ns = data.get("source_time_end_ns")
+                            frames = canonical_visual_frames_from_claims(
+                                data.get("frames") or (),
+                                source_time_start_ns=source_start_ns,
+                                source_time_end_ns=source_end_ns,
+                            )
+                            _guala.process_live_visual_region_sequence(
+                                frames,
+                                source_time_start_ns=source_start_ns,
+                                source_time_end_ns=source_end_ns,
+                            )
                         except Exception as _e:
-                            print(f"[sight] frame error: {_e}")
+                            error_type, reason = _report_visual_rejection(
+                                _e, source=ev.get("source", "camera_stream")
+                            )
+                            print(
+                                "[sight] temporal field rejected: "
+                                f"{error_type}: {reason}"
+                            )
+                    elif kind == "sight_frame":
+                        print("[sight] legacy singleton frame rejected")
                     elif kind == "sound_window":
                         _guala._enter_live_interaction()
                         try:
-                            audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
+                            audio_b64 = data.get("audio_b64", "")
+                            if (
+                                not isinstance(audio_b64, str)
+                                or len(audio_b64)
+                                > 4 * ((_AUDITORY_ENCODED_MAX_BYTES + 2) // 3)
+                            ):
+                                _guala._log_substrate_event(
+                                    "sound_frame_transport_rejected",
+                                    source=ev.get("source", "ambient"),
+                                    reason="encoded audio exceeds its byte boundary",
+                                )
+                                continue
+                            try:
+                                audio_bytes = _b64.b64decode(
+                                    audio_b64, validate=True
+                                )
+                            except Exception:
+                                _guala._log_substrate_event(
+                                    "sound_frame_transport_rejected",
+                                    source=ev.get("source", "ambient"),
+                                    reason="encoded audio is not canonical base64",
+                                )
+                                continue
                             if not audio_bytes:
                                 continue
                             # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder.
@@ -1128,11 +1184,20 @@ def _start_input_ring_consumer():
                                     boundary=str(auditory_event_boundary),
                                 )
                                 continue
-                            paired_sight = data.get("sight_b64")
+                            paired_sight = data.get("sight_frames") or ()
+                            legacy_sight_claimed = bool(
+                                data.get("legacy_sight_claimed")
+                            )
+                            visual_transport_error = data.get(
+                                "visual_transport_error"
+                            )
+                            visual_claimed = bool(
+                                data.get("visual_claimed")
+                            ) or bool(paired_sight) or legacy_sight_claimed
                             source_start_ns = data.get("source_time_start_ns")
                             source_end_ns = data.get("source_time_end_ns")
                             sight_anchor_ns = data.get("sight_source_anchor_ns")
-                            if paired_sight:
+                            if visual_claimed:
                                 context_id = (
                                     f"sense:av:{source}:ring:{ev.get('seq', 0)}")
                                 _guala.window_manager.begin_context(
@@ -1152,29 +1217,61 @@ def _start_input_ring_consumer():
                                 )
                                 try:
                                     try:
-                                        sight_bytes = _b64.b64decode(
-                                            paired_sight, validate=True)
-                                        from PIL import Image as _PIL_Image
-                                        import io as _sio
-                                        import numpy as _np
-                                        image = _PIL_Image.open(
-                                            _sio.BytesIO(sight_bytes)
-                                        ).convert("L").resize((64, 64))
-                                        grid = _np.array(
-                                            image, dtype=_np.float64) / 255.0
-                                        _guala.process_sight_frame(
-                                            grid,
-                                            source_anchor_ns=sight_anchor_ns,
+                                        if visual_transport_error is not None:
+                                            if (
+                                                not isinstance(
+                                                    visual_transport_error, str
+                                                )
+                                                or not visual_transport_error
+                                                or len(
+                                                    visual_transport_error.encode(
+                                                        "utf-8"
+                                                    )
+                                                ) > 1024
+                                            ):
+                                                raise ValueError(
+                                                    "visual transport rejection "
+                                                    "description changed shape"
+                                                )
+                                            raise ValueError(
+                                                visual_transport_error
+                                            )
+                                        if legacy_sight_claimed:
+                                            raise ValueError(
+                                                "legacy singleton sight cannot establish a temporal field"
+                                            )
+                                        from dsf_ai_service.substrate.visual_region_continuity import (
+                                            canonical_visual_frames_from_claims,
+                                        )
+                                        frames = canonical_visual_frames_from_claims(
+                                            paired_sight,
+                                            source_time_start_ns=source_start_ns,
+                                            source_time_end_ns=source_end_ns,
+                                        )
+                                        _guala.process_live_visual_region_sequence(
+                                            frames,
                                             source_time_start_ns=source_start_ns,
                                             source_time_end_ns=source_end_ns,
                                         )
                                     except Exception as sight_error:
-                                        _guala._log_substrate_event(
-                                            "sight_frame_failed_in_causal_window",
-                                            source=source,
-                                            error_type=type(sight_error).__name__,
-                                            error=str(sight_error),
+                                        error_type, reason = (
+                                            _report_visual_rejection(
+                                                sight_error,
+                                                source=source,
+                                            )
                                         )
+                                        try:
+                                            _guala._log_substrate_event(
+                                                "sight_frame_failed_in_causal_window",
+                                                source=source,
+                                                error_type=error_type,
+                                                error=reason,
+                                            )
+                                        except Exception as log_error:
+                                            print(
+                                                "[sight] rejection event log failed: "
+                                                f"{type(log_error).__name__}"
+                                            )
                                     try:
                                         _guala.process_sound_frame(
                                             _wav,
@@ -2998,39 +3095,57 @@ def handle_backup(args):
 
 
 def handle_sight_frame(args):
-    """Transient camera frame into raw sight; object naming is unavailable."""
-    import base64
+    """Admit one complete temporal retina sequence through visual L5."""
     from dsf_ai_service.substrate.grounded_vocab_integration import (
-        object_name_recognition_unavailable)
-
+        object_name_recognition_unavailable,
+    )
     recognition = object_name_recognition_unavailable(
-        source=args.get("source", "camera_stream"))
-    b64_data = (args.get("text") or "").strip()
-    if not b64_data:
-        return {"ok": False, "error": "no frame data",
-                "object_name_recognition": recognition}
+        _guala, source="camera_stream"
+    )
+    claims = args.get("sight_frames") or ()
+    source_start_ns = args.get("source_time_start_ns")
+    source_end_ns = args.get("source_time_end_ns")
+    if not claims:
+        return {
+            "ok": False,
+            "error": "bounded visual sequence is required",
+            "object_name_recognition": recognition,
+        }
     t0 = time.time()
     try:
-        img_bytes = base64.b64decode(b64_data)
-        from dsf_ai_service.app import decode_image_bytes
-        _, grid, _, _ = decode_image_bytes(img_bytes)
-        _guala.process_sight_frame(grid)
-        recognition = object_name_recognition_unavailable(
-            _guala, source=args.get("source", "camera_stream"))
+        from dsf_ai_service.substrate.visual_region_continuity import (
+            canonical_visual_frames_from_claims,
+        )
+        frames = canonical_visual_frames_from_claims(
+            claims,
+            source_time_start_ns=source_start_ns,
+            source_time_end_ns=source_end_ns,
+        )
+        receipt = _guala.process_live_visual_region_sequence(
+            frames,
+            source_time_start_ns=source_start_ns,
+            source_time_end_ns=source_end_ns,
+        )
         # Publish to ring
         if _substrate_ring is not None:
-            _substrate_ring.publish("sight_frame", _guala.tick,
-                                    raw_sight="accepted",
-                                    object_name_recognition="unavailable")
+            _substrate_ring.publish(
+                "sight_sequence", _guala.tick,
+                raw_sight="accepted",
+                receptor_count=receipt["receptor_count"],
+            )
         dt = time.time() - t0
         if dt > 0.5:
-            print(f"[sight-frame] {dt:.3f}s (slow)")
+            print(f"[sight-sequence] {dt:.3f}s")
         return {"ok": True, "tick": _guala.tick,
                 "raw_sight": "accepted",
+                "visual_region": receipt.get("visual_region"),
                 "object_name_recognition": recognition}
     except Exception as e:
-        return {"ok": False, "error": str(e),
-                "object_name_recognition": recognition}
+        return {
+            "ok": False,
+            "error": str(e),
+            "object_name_recognition": recognition,
+        }
 
 
 def handle_sound_frame(args):

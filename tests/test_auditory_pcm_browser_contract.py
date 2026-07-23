@@ -76,7 +76,7 @@ def test_voice_transcript_pairs_each_reply_with_its_heard_experience() -> None:
     assert "_rememberBoundedMap(auditoryHeardByTerminal" in page
 
 
-def test_paired_sight_is_captured_at_the_physical_pcm_interval_midpoint() -> None:
+def test_paired_sight_temporally_samples_the_physical_pcm_interval() -> None:
     page = _page()
     start = page.index("function _schedulePCMSight(")
     end = page.index("\nfunction _notifyPCMEpochClose", start)
@@ -86,7 +86,7 @@ def test_paired_sight_is_captured_at_the_physical_pcm_interval_midpoint() -> Non
         "const chunkDurationMs=PCM_CHUNK_SAMPLES*1000/PCM_SAMPLE_RATE;"
         in function_source
     )
-    assert (
-        "sequence*chunkDurationMs+chunkDurationMs/2" in function_source
-    )
+    assert "const frameCount=epoch.visualFrameCount;" in function_source
+    assert "(index+1)*chunkDurationMs/(frameCount+1)" in function_source
+    assert "Promise.all(captures)" in function_source
     assert "sequence*5000" not in function_source

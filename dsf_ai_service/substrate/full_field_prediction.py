@@ -730,6 +730,17 @@ class FullFieldPredictionAuthority:
             del self._episodes[key]
         return len(removable)
 
+    def compact_unreferenced_episodes(self) -> int:
+        """Release experience witnesses with no live or learned reference.
+
+        Prediction relations retain their authenticated context and target
+        witnesses.  Merely having been experienced is not a reason to keep a
+        second lifetime index of the full causal settlement.
+        """
+        with self._lock:
+            with self._atomic():
+                return self._compact_unreferenced_episodes_locked()
+
     def _verify_episode(self, episode: PredictiveEpisodeReceipt) -> None:
         if not isinstance(episode, PredictiveEpisodeReceipt):
             raise TypeError("prediction episode is not typed")

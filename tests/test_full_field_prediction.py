@@ -687,6 +687,21 @@ def test_same_event_attachment_completion_replaces_without_learning() -> None:
         )
 
 
+def test_unreferenced_experience_witnesses_are_not_a_lifetime_index() -> None:
+    authority = FullFieldPredictionAuthority(authority_key=KEY)
+    episodes = tuple(
+        authority.admit_episode(
+            _settlement(f"unreferenced-{index}", sight_frequency=8 + index)
+        )
+        for index in range(8)
+    )
+    authority.open_context(episodes[-1])
+    removed = authority.compact_unreferenced_episodes()
+    assert removed == 7
+    assert authority.status()["episodes"] == 1
+    assert authority.current_episode() == episodes[-1]
+
+
 def test_duplicate_concurrent_advance_commits_once_and_duplicate_learning_is_constant() -> None:
     authority = FullFieldPredictionAuthority(authority_key=KEY)
     before = authority.admit_episode(_settlement("race-before", sight_frequency=8))

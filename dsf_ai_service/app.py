@@ -701,8 +701,11 @@ class _live_interaction_scope:
         if self._entered and self._guala_ref is not None:
             try:
                 self._guala_ref._exit_live_interaction()
-            except Exception:
-                pass
+            except Exception as rejection_error:
+                print(
+                    "[visual] rejection telemetry failed: "
+                    f"{type(rejection_error).__name__}: {rejection_error}"
+                )
         return False
 
 
@@ -2942,15 +2945,24 @@ async def chi_density():
     return {"tick": _guala.tick, "chi_density": result}
 
 
+class GLVisualFrameClaim(BaseModel):
+    captured_ms: int
+    frame_b64: str
+
+
 class GLMessage(BaseModel):
     text: str
     command: Optional[str] = None
     source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
     emission_mode: Optional[str] = None  # "topk" | "grandurun" per-request override
-    sight_b64: Optional[str] = None
+    sight_b64: Optional[object] = None
     capture_started_ms: Optional[int] = None
     capture_ended_ms: Optional[int] = None
-    sight_captured_ms: Optional[int] = None
+    sight_captured_ms: Optional[object] = None
+    # Camera claims are deliberately transport-opaque here.  A malformed
+    # camera claim must reach the independent visual rejection boundary; it
+    # must never make FastAPI reject an otherwise valid continuous PCM window.
+    sight_frames: Optional[object] = None
     capture_purpose: Literal["ambient", "utterance"] = "ambient"
     audio_encoding: Literal["encoded_media", "pcm_s16le"] = "encoded_media"
     audio_stream_id: Optional[str] = None
@@ -3020,12 +3032,21 @@ def _reject_auditory_pcm_epoch(stream_id: str) -> None:
 @app.post("/api/v1/auditory/pcm/open")
 async def auditory_pcm_stream_open():
     try:
-        return {"ok": True, **_auditory_pcm_streams.open()}
+        return {
+            "ok": True,
+            **_auditory_pcm_streams.open(),
+            "visual_capture": _visual_capture_contract(),
+        }
     except RuntimeError as error:
         return JSONResponse(
             status_code=409,
             content={"ok": False, "error": str(error)},
         )
+
+
+@app.get("/api/v1/visual/capture-contract")
+async def visual_capture_contract():
+    return {"ok": True, **_visual_capture_contract()}
 
 
 @app.post("/api/v1/auditory/pcm/close")
@@ -3066,9 +3087,32 @@ async def auditory_terminal_reply(terminal_event_id: str):
 
 _LIVE_CAPTURE_MAX_DURATION_MS = 8_000
 _LIVE_AUDIO_MAX_BYTES = 4 * 1024 * 1024
-_LIVE_SIGHT_MAX_BYTES = 2 * 1024 * 1024
 _LIVE_AUDIO_MAX_B64_CHARS = 4 * ((_LIVE_AUDIO_MAX_BYTES + 2) // 3)
-_LIVE_SIGHT_MAX_B64_CHARS = 4 * ((_LIVE_SIGHT_MAX_BYTES + 2) // 3)
+from dsf_ai_service.substrate.visual_region_continuity import (
+    MAX_VISUAL_FRAMES as _LIVE_VISUAL_MAX_FRAMES,
+    MAX_VISUAL_IMAGE_BYTES as _LIVE_VISUAL_MAX_FRAME_BYTES,
+    MIN_VISUAL_FRAMES as _LIVE_VISUAL_MIN_FRAMES,
+    RETINA_COLUMNS as _LIVE_VISUAL_RETINA_COLUMNS,
+    RETINA_ROWS as _LIVE_VISUAL_RETINA_ROWS,
+)
+_LIVE_VISUAL_MAX_B64_CHARS = 4 * (
+    (_LIVE_VISUAL_MAX_FRAME_BYTES + 2) // 3
+)
+# One hard ingress allocation boundary covers the physically admissible audio
+# bytes, all physically admissible camera bytes, base64 expansion, and bounded
+# JSON transport metadata.  It is enforced while streaming, before Pydantic or
+# an image decoder can allocate the supplied payload.
+_LIVE_CAPTURE_REQUEST_MAX_BYTES = (
+    _LIVE_AUDIO_MAX_B64_CHARS
+    + _LIVE_VISUAL_MAX_FRAMES * _LIVE_VISUAL_MAX_B64_CHARS
+    + 64 * 1024
+)
+from dsf_ai_service.substrate.ring_buffer import (
+    DEFAULT_INPUT_RING_MAX_PENDING_BYTES as _INPUT_RING_MAX_PENDING_BYTES,
+)
+_LIVE_RING_WRITE_REQUEST_MAX_BYTES = (
+    _INPUT_RING_MAX_PENDING_BYTES + 64 * 1024
+)
 _VIDEO_UPLOAD_MAX_BYTES = 30 * 1024 * 1024
 _VIDEO_CAPTURE_MAX_SECONDS = 8
 _VIDEO_FRAME_RATE = 15
@@ -3081,8 +3125,99 @@ _video_upload_read_lock = threading.Lock()
 _video_upload_lock = threading.Lock()
 
 
-def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
-    """Validate client capture clock values; never infer a paired interval."""
+def _visual_capture_contract():
+    return {
+        "schema": "guala.visual_capture_contract.v1",
+        "minimum_frames": _LIVE_VISUAL_MIN_FRAMES,
+        "maximum_frames": _LIVE_VISUAL_MAX_FRAMES,
+        "maximum_frame_bytes": _LIVE_VISUAL_MAX_FRAME_BYTES,
+        "canonical_width": 64,
+        "canonical_height": 64,
+        "retina_rows": _LIVE_VISUAL_RETINA_ROWS,
+        "retina_columns": _LIVE_VISUAL_RETINA_COLUMNS,
+    }
+
+
+def _decode_visual_sequence(
+    claims,
+    *,
+    source_time_start_ns,
+    source_time_end_ns,
+):
+    """Validate one all-or-nothing camera sequence independently of audio."""
+    from dsf_ai_service.substrate.visual_region_continuity import (
+        canonical_visual_frames_from_claims,
+    )
+    return canonical_visual_frames_from_claims(
+        tuple(claims),
+        source_time_start_ns=source_time_start_ns,
+        source_time_end_ns=source_time_end_ns,
+    )
+
+
+def _visual_claim_transport(value):
+    """Separate bounded visual transport shape from the audio model."""
+    if value is None:
+        return False, (), None
+    if not isinstance(value, list):
+        return True, (), "visual sequence transport must be a list"
+    if not _LIVE_VISUAL_MIN_FRAMES <= len(value) <= _LIVE_VISUAL_MAX_FRAMES:
+        return True, (), "visual sequence must contain four through eight frames"
+    normalized = []
+    for claim in value:
+        if isinstance(claim, GLVisualFrameClaim):
+            normalized.append(
+                {
+                    "captured_ms": claim.captured_ms,
+                    "frame_b64": claim.frame_b64,
+                }
+            )
+        elif isinstance(claim, dict):
+            normalized.append(dict(claim))
+        else:
+            return True, (), "every visual frame claim must be an object"
+    return True, tuple(normalized), None
+
+
+@app.middleware("http")
+async def bounded_live_sensory_ingress(request, call_next):
+    """Bound live sensory request memory before JSON and image decoding."""
+    request_limits = {
+        "/sound_frame": _LIVE_CAPTURE_REQUEST_MAX_BYTES,
+        "/sight_frame": _LIVE_CAPTURE_REQUEST_MAX_BYTES,
+        "/api/v1/gualaloom/ring/write": _LIVE_RING_WRITE_REQUEST_MAX_BYTES,
+    }
+    request_limit = request_limits.get(request.url.path)
+    if request_limit is None:
+        return await call_next(request)
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            declared_length = int(content_length)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"ok": False, "error": "invalid content length"},
+            )
+        if declared_length < 0 or declared_length > request_limit:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error": "live sensory request exceeds its memory boundary"},
+            )
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > request_limit:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error": "live sensory request exceeds its memory boundary"},
+            )
+        body.extend(chunk)
+    request._body = bytes(body)
+    return await call_next(request)
+
+
+def _authoritative_capture_times(msg: GLMessage):
+    """Validate only the audio interval; visual claims are independent."""
     if msg.audio_encoding == "pcm_s16le":
         values = (
             msg.audio_first_sample_index,
@@ -3115,137 +3250,151 @@ def _authoritative_capture_times(msg: GLMessage, *, paired_sight: bool):
             + (first_index + sample_count)
             * 1_000_000_000 // _PCM_STREAM_SAMPLE_RATE_HZ
         )
-        sight_ns = (
-            msg.sight_captured_ms * 1_000_000
-            if msg.sight_captured_ms is not None else None
-        )
-        if paired_sight and (
-            isinstance(msg.sight_captured_ms, bool)
-            or sight_ns is None
-            or sight_ns < start_ns
-            or sight_ns >= end_ns
-        ):
-            raise ValueError("paired sight timestamp is outside the PCM interval")
         return {
             "source_time_start_ns": start_ns,
             "source_time_end_ns": end_ns,
-            "sight_source_anchor_ns": sight_ns if paired_sight else None,
         }
     start_ms = msg.capture_started_ms
     end_ms = msg.capture_ended_ms
-    sight_ms = msg.sight_captured_ms
     if start_ms is None or end_ms is None:
         raise ValueError("capture start and end timestamps are required")
     if (isinstance(start_ms, bool) or isinstance(end_ms, bool)
             or end_ms <= start_ms
             or end_ms - start_ms > _LIVE_CAPTURE_MAX_DURATION_MS):
         raise ValueError("capture interval is invalid or exceeds eight seconds")
-    if paired_sight:
-        if (sight_ms is None or isinstance(sight_ms, bool)
-                or sight_ms < start_ms or sight_ms >= end_ms):
-            raise ValueError("paired sight timestamp is outside the audio interval")
     return {
         "source_time_start_ns": int(start_ms) * 1_000_000,
         "source_time_end_ns": int(end_ms) * 1_000_000,
-        "sight_source_anchor_ns": (
-            int(sight_ms) * 1_000_000 if paired_sight else None),
     }
 
 
 @app.post("/sight_frame")
 async def sight_frame(msg: GLMessage):
-    """Stream raw sight while reporting that object naming is unavailable."""
+    """Admit one complete temporal retina sequence; never a singleton frame."""
     from dsf_ai_service.substrate.grounded_vocab_integration import (
-        object_name_recognition_unavailable)
-
-    b64_data = (msg.text or "").strip()
-    recognition = object_name_recognition_unavailable(
-        source="camera_stream")
-    if _is_remote():
-        captured_ms = msg.sight_captured_ms
-        if len(b64_data) > _LIVE_SIGHT_MAX_B64_CHARS:
-            return {"ok": False,
-                    "error": "sight capture exceeds the bounded request size",
-                    "object_name_recognition": recognition}
-        if (captured_ms is None or isinstance(captured_ms, bool)
-                or captured_ms < 0):
-            return {"ok": False,
-                    "error": "sight capture timestamp is required",
-                    "object_name_recognition": recognition}
-        # R3: write to InputRing (non-blocking) instead of socket call
+        object_name_recognition_unavailable,
+    )
+    remote = _is_remote()
+    recognition = object_name_recognition_unavailable(source="camera_stream")
+    if _converse_turn_in_flight():
+        return {
+            "ok": False,
+            "dropped": True,
+            "reason": "backpressure — visual processing at capacity",
+            "converse_priority": True,
+            "n_dropped": _frame_dropped["sight"],
+            "object_name_recognition": recognition,
+        }
+    if not remote and _guala is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ok": False,
+                "error": "guala_not_ready",
+                "object_name_recognition": recognition,
+            },
+        )
+    visual_claimed, claims, visual_transport_error = _visual_claim_transport(
+        msg.sight_frames
+    )
+    if not visual_claimed:
+        return {
+            "ok": False,
+            "error": "a bounded temporal visual sequence is required",
+            "visual_region": {"status": "rejected", "reason": "missing_sequence"},
+            "object_name_recognition": recognition,
+        }
+    if visual_transport_error:
+        return {
+            "ok": False,
+            "error": visual_transport_error,
+            "visual_region": {
+                "status": "rejected",
+                "reason": visual_transport_error,
+            },
+            "object_name_recognition": recognition,
+        }
+    start_ms = msg.capture_started_ms
+    end_ms = msg.capture_ended_ms
+    if (
+        isinstance(start_ms, bool)
+        or not isinstance(start_ms, int)
+        or isinstance(end_ms, bool)
+        or not isinstance(end_ms, int)
+        or end_ms <= start_ms
+        or end_ms - start_ms > _LIVE_CAPTURE_MAX_DURATION_MS
+    ):
+        return {
+            "ok": False,
+            "error": "visual capture interval is invalid",
+            "object_name_recognition": recognition,
+        }
+    source_start_ns = start_ms * 1_000_000
+    source_end_ns = end_ms * 1_000_000
+    if remote:
         client = _get_substrate_client()
         try:
-            result = await client.call("ring_write",
-                kind="sight_frame", source="camera_stream",
-                data={"frame_b64": b64_data,
-                      "source_anchor_ns": int(captured_ms) * 1_000_000},
-                timeout=3.0)
+            result = await client.call(
+                "ring_write",
+                kind="sight_sequence",
+                source="camera_stream",
+                data={
+                    "frames": list(claims),
+                    "source_time_start_ns": source_start_ns,
+                    "source_time_end_ns": source_end_ns,
+                },
+                timeout=3.0,
+            )
             if not isinstance(result, dict):
                 raise TypeError("ring write returned a non-object result")
             result["object_name_recognition"] = recognition
             return result
-        except (ConnectionError, Exception):
-            return {"ok": False, "error": "ring write failed",
-                    "object_name_recognition": recognition}
-    if _guala is None:
-        return JSONResponse(
-            status_code=503,
-            content={"ok": False, "error": "guala_not_ready",
-                     "object_name_recognition": recognition})
-    import base64, asyncio as _aio
-    b64_data = (msg.text or "").strip()
-    if not b64_data:
-        return {"ok": False, "error": "no frame data",
-                "object_name_recognition": recognition}
-    if len(b64_data) > _LIVE_SIGHT_MAX_B64_CHARS:
-        return {"ok": False,
-                "error": "sight capture exceeds the bounded request size",
-                "object_name_recognition": recognition}
-    # GL-CMD-CONVERSE-FRAME-PRIORITY: while a real conversational turn is
-    # settling in this process, shed this frame (talking has priority for the
-    # core) using the SAME honest backpressure response the capacity gate below
-    # returns, which the UI already renders gracefully. Pure capacity/priority
-    # yield: never gated on frame content; embedded-only (remote mode already
-    # returned above); cleared the instant the turn settles.
-    if _converse_turn_in_flight():
-        return {"ok": False, "dropped": True,
-                "reason": "backpressure — sight-frame processing at capacity",
-                "converse_priority": True,
-                "n_dropped": _frame_dropped["sight"],
-                "object_name_recognition": recognition}
-    captured_ms = msg.sight_captured_ms
-    if (captured_ms is None or isinstance(captured_ms, bool)
-            or captured_ms < 0):
-        return {"ok": False,
-                "error": "sight capture timestamp is required",
-                "object_name_recognition": recognition}
-    sight_anchor_ns = int(captured_ms) * 1_000_000
+        except Exception:
+            return {
+                "ok": False,
+                "error": "ring write failed",
+                "object_name_recognition": recognition,
+            }
     if not _frame_backpressure_acquire("sight"):
         return {"ok": False, "dropped": True,
-                "reason": "backpressure — sight-frame processing at capacity",
+                "reason": "backpressure — visual processing at capacity",
                 "n_dropped": _frame_dropped["sight"],
                 "object_name_recognition": recognition}
     def _decode():
         t0 = time.time()
         try:
-            img_bytes = base64.b64decode(b64_data)
-            _, grid, _, _ = decode_image_bytes(img_bytes)
-            sight_receipt = _guala.process_sight_frame(
-                grid, source_anchor_ns=sight_anchor_ns)
+            frames = _decode_visual_sequence(
+                claims,
+                source_time_start_ns=source_start_ns,
+                source_time_end_ns=source_end_ns,
+            )
+            sight_receipt = _guala.process_live_visual_region_sequence(
+                frames,
+                source_time_start_ns=source_start_ns,
+                source_time_end_ns=source_end_ns,
+            )
             if not sight_receipt or not sight_receipt.get("accepted"):
-                raise RuntimeError("sight transduction accepted no native entries")
-            frame_recognition = object_name_recognition_unavailable(
-                _guala, source="camera_stream")
-            print(f"[sight-frame] {time.time()-t0:.3f}s")
+                raise RuntimeError("visual region authority accepted no field")
+            print(f"[sight-sequence] {time.time()-t0:.3f}s")
             return {"ok": True, "tick": _guala.tick,
                     "raw_sight": "accepted",
-                    "object_name_recognition": frame_recognition}
+                    "visual_region": sight_receipt.get("visual_region"),
+                    "object_name_recognition": recognition}
         except Exception as e:
+            try:
+                _guala.record_live_visual_rejection(
+                    error_type=type(e).__name__, reason=str(e)
+                )
+            except Exception as rejection_error:
+                _guala._log_substrate_event(
+                    "visual_rejection_telemetry_failed",
+                    error_type=type(rejection_error).__name__,
+                    error=str(rejection_error),
+                )
             return {"ok": False, "error": str(e),
+                    "visual_region": {"status": "rejected", "reason": str(e)},
                     "object_name_recognition": recognition}
     try:
-        # GL-CMD-CAMERA-TURN-LATENCY: a real sight frame is a live interaction
-        # too -- mark it pending so background emission/autonomy defer to it.
         with _live_interaction_scope():
             return await _run_lifecycle_executor(_decode)
     finally:
@@ -3265,20 +3414,17 @@ async def sound_frame(msg: GLMessage):
     src = msg.source or "ambient"
     auditory_event_boundary = msg.capture_purpose
     recognition = _spoken_word_recognition_report(src)
-    paired_sight_b64 = (msg.sight_b64 or "").strip()
+    visual_claimed, visual_claims, visual_transport_error = (
+        _visual_claim_transport(msg.sight_frames)
+    )
+    legacy_sight_claimed = msg.sight_b64 is not None
+    visual_claimed = visual_claimed or legacy_sight_claimed
     if len(b64_data) > _LIVE_AUDIO_MAX_B64_CHARS:
         if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
             await _run_lifecycle_executor(
                 _reject_auditory_pcm_epoch, msg.audio_stream_id
             )
         return {"ok": False, "error": "audio capture exceeds the bounded request size",
-                "spoken_word_recognition": recognition}
-    if len(paired_sight_b64) > _LIVE_SIGHT_MAX_B64_CHARS:
-        if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
-            await _run_lifecycle_executor(
-                _reject_auditory_pcm_epoch, msg.audio_stream_id
-            )
-        return {"ok": False, "error": "sight capture exceeds the bounded request size",
                 "spoken_word_recognition": recognition}
     if _is_remote():
         if msg.audio_encoding == "pcm_s16le":
@@ -3289,8 +3435,7 @@ async def sound_frame(msg: GLMessage):
                 "spoken_word_recognition": recognition,
             }
         try:
-            capture_times = _authoritative_capture_times(
-                msg, paired_sight=bool(paired_sight_b64))
+            capture_times = _authoritative_capture_times(msg)
         except ValueError as capture_error:
             return {"ok": False, "error": str(capture_error),
                     "causal_boundary": "unsettled",
@@ -3303,18 +3448,31 @@ async def sound_frame(msg: GLMessage):
                 data={"audio_b64": b64_data,
                       "source": src,
                       "auditory_event_boundary": auditory_event_boundary,
-                      "sight_b64": paired_sight_b64 or None,
+                      "sight_frames": list(visual_claims),
+                      "visual_claimed": visual_claimed,
+                      "visual_transport_error": visual_transport_error,
+                      "legacy_sight_claimed": legacy_sight_claimed,
                       **capture_times},
                 timeout=3.0)
             if not isinstance(result, dict):
                 raise TypeError("ring write returned a non-object result")
             result["spoken_word_recognition"] = recognition
-            result["causal_boundary"] = (
-                "queued_audiovisual"
-                if result.get("ok") is True and paired_sight_b64
-                else "queued_sound"
-                if result.get("ok") is True
-                else "unsettled")
+            if result.get("ok") is True and visual_claimed:
+                if visual_transport_error or legacy_sight_claimed:
+                    rejection = visual_transport_error or (
+                        "legacy singleton sight cannot establish a temporal field"
+                    )
+                    result["causal_boundary"] = "queued_sound_visual_rejected"
+                    result["visual_region"] = {
+                        "status": "rejected",
+                        "reason": rejection,
+                    }
+                else:
+                    result["causal_boundary"] = "queued_audiovisual"
+            elif result.get("ok") is True:
+                result["causal_boundary"] = "queued_sound"
+            else:
+                result["causal_boundary"] = "unsettled"
             return result
         except (ConnectionError, Exception):
             return {"ok": False, "error": "ring write failed",
@@ -3354,8 +3512,7 @@ async def sound_frame(msg: GLMessage):
                 "n_dropped": _frame_dropped["sound"],
                 "spoken_word_recognition": recognition}
     try:
-        capture_times = _authoritative_capture_times(
-            msg, paired_sight=bool(paired_sight_b64))
+        capture_times = _authoritative_capture_times(msg)
     except ValueError as capture_error:
         if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
             await _run_lifecycle_executor(
@@ -3428,108 +3585,76 @@ async def sound_frame(msg: GLMessage):
                 from dsf_ai_service.speech_transducer import transcribe_sound
                 recognition_future = _speech_recognition_executor.submit(
                     transcribe_sound, wav)
-            paired_sight_b64 = (msg.sight_b64 or "").strip()
             observed_senses = []
             sensory_errors = {}
             boundary_settled = False
             settlement = None
             sound_receipt = None
-            if paired_sight_b64:
-                context_id = f"sense:av:{src}:{time.time_ns():x}"
-                _guala.window_manager.begin_context(
-                    context_id,
-                    trigger_reason="audiovisual_capture",
-                    context_detail={
-                        "experience_origin": "live_audiovisual",
-                        "auditory_event_boundary": auditory_event_boundary,
-                        "source": src,
-                        "source_time_start_ns": capture_times[
-                            "source_time_start_ns"],
-                        "source_time_end_ns": capture_times[
-                            "source_time_end_ns"],
-                        "sensor_unavailable": [
-                            "touch", "smell", "taste", "body"],
-                    },
-                )
-                try:
+            context_id = f"sense:av:{src}:{time.time_ns():x}"
+            unavailable = ["touch", "smell", "taste", "body"]
+            if not visual_claimed:
+                unavailable.insert(0, "sight")
+            _guala.window_manager.begin_context(
+                context_id,
+                trigger_reason="audiovisual_capture",
+                context_detail={
+                    "experience_origin": "live_audiovisual",
+                    "auditory_event_boundary": auditory_event_boundary,
+                    "source": src,
+                    "source_time_start_ns": capture_times[
+                        "source_time_start_ns"],
+                    "source_time_end_ns": capture_times[
+                        "source_time_end_ns"],
+                    "sensor_unavailable": unavailable,
+                },
+            )
+            try:
+                if visual_claimed:
                     try:
-                        sight_bytes = base64.b64decode(
-                            paired_sight_b64, validate=True)
-                        _, sight_grid, _, _ = decode_image_bytes(sight_bytes)
-                        sight_receipt = _guala.process_sight_frame(
-                            sight_grid,
-                            source_anchor_ns=capture_times[
-                                "sight_source_anchor_ns"],
+                        if visual_transport_error:
+                            raise ValueError(visual_transport_error)
+                        if legacy_sight_claimed:
+                            raise ValueError(
+                                "legacy singleton sight cannot establish a temporal field"
+                            )
+                        visual_frames = _decode_visual_sequence(
+                            visual_claims,
                             source_time_start_ns=capture_times[
                                 "source_time_start_ns"],
                             source_time_end_ns=capture_times[
                                 "source_time_end_ns"],
                         )
+                        sight_receipt = (
+                            _guala.process_live_visual_region_sequence(
+                                visual_frames,
+                                source_time_start_ns=capture_times[
+                                    "source_time_start_ns"],
+                                source_time_end_ns=capture_times[
+                                    "source_time_end_ns"],
+                            )
+                        )
                         if sight_receipt and sight_receipt.get("accepted"):
                             observed_senses.append("sight")
                     except Exception as sight_error:
+                        try:
+                            _guala.record_live_visual_rejection(
+                                error_type=type(sight_error).__name__,
+                                reason=str(sight_error),
+                            )
+                        except Exception as rejection_error:
+                            _guala._log_substrate_event(
+                                "visual_rejection_telemetry_failed",
+                                error_type=type(rejection_error).__name__,
+                                error=str(rejection_error),
+                            )
                         sensory_errors["sight"] = (
-                            f"{type(sight_error).__name__}: {sight_error}")
+                            f"{type(sight_error).__name__}: {sight_error}"
+                        )
                         _guala._log_substrate_event(
-                            "sight_frame_failed_in_causal_window",
+                            "visual_sequence_rejected_in_causal_window",
                             error_type=type(sight_error).__name__,
                             error=str(sight_error),
                         )
-                    try:
-                        sound_receipt = _guala.process_sound_frame(
-                            wav,
-                            source=src,
-                            source_anchor_ns=capture_times[
-                                "source_time_start_ns"],
-                            source_time_end_ns=capture_times[
-                                "source_time_end_ns"],
-                            auditory_event_boundary=auditory_event_boundary,
-                            auditory_pcm_continuity=(
-                                pcm_acceptance.receipt
-                                if pcm_acceptance is not None else None),
-                            auditory_pcm_s16le=(
-                                pcm_acceptance.pcm_s16le
-                                if pcm_acceptance is not None else None),
-                        )
-                        if sound_receipt and sound_receipt.get("accepted"):
-                            observed_senses.append("sound")
-                    except Exception as sound_error:
-                        sensory_errors["sound"] = (
-                            f"{type(sound_error).__name__}: {sound_error}")
-                        _guala._log_substrate_event(
-                            "sound_frame_failed_in_causal_window",
-                            error_type=type(sound_error).__name__,
-                            error=str(sound_error),
-                        )
-                finally:
-                    try:
-                        closed_window_id, settlement = (
-                            _guala.window_manager.end_context(
-                                context_id,
-                                "audiovisual_capture_complete",
-                                return_settlement=True,
-                            )
-                        )
-                        if (closed_window_id is None or settlement is None
-                                or settlement.assembly_id
-                                != f"causal-{closed_window_id}"):
-                            raise RuntimeError(
-                                "closed audiovisual window has no matching settlement")
-                        settlement.verify()
-                        observed_senses = [
-                            item.sense for item in settlement.interpretations
-                            if item.state == "observed"
-                        ]
-                        boundary_settled = True
-                    except Exception as settlement_error:
-                        sensory_errors["settlement"] = (
-                            f"{type(settlement_error).__name__}: "
-                            f"{settlement_error}")
-                        _guala.window_manager.discard_unsettled_context(
-                            context_id,
-                            "live_audiovisual_settlement_failed",
-                        )
-            else:
                 try:
                     sound_receipt = _guala.process_sound_frame(
                         wav,
@@ -3546,25 +3671,48 @@ async def sound_frame(msg: GLMessage):
                             pcm_acceptance.pcm_s16le
                             if pcm_acceptance is not None else None),
                     )
-                    closed_window_id = (
-                        sound_receipt.get("closed_window_id")
-                        if sound_receipt else None)
-                    settlement = sound_receipt.get("settlement")
-                    if (not sound_receipt or not sound_receipt.get("accepted")
-                            or closed_window_id is None or settlement is None
-                            or settlement.assembly_id
-                            != f"causal-{closed_window_id}"):
-                        raise RuntimeError(
-                            "closed sound window has no matching settlement")
-                    settlement.verify()
-                    observed_senses = [
-                        item.sense for item in settlement.interpretations
-                        if item.state == "observed"
-                    ]
-                    boundary_settled = True
+                    if sound_receipt and sound_receipt.get("accepted"):
+                        observed_senses.append("sound")
                 except Exception as sound_error:
                     sensory_errors["sound"] = (
                         f"{type(sound_error).__name__}: {sound_error}")
+                    _guala._log_substrate_event(
+                        "sound_frame_failed_in_causal_window",
+                        error_type=type(sound_error).__name__,
+                        error=str(sound_error),
+                    )
+            finally:
+                try:
+                    closed_window_id, settlement = (
+                        _guala.window_manager.end_context(
+                            context_id,
+                            "audiovisual_capture_complete",
+                            return_settlement=True,
+                        )
+                    )
+                    if (
+                        closed_window_id is None
+                        or settlement is None
+                        or settlement.assembly_id != f"causal-{closed_window_id}"
+                    ):
+                        raise RuntimeError(
+                            "closed sensory window has no matching settlement"
+                        )
+                    settlement.verify()
+                    observed_senses = [
+                        item.sense
+                        for item in settlement.interpretations
+                        if item.state == "observed"
+                    ]
+                    boundary_settled = True
+                except Exception as settlement_error:
+                    sensory_errors["settlement"] = (
+                        f"{type(settlement_error).__name__}: {settlement_error}"
+                    )
+                    _guala.window_manager.discard_unsettled_context(
+                        context_id,
+                        "live_audiovisual_settlement_failed",
+                    )
             causal_boundary = (
                 "unsettled" if not boundary_settled
                 else "audiovisual" if observed_senses == ["sight", "sound"]
@@ -3683,6 +3831,16 @@ async def sound_frame(msg: GLMessage):
                     "observed_senses": observed_senses,
                     "spoken_word_recognition": deterministic_recognition,
                     "auditory_l5": auditory_status,
+                    "visual_region": (
+                        _guala._latest_visual_region_observation
+                        if "sight" in observed_senses
+                        else {
+                            "status": "rejected",
+                            "reason": sensory_errors.get("sight"),
+                        }
+                        if visual_claimed
+                        else {"status": "sensor_unavailable"}
+                    ),
                 }
                 if pcm_acceptance is not None:
                     cochlear_receipt = (
@@ -3775,6 +3933,16 @@ async def sound_frame(msg: GLMessage):
                     recognition_status,
                     transcript=spoken or None),
                 "auditory_l5": auditory_status,
+                "visual_region": (
+                    _guala._latest_visual_region_observation
+                    if "sight" in observed_senses
+                    else {
+                        "status": "rejected",
+                        "reason": sensory_errors.get("sight"),
+                    }
+                    if visual_claimed
+                    else {"status": "sensor_unavailable"}
+                ),
             }
             if pcm_acceptance is not None:
                 cochlear_receipt = (

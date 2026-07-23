@@ -3710,6 +3710,10 @@ class Guala:
             )
         self._full_field_prediction_key = None
         self._full_field_prediction = None
+        self._visual_region_continuity_key = None
+        self._visual_region_continuity = None
+        self._latest_visual_region_observation = None
+        self._latest_visual_region_rejection = None
         self._prediction_conditioned_intent_receipt = None
         self._prediction_conditioned_binding_id = None
         self._latest_full_field_prediction_observation = None
@@ -3727,6 +3731,20 @@ class Guala:
             ).digest()
             self._full_field_prediction = _FullFieldPredictionAuthority(
                 authority_key=self._full_field_prediction_key,
+            )
+            from dsf_ai_service.substrate.visual_region_continuity import (
+                DeterministicVisualRegionContinuityAuthority as
+                _DeterministicVisualRegionContinuityAuthority,
+            )
+            self._visual_region_continuity_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-visual-region-continuity-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            self._visual_region_continuity = (
+                _DeterministicVisualRegionContinuityAuthority(
+                    authority_key=self._visual_region_continuity_key,
+                )
             )
         self._causal_cycle_bridge_lock = threading.RLock()
         self._causal_cycle_pending_review = None
@@ -7646,6 +7664,18 @@ class Guala:
             value = detail.get("native_full_field_input")
             if value is not None:
                 native_inputs.append(value)
+            values = detail.get("native_full_field_inputs")
+            if values is not None:
+                if (
+                    not isinstance(values, (list, tuple))
+                    or not values
+                    or len(values) > 76
+                    or any(not isinstance(item, dict) for item in values)
+                ):
+                    raise RuntimeError(
+                        "atomic native sensory input batch changed shape"
+                    )
+                native_inputs.extend(values)
         if not native_inputs:
             return None
 
@@ -7821,6 +7851,26 @@ class Guala:
             observed_substreams=ordered_observed,
             states=states,
         )
+        visual_snapshot = None
+        prior_visual_observation = self._latest_visual_region_observation
+        prior_visual_rejection = self._latest_visual_region_rejection
+        sight_inputs = ordered_observed.get(PhysicalSense.SIGHT, ())
+        if sight_inputs and sight_inputs[0].sensor_id == "browser-camera-retina-8x8":
+            if self._visual_region_continuity is None:
+                raise RuntimeError("visual L5 authority is unavailable")
+            visual_snapshot = self._visual_region_continuity.snapshot_encoded()
+            try:
+                visual_l5 = self._visual_region_continuity.settle_l5(
+                    built.boundary,
+                    built.receipt_registry,
+                )
+                self._latest_visual_region_observation = visual_l5.as_record()
+                self._latest_visual_region_rejection = None
+            except Exception:
+                self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                self._latest_visual_region_observation = prior_visual_observation
+                self._latest_visual_region_rejection = prior_visual_rejection
+                raise
         auditory_boundary = context_detail.get(
             "auditory_event_boundary", "ambient")
         if auditory_boundary not in ("ambient", "utterance"):
@@ -7828,47 +7878,54 @@ class Guala:
         recognized_language_record = context_detail.get(
             "auditory_terminal_event"
         )
-        if recognized_language_record is None:
-            self._latest_auditory_recognition_boundary = auditory_boundary
-            self._latest_auditory_l5_experience = self._auditory_l5_owner.settle(
-                built,
-                event_boundary=auditory_boundary,
-            )
-            if self._latest_auditory_l5_experience is not None:
-                with self._auditory_transaction_lock:
-                    self._auditory_l5_by_assembly[built.boundary.assembly_id] = (
-                        self._latest_auditory_l5_experience
-                    )
-                    self._auditory_l5_by_assembly.move_to_end(
-                        built.boundary.assembly_id
-                    )
-                    while (
-                        len(self._auditory_l5_by_assembly)
-                        > self._auditory_transaction_capacity
-                    ):
-                        self._auditory_l5_by_assembly.popitem(last=False)
-            self._latest_auditory_recognitions = (
-                self._auditory_reciprocity_owner.recognize_all(
-                    self._latest_auditory_l5_experience)
-                if (
-                    self._latest_auditory_l5_experience is not None
-                    and auditory_boundary == "utterance"
+        try:
+            if recognized_language_record is None:
+                self._latest_auditory_recognition_boundary = auditory_boundary
+                self._latest_auditory_l5_experience = self._auditory_l5_owner.settle(
+                    built,
+                    event_boundary=auditory_boundary,
                 )
-                else ()
+                if self._latest_auditory_l5_experience is not None:
+                    with self._auditory_transaction_lock:
+                        self._auditory_l5_by_assembly[built.boundary.assembly_id] = (
+                            self._latest_auditory_l5_experience
+                        )
+                        self._auditory_l5_by_assembly.move_to_end(
+                            built.boundary.assembly_id
+                        )
+                        while (
+                            len(self._auditory_l5_by_assembly)
+                            > self._auditory_transaction_capacity
+                        ):
+                            self._auditory_l5_by_assembly.popitem(last=False)
+                self._latest_auditory_recognitions = (
+                    self._auditory_reciprocity_owner.recognize_all(
+                        self._latest_auditory_l5_experience)
+                    if (
+                        self._latest_auditory_l5_experience is not None
+                        and auditory_boundary == "utterance"
+                    )
+                    else ()
+                )
+            return owner.settle(
+                built,
+                recognized_language_record=recognized_language_record,
+                routing_chis=tuple(
+                    int(entry["chi"]) for entry in record.get("entries") or ()
+                    if "chi" in entry),
+                source_tags=tuple(
+                    str(entry["source_tag"])
+                    for entry in record.get("entries") or ()
+                    if entry.get("source_tag")),
+                commit=recognized_language_record is None,
+                reserve=recognized_language_record is not None,
             )
-        return owner.settle(
-            built,
-            recognized_language_record=recognized_language_record,
-            routing_chis=tuple(
-                int(entry["chi"]) for entry in record.get("entries") or ()
-                if "chi" in entry),
-            source_tags=tuple(
-                str(entry["source_tag"])
-                for entry in record.get("entries") or ()
-                if entry.get("source_tag")),
-            commit=recognized_language_record is None,
-            reserve=recognized_language_record is not None,
-        )
+        except Exception:
+            if visual_snapshot is not None:
+                self._visual_region_continuity.rollback_encoded(visual_snapshot)
+                self._latest_visual_region_observation = prior_visual_observation
+                self._latest_visual_region_rejection = prior_visual_rejection
+            raise
 
     def _execute_causal_speech_request(self, request):
         """Queue one exact dispatcher speech request without synthesizing it."""
@@ -8161,6 +8218,7 @@ class Guala:
                 transition.transition_id if transition is not None else None
             ),
         }
+        authority.compact_unreferenced_episodes()
         return episode
 
     @staticmethod
@@ -16970,6 +17028,168 @@ class Guala:
             si.last_attended_tick = self.tick
 
     @_engine_mutation_entry
+    def record_live_visual_rejection(self, *, error_type, reason):
+        """Publish a bounded transport rejection without admitting sight."""
+        if not isinstance(error_type, str) or not error_type:
+            raise ValueError("visual rejection error type is required")
+        if not isinstance(reason, str) or not reason:
+            raise ValueError("visual rejection reason is required")
+        if len(error_type.encode("utf-8")) > 128 or len(
+            reason.encode("utf-8")
+        ) > 1024:
+            raise ValueError("visual rejection description exceeds its boundary")
+        self._latest_visual_region_rejection = {
+            "schema": "guala.visual_region_rejection.v1",
+            "error_type": error_type,
+            "reason": reason,
+        }
+        return dict(self._latest_visual_region_rejection)
+
+    @_engine_mutation_entry
+    @_live_sensory_entry
+    def process_live_visual_region_sequence(
+        self,
+        frames,
+        *,
+        source_time_start_ns=None,
+        source_time_end_ns=None,
+    ):
+        """Bind one complete temporal camera field as one atomic window fact.
+
+        Preparation retains every declared 8x8 receptor trajectory and is
+        pure.  Region continuity is committed later, from the single combined
+        verified L4 settlement in ``_build_causal_window_settlement``.  The
+        legacy random-fovea visual motif path is deliberately absent.
+        """
+        authority = self._visual_region_continuity
+        if authority is None:
+            raise RuntimeError("visual region continuity authority is unavailable")
+        prior_visual_rejection = self._latest_visual_region_rejection
+        settlement_started = False
+        try:
+            canonical_frames = tuple(frames)
+            prepared = authority.prepare_retinotopic_inputs(canonical_frames)
+            frame_times_ns = tuple(
+                value.source_time_ns for value in canonical_frames
+            )
+            if not frame_times_ns:
+                raise ValueError("visual sequence is empty")
+            if source_time_start_ns is None:
+                source_time_start_ns = int(
+                    prepared.source_time_start * 1_000_000_000
+                )
+            if source_time_end_ns is None:
+                source_time_end_ns = frame_times_ns[-1]
+            if (
+                isinstance(source_time_start_ns, bool)
+                or not isinstance(source_time_start_ns, int)
+                or isinstance(source_time_end_ns, bool)
+                or not isinstance(source_time_end_ns, int)
+                or source_time_end_ns <= source_time_start_ns
+                or frame_times_ns[0] < source_time_start_ns
+                or frame_times_ns[-1] > source_time_end_ns
+            ):
+                raise ValueError(
+                    "visual sequence lies outside its authoritative interval"
+                )
+            native_records = prepared.native_records()
+            context_id = self.window_manager.active_context_id
+            owns_context = context_id is None
+            if owns_context:
+                context_id = f"sense:sight:retina:{time.time_ns():x}"
+                self.window_manager.begin_context(
+                    context_id,
+                    "sight",
+                    context_detail={
+                        "experience_origin": "live_retinotopic_sight",
+                        "source_time_start_ns": source_time_start_ns,
+                        "source_time_end_ns": source_time_end_ns,
+                        "sensor_unavailable": [
+                            "sound", "touch", "smell", "taste", "body"
+                        ],
+                    },
+                )
+            try:
+                self.window_manager.add_entry(
+                    modality="sight",
+                    section="retinotopic_full_field",
+                    motif_id=int(
+                        prepared.preparation_receipt_sha256[:16], 16
+                    ),
+                    chi=0,
+                    tick=self.tick,
+                    source_tag="camera:live-retina",
+                    trigger_reason="sight",
+                    context_id=context_id,
+                    salience=1.0,
+                    mirror_atlas=False,
+                    structural_fact={
+                        "schema": "guala.visual_retinotopic_fact.v1",
+                        "frame_receipt_sha256s": list(
+                            prepared.frame_receipt_sha256s
+                        ),
+                        "preparation_receipt_sha256": (
+                            prepared.preparation_receipt_sha256
+                        ),
+                        "receptor_count": len(native_records),
+                    },
+                    detail={
+                        "native_full_field_inputs": list(native_records),
+                        "visual_preparation_receipt_sha256": (
+                            prepared.preparation_receipt_sha256
+                        ),
+                    },
+                    **self._affect_kwargs(),
+                )
+                if owns_context:
+                    settlement_started = True
+                    closed_window_id, settlement = self.window_manager.end_context(
+                        context_id,
+                        "visual_region_sequence_complete",
+                        return_settlement=True,
+                    )
+                else:
+                    closed_window_id, settlement = None, None
+            except Exception:
+                if owns_context:
+                    self.window_manager.discard_unsettled_context(
+                        context_id, "visual_region_sequence_failed"
+                    )
+                raise
+            self._last_frame_tick = self.tick
+            return {
+                "accepted": True,
+                "entries_bound": 1,
+                "receptor_count": len(native_records),
+                "preparation_receipt_sha256": (
+                    prepared.preparation_receipt_sha256
+                ),
+                "context_id": context_id,
+                "closed_window_id": closed_window_id,
+                "settlement": settlement,
+                "visual_region": self._latest_visual_region_observation,
+            }
+        except Exception as error:
+            if settlement_started:
+                self._latest_visual_region_rejection = prior_visual_rejection
+            else:
+                error_type = type(error).__name__
+                reason = str(error)
+                if len(error_type.encode("utf-8")) > 128:
+                    error_type = "VisualRejection"
+                if len(reason.encode("utf-8")) > 1024:
+                    reason = (
+                        "visual rejection description exceeded its telemetry "
+                        "boundary"
+                    )
+                self._latest_visual_region_rejection = {
+                    "schema": "guala.visual_region_rejection.v1",
+                    "error_type": error_type,
+                    "reason": reason,
+                }
+            raise
+
+    @_engine_mutation_entry
     @_live_sensory_entry
     def process_sight_frame(
             self, grid, source_anchor_ns=None, source_time_start_ns=None,
@@ -20698,6 +20918,17 @@ class Guala:
                 if self._w1_anonymous_av_continuity_owner is not None
                 else None
             ),
+            "visual_region_continuity": (
+                json.loads(
+                    self._visual_region_continuity
+                    .snapshot_encoded().decode("utf-8")
+                )
+                if self._visual_region_continuity is not None
+                else None
+            ),
+            "latest_visual_region_observation": (
+                self._latest_visual_region_observation
+            ),
             "embodied_action_teaching": (
                 json.loads(
                     self._embodied_action_teaching
@@ -21480,6 +21711,33 @@ class Guala:
                 raise ValueError(
                     "teaching anonymous audiovisual continuity changed"
                 )
+        visual_continuity = data.get("visual_region_continuity")
+        if visual_continuity is not None:
+            visual_bytes = cls._canonical_persistence_bytes(
+                visual_continuity
+            )
+            if (
+                len(visual_bytes) > 2 * 1024 * 1024
+                or not isinstance(visual_continuity, dict)
+                or set(visual_continuity) != {
+                    "payload", "state_hmac_sha256"
+                }
+            ):
+                raise ValueError(
+                    "teaching visual region continuity changed"
+                )
+        latest_visual_region = data.get(
+            "latest_visual_region_observation"
+        )
+        if latest_visual_region is not None and (
+            visual_continuity is None
+            or not isinstance(latest_visual_region, dict)
+            or len(cls._canonical_persistence_bytes(latest_visual_region))
+            > 512 * 1024
+        ):
+            raise ValueError(
+                "teaching latest visual region observation changed"
+            )
         embodied_action_teaching = data.get("embodied_action_teaching")
         if embodied_action_teaching is not None:
             embodied_teaching_bytes = cls._canonical_persistence_bytes(
@@ -23676,6 +23934,54 @@ class Guala:
                                     anonymous_continuity
                                 )
                             )
+                        visual_continuity = tdata.get(
+                            "visual_region_continuity"
+                        )
+                        if visual_continuity is not None:
+                            if self._visual_region_continuity is None:
+                                raise ValueError(
+                                    "visual continuity authority key is missing"
+                                )
+                            self._visual_region_continuity.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    visual_continuity
+                                )
+                            )
+                        latest_visual_region = tdata.get(
+                            "latest_visual_region_observation"
+                        )
+                        if latest_visual_region is not None:
+                            if not isinstance(latest_visual_region, dict):
+                                raise ValueError(
+                                    "latest visual region observation changed"
+                                )
+                            authority_latest_visual = (
+                                self._visual_region_continuity.status().get(
+                                    "latest"
+                                )
+                            )
+                            if latest_visual_region != authority_latest_visual:
+                                raise ValueError(
+                                    "latest visual region observation does not "
+                                    "match authenticated continuity state"
+                                )
+                            self._latest_visual_region_observation = json.loads(
+                                self._canonical_persistence_bytes(
+                                    latest_visual_region
+                                )
+                            )
+                        else:
+                            if (
+                                self._visual_region_continuity is not None
+                                and self._visual_region_continuity.status().get(
+                                    "latest"
+                                ) is not None
+                            ):
+                                raise ValueError(
+                                    "authenticated visual continuity state lost "
+                                    "its latest observation"
+                                )
+                            self._latest_visual_region_observation = None
                         embodied_action_teaching = tdata.get(
                             "embodied_action_teaching"
                         )
@@ -25547,6 +25853,15 @@ class Guala:
                 else {"available": False}
             ),
             "full_field_authority": full_field_authority,
+            "visual_region_authority": (
+                {
+                    **self._visual_region_continuity.status(),
+                    "available": True,
+                    "latest_rejection": self._latest_visual_region_rejection,
+                }
+                if self._visual_region_continuity is not None
+                else {"available": False}
+            ),
         }
         encoded = json.dumps(
             payload,
@@ -25606,6 +25921,15 @@ class Guala:
                 "place": getattr(self, "_last_place_tags", None) or [],
                 "ambient": getattr(self, "_last_ambient_tags", None) or [],
             },
+            "visual_region_authority": (
+                {
+                    **self._visual_region_continuity.status(),
+                    "available": True,
+                    "latest_rejection": self._latest_visual_region_rejection,
+                }
+                if self._visual_region_continuity is not None
+                else {"available": False}
+            ),
             # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's
             # backgrounding ruling: "dropped/queued counts visible in
             # status" -- experience_word()'s ~255ms/word cost (22.3x

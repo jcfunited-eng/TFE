@@ -9,6 +9,7 @@ from io import BytesIO
 
 import pytest
 from PIL import Image
+from fastapi.testclient import TestClient
 
 import dsf_ai_service.app as app_module
 import dsf_ai_service.substrate_runner as substrate_runner
@@ -58,8 +59,7 @@ def _post(
     sequence: int,
     first_sample_index: int,
     pcm: bytes,
-    sight_b64: str | None = None,
-    sight_captured_ms: int | None = None,
+    sight_frames: list[app_module.GLVisualFrameClaim] | None = None,
 ):
     return asyncio.run(app_module.sound_frame(app_module.GLMessage(
         text=base64.b64encode(pcm).decode("ascii"),
@@ -71,8 +71,7 @@ def _post(
         audio_sample_count=len(pcm) // 2,
         audio_sample_rate_hz=PCM_SAMPLE_RATE_HZ,
         audio_source_epoch_ms=1_000,
-        sight_b64=sight_b64,
-        sight_captured_ms=sight_captured_ms,
+        sight_frames=sight_frames,
     )))
 
 
@@ -82,6 +81,17 @@ def _jpeg_b64() -> str:
         payload, format="JPEG"
     )
     return base64.b64encode(payload.getvalue()).decode("ascii")
+
+
+def _sight_frames(source_start_ms: int):
+    encoded = _jpeg_b64()
+    return [
+        app_module.GLVisualFrameClaim(
+            captured_ms=source_start_ms + offset,
+            frame_b64=encoded,
+        )
+        for offset in (800, 1_600, 2_400, 3_200)
+    ]
 
 
 def test_pcm_chunks_enter_existing_full_field_without_ffmpeg(
@@ -278,8 +288,7 @@ def test_pcm_interval_contains_the_complete_paired_sight_field(
         sequence=0,
         first_sample_index=0,
         pcm=_pcm(offset=0, count=80_000),
-        sight_b64=_jpeg_b64(),
-        sight_captured_ms=1_000,
+        sight_frames=_sight_frames(1_000),
     )
     assert response["ok"] is True
     assert response["causal_boundary"] == "audiovisual"
@@ -289,8 +298,7 @@ def test_pcm_interval_contains_the_complete_paired_sight_field(
         sequence=1,
         first_sample_index=80_000,
         pcm=_pcm(offset=80_000, count=80_000),
-        sight_b64=_jpeg_b64(),
-        sight_captured_ms=6_000,
+        sight_frames=_sight_frames(6_000),
     )
     assert second["ok"] is True
     assert second["causal_boundary"] == "audiovisual"
@@ -304,6 +312,67 @@ def test_pcm_interval_contains_the_complete_paired_sight_field(
     assert len(
         response["pcm_continuity"]["causal_settlement_receipt_sha256"]
     ) == 64
+
+
+def test_rejected_visual_sequence_does_not_close_valid_pcm_continuity(
+    engine: Guala,
+) -> None:
+    stream_id = asyncio.run(app_module.auditory_pcm_stream_open())["stream_id"]
+    frames = _sight_frames(1_000)
+    frames[2] = app_module.GLVisualFrameClaim(
+        captured_ms=frames[1].captured_ms,
+        frame_b64=frames[2].frame_b64,
+    )
+    response = _post(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        pcm=_pcm(offset=0, count=80_000),
+        sight_frames=frames,
+    )
+    assert response["ok"] is True
+    assert response["causal_boundary"] == "sound"
+    assert response["visual_region"]["status"] == "rejected"
+    assert response["pcm_continuity"]["status"] == "contiguous"
+    assert asyncio.run(app_module.auditory_pcm_stream_close(
+        app_module.AuditoryPCMStreamCloseRequest(stream_id=stream_id)
+    ))["ok"] is True
+
+
+def test_malformed_visual_transport_cannot_preempt_valid_pcm(
+    engine: Guala,
+) -> None:
+    opened = asyncio.run(app_module.auditory_pcm_stream_open())
+    stream_id = opened["stream_id"]
+    pcm = _pcm(offset=0, count=16_000)
+    response = TestClient(app_module.app).post(
+        "/sound_frame",
+        json={
+            "text": base64.b64encode(pcm).decode("ascii"),
+            "source": "browser_microphone",
+            "audio_encoding": "pcm_s16le",
+            "audio_stream_id": stream_id,
+            "audio_sequence": 0,
+            "audio_first_sample_index": 0,
+            "audio_sample_count": 16_000,
+            "audio_sample_rate_hz": PCM_SAMPLE_RATE_HZ,
+            "audio_source_epoch_ms": 1_000,
+            "sight_b64": 7,
+            "sight_captured_ms": "not-an-integer",
+            "sight_frames": [
+                {"captured_ms": "not-an-integer"},
+                {},
+                3,
+                None,
+            ],
+        },
+    )
+    assert response.status_code == 200
+    result = response.json()
+    assert result["ok"] is True
+    assert result["causal_boundary"] == "sound"
+    assert result["visual_region"]["status"] == "rejected"
+    assert result["pcm_continuity"]["status"] == "contiguous"
 
 
 def test_continuous_full_field_terminal_opens_one_existing_reply_door(
@@ -363,6 +432,6 @@ def test_pcm_source_interval_is_derived_from_sample_identity() -> None:
         audio_sample_rate_hz=16_000,
         audio_source_epoch_ms=10_000,
     )
-    times = app_module._authoritative_capture_times(msg, paired_sight=False)
+    times = app_module._authoritative_capture_times(msg)
     assert times["source_time_start_ns"] == 13_000_000_000
     assert times["source_time_end_ns"] == 13_500_000_000

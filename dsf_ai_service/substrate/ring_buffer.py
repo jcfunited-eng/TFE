@@ -131,6 +131,7 @@ class InputRing:
     KINDS = frozenset({
         "text_input",
         "sight_frame",
+        "sight_sequence",
         "sound_window",
         "experience_bundle",
         "wake_signal",

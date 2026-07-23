@@ -179,21 +179,39 @@ def test_sound_frame_processed_when_no_turn_in_flight(clean_converse_flag):
     collaborators are stubbed -- the gate/handler flow is real."""
     processed = []
     fake = SimpleNamespace(tick=9, _latest_causal_settlement=None)
+    class WindowManager:
+        active = None
+
+        def begin_context(self, context_id, trigger_reason, context_detail=None):
+            self.active = context_id
+
+        def end_context(self, context_id, _reason, *, return_settlement=False):
+            assert context_id == self.active
+            self.active = None
+            settlement = SimpleNamespace(
+                assembly_id=f"causal-{context_id}",
+                interpretations=(
+                    SimpleNamespace(sense="sound", state="observed"),
+                ),
+                verify=lambda: None,
+            )
+            fake._latest_causal_settlement = settlement
+            return (context_id, settlement) if return_settlement else context_id
+
+        def discard_unsettled_context(self, *_args, **_kwargs):
+            self.active = None
+
+    fake.window_manager = WindowManager()
     def process_sound_frame(wav, source=None, **_kwargs):
         processed.append(source)
-        window_id = "priority-sound-window"
-        fake._latest_causal_settlement = SimpleNamespace(
-            assembly_id=f"causal-{window_id}",
-            interpretations=(SimpleNamespace(sense="sound", state="observed"),),
-            verify=lambda: None,
-        )
-        return {"accepted": True, "closed_window_id": window_id,
-                "settlement": fake._latest_causal_settlement}
+        return {"accepted": True, "closed_window_id": None,
+                "settlement": None}
     fake.process_sound_frame = process_sound_frame
     fake.auditory_l5_status = lambda: {
         "recognition_attempted": False,
         "status": "not_attempted",
     }
+    fake._log_substrate_event = lambda *_args, **_kwargs: None
     appmod._guala = fake
 
     # Stub only the UNRELATED heavy collaborators (webm decoder + the vocab
@@ -216,7 +234,7 @@ def test_sound_frame_processed_when_no_turn_in_flight(clean_converse_flag):
         gvi.spoken_word_recognition_unavailable = saved_reco
 
     assert "converse_priority" not in resp, "not shed when nothing is in flight"
-    assert resp["ok"] is True
+    assert resp["ok"] is True, resp
     assert processed == ["ambient"], "frame really processed"
     assert appmod._frame_inflight["sound"] == 0, "gate slot released"
 

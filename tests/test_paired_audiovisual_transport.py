@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import base64
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+from PIL import Image
 
 import dsf_ai_service.app as appmod
 
@@ -65,15 +67,25 @@ def _capture_message(**values):
     )
 
 
+def _visual_claims():
+    payload = BytesIO()
+    Image.new("L", (64, 64), color=80).save(payload, format="JPEG")
+    encoded = base64.b64encode(payload.getvalue()).decode("ascii")
+    return [
+        appmod.GLVisualFrameClaim(captured_ms=value, frame_b64=encoded)
+        for value in (1_800, 2_600, 3_400, 4_200)
+    ]
+
+
 def test_sound_request_binds_paired_camera_frame_in_one_context(
         monkeypatch) -> None:
     import dsf_ai_service.substrate_runner as substrate_runner
 
     calls = []
     windows = _RecordingWindowManager(calls)
-    def process_sight(grid, **_kwargs):
-        calls.append(("sight", windows.active, tuple(grid.shape)))
-        return {"accepted": True, "entries_bound": 3}
+    def process_sight(frames, **_kwargs):
+        calls.append(("sight", windows.active, len(frames)))
+        return {"accepted": True, "entries_bound": 1, "receptor_count": 64}
 
     def process_sound(wav, source=None, **_kwargs):
         calls.append(("sound", windows.active, wav, source))
@@ -82,9 +94,10 @@ def test_sound_request_binds_paired_camera_frame_in_one_context(
     fake = SimpleNamespace(
         tick=42,
         window_manager=windows,
-        process_sight_frame=process_sight,
+        process_live_visual_region_sequence=process_sight,
         process_sound_frame=process_sound,
         _latest_causal_settlement=None,
+        _latest_visual_region_observation={"regions": []},
         auditory_l5_status=_unknown_auditory_status,
         _log_substrate_event=lambda *_args, **_kwargs: None,
     )
@@ -94,15 +107,12 @@ def test_sound_request_binds_paired_camera_frame_in_one_context(
     monkeypatch.setattr(appmod, "_converse_window_started_at", 0.0)
     monkeypatch.setattr(
         substrate_runner, "_webm_to_wav_bytes", lambda _payload: b"RIFFwav")
-    monkeypatch.setattr(
-        appmod, "decode_image_bytes",
-        lambda _payload: (None, np.zeros((8, 8)), None, None))
     monkeypatch.setenv("VOICE_WHISPER", "0")
 
     response = asyncio.run(appmod.sound_frame(_capture_message(
         text=base64.b64encode(b"webm").decode("ascii"),
         source="joe_voice",
-        sight_b64=base64.b64encode(b"jpeg").decode("ascii"),
+        sight_frames=_visual_claims(),
     )))
 
     assert response["ok"] is True
@@ -122,7 +132,7 @@ def test_failed_sight_does_not_erase_sound_or_common_settlement(
     calls = []
     windows = _RecordingWindowManager(calls)
 
-    def fail_sight(_grid, **_kwargs):
+    def fail_sight(_frames, **_kwargs):
         calls.append(("sight_failed", windows.active))
         raise ValueError("invalid camera frame")
 
@@ -133,9 +143,10 @@ def test_failed_sight_does_not_erase_sound_or_common_settlement(
     fake = SimpleNamespace(
         tick=42,
         window_manager=windows,
-        process_sight_frame=fail_sight,
+        process_live_visual_region_sequence=fail_sight,
         process_sound_frame=process_sound,
         _latest_causal_settlement=None,
+        _latest_visual_region_observation=None,
         auditory_l5_status=_unknown_auditory_status,
         _log_substrate_event=lambda *args, **kwargs: calls.append(
             ("event", args, kwargs)),
@@ -146,15 +157,12 @@ def test_failed_sight_does_not_erase_sound_or_common_settlement(
     monkeypatch.setattr(appmod, "_converse_window_started_at", 0.0)
     monkeypatch.setattr(
         substrate_runner, "_webm_to_wav_bytes", lambda _payload: b"RIFFwav")
-    monkeypatch.setattr(
-        appmod, "decode_image_bytes",
-        lambda _payload: (None, np.zeros((8, 8)), None, None))
     monkeypatch.setenv("VOICE_WHISPER", "0")
 
     response = asyncio.run(appmod.sound_frame(_capture_message(
         text=base64.b64encode(b"webm").decode("ascii"),
         source="joe_voice",
-        sight_b64=base64.b64encode(b"jpeg").decode("ascii"),
+        sight_frames=_visual_claims(),
     )))
 
     assert response["ok"] is True
@@ -178,21 +186,48 @@ def test_remote_transport_preserves_paired_image_and_reports_queued_state(
 
     monkeypatch.setattr(appmod, "_is_remote", lambda: True)
     monkeypatch.setattr(appmod, "_get_substrate_client", lambda: _Client())
-    sight = base64.b64encode(b"jpeg").decode("ascii")
+    sight = _visual_claims()
 
     response = asyncio.run(appmod.sound_frame(_capture_message(
         text=base64.b64encode(b"webm").decode("ascii"),
         source="joe_voice",
-        sight_b64=sight,
+        sight_frames=sight,
     )))
 
     assert response["ok"] is True
     assert response["causal_boundary"] == "queued_audiovisual"
     assert calls[0][0] == "ring_write"
-    assert calls[0][1]["data"]["sight_b64"] == sight
+    assert calls[0][1]["data"]["sight_frames"] == [
+        {"captured_ms": value.captured_ms, "frame_b64": value.frame_b64}
+        for value in sight
+    ]
     assert calls[0][1]["data"]["source_time_start_ns"] == 1_000_000_000
     assert calls[0][1]["data"]["source_time_end_ns"] == 6_000_000_000
-    assert calls[0][1]["data"]["sight_source_anchor_ns"] == 1_000_000_000
+    assert calls[0][1]["data"]["legacy_sight_claimed"] is False
+
+
+def test_remote_legacy_singleton_is_loudly_rejected_without_dropping_sound(
+        monkeypatch) -> None:
+    calls = []
+
+    class _Client:
+        async def call(self, operation, **kwargs):
+            calls.append((operation, kwargs))
+            return {"ok": True, "seq": 8}
+
+    monkeypatch.setattr(appmod, "_is_remote", lambda: True)
+    monkeypatch.setattr(appmod, "_get_substrate_client", lambda: _Client())
+    response = asyncio.run(appmod.sound_frame(_capture_message(
+        text=base64.b64encode(b"webm").decode("ascii"),
+        source="joe_voice",
+        sight_b64="legacy-single-frame",
+    )))
+
+    assert response["ok"] is True
+    assert response["causal_boundary"] == "queued_sound_visual_rejected"
+    assert response["visual_region"]["status"] == "rejected"
+    assert calls[0][1]["data"]["visual_claimed"] is True
+    assert calls[0][1]["data"]["legacy_sight_claimed"] is True
 
 
 def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) -> None:
@@ -200,7 +235,7 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
     response = asyncio.run(appmod.sound_frame(appmod.GLMessage(
         text=base64.b64encode(b"webm").decode("ascii"),
         source="joe_voice",
-        sight_b64=base64.b64encode(b"jpeg").decode("ascii"),
+        sight_frames=_visual_claims(),
     )))
 
     assert response["ok"] is False
@@ -210,10 +245,12 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
 
 def test_browser_suppresses_duplicate_camera_stream_during_mic_capture() -> None:
     html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert "if(micPCMActive)return;" in html
+    assert "if(micPCMActive)" in html
     assert "utteranceTransitioning" not in html
     assert "utteranceActive" not in html
-    assert "const promise=camStream?captureConversationSight()" in html
+    assert "sight_frames=await sight.promise" in html
+    assert "visualFrameCount:opened.visual_capture.minimum_frames" in html
+    assert "standaloneSightAbort.abort()" in html
     assert "JSON.stringify({text,source,sight_b64})" not in html
     assert "JSON.stringify({text,source})" in html
     assert "audio_first_sample_index:firstSampleIndex" in html

@@ -204,7 +204,7 @@ def test_aggregate_teaching_boundary_is_checked_before_write(monkeypatch):
     guala = Guala()
     try:
         monkeypatch.setattr(engine_module, "TEACHING_STATE_MAX_BYTES", 1)
-        with pytest.raises(RuntimeError, match="aggregate byte boundary"):
+        with pytest.raises(RuntimeError, match="byte boundary"):
             guala._bounded_teaching_envelope()
     finally:
         guala.strict_shutdown(timeout=30.0)
