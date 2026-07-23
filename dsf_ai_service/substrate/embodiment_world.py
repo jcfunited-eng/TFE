@@ -1768,6 +1768,16 @@ class EmbodimentWorldAuthority:
         with self._lock:
             self._verify_execution(receipt)
 
+    def verify_observation_snapshot(
+        self, observation: ObservationSnapshot
+    ) -> None:
+        """Verify one self-contained authenticated W1 observation."""
+
+        if not isinstance(observation, ObservationSnapshot):
+            raise ValueError("observation snapshot is not typed")
+        with self._lock:
+            self._verify_observation(observation)
+
     def _verify_observation(self, observation: ObservationSnapshot) -> None:
         world = _WorldState(
             revision=observation.revision,

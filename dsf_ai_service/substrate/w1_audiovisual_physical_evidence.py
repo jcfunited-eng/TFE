@@ -1,4 +1,4 @@
-"""Bounded anonymous audiovisual physics for consecutive W1 observations.
+"""Bounded anonymous multisensory physics for consecutive W1 observations.
 
 This authority turns one authenticated W1 execution boundary into a transient
 two-ear acoustic capture and a two-sample anonymous visual field.  The W1
@@ -16,7 +16,8 @@ sample delay and exact rational inverse-square attenuation.  Only cardinal
 body headings are admitted because those are the headings for which W1's
 integer geometry can place both ears without a trigonometric approximation.
 
-Both senses enter the canonical native six-sense builder, so frozen L0--L4
+Sight, sound, body, and contact enter the canonical native six-sense builder,
+so frozen L0--L4
 evaluates D_k, M_k, R_rev_k, U_star_k, C_k, P_k, and B_k independently on
 every substream.  The returned compact settlement retains those full fields.
 Raw PCM and source geometry are transient and are never retained by this
@@ -69,16 +70,29 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
 )
 
 
-EVIDENCE_SCHEMA = "guala.w1.anonymous_audiovisual_evidence.v2"
-PERSISTENCE_SCHEMA = "guala.w1.anonymous_audiovisual_persistence.v2"
-AUTHORITY_DOMAIN = b"guala-w1-anonymous-audiovisual-evidence-v2\0"
+EVIDENCE_SCHEMA = "guala.w1.anonymous_multisensory_evidence.v4"
+PERSISTENCE_SCHEMA = "guala.w1.anonymous_multisensory_persistence.v4"
+AUTHORITY_DOMAIN = b"guala-w1-anonymous-multisensory-evidence-v4\0"
 
 PCM_SAMPLE_WIDTH_BYTES = 2
 SPEED_OF_SOUND_MM_PER_SECOND = 343_000
 MAX_PROPAGATION_DELAY_SAMPLES = MAX_EMITTED_PCM_SAMPLES
 
 _VISUAL_AXES = ("relative-x", "relative-y", "relative-z", "apparent-radius")
+_BODY_AXES = (
+    "position-x",
+    "position-y",
+    "position-z",
+    "heading",
+    "body-radius",
+    "reach",
+    "holding-contact",
+)
+_TOUCH_AXES = ("contact", "contact-radius", "contact-mass")
 _CARDINAL_HEADINGS = (0, 90_000, 180_000, 270_000)
+_PHYSICAL_RADIUS_SCALE = 1 << 20
+_BODY_REACH_SCALE = 1 << 20
+_OBJECT_MASS_SCALE = 1 << 30
 
 
 def _canonical(value: object) -> bytes:
@@ -173,7 +187,16 @@ def _render_ear(
     ear: PositionMM,
     reference_distance_mm: int,
     pending_samples: tuple[int, ...],
-) -> tuple[bytes, tuple[int, ...], int, Fraction]:
+    pending_receipt_sha256s: tuple[str | None, ...],
+    emission_receipt_sha256: str,
+) -> tuple[
+    bytes,
+    tuple[int, ...],
+    tuple[str | None, ...],
+    tuple[str, ...],
+    int,
+    Fraction,
+]:
     distance_squared = _distance_squared(source, ear)
     delay = _delay_samples(distance_squared)
     reference_squared = reference_distance_mm**2
@@ -181,17 +204,42 @@ def _render_ear(
         reference_squared,
         max(reference_squared, distance_squared),
     )
-    if pending_samples and len(pending_samples) != delay:
+    if (
+        bool(pending_samples) != bool(pending_receipt_sha256s)
+        or pending_samples
+        and (
+            len(pending_samples) != delay
+            or len(pending_receipt_sha256s) != delay
+        )
+    ):
         raise ValueError("W1 acoustic propagation path changed inside epoch")
     pending = pending_samples or (0,) * delay
+    pending_receipts = pending_receipt_sha256s or (None,) * delay
     continuous = pending + tuple(
         _scaled_sample(sample, attenuation) for sample in samples
     )
+    continuous_receipts = pending_receipts + (
+        emission_receipt_sha256,
+    ) * len(samples)
     rendered = continuous[:len(samples)]
     next_pending = continuous[len(samples):]
+    rendered_receipts = continuous_receipts[:len(samples)]
+    next_pending_receipts = continuous_receipts[len(samples):]
     if len(next_pending) != delay:
         raise RuntimeError("W1 acoustic delay line cardinality changed")
-    return _pcm_bytes(rendered), next_pending, delay, attenuation
+    if len(next_pending_receipts) != delay:
+        raise RuntimeError("W1 acoustic provenance cardinality changed")
+    contributing_receipts = tuple(dict.fromkeys(
+        receipt for receipt in rendered_receipts if receipt is not None
+    ))
+    return (
+        _pcm_bytes(rendered),
+        next_pending,
+        next_pending_receipts,
+        contributing_receipts,
+        delay,
+        attenuation,
+    )
 
 
 def _body(snapshot: ObservationSnapshot, body_id: str) -> EmbodiedBody:
@@ -256,7 +304,7 @@ def _exact_binary_float(value: Fraction) -> float:
 
 @dataclass(frozen=True, slots=True)
 class _AnonymousDetection:
-    control_body_id: str
+    control_track_id: str
     values: tuple[Fraction, Fraction, Fraction, Fraction]
 
     @property
@@ -269,11 +317,10 @@ def _anonymous_detections(
 ) -> tuple[_AnonymousDetection, ...]:
     self_body = _body(snapshot, snapshot.self_body_id)
     origin = self_body.pose.position
-    span_x, span_y, span_z, planar_span = _global_spans(snapshot)
+    span_x, span_y, span_z, _planar_span = _global_spans(snapshot)
     scale_x = _binary_scale(span_x)
     scale_y = _binary_scale(span_y)
     scale_z = _binary_scale(span_z)
-    planar_scale = _binary_scale(planar_span)
     values = []
     for body in snapshot.bodies:
         if body.body_id == snapshot.self_body_id:
@@ -287,12 +334,31 @@ def _anonymous_detections(
             continue
         position = body.pose.position
         values.append(_AnonymousDetection(
-            control_body_id=body.body_id,
+            control_track_id=f"body:{body.body_id}",
             values=(
                 Fraction(position.x - origin.x, scale_x),
                 Fraction(position.y - origin.y, scale_y),
                 Fraction(position.z - origin.z, scale_z),
-                Fraction(body.radius_mm, planar_scale),
+                Fraction(body.radius_mm, _PHYSICAL_RADIUS_SCALE),
+            ),
+        ))
+    body_by_id = {item.body_id: item for item in snapshot.bodies}
+    for item in snapshot.objects:
+        position = item.position
+        if position is None:
+            holder = body_by_id.get(item.held_by_body_id)
+            if holder is None:
+                raise ValueError("W1 held object control topology changed")
+            position = holder.pose.position
+        if not _is_visible(snapshot, origin, position, item.radius_mm):
+            continue
+        values.append(_AnonymousDetection(
+            control_track_id=f"object:{item.object_id}",
+            values=(
+                Fraction(position.x - origin.x, scale_x),
+                Fraction(position.y - origin.y, scale_y),
+                Fraction(position.z - origin.z, scale_z),
+                Fraction(item.radius_mm, _PHYSICAL_RADIUS_SCALE),
             ),
         ))
     return tuple(sorted(values, key=lambda item: item.anonymous_order_key))
@@ -314,8 +380,12 @@ def _visual_inputs(
     if not first or not second or len(first) != len(second):
         return (), _digest({"before": (), "after": ()}), False
     order_crossed = tuple(
-        item.control_body_id for item in first
-    ) != tuple(item.control_body_id for item in second)
+        item.control_track_id for item in first
+    ) != tuple(item.control_track_id for item in second)
+    order_crossed = order_crossed or (
+        len({item.anonymous_order_key for item in first}) != len(first)
+        or len({item.anonymous_order_key for item in second}) != len(second)
+    )
     witness = []
     inputs = []
     for ordinal, (left, right) in enumerate(
@@ -339,7 +409,7 @@ def _visual_inputs(
                     ),
                     NativeAxisCoordinate("physical-axis", axis),
                 ),
-                physical_quantity="normalized-visual-body-geometry",
+                physical_quantity="normalized-visual-physical-geometry",
                 physical_unit="dimensionless",
                 source_times=(source_time_start, source_time_end),
                 normalized_signal=tuple(
@@ -351,6 +421,139 @@ def _visual_inputs(
         "schema": "guala.w1.anonymous_visual_series.v1",
         "substreams": witness,
     }), order_crossed
+
+
+def _held_physical_values(
+    snapshot: ObservationSnapshot,
+) -> tuple[Fraction, Fraction, Fraction]:
+    held = tuple(
+        item for item in snapshot.objects
+        if item.held_by_body_id == snapshot.self_body_id
+    )
+    if len(held) > 1:
+        raise ValueError("W1 self contact topology changed")
+    if not held:
+        return Fraction(-1), Fraction(0), Fraction(0)
+    item = held[0]
+    return (
+        Fraction(1),
+        Fraction(item.radius_mm, _PHYSICAL_RADIUS_SCALE),
+        Fraction(item.mass_grams, _OBJECT_MASS_SCALE),
+    )
+
+
+def _somatic_inputs(
+    before: ObservationSnapshot,
+    after: ObservationSnapshot,
+    *,
+    source_time_start: Fraction,
+    source_time_end: Fraction,
+) -> tuple[
+    dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+    str,
+]:
+    before_self = _body(before, before.self_body_id)
+    after_self = _body(after, after.self_body_id)
+    span_x, span_y, span_z, _planar_span = _global_spans(after)
+    scale_x = _binary_scale(span_x)
+    scale_y = _binary_scale(span_y)
+    scale_z = _binary_scale(span_z)
+    heading_scale = 1 << 19
+    minimum_x = min(item.bounds.minimum.x for item in after.regions)
+    minimum_y = min(item.bounds.minimum.y for item in after.regions)
+    minimum_z = min(item.bounds.minimum.z for item in after.regions)
+    before_touch = _held_physical_values(before)
+    after_touch = _held_physical_values(after)
+    before_body = (
+        Fraction(before_self.pose.position.x - minimum_x, scale_x),
+        Fraction(before_self.pose.position.y - minimum_y, scale_y),
+        Fraction(before_self.pose.position.z - minimum_z, scale_z),
+        Fraction(before_self.pose.heading_millidegrees, heading_scale),
+        Fraction(before_self.radius_mm, _PHYSICAL_RADIUS_SCALE),
+        Fraction(before_self.reach_mm, _BODY_REACH_SCALE),
+        before_touch[0],
+    )
+    after_body = (
+        Fraction(after_self.pose.position.x - minimum_x, scale_x),
+        Fraction(after_self.pose.position.y - minimum_y, scale_y),
+        Fraction(after_self.pose.position.z - minimum_z, scale_z),
+        Fraction(after_self.pose.heading_millidegrees, heading_scale),
+        Fraction(after_self.radius_mm, _PHYSICAL_RADIUS_SCALE),
+        Fraction(after_self.reach_mm, _BODY_REACH_SCALE),
+        after_touch[0],
+    )
+    if any(
+        not -1 <= value <= 1
+        for value in (*before_body, *after_body, *before_touch, *after_touch)
+    ):
+        raise ValueError("W1 somatic field left its physical boundary")
+
+    witness = []
+
+    def build(
+        sense: PhysicalSense,
+        sensor_id: str,
+        axes: tuple[str, ...],
+        left: tuple[Fraction, ...],
+        right: tuple[Fraction, ...],
+    ) -> tuple[NativeSensorySubstreamInput, ...]:
+        inputs = []
+        for index, axis in enumerate(axes):
+            exact_values = (left[index], right[index])
+            witness.append({
+                "axis": axis,
+                "sense": sense.value,
+                "values": [
+                    _fraction_text(item) for item in exact_values
+                ],
+            })
+            inputs.append(NativeSensorySubstreamInput(
+                sense=sense,
+                sensor_id=sensor_id,
+                substream_id=f"anonymous-{sense.value}-{axis}",
+                topology_index=index,
+                coordinates=(
+                    NativeAxisCoordinate("physical-axis", axis),
+                    NativeAxisCoordinate(
+                        "reference-frame",
+                        "proprioceptive" if sense is PhysicalSense.BODY
+                        else "body-surface",
+                    ),
+                ),
+                physical_quantity=(
+                    "normalized-proprioceptive-geometry"
+                    if sense is PhysicalSense.BODY
+                    else "normalized-contact-state"
+                ),
+                physical_unit="dimensionless",
+                source_times=(source_time_start, source_time_end),
+                normalized_signal=tuple(
+                    _exact_binary_float(item) for item in exact_values
+                ),
+                phase_turns=(Fraction(0), Fraction(0)),
+            ))
+        return tuple(inputs)
+
+    observed = {
+        PhysicalSense.BODY: build(
+            PhysicalSense.BODY,
+            "W1-anonymous-proprioceptive-field",
+            _BODY_AXES,
+            before_body,
+            after_body,
+        ),
+        PhysicalSense.TOUCH: build(
+            PhysicalSense.TOUCH,
+            "W1-anonymous-contact-field",
+            _TOUCH_AXES,
+            before_touch,
+            after_touch,
+        ),
+    }
+    return observed, _digest({
+        "schema": "guala.w1.anonymous_somatic_series.v1",
+        "substreams": witness,
+    })
 
 
 def _sound_input(
@@ -486,7 +689,8 @@ class W1PhysicalEvidenceReceipt:
     source_time_start: Fraction
     source_time_end: Fraction
     visual_series_sha256: str
-    acoustic_emission_receipt_sha256: str
+    somatic_series_sha256: str
+    acoustic_emission_receipt_sha256s: tuple[str, ...]
     binaural_commitment: Mapping[str, object]
     causal_settlement_receipt_sha256: str
     authority_hmac_sha256: str
@@ -494,8 +698,8 @@ class W1PhysicalEvidenceReceipt:
 
     def payload(self) -> dict[str, object]:
         return {
-            "acoustic_emission_receipt_sha256": (
-                self.acoustic_emission_receipt_sha256
+            "acoustic_emission_receipt_sha256s": list(
+                self.acoustic_emission_receipt_sha256s
             ),
             "binaural_commitment": dict(self.binaural_commitment),
             "causal_settlement_receipt_sha256": (
@@ -510,6 +714,7 @@ class W1PhysicalEvidenceReceipt:
             "source_time_end": _fraction_text(self.source_time_end),
             "source_time_start": _fraction_text(self.source_time_start),
             "state": self.state.value,
+            "somatic_series_sha256": self.somatic_series_sha256,
             "visual_series_sha256": self.visual_series_sha256,
         }
 
@@ -539,10 +744,16 @@ class W1PhysicalEvidenceReceipt:
                 "prior W1 evidence receipt",
             )
         _sha256(self.visual_series_sha256, "W1 visual series")
-        _sha256(
-            self.acoustic_emission_receipt_sha256,
-            "W1 authenticated acoustic emission",
-        )
+        _sha256(self.somatic_series_sha256, "W1 somatic series")
+        if (
+            not isinstance(self.acoustic_emission_receipt_sha256s, tuple)
+            or not self.acoustic_emission_receipt_sha256s
+            or len(set(self.acoustic_emission_receipt_sha256s))
+            != len(self.acoustic_emission_receipt_sha256s)
+        ):
+            raise ValueError("W1 acoustic contribution boundary changed")
+        for receipt in self.acoustic_emission_receipt_sha256s:
+            _sha256(receipt, "W1 authenticated acoustic emission")
         _sha256(
             self.causal_settlement_receipt_sha256,
             "W1 causal settlement",
@@ -620,6 +831,10 @@ class _BinauralRender:
     binaural: W1BinauralPCM
     left_pending_samples: tuple[int, ...]
     right_pending_samples: tuple[int, ...]
+    left_pending_receipt_sha256s: tuple[str | None, ...]
+    right_pending_receipt_sha256s: tuple[str | None, ...]
+    contributing_receipt_sha256s: tuple[str, ...]
+    path_commitment_sha256: str
 
 
 @dataclass(slots=True)
@@ -630,6 +845,9 @@ class _Epoch:
     previous_after_observation_receipt_sha256: str | None = None
     left_pending_samples: tuple[int, ...] = ()
     right_pending_samples: tuple[int, ...] = ()
+    left_pending_receipt_sha256s: tuple[str | None, ...] = ()
+    right_pending_receipt_sha256s: tuple[str | None, ...] = ()
+    path_commitment_sha256: str | None = None
 
 
 class W1AudiovisualPhysicalEvidenceAuthority:
@@ -682,7 +900,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         epoch_token: str,
         sequence: int,
         source_sample_start: int,
-        execution_receipt: ActionExecutionReceipt,
+        observation_snapshot: ObservationSnapshot,
         emitter_port_id: str,
         pcm_s16le: bytes,
     ) -> AuthenticatedW1AcousticEmission:
@@ -691,7 +909,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             epoch_token=epoch_token,
             sequence=sequence,
             source_sample_start=source_sample_start,
-            execution_receipt=execution_receipt,
+            observation_snapshot=observation_snapshot,
             emitter_port_id=emitter_port_id,
             pcm_s16le=pcm_s16le,
         )
@@ -710,8 +928,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         execution: ActionExecutionReceipt,
         emitter_port_id: str,
         emitted_samples: tuple[int, ...],
+        emission_receipt_sha256: str,
         left_pending_samples: tuple[int, ...],
         right_pending_samples: tuple[int, ...],
+        left_pending_receipt_sha256s: tuple[str | None, ...],
+        right_pending_receipt_sha256s: tuple[str | None, ...],
+        prior_path_commitment_sha256: str | None,
     ) -> _BinauralRender | W1PhysicalEvidenceMount:
         actor_by_port = {
             item.port_id: item.actor_body_id
@@ -725,37 +947,17 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 W1EvidenceState.UNAVAILABLE,
                 "self_emission_is_not_external_source_evidence",
             )
-        before_self = _body(execution.before, execution.before.self_body_id)
         after_self = _body(execution.after, execution.after.self_body_id)
-        before_emitter = _body(execution.before, emitter_body_id)
         after_emitter = _body(execution.after, emitter_body_id)
-        if before_self.pose != after_self.pose:
-            return self._unsettled(
-                W1EvidenceState.UNAVAILABLE,
-                "moving_receptor_calibration_is_unavailable",
-            )
-        if before_emitter.pose.position != after_emitter.pose.position:
-            return self._unsettled(
-                W1EvidenceState.UNAVAILABLE,
-                "timed_moving_emitter_path_is_unavailable",
-            )
-        if not (
-            _is_visible(
-                execution.before,
-                before_self.pose.position,
-                before_emitter.pose.position,
-                before_emitter.radius_mm,
-            )
-            and _is_visible(
-                execution.after,
-                after_self.pose.position,
-                after_emitter.pose.position,
-                after_emitter.radius_mm,
-            )
+        if not _is_visible(
+            execution.after,
+            after_self.pose.position,
+            after_emitter.pose.position,
+            after_emitter.radius_mm,
         ):
             return self._unsettled(
                 W1EvidenceState.UNKNOWN,
-                "acoustic_emitter_is_not_contemporaneously_visible",
+                "acoustic_emitter_is_not_visible_at_emission",
             )
         ears = _ear_positions(
             after_self, self._calibration.ear_separation_mm
@@ -766,12 +968,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "noncardinal_two_ear_calibration_is_unavailable",
             )
         left, right = ears
-        prospective_left_delay = _delay_samples(
-            _distance_squared(after_emitter.pose.position, left)
+        left_distance_squared = _distance_squared(
+            after_emitter.pose.position, left
         )
-        prospective_right_delay = _delay_samples(
-            _distance_squared(after_emitter.pose.position, right)
+        right_distance_squared = _distance_squared(
+            after_emitter.pose.position, right
         )
+        prospective_left_delay = _delay_samples(left_distance_squared)
+        prospective_right_delay = _delay_samples(right_distance_squared)
         if (
             prospective_left_delay > MAX_PROPAGATION_DELAY_SAMPLES
             or prospective_right_delay > MAX_PROPAGATION_DELAY_SAMPLES
@@ -780,9 +984,43 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 W1EvidenceState.UNAVAILABLE,
                 "acoustic_path_exceeds_bounded_delay_line",
             )
+        reference_squared = self._calibration.reference_distance_mm**2
+        prospective_left_attenuation = Fraction(
+            reference_squared,
+            max(reference_squared, left_distance_squared),
+        )
+        prospective_right_attenuation = Fraction(
+            reference_squared,
+            max(reference_squared, right_distance_squared),
+        )
+        path_commitment = _digest({
+            "ear_separation_mm": self._calibration.ear_separation_mm,
+            "left_attenuation": _fraction_text(
+                prospective_left_attenuation
+            ),
+            "left_delay_samples": prospective_left_delay,
+            "reference_distance_mm": (
+                self._calibration.reference_distance_mm
+            ),
+            "right_attenuation": _fraction_text(
+                prospective_right_attenuation
+            ),
+            "right_delay_samples": prospective_right_delay,
+            "schema": "guala.w1.anonymous_acoustic_path.v1",
+        })
+        if (
+            prior_path_commitment_sha256 is not None
+            and prior_path_commitment_sha256 != path_commitment
+        ):
+            return self._unsettled(
+                W1EvidenceState.UNKNOWN,
+                "acoustic_path_changed_closed_the_epoch",
+            )
         (
             left_pcm,
             next_left_pending,
+            next_left_pending_receipts,
+            left_contributing_receipts,
             left_delay,
             left_attenuation,
         ) = _render_ear(
@@ -791,10 +1029,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             ear=left,
             reference_distance_mm=self._calibration.reference_distance_mm,
             pending_samples=left_pending_samples,
+            pending_receipt_sha256s=left_pending_receipt_sha256s,
+            emission_receipt_sha256=emission_receipt_sha256,
         )
         (
             right_pcm,
             next_right_pending,
+            next_right_pending_receipts,
+            right_contributing_receipts,
             right_delay,
             right_attenuation,
         ) = _render_ear(
@@ -803,10 +1045,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             ear=right,
             reference_distance_mm=self._calibration.reference_distance_mm,
             pending_samples=right_pending_samples,
+            pending_receipt_sha256s=right_pending_receipt_sha256s,
+            emission_receipt_sha256=emission_receipt_sha256,
         )
         if (
             left_delay != prospective_left_delay
             or right_delay != prospective_right_delay
+            or left_attenuation != prospective_left_attenuation
+            or right_attenuation != prospective_right_attenuation
         ):
             raise RuntimeError("W1 acoustic path changed during rendering")
         result = W1BinauralPCM(
@@ -825,6 +1071,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             binaural=result,
             left_pending_samples=next_left_pending,
             right_pending_samples=next_right_pending,
+            left_pending_receipt_sha256s=next_left_pending_receipts,
+            right_pending_receipt_sha256s=next_right_pending_receipts,
+            contributing_receipt_sha256s=tuple(dict.fromkeys(
+                left_contributing_receipts + right_contributing_receipts
+            )),
+            path_commitment_sha256=path_commitment,
         )
 
     def mount(
@@ -854,7 +1106,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             raise TypeError("W1 authenticated acoustic emission is required")
         self._acoustic_emitter.verify_emission(
             acoustic_emission,
-            execution_receipt=execution_receipt,
+            observation_snapshot=execution_receipt.after,
         )
         emission_receipt = acoustic_emission.receipt
         if (
@@ -865,7 +1117,6 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             raise ValueError("W1 acoustic emission belongs to another epoch")
         emitted_pcm_s16le = acoustic_emission.pcm_s16le
         emitted_samples = _signed_pcm_samples(emitted_pcm_s16le)
-        emission_sha256 = hashlib.sha256(emitted_pcm_s16le).hexdigest()
         if (
             execution_receipt.disposition != "applied"
             or execution_receipt.after.revision
@@ -914,8 +1165,20 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 execution=execution_receipt,
                 emitter_port_id=emission_receipt.emitter_port_id,
                 emitted_samples=emitted_samples,
+                emission_receipt_sha256=(
+                    emission_receipt.authority_receipt_sha256
+                ),
                 left_pending_samples=epoch.left_pending_samples,
                 right_pending_samples=epoch.right_pending_samples,
+                left_pending_receipt_sha256s=(
+                    epoch.left_pending_receipt_sha256s
+                ),
+                right_pending_receipt_sha256s=(
+                    epoch.right_pending_receipt_sha256s
+                ),
+                prior_path_commitment_sha256=(
+                    epoch.path_commitment_sha256
+                ),
             )
             if isinstance(rendered, W1PhysicalEvidenceMount):
                 del self._epochs[epoch_token]
@@ -942,6 +1205,54 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     W1EvidenceState.UNKNOWN,
                     "anonymous_visual_series_is_incomplete",
                 )
+            somatic_inputs, somatic_commitment = _somatic_inputs(
+                execution_receipt.before,
+                execution_receipt.after,
+                source_time_start=source_time_start,
+                source_time_end=source_time_end,
+            )
+            if visual_order_crossed:
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.AMBIGUOUS,
+                    "anonymous_visual_order_crossed",
+                )
+            if not (
+                any(_signed_pcm_samples(binaural.left_pcm_s16le))
+                or any(_signed_pcm_samples(binaural.right_pcm_s16le))
+            ):
+                epoch.expected_sequence += 1
+                epoch.next_source_sample_index = (
+                    emission_receipt.source_sample_end
+                )
+                epoch.previous_after_observation_receipt_sha256 = (
+                    execution_receipt.after.authority_receipt_sha256
+                )
+                epoch.left_pending_samples = rendered.left_pending_samples
+                epoch.right_pending_samples = rendered.right_pending_samples
+                epoch.left_pending_receipt_sha256s = (
+                    rendered.left_pending_receipt_sha256s
+                )
+                epoch.right_pending_receipt_sha256s = (
+                    rendered.right_pending_receipt_sha256s
+                )
+                epoch.path_commitment_sha256 = (
+                    rendered.path_commitment_sha256
+                )
+                return self._unsettled(
+                    W1EvidenceState.UNKNOWN,
+                    "received_pressure_is_silent",
+                )
+            if binaural.left_pcm_s16le == binaural.right_pcm_s16le:
+                del self._epochs[epoch_token]
+                return self._unsettled(
+                    W1EvidenceState.AMBIGUOUS,
+                    "two_ear_field_is_spatially_symmetric",
+                )
+            if not rendered.contributing_receipt_sha256s:
+                raise RuntimeError(
+                    "received pressure lost authenticated source provenance"
+                )
             left_sound = _sound_input(
                 ear="left",
                 topology_index=0,
@@ -958,16 +1269,21 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             states = {
                 sense: (
                     SenseBoundaryState.OBSERVED
-                    if sense in (PhysicalSense.SIGHT, PhysicalSense.SOUND)
+                    if sense in (
+                        PhysicalSense.SIGHT,
+                        PhysicalSense.SOUND,
+                        PhysicalSense.TOUCH,
+                        PhysicalSense.BODY,
+                    )
                     else SenseBoundaryState.SENSOR_UNAVAILABLE
                 )
                 for sense in SENSE_ORDER
             }
-            assembly_id = "w1-anonymous-av-" + _digest({
-                "acoustic_emission_receipt_sha256": (
-                    emission_receipt.authority_receipt_sha256
+            assembly_id = "w1-anonymous-multisensory-" + _digest({
+                "acoustic_emission_receipt_sha256s": (
+                    rendered.contributing_receipt_sha256s
                 ),
-                "emission_sha256": emission_sha256,
+                "binaural_commitment": binaural.commitment_record(),
                 "execution_receipt_sha256": (
                     execution_receipt.authority_receipt_sha256
                 ),
@@ -975,6 +1291,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     epoch.prior_evidence_receipt_sha256
                 ),
                 "sequence": sequence,
+                "somatic_series_sha256": somatic_commitment,
                 "visual_series_sha256": visual_commitment,
             })
             built = build_six_sense_full_field(
@@ -984,6 +1301,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 observed_substreams={
                     PhysicalSense.SIGHT: visual_inputs,
                     PhysicalSense.SOUND: sound_inputs,
+                    **somatic_inputs,
                 },
                 states=states,
             )
@@ -994,34 +1312,12 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 commit=False,
                 reserve=True,
             )
-            state = (
-                W1EvidenceState.UNKNOWN
-                if not (
-                    any(_signed_pcm_samples(binaural.left_pcm_s16le))
-                    or any(_signed_pcm_samples(binaural.right_pcm_s16le))
-                )
-                else W1EvidenceState.AMBIGUOUS
-                if (
-                    visual_order_crossed
-                    or binaural.left_pcm_s16le == binaural.right_pcm_s16le
-                )
-                else W1EvidenceState.OBSERVED
-            )
-            reason = {
-                W1EvidenceState.UNKNOWN: "received_pressure_is_silent",
-                W1EvidenceState.AMBIGUOUS: (
-                    "anonymous_visual_order_crossed"
-                    if visual_order_crossed
-                    else "two_ear_field_is_spatially_symmetric"
-                ),
-                W1EvidenceState.OBSERVED: (
-                    "anonymous_spatial_audiovisual_evidence_observed"
-                ),
-            }[state]
+            state = W1EvidenceState.OBSERVED
+            reason = "anonymous_multisensory_evidence_observed"
             commitment = binaural.commitment_record()
             payload = {
-                "acoustic_emission_receipt_sha256": (
-                    emission_receipt.authority_receipt_sha256
+                "acoustic_emission_receipt_sha256s": list(
+                    rendered.contributing_receipt_sha256s
                 ),
                 "binaural_commitment": commitment,
                 "causal_settlement_receipt_sha256": (
@@ -1036,6 +1332,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 "source_time_end": _fraction_text(source_time_end),
                 "source_time_start": _fraction_text(source_time_start),
                 "state": state.value,
+                "somatic_series_sha256": somatic_commitment,
                 "visual_series_sha256": visual_commitment,
             }
             signature = hmac.new(
@@ -1053,8 +1350,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 source_time_start=source_time_start,
                 source_time_end=source_time_end,
                 visual_series_sha256=visual_commitment,
-                acoustic_emission_receipt_sha256=(
-                    emission_receipt.authority_receipt_sha256
+                somatic_series_sha256=somatic_commitment,
+                acoustic_emission_receipt_sha256s=(
+                    rendered.contributing_receipt_sha256s
                 ),
                 binaural_commitment=commitment,
                 causal_settlement_receipt_sha256=(
@@ -1078,11 +1376,25 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 ),
                 left_pending_samples=epoch.left_pending_samples,
                 right_pending_samples=epoch.right_pending_samples,
+                left_pending_receipt_sha256s=(
+                    epoch.left_pending_receipt_sha256s
+                ),
+                right_pending_receipt_sha256s=(
+                    epoch.right_pending_receipt_sha256s
+                ),
+                path_commitment_sha256=epoch.path_commitment_sha256,
             )
             epoch.expected_sequence += 1
             epoch.next_source_sample_index = emission_receipt.source_sample_end
             epoch.left_pending_samples = rendered.left_pending_samples
             epoch.right_pending_samples = rendered.right_pending_samples
+            epoch.left_pending_receipt_sha256s = (
+                rendered.left_pending_receipt_sha256s
+            )
+            epoch.right_pending_receipt_sha256s = (
+                rendered.right_pending_receipt_sha256s
+            )
+            epoch.path_commitment_sha256 = rendered.path_commitment_sha256
             epoch.prior_evidence_receipt_sha256 = (
                 receipt.authority_receipt_sha256
             )
@@ -1117,6 +1429,15 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 ) * PCM_SAMPLE_WIDTH_BYTES
                 for epoch in self._epochs.values()
             )
+            retained_provenance_bytes = sum(
+                64
+                for epoch in self._epochs.values()
+                for receipt in (
+                    epoch.left_pending_receipt_sha256s
+                    + epoch.right_pending_receipt_sha256s
+                )
+                if receipt is not None
+            )
             return {
                 "active_epochs": len(self._epochs),
                 "epoch_capacity": self._epoch_capacity,
@@ -1131,10 +1452,17 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     * PCM_SAMPLE_WIDTH_BYTES
                 ),
                 "retained_raw_media_bytes": retained_delay_line_bytes,
+                "max_retained_provenance_bytes": (
+                    self._epoch_capacity
+                    * 2
+                    * MAX_PROPAGATION_DELAY_SAMPLES
+                    * 64
+                ),
+                "retained_provenance_bytes": retained_provenance_bytes,
                 "retained_raw_media_kind": (
                     "bounded_transient_acoustic_delay_lines"
                 ),
-                "schema": "guala.w1.anonymous_audiovisual_status.v1",
+                "schema": "guala.w1.anonymous_multisensory_status.v2",
             }
 
 
