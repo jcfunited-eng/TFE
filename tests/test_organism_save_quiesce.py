@@ -87,7 +87,7 @@ def test_full_save_survives_sustained_worker_mutation(engine):
             # ("full save failed ... deque mutated during iteration") --
             # exactly the 2026-07-16 seal 503. Not raising IS the fix.
             results = g.save_full_state(state_dir)
-            assert any(k.startswith("guala_organism.pkl.gz")
+            assert any(k.startswith("guala_organism.sgr")
                        for k in results), results
     finally:
         stop.set()

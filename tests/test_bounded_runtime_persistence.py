@@ -82,10 +82,10 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
     assert restored._guala_identity == guala._guala_identity
     assert restored.tick == guala.tick
     assert {
-        "guala_organism.pkl.gz",
-        "guala_organism.pkl.gz.binding.json",
-        "guala_tapestry.pkl.gz",
-        "guala_tapestry.pkl.gz.binding.json",
+        "guala_organism.sgr",
+        "guala_organism.sgr.binding.json",
+        "guala_tapestry.sgr",
+        "guala_tapestry.sgr.binding.json",
         "wave_atlas.npz",
         "wave_atlas.npz.binding.json",
     }.issubset(files)
@@ -129,3 +129,21 @@ def test_real_guala_cold_save_cannot_cross_stage_byte_capacity(
         for path in tmp_path.rglob("*")
         if path.is_file()
     ) <= 1024
+
+
+def test_sealed_runtime_rejects_direct_full_state_write(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("GUALA_REQUIRE_SEALED_STATE", "1")
+    guala = Guala()
+    try:
+        with pytest.raises(
+            RuntimeError,
+            match="bounded authoritative cold-generation admission",
+        ):
+            guala.save_full_state(str(tmp_path))
+    finally:
+        guala.strict_shutdown(timeout=30.0)
+
+    assert not (tmp_path / "guala_core.json").exists()

@@ -1854,7 +1854,21 @@ def _cmd_presence(text):
 
 
 def _cmd_sleep():
-    result = _guala.manual_sleep()
+    checkpoint = getattr(
+        _guala,
+        "_authoritative_cold_generation_checkpoint",
+        None,
+    )
+    if checkpoint is None:
+        result = _guala.manual_sleep()
+    else:
+        result = _guala.enter_manual_sleep()
+        certificate = checkpoint("runner-manual-sleep")
+        result = {
+            **result,
+            "generation_uuid": certificate["generation_uuid"],
+            "manifest_sha256": certificate["manifest_sha256"],
+        }
     return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
 
@@ -3068,13 +3082,20 @@ def handle_chi_density(args):
 
 
 def handle_backup(args):
-    """Save locally and report remote persistence only when it was enabled."""
+    """Commit through the configured persistence authority."""
     from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
     t0 = time.time()
+    checkpoint = getattr(
+        _guala,
+        "_authoritative_cold_generation_checkpoint",
+        None,
+    )
     s3_enabled = bool(
         SAVE_COORDINATOR is not None
         and getattr(SAVE_COORDINATOR, "s3_bucket", None))
-    if SAVE_COORDINATOR:
+    if checkpoint is not None:
+        checkpoint("runner-backup")
+    elif SAVE_COORDINATOR:
         SAVE_COORDINATOR.force_save(reason="backup")
     else:
         _guala.save_full_state(STATE_DIR)
@@ -3084,8 +3105,12 @@ def handle_backup(args):
     global _last_successful_backup_wall
     with _backup_lock:
         _last_successful_backup_wall = time.time()
-    storage_scope = "local-and-s3-queued" if s3_enabled else "local-only"
-    s3_status = "queued" if s3_enabled else "disabled"
+    if checkpoint is not None:
+        storage_scope = "bounded-local-and-verified-remote"
+        s3_status = "verified"
+    else:
+        storage_scope = "local-and-s3-queued" if s3_enabled else "local-only"
+        s3_status = "queued" if s3_enabled else "disabled"
     print(
         f"[backup] local save complete in {dt:.2f}s, {n_entries} entries, "
         f"storage={storage_scope}")
@@ -3186,7 +3211,16 @@ def handle_sound_frame(args):
 def handle_sleep_for_deploy(args):
     _pause_autonomy_for_bulk()
     try:
-        _guala.manual_sleep(state_dir=STATE_DIR)
+        checkpoint = getattr(
+            _guala,
+            "_authoritative_cold_generation_checkpoint",
+            None,
+        )
+        if checkpoint is None:
+            _guala.manual_sleep(state_dir=STATE_DIR)
+        else:
+            _guala.enter_manual_sleep()
+            checkpoint("runner-deploy-sleep")
     except Exception as e:
         print(f"[sleep_for_deploy] manual_sleep failed: {e}")
         _resume_autonomy_for_bulk()
@@ -3585,15 +3619,27 @@ def _orchestrated_backup(reason, blocking=False, _result_holder=None):
     try:
         from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
         t0 = time.time()
+        checkpoint = getattr(
+            _guala,
+            "_authoritative_cold_generation_checkpoint",
+            None,
+        )
         s3_enabled = bool(
             SAVE_COORDINATOR is not None
             and getattr(SAVE_COORDINATOR, "s3_bucket", None))
-        if SAVE_COORDINATOR:
+        if checkpoint is not None:
+            checkpoint(f"orchestrated-{reason}")
+        elif SAVE_COORDINATOR:
             SAVE_COORDINATOR.force_save(reason=reason)
         else:
             _guala.save_full_state(STATE_DIR)
-        storage_scope = "local-and-s3-queued" if s3_enabled else "local-only"
-        s3_status = "queued" if s3_enabled else "disabled"
+        if checkpoint is not None:
+            storage_scope = "bounded-local-and-verified-remote"
+            s3_status = "verified"
+        else:
+            storage_scope = (
+                "local-and-s3-queued" if s3_enabled else "local-only")
+            s3_status = "queued" if s3_enabled else "disabled"
         _guala._log_substrate_event(
             "auto_backup", reason=reason, storage=storage_scope,
             s3_status=s3_status, tick=_guala.tick)

@@ -1120,54 +1120,48 @@ class Embryo:
     # reload (Embryo.load() re-instantiates a FRESH seed population and skips
     # rec["id"] values with no match). That gap is exactly what a "raised,
     # not benched" organism cannot afford: growth itself would be lost on
-    # every restore. save_full_state/load_full_state instead pickle the
-    # ENTIRE object graph — every neuron actually present (including
+    # every restore. save_full_state/load_full_state instead preserve the
+    # ENTIRE registered structural graph — every neuron actually present (including
     # divisions), each one's DNA/charge/couplings, cross-hemi consensus,
     # arousal, division pool, tick, and identity_uuid — so restore is
-    # bit-honest by construction, not by a hand-maintained field list that
-    # can silently miss something (as the gap above demonstrates it already
-    # has). No unpicklable state lives on Embryo/LoomBrain/LoomNeuron (pure
-    # Python + numpy; no threads, sockets, or db handles), so this is a real,
-    # boring primitive — not a workaround.
+    # bit-honest by construction. The closed durable-field registry rejects
+    # any newly introduced field until its persistence authority is explicit;
+    # runtime threads, locks, and callbacks are rebuilt after restore.
     def save_full_state(self, path, *, persistence_admission=None):
-        """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
-        fsync + os.replace) -- a process killed mid-write (deploy cycling,
-        OOM, container restart) used to leave a truncated .pkl.gz that
-        failed to load ("Compressed file ended before the end-of-stream
-        marker was reached", observed live 2026-07-05). os.replace is
-        atomic on the same filesystem: readers only ever see the old
-        complete file or the new complete file, never a partial one."""
-        import pickle, gzip
-        d = os.path.dirname(path) or "."
-        os.makedirs(d, exist_ok=True)
-        tmp_path = path + ".tmp"
-        if persistence_admission is None:
-            with gzip.open(tmp_path, "wb") as f:
-                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
-                f.flush()
-                os.fsync(f.fileno())
-        else:
-            with persistence_admission.open_binary(
-                    tmp_path,
-                    logical_path=path) as raw:
-                with gzip.GzipFile(
-                        filename="",
-                        mode="wb",
-                        fileobj=raw,
-                        mtime=0) as f:
-                    pickle.dump(
-                        self,
-                        f,
-                        protocol=pickle.HIGHEST_PROTOCOL,
-                    )
-                    f.flush()
-        os.replace(tmp_path, path)
+        """Persist the exact organism through the bounded graph boundary."""
+        from dsf_ai_service.loom_model.structural_graph_state import (
+            save_structural_graph,
+            structural_graph_limits_from_environment,
+        )
+        return save_structural_graph(
+            self,
+            path,
+            limits=structural_graph_limits_from_environment(),
+            persistence_admission=persistence_admission,
+        )
 
     @staticmethod
     def load_full_state(path):
-        import pickle, gzip
-        with gzip.open(path, "rb") as f:
-            return pickle.load(f)
+        from dsf_ai_service.loom_model.structural_graph_state import (
+            load_structural_graph,
+            structural_graph_limits_from_environment,
+        )
+        return load_structural_graph(
+            path,
+            expected_root_type=Embryo,
+            limits=structural_graph_limits_from_environment(),
+        )
+
+    @staticmethod
+    def load_legacy_pickle_state(path):
+        """Read one authenticated pre-graph generation for migration only."""
+        import gzip
+        import pickle
+        with gzip.open(path, "rb") as source:
+            restored = pickle.load(source)
+        if not isinstance(restored, Embryo):
+            raise TypeError("legacy organism state restored an unexpected type")
+        return restored
 
     @staticmethod
     def load(d):

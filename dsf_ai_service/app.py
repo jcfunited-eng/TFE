@@ -1819,6 +1819,7 @@ _loaded_generation = None
 _deployment_baseline_generation = None
 _live_recovery_store = None
 _authoritative_cold_store = None
+_persistence_authority_lock = threading.RLock()
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
 _seed_load_progress = None
@@ -2455,35 +2456,39 @@ def _publish_authoritative_hot_generation(
         *, state_dir, save_tick, identity, manifest_files):
     """Commit the completed hot save before its caller may report success."""
     global _loaded_generation
-    if not _REQUIRE_SEALED_STATE or _live_recovery_store is None:
-        raise RuntimeError(
-            "authoritative live recovery is unavailable in sealed production")
-    if os.path.realpath(state_dir) != os.path.realpath(STATE_DIR):
-        raise RuntimeError("hot recovery publish targeted a non-active state tree")
-    if identity != _live_recovery_store.baseline.identity:
-        raise RuntimeError("hot recovery identity differs from deployment baseline")
-    required = tuple(sorted(manifest_files))
-    if required != _live_recovery_store.hot_files:
-        raise RuntimeError("hot recovery file contract differs from engine contract")
-    generation = _live_recovery_store.commit_hot_state(
-        tick=int(save_tick),
-        files={name: os.path.join(state_dir, name) for name in required},
-    )
-    from dsf_ai_service.substrate.deployment_generation import (
-        MATERIALIZATION_SCHEMA,
-        MaterializedGeneration,
-    )
-    materialized = MaterializedGeneration(
-        schema=MATERIALIZATION_SCHEMA,
-        generation_uuid=generation.generation_uuid,
-        identity=generation.identity,
-        tick=generation.tick,
-        manifest_sha256=generation.manifest_sha256,
-        active_directory=os.path.abspath(state_dir),
-        materialized_files=required,
-    )
-    _loaded_generation = materialized
-    app.state.loaded_generation = materialized
+    with _persistence_authority_lock:
+        if not _REQUIRE_SEALED_STATE or _live_recovery_store is None:
+            raise RuntimeError(
+                "authoritative live recovery is unavailable in sealed production")
+        if os.path.realpath(state_dir) != os.path.realpath(STATE_DIR):
+            raise RuntimeError(
+                "hot recovery publish targeted a non-active state tree")
+        if identity != _live_recovery_store.baseline.identity:
+            raise RuntimeError(
+                "hot recovery identity differs from deployment baseline")
+        required = tuple(sorted(manifest_files))
+        if required != _live_recovery_store.hot_files:
+            raise RuntimeError(
+                "hot recovery file contract differs from engine contract")
+        generation = _live_recovery_store.commit_hot_state(
+            tick=int(save_tick),
+            files={name: os.path.join(state_dir, name) for name in required},
+        )
+        from dsf_ai_service.substrate.deployment_generation import (
+            MATERIALIZATION_SCHEMA,
+            MaterializedGeneration,
+        )
+        materialized = MaterializedGeneration(
+            schema=MATERIALIZATION_SCHEMA,
+            generation_uuid=generation.generation_uuid,
+            identity=generation.identity,
+            tick=generation.tick,
+            manifest_sha256=generation.manifest_sha256,
+            active_directory=os.path.abspath(state_dir),
+            materialized_files=required,
+        )
+        _loaded_generation = materialized
+        app.state.loaded_generation = materialized
 
 
 def _strict_discard_guala(instance, *, reason):
@@ -2495,6 +2500,21 @@ def _strict_discard_guala(instance, *, reason):
     except Exception as error:
         raise RuntimeError(
             f"discarded Guala instance could not quiesce ({reason}): {error}") from error
+
+
+def _manual_sleep_and_checkpoint():
+    """Enter sleep and publish it through the configured persistence authority."""
+    if _guala is None:
+        raise RuntimeError("Guala is not loaded")
+    if not _REQUIRE_SEALED_STATE:
+        return _guala.manual_sleep(STATE_DIR)
+    result = _guala.enter_manual_sleep()
+    certificate = _checkpoint_authoritative_runtime("manual-sleep")
+    return {
+        **result,
+        "generation_uuid": certificate["generation_uuid"],
+        "manifest_sha256": certificate["manifest_sha256"],
+    }
 
 
 def _boot_generation_and_guala():
@@ -2519,6 +2539,17 @@ def _boot_generation_and_guala():
             app.state.live_recovery_store = None
             app.state.authoritative_cold_store = None
         raise
+
+
+def _verified_generation_requires_legacy_pickle_migration(generation):
+    """Authorize pickle only for the one verified pre-graph brain generation."""
+    if generation is None:
+        return False
+    required_files = set(getattr(generation, "required_files", ()) or ())
+    return {
+        "guala_organism.pkl.gz",
+        "guala_tapestry.pkl.gz",
+    }.issubset(required_files)
 
 
 def _gl_init():
@@ -2576,10 +2607,19 @@ def _gl_init():
 
     # Load full persisted state from EFS (atomic, validated).
     # Retry up to 3× for transient EFS stale-handle errors (errno 116).
+    allow_legacy_pickle_migration = (
+        _REQUIRE_SEALED_STATE
+        and _verified_generation_requires_legacy_pickle_migration(
+            _deployment_baseline_generation
+        )
+    )
     _load_attempts = 0
     while _load_attempts < 3:
         _load_attempts += 1
-        g.load_full_state(STATE_DIR)
+        g.load_full_state(
+            STATE_DIR,
+            allow_authenticated_legacy_pickle=allow_legacy_pickle_migration,
+        )
         if getattr(g, '_load_successful', True):
             break
         errs = getattr(g, '_load_errors', [])
@@ -2687,6 +2727,8 @@ def _gl_init():
                 f"tick={_loaded_generation.tick}")
         g._authoritative_hot_generation_publisher = (
             _publish_authoritative_hot_generation)
+        g._authoritative_cold_generation_checkpoint = (
+            _checkpoint_authoritative_runtime)
     elif loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
         # Joe 2026-07-15 ("old state can never be silently recalled"): do NOT
         # auto-restore S3 on an identity mismatch. The state loaded cleanly; an
@@ -2903,12 +2945,16 @@ def _embedded_post_boot(g):
         # Full-state S3 authority belongs exclusively to verified immutable
         # generations.  The legacy coordinator's partial filename list cannot
         # represent a recovery generation and is therefore local-save only.
-        save_coord = SaveCoordinator(g, STATE_DIR, s3_bucket=None)
+        save_coord = (
+            None
+            if _REQUIRE_SEALED_STATE
+            else SaveCoordinator(g, STATE_DIR, s3_bucket=None)
+        )
         _sc.SAVE_COORDINATOR = save_coord
         app.state.save_coordinator = save_coord
 
         # Wrap _end_activity to trigger saves on activity end (verbatim from run_server).
-        if hasattr(g, '_end_activity'):
+        if save_coord is not None and hasattr(g, '_end_activity'):
             _orig_end_activity = g._end_activity
             def _end_activity_with_save(*a, **kw):
                 ending = getattr(g, '_current_activity', None)
@@ -2932,18 +2978,22 @@ def _embedded_post_boot(g):
             g._end_activity = _end_activity_with_save
 
         # Backstop: 5-minute save safety net (sync thread version for embedded mode).
-        def _save_backstop_thread():
-            while not _sr._shutdown:
-                if _sr._shutdown_event.wait(300):
-                    break
-                if g is None or _sr._shutdown:
-                    continue
-                try:
-                    if g.is_natural_quiet_point():
-                        save_coord.maybe_save("backstop")
-                except Exception as _be:
-                    print(f"[save] backstop error: {_be}")
-        _sr._start_background_thread(_save_backstop_thread, "save-backstop")
+        if save_coord is not None:
+            def _save_backstop_thread():
+                while not _sr._shutdown:
+                    if _sr._shutdown_event.wait(300):
+                        break
+                    if g is None or _sr._shutdown:
+                        continue
+                    try:
+                        if g.is_natural_quiet_point():
+                            save_coord.maybe_save("backstop")
+                    except Exception as _be:
+                        print(f"[save] backstop error: {_be}")
+            _sr._start_background_thread(
+                _save_backstop_thread,
+                "save-backstop",
+            )
 
         # Ring persistence + S3 consumers.
         if _sr._substrate_ring is not None:
@@ -4571,7 +4621,8 @@ async def gualaloom_chat(msg: GLMessage):
 
     # ── /sleep — manual sleep trigger from UI ──
     if cmd == "/sleep":
-        result = _guala.manual_sleep()
+        result = await _run_lifecycle_executor(
+            _manual_sleep_and_checkpoint)
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /presence — passive presence heartbeat from UI ──
@@ -5407,10 +5458,34 @@ async def admin_familiarity_debug():
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
     if _REQUIRE_SEALED_STATE:
-        raise HTTPException(
-            status_code=409,
-            detail=("partial legacy backup is disabled; use the authenticated "
-                    "immutable generation seal"),
+        _gl_init()
+        if _guala is None:
+            return JSONResponse({"error": "not ready"}, status_code=503)
+
+        async def _authoritative_backup():
+            try:
+                await _run_lifecycle_executor(
+                    _checkpoint_authoritative_runtime,
+                    "admin-backup",
+                )
+            except Exception as error:
+                print(
+                    f"[backup] authoritative checkpoint failed: {error}",
+                    flush=True,
+                )
+
+        _schedule_mutating_background(
+            lambda: _authoritative_backup(),
+            name="admin-authoritative-backup",
+        )
+        return JSONResponse(
+            status_code=202,
+            content={
+                "backup": "accepted",
+                "message": (
+                    "Bounded immutable generation checkpoint started."
+                ),
+            },
         )
     if _is_remote():
         # GL-CMD-104: API Gateway has 30s timeout. force_save takes 10-25s.
@@ -6148,7 +6223,8 @@ async def ring_write(request: Request):
 async def gualaloom_sleep():
     """Manual sleep trigger."""
     _gl_init()
-    result = _guala.manual_sleep()
+    result = await _run_lifecycle_executor(
+        _manual_sleep_and_checkpoint)
     return result
 
 
@@ -7586,6 +7662,25 @@ async def startup():
 
     def _do_save_and_compact(write_wave: bool = False):
         """Cold lane: one full+compact+optional snapshot transaction."""
+        if _REQUIRE_SEALED_STATE:
+            t0 = time.time()
+            pre_size = _guala.events_log_size(STATE_DIR)
+            certificate = _checkpoint_authoritative_runtime(
+                "periodic-cold")
+            checkpoint_dt = time.time() - t0
+            with _guala.persistence_transaction():
+                _guala.compact_events(
+                    STATE_DIR,
+                    keep_after_offset=pre_size,
+                )
+            total_dt = time.time() - t0
+            print(
+                f"[save-cold-authoritative] {total_dt:.2f}s "
+                f"checkpoint={checkpoint_dt:.2f}s "
+                f"generation={certificate['generation_uuid']} "
+                f"tick={certificate['tick']}"
+            )
+            return total_dt
         with _guala.persistence_transaction():
             t0 = time.time()
             pre_size = _guala.events_log_size(STATE_DIR)
@@ -7852,7 +7947,7 @@ def _backup_to_s3(state_dir):
              "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
              "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
              "guala_sounds.json", "guala_videos.json",
-             "guala_organism.pkl.gz", "guala_tapestry.pkl.gz"]  # GL-CMD-175 P1
+             "guala_organism.sgr", "guala_tapestry.sgr"]
     backed = 0
     for f in files:
         path = os.path.join(state_dir, f)
@@ -7861,8 +7956,8 @@ def _backup_to_s3(state_dir):
                 if f.endswith(".json"):
                     # 2026-07-09: same fix as save_coordinator.py's S3
                     # mirror -- these plain JSON files (several MB each)
-                    # were uploaded byte-for-byte; the .pkl.gz files
-                    # below were already compressed. Compress in memory
+                    # were uploaded byte-for-byte; binary state files do
+                    # not use this branch. Compress JSON in memory
                     # for the S3 copy only; the local EFS file this
                     # reads from stays plain, untouched.
                     import gzip as _gzip
@@ -8782,6 +8877,15 @@ def _write_runtime_generation_stage(stage, admission):
     with _guala.bounded_persistence_admission(admission):
         _guala.save_full_state(str(stage), publish_generation=False)
         _guala._save_wave_atlas(str(stage))
+    if getattr(_guala, "is_asleep", False):
+        with admission.open_text(stage / _guala.SLEEPING_MARKER) as marker:
+            json.dump(
+                {
+                    "sleep_tick": int(_guala.tick),
+                    "sleep_ts": time.time(),
+                },
+                marker,
+            )
     if (os.environ.get("WAVE_ATLAS_ENABLED", "0") == "1"
             and (getattr(_guala, "wave_atlas", None) is None
                  or not os.path.isfile(stage / "wave_atlas.npz"))):
@@ -8864,6 +8968,11 @@ def _validate_runtime_generation_cold_restore(generation):
             probe.load_full_state(
                 active,
                 require_exact_binary=True,
+                allow_authenticated_legacy_pickle=(
+                    _verified_generation_requires_legacy_pickle_migration(
+                        generation
+                    )
+                ),
             )
             if not bool(getattr(probe, "_load_successful", False)):
                 raise RuntimeError(
@@ -8898,72 +9007,87 @@ def _seal_runtime_generation(nonce):
         verify_deployment_seal,
     )
 
-    identity = getattr(_guala, "_guala_identity", None)
-    if not isinstance(identity, str) or not identity:
-        raise RuntimeError("Guala identity is absent; generation cannot be sealed")
-    tick = int(_guala.tick)
+    with _guala.persistence_transaction():
+        with _persistence_authority_lock:
+            identity = getattr(_guala, "_guala_identity", None)
+            if not isinstance(identity, str) or not identity:
+                raise RuntimeError(
+                    "Guala identity is absent; generation cannot be sealed")
+            tick = int(_guala.tick)
 
-    bucket = os.environ.get(
-        "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-    prefix = os.environ.get(
-        "GUALA_GENERATION_S3_PREFIX", "guala/generations")
-    key = _deploy_hmac_key()
-    (
-        max_generation_bytes,
-        max_required_files,
-        max_path_bytes,
-    ) = _authoritative_cold_limits()
-    result = stage_authoritative_commit_upload(
-        store_root=GENERATION_STORE_ROOT,
-        identity=identity,
-        tick=tick,
-        save_callback=_write_runtime_generation_stage,
-        s3_client=boto3.client("s3", region_name="us-east-1"),
-        bucket=bucket,
-        prefix=prefix,
-        hmac_key=key,
-        nonce=nonce,
-        max_encoded_generation_bytes=max_generation_bytes,
-        max_dynamic_required_files=max_required_files,
-        max_dynamic_path_bytes=max_path_bytes,
-        cold_restore_validator=_validate_runtime_generation_cold_restore,
-    )
-    certificate_bytes = result.seal_certificate_bytes()
-    certificate = verify_deployment_seal(
-        certificate_bytes, hmac_key=key, expected_nonce=nonce)
-    if _live_recovery_store is not None:
-        hot_payloads = {
-            name: (json.dumps(
-                result.generation.payload(name),
-                allow_nan=False,
-                ensure_ascii=False,
-                indent=2,
-                sort_keys=True,
-            ) + "\n").encode("utf-8")
-            for name in Guala.HOT_SAVE_MANIFEST_FILES
-        }
-        rebased = _live_recovery_store.rebase_after_deployment_seal(
-            baseline=result.generation,
-            tick=result.generation.tick,
-            files=hot_payloads,
-        )
-        from dsf_ai_service.substrate.deployment_generation import (
-            MATERIALIZATION_SCHEMA,
-            MaterializedGeneration,
-        )
-        _deployment_baseline_generation = result.generation
-        _loaded_generation = MaterializedGeneration(
-            schema=MATERIALIZATION_SCHEMA,
-            generation_uuid=rebased.generation_uuid,
-            identity=rebased.identity,
-            tick=rebased.tick,
-            manifest_sha256=rebased.manifest_sha256,
-            active_directory=os.path.abspath(STATE_DIR),
-            materialized_files=tuple(sorted(Guala.HOT_SAVE_MANIFEST_FILES)),
-        )
-        app.state.deployment_baseline_generation = result.generation
-        app.state.loaded_generation = _loaded_generation
-    return certificate
+            bucket = os.environ.get(
+                "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+            prefix = os.environ.get(
+                "GUALA_GENERATION_S3_PREFIX", "guala/generations")
+            key = _deploy_hmac_key()
+            (
+                max_generation_bytes,
+                max_required_files,
+                max_path_bytes,
+            ) = _authoritative_cold_limits()
+            result = stage_authoritative_commit_upload(
+                store_root=GENERATION_STORE_ROOT,
+                identity=identity,
+                tick=tick,
+                save_callback=_write_runtime_generation_stage,
+                s3_client=boto3.client("s3", region_name="us-east-1"),
+                bucket=bucket,
+                prefix=prefix,
+                hmac_key=key,
+                nonce=nonce,
+                max_encoded_generation_bytes=max_generation_bytes,
+                max_dynamic_required_files=max_required_files,
+                max_dynamic_path_bytes=max_path_bytes,
+                cold_restore_validator=_validate_runtime_generation_cold_restore,
+            )
+            certificate_bytes = result.seal_certificate_bytes()
+            certificate = verify_deployment_seal(
+                certificate_bytes, hmac_key=key, expected_nonce=nonce)
+            if _live_recovery_store is not None:
+                hot_payloads = {
+                    name: (json.dumps(
+                        result.generation.payload(name),
+                        allow_nan=False,
+                        ensure_ascii=False,
+                        indent=2,
+                        sort_keys=True,
+                    ) + "\n").encode("utf-8")
+                    for name in Guala.HOT_SAVE_MANIFEST_FILES
+                }
+                rebased = _live_recovery_store.rebase_after_deployment_seal(
+                    baseline=result.generation,
+                    tick=result.generation.tick,
+                    files=hot_payloads,
+                )
+                from dsf_ai_service.substrate.deployment_generation import (
+                    MATERIALIZATION_SCHEMA,
+                    MaterializedGeneration,
+                )
+                _deployment_baseline_generation = result.generation
+                _loaded_generation = MaterializedGeneration(
+                    schema=MATERIALIZATION_SCHEMA,
+                    generation_uuid=rebased.generation_uuid,
+                    identity=rebased.identity,
+                    tick=rebased.tick,
+                    manifest_sha256=rebased.manifest_sha256,
+                    active_directory=os.path.abspath(STATE_DIR),
+                    materialized_files=tuple(
+                        sorted(Guala.HOT_SAVE_MANIFEST_FILES)),
+                )
+                app.state.deployment_baseline_generation = result.generation
+                app.state.loaded_generation = _loaded_generation
+            return certificate
+
+
+def _checkpoint_authoritative_runtime(reason):
+    """Commit one live cold checkpoint through the sole sealed authority."""
+    if not _REQUIRE_SEALED_STATE:
+        raise RuntimeError(
+            "authoritative cold checkpoints require sealed production")
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("checkpoint reason must be a non-empty string")
+    import secrets
+    return _seal_runtime_generation(secrets.token_hex(32))
 
 
 async def _quiesce_and_seal(nonce):
@@ -9017,7 +9141,7 @@ async def _quiesce_and_seal(nonce):
         # This is the final admitted engine mutation.  It records sleep only
         # after every external producer has stopped, and before the engine
         # closes its own mutation admission below.
-        await asyncio.to_thread(_guala.manual_sleep, STATE_DIR)
+        await asyncio.to_thread(_guala.enter_manual_sleep)
 
         # A sealed boundary cannot retain a threshold backlog.  The former
         # settle_queues(threshold=8) phase ran while autonomy and daydream

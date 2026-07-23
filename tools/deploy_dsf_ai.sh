@@ -575,6 +575,8 @@ out = {
                 {'name': 'GUALA_OWNER_LOCK_PATH', 'value': '/app/guala/.guala-owner.lock'},
                 {'name': 'GUALA_REQUIRE_SEALED_STATE', 'value': '1'},
                 {'name': 'GUALA_MAX_COLD_GENERATION_BYTES', 'value': '2147483648'},
+                {'name': 'GUALA_MAX_STRUCTURAL_GRAPH_NODES', 'value': '4000000'},
+                {'name': 'GUALA_MAX_STRUCTURAL_GRAPH_DEPTH', 'value': '256'},
                 {'name': 'GUALA_MAX_COLD_REQUIRED_FILES', 'value': '16384'},
                 {'name': 'GUALA_MAX_COLD_PATH_BYTES', 'value': '2097152'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},

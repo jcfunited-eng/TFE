@@ -94,8 +94,8 @@ def build_replay_guala(snapshot_dir):
     found DURING this handover's own testing that this function built a
     fresh, EMPTY organism every time (identity/tick/bindings all reset),
     since it restores state via the engine's individual _apply_* methods,
-    never load_full_state() (which is the only place guala_organism.pkl.gz/
-    guala_tapestry.pkl.gz get restored). Without this fix, this harness
+    never load_full_state() (which is the only place the structural organism/
+    tapestry artifacts get restored). Without this fix, this harness
     would silently and permanently report near-0% recall for the brain
     path regardless of how much she's actually learned -- a test-harness
     gap masquerading as a substrate finding. Fixed here: restore the
@@ -111,12 +111,20 @@ def build_replay_guala(snapshot_dir):
     g._apply_visual(_load(snapshot_dir, "guala_visual.json"), state_dir=snapshot_dir)
     g.deep_atlas.load_from_json(_load(snapshot_dir, "guala_deep_atlas.json"))
 
-    organism_path = os.path.join(snapshot_dir, "guala_organism.pkl.gz")
-    if os.path.exists(organism_path):
-        g.organism = type(g.organism).load_full_state(organism_path)
-    tapestry_path = os.path.join(snapshot_dir, "guala_tapestry.pkl.gz")
-    if os.path.exists(tapestry_path):
-        g.tapestry = type(g.tapestry).load_full_state(tapestry_path)
+    organism_path = os.path.join(snapshot_dir, "guala_organism.sgr")
+    if not os.path.exists(organism_path):
+        raise RuntimeError(
+            "replay requires guala_organism.sgr; legacy pickle must first "
+            "cross the authenticated immutable migration boundary")
+    organism_type = type(g.organism)
+    g.organism = organism_type.load_full_state(organism_path)
+    tapestry_path = os.path.join(snapshot_dir, "guala_tapestry.sgr")
+    if not os.path.exists(tapestry_path):
+        raise RuntimeError(
+            "replay requires guala_tapestry.sgr; legacy pickle must first "
+            "cross the authenticated immutable migration boundary")
+    tapestry_type = type(g.tapestry)
+    g.tapestry = tapestry_type.load_full_state(tapestry_path)
 
     # GL-CMD-RECALL-WORD-INDEX-57 §1.4 rebuild, verbatim from the engine's own
     # boot sequence (gualaloom_v5_engine.py, right after "[GualaLoom] Loaded:").

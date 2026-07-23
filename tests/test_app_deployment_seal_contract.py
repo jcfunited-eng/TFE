@@ -43,7 +43,7 @@ class _OrderedGuala:
         self.vocab = {"known"}
         self._guala_identity = "guala-identity"
 
-    def manual_sleep(self, state_dir):
+    def enter_manual_sleep(self):
         self.events.append("manual_sleep")
 
     def settle_queues(self, budget_s=420.0, threshold=8):

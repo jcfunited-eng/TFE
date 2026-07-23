@@ -1,7 +1,9 @@
 """Bit-exact continuity gates for full Guala engine persistence."""
 
+import gzip
 import json
 import hashlib
+import pickle
 import shutil
 import struct
 from pathlib import Path
@@ -156,7 +158,7 @@ def test_full_state_round_trip_is_exact_and_media_is_relocatable(
         core_record = json.loads((state_dir / "guala_core.json").read_text())
         assert core_record["data"]["binary_binding_contract"] == (
             writer.BINARY_BINDING_CONTRACT)
-        for artifact in ("guala_organism.pkl.gz", "guala_tapestry.pkl.gz"):
+        for artifact in ("guala_organism.sgr", "guala_tapestry.sgr"):
             binding = json.loads(
                 (state_dir / f"{artifact}{writer.BINARY_BINDING_SUFFIX}").read_text())
             assert binding["guala_identity"] == identity
@@ -305,6 +307,84 @@ def _write_exact_state(state_dir, monkeypatch, *, wave=False):
         writer.strict_shutdown(timeout=30.0)
 
 
+def test_authenticated_legacy_binary_migrates_once_to_structural_graph(
+        tmp_path, monkeypatch):
+    state_dir = tmp_path / "legacy-generation"
+    _disable_background_substrate(monkeypatch)
+    writer = Guala()
+    reader = None
+    refused = None
+    try:
+        writer._generate_genesis_identity(str(state_dir))
+        writer.tick = 31
+        writer.organism.tick = 29
+        writer.tapestry._tick = 27
+        writer.save_full_state(str(state_dir))
+
+        legacy_pairs = (
+            (
+                writer.organism,
+                state_dir / "guala_organism.sgr",
+                state_dir / "guala_organism.pkl.gz",
+            ),
+            (
+                writer.tapestry,
+                state_dir / "guala_tapestry.sgr",
+                state_dir / "guala_tapestry.pkl.gz",
+            ),
+        )
+        for value, structural_path, legacy_path in legacy_pairs:
+            structural_path.unlink()
+            Path(
+                f"{structural_path}{Guala.BINARY_BINDING_SUFFIX}"
+            ).unlink()
+            with gzip.open(legacy_path, "wb") as stream:
+                pickle.dump(value, stream, protocol=pickle.HIGHEST_PROTOCOL)
+            writer._write_binary_binding(str(legacy_path), writer.tick)
+
+        writer.strict_shutdown(timeout=30.0)
+        writer = None
+
+        refused = Guala()
+        refused.load_full_state(
+            str(state_dir),
+            require_exact_binary=True,
+        )
+        assert refused._load_successful is False
+        assert any(
+            "forbidden outside an authenticated immutable migration"
+            in str(error)
+            for error in refused._load_errors
+        )
+        refused.strict_shutdown(timeout=30.0)
+        refused = None
+
+        reader = Guala()
+        reader.load_full_state(
+            str(state_dir),
+            require_exact_binary=True,
+            allow_authenticated_legacy_pickle=True,
+        )
+        assert reader._load_successful, reader._load_errors
+        assert reader.organism.tick == 29
+        assert reader.tapestry._tick == 27
+
+        reader.save_full_state(str(state_dir))
+        for name in ("guala_organism.sgr", "guala_tapestry.sgr"):
+            artifact = state_dir / name
+            assert artifact.is_file()
+            assert Path(
+                f"{artifact}{Guala.BINARY_BINDING_SUFFIX}"
+            ).is_file()
+    finally:
+        if writer is not None:
+            writer.strict_shutdown(timeout=30.0)
+        if reader is not None:
+            reader.strict_shutdown(timeout=30.0)
+        if refused is not None:
+            refused.strict_shutdown(timeout=30.0)
+
+
 def test_teaching_state_refuses_oversize_before_json_parse(
         tmp_path, monkeypatch):
     teaching_path = tmp_path / "guala_teaching.json"
@@ -405,12 +485,12 @@ def test_exact_restore_rejects_structurally_invalid_component(
     ("artifact", "damage", "expected"),
     [
         (
-            "guala_organism.pkl.gz",
+            "guala_organism.sgr",
             "remove_binding",
             "required binary binding is missing",
         ),
         (
-            "guala_tapestry.pkl.gz",
+            "guala_tapestry.sgr",
             "change_artifact",
             "binary size",
         ),

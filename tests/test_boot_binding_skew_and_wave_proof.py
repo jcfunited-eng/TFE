@@ -65,7 +65,7 @@ def _write_core(state_dir, core):
         json.dump(core, handle)
 
 
-ORGANISM = "guala_organism.pkl.gz"
+ORGANISM = "guala_organism.sgr"
 ORGANISM_BINDING = ORGANISM + ".binding.json"
 WAVE_NPZ = "wave_atlas.npz"
 WAVE_BINDING = WAVE_NPZ + ".binding.json"

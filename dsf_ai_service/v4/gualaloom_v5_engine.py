@@ -20409,9 +20409,35 @@ class Guala:
         detail = "; ".join(f"{name}: {error}" for name, error in failures)
         raise RuntimeError(f"{operation} failed ({len(failures)} file(s)): {detail}")
 
+    def _enter_manual_sleep_locked(self):
+        """Enter the cognitive sleep state while the caller owns ``self.lock``."""
+        current = self._current_activity
+        if current is None or current.kind != "SLEEPING":
+            if current is not None:
+                self._end_activity()
+            current = Activity(
+                kind="SLEEPING", target=None,
+                started_tick=self.tick,
+                expected_end_tick=(
+                    self.tick + ACTIVITY_TICK_BUDGETS["SLEEPING"]),
+                metadata={"trigger": "manual"})
+            self._start_activity(current)
+            self._log_substrate_event("sleep_manual", trigger="ui")
+        return {
+            "event": "sleep_started",
+            "tick": self.tick,
+            "expected_end_tick": current.expected_end_tick,
+        }
+
+    @_engine_mutation_entry
+    def enter_manual_sleep(self):
+        """Enter sleep without claiming that persistence has completed."""
+        with self.lock:
+            return self._enter_manual_sleep_locked()
+
     @_engine_mutation_entry
     def manual_sleep(self, state_dir="state"):
-        """Put Guala to sleep and durably verify the deploy handoff.
+        """Put Guala to sleep and durably verify a local handoff.
 
         Being in a SLEEPING activity is not proof that a prior persistence
         attempt completed.  Repeated calls therefore re-run the full durable
@@ -20421,18 +20447,7 @@ class Guala:
         """
         with self.persistence_transaction():
             with self.lock:
-                current = self._current_activity
-                if current is None or current.kind != "SLEEPING":
-                    if current is not None:
-                        self._end_activity()
-                    current = Activity(
-                        kind="SLEEPING", target=None,
-                        started_tick=self.tick,
-                        expected_end_tick=(
-                            self.tick + ACTIVITY_TICK_BUDGETS["SLEEPING"]),
-                        metadata={"trigger": "manual"})
-                    self._start_activity(current)
-                    self._log_substrate_event("sleep_manual", trigger="ui")
+                result = self._enter_manual_sleep_locked()
 
                 marker_path = os.path.join(state_dir, self.SLEEPING_MARKER)
                 if os.path.exists(marker_path):
@@ -20446,11 +20461,7 @@ class Guala:
                 self._atomic_write(
                     marker_path,
                     {"sleep_tick": self.tick, "sleep_ts": time.time()})
-                return {
-                    "event": "sleep_started",
-                    "tick": self.tick,
-                    "expected_end_tick": current.expected_end_tick,
-                }
+                return result
 
     @_engine_mutation_entry
     def wake_from_sleep(self, state_dir="state"):
@@ -22876,6 +22887,18 @@ class Guala:
 
     def save_full_state(self, state_dir="state", *, publish_generation=True):
         """Persist the full lane as one serialized multi-file generation."""
+        if (
+            os.environ.get("GUALA_REQUIRE_SEALED_STATE", "0").strip() == "1"
+            and getattr(
+                self,
+                "_active_persistence_admission",
+                None,
+            ) is None
+        ):
+            raise RuntimeError(
+                "sealed production rejects direct full-state writes; "
+                "the bounded authoritative cold-generation admission is required"
+            )
         with self.persistence_transaction():
             with self.staged_persistence_flip():
                 return self._save_full_state_locked(
@@ -23175,8 +23198,8 @@ class Guala:
                     pass
 
         # GL-CMD-175 P1: organism's full-fidelity state (GL-CMD-169's
-        # save_full_state/load_full_state -- full pickle of the object
-        # graph, so growth/folding/DNA/bindings all round-trip) rides the
+        # save_full_state/load_full_state -- the bounded structural graph,
+        # so growth/folding/DNA/bindings all round-trip) rides the
         # cold save cycle. Same non-critical, isolated-failure pattern as
         # teaching data above: a large object graph that must never block
         # core save success.
@@ -23211,21 +23234,18 @@ class Guala:
             #
             # 2026-07-16 seal incident: _organism_lock alone does NOT
             # exclude the worker's lock-free experience_word() (W3 made it
-            # lock-free) nor the spike-bus delivery thread -- under a deep
-            # queue the pickle raced live deque mutations and the seal's
-            # full save failed ("deque mutated during iteration"),
-            # refusing deploy turnover. Park BOTH mutators between items
-            # for the duration of the pickle; they resume immediately
-            # after. Parks are bounded and honest: if a mutator does not
-            # acknowledge in time we log loudly and still attempt the
-            # save with a bounded retry on the mutation race.
+            # lock-free) nor the spike-bus delivery thread. Park BOTH
+            # mutators between items for the duration of the two independent
+            # graph passes; they resume immediately after. If either cannot
+            # park, the graph's byte-identity proof still fails closed on
+            # any mutation rather than publishing an uncertain state.
             _worker_parked = True
             if self._organism_worker_thread is not None:
                 self._organism_pause_req.set()
                 _worker_parked = self._organism_pause_ack.wait(10.0)
                 if not _worker_parked:
                     print("[GualaLoom] organism worker did not park within "
-                          "10s (mid-item); saving with retry fallback")
+                          "10s (mid-item); structural save must prove stability")
             _bus = getattr(getattr(self.organism, "brain", None),
                            "_spike_bus", None)
             _bus_parked = True
@@ -23236,37 +23256,19 @@ class Guala:
                     _bus_parked = False
                 if not _bus_parked:
                     print("[GualaLoom] spike bus did not park within 5s; "
-                          "saving with retry fallback")
+                          "structural save must prove stability")
             try:
                 organism_path = os.path.join(
-                    state_dir, "guala_organism.pkl.gz")
-                _pickle_attempt = 0
-                while True:
-                    _pickle_attempt += 1
-                    try:
-                        with self._organism_lock:
-                            self.organism.save_full_state(
-                                organism_path,
-                                persistence_admission=getattr(
-                                    self,
-                                    "_active_persistence_admission",
-                                    None,
-                                ),
-                            )
-                        break
-                    except RuntimeError as _re:
-                        _racey = ("mutated during iteration" in str(_re)
-                                  or "changed size during" in str(_re))
-                        if (
-                            bounded_admission is not None
-                            or not _racey
-                            or _pickle_attempt >= 4
-                        ):
-                            raise
-                        print(f"[GualaLoom] organism pickle hit live "
-                              f"mutation (attempt {_pickle_attempt}/4), "
-                              f"retrying: {_re}")
-                        time.sleep(0.25)
+                    state_dir, "guala_organism.sgr")
+                with self._organism_lock:
+                    self.organism.save_full_state(
+                        organism_path,
+                        persistence_admission=getattr(
+                            self,
+                            "_active_persistence_admission",
+                            None,
+                        ),
+                    )
                 organism_binding = self._write_binary_binding(
                     organism_path, save_tick)
                 results[os.path.basename(organism_binding)] = os.path.getsize(
@@ -23281,22 +23283,22 @@ class Guala:
         except Exception as _oe:
             if bounded_admission is not None:
                 raise
-            _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
-            print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
+            _save_failures.append(("guala_organism.sgr", str(_oe)))
+            print(f"[GualaLoom] save failed for guala_organism.sgr: {_oe}")
 
         # GL-NOTE-VOICE-WIRING-RULING W1: the tapestry (her voice-composing
         # mind, alongside the organism) rides the same cold cycle -- same
-        # isolated-failure pattern, same full-pickle convention.
+        # isolated-failure pattern, same structural-graph convention.
         try:
             with self._tapestry_lock:  # serialize against the background exposure worker
                 # GL-195: the emission query source rides the tapestry
-                # pickle. Before this, every deploy reset _tapestry_prev_word
+                # graph. Before this, every deploy reset _tapestry_prev_word
                 # to None; until fresh intake ran, every unprompted attempt
                 # had a None query -> honest empty (audit-proven live cause
                 # of the 2026-07-05 all-night silence).
                 self.tapestry._engine_prev_word = self._tapestry_prev_word
                 tapestry_path = os.path.join(
-                    state_dir, "guala_tapestry.pkl.gz")
+                    state_dir, "guala_tapestry.sgr")
                 self.tapestry.save_full_state(
                     tapestry_path,
                     persistence_admission=getattr(
@@ -23312,8 +23314,8 @@ class Guala:
         except Exception as _te:
             if bounded_admission is not None:
                 raise
-            _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
-            print(f"[GualaLoom] save failed for guala_tapestry.pkl.gz: {_te}")
+            _save_failures.append(("guala_tapestry.sgr", str(_te)))
+            print(f"[GualaLoom] save failed for guala_tapestry.sgr: {_te}")
 
         # A full save is one requested generation.  No mutable-state file is
         # optional: a caller may inspect the partial files for diagnosis, but
@@ -23518,8 +23520,16 @@ class Guala:
             return kept
 
     @_engine_mutation_entry
-    def load_full_state(self, state_dir="state", *, require_exact_binary=False):
+    def load_full_state(
+            self,
+            state_dir="state",
+            *,
+            require_exact_binary=False,
+            allow_authenticated_legacy_pickle=False):
         """Load with identity verification, schema check, integrity validation."""
+        if not isinstance(allow_authenticated_legacy_pickle, bool):
+            raise TypeError(
+                "allow_authenticated_legacy_pickle must be boolean")
         self._load_errors = []
         self._load_successful = False
         self._integrity_errors = []
@@ -23769,25 +23779,50 @@ class Guala:
                 print("[GualaLoom] Deep atlas file not found — starting fresh (events will rebuild)")
                 self._deep_atlas_loss_at_boot = None
 
-            # GL-CMD-175 P1: restore the organism (full-fidelity, GL-CMD-169's
-            # save_full_state/load_full_state -- pickle of the whole object
-            # graph, so growth/folding/DNA/bindings all round-trip, not just
-            # a hand-picked subset). Absence at boot means either a true
+            # GL-CMD-175 P1: restore the organism through its bounded
+            # structural graph, with one authenticated legacy migration path,
+            # so growth/folding/DNA/bindings all round-trip. Absence at boot
+            # means either a true
             # first boot (organism from __init__ stands, freshly born under
             # her now-synced identity) or a pre-175 state directory (same
             # honest fresh-organism outcome) -- never an error, per the
             # same "no silent fallback for a MISSING file" reasoning
             # deep_atlas/survival/teaching above already use.
-            organism_path = os.path.join(state_dir, "guala_organism.pkl.gz")
-            if os.path.exists(organism_path):
+            organism_path = os.path.join(state_dir, "guala_organism.sgr")
+            legacy_organism_path = os.path.join(
+                state_dir, "guala_organism.pkl.gz")
+            organism_restore_path = (
+                organism_path
+                if os.path.exists(organism_path)
+                else legacy_organism_path
+            )
+            organism_is_legacy = (
+                organism_restore_path == legacy_organism_path)
+            if os.path.exists(organism_restore_path):
                 try:
                     organism_type = type(self.organism)
+                    if organism_is_legacy:
+                        if not allow_authenticated_legacy_pickle:
+                            raise ValueError(
+                                "legacy organism pickle is forbidden outside "
+                                "an authenticated immutable migration")
+                        if not bound_generation:
+                            raise ValueError(
+                                "legacy organism migration requires an "
+                                "identity-bound generation")
                     if bound_generation:
                         self._verify_binary_binding(
-                            organism_path, core_envelope_tick)
-                    self.organism = organism_type.load_full_state(organism_path)
+                            organism_restore_path, core_envelope_tick)
+                    if organism_is_legacy:
+                        self.organism = (
+                            organism_type.load_legacy_pickle_state(
+                                organism_restore_path))
+                    else:
+                        self.organism = organism_type.load_full_state(
+                            organism_restore_path)
                     if exact_binary and not isinstance(self.organism, organism_type):
-                        raise ValueError("organism pickle restored an unexpected type")
+                        raise ValueError(
+                            "organism artifact restored an unexpected type")
                     if self.organism.identity_uuid != self._guala_identity:
                         # G-2-class anomaly: her identity is authoritative
                         # (_load_identity, above) -- never let a mismatched
@@ -23818,7 +23853,8 @@ class Guala:
                     print(f"[GualaLoom] Organism restored: identity={self.organism.identity_uuid} "
                           f"tick={self.organism.tick} pop={_gs['total_neurons']} "
                           f"total_divisions={_gs['total_divisions']} "
-                          f"file={organism_path}")
+                          f"format={'legacy-pickle-migration' if organism_is_legacy else 'structural-graph'} "
+                          f"file={organism_restore_path}")
                     # GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: re-wire the
                     # spike bus onto the just-restored organism. self.organism
                     # was JUST replaced wholesale above -- __init__'s wiring
@@ -23885,21 +23921,48 @@ class Guala:
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:
                 if exact_binary:
-                    raise ValueError("required guala_organism.pkl.gz is missing")
-                print("[GualaLoom] No guala_organism.pkl.gz — organism starts fresh this boot")
+                    raise ValueError(
+                        "required guala_organism.sgr or authenticated "
+                        "legacy migration artifact is missing")
+                print("[GualaLoom] No organism artifact — organism starts fresh this boot")
 
             # GL-NOTE-VOICE-WIRING-RULING W1: restore the tapestry alongside
             # the organism -- same honest-fresh-on-absence reasoning.
-            tapestry_path = os.path.join(state_dir, "guala_tapestry.pkl.gz")
-            if os.path.exists(tapestry_path):
+            tapestry_path = os.path.join(state_dir, "guala_tapestry.sgr")
+            legacy_tapestry_path = os.path.join(
+                state_dir, "guala_tapestry.pkl.gz")
+            tapestry_restore_path = (
+                tapestry_path
+                if os.path.exists(tapestry_path)
+                else legacy_tapestry_path
+            )
+            tapestry_is_legacy = (
+                tapestry_restore_path == legacy_tapestry_path)
+            if os.path.exists(tapestry_restore_path):
                 try:
                     tapestry_type = type(self.tapestry)
+                    if tapestry_is_legacy:
+                        if not allow_authenticated_legacy_pickle:
+                            raise ValueError(
+                                "legacy tapestry pickle is forbidden outside "
+                                "an authenticated immutable migration")
+                        if not bound_generation:
+                            raise ValueError(
+                                "legacy tapestry migration requires an "
+                                "identity-bound generation")
                     if bound_generation:
                         self._verify_binary_binding(
-                            tapestry_path, core_envelope_tick)
-                    self.tapestry = tapestry_type.load_full_state(tapestry_path)
+                            tapestry_restore_path, core_envelope_tick)
+                    if tapestry_is_legacy:
+                        self.tapestry = (
+                            tapestry_type.load_legacy_pickle_state(
+                                tapestry_restore_path))
+                    else:
+                        self.tapestry = tapestry_type.load_full_state(
+                            tapestry_restore_path)
                     if exact_binary and not isinstance(self.tapestry, tapestry_type):
-                        raise ValueError("tapestry pickle restored an unexpected type")
+                        raise ValueError(
+                            "tapestry artifact restored an unexpected type")
                     if exact_binary:
                         self._exact_int(
                             getattr(self.tapestry, "_tick", None),
@@ -23918,7 +23981,8 @@ class Guala:
                         self._tapestry_prev_word = _pw
                     print(f"[GualaLoom] Tapestry restored: tick={self.tapestry._tick} "
                           f"neurons={self.tapestry.total_neurons} "
-                          f"prev_word={'set' if _pw else 'none'}")
+                          f"prev_word={'set' if _pw else 'none'} "
+                          f"format={'legacy-pickle-migration' if tapestry_is_legacy else 'structural-graph'}")
                     # 2026-07-08 pruning fix: same chi_atlas bloat as the
                     # organism above, same one-time reclaim -- the
                     # tapestry's 450 neurons are the SAME LoomNeuron
@@ -23942,8 +24006,10 @@ class Guala:
                     print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
             else:
                 if exact_binary:
-                    raise ValueError("required guala_tapestry.pkl.gz is missing")
-                print("[GualaLoom] No guala_tapestry.pkl.gz — tapestry starts fresh this boot")
+                    raise ValueError(
+                        "required guala_tapestry.sgr or authenticated "
+                        "legacy migration artifact is missing")
+                print("[GualaLoom] No tapestry artifact — tapestry starts fresh this boot")
 
             # GL-CMD-HOTLANE-DIET-102: load survival history from own cold file.
             # _apply_core() already set _deep_survival_history from core.json's field

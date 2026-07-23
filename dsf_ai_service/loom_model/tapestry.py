@@ -182,44 +182,42 @@ class LoomTapestry:
     # ------------------------------------------------------------------
     # persistence — GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P1: same convention
     # as Embryo.save_full_state/load_full_state (embryo.py, GL-CMD-169) --
-    # full pickle of the object graph, so every neuron's real spike/
-    # winding/familiarity history round-trips, not a hand-picked subset.
+    # closed structural graph, so every neuron's real spike/winding/
+    # familiarity history round-trips while runtime handles are rebuilt.
     # ------------------------------------------------------------------
 
     def save_full_state(self, path, *, persistence_admission=None):
-        """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
-        fsync + os.replace), same fix as Embryo.save_full_state -- this
-        exact file truncated once already on 07-05 ("Compressed file ended
-        before the end-of-stream marker was reached"), correlated with a
-        deploy's pause/save-window racing a shutdown."""
-        import pickle, gzip, os
-        d = os.path.dirname(path) or "."
-        os.makedirs(d, exist_ok=True)
-        tmp_path = path + ".tmp"
-        if persistence_admission is None:
-            with gzip.open(tmp_path, "wb") as f:
-                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
-                f.flush()
-                os.fsync(f.fileno())
-        else:
-            with persistence_admission.open_binary(
-                    tmp_path,
-                    logical_path=path) as raw:
-                with gzip.GzipFile(
-                        filename="",
-                        mode="wb",
-                        fileobj=raw,
-                        mtime=0) as f:
-                    pickle.dump(
-                        self,
-                        f,
-                        protocol=pickle.HIGHEST_PROTOCOL,
-                    )
-                    f.flush()
-        os.replace(tmp_path, path)
+        """Persist the exact tapestry through the bounded graph boundary."""
+        from dsf_ai_service.loom_model.structural_graph_state import (
+            save_structural_graph,
+            structural_graph_limits_from_environment,
+        )
+        return save_structural_graph(
+            self,
+            path,
+            limits=structural_graph_limits_from_environment(),
+            persistence_admission=persistence_admission,
+        )
 
     @staticmethod
     def load_full_state(path):
-        import pickle, gzip
-        with gzip.open(path, "rb") as f:
-            return pickle.load(f)
+        from dsf_ai_service.loom_model.structural_graph_state import (
+            load_structural_graph,
+            structural_graph_limits_from_environment,
+        )
+        return load_structural_graph(
+            path,
+            expected_root_type=LoomTapestry,
+            limits=structural_graph_limits_from_environment(),
+        )
+
+    @staticmethod
+    def load_legacy_pickle_state(path):
+        """Read one authenticated pre-graph generation for migration only."""
+        import gzip
+        import pickle
+        with gzip.open(path, "rb") as source:
+            restored = pickle.load(source)
+        if not isinstance(restored, LoomTapestry):
+            raise TypeError("legacy tapestry state restored an unexpected type")
+        return restored

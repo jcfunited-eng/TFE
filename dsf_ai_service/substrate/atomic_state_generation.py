@@ -4,7 +4,7 @@ GL-FIX-ATOMIC-SAVE-GENERATIONS-20260715
 
 Problem this solves
 -------------------
-The engine writes its state as ~10-16 separate JSON/pickle files into a single
+The engine writes its state as separate JSON and structural binary files into a single
 flat directory (``STATE_DIR``).  Each file is written with an atomic
 temp+fsync+rename, but the *set* is not atomic: a kill (ECS health-check,
 OOM, deploy) between two file writes leaves a directory that mixes files from
@@ -53,7 +53,7 @@ STAGING_PREFIX = ".staging-"
 MANIFEST_SCHEMA = "atomic_state_generation_v1"
 
 # Files smaller than this are hashed into the manifest for integrity; larger
-# stores (atlas/deep_atlas/pickles) record size+tick only, and rely on the
+# stores (atlas/deep_atlas/structural graphs) record size+tick only, and rely on the
 # hard-link to the just-written flat file for byte fidelity.  Hashing multi-MB
 # stores on every hot save would reintroduce the exact per-cycle cost the hot
 # lane was optimized to avoid.

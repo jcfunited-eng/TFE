@@ -3,6 +3,7 @@ import io
 import json
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +35,21 @@ class _S3:
 
     def get_object(self, *, Bucket, Key):
         return {"Body": io.BytesIO(self.objects[(Bucket, Key)])}
+
+
+def test_legacy_pickle_migration_requires_both_verified_generation_artifacts():
+    assert not appmod._verified_generation_requires_legacy_pickle_migration(None)
+    assert not appmod._verified_generation_requires_legacy_pickle_migration(
+        SimpleNamespace(required_files=("guala_organism.pkl.gz",))
+    )
+    assert appmod._verified_generation_requires_legacy_pickle_migration(
+        SimpleNamespace(
+            required_files=(
+                "guala_organism.pkl.gz",
+                "guala_tapestry.pkl.gz",
+            )
+        )
+    )
 
 
 def test_runtime_generation_contains_complete_contract_and_excludes_transients(
@@ -91,8 +107,8 @@ def test_runtime_generation_contains_complete_contract_and_excludes_transients(
     expected_engine = {
         "guala_identity.json",
         "guala_core.json",
-        "guala_organism.pkl.gz",
-        "guala_tapestry.pkl.gz",
+        "guala_organism.sgr",
+        "guala_tapestry.sgr",
     }
     if guala.wave_atlas is not None:
         expected_engine.add("wave_atlas.npz")

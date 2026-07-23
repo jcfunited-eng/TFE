@@ -53,3 +53,33 @@ def test_backup_handlers_report_local_only_when_s3_is_disabled(monkeypatch):
     assert event_details["storage"] == "local-only"
     assert event_details["s3_status"] == "disabled"
     assert "s3_prefix" not in event_details
+
+
+def test_backup_handlers_use_authoritative_generation_when_connected(
+        monkeypatch):
+    guala = FakeGuala()
+    reasons = []
+    guala._authoritative_cold_generation_checkpoint = (
+        lambda reason: reasons.append(reason) or {
+            "generation_uuid": "11111111-1111-4111-8111-111111111111",
+            "manifest_sha256": "a" * 64,
+        }
+    )
+    coordinator = LocalOnlyCoordinator()
+    monkeypatch.setattr(runner, "_guala", guala)
+    monkeypatch.setattr(coordinator_module, "SAVE_COORDINATOR", coordinator)
+
+    command_result = runner.handle_backup({})
+    orchestrated_result = runner._orchestrated_backup(
+        "truth-check",
+        blocking=True,
+    )
+
+    assert command_result["storage"] == (
+        "bounded-local-and-verified-remote")
+    assert command_result["s3"] == "verified"
+    assert orchestrated_result["storage"] == (
+        "bounded-local-and-verified-remote")
+    assert orchestrated_result["s3"] == "verified"
+    assert reasons == ["runner-backup", "orchestrated-truth-check"]
+    assert coordinator.reasons == []

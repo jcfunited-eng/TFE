@@ -36,7 +36,8 @@ def test_persistence_entry_points_serialize_and_reenter():
         assert release_hot.wait(2.0)
         return "hot"
 
-    def full_body(_state_dir):
+    def full_body(_state_dir, *, publish_generation=True):
+        assert publish_generation is True
         full_entered.set()
         return "full"
 
@@ -105,7 +106,7 @@ def test_hot_save_reports_any_mutable_file_failure_and_does_not_advance(
         def controlled_write(path, data, fsync=False):
             if os.path.basename(path) == "guala_needs.json":
                 raise OSError("needs write failed")
-            return real_atomic_write(path, data, fsync)
+            return real_atomic_write(guala, path, data, fsync)
 
         guala._atomic_write = controlled_write
 

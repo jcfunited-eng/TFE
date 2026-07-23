@@ -109,7 +109,7 @@ class SaveCoordinator:
         found via a real thread-dump of the running process, not a
         report: every dream cycle ending queued a full ~24MB multipart
         S3 upload (guala_atlas.json ~7MB, guala_deep_atlas.json ~9MB,
-        guala_organism.pkl.gz ~5MB, guala_sections.json ~2.8MB, plus
+        organism state ~5MB, guala_sections.json ~2.8MB, plus
         the rest) unconditionally, no rate limit at all -- and dream
         cycles complete every few minutes under ordinary operation.
         With uploads queuing faster than s3transfer's own multipart
@@ -186,7 +186,7 @@ class SaveCoordinator:
                     "guala_sections.json", "guala_bucket.json",
                     "guala_visual.json", "guala_sounds.json",
                     "guala_videos.json", "guala_teaching.json",
-                    "guala_organism.pkl.gz", "guala_tapestry.pkl.gz",  # GL-CMD-175 P1
+                    "guala_organism.sgr", "guala_tapestry.sgr",
                 ]
                 uploaded = 0
                 for fname in all_files:
@@ -194,9 +194,8 @@ class SaveCoordinator:
                     if not os.path.exists(fpath):
                         continue
                     if fname.endswith(".json"):
-                        # 2026-07-09: the .pkl.gz files below were already
-                        # gzip-compressed before this loop ever sees them;
-                        # the plain .json state files (atlas/deep_atlas/
+                        # 2026-07-09: binary state files below do not use
+                        # this branch; the plain .json files (atlas/deep_atlas/
                         # sections/survival/etc, several MB each) were not
                         # -- uploaded byte-for-byte. Compress in-flight,
                         # in memory, for the S3 mirror only -- the local

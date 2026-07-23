@@ -18,7 +18,7 @@ generation instead of silently time-travelling to S3):
   * older generations are tried when the newest is bad;
   * total local failure returns None (caller must halt, never S3);
   * only the newest N generations are kept;
-  * the append-only WAL rides the generation and tolerates later growth.
+  * retired verbatim window WAL data never rides a generation.
 
 Plus the byte-identity invariant: every persisted file except guala_core.json
 is byte-identical to today's format; core differs only by the added
@@ -329,7 +329,7 @@ def test_prunes_to_keep_three_generations():
     assert len(asg.list_generations(tmp)) == 3
 
 
-def test_wal_rides_generation_and_tolerates_growth():
+def test_retired_verbatim_wal_never_rides_generation():
     tmp = tempfile.mkdtemp()
     g = _new()
     for _ in range(50):
@@ -339,10 +339,9 @@ def test_wal_rides_generation_and_tolerates_growth():
     g.save_full_state(tmp)  # oldest kept generation
     gen1_dir = asg.list_generations(tmp)[0][0]
     waldir = os.path.join(gen1_dir, asg.WAL_DIRNAME)
-    assert os.path.isdir(waldir), "WAL not captured in generation"
-    before = sum(os.path.getsize(os.path.join(waldir, x))
-                 for x in os.listdir(waldir))
-    # more window activity + hot saves -> shared active WAL segment grows
+    assert not os.path.exists(waldir)
+    # More transient windows and hot saves must not mutate the older
+    # generation or resurrect verbatim lifetime storage.
     for w in ("the quiet moon glows over still water",
               "a warm light rests on the hill"):
         for _ in range(300):
@@ -350,10 +349,8 @@ def test_wal_rides_generation_and_tolerates_growth():
         g.read_sentence(w, source="seed")
         _settle(g)
         g.save_hot_state(tmp)
-    after = sum(os.path.getsize(os.path.join(waldir, x))
-                for x in os.listdir(waldir))
-    assert after >= before
-    # the older generation still validates and load-tests clean
+    assert not os.path.exists(waldir)
+    # The older structural generation still validates and load-tests clean.
     assert asg._validate_generation(gen1_dir) is not None
     assert _load(gen1_dir)._load_successful
 
