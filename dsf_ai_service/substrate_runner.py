@@ -505,109 +505,15 @@ _TUTOR_STATE = {"rotation": 0, "last_status": {}}
 
 
 def _gap_study_once():
-    """Study the top knowledge gaps via concordance over her own reading."""
-    if os.environ.get("GAP_STUDY_ENABLED", "1").strip() == "0":
-        return {"state": "off"}
-    try:
-        from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
-        ledger = get_ledger(STATE_DIR)
-        gaps = ledger.top_gaps(6)
-        if not gaps:
-            return {"state": "no_gaps"}
-        material, covered = [], []
-        for gw in gaps:
-            hits = [s for s in _GAP_ARCHIVE
-                    if gw in s.lower().split()][:4]
-            if hits:
-                material.extend(hits)
-                covered.append(gw)
-        if not material:
-            return {"state": "no_material", "gaps": gaps}
-        n_fed, _ = _curriculum_feed_chunk(
-            material[:20], event_type="gap_study",
-            event_key=",".join(covered[:4]))
-        for gw in covered:
-            ledger.mark_addressed(gw)
-        try:
-            _guala._log_substrate_event("gap_study", words=covered,
-                                        n_fed=n_fed, n_gaps_open=len(gaps))
-        except Exception:
-            pass
-        st = {"state": "studied", "words": covered, "n_fed": n_fed}
-        print(f"[gap-study] words={covered} n_fed={n_fed}")
-        return st
-    except Exception as e:
-        return {"state": "error", "error": str(e)}
+    """Refuse legacy word-gap replay as a cognition authority."""
+    return dict(_RETIRED_BACKGROUND_COGNITION)
 
 
 def _tutor_once():
-    """One automated teach → ask → correct exchange."""
-    if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() == "0":
-        return {"state": "off"}
-    try:
-        if _current_block() in _SUPPRESSED_BLOCKS:
-            return {"state": "block_suppressed", "block": _current_block()}
-        # Never collide with an in-flight human turn — Joe's conversation
-        # always outranks the tutor's quiz.
-        if getattr(_guala, "_live_converse_pending", 0):
-            return {"state": "deferred_live_turn"}
-        from dsf_ai_service.substrate.knowledge_gap_ledger import get_ledger
-        from dsf_ai_service.substrate.autonomous_tutor import (
-            pick_tutor_item, judge_attempt_detail)
-        ledger = get_ledger(STATE_DIR)
-        cap = int(os.environ.get("TUTOR_MAX_TEACHES_PER_DAY", "40") or 40)
-        if ledger.tutor_teaches_today() >= cap:
-            return {"state": "daily_cap", "cap": cap}
-        item = pick_tutor_item(ledger.top_gaps(8), list(_GAP_ARCHIVE),
-                               rotation=_TUTOR_STATE["rotation"])
-        _TUTOR_STATE["rotation"] += 1
-        if item is None:
-            return {"state": "no_material"}
-        # Her REAL answer: same path as a typed question (certified strand
-        # first, honest babble fall-through, or silence).
-        r = _cmd_converse(item["stem"], source="curriculum")
-        attempt = (r or {}).get("response", "") or ""
-        detail = judge_attempt_detail(attempt, item["expected"])
-        correct = detail["verdict"] == "correct"
-        _guala.apply_teacher_correction(
-            original_input=item["stem"],
-            her_emission=attempt,
-            correct=correct,
-            expected_response=None if correct else item["expected"],
-            source="curriculum")
-        # GL-CMD-SYNTAX-TUTOR-20260718 (Joe: "syntax guidance as well as
-        # grading"): when she had the right words in the wrong ORDER, the
-        # failure is syntax — model the whole correct sentence back as one
-        # taught, order-preserving window (a parent saying the full
-        # sentence back), on top of the correction above.
-        if detail["verdict"] == "wrong_order":
-            try:
-                _guala.read_sentence(item["sentence"], source="curriculum",
-                                     teaching=True)
-            except Exception:
-                pass
-        ledger.record_tutor_teach()
-        if item.get("gap_word"):
-            ledger.mark_addressed(item["gap_word"])
-        try:
-            _guala._log_substrate_event(
-                "tutor_exchange", stem=item["stem"], attempt=attempt,
-                expected=item["expected"], correct=correct,
-                verdict=detail["verdict"],
-                gap_word=item.get("gap_word"),
-                teaches_today=ledger.tutor_teaches_today())
-        except Exception:
-            pass
-        st = {"state": "exchange", "stem": item["stem"], "attempt": attempt,
-              "expected": item["expected"], "correct": correct,
-              "verdict": detail["verdict"],
-              "gap_word": item.get("gap_word")}
-        _TUTOR_STATE["last_status"] = st
-        print(f"[tutor] stem={item['stem']!r} attempt={attempt!r} "
-              f"expected={item['expected']!r} correct={correct}")
-        return st
-    except Exception as e:
-        return {"state": "error", "error": str(e)}
+    """Refuse text-continuation grading as tutored causal learning."""
+    state = dict(_RETIRED_BACKGROUND_COGNITION)
+    _TUTOR_STATE["last_status"] = state
+    return state
 
 
 def _start_world_feed_loop():
@@ -967,42 +873,21 @@ def boot_substrate():
         pass  # placeholder for the removed GualaCognition block
     # (end of removed GualaCognition boot block)
 
-    # AUTONOMOUS CURRICULUM: she studies children's literature on her own, on a
-    # schedule, growing her engine + organ-brain from her real reading life.
-    # Additive, killable (CURRICULUM_AUTONOMOUS=0), resumable; never raises into boot.
-    try:
-        from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
-        global _curriculum
-        # Interleave available world feeds into the one study scheduler so they
-        # share its reliable awake windows (separate loops get starved).
-        _interleave = []
-        if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
-            _interleave.append(("worldfeed", _world_feed_once))
-        # GL-CMD-AUTOMATED-TEACHING-20260717: gap study + tutor share the
-        # same reliable study windows (all-at-once doctrine: ON by default).
-        if os.environ.get("GAP_STUDY_ENABLED", "1").strip() != "0":
-            _interleave.append(("gap_study", _gap_study_once))
-        if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() != "0":
-            _interleave.append(("tutor", _tutor_once))
-        _curriculum = CurriculumScheduler(
-            state_dir=STATE_DIR,
-            feed_chunk=_curriculum_feed_chunk,
-            is_busy=_curriculum_is_busy,
-            log=g._log_substrate_event,
-            interleave_fns=_interleave,
-            interleave_every=int(os.environ.get("STUDY_INTERLEAVE_EVERY", "3") or 3),
-        )
-        _curriculum.start()
-        print(f"[curriculum] autonomous study started: enabled={_curriculum.enabled} "
-              f"books={len(_curriculum.curriculum)} chunk={_curriculum.chunk_size} "
-              f"interval={_curriculum.interval_sec}s "
-              f"interleave={[n for n,_ in _interleave]} every={_curriculum.interleave_every}")
-    except Exception as _e:
-        print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
-
-    # World feeds run interleaved inside the curriculum scheduler above so they
-    # share its study windows. Manual /worldfeed remains available. /lookup is an
-    # explicit unavailable boundary because model output is not Fact-Strand experience.
+    # Gutenberg text, word-gap replay, and next-text grading do not constitute
+    # causal sensory education.  The standalone boot path therefore admits no
+    # legacy curriculum thread.  The bounded causal tutor replacement will be
+    # connected only after its physical audiovisual evidence mount exists.
+    global _curriculum
+    _curriculum = None
+    g._log_substrate_event(
+        "background_curriculum_retired",
+        **_RETIRED_BACKGROUND_COGNITION,
+    )
+    print(
+        "[curriculum] legacy text scheduler retired; "
+        "causal sensory tutor not yet connected",
+        flush=True,
+    )
 
     # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: start organ surface poll
     _start_organ_surface_poll()
@@ -1817,30 +1702,46 @@ def _cmd_status():
 
 
 def _cmd_events(text):
-    # GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180 S4: this is the ONLY call site
-    # reached from app.py's GET /api/v1/gualaloom/events?n=200 (the RECENT
-    # EMISSIONS/HEMISPHERES panel's own data source, per that route's
-    # docstring) -- it forwards `n` as `text` intending "how many recent
-    # events", but this parsed it as `since_tick` (a tick cutoff, always
-    # far smaller than the real tick counter, so it filtered ~nothing) AND
-    # hardcoded limit=50 regardless -- so the panel silently only ever saw
-    # the last 50 raw events, never the 200 it asked for, making sparse
-    # event kinds (like real-content emissions, if attempts happen far
-    # less often than sight/sound-frame events) invisible more often than
-    # they should be. Fixed to honor `text` as the actual limit, matching
-    # every real caller's intent. get_recent_events's own since_tick-based
-    # callers (SSE-style incremental polling, app.py:3286/3295) are
-    # untouched -- this is the one place that was never using it that way.
+    """Return a bounded sequence-cursor suffix for remote UI observers.
+
+    Canonical callers send JSON with exactly ``after_sequence`` and ``limit``.
+    A plain integer remains a read-only compatibility request for that many
+    recent events; it is never interpreted as a tick cursor.
+    """
+    after_sequence = None
     limit = 200
     try:
-        limit = int(text.strip()) if text.strip() else 200
-    except ValueError:
-        pass
+        decoded = json.loads(text)
+    except (TypeError, ValueError):
+        decoded = None
+    if isinstance(decoded, dict):
+        if set(decoded) != {"after_sequence", "limit"}:
+            raise ValueError("event cursor request fields changed")
+        after_sequence = decoded["after_sequence"]
+        limit = decoded["limit"]
+        if (
+            isinstance(after_sequence, bool)
+            or not isinstance(after_sequence, int)
+            or after_sequence < 0
+        ):
+            raise ValueError("event sequence cursor is invalid")
+    elif text.strip():
+        try:
+            limit = int(text.strip())
+        except ValueError as error:
+            raise ValueError("event request is not canonical") from error
+    if isinstance(limit, bool) or not isinstance(limit, int):
+        raise ValueError("event result limit is invalid")
     limit = max(1, min(limit, 1000))  # ring buffer itself caps at 1000
-    events = _guala.get_recent_events(since_tick=0, limit=limit)
+    events = _guala.get_recent_events(
+        since_tick=0,
+        limit=limit,
+        since_sequence=after_sequence,
+    )
     return {"response": f"{len(events)} events",
             "motifs": _guala.introspect()["vocab"],
-            "events": events}
+            "events": events,
+            "event_stream": _guala.event_stream_status()}
 
 
 def _cmd_presence(text):
@@ -3490,170 +3391,43 @@ def _start_organ_surface_poll():
 
 # ── GL-CMD-AUTONOMOUS-EMISSION-39 ──────────────────────────────────────────
 
-_last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
+_RETIRED_BACKGROUND_COGNITION = {
+    "schema": "guala.background_cognition.retirement.v1",
+    "state": "retired_wrong_architecture",
+    "reason": (
+        "legacy text continuation and fixed-composer emission are not "
+        "causal sensory cognition"
+    ),
+    "replacement": "bounded_causal_play_action_cycle",
+}
+_last_autonomous_thought = {
+    "speech": "",
+    "tick": 0,
+    "ts": 0.0,
+    **_RETIRED_BACKGROUND_COGNITION,
+}
 _autonomous_thought_lock = threading.Lock()
 
 
 def _start_autonomous_emission_loop():
-    """Background daemon: attempts autonomous emission every 90s.
-    Uses compose_autonomous() — the SAME release policy as /converse
-    (Change 4): certified composer first, queried with organism-sourced
-    seeds (recent committed window words / current activity target — never
-    atlas dumps), the substrate's own assemblage commit second, explained
-    silence third.  Stores result in _last_autonomous_thought for /thought
-    polling."""
-    def _loop():
-        global _last_autonomous_thought
-        if _shutdown_event.wait(60):
-            return
-        while not _shutdown:
-            try:
-                # GL-CMD-CAMERA-TURN-LATENCY: this loop is the worst self.lock
-                # offender -- it holds the lock across the FULL six-section
-                # compose_autonomous() (measured 49-94s live). If a live human
-                # interaction is pending, defer this whole cycle rather than
-                # start a fresh long lock-hold in front of the waiting turn.
-                # The loop already retries on its own 90s cadence, so a
-                # deferred cycle simply runs next time -- background emission
-                # is never dropped, only postponed until the exact end of the
-                # balanced live-interaction scope.
-                if (_guala is not None
-                        and not _guala._defer_for_live_interaction(
-                            "autonomous_emission")):
-                    should = False
-                    with _guala.lock:
-                        should = _guala._should_attempt_autonomous_emission()
-                    if should:
-                        # F3 (2026-07-16): two-phase compose. Seeds are
-                        # snapshotted under a SHORT hold, the organism
-                        # recall (duration-unbounded) runs with NO lock,
-                        # and the final compose under the lock is assembly
-                        # only -- it refuses to recall by contract
-                        # (votes_not_precomputed).
-                        seed_attempts = None
-                        with _guala.lock:
-                            seed_attempts = (
-                                _guala._autonomous_composer_seed_attempts())
-                        organism_votes = _guala.precompute_organism_attempt(
-                            seed_attempts)
-                        result = None
-                        with _guala.lock:
-                            result = _guala.compose_autonomous(
-                                seed_attempts=seed_attempts,
-                                organism_votes=organism_votes,
-                                proposal=None)
-                        # GL-FIX-SECOND-CHANCE-SEEDS-20260717: live histogram
-                        # showed 7/8 autonomous attempts dying organism_empty —
-                        # window-derived seeds are sensory-frame dominated now
-                        # (5823 organism_experience_bound vs a handful of word
-                        # events in the same span), so the vote merge finds
-                        # nothing.  When the whole compose refused AND the
-                        # organism voted empty, retry ONCE with her most
-                        # recent READ sentence — her own reading life, not an
-                        # atlas dump (the documented regression class).
-                        if result is None:
-                            try:
-                                _m = (organism_votes or {}).get("merged")
-                                if (_m is None or not _m) and len(_GAP_ARCHIVE):
-                                    _fb = [{"words": list(_GAP_ARCHIVE)[-1]
-                                            .split()[:6],
-                                            "provenance":
-                                                "recent_reading_fallback"}]
-                                    _fb_votes = (
-                                        _guala.precompute_organism_attempt(_fb))
-                                    if _fb_votes and _fb_votes.get("merged"):
-                                        with _guala.lock:
-                                            result = _guala.compose_autonomous(
-                                                seed_attempts=_fb,
-                                                organism_votes=_fb_votes)
-                            except Exception as _sc_e:
-                                print(f"[autonomous] second-chance seeds "
-                                      f"failed (non-fatal): {_sc_e}",
-                                      flush=True)
-                        if result is not None:
-                            content = result["content"]
-                            _guala.autonomous_emissions_count += 1
-                            autonomous_emission_id = (
-                                f"autonomous:{_guala.autonomous_emissions_count}:"
-                                f"{result['settlement_tick']}")
-                            _guala.last_autonomous_emission_tick = _guala.tick
-                            _guala._log_substrate_event(
-                                "autonomous_emission",
-                                content=content,
-                                emission_id=autonomous_emission_id,
-                                response_source=result["response_source"],
-                                committed_sections=result["committed_sections"],
-                                commit_provenance=result["commit_provenance"],
-                                # Two seed semantics, two keys (review
-                                # 2026-07-16): certified releases count seed
-                                # WORDS; assemblage releases count chi seeds.
-                                seed_words_used=result.get(
-                                    "seed_words_used", 0),
-                                chi_seeds_used=result.get(
-                                    "chi_seeds_used", 0),
-                                # Change 4: certified autonomous releases
-                                # carry organism-sourced seed provenance
-                                # (window/activity origins, never atlas).
-                                seed_provenance=result.get(
-                                    "seed_provenance", []),
-                                count=_guala.autonomous_emissions_count,
-                            )
-                            with _autonomous_thought_lock:
-                                _last_autonomous_thought = {
-                                    "speech": content,
-                                    "tick": _guala.tick,
-                                    "ts": time.time(),
-                                    "category": "autonomous",
-                                    "source": "guala",
-                                    "response_source": result["response_source"],
-                                    "emission_id": autonomous_emission_id,
-                                    "committed_sections": result["committed_sections"],
-                                    "commit_provenance": result["commit_provenance"],
-                                }
-                            # One mouth (Change 4): every released label —
-                            # fact_strand_commit AND assemblage_commit —
-                            # self-hears through the same engine boundary as
-                            # conversational emission; never raw re-ingest.
-                            # _self_hear itself gates on
-                            # VOICED_RELEASE_SOURCES and keeps the label
-                            # distinct in its telemetry.
-                            try:
-                                _guala._self_hear(
-                                    content, "guala",
-                                    emission_id=autonomous_emission_id,
-                                    response_source=result["response_source"])
-                            except Exception as self_hear_error:
-                                _guala._log_substrate_event(
-                                    "autonomous_self_hear_error",
-                                    emission_id=autonomous_emission_id,
-                                    error=str(self_hear_error))
-                            # Agency organ writes
-                            try:
-                                if _guala_organ_brain is not None:
-                                    ab = _guala_organ_brain["atlas_by_organ"]
-                                    ab["sv"] = ab.get("sv", 0) + 1
-                                    ab["gp"] = ab.get("gp", 0) + 1
-                                    ab["aff"] = ab.get("aff", 0) + 1
-                                    if _guala.autonomous_emissions_count % 5 == 0:
-                                        ab["sf"] = ab.get("sf", 0) + 1
-                            except Exception:
-                                pass
-                        else:
-                            _guala.last_autonomous_attempt_tick = _guala.tick
-                            _guala._log_substrate_event(
-                                "autonomous_attempt_no_commit",
-                                needs=_guala.needs.snapshot(),
-                            )
-            except Exception as _e:
-                try:
-                    _guala._log_substrate_event("autonomous_emission_error",
-                                                error=str(_e))
-                except Exception:
-                    pass
-            if _shutdown_event.wait(90):
-                break
-    _start_background_thread(_loop, "autonomous-emission")
-    print("[autonomous] emission loop started (90s interval)")
+    """Refuse to start the retired fixed-composer background authority.
+
+    Autonomous physical play and action remain owned by the bounded causal
+    play/action cycle inside the engine.  This compatibility function stays
+    callable because both boot paths invoke it, but it creates no thread,
+    performs no recall, acquires no engine lock, and emits no speech.
+    """
+    if _guala is not None:
+        _guala._log_substrate_event(
+            "background_cognition_retired",
+            **_RETIRED_BACKGROUND_COGNITION,
+        )
+    print(
+        "[autonomous] legacy fixed-composer loop retired; "
+        "bounded causal play remains authoritative",
+        flush=True,
+    )
+    return dict(_RETIRED_BACKGROUND_COGNITION)
 
 
 def _cmd_thought():
@@ -4037,68 +3811,13 @@ HANDLERS = OP_HANDLERS
 
 
 def _start_curriculum_orchestrator():
-    """Start curriculum orchestrator as a background thread.
-
-    Runs the sensory curriculum orchestrator in a loop, cycling through the
-    100-bundle seed at --min-interval-sec cadence. Gated by CURRICULUM_AUTOSTART
-    env var (default disabled — GL-CMD-DENSITY-RETIRE-109 retires 65-A's
-    autostart pending the gated B2 Experience Engine design). Calls
-    localhost:8080 — same process, no API Gateway.
-
-    65-A from GL-CMD-C1B-QUEUE-EVE-20260701-65-PB3, retired by
-    GL-CMD-DENSITY-RETIRE-EVE-20260703-109-v1.
-    """
-    if os.environ.get("CURRICULUM_AUTOSTART", "0") != "1":
-        print("[curriculum] autostart disabled by env")
-        return
-
-    import sys as _sys
-    import subprocess
-    import threading
-
-    def _runner():
-        # Delay start: boot + dream cycle settle. She boots sleeping, dreams,
-        # then wakes. Dream cycle can hold the atlas lock for 30-60s.
-        # Wait 90s to avoid delivery timeouts during boot dream.
-        if _shutdown_event.wait(90):
-            return
-        interval = os.environ.get("CURRICULUM_ORCHESTRATOR_INTERVAL_SEC", "5")
-        seed_path = os.environ.get("CURRICULUM_SEED_PATH",
-                                   "/app/tools/curriculum_seed.json")
-        # Use localhost — orchestrator runs inside the same container
-        substrate_url = os.environ.get("CURRICULUM_SUBSTRATE_URL",
-                                       "http://localhost:8080")
-        while not _shutdown:
-            try:
-                global _curriculum_process
-                proc = subprocess.Popen(
-                    [_sys.executable, "/app/tools/sensory_curriculum_orchestrator.py",
-                     "--curriculum", seed_path,
-                     "--alb-url", substrate_url,
-                     "--min-interval-sec", interval,
-                     "--mode", "live",
-                     "--no-gate",  # autonomous density engine: bypass presence gate
-                     "--log", "/tmp/curriculum_orchestrator.jsonl"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                )
-                _curriculum_process = proc
-                for line in proc.stdout:
-                    print(f"[curriculum] {line.decode().rstrip()}", flush=True)
-                proc.wait()
-                # After one full pass through seed, pause then loop again
-                # (density growth = repeated multi-modal exposure)
-                if not _shutdown:
-                    if _shutdown_event.wait(60):
-                        break
-            except Exception as e:
-                print(f"[curriculum] orchestrator error: {e}, restarting in 60s",
-                      flush=True)
-                if _shutdown_event.wait(60):
-                    break
-
-    _start_background_thread(_runner, "curriculum")
-    print("[curriculum] autostart thread started", flush=True)
+    """Refuse the retired density/replay subprocess on every boot path."""
+    print(
+        "[curriculum] legacy density orchestrator retired; "
+        "causal sensory tutor not yet connected",
+        flush=True,
+    )
+    return dict(_RETIRED_BACKGROUND_COGNITION)
 
 
 def start_background_loops():

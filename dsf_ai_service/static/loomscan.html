@@ -167,7 +167,7 @@ footer b{color:var(--ink);font-weight:normal}
 </div>
 
 <div class="band" id="band">
-  <div class="band-cap lc">modality band — lit by signature quality of the current window, not volume</div>
+  <div class="band-cap lc">full-field authority — exact L5 substream structure from the current causal settlement; no intensity score</div>
 </div>
 
 <div class="scene">
@@ -175,6 +175,9 @@ footer b{color:var(--ink);font-weight:normal}
   <div class="cell lc"><b>body state</b><span id="bodyCell">loading…</span></div>
   <div class="cell lc"><b>embodied action</b><span id="embodiedActionCell">loading…</span></div>
   <div class="cell lc"><b>observed conversation</b><span id="conversationCell">loading…</span></div>
+  <div class="cell lc"><b>full-field prediction</b><span id="predictionCell">loading…</span></div>
+  <div class="cell lc"><b>causal action authority</b><span id="causalActionCell">loading…</span></div>
+  <div class="cell lc"><b>observation receipt</b><span id="observationReceiptCell">loading…</span></div>
   <div class="cell lc"><b>lexical place lane</b><span id="placeCell">loading…</span></div>
   <div class="cell lc"><b>lexical ambient lane</b><span id="ambientCell">loading…</span></div>
   <div class="cell lc"><b>registered presence</b><span id="whoCell">loading…</span></div>
@@ -188,7 +191,7 @@ footer b{color:var(--ink);font-weight:normal}
 </section>
 
 <div class="feed">
-  <h3 class="lc">experience feed — live window classification</h3>
+  <h3 class="lc">event feed — exact reported event kinds</h3>
   <div id="feedRows"></div>
 </div>
 
@@ -202,8 +205,8 @@ footer b{color:var(--ink);font-weight:normal}
   </div>
   <div>
     <b>honesty</b><br>
-    dot positions: real per-chi density from /chi_density. deep atlas: real count + survival dots.<br>
-    empty panes = no signal. dark band = data-load-only window, not experience. no smoothing.<br>
+    dot positions: exact per-chi density projection from /chi_density. deep atlas: exact count only.<br>
+    modality cells show current full-field substreams and field names only. empty panes = no authority. no smoothing.<br>
     GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1 · tier 1+2 · read-only
   </div>
 </footer>
@@ -231,42 +234,13 @@ const dotLayer=el('g',{id:'dotLayer'},scan);
 const deepLayer=el('g',{id:'deepLayer'},scan);
 const arcLayer=el('g',{id:'arcs'},scan);
 const bloomLayer=el('g',{id:'blooms'},scan);
-const labelLayer=el('g',{id:'labels'},scan);
 const centerGroup=el('g',{id:'center'},scan);
-
-const ANCHOR_CHIS=[7,9,12,13,14,22,24,26,32];
-
-function buildTickMarks(nKeys){
-  const g=el('g',{id:'ticks'},scan);
-  scan.insertBefore(g,hazeLayer);
-  for(let i=0;i<nKeys;i++){
-    const a=chiAngle(i*186/nKeys);
-    const[p1x,p1y]=pt(R_OUT+10,a),[p2x,p2y]=pt(R_OUT+14,a);
-    el('line',{x1:p1x,y1:p1y,x2:p2x,y2:p2y,stroke:'rgba(79,198,242,.28)','stroke-width':1},g);
-  }
-}
 
 function buildDeepRing(nEntries,nSurvival){
   deepLayer.innerHTML='';
   el('circle',{cx:CX,cy:CY,r:R_DEEP-16,fill:'none',stroke:'rgba(155,140,255,.13)','stroke-width':26},deepLayer);
-  // Survival dots at deterministic positions (mulberry32 seeded with nEntries)
-  const rnd=mulberry32(nEntries);
-  for(let i=0;i<Math.min(nSurvival,200);i++){
-    const a=rnd()*2*Math.PI;
-    const[x,y]=pt(R_DEEP-2,a);
-    el('circle',{cx:x,cy:y,r:2.4,fill:'var(--violet)',opacity:.95},deepLayer);
-  }
-}
-
-function buildAnchorLabels(){
-  labelLayer.innerHTML='';
-  for(const c of ANCHOR_CHIS){
-    const a=chiAngle(c);
-    const[x,y]=pt(R_OUT-4,a);
-    el('circle',{cx:x,cy:y,r:3.4,fill:'none',stroke:'var(--cyan)','stroke-width':1.2},labelLayer);
-    const[lx,ly]=pt(R_OUT+26,a);
-    el('text',{x:lx,y:ly,'text-anchor':'middle',fill:'var(--ink-dim)','font-size':'9'},labelLayer).textContent='chi '+c;
-  }
+  el('text',{x:CX,y:CY-R_DEEP+24,'text-anchor':'middle',fill:'var(--violet)','font-size':'9'},deepLayer)
+    .textContent=`${Number(nEntries).toLocaleString()} entries · ${Number(nSurvival).toLocaleString()} survival`;
 }
 
 function renderCenterReadout(tick,strength){
@@ -318,9 +292,6 @@ function renderHazeBands(dist){
   }
 }
 
-/* mulberry32 deterministic rng */
-function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-
 /* ---- Arc + bloom ---- */
 function drawArc(c1,c2){
   const a=chiAngle(c1),b=chiAngle(c2);
@@ -349,9 +320,8 @@ function drawBloom(chi,committed){
 
 /* ---- State ---- */
 let _tick=0,_prevV=null,_prevA=null,_vSeries=[],_aSeries=[];
-let _lastEvTick=-1,_seenEvKeys=new Set();
+let _lastEventSequence=0,_lastEventEpoch=null,_seenEventSequences=new Set();
 let _chiDensityAge=0;
-let _firstPoll=true;
 
 /* ---- Sparklines ---- */
 function spark(id,vals,lo,hi,color){
@@ -463,33 +433,35 @@ function renderOrganGrowth(growth){
     ` · q>0.9: ${growth.n_q_over_0_9} · q>0.5: ${growth.n_q_over_0_5}`;
 }
 
-/* ---- Modality band ---- */
-const LANE_NAMES=['sight','sound','touch','smell','taste','language'];
-let _laneGlow={sight:0,sound:0,touch:0,smell:0,taste:0,language:0};
+/* ---- Full-field authority band ---- */
+const LANE_NAMES=['sight','sound','touch','smell','taste','body'];
 
 function initBand(){
   const band=document.getElementById('band');
   for(const nm of LANE_NAMES){
     band.insertAdjacentHTML('beforeend',
-      `<div class="lane lc" id="lane-${nm}"><div class="nm">${nm}</div><div class="st" id="laneS-${nm}"></div>
-       <div class="glow"><i id="laneG-${nm}" style="width:0%"></i></div></div>`);
+      `<div class="lane lc" id="lane-${nm}"><div class="nm">${nm}</div><div class="st" id="laneS-${nm}">not observed</div></div>`);
   }
 }
 
-function setLaneGlow(nm,pct,text){
-  _laneGlow[nm]=Math.max(_laneGlow[nm],pct);
-  if(text){const st=document.getElementById('laneS-'+nm);if(st)st.textContent=text;}
-  const g=document.getElementById('laneG-'+nm);if(g)g.style.width=pct+'%';
-  const lane=document.getElementById('lane-'+nm);
-  if(lane){lane.className='lane lc'+(pct>60?' hot':'');}
-}
-
-function decayLanes(){
+function renderFullFieldAuthority(authority){
+  const observed=new Map();
+  for(const sense of authority&&Array.isArray(authority.senses)?authority.senses:[]){
+    if(typeof sense.sense==='string')observed.set(sense.sense,sense);
+  }
   for(const nm of LANE_NAMES){
-    _laneGlow[nm]=Math.max(0,_laneGlow[nm]-6);
-    const g=document.getElementById('laneG-'+nm);if(g)g.style.width=_laneGlow[nm]+'%';
+    const sense=observed.get(nm);
+    const substreams=sense&&Array.isArray(sense.substreams)?sense.substreams:[];
+    const latest=substreams[0]||{};
+    const fields=Array.isArray(latest.fields)?latest.fields:[];
+    const exact=fields.map(item=>Array.isArray(item)&&item.length===2
+      ? `${item[0]}=${String(item[1])}`:'').filter(Boolean).join(' · ');
+    const state=document.getElementById('laneS-'+nm);
+    if(state)state.textContent=sense
+      ? `${sense.state||'state unavailable'} · ${substreams.length} substreams · latest exact ${latest.substream_id||'substream unavailable'}: ${exact||'field unavailable'}`
+      :'not observed';
     const lane=document.getElementById('lane-'+nm);
-    if(lane&&_laneGlow[nm]<=60)lane.className='lane lc';
+    if(lane)lane.className='lane lc'+(sense?' hot':'');
   }
 }
 
@@ -534,9 +506,6 @@ function renderActivity(status){
     document.getElementById('budgetFill').style.width='0%';
     document.getElementById('budgetLbl').textContent='';
   }
-  // Lane from activity
-  if(act.kind==='ATTENDING_VISUAL')setLaneGlow('sight',90,target||'visual');
-  else if(act.kind==='ATTENDING_AUDIO')setLaneGlow('sound',90,target||'audio');
 }
 
 /* ---- Who cell ---- */
@@ -574,8 +543,8 @@ function buildW1SpatialModel(embodiment){
   const identifier=value=>typeof value==='string'&&value.length>0;
   const topology=embodiment.topology;
   if(!topology||!identifier(topology.current_region_id)||
-     !Array.isArray(topology.regions)||topology.regions.length<3||
-     !Array.isArray(topology.portals)||topology.portals.length<2){
+     !Array.isArray(topology.regions)||topology.regions.length<1||
+     !Array.isArray(topology.portals)){
     return unavailable('authoritative physical topology unavailable');
   }
   const regions=[];
@@ -623,8 +592,8 @@ function buildW1SpatialModel(embodiment){
     };
   };
   const selfBodyId=embodiment.self_body_id;
-  if(!identifier(selfBodyId)||!Array.isArray(embodiment.bodies)||embodiment.bodies.length<2){
-    return unavailable('authoritative multi-body topology unavailable');
+  if(!identifier(selfBodyId)||!Array.isArray(embodiment.bodies)||embodiment.bodies.length<1){
+    return unavailable('authoritative body topology unavailable');
   }
   const bodies=[];
   const bodyIds=new Set();
@@ -682,8 +651,8 @@ function buildW1SpatialModel(embodiment){
     return unavailable('authoritative region identity unavailable');
   }
   const ownership=embodiment.ownership;
-  if(!ownership||ownership.status!=='unlearned'||
-     !Array.isArray(ownership.relations)||ownership.relations.length!==0){
+  if(!ownership||!identifier(ownership.status)||
+     !Array.isArray(ownership.relations)){
     return unavailable('authoritative ownership learning state unavailable');
   }
   return {
@@ -706,7 +675,7 @@ function renderW1SpatialObservation(embodiment){
     meta.textContent=model.reason;
     return;
   }
-  meta.textContent=`${model.region_id} · ${model.regions.length} regions · ${model.portals.length} portals · ownership unlearned · revision ${model.revision}`;
+  meta.textContent=`${model.region_id} · ${model.regions.length} regions · ${model.portals.length} portals · ownership ${model.ownership.status} (${model.ownership.relations.length} relations) · revision ${model.revision}`;
   room.hidden=false;
   room.style.aspectRatio=`${model.xSpan} / ${model.ySpan}`;
   room.setAttribute('aria-label',`${model.region_id} in the authoritative top-down physical topology at revision ${model.revision}`);
@@ -770,13 +739,13 @@ function renderW1SpatialObservation(embodiment){
       ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
       : `${item.object_id}: held by ${item.held_by_body_id}`);
   }
-  exact.push('ownership: unlearned');
+  exact.push(`ownership: ${model.ownership.status} · ${model.ownership.relations.length} relations`);
   inventory.textContent=exact.join(' · ');
 }
 // --- End authoritative W1 spatial observation ---
 
 function renderObservation(value){
-  if(value.schema!=='guala.observation_snapshot.v3'){
+  if(value.schema!=='guala.observation_snapshot.v4'){
     throw new Error('observation schema unavailable');
   }
   document.getElementById('hdr-id').textContent=
@@ -801,36 +770,67 @@ function renderObservation(value){
   const action=value.embodied_action||{};
   document.getElementById('embodiedActionCell').textContent=
     action.status==='completed'
-      ? `${action.actor_body_id||'unknown body'} · ${action.disposition||'unknown'} · ${action.reason||'no reason'} · revision ${action.before_revision}→${action.after_revision}`
+      ? describePhysicalAction(action)
       : action.status==='idle'
         ? `idle · world revision ${action.world_revision}`
         : `unavailable · ${action.reason||'unknown reason'}`;
-  const conversation=value.conversation||{};
+  const conversation=value.conversation_exchange||value.conversation||{};
+  const input=conversation.input||{};
+  const response=conversation.response||{};
   document.getElementById('conversationCell').textContent=
-    conversation.status==='observed'
-      ? `${conversation.input_source||'unknown source'}: “${conversation.input||''}” → ${conversation.response_source||'no response source'}: “${conversation.response||''}”`
+    conversation.schema==='guala.conversation_exchange.v1'
+      ? `${input.source||'unknown source'}: “${input.text||''}”`+
+        (input.terminal_event_id?` [terminal ${input.terminal_event_id.slice(0,12)}]`:'')+
+        ` → ${response.response_source||'no response source'}: “${response.text||''}”`+
+        (response.emission_id?` [emission ${response.emission_id}]`:'')
       : `unavailable · ${conversation.reason||'no conversation observed'}`;
+  renderFullFieldAuthority(value.full_field_authority||{});
+  const prediction=value.full_field_prediction||{};
+  document.getElementById('predictionCell').textContent=prediction.available
+    ? `${prediction.status||'status unavailable'} · latest ${prediction.latest&&prediction.latest.status||'not observed'}`
+    :'authority unavailable';
+  const causal=value.causal_action||{};
+  document.getElementById('causalActionCell').textContent=
+    `cycle ${causal.cycle&&causal.cycle.status||'status unavailable'} · dispatcher ${causal.dispatcher&&causal.dispatcher.active?'active':'inactive'} · speech ${causal.speech_output&&causal.speech_output.status||'unavailable'}`;
+  document.getElementById('observationReceiptCell').textContent=
+    value.snapshot_receipt_sha256||'receipt unavailable';
+}
+
+function describePhysicalAction(action){
+  const execution=action&&action.execution||{};
+  const before=execution.before||{};
+  const after=execution.after||{};
+  const bodyId=action.actor_body_id||execution.actor_body_id||'unknown body';
+  const beforeBody=(before.bodies||[]).find(item=>item.body_id===bodyId)||{};
+  const afterBody=(after.bodies||[]).find(item=>item.body_id===bodyId)||{};
+  const bp=(beforeBody.pose||{}).position||{};
+  const ap=(afterBody.pose||{}).position||{};
+  let delta='no authoritative body delta';
+  if([bp.x_mm,bp.y_mm,bp.z_mm,ap.x_mm,ap.y_mm,ap.z_mm].every(Number.isSafeInteger)){
+    delta=`(${bp.x_mm}, ${bp.y_mm}, ${bp.z_mm})→(${ap.x_mm}, ${ap.y_mm}, ${ap.z_mm}) mm`;
+  }else if(beforeBody.held_object_id!==afterBody.held_object_id){
+    delta=`holding ${beforeBody.held_object_id||'nothing'}→${afterBody.held_object_id||'nothing'}`;
+  }
+  const receipt=action.authority_receipt_sha256||execution.authority_receipt_sha256;
+  return `${bodyId} · ${action.disposition||execution.disposition||'unknown'} · ${delta} · revision ${action.before_revision}→${action.after_revision}`+
+    (receipt?` · receipt ${receipt.slice(0,12)}`:'');
 }
 
 /* ---- Events processing ---- */
 function processEvent(ev){
-  const key=ev.kind+'|'+ev.tick+'|'+(ev.detail?JSON.stringify([ev.detail.input_chi,ev.detail.context_anchor_chis,ev.detail.name,ev.detail.kind]).replace(/null/g,''):'-');
-  if(_seenEvKeys.has(key))return;
-  _seenEvKeys.add(key);
-  if(_seenEvKeys.size>2000){const arr=[..._seenEvKeys];_seenEvKeys=new Set(arr.slice(-1000));}
+  const sequence=ev.sequence;
+  if(!Number.isSafeInteger(sequence)||sequence<=0)return;
+  if(_seenEventSequences.has(sequence))return;
+  _seenEventSequences.add(sequence);
+  if(_seenEventSequences.size>2000){
+    const retained=[..._seenEventSequences].sort((a,b)=>a-b).slice(-1000);
+    _seenEventSequences=new Set(retained);
+  }
   const d=ev.detail||{};
   const t=ev.tick;
   if(ev.kind==='response_bound'&&d.input_chi!=null){
     const anchors=d.context_anchor_chis||[];
     for(const a of anchors)drawArc(d.input_chi,a);
-    setLaneGlow('language',70,'binding active');
-  }
-  if(ev.kind==='sound_frame_bound'){
-    // GL-CMD-SOUND-BAND-VISIBILITY-154: lit by signature quality (bands fired
-    // out of 6), not volume. Unattributed until -152's source tags land —
-    // label honestly rather than implying it's all Joe.
-    const nb=d.n_bands||0;
-    setLaneGlow('sound',Math.round(nb/6*90),`sound (unattributed) — ${nb}/6 bands`);
   }
   if(ev.kind==='response_window_opened'&&d.context_anchor_chis&&d.emitter==='joe'){
     const[a0,...rest]=d.context_anchor_chis;
@@ -843,30 +843,9 @@ function processEvent(ev){
     const emitChi=(verbChi!=null&&verbChi!==null)?verbChi:(objChi!=null&&objChi!==null)?objChi:null;
     const committed=(d.n_commits||0)>0;
     if(emitChi!==null&&emitChi!=null)drawBloom(emitChi,committed);
-    const src=Object.entries(d.source_counts||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+':'+v).join(' ');
+    const src=Object.entries(d.source_counts||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+':'+v).join(' ')||'source unavailable';
     const orig=d.n_commits>0?'committed':'fallback';
     addFeedRow(t,'emit','emitting',`"${d.content||'…'}" — ${orig} · ${d.n_commits||0} commits · ${d.dynamics_ticks||'?'}t`,src);
-    if((d.source_counts||{}).bundle){setLaneGlow('language',88,'bundle emission');}
-    else{setLaneGlow('language',22,'curriculum/worldfeed',true);}
-  }
-  if(ev.kind==='experience_bundle'){
-    const lanes_raw=d.lanes||[];
-    let hasWord=false,hasSight=false,hasSound=false,hasTouch=false;
-    for(const ln of lanes_raw){
-      const l=ln.toLowerCase();
-      if(l.startsWith('told')||l.startsWith('said')){hasWord=true;}
-      else if(l.startsWith('showed')||l.startsWith('show')){hasSight=true;}
-      else if(l.startsWith('played')||l.startsWith('play')){hasSound=true;}
-      else if(l.startsWith('feels')||l.startsWith('feel')||l.startsWith('touch')){hasTouch=true;}
-    }
-    if(hasWord)setLaneGlow('language',82,'bundle — language lane');
-    if(hasSight)setLaneGlow('sight',88,'bundle — sight lane');
-    if(hasSound)setLaneGlow('sound',88,'bundle — sound lane');
-    if(hasTouch)setLaneGlow('touch',80,'bundle — touch lane');
-    const laneStr=[hasSight?'sight':'',hasSound?'sound':'',hasTouch?'touch':'',hasWord?'lang':''].filter(Boolean).join('+');
-    const bundleSrc=(d.name||'bundle')+(hasWord?' · '+laneStr:'');
-    const isMulti=([hasSight,hasSound,hasTouch,hasWord].filter(Boolean).length)>1;
-    addFeedRow(t,'exp','experience',`${d.name||'bundle'} — e1${isMulti?' (multi-modal)':''}`,bundleSrc||'joe');
   }
   if(ev.kind==='activity_started'){
     const km={ATTENDING_VISUAL:'attending_visual',ATTENDING_AUDIO:'attending_audio',SLEEPING:'sleeping',DREAMING:'dreaming',EMITTING:'emitting',IDLE:'idle'};
@@ -886,19 +865,9 @@ function processEvent(ev){
     addFeedRow(t,'exp','sensory (atlas)',`felt/smelled/tasted: ${mods} (${words})`,'reading');
   }
   if(ev.kind==='organism_experience_bound'){
-    // GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 C7/S2: THE live signal
-    // for touch/smell/taste (and sight/sound) -- Visibility Rule: what
-    // lights at Joe's seat is what her brain actually received, not a
-    // shell-atlas count. senses[] now carries tactile/olfactory/
-    // gustatory alongside sight/sound.
     const senses=d.senses||[];
-    const laneMap={sight:'sight',sound:'sound',tactile:'touch',olfactory:'smell',gustatory:'taste'};
-    for(const s of senses){
-      const lane=laneMap[s];
-      if(lane)setLaneGlow(lane,80,`organism — ${d.word||'?'}`);
-    }
     if(senses.some(s=>['tactile','olfactory','gustatory'].includes(s))){
-      addFeedRow(t,'exp','organism',`"${d.word}" bound with ${senses.join('+')}`,'brain');
+      addFeedRow(t,'exp','legacy organism event',`"${d.word}" reported with ${senses.join('+')}`,'legacy telemetry');
     }
   }
   if(ev.kind==='organism_fold'){
@@ -908,7 +877,7 @@ function processEvent(ev){
     addFeedRow(t,'act',`fold · ${d.hemi}`,
       `${d.parent} -> ${d.daughter} (q=${d.q_at_fold})`,'growth');
   }
-  _lastEvTick=Math.max(_lastEvTick,t);
+  _lastEventSequence=Math.max(_lastEventSequence,sequence);
 }
 
 /* ---- HTTP helpers ---- */
@@ -942,12 +911,10 @@ async function pollStatus(){
     document.getElementById('hdr-ts').textContent=ts.replace('T',' ').replace('Z','Z')||'—';
     // Atlas scan
     const ah=d.atlas_health||{};
-    if(ah.n_chi_keys&&_firstPoll){buildTickMarks(ah.n_chi_keys);_firstPoll=false;}
     if(ah.strength_distribution)renderHazeBands(ah.strength_distribution);
     renderStrengthBars(ah.strength_distribution);
     const da=d.deep_atlas||{};
     buildDeepRing(da.n_entries||0,da.promotions_survival||0);
-    buildAnchorLabels();
     renderCenterReadout(_tick,(ah.total_strength||0).toFixed(1));
     document.getElementById('captionOuter').textContent=`outer ring: working atlas · ${ah.n_chi_keys||'?'} chi keys · ${ah.n_total_entries||'?'} entries (${ah.n_live_bindings||'?'} live)`;
     document.getElementById('captionInner').textContent=`inner ring: deep atlas · ${da.n_entries||'?'} · ${da.promotions_survival||0} survival`;
@@ -996,6 +963,10 @@ async function pollObservation(){
     document.getElementById('bodyCell').textContent='observation unavailable';
     document.getElementById('embodiedActionCell').textContent='observation unavailable';
     document.getElementById('conversationCell').textContent='observation unavailable';
+    document.getElementById('predictionCell').textContent='observation unavailable';
+    document.getElementById('causalActionCell').textContent='observation unavailable';
+    document.getElementById('observationReceiptCell').textContent='observation unavailable';
+    renderFullFieldAuthority({});
     renderW1SpatialObservation({status:'unavailable',reason:'observation unavailable'});
   }finally{_observationBusy=false;}
 }
@@ -1005,14 +976,17 @@ let _evBusy=false;
 async function pollEvents(){
   if(_evBusy)return;_evBusy=true;
   try{
-    const d=await fetchJ(`${API}/api/v1/gualaloom/events?n=50`,
+    const d=await fetchJ(`${API}/api/v1/gualaloom/events?n=50&after_sequence=${_lastEventSequence}`,
       {},6000);
+    const epoch=d.event_stream&&d.event_stream.epoch;
+    if(_lastEventEpoch!==null&&epoch!==_lastEventEpoch){
+      _lastEventSequence=0;_seenEventSequences.clear();
+    }
+    _lastEventEpoch=epoch||null;
     const evts=d.events||[];
-    // Only process events newer than last seen tick
-    const fresh=evts.filter(e=>e.tick>_lastEvTick);
-    fresh.sort((a,b)=>a.tick-b.tick);
+    const fresh=evts.filter(e=>Number.isSafeInteger(e.sequence)&&e.sequence>_lastEventSequence);
+    fresh.sort((a,b)=>a.sequence-b.sequence);
     for(const ev of fresh)processEvent(ev);
-    decayLanes();
   }catch(e){}finally{_evBusy=false;}
 }
 

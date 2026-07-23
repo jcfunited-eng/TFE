@@ -2793,54 +2793,20 @@ def _embedded_post_boot(g):
     except Exception as _e:
         print(f"[substrate] Background loops start skipped (non-fatal): {_e}")
 
-    # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B3: reconnect the
-    # CurriculumScheduler (Gutenberg children's-lit study loop) -- root
-    # cause per GL-RPT-FLOOD-HUNT-C1-20260703-156-v1: it was ONLY ever
-    # instantiated inside substrate_runner.boot_substrate(), which has
-    # zero callers anywhere in the live process (app.py's _gl_init(),
-    # right here, is the actual live boot path -- boot_substrate() is a
-    # dead, parallel duplicate that mirrors it in comment only). NOT the
-    # 65-A orchestrator above (a different, deliberately-retired,
-    # subprocess/HTTP mechanism, default-off via CURRICULUM_AUTOSTART) --
-    # this is the book-curriculum class, decoupled by its own design
-    # (feed_chunk/is_busy/log injected, no import of substrate_runner in
-    # curriculum_scheduler.py itself). Reused verbatim rather than
-    # reimplemented: _sr._guala was just aliased to this same live `g`
-    # two blocks up, so _sr's own _curriculum_feed_chunk/_curriculum_is_
-    # busy/_world_feed_once (already proven live-safe --
-    # the same pattern the three loops just above already use through
-    # this exact alias) operate on the real, live organism, not a copy.
-    try:
-        from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
-        _interleave = []
-        if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
-            _interleave.append(("worldfeed", _sr._world_feed_once))
-        # GL-CMD-AUTOMATED-TEACHING-20260717: gap study + tutor share the
-        # same study windows.  Registered HERE because _gl_init is the live
-        # boot path (boot_substrate() is the dead duplicate — same lesson
-        # as the babble fall-through: every runner feature must be wired
-        # on BOTH paths or it silently never runs in-process).  The slot
-        # functions operate on the live organism through the _sr._guala
-        # alias, exactly like _world_feed_once above.
-        if os.environ.get("GAP_STUDY_ENABLED", "1").strip() != "0":
-            _interleave.append(("gap_study", _sr._gap_study_once))
-        if os.environ.get("TUTOR_AUTONOMOUS", "1").strip() != "0":
-            _interleave.append(("tutor", _sr._tutor_once))
-        _sr._curriculum = CurriculumScheduler(
-            state_dir=STATE_DIR,
-            feed_chunk=_sr._curriculum_feed_chunk,
-            is_busy=_sr._curriculum_is_busy,
-            log=g._log_substrate_event,
-            interleave_fns=_interleave,
-            interleave_every=int(os.environ.get("STUDY_INTERLEAVE_EVERY", "3") or 3),
-        )
-        _sr._curriculum.start()
-        print(f"[curriculum] autonomous study started: enabled={_sr._curriculum.enabled} "
-              f"books={len(_sr._curriculum.curriculum)} chunk={_sr._curriculum.chunk_size} "
-              f"interval={_sr._curriculum.interval_sec}s "
-              f"interleave={[n for n, _ in _interleave]}")
-    except Exception as _e:
-        print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
+    # Gutenberg replay, word-gap recycling, and next-text grading are not
+    # causal sensory education.  Keep them disconnected from the real boot
+    # path; the replacement may start only after the authenticated physical
+    # audiovisual tutor boundary is connected.
+    _sr._curriculum = None
+    g._log_substrate_event(
+        "background_curriculum_retired",
+        **_sr._RETIRED_BACKGROUND_COGNITION,
+    )
+    print(
+        "[curriculum] legacy text scheduler retired; "
+        "causal sensory tutor not yet connected",
+        flush=True,
+    )
 
     # SaveCoordinator: presence-detected saves with S3 background queue.
     try:
@@ -3891,7 +3857,7 @@ async def gualaloom_observation():
         return await client.call("observation_snapshot")
     if _guala is None:
         return {
-            "schema": "guala.observation_snapshot.v3",
+            "schema": "guala.observation_snapshot.v4",
             "status": "unavailable",
             "reason": "embedded_substrate_unavailable",
         }
@@ -5719,67 +5685,95 @@ async def chi_trace(req: ChiTraceRequest):
 # ════════════════════════════════════════════════════════════════
 
 @app.get("/api/v1/gualaloom/events")
-async def gualaloom_events(since: int = 0, stream: bool = False, n: int = 50):
-    """Substrate events. ?stream=true for SSE, default returns JSON array.
-
-    GL-BUG-DUPLICATE-EVENTS-ROUTE (found during -196 live verification):
-    this path had TWO @app.get definitions -- an earlier stub (always
-    `return {"events": []}` in embedded mode, the production config)
-    registered first, silently shadowing this real implementation for
-    every request. Deleted; `n` (loomscan.html's limit param, previously
-    silently ignored here) now actually controls `limit` below instead
-    of a hardcoded 50 that only coincidentally matched loomscan's own
-    default."""
+async def gualaloom_events(
+    after_sequence: int = 0,
+    stream: bool = False,
+    n: int = 50,
+    since: int = 0,
+):
+    """Return an exact sequence-cursor suffix; ``since`` is legacy-only."""
+    del since
+    n = max(1, min(n, 1000))
+    after_sequence = max(0, after_sequence)
     if _is_remote():
-        # Remote mode: poll substrate via socket for events
         client = _get_substrate_client()
         if stream:
             import asyncio
-            # SSE stream gets its own dedicated client to avoid blocking
-            # the shared client with continuous /events polling
             from dsf_ai_service.substrate_client import SubstrateClient
             sse_client = SubstrateClient()
+
             async def event_generator():
-                last_tick = since
+                last_sequence = after_sequence
+                last_epoch = None
                 while True:
                     try:
-                        result = await sse_client.call("gualaloom_post",
-                                                       command="/events",
-                                                       text=str(last_tick))
+                        result = await sse_client.call(
+                            "gualaloom_post",
+                            command="/events",
+                            text=json.dumps({
+                                "after_sequence": last_sequence,
+                                "limit": n,
+                            }),
+                        )
+                        event_stream = result.get("event_stream", {})
+                        epoch = event_stream.get("epoch")
+                        if last_epoch is not None and epoch != last_epoch:
+                            last_sequence = 0
+                            last_epoch = epoch
+                            await asyncio.sleep(0)
+                            continue
+                        last_epoch = epoch
                         for ev in result.get("events", []):
-                            if ev.get("tick", 0) > last_tick:
-                                last_tick = ev["tick"]
+                            last_sequence = max(
+                                last_sequence,
+                                int(ev.get("sequence", 0)),
+                            )
                             yield f"data: {json.dumps(ev)}\n\n"
                     except Exception:
                         pass
                     await asyncio.sleep(1.5)
+
             return StreamingResponse(event_generator(), media_type="text/event-stream")
-        else:
-            try:
-                result = await client.call("gualaloom_post",
-                                           command="/events",
-                                           text=str(since))
-                return {"events": result.get("events", [])}
-            except ConnectionError:
-                return {"events": []}
+        try:
+            result = await client.call(
+                "gualaloom_post",
+                command="/events",
+                text=json.dumps({
+                    "after_sequence": after_sequence,
+                    "limit": n,
+                }),
+            )
+            return {
+                "event_stream": result.get("event_stream"),
+                "events": result.get("events", []),
+            }
+        except ConnectionError:
+            return {"event_stream": None, "events": []}
     _gl_init()
     if stream:
         import asyncio
 
         async def event_generator():
-            last_tick = since
+            last_sequence = after_sequence
             while True:
-                events = _guala.get_recent_events(since_tick=last_tick, limit=n)
+                events = _guala.get_recent_events(
+                    limit=n,
+                    since_sequence=last_sequence,
+                )
                 for ev in events:
-                    if ev["tick"] > last_tick:
-                        last_tick = ev["tick"]
+                    last_sequence = max(last_sequence, ev["sequence"])
                     yield f"data: {json.dumps(ev)}\n\n"
                 await asyncio.sleep(1.0)
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
-    else:
-        events = _guala.get_recent_events(since_tick=since, limit=n)
-        return {"events": events}
+    events = _guala.get_recent_events(
+        limit=n,
+        since_sequence=after_sequence,
+    )
+    return {
+        "event_stream": _guala.event_stream_status(),
+        "events": events,
+    }
 
 
 @app.websocket("/events_stream")
@@ -5791,16 +5785,30 @@ async def events_stream_ws(websocket):
     try:
         if _is_remote():
             client = _get_substrate_client()
-            last_tick = 0
+            last_sequence = 0
+            last_epoch = None
             while True:
                 try:
-                    result = await client.call("gualaloom_post",
-                                               command="/events",
-                                               text=str(last_tick),
-                                               timeout=5.0)
+                    result = await client.call(
+                        "gualaloom_post",
+                        command="/events",
+                        text=json.dumps({
+                            "after_sequence": last_sequence,
+                            "limit": 200,
+                        }),
+                        timeout=5.0,
+                    )
+                    epoch = (result.get("event_stream") or {}).get("epoch")
+                    if last_epoch is not None and epoch != last_epoch:
+                        last_sequence = 0
+                        last_epoch = epoch
+                        continue
+                    last_epoch = epoch
                     for ev in result.get("events", []):
-                        if ev.get("tick", 0) > last_tick:
-                            last_tick = ev["tick"]
+                        last_sequence = max(
+                            last_sequence,
+                            int(ev.get("sequence", 0)),
+                        )
                         await websocket.send_json(ev)
                 except Exception:
                     pass

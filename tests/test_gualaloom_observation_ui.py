@@ -32,7 +32,7 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
         )
         assert response.status_code == 200
         value = response.json()
-        assert value["schema"] == "guala.observation_snapshot.v3"
+        assert value["schema"] == "guala.observation_snapshot.v4"
         assert value["embodiment"]["status"] == "observed"
         assert value["embodiment"]["location"] == {
             "region_id": "W1-region-A",
@@ -74,7 +74,43 @@ def test_observation_endpoint_exposes_authoritative_embodied_state(
             "world_revision": 0,
         }
         assert value["conversation"]["status"] == "unavailable"
+        assert value["conversation_exchange"]["status"] == "unavailable"
+        assert value["full_field_authority"]["status"] == "not_observed"
+        assert value["full_field_authority"]["senses"] == []
+        assert value["full_field_authority"]["view_contract"] == {
+            "decision_authority": False,
+            "projection": "latest_exact_tuple_per_substream",
+            "projection_loss": (
+                "earlier temporal tuples are omitted from this bounded "
+                "observation view; prediction evaluates the complete field"
+            ),
+            "required_fields": [
+                "D_k", "M_k", "R_rev_k", "U_star_k",
+                "C_k", "P_k", "B_k",
+            ],
+        }
+        assert set(value["causal_action"]) == {
+            "cycle", "dispatcher", "speech_output"
+        }
         assert len(value["snapshot_receipt_sha256"]) == 64
+        organism._log_substrate_event("same_tick_route_first")
+        organism._log_substrate_event("same_tick_route_second")
+        emitted = organism.get_recent_events(limit=2)
+        route = TestClient(app_module.app).get(
+            "/api/v1/gualaloom/events",
+            params={
+                "after_sequence": emitted[0]["sequence"],
+                "n": 10,
+            },
+        )
+        assert route.status_code == 200
+        routed = route.json()
+        assert [item["kind"] for item in routed["events"]] == [
+            "same_tick_route_second"
+        ]
+        assert routed["event_stream"]["epoch"] == (
+            organism.event_stream_status()["epoch"]
+        )
     finally:
         app_module._guala = previous
         organism.shutdown()
@@ -94,6 +130,16 @@ def test_conversation_ui_uses_one_observed_reply_surface() -> None:
     assert "aria-label','confirm this reply'" in page
     assert "aria-label','correct this reply'" in page
     assert "Embodied State" in page
+    assert "guala.observation_snapshot.v4" in page
+    assert page.count('id="cam-perm"') == 1
+    assert "/v7/quiet" not in page
+    assert "triggerSleep" not in page
+    assert "openBundleModal" not in page
+    assert "pollAutonomousThought" not in page
+    assert "command:'/thought'" not in page
+    assert "after_sequence=${lastEventSequence}" in page
+    assert "lastEventEpoch" in page
+    assert "reply to: “" in page
 
 
 def test_loom_scan_separates_embodied_state_from_lexical_scene_lanes() -> None:
@@ -110,6 +156,16 @@ def test_loom_scan_separates_embodied_state_from_lexical_scene_lanes() -> None:
     assert "lexical ambient lane" in page
     assert "cdef9bcf" not in page
     assert "||'v7'" not in page
+    assert "guala.observation_snapshot.v4" in page
+    assert "mulberry32" not in page
+    assert "ANCHOR_CHIS" not in page
+    assert "setLaneGlow" not in page
+    assert "decayLanes" not in page
+    assert "curriculum/worldfeed" not in page
+    assert "e.sequence>_lastEventSequence" in page
+    assert "after_sequence=${_lastEventSequence}" in page
+    assert "_lastEventEpoch" in page
+    assert "['sight','sound','touch','smell','taste','body']" in page
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -377,8 +433,8 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
         "at revision 41"
     )
     assert rendered["meta"] == (
-        "observed-region-73 · 3 regions · 2 portals · ownership unlearned · "
-        "revision 41"
+        "observed-region-73 · 3 regions · 2 portals · ownership unlearned "
+        "(0 relations) · revision 41"
     )
     assert rendered["markers"] == [
         {
@@ -419,6 +475,119 @@ def test_browser_renders_observed_room_body_and_placed_object(page: Path) -> Non
         },
     ]
     assert "held-object-47: held by observed-body-19" in rendered["inventory"]
+
+
+@pytest.mark.parametrize("page", OBSERVATION_PAGES)
+def test_spatial_view_accepts_any_authority_valid_world_shape(page: Path) -> None:
+    observation = _nondefault_observation()
+    observation["topology"]["regions"] = [
+        {
+            "region_id": "observed-region-73",
+            "bounds": {
+                "minimum": {"x_mm": -200, "y_mm": -100, "z_mm": 0},
+                "maximum": {"x_mm": 500, "y_mm": 900, "z_mm": 2400},
+            },
+            "ceiling_height_mm": 2400,
+        }
+    ]
+    observation["topology"]["portals"] = []
+    observation["bodies"] = observation["bodies"][:1]
+    observation["objects"] = observation["objects"][1:]
+    observation["ownership"] = {
+        "status": "observed",
+        "relations": [
+            {"body_id": "observed-body-19", "object_id": "held-object-47"}
+        ],
+    }
+
+    model = _spatial_model_from_page(page, observation)
+    rendered = _rendered_spatial_view_from_page(page, observation)
+
+    assert model["available"] is True
+    assert len(model["regions"]) == 1
+    assert model["portals"] == []
+    assert len(model["bodies"]) == 1
+    assert model["ownership"]["status"] == "observed"
+    assert "ownership observed (1 relations)" in rendered["meta"]
+
+
+def test_observation_exchange_and_event_cursor_are_immutable_and_ordered(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", "observation-contract-key")
+
+    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+
+    organism = Guala()
+    try:
+        with organism.lock:
+            organism._record_conversation_observation(
+                text="hello guala",
+                source="joe_voice",
+                source_turn_index=7,
+                causal_experience_id="terminal-event-7",
+                causal_intake_receipt_sha256="a" * 64,
+                response="hello daddy",
+                response_source="causal_action_cycle_commit",
+                emission_id="emission-7",
+                commit_provenance=(),
+            )
+        first = organism.observation_snapshot()
+        assert first["event_stream"]["schema"] == (
+            "guala.substrate_event_stream.v1"
+        )
+        assert len(first["event_stream"]["epoch"]) == 64
+        assert first["conversation_exchange"]["input"] == {
+            "causal_experience_id": "terminal-event-7",
+            "causal_intake_receipt_sha256": "a" * 64,
+            "source": "joe_voice",
+            "source_turn_index": 7,
+            "terminal_event_id": "terminal-event-7",
+            "text": "hello guala",
+        }
+        assert first["conversation_exchange"]["response"]["text"] == (
+            "hello daddy"
+        )
+        assert len(first["conversation_exchange"]["exchange_id"]) == 64
+
+        with organism.lock:
+            organism._record_conversation_observation(
+                text="typed second turn",
+                source="joe",
+                source_turn_index=8,
+                causal_experience_id=None,
+                causal_intake_receipt_sha256=None,
+                response="second response",
+                response_source="mathloom",
+                emission_id=None,
+                commit_provenance=(),
+            )
+        second = organism.observation_snapshot()
+        assert first["conversation_exchange"]["input"]["text"] == (
+            "hello guala"
+        )
+        assert (
+            second["conversation_exchange"]["input"]["terminal_event_id"]
+            is None
+        )
+
+        organism._log_substrate_event("same_tick_first")
+        organism._log_substrate_event("same_tick_second")
+        events = organism.get_recent_events(limit=2)
+        assert [event["kind"] for event in events] == [
+            "same_tick_first", "same_tick_second"
+        ]
+        assert events[0]["tick"] == events[1]["tick"]
+        assert events[1]["sequence"] == events[0]["sequence"] + 1
+        assert organism.get_recent_events(
+            limit=2,
+            since_sequence=events[0]["sequence"],
+        ) == [events[1]]
+    finally:
+        organism.shutdown()
 
 
 @pytest.mark.parametrize("page", OBSERVATION_PAGES)

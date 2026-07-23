@@ -1697,6 +1697,7 @@ class VideoItem:
 
 @dataclass
 class SubstrateEvent:
+    sequence: int
     tick: int
     kind: str
     detail: dict = field(default_factory=dict)
@@ -3179,8 +3180,14 @@ class Guala:
         self._atlas_write_count = 0
         self._dp_last_write_count = 0
         self._substrate_events = deque(maxlen=1000)
+        self._substrate_event_epoch = _hashlib.sha256(
+            os.urandom(32)
+        ).hexdigest()
+        self._substrate_event_sequence = 0
+        self._substrate_event_lock = threading.Lock()
         self._last_emission_tick = -100_000
         self._last_emission_record = None  # {emission_id, text, tick, ...}
+        self._latest_conversation_observation = None
         # GL-CMD-AUTONOMOUS-EMISSION-39
         self.last_autonomous_emission_tick = -100_000
         self.last_autonomous_attempt_tick = -100_000
@@ -6475,6 +6482,18 @@ class Guala:
             response = self._num_to_word(result)
             self._last_response_source = "mathloom"  # diagnostic only
             self._last_emission_id = None  # diagnostic only
+            with self.lock:
+                self._record_conversation_observation(
+                    text=text,
+                    source=source,
+                    source_turn_index=source_turn_index,
+                    causal_experience_id=None,
+                    causal_intake_receipt_sha256=None,
+                    response=response,
+                    response_source="mathloom",
+                    emission_id=None,
+                    commit_provenance=(),
+                )
             return ConversationTurnResult(
                 response, "mathloom",
                 source_turn_index=source_turn_index,
@@ -6638,6 +6657,19 @@ class Guala:
             # the immutable turn result below, never these shared fields.
             self._last_response_source = response_source
             self._last_emission_id = emission_id
+            self._record_conversation_observation(
+                text=text,
+                source=source,
+                source_turn_index=source_turn_index,
+                causal_experience_id=causal_experience_id,
+                causal_intake_receipt_sha256=(
+                    causal_intake_receipt_sha256
+                ),
+                response=reply,
+                response_source=response_source,
+                emission_id=emission_id,
+                commit_provenance=settlement.commit_provenance,
+            )
             _t_reply_ready = time.monotonic()
             reply_emission_id = emission_id
             reply_response_source = response_source
@@ -6714,6 +6746,65 @@ class Guala:
 
     # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
 
+    def _record_conversation_observation(
+        self,
+        *,
+        text,
+        source,
+        source_turn_index,
+        causal_experience_id,
+        causal_intake_receipt_sha256,
+        response,
+        response_source,
+        emission_id,
+        commit_provenance,
+    ):
+        """Publish one immutable, causally linked completed exchange.
+
+        This record is observation only.  It does not participate in
+        selection, learning, identity, correction, or action authority.
+        """
+        provenance = [
+            item.as_record() if hasattr(item, "as_record") else dict(item)
+            for item in commit_provenance
+        ]
+        payload = {
+            "completed_tick": self.tick,
+            "disposition": "replied" if response else "completed_without_reply",
+            "input": {
+                "causal_experience_id": causal_experience_id,
+                "causal_intake_receipt_sha256": (
+                    causal_intake_receipt_sha256
+                ),
+                "source": source,
+                "source_turn_index": source_turn_index,
+                "terminal_event_id": (
+                    causal_experience_id
+                    if causal_intake_receipt_sha256 is not None
+                    else None
+                ),
+                "text": text,
+            },
+            "response": {
+                "commit_provenance": provenance,
+                "emission_id": emission_id,
+                "response_source": response_source,
+                "text": response,
+            },
+            "schema": "guala.conversation_exchange.v1",
+        }
+        encoded = json.dumps(
+            payload,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        self._latest_conversation_observation = {
+            **payload,
+            "exchange_id": _hashlib.sha256(encoded).hexdigest(),
+        }
+
     def _converse_phased(self, text, source, emission_mode, bundle_id,
                          episode_ref, presence, location, sky_state,
                          organ_candidates, causal_intake):
@@ -6761,6 +6852,18 @@ class Guala:
             response = self._num_to_word(result)
             self._last_response_source = "mathloom"  # diagnostic only
             self._last_emission_id = None  # diagnostic only
+            with self.lock:
+                self._record_conversation_observation(
+                    text=text,
+                    source=source,
+                    source_turn_index=source_turn_index,
+                    causal_experience_id=None,
+                    causal_intake_receipt_sha256=None,
+                    response=response,
+                    response_source="mathloom",
+                    emission_id=None,
+                    commit_provenance=(),
+                )
             return ConversationTurnResult(
                 response, "mathloom",
                 source_turn_index=source_turn_index,
@@ -6935,6 +7038,19 @@ class Guala:
             # interface authority for this exact turn.
             self._last_response_source = response_source
             self._last_emission_id = emission_id
+            self._record_conversation_observation(
+                text=text,
+                source=source,
+                source_turn_index=source_turn_index,
+                causal_experience_id=causal_experience_id,
+                causal_intake_receipt_sha256=(
+                    causal_intake_receipt_sha256
+                ),
+                response=reply,
+                response_source=response_source,
+                emission_id=emission_id,
+                commit_provenance=settlement.commit_provenance,
+            )
         _t_reply_ready = time.monotonic()
         reply_emission_id = emission_id
         reply_response_source = response_source
@@ -13859,8 +13975,15 @@ class Guala:
 
     def _log_substrate_event(self, event_kind, **detail):
         """Record a substrate event (in-memory ring buffer + disk for critical events)."""
-        ev = SubstrateEvent(tick=self.tick, kind=event_kind, detail=detail)
-        self._substrate_events.append(ev)
+        with self._substrate_event_lock:
+            self._substrate_event_sequence += 1
+            ev = SubstrateEvent(
+                sequence=self._substrate_event_sequence,
+                tick=self.tick,
+                kind=event_kind,
+                detail=detail,
+            )
+            self._substrate_events.append(ev)
         # Critical events also go to disk for replay recovery — background thread
         # to avoid EFS write latency blocking the caller (inside self.lock).
         if event_kind in ("activity_started", "activity_ended", "corpus_completed",
@@ -19308,11 +19431,58 @@ class Guala:
         return {k: {"count": kinds[k], "total_ticks": durations[k]}
                 for k in kinds}
 
-    def get_recent_events(self, since_tick=-1, limit=50):
-        """Return recent substrate events for /events endpoint."""
-        events = [{"tick": e.tick, "kind": e.kind, "detail": e.detail}
-                  for e in self._substrate_events if e.tick > since_tick]
+    def get_recent_events(
+        self,
+        since_tick=-1,
+        limit=50,
+        *,
+        since_sequence=None,
+    ):
+        """Return one exact bounded event suffix.
+
+        Sequence is the lossless cursor inside this process epoch.  Tick is
+        retained only for older diagnostic callers; it cannot distinguish
+        multiple events emitted on the same engine tick.
+        """
+        if since_sequence is not None and (
+            isinstance(since_sequence, bool)
+            or not isinstance(since_sequence, int)
+            or since_sequence < 0
+        ):
+            raise ValueError("event sequence cursor is invalid")
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 1000
+        ):
+            raise ValueError("event result limit is invalid")
+        with self._substrate_event_lock:
+            snapshot = tuple(self._substrate_events)
+        events = [
+            {
+                "sequence": e.sequence,
+                "tick": e.tick,
+                "kind": e.kind,
+                "detail": e.detail,
+            }
+            for e in snapshot
+            if (
+                e.sequence > since_sequence
+                if since_sequence is not None
+                else e.tick > since_tick
+            )
+        ]
         return events[-limit:]
+
+    def event_stream_status(self):
+        """Return the process-local exact cursor identity for observers."""
+        with self._substrate_event_lock:
+            return {
+                "capacity": self._substrate_events.maxlen,
+                "epoch": self._substrate_event_epoch,
+                "latest_sequence": self._substrate_event_sequence,
+                "schema": "guala.substrate_event_stream.v1",
+            }
 
     # ------------------------------------------------------------------
     # Persistence v5.5: Continuity Guarantees
@@ -24404,11 +24574,44 @@ class Guala:
         with self.lock:
             tick = self.tick
             identity = self._guala_identity
+            conversation_exchange = (
+                json.loads(json.dumps(
+                    self._latest_conversation_observation,
+                    allow_nan=False,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ))
+                if self._latest_conversation_observation is not None
+                else {
+                    "status": "unavailable",
+                    "reason": "no_conversation_observed_this_boot",
+                }
+            )
             conversation_input = getattr(self, "_last_converse_input", None)
-            conversation_reply = getattr(self, "_last_converse_reply", None)
-            conversation_source = getattr(self, "_last_converse_source", None)
-            response_source = getattr(self, "_last_response_source", None)
-            emission_id = getattr(self, "_last_emission_id", None)
+            conversation = (
+                {
+                    "status": "unavailable",
+                    "reason": "no_conversation_observed_this_boot",
+                }
+                if conversation_input is None
+                else {
+                    "status": "observed",
+                    "input": conversation_input,
+                    "input_source": getattr(
+                        self, "_last_converse_source", None
+                    ),
+                    "response": getattr(
+                        self, "_last_converse_reply", None
+                    ) or "",
+                    "response_source": getattr(
+                        self, "_last_response_source", None
+                    ),
+                    "emission_id": getattr(
+                        self, "_last_emission_id", None
+                    ),
+                }
+            )
             activity = (
                 self._current_activity.snapshot()
                 if self._current_activity is not None
@@ -24462,6 +24665,7 @@ class Guala:
                 }
                 if latest_action is None
                 else {
+                    "execution": latest_action.as_record(),
                     "status": "completed",
                     "disposition": latest_action.disposition,
                     "reason": latest_action.reason,
@@ -24475,24 +24679,84 @@ class Guala:
                     ),
                 }
             )
-
-        conversation = (
-            {
-                "status": "unavailable",
-                "reason": "no_conversation_observed_this_boot",
-            }
-            if conversation_input is None
-            else {
-                "status": "observed",
-                "input": conversation_input,
-                "input_source": conversation_source,
-                "response": conversation_reply or "",
-                "response_source": response_source,
-                "emission_id": emission_id,
-            }
+        current_prediction_episode = (
+            self._full_field_prediction.current_episode()
+            if self._full_field_prediction is not None
+            else None
         )
+        full_field_authority = {
+            "available": current_prediction_episode is not None,
+            "episode_id": (
+                current_prediction_episode.episode_id
+                if current_prediction_episode is not None else None
+            ),
+            "settlement_receipt_sha256": (
+                current_prediction_episode.settlement_receipt_sha256
+                if current_prediction_episode is not None else None
+            ),
+            "senses": (
+                [
+                    {
+                        "sense": sense.get("sense"),
+                        "state": sense.get("state"),
+                        "substreams": [
+                            {
+                                "coordinates": substream.get(
+                                    "coordinates"
+                                ),
+                                "fields": (
+                                    substream.get("field_tuples", [])[-1]
+                                    .get("fields", [])
+                                ),
+                                "physical_quantity": substream.get(
+                                    "physical_quantity"
+                                ),
+                                "physical_unit": substream.get(
+                                    "physical_unit"
+                                ),
+                                "substream_id": substream.get(
+                                    "substream_id"
+                                ),
+                                "topology_index": substream.get(
+                                    "topology_index"
+                                ),
+                                "total_temporal_tuples": len(
+                                    substream.get("field_tuples", [])
+                                ),
+                                "tuple_index": substream.get(
+                                    "field_tuples", [])[-1].get(
+                                    "tuple_index"
+                                ),
+                            }
+                            for substream in sense.get("substreams", [])
+                            if substream.get("field_tuples")
+                        ],
+                    }
+                    for sense in current_prediction_episode
+                    .settlement_witness.get("interpretations", [])
+                ]
+                if current_prediction_episode is not None else []
+            ),
+            "status": (
+                "observed"
+                if current_prediction_episode is not None
+                else "not_observed"
+            ),
+            "view_contract": {
+                "decision_authority": False,
+                "projection": "latest_exact_tuple_per_substream",
+                "projection_loss": (
+                    "earlier temporal tuples are omitted from this bounded "
+                    "observation view; prediction evaluates the complete field"
+                ),
+                "required_fields": [
+                    "D_k", "M_k", "R_rev_k", "U_star_k",
+                    "C_k", "P_k", "B_k",
+                ],
+            },
+        }
         payload = {
-            "schema": "guala.observation_snapshot.v3",
+            "schema": "guala.observation_snapshot.v4",
             "observed_at_tick": tick,
             "identity": identity,
             "embodiment": embodiment,
@@ -24511,6 +24775,25 @@ class Guala:
                 else {"available": False}
             ),
             "conversation": conversation,
+            "conversation_exchange": conversation_exchange,
+            "event_stream": self.event_stream_status(),
+            "causal_action": {
+                "cycle": (
+                    self._causal_action_cycle.status()
+                    if self._causal_action_cycle is not None
+                    else {"available": False}
+                ),
+                "dispatcher": (
+                    self._causal_action_dispatcher.status()
+                    if self._causal_action_dispatcher is not None
+                    else {"available": False}
+                ),
+                "speech_output": (
+                    self.causal_speech_output_status()
+                    if self._causal_action_dispatcher is not None
+                    else {"status": "unavailable"}
+                ),
+            },
             "cognition_activity": (
                 {"status": "observed", "activity": activity}
                 if activity is not None
@@ -24538,6 +24821,7 @@ class Guala:
                 if self._full_field_prediction is not None
                 else {"available": False}
             ),
+            "full_field_authority": full_field_authority,
         }
         encoded = json.dumps(
             payload,

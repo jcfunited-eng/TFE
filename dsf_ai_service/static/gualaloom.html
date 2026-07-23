@@ -69,18 +69,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .nmda-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
 .nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
 .ev{padding:2px 6px;font-size:8px;color:var(--text-muted);border-bottom:1px solid #21262d}
-/* Bundle modal */
-#bundle-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center}
-#bundle-modal.visible{display:flex}
-#bundle-form{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:16px;width:380px;max-height:80vh;overflow-y:auto}
-#bundle-form h3{font-size:12px;color:var(--accent);margin-bottom:10px}
-#bundle-form label{display:block;font-size:9px;color:var(--text-muted);margin:8px 0 3px}
-#bundle-form input[type="text"],#bundle-form input[type="file"]{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-family:inherit;font-size:10px}
-#bundle-form select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;font-family:inherit;font-size:9px}
-.bundle-btns{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
-.bundle-btns button{padding:5px 14px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer;border:1px solid var(--border)}
-.bundle-btns .cancel{background:none;color:var(--text-muted)}
-.bundle-btns .submit{background:var(--accent);color:#0d1117;border:none;font-weight:600}
 @media(max-width:700px){#state-panel{display:none}.msg{max-width:95%}}
 /* GL-CMD-COGNITION-METER-EVE-20260704-166-v1 */
 #cogmeter-panel{border-bottom:1px solid var(--border);background:var(--bg-alt);font-size:9px}
@@ -161,8 +149,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <button class="upload-btn" onclick="uploadPicture()">&#x1f5bc; picture</button>
     <button class="upload-btn" onclick="uploadSound()">&#x1f50a; sound</button>
     <button class="upload-btn" onclick="uploadVideo()">&#x1f3a5; video</button>
-    <button class="upload-btn" onclick="openBundleModal()">&#x1f381; experience</button>
-    <button class="upload-btn" onclick="triggerSleep()">&#x1f4a4; sleep</button>
     <button class="upload-btn" id="snap-btn" style="display:none" onclick="takeSnapshot()">&#x1f4f8; snapshot</button>
   </div>
   <video id="cam-preview" autoplay playsinline muted></video>
@@ -174,49 +160,13 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 </div>
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Embodied State</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div><div class="w1-observation"><div id="w1-spatial-meta" class="w1-meta">spatial observation unavailable</div><div id="w1-spatial-room" class="w1-room" role="img" aria-label="W1 spatial observation unavailable" hidden></div><div id="w1-spatial-inventory" class="w1-inventory"></div></div></div>
+  <div class="ps"><div class="ps-title">Causal Field</div><div id="sp-causal" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
   <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
   <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
   <div class="ps"><div class="ps-title">NMDA Gates</div><div id="sp-nmda">--</div></div>
   <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:120px;overflow-y:auto"></div></div>
-</div>
-</div>
-
-<!-- Experience Bundle Modal -->
-<div id="bundle-modal">
-<div id="bundle-form">
-  <h3>Give her an experience</h3>
-  <label>Caption</label>
-  <input type="text" id="bundle-caption" placeholder="what is this experience?">
-  <label>Picture</label>
-  <input type="file" id="bundle-image" accept="image/*">
-  <label>Sound</label>
-  <input type="file" id="bundle-sound" accept="audio/*">
-  <label>Video</label>
-  <input type="file" id="bundle-video" accept="video/*">
-  <label>Touch (ctrl/cmd-click for multiple)</label>
-  <select id="bundle-touch" multiple size="3">
-    <option>warm</option><option>cool</option><option>cold</option><option>hot</option>
-    <option>soft</option><option>hard</option><option>smooth</option><option>rough</option>
-    <option>wet</option><option>dry</option><option>sharp</option><option>fuzzy</option>
-    <option>heavy</option><option>light</option><option>squishy</option><option>bumpy</option>
-  </select>
-  <label>Smell</label>
-  <select id="bundle-smell" multiple size="3">
-    <option>fresh</option><option>floral</option><option>sweet</option><option>earthy</option>
-    <option>smoky</option><option>salty</option><option>fruity</option><option>woody</option>
-    <option>clean</option><option>rain</option><option>grass</option><option>ocean</option>
-  </select>
-  <label>Taste</label>
-  <select id="bundle-taste" multiple size="3">
-    <option>sweet</option><option>sour</option><option>salty</option><option>bitter</option>
-    <option>savory</option><option>spicy</option><option>creamy</option><option>tangy</option>
-  </select>
-  <div class="bundle-btns">
-    <button class="cancel" onclick="closeBundleModal()">cancel</button>
-    <button class="submit" onclick="submitBundle()">give her this</button>
-  </div>
 </div>
 </div>
 
@@ -232,7 +182,7 @@ let sid=localStorage.getItem('guala_session_id');
 if(!sid){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid)}
 document.getElementById('session-line').textContent='session: '+sid;
 
-let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null;
+let lastTick=0,lastEventSequence=0,lastEventEpoch=null,audioUnlocked=false,muted=false,micGranted=false,camStream=null;
 let last503msg=0; // debounce 503 messages
 
 // --- 503/500 handling ---
@@ -241,32 +191,6 @@ function handleNotReady(context){
   if(now-last503msg<60000)return; // at most once per minute
   last503msg=now;
   addMsg('(substrate busy \u2014 try again in a moment)','system');
-}
-
-// --- Sleep / Dream (5b) ---
-// GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: this button calls /v7/quiet, the v7
-// SESSION layer's quiet_tick() -- proven in -160/-161 to be structurally
-// disconnected from her real conversation (its own replay/krimelack log is
-// permanently empty), which is a DIFFERENT mechanism from the v5 engine's
-// /api/v1/gualaloom/admin/force_dream that -165/-166/-167's sleep-physics
-// work is actually about. A 0/0 result from THIS button reflects that known
-// v7 dormancy, not the v5 dream-cycle timing question -165 Q6 raised.
-// Deliberately NOT rewiring which endpoint this button calls here -- that's
-// a mechanism change, not a naming one; filed as an open deferral in
-// GL-RPT-CREDO-CHANGE4-COMPLETION-C1-20260704-167-v1.
-async function triggerSleep(){
-  addMsg('(asking her to rest...)','system');
-  try{
-    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:50})},15000);
-    if(r.status===503||r.status===500){handleNotReady('sleep');return}
-    const d=await r.json();
-    if((d.replayed||0)>0||(d.commits||0)>0){
-      addMsg('(she dreamed \u2014 '+d.replayed+' replayed memories, '+d.commits+' commits)','system');
-    }else{
-      addMsg('(nothing replayed \u2014 0 memories, 0 commits; this button reaches the v7 layer, not her main dream cycle \u2014 see -167)','system');
-    }
-    pollV7State();
-  }catch(e){addMsg('sleep error: '+e.message,'system')}
 }
 
 // --- Permission Strip (5a: toggle off support) ---
@@ -312,7 +236,8 @@ async function _pollAuditoryReply(terminalEventId){
       }
     }else if(result.status==='completed_without_speech'&&result.speech_output_status==='actuator_unavailable'){
       const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
-      addMsg('speech actuator unavailable — intended reply to "'+heard+'": "'+(result.intended_speech||'')+'"','system');
+      addEmissionMsg(result.intended_speech||'',result.emission_id||null,heard);
+      addMsg('speech actuator unavailable — intended reply remains visible for correction','system');
     }else if(result.status==='completed_without_speech'){
       const heard=auditoryHeardByTerminal.get(terminalEventId)||'unknown heard experience';
       addMsg('no learned causal action for: "'+heard+'" ('+(result.response_source||'unknown')+')','system');
@@ -867,58 +792,6 @@ async function uploadVideo(){
   }catch(e){addMsg('video error: '+e.message,'system')}
 }
 
-// --- Bundle modal (B4) ---
-function openBundleModal(){document.getElementById('bundle-modal').classList.add('visible')}
-function closeBundleModal(){
-  document.getElementById('bundle-modal').classList.remove('visible');
-  document.getElementById('bundle-caption').value='';
-  document.getElementById('bundle-image').value='';
-  document.getElementById('bundle-sound').value='';
-  document.getElementById('bundle-touch').selectedIndex=-1;
-  document.getElementById('bundle-smell').selectedIndex=-1;
-  document.getElementById('bundle-taste').selectedIndex=-1;
-}
-async function submitBundle(){
-  const caption=document.getElementById('bundle-caption').value.trim();
-  const imgFile=document.getElementById('bundle-image').files[0];
-  const sndFile=document.getElementById('bundle-sound').files[0];
-  const vidFile=document.getElementById('bundle-video').files[0];
-  const touch=Array.from(document.getElementById('bundle-touch').selectedOptions).map(o=>o.value);
-  const smell=Array.from(document.getElementById('bundle-smell').selectedOptions).map(o=>o.value);
-  const taste=Array.from(document.getElementById('bundle-taste').selectedOptions).map(o=>o.value);
-  if(!caption&&!imgFile&&!sndFile&&!vidFile&&!touch.length&&!smell.length&&!taste.length){
-    addMsg('(need at least one sense filled in)','system');return;
-  }
-  if(sndFile&&sndFile.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
-  if(vidFile&&vidFile.size>30*1024*1024){addMsg('(video too large \u2014 30MB max)','system');return}
-  // Upload video separately if present (too large for base64 bundle)
-  if(vidFile){
-    if(vidFile.size>9*1024*1024){addMsg('(video too large — 9MB max. Compress first.)','system')}
-    else{try{
-      const fd=new FormData();fd.append('file',vidFile);
-      const vr=await fetchT(`${API}/api/v1/gualaloom/upload/video`,{method:'POST',body:fd},60000);
-      const vd=await vr.json();
-      addMsg('(video: '+(vd.message||'uploaded')+')','system');
-    }catch(e){addMsg('(video upload failed: '+e.message+')','system')}}
-  }
-  const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste,source:'joe'};
-  if(imgFile){const du=await fileToBase64(imgFile);bundle.image_b64=du.replace(/^data:[^;]+;base64,/,'')}
-  if(sndFile){const du=await fileToBase64(sndFile);bundle.sound_b64=du.replace(/^data:[^;]+;base64,/,'')}
-  const name=caption||((imgFile&&imgFile.name)||(sndFile&&sndFile.name)||(vidFile&&vidFile.name)||'experience');
-  const lanes=[];
-  if(caption)lanes.push('word');if(imgFile)lanes.push('sight');if(sndFile)lanes.push('sound');if(vidFile)lanes.push('video');
-  if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
-  addMsg('(creating experience "'+name+'": '+lanes.join(', ')+')','system');
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})},30000);
-    const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-    closeBundleModal();pollV7State();pollStatus();
-  }catch(e){addMsg('bundle error: '+e.message,'system')}
-}
-
 // --- renderPictures (B5) ---
 function appendPictureContent(container,src,title){
   const img=document.createElement('img');
@@ -966,7 +839,13 @@ function addEmissionMsg(text,emissionId,originalInput){
   block.style.position='relative';
   if(emissionId)block.dataset.emissionId=emissionId;
   block.dataset.emissionText=text;
-  block.dataset.originalInput=originalInput||window._lastUserText||'';
+  block.dataset.originalInput=typeof originalInput==='string'?originalInput:'';
+  if(block.dataset.originalInput){
+    const cause=document.createElement('div');
+    cause.style.cssText='font-size:9px;color:var(--text-muted);margin-bottom:3px';
+    cause.textContent='reply to: “'+block.dataset.originalInput+'”';
+    block.appendChild(cause);
+  }
   const txt=document.createElement('span');txt.textContent=text;block.appendChild(txt);
   if(emissionId){
     const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.8;margin-left:8px';
@@ -992,9 +871,9 @@ function fetchT(url,opts={},timeoutMs=15000){
     if(external)external.removeEventListener('abort',relay);
   });
 }
-let _inflight={state:false,events:false,status:false,replay:false,observation:false};
-let _backoff={state:0,events:0,status:0,replay:0,observation:0};
-const _BASE={state:5000,events:15000,status:15000,replay:30000,observation:3000};
+let _inflight={state:false,events:false,status:false,observation:false};
+let _backoff={state:0,events:0,status:0,observation:0};
+const _BASE={state:5000,events:15000,status:15000,observation:3000};
 function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
 
 // GL-CMD-TEACHER-CORRECTION-UI: teacher feedback with correction modal
@@ -1194,7 +1073,10 @@ async function _converseAndRender(text,source){
       if(d.speech_audio){
         addEmissionMsg(resp,d.emission_id||null,text);
         gualaPlayExactWav(d.speech_audio);
-      }else addMsg('speech actuator unavailable — intended reply: "'+resp+'"','system');
+      }else{
+        addEmissionMsg(resp,d.emission_id||null,text);
+        addMsg('speech actuator unavailable — intended reply remains visible for correction','system');
+      }
     }else if(resp){
       addEmissionMsg(resp,d.emission_id||null,text);gualaSpeak(resp);
     }
@@ -1417,10 +1299,11 @@ async function pollV7State(){
   finally{_inflight.state=false;_schedNext('state',pollV7State)}
 }
 
-// --- B1: Event Stream — WebSocket primary, SSE fallback ---
-let _evWs=null;let _evSource=null;let _evReconnectDelay=1000;
+// --- Exact bounded event observation ---
 function _handleEvent(ev){
   try{
+    if(!Number.isSafeInteger(ev.sequence)||ev.sequence<=lastEventSequence)return;
+    lastEventSequence=ev.sequence;
     if(ev.tick>lastTick)lastTick=ev.tick;
     const el=document.createElement('div');el.className='ev';
     let det='';
@@ -1436,47 +1319,17 @@ function _handleEvent(ev){
     if(ev.kind==='dream_artifact'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
   }catch(e){}
 }
-function connectEventStream(){
-  // Try WebSocket first (ring buffer, real-time)
-  const wsProto=location.protocol==='https:'?'wss:':'ws:';
-  const wsUrl=`${wsProto}//${location.host}/events_stream`;
-  try{
-    _evWs=new WebSocket(wsUrl);
-    _evWs.onmessage=function(msg){
-      try{_handleEvent(JSON.parse(msg.data))}catch(e){}
-      _evReconnectDelay=1000;
-    };
-    _evWs.onopen=function(){console.log('[events] WebSocket connected');_evReconnectDelay=1000};
-    _evWs.onerror=function(){_evWs.close()};
-    _evWs.onclose=function(){
-      _evWs=null;
-      _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
-      setTimeout(connectEventStream,_evReconnectDelay);
-    };
-  }catch(e){
-    // WebSocket not available — fall back to SSE
-    _connectSSE();
-  }
-}
-function _connectSSE(){
-  if(_evSource){try{_evSource.close()}catch(e){}}
-  const url=`${API}/api/v1/gualaloom/events?stream=true&since=${lastTick}`;
-  _evSource=new EventSource(url);
-  _evSource.onmessage=function(msg){
-    try{_handleEvent(JSON.parse(msg.data))}catch(e){}
-    _evReconnectDelay=1000;
-  };
-  _evSource.onerror=function(){
-    _evSource.close();_evSource=null;
-    _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
-    setTimeout(connectEventStream,_evReconnectDelay);
-  };
-}
-// Fallback poll for when SSE isn't available (API Gateway doesn't support SSE)
 async function pollEvents(){
   if(_inflight.events)return;_inflight.events=true;
-  try{const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})},6000);
-    const d=await r.json();for(const ev of(d.events||[])){
+  try{const r=await fetchT(`${API}/api/v1/gualaloom/events?n=200&after_sequence=${lastEventSequence}`,{},6000);
+    const d=await r.json();
+    const epoch=d.event_stream&&d.event_stream.epoch;
+    if(lastEventEpoch!==null&&epoch!==lastEventEpoch)lastEventSequence=0;
+    lastEventEpoch=epoch||null;
+    const ordered=(d.events||[]).filter(ev=>Number.isSafeInteger(ev.sequence)).sort((left,right)=>left.sequence-right.sequence);
+    for(const ev of ordered){
+      if(ev.sequence<=lastEventSequence)continue;
+      lastEventSequence=ev.sequence;
       if(ev.tick>lastTick)lastTick=ev.tick;
       const el=document.createElement('div');el.className='ev';
       let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
@@ -1486,18 +1339,6 @@ async function pollEvents(){
       if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
     }_backoff.events=0}catch(e){_backoff.events=Math.min((_backoff.events*2)||_BASE.events*2,30000)}
   finally{_inflight.events=false;_schedNext('events',pollEvents)}
-}
-
-// --- Background Replay (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
-async function backgroundReplay(){
-  if(_inflight.replay)return;_inflight.replay=true;
-  try{
-    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:1})},15000);
-    if(r.status===503||r.status===500){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000);return}
-    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');
-    _backoff.replay=0;
-  }catch(e){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000)}
-  finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
 // --- Authoritative W1 spatial observation ---
@@ -1510,8 +1351,8 @@ function buildW1SpatialModel(embodiment){
   const identifier=value=>typeof value==='string'&&value.length>0;
   const topology=embodiment.topology;
   if(!topology||!identifier(topology.current_region_id)||
-     !Array.isArray(topology.regions)||topology.regions.length<3||
-     !Array.isArray(topology.portals)||topology.portals.length<2){
+     !Array.isArray(topology.regions)||topology.regions.length<1||
+     !Array.isArray(topology.portals)){
     return unavailable('authoritative physical topology unavailable');
   }
   const regions=[];
@@ -1559,7 +1400,7 @@ function buildW1SpatialModel(embodiment){
     };
   };
   const selfBodyId=embodiment.self_body_id;
-  if(!identifier(selfBodyId)||!Array.isArray(embodiment.bodies)||embodiment.bodies.length<2){
+  if(!identifier(selfBodyId)||!Array.isArray(embodiment.bodies)||embodiment.bodies.length<1){
     return unavailable('authoritative multi-body topology unavailable');
   }
   const bodies=[];
@@ -1618,8 +1459,8 @@ function buildW1SpatialModel(embodiment){
     return unavailable('authoritative region identity unavailable');
   }
   const ownership=embodiment.ownership;
-  if(!ownership||ownership.status!=='unlearned'||
-     !Array.isArray(ownership.relations)||ownership.relations.length!==0){
+  if(!ownership||!identifier(ownership.status)||
+     !Array.isArray(ownership.relations)){
     return unavailable('authoritative ownership learning state unavailable');
   }
   return {
@@ -1642,7 +1483,7 @@ function renderW1SpatialObservation(embodiment){
     meta.textContent=model.reason;
     return;
   }
-  meta.textContent=`${model.region_id} · ${model.regions.length} regions · ${model.portals.length} portals · ownership unlearned · revision ${model.revision}`;
+  meta.textContent=`${model.region_id} · ${model.regions.length} regions · ${model.portals.length} portals · ownership ${model.ownership.status} (${model.ownership.relations.length} relations) · revision ${model.revision}`;
   room.hidden=false;
   room.style.aspectRatio=`${model.xSpan} / ${model.ySpan}`;
   room.setAttribute('aria-label',`${model.region_id} in the authoritative top-down physical topology at revision ${model.revision}`);
@@ -1706,7 +1547,7 @@ function renderW1SpatialObservation(embodiment){
       ? `${item.object_id}: (${item.point.x_mm}, ${item.point.y_mm}, ${item.point.z_mm}) mm`
       : `${item.object_id}: held by ${item.held_by_body_id}`);
   }
-  exact.push('ownership: unlearned');
+  exact.push(`ownership: ${model.ownership.status} · ${model.ownership.relations.length} relations`);
   inventory.textContent=exact.join(' · ');
 }
 // --- End authoritative W1 spatial observation ---
@@ -1720,13 +1561,20 @@ async function pollObservation(){
     const r=await fetchT(`${API}/api/v1/gualaloom/observation`,{},6000);
     const d=await r.json();
     if(!r.ok||d.status==='unavailable')throw new Error(d.reason||`HTTP ${r.status}`);
+    if(d.schema!=='guala.observation_snapshot.v4')throw new Error('observation schema unavailable');
+    window._lastObservation=d;
 
-    const conversation=d.conversation||{};
-    const input=conversation.status==='observed'
-      ? `${conversation.input_source||'unknown source'} heard: ${conversation.input||'(empty)'}`
+    const conversation=d.conversation_exchange||d.conversation||{};
+    const observedExchange=conversation.schema==='guala.conversation_exchange.v1';
+    const exchangeInput=conversation.input||{};
+    const exchangeResponse=conversation.response||{};
+    const input=observedExchange
+      ? `${exchangeInput.source||'unknown source'} ${exchangeInput.terminal_event_id?'heard':'input'}: ${exchangeInput.text||'(empty)'}`+
+        (exchangeInput.terminal_event_id?` · terminal ${exchangeInput.terminal_event_id.slice(0,12)}`:'')
       : 'no conversation observed this boot';
-    const reply=conversation.status==='observed'
-      ? `${conversation.response_source||'no response source'} replied: ${conversation.response||'(no reply)'}`
+    const reply=observedExchange
+      ? `${exchangeResponse.response_source||'no response source'} replied: ${exchangeResponse.text||'(no reply)'}`+
+        (exchangeResponse.emission_id?` · emission ${exchangeResponse.emission_id}`:'')
       : 'no reply observed this boot';
     document.getElementById('obs-conversation').textContent=input;
     document.getElementById('obs-reply').textContent=reply;
@@ -1767,10 +1615,12 @@ async function pollObservation(){
 
     const action=d.embodied_action||{};
     document.getElementById('obs-action').textContent=action.status==='completed'
-      ? `action by ${action.actor_body_id||'unknown body'} · ${action.disposition||'unknown'} · ${action.reason||'no reason'} · world ${action.before_revision}→${action.after_revision}`
+      ? describePhysicalAction(action)
       : action.status==='idle'
         ? `body idle · world revision ${action.world_revision}`
         : `action unavailable: ${action.reason||'unknown reason'}`;
+    renderCausalObservation(d);
+    renderCogMeter();
     bar.classList.remove('stale');
     _backoff.observation=0;
   }catch(e){
@@ -1779,6 +1629,7 @@ async function pollObservation(){
     document.getElementById('obs-reply').textContent='reply observation unavailable';
     document.getElementById('obs-location').textContent='embodiment observation unavailable';
     document.getElementById('obs-action').textContent=`observation failed: ${e.message}`;
+    document.getElementById('sp-causal').textContent='causal observation unavailable';
     renderW1SpatialObservation({status:'unavailable',reason:'observation unavailable'});
     _backoff.observation=Math.min((_backoff.observation*2)||3000,30000);
   }finally{
@@ -1787,31 +1638,56 @@ async function pollObservation(){
   }
 }
 
-// --- Autonomous thought polling (independence) ---
-// She speaks because she has something to say — not because she was asked.
-let _lastThoughtTick=-1;
-async function pollAutonomousThought(){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/thought'})},6000);
-    const d=await r.json();
-    window._lastThought=d;
-    if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
-      _lastThoughtTick=d.tick;
-      if(!d.emission_id||!deliveredEmissionIds.has(d.emission_id)){
-        _rememberBounded(deliveredEmissionIds,d.emission_id);
-        if(d.response_source==='causal_action_cycle_commit'){
-          if(d.speech_audio){
-            addEmissionMsg(d.speech,d.emission_id||null);
-            gualaPlayExactWav(d.speech_audio);
-          }else addMsg('speech actuator unavailable — intended autonomous reply: "'+d.speech+'"','system');
-        }else{
-          addEmissionMsg(d.speech,d.emission_id||null);gualaSpeak(d.speech);
-        }
-      }
-    }
-  }catch(e){}
-  setTimeout(pollAutonomousThought,20000);
+function describePhysicalAction(action){
+  const execution=action&&action.execution||{};
+  const before=execution.before||{};
+  const after=execution.after||{};
+  const bodyId=action.actor_body_id||execution.actor_body_id||'unknown body';
+  const beforeBody=(before.bodies||[]).find(item=>item.body_id===bodyId)||{};
+  const afterBody=(after.bodies||[]).find(item=>item.body_id===bodyId)||{};
+  const bp=(beforeBody.pose||{}).position||{};
+  const ap=(afterBody.pose||{}).position||{};
+  let delta='no authoritative body delta';
+  if([bp.x_mm,bp.y_mm,bp.z_mm,ap.x_mm,ap.y_mm,ap.z_mm].every(Number.isSafeInteger)){
+    delta=`(${bp.x_mm}, ${bp.y_mm}, ${bp.z_mm})→(${ap.x_mm}, ${ap.y_mm}, ${ap.z_mm}) mm`;
+  }else if(beforeBody.held_object_id!==afterBody.held_object_id){
+    delta=`holding ${beforeBody.held_object_id||'nothing'}→${afterBody.held_object_id||'nothing'}`;
+  }
+  const receipt=action.authority_receipt_sha256||execution.authority_receipt_sha256;
+  return `action by ${bodyId} · ${action.disposition||execution.disposition||'unknown'} · ${delta} · world ${action.before_revision}→${action.after_revision}`+
+    (receipt?` · receipt ${receipt.slice(0,12)}`:'');
+}
+
+function renderCausalObservation(snapshot){
+  const target=document.getElementById('sp-causal');
+  target.textContent='';
+  const exchange=snapshot.conversation||{};
+  const prediction=snapshot.full_field_prediction||{};
+  const authority=snapshot.full_field_authority||{};
+  const causalAction=snapshot.causal_action||{};
+  const rows=[
+    ['snapshot',snapshot.snapshot_receipt_sha256?`receipt ${snapshot.snapshot_receipt_sha256.slice(0,12)}`:'receipt unavailable'],
+    ['exchange',exchange.schema==='guala.conversation_exchange.v1'
+      ? `${exchange.exchange_id||'id unavailable'} · ${exchange.disposition||'disposition unavailable'}`
+      :'not observed'],
+    ['full field',authority.available
+      ? `${authority.episode_id||'episode unavailable'} · ${authority.senses.length} sensed fields · receipt ${(authority.settlement_receipt_sha256||'').slice(0,12)||'unavailable'}`
+      :'not observed'],
+    ['prediction',prediction.available
+      ? `${prediction.status||'status unavailable'} · latest ${prediction.latest&&prediction.latest.status||'not observed'}`
+      :'authority unavailable'],
+    ['action cycle',causalAction.cycle&&causalAction.cycle.available===false
+      ? 'unavailable'
+      : `${causalAction.cycle&&causalAction.cycle.status||'status unavailable'}`],
+    ['dispatcher',causalAction.dispatcher&&causalAction.dispatcher.active?'active':'inactive'],
+    ['speech output',causalAction.speech_output&&causalAction.speech_output.status||'unavailable'],
+  ];
+  for(const [label,value] of rows){
+    const row=document.createElement('div');row.className='ps-row';
+    const left=document.createElement('span');left.className='l';left.textContent=label;
+    const right=document.createElement('span');right.className='v';right.textContent=String(value);
+    row.appendChild(left);row.appendChild(right);target.appendChild(row);
+  }
 }
 
 // --- Presence Heartbeat ---
@@ -1999,17 +1875,18 @@ const COGMETER_ROWS=[
                `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
     }},
   {name:'voice-to-words',connected:'watch',pointer:'GL-FIX-VOICE-REPLY-DOOR-20260720',
-    firing:'no /thought poll observed yet this session',
-    impact:'GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech now triggers a real converse() reply instead of silent read_sentence()-only intake -- this row reports exactly what the live poll has actually seen, nothing assumed',
+    firing:'no immutable conversation exchange observed yet this session',
+    impact:'reports only a terminal-linked spoken exchange from the immutable observation snapshot; typed input and autonomous speech are not relabeled as voice',
     live:(status,v7)=>{
-      const t=window._lastThought;
-      if(!t||!t.speech)return{connected:'watch',firing:'no autonomous-thought poll has returned real speech yet this session'};
-      const isVoice=t.category==='voice_reply';
-      const ageS=t.ts?Math.round(Date.now()/1000-t.ts):null;
-      if(!isVoice)return{connected:'watch',
-        firing:`last observed thought was category="${t.category||'unknown'}", not a voice reply -- no spoken utterance has produced a reply yet this poll`};
+      const exchange=window._lastObservation&&window._lastObservation.conversation;
+      if(!exchange||exchange.schema!=='guala.conversation_exchange.v1'){
+        return{connected:'watch',firing:'no immutable conversation exchange observed this boot'};
+      }
+      const input=exchange.input||{},response=exchange.response||{};
+      if(!input.terminal_event_id)return{connected:'watch',
+        firing:`latest exchange source="${input.source||'unknown'}" has no terminal speech event; no spoken reply is claimed`};
       return{connected:'yes',
-        firing:`LIVE -- a real voice_reply surfaced${ageS!==null?' '+ageS+'s ago':''} (tick ${t.tick}, response_source=${t.response_source||'?'})`};
+        firing:`LIVE -- terminal ${input.terminal_event_id.slice(0,12)} completed at tick ${exchange.completed_tick}; response_source=${response.response_source||'none'}`};
     }},
 ];
 function renderCogMeter(){
@@ -2074,7 +1951,6 @@ function renderCogMeterArchive(){
   _applyBrainModeUI();
   msgInput.focus();
   renderCogMeter();
-  setTimeout(pollAutonomousThought,35000);
   pollObservation();
   pollStatus();
   setTimeout(pollV7State, 3000);
