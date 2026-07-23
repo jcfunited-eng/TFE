@@ -1014,9 +1014,14 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         execution_receipt_sha256: str | None,
         reason: str,
         commit: bool,
+        reserve: bool = False,
     ) -> W1PhysicalEvidenceMount:
         if not isinstance(commit, bool):
             raise TypeError("W1 physical boundary commit flag must be boolean")
+        if not isinstance(reserve, bool):
+            raise TypeError("W1 physical boundary reserve flag must be boolean")
+        if reserve and commit:
+            raise ValueError("W1 physical boundary cannot reserve and commit")
         source_time_start = Fraction(0)
         source_time_end = Fraction(1)
         visual_inputs, visual_commitment, visual_order_crossed = _visual_inputs(
@@ -1074,11 +1079,20 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             },
             states=states,
         )
-        settlement = self._causal_owner.settle(
+        settlement_owner = (
+            self._causal_owner
+            if commit or reserve
+            else ExactCausalExperienceOwner(
+                on_settlement=lambda _settlement: None,
+                log_event=lambda *_args, **_kwargs: None,
+            )
+        )
+        settlement = settlement_owner.settle(
             built,
             routing_chis=(),
             source_tags=(),
             commit=commit,
+            reserve=False,
         )
         payload = {
             "acoustic_emission_receipt_sha256s": [],
@@ -1142,6 +1156,8 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             causal_settlement=settlement,
         )
         self.verify_mount(result)
+        if reserve:
+            self._causal_owner.reserve_prepared(settlement)
         return result
 
     def mount_current_observation(
@@ -1172,13 +1188,16 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         execution_receipt: ActionExecutionReceipt,
         *,
         commit: bool = True,
+        reserve: bool = False,
     ) -> W1PhysicalEvidenceMount:
         self._world.verify_execution_receipt(execution_receipt)
         current = self._world.observation_snapshot()
         if current != execution_receipt.after:
             raise ValueError("W1 action outcome is not the current world")
         return self.mount_authenticated_action_outcome(
-            execution_receipt, commit=commit
+            execution_receipt,
+            commit=commit,
+            reserve=reserve,
         )
 
     def mount_authenticated_action_outcome(
@@ -1186,6 +1205,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         execution_receipt: ActionExecutionReceipt,
         *,
         commit: bool = False,
+        reserve: bool = False,
     ) -> W1PhysicalEvidenceMount:
         """Reproduce one authority-verified historical physical transition."""
 
@@ -1208,7 +1228,25 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             ),
             reason="anonymous_action_outcome_observed",
             commit=commit,
+            reserve=reserve,
         )
+
+    def commit_prepared_mount(
+        self, mount: W1PhysicalEvidenceMount
+    ) -> None:
+        self.verify_mount(mount)
+        if mount.causal_settlement is None:
+            raise ValueError("W1 prepared mount has no causal settlement")
+        self._causal_owner.commit_prepared(mount.causal_settlement)
+
+    def discard_prepared_mount(
+        self, mount: W1PhysicalEvidenceMount
+    ) -> None:
+        if not isinstance(mount, W1PhysicalEvidenceMount):
+            raise TypeError("W1 physical evidence mount is required")
+        if mount.causal_settlement is None:
+            raise ValueError("W1 prepared mount has no causal settlement")
+        self._causal_owner.discard_prepared(mount.causal_settlement)
 
     def _binaural(
         self,

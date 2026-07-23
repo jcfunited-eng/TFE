@@ -969,6 +969,46 @@ class ExactCausalExperienceOwner:
             self._prepared_reservation = None
             self._reservation_condition.notify_all()
 
+    def reserve_prepared(
+        self,
+        settlement: CausalExperienceSettlement,
+    ) -> None:
+        """Reserve one fully verified settlement without committing it."""
+        if not isinstance(settlement, CausalExperienceSettlement):
+            raise TypeError("prepared causal settlement has the wrong type")
+        settlement.verify()
+        with self._lock:
+            if self._prepared_reservation is not None:
+                if (
+                    self._reservation_waiters
+                    >= MAX_CAUSAL_RESERVATION_WAITERS
+                ):
+                    raise RuntimeError(
+                        "causal settlement reservation waiter capacity is full"
+                    )
+                self._reservation_waiters += 1
+                try:
+                    while self._prepared_reservation is not None:
+                        self._reservation_condition.wait()
+                finally:
+                    self._reservation_waiters -= 1
+            for item in settlement.interpretations:
+                previous = self._previous_by_sense.get(item.sense)
+                expected_relation = (
+                    "not_observed"
+                    if item.state != "observed"
+                    else "first_observation"
+                    if previous is None
+                    else "recurrence"
+                    if previous == item.structural_fingerprint
+                    else "structural_change"
+                )
+                if item.relation != expected_relation:
+                    raise RuntimeError(
+                        "prepared causal settlement state changed before reserve"
+                    )
+            self._prepared_reservation = settlement
+
     def discard_prepared(
         self,
         settlement: CausalExperienceSettlement,

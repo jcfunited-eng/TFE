@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import math
 import wave
+from dataclasses import replace
 from fractions import Fraction
 
 import numpy as np
@@ -125,6 +126,72 @@ def test_w1_dispatch_closes_on_exact_embodied_outcome_without_recursive_action(
             "latest_terminal_status": "completed",
             "phase": "idle",
         }
+    finally:
+        guala.shutdown()
+
+
+def test_generic_w1_dispatch_failure_rolls_back_the_entire_body_action(
+    monkeypatch,
+) -> None:
+    _configure(monkeypatch, "dispatcher-engine-w1-rollback-key")
+    guala = Guala()
+    try:
+        trigger = _settlement("engine-w1-rollback-trigger")
+        command = ActionCommand.embodiment(
+            PORT_ID,
+            encode_command(MoveCommand(PoseMM(
+                PositionMM(1000, 2000, 0),
+                90_000,
+            ))),
+        )
+        _teach(
+            guala,
+            trigger,
+            command,
+            "engine-w1-rollback-teacher-nonce-0001",
+        )
+        before_world = guala._embodiment_world.encoded_snapshot()
+        before_cycle = guala._causal_action_cycle.encoded_snapshot()
+        before_dispatcher = (
+            guala._causal_action_dispatcher.encoded_snapshot()
+        )
+        owner_before_action = []
+        mount_action_outcome = (
+            guala._w1_physical_evidence.mount_action_outcome
+        )
+
+        def unsettle(execution, *, commit=True, reserve=False):
+            assert commit is False
+            assert reserve is True
+            owner_before_action.append(dict(
+                guala._embodiment_outcome_causal_owner.status()
+            ))
+            mounted = mount_action_outcome(
+                execution,
+                commit=commit,
+                reserve=reserve,
+            )
+            return replace(mounted, evidence_receipt=None)
+
+        guala._w1_physical_evidence.mount_action_outcome = unsettle
+        with pytest.raises(RuntimeError, match="did not produce"):
+            guala._accept_causal_settlement(trigger)
+
+        assert guala._embodiment_world.encoded_snapshot() == before_world
+        assert guala._causal_action_cycle.encoded_snapshot() == before_cycle
+        assert (
+            guala._causal_action_dispatcher.encoded_snapshot()
+            == before_dispatcher
+        )
+        assert guala._causal_action_dispatcher.status()["active"] is False
+        assert guala._causal_embodiment_execution is None
+        assert guala._full_field_prediction.status()["armed_action"] is False
+        assert guala._latest_causal_settlement == trigger
+        assert guala._causal_settlement_accepted == 1
+        assert len(owner_before_action) == 1
+        assert guala._embodiment_outcome_causal_owner.status() == (
+            owner_before_action[0]
+        )
     finally:
         guala.shutdown()
 

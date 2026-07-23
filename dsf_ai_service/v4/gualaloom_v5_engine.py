@@ -8291,54 +8291,72 @@ class Guala:
         if self._w1_physical_evidence is None:
             raise RuntimeError("W1 physical outcome authority is unavailable")
         world_execution = pending["world_execution"]
-        embodied_outcome = self._w1_physical_evidence.mount_action_outcome(
-            world_execution,
-            commit=True,
-        )
-        if (
-            embodied_outcome.causal_settlement is None
-            or embodied_outcome.evidence_receipt is None
-            or embodied_outcome.state.value != "observed"
-        ):
-            raise RuntimeError(
-                "W1 action outcome did not produce causal physical evidence"
+        embodied_outcome = None
+        try:
+            embodied_outcome = (
+                self._w1_physical_evidence.mount_action_outcome(
+                    world_execution,
+                    commit=False,
+                    reserve=True,
+                )
             )
-        self._w1_physical_evidence.verify_mount(embodied_outcome)
-        from dsf_ai_service.substrate.causal_settlement_dispatcher import (
-            authenticate_outcome_observation,
-        )
-        attestation = authenticate_outcome_observation(
-            observer_id="guala.exact.sensory.outcome.v1",
-            authority_key=self._causal_outcome_observer_key,
-            execution_receipt_sha256=(
-                dispatch_result.execution_receipt_sha256
-            ),
-            outcome_settlement_receipt_sha256=(
-                embodied_outcome.causal_settlement.authority_receipt_sha256
-            ),
-            observation_nonce=(
-                "w1-physical:" + embodied_outcome.observation_receipt
-                .authority_receipt_sha256
-            ),
-        )
-        binding = self._causal_action_dispatcher.bind_outcome_observation(
-            settlement=embodied_outcome.causal_settlement,
-            attestation=attestation,
-        )
-        completed = self._causal_action_dispatcher.close_bound_outcome(
-            binding=binding,
-            settlement=embodied_outcome.causal_settlement,
-        )
-        self._causal_embodiment_execution = None
-        self._record_causal_perception_without_dispatch(
-            embodied_outcome.causal_settlement,
-            action_outcome=True,
-            world_observation=world_execution.after,
-            outcome_observation_receipt=(
-                embodied_outcome.observation_receipt
-            ),
-            world_execution_receipt=world_execution,
-        )
+            if (
+                embodied_outcome.causal_settlement is None
+                or embodied_outcome.evidence_receipt is None
+                or embodied_outcome.state.value != "observed"
+            ):
+                raise RuntimeError(
+                    "W1 action outcome did not produce causal physical evidence"
+                )
+            self._w1_physical_evidence.verify_mount(embodied_outcome)
+            from dsf_ai_service.substrate.causal_settlement_dispatcher import (
+                authenticate_outcome_observation,
+            )
+            attestation = authenticate_outcome_observation(
+                observer_id="guala.exact.sensory.outcome.v1",
+                authority_key=self._causal_outcome_observer_key,
+                execution_receipt_sha256=(
+                    dispatch_result.execution_receipt_sha256
+                ),
+                outcome_settlement_receipt_sha256=(
+                    embodied_outcome.causal_settlement
+                    .authority_receipt_sha256
+                ),
+                observation_nonce=(
+                    "w1-physical:" + embodied_outcome.observation_receipt
+                    .authority_receipt_sha256
+                ),
+            )
+            binding = self._causal_action_dispatcher.bind_outcome_observation(
+                settlement=embodied_outcome.causal_settlement,
+                attestation=attestation,
+            )
+            completed = self._causal_action_dispatcher.close_bound_outcome(
+                binding=binding,
+                settlement=embodied_outcome.causal_settlement,
+            )
+            self._record_causal_perception_without_dispatch(
+                embodied_outcome.causal_settlement,
+                action_outcome=True,
+                world_observation=world_execution.after,
+                outcome_observation_receipt=(
+                    embodied_outcome.observation_receipt
+                ),
+                world_execution_receipt=world_execution,
+            )
+            self._w1_physical_evidence.commit_prepared_mount(
+                embodied_outcome
+            )
+            self._causal_embodiment_execution = None
+        except BaseException:
+            if embodied_outcome is not None:
+                try:
+                    self._w1_physical_evidence.discard_prepared_mount(
+                        embodied_outcome
+                    )
+                except ValueError:
+                    pass
+            raise
         return (
             (completed, embodied_outcome)
             if return_outcome
@@ -8736,6 +8754,13 @@ class Guala:
                 )
             else:
                 cycle_snapshot = self._causal_action_cycle.encoded_snapshot()
+                dispatcher_snapshot = (
+                    self._causal_action_dispatcher.encoded_snapshot()
+                )
+                world_snapshot = (
+                    self._embodiment_world.encoded_snapshot()
+                    if self._embodiment_world is not None else None
+                )
                 prediction_snapshot = (
                     self._full_field_prediction.encoded_snapshot()
                     if self._full_field_prediction is not None
@@ -8744,6 +8769,14 @@ class Guala:
                 prediction_observation = (
                     self._latest_full_field_prediction_observation
                 )
+                prior_embodiment_execution = (
+                    self._causal_embodiment_execution
+                )
+                prior_embodiment_rejection = (
+                    self._causal_embodiment_rejection_reason
+                )
+                prior_latest_settlement = self._latest_causal_settlement
+                prior_accepted = self._causal_settlement_accepted
                 selection = self._causal_action_cycle.select(settlement)
                 if selection.status == "committed":
                     if require_teaching_evidence:
@@ -8834,9 +8867,45 @@ class Guala:
                     queued["execution_receipt_sha256"] = (
                         dispatch_result.execution_receipt_sha256
                     )
-            dispatch_result = self._settle_executed_embodiment_outcome(
-                dispatch_result
-            )
+            try:
+                dispatch_result = self._settle_executed_embodiment_outcome(
+                    dispatch_result
+                )
+            except BaseException:
+                if not dispatcher_was_active:
+                    if world_snapshot is not None:
+                        self._embodiment_world.restore_encoded(
+                            world_snapshot
+                        )
+                    self._causal_action_cycle.restore_encoded(
+                        cycle_snapshot
+                    )
+                    self._causal_action_dispatcher.restore_encoded(
+                        dispatcher_snapshot
+                    )
+                    if (
+                        prediction_snapshot is not None
+                        and self._full_field_prediction is not None
+                    ):
+                        self._full_field_prediction.restore_encoded(
+                            prediction_snapshot
+                        )
+                    self._prediction_conditioned_intent_receipt = None
+                    self._prediction_conditioned_binding_id = None
+                    self._latest_full_field_prediction_observation = (
+                        prediction_observation
+                    )
+                    self._causal_embodiment_execution = (
+                        prior_embodiment_execution
+                    )
+                    self._causal_embodiment_rejection_reason = (
+                        prior_embodiment_rejection
+                    )
+                    self._latest_causal_settlement = (
+                        prior_latest_settlement
+                    )
+                    self._causal_settlement_accepted = prior_accepted
+                raise
             self._causal_last_dispatch_result = dispatch_result
             return dispatch_result
 

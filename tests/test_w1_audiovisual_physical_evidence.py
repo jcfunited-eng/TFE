@@ -304,6 +304,35 @@ def test_current_observation_can_be_reproduced_without_committing_state():
     assert owner.status()["settled"] == 0
 
 
+def test_action_outcome_reservation_commits_or_discards_atomically():
+    accepted = []
+    world = _world()
+    owner = _owner(accepted.append)
+    authority = _authority(world, owner)
+    execution = _execution(world)
+    prepared = authority.mount_action_outcome(
+        execution,
+        commit=False,
+        reserve=True,
+    )
+    assert owner.status()["settled"] == 0
+    assert owner.status()["prepared_reservation"] == 1
+    authority.discard_prepared_mount(prepared)
+    assert owner.status()["settled"] == 0
+    assert owner.status()["prepared_reservation"] == 0
+    assert accepted == []
+
+    prepared_again = authority.mount_action_outcome(
+        execution,
+        commit=False,
+        reserve=True,
+    )
+    authority.commit_prepared_mount(prepared_again)
+    assert owner.status()["settled"] == 1
+    assert owner.status()["prepared_reservation"] == 0
+    assert accepted == [prepared_again.causal_settlement]
+
+
 def test_authenticated_historical_action_can_be_reproduced_after_world_advances():
     world = _world()
     authority = _authority(world)

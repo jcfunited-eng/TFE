@@ -58,9 +58,15 @@ def test_guided_relations_drive_two_actual_w1_steps_then_recurrence(
         )
         advance = guala._causal_deliberation.advance
 
-        def capture_action_outcome(execution, *, commit=True):
-            mounted = mount_action_outcome(execution, commit=commit)
-            if commit:
+        def capture_action_outcome(
+            execution, *, commit=True, reserve=False
+        ):
+            mounted = mount_action_outcome(
+                execution,
+                commit=commit,
+                reserve=reserve,
+            )
+            if reserve:
                 action_outcomes.append((execution, mounted))
             return mounted
 
@@ -168,19 +174,25 @@ def test_unsettled_w1_action_evidence_rolls_back_the_entire_live_step(
         before_dispatcher = (
             guala._causal_action_dispatcher.encoded_snapshot()
         )
+        owner_before_action = []
         mount_action_outcome = (
             guala._w1_physical_evidence.mount_action_outcome
         )
 
-        def unsettle(execution, *, commit=True):
-            assert commit is True
+        def unsettle(execution, *, commit=True, reserve=False):
+            assert commit is False
+            assert reserve is True
+            owner_before_action.append(dict(
+                guala._embodiment_outcome_causal_owner.status()
+            ))
             mounted = mount_action_outcome(
-                execution, commit=False
+                execution,
+                commit=commit,
+                reserve=reserve,
             )
             return replace(
                 mounted,
                 evidence_receipt=None,
-                causal_settlement=None,
             )
 
         guala._w1_physical_evidence.mount_action_outcome = unsettle
@@ -194,6 +206,10 @@ def test_unsettled_w1_action_evidence_rolls_back_the_entire_live_step(
             == before_dispatcher
         )
         assert guala._causal_action_dispatcher.status()["active"] is False
+        assert len(owner_before_action) == 1
+        assert guala._embodiment_outcome_causal_owner.status() == (
+            owner_before_action[0]
+        )
     finally:
         guala.shutdown()
 
