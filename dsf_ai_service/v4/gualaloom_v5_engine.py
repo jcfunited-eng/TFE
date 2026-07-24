@@ -10250,9 +10250,12 @@ class Guala:
         canonical, frame_count, _pcm_bytes = self._canonical_replay_wav(
             wav_bytes
         )
-        canonical, frame_count, _pcm_bytes = self._auditory_tutor_event_wav(
-            canonical
-        )
+        (
+            canonical,
+            frame_count,
+            _pcm_bytes,
+            tutor_event_field,
+        ) = self._auditory_tutor_event(canonical)
         source_start_ns = time.time_ns()
         causal = self.process_sound_frame(
             canonical,
@@ -10263,6 +10266,7 @@ class Guala:
                 + frame_count * 1_000_000_000 // REPLAY_SOUND_SAMPLE_RATE_HZ
             ),
             auditory_event_boundary="utterance",
+            _auditory_field_override=tutor_event_field,
         )
         experience = self._latest_auditory_l5_experience
         if (
@@ -17672,15 +17676,22 @@ class Guala:
         return canonical_buffer.getvalue(), frame_count, pcm_bytes
 
     @classmethod
-    def _auditory_tutor_event_wav(cls, canonical_wav):
+    def _auditory_tutor_event(cls, canonical_wav):
         """Settle the surrounded physical event inside one tutor capture.
 
         A deterministic auditory-L5 operator partitions the measured
         cochlear energy into its two minimum-variance physical basins.  The
         upper-basin hull supplies only the temporal boundary; every native
-        pressure and phase channel inside that boundary remains authoritative.
-        No transcript, fixed amplitude threshold, learned model, chi key, or
-        Atlas entry participates.
+        pressure channel and every post-genesis phase advance inside that
+        boundary remains authoritative.
+
+        The event field is sliced from the continuously transduced capture.
+        It is never re-transduced from a reset cochlear state: doing that
+        creates a field which cannot occur at the same point in the live
+        continuous stream.  Only the first event-local phase advance becomes
+        zero because the bounded event has no phase predecessor of its own.
+        No transcript, fixed amplitude threshold, learned model, chi key,
+        Atlas entry, or widened recognition tolerance participates.
         """
         import io
         import wave
@@ -17688,6 +17699,9 @@ class Guala:
             settle_auditory_event_boundary,
         )
         from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+            AuditoryChannelField,
+            AuditoryFullFieldCapture,
+            OBSERVATION_HOP_SAMPLES,
             transduce_auditory_full_field,
         )
 
@@ -17706,18 +17720,69 @@ class Guala:
                 AUDITORY_TUTOR_ONSET_UNCERTAINTY_FULL_SCALE
             ),
         )
-        start = boundary.source_sample_start
-        end = boundary.source_sample_end
-        if end > frame_count:
+        frame_start = boundary.event_frame_start
+        frame_end = boundary.event_frame_end
+        sample_start = boundary.source_sample_start
+        sample_end = boundary.source_sample_end
+        if sample_end > frame_count:
             raise ValueError("auditory tutor event exceeds its physical capture")
-        trimmed = raw[start * 2:end * 2]
+        event_frame_count = frame_end - frame_start
+        event_sample_count = sample_end - sample_start
+        local_offsets_ns = tuple(
+            (index + 1)
+            * OBSERVATION_HOP_SAMPLES
+            * 1_000_000_000
+            // REPLAY_SOUND_SAMPLE_RATE_HZ
+            for index in range(event_frame_count)
+        )
+        channels = []
+        for channel in field.channels:
+            phase_advances = tuple(
+                0.0 if index == 0 else value
+                for index, value in enumerate(
+                    channel.carrier_phase_advance_turns[
+                        frame_start:frame_end
+                    ]
+                )
+            )
+            channels.append(AuditoryChannelField(
+                definition=channel.definition,
+                causal_offsets_ns=local_offsets_ns,
+                pressure_envelope_full_scale=(
+                    channel.pressure_envelope_full_scale[
+                        frame_start:frame_end
+                    ]
+                ),
+                carrier_phase_turns=channel.carrier_phase_turns[
+                    frame_start:frame_end
+                ],
+                carrier_phase_advance_turns=phase_advances,
+                carrier_phase_advance_nyquist_fraction=tuple(
+                    value / (OBSERVATION_HOP_SAMPLES / 2.0)
+                    for value in phase_advances
+                ),
+            ))
+        event_field = AuditoryFullFieldCapture(
+            source_sample_rate_hz=REPLAY_SOUND_SAMPLE_RATE_HZ,
+            input_sample_count=event_sample_count,
+            observation_hop_samples=OBSERVATION_HOP_SAMPLES,
+            channels=tuple(channels),
+        )
+        trimmed = raw[sample_start * 2:sample_end * 2]
         target_buffer = io.BytesIO()
         with wave.open(target_buffer, "wb") as target:
             target.setnchannels(1)
             target.setsampwidth(REPLAY_SOUND_SAMPLE_WIDTH_BYTES)
             target.setframerate(REPLAY_SOUND_SAMPLE_RATE_HZ)
             target.writeframes(trimmed)
-        return cls._canonical_replay_wav(target_buffer.getvalue())
+        event_wav, canonical_sample_count, pcm_bytes = (
+            cls._canonical_replay_wav(target_buffer.getvalue())
+        )
+        if canonical_sample_count != event_field.input_sample_count:
+            raise RuntimeError(
+                "auditory tutor PCM and continuous field lost alignment"
+            )
+        return event_wav, canonical_sample_count, pcm_bytes, event_field
 
     @classmethod
     def _decode_replay_sound_record(cls, item_id, sound):
@@ -18346,7 +18411,8 @@ class Guala:
     def process_sound_frame(
             self, audio_bytes, source="mic:live", source_anchor_ns=None,
             source_time_end_ns=None, auditory_event_boundary="ambient",
-            auditory_pcm_continuity=None, auditory_pcm_s16le=None):
+            auditory_pcm_continuity=None, auditory_pcm_s16le=None,
+            _auditory_field_override=None):
         """Bind one native 16 kHz microphone capture into the auditory field.
 
         The physical provider preserves synchronized cochlear-channel
@@ -18390,7 +18456,48 @@ class Guala:
         from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
             transduce_auditory_full_field,
         )
-        if auditory_pcm_continuity is None:
+        if _auditory_field_override is not None:
+            from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+                AuditoryFullFieldCapture,
+                OBSERVATION_HOP_SAMPLES,
+            )
+            if (
+                source != "auditory_tutor_asset"
+                or auditory_event_boundary != "utterance"
+                or auditory_pcm_continuity is not None
+                or auditory_pcm_s16le is not None
+                or not isinstance(
+                    _auditory_field_override, AuditoryFullFieldCapture
+                )
+            ):
+                raise ValueError(
+                    "pretransduced auditory field is restricted to tutor events"
+                )
+            _auditory_field_override.__post_init__()
+            expected_offsets = tuple(
+                (index + 1)
+                * OBSERVATION_HOP_SAMPLES
+                * 1_000_000_000
+                // sr
+                for index in range(_auditory_field_override.frame_count)
+            )
+            if (
+                sr != REPLAY_SOUND_SAMPLE_RATE_HZ
+                or _auditory_field_override.source_sample_rate_hz != sr
+                or _auditory_field_override.input_sample_count != len(samples)
+                or _auditory_field_override.source_first_sample_index != 0
+                or _auditory_field_override.continuation_receipt_sha256
+                    is not None
+                or _auditory_field_override.channels[0].causal_offsets_ns
+                    != expected_offsets
+            ):
+                raise ValueError(
+                    "pretransduced tutor field differs from its event boundary"
+                )
+            auditory_field = _auditory_field_override
+            auditory_field_source_anchor_ns = source_anchor_ns
+            self._latest_auditory_continuation_receipt = None
+        elif auditory_pcm_continuity is None:
             if auditory_pcm_s16le is not None:
                 raise ValueError(
                     "auditory PCM bytes require a continuity receipt")

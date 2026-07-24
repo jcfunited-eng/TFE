@@ -39,6 +39,23 @@ def _pcm(*, offset: int, count: int) -> bytes:
     return struct.pack(f"<{len(values)}h", *values)
 
 
+def _surrounded_nonstationary_utterance() -> bytes:
+    """One exact event whose cochlear onset has real ambient history."""
+    values = []
+    for index in range(80_000):
+        pressure = 450.0 * math.sin(2 * math.pi * 173 * index / 16_000)
+        if 24_000 <= index < 36_000:
+            event_index = index - 24_000
+            pressure += (
+                6_000.0
+                * math.sin(2 * math.pi * 431 * event_index / 16_000)
+                + 1_800.0
+                * math.sin(2 * math.pi * 719 * event_index / 16_000)
+            )
+        values.append(round(pressure))
+    return struct.pack(f"<{len(values)}h", *values)
+
+
 @pytest.fixture
 def engine(monkeypatch) -> Guala:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
@@ -522,6 +539,41 @@ def test_continuous_full_field_terminal_opens_one_existing_reply_door(
     assert replies[0][0].as_record()["authority_receipt_sha256"] == (
         replies[0][0].authority_receipt_sha256
     )
+
+
+def test_real_ambient_cochlear_history_survives_tutor_to_stream_boundary(
+    engine: Guala, monkeypatch
+) -> None:
+    capture = _surrounded_nonstationary_utterance()
+    taught = engine.teach_isolated_auditory_asset(
+        pcm_s16le_wav(capture), "hello guala"
+    )
+    assert taught["sample_count"] < len(capture) // 2
+    replies = []
+    monkeypatch.setattr(
+        app_module,
+        "_maybe_trigger_voice_reply",
+        lambda terminal_event, tick: (
+            replies.append((terminal_event, tick)) or True
+        ),
+    )
+    stream_id = asyncio.run(app_module.auditory_pcm_stream_open())["stream_id"]
+    result = _post(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        pcm=capture,
+    )
+
+    assert result["ok"] is True
+    assert result["pcm_continuity"][
+        "incremental_terminal_status"
+    ] == "released_unique"
+    assert result["spoken_word_recognition"]["recognized_form"] == (
+        "hello guala"
+    )
+    assert len(replies) == 1
+    assert replies[0][0].tutor_label == "hello guala"
 
 
 def test_pcm_source_interval_is_derived_from_sample_identity() -> None:
