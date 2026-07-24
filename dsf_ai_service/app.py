@@ -7066,6 +7066,74 @@ async def auditory_l5_teach_asset(
 
 
 @app.post(
+    "/api/v1/auditory/teach-token-asset",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def auditory_token_teach_asset(
+    file: UploadFile = File(...),
+    token_form: str = Form(...),
+    tutor_id: str = Form(...),
+    tutor_nonce: str = Form(...),
+):
+    """Designate one learned physical utterance as one ordered token class."""
+
+    if tutor_id not in ("joe", "wc"):
+        raise HTTPException(
+            status_code=403,
+            detail="auditory token tutor is not authorized",
+        )
+    if not token_form.strip() or not tutor_nonce.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="token form and tutor nonce are required",
+        )
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="auditory token tutor requires embedded ownership",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    encoded = await file.read(_LIVE_AUDIO_MAX_BYTES + 1)
+    if not encoded:
+        raise HTTPException(
+            status_code=400,
+            detail="auditory token tutor asset is empty",
+        )
+    if len(encoded) > _LIVE_AUDIO_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="auditory token tutor asset exceeds the 4 MiB boundary",
+        )
+
+    def _decode_teach_token_and_commit():
+        from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+
+        wav_bytes = _webm_to_wav_bytes(encoded)
+        if not wav_bytes:
+            raise ValueError(
+                "auditory token tutor asset could not be decoded into "
+                "canonical PCM"
+            )
+        return _guala.durably_teach_isolated_auditory_token_asset(
+            wav_bytes,
+            token_form,
+            tutor_id=tutor_id,
+            tutor_nonce=tutor_nonce,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(
+            _decode_teach_token_and_commit
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
     "/api/v1/auditory/reground-assets",
     dependencies=[Depends(_api_key_dep)],
 )

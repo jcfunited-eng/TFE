@@ -9,6 +9,7 @@ import struct
 from dataclasses import replace
 
 import pytest
+from fastapi.testclient import TestClient
 
 import dsf_ai_service.app as app_module
 from dsf_ai_service.substrate.auditory_pcm_stream import (
@@ -147,6 +148,159 @@ def _states(engine: Guala) -> tuple[str, ...]:
         occurrence["classification_state"]
         for occurrence in latest["occurrences"]
     )
+
+
+def test_isolated_physical_terminal_can_be_durably_designated_once(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        engine._authoritative_hot_generation_publisher = (
+            lambda **_values: None
+        )
+        wav_bytes = pcm_s16le_wav(_one_terminal_pcm())
+        engine.teach_isolated_auditory_asset(wav_bytes, "hello")
+        saves = []
+        engine.save_hot_state = lambda state_dir: saves.append(state_dir)
+
+        learned = engine.durably_teach_isolated_auditory_token_asset(
+            wav_bytes,
+            "hello",
+            tutor_id="joe",
+            tutor_nonce="isolated-token-teacher-0001",
+            state_dir="unused",
+        )
+        repeated = engine.durably_teach_isolated_auditory_token_asset(
+            wav_bytes,
+            "hello",
+            tutor_id="joe",
+            tutor_nonce="isolated-token-teacher-0002",
+            state_dir="unused",
+        )
+
+        assert learned["accepted"] is True
+        assert learned["disposition"] == "learned"
+        assert learned["binding_count"] == 1
+        assert repeated["disposition"] == "already_learned"
+        assert repeated["binding_count"] == 1
+        assert repeated["token_class_id"] == learned["token_class_id"]
+        assert repeated["physical_class_authority_receipt_sha256"] == (
+            learned["physical_class_authority_receipt_sha256"]
+        )
+        assert engine._auditory_token_sequence_authority.binding_count == 1
+        assert saves == ["unused", "unused"]
+
+        _advance(
+            engine,
+            stream_id="designated-token-sequence",
+            epoch_ns=9_000_000_000,
+        )
+        assert _states(engine) == (
+            TokenClassificationState.UNIQUE.value,
+            TokenClassificationState.UNIQUE.value,
+        )
+    finally:
+        engine.shutdown()
+
+
+def test_token_designation_save_failure_restores_only_unpublished_binding(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        engine._authoritative_hot_generation_publisher = (
+            lambda **_values: None
+        )
+        wav_bytes = pcm_s16le_wav(_one_terminal_pcm())
+        engine.teach_isolated_auditory_asset(wav_bytes, "hello")
+        physical_before = (
+            engine._auditory_reciprocity_owner.encoded_snapshot()
+        )
+        engine.save_hot_state = lambda _state_dir: (_ for _ in ()).throw(
+            RuntimeError("injected token save failure")
+        )
+
+        with pytest.raises(
+            RuntimeError, match="injected token save failure"
+        ):
+            engine.durably_teach_isolated_auditory_token_asset(
+                wav_bytes,
+                "hello",
+                tutor_id="joe",
+                tutor_nonce="isolated-token-save-failure-0001",
+                state_dir="unused",
+            )
+
+        assert engine._auditory_token_sequence_authority.binding_count == 0
+        assert (
+            engine._auditory_reciprocity_owner.encoded_snapshot()
+            == physical_before
+        )
+        assert engine._auditory_incremental_terminals.status()[
+            "issued_terminal_authorities"
+        ] == 0
+    finally:
+        engine.shutdown()
+
+
+def test_auditory_token_tutor_api_is_authenticated_and_transports_audio(
+    monkeypatch,
+) -> None:
+    calls = []
+
+    class FakeGuala:
+        def durably_teach_isolated_auditory_token_asset(
+            self, wav_bytes, token_form, **values
+        ):
+            calls.append((wav_bytes, token_form, values))
+            return {
+                "accepted": True,
+                "binding_count": 1,
+                "token_form": token_form,
+            }
+
+    monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "token-api-key")
+    monkeypatch.setattr(app_module, "_guala", FakeGuala())
+    monkeypatch.setattr(app_module, "_is_remote", lambda: False)
+    import dsf_ai_service.substrate_runner as runner
+    monkeypatch.setattr(
+        runner,
+        "_webm_to_wav_bytes",
+        lambda encoded: b"canonical-" + encoded,
+    )
+    client = TestClient(app_module.app)
+    files = {"file": ("hello.mp3", b"encoded-audio", "audio/mpeg")}
+    data = {
+        "token_form": "hello",
+        "tutor_id": "joe",
+        "tutor_nonce": "api-token-teacher-0001",
+    }
+
+    assert client.post(
+        "/api/v1/auditory/teach-token-asset",
+        files=files,
+        data=data,
+    ).status_code == 401
+    accepted = client.post(
+        "/api/v1/auditory/teach-token-asset",
+        files=files,
+        data=data,
+        headers={"X-API-Key": "token-api-key"},
+    )
+
+    assert accepted.status_code == 200
+    assert accepted.json()["binding_count"] == 1
+    assert calls == [(
+        b"canonical-encoded-audio",
+        "hello",
+        {
+            "state_dir": app_module.STATE_DIR,
+            "tutor_id": "joe",
+            "tutor_nonce": "api-token-teacher-0001",
+        },
+    )]
 
 
 def test_engine_sequence_transaction_is_atomic_classified_bounded_and_restartable(

@@ -10554,6 +10554,167 @@ class Guala:
                 wav_bytes, tutor_label),
         )
 
+    def teach_isolated_auditory_token_asset(
+        self,
+        wav_bytes,
+        token_form,
+        *,
+        tutor_id,
+        tutor_nonce,
+    ):
+        """Designate one exact learned physical utterance as one token.
+
+        The supplied text is teacher authority only.  The replay must first
+        release exactly one terminal through continuous PCM, cochlear,
+        L0--L4, auditory L5, and learned spoken-form recognition.
+        """
+
+        from dsf_ai_service.substrate.auditory_pcm_stream import (
+            AuditoryPCMStreamRegistry,
+            PCM_SAMPLE_RATE_HZ,
+        )
+        from dsf_ai_service.substrate.auditory_tutor_authority import (
+            canonical_tutor_label,
+        )
+
+        if tutor_id not in ("joe", "wc"):
+            raise PermissionError("auditory token tutor is not authorized")
+        if (
+            not isinstance(tutor_nonce, str)
+            or not tutor_nonce
+            or tutor_nonce.strip() != tutor_nonce
+            or len(tutor_nonce.encode("utf-8")) > 256
+        ):
+            raise ValueError("auditory token tutor nonce is not canonical")
+        form = canonical_tutor_label(token_form)
+        canonical, frame_count, _pcm_bytes = self._canonical_replay_wav(
+            wav_bytes
+        )
+        import io
+        import wave
+        with wave.open(io.BytesIO(canonical), "rb") as stream:
+            pcm_s16le = stream.readframes(frame_count)
+        if len(pcm_s16le) != frame_count * 2:
+            raise RuntimeError("auditory token tutor PCM extent changed")
+
+        teacher_nonce = _hashlib.sha256(
+            json.dumps(
+                {
+                    "pcm_sha256": _hashlib.sha256(
+                        pcm_s16le
+                    ).hexdigest(),
+                    "schema": "guala.auditory_token.tutor_request.v1",
+                    "token_form": form,
+                    "tutor_id": tutor_id,
+                    "tutor_nonce": tutor_nonce,
+                },
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        ).hexdigest()
+        transport_owner = AuditoryPCMStreamRegistry()
+        opened = transport_owner.open()
+        stream_id = opened["stream_id"]
+        source_epoch_start_ns = time.time_ns()
+        accepted = transport_owner.accept(
+            stream_id=stream_id,
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=source_epoch_start_ns,
+            pcm_s16le=pcm_s16le,
+        )
+        try:
+            experienced = self.process_sound_frame(
+                canonical,
+                source="auditory_token_tutor_asset",
+                source_anchor_ns=source_epoch_start_ns,
+                source_time_end_ns=(
+                    source_epoch_start_ns
+                    + frame_count * 1_000_000_000
+                    // PCM_SAMPLE_RATE_HZ
+                ),
+                auditory_event_boundary="utterance",
+                auditory_pcm_continuity=accepted.receipt,
+                auditory_pcm_s16le=pcm_s16le,
+            )
+            joint, advance, teaching = (
+                self.advance_continuous_auditory_terminal(
+                    pcm_s16le=pcm_s16le,
+                    transport=accepted.receipt,
+                    settlement=experienced["settlement"],
+                    token_teacher={
+                        "nonce": teacher_nonce,
+                        "token_form": form,
+                    },
+                )
+            )
+        finally:
+            self.close_auditory_pcm_stream(
+                stream_id,
+                release_terminal=False,
+            )
+        self._log_substrate_event(
+            "auditory_token_taught",
+            disposition=teaching["disposition"],
+            physical_class_authority_receipt_sha256=(
+                teaching[
+                    "physical_class_authority_receipt_sha256"
+                ]
+            ),
+            sub_event_id=teaching["sub_event_id"],
+            token_class_id=teaching["token_class_id"],
+            tutor_id=tutor_id,
+        )
+        return {
+            "accepted": True,
+            "advance_authority_receipt_sha256": (
+                advance.authority_receipt_sha256
+            ),
+            "auditory_stream_settlement_receipt_sha256": (
+                joint.authority_receipt_sha256
+            ),
+            "sample_count": frame_count,
+            **teaching,
+        }
+
+    @_engine_mutation_entry
+    def durably_teach_isolated_auditory_token_asset(
+        self,
+        wav_bytes,
+        token_form,
+        *,
+        tutor_id,
+        tutor_nonce,
+        state_dir,
+    ):
+        """Publish one physical-token designation before reporting success."""
+
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative auditory token durability is unavailable"
+            )
+        authority = self._auditory_token_sequence_authority
+        if authority is None:
+            raise RuntimeError("auditory token authority is unavailable")
+        with self.persistence_transaction():
+            prior_tokens = authority.snapshot()
+            try:
+                result = self.teach_isolated_auditory_token_asset(
+                    wav_bytes,
+                    token_form,
+                    tutor_id=tutor_id,
+                    tutor_nonce=tutor_nonce,
+                )
+                self.save_hot_state(state_dir)
+                return result
+            except BaseException:
+                authority.restore(prior_tokens)
+                raise
+
     @_engine_mutation_entry
     def durably_reground_isolated_auditory_assets(
             self, assets, *, state_dir):
@@ -18630,10 +18791,105 @@ class Guala:
             )
         return sequence
 
+    def _teach_released_auditory_token(
+        self,
+        advance,
+        *,
+        token_form,
+        teacher_nonce,
+    ):
+        """Designate one already released physical terminal as one token."""
+
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalAdvance,
+            AuditoryIncrementalStatus,
+        )
+        from dsf_ai_service.substrate.auditory_token_sequence import (
+            TokenClassificationState,
+            teacher_token_class_id,
+        )
+
+        if not isinstance(advance, AuditoryIncrementalAdvance):
+            raise TypeError("auditory token tutoring requires an advance")
+        advance.verify()
+        if (
+            advance.status is not AuditoryIncrementalStatus.RELEASED_UNIQUE
+            or len(advance.released_terminals) != 1
+        ):
+            raise ValueError(
+                "auditory token tutoring requires one unique physical terminal"
+            )
+        authority = self._auditory_token_sequence_authority
+        if authority is None:
+            raise RuntimeError("auditory token authority is unavailable")
+        registry = self._auditory_incremental_terminals
+        batch = registry.materialize_batch(advance)
+        if len(batch.entries) != 1:
+            raise RuntimeError("auditory token tutor batch cardinality changed")
+        token_snapshot = authority.snapshot()
+        claim = registry.claim_batch(batch)
+        try:
+            claimed = registry.verify_batch_claim(claim)
+            entry = claimed.entries[0]
+            admitted = authority.admit(entry.event, entry.auditory_l5)
+            class_id = teacher_token_class_id(token_form)
+            classification = authority.classify(admitted)
+            exact = tuple(
+                candidate
+                for candidate in classification.candidates
+                if (
+                    candidate.token_class_id == class_id
+                    and candidate.token_form == token_form
+                )
+            )
+            if classification.state is TokenClassificationState.UNKNOWN:
+                designation = authority.issue_teacher_designation(
+                    admitted,
+                    token_class_id=class_id,
+                    token_form=token_form,
+                    nonce=teacher_nonce,
+                )
+                identity = authority.teach(admitted, designation)
+                disposition = "learned"
+            elif (
+                classification.state is TokenClassificationState.UNIQUE
+                and len(exact) == 1
+            ):
+                identity = exact[0]
+                disposition = "already_learned"
+            else:
+                raise ValueError(
+                    "physical auditory class has a conflicting token designation"
+                )
+            registry.consume_batch(claim)
+        except BaseException:
+            authority.restore(token_snapshot)
+            try:
+                registry.rollback_batch(claim)
+            except ValueError:
+                pass
+            raise
+        return {
+            "binding_count": authority.binding_count,
+            "disposition": disposition,
+            "physical_class_authority_receipt_sha256": (
+                admitted.physical_class_authority_receipt_sha256
+            ),
+            "sub_event_id": admitted.sub_event_id,
+            "token_class_id": identity.token_class_id,
+            "token_form": identity.token_form,
+        }
+
     @_engine_mutation_entry
     def advance_continuous_auditory_terminal(
-            self, *, pcm_s16le, transport, settlement):
+            self, *, pcm_s16le, transport, settlement,
+            token_teacher=None):
         """Advance one causal auditory epoch and expose only a UNIQUE terminal."""
+        if token_teacher is not None and (
+            not isinstance(token_teacher, dict)
+            or set(token_teacher) != {"nonce", "token_form"}
+        ):
+            raise ValueError("auditory token teacher request is malformed")
         with self._auditory_transaction_lock:
             mounted_capture = self._auditory_capture_authorities.get(
                 transport.receipt_sha256
@@ -18733,22 +18989,30 @@ class Guala:
                 transport,
                 cochlear,
             )
+            token_teaching = None
             try:
-                sequence = self._settle_released_auditory_token_sequence(
-                    result
-                )
-                if (
-                    sequence is None
-                    and result.status.value == "released_unique"
-                    and len(result.released_terminals) == 1
-                    and self._causal_settlement_awaits_auditory_terminal(
-                        settlement
+                if token_teacher is not None:
+                    token_teaching = self._teach_released_auditory_token(
+                        result,
+                        token_form=token_teacher["token_form"],
+                        teacher_nonce=token_teacher["nonce"],
                     )
-                ):
-                    # One authenticated terminal follows the established
-                    # exact-action path.  Multi-terminal input is dispatched
-                    # only inside the causal-language comprehension gate.
-                    self._dispatch_recorded_causal_settlement(settlement)
+                else:
+                    sequence = self._settle_released_auditory_token_sequence(
+                        result
+                    )
+                    if (
+                        sequence is None
+                        and result.status.value == "released_unique"
+                        and len(result.released_terminals) == 1
+                        and self._causal_settlement_awaits_auditory_terminal(
+                            settlement
+                        )
+                    ):
+                        # One authenticated terminal follows the established
+                        # exact-action path.  Multi-terminal input is dispatched
+                        # only inside the causal-language comprehension gate.
+                        self._dispatch_recorded_causal_settlement(settlement)
             except Exception:
                 self._latest_auditory_stream_settlement_receipt = prior_joint
                 if encounter_snapshot is not None:
@@ -18765,6 +19029,8 @@ class Guala:
                 None,
             )
             self._latest_auditory_incremental_advance = result
+            if token_teacher is not None:
+                return joint, result, token_teaching
             return joint, result
 
     @_engine_mutation_entry

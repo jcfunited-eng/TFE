@@ -1561,6 +1561,7 @@ print(match.get("Target", ""))
 echo "[routes] Ensuring auditory control surfaces reach the deployed owner..."
 ensure_http_api_route GET /api/v1/auditory/status
 ensure_http_api_route POST /api/v1/auditory/teach
+ensure_http_api_route POST /api/v1/auditory/teach-token-asset
 AUDITORY_API_ORIGIN="https://${HTTP_API_ID}.execute-api.${AWS_REGION}.amazonaws.com"
 AUDITORY_STATUS_FILE="${DEPLOY_WORK_DIR}/auditory-status.json"
 AUDITORY_STATUS_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
@@ -1584,6 +1585,17 @@ AUDITORY_UNAUTH_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
     "${AUDITORY_API_ORIGIN}/api/v1/auditory/teach")
 if [ "${AUDITORY_UNAUTH_HTTP}" != "401" ]; then
     echo "ERROR: auditory tutor route did not enforce authentication" >&2
+    exit 1
+fi
+AUDITORY_TOKEN_UNAUTH_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
+    -o /dev/null -w '%{http_code}' -X POST \
+    -F 'file=@/dev/null;type=audio/wav' \
+    -F 'token_form=route probe' \
+    -F 'tutor_id=joe' \
+    -F 'tutor_nonce=route-probe-token-nonce' \
+    "${AUDITORY_API_ORIGIN}/api/v1/auditory/teach-token-asset")
+if [ "${AUDITORY_TOKEN_UNAUTH_HTTP}" != "401" ]; then
+    echo "ERROR: auditory token tutor route did not enforce authentication" >&2
     exit 1
 fi
 echo "[routes] Auditory status and tutor authentication verified through API Gateway."

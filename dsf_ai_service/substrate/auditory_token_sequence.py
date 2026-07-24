@@ -12,9 +12,9 @@ ambiguous.  Sequence settlement preserves caller-supplied physical order and
 gaps without sorting, splitting, timing inference, probabilities, scores,
 chi, Atlas, or a grammar table.
 
-The live engine is intentionally not wired here.  It still needs an upstream
-owner capable of releasing more than one individually bounded auditory L5
-sub-event from a continuous utterance.
+The live engine supplies only terminals released by the incremental auditory
+owner.  Tutor designation is a separate authenticated operation over one such
+complete physical event; it never supplies segmentation or sensory evidence.
 """
 
 from __future__ import annotations
@@ -137,6 +137,17 @@ def _token_form(value: object) -> tuple[str, tuple[int, ...]]:
     ):
         raise ValueError("teacher token form exceeds its Unicode boundary")
     return value, scalars
+
+
+def teacher_token_class_id(token_form: str) -> str:
+    """Name one tutor-designated Unicode class without naming its sound."""
+
+    form, scalars = _token_form(token_form)
+    return _digest({
+        "schema": "guala.auditory_token.teacher_class.v1",
+        "token_form": form,
+        "unicode_scalars": list(scalars),
+    })
 
 
 @dataclass(frozen=True, slots=True)
@@ -1140,4 +1151,5 @@ __all__ = [
     "TokenClassIdentity",
     "TokenClassification",
     "TokenClassificationState",
+    "teacher_token_class_id",
 ]
