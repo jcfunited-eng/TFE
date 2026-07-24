@@ -104,9 +104,13 @@ def test_control_plane_uses_verified_tls_credential_and_nonce():
     assert 'CONTROL_ORIGIN="https://dsf-ai.com"' in TEXT
     assert '--connect-to "dsf-ai.com:443:${ALB_DNS}:443"' in TEXT
     assert "http://dsf-ai-alb" not in TEXT
-    for block in (seal, ready):
-        assert 'X-API-Key: ${DEPLOY_API_KEY}' in block
-        assert 'X-Deploy-Nonce: ${DEPLOY_NONCE}' in block
+    assert "python3 tools/ecs_seal_transport.py" in seal
+    assert '--task "${OLD_TASK_ARN}"' in seal
+    assert '--nonce "${DEPLOY_NONCE}"' in seal
+    assert 'X-API-Key: ${DEPLOY_API_KEY}' not in seal
+    assert 'X-Deploy-Nonce: ${DEPLOY_NONCE}' not in seal
+    assert 'X-API-Key: ${DEPLOY_API_KEY}' in ready
+    assert 'X-Deploy-Nonce: ${DEPLOY_NONCE}' in ready
     assert 'value.get("deploy_nonce") != os.environ["DEPLOY_NONCE"]' in seal
     assert 'value.get("state") != "SEALED"' in seal
     assert "manifest_sha256" in seal

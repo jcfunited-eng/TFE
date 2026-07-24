@@ -966,19 +966,18 @@ OWNER_FAIL_CLOSED=1
 # scripted seal 503'd at 120 s.  The exempt alias serves the same handler and
 # works against both old and fixed images.
 #
-# The controller's wire deadline must cover the server's existing strict
-# quiescence boundary.  Revision 739 also cold-restores both retained
-# generations before its candidate; 1800 seconds lets that final legacy
-# turnover finish.  Revision 740 validates only the new immutable candidate,
-# but keeping the controller deadline above the server boundary prevents a
-# completed seal from becoming ambiguous merely because the HTTP client left.
-if ! SLEEP_RESPONSE=$(curl -sS "${CONTROL_CONNECT[@]}" \
-    --connect-timeout 10 --max-time 1800 -w "\n__HTTP__%{http_code}" \
-    -X POST -H 'Content-Type: application/json' \
-    -H "X-API-Key: ${DEPLOY_API_KEY}" \
-    -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
-    -d "{\"deploy_nonce\":\"${DEPLOY_NONCE}\"}" \
-    "${CONTROL_ORIGIN}/internal/deployment/quiesce"); then
+# A state seal is a management-plane operation against the exact owner task,
+# not public serving traffic.  The ALB has a finite idle timeout and twice
+# converted a still-running valid cold restore into an ambiguous 504.  Execute
+# the unchanged authenticated localhost route through ECS control authority;
+# the helper heartbeats the SSM session and returns the original HTTP result.
+# The task reads its own API key from its injected secret, so no secret enters
+# the command line or session transcript.
+if ! SLEEP_RESPONSE=$(python3 tools/ecs_seal_transport.py \
+    --cluster "${ECS_CLUSTER}" \
+    --task "${OLD_TASK_ARN}" \
+    --container dsf-ai \
+    --nonce "${DEPLOY_NONCE}"); then
     echo "ERROR: authenticated deploy seal request failed"
     exit 1
 fi
