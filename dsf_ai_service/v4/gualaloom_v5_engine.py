@@ -10397,6 +10397,130 @@ class Guala:
         )
 
     @_engine_mutation_entry
+    def durably_reground_isolated_auditory_assets(
+            self, assets, *, state_dir):
+        """Atomically re-experience the complete existing spoken-form set.
+
+        This operation cannot add, omit, rename, or change the number of
+        learned branches.  It exists for a physical-representation correction:
+        every prior branch is replaced by one explicitly supplied tutor
+        capture under the same label, and one hot-state commit publishes the
+        complete result.  Any failure restores the exact prior owner.
+        """
+        from collections import Counter
+        from dsf_ai_service.substrate.auditory_tutor_authority import (
+            canonical_tutor_label,
+        )
+
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative auditory reground durability is unavailable"
+            )
+        if (
+            not isinstance(assets, (list, tuple))
+            or not assets
+            or len(assets) > REPLAY_SOUND_MAX_COUNT
+        ):
+            raise ValueError("auditory reground asset set is invalid")
+
+        canonical_assets = []
+        total_pcm_bytes = 0
+        for index, value in enumerate(assets):
+            if (
+                not isinstance(value, (list, tuple))
+                or len(value) != 2
+                or not isinstance(value[0], bytes)
+            ):
+                raise ValueError(
+                    f"auditory reground asset {index} is invalid"
+                )
+            label = canonical_tutor_label(value[1])
+            canonical, _sample_count, pcm_bytes = (
+                self._canonical_replay_wav(value[0])
+            )
+            total_pcm_bytes += pcm_bytes
+            if total_pcm_bytes > REPLAY_SOUND_TOTAL_PCM_BYTES:
+                raise ValueError(
+                    "auditory reground PCM exceeds the bounded asset set"
+                )
+            canonical_assets.append((canonical, label))
+
+        prior_snapshot = self._auditory_reciprocity_owner.snapshot()
+        prior_classes = prior_snapshot.get("classes")
+        if not isinstance(prior_classes, list) or not prior_classes:
+            raise ValueError(
+                "auditory reground requires an existing spoken-form set"
+            )
+        prior_labels = Counter()
+        for value in prior_classes:
+            if (
+                not isinstance(value, dict)
+                or value.get("kind") != "spoken_form"
+                or not isinstance(value.get("branches"), list)
+                or not value["branches"]
+            ):
+                raise ValueError(
+                    "auditory reground found an invalid existing class"
+                )
+            prior_labels[value["tutor_label"]] += len(value["branches"])
+        supplied_labels = Counter(
+            label for _canonical, label in canonical_assets
+        )
+        if supplied_labels != prior_labels:
+            raise ValueError(
+                "auditory reground must preserve every label and branch count"
+            )
+
+        with self.persistence_transaction():
+            prior_encoded = (
+                self._auditory_reciprocity_owner.encoded_snapshot()
+            )
+            try:
+                empty_snapshot = {
+                    **prior_snapshot,
+                    "classes": [],
+                }
+                self._auditory_reciprocity_owner.restore(empty_snapshot)
+                self._auditory_incremental_terminals.refresh_learning()
+                results = [
+                    self.teach_isolated_auditory_asset(canonical, label)
+                    for canonical, label in canonical_assets
+                ]
+                grounded_snapshot = (
+                    self._auditory_reciprocity_owner.snapshot()
+                )
+                grounded_labels = Counter()
+                for value in grounded_snapshot["classes"]:
+                    grounded_labels[value["tutor_label"]] += len(
+                        value["branches"]
+                    )
+                if grounded_labels != prior_labels:
+                    raise RuntimeError(
+                        "auditory reground changed class or branch cardinality"
+                    )
+                self.save_hot_state(state_dir)
+            except BaseException:
+                self._auditory_reciprocity_owner.restore_encoded(
+                    prior_encoded
+                )
+                self._auditory_incremental_terminals.refresh_learning()
+                raise
+        self._log_substrate_event(
+            "auditory_causal_paths_regrounded",
+            asset_count=len(canonical_assets),
+            class_count=len(prior_labels),
+            branch_count=sum(prior_labels.values()),
+        )
+        return {
+            "accepted": True,
+            "asset_count": len(canonical_assets),
+            "branch_count": sum(prior_labels.values()),
+            "class_count": len(prior_labels),
+            "results": results,
+        }
+
+    @_engine_mutation_entry
     def durably_teach_latest_auditory_experience(
             self, *, experience_id, kind, tutor_label,
             authority_receipt=None, state_dir):

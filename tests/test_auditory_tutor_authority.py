@@ -221,6 +221,61 @@ def test_isolated_asset_tutoring_is_authenticated(monkeypatch) -> None:
     assert calls == [(_tone_wav(), "hello guala", app_module.STATE_DIR)]
 
 
+def test_complete_auditory_reground_is_authenticated_and_batched(
+    monkeypatch,
+) -> None:
+    calls = []
+    fake = SimpleNamespace(
+        durably_reground_isolated_auditory_assets=lambda assets, **values: (
+            calls.append((assets, values["state_dir"])),
+            {
+                "accepted": True,
+                "asset_count": len(assets),
+                "branch_count": len(assets),
+                "class_count": 2,
+            },
+        )[1]
+    )
+    monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setattr(app_module, "_guala", fake)
+    monkeypatch.setattr(app_module, "_is_remote", lambda: False)
+    import dsf_ai_service.substrate_runner as substrate_runner
+    decoded = iter((_tone_wav(frequency_hz=330), _tone_wav(frequency_hz=440)))
+    monkeypatch.setattr(
+        substrate_runner, "_webm_to_wav_bytes", lambda _encoded: next(decoded)
+    )
+    client = TestClient(app_module.app)
+    files = [
+        ("files", ("first.webm", b"first-audio", "audio/webm")),
+        ("files", ("second.webm", b"second-audio", "audio/webm")),
+    ]
+    form = {
+        "tutor_labels": ["daddy says hello", "hello guala"],
+    }
+
+    assert client.post(
+        "/api/v1/auditory/reground-assets",
+        files=files,
+        data=form,
+    ).status_code == 401
+    accepted = client.post(
+        "/api/v1/auditory/reground-assets",
+        files=files,
+        data=form,
+        headers={"X-API-Key": "auditory-secret"},
+    )
+
+    assert accepted.status_code == 200
+    assert accepted.json()["asset_count"] == 2
+    assert calls == [(
+        [
+            (_tone_wav(frequency_hz=330), "daddy says hello"),
+            (_tone_wav(frequency_hz=440), "hello guala"),
+        ],
+        app_module.STATE_DIR,
+    )]
+
+
 def test_isolated_asset_transaction_teaches_full_l5_without_retention(
     monkeypatch,
 ) -> None:
@@ -324,6 +379,78 @@ def test_durable_teaching_refuses_absent_recovery_authority(
         reciprocity = engine.auditory_l5_status()["reciprocity"]
         assert reciprocity["class_counts"]["spoken_form"] == 0
         assert reciprocity["tutor_authority_nonce_count"] == 0
+    finally:
+        engine.shutdown()
+
+
+def test_complete_auditory_reground_preserves_shape_and_is_atomic(
+    monkeypatch, tmp_path,
+) -> None:
+    monkeypatch.setenv("GUALALOOM_API_KEY", "auditory-secret")
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("WAVE_SUMMARY_ENQUEUE_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    engine = Guala()
+    monkeypatch.setattr(
+        engine,
+        "_authoritative_hot_generation_publisher",
+        lambda **_values: None,
+        raising=False,
+    )
+    try:
+        engine.teach_isolated_auditory_asset(
+            _tone_wav(frequency_hz=330), "daddy says hello"
+        )
+        engine.teach_isolated_auditory_asset(
+            _tone_wav(frequency_hz=440), "hello guala"
+        )
+        prior = engine._auditory_reciprocity_owner.encoded_snapshot()
+        saves = []
+        monkeypatch.setattr(
+            engine, "save_hot_state", lambda state_dir: saves.append(state_dir)
+        )
+
+        result = engine.durably_reground_isolated_auditory_assets(
+            [
+                (_tone_wav(frequency_hz=550), "daddy says hello"),
+                (_tone_wav(frequency_hz=660), "hello guala"),
+            ],
+            state_dir=str(tmp_path / "state"),
+        )
+
+        assert result["accepted"] is True
+        assert result["asset_count"] == 2
+        assert result["class_count"] == 2
+        assert result["branch_count"] == 2
+        assert saves == [str(tmp_path / "state")]
+        grounded = engine._auditory_reciprocity_owner.encoded_snapshot()
+        assert grounded != prior
+        status = engine.auditory_l5_status()["reciprocity"]
+        assert status["class_counts"]["spoken_form"] == 2
+        assert status["branch_counts"]["spoken_form"] == 2
+
+        monkeypatch.setattr(
+            engine,
+            "save_hot_state",
+            lambda _state_dir: (_ for _ in ()).throw(
+                RuntimeError("injected reground commit failure")
+            ),
+        )
+        with pytest.raises(
+            RuntimeError, match="injected reground commit failure"
+        ):
+            engine.durably_reground_isolated_auditory_assets(
+                [
+                    (_tone_wav(frequency_hz=770), "daddy says hello"),
+                    (_tone_wav(frequency_hz=880), "hello guala"),
+                ],
+                state_dir=str(tmp_path / "state"),
+            )
+        assert (
+            engine._auditory_reciprocity_owner.encoded_snapshot()
+            == grounded
+        )
     finally:
         engine.shutdown()
 

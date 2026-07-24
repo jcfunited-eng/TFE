@@ -7012,6 +7012,79 @@ async def auditory_l5_teach_asset(
 
 
 @app.post(
+    "/api/v1/auditory/reground-assets",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def auditory_l5_reground_assets(
+    files: list[UploadFile] = File(...),
+    tutor_labels: list[str] = Form(...),
+):
+    """Atomically replace the complete existing spoken-form witness set."""
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="auditory reground requires embedded ownership",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    if (
+        not files
+        or len(files) != len(tutor_labels)
+        or len(files) > 32
+        or any(not value.strip() for value in tutor_labels)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="auditory reground files and labels are incomplete",
+        )
+    encoded_assets = []
+    total_encoded_bytes = 0
+    for file, label in zip(files, tutor_labels, strict=True):
+        encoded = await file.read(_LIVE_AUDIO_MAX_BYTES + 1)
+        if not encoded:
+            raise HTTPException(
+                status_code=400,
+                detail="auditory reground asset is empty",
+            )
+        if len(encoded) > _LIVE_AUDIO_MAX_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="auditory reground asset exceeds the 4 MiB boundary",
+            )
+        total_encoded_bytes += len(encoded)
+        if total_encoded_bytes > _LIVE_AUDIO_MAX_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="auditory reground request exceeds the 4 MiB boundary",
+            )
+        encoded_assets.append((encoded, label))
+
+    def _decode_reground_and_commit():
+        from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+
+        canonical_assets = []
+        for encoded, label in encoded_assets:
+            wav_bytes = _webm_to_wav_bytes(encoded)
+            if not wav_bytes:
+                raise ValueError(
+                    "auditory reground asset could not be decoded into "
+                    "canonical PCM"
+                )
+            canonical_assets.append((wav_bytes, label))
+        return _guala.durably_reground_isolated_auditory_assets(
+            canonical_assets,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(_decode_reground_and_commit)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
     "/api/v1/causal-action/teach",
     dependencies=[Depends(_api_key_dep)],
 )
