@@ -177,6 +177,89 @@ def test_replay_and_save_failure_restore_all_authorities(monkeypatch) -> None:
         guala.shutdown()
 
 
+def test_teacher_review_durably_revokes_one_observed_embodied_binding(
+    monkeypatch,
+) -> None:
+    _configure(monkeypatch, "engine-guided-review-key")
+    guala = Guala()
+    try:
+        _enable_test_publisher(guala)
+        saves = []
+        guala.save_hot_state = lambda state_dir: saves.append(state_dir)
+        trigger = (
+            guala._w1_physical_evidence
+            .mount_current_observation(commit=False)
+            .causal_settlement
+        )
+        taught = guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="engine-guided-review-demo-0001",
+            port_id=PORT_ID,
+            command_payload=_move_payload(1400),
+            state_dir="unused",
+        )
+
+        reviewed = guala.durably_review_causal_action_binding(
+            binding_id=taught["binding_id"],
+            decision="revoke",
+            source="joe",
+            nonce="engine-guided-review-feedback-0001",
+            state_dir="unused",
+        )
+
+        assert reviewed == {
+            "binding_id": taught["binding_id"],
+            "decision": "revoke",
+            "ok": True,
+            "resulting_binding_status": "revoked",
+            "status": "applied",
+        }
+        assert saves == ["unused", "unused"]
+        evidence = guala._causal_action_cycle.verified_relation_evidence()
+        assert len(evidence) == 1
+        assert evidence[0].status == "revoked"
+        assert guala._causal_action_cycle.select(trigger).status == "unknown"
+    finally:
+        guala.shutdown()
+
+
+def test_teacher_review_save_failure_restores_binding(monkeypatch) -> None:
+    _configure(monkeypatch, "engine-guided-review-rollback-key")
+    guala = Guala()
+    try:
+        _enable_test_publisher(guala)
+        guala.save_hot_state = lambda _state_dir: None
+        taught = guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="engine-guided-review-rollback-demo-0001",
+            port_id=PORT_ID,
+            command_payload=_move_payload(1400),
+            state_dir="unused",
+        )
+        before = guala._causal_action_cycle.encoded_snapshot()
+        guala.save_hot_state = lambda _state_dir: (_ for _ in ()).throw(
+            RuntimeError("injected review save failure")
+        )
+
+        with pytest.raises(
+            RuntimeError, match="injected review save failure"
+        ):
+            guala.durably_review_causal_action_binding(
+                binding_id=taught["binding_id"],
+                decision="revoke",
+                source="joe",
+                nonce="engine-guided-review-rollback-feedback-0001",
+                state_dir="unused",
+            )
+
+        assert guala._causal_action_cycle.encoded_snapshot() == before
+        evidence = guala._causal_action_cycle.verified_relation_evidence()
+        assert len(evidence) == 1
+        assert evidence[0].status == "provisional"
+    finally:
+        guala.shutdown()
+
+
 def test_tampered_post_sensory_proof_rolls_back_without_closure(
     monkeypatch,
 ) -> None:
@@ -273,6 +356,16 @@ def test_typed_api_is_key_protected_and_transports_canonical_w1(
             calls.append(values)
             return {"binding_id": "b" * 64}
 
+        def durably_review_causal_action_binding(self, **values):
+            calls.append(values)
+            return {
+                "binding_id": values["binding_id"],
+                "decision": values["decision"],
+                "ok": True,
+                "resulting_binding_status": "revoked",
+                "status": "applied",
+            }
+
     monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "guided-api-key")
     monkeypatch.setattr(app_module, "_guala", FakeGuala())
     monkeypatch.setattr(app_module, "_is_remote", lambda: False)
@@ -301,6 +394,24 @@ def test_typed_api_is_key_protected_and_transports_canonical_w1(
     assert calls[0]["port_id"] == PORT_ID
     assert calls[0]["command_payload"] == _move_payload(1400)
     assert not isinstance(calls[0]["command_payload"], str)
+    review = {
+        "binding_id": "b" * 64,
+        "decision": "revoke",
+        "source": "joe",
+        "nonce": "api-guided-review-0001",
+    }
+    assert client.post(
+        "/api/v1/causal-action/review-binding", json=review
+    ).status_code == 401
+    reviewed = client.post(
+        "/api/v1/causal-action/review-binding",
+        json=review,
+        headers={"X-API-Key": "guided-api-key"},
+    )
+    assert reviewed.status_code == 200
+    assert reviewed.json()["resulting_binding_status"] == "revoked"
+    assert calls[1]["binding_id"] == "b" * 64
+    assert calls[1]["nonce"] == "api-guided-review-0001"
 
 
 def test_remote_handler_rejects_noncanonical_command_transport(

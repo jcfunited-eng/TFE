@@ -6917,6 +6917,16 @@ class CausalActionTeachRequest(BaseModel):
     source: Optional[str] = "joe"
 
 
+class CausalActionBindingReviewRequest(BaseModel):
+    binding_id: str
+    decision: Literal["confirm", "revoke"]
+    source: Literal["joe", "wc"]
+    nonce: str
+
+    class Config:
+        extra = "forbid"
+
+
 class EmbodiedPositionRequest(BaseModel):
     x_mm: int
     y_mm: int
@@ -7262,6 +7272,40 @@ async def embodied_action_demonstrate(
         raise HTTPException(status_code=403, detail=str(error)) from error
     except (RuntimeError, ValueError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
+    "/api/v1/causal-action/review-binding",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def causal_action_review_binding(
+    req: CausalActionBindingReviewRequest,
+):
+    """Durably apply explicit teacher judgment to one observed action."""
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="remote action review has no durability barrier",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+
+    def _review_and_commit():
+        return _guala.durably_review_causal_action_binding(
+            binding_id=req.binding_id,
+            decision=req.decision,
+            source=req.source,
+            nonce=req.nonce,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(_review_and_commit)
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
+    except (RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
 
 @app.post("/api/v1/teacher/feedback")
 async def teacher_feedback(req: TeacherFeedbackRequest):

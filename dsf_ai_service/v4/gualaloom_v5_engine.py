@@ -10237,6 +10237,53 @@ class Guala:
                 raise
 
     @_engine_mutation_entry
+    def durably_review_causal_action_binding(
+        self,
+        *,
+        binding_id,
+        decision,
+        source,
+        nonce,
+        state_dir,
+    ):
+        """Publish explicit teacher review of one observed action binding."""
+        if not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None)):
+            raise RuntimeError(
+                "authoritative causal action durability is unavailable"
+            )
+        if source not in ("joe", "wc"):
+            raise PermissionError("causal action reviewer is not authorized")
+        with self.persistence_transaction():
+            if self._causal_action_cycle is None:
+                raise RuntimeError(
+                    "causal action cycle authority is unavailable"
+                )
+            prior = self._causal_action_cycle.encoded_snapshot()
+            try:
+                feedback = (
+                    self._causal_action_cycle.review_latest_closure(
+                        binding_id=binding_id,
+                        decision=decision,
+                        source=source,
+                        nonce=nonce,
+                    )
+                )
+                self.save_hot_state(state_dir)
+                return {
+                    "binding_id": feedback.binding_id,
+                    "decision": feedback.decision,
+                    "ok": True,
+                    "resulting_binding_status": (
+                        feedback.resulting_binding_status
+                    ),
+                    "status": "applied",
+                }
+            except BaseException:
+                self._causal_action_cycle.restore_encoded(prior)
+                raise
+
+    @_engine_mutation_entry
     def teach_isolated_auditory_asset(self, wav_bytes, tutor_label):
         """Teach one explicitly bounded spoken-form asset through full L5."""
         from dsf_ai_service.substrate.auditory_reciprocity import (
