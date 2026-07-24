@@ -152,6 +152,26 @@ def test_tapestry_roundtrip_preserves_voice_state_and_cluster_aliases(
     assert cluster._neuron_map[neuron.neuron_id] is neuron
 
 
+def test_large_array_uses_bounded_streaming_roundtrip(
+        engine, limits, tmp_path):
+    neuron = _first_neuron(engine.organism)
+    source = np.arange(160_000, dtype=np.float64).reshape(400, 400)
+    neuron._coupling_injection = source
+    target = tmp_path / "large-array.sgr"
+
+    save_structural_graph(engine.organism, target, limits=limits)
+    restored = load_structural_graph(
+        target,
+        expected_root_type=type(engine.organism),
+        limits=limits,
+    )
+
+    actual = _first_neuron(restored)._coupling_injection
+    assert actual.shape == source.shape
+    assert actual.dtype == source.dtype
+    assert actual.tobytes() == source.tobytes()
+
+
 def test_two_pass_output_is_stable(engine, limits, tmp_path):
     first = tmp_path / "first.sgr"
     second = tmp_path / "second.sgr"

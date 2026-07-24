@@ -10,7 +10,7 @@ ordered edges in SQLite:
 * object/container aliases and cycles are preserved by explicit node ids;
 * numpy values, dtype, shape, strides, and writeability are preserved;
 * runtime process handles are excluded and rebuilt by existing restore hooks;
-* traversal identity is held in a disk table, not a Python global memo;
+* traversal identity is held in one save-local map bounded by the node cap;
 * two independently written passes must be byte-identical before publication;
 * byte, node, and depth limits fail closed.
 
@@ -44,6 +44,9 @@ APPLICATION_ID = 0x47535231  # "GSR1"
 USER_VERSION = 1
 SQLITE_PAGE_SIZE = 4096
 _CHECK_INTERVAL = 1024
+_SCALAR_CACHE_CAPACITY = _CHECK_INTERVAL * 64
+_NODE_BUFFER_BYTES = 8 * 1024 * 1024
+_INLINE_ARRAY_BYTES = 1024 * 1024
 _UNSET = object()
 _IMMUTABLE_PENDING = object()
 
@@ -491,6 +494,14 @@ class _GraphWriter:
         self.connection = _connect(path, writable=True)
         self.node_count = 0
         self.page_size = SQLITE_PAGE_SIZE
+        self._scalar_cache: dict[
+            tuple[str, bytes, bytes], int] = {}
+        self._identity_index: dict[int, int] = {}
+        self._node_buffer: list[
+            tuple[int, str, str | None, bytes | None, bytes | None]] = []
+        self._node_buffer_bytes = 0
+        self._edge_buffer: list[
+            tuple[int, int, str | None, int | None, int]] = []
         self._initialize()
 
     def _initialize(self) -> None:
@@ -515,10 +526,6 @@ class _GraphWriter:
                 key_id INTEGER,
                 value_id INTEGER NOT NULL,
                 PRIMARY KEY(parent_id, position)
-            ) WITHOUT ROWID;
-            CREATE TEMP TABLE identity_work(
-                python_id INTEGER PRIMARY KEY,
-                node_id INTEGER NOT NULL UNIQUE
             ) WITHOUT ROWID;
             CREATE TEMP TABLE scalar_work(
                 kind TEXT NOT NULL,
@@ -551,12 +558,41 @@ class _GraphWriter:
         if self.node_count > self.limits.max_nodes:
             raise StructuralGraphError(
                 "structural artifact exceeded its node capacity")
-        cursor = self.connection.execute(
-            "INSERT INTO nodes(kind,type_tag,meta,payload) VALUES(?,?,?,?)",
-            (kind, type_tag, meta, payload),
+        node_id = self.node_count
+        node_bytes = (
+            len(kind.encode("utf-8"))
+            + (0 if type_tag is None else len(type_tag.encode("utf-8")))
+            + (0 if meta is None else len(meta))
+            + (0 if payload is None else len(payload))
         )
-        self._capacity_check()
-        return int(cursor.lastrowid)
+        if (
+            self._node_buffer
+            and self._node_buffer_bytes + node_bytes > _NODE_BUFFER_BYTES
+        ):
+            self._flush_nodes()
+            self._capacity_check()
+        self._node_buffer.append(
+            (node_id, kind, type_tag, meta, payload))
+        self._node_buffer_bytes += node_bytes
+        if (
+            len(self._node_buffer) >= _CHECK_INTERVAL
+            or self._node_buffer_bytes >= _NODE_BUFFER_BYTES
+        ):
+            self._flush_nodes()
+            self._capacity_check()
+        return node_id
+
+    def _flush_nodes(self) -> None:
+        if not self._node_buffer:
+            return
+        self.connection.executemany(
+            "INSERT INTO nodes("
+            "node_id,kind,type_tag,meta,payload"
+            ") VALUES(?,?,?,?,?)",
+            self._node_buffer,
+        )
+        self._node_buffer.clear()
+        self._node_buffer_bytes = 0
 
     def _new_blob_node(
         self,
@@ -577,13 +613,16 @@ class _GraphWriter:
         if self.node_count > self.limits.max_nodes:
             raise StructuralGraphError(
                 "structural artifact exceeded its node capacity")
-        cursor = self.connection.execute(
-            "INSERT INTO nodes(kind,type_tag,meta,payload) "
-            "VALUES(?,?,?,zeroblob(?))",
-            (kind, type_tag, meta, payload_size),
+        self._flush_nodes()
+        node_id = self.node_count
+        self.connection.execute(
+            "INSERT INTO nodes("
+            "node_id,kind,type_tag,meta,payload"
+            ") VALUES(?,?,?,?,zeroblob(?))",
+            (node_id, kind, type_tag, meta, payload_size),
         )
         self._capacity_check()
-        return int(cursor.lastrowid)
+        return node_id
 
     def _scalar_node(
         self,
@@ -595,13 +634,20 @@ class _GraphWriter:
         """Intern immutable scalar values in the on-disk traversal index."""
         lookup_meta = b"" if meta is None else meta
         lookup_payload = b"" if payload is None else payload
+        cache_key = (kind, lookup_meta, lookup_payload)
+        cached = self._scalar_cache.get(cache_key)
+        if cached is not None:
+            return cached
         row = self.connection.execute(
             "SELECT node_id FROM scalar_work "
             "WHERE kind=? AND meta=? AND payload=?",
             (kind, lookup_meta, lookup_payload),
         ).fetchone()
         if row is not None:
-            return int(row[0])
+            node_id = int(row[0])
+            if len(self._scalar_cache) < _SCALAR_CACHE_CAPACITY:
+                self._scalar_cache[cache_key] = node_id
+            return node_id
         node_id = self._new_node(
             kind,
             meta=meta,
@@ -612,20 +658,19 @@ class _GraphWriter:
             "VALUES(?,?,?,?)",
             (kind, lookup_meta, lookup_payload, node_id),
         )
+        if len(self._scalar_cache) < _SCALAR_CACHE_CAPACITY:
+            self._scalar_cache[cache_key] = node_id
         return node_id
 
     def _known_composite(self, value: Any) -> int | None:
-        row = self.connection.execute(
-            "SELECT node_id FROM identity_work WHERE python_id=?",
-            (id(value),),
-        ).fetchone()
-        return None if row is None else int(row[0])
+        return self._identity_index.get(id(value))
 
     def _register_composite(self, value: Any, node_id: int) -> None:
-        self.connection.execute(
-            "INSERT INTO identity_work(python_id,node_id) VALUES(?,?)",
-            (id(value), node_id),
-        )
+        python_id = id(value)
+        if python_id in self._identity_index:
+            raise StructuralGraphError(
+                "structural composite identity was registered twice")
+        self._identity_index[python_id] = node_id
 
     def _edge(
         self,
@@ -636,12 +681,21 @@ class _GraphWriter:
         field_name: str | None = None,
         key_id: int | None = None,
     ) -> None:
-        self.connection.execute(
+        self._edge_buffer.append(
+            (parent_id, position, field_name, key_id, value_id))
+        if len(self._edge_buffer) >= _CHECK_INTERVAL:
+            self._flush_edges()
+
+    def _flush_edges(self) -> None:
+        if not self._edge_buffer:
+            return
+        self.connection.executemany(
             "INSERT INTO edges("
             "parent_id,position,field_name,key_id,value_id"
             ") VALUES(?,?,?,?,?)",
-            (parent_id, position, field_name, key_id, value_id),
+            self._edge_buffer,
         )
+        self._edge_buffer.clear()
 
     def write_value(self, value: Any, *, depth: int = 0) -> int:
         if depth > self.limits.max_depth:
@@ -692,13 +746,24 @@ class _GraphWriter:
 
         if isinstance(value, np.ndarray):
             meta, pointer, payload_size = _array_descriptor(value)
-            node_id = self._new_blob_node(
-                "ndarray",
-                meta=_canonical_json(meta),
-                payload_size=payload_size,
-            )
-            self._register_composite(value, node_id)
-            if payload_size:
+            encoded_meta = _canonical_json(meta)
+            if payload_size <= _INLINE_ARRAY_BYTES:
+                payload = (
+                    b""
+                    if payload_size == 0
+                    else ctypes.string_at(pointer, payload_size)
+                )
+                node_id = self._new_node(
+                    "ndarray",
+                    meta=encoded_meta,
+                    payload=payload,
+                )
+            else:
+                node_id = self._new_blob_node(
+                    "ndarray",
+                    meta=encoded_meta,
+                    payload_size=payload_size,
+                )
                 assert pointer is not None
                 offset = 0
                 with self.connection.blobopen(
@@ -708,6 +773,7 @@ class _GraphWriter:
                             1024 * 1024, payload_size - offset)
                         blob.write(ctypes.string_at(pointer + offset, length))
                         offset += length
+            self._register_composite(value, node_id)
             return node_id
 
         if type(value) is dict:
@@ -790,6 +856,8 @@ class _GraphWriter:
             "root_type": root_spec.tag,
             "node_count": self.node_count,
         }
+        self._flush_nodes()
+        self._flush_edges()
         for key, value in metadata.items():
             self.connection.execute(
                 "INSERT INTO metadata(key,value) VALUES(?,?)",

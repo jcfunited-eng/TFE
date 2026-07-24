@@ -21440,11 +21440,16 @@ class Guala:
         return number
 
     @classmethod
-    def _validate_deep_atlas_payload(cls, data, engine_tick):
+    def _validate_deep_atlas_payload(
+            cls, data, engine_tick, *, return_decoded=False):
         if not isinstance(data, dict):
             raise ValueError("deep-atlas payload must be an object")
         schema = data.get("schema")
-        if schema not in {"deep_atlas_v1", "deep_atlas_v2"}:
+        if schema not in {
+            "deep_atlas_v1",
+            "deep_atlas_v2",
+            "deep_atlas_v3",
+        }:
             raise ValueError(f"unknown deep-atlas schema: {data.get('schema')!r}")
         cls._exact_int(data.get("tick"), "deep_atlas.tick", maximum=engine_tick)
         saved_count = cls._exact_int(
@@ -21452,6 +21457,12 @@ class Guala:
         for counter in (
                 "promotions_survival", "promotions_episodic", "reinstatements"):
             cls._exact_int(data.get(counter), f"deep_atlas.{counter}")
+        if schema == "deep_atlas_v3":
+            from dsf_ai_service.substrate.deep_atlas import DeepAtlas
+            decoded = DeepAtlas.decode_columnar_payload(data)
+            if return_decoded:
+                return saved_count, decoded
+            return saved_count
         entries = data.get("entries")
         if not isinstance(entries, dict):
             raise ValueError("deep_atlas.entries must be an object")
@@ -21552,6 +21563,8 @@ class Guala:
                             weight,
                             f"{label}.co_occurrence[{section}][{motif}]",
                             minimum=0.0)
+        if return_decoded:
+            return saved_count, None
         return saved_count
 
     @classmethod
@@ -23002,8 +23015,10 @@ class Guala:
                 "cross_hemi_links": [],
             })
 
-            # 5. Deep Atlas
-            snap_deep = self._envelope(self.deep_atlas.to_json())
+            # 5. Deep Atlas — freeze only the copy-on-write structural
+            # references under the engine lock.  The 20M-link exact
+            # columnar encoding runs after this lock is released.
+            deep_snapshot = self.deep_atlas.persistence_snapshot()
 
             # 6. Sections
             sections_data = {}
@@ -23049,6 +23064,10 @@ class Guala:
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
         # ── lock released ──
 
+        snap_deep = self._envelope(
+            self.deep_atlas.encode_persistence_snapshot(deep_snapshot),
+            saved_at_tick=save_tick,
+        )
         _dropped = self._materialize_media_assets(
             state_dir, picture_assets, video_assets)
         # GL-FIX-SAVE-MISSING-ORIGINAL-20260717: this cycle's records
@@ -23726,9 +23745,20 @@ class Guala:
                         self._validate_exact_envelope(
                             draw, "guala_deep_atlas.json",
                             core_envelope_tick)
-                        self._validate_deep_atlas_payload(
-                            ddata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW)
-                    _deep_saved_count = self.deep_atlas.load_from_json(ddata)
+                        _deep_saved_count, _deep_decoded = (
+                            self._validate_deep_atlas_payload(
+                                ddata,
+                                core_envelope_tick
+                                + self._INTRA_CYCLE_TICK_SKEW,
+                                return_decoded=True,
+                            )
+                        )
+                    else:
+                        _deep_decoded = None
+                    _deep_saved_count = self.deep_atlas.load_from_json(
+                        ddata,
+                        decoded_columnar=_deep_decoded,
+                    )
                     _deep_loaded = self.deep_atlas.live_count()
                     print(f"[GualaLoom] Deep atlas loaded: {_deep_loaded} entries "
                           f"(saved_count={_deep_saved_count})")

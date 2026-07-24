@@ -10,13 +10,23 @@ Persistence: separate table (guala_deep_atlas.json) for clean rollback.
 Kill switches: DEEP_ATLAS_ENABLED (promotions), DEEP_PRIOR_ENABLED (read path).
 """
 
-import hashlib
-import json
+import copy
 import math
 import os
 import sys
 from collections import defaultdict
 from collections.abc import MutableMapping
+
+from dsf_ai_service.substrate.deep_atlas_columnar import (
+    SCHEMA as COLUMNAR_SCHEMA,
+    DecodedColumnar,
+    compact_v2_tables,
+    decode_columnar_v3,
+    encode_columnar_v3,
+    mappings_equal,
+    section_fingerprint,
+    validate_columnar_v3,
+)
 
 # Use same constants as working atlas
 DECAY_LAMBDA = 0.0001 / 25.0   # 1/25th of working (0.000004)
@@ -60,11 +70,7 @@ CHI_DISTANCE_DECAY = 0.5
 
 def _section_fingerprint(values):
     """Return the content address for one exact motif-weight mapping."""
-    encoded = json.dumps(
-        dict(values), allow_nan=False, ensure_ascii=False,
-        separators=(",", ":"), sort_keys=True,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return section_fingerprint(values)
 
 
 class _SectionView(MutableMapping):
@@ -122,8 +128,8 @@ class _CoOccurrenceMap(MutableMapping):
         section = str(section)
         if section not in self._owned:
             if section in self._references:
-                self._owned[section] = dict(
-                    self._registry[self._references.pop(section)])
+                frozen = self._registry[self._references.pop(section)]
+                self._owned[section] = dict(frozen.items())
             else:
                 self._owned[section] = {}
         return self._owned[section]
@@ -175,7 +181,10 @@ class _CoOccurrenceMap(MutableMapping):
                 values = self._owned[section]
                 reference = sys.intern(_section_fingerprint(values))
                 existing = self._registry.get(reference)
-                if existing is not None and existing != values:
+                if (
+                    existing is not None
+                    and not mappings_equal(existing, values)
+                ):
                     raise ValueError(
                         "deep_atlas co-occurrence content-address collision")
                 if existing is None:
@@ -185,7 +194,10 @@ class _CoOccurrenceMap(MutableMapping):
                 self._references[section] = reference
                 self._owned.pop(section, None)
             output_existing = output_tables.get(reference)
-            if output_existing is not None and output_existing != values:
+            if (
+                output_existing is not None
+                and not mappings_equal(output_existing, values)
+            ):
                 raise ValueError(
                     "deep_atlas output table content-address collision")
             output_tables[reference] = values
@@ -525,8 +537,14 @@ class DeepAtlas:
 
     # --- Persistence (separate table) ---
 
-    def to_json(self):
-        """Serialize losslessly without repeating identical section maps."""
+    def persistence_snapshot(self):
+        """Capture one immutable, lossless association snapshot.
+
+        Every owned section is content-addressed into the copy-on-write
+        registry before this method returns.  Later live mutations detach
+        into a new dictionary, so the returned tables remain immutable and
+        may be encoded after the engine snapshot lock is released.
+        """
         live = self.live_count()
         entries_ser = {}
         co_occurrence_tables = {}
@@ -541,7 +559,8 @@ class DeepAtlas:
                     )
                     entry["co_occurrence"] = co_occurrence
                 serialized = {
-                    key: value for key, value in entry.items()
+                    key: copy.deepcopy(value)
+                    for key, value in entry.items()
                     if key != "co_occurrence"
                 }
                 serialized["co_occurrence_refs"] = (
@@ -560,33 +579,93 @@ class DeepAtlas:
             "reinstatements": self.reinstatements,
         }
 
-    def load_from_json(self, data):
+    @staticmethod
+    def encode_persistence_snapshot(snapshot):
+        """Encode an immutable snapshot into the exact bounded v3 form."""
+        return encode_columnar_v3(snapshot)
+
+    def to_json(self):
+        """Serialize every association in the exact bounded v3 container."""
+        return self.encode_persistence_snapshot(
+            self.persistence_snapshot())
+
+    @staticmethod
+    def validate_columnar_payload(data):
+        """Validate a v3 container without mutating a live DeepAtlas."""
+        validate_columnar_v3(data)
+
+    @staticmethod
+    def decode_columnar_payload(data):
+        """Validate and decode a v3 container for one exact restore."""
+        return decode_columnar_v3(data)
+
+    def load_from_json(self, data, *, decoded_columnar=None):
         """Restore from guala_deep_atlas.json.
         Returns saved_n_entries so caller can run loss alarm."""
         schema = data.get("schema")
-        if schema not in {"deep_atlas_v1", "deep_atlas_v2"}:
+        if schema not in {
+            "deep_atlas_v1",
+            "deep_atlas_v2",
+            COLUMNAR_SCHEMA,
+        }:
             print("[deep_atlas] Unknown schema — starting fresh")
             return 0
+        if decoded_columnar is not None and schema != COLUMNAR_SCHEMA:
+            raise ValueError(
+                "decoded columnar state requires deep_atlas_v3")
+        if (
+            decoded_columnar is not None
+            and not isinstance(decoded_columnar, DecodedColumnar)
+        ):
+            raise TypeError(
+                "decoded_columnar must be an exact DecodedColumnar")
+        decoded = decoded_columnar
+        if schema == COLUMNAR_SCHEMA and decoded is None:
+            decoded = decode_columnar_v3(data)
         self.tick = data.get("tick", 0)
         self.promotions_survival = data.get("promotions_survival", 0)
         self.promotions_episodic = data.get("promotions_episodic", 0)
         self.reinstatements = data.get("reinstatements", 0)
         self.entries = defaultdict(list)
         self._co_occurrence_registry = {}
-        if schema == "deep_atlas_v2":
+        if schema == COLUMNAR_SCHEMA:
+            assert decoded is not None
+            self._co_occurrence_registry = {
+                reference: decoded.store.section(index)
+                for index, reference in enumerate(
+                    decoded.store.references)
+            }
+            entry_index = 0
+            for k, serialized_entries in decoded.entries.items():
+                restored_entries = []
+                for serialized in serialized_entries:
+                    entry = dict(serialized)
+                    start = int(decoded.entry_offsets[entry_index])
+                    stop = int(decoded.entry_offsets[entry_index + 1])
+                    references = {}
+                    for offset in range(start, stop):
+                        section = decoded.sections[
+                            int(decoded.entry_sections[offset])]
+                        reference = decoded.store.references[
+                            int(decoded.entry_tables[offset])]
+                        references[section] = reference
+                    entry["co_occurrence"] = _CoOccurrenceMap(
+                        self._co_occurrence_registry,
+                        references=references,
+                    )
+                    restored_entries.append(entry)
+                    entry_index += 1
+                self.entries[int(k)] = restored_entries
+            if entry_index != len(decoded.entry_offsets) - 1:
+                raise ValueError(
+                    "deep_atlas_v3 entry offsets were not fully consumed")
+        elif schema == "deep_atlas_v2":
             raw_tables = data.get("co_occurrence_tables")
             if not isinstance(raw_tables, dict):
                 raise ValueError(
                     "deep_atlas_v2 co_occurrence_tables must be an object")
-            for raw_reference, values in raw_tables.items():
-                reference = sys.intern(str(raw_reference))
-                if not isinstance(values, dict):
-                    raise ValueError(
-                        "deep_atlas_v2 co-occurrence table must be an object")
-                if _section_fingerprint(values) != reference:
-                    raise ValueError(
-                        "deep_atlas_v2 co-occurrence table hash mismatch")
-                self._co_occurrence_registry[reference] = values
+            self._co_occurrence_registry = compact_v2_tables(
+                raw_tables)
             for k, serialized_entries in data.get("entries", {}).items():
                 restored_entries = []
                 for serialized in serialized_entries:
