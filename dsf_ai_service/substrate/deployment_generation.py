@@ -586,6 +586,14 @@ class DiscoveredCurrent:
 
 
 @dataclass(frozen=True)
+class CurrentGenerationReference:
+    generation_uuid: str
+    identity: str
+    tick: int
+    manifest_sha256: str
+
+
+@dataclass(frozen=True)
 class DeploymentGenerationResult:
     generation: LoadedGeneration
     _seal_json: bytes
@@ -682,6 +690,79 @@ def discover_and_load_current(
         raise CurrentPointerError(
             f"CURRENT failed full immutable-store verification: {error}") from error
     return DiscoveredCurrent(store=store, generation=generation)
+
+
+def load_current_generation_reference(
+        store_root: str | os.PathLike[str]) -> CurrentGenerationReference:
+    """Load only canonical CURRENT metadata for signed-seal routing.
+
+    This constant-size read does not trust CURRENT as state authority.  Its
+    UUID selects the immutable generation-bound deployment seal, whose HMAC
+    must independently authenticate every returned field before boot.
+    """
+    root = Path(store_root)
+    if root.is_symlink() or not root.is_dir():
+        raise CurrentPointerError(
+            "generation-store root is not a real directory")
+    pointer, _pointer_bytes = _read_immutable_json(
+        root / CURRENT_NAME,
+        "CURRENT pointer",
+    )
+    if set(pointer) != _CURRENT_KEYS or pointer.get("schema") != CURRENT_SCHEMA:
+        raise CurrentPointerError(
+            "CURRENT pointer field set or schema is invalid")
+    generation_uuid = _canonical_uuid(
+        pointer.get("generation_uuid"),
+        "CURRENT generation UUID",
+    )
+    identity = _identity(pointer.get("identity"))
+    tick = _tick(pointer.get("tick"))
+    if pointer.get(
+            "generation_path") != f"{GENERATIONS_DIRECTORY}/{generation_uuid}":
+        raise CurrentPointerError(
+            "CURRENT generation path is not UUID-derived")
+    manifest_sha256 = _validated_digest(
+        pointer.get("manifest_sha256"),
+        "CURRENT manifest hash",
+    )
+    return CurrentGenerationReference(
+        generation_uuid=generation_uuid,
+        identity=identity,
+        tick=tick,
+        manifest_sha256=manifest_sha256,
+    )
+
+
+def load_current_generation_deployment_seal(
+        store_root: str | os.PathLike[str], *,
+        hmac_key: bytes,
+) -> tuple[CurrentGenerationReference, dict | None]:
+    """Resolve the signed seal from CURRENT, never from the legacy pointer."""
+    reference = load_current_generation_reference(store_root)
+    seal_path = (
+        Path(store_root)
+        / DEPLOYMENT_SEALS_DIRECTORY
+        / f"{reference.generation_uuid}.json"
+    )
+    try:
+        seal_path.lstat()
+    except FileNotFoundError:
+        return reference, None
+    certificate = load_generation_deployment_seal(
+        store_root,
+        reference.generation_uuid,
+        hmac_key=hmac_key,
+    )
+    for field in (
+        "generation_uuid",
+        "identity",
+        "tick",
+        "manifest_sha256",
+    ):
+        if certificate[field] != getattr(reference, field):
+            raise SealValidationError(
+                f"signed deployment seal {field} differs from CURRENT")
+    return reference, certificate
 
 
 def _discover_staged_files(
@@ -1564,6 +1645,12 @@ def stage_authoritative_commit_upload(
                 raise DeploymentGenerationError(
                     "authoritative generation published without a remote seal"
                 )
+            persist_deployment_seal(
+                root,
+                seal_json,
+                hmac_key=hmac_key,
+                expected_nonce=nonce,
+            )
             retained = tuple(
                 record.generation_uuid
                 for record in state.census
@@ -2277,6 +2364,7 @@ __all__ = [
     "DeploymentGenerationError",
     "DeploymentGenerationResult",
     "DiscoveredCurrent",
+    "CurrentGenerationReference",
     "EFSOwnerLockUnavailable",
     "MaterializationError",
     "MaterializedGeneration",
@@ -2288,6 +2376,8 @@ __all__ = [
     "delete_generation_deployment_seal",
     "delete_remote_generation_prefix",
     "load_and_verify_deployment_seal",
+    "load_current_generation_deployment_seal",
+    "load_current_generation_reference",
     "load_generation_deployment_seal",
     "materialize_current",
     "persist_deployment_seal",

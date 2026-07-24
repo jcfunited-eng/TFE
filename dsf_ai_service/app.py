@@ -2340,10 +2340,9 @@ def _prepare_generation_boot():
         return _loaded_generation
     from dsf_ai_service.substrate.deployment_generation import (
         DEPLOYMENT_SEAL_NAME,
-        DEPLOYMENT_SEALS_DIRECTORY,
         ProcessLifetimeEFSOwnerLock,
         load_and_verify_deployment_seal,
-        load_generation_deployment_seal,
+        load_current_generation_deployment_seal,
         materialize_verified_generation,
         persist_generation_deployment_seal,
         reconcile_generation_deployment_seals,
@@ -2363,10 +2362,19 @@ def _prepare_generation_boot():
             max_required_files,
             max_path_bytes,
         ) = _authoritative_cold_limits()
-        deployment_seal = load_and_verify_deployment_seal(
-            GENERATION_STORE_ROOT,
-            hmac_key=_deploy_hmac_key(),
+        _current_reference, deployment_seal = (
+            load_current_generation_deployment_seal(
+                GENERATION_STORE_ROOT,
+                hmac_key=_deploy_hmac_key(),
+            )
         )
+        has_generation_bound_seal = deployment_seal is not None
+        if deployment_seal is None:
+            deployment_seal = load_and_verify_deployment_seal(
+                GENERATION_STORE_ROOT,
+                hmac_key=_deploy_hmac_key(),
+            )
+
         cold_store = AuthoritativeColdGenerationStore(
             GENERATION_STORE_ROOT,
             identity=deployment_seal["identity"],
@@ -2376,28 +2384,22 @@ def _prepare_generation_boot():
             max_dynamic_path_bytes=max_path_bytes,
             pre_publish_validator=_validate_runtime_generation_cold_restore,
         )
-        generation_seal_path = os.path.join(
-            GENERATION_STORE_ROOT,
-            DEPLOYMENT_SEALS_DIRECTORY,
-            f"{deployment_seal['generation_uuid']}.json",
-        )
-        try:
-            os.lstat(generation_seal_path)
-        except FileNotFoundError:
-            has_generation_bound_seal = False
-        else:
-            has_generation_bound_seal = True
-
         _legacy_cold_retention_transition = None
         if has_generation_bound_seal:
             cold_state = cold_store.inspect_sealed_boot(
                 require_predecessor=False
             )
-            load_generation_deployment_seal(
-                GENERATION_STORE_ROOT,
-                cold_state.current.generation_uuid,
-                hmac_key=_deploy_hmac_key(),
-            )
+            for field in (
+                "generation_uuid",
+                "identity",
+                "tick",
+                "manifest_sha256",
+            ):
+                if deployment_seal[field] != getattr(
+                        cold_state.current, field):
+                    raise RuntimeError(
+                        f"signed deployment seal {field} differs from "
+                        "verified CURRENT generation")
         else:
             try:
                 cold_state = cold_store.inspect_sealed_boot(

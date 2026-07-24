@@ -20,6 +20,7 @@ from dsf_ai_service.substrate.deployment_generation import (
     StageValidationError,
     discover_and_load_current,
     load_and_verify_deployment_seal,
+    load_current_generation_deployment_seal,
     load_generation_deployment_seal,
     materialize_current,
     materialize_verified_generation,
@@ -296,6 +297,72 @@ def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
         expected_nonce=NONCE,
     )
     assert loaded_seal["generation_uuid"] == third.generation.generation_uuid
+    legacy_compatibility = load_and_verify_deployment_seal(
+        root,
+        hmac_key=HMAC_KEY,
+        expected_nonce=NONCE,
+    )
+    assert legacy_compatibility["generation_uuid"] == (
+        third.generation.generation_uuid
+    )
+
+
+def test_current_generation_seal_ignores_stale_legacy_pointer(tmp_path) -> None:
+    root = tmp_path / "store"
+    fake = FakeS3()
+    first = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=88,
+        save_callback=_save_callback,
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=lambda generation: True,
+    )
+    second = stage_authoritative_commit_upload(
+        store_root=root,
+        identity=IDENTITY,
+        tick=89,
+        save_callback=lambda stage, admission: _save_callback(
+            stage,
+            admission,
+            marker="two",
+        ),
+        s3_client=fake,
+        bucket="test-bucket",
+        prefix="ae/state",
+        hmac_key=HMAC_KEY,
+        nonce=NONCE,
+        max_encoded_generation_bytes=64 * 1024,
+        max_dynamic_required_files=128,
+        max_dynamic_path_bytes=16 * 1024,
+        cold_restore_validator=lambda generation: True,
+    )
+    persist_deployment_seal(
+        root,
+        first.seal_certificate_bytes(),
+        hmac_key=HMAC_KEY,
+        expected_nonce=NONCE,
+    )
+
+    reference, current_seal = load_current_generation_deployment_seal(
+        root,
+        hmac_key=HMAC_KEY,
+    )
+
+    assert reference.generation_uuid == second.generation.generation_uuid
+    assert current_seal is not None
+    assert current_seal["generation_uuid"] == second.generation.generation_uuid
+    assert load_and_verify_deployment_seal(
+        root,
+        hmac_key=HMAC_KEY,
+    )["generation_uuid"] == first.generation.generation_uuid
 
 
 def test_remote_failure_never_publishes_unsealed_current(tmp_path):
