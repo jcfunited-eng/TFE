@@ -170,6 +170,13 @@ def test_exit_cleanup_is_composite_and_proves_zero_owners():
     assert '--service "${ECS_SERVICE}" --desired-count 0' in cleanup
     assert '"desiredCount": 0, "runningCount": 0, "pendingCount": 0' in cleanup
     assert '--family "${TASK_FAMILY}" --desired-status RUNNING' in cleanup
+    assert "aws ecs wait services-stable" not in cleanup
+    assert cleanup.index("--desired-count 0") < cleanup.index(
+        '--family "${TASK_FAMILY}" --desired-status RUNNING'
+    )
+    assert cleanup.index(
+        '--family "${TASK_FAMILY}" --desired-status RUNNING'
+    ) < cleanup.index("aws ecs stop-task")
     assert 'if [ "${FAMILY_REMAINING}" != "0" ]' in cleanup
     assert 'if ! rm -rf "${DEPLOY_WORK_DIR}"' in exit_cleanup
     assert 'if ! fail_closed_owner_cleanup' in exit_cleanup
@@ -232,6 +239,19 @@ def test_new_task_and_deep_readiness_are_exact_before_wake():
         assert field in ready
     assert TEXT.index("Waiting for authenticated deep generation/build proof") < wake
     assert 'if [ "${READINESS_VERIFIED}" != "1" ]' in ready
+    new_owner = _between(
+        "Waiting for exactly one running task with the new immutable build",
+        "Waiting for authenticated deep generation/build proof",
+    )
+    assert 'task.get("lastStatus") != "RUNNING"' in new_owner
+    assert 'containers[0].get("imageDigest")' in new_owner
+    assert 'if [ "${ROLLOUT_STATE}" = "FAILED" ]' in new_owner
+    assert "aws ecs wait services-stable" not in new_owner
+    post_ready = _between(
+        'if [ "${READINESS_VERIFIED}" != "1" ]',
+        'echo "[wake] Deep readiness verified',
+    )
+    assert "aws ecs wait services-stable" in post_ready
 
 
 def test_task_security_group_removes_direct_internet_ingress_and_verifies_alb_only():

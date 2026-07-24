@@ -1,5 +1,6 @@
 import hashlib
 import io
+import inspect
 import json
 from pathlib import Path
 import sys
@@ -35,6 +36,12 @@ class _S3:
 
     def get_object(self, *, Bucket, Key):
         return {"Body": io.BytesIO(self.objects[(Bucket, Key)])}
+
+
+def test_boot_audits_immutable_generations_without_disposable_engine_loads():
+    source = inspect.getsource(appmod._prepare_generation_boot)
+    assert "cold_store.inspect(require_predecessor=False)" in source
+    assert "cold_store.reconcile_verified_retention()" not in source
 
 
 def test_legacy_pickle_migration_requires_both_verified_generation_artifacts():

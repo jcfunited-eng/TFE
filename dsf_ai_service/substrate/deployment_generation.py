@@ -1698,6 +1698,52 @@ def _verify_materialization(directory: Path, expected: Mapping[str, bytes]) -> N
                 f"materialized file {relative_path!r} differs from verified payload")
 
 
+def _verify_required_materialization(
+        directory: Path, expected: Mapping[str, bytes]) -> None:
+    """Prove the authoritative files already present in an active tree.
+
+    Runtime-only files such as snapshots may coexist beside the sealed
+    generation contract.  They are not cognition authority and therefore do
+    not force a rewrite when every required file is already byte-identical to
+    verified CURRENT.  Every required directory and file is still checked for
+    type and symlink/hard-link safety before any bytes are trusted.
+    """
+    info = directory.lstat()
+    if not stat.S_ISDIR(info.st_mode) or directory.is_symlink():
+        raise MaterializationError(
+            "existing active path must be a real directory")
+    required_directories = _expected_parent_directories(tuple(expected))
+    for relative in sorted(
+            required_directories,
+            key=lambda item: (len(PurePosixPath(item).parts), item)):
+        path = directory / Path(relative)
+        try:
+            info = path.lstat()
+        except FileNotFoundError as error:
+            raise MaterializationError(
+                f"active required directory {relative!r} is missing") from error
+        if not stat.S_ISDIR(info.st_mode) or path.is_symlink():
+            raise MaterializationError(
+                f"active required directory {relative!r} is unsafe")
+    for relative_path, expected_bytes in expected.items():
+        path = directory / Path(relative_path)
+        try:
+            info = path.lstat()
+        except FileNotFoundError as error:
+            raise MaterializationError(
+                f"active required file {relative_path!r} is missing") from error
+        if (not stat.S_ISREG(info.st_mode) or path.is_symlink()
+                or info.st_nlink != 1):
+            raise MaterializationError(
+                f"active required file {relative_path!r} is unsafe")
+        if info.st_size != len(expected_bytes):
+            raise MaterializationError(
+                f"active required file {relative_path!r} has a size mismatch")
+        if path.read_bytes() != expected_bytes:
+            raise MaterializationError(
+                f"active required file {relative_path!r} differs from CURRENT")
+
+
 def _rename_exchange(first: Path, second: Path) -> None:
     libc = ctypes.CDLL(None, use_errno=True)
     renameat2 = getattr(libc, "renameat2", None)
@@ -1756,6 +1802,33 @@ def materialize_verified_generation(
             "existing active path must be a real directory")
 
     expected = _materialized_expected_bytes(generation)
+    stale_retirements = tuple(
+        active_parent.glob(f".{active.name}.retired-*")
+    )
+    for stale in stale_retirements:
+        if stale.is_symlink() or not stale.is_dir():
+            raise MaterializationError(
+                f"stale active retirement is unsafe: {stale}")
+    if active.exists():
+        try:
+            _verify_required_materialization(active, expected)
+        except MaterializationError:
+            pass
+        else:
+            for stale in stale_retirements:
+                if stale.exists():
+                    _remove_private_tree(stale)
+            _fsync_directory(active_parent)
+            return MaterializedGeneration(
+                schema=MATERIALIZATION_SCHEMA,
+                generation_uuid=generation.generation_uuid,
+                identity=generation.identity,
+                tick=generation.tick,
+                manifest_sha256=generation.manifest_sha256,
+                active_directory=active,
+                materialized_files=tuple(sorted(expected)),
+            )
+
     candidate = active_parent / (
         f".{active.name}.materializing-{generation.generation_uuid}-{uuid.uuid4()}")
     if candidate.exists():
@@ -1764,13 +1837,6 @@ def materialize_verified_generation(
     exchanged = False
     moved_into_empty = False
     retired_active = None
-    stale_retirements = tuple(
-        active_parent.glob(f".{active.name}.retired-*")
-    )
-    for stale in stale_retirements:
-        if stale.is_symlink() or not stale.is_dir():
-            raise MaterializationError(
-                f"stale active retirement is unsafe: {stale}")
     try:
         _write_materialization(candidate, expected)
         _verify_materialization(candidate, expected)

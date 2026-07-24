@@ -971,6 +971,71 @@ def test_materialize_current_unwraps_json_and_preserves_binary(tmp_path):
     assert not list(active.parent.glob(f".{active.name}.materializing-*"))
 
 
+def test_matching_active_generation_is_adopted_without_rewrite(
+        tmp_path, monkeypatch):
+    _store, generation = _committed_generation(tmp_path)
+    active = tmp_path / "active"
+    first = materialize_verified_generation(
+        generation=generation,
+        active_directory=active,
+    )
+    runtime = active / "backups"
+    runtime.mkdir()
+    (runtime / "audit-only.txt").write_text("not generation authority")
+
+    def reject_rewrite(*_args, **_kwargs):
+        raise AssertionError("matching active generation was rewritten")
+
+    monkeypatch.setattr(
+        deployment,
+        "_write_materialization",
+        reject_rewrite,
+    )
+    adopted = materialize_verified_generation(
+        generation=generation,
+        active_directory=active,
+    )
+
+    assert adopted == first
+    assert (runtime / "audit-only.txt").read_text() == "not generation authority"
+    assert not list(active.parent.glob(f".{active.name}.materializing-*"))
+    assert not list(active.parent.glob(f".{active.name}.retired-*"))
+
+
+def test_mismatched_active_generation_still_uses_atomic_materialization(
+        tmp_path, monkeypatch):
+    _store, generation = _committed_generation(tmp_path)
+    active = tmp_path / "active"
+    materialize_verified_generation(
+        generation=generation,
+        active_directory=active,
+    )
+    (active / "core.json").write_text('{"marker":"wrong","tick":7}\n')
+    real_write = deployment._write_materialization
+    writes = []
+
+    def record_write(candidate, expected):
+        writes.append(candidate)
+        return real_write(candidate, expected)
+
+    monkeypatch.setattr(
+        deployment,
+        "_write_materialization",
+        record_write,
+    )
+    restored = materialize_verified_generation(
+        generation=generation,
+        active_directory=active,
+    )
+
+    assert len(writes) == 1
+    assert restored.generation_uuid == generation.generation_uuid
+    assert json.loads((active / "core.json").read_text()) == {
+        "marker": "one",
+        "tick": 7,
+    }
+
+
 def test_materialize_current_applies_the_generation_retention_boundary(tmp_path):
     store, first = _committed_generation(tmp_path)
     source = tmp_path / "source"

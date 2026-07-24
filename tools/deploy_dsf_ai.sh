@@ -321,15 +321,13 @@ fail_closed_owner_cleanup() {
         echo "ERROR: fail-closed cleanup could not set desired count to zero"
         cleanup_failed=1
     fi
-    if ! aws ecs wait services-stable --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"; then
-        echo "ERROR: fail-closed cleanup could not prove service stability at zero"
-        cleanup_failed=1
-    fi
 
-    # Catch any untracked family task as well.  At this point the old owner is
-    # retired and service desired count is zero, so every RUNNING-family task is
-    # an unauthorized standalone owner and must be stopped explicitly.
+    # A service whose rollout is still IN_PROGRESS can refuse to become
+    # "stable" after desired-count reaches zero.  Waiting on that generic ECS
+    # state delayed the 2026-07-24 fail-back by ten minutes while the sole
+    # failed owner remained RUNNING.  Ownership is the real boundary: enumerate
+    # and stop every RUNNING family task immediately, then prove exact zero
+    # counts below.
     if family_tasks_text=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
         --family "${TASK_FAMILY}" --desired-status RUNNING \
         --query 'taskArns' --output text); then
@@ -1049,26 +1047,63 @@ aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
     --desired-count 1 --task-definition "${TASK_FAMILY}:${NEW_REV}" \
     --deployment-configuration "${DEPLOY_CONFIG}" --force-new-deployment \
     --query 'service.deployments[0].{status:status,taskDef:taskDefinition}' --output table
-if ! aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}"; then
-    echo "ERROR: ECS service did not stabilize; circuit-breaker rollback is authoritative"
-    exit 1
-fi
 
-NEW_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
-    --service-name "${ECS_SERVICE}" --desired-status RUNNING \
-    --query 'taskArns' --output text)
-read -r -a NEW_TASK_ARNS <<< "${NEW_TASKS_TEXT}"
-if [ "${#NEW_TASK_ARNS[@]}" -ne 1 ] || [ "${NEW_TASK_ARNS[0]}" = "None" ]; then
-    echo "ERROR: expected exactly one new owner, found ${#NEW_TASK_ARNS[@]}"
+echo "[owner] Waiting for exactly one running task with the new immutable build..."
+NEW_TASK_ARN=""
+NEW_TASK_JSON=""
+for i in $(seq 1 90); do
+    NEW_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+        --service-name "${ECS_SERVICE}" --desired-status RUNNING \
+        --query 'taskArns' --output text)
+    read -r -a NEW_TASK_ARNS <<< "${NEW_TASKS_TEXT}"
+    if [ "${#NEW_TASK_ARNS[@]}" -eq 1 ] \
+            && [ "${NEW_TASK_ARNS[0]:-None}" != "None" ]; then
+        CANDIDATE_TASK_JSON=$(aws ecs describe-tasks \
+            --cluster "${ECS_CLUSTER}" --tasks "${NEW_TASK_ARNS[0]}" \
+            --query 'tasks[0]' --output json)
+        if CANDIDATE_TASK_JSON="${CANDIDATE_TASK_JSON}" \
+            EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" \
+            EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
+import json, os
+task = json.loads(os.environ["CANDIDATE_TASK_JSON"])
+containers = task.get("containers", [])
+if task.get("lastStatus") != "RUNNING":
+    raise SystemExit(1)
+if not task.get("taskDefinitionArn", "").endswith(
+        "/" + os.environ["EXPECTED_TASK_DEFINITION"]
+):
+    raise SystemExit(1)
+if (
+    len(containers) != 1
+    or containers[0].get("imageDigest")
+    != os.environ["EXPECTED_IMAGE_DIGEST"]
+):
+    raise SystemExit(1)
+'; then
+            NEW_TASK_ARN="${NEW_TASK_ARNS[0]}"
+            NEW_TASK_JSON="${CANDIDATE_TASK_JSON}"
+            break
+        fi
+    fi
+    ROLLOUT_STATE=$(aws ecs describe-services \
+        --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}" \
+        --query "services[0].deployments[?status=='PRIMARY'].rolloutState | [0]" \
+        --output text)
+    if [ "${ROLLOUT_STATE}" = "FAILED" ]; then
+        echo "ERROR: ECS circuit breaker marked the new rollout FAILED"
+        exit 1
+    fi
+    echo "[owner] attempt ${i}/90: exact new running owner not yet available"
+    sleep 10
+done
+if [ -z "${NEW_TASK_ARN}" ]; then
+    echo "ERROR: exact new running owner did not appear within 15 minutes"
     exit 1
 fi
-NEW_TASK_ARN="${NEW_TASK_ARNS[0]}"
 if [ "${NEW_TASK_ARN}" = "${OLD_TASK_ARN}" ]; then
     echo "ERROR: ECS returned the retired task as the new owner"
     exit 1
 fi
-NEW_TASK_JSON=$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" --tasks "${NEW_TASK_ARN}" \
-    --query 'tasks[0]' --output json)
 if ! NEW_TASK_JSON="${NEW_TASK_JSON}" EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" \
     EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
 import json, os
@@ -1125,6 +1160,12 @@ if not all(checks.values()):
 done
 if [ "${READINESS_VERIFIED}" != "1" ]; then
     echo "ERROR: new owner never proved exact build and sealed generation readiness"
+    exit 1
+fi
+if ! aws ecs wait services-stable --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"; then
+    echo "ERROR: deep-ready owner did not reach ECS stable state; "
+    echo "       circuit-breaker rollback is authoritative"
     exit 1
 fi
 

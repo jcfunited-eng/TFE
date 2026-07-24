@@ -2373,7 +2373,13 @@ def _prepare_generation_boot():
             max_dynamic_path_bytes=max_path_bytes,
             pre_publish_validator=_validate_runtime_generation_cold_restore,
         )
-        cold_state = cold_store.reconcile_verified_retention()
+        # Boot audits the immutable CURRENT/predecessor bytes and certificates
+        # without constructing disposable Guala instances.  CURRENT already
+        # crossed the exact engine-load validator before publication; the one
+        # real boot below is the authoritative restore proof for this process.
+        # Retain-three reconciliation belongs to the controlled seal/commit
+        # boundary, never the latency- and memory-critical boot boundary.
+        cold_state = cold_store.inspect(require_predecessor=False)
         try:
             load_generation_deployment_seal(
                 GENERATION_STORE_ROOT,
