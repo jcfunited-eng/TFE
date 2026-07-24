@@ -845,10 +845,32 @@ class LoomBrain:
         from . import resonant_chi as rc
         votes = Counter()
         precomputed_lanes = rc.lane_features(query_signals)
+        language_query = query_signals.get("language")
+        query_concept = (
+            language_query.lower()
+            if isinstance(language_query, str)
+            else None
+        )
         for hemi in self.hemispheres:
             for neuron in hemi.cluster.neurons:
                 target = neuron.encode_state(query_signals, precomputed_lanes)
-                best_concept, _ = neuron.binding_atlas.recall_best(target)
+                # Known language is already an exact experienced identity in
+                # each neuron's BindingAtlas.  Use that authoritative O(1)
+                # route before structural best-match, just as the event-count
+                # branch above does.  Without this call the live
+                # resonant-spectral path needlessly compared every recognized
+                # word with every retained concept on every neuron, turning
+                # one eight-word turn into hundreds of millions of comparisons.
+                # A neuron without this exact experience still falls through
+                # inside recall_exact_or_best() to the unchanged full-field
+                # resonant comparison; no approximation or candidate cap is
+                # introduced.
+                best_concept, _ = (
+                    neuron.binding_atlas.recall_exact_or_best(
+                        query_concept,
+                        target,
+                    )
+                )
                 if best_concept is not None:
                     # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4): THE
                     # production recall path (observable=resonant_spectral

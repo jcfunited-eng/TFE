@@ -164,6 +164,21 @@ class _CoOccurrenceMap(MutableMapping):
     def __len__(self):
         return len(set(self._references) | set(self._owned))
 
+    def immutable_section_values(self, section):
+        """Return the exact shared table behind an immutable section.
+
+        Restored deep-atlas entries normally refer to content-addressed,
+        immutable section tables.  Read paths may safely cache a projection
+        of one of those tables by its reference.  A section that has detached
+        for a live write is owned and mutable, so it deliberately returns
+        ``None`` and must be read directly every time.
+        """
+        section = str(section)
+        reference = self._references.get(section)
+        if reference is None:
+            return None
+        return reference, self._registry[reference]
+
     def setdefault(self, section, default=None):
         section = str(section)
         if section not in self:

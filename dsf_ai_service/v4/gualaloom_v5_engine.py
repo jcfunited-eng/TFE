@@ -3008,6 +3008,14 @@ class Guala:
         self._cross_hemi_links = []  # list of CrossHemiLink (populated by cognition bundle)
         # perf/cache-word-section-index: emission-section routing lookup
         self._word_to_emission_sections = {}  # word.lower() → [(section, motif_idx, word)]
+        # Exact access index for the grounded-speech boundary.  The deep
+        # atlas retains every co-occurrence; this only records which existing
+        # section/motif locations are currently permitted to reach speech.
+        # Content-addressed deep tables are immutable until copy-on-write, so
+        # their exact grounded projection can be reused without flattening,
+        # deleting, ranking, or approximating any DSF evidence.
+        self._grounded_emission_motifs = {}
+        self._deep_atlas_grounded_projection_cache = {}
         # GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: was
         # previously only ever created inside _rebuild_word_to_emission_index
         # (i.e. absent on a fresh instance until boot/restore first ran that
@@ -4661,6 +4669,8 @@ class Guala:
                         self._word_to_emission_sections[wl] = []
                     self._word_to_emission_sections[wl].append(
                         (primary_section, mi, word))
+                    self._grounded_emission_motifs = {}
+                    self._deep_atlas_grounded_projection_cache.clear()
             _prof_t0 = _prof_mark("primary_sections_receive", _prof_t0)
 
             if senses:
@@ -4856,6 +4866,8 @@ class Guala:
             idx[wl].append((es, mi, w))
         self._word_to_emission_sections = idx
         self._grounded_words = grounded_words
+        self._grounded_emission_motifs = {}
+        self._deep_atlas_grounded_projection_cache.clear()
 
     def _backfill_grounded_from_deep_atlas(self):
         """2026-07-09 credo fix: retroactive grounding signal for vocabulary
@@ -5017,6 +5029,84 @@ class Guala:
         entries.sort(key=lambda e: e[0])
         self._word_to_emission_sections[wl] = [(es, mi, w) for _tick, es, mi, w in entries]
         self._grounded_words.add(wl)
+        self._grounded_emission_motifs = {}
+        self._deep_atlas_grounded_projection_cache.clear()
+
+    def _grounded_deep_atlas_items(self, co_occurrence, section):
+        """Return exact speakable motif weights for one deep section.
+
+        This is an access-path correction, not a new decision mechanism.
+        When grounded speech is required, the old implementation iterated
+        every motif in every deep table and then discarded almost all of
+        them at the speech gate.  Restored tables are content-addressed and
+        immutable, so their exact ordered intersection with the existing
+        grounded motif index is computed once per unique table.
+
+        Copy-on-write owned tables are never cached: live reinforcement can
+        change them, and every read must observe that change immediately.
+        Returned order and weights are the source table's original order and
+        exact values, preserving the prior candidate semantics.
+        """
+        allowed = self._grounded_emission_motifs.get(section)
+        if not allowed:
+            self._refresh_grounded_emission_motif_index()
+            allowed = self._grounded_emission_motifs.get(section)
+        if not allowed:
+            return ()
+
+        immutable = None
+        immutable_values = getattr(
+            co_occurrence, "immutable_section_values", None)
+        if immutable_values is not None:
+            immutable = immutable_values(section)
+
+        cache_key = None
+        if immutable is not None:
+            reference, values = immutable
+            cache_key = (section, reference)
+            cached = self._deep_atlas_grounded_projection_cache.get(
+                cache_key)
+            if cached is not None:
+                return cached
+        else:
+            values = co_occurrence.get(section, {})
+
+        projected = []
+        for motif_key, weight in values.items():
+            motif = int(motif_key)
+            if motif in allowed:
+                projected.append((motif, weight))
+        result = tuple(projected)
+        if cache_key is not None:
+            self._deep_atlas_grounded_projection_cache[cache_key] = result
+        return result
+
+    def _refresh_grounded_emission_motif_index(self):
+        """Synchronize the derived access index from speech authority.
+
+        ``_word_to_emission_sections`` remains the sole eligibility
+        authority.  A shallow snapshot makes one internally consistent read
+        if live learning adds another word concurrently.  Any exact change
+        invalidates projections; no stale table can grant or suppress speech.
+        """
+        word_index = dict(self._word_to_emission_sections)
+        eligible_words = frozenset(word_index)
+        grounded_motifs = {}
+        for section, section_object in self.sections.items():
+            motifs = {
+                motif
+                for motif, mode in enumerate(section_object.modes)
+                if (
+                    len(mode) >= 3
+                    and mode[2]
+                    and mode[2].lower() in eligible_words
+                )
+            }
+            if motifs:
+                grounded_motifs[section] = motifs
+        if grounded_motifs != self._grounded_emission_motifs:
+            self._grounded_emission_motifs = grounded_motifs
+            self._deep_atlas_grounded_projection_cache.clear()
 
     def _choose_role_sections(self, role_dna, position_hint):
         """Route word commit. Position wins for sentence boundaries (object,
@@ -11987,6 +12077,8 @@ class Guala:
         checking real committed-word status first closes it here too."""
         if not seed_word or seed_word.lower() not in self._word_to_emission_sections:
             return []
+        if _require_grounded_speech():
+            self._refresh_grounded_emission_motif_index()
         exclude = set(exclude_words or ())
         exclude.add(seed_word.lower())
         ek = LanguageKrimelack()
@@ -12011,8 +12103,14 @@ class Guala:
                 sec_obj = self.sections.get(section)
                 if sec_obj is None:
                     continue
-                for mid_str, w in motif_dict.items():
-                    mid = int(mid_str)
+                if _require_grounded_speech():
+                    motif_items = self._grounded_deep_atlas_items(
+                        de["co_occurrence"], section)
+                else:
+                    motif_items = (
+                        (int(mid_str), weight)
+                        for mid_str, weight in motif_dict.items())
+                for mid, w in motif_items:
                     if mid >= len(sec_obj.modes):
                         continue
                     _, _, word_label = sec_obj.modes[mid]
@@ -12066,6 +12164,8 @@ class Guala:
         own hypothesis exclusion already guards, unchanged here)."""
         if not seed_word or seed_word.lower() not in self._word_to_emission_sections:
             return []
+        if _require_grounded_speech():
+            self._refresh_grounded_emission_motif_index()
         exclude = set(exclude_words or ())
         exclude.add(seed_word.lower())
         ek = LanguageKrimelack()
@@ -12083,8 +12183,14 @@ class Guala:
                 sec_obj = self.sections.get(section)
                 if sec_obj is None:
                     continue
-                for mid_str, w in motif_dict.items():
-                    mid = int(mid_str)
+                if _require_grounded_speech():
+                    motif_items = self._grounded_deep_atlas_items(
+                        de["co_occurrence"], section)
+                else:
+                    motif_items = (
+                        (int(mid_str), weight)
+                        for mid_str, weight in motif_dict.items())
+                for mid, w in motif_items:
                     if mid >= len(sec_obj.modes):
                         continue
                     _, _, word_label = sec_obj.modes[mid]
@@ -23759,6 +23865,7 @@ class Guala:
                         ddata,
                         decoded_columnar=_deep_decoded,
                     )
+                    self._deep_atlas_grounded_projection_cache.clear()
                     _deep_loaded = self.deep_atlas.live_count()
                     print(f"[GualaLoom] Deep atlas loaded: {_deep_loaded} entries "
                           f"(saved_count={_deep_saved_count})")
