@@ -55,6 +55,63 @@ def _hot_sources(tmp_path: Path, *, tick: int, label: str):
     }
 
 
+def _stateful_baseline(tmp_path: Path, *, tick: int = 10):
+    source = tmp_path / f"stateful-baseline-source-{tick}"
+    source.mkdir()
+    ticks = {
+        "cold.json": tick,
+        "core.json": tick,
+        "teaching.json": tick,
+    }
+    files = {
+        "core.json": _json_file(
+            source / "core.json",
+            {"data": {"tick": tick, "state_file_ticks": ticks}},
+        ),
+        "teaching.json": _json_file(
+            source / "teaching.json",
+            {"saved_at_tick": tick, "data": {"classes": []}},
+        ),
+        "cold.json": _json_file(
+            source / "cold.json",
+            {"saved_at_tick": tick, "data": {"atlas": "preserved"}},
+        ),
+    }
+    store = ImmutableGenerationStore(
+        tmp_path / f"stateful-baseline-store-{tick}",
+        identity=IDENTITY,
+        required_files=tuple(files),
+    )
+    return store.commit(tick=tick, files=files)
+
+
+def _stateful_hot_sources(
+        tmp_path: Path, *, tick: int, baseline_tick: int,
+        cold_dependency_tick: int):
+    source = tmp_path / f"stateful-hot-{tick}-{cold_dependency_tick}"
+    source.mkdir()
+    ticks = {
+        "cold.json": cold_dependency_tick,
+        "core.json": tick,
+        "teaching.json": tick,
+    }
+    return {
+        "core.json": _json_file(
+            source / "core.json",
+            {"data": {"tick": tick, "state_file_ticks": ticks}},
+        ),
+        "teaching.json": _json_file(
+            source / "teaching.json",
+            {
+                "saved_at_tick": tick,
+                "data": {
+                    "classes": [f"baseline-{baseline_tick}"],
+                },
+            },
+        ),
+    }
+
+
 def test_verified_live_current_applies_only_declared_hot_state(tmp_path) -> None:
     baseline = _baseline(tmp_path)
     active = tmp_path / "active"
@@ -228,3 +285,101 @@ def test_live_recovery_retention_is_bounded(tmp_path) -> None:
     generations = root / GENERATIONS_DIRECTORY
     assert len(tuple(generations.iterdir())) <= 3
     assert manager.load_current().tick == 16
+
+
+def test_hot_generation_must_retain_exact_cold_baseline_dependency(
+        tmp_path) -> None:
+    baseline = _stateful_baseline(tmp_path, tick=10)
+    root = tmp_path / "stateful-live"
+    manager = LiveRecoveryGenerationStore(
+        root,
+        baseline=baseline,
+        hot_files=HOT_FILES,
+        hmac_key=HMAC_KEY,
+        state_file_tick_manifest="core.json",
+    )
+
+    committed = manager.commit_hot_state(
+        tick=11,
+        files=_stateful_hot_sources(
+            tmp_path,
+            tick=11,
+            baseline_tick=10,
+            cold_dependency_tick=10,
+        ),
+    )
+
+    assert manager.load_current().generation_uuid == committed.generation_uuid
+
+
+def test_unpublished_cold_dependency_is_rejected_before_current_changes(
+        tmp_path) -> None:
+    baseline = _stateful_baseline(tmp_path, tick=10)
+    root = tmp_path / "stateful-live"
+    manager = LiveRecoveryGenerationStore(
+        root,
+        baseline=baseline,
+        hot_files=HOT_FILES,
+        hmac_key=HMAC_KEY,
+        state_file_tick_manifest="core.json",
+    )
+
+    with pytest.raises(
+            LiveRecoveryError,
+            match="cold state not contained"):
+        manager.commit_hot_state(
+            tick=12,
+            files=_stateful_hot_sources(
+                tmp_path,
+                tick=12,
+                baseline_tick=10,
+                cold_dependency_tick=11,
+            ),
+        )
+
+    assert not (root / CURRENT_NAME).exists()
+
+
+def test_rebase_changes_the_cold_dependency_for_subsequent_hot_commits(
+        tmp_path) -> None:
+    baseline = _stateful_baseline(tmp_path, tick=10)
+    root = tmp_path / "stateful-live-rebase"
+    manager = LiveRecoveryGenerationStore(
+        root,
+        baseline=baseline,
+        hot_files=HOT_FILES,
+        hmac_key=HMAC_KEY,
+        state_file_tick_manifest="core.json",
+    )
+    manager.commit_hot_state(
+        tick=11,
+        files=_stateful_hot_sources(
+            tmp_path,
+            tick=11,
+            baseline_tick=10,
+            cold_dependency_tick=10,
+        ),
+    )
+    newer_baseline = _stateful_baseline(tmp_path, tick=12)
+    manager.rebase_after_deployment_seal(
+        baseline=newer_baseline,
+        tick=12,
+        files=_stateful_hot_sources(
+            tmp_path,
+            tick=12,
+            baseline_tick=12,
+            cold_dependency_tick=12,
+        ),
+    )
+
+    committed = manager.commit_hot_state(
+        tick=13,
+        files=_stateful_hot_sources(
+            tmp_path,
+            tick=13,
+            baseline_tick=12,
+            cold_dependency_tick=12,
+        ),
+    )
+
+    assert manager.load_current().generation_uuid == committed.generation_uuid

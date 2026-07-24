@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -57,6 +58,8 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
         max_required_files=2048,
         max_path_bytes=256 * 1024,
     )
+    prior_state_file_ticks = dict(guala._state_file_ticks)
+    prior_last_save_tick = guala._last_save_tick
 
     with guala.bounded_persistence_admission(admission):
         guala.save_full_state(
@@ -64,6 +67,19 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
             publish_generation=False,
         )
         guala._save_wave_atlas(str(stage))
+
+    assert guala._state_file_ticks == prior_state_file_ticks
+    assert guala._last_save_tick == prior_last_save_tick
+    staged_core = json.loads(
+        (stage / "guala_core.json").read_text(encoding="utf-8")
+    )
+    staged_ticks = staged_core["data"]["state_file_ticks"]
+    guala.finalize_authoritative_full_checkpoint(
+        expected_tick=guala.tick,
+        state_file_ticks=staged_ticks,
+    )
+    assert guala._state_file_ticks == staged_ticks
+    assert guala._last_save_tick == guala.tick
 
     files = _discover_staged_files(
         stage,
@@ -124,6 +140,7 @@ def test_real_guala_cold_save_cannot_cross_stage_byte_capacity(
                 publish_generation=False,
             )
 
+    assert guala._prepared_authoritative_full_checkpoint is None
     assert sum(
         path.stat().st_size
         for path in tmp_path.rglob("*")
@@ -147,3 +164,28 @@ def test_sealed_runtime_rejects_direct_full_state_write(
         guala.strict_shutdown(timeout=30.0)
 
     assert not (tmp_path / "guala_core.json").exists()
+
+
+def test_rejected_hot_generation_does_not_advance_live_bookkeeping(
+        tmp_path: Path,
+) -> None:
+    guala = Guala()
+    guala.save_full_state(str(tmp_path))
+    prior_ticks = dict(guala._state_file_ticks)
+    prior_last_save_tick = guala._last_save_tick
+    guala.tick += 1
+
+    def reject_hot_generation(**_kwargs):
+        raise RuntimeError("injected hot lineage rejection")
+
+    guala._authoritative_hot_generation_publisher = reject_hot_generation
+    try:
+        with pytest.raises(
+                RuntimeError,
+                match="hot lineage rejection"):
+            guala.save_hot_state(str(tmp_path))
+    finally:
+        guala.strict_shutdown(timeout=30.0)
+
+    assert guala._state_file_ticks == prior_ticks
+    assert guala._last_save_tick == prior_last_save_tick

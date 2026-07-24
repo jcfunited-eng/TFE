@@ -6,11 +6,14 @@ from pathlib import Path
 import sys
 from types import SimpleNamespace
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import dsf_ai_service.app as appmod
+from dsf_ai_service.substrate import deployment_generation
 from dsf_ai_service.substrate.deployment_generation import discover_and_load_current
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
@@ -245,3 +248,77 @@ def test_runtime_generation_contains_complete_contract_and_excludes_transients(
     assert not ({".sleeping", "events.log", "diary/old.log"} & required)
     assert proof["generation_uuid"] == generation.generation_uuid
     assert proof["manifest_sha256"] == generation.manifest_sha256
+
+
+def test_rejected_cold_candidate_cannot_advance_live_checkpoint_lineage(
+        tmp_path, monkeypatch):
+    active = tmp_path / "active-rejected-candidate"
+    store = tmp_path / "sealed-rejected-candidate"
+    stage = tmp_path / "private-rejected-candidate"
+    active.mkdir()
+    guala = Guala()
+    guala.save_full_state(str(active))
+    prior_ticks = dict(guala._state_file_ticks)
+    prior_last_save_tick = guala._last_save_tick
+    guala.tick += 7
+    rejected_tick = guala.tick
+    guala.strict_shutdown(timeout=30.0)
+
+    def reject_after_complete_private_write(**kwargs):
+        from dsf_ai_service.substrate.deployment_generation import (
+            BoundedStageAdmission,
+        )
+
+        stage.mkdir()
+        admission = BoundedStageAdmission(
+            stage,
+            max_total_bytes=64 * 1024 * 1024,
+            max_required_files=16_384,
+            max_path_bytes=2 * 1024 * 1024,
+        )
+        kwargs["save_callback"](stage, admission)
+        staged_core = json.loads(
+            (stage / "guala_core.json").read_text(encoding="utf-8")
+        )
+        assert set(
+            staged_core["data"]["state_file_ticks"].values()
+        ) == {rejected_tick}
+        raise RuntimeError("injected isolated cold-restore rejection")
+
+    monkeypatch.setattr(
+        deployment_generation,
+        "stage_authoritative_commit_upload",
+        reject_after_complete_private_write,
+    )
+    monkeypatch.setattr("boto3.client", lambda *_args, **_kwargs: _S3())
+    monkeypatch.setattr(appmod, "_guala", guala)
+    monkeypatch.setattr(appmod, "STATE_DIR", str(active))
+    monkeypatch.setattr(appmod, "GENERATION_STORE_ROOT", str(store))
+    monkeypatch.setattr(appmod, "_live_recovery_store", None)
+    monkeypatch.setattr(appmod, "_GUALALOOM_API_KEY", "test-control-secret")
+    monkeypatch.setenv("GUALA_MAX_COLD_GENERATION_BYTES", str(64 * 1024 * 1024))
+    monkeypatch.setenv("GUALA_MAX_COLD_REQUIRED_FILES", "16384")
+    monkeypatch.setenv("GUALA_MAX_COLD_PATH_BYTES", str(2 * 1024 * 1024))
+
+    with pytest.raises(
+            RuntimeError,
+            match="isolated cold-restore rejection"):
+        appmod._seal_runtime_generation(
+            "rejected-candidate-lineage-test-0001"
+        )
+
+    assert guala._state_file_ticks == prior_ticks
+    assert guala._last_save_tick == prior_last_save_tick
+    assert guala._prepared_authoritative_full_checkpoint is None
+
+    guala.save_hot_state(str(active))
+    hot_core = json.loads(
+        (active / "guala_core.json").read_text(encoding="utf-8")
+    )
+    hot_ticks = hot_core["data"]["state_file_ticks"]
+    for relative in Guala.HOT_SAVE_MANIFEST_FILES:
+        assert hot_ticks[relative] == rejected_tick
+    for relative in (
+            set(Guala.FULL_SAVE_MANIFEST_FILES)
+            - set(Guala.HOT_SAVE_MANIFEST_FILES)):
+        assert hot_ticks[relative] == prior_ticks[relative]

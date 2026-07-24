@@ -49,11 +49,13 @@ def test_efs_transport_and_fargate_shutdown_ceiling_are_explicit():
     assert "shutdown save-free" in TEXT
 
 
-def test_ecs_health_check_is_liveness_not_deep_readiness():
-    """Quiescence intentionally makes deep readiness false during sealing."""
+def test_ecs_health_check_requires_substrate_readiness():
+    """Boot failures must be unhealthy; controlled quiescence remains HTTP 200."""
     health_check = _between("'healthCheck': {", "'stopTimeout': 120")
-    assert "http://localhost:8080/health" in health_check
-    assert "http://localhost:8080/ready" not in health_check
+    assert "http://localhost:8080/ready" in health_check
+    assert "http://localhost:8080/health" not in health_check
+    assert "'retries': 30" in health_check
+    assert "'startPeriod': 300" in health_check
 
 
 def test_service_configuration_forbids_owner_overlap_and_arms_rollback():
@@ -105,6 +107,7 @@ def test_control_plane_uses_verified_tls_credential_and_nonce():
     assert '--connect-to "dsf-ai.com:443:${ALB_DNS}:443"' in TEXT
     assert "http://dsf-ai-alb" not in TEXT
     assert "python3 tools/ecs_seal_transport.py" in seal
+    assert "--probe-ready" in seal
     assert '--task "${OLD_TASK_ARN}"' in seal
     assert '--nonce "${DEPLOY_NONCE}"' in seal
     assert 'X-API-Key: ${DEPLOY_API_KEY}' not in seal
@@ -218,10 +221,22 @@ def test_failed_turnover_fails_back_to_the_original_owner():
     cleanup_call = TEXT.index("fail_closed_owner_cleanup", trap)
     fail_back = TEXT.index("[fail-back] Restoring the original owner", trap)
     restore = TEXT.index('--task-definition "${OLD_TASK_DEFINITION_ARN}"', trap)
-    restore_one = TEXT.index("--desired-count 1", trap)
+    restore_zero = TEXT.index("--desired-count 0", restore)
+    authority_proof = TEXT.index(
+        "original task definition is not the sole PRIMARY",
+        restore_zero,
+    )
+    restore_one = TEXT.index("--desired-count 1", authority_proof)
     trap_end = TEXT.index("trap deployment_exit_cleanup EXIT")
-    assert trap < cleanup_call < fail_back < restore < trap_end
-    assert trap < restore_one < trap_end
+    assert (
+        trap < cleanup_call < fail_back < restore < restore_zero
+        < authority_proof < restore_one < trap_end
+    )
+    assert "--force-new-deployment" in TEXT[restore_zero:authority_proof]
+    failback = TEXT[restore_one:trap_end]
+    assert "--probe-ready" in failback
+    assert "Original substrate owner restored and ready" in failback
+    assert "fail-back owner never proved substrate readiness" in failback
     assert "production is DOWN and needs manual desired-count=1" in TEXT
 
 

@@ -220,7 +220,8 @@ class LiveRecoveryGenerationStore:
 
     def __init__(
             self, root, *, baseline, hot_files: Sequence[str], hmac_key,
-            keep_generations: int = 3):
+            keep_generations: int = 3,
+            state_file_tick_manifest: str | None = None):
         self.root = Path(root)
         self.baseline = BaselineIdentity.from_generation(baseline)
         self.hot_files = _validated_hot_files(hot_files)
@@ -231,6 +232,21 @@ class LiveRecoveryGenerationStore:
             raise LiveRecoveryError(
                 "at least two live recovery generations must be retained")
         self.keep_generations = keep_generations
+        if state_file_tick_manifest is not None:
+            manifest_path = str(state_file_tick_manifest)
+            if manifest_path not in self.hot_files:
+                raise LiveRecoveryError(
+                    "state-file tick manifest must be a declared hot-state file")
+            self.state_file_tick_manifest = manifest_path
+            self._baseline_state_file_ticks = (
+                self._read_state_file_ticks_from_generation(
+                    baseline,
+                    role="deployment baseline",
+                )
+            )
+        else:
+            self.state_file_tick_manifest = None
+            self._baseline_state_file_ticks = None
 
     @property
     def required_files(self) -> tuple[str, ...]:
@@ -242,6 +258,84 @@ class LiveRecoveryGenerationStore:
             identity=self.baseline.identity,
             required_files=self.required_files,
         )
+
+    @staticmethod
+    def _state_file_ticks_from_payload(payload, *, role: str) -> dict[str, int]:
+        if not isinstance(payload, dict):
+            raise LiveRecoveryError(
+                f"{role} state-file tick manifest is not a JSON object")
+        data = payload.get("data", payload)
+        if not isinstance(data, dict):
+            raise LiveRecoveryError(
+                f"{role} state-file tick manifest data is not an object")
+        supplied = data.get("state_file_ticks")
+        if not isinstance(supplied, dict) or not supplied:
+            raise LiveRecoveryError(
+                f"{role} has no authoritative state_file_ticks mapping")
+        validated = {}
+        for relative, tick in supplied.items():
+            if (
+                not isinstance(relative, str)
+                or Path(relative).name != relative
+                or isinstance(tick, bool)
+                or not isinstance(tick, int)
+                or tick < 0
+            ):
+                raise LiveRecoveryError(
+                    f"{role} state_file_ticks mapping is invalid")
+            validated[relative] = tick
+        return validated
+
+    def _read_state_file_ticks_from_generation(
+            self, generation, *, role: str) -> dict[str, int]:
+        try:
+            payload = generation.payload(self.state_file_tick_manifest)
+        except Exception as error:
+            raise LiveRecoveryError(
+                f"{role} state-file tick manifest cannot be read: {error}"
+            ) from error
+        return self._state_file_ticks_from_payload(payload, role=role)
+
+    def _verify_state_file_tick_lineage(
+            self, generation: LoadedGeneration) -> None:
+        if self.state_file_tick_manifest is None:
+            return
+        live_ticks = self._read_state_file_ticks_from_generation(
+            generation,
+            role="live recovery generation",
+        )
+        self._verify_state_file_ticks(
+            live_ticks,
+            live_tick=generation.tick,
+        )
+
+    def _verify_state_file_ticks(
+            self, live_ticks: dict[str, int], *, live_tick: int) -> None:
+        baseline_ticks = self._baseline_state_file_ticks
+        if set(live_ticks) != set(baseline_ticks):
+            raise LiveRecoveryError(
+                "live recovery state-file contract differs from its "
+                "deployment baseline")
+        cold_files = set(baseline_ticks).difference(self.hot_files)
+        changed_cold = sorted(
+            relative for relative in cold_files
+            if live_ticks[relative] != baseline_ticks[relative]
+        )
+        if changed_cold:
+            raise LiveRecoveryError(
+                "live recovery references cold state not contained by its "
+                "deployment baseline: " + ", ".join(changed_cold)
+            )
+        invalid_hot = sorted(
+            relative for relative in self.hot_files
+            if relative not in live_ticks
+            or live_ticks[relative] != live_tick
+        )
+        if invalid_hot:
+            raise LiveRecoveryError(
+                "live recovery hot-state ticks do not name their immutable "
+                "generation: " + ", ".join(invalid_hot)
+            )
 
     def _validated_generation(self, generation: LoadedGeneration) -> LoadedGeneration:
         try:
@@ -256,6 +350,7 @@ class LiveRecoveryGenerationStore:
             hot_files=self.hot_files,
             key=self.hmac_key,
         )
+        self._verify_state_file_tick_lineage(generation)
         return generation
 
     def load_current(self) -> LoadedGeneration | None:
@@ -364,14 +459,21 @@ class LiveRecoveryGenerationStore:
             hot_files=self.hot_files,
             key=self.hmac_key,
         )
-        committed = store.commit(
-            tick=int(tick),
-            files={
-                **supplied,
-                LIVE_RECOVERY_LINEAGE_FILE: _canonical_json(lineage),
-            },
-        )
-        return self._validated_generation(committed)
+        with store.exclusive_transaction():
+            candidate = store.commit(
+                tick=int(tick),
+                files={
+                    **supplied,
+                    LIVE_RECOVERY_LINEAGE_FILE: _canonical_json(lineage),
+                },
+                publish_current=False,
+            )
+            try:
+                self._validated_generation(candidate)
+                return store.publish(candidate)
+            except BaseException:
+                store.discard_unpublished(candidate)
+                raise
 
     def rebase_after_deployment_seal(
             self, *, baseline, tick: int,
@@ -390,6 +492,7 @@ class LiveRecoveryGenerationStore:
             hot_files=self.hot_files,
             hmac_key=self.hmac_key,
             keep_generations=self.keep_generations,
+            state_file_tick_manifest=self.state_file_tick_manifest,
         )
         if replacement.baseline.identity != self.baseline.identity:
             raise LiveRecoveryError(
@@ -404,15 +507,26 @@ class LiveRecoveryGenerationStore:
             hot_files=replacement.hot_files,
             key=replacement.hmac_key,
         )
-        committed = replacement._store().commit(
-            tick=int(tick),
-            files={
-                **supplied,
-                LIVE_RECOVERY_LINEAGE_FILE: _canonical_json(lineage),
-            },
-        )
-        validated = replacement._validated_generation(committed)
+        replacement_store = replacement._store()
+        with replacement_store.exclusive_transaction():
+            candidate = replacement_store.commit(
+                tick=int(tick),
+                files={
+                    **supplied,
+                    LIVE_RECOVERY_LINEAGE_FILE: _canonical_json(lineage),
+                },
+                publish_current=False,
+            )
+            try:
+                replacement._validated_generation(candidate)
+                validated = replacement_store.publish(candidate)
+            except BaseException:
+                replacement_store.discard_unpublished(candidate)
+                raise
         self.baseline = replacement.baseline
+        self._baseline_state_file_ticks = (
+            replacement._baseline_state_file_ticks
+        )
         return validated
 
 

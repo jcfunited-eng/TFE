@@ -403,13 +403,111 @@ deployment_exit_cleanup() {
         if aws ecs update-service --cluster "${ECS_CLUSTER}" \
             --service "${ECS_SERVICE}" \
             --task-definition "${OLD_TASK_DEFINITION_ARN}" \
-            --desired-count 1 \
-            --deployment-configuration "${DEPLOY_CONFIG}" >/dev/null \
+            --desired-count 0 \
+            --deployment-configuration "${DEPLOY_CONFIG}" \
+            --force-new-deployment >/dev/null \
             && aws ecs wait services-stable --cluster "${ECS_CLUSTER}" \
                 --services "${ECS_SERVICE}"; then
-            echo "[fail-back] Original owner restored and stable."
+            local failback_zero_json
+            failback_zero_json=$(aws ecs describe-services \
+                --cluster "${ECS_CLUSTER}" \
+                --services "${ECS_SERVICE}" \
+                --query 'services[0]' --output json)
+            if ! printf '%s' "${failback_zero_json}" \
+                | OLD_TASK_DEFINITION_ARN="${OLD_TASK_DEFINITION_ARN}" \
+                    python3 -c '
+import json, os, sys
+service = json.load(sys.stdin)
+expected = os.environ["OLD_TASK_DEFINITION_ARN"]
+counts = {name: service.get(name) for name in (
+    "desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
+    raise SystemExit("fail-back authority is not settled at zero")
+primary = [item for item in service.get("deployments", [])
+           if item.get("status") == "PRIMARY"]
+if (service.get("taskDefinition") != expected
+        or len(service.get("deployments", [])) != 1
+        or len(primary) != 1
+        or primary[0].get("taskDefinition") != expected):
+    raise SystemExit("original task definition is not the sole PRIMARY")
+if any(
+    item.get(name, 0)
+    for item in service.get("deployments", [])
+    for name in ("desiredCount", "runningCount", "pendingCount")
+):
+    raise SystemExit("a deployment still retains scheduling work")
+'; then
+                echo "ERROR: original scheduling authority was not proven at zero"
+                final_code=1
+            elif aws ecs update-service --cluster "${ECS_CLUSTER}" \
+                    --service "${ECS_SERVICE}" \
+                    --task-definition "${OLD_TASK_DEFINITION_ARN}" \
+                    --desired-count 1 \
+                    --deployment-configuration "${DEPLOY_CONFIG}" >/dev/null \
+                    && aws ecs wait services-stable \
+                        --cluster "${ECS_CLUSTER}" \
+                        --services "${ECS_SERVICE}"; then
+                local failback_ready=0
+                local failback_task=""
+                local failback_probe=""
+                local failback_http=""
+                local failback_body=""
+                for failback_attempt in $(seq 1 60); do
+                    failback_task=$(aws ecs list-tasks \
+                        --cluster "${ECS_CLUSTER}" \
+                        --service-name "${ECS_SERVICE}" \
+                        --desired-status RUNNING \
+                        --query 'taskArns' --output text)
+                    if [ -n "${failback_task}" ] \
+                            && [ "${failback_task}" != "None" ] \
+                            && [ "$(printf '%s\n' "${failback_task}" \
+                                | wc -w)" = "1" ] \
+                            && failback_probe=$(python3 \
+                                tools/ecs_seal_transport.py \
+                                --cluster "${ECS_CLUSTER}" \
+                                --task "${failback_task}" \
+                                --container dsf-ai \
+                                --nonce "${DEPLOY_NONCE}" \
+                                --probe-ready); then
+                        failback_http=$(printf '%s\n' "${failback_probe}" \
+                            | awk -F__HTTP__ '/__HTTP__/{print $2}')
+                        failback_body=$(printf '%s\n' "${failback_probe}" \
+                            | awk '!/__HTTP__/')
+                        if [ "${failback_http}" = "200" ] \
+                                && printf '%s' "${failback_body}" \
+                                | OLD_TASK_DEFINITION_ARN="${OLD_TASK_DEFINITION_ARN}" \
+                                    OLD_IMAGE_DIGEST="${OLD_IMAGE_DIGEST}" \
+                                    python3 -c '
+import json, os, sys
+value = json.load(sys.stdin)
+expected_task = os.environ["OLD_TASK_DEFINITION_ARN"].rsplit("/", 1)[-1]
+if not (
+    value.get("ready") is True
+    and value.get("owner") is True
+    and value.get("task_definition") == expected_task
+    and value.get("image_digest") == os.environ["OLD_IMAGE_DIGEST"]
+):
+    raise SystemExit("fail-back substrate readiness differs")
+'; then
+                            failback_ready=1
+                            break
+                        fi
+                    fi
+                    echo "[fail-back] attempt ${failback_attempt}/60: exact substrate readiness not yet proven"
+                    sleep 10
+                done
+                if [ "${failback_ready}" = "1" ]; then
+                    echo "[fail-back] Original substrate owner restored and ready."
+                else
+                    echo "ERROR: fail-back owner never proved substrate readiness"
+                    final_code=1
+                fi
+            else
+                echo "ERROR: fail-back could not start the original owner"
+                final_code=1
+            fi
         else
-            echo "ERROR: fail-back could not restore the original owner —"
+            echo "ERROR: fail-back could not settle original scheduling authority —"
             echo "       production is DOWN and needs manual desired-count=1"
             final_code=1
         fi
@@ -755,11 +853,15 @@ out = {
             'healthCheck': {
                 'command': ['CMD-SHELL',
                     'python3 -c \"import urllib.request; '
-                    'urllib.request.urlopen(\\\\\"http://localhost:8080/health\\\\\")\"'
+                    'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
                     ' || exit 1'],
                 'interval': 10,
                 'timeout': 5,
-                'retries': 3,
+                # The authoritative cold-restore verifier permits 540s.
+                # ECS caps startPeriod at 300s, so 30 exact readiness
+                # failures extend the same boundary to 600s without ever
+                # calling an unready substrate healthy.
+                'retries': 30,
                 'startPeriod': 300
             },
             # Fargate's documented hard maximum is 120 seconds.  The sealed
@@ -955,6 +1057,48 @@ if (task.get("taskArn") != old_arn or task.get("lastStatus") != "RUNNING"
     exit 1
 fi
 echo "[turnover] Original sole owner re-proven directly before the seal request."
+
+# Prove the exact same interactive management transport with a read-only
+# substrate-readiness request before crossing the irreversible boundary.  ECS
+# ExecuteCommand is a Session Manager terminal protocol; an ordinary captured
+# pipe lost the completed seal result on 2026-07-24.  The PTY probe proves both
+# terminal delivery and deep owner readiness without changing runtime state.
+if ! OWNER_READY_RESPONSE=$(python3 tools/ecs_seal_transport.py \
+    --cluster "${ECS_CLUSTER}" \
+    --task "${OLD_TASK_ARN}" \
+    --container dsf-ai \
+    --nonce "${DEPLOY_NONCE}" \
+    --probe-ready); then
+    echo "ERROR: exact-owner PTY readiness probe failed; owner was not changed"
+    exit 1
+fi
+OWNER_READY_HTTP=$(printf '%s\n' "${OWNER_READY_RESPONSE}" \
+    | awk -F__HTTP__ '/__HTTP__/{print $2}')
+OWNER_READY_BODY=$(printf '%s\n' "${OWNER_READY_RESPONSE}" \
+    | awk '!/__HTTP__/')
+if [ "${OWNER_READY_HTTP}" != "200" ] || ! printf '%s' "${OWNER_READY_BODY}" \
+    | OLD_TASK_DEFINITION_ARN="${OLD_TASK_DEFINITION_ARN}" \
+        OLD_IMAGE_DIGEST="${OLD_IMAGE_DIGEST}" python3 -c '
+import json, os, sys
+value = json.load(sys.stdin)
+expected_task = os.environ["OLD_TASK_DEFINITION_ARN"].rsplit("/", 1)[-1]
+checks = {
+    "ready": value.get("ready") is True,
+    "owner": value.get("owner") is True,
+    "task_definition": value.get("task_definition") == expected_task,
+    "image_digest": value.get("image_digest") == os.environ["OLD_IMAGE_DIGEST"],
+}
+if not all(checks.values()):
+    raise SystemExit(
+        "exact-owner readiness mismatch: "
+        + ",".join(name for name, ok in checks.items() if not ok)
+    )
+'; then
+    echo "ERROR: exact-owner PTY probe did not prove substrate readiness"
+    exit 1
+fi
+echo "[turnover] PTY result transport and exact substrate readiness proven."
+
 # From the first authenticated sleep/seal request onward, a failed or timed-out
 # controller cannot know whether the runtime crossed its irreversible boundary.
 # The composite EXIT trap therefore retires every possible owner on any failure.
@@ -1089,7 +1233,9 @@ if service.get("taskDefinition") != expected:
     raise SystemExit("service scheduling authority is not the target task definition")
 primary = [item for item in service.get("deployments", [])
            if item.get("status") == "PRIMARY"]
-if len(primary) != 1 or primary[0].get("taskDefinition") != expected:
+if (len(service.get("deployments", [])) != 1
+        or len(primary) != 1
+        or primary[0].get("taskDefinition") != expected):
     raise SystemExit("PRIMARY deployment is not uniquely the target task definition")
 for item in service.get("deployments", []):
     item_counts = {name: item.get(name, 0) for name in (

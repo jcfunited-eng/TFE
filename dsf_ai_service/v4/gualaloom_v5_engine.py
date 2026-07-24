@@ -23233,6 +23233,86 @@ class Guala:
         finally:
             self._active_persistence_admission = None
 
+    def finalize_authoritative_full_checkpoint(
+            self, *, expected_tick, state_file_ticks):
+        """Advance live bookkeeping only after the outer cold commit succeeds.
+
+        A save into an authoritative private stage is preparation, not durable
+        authority.  The caller invokes this method only after the immutable
+        generation, remote read-back, signed seal, and live-recovery rebase
+        have all completed.  A rejected candidate therefore cannot teach a
+        later hot checkpoint to depend on cold files that were never published.
+        """
+        if (
+            isinstance(expected_tick, bool)
+            or not isinstance(expected_tick, int)
+            or expected_tick < 0
+        ):
+            raise ValueError(
+                "authoritative checkpoint tick must be a non-negative integer")
+        if not isinstance(state_file_ticks, dict):
+            raise ValueError(
+                "authoritative checkpoint state_file_ticks must be a mapping")
+        expected_files = set(self.FULL_SAVE_MANIFEST_FILES)
+        supplied_files = set(state_file_ticks)
+        if supplied_files != expected_files:
+            raise ValueError(
+                "authoritative checkpoint state-file contract changed")
+        validated_ticks = {}
+        for relative, tick in state_file_ticks.items():
+            if (
+                isinstance(tick, bool)
+                or not isinstance(tick, int)
+                or tick != expected_tick
+            ):
+                raise ValueError(
+                    "authoritative checkpoint contains a nonmatching "
+                    f"state-file tick: {relative}")
+            validated_ticks[relative] = tick
+
+        with self.persistence_transaction():
+            with self.lock:
+                prepared = getattr(
+                    self,
+                    "_prepared_authoritative_full_checkpoint",
+                    None,
+                )
+                if not isinstance(prepared, dict):
+                    raise RuntimeError(
+                        "no prepared authoritative full checkpoint exists")
+                if prepared.get("tick") != expected_tick:
+                    raise RuntimeError(
+                        "prepared authoritative checkpoint tick changed")
+                if prepared.get("state_file_ticks") != validated_ticks:
+                    raise RuntimeError(
+                        "prepared authoritative state-file lineage changed")
+                checkpoint_claim_ids = tuple(
+                    prepared.get("growth_claim_ids", ())
+                )
+                if self._causal_organism_growth is not None:
+                    self.organism.clear_causal_growth_checkpoint_claims(
+                        checkpoint_claim_ids
+                    )
+                    self._causal_organism_growth.acknowledge_checkpoint(
+                        checkpoint_claim_ids
+                    )
+                self._state_file_ticks = validated_ticks
+                self._last_save_tick = expected_tick
+                self._last_cold_save_tick = expected_tick
+                self._last_save_timestamp = time.strftime(
+                    "%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                self._prepared_authoritative_full_checkpoint = None
+                self._log_substrate_event(
+                    "authoritative_full_checkpoint_finalized",
+                    claims=len(checkpoint_claim_ids),
+                    tick=expected_tick,
+                )
+
+    def discard_prepared_authoritative_full_checkpoint(self):
+        """Discard non-authoritative staging bookkeeping after outer failure."""
+        with self.persistence_transaction():
+            self._prepared_authoritative_full_checkpoint = None
+
     def save_hot_state(self, state_dir="state"):
         """Persist the hot lane as one serialized multi-file generation."""
         with self.persistence_transaction():
@@ -23275,8 +23355,11 @@ class Guala:
             # whatever tick their last cold save recorded. Stamp the subset,
             # carry the rest, and persist the merged map inside core so the
             # loader can validate each file against its own real tick.
+            _prospective_state_file_ticks = dict(
+                self._state_file_ticks
+            )
             for _mf in self.HOT_SAVE_MANIFEST_FILES:
-                self._state_file_ticks[_mf] = self.tick
+                _prospective_state_file_ticks[_mf] = self.tick
             snap_core = self._envelope({
                 "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 # The hot lane advances JSON state while the organism,
@@ -23306,7 +23389,7 @@ class Guala:
                 "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
-                "state_file_ticks": dict(self._state_file_ticks),
+                "state_file_ticks": _prospective_state_file_ticks,
             })
             # GL-CMD-FLOOD-HUNT-156: owed -107 diagnostic. Same dict_id at
             # write-time (target_familiarity_update) and here, with n_keys
@@ -23481,10 +23564,7 @@ class Guala:
                 else:
                     results[filename] = size
 
-        if not _failures:
-            self._last_save_tick = save_tick
-            self._last_save_timestamp = ts
-        else:
+        if _failures:
             self._log_substrate_event(
                 "save_hot_failure", tick=save_tick,
                 failed_files=[f for f, _ in _failures])
@@ -23505,27 +23585,38 @@ class Guala:
                 save_tick,
                 manifest_files=self.HOT_SAVE_MANIFEST_FILES,
             )
+            self._state_file_ticks = _prospective_state_file_ticks
+            self._last_save_tick = save_tick
+            self._last_save_timestamp = ts
         self._raise_persistence_failures("hot save", _failures)
         return results
 
     def save_full_state(self, state_dir="state", *, publish_generation=True):
         """Persist the full lane as one serialized multi-file generation."""
+        bounded_admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
         if (
             os.environ.get("GUALA_REQUIRE_SEALED_STATE", "0").strip() == "1"
-            and getattr(
-                self,
-                "_active_persistence_admission",
-                None,
-            ) is None
+            and bounded_admission is None
         ):
             raise RuntimeError(
                 "sealed production rejects direct full-state writes; "
                 "the bounded authoritative cold-generation admission is required"
             )
         with self.persistence_transaction():
-            with self.staged_persistence_flip():
-                return self._save_full_state_locked(
-                    state_dir, publish_generation=publish_generation)
+            if bounded_admission is not None:
+                self._prepared_authoritative_full_checkpoint = None
+            try:
+                with self.staged_persistence_flip():
+                    return self._save_full_state_locked(
+                        state_dir, publish_generation=publish_generation)
+            except BaseException:
+                if bounded_admission is not None:
+                    self._prepared_authoritative_full_checkpoint = None
+                raise
 
     def _save_full_state_locked(self, state_dir="state", *,
                                 publish_generation=True):
@@ -23533,6 +23624,11 @@ class Guala:
         GL-FIX-SAVE-LOCK: snapshot data under lock (fast), write to disk outside
         lock (slow). Lock hold time drops from ~20s to milliseconds."""
         import copy as _copy
+        bounded_admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
 
         # ── Phase 1: snapshot under lock (brief — O(1) per entry, no serialization) ──
         with self.lock:
@@ -23568,8 +23664,10 @@ class Guala:
             # to self.tick. This realigns any cold files a prior hot save had
             # left lagging, and gives the loader an exact per-file tick to
             # validate against.
-            for _mf in self.FULL_SAVE_MANIFEST_FILES:
-                self._state_file_ticks[_mf] = self.tick
+            _prospective_state_file_ticks = {
+                _mf: self.tick
+                for _mf in self.FULL_SAVE_MANIFEST_FILES
+            }
             snap_core = self._envelope({
                 "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "binary_binding_contract": self.BINARY_BINDING_CONTRACT,
@@ -23593,7 +23691,7 @@ class Guala:
                 "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
-                "state_file_ticks": dict(self._state_file_ticks),
+                "state_file_ticks": _prospective_state_file_ticks,
             })
 
             # 2. Needs
@@ -23756,11 +23854,6 @@ class Guala:
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
         ]
-        bounded_admission = getattr(
-            self,
-            "_active_persistence_admission",
-            None,
-        )
         # GL-CMD-PERSIST-FIX-74: per-file error isolation. Prior to this fix, any
         # single atomic_write failure aborted the entire save loop, dropping every
         # subsequent file (visual, sounds, videos) and leaving _last_save_tick=0.
@@ -23973,10 +24066,15 @@ class Guala:
         # save metadata advances and success is returned only when every file
         # completed.
         if not _save_failures:
-            self._last_save_tick = save_tick
-            self._last_cold_save_tick = save_tick  # GL-CMD-DEEP-STORE-PHYSICS-86 P2
-            self._last_save_timestamp = ts
-            if self._causal_organism_growth is not None:
+            if bounded_admission is None:
+                self._state_file_ticks = _prospective_state_file_ticks
+                self._last_save_tick = save_tick
+                self._last_cold_save_tick = save_tick
+                self._last_save_timestamp = ts
+            if (
+                bounded_admission is None
+                and self._causal_organism_growth is not None
+            ):
                 self._causal_organism_growth.acknowledge_checkpoint(
                     _organism_checkpoint_growth_claim_ids
                 )
@@ -23985,6 +24083,23 @@ class Guala:
                 )
                 self._log_substrate_event(
                     "causal_organism_growth_checkpointed",
+                    claims=len(
+                        _organism_checkpoint_growth_claim_ids
+                    ),
+                    tick=save_tick,
+                )
+            elif bounded_admission is not None:
+                self._prepared_authoritative_full_checkpoint = {
+                    "tick": save_tick,
+                    "state_file_ticks": dict(
+                        _prospective_state_file_ticks
+                    ),
+                    "growth_claim_ids": tuple(
+                        _organism_checkpoint_growth_claim_ids
+                    ),
+                }
+                self._log_substrate_event(
+                    "authoritative_full_checkpoint_prepared",
                     claims=len(
                         _organism_checkpoint_growth_claim_ids
                     ),

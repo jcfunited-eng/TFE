@@ -2500,9 +2500,10 @@ def _prepare_generation_boot():
         )
         live_store = LiveRecoveryGenerationStore(
             LIVE_RECOVERY_STORE_ROOT,
-            baseline=materialized_baseline,
+            baseline=authoritative_baseline,
             hot_files=Guala.HOT_SAVE_MANIFEST_FILES,
             hmac_key=_deploy_hmac_key(),
+            state_file_tick_manifest="guala_core.json",
         )
         live = live_store.apply_current(STATE_DIR)
         materialized = live or materialized_baseline
@@ -9396,76 +9397,107 @@ def _seal_runtime_generation(nonce):
         verify_deployment_seal,
     )
 
-    with _guala.persistence_transaction():
-        with _persistence_authority_lock:
-            identity = getattr(_guala, "_guala_identity", None)
-            if not isinstance(identity, str) or not identity:
-                raise RuntimeError(
-                    "Guala identity is absent; generation cannot be sealed")
-            tick = int(_guala.tick)
+    checkpoint_finalized = False
+    try:
+        with _guala.persistence_transaction():
+            with _persistence_authority_lock:
+                identity = getattr(_guala, "_guala_identity", None)
+                if not isinstance(identity, str) or not identity:
+                    raise RuntimeError(
+                        "Guala identity is absent; generation cannot be sealed")
+                tick = int(_guala.tick)
 
-            bucket = os.environ.get(
-                "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-            prefix = os.environ.get(
-                "GUALA_GENERATION_S3_PREFIX", "guala/generations")
-            key = _deploy_hmac_key()
-            (
-                max_generation_bytes,
-                max_required_files,
-                max_path_bytes,
-            ) = _authoritative_cold_limits()
-            result = stage_authoritative_commit_upload(
-                store_root=GENERATION_STORE_ROOT,
-                identity=identity,
-                tick=tick,
-                save_callback=_write_runtime_generation_stage,
-                s3_client=boto3.client("s3", region_name="us-east-1"),
-                bucket=bucket,
-                prefix=prefix,
-                hmac_key=key,
-                nonce=nonce,
-                max_encoded_generation_bytes=max_generation_bytes,
-                max_dynamic_required_files=max_required_files,
-                max_dynamic_path_bytes=max_path_bytes,
-                cold_restore_validator=_validate_runtime_generation_cold_restore,
-            )
-            certificate_bytes = result.seal_certificate_bytes()
-            certificate = verify_deployment_seal(
-                certificate_bytes, hmac_key=key, expected_nonce=nonce)
-            if _live_recovery_store is not None:
-                hot_payloads = {
-                    name: (json.dumps(
-                        result.generation.payload(name),
-                        allow_nan=False,
-                        ensure_ascii=False,
-                        indent=2,
-                        sort_keys=True,
-                    ) + "\n").encode("utf-8")
-                    for name in Guala.HOT_SAVE_MANIFEST_FILES
-                }
-                rebased = _live_recovery_store.rebase_after_deployment_seal(
-                    baseline=result.generation,
-                    tick=result.generation.tick,
-                    files=hot_payloads,
+                bucket = os.environ.get(
+                    "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+                prefix = os.environ.get(
+                    "GUALA_GENERATION_S3_PREFIX", "guala/generations")
+                key = _deploy_hmac_key()
+                (
+                    max_generation_bytes,
+                    max_required_files,
+                    max_path_bytes,
+                ) = _authoritative_cold_limits()
+                result = stage_authoritative_commit_upload(
+                    store_root=GENERATION_STORE_ROOT,
+                    identity=identity,
+                    tick=tick,
+                    save_callback=_write_runtime_generation_stage,
+                    s3_client=boto3.client("s3", region_name="us-east-1"),
+                    bucket=bucket,
+                    prefix=prefix,
+                    hmac_key=key,
+                    nonce=nonce,
+                    max_encoded_generation_bytes=max_generation_bytes,
+                    max_dynamic_required_files=max_required_files,
+                    max_dynamic_path_bytes=max_path_bytes,
+                    cold_restore_validator=(
+                        _validate_runtime_generation_cold_restore
+                    ),
                 )
-                from dsf_ai_service.substrate.deployment_generation import (
-                    MATERIALIZATION_SCHEMA,
-                    MaterializedGeneration,
+                certificate_bytes = result.seal_certificate_bytes()
+                certificate = verify_deployment_seal(
+                    certificate_bytes,
+                    hmac_key=key,
+                    expected_nonce=nonce,
                 )
-                _deployment_baseline_generation = result.generation
-                _loaded_generation = MaterializedGeneration(
-                    schema=MATERIALIZATION_SCHEMA,
-                    generation_uuid=rebased.generation_uuid,
-                    identity=rebased.identity,
-                    tick=rebased.tick,
-                    manifest_sha256=rebased.manifest_sha256,
-                    active_directory=os.path.abspath(STATE_DIR),
-                    materialized_files=tuple(
-                        sorted(Guala.HOT_SAVE_MANIFEST_FILES)),
+                if _live_recovery_store is not None:
+                    hot_payloads = {
+                        name: (json.dumps(
+                            result.generation.payload(name),
+                            allow_nan=False,
+                            ensure_ascii=False,
+                            indent=2,
+                            sort_keys=True,
+                        ) + "\n").encode("utf-8")
+                        for name in Guala.HOT_SAVE_MANIFEST_FILES
+                    }
+                    rebased = (
+                        _live_recovery_store
+                        .rebase_after_deployment_seal(
+                            baseline=result.generation,
+                            tick=result.generation.tick,
+                            files=hot_payloads,
+                        )
+                    )
+                    from dsf_ai_service.substrate.deployment_generation import (
+                        MATERIALIZATION_SCHEMA,
+                        MaterializedGeneration,
+                    )
+                    _deployment_baseline_generation = result.generation
+                    _loaded_generation = MaterializedGeneration(
+                        schema=MATERIALIZATION_SCHEMA,
+                        generation_uuid=rebased.generation_uuid,
+                        identity=rebased.identity,
+                        tick=rebased.tick,
+                        manifest_sha256=rebased.manifest_sha256,
+                        active_directory=os.path.abspath(STATE_DIR),
+                        materialized_files=tuple(
+                            sorted(Guala.HOT_SAVE_MANIFEST_FILES)),
+                    )
+                    app.state.deployment_baseline_generation = (
+                        result.generation
+                    )
+                    app.state.loaded_generation = _loaded_generation
+
+                sealed_core = result.generation.payload("guala_core.json")
+                if not isinstance(sealed_core, dict):
+                    raise RuntimeError(
+                        "sealed generation core payload is not an object")
+                sealed_core_data = sealed_core.get("data", sealed_core)
+                if not isinstance(sealed_core_data, dict):
+                    raise RuntimeError(
+                        "sealed generation core data is not an object")
+                _guala.finalize_authoritative_full_checkpoint(
+                    expected_tick=result.generation.tick,
+                    state_file_ticks=sealed_core_data.get(
+                        "state_file_ticks"
+                    ),
                 )
-                app.state.deployment_baseline_generation = result.generation
-                app.state.loaded_generation = _loaded_generation
-            return certificate
+                checkpoint_finalized = True
+                return certificate
+    finally:
+        if not checkpoint_finalized:
+            _guala.discard_prepared_authoritative_full_checkpoint()
 
 
 def _checkpoint_authoritative_runtime(reason):
