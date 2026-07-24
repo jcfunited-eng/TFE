@@ -1498,22 +1498,6 @@ def stage_authoritative_commit_upload(
     root = Path(store_root)
     root.mkdir(parents=True, exist_ok=True)
     with _exclusive_deployment_transaction(root):
-        reconciliation_authority = AuthoritativeColdGenerationStore(
-            root,
-            identity=_identity(identity),
-            required_files=None,
-            max_encoded_generation_bytes=max_encoded_generation_bytes,
-            max_dynamic_required_files=max_dynamic_required_files,
-            max_dynamic_path_bytes=max_dynamic_path_bytes,
-            pre_publish_validator=cold_restore_validator,
-        )
-        try:
-            (root / CURRENT_NAME).lstat()
-        except FileNotFoundError:
-            pass
-        else:
-            reconciliation_authority.reconcile_verified_retention()
-
         stage = Path(tempfile.mkdtemp(
             prefix=".authoritative-generation-stage-",
         ))

@@ -283,14 +283,12 @@ def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
         max_dynamic_path_bytes=16 * 1024,
     )
     assert dynamic_store.load_current().tick == 90
-    assert [tick for tick, _contract in validated] == [
-        88,
-        88,
-        89,
-        89,
-        88,
-        90,
-    ]
+    # Each immutable candidate crosses the real cold-restore boundary exactly
+    # once before publication.  CURRENT and predecessor were already cold
+    # restored before their publication; recurring commits re-audit their
+    # immutable bytes inside AuthoritativeColdGenerationStore.commit() and
+    # must not instantiate them as disposable engines again.
+    assert [tick for tick, _contract in validated] == [88, 89, 90]
     loaded_seal = load_generation_deployment_seal(
         root,
         third.generation.generation_uuid,
