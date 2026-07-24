@@ -428,10 +428,17 @@ function renderOrganGrowth(growth){
        <div class="bar"><i style="width:${w}%;background:var(--cyan)"></i></div></div>`);
   }
   const grew=growth.total_neurons>growth.n_initial;
+  const reservoirs=Object.entries(growth.causal_growth_reservoirs||{})
+    .filter(([,value])=>value!=='0/1')
+    .map(([organ,value])=>`${organ} ${value}`)
+    .join(', ');
   document.getElementById('organGrowthNote').textContent=
     `${growth.total_neurons} neurons (seed ${growth.n_initial})`+
     (grew?` · GREW +${growth.total_neurons-growth.n_initial}`:' · at seed')+
     ` · ${growth.total_divisions} divisions lifetime · pool ${growth.division_pool.toFixed(2)}`+
+    (reservoirs?` · causal energy: ${reservoirs}`:'')+
+    (growth.remaining_lifetime_divisions!=null?
+      ` · ${growth.remaining_lifetime_divisions} divisions remain`:'')+
     ` · q>0.9: ${growth.n_q_over_0_9} · q>0.5: ${growth.n_q_over_0_5}`;
 }
 

@@ -10,6 +10,7 @@ F3  — tier-3 organism babble never runs recall under self.lock: the
 Companion — daughters born by growth are re-wired into the spike bus.
 """
 
+import hashlib
 import os
 import sys
 import threading
@@ -17,6 +18,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import numpy as np
 import pytest
 
 os.environ.setdefault("PYTHONHASHSEED", "0")
@@ -187,16 +189,45 @@ def test_daughters_are_rewired_into_spike_bus_after_fold(engine):
     if bus is None:
         pytest.skip("spike bus not wired in this build")
     baseline_dropped = bus.dropped_count
-    # Force a division through the real fold physics: fund the pool and
-    # charge one neuron past threshold, then drain fold events through the
-    # worker path (which triggers the re-wire).
+    # Drive one real causal division, then verify the worker's re-wire
+    # obligation against the new daughter.
     emb = g.organism
-    emb._div_pool = max(getattr(emb, "_div_pool", 0.0), 2.0)
-    hemi = emb.brain.hemispheres[0]
-    victim = hemi.cluster.neurons[0]
-    victim._q = 1.6  # past fold threshold
+    t = np.linspace(0.0, 2.0 * np.pi, 200)
+    emb.experience_word(
+        "physical",
+        {
+            "auditory": np.sin(7.0 * t),
+            "language": "physical",
+            "visual": np.cos(5.0 * t),
+        },
+    )
+    from dsf_ai_service.substrate.causal_organism_growth import (
+        CausalOrganismGrowthClaim,
+    )
+
+    def digest(value):
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+    claim = CausalOrganismGrowthClaim(
+        claim_id=digest("rewire-claim"),
+        settlement_event_id=digest("rewire-event"),
+        settlement_structural_fingerprint=digest("rewire-field"),
+        settlement_authority_receipt_sha256=digest("rewire-receipt"),
+        engine_tick=1,
+        active_organs=("em",),
+        sense_relations=(
+            ("sight", "observed", "structural_change", digest("sight")),
+            ("sound", "observed", "structural_change", digest("sound")),
+            ("touch", "sensor_unavailable", "not_observed", digest("touch")),
+            ("smell", "sensor_unavailable", "not_observed", digest("smell")),
+            ("taste", "sensor_unavailable", "not_observed", digest("taste")),
+            ("body", "observed", "recurrence", digest("body")),
+        ),
+        contributes_division_energy=True,
+        authority_hmac_sha256=digest("rewire-hmac"),
+    )
     before_n = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
-    emb._charge_and_fold(hemi, coherent=True, quantum=0.8)
+    emb.apply_causal_growth_claim(claim)
     after_n = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
     if after_n == before_n:
         pytest.skip("fold did not divide under this build's physics")

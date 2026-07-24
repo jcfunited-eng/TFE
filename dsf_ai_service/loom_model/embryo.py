@@ -18,6 +18,7 @@ Honesty / selective cheats (named, per the spec's anti-contamination protocol):
   - Whether bipolar senses actually unblock folding is OPEN — this observes it.
 """
 import sys, os, math, uuid
+from fractions import Fraction
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -194,7 +195,11 @@ class Embryo:
         # from flux balance; no population constant enforces it.
         # Bounded: pool ≥ 0 always; max total divisions = N_initial (initial pool); N ≤ 2*N_initial.
         self._N_initial = len(OPERATIONS) * seed_size
-        self._div_pool = float(self._N_initial)   # full at birth
+        # Retained as a backward-compatible telemetry field.  Division energy
+        # is no longer preloaded or refilled by the legacy word/spectrum path;
+        # exact causal experience contributes to per-organ rational
+        # reservoirs below.
+        self._div_pool = 0.0
         # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3: growth telemetry state.
         # _total_divisions: lifetime count, survives restore (see
         # save_full_state/load_full_state). _fold_events_buffer: per-
@@ -203,6 +208,14 @@ class Embryo:
         # "growth we cannot see is growth we cannot verify."
         self._total_divisions = 0
         self._fold_events_buffer = []
+        self._causal_growth_reservoirs = {
+            tag: (0, 1) for tag, _decay in OPERATIONS
+        }
+        self._causal_growth_parent_cursors = {
+            tag: 0 for tag, _decay in OPERATIONS
+        }
+        self._causal_growth_organ_cursor = 0
+        self._causal_growth_applied_claims = []
         # GL-FIX-GROWTH-POOL-LAW-20260716: bounded spectral-signature
         # history for the novelty term of the refill flux (see
         # _experience_core / resonance_and_signature). A repeated
@@ -395,102 +408,284 @@ class Embryo:
     # breath, short enough to stay O(hundreds) per experience.
     NOVELTY_HISTORY_MAXLEN = 256
 
-    def _charge_and_fold(self, hemi, coherent, quantum):
-        """Physics-based folding. Each neuron accumulates coherent-constraint charge
-        q from coherent experience; effective dimensionality collapses as
-        n_eff = n_start*exp(-q), so the spec's capture basin n_eff < n_start/e
-        becomes q > 1 (threshold DERIVED from the same e, not tuned). Division
-        discharges q into the daughter (conservation), so a cell must recharge
-        before dividing again — a self-limiting cell cycle. Contact inhibition
-        (neighbour saturation) still gates. Maps to a charging/dumping capacitor."""
-        for n in hemi.cluster.neurons:
-            if not hasattr(n, "_q"):
-                n._q = 0.0
-            if coherent:
-                # per-neuron neuromodulator sensitivity (chemical DNA) sets the gain
-                gain = 1.0 + self.arousal * getattr(n, "_aff_gain", 1.0)
-                n._q += quantum * gain
-        new = []
-        # GL-FIX-GROWTH-POOL-LAW-20260716: whole-organism ceiling, checked
-        # once per call (division only grows the population inside this
-        # loop, tracked via len(new)).
-        # SAFETY NOTE (2026-07-16 review): this check-then-act is safe by
-        # SINGLE-THREADING, not by lock -- divisions and the division pool
-        # are mutated only on the engine's one organism worker thread
-        # (_organism_worker_loop -> experience_word, FIFO by construction).
-        # Anyone adding a second worker/writer must revisit this site first.
-        total_now = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
-        max_total = self._max_total_neurons()
-        for neuron in list(hemi.cluster.neurons):
-            if len(hemi.cluster.neurons) + len(new) >= self._POP_HARDSTOP:
-                print(f"[embryo] _POP_HARDSTOP: {hemi._op_tag} at "
-                      f"{len(hemi.cluster.neurons)} neurons — conservation physics may be broken",
-                      flush=True)
+    def _causal_growth_state(self):
+        """Return validated, backward-compatible causal plasticity state."""
+        organ_order = tuple(tag for tag, _decay in OPERATIONS)
+        reservoirs = getattr(self, "_causal_growth_reservoirs", None)
+        if reservoirs is None:
+            reservoirs = {tag: (0, 1) for tag in organ_order}
+            self._causal_growth_reservoirs = reservoirs
+        if set(reservoirs) != set(organ_order):
+            raise RuntimeError("causal growth reservoirs changed organ extent")
+        exact_reservoirs = {}
+        for tag in organ_order:
+            value = reservoirs[tag]
+            if (
+                not isinstance(value, tuple)
+                or len(value) != 2
+                or any(
+                    isinstance(part, bool) or not isinstance(part, int)
+                    for part in value
+                )
+                or value[0] < 0
+                or value[1] <= 0
+            ):
+                raise RuntimeError(
+                    f"causal growth reservoir {tag} is not an exact fraction"
+                )
+            exact_reservoirs[tag] = Fraction(value[0], value[1])
+        cursors = getattr(self, "_causal_growth_parent_cursors", None)
+        if cursors is None:
+            cursors = {tag: 0 for tag in organ_order}
+            self._causal_growth_parent_cursors = cursors
+        if (
+            set(cursors) != set(organ_order)
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value < 0
+                for value in cursors.values()
+            )
+        ):
+            raise RuntimeError("causal growth parent cursors changed")
+        organ_cursor = getattr(self, "_causal_growth_organ_cursor", 0)
+        if (
+            isinstance(organ_cursor, bool)
+            or not isinstance(organ_cursor, int)
+            or organ_cursor < 0
+        ):
+            raise RuntimeError("causal growth organ cursor changed")
+        applied = getattr(self, "_causal_growth_applied_claims", None)
+        if applied is None:
+            applied = []
+            self._causal_growth_applied_claims = applied
+        if (
+            not isinstance(applied, list)
+            or len(applied) > self._N_initial
+            or any(
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+                for value in applied
+            )
+            or len(set(applied)) != len(applied)
+        ):
+            raise RuntimeError("causal growth checkpoint claims changed")
+        return organ_order, exact_reservoirs, cursors, organ_cursor, applied
+
+    def _store_causal_growth_reservoirs(self, reservoirs):
+        self._causal_growth_reservoirs = {
+            tag: (value.numerator, value.denominator)
+            for tag, value in reservoirs.items()
+        }
+        self._div_pool = float(sum(reservoirs.values(), Fraction(0, 1)))
+
+    def _select_causal_growth_parent(self, tag, cursor):
+        neurons = self._hemi(tag).cluster.neurons
+        if not neurons:
+            return None, cursor
+        ordered = [
+            neurons[(cursor + offset) % len(neurons)]
+            for offset in range(len(neurons))
+        ]
+        eligible = [
+            neuron for neuron in ordered
+            if getattr(neuron, "_last_dsf", None) is not None
+            and len(neuron.couplings.neighbors) < K_TOTAL
+        ]
+        if not eligible:
+            return None, cursor
+        highest_q = max(float(getattr(neuron, "_q", 0.0))
+                        for neuron in eligible)
+        parent = next(
+            neuron for neuron in eligible
+            if float(getattr(neuron, "_q", 0.0)) == highest_q
+        )
+        return parent, (neurons.index(parent) + 1) % len(neurons)
+
+    def _spawn_causal_daughter(self, tag, parent, claim_id):
+        """Divide one real neuron from its own full structural state."""
+        hemi = self._hemi(tag)
+        overflow = parent.compute_overflow_signal()
+        params = derive_daughter_parameters(overflow, parent)
+        daughter_id = hemi.cluster.next_id()
+        daughter = LoomNeuron(
+            daughter_id,
+            birth_params=params,
+            primary_modality=hemi.cluster.primary_modality,
+            observable=hemi.cluster.observable,
+        )
+        daughter._q = 0.0
+        daughter._aff_gain = float(getattr(parent, "_aff_gain", 1.0))
+        daughter._polarity = getattr(parent, "_polarity", 1.0)
+        hemi.cluster.attach(daughter, inherit_from=parent)
+        q_at_fold = float(getattr(parent, "_q", 0.0))
+        parent._q = 0.0
+        self._total_divisions = getattr(self, "_total_divisions", 0) + 1
+        if not hasattr(self, "_fold_events_buffer"):
+            self._fold_events_buffer = []
+        event = {
+            "cause": "exact_causal_experience",
+            "causal_growth_claim_id": claim_id,
+            "daughter": daughter_id,
+            "division_energy_at_fold": "1/1",
+            "hemi": tag,
+            "parent": parent.neuron_id,
+            "q_at_fold": round(q_at_fold, 4),
+            "tick": self.tick,
+        }
+        self._fold_events_buffer.append(event)
+        return event
+
+    def apply_causal_growth_claim(self, claim):
+        """Apply one verified journal claim exactly once on the organism writer.
+
+        One novel causal experience contributes one conserved division-energy
+        unit, equipartitioned across the mechanisms that actually participated.
+        Rational reservoirs make the settlement independent of method-call
+        order.  A division still requires a neuron with real structural state
+        and unsaturated physical coupling; otherwise its energy remains stored.
+        """
+        from dsf_ai_service.substrate.causal_organism_growth import (
+            CAUSAL_GROWTH_ORGAN_ORDER,
+            CausalOrganismGrowthClaim,
+        )
+
+        if not isinstance(claim, CausalOrganismGrowthClaim):
+            raise TypeError("organism growth requires a typed causal claim")
+        organ_order, reservoirs, cursors, organ_cursor, applied = (
+            self._causal_growth_state()
+        )
+        if organ_order != CAUSAL_GROWTH_ORGAN_ORDER:
+            raise RuntimeError("organism and causal growth organ order differ")
+        if claim.claim_id in applied:
+            return {
+                "applied": False,
+                "claim_id": claim.claim_id,
+                "folds": (),
+                "reason": "already_applied",
+            }
+        if not claim.contributes_division_energy:
+            raise ValueError(
+                "a recurrent causal observation cannot enter growth journal"
+            )
+        if (
+            not claim.active_organs
+            or any(tag not in organ_order for tag in claim.active_organs)
+            or claim.active_organs
+            != tuple(tag for tag in organ_order if tag in claim.active_organs)
+        ):
+            raise ValueError("causal growth claim organ order changed")
+
+        total_now = sum(
+            len(hemi.cluster.neurons) for hemi in self.brain.hemispheres
+        )
+        total_divisions = getattr(self, "_total_divisions", 0)
+        population_delta = total_now - self._N_initial
+        if population_delta != total_divisions:
+            raise RuntimeError(
+                "organism population and lifetime division count diverged"
+            )
+        remaining_divisions = max(0, self._N_initial - total_divisions)
+        stored = sum(reservoirs.values(), Fraction(0, 1))
+        if stored > remaining_divisions:
+            raise RuntimeError("causal growth stored energy exceeds lifetime budget")
+        available_storage = Fraction(remaining_divisions, 1) - stored
+        contribution = min(Fraction(1, 1), available_storage)
+        if contribution > 0:
+            share = contribution / len(claim.active_organs)
+            for tag in claim.active_organs:
+                reservoirs[tag] += share
+
+        folds = []
+        max_total = min(
+            self._max_total_neurons(),
+            2 * self._N_initial,
+        )
+        while remaining_divisions > 0 and total_now < max_total:
+            ready = [
+                tag for tag in claim.active_organs
+                if reservoirs[tag] >= 1
+            ]
+            candidates = []
+            for tag in ready:
+                parent, next_cursor = self._select_causal_growth_parent(
+                    tag,
+                    cursors[tag],
+                )
+                if parent is not None:
+                    tag_index = organ_order.index(tag)
+                    cyclic_distance = (
+                        tag_index - organ_cursor
+                    ) % len(organ_order)
+                    candidates.append((
+                        len(self._hemi(tag).cluster.neurons),
+                        cyclic_distance,
+                        tag,
+                        parent,
+                        next_cursor,
+                    ))
+            if not candidates:
                 break
-            if getattr(neuron, "_q", 0.0) <= 1.0:   # n_eff = n_start*e^-q >= n_start/e
-                continue
-            if total_now + len(new) >= max_total:
-                # Hard population cap (GUALA_MAX_TOTAL_NEURONS). Held at
-                # basin edge, same idiom as pool exhaustion below. LOUD:
-                # first hit and every 1000th after (bounded log volume at
-                # production word rates, never silent).
-                neuron._q = 1.0
-                self._growth_cap_hits = getattr(self, "_growth_cap_hits", 0) + 1
-                if self._growth_cap_hits == 1 or self._growth_cap_hits % 1000 == 0:
-                    print(f"[embryo] GROWTH CAP HIT ({self._growth_cap_hits}x): "
-                          f"total neurons {total_now + len(new)} >= "
-                          f"GUALA_MAX_TOTAL_NEURONS={max_total} — division blocked. "
-                          f"If this fires, the flux-law asymptote (N <= 2*N_initial="
-                          f"{2 * self._N_initial}) has been exceeded; investigate before raising the cap.",
-                          flush=True)
-                continue
-            sat = len(neuron.couplings.neighbors) / K_TOTAL
-            if (1.0 - sat) ** 2 <= 0.0:
-                neuron._q = 1.0                  # held at basin edge by contact inhibition
-                continue
-            if self._div_pool < 1.0:
-                neuron._q = 1.0   # held at basin edge — pool exhausted
-                continue
-            self._div_pool -= 1.0
-            q_at_fold = float(neuron._q)   # GL-CMD-GROWTH-TRUTH-198 P3b: capture before reset
-            overflow = neuron.compute_overflow_signal()
-            params = derive_daughter_parameters(overflow, neuron)
-            did = hemi.cluster.next_id()
-            d = LoomNeuron(did, birth_params=params,
-                           primary_modality=hemi.cluster.primary_modality,
-                           observable=hemi.cluster.observable)
-            d._q = 0.0
-            # daughter inherits parent DNA with small mutation (evolution across cells)
-            jr = np.random.default_rng(self.tick * 131 + len(new))
-            if hasattr(d.krimelack, "kappa") and hasattr(neuron.krimelack, "kappa"):
-                d.krimelack.kappa = float(neuron.krimelack.kappa) * float(jr.uniform(0.9, 1.1))
-            if hasattr(d.krimelack, "threshold") and hasattr(neuron.krimelack, "threshold"):
-                d.krimelack.threshold = float(neuron.krimelack.threshold) * float(jr.uniform(0.95, 1.05))
-            d._aff_gain = float(getattr(neuron, "_aff_gain", 1.0)) * float(jr.uniform(0.9, 1.1))
-            d._polarity = getattr(neuron, "_polarity", 1.0)
-            hemi.cluster.attach(d, inherit_from=neuron)
-            neuron._q = 0.0                       # parent discharged into daughter
-            new.append(did)
-            # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b: "growth we cannot
-            # see is growth we cannot verify" -- every fold recorded, not
-            # just counted. Drained by the engine (pop_fold_events) right
-            # after each experience_word() call, one substrate event per
-            # fold, in the live record.
-            # GL-BUG-198-PICKLE-COMPAT (c1, found live post-deploy): a
-            # restored Embryo (unpickled -- __dict__ set directly,
-            # __init__ never runs) predating this dispatch has neither
-            # attribute. getattr/self-heal here, same pattern -191's
-            # _last_sight_wall_time and -195's _engine_prev_word already
-            # use for exactly this class of schema evolution.
-            self._total_divisions = getattr(self, "_total_divisions", 0) + 1
-            if not hasattr(self, "_fold_events_buffer"):
-                self._fold_events_buffer = []
-            self._fold_events_buffer.append({
-                "hemi": hemi._op_tag, "parent": neuron.neuron_id,
-                "daughter": did, "q_at_fold": round(q_at_fold, 4),
-                "tick": self.tick,
-            })
-        return new
+            _population, _distance, tag, parent, next_cursor = min(
+                candidates,
+                key=lambda value: (value[0], value[1]),
+            )
+            folds.append(
+                self._spawn_causal_daughter(tag, parent, claim.claim_id)
+            )
+            reservoirs[tag] -= 1
+            cursors[tag] = next_cursor
+            organ_cursor = (organ_order.index(tag) + 1) % len(organ_order)
+            remaining_divisions -= 1
+            total_now += 1
+
+        if total_now >= max_total and any(value >= 1 for value in reservoirs.values()):
+            self._growth_cap_hits = getattr(self, "_growth_cap_hits", 0) + 1
+            print(
+                "[embryo] GROWTH CAP HIT: "
+                f"total neurons {total_now} >= bounded maximum {max_total}",
+                flush=True,
+            )
+        self._store_causal_growth_reservoirs(reservoirs)
+        self._causal_growth_parent_cursors = cursors
+        self._causal_growth_organ_cursor = organ_cursor
+        applied.append(claim.claim_id)
+        self.tick += 1
+        return {
+            "applied": True,
+            "claim_id": claim.claim_id,
+            "contributed_energy": (
+                f"{contribution.numerator}/{contribution.denominator}"
+            ),
+            "folds": tuple(folds),
+            "remaining_lifetime_divisions": max(
+                0,
+                self._N_initial - getattr(self, "_total_divisions", 0),
+            ),
+        }
+
+    def causal_growth_checkpoint_claim_ids(self):
+        self._causal_growth_state()
+        return tuple(self._causal_growth_applied_claims)
+
+    def clear_causal_growth_checkpoint_claims(self, expected_claim_ids):
+        current = self.causal_growth_checkpoint_claim_ids()
+        expected = tuple(expected_claim_ids)
+        if current[:len(expected)] != expected:
+            raise ValueError("causal growth checkpoint claims changed")
+        self._causal_growth_applied_claims = list(current[len(expected):])
+
+    def _charge_and_fold(self, hemi, coherent, quantum):
+        """Retired legacy entry point.
+
+        Word-order spectral charge is not causal growth authority.  Live
+        division now enters only through ``apply_causal_growth_claim``.
+        """
+        raise RuntimeError(
+            "legacy spectral charge-and-fold is retired; "
+            "an exact causal growth claim is required"
+        )
 
     def pop_fold_events(self):
         """Drain and return fold events accumulated since the last call.
@@ -500,10 +695,10 @@ class Embryo:
         return events
 
     def growth_snapshot(self):
-        """GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3a: per-hemisphere neuron
-        counts, total divisions since birth, division-pool level, q-charge
-        distribution (distance to folding: q>1.0 is the fold threshold
-        itself, so 0.5/0.9 name how close the population sits to it)."""
+        """Report real population and exact causal plasticity reservoirs."""
+        _order, reservoirs, _cursors, _organ_cursor, applied = (
+            self._causal_growth_state()
+        )
         per_hemisphere = {}
         q_over_0_5 = 0
         q_over_0_9 = 0
@@ -521,7 +716,19 @@ class Embryo:
             "total_neurons": sum(per_hemisphere.values()),
             "n_initial": self._N_initial,
             "total_divisions": getattr(self, "_total_divisions", 0),
-            "division_pool": round(self._div_pool, 4),
+            "division_pool": round(
+                float(sum(reservoirs.values(), Fraction(0, 1))),
+                4,
+            ),
+            "causal_growth_reservoirs": {
+                tag: f"{value.numerator}/{value.denominator}"
+                for tag, value in reservoirs.items()
+            },
+            "causal_growth_uncheckpointed_claims": len(applied),
+            "remaining_lifetime_divisions": max(
+                0,
+                self._N_initial - getattr(self, "_total_divisions", 0),
+            ),
             "n_q_over_0_5": q_over_0_5,
             "n_q_over_0_9": q_over_0_9,
             # GL-FIX-GROWTH-POOL-LAW-20260716: hard-cap telemetry (0 unless
@@ -574,8 +781,12 @@ class Embryo:
         for _ in range(ticks):
             hemi.cluster.step(list(signal), self.tick, input_chi)   # keep the substrate active
             self.tick += 1
-        coherent = sig_res > theta
-        return len(self._charge_and_fold(hemi, coherent, quantum=sig_res * quantum_scale))
+        # The signal still reaches every real neuron and updates its native
+        # krimelack/DSF state.  Population division is intentionally absent:
+        # a waveform or word queue item is not a committed causal-experience
+        # authority.  The durable causal-growth journal is the only live
+        # division entrance.
+        return 0
 
     def experience(self, word, receptors, theta=0.05, noise=False):
         """One experience. em perceives the bipolar senses; its activity cascades
@@ -644,85 +855,15 @@ class Embryo:
         return self._experience_core(composite, theta)
 
     def _experience_core(self, composite, theta):
-        """Shared fold-cascade body for experience()/experience_word() --
-        extracted so the two callers can never drift apart on the actual
-        growth physics, only on how `composite` gets built."""
-        # GL-FIX-GROWTH-POOL-LAW-20260716: one rfft yields both the
-        # coherence gate value (sig_res, numerically identical to
-        # resonance_signal(composite)) and the novelty observable
-        # (spectral signature) for the refill flux below.
-        sig_res, spectral_signature = resonance_and_signature(composite)
-        theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
+        """Process a real signal without granting it division authority.
 
-        # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P2 (Joe's growth law, ruled
-        # 2026-07-05): GROWTH IS FUNDED BY EXPERIENCE. Refill R used to be
-        # BASE_LAMBDA*N_initial -- a constant tied to the SEED, not to
-        # what this experience actually was. At N_current==N_initial,
-        # refill==maintenance exactly, so the pool can never accumulate
-        # past seed-equilibrium: a homeostat that forbids growth by
-        # construction (Eve's audit, live-verified: organism_population
-        # has never moved off 64 in her whole life). Re-pointed to
-        # sig_res -- the SAME resonance measure (composed just above,
-        # [0,1], 0.0 for an all-zero/no-real-signal composite) the fold
-        # gate already uses to judge "coherent." No new constant: the
-        # same BASE_LAMBDA*N_initial term, now scaled by how much real,
-        # coherent signal this experience actually carried. A language-
-        # only moment (composite all-zero, per -191 N3/N4) -> sig_res=0.0
-        # -> funds nothing. A rich multi-sense moment funds growth in
-        # proportion to its own coherence -- the credo IS the law.
-        # Engineering fallback ONLY (per dispatch: "not a choice"):
-        # GUALA_GROWTH_LAW_LEGACY=1 restores the old seed-pegged refill
-        # for emergency rollback.
-        #
-        # GL-FIX-GROWTH-POOL-LAW-20260716 — ROOT CAUSE of the live growth
-        # freeze (2M words -> total_divisions=0, division_pool=0.0,
-        # n_q_over_0_9=64), fixed at mechanism level:
-        #
-        # The -198 law was R = lambda*N_init*sig_res vs
-        # M = lambda*N_current. Since sig_res <= 1 by construction
-        # (top-3 spectral power FRACTION) and N_current >= N_init
-        # (populations can't shrink), R <= M for EVERY possible
-        # experience — the pool was monotonically non-increasing from
-        # birth, drained to 0 within the first ~100 words, and could
-        # never recover. The law's own flux-balance equilibrium was
-        # N_eq = N_init*sig_res < N_init: an equilibrium BELOW the seed,
-        # unreachable downward, so the pool pinned at 0 and every
-        # charged neuron was clamped at the basin edge (q=1.0) forever —
-        # exactly the observed live signature. Verified by driving the
-        # real experience_word() path: 200 consecutive best-case
-        # coherent multi-sense moments produced zero divisions and the
-        # per-word pool delta was never positive.
-        #
-        # Corrected conservation accounting (no new constants; the
-        # original -169 law's own algebra made explicit):
-        #   R = lambda * N_init * sig_res * novelty   (experience-funded,
-        #       novelty-scaled — a replayed signal stops funding, so
-        #       growth scales with NOVEL experience, never tick count)
-        #   M = lambda * (N_current - N_init)          (the pool pays
-        #       upkeep for the mass the pool itself created — daughters —
-        #       which is precisely the original law's net drain term
-        #       lambda*(N_init - N_current), sign made explicit; the seed
-        #       population's metabolism was never pool-funded)
-        #   pool capped at its birth capacity N_init (a capacitor has a
-        #       capacity; it was born full).
-        # Emergent asymptote: R = M at N_eq = N_init*(1 + E[sig_res*
-        # novelty]) <= 2*N_init — the bound the original design stated
-        # ("N <= 2*N_initial") but the -198 algebra made unreachable.
-        # Belt-and-braces: the GUALA_MAX_TOTAL_NEURONS hard cap in
-        # _charge_and_fold, loudly logged.
-        N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
-        if os.environ.get("GUALA_GROWTH_LAW_LEGACY") == "1":
-            refill = self.BASE_LAMBDA * self._N_initial
-            self._div_pool = max(0.0,
-                self._div_pool
-                + refill                               # refill flux (seed-pegged, legacy)
-                - self.BASE_LAMBDA * N_current)        # maintenance flux (whole population, legacy)
-        else:
-            novelty = self._novelty_of_signature(spectral_signature)
-            refill = self.BASE_LAMBDA * self._N_initial * sig_res * novelty
-            maintenance = self.BASE_LAMBDA * max(0, N_current - self._N_initial)
-            self._div_pool = min(float(self._N_initial),
-                                 max(0.0, self._div_pool + refill - maintenance))
+        The krimelacks, neurons, organ routing, bindings, and affect remain
+        active.  Growth is settled separately from an authenticated exact
+        causal experience, so queue order and a reduced spectral signature
+        cannot decide which organ receives neurons.
+        """
+        sig_res, _spectral_signature = resonance_and_signature(composite)
+        theta_eff = theta
 
         active, folds = {}, {}
         # 1. em perceives the raw senses
@@ -745,15 +886,13 @@ class Embryo:
                     self.consensus[(a, b)] += float(np.clip(coh, -1, 1)) * sig_res
                     self.consensus[(a, b)] = max(0.0, self.consensus[(a, b)])
 
-        # 2b. gp bootstrap: goals are persistent attractors. gp is a SLOW integrator
-        # of em activity (its 0.05 decay = longest time-constant), so a goal only
-        # crystallizes from experience that recurs. em drives gp weakly each tick;
-        # gp folds via the same charge cycle once integrated drive crosses q>1.
+        # 2b. gp bootstrap: goals are persistent attractors.  This still
+        # processes the real echo but cannot divide from the word path.
         if active.get("em"):
             gp_folds = self._feed_and_fold(self._hemi("gp"), echo * 0.5, sig_res,
                                            theta_eff, quantum_scale=0.2)   # slow integrator
             folds["gp"] = gp_folds
-            active["gp"] = active.get("gp", False) or gp_folds > 0
+            active["gp"] = sig_res > theta_eff
 
         # 3. per-organ binding strength: active organs accumulate; ALL decay at their rate
         for h in self.brain.hemispheres:

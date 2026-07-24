@@ -3360,6 +3360,17 @@ class Guala:
         self._organism_sensory_queue = _queue.Queue(
             maxsize=self.WAVE_PROPOSAL_QUEUE_MAX)
         self._organism_sensory_dropped_count = 0
+        from dsf_ai_service.substrate.causal_organism_growth import (
+            MAX_PENDING_CAUSAL_GROWTH_CLAIMS as
+            _MAX_PENDING_CAUSAL_GROWTH_CLAIMS,
+        )
+        # Accepted causal growth can never be dropped or superseded.  Its
+        # dedicated bounded queue shares the one organism writer, while the
+        # durable journal remains authority until a cold graph checkpoint.
+        self._organism_growth_queue = _queue.Queue(
+            maxsize=_MAX_PENDING_CAUSAL_GROWTH_CLAIMS
+        )
+        self._causal_growth_enqueued_ids = set()
         self._causal_settlement_accepted = 0
         self._causal_settlement_failed = 0
         self._latest_causal_settlement = None
@@ -3452,6 +3463,7 @@ class Guala:
             or os.environ.get("GUALALOOM_API_KEY")
         )
         self._causal_cycle_key = _causal_cycle_key
+        self._causal_organism_growth = None
         if _causal_cycle_key:
             import hmac as _hmac
             from dsf_ai_service.substrate.auditory_token_sequence import (
@@ -3468,6 +3480,18 @@ class Guala:
                 b"guala-auditory-causal-language-authority-v1",
                 _hashlib.sha256,
             ).digest()
+            _causal_organism_growth_key = _hmac.new(
+                _causal_cycle_key.encode("utf-8"),
+                b"guala-causal-organism-growth-authority-v1",
+                _hashlib.sha256,
+            ).digest()
+            from dsf_ai_service.substrate.causal_organism_growth import (
+                CausalOrganismGrowthJournal as
+                _CausalOrganismGrowthJournal,
+            )
+            self._causal_organism_growth = _CausalOrganismGrowthJournal(
+                authority_key=_causal_organism_growth_key,
+            )
             self._auditory_token_sequence_authority = (
                 _AuditoryTokenSequenceAuthority(
                     authority_secret=_auditory_token_sequence_key,
@@ -8842,6 +8866,10 @@ class Guala:
             raise RuntimeError(
                 "companion vocal episode authority is unavailable"
             )
+        if self._causal_organism_growth is None:
+            raise RuntimeError(
+                "causal organism growth authority is unavailable"
+            )
         if not isinstance(pcm_s16le, bytes):
             raise TypeError("companion vocal episode pressure must be PCM16 bytes")
         if (
@@ -8853,7 +8881,7 @@ class Guala:
             raise RuntimeError(
                 "authoritative companion experience durability is unavailable"
             )
-        with self._causal_cycle_bridge_lock:
+        with self._causal_cycle_bridge_lock, self.persistence_transaction():
             before = self._embodiment_world.observation_snapshot()
             prediction_snapshot = (
                 self._full_field_prediction.encoded_snapshot()
@@ -8873,6 +8901,8 @@ class Guala:
             prepared = None
             committed = False
             commit_undo = None
+            growth_admission = None
+            growth_enqueued = 0
             try:
                 prepared = authority.prepare_episode(pcm_s16le=pcm_s16le)
                 episode = prepared.episode
@@ -8889,10 +8919,48 @@ class Guala:
                         ),
                         publish_acceptance=False,
                     )
+                from dsf_ai_service.substrate.causal_organism_growth import (
+                    CAUSAL_GROWTH_ORGAN_ORDER,
+                )
+                physically_active = {"em", "ep", "sf"}
+                if self._full_field_prediction is not None:
+                    physically_active.add("pr")
+                active_organs = tuple(
+                    tag for tag in CAUSAL_GROWTH_ORGAN_ORDER
+                    if tag in physically_active
+                )
+                growth_admission = (
+                    self._causal_organism_growth.admit_episode(
+                        (
+                            block.causal_settlement
+                            for block in prepared.prediction_blocks
+                        ),
+                        engine_tick=int(self.tick),
+                        active_organs=active_organs,
+                    )
+                )
                 commit_undo = authority.commit_episode(prepared)
                 committed = True
                 if state_dir is not None:
                     self.save_hot_state(state_dir)
+                try:
+                    growth_enqueued = (
+                        self._enqueue_pending_causal_growth()
+                    )
+                except Exception as growth_queue_error:
+                    # The accepted claim is already durable and remains
+                    # pending for the next cold-save reconciliation or boot.
+                    # Never roll back a physical episode after its generation
+                    # crossed the durability boundary.
+                    self._log_substrate_event(
+                        "causal_organism_growth_enqueue_failed",
+                        error=str(growth_queue_error),
+                        pending=(
+                            self._causal_organism_growth.status()[
+                                "pending"
+                            ]
+                        ),
+                    )
                 for block in prepared.prediction_blocks:
                     self._publish_causal_experience_accepted(
                         block.causal_settlement
@@ -8905,6 +8973,10 @@ class Guala:
                         authority.discard_episode(prepared)
                     except ValueError:
                         pass
+                if growth_admission is not None:
+                    self._causal_organism_growth.rollback_admission(
+                        growth_admission
+                    )
                 if (
                     prediction_snapshot is not None
                     and self._full_field_prediction is not None
@@ -8950,6 +9022,23 @@ class Guala:
                     episode.authority_receipt_sha256
                 ),
                 "episode_id": episode.episode_id,
+                "causal_growth": {
+                    "active_organs": list(active_organs),
+                    "claim_ids": [
+                        claim.claim_id
+                        for claim in growth_admission.observations
+                    ],
+                    "contributing_claims": len(
+                        growth_admission.newly_journaled
+                    ),
+                    "enqueued": growth_enqueued,
+                    "journal_pending": (
+                        self._causal_organism_growth.status()["pending"]
+                    ),
+                    "schema": (
+                        "guala.causal_organism_growth.admission.v1"
+                    ),
+                },
                 "causal_play": causal_play,
                 "schema": "guala.w1.companion_vocal_episode.v1",
                 "total_sample_count": episode.total_sample_count,
@@ -10965,6 +11054,39 @@ class Guala:
             "working_episode_count": self._causal_language_authority.working_count,
         }
 
+    def _enqueue_pending_causal_growth(self):
+        """Admit every unapplied durable growth claim to the single writer."""
+        owner = self._causal_organism_growth
+        if owner is None:
+            return 0
+        if self._engine_quiesced:
+            raise RuntimeError(
+                "causal organism growth rejected after quiescence"
+            )
+        applied = frozenset(
+            self.organism.causal_growth_checkpoint_claim_ids()
+        )
+        claims = tuple(
+            claim for claim in owner.pending_claims()
+            if claim.claim_id not in applied
+            and claim.claim_id not in self._causal_growth_enqueued_ids
+        )
+        if not claims:
+            return 0
+        available = (
+            self._organism_growth_queue.maxsize
+            - self._organism_growth_queue.qsize()
+        )
+        if len(claims) > available:
+            raise RuntimeError(
+                "causal organism growth queue cannot hold its durable journal"
+            )
+        self._ensure_organism_worker()
+        for claim in claims:
+            self._organism_growth_queue.put_nowait(claim)
+            self._causal_growth_enqueued_ids.add(claim.claim_id)
+        return len(claims)
+
     def _organism_worker_loop(self):
         """GL-CMD-175 window-2 perf fix, upgraded per
         GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179's backgrounding
@@ -11010,11 +11132,15 @@ class Guala:
                 self._organism_pause_ack.clear()
                 continue
             try:
-                item = self._organism_queue.get_nowait()
-                source = "word"
+                item = self._organism_growth_queue.get_nowait()
+                source = "causal_growth"
             except _queue.Empty:
-                item = None
-                source = None
+                try:
+                    item = self._organism_queue.get_nowait()
+                    source = "word"
+                except _queue.Empty:
+                    item = None
+                    source = None
             if source is None:
                 try:
                     item = self._organism_sensory_queue.get_nowait()
@@ -11027,6 +11153,48 @@ class Guala:
                     source = "word"
                 except _queue.Empty:
                     continue  # nothing arrived within the wait window -- re-check both
+
+            if source == "causal_growth":
+                claim = item
+                try:
+                    result = self.organism.apply_causal_growth_claim(claim)
+                    self._log_substrate_event(
+                        "causal_organism_growth_applied",
+                        claim_id=claim.claim_id,
+                        contributed_energy=result.get(
+                            "contributed_energy"
+                        ),
+                        folds=len(result["folds"]),
+                        settlement_receipt_sha256=(
+                            claim.settlement_authority_receipt_sha256
+                        ),
+                    )
+                    fold_events = self.organism.pop_fold_events()
+                    for fold in fold_events:
+                        self._log_substrate_event(
+                            "organism_fold",
+                            **fold,
+                        )
+                    if fold_events:
+                        self.wire_spike_bus()
+                except Exception as error:
+                    self._log_substrate_event(
+                        "causal_organism_growth_failed",
+                        claim_id=claim.claim_id,
+                        error=str(error),
+                    )
+                    print(
+                        "[GualaLoom] causal organism growth failed for "
+                        f"{claim.claim_id}: {error}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                finally:
+                    self._causal_growth_enqueued_ids.discard(
+                        claim.claim_id
+                    )
+                    self._organism_growth_queue.task_done()
+                continue
 
             if source == "sensory":
                 hemi_id, input_signal, sensory_tick, input_chi = item
@@ -21482,6 +21650,14 @@ class Guala:
                 if self._w1_anonymous_av_continuity_owner is not None
                 else None
             ),
+            "causal_organism_growth": (
+                json.loads(
+                    self._causal_organism_growth
+                    .encoded_snapshot().decode("utf-8")
+                )
+                if self._causal_organism_growth is not None
+                else None
+            ),
             "visual_region_continuity": (
                 json.loads(
                     self._visual_region_continuity
@@ -22315,6 +22491,18 @@ class Guala:
                 raise ValueError(
                     "teaching anonymous audiovisual continuity changed"
                 )
+        causal_growth = data.get("causal_organism_growth")
+        if causal_growth is not None:
+            from dsf_ai_service.substrate.causal_organism_growth import (
+                inspect_causal_growth_snapshot,
+            )
+            if not isinstance(causal_growth, dict):
+                raise ValueError(
+                    "teaching causal organism growth changed"
+                )
+            inspect_causal_growth_snapshot(
+                cls._canonical_persistence_bytes(causal_growth)
+            )
         visual_continuity = data.get("visual_region_continuity")
         if visual_continuity is not None:
             visual_bytes = cls._canonical_persistence_bytes(
@@ -23638,6 +23826,24 @@ class Guala:
                 except OSError:
                     pass
 
+        _organism_checkpoint_growth_claim_ids = ()
+        if self._causal_organism_growth is not None:
+            if not self._engine_quiesced:
+                self._enqueue_pending_causal_growth()
+            _growth_drain_deadline = time.monotonic() + 5.0
+            while (
+                self._organism_growth_queue.unfinished_tasks > 0
+                and time.monotonic() < _growth_drain_deadline
+            ):
+                time.sleep(0.01)
+            if self._organism_growth_queue.unfinished_tasks > 0:
+                print(
+                    "[GualaLoom] causal growth queue did not drain within "
+                    "5s; unapplied journal claims remain authoritative for "
+                    "the next checkpoint",
+                    flush=True,
+                )
+
         # GL-CMD-175 P1: organism's full-fidelity state (GL-CMD-169's
         # save_full_state/load_full_state -- the bounded structural graph,
         # so growth/folding/DNA/bindings all round-trip) rides the
@@ -23702,6 +23908,10 @@ class Guala:
                 organism_path = os.path.join(
                     state_dir, "guala_organism.sgr")
                 with self._organism_lock:
+                    _organism_checkpoint_growth_claim_ids = (
+                        self.organism
+                        .causal_growth_checkpoint_claim_ids()
+                    )
                     self.organism.save_full_state(
                         organism_path,
                         persistence_admission=getattr(
@@ -23766,6 +23976,20 @@ class Guala:
             self._last_save_tick = save_tick
             self._last_cold_save_tick = save_tick  # GL-CMD-DEEP-STORE-PHYSICS-86 P2
             self._last_save_timestamp = ts
+            if self._causal_organism_growth is not None:
+                self._causal_organism_growth.acknowledge_checkpoint(
+                    _organism_checkpoint_growth_claim_ids
+                )
+                self.organism.clear_causal_growth_checkpoint_claims(
+                    _organism_checkpoint_growth_claim_ids
+                )
+                self._log_substrate_event(
+                    "causal_organism_growth_checkpointed",
+                    claims=len(
+                        _organism_checkpoint_growth_claim_ids
+                    ),
+                    tick=save_tick,
+                )
         else:
             self._log_substrate_event("save_full_failure",
                                       tick=save_tick,
@@ -24772,6 +24996,20 @@ class Guala:
                                     anonymous_continuity
                                 )
                             )
+                        causal_growth = tdata.get(
+                            "causal_organism_growth"
+                        )
+                        if causal_growth is not None:
+                            if self._causal_organism_growth is None:
+                                raise ValueError(
+                                    "causal organism growth authority key "
+                                    "is missing"
+                                )
+                            self._causal_organism_growth.restore_encoded(
+                                self._canonical_persistence_bytes(
+                                    causal_growth
+                                )
+                            )
                         visual_continuity = tdata.get(
                             "visual_region_continuity"
                         )
@@ -25319,6 +25557,25 @@ class Guala:
                 if missing_binary:
                     raise ValueError(
                         f"required binary restore proof absent: {missing_binary}")
+            if self._causal_organism_growth is not None:
+                checkpoint_claim_ids = (
+                    self.organism.causal_growth_checkpoint_claim_ids()
+                )
+                pending_growth = (
+                    self._causal_organism_growth.reconcile_checkpoint(
+                        checkpoint_claim_ids
+                    )
+                )
+                self.organism.clear_causal_growth_checkpoint_claims(
+                    checkpoint_claim_ids
+                )
+                enqueued_growth = self._enqueue_pending_causal_growth()
+                self._log_substrate_event(
+                    "causal_organism_growth_reconciled",
+                    checkpointed=len(checkpoint_claim_ids),
+                    enqueued=enqueued_growth,
+                    pending=len(pending_growth),
+                )
             if (
                 self._embodied_action_teaching is not None
                 and self._embodied_action_teaching.status()[

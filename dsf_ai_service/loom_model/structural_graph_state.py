@@ -136,6 +136,10 @@ def _object_specs() -> tuple[ObjectSpec, ...]:
                 "brain brain_seed seed_size identity_uuid op hemi_by_op "
                 "consensus strength arousal tick _N_initial _div_pool "
                 "_total_divisions _fold_events_buffer "
+                "_causal_growth_reservoirs "
+                "_causal_growth_parent_cursors "
+                "_causal_growth_organ_cursor "
+                "_causal_growth_applied_claims "
                 "_recent_input_signatures _growth_cap_hits "
                 "_reflection_snapshots _scP _identity _goal"),
         ),
