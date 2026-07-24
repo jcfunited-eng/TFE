@@ -855,13 +855,14 @@ out = {
                     'python3 -c \"import urllib.request; '
                     'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
                     ' || exit 1'],
-                'interval': 10,
+                'interval': 30,
                 'timeout': 5,
                 # The authoritative cold-restore verifier permits 540s.
-                # ECS caps startPeriod at 300s, so 30 exact readiness
-                # failures extend the same boundary to 600s without ever
+                # ECS caps startPeriod at 300s and retries at 10, so ten
+                # checks at 30-second intervals extend the boundary to
+                # 600s without ever
                 # calling an unready substrate healthy.
-                'retries': 30,
+                'retries': 10,
                 'startPeriod': 300
             },
             # Fargate's documented hard maximum is 120 seconds.  The sealed

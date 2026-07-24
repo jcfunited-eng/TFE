@@ -54,7 +54,8 @@ def test_ecs_health_check_requires_substrate_readiness():
     health_check = _between("'healthCheck': {", "'stopTimeout': 120")
     assert "http://localhost:8080/ready" in health_check
     assert "http://localhost:8080/health" not in health_check
-    assert "'retries': 30" in health_check
+    assert "'interval': 30" in health_check
+    assert "'retries': 10" in health_check
     assert "'startPeriod': 300" in health_check
 
 
