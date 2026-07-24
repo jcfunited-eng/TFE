@@ -32,7 +32,7 @@ import struct
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -168,6 +168,11 @@ class AuditoryFullFieldCapture:
     channels: tuple[AuditoryChannelField, ...]
     source_first_sample_index: int = 0
     continuation_receipt_sha256: str | None = None
+    rephase_seed: "AuditoryCochlearRephaseSeed | None" = field(
+        default=None,
+        compare=False,
+        repr=False,
+    )
     provider_schema: str = AUDITORY_FULL_FIELD_PROVIDER_SCHEMA
 
     def __post_init__(self) -> None:
@@ -193,6 +198,13 @@ class AuditoryFullFieldCapture:
             )
         ):
             raise ValueError("auditory continuation receipt digest is invalid")
+        if self.rephase_seed is not None:
+            self.rephase_seed.verify()
+            if (
+                self.rephase_seed.source_sample_index
+                != self.source_first_sample_index
+            ):
+                raise ValueError("auditory rephase seed left its source boundary")
         reference_offsets = self.channels[0].causal_offsets_ns
         if any(
             item.causal_offsets_ns != reference_offsets
@@ -240,6 +252,104 @@ class AuditoryGammatoneContinuationReceipt:
         ).encode("utf-8")
         if hashlib.sha256(encoded).hexdigest() != self.receipt_sha256:
             raise ValueError("auditory gammatone continuation receipt was altered")
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryCochlearRephaseSeed:
+    """Exact filter state at one receipted transport boundary.
+
+    The seed carries no observation aggregate and no recognition authority.
+    It allows a later event-local observation grid to preserve the physical
+    cochlear recurrence that existed before the event began.
+    """
+
+    source_sample_index: int
+    state_real: tuple[tuple[float, ...], ...]
+    state_imag: tuple[tuple[float, ...], ...]
+    previous_real: tuple[float, ...]
+    previous_imag: tuple[float, ...]
+    phase_turns: tuple[float, ...]
+    block_energy: tuple[float, ...]
+    partial_hop_phase_turns: tuple[float, ...]
+    completed_observation_count: int
+    partial_hop_samples: int
+    state_sha256: str
+
+    @property
+    def is_genesis(self) -> bool:
+        state = self._state()
+        return (
+            self.source_sample_index == 0
+            and self.completed_observation_count == 0
+            and self.partial_hop_samples == 0
+            and all(np.count_nonzero(value) == 0 for value in state[:7])
+        )
+
+    def _state(self) -> tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+        np.ndarray, np.ndarray, np.ndarray, int, int,
+    ]:
+        return (
+            np.asarray(self.state_real, dtype=np.float64),
+            np.asarray(self.state_imag, dtype=np.float64),
+            np.asarray(self.previous_real, dtype=np.float64),
+            np.asarray(self.previous_imag, dtype=np.float64),
+            np.asarray(self.phase_turns, dtype=np.float64),
+            np.asarray(self.block_energy, dtype=np.float64),
+            np.asarray(self.partial_hop_phase_turns, dtype=np.float64),
+            self.completed_observation_count,
+            self.partial_hop_samples,
+        )
+
+    def verify(self) -> None:
+        state = self._state()
+        if (
+            isinstance(self.source_sample_index, bool)
+            or not isinstance(self.source_sample_index, int)
+            or self.source_sample_index < 0
+            or state[0].shape
+            != (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)
+            or state[1].shape
+            != (COCHLEAR_ORDER, COCHLEAR_CHANNEL_COUNT)
+            or any(
+                value.shape != (COCHLEAR_CHANNEL_COUNT,)
+                for value in state[2:7]
+            )
+            or any(not np.all(np.isfinite(value)) for value in state[:7])
+            or isinstance(self.completed_observation_count, bool)
+            or not isinstance(self.completed_observation_count, int)
+            or self.completed_observation_count < 0
+            or isinstance(self.partial_hop_samples, bool)
+            or not isinstance(self.partial_hop_samples, int)
+            or not 0 <= self.partial_hop_samples < OBSERVATION_HOP_SAMPLES
+            or _state_sha256(state) != self.state_sha256
+        ):
+            raise ValueError("auditory cochlear rephase seed changed")
+
+
+def _rephase_seed(
+    state: tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+        np.ndarray, np.ndarray, np.ndarray, int, int,
+    ],
+    *,
+    source_sample_index: int,
+) -> AuditoryCochlearRephaseSeed:
+    seed = AuditoryCochlearRephaseSeed(
+        source_sample_index=source_sample_index,
+        state_real=tuple(tuple(float(item) for item in row) for row in state[0]),
+        state_imag=tuple(tuple(float(item) for item in row) for row in state[1]),
+        previous_real=tuple(float(item) for item in state[2]),
+        previous_imag=tuple(float(item) for item in state[3]),
+        phase_turns=tuple(float(item) for item in state[4]),
+        block_energy=tuple(float(item) for item in state[5]),
+        partial_hop_phase_turns=tuple(float(item) for item in state[6]),
+        completed_observation_count=state[7],
+        partial_hop_samples=state[8],
+        state_sha256=_state_sha256(state),
+    )
+    seed.verify()
+    return seed
 
 
 def _validated_samples(signal: np.ndarray, sample_rate_hz: int) -> np.ndarray:
@@ -629,6 +739,10 @@ class AuditoryFullFieldStream:
                 != self._last_transport_receipt_sha256
             ):
                 raise ValueError("auditory cochlear continuation is discontinuous")
+            rephase_seed = _rephase_seed(
+                self._state,
+                source_sample_index=continuity.first_sample_index,
+            )
             prior_partial = int(self._state[-1])
             operation = (
                 _cochlear_stream_native
@@ -716,6 +830,7 @@ class AuditoryFullFieldStream:
                 channels=channels,
                 source_first_sample_index=continuity.first_sample_index,
                 continuation_receipt_sha256=state_receipt.receipt_sha256,
+                rephase_seed=rephase_seed,
             )
             self._state = next_state
             self._stream_id = continuity.stream_id
@@ -818,6 +933,25 @@ def transduce_auditory_full_field(
     """Map native PCM pressure into one bounded causal cochlear field."""
     values = _validated_samples(signal, sample_rate_hz)
     envelopes, phases, direct_phase_advances = _cochlear_state(values)
+    return _capture_from_cochlear_components(
+        envelopes=envelopes,
+        phases=phases,
+        direct_phase_advances=direct_phase_advances,
+        input_sample_count=len(values),
+        source_first_sample_index=0,
+    )
+
+
+def _capture_from_cochlear_components(
+    *,
+    envelopes: np.ndarray,
+    phases: np.ndarray,
+    direct_phase_advances: np.ndarray,
+    input_sample_count: int,
+    source_first_sample_index: int,
+) -> AuditoryFullFieldCapture:
+    """Build one event-local observation grid from physical cochlear output."""
+
     phase_advances, normalized_phase_advances, _ = (
         _phase_advance_components(
             direct_phase_advances,
@@ -853,16 +987,197 @@ def transduce_auditory_full_field(
     )
     return AuditoryFullFieldCapture(
         source_sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ,
-        input_sample_count=len(values),
+        input_sample_count=input_sample_count,
         observation_hop_samples=OBSERVATION_HOP_SAMPLES,
         channels=channels,
+        source_first_sample_index=source_first_sample_index,
     )
+
+
+def transduce_rephased_auditory_interval(
+    pcm_s16le: bytes,
+    *,
+    source_sample_start: int,
+    input_sample_count: int,
+) -> AuditoryFullFieldCapture:
+    """Observe one exact interval on its own grid without resetting hearing.
+
+    The gammatone recurrence advances through every preceding source sample.
+    Only hop-energy and hop-phase integration begin again at the requested
+    physical event boundary.  This makes L5 observation phase independent
+    while preserving the continuously evolved cochlear state.
+    """
+
+    hop_start = (
+        source_sample_start
+        - source_sample_start % OBSERVATION_HOP_SAMPLES
+        if isinstance(source_sample_start, int)
+        and not isinstance(source_sample_start, bool)
+        else source_sample_start
+    )
+    return AuditoryRephaseGrid(
+        pcm_s16le,
+        candidate_hop_start=hop_start,
+    ).capture(
+        source_sample_start=source_sample_start,
+        input_sample_count=input_sample_count,
+    )
+
+
+class AuditoryRephaseGrid:
+    """Bound one physical onset hop to at most 160 exact observation phases."""
+
+    def __init__(
+        self,
+        pcm_s16le: bytes,
+        *,
+        candidate_hop_start: int,
+        seed: AuditoryCochlearRephaseSeed | None = None,
+    ) -> None:
+        if not isinstance(pcm_s16le, bytes) or len(pcm_s16le) % 2:
+            raise ValueError("rephased auditory input must be PCM16 bytes")
+        self._values = _validated_samples(
+            np.frombuffer(pcm_s16le, dtype="<i2").astype(np.float64)
+            / 32768.0,
+            REQUIRED_SAMPLE_RATE_HZ,
+        )
+        if seed is None:
+            seed = _rephase_seed(
+                _zero_continuation_state(),
+                source_sample_index=0,
+            )
+        elif not isinstance(seed, AuditoryCochlearRephaseSeed):
+            raise TypeError("auditory rephase seed is untyped")
+        seed.verify()
+        self.source_sample_start = seed.source_sample_index
+        if (
+            isinstance(candidate_hop_start, bool)
+            or not isinstance(candidate_hop_start, int)
+            or candidate_hop_start < self.source_sample_start
+            or candidate_hop_start % OBSERVATION_HOP_SAMPLES
+            or (
+                candidate_hop_start
+                + OBSERVATION_HOP_SAMPLES
+                - self.source_sample_start
+                > len(self._values)
+            )
+        ):
+            raise ValueError("auditory rephase hop is invalid")
+        self.candidate_hop_start = candidate_hop_start
+        self.pcm_sha256 = hashlib.sha256(pcm_s16le).hexdigest()
+        self._operation = (
+            _cochlear_stream_native
+            if _native_gammatone_stream is not None
+            else _cochlear_stream_python
+        )
+        seed_state = seed._state()
+        state = (
+            *seed_state[:5],
+            np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
+            np.zeros(COCHLEAR_CHANNEL_COUNT, dtype=np.float64),
+            0,
+        )
+        prefix_count = candidate_hop_start - self.source_sample_start
+        if prefix_count:
+            prefix = self._operation(
+                self._values[:prefix_count],
+                *state[:7],
+                state[-1],
+            )
+            base = tuple(prefix[index] for index in range(3, 8))
+        else:
+            base = tuple(state[index] for index in range(5))
+        self._states: dict[int, tuple[np.ndarray, ...]] = {
+            candidate_hop_start: base
+        }
+
+    def _state_at(self, source_sample_start: int) -> tuple[np.ndarray, ...]:
+        existing = self._states.get(source_sample_start)
+        if existing is not None:
+            return existing
+        if not (
+            self.candidate_hop_start
+            <= source_sample_start
+            < self.candidate_hop_start + OBSERVATION_HOP_SAMPLES
+        ):
+            raise ValueError("auditory rephase start left its onset hop")
+        prior_start = max(
+            value for value in self._states if value < source_sample_start
+        )
+        prior = self._states[prior_start]
+        zero_channel_state = np.zeros(
+            COCHLEAR_CHANNEL_COUNT, dtype=np.float64
+        )
+        advanced = self._operation(
+            self._values[
+                prior_start - self.source_sample_start:
+                source_sample_start - self.source_sample_start
+            ],
+            *prior,
+            zero_channel_state.copy(),
+            zero_channel_state.copy(),
+            0,
+        )
+        state = tuple(advanced[index] for index in range(3, 8))
+        self._states[source_sample_start] = state
+        if len(self._states) > OBSERVATION_HOP_SAMPLES:
+            raise RuntimeError("auditory rephase state capacity changed")
+        return state
+
+    def capture(
+        self,
+        *,
+        source_sample_start: int,
+        input_sample_count: int,
+    ) -> AuditoryFullFieldCapture:
+        if (
+            isinstance(source_sample_start, bool)
+            or not isinstance(source_sample_start, int)
+            or isinstance(input_sample_count, bool)
+            or not isinstance(input_sample_count, int)
+            or input_sample_count < OBSERVATION_HOP_SAMPLES
+            or input_sample_count % OBSERVATION_HOP_SAMPLES
+            or (
+                source_sample_start
+                + input_sample_count
+                - self.source_sample_start
+                > len(self._values)
+            )
+        ):
+            raise ValueError("rephased auditory interval is invalid")
+
+        state = self._state_at(source_sample_start)
+        event_end = source_sample_start + input_sample_count
+        zero_channel_state = np.zeros(
+            COCHLEAR_CHANNEL_COUNT, dtype=np.float64
+        )
+        event = self._operation(
+            self._values[
+                source_sample_start - self.source_sample_start:
+                event_end - self.source_sample_start
+            ],
+            *state,
+            zero_channel_state.copy(),
+            zero_channel_state.copy(),
+            0,
+        )
+        if event[10] != 0:
+            raise RuntimeError("rephased auditory interval left a partial hop")
+        return _capture_from_cochlear_components(
+            envelopes=event[0],
+            phases=event[1],
+            direct_phase_advances=event[2],
+            input_sample_count=input_sample_count,
+            source_first_sample_index=source_sample_start,
+        )
 
 
 __all__ = (
     "AUDITORY_FULL_FIELD_PROVIDER_SCHEMA",
     "AUDITORY_GAMMATONE_CONTINUATION_SCHEMA",
     "AUDITORY_CHANNELS",
+    "AuditoryCochlearRephaseSeed",
+    "AuditoryRephaseGrid",
     "AuditoryChannelDefinition",
     "AuditoryChannelField",
     "AuditoryFullFieldCapture",
@@ -878,4 +1193,5 @@ __all__ = (
     "PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP",
     "REQUIRED_SAMPLE_RATE_HZ",
     "transduce_auditory_full_field",
+    "transduce_rephased_auditory_interval",
 )

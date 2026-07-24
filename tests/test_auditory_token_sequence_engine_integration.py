@@ -58,6 +58,17 @@ def _two_terminal_pcm() -> bytes:
     )
 
 
+def _two_terminal_natural_phase_pcm() -> bytes:
+    learned = _pcm_tone(count=LEARNED_SAMPLES)
+    return (
+        bytes(3_200 * 2)
+        + learned
+        + bytes(3_231 * 2)
+        + learned
+        + bytes(TRAILING_SAMPLES * 2)
+    )
+
+
 def _one_terminal_pcm() -> bytes:
     return (
         bytes(3_200 * 2)
@@ -585,6 +596,65 @@ def test_http_multi_release_exposes_order_without_joining_or_replying(
         snapshot = engine.observation_snapshot()
         assert snapshot["auditory_token_sequence"]["status"] == "settled"
         assert snapshot["auditory_token_sequence"]["latest"] == observation
+    finally:
+        engine.strict_shutdown(timeout=30.0)
+
+
+def test_natural_sub_hop_release_reaches_the_token_sequence_boundary(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        _teach_physical_form(engine)
+        registry = AuditoryPCMStreamRegistry()
+        opened = registry.open()
+        pcm = _two_terminal_natural_phase_pcm()
+        epoch_ns = 7_000_000_000
+        accepted = registry.accept(
+            stream_id=opened["stream_id"],
+            sequence=0,
+            first_sample_index=0,
+            sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+            source_epoch_start_ns=epoch_ns,
+            pcm_s16le=pcm,
+        )
+        sound = engine.process_sound_frame(
+            pcm_s16le_wav(pcm),
+            source="browser_microphone",
+            source_anchor_ns=epoch_ns,
+            source_time_end_ns=(
+                epoch_ns
+                + len(pcm) // 2 * 1_000_000_000
+                // PCM_SAMPLE_RATE_HZ
+            ),
+            auditory_pcm_continuity=accepted.receipt,
+            auditory_pcm_s16le=pcm,
+        )
+
+        _joint, advance = engine.advance_continuous_auditory_terminal(
+            pcm_s16le=pcm,
+            transport=accepted.receipt,
+            settlement=sound["settlement"],
+        )
+
+        assert tuple(
+            event.source_sample_start
+            for event in advance.released_terminals
+        ) == (
+            3_200,
+            3_200 + LEARNED_SAMPLES + 3_231,
+        )
+        assert (
+            advance.released_terminals[0].sample_count
+            == advance.released_terminals[1].sample_count
+        )
+        latest = engine.auditory_token_sequence_status()["latest"]
+        assert latest is not None
+        assert latest["occurrence_count"] == 2
+        assert latest["occurrences"][1][
+            "source_sample_start"
+        ] == 3_200 + LEARNED_SAMPLES + 3_231
     finally:
         engine.strict_shutdown(timeout=30.0)
 

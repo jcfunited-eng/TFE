@@ -401,6 +401,83 @@ def test_one_advance_preserves_two_independently_verified_terminals() -> None:
     assert len(owner._released_full_fields) == 2
 
 
+def test_second_terminal_is_rephased_at_its_exact_natural_sample() -> None:
+    first_start = 3_200
+    second_start = first_start + LEARNED_SAMPLES + 3_231
+    signal = (
+        (0,) * first_start
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * 3_231
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * TRAILING_SAMPLES
+    )
+    owner = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    mounted = _MountedStream()
+
+    result = owner.advance(**mounted.mount(
+        _pcm(signal),
+        sequence=0,
+        first_sample_index=0,
+    ))
+
+    result.verify()
+    assert result.status is AuditoryIncrementalStatus.RELEASED_UNIQUE
+    assert tuple(
+        (
+            event.source_sample_start,
+            event.source_sample_end,
+            event.tutor_label,
+        )
+        for event in result.released_terminals
+    ) == (
+        (
+            first_start,
+            first_start + LEARNED_SAMPLES,
+            "learned-form",
+        ),
+        (
+            second_start,
+            second_start + LEARNED_SAMPLES,
+            "learned-form",
+        ),
+    )
+
+
+def test_rephase_search_cannot_turn_an_unknown_later_sound_into_a_terminal(
+) -> None:
+    first_start = 3_200
+    second_start = first_start + LEARNED_SAMPLES + 3_231
+    signal = (
+        (0,) * first_start
+        + _tone_values(LEARNED_SAMPLES, 440)
+        + (0,) * 3_231
+        + _tone_values(LEARNED_SAMPLES, 1_700)
+        + (0,) * TRAILING_SAMPLES
+    )
+    owner = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=_learned_owner()
+    )
+    mounted = _MountedStream()
+
+    result = owner.advance(**mounted.mount(
+        _pcm(signal),
+        sequence=0,
+        first_sample_index=0,
+    ))
+
+    result.verify()
+    assert tuple(
+        (event.source_sample_start, event.source_sample_end)
+        for event in result.released_terminals
+    ) == ((first_start, first_start + LEARNED_SAMPLES),)
+    assert all(
+        event.source_sample_start != second_start
+        for event in result.released_terminals
+    )
+
+
 def test_registry_issues_a_multi_terminal_advance_atomically_in_order() -> None:
     registry = AuditoryIncrementalTerminalRegistry(
         reciprocity_owner=_learned_owner(),

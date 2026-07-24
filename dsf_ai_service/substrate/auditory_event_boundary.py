@@ -201,31 +201,45 @@ class AuditoryEventBoundary:
             raise ValueError("auditory event boundary receipt changed")
 
 
-def settle_auditory_event_boundary(
-    capture: AuditoryFullFieldCapture,
+@dataclass(frozen=True, slots=True)
+class AuditoryEnergyBasinPartition:
+    """Measured lower/upper cochlear-energy basins without event meaning."""
+
+    lower_indices: tuple[int, ...]
+    upper_indices: tuple[int, ...]
+    lower_energy_upper_bound: float
+    upper_energy_lower_bound: float
+
+
+def partition_auditory_energy_basins(
+    pressure_rows: tuple[tuple[float, ...], ...],
     *,
     pressure_uncertainty_full_scale: float,
-) -> AuditoryEventBoundary:
-    """Settle one surrounded event from two separable physical basins."""
+) -> AuditoryEnergyBasinPartition:
+    """Partition a finite measured pressure path into its two exact basins."""
 
-    _validate_provider_capture(capture)
+    if (
+        not isinstance(pressure_rows, tuple)
+        or len(pressure_rows) < 2
+        or any(
+            not isinstance(row, tuple)
+            or not row
+            or len(row) != len(pressure_rows[0])
+            or any(
+                not math.isfinite(value) or not 0.0 <= value <= 1.0
+                for value in row
+            )
+            for row in pressure_rows
+        )
+    ):
+        raise ValueError("auditory pressure rows are invalid")
     if (
         not math.isfinite(pressure_uncertainty_full_scale)
         or pressure_uncertainty_full_scale <= 0.0
     ):
         raise ValueError("auditory event pressure uncertainty is invalid")
-    frame_count = capture.frame_count
-    if frame_count < 3:
-        raise ValueError("auditory tutor capture cannot surround an event")
-    channel_count = len(capture.channels)
     uncertainty = pressure_uncertainty_full_scale
-    pressure_rows = tuple(
-        tuple(
-            channel.pressure_envelope_full_scale[frame_index]
-            for channel in capture.channels
-        )
-        for frame_index in range(frame_count)
-    )
+    channel_count = len(pressure_rows[0])
     energies = tuple(
         math.fsum(value * value for value in row)
         for row in pressure_rows
@@ -236,7 +250,7 @@ def settle_auditory_event_boundary(
     )
     levels = tuple(sorted(set(log_energies)))
     if len(levels) < 2:
-        raise ValueError("auditory tutor capture has only one physical basin")
+        raise ValueError("auditory capture has only one physical basin")
 
     candidates = []
     for lower_level, upper_level in zip(levels, levels[1:], strict=False):
@@ -261,7 +275,7 @@ def settle_auditory_event_boundary(
             upper_level,
         ))
     if not candidates:
-        raise ValueError("auditory tutor capture has no basin partition")
+        raise ValueError("auditory capture has no basin partition")
     _, _, lower_level, upper_level = min(candidates)
     lower_indices = tuple(
         index for index, value in enumerate(log_energies)
@@ -271,17 +285,6 @@ def settle_auditory_event_boundary(
         index for index, value in enumerate(log_energies)
         if value >= upper_level
     )
-    event_start = upper_indices[0]
-    event_end = upper_indices[-1] + 1
-    if event_start <= 0 or event_end >= frame_count:
-        raise ValueError(
-            "auditory tutor event is not surrounded by measured ambient field"
-        )
-    if event_end - event_start < 2:
-        raise ValueError(
-            "auditory tutor event is shorter than two observations"
-        )
-
     lower_upper_bound = max(
         math.fsum((value + uncertainty) ** 2 for value in pressure_rows[index])
         for index in lower_indices
@@ -295,8 +298,60 @@ def settle_auditory_event_boundary(
     )
     if upper_lower_bound <= lower_upper_bound:
         raise ValueError(
-            "auditory tutor event and ambient basins overlap measurement uncertainty"
+            "auditory physical basins overlap measurement uncertainty"
         )
+    return AuditoryEnergyBasinPartition(
+        lower_indices=lower_indices,
+        upper_indices=upper_indices,
+        lower_energy_upper_bound=lower_upper_bound,
+        upper_energy_lower_bound=upper_lower_bound,
+    )
+
+
+def settle_auditory_event_boundary(
+    capture: AuditoryFullFieldCapture,
+    *,
+    pressure_uncertainty_full_scale: float,
+) -> AuditoryEventBoundary:
+    """Settle one surrounded event from two separable physical basins."""
+
+    _validate_provider_capture(capture)
+    if (
+        not math.isfinite(pressure_uncertainty_full_scale)
+        or pressure_uncertainty_full_scale <= 0.0
+    ):
+        raise ValueError("auditory event pressure uncertainty is invalid")
+    frame_count = capture.frame_count
+    if frame_count < 3:
+        raise ValueError("auditory tutor capture cannot surround an event")
+    pressure_rows = tuple(
+        tuple(
+            channel.pressure_envelope_full_scale[frame_index]
+            for channel in capture.channels
+        )
+        for frame_index in range(frame_count)
+    )
+    partition = partition_auditory_energy_basins(
+        pressure_rows,
+        pressure_uncertainty_full_scale=(
+            pressure_uncertainty_full_scale
+        ),
+    )
+    lower_indices = partition.lower_indices
+    upper_indices = partition.upper_indices
+    event_start = upper_indices[0]
+    event_end = upper_indices[-1] + 1
+    if event_start <= 0 or event_end >= frame_count:
+        raise ValueError(
+            "auditory tutor event is not surrounded by measured ambient field"
+        )
+    if event_end - event_start < 2:
+        raise ValueError(
+            "auditory tutor event is shorter than two observations"
+        )
+
+    lower_upper_bound = partition.lower_energy_upper_bound
+    upper_lower_bound = partition.upper_energy_lower_bound
     capture_sha256 = _capture_sha256(capture)
     payload = _boundary_payload(
         capture_sha256=capture_sha256,
@@ -332,6 +387,8 @@ def settle_auditory_event_boundary(
 __all__ = [
     "AUDITORY_EVENT_BOUNDARY_OPERATOR",
     "AUDITORY_EVENT_BOUNDARY_SCHEMA",
+    "AuditoryEnergyBasinPartition",
     "AuditoryEventBoundary",
+    "partition_auditory_energy_basins",
     "settle_auditory_event_boundary",
 ]

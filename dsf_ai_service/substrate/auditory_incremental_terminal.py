@@ -2,8 +2,11 @@
 
 The owner in this module is deliberately outside L0--L4.  It carries a
 bounded monotone dynamic-programming state over continuous 10 ms auditory L5
-pressure and provider-settled phase-advance frames. The state cannot recognize an identity: it has no
-candidate-level L4 field.  After a full-field UNIQUE gate, its complete exact
+pressure and provider-settled phase-advance frames. When a later physical
+energy basin begins between those observation clocks, a bounded 160-phase
+resolver preserves continuous cochlear state and re-establishes only the
+event-local observation grid. The proposal state cannot recognize an identity:
+it has no candidate-level L4 field. After a full-field UNIQUE gate, its exact
 paired recurrence can prove only the negative structural fact that the
 verified path no longer extends; that closes the pending physical interval but
 cannot create or change its learned meaning.
@@ -16,9 +19,9 @@ AMBIGUOUS, discontinuity, and resource exhaustion release nothing.
 
 Terminal extent comes from the tutor-witnessed path length.  The current
 reciprocity relation duration-normalizes complete candidates and does not
-learn a separate variable-duration end transition.  Consequently this owner
-can discover witnessed terminal extents at any native-hop offset, but it does
-not claim to infer unwitnessed variable-duration endings.
+learn a separate variable-duration end transition. Consequently this owner
+can discover witnessed terminal extents at any physical sample offset, but it
+does not claim to infer unwitnessed variable-duration endings.
 
 Transport ids and receipts prove continuity only.  They never represent a
 speaker, source, word, identity, meaning, or chi.  No text, ML model, acoustic
@@ -58,6 +61,10 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 from dsf_ai_service.substrate.auditory_kernel_mount import (
     AUDITORY_KERNEL_COMPONENT_COUNT,
     AUDITORY_KERNEL_SENSOR_ID,
+    auditory_kernel_component_inputs,
+)
+from dsf_ai_service.substrate.auditory_event_boundary import (
+    partition_auditory_energy_basins,
 )
 from dsf_ai_service.substrate.auditory_l5 import (
     AUDITORY_L5_SCHEMA,
@@ -96,8 +103,10 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     MAX_CAPTURE_SECONDS,
     OBSERVATION_HOP_SAMPLES,
     PHASE_ADVANCE_NYQUIST_TURNS_PER_HOP,
+    AuditoryCochlearRephaseSeed,
     AuditoryFullFieldCapture,
     AuditoryGammatoneContinuationReceipt,
+    AuditoryRephaseGrid,
 )
 
 try:
@@ -265,7 +274,6 @@ class AuditoryIncrementalTerminalEvent:
             isinstance(self.source_sample_start, bool)
             or not isinstance(self.source_sample_start, int)
             or self.source_sample_start < 0
-            or self.source_sample_start % OBSERVATION_HOP_SAMPLES
             or isinstance(self.source_sample_end, bool)
             or not isinstance(self.source_sample_end, int)
             or self.source_sample_end <= self.source_sample_start
@@ -826,6 +834,7 @@ class _Evidence:
     transport: str
     cochlear: str
     joint: str
+    rephase_seed: AuditoryCochlearRephaseSeed
 
 
 @dataclass(frozen=True, slots=True)
@@ -1894,10 +1903,35 @@ class AuditoryIncrementalTerminalOwner:
     def _append_pcm(
         self,
         pcm_s16le: bytes,
+        capture: AuditoryFullFieldCapture,
         transport: AuditoryPCMContinuityReceipt,
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint: AuditoryStreamSettlementReceipt,
     ) -> bool:
+        seed = capture.rephase_seed
+        if seed is None:
+            raise RuntimeError(
+                "incremental auditory capture has no cochlear rephase seed"
+            )
+        seed.verify()
+        if (
+            seed.source_sample_index != transport.first_sample_index
+            or (
+                transport.sequence == 0
+                and not seed.is_genesis
+            )
+            or (
+                transport.sequence > 0
+                and (
+                    self._last_cochlear is None
+                    or seed.state_sha256
+                    != self._last_cochlear.state_sha256
+                )
+            )
+        ):
+            raise RuntimeError(
+                "incremental auditory rephase seed lost cochlear continuity"
+            )
         if not self._pcm:
             self._buffer_start = transport.first_sample_index
         expected = self._buffer_start + len(self._pcm) // 2
@@ -1910,6 +1944,7 @@ class AuditoryIncrementalTerminalOwner:
             transport=transport.receipt_sha256,
             cochlear=cochlear.receipt_sha256,
             joint=joint.authority_receipt_sha256,
+            rephase_seed=seed,
         ))
         current_end = transport.last_sample_index_exclusive
         keep_from = max(0, current_end - MAX_EVENT_SAMPLES)
@@ -1957,6 +1992,44 @@ class AuditoryIncrementalTerminalOwner:
             tuple(value.cochlear for value in values),
             tuple(value.joint for value in values),
         )
+
+    def _recognize_experience(
+        self,
+        start: int,
+        end: int,
+        experience: AuditoryL5Experience,
+        *,
+        max_work: int,
+    ) -> tuple[AuditoryRecognitionState, _PendingTerminal | None, int]:
+        experience.verify()
+        recognition, consumed_cells = (
+            self._reciprocity_owner.recognize_bounded(
+                experience,
+                kind=AuditoryReciprocityKind.SPOKEN_FORM,
+                max_work=max_work,
+            )
+        )
+        if recognition.state is not AuditoryRecognitionState.UNIQUE:
+            return recognition.state, None, consumed_cells
+        if not recognition.tutor_label:
+            raise RuntimeError(
+                "unique incremental recognition has no tutor label"
+            )
+        transport, cochlear, joint = self._candidate_evidence(start, end)
+        return recognition.state, _PendingTerminal(
+            start=start,
+            end=end,
+            tutor_label=recognition.tutor_label,
+            structural_fingerprint=experience.structural_fingerprint,
+            l5_authority_receipt_sha256=(
+                experience.authority_receipt_sha256
+            ),
+            transport_receipt_sha256s=transport,
+            cochlear_receipt_sha256s=cochlear,
+            joint_settlement_receipt_sha256s=joint,
+            recognition_occurrence=recognition.occurrence,
+            auditory_l5=experience,
+        ), consumed_cells
 
     def _full_gate(
         self, start: int, end: int, *, max_work: int
@@ -2083,30 +2156,75 @@ class AuditoryIncrementalTerminalOwner:
         ).settle(built, event_boundary="utterance")
         if experience is None:
             raise RuntimeError("incremental auditory candidate did not settle")
-        experience.verify()
-        recognition, consumed_cells = (
-            self._reciprocity_owner.recognize_bounded(
+        return self._recognize_experience(
+            start,
+            end,
             experience,
-            kind=AuditoryReciprocityKind.SPOKEN_FORM,
             max_work=max_work,
-        ))
-        if recognition.state is not AuditoryRecognitionState.UNIQUE:
-            return recognition.state, None, consumed_cells
-        if not recognition.tutor_label:
-            raise RuntimeError("unique incremental recognition has no tutor label")
-        transport, cochlear, joint = self._candidate_evidence(start, end)
-        return recognition.state, _PendingTerminal(
-            start=start,
-            end=end,
-            tutor_label=recognition.tutor_label,
-            structural_fingerprint=experience.structural_fingerprint,
-            l5_authority_receipt_sha256=experience.authority_receipt_sha256,
-            transport_receipt_sha256s=transport,
-            cochlear_receipt_sha256s=cochlear,
-            joint_settlement_receipt_sha256s=joint,
-            recognition_occurrence=recognition.occurrence,
-            auditory_l5=experience,
-        ), consumed_cells
+        )
+
+    def _rephased_full_gate(
+        self,
+        start: int,
+        end: int,
+        *,
+        grid: AuditoryRephaseGrid,
+        max_work: int,
+    ) -> tuple[AuditoryRecognitionState, _PendingTerminal | None, int]:
+        if self._stream_id is None:
+            raise RuntimeError("incremental auditory candidate has no stream")
+        capture = grid.capture(
+            source_sample_start=start,
+            input_sample_count=end - start,
+        )
+        epoch_start = self._evidence_epoch_start()
+        identity = _digest({
+            "pcm_sha256": hashlib.sha256(
+                self._candidate_pcm(start, end)
+            ).hexdigest(),
+            "source_sample_end": end,
+            "source_sample_start": start,
+            "stream_id": self._stream_id,
+        })
+        built = build_six_sense_full_field(
+            assembly_id=f"auditory-rephased-{identity}",
+            source_time_start=(
+                epoch_start + Fraction(start, PCM_SAMPLE_RATE_HZ)
+            ),
+            source_time_end=(
+                epoch_start + Fraction(end, PCM_SAMPLE_RATE_HZ)
+            ),
+            observed_substreams={
+                PhysicalSense.SOUND: auditory_kernel_component_inputs(
+                    capture,
+                    source_anchor=(
+                        epoch_start
+                        + Fraction(start, PCM_SAMPLE_RATE_HZ)
+                    ),
+                )
+            },
+            states={
+                sense: (
+                    SenseBoundaryState.OBSERVED
+                    if sense is PhysicalSense.SOUND
+                    else SenseBoundaryState.SENSOR_UNAVAILABLE
+                )
+                for sense in SENSE_ORDER
+            },
+        )
+        experience = AuditoryL5Owner(
+            log_event=lambda *_args, **_kwargs: None
+        ).settle(built, event_boundary="utterance")
+        if experience is None:
+            raise RuntimeError(
+                "rephased incremental auditory candidate did not settle"
+            )
+        return self._recognize_experience(
+            start,
+            end,
+            experience,
+            max_work=max_work,
+        )
 
     def _evidence_epoch_start(self) -> Fraction:
         if self._last_transport is None:
@@ -2319,6 +2437,198 @@ class AuditoryIncrementalTerminalOwner:
             reverse=True,
         )
         return ordered[0], False
+
+    def _rephased_terminal_after(
+        self,
+        after_sample: int,
+        *,
+        pcm_s16le: bytes,
+        capture: AuditoryFullFieldCapture,
+        full_gate_work: _AdvanceFullGateWorkLedger,
+    ) -> tuple[_PendingTerminal | None, bool, bool]:
+        """Resolve one later event whose physical onset is between hop clocks."""
+
+        capture_end = (
+            capture.source_first_sample_index + capture.input_sample_count
+        )
+        selected = tuple(
+            value for value in self._frames
+            if (
+                value.completion_sample > max(
+                    after_sample,
+                    capture.source_first_sample_index,
+                )
+                and value.completion_sample <= capture_end
+            )
+        )
+        if len(selected) < 3:
+            return None, False, False
+        pressure_rows = tuple(value.pressure for value in selected)
+        try:
+            partition = partition_auditory_energy_basins(
+                pressure_rows,
+                pressure_uncertainty_full_scale=(
+                    2.0 * float(PCM_PRESSURE_QUANTUM)
+                ),
+            )
+        except ValueError:
+            return None, False, False
+        upper = partition.upper_indices
+        upper_set = set(upper)
+        surrounded_onsets = tuple(
+            index for index in upper
+            if (
+                index > 0
+                and index - 1 not in upper_set
+                and any(lower < index for lower in partition.lower_indices)
+                and any(lower > index for lower in partition.lower_indices)
+            )
+        )
+        if not surrounded_onsets:
+            return None, False, False
+        next_onset = surrounded_onsets[0]
+        candidate_hops = tuple(sorted({
+            selected[next_onset].completion_sample - hop_distance
+            for hop_distance in (
+                2 * OBSERVATION_HOP_SAMPLES,
+                OBSERVATION_HOP_SAMPLES,
+            )
+            if (
+                selected[next_onset].completion_sample - hop_distance
+                >= after_sample
+                and selected[next_onset].completion_sample - hop_distance
+                >= capture.source_first_sample_index
+            )
+        }))
+        if not candidate_hops:
+            return None, False, False
+        seed = capture.rephase_seed
+        if seed is None:
+            raise RuntimeError(
+                "rephased auditory proposal has no cochlear seed"
+            )
+        pressure_uncertainty = 2.0 * float(PCM_PRESSURE_QUANTUM)
+        routed_intervals: dict[
+            tuple[int, int], AuditoryRephaseGrid
+        ] = {}
+        for onset_hop in candidate_hops:
+            grid = AuditoryRephaseGrid(
+                pcm_s16le,
+                candidate_hop_start=onset_hop,
+                seed=seed,
+            )
+            for start in range(
+                onset_hop,
+                onset_hop + OBSERVATION_HOP_SAMPLES,
+            ):
+                first = grid.capture(
+                    source_sample_start=start,
+                    input_sample_count=OBSERVATION_HOP_SAMPLES,
+                )
+                pressure = tuple(
+                    channel.pressure_envelope_full_scale[0]
+                    for channel in first.channels
+                )
+                for cell in self._cells:
+                    interval: Interval | None = (0.0, 1.0)
+                    for port in range(COCHLEAR_CHANNEL_COUNT):
+                        left, _ = _branch_sample(
+                            cell.left,
+                            port,
+                            0,
+                            cell.reference_count,
+                        )
+                        right, _ = _branch_sample(
+                            cell.right,
+                            port,
+                            0,
+                            cell.reference_count,
+                        )
+                        interval = (
+                            _intersect_lambda(
+                                interval,
+                                query=pressure[port],
+                                left=left,
+                                right=right,
+                                uncertainty=pressure_uncertainty,
+                            )
+                            if interval is not None
+                            else None
+                        )
+                        if interval is None:
+                            break
+                    if interval is not None:
+                        for sample_count in {
+                            cell.left.sample_count,
+                            cell.right.sample_count,
+                        }:
+                            end = (
+                                start
+                                + sample_count
+                                * OBSERVATION_HOP_SAMPLES
+                            )
+                            if end <= capture_end:
+                                routed_intervals[(start, end)] = grid
+
+        recognized: list[_PendingTerminal] = []
+        ambiguous = False
+        for start, end in sorted(routed_intervals):
+            field_samples = (
+                (end - start)
+                // OBSERVATION_HOP_SAMPLES
+                * AUDITORY_KERNEL_COMPONENT_COUNT
+            )
+            if (
+                full_gate_work.remaining_reachability <= 0
+                or not full_gate_work.reserve_field_samples(field_samples)
+            ):
+                return None, False, True
+            state, pending, consumed_cells = self._rephased_full_gate(
+                start,
+                end,
+                grid=routed_intervals[(start, end)],
+                max_work=full_gate_work.remaining_reachability,
+            )
+            full_gate_work.charge_reachability(consumed_cells)
+            if state is AuditoryRecognitionState.UNIQUE:
+                if pending is None:
+                    raise RuntimeError(
+                        "unique rephased gate lost its terminal"
+                    )
+                recognized.append(pending)
+            elif state is AuditoryRecognitionState.AMBIGUOUS:
+                ambiguous = True
+            elif state is AuditoryRecognitionState.INDETERMINATE:
+                return None, False, True
+        unique = {
+            (
+                value.start,
+                value.end,
+                value.tutor_label,
+                value.structural_fingerprint,
+            ): value
+            for value in recognized
+        }
+        if ambiguous or len(unique) > 1:
+            return None, True, False
+        if not unique:
+            return None, False, False
+        terminal = next(iter(unique.values()))
+        next_native_hop = (
+            (
+                terminal.end
+                + OBSERVATION_HOP_SAMPLES
+                - 1
+            )
+            // OBSERVATION_HOP_SAMPLES
+            * OBSERVATION_HOP_SAMPLES
+        )
+        self._native_proposals.retain_at_or_after(next_native_hop)
+        self._pending = {
+            start: value for start, value in self._pending.items()
+            if start >= terminal.end
+        }
+        return terminal, False, False
 
     def _process_frame(
         self,
@@ -2541,16 +2851,22 @@ class AuditoryIncrementalTerminalOwner:
                 )
             if first:
                 self._stream_id = transport.stream_id
-            self._last_transport = transport
-            self._last_cochlear = cochlear
             if not self._cells:
+                self._last_transport = transport
+                self._last_cochlear = cochlear
                 return self._make_result(
                     AuditoryIncrementalStatus.UNKNOWN,
                     processed_hops=len(frames),
                 )
             expired = self._append_pcm(
-                pcm_s16le, transport, cochlear, joint_settlement
+                pcm_s16le,
+                capture,
+                transport,
+                cochlear,
+                joint_settlement,
             )
+            self._last_transport = transport
+            self._last_cochlear = cochlear
             self._frames.extend(
                 _Frame(completion, pressure, phase_advance, normalized)
                 for completion, pressure, phase_advance, normalized in frames
@@ -2597,6 +2913,27 @@ class AuditoryIncrementalTerminalOwner:
                         self._native_proposals.clear()
                         self._pending.clear()
                         break
+                while (
+                    released
+                    and not ambiguous
+                    and not resource
+                    and len(released)
+                    < self._released_terminal_capacity
+                    - len(self._released_full_fields)
+                ):
+                    terminal, phase_ambiguous, phase_resource = (
+                        self._rephased_terminal_after(
+                            released[-1].end,
+                            pcm_s16le=pcm_s16le,
+                            capture=capture,
+                            full_gate_work=full_gate_work,
+                        )
+                    )
+                    ambiguous = ambiguous or phase_ambiguous
+                    resource = resource or phase_resource
+                    if terminal is None:
+                        break
+                    released.append(terminal)
             if resource:
                 terminals: tuple[AuditoryIncrementalTerminalEvent, ...] = ()
             else:

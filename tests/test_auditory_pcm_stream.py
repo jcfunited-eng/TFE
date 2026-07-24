@@ -23,7 +23,9 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AUDITORY_GAMMATONE_CONTINUATION_SCHEMA,
     AuditoryFullFieldStream,
     AuditoryFullFieldStreamRegistry,
+    AuditoryRephaseGrid,
     transduce_auditory_full_field,
+    transduce_rephased_auditory_interval,
 )
 import dsf_ai_service.substrate.senses.auditory_full_field_provider as provider
 
@@ -73,6 +75,97 @@ def test_contiguous_chunks_reconstruct_identical_unsplit_auditory_field() -> Non
     assert accepted.bounded_pcm_tail == complete
     assert accepted.bounded_tail_first_sample_index == 0
     assert _field(accepted.bounded_pcm_tail) == _field(complete)
+
+
+def test_rephased_interval_preserves_filter_history_and_localizes_hops(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(provider, "_native_gammatone_stream", None)
+    prefix_samples = 333
+    interval_samples = 640
+    complete = _pcm(
+        prefix_samples + interval_samples,
+    )
+
+    observed = transduce_rephased_auditory_interval(
+        complete,
+        source_sample_start=prefix_samples,
+        input_sample_count=interval_samples,
+    )
+    reset = _field(complete[prefix_samples * 2:])
+
+    assert observed.source_first_sample_index == prefix_samples
+    assert observed.input_sample_count == interval_samples
+    assert observed.frame_count == interval_samples // 160
+    assert all(
+        channel.carrier_phase_advance_turns[0] == 0.0
+        for channel in observed.channels
+    )
+    assert any(
+        actual.pressure_envelope_full_scale
+        != restarted.pressure_envelope_full_scale
+        for actual, restarted in zip(
+            observed.channels, reset.channels, strict=True
+        )
+    )
+
+
+def test_rephased_interval_at_genesis_is_the_canonical_field() -> None:
+    complete = _pcm(640)
+
+    assert transduce_rephased_auditory_interval(
+        complete,
+        source_sample_start=0,
+        input_sample_count=640,
+    ) == _field(complete)
+
+
+def test_rephase_seed_preserves_history_across_transport_chunks() -> None:
+    complete = _pcm(4_800)
+    cut = 1_933
+    registry = AuditoryPCMStreamRegistry()
+    stream_id = registry.open()["stream_id"]
+    stream = AuditoryFullFieldStream()
+    first = registry.accept(
+        stream_id=stream_id,
+        sequence=0,
+        first_sample_index=0,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=complete[:cut * 2],
+    )
+    stream.advance(first.pcm_s16le, first.receipt)
+    second = registry.accept(
+        stream_id=stream_id,
+        sequence=1,
+        first_sample_index=cut,
+        sample_rate_hz=PCM_SAMPLE_RATE_HZ,
+        source_epoch_start_ns=1_000_000_000,
+        pcm_s16le=complete[cut * 2:],
+    )
+    capture, _receipt = stream.advance(
+        second.pcm_s16le,
+        second.receipt,
+    )
+    assert capture.rephase_seed is not None
+
+    from_chunk = AuditoryRephaseGrid(
+        second.pcm_s16le,
+        candidate_hop_start=2_080,
+        seed=capture.rephase_seed,
+    ).capture(
+        source_sample_start=2_111,
+        input_sample_count=640,
+    )
+    from_genesis = AuditoryRephaseGrid(
+        complete,
+        candidate_hop_start=2_080,
+    ).capture(
+        source_sample_start=2_111,
+        input_sample_count=640,
+    )
+
+    assert from_chunk == from_genesis
 
 
 @pytest.mark.parametrize(
