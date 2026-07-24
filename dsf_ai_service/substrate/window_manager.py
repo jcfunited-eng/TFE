@@ -2282,16 +2282,18 @@ class WindowManager:
                 if populate_chi_index:
                     for chi, pairs in checkpoint["chi_index"].items():
                         chi_int = int(chi)
-                        entries = [
-                            {"window_id": wid, "entry_index": idx}
-                            for wid, idx in pairs
-                        ]
+                        entries = []
+                        seen = set()
+                        for window_id, entry_index in pairs:
+                            entries.append({
+                                "window_id": window_id,
+                                "entry_index": entry_index,
+                            })
+                            seen.add((window_id, entry_index))
                         fast_chi_index[chi_int] = entries
-                        fast_chi_seen[chi_int] = {
-                            (wid, idx) for wid, idx in pairs}
-                blob = checkpoint["record_hashes_blob"]
-                fast_record_hashes = [
-                    blob[i:i + 64] for i in range(0, len(blob), 64)]
+                        fast_chi_seen[chi_int] = seen
+                fast_record_hashes_blob = checkpoint[
+                    "record_hashes_blob"]
                 fast_window_sequence = int(checkpoint["window_sequence"])
                 fast_context_sequence = int(checkpoint["context_sequence"])
             except Exception:
@@ -2312,7 +2314,10 @@ class WindowManager:
                 # the SAME accounting the real loop below uses --
                 # identical verify_prefix/rolling/record_count
                 # bookkeeping, just skipping the expensive parse.
-                for record_hash in fast_record_hashes:
+                for offset in range(
+                        0, len(fast_record_hashes_blob), 64):
+                    record_hash = fast_record_hashes_blob[
+                        offset:offset + 64]
                     if record_count < durable_count:
                         verify_prefix.update(record_hash.encode("ascii"))
                         verify_prefix.update(b"\n")

@@ -60,6 +60,8 @@ import copy
 import hashlib
 import json
 import os
+import statistics
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -147,6 +149,50 @@ def _full_state(manager):
         "context_sequence": manager._context_sequence,
         "digest": manager._wal_digest_hasher.hexdigest(),
     }
+
+
+def _fresh_process_restore(manifest_path, wal_path):
+    worker = r"""
+import json
+import sys
+import time
+
+from dsf_ai_service.substrate.window_manager import WindowManager
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    manifest = json.load(handle)
+
+manager = WindowManager(
+    atlas_record_fn=lambda *_args, **_kwargs: None,
+    log_event_fn=lambda *_args, **_kwargs: None,
+    get_tick_fn=lambda: 0,
+    get_presence_fn=lambda: {"joe": True},
+    get_affect_fn=lambda: {"arousal": 0.7, "valence": -0.2},
+    get_needs_fn=lambda: {"stability": 0.6, "connection": 0.8},
+    atlas_windows={},
+)
+started = time.perf_counter()
+manager.restore_from_wal(manifest, sys.argv[2])
+elapsed = time.perf_counter() - started
+print(json.dumps({
+    "elapsed": elapsed,
+    "count": len(manager._window_locator),
+}))
+"""
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            worker,
+            os.fspath(manifest_path),
+            os.fspath(wal_path),
+        ],
+        cwd=os.fspath(Path(__file__).resolve().parents[1]),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(completed.stdout)
 
 
 def _seed_history(state, n_before_compact=30, n_after_compact=7):
@@ -382,23 +428,47 @@ def test_gate7_fast_path_is_measurably_faster_at_scale(tmp_path):
     for i in range(n_delta):
         _close_window(manager, tick, f"post{i}", chi=10_000_000 + i)
     manifest = manager.snapshot_incremental()
-
-    fast, _, _ = _build()
-    t0 = time.perf_counter()
-    fast.restore_from_wal(manifest, _wal_dir(state))
-    t_fast = time.perf_counter() - t0
+    manifest_path = tmp_path / "timing-manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")),
+        encoding="utf-8",
+    )
 
     ckpt = _checkpoint_path(state)
-    os.rename(ckpt, ckpt + ".hidden")
-    slow, _, _ = _build()
-    t1 = time.perf_counter()
-    slow.restore_from_wal(manifest, _wal_dir(state))
-    t_slow = time.perf_counter() - t1
-    os.rename(ckpt + ".hidden", ckpt)
+    fast_samples = []
+    slow_samples = []
+    restored_counts = []
+    for use_checkpoint in (True, False, False, True, True, False):
+        hidden = ckpt + ".hidden"
+        if not use_checkpoint:
+            os.rename(ckpt, hidden)
+        try:
+            # Production boot always occurs in a fresh ECS task process.
+            # Measuring inside pytest's long-lived 1,700-test interpreter
+            # makes the checkpoint JSON path inherit arbitrary allocator/GC
+            # history that production boot never has.  Each path therefore
+            # gets the same real boundary: a new interpreter, with process
+            # startup and manifest parsing outside the timed restore itself.
+            result = _fresh_process_restore(
+                manifest_path,
+                _wal_dir(state),
+            )
+            elapsed = result["elapsed"]
+            restored_counts.append(result["count"])
+            (
+                fast_samples if use_checkpoint else slow_samples
+            ).append(elapsed)
+        finally:
+            if not use_checkpoint:
+                os.rename(hidden, ckpt)
 
-    assert len(fast._window_locator) == len(slow._window_locator) == (
-        n_base + n_delta)
+    assert restored_counts == [n_base + n_delta] * 6
+    t_fast = statistics.median(fast_samples)
+    t_slow = statistics.median(slow_samples)
     print(f"\n[wal-checkpoint-timing] base={n_base} delta={n_delta} "
+          f"fast_samples={[round(value*1000, 1) for value in fast_samples]} "
+          f"full_replay_samples="
+          f"{[round(value*1000, 1) for value in slow_samples]} "
           f"fast_path={t_fast*1000:.1f}ms full_replay={t_slow*1000:.1f}ms "
           f"speedup={t_slow/max(t_fast, 1e-9):.1f}x")
     # A real, not-noise floor -- measured 1.6x-2.2x across runs at this
