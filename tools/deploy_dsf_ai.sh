@@ -1589,7 +1589,7 @@ if [ "${AUDITORY_UNAUTH_HTTP}" != "401" ]; then
 fi
 AUDITORY_TOKEN_UNAUTH_HTTP=$(curl -sS --connect-timeout 5 --max-time 30 \
     -o /dev/null -w '%{http_code}' -X POST \
-    -F 'file=@/dev/null;type=audio/wav' \
+    -F 'file=@docs/Aurelion/sample_sound.wav;type=audio/wav' \
     -F 'token_form=route probe' \
     -F 'tutor_id=joe' \
     -F 'tutor_nonce=route-probe-token-nonce' \
