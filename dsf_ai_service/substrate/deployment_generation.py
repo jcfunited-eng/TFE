@@ -1636,6 +1636,215 @@ def _materialized_expected_bytes(generation: LoadedGeneration) -> dict[str, byte
     return expected
 
 
+def _stream_materialized_file(
+    generation: LoadedGeneration,
+    relative_path: str,
+    *,
+    destination_fd: int | None = None,
+) -> tuple[str, int]:
+    """Stream one caller payload out of its immutable generation envelope."""
+    source = generation.directory / Path(relative_path)
+    digest = hashlib.sha256()
+    emitted = 0
+
+    def emit(data: bytes) -> None:
+        nonlocal emitted
+        digest.update(data)
+        emitted += len(data)
+        if destination_fd is not None:
+            _write_all(destination_fd, data)
+
+    if not relative_path.endswith(".json"):
+        with source.open("rb") as handle:
+            while True:
+                block = handle.read(1024 * 1024)
+                if not block:
+                    break
+                emit(block)
+        return digest.hexdigest(), emitted
+
+    encoded_uuid = json.dumps(
+        generation.generation_uuid,
+        ensure_ascii=False,
+    ).encode("utf-8")
+    encoded_identity = json.dumps(
+        generation.identity,
+        ensure_ascii=False,
+    ).encode("utf-8")
+    encoded_relative = json.dumps(
+        relative_path,
+        ensure_ascii=False,
+    ).encode("utf-8")
+    prefix_lines = (
+        b"{\n",
+        b'  "generation_uuid": ' + encoded_uuid + b",\n",
+        b'  "identity": ' + encoded_identity + b",\n",
+    )
+    payload_prefix = b'  "payload": '
+    relative_line = (
+        b'  "relative_path": ' + encoded_relative + b",\n"
+    )
+    schema_line = (
+        b'  "schema": "immutable_generation_envelope_v1",\n'
+    )
+    tick_line = (
+        b'  "tick": ' + str(generation.tick).encode("ascii") + b"\n"
+    )
+    with source.open("rb") as handle:
+        for expected_line in prefix_lines:
+            if handle.readline() != expected_line:
+                raise MaterializationError(
+                    f"JSON generation envelope {relative_path!r} has a "
+                    "noncanonical prefix"
+                )
+        payload_line = handle.readline()
+        if not payload_line.startswith(payload_prefix):
+            raise MaterializationError(
+                f"JSON generation envelope {relative_path!r} has no canonical "
+                "payload boundary"
+            )
+        pending = payload_line[len(payload_prefix):]
+        first_payload_line = True
+        while True:
+            following = handle.readline()
+            if not following:
+                raise MaterializationError(
+                    f"JSON generation envelope {relative_path!r} ended inside "
+                    "its payload"
+                )
+            if following == relative_line:
+                if not pending.endswith(b",\n"):
+                    raise MaterializationError(
+                        f"JSON generation envelope {relative_path!r} has no "
+                        "canonical payload terminator"
+                    )
+                pending = pending[:-2] + b"\n"
+                if not first_payload_line:
+                    if not pending.startswith(b"  "):
+                        raise MaterializationError(
+                            f"JSON generation envelope {relative_path!r} has "
+                            "invalid payload indentation"
+                        )
+                    pending = pending[2:]
+                emit(pending)
+                break
+            if not first_payload_line:
+                if not pending.startswith(b"  "):
+                    raise MaterializationError(
+                        f"JSON generation envelope {relative_path!r} has "
+                        "invalid payload indentation"
+                    )
+                pending = pending[2:]
+            emit(pending)
+            first_payload_line = False
+            pending = following
+        if (
+            handle.readline() != schema_line
+            or handle.readline() != tick_line
+            or handle.readline() != b"}\n"
+            or handle.read(1) != b""
+        ):
+            raise MaterializationError(
+                f"JSON generation envelope {relative_path!r} has a "
+                "noncanonical suffix"
+            )
+    return digest.hexdigest(), emitted
+
+
+def _hash_file_stream(path: Path) -> tuple[str, int]:
+    digest = hashlib.sha256()
+    size = 0
+    with path.open("rb") as handle:
+        while True:
+            block = handle.read(1024 * 1024)
+            if not block:
+                break
+            digest.update(block)
+            size += len(block)
+    return digest.hexdigest(), size
+
+
+def _generation_materialized_contract(
+    generation: LoadedGeneration,
+) -> dict[str, tuple[str, int]]:
+    return {
+        relative_path: _stream_materialized_file(
+            generation,
+            relative_path,
+        )
+        for relative_path in generation.required_files
+    }
+
+
+def _verify_generation_materialization(
+    directory: Path,
+    generation: LoadedGeneration,
+    *,
+    allow_runtime_extras: bool,
+) -> None:
+    expected = _generation_materialized_contract(generation)
+    expected_files = set(expected)
+    expected_directories = _expected_parent_directories(
+        tuple(generation.required_files)
+    )
+    actual_files = set()
+    actual_directories = set()
+    for current_root, directory_names, file_names in os.walk(
+        directory,
+        topdown=True,
+        followlinks=False,
+    ):
+        current = Path(current_root)
+        relative_root = current.relative_to(directory)
+        if relative_root != Path("."):
+            actual_directories.add(relative_root.as_posix())
+        info = current.lstat()
+        if not stat.S_ISDIR(info.st_mode) or current.is_symlink():
+            raise MaterializationError(
+                "materialized tree contains a special directory"
+            )
+        for name in directory_names:
+            if (current / name).is_symlink():
+                raise MaterializationError(
+                    "materialized tree contains a directory symlink"
+                )
+        for name in file_names:
+            path = current / name
+            relative = path.relative_to(directory).as_posix()
+            info = path.lstat()
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or path.is_symlink()
+                or info.st_nlink != 1
+            ):
+                raise MaterializationError(
+                    f"materialized file {relative!r} is not a unique "
+                    "regular file"
+                )
+            actual_files.add(relative)
+    if allow_runtime_extras:
+        if (
+            not expected_files.issubset(actual_files)
+            or not expected_directories.issubset(actual_directories)
+        ):
+            raise MaterializationError(
+                "active tree is missing a required file or directory"
+            )
+    elif (
+        actual_files != expected_files
+        or actual_directories != expected_directories
+    ):
+        raise MaterializationError(
+            "materialized tree has a missing or extra file/directory"
+        )
+    for relative_path, expected_record in expected.items():
+        path = directory / Path(relative_path)
+        if _hash_file_stream(path) != expected_record:
+            raise MaterializationError(
+                f"materialized file {relative_path!r} differs from CURRENT"
+            )
+
+
 def _expected_parent_directories(relative_files: tuple[str, ...]) -> set[str]:
     directories = set()
     for relative_path in relative_files:
@@ -1646,7 +1855,50 @@ def _expected_parent_directories(relative_files: tuple[str, ...]) -> set[str]:
     return directories
 
 
-def _write_materialization(candidate: Path, expected: Mapping[str, bytes]) -> None:
+def _write_materialization(
+    candidate: Path,
+    expected: Mapping[str, bytes] | LoadedGeneration,
+) -> None:
+    if isinstance(expected, LoadedGeneration):
+        candidate.mkdir(mode=0o700)
+        directories = _expected_parent_directories(
+            tuple(expected.required_files)
+        )
+        for relative in sorted(
+            directories,
+            key=lambda item: (len(PurePosixPath(item).parts), item),
+        ):
+            (candidate / Path(relative)).mkdir(mode=0o700)
+        for relative_path in sorted(expected.required_files):
+            destination = candidate / Path(relative_path)
+            descriptor = os.open(
+                destination,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o600,
+            )
+            try:
+                _stream_materialized_file(
+                    expected,
+                    relative_path,
+                    destination_fd=descriptor,
+                )
+                os.fchmod(descriptor, 0o644)
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+        all_directories = [candidate]
+        all_directories.extend(
+            candidate / Path(item)
+            for item in directories
+        )
+        for directory in sorted(
+            all_directories,
+            key=lambda item: len(item.parts),
+            reverse=True,
+        ):
+            os.chmod(directory, 0o755)
+            _fsync_directory(directory)
+        return
     candidate.mkdir(mode=0o700)
     directories = _expected_parent_directories(tuple(expected))
     for relative in sorted(
@@ -1663,7 +1915,17 @@ def _write_materialization(candidate: Path, expected: Mapping[str, bytes]) -> No
         _fsync_directory(directory)
 
 
-def _verify_materialization(directory: Path, expected: Mapping[str, bytes]) -> None:
+def _verify_materialization(
+    directory: Path,
+    expected: Mapping[str, bytes] | LoadedGeneration,
+) -> None:
+    if isinstance(expected, LoadedGeneration):
+        _verify_generation_materialization(
+            directory,
+            expected,
+            allow_runtime_extras=False,
+        )
+        return
     expected_files = set(expected)
     expected_directories = _expected_parent_directories(tuple(expected))
     actual_files = set()
@@ -1699,7 +1961,9 @@ def _verify_materialization(directory: Path, expected: Mapping[str, bytes]) -> N
 
 
 def _verify_required_materialization(
-        directory: Path, expected: Mapping[str, bytes]) -> None:
+        directory: Path,
+        expected: Mapping[str, bytes] | LoadedGeneration,
+) -> None:
     """Prove the authoritative files already present in an active tree.
 
     Runtime-only files such as snapshots may coexist beside the sealed
@@ -1708,6 +1972,13 @@ def _verify_required_materialization(
     verified CURRENT.  Every required directory and file is still checked for
     type and symlink/hard-link safety before any bytes are trusted.
     """
+    if isinstance(expected, LoadedGeneration):
+        _verify_generation_materialization(
+            directory,
+            expected,
+            allow_runtime_extras=True,
+        )
+        return
     info = directory.lstat()
     if not stat.S_ISDIR(info.st_mode) or directory.is_symlink():
         raise MaterializationError(
@@ -1801,7 +2072,7 @@ def materialize_verified_generation(
         raise MaterializationError(
             "existing active path must be a real directory")
 
-    expected = _materialized_expected_bytes(generation)
+    expected = generation
     stale_retirements = tuple(
         active_parent.glob(f".{active.name}.retired-*")
     )
@@ -1826,7 +2097,7 @@ def materialize_verified_generation(
                 tick=generation.tick,
                 manifest_sha256=generation.manifest_sha256,
                 active_directory=active,
-                materialized_files=tuple(sorted(expected)),
+                materialized_files=tuple(sorted(generation.required_files)),
             )
 
     candidate = active_parent / (
@@ -1912,7 +2183,7 @@ def materialize_verified_generation(
         tick=generation.tick,
         manifest_sha256=generation.manifest_sha256,
         active_directory=active,
-        materialized_files=tuple(sorted(expected)),
+        materialized_files=tuple(sorted(generation.required_files)),
     )
 
 

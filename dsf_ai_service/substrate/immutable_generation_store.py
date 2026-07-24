@@ -689,8 +689,13 @@ class ImmutableGenerationStore:
                 actual_files.add(relative)
         return actual_files, actual_directories
 
-    def _verify_directory(self, generation_directory: Path,
-                          generation_uuid: str) -> LoadedGeneration:
+    def _verify_directory(
+        self,
+        generation_directory: Path,
+        generation_uuid: str,
+        *,
+        validate_json_envelopes: bool = True,
+    ) -> LoadedGeneration:
         try:
             directory_info = generation_directory.lstat()
         except FileNotFoundError as error:
@@ -792,32 +797,37 @@ class ImmutableGenerationStore:
             raise GenerationValidationError(
                 "generation manifest is not canonical JSON")
 
-        # Verification above must use the supplied directory, including during
-        # pre-publication verification.  Envelope verification is therefore
-        # performed directly here rather than through CURRENT.
-        for relative_path in generation_required_files:
-            if not relative_path.endswith(".json"):
-                continue
-            envelope, envelope_bytes = _read_strict_json_file(
-                generation_directory / Path(relative_path),
-                f"JSON envelope {relative_path!r}")
-            if not isinstance(envelope, dict) or set(envelope) != _ENVELOPE_KEYS:
-                raise GenerationValidationError(
-                    f"JSON envelope {relative_path!r} has an invalid field set")
-            expected = {
-                "schema": ENVELOPE_SCHEMA,
-                "generation_uuid": generation_uuid,
-                "identity": self.identity,
-                "tick": tick,
-                "relative_path": relative_path,
-            }
-            for key, value in expected.items():
-                if envelope.get(key) != value:
+        if validate_json_envelopes:
+            # Creation and reconciliation interpret every JSON envelope before
+            # publication or retirement.  A sealed boot can instead stream
+            # the exact manifest hashes here and let the one real engine load
+            # perform the sole payload interpretation.
+            for relative_path in generation_required_files:
+                if not relative_path.endswith(".json"):
+                    continue
+                envelope, envelope_bytes = _read_strict_json_file(
+                    generation_directory / Path(relative_path),
+                    f"JSON envelope {relative_path!r}")
+                if (
+                    not isinstance(envelope, dict)
+                    or set(envelope) != _ENVELOPE_KEYS
+                ):
                     raise GenerationValidationError(
-                        f"JSON envelope {relative_path!r} has mismatched {key}")
-            if envelope_bytes != _canonical_json(envelope):
-                raise GenerationValidationError(
-                    f"JSON envelope {relative_path!r} is not canonical JSON")
+                        f"JSON envelope {relative_path!r} has an invalid field set")
+                expected = {
+                    "schema": ENVELOPE_SCHEMA,
+                    "generation_uuid": generation_uuid,
+                    "identity": self.identity,
+                    "tick": tick,
+                    "relative_path": relative_path,
+                }
+                for key, value in expected.items():
+                    if envelope.get(key) != value:
+                        raise GenerationValidationError(
+                            f"JSON envelope {relative_path!r} has mismatched {key}")
+                if envelope_bytes != _canonical_json(envelope):
+                    raise GenerationValidationError(
+                        f"JSON envelope {relative_path!r} is not canonical JSON")
 
         certificate = {
             "schema": CERTIFICATE_SCHEMA,
@@ -1182,6 +1192,24 @@ class ImmutableGenerationStore:
             generation_uuid,
         )
 
+    def verify_sealed_generation_integrity(
+        self,
+        generation_uuid: str,
+    ) -> LoadedGeneration:
+        """Stream-verify a previously sealed generation without JSON decoding.
+
+        The exact tree, immutable modes, manifest, file sizes, and SHA-256
+        hashes are still verified.  JSON payload interpretation remains a
+        creation/reconciliation proof and the responsibility of the one real
+        engine restore during boot.
+        """
+        generation_uuid = _canonical_generation_uuid(generation_uuid)
+        return self._verify_directory(
+            self.generations_directory / generation_uuid,
+            generation_uuid,
+            validate_json_envelopes=False,
+        )
+
     def discard_unpublished(self, generation: LoadedGeneration) -> None:
         """Remove one verified candidate only when CURRENT cannot reference it."""
         if not isinstance(generation, LoadedGeneration):
@@ -1281,6 +1309,33 @@ class ImmutableGenerationStore:
             self._enforce_verified_capacity(
                 loaded,
                 description="CURRENT generation",
+            )
+        except GenerationCapacityError as error:
+            raise CurrentPointerError(str(error)) from error
+        return loaded
+
+    def load_sealed_current_integrity(self) -> LoadedGeneration:
+        """Stream-verify sealed CURRENT without decoding JSON payload bodies."""
+        pointer, current_is_canonical = self._read_current()
+        try:
+            loaded = self.verify_sealed_generation_integrity(
+                pointer["generation_uuid"]
+            )
+        except GenerationValidationError as error:
+            raise CurrentPointerError(
+                f"sealed CURRENT generation failed integrity verification: "
+                f"{error}"
+            ) from error
+        if loaded.tick != pointer["tick"]:
+            raise CurrentPointerError("CURRENT pointer tick mismatch")
+        if loaded.manifest_sha256 != pointer["manifest_sha256"]:
+            raise CurrentPointerError("CURRENT pointer manifest hash mismatch")
+        if not current_is_canonical:
+            raise CurrentPointerError("CURRENT pointer is not canonical JSON")
+        try:
+            self._enforce_verified_capacity(
+                loaded,
+                description="sealed CURRENT generation",
             )
         except GenerationCapacityError as error:
             raise CurrentPointerError(str(error)) from error

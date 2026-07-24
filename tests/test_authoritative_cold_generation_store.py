@@ -110,6 +110,42 @@ def test_first_generation_is_not_claimed_as_production_ready(
     assert store.inspect(require_predecessor=False).current.tick == 1
 
 
+def test_recurring_current_reference_proof_never_rehashes_payloads(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "store"
+    store = _store(root)
+    first = store.commit(
+        tick=1,
+        files=_files(tmp_path, 1),
+        generation_uuid=_uuid(1),
+    )
+    second = store.commit(
+        tick=2,
+        files=_files(tmp_path, 2),
+        generation_uuid=_uuid(2),
+    )
+
+    def forbidden_verify(_generation_uuid):
+        raise AssertionError("readiness rehashed a generation payload")
+
+    monkeypatch.setattr(
+        store._store,
+        "verify_generation",
+        forbidden_verify,
+    )
+    assert (
+        store.assert_current_reference(second.current)
+        is second.current
+    )
+    with pytest.raises(
+        AuthoritativeColdGenerationError,
+        match="differs from the boot-verified generation",
+    ):
+        store.assert_current_reference(first.current)
+
+
 def test_prune_failure_blocks_subsequent_admission_and_restart(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -453,6 +489,88 @@ def test_verified_reconciliation_reduces_retain_three_to_exact_two(
         path.name
         for path in (root / GENERATIONS_DIRECTORY).iterdir()
     } == {_uuid(2), _uuid(3)}
+
+
+def test_legacy_transition_waits_for_exact_real_current_restore(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    validator_calls = []
+    store = _store(
+        root,
+        validator=lambda generation: validator_calls.append(
+            generation.generation_uuid
+        ),
+    )
+    for tick in (1, 2, 3):
+        store._store.commit(
+            tick=tick,
+            files=_files(tmp_path, tick),
+            generation_uuid=_uuid(tick),
+        )
+
+    audited = store.inspect_legacy_retention_transition()
+    assert validator_calls == []
+    assert len(audited.census) == TRANSIENT_AUTHORITATIVE_GENERATIONS
+    before = {
+        path.name
+        for path in (root / GENERATIONS_DIRECTORY).iterdir()
+    }
+    with pytest.raises(
+        AuthoritativeColdGenerationError,
+        match="exact CURRENT engine-restore proof",
+    ):
+        store.complete_legacy_retention_transition(
+            audited_current=audited.current,
+            restored_identity=audited.current.identity,
+            restored_tick=audited.current.tick + 1,
+        )
+    assert {
+        path.name
+        for path in (root / GENERATIONS_DIRECTORY).iterdir()
+    } == before
+
+    transitioned = store.complete_legacy_retention_transition(
+        audited_current=audited.current,
+        restored_identity=audited.current.identity,
+        restored_tick=audited.current.tick,
+    )
+    assert validator_calls == []
+    assert transitioned.current.generation_uuid == _uuid(3)
+    assert transitioned.predecessor is not None
+    assert transitioned.predecessor.generation_uuid == _uuid(2)
+    assert {
+        path.name
+        for path in (root / GENERATIONS_DIRECTORY).iterdir()
+    } == {_uuid(2), _uuid(3)}
+
+
+def test_legacy_transition_refuses_changed_current_after_restore(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    store = _store(root)
+    for tick in (1, 2, 3):
+        store._store.commit(
+            tick=tick,
+            files=_files(tmp_path, tick),
+            generation_uuid=_uuid(tick),
+        )
+    audited = store.inspect_legacy_retention_transition()
+    os.chmod(audited.current.directory / "brain.json", 0o644)
+    with pytest.raises(
+        AuthoritativeColdGenerationError,
+        match="verification failed",
+    ):
+        store.complete_legacy_retention_transition(
+            audited_current=audited.current,
+            restored_identity=audited.current.identity,
+            restored_tick=audited.current.tick,
+        )
+    assert {
+        path.name
+        for path in (root / GENERATIONS_DIRECTORY).iterdir()
+    } == {_uuid(1), _uuid(2), _uuid(3)}
 
 
 def test_reconciliation_never_removes_older_loadable_recovery_state(

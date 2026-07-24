@@ -420,7 +420,7 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
         appmod,
         "_authoritative_cold_store",
         SimpleNamespace(
-            inspect=lambda: SimpleNamespace(current=generation),
+            assert_current_reference=lambda expected: expected,
         ),
     )
 
@@ -526,7 +526,7 @@ def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
         appmod,
         "_authoritative_cold_store",
         SimpleNamespace(
-            inspect=lambda: SimpleNamespace(current=baseline),
+            assert_current_reference=lambda expected: expected,
         ),
     )
 

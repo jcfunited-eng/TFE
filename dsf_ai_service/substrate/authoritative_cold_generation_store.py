@@ -16,6 +16,7 @@ or otherwise alter cognition or any DSF field.
 from __future__ import annotations
 
 import os
+import stat
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -144,6 +145,7 @@ class AuthoritativeColdGenerationStore:
         require_predecessor: bool,
         allow_empty: bool,
         maximum_generations: int = RETAINED_AUTHORITATIVE_GENERATIONS,
+        sealed_integrity: bool = False,
     ) -> AuthoritativeColdState | None:
         current_path = self.root / CURRENT_NAME
         paths = self._generation_paths()
@@ -156,9 +158,22 @@ class AuthoritativeColdGenerationStore:
                 "cold-generation store has no authoritative CURRENT"
             )
         try:
-            current = self._store.load_current()
+            current = (
+                self._store.load_sealed_current_integrity()
+                if sealed_integrity
+                else self._store.load_current()
+            )
+            verifier = (
+                self._store.verify_sealed_generation_integrity
+                if sealed_integrity
+                else self._store.verify_generation
+            )
             verified = tuple(
-                self._store.verify_generation(path.name)
+                (
+                    current
+                    if path.name == current.generation_uuid
+                    else verifier(path.name)
+                )
                 for path in paths
             )
         except Exception as error:
@@ -345,6 +360,197 @@ class AuthoritativeColdGenerationStore:
                 "cold-generation authority is empty"
             )
         return state
+
+    def inspect_sealed_boot(
+        self,
+        *,
+        require_predecessor: bool = True,
+    ) -> AuthoritativeColdState:
+        """Stream-audit sealed generations once without payload decoding."""
+        if self._blocked_reason is not None:
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation authority is blocked: "
+                f"{self._blocked_reason}"
+            )
+        with self._store.exclusive_transaction():
+            state = self._audit(
+                require_predecessor=require_predecessor,
+                allow_empty=False,
+                sealed_integrity=True,
+            )
+        if state is None:
+            raise AuthoritativeColdGenerationError(
+                "cold-generation authority is empty"
+            )
+        return state
+
+    def assert_current_reference(
+        self,
+        expected_current: LoadedGeneration,
+    ) -> LoadedGeneration:
+        """Prove the published pointer still names the boot-verified CURRENT.
+
+        This constant-size proof is for recurring readiness checks after a
+        complete generation has already crossed the cold-store audit and the
+        real engine restore.  It never substitutes for those boundary proofs.
+        """
+        if not isinstance(expected_current, LoadedGeneration):
+            raise TypeError("expected_current must be a verified generation")
+        if (
+            expected_current.identity != self._store.identity
+            or expected_current.directory.parent
+            != self._store.generations_directory
+        ):
+            raise AuthoritativeColdGenerationError(
+                "readiness CURRENT does not belong to this authority"
+            )
+        with self._store.exclusive_transaction():
+            try:
+                pointer, canonical = self._store._read_current()
+            except Exception as error:
+                raise AuthoritativeColdGenerationError(
+                    f"readiness CURRENT cannot be verified: {error}"
+                ) from error
+            if (
+                not canonical
+                or pointer["generation_uuid"]
+                != expected_current.generation_uuid
+                or pointer["identity"] != expected_current.identity
+                or pointer["tick"] != expected_current.tick
+                or pointer["manifest_sha256"]
+                != expected_current.manifest_sha256
+            ):
+                raise AuthoritativeColdGenerationError(
+                    "readiness CURRENT differs from the boot-verified generation"
+                )
+            try:
+                directory_info = expected_current.directory.lstat()
+                manifest_info = (
+                    expected_current.directory / MANIFEST_NAME
+                ).lstat()
+            except FileNotFoundError as error:
+                raise AuthoritativeColdGenerationError(
+                    "readiness CURRENT generation is absent"
+                ) from error
+            if (
+                expected_current.directory.is_symlink()
+                or not stat.S_ISDIR(directory_info.st_mode)
+                or stat.S_IMODE(directory_info.st_mode) != 0o555
+                or not stat.S_ISREG(manifest_info.st_mode)
+                or stat.S_IMODE(manifest_info.st_mode) != 0o444
+                or manifest_info.st_nlink != 1
+            ):
+                raise AuthoritativeColdGenerationError(
+                    "readiness CURRENT generation lost immutable structure"
+                )
+        return expected_current
+
+    def inspect_legacy_retention_transition(self) -> AuthoritativeColdState:
+        """Audit one exact retain-three predecessor without retiring it.
+
+        This is the read-only half of the one-time transition from the legacy
+        deployment writer, which retained three published generations.  It
+        deliberately does not call the engine validator and deliberately does
+        not remove anything.  Retirement is permitted only after the caller
+        has restored the audited CURRENT generation in the real engine and
+        supplies that exact restore proof to
+        :meth:`complete_legacy_retention_transition`.
+        """
+        if self._blocked_reason is not None:
+            raise AuthoritativeColdGenerationError(
+                f"cold-generation authority is blocked: "
+                f"{self._blocked_reason}"
+            )
+        with self._store.exclusive_transaction():
+            state = self._audit(
+                require_predecessor=True,
+                allow_empty=False,
+                maximum_generations=TRANSIENT_AUTHORITATIVE_GENERATIONS,
+                sealed_integrity=True,
+            )
+        if state is None or len(state.census) != TRANSIENT_AUTHORITATIVE_GENERATIONS:
+            raise AuthoritativeColdGenerationError(
+                "legacy cold-generation transition requires exactly "
+                "CURRENT plus two predecessors"
+            )
+        return state
+
+    def complete_legacy_retention_transition(
+        self,
+        *,
+        audited_current: LoadedGeneration,
+        restored_identity: str,
+        restored_tick: int,
+    ) -> AuthoritativeColdState:
+        """Retire the oldest legacy generation after one exact CURRENT restore."""
+        if not isinstance(audited_current, LoadedGeneration):
+            raise TypeError("audited_current must be a verified generation")
+        if (
+            restored_identity != audited_current.identity
+            or isinstance(restored_tick, bool)
+            or not isinstance(restored_tick, int)
+            or restored_tick != audited_current.tick
+        ):
+            raise AuthoritativeColdGenerationError(
+                "legacy retention transition lacks an exact CURRENT "
+                "engine-restore proof"
+            )
+        try:
+            with self._store.exclusive_transaction():
+                state = self._audit(
+                    require_predecessor=True,
+                    allow_empty=False,
+                    maximum_generations=TRANSIENT_AUTHORITATIVE_GENERATIONS,
+                    sealed_integrity=True,
+                )
+                if (
+                    state is None
+                    or len(state.census)
+                    != TRANSIENT_AUTHORITATIVE_GENERATIONS
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "legacy cold-generation transition changed before "
+                        "retirement"
+                    )
+                if (
+                    state.current.recovery_certificate_bytes()
+                    != audited_current.recovery_certificate_bytes()
+                ):
+                    raise AuthoritativeColdGenerationError(
+                        "legacy cold-generation CURRENT changed after its "
+                        "engine restore"
+                    )
+                removed = self._store.prune_generations(
+                    retain=RETAINED_AUTHORITATIVE_GENERATIONS,
+                    verified_current=state.current,
+                )
+                expected_removed = tuple(
+                    record.generation_uuid
+                    for record in state.census[
+                        RETAINED_AUTHORITATIVE_GENERATIONS:
+                    ]
+                )
+                if removed != expected_removed:
+                    raise AuthoritativeColdGenerationError(
+                        "legacy cold-generation transition retired an "
+                        "unexpected generation"
+                    )
+                transitioned = AuthoritativeColdState(
+                    current=state.current,
+                    predecessor=state.predecessor,
+                    census=state.census[
+                        :RETAINED_AUTHORITATIVE_GENERATIONS
+                    ],
+                )
+            self._blocked_reason = None
+            return transitioned
+        except Exception as error:
+            self._block(error)
+            if isinstance(error, AuthoritativeColdGenerationError):
+                raise
+            raise AuthoritativeColdGenerationError(
+                f"legacy cold-generation transition failed: {error}"
+            ) from error
 
     def _discard_candidate_when_provably_unpublished(
         self,

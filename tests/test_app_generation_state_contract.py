@@ -40,8 +40,127 @@ class _S3:
 
 def test_boot_audits_immutable_generations_without_disposable_engine_loads():
     source = inspect.getsource(appmod._prepare_generation_boot)
-    assert "cold_store.inspect(require_predecessor=False)" in source
+    assert "cold_store.inspect_sealed_boot" in source
+    assert "cold_store.inspect_legacy_retention_transition()" in source
     assert "cold_store.reconcile_verified_retention()" not in source
+    completion = inspect.getsource(
+        appmod._complete_legacy_cold_retention_transition
+    )
+    assert "complete_legacy_retention_transition" in completion
+    assert "_validate_runtime_generation_cold_restore" not in completion
+    init_source = inspect.getsource(appmod._gl_init)
+    exact_restore_guard = init_source.index(
+        "generation identity/tick mismatch"
+    )
+    legacy_completion = init_source.index(
+        "_complete_legacy_cold_retention_transition(g)"
+    )
+    autonomy_start = init_source.index("g.start_autonomy_loop")
+    assert exact_restore_guard < legacy_completion < autonomy_start
+
+
+def test_recurring_readiness_never_reaudits_generation_payloads():
+    source = inspect.getsource(appmod._production_runtime_proof)
+    assert "assert_current_reference" in source
+    assert "_authoritative_cold_store.inspect" not in source
+
+
+def test_legacy_retention_completion_uses_the_real_restored_identity_and_tick(
+    tmp_path,
+    monkeypatch,
+):
+    from dsf_ai_service.substrate import deployment_generation
+
+    events = []
+    current = SimpleNamespace(
+        generation_uuid="11111111-1111-4111-8111-111111111111",
+        identity="guala-identity",
+        tick=73,
+        manifest_sha256="a" * 64,
+    )
+    predecessor = SimpleNamespace(
+        generation_uuid="22222222-2222-4222-8222-222222222222",
+    )
+    transitioned = SimpleNamespace(
+        current=current,
+        census=(
+            SimpleNamespace(generation_uuid=current.generation_uuid),
+            SimpleNamespace(
+                generation_uuid=predecessor.generation_uuid
+            ),
+        ),
+    )
+
+    class Authority:
+        def complete_legacy_retention_transition(self, **proof):
+            events.append(("complete", proof))
+            return transitioned
+
+    seal_path = tmp_path / deployment_generation.DEPLOYMENT_SEAL_NAME
+    seal_path.write_bytes(b"sealed-generation-certificate")
+    monkeypatch.setattr(appmod, "GENERATION_STORE_ROOT", str(tmp_path))
+    monkeypatch.setattr(appmod, "_GUALALOOM_API_KEY", "control-secret")
+    monkeypatch.setattr(
+        appmod,
+        "_legacy_cold_retention_transition",
+        current,
+    )
+    monkeypatch.setattr(appmod, "_authoritative_cold_store", Authority())
+    monkeypatch.setattr(appmod, "_deployment_baseline_generation", None)
+    monkeypatch.setattr(
+        deployment_generation,
+        "load_and_verify_deployment_seal",
+        lambda *_args, **_kwargs: {
+            "generation_uuid": current.generation_uuid,
+            "nonce_base64": "MDEyMzQ1Njc4OWFiY2RlZg==",
+        },
+    )
+    monkeypatch.setattr(
+        deployment_generation,
+        "persist_generation_deployment_seal",
+        lambda *_args, **_kwargs: events.append(("persist", _kwargs)),
+    )
+    monkeypatch.setattr(
+        deployment_generation,
+        "reconcile_generation_deployment_seals",
+        lambda *_args, **_kwargs: events.append(
+            ("local", _kwargs["retained_generation_uuids"])
+        ),
+    )
+    monkeypatch.setattr(
+        deployment_generation,
+        "reconcile_remote_generation_prefixes",
+        lambda **kwargs: events.append(
+            ("remote", kwargs["retained_generation_uuids"])
+        ),
+    )
+    monkeypatch.setattr("boto3.client", lambda *_args, **_kwargs: object())
+
+    restored = SimpleNamespace(
+        _guala_identity=current.identity,
+        tick=current.tick,
+    )
+    appmod._complete_legacy_cold_retention_transition(restored)
+
+    assert events[0] == (
+        "complete",
+        {
+            "audited_current": current,
+            "restored_identity": current.identity,
+            "restored_tick": current.tick,
+        },
+    )
+    assert events[1][0] == "persist"
+    assert events[2] == (
+        "local",
+        (current.generation_uuid, predecessor.generation_uuid),
+    )
+    assert events[3] == (
+        "remote",
+        (current.generation_uuid, predecessor.generation_uuid),
+    )
+    assert appmod._deployment_baseline_generation is current
+    assert appmod._legacy_cold_retention_transition is None
 
 
 def test_legacy_pickle_migration_requires_both_verified_generation_artifacts():

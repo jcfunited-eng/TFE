@@ -1819,6 +1819,7 @@ _loaded_generation = None
 _deployment_baseline_generation = None
 _live_recovery_store = None
 _authoritative_cold_store = None
+_legacy_cold_retention_transition = None
 _persistence_authority_lock = threading.RLock()
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
@@ -2332,13 +2333,14 @@ def _prepare_generation_boot():
     """Acquire the sole EFS owner and activate fully verified CURRENT state."""
     global _generation_owner_lock, _loaded_generation
     global _deployment_baseline_generation, _live_recovery_store
-    global _authoritative_cold_store
+    global _authoritative_cold_store, _legacy_cold_retention_transition
     if not _REQUIRE_SEALED_STATE:
         return None
     if _generation_owner_lock is not None:
         return _loaded_generation
     from dsf_ai_service.substrate.deployment_generation import (
         DEPLOYMENT_SEAL_NAME,
+        DEPLOYMENT_SEALS_DIRECTORY,
         ProcessLifetimeEFSOwnerLock,
         load_and_verify_deployment_seal,
         load_generation_deployment_seal,
@@ -2348,6 +2350,7 @@ def _prepare_generation_boot():
         reconcile_remote_generation_prefixes,
     )
     from dsf_ai_service.substrate.authoritative_cold_generation_store import (
+        AuthoritativeColdGenerationError,
         AuthoritativeColdGenerationStore,
     )
     from dsf_ai_service.substrate.live_recovery_generation import (
@@ -2373,63 +2376,81 @@ def _prepare_generation_boot():
             max_dynamic_path_bytes=max_path_bytes,
             pre_publish_validator=_validate_runtime_generation_cold_restore,
         )
-        # Boot audits the immutable CURRENT/predecessor bytes and certificates
-        # without constructing disposable Guala instances.  CURRENT already
-        # crossed the exact engine-load validator before publication; the one
-        # real boot below is the authoritative restore proof for this process.
-        # Retain-three reconciliation belongs to the controlled seal/commit
-        # boundary, never the latency- and memory-critical boot boundary.
-        cold_state = cold_store.inspect(require_predecessor=False)
+        generation_seal_path = os.path.join(
+            GENERATION_STORE_ROOT,
+            DEPLOYMENT_SEALS_DIRECTORY,
+            f"{deployment_seal['generation_uuid']}.json",
+        )
         try:
+            os.lstat(generation_seal_path)
+        except FileNotFoundError:
+            has_generation_bound_seal = False
+        else:
+            has_generation_bound_seal = True
+
+        _legacy_cold_retention_transition = None
+        if has_generation_bound_seal:
+            cold_state = cold_store.inspect_sealed_boot(
+                require_predecessor=False
+            )
             load_generation_deployment_seal(
                 GENERATION_STORE_ROOT,
                 cold_state.current.generation_uuid,
                 hmac_key=_deploy_hmac_key(),
             )
-        except Exception:
+        else:
+            try:
+                cold_state = cold_store.inspect_sealed_boot(
+                    require_predecessor=False
+                )
+            except AuthoritativeColdGenerationError:
+                cold_state = cold_store.inspect_legacy_retention_transition()
+                _legacy_cold_retention_transition = cold_state.current
             if (
                 deployment_seal["generation_uuid"]
                 != cold_state.current.generation_uuid
             ):
                 raise RuntimeError(
                     "CURRENT has no matching generation-bound deployment seal")
-            legacy_seal_path = os.path.join(
-                GENERATION_STORE_ROOT,
-                DEPLOYMENT_SEAL_NAME,
+            if _legacy_cold_retention_transition is None:
+                legacy_seal_path = os.path.join(
+                    GENERATION_STORE_ROOT,
+                    DEPLOYMENT_SEAL_NAME,
+                )
+                with open(legacy_seal_path, "rb") as handle:
+                    legacy_seal_bytes = handle.read()
+                import base64
+                persist_generation_deployment_seal(
+                    GENERATION_STORE_ROOT,
+                    legacy_seal_bytes,
+                    hmac_key=_deploy_hmac_key(),
+                    expected_nonce=base64.b64decode(
+                        deployment_seal["nonce_base64"],
+                        validate=True,
+                    ),
+                )
+        if _legacy_cold_retention_transition is None:
+            retained_generation_uuids = tuple(
+                record.generation_uuid
+                for record in cold_state.census
             )
-            with open(legacy_seal_path, "rb") as handle:
-                legacy_seal_bytes = handle.read()
-            import base64
-            persist_generation_deployment_seal(
+            reconcile_generation_deployment_seals(
                 GENERATION_STORE_ROOT,
-                legacy_seal_bytes,
-                hmac_key=_deploy_hmac_key(),
-                expected_nonce=base64.b64decode(
-                    deployment_seal["nonce_base64"],
-                    validate=True,
+                retained_generation_uuids=retained_generation_uuids,
+            )
+            import boto3
+            reconcile_remote_generation_prefixes(
+                s3_client=boto3.client("s3", region_name="us-east-1"),
+                bucket=os.environ.get(
+                    "GUALA_S3_BACKUP_BUCKET",
+                    "dsf-ai-site-backups",
                 ),
+                prefix=os.environ.get(
+                    "GUALA_GENERATION_S3_PREFIX",
+                    "guala/generations",
+                ),
+                retained_generation_uuids=retained_generation_uuids,
             )
-        retained_generation_uuids = tuple(
-            record.generation_uuid
-            for record in cold_state.census
-        )
-        reconcile_generation_deployment_seals(
-            GENERATION_STORE_ROOT,
-            retained_generation_uuids=retained_generation_uuids,
-        )
-        import boto3
-        reconcile_remote_generation_prefixes(
-            s3_client=boto3.client("s3", region_name="us-east-1"),
-            bucket=os.environ.get(
-                "GUALA_S3_BACKUP_BUCKET",
-                "dsf-ai-site-backups",
-            ),
-            prefix=os.environ.get(
-                "GUALA_GENERATION_S3_PREFIX",
-                "guala/generations",
-            ),
-            retained_generation_uuids=retained_generation_uuids,
-        )
         baseline = materialize_verified_generation(
             generation=cold_state.current,
             active_directory=STATE_DIR,
@@ -2443,6 +2464,7 @@ def _prepare_generation_boot():
         live = live_store.apply_current(STATE_DIR)
         materialized = live or baseline
     except BaseException:
+        _legacy_cold_retention_transition = None
         owner.release()
         raise
     _generation_owner_lock = owner
@@ -2456,6 +2478,85 @@ def _prepare_generation_boot():
     app.state.live_recovery_store = live_store
     app.state.authoritative_cold_store = cold_store
     return materialized
+
+
+def _complete_legacy_cold_retention_transition(restored_guala):
+    """Retire legacy retain-three state only after the real CURRENT restore."""
+    global _legacy_cold_retention_transition
+    global _deployment_baseline_generation
+    if _legacy_cold_retention_transition is None:
+        return
+    if _authoritative_cold_store is None:
+        raise RuntimeError(
+            "legacy retention transition has no cold-generation authority")
+    from dsf_ai_service.substrate.deployment_generation import (
+        DEPLOYMENT_SEAL_NAME,
+        load_and_verify_deployment_seal,
+        persist_generation_deployment_seal,
+        reconcile_generation_deployment_seals,
+        reconcile_remote_generation_prefixes,
+    )
+    audited_current = _legacy_cold_retention_transition
+    transitioned = _authoritative_cold_store.complete_legacy_retention_transition(
+        audited_current=audited_current,
+        restored_identity=getattr(restored_guala, "_guala_identity", None),
+        restored_tick=int(restored_guala.tick),
+    )
+    deployment_seal = load_and_verify_deployment_seal(
+        GENERATION_STORE_ROOT,
+        hmac_key=_deploy_hmac_key(),
+    )
+    if (
+        deployment_seal["generation_uuid"]
+        != transitioned.current.generation_uuid
+    ):
+        raise RuntimeError(
+            "legacy retention transition changed sealed CURRENT")
+    legacy_seal_path = os.path.join(
+        GENERATION_STORE_ROOT,
+        DEPLOYMENT_SEAL_NAME,
+    )
+    with open(legacy_seal_path, "rb") as handle:
+        legacy_seal_bytes = handle.read()
+    import base64
+    persist_generation_deployment_seal(
+        GENERATION_STORE_ROOT,
+        legacy_seal_bytes,
+        hmac_key=_deploy_hmac_key(),
+        expected_nonce=base64.b64decode(
+            deployment_seal["nonce_base64"],
+            validate=True,
+        ),
+    )
+    retained_generation_uuids = tuple(
+        record.generation_uuid
+        for record in transitioned.census
+    )
+    reconcile_generation_deployment_seals(
+        GENERATION_STORE_ROOT,
+        retained_generation_uuids=retained_generation_uuids,
+    )
+    import boto3
+    reconcile_remote_generation_prefixes(
+        s3_client=boto3.client("s3", region_name="us-east-1"),
+        bucket=os.environ.get(
+            "GUALA_S3_BACKUP_BUCKET",
+            "dsf-ai-site-backups",
+        ),
+        prefix=os.environ.get(
+            "GUALA_GENERATION_S3_PREFIX",
+            "guala/generations",
+        ),
+        retained_generation_uuids=retained_generation_uuids,
+    )
+    _deployment_baseline_generation = transitioned.current
+    app.state.deployment_baseline_generation = transitioned.current
+    _legacy_cold_retention_transition = None
+    print(
+        "[generation] legacy retain-three transition completed after exact "
+        f"CURRENT restore; retained={retained_generation_uuids}",
+        flush=True,
+    )
 
 
 def _publish_authoritative_hot_generation(
@@ -2527,7 +2628,7 @@ def _boot_generation_and_guala():
     """Boot under the process-lifetime owner lock, releasing it on failure."""
     global _generation_owner_lock, _loaded_generation
     global _deployment_baseline_generation, _live_recovery_store
-    global _authoritative_cold_store
+    global _authoritative_cold_store, _legacy_cold_retention_transition
     try:
         _prepare_generation_boot()
         _gl_init()
@@ -2539,6 +2640,7 @@ def _boot_generation_and_guala():
             _deployment_baseline_generation = None
             _live_recovery_store = None
             _authoritative_cold_store = None
+            _legacy_cold_retention_transition = None
             app.state.generation_owner = None
             app.state.loaded_generation = None
             app.state.deployment_baseline_generation = None
@@ -2731,6 +2833,14 @@ def _gl_init():
                 f"loaded identity={loaded_id!r} tick={g.tick}; "
                 f"generation identity={_loaded_generation.identity!r} "
                 f"tick={_loaded_generation.tick}")
+        try:
+            _complete_legacy_cold_retention_transition(g)
+        except Exception:
+            _strict_discard_guala(
+                g,
+                reason="legacy cold-retention transition failure",
+            )
+            raise
         g._authoritative_hot_generation_publisher = (
             _publish_authoritative_hot_generation)
         g._authoritative_cold_generation_checkpoint = (
@@ -8645,9 +8755,11 @@ def _production_runtime_proof(nonce=None):
     for field, value in expected.items():
         if certificate.get(field) != value:
             raise RuntimeError(f"deployment seal {field} mismatch")
-    cold_state = _authoritative_cold_store.inspect()
+    cold_current = _authoritative_cold_store.assert_current_reference(
+        _deployment_baseline_generation
+    )
     for field, value in expected.items():
-        if getattr(cold_state.current, field) != value:
+        if getattr(cold_current, field) != value:
             raise RuntimeError(
                 f"authoritative cold CURRENT {field} mismatch")
     if getattr(_guala, "_guala_identity", None) != expected["identity"]:
