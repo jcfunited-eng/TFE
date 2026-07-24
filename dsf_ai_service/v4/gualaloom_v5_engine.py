@@ -22764,6 +22764,13 @@ class Guala:
                 self._state_file_ticks[_mf] = self.tick
             snap_core = self._envelope({
                 "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                # The hot lane advances JSON state while the organism,
+                # tapestry, and wave artifacts legitimately remain at their
+                # last cold-save ticks.  Their identity/hash receipts remain
+                # authoritative across that skew, so the hot core must retain
+                # the same binding contract as a cold core.  Dropping it made
+                # the next automatic restart reject valid learned state.
+                "binary_binding_contract": self.BINARY_BINDING_CONTRACT,
                 "tick": self.tick, "read_count": self.read_count,
                 "vocab": sorted(self.vocab),
                 "source_history": dict(self.source_history),
@@ -23793,8 +23800,23 @@ class Guala:
                     and binding_contract != self.BINARY_BINDING_CONTRACT):
                 raise ValueError(
                     f"unknown binary binding contract: {binding_contract}")
+            authenticated_hot_overlay_migration = bool(
+                binding_contract is None
+                and allow_authenticated_legacy_pickle
+                and core.get("continuity_contract")
+                == self.ENGINE_CONTINUITY_CONTRACT
+            )
             bound_generation = (
-                binding_contract == self.BINARY_BINDING_CONTRACT)
+                binding_contract == self.BINARY_BINDING_CONTRACT
+                or authenticated_hot_overlay_migration)
+            if authenticated_hot_overlay_migration:
+                print(
+                    "[GualaLoom] authenticated hot-overlay migration: "
+                    "the legacy hot core omitted binary_binding_contract; "
+                    "every present binary receipt will still undergo exact "
+                    "identity, tick, size, and SHA-256 verification",
+                    flush=True,
+                )
             core_envelope_tick = raw["guala_core.json"].get("saved_at_tick")
             if exact_binary:
                 self._exact_int(
