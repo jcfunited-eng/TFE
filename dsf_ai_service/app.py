@@ -7275,6 +7275,73 @@ async def embodied_action_demonstrate(
 
 
 @app.post(
+    "/api/v1/embodiment/companion-vocalize",
+    dependencies=[Depends(_api_key_dep)],
+)
+async def embodied_companion_vocalize(
+    file: UploadFile = File(...),
+    tutor_id: str = Form(...),
+):
+    """Admit one bounded recording as physical W1 companion pressure."""
+    if tutor_id not in ("joe", "wc"):
+        raise HTTPException(
+            status_code=403,
+            detail="companion vocal tutor is not authorized",
+        )
+    if _is_remote():
+        raise HTTPException(
+            status_code=501,
+            detail="remote companion vocal intake has no durability barrier",
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    encoded = await file.read(_LIVE_AUDIO_MAX_BYTES + 1)
+    if not encoded:
+        raise HTTPException(
+            status_code=400,
+            detail="companion vocal recording is empty",
+        )
+    if len(encoded) > _LIVE_AUDIO_MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="companion vocal recording exceeds the 4 MiB boundary",
+        )
+
+    def _decode_experience_and_commit():
+        import wave
+
+        from dsf_ai_service.substrate_runner import _webm_to_wav_bytes
+
+        wav_bytes = _webm_to_wav_bytes(encoded)
+        if not wav_bytes:
+            raise ValueError(
+                "companion vocal recording could not be decoded into "
+                "canonical PCM"
+            )
+        with wave.open(io.BytesIO(wav_bytes), "rb") as wav:
+            if (
+                wav.getnchannels() != 1
+                or wav.getsampwidth() != 2
+                or wav.getframerate() != 16_000
+            ):
+                raise ValueError(
+                    "companion vocal recording is not canonical PCM"
+                )
+            pcm_s16le = wav.readframes(wav.getnframes())
+        return _guala.experience_companion_vocal_episode(
+            pcm_s16le,
+            state_dir=STATE_DIR,
+        )
+
+    try:
+        return await _run_lifecycle_executor(
+            _decode_experience_and_commit
+        )
+    except (RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.post(
     "/api/v1/causal-action/review-binding",
     dependencies=[Depends(_api_key_dep)],
 )

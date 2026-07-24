@@ -1276,3 +1276,76 @@ def test_companion_vocal_episode_prediction_rolls_back_with_failed_commit(
         assert guala._w1_anonymous_av_continuity_owner.status()["settled"] == 0
     finally:
         guala.shutdown()
+
+
+def test_companion_vocal_episode_save_failure_rolls_back_every_authority(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
+    monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
+    monkeypatch.setenv("SELF_HEARING_ENABLED", "0")
+    monkeypatch.setenv(
+        "GUALA_CAUSAL_ACTION_KEY",
+        "episode-durable-save-rollback-key",
+    )
+    guala = Guala()
+    try:
+        guala._authoritative_hot_generation_publisher = (
+            lambda **_values: None
+        )
+        prediction_before = guala._full_field_prediction.encoded_snapshot()
+        world_before = guala._embodiment_world.encoded_snapshot()
+        continuity_before = (
+            guala._w1_anonymous_av_continuity_owner.encoded_snapshot()
+        )
+        binaural_before = guala._w1_binaural_auditory_l5_owner.status()
+        causal_before = guala._embodiment_outcome_causal_owner.status()
+        accepted_before = guala._causal_settlement_accepted
+        settlement_before = guala._latest_causal_settlement
+        observation_before = (
+            guala._latest_full_field_prediction_observation
+        )
+        events_before = tuple(guala._substrate_events)
+        guala.save_hot_state = lambda _state_dir: (_ for _ in ()).throw(
+            RuntimeError("injected companion hot save failure")
+        )
+
+        with pytest.raises(
+            RuntimeError, match="injected companion hot save failure"
+        ):
+            guala.experience_companion_vocal_episode(
+                _companion_pcm_chunk(),
+                state_dir="unused",
+            )
+
+        assert guala._embodiment_world.encoded_snapshot() == world_before
+        assert (
+            guala._full_field_prediction.encoded_snapshot()
+            == prediction_before
+        )
+        assert (
+            guala._w1_anonymous_av_continuity_owner.encoded_snapshot()
+            == continuity_before
+        )
+        assert guala._w1_binaural_auditory_l5_owner.status() == (
+            binaural_before
+        )
+        assert guala._embodiment_outcome_causal_owner.status() == (
+            causal_before
+        )
+        assert guala._causal_settlement_accepted == accepted_before
+        assert guala._latest_causal_settlement is settlement_before
+        assert (
+            guala._latest_full_field_prediction_observation
+            == observation_before
+        )
+        assert guala._w1_companion_vocal_experience.status()[
+            "has_latest_episode"
+        ] is False
+        new_events = tuple(guala._substrate_events)[len(events_before):]
+        assert all(
+            event.kind != "causal_experience_accepted"
+            for event in new_events
+        )
+    finally:
+        guala.shutdown()

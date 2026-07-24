@@ -194,6 +194,42 @@ def test_exact_w1_mount_commits_one_bounded_two_ear_l5_experience():
     ]
 
 
+def test_binaural_l5_state_round_trip_is_exact_and_rejects_tampering():
+    owner = W1BinauralAuditoryL5Owner(max_transitions=4)
+    first = owner.prepare(
+        _sound_settlement(left_hz=440, right_hz=660)
+    )
+    owner.commit_prepared(first)
+    second = owner.prepare(
+        _sound_settlement(left_hz=880, right_hz=1_320)
+    )
+    owner.commit_prepared(second)
+
+    encoded = owner.encoded_snapshot()
+    restored = W1BinauralAuditoryL5Owner(max_transitions=4)
+    restored.restore_encoded(encoded)
+
+    assert restored.encoded_snapshot() == encoded
+    assert restored.status() == owner.status()
+    assert restored.latest == owner.latest
+
+    changed = json.loads(encoded)
+    changed["payload"]["settled"] += 1
+    with pytest.raises(
+        ValueError,
+        match="W1 binaural L5 state authority changed",
+    ):
+        W1BinauralAuditoryL5Owner(
+            max_transitions=4
+        ).restore_encoded(
+            json.dumps(
+                changed,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        )
+
+
 def test_mono_settlement_is_not_adapted_or_duplicated_into_two_ears():
     settlement = _sound_settlement(left_hz=440, right_hz=None)
     owner = W1BinauralAuditoryL5Owner()

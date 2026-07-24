@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 from fastapi.testclient import TestClient
 
+from dsf_ai_service.substrate.auditory_pcm_stream import pcm_s16le_wav
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     SECOND_BODY_PORT_ID,
@@ -366,6 +367,18 @@ def test_typed_api_is_key_protected_and_transports_canonical_w1(
                 "status": "applied",
             }
 
+        def experience_companion_vocal_episode(
+            self, pcm_s16le, *, state_dir
+        ):
+            calls.append({
+                "pcm_s16le": pcm_s16le,
+                "state_dir": state_dir,
+            })
+            return {
+                "block_count": 1,
+                "schema": "guala.w1.companion_vocal_episode.v1",
+            }
+
     monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", "guided-api-key")
     monkeypatch.setattr(app_module, "_guala", FakeGuala())
     monkeypatch.setattr(app_module, "_is_remote", lambda: False)
@@ -412,6 +425,28 @@ def test_typed_api_is_key_protected_and_transports_canonical_w1(
     assert reviewed.json()["resulting_binding_status"] == "revoked"
     assert calls[1]["binding_id"] == "b" * 64
     assert calls[1]["nonce"] == "api-guided-review-0001"
+    pcm = b"\x00\x00" * 1024
+    import dsf_ai_service.substrate_runner as runner
+    monkeypatch.setattr(
+        runner,
+        "_webm_to_wav_bytes",
+        lambda _encoded: pcm_s16le_wav(pcm),
+    )
+    files = {"file": ("voice.mp3", b"encoded-audio", "audio/mpeg")}
+    assert client.post(
+        "/api/v1/embodiment/companion-vocalize",
+        files=files,
+        data={"tutor_id": "joe"},
+    ).status_code == 401
+    vocalized = client.post(
+        "/api/v1/embodiment/companion-vocalize",
+        files=files,
+        data={"tutor_id": "joe"},
+        headers={"X-API-Key": "guided-api-key"},
+    )
+    assert vocalized.status_code == 200
+    assert vocalized.json()["block_count"] == 1
+    assert calls[2]["pcm_s16le"] == pcm
 
 
 def test_remote_handler_rejects_noncanonical_command_transport(

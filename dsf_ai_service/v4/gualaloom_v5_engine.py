@@ -8822,13 +8822,20 @@ class Guala:
             }
 
     @_engine_mutation_entry
-    def experience_companion_vocal_episode(self, pcm_s16le):
+    def experience_companion_vocal_episode(
+        self,
+        pcm_s16le,
+        *,
+        state_dir=None,
+    ):
         """Admit one already-bounded vocal act as a full-field W1 episode.
 
         The exact byte extent is the physical terminal supplied by the caller.
         It is not inferred from a timeout, transcript, stream id, source tag,
         or chi.  Every W1 block settles atomically, while only the completed
-        episode is published outside the transaction.
+        episode is published outside the transaction.  When ``state_dir`` is
+        supplied, the completed physical episode crosses the authoritative hot
+        durability barrier before autonomous play may begin.
         """
         authority = self._w1_companion_vocal_experience
         if authority is None or self._embodiment_world is None:
@@ -8837,6 +8844,15 @@ class Guala:
             )
         if not isinstance(pcm_s16le, bytes):
             raise TypeError("companion vocal episode pressure must be PCM16 bytes")
+        if (
+            state_dir is not None
+            and not callable(getattr(
+                self, "_authoritative_hot_generation_publisher", None
+            ))
+        ):
+            raise RuntimeError(
+                "authoritative companion experience durability is unavailable"
+            )
         with self._causal_cycle_bridge_lock:
             before = self._embodiment_world.observation_snapshot()
             prediction_snapshot = (
@@ -8856,6 +8872,7 @@ class Guala:
             prior_accepted = self._causal_settlement_accepted
             prepared = None
             committed = False
+            commit_undo = None
             try:
                 prepared = authority.prepare_episode(pcm_s16le=pcm_s16le)
                 episode = prepared.episode
@@ -8872,14 +8889,18 @@ class Guala:
                         ),
                         publish_acceptance=False,
                     )
-                authority.commit_episode(prepared)
+                commit_undo = authority.commit_episode(prepared)
                 committed = True
+                if state_dir is not None:
+                    self.save_hot_state(state_dir)
                 for block in prepared.prediction_blocks:
                     self._publish_causal_experience_accepted(
                         block.causal_settlement
                     )
             except BaseException:
-                if prepared is not None and not committed:
+                if commit_undo is not None and committed:
+                    authority.rollback_committed_episode(commit_undo)
+                elif prepared is not None and not committed:
                     try:
                         authority.discard_episode(prepared)
                     except ValueError:
@@ -8906,6 +8927,7 @@ class Guala:
             final_block = prepared.prediction_blocks[-1]
             causal_play = self._run_causal_play_episode(
                 trigger="external_world_change",
+                state_dir=state_dir,
                 committed_settlement=final_block.causal_settlement,
                 committed_observation_receipt=(
                     final_block.evidence_receipt
@@ -21444,6 +21466,14 @@ class Guala:
                 if self._embodiment_world is not None
                 else None
             ),
+            "w1_binaural_auditory_l5": (
+                json.loads(
+                    self._w1_binaural_auditory_l5_owner
+                    .encoded_snapshot().decode("utf-8")
+                )
+                if self._w1_binaural_auditory_l5_owner is not None
+                else None
+            ),
             "anonymous_audiovisual_continuity": (
                 json.loads(
                     self._w1_anonymous_av_continuity_owner
@@ -22247,6 +22277,25 @@ class Guala:
         anonymous_continuity = data.get(
             "anonymous_audiovisual_continuity"
         )
+        binaural_l5 = data.get("w1_binaural_auditory_l5")
+        if binaural_l5 is not None:
+            from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
+                MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES,
+            )
+            binaural_l5_bytes = cls._canonical_persistence_bytes(
+                binaural_l5
+            )
+            if (
+                len(binaural_l5_bytes)
+                > MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES
+                or not isinstance(binaural_l5, dict)
+                or set(binaural_l5) != {
+                    "payload", "state_receipt_sha256"
+                }
+            ):
+                raise ValueError(
+                    "teaching W1 binaural auditory L5 changed"
+                )
         if anonymous_continuity is not None:
             from dsf_ai_service.substrate.w1_anonymous_audiovisual_continuity import (
                 MAX_CONTINUITY_AUTHORITY_BYTES,
@@ -24696,6 +24745,20 @@ class Guala:
                                     embodiment_world
                                 )
                             )
+                        binaural_l5 = tdata.get(
+                            "w1_binaural_auditory_l5"
+                        )
+                        if binaural_l5 is not None:
+                            if self._w1_binaural_auditory_l5_owner is None:
+                                raise ValueError(
+                                    "W1 binaural auditory L5 owner is missing"
+                                )
+                            self._w1_binaural_auditory_l5_owner \
+                                .restore_encoded(
+                                    self._canonical_persistence_bytes(
+                                        binaural_l5
+                                    )
+                                )
                         anonymous_continuity = tdata.get(
                             "anonymous_audiovisual_continuity"
                         )

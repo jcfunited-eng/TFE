@@ -148,7 +148,12 @@ def test_full_state_round_trip_is_exact_and_media_is_relocatable(
         continuity_status = (
             writer._w1_anonymous_av_continuity_owner.status()
         )
+        binaural_status = writer._w1_binaural_auditory_l5_owner.status()
+        binaural_snapshot = (
+            writer._w1_binaural_auditory_l5_owner.encoded_snapshot()
+        )
         assert continuity_status["settled"] == 1
+        assert binaural_status["settled"] == 1
         assert len(vocal_result[
             "anonymous_av_continuity_authority_receipt_sha256"
         ]) == 64
@@ -194,6 +199,13 @@ def test_full_state_round_trip_is_exact_and_media_is_relocatable(
         assert restored._load_successful, restored._load_errors
         assert restored._w1_anonymous_av_continuity_owner.status() == (
             continuity_status
+        )
+        assert restored._w1_binaural_auditory_l5_owner.status() == (
+            binaural_status
+        )
+        assert (
+            restored._w1_binaural_auditory_l5_owner.encoded_snapshot()
+            == binaural_snapshot
         )
         assert restored._guala_identity == identity
         restored_section = restored.sections["modifier"]

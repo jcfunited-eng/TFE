@@ -28,6 +28,7 @@ from dsf_ai_service.substrate.auditory_kernel_mount import (
 )
 from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
+    ExactFieldTuple,
     ExactSubstreamInterpretation,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
@@ -43,6 +44,10 @@ W1_BINAURAL_AUDITORY_L5_AUTHORITY_SCHEMA = (
     "guala.w1.binaural_auditory_l5.authority.v1"
 )
 MAX_W1_BINAURAL_AUDITORY_L5_BYTES = 2 * 1024 * 1024
+MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES = 4 * 1024 * 1024
+W1_BINAURAL_AUDITORY_L5_STATE_SCHEMA = (
+    "guala.w1.binaural_auditory_l5.state.v1"
+)
 EAR_IDS = ("left", "right")
 COMPONENT_IDS = ("pressure-envelope", "carrier-phase-advance")
 
@@ -64,6 +69,19 @@ def _digest(value: object) -> str:
 def _fraction_text(value: Fraction) -> str:
     require_fraction(value, "W1 binaural L5 fraction")
     return f"{value.numerator}/{value.denominator}"
+
+
+def _fraction_from_text(value: object, name: str) -> Fraction:
+    if not isinstance(value, str) or value.count("/") != 1:
+        raise ValueError(f"{name} is not an exact fraction")
+    numerator, denominator = value.split("/", 1)
+    try:
+        result = Fraction(int(numerator), int(denominator))
+    except (TypeError, ValueError, ZeroDivisionError) as error:
+        raise ValueError(f"{name} is not an exact fraction") from error
+    if _fraction_text(result) != value:
+        raise ValueError(f"{name} is not a canonical fraction")
+    return result
 
 
 def _component_payload(
@@ -365,6 +383,171 @@ def _validate_ears(
                         "W1 binaural L5 components are not independent"
                     )
                 seen_receipts.update(identities)
+
+
+def _component_from_authority_record(
+    value: object,
+) -> ExactSubstreamInterpretation:
+    if not isinstance(value, dict):
+        raise ValueError("W1 binaural L5 component record changed")
+    tuples = value.get("field_tuples")
+    receipts = value.get("field_tuple_receipt_sha256s")
+    if (
+        not isinstance(tuples, list)
+        or not isinstance(receipts, list)
+        or len(tuples) != len(receipts)
+        or not tuples
+    ):
+        raise ValueError("W1 binaural L5 tuple record changed")
+    field_tuples = []
+    for index, (field_tuple, receipt) in enumerate(
+        zip(tuples, receipts, strict=True)
+    ):
+        if (
+            not isinstance(field_tuple, dict)
+            or set(field_tuple) != {"fields", "tuple_index"}
+            or field_tuple.get("tuple_index") != index
+            or not isinstance(field_tuple.get("fields"), list)
+            or len(field_tuple["fields"]) != len(DSF_FIELD_ORDER)
+        ):
+            raise ValueError("W1 binaural L5 field tuple changed")
+        fields = []
+        for expected_name, item in zip(
+            DSF_FIELD_ORDER,
+            field_tuple["fields"],
+            strict=True,
+        ):
+            if (
+                not isinstance(item, list)
+                or len(item) != 2
+                or item[0] != expected_name
+            ):
+                raise ValueError("W1 binaural L5 field order changed")
+            fields.append((
+                expected_name,
+                _fraction_from_text(
+                    item[1],
+                    f"W1 binaural L5 {expected_name}",
+                ),
+            ))
+        field_tuples.append(ExactFieldTuple(
+            tuple_index=index,
+            fields=tuple(fields),
+            authority_receipt_sha256=str(receipt),
+        ))
+    coordinates = value.get("coordinates")
+    if (
+        not isinstance(coordinates, list)
+        or any(
+            not isinstance(item, list)
+            or len(item) != 2
+            or not all(isinstance(part, str) for part in item)
+            for item in coordinates
+        )
+    ):
+        raise ValueError("W1 binaural L5 coordinates changed")
+    result = ExactSubstreamInterpretation(
+        sensor_id=value.get("sensor_id"),
+        substream_id=value.get("substream_id"),
+        topology_index=value.get("topology_index"),
+        coordinates=tuple(tuple(item) for item in coordinates),
+        physical_quantity=value.get("physical_quantity"),
+        physical_unit=value.get("physical_unit"),
+        profile_receipt_sha256=value.get("profile_receipt_sha256"),
+        source_evidence_stream_receipt_sha256=value.get(
+            "source_evidence_stream_receipt_sha256"
+        ),
+        source_sample_count=value.get("source_sample_count"),
+        source_sample_commitment_sha256=value.get(
+            "source_sample_commitment_sha256"
+        ),
+        kernel_basin_receipt_sha256=value.get(
+            "kernel_basin_receipt_sha256"
+        ),
+        field_tuples=tuple(field_tuples),
+    )
+    if _component_authority_payload(result) != value:
+        raise ValueError("W1 binaural L5 component authority changed")
+    return result
+
+
+def _experience_from_record(
+    value: object,
+) -> W1BinauralAuditoryL5Experience:
+    if not isinstance(value, dict):
+        raise ValueError("W1 binaural L5 experience record changed")
+    ears_record = value.get("ears")
+    if (
+        not isinstance(ears_record, list)
+        or len(ears_record) != len(EAR_IDS)
+    ):
+        raise ValueError("W1 binaural L5 ear record changed")
+    ears = []
+    for expected_ear, ear_record in zip(
+        EAR_IDS,
+        ears_record,
+        strict=True,
+    ):
+        channels_record = (
+            ear_record.get("channels")
+            if isinstance(ear_record, dict) else None
+        )
+        if (
+            ear_record.get("ear_id") != expected_ear
+            or not isinstance(channels_record, list)
+            or len(channels_record) != COCHLEAR_CHANNEL_COUNT
+        ):
+            raise ValueError("W1 binaural L5 ear record changed")
+        channels = []
+        for channel_index, channel_record in enumerate(channels_record):
+            if not isinstance(channel_record, dict):
+                raise ValueError("W1 binaural L5 channel record changed")
+            channel = W1BinauralAuditoryL5Channel(
+                cochlear_index=channel_record.get("cochlear_index"),
+                channel_id=channel_record.get("channel_id"),
+                pressure=_component_from_authority_record(
+                    channel_record.get("pressure")
+                ),
+                carrier_phase_advance=_component_from_authority_record(
+                    channel_record.get("carrier_phase_advance")
+                ),
+            )
+            if (
+                channel.cochlear_index != channel_index
+                or _channel_payload(channel, authority=True)
+                != channel_record
+            ):
+                raise ValueError("W1 binaural L5 channel authority changed")
+            channels.append(channel)
+        ears.append(W1BinauralAuditoryL5Ear(
+            ear_id=expected_ear,
+            channels=tuple(channels),
+        ))
+    result = W1BinauralAuditoryL5Experience(
+        experience_id=value.get("experience_id"),
+        structural_fingerprint=value.get("structural_fingerprint"),
+        assembly_id=value.get("assembly_id"),
+        relation=value.get("relation"),
+        source_time_start=_fraction_from_text(
+            value.get("source_time_start"),
+            "W1 binaural L5 source start",
+        ),
+        source_time_end=_fraction_from_text(
+            value.get("source_time_end"),
+            "W1 binaural L5 source end",
+        ),
+        ears=tuple(ears),
+        upstream_causal_settlement_receipt_sha256=value.get(
+            "upstream_causal_settlement_receipt_sha256"
+        ),
+        authority_receipt_sha256=value.get(
+            "authority_receipt_sha256"
+        ),
+    )
+    result.verify()
+    if result.persistence_record() != value:
+        raise ValueError("W1 binaural L5 experience authority changed")
+    return result
 
 
 def _build_ears(
@@ -714,6 +897,127 @@ class W1BinauralAuditoryL5Owner:
         with self._lock:
             return self._latest
 
+    def encoded_snapshot(self) -> bytes:
+        with self._lock:
+            if (
+                self._prepared is not None
+                or self._atomic_sequence is not None
+            ):
+                raise RuntimeError(
+                    "W1 binaural L5 snapshot requires settled state"
+                )
+            payload = {
+                "generation": self._generation,
+                "latest": (
+                    self._latest.persistence_record()
+                    if self._latest is not None else None
+                ),
+                "schema": W1_BINAURAL_AUDITORY_L5_STATE_SCHEMA,
+                "settled": self._settled,
+                "transition_capacity": self._max_transitions,
+                "transitions": [
+                    {
+                        "count": count,
+                        "from_structural_fingerprint": key[0],
+                        "to_structural_fingerprint": key[1],
+                    }
+                    for key, count in self._transitions.items()
+                ],
+            }
+            result = _canonical({
+                "payload": payload,
+                "state_receipt_sha256": _digest(payload),
+            })
+            if len(result) > MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES:
+                raise RuntimeError(
+                    "W1 binaural L5 state exceeds its boundary"
+                )
+            return result
+
+    def restore_encoded(self, encoded: bytes) -> None:
+        if (
+            not isinstance(encoded, bytes)
+            or not encoded
+            or len(encoded) > MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES
+        ):
+            raise ValueError("W1 binaural L5 state boundary changed")
+        try:
+            record = json.loads(encoded.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("W1 binaural L5 state is unreadable") from error
+        if (
+            not isinstance(record, dict)
+            or set(record) != {"payload", "state_receipt_sha256"}
+            or not isinstance(record.get("payload"), dict)
+            or record["payload"].get("schema")
+            != W1_BINAURAL_AUDITORY_L5_STATE_SCHEMA
+            or record.get("state_receipt_sha256")
+            != _digest(record["payload"])
+        ):
+            raise ValueError("W1 binaural L5 state authority changed")
+        payload = record["payload"]
+        if (
+            payload.get("transition_capacity") != self._max_transitions
+            or isinstance(payload.get("settled"), bool)
+            or not isinstance(payload.get("settled"), int)
+            or payload["settled"] < 0
+            or isinstance(payload.get("generation"), bool)
+            or not isinstance(payload.get("generation"), int)
+            or payload["generation"] != payload["settled"]
+            or not isinstance(payload.get("transitions"), list)
+            or len(payload["transitions"]) > self._max_transitions
+        ):
+            raise ValueError("W1 binaural L5 state extent changed")
+        latest_record = payload.get("latest")
+        latest = (
+            _experience_from_record(latest_record)
+            if latest_record is not None else None
+        )
+        if (payload["settled"] == 0) != (latest is None):
+            raise ValueError("W1 binaural L5 latest extent changed")
+        transitions = OrderedDict()
+        for item in payload["transitions"]:
+            if (
+                not isinstance(item, dict)
+                or set(item) != {
+                    "count",
+                    "from_structural_fingerprint",
+                    "to_structural_fingerprint",
+                }
+                or isinstance(item.get("count"), bool)
+                or not isinstance(item.get("count"), int)
+                or item["count"] <= 0
+            ):
+                raise ValueError(
+                    "W1 binaural L5 transition state changed"
+                )
+            key = (
+                item.get("from_structural_fingerprint"),
+                item.get("to_structural_fingerprint"),
+            )
+            for fingerprint in key:
+                sha256_digest(
+                    fingerprint,
+                    "W1 binaural L5 transition fingerprint",
+                )
+            if key in transitions:
+                raise ValueError(
+                    "W1 binaural L5 transition state repeated"
+                )
+            transitions[key] = item["count"]
+        with self._lock:
+            if (
+                self._prepared is not None
+                or self._atomic_sequence is not None
+            ):
+                raise RuntimeError(
+                    "W1 binaural L5 restore requires settled state"
+                )
+            self._latest = latest
+            self._transitions = transitions
+            self._settled = payload["settled"]
+            self._generation = payload["generation"]
+
     def status(self) -> dict[str, object]:
         with self._lock:
             return {
@@ -734,8 +1038,10 @@ class W1BinauralAuditoryL5Owner:
 
 __all__ = (
     "MAX_W1_BINAURAL_AUDITORY_L5_BYTES",
+    "MAX_W1_BINAURAL_AUDITORY_L5_STATE_BYTES",
     "W1_BINAURAL_AUDITORY_L5_AUTHORITY_SCHEMA",
     "W1_BINAURAL_AUDITORY_L5_SCHEMA",
+    "W1_BINAURAL_AUDITORY_L5_STATE_SCHEMA",
     "W1BinauralAuditoryL5Channel",
     "W1BinauralAuditoryL5Ear",
     "W1BinauralAuditoryL5Experience",

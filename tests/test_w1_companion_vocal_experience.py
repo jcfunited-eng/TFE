@@ -188,6 +188,40 @@ def test_companion_vocal_discard_restores_world_and_reservation():
         companion.commit(prepared)
 
 
+def test_committed_companion_episode_can_roll_back_as_one_authority():
+    accepted = []
+    world, owner, physical, companion = _authorities(accepted.append)
+    world_before = world.encoded_snapshot()
+    owner_before = owner.status()
+    binaural_before = physical._binaural_auditory_l5_owner.status()
+    continuity_before = (
+        physical._anonymous_av_continuity_owner.encoded_snapshot()
+    )
+    prepared = companion.prepare_episode(
+        pcm_s16le=_long_tone(440, MULTIBLOCK_TEST_SAMPLES),
+    )
+
+    undo = companion.commit_episode(prepared)
+    assert world.observation_snapshot().revision == 2
+    assert owner.status()["settled"] == 2
+    assert physical._binaural_auditory_l5_owner.status()["settled"] == 2
+    assert physical._anonymous_av_continuity_owner.status()["settled"] == 2
+    assert companion.status()["has_latest_episode"] is True
+
+    companion.rollback_committed_episode(undo)
+
+    assert world.encoded_snapshot() == world_before
+    assert owner.status() == owner_before
+    assert physical._binaural_auditory_l5_owner.status() == binaural_before
+    assert (
+        physical._anonymous_av_continuity_owner.encoded_snapshot()
+        == continuity_before
+    )
+    assert physical.status()["active_epochs"] == 0
+    assert physical.status()["atomic_episode"] == 0
+    assert companion.status()["has_latest_episode"] is False
+
+
 def test_receipt_verification_failure_releases_every_transaction_owner(
     monkeypatch,
 ):

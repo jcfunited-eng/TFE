@@ -1513,6 +1513,15 @@ class _AtomicAudiovisualEpisode:
     continuity_sequence_token: str
 
 
+@dataclass(frozen=True, slots=True)
+class _AtomicAudiovisualEpisodeCommitUndo:
+    transaction: _AtomicAudiovisualEpisode
+    epoch: _Epoch
+    causal_undo: object
+    binaural_l5_undo: object
+    continuity_undo: object
+
+
 class W1AudiovisualPhysicalEvidenceAuthority:
     """Transient bounded owner of anonymous W1 audiovisual captures."""
 
@@ -1619,7 +1628,9 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             )
             return epoch_token
 
-    def commit_atomic_episode(self, epoch_token: str) -> None:
+    def commit_atomic_episode(
+        self, epoch_token: str
+    ) -> _AtomicAudiovisualEpisodeCommitUndo:
         """Publish one fully prepared multi-mount episode and close its epoch."""
         with self._lock:
             transaction = self._atomic_episode
@@ -1659,7 +1670,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                 )
                 raise
             try:
-                self._causal_owner.commit_atomic_sequence(
+                causal_undo = self._causal_owner.commit_atomic_sequence(
                     transaction.causal_sequence_token
                 )
             except BaseException:
@@ -1670,8 +1681,51 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     continuity_undo
                 )
                 raise
+            epoch = self._epochs[epoch_token]
             del self._epochs[epoch_token]
             self._atomic_episode = None
+            return _AtomicAudiovisualEpisodeCommitUndo(
+                transaction=transaction,
+                epoch=epoch,
+                causal_undo=causal_undo,
+                binaural_l5_undo=l5_undo,
+                continuity_undo=continuity_undo,
+            )
+
+    def rollback_committed_atomic_episode(
+        self,
+        undo: _AtomicAudiovisualEpisodeCommitUndo,
+    ) -> None:
+        """Restore the exact pre-episode state after a later commit failure."""
+        with self._lock:
+            if (
+                not isinstance(
+                    undo, _AtomicAudiovisualEpisodeCommitUndo
+                )
+                or self._atomic_episode is not None
+                or self._prepared_mount is not None
+                or self._pending_reservation is not None
+                or undo.transaction.epoch_token in self._epochs
+            ):
+                raise ValueError(
+                    "W1 committed audiovisual episode changed"
+                )
+            self._causal_owner.rollback_committed_atomic_sequence(
+                undo.causal_undo
+            )
+            self._binaural_auditory_l5_owner \
+                .rollback_committed_atomic_sequence(
+                    undo.binaural_l5_undo
+                )
+            self._anonymous_av_continuity_owner \
+                .rollback_committed_atomic_sequence(
+                    undo.continuity_undo
+                )
+            self._epochs[undo.transaction.epoch_token] = undo.epoch
+            self._atomic_episode = undo.transaction
+            self.rollback_atomic_episode(
+                undo.transaction.epoch_token
+            )
 
     def rollback_atomic_episode(self, epoch_token: str) -> None:
         """Erase all causal/L5 relation changes made by one W1 episode."""

@@ -31,6 +31,7 @@ from dsf_ai_service.substrate.w1_acoustic_emitter import (
     MIN_EMITTED_PCM_SAMPLES,
 )
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
+    _AtomicAudiovisualEpisodeCommitUndo,
     W1AnonymousAcousticVisualCorrespondence,
     W1AudiovisualPhysicalEvidenceAuthority,
     W1EvidenceState,
@@ -410,6 +411,13 @@ class PreparedCompanionVocalEpisode:
     intent_receipt: CompanionVocalEpisodeIntentReceipt
     episode: W1CompanionVocalEpisode
     prediction_blocks: tuple[PreparedCompanionVocalPredictionBlock, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CompanionVocalEpisodeCommitUndo:
+    prepared: PreparedCompanionVocalEpisode
+    physical_undo: _AtomicAudiovisualEpisodeCommitUndo
+    prior_latest_episode: W1CompanionVocalEpisode | None
 
 
 class W1CompanionVocalExperienceAuthority:
@@ -828,12 +836,45 @@ class W1CompanionVocalExperienceAuthority:
             raise TypeError("typed companion vocal episode is required")
         episode.verify(self._key)
 
-    def commit_episode(self, prepared: PreparedCompanionVocalEpisode) -> None:
+    def commit_episode(
+        self, prepared: PreparedCompanionVocalEpisode
+    ) -> CompanionVocalEpisodeCommitUndo:
         with self._lock:
             current = self._require_prepared_episode(prepared)
-            self._physical.commit_atomic_episode(current.epoch_token)
+            prior_latest = self._latest_episode
+            physical_undo = self._physical.commit_atomic_episode(
+                current.epoch_token
+            )
             self._latest_episode = current.episode
             self._prepared_episode = None
+            return CompanionVocalEpisodeCommitUndo(
+                prepared=current,
+                physical_undo=physical_undo,
+                prior_latest_episode=prior_latest,
+            )
+
+    def rollback_committed_episode(
+        self,
+        undo: CompanionVocalEpisodeCommitUndo,
+    ) -> None:
+        with self._lock:
+            if (
+                not isinstance(undo, CompanionVocalEpisodeCommitUndo)
+                or self._prepared is not None
+                or self._prepared_episode is not None
+                or self._latest_episode
+                != undo.prepared.episode
+            ):
+                raise ValueError(
+                    "companion committed vocal episode changed"
+                )
+            self._physical.rollback_committed_atomic_episode(
+                undo.physical_undo
+            )
+            self._world.restore_encoded(
+                undo.prepared.world_snapshot
+            )
+            self._latest_episode = undo.prior_latest_episode
 
     def discard_episode(self, prepared: PreparedCompanionVocalEpisode) -> None:
         with self._lock:
@@ -1017,6 +1058,7 @@ class W1CompanionVocalExperienceAuthority:
 
 
 __all__ = (
+    "CompanionVocalEpisodeCommitUndo",
     "CompanionVocalIntentReceipt",
     "CompanionVocalEpisodeIntentReceipt",
     "MAX_COMPANION_VOCAL_EPISODE_AUTHORITY_BYTES",
