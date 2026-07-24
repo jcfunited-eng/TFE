@@ -661,9 +661,11 @@ def test_natural_sub_hop_release_reaches_the_token_sequence_boundary(
 
 def test_repeated_structure_keeps_the_current_intake_in_prediction(
     monkeypatch,
+    tmp_path,
 ) -> None:
     _disable_background(monkeypatch)
     engine = Guala()
+    restarted = None
     try:
         engine._authoritative_hot_generation_publisher = (
             lambda **_values: None
@@ -700,8 +702,34 @@ def test_repeated_structure_keeps_the_current_intake_in_prediction(
         assert auditory["language_episode"]["causal_intake_id"] == (
             auditory["causal_intake"]["intake_id"]
         )
-    finally:
+        persisted_intake_id = auditory["causal_intake"]["intake_id"]
+
+        engine.save_full_state(str(tmp_path))
         engine.strict_shutdown(timeout=30.0)
+        engine = None
+
+        restarted = Guala()
+        restarted.load_full_state(
+            str(tmp_path), require_exact_binary=True
+        )
+        assert restarted._load_successful, restarted._load_errors
+        restored = restarted.auditory_causal_language_status()["latest"]
+        restored_intake, restored_episode = (
+            restarted._verify_auditory_causal_language_observation(
+                restarted._latest_auditory_causal_language_observation
+            )
+        )
+        assert restored["causal_intake_id"] == persisted_intake_id
+        assert restored_intake.intake_id == persisted_intake_id
+        assert restored_episode.causal_intake_id == persisted_intake_id
+        assert restored["episode_reason"] == "duplicate_structure"
+        assert restored["episode_stored"] is False
+        assert restarted._causal_language_authority.working_count == 1
+    finally:
+        if engine is not None:
+            engine.strict_shutdown(timeout=30.0)
+        if restarted is not None:
+            restarted.strict_shutdown(timeout=30.0)
 
 
 def test_utterance_action_waits_for_terminal_and_language_precedes_selection(
