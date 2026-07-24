@@ -1,10 +1,14 @@
-"""Static guardrails for the production deployment handoff.
+"""Guardrails for the production deployment handoff.
 
-These tests deliberately inspect the deploy program without invoking it: the
-program is allowed to mutate AWS, while the test suite must remain read-only.
+The tests inspect the deploy program without invoking AWS.  The task-authority
+classifier itself is also executed against synthetic ECS observations so its
+decisions are proven without mutating production.
 """
 
+import json
+import os
 from pathlib import Path
+import subprocess
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "tools" / "deploy_dsf_ai.sh"
@@ -122,6 +126,84 @@ def test_old_owner_is_proven_stopped_before_new_owner_can_start():
     one = TEXT.index("--desired-count 1", turnover)
     assert zero < stopped_wait < stopped_exact < no_remaining < one
     assert "Old owner STOPPED; new owner start is now permitted" in TEXT
+
+
+def test_new_scheduling_authority_settles_at_zero_and_rejects_stale_tasks():
+    """The zero-to-one transition cannot resurrect an older ECS deployment."""
+    turnover = TEXT.index("Old owner STOPPED; new owner start is now permitted")
+    install = TEXT.index("Installing the new scheduling authority at zero owners", turnover)
+    target_zero = TEXT.index(
+        '--desired-count 0 --task-definition "${NEW_TASK_DEFINITION_ARN}"',
+        install,
+    )
+    zero_proof = TEXT.index(
+        "New scheduling authority proven while state ownership remains zero",
+        target_zero,
+    )
+    start = TEXT.index("[7/7] Starting exactly one new owner", zero_proof)
+    desired_one = TEXT.index("--desired-count 1", start)
+    assert turnover < install < target_zero < zero_proof < start < desired_one
+
+    authority = _between(
+        "Waiting for exactly one running task with the new immutable build",
+        "Waiting for authenticated deep generation/build proof",
+    )
+    assert '--family "${TASK_FAMILY}" --desired-status RUNNING' in authority
+    assert 'task.get("taskDefinitionArn") != os.environ["NEW_TASK_DEFINITION_ARN"]' in authority
+    assert 'print("reject:wrong-task-definition")' in authority
+    assert 'print("reject:wrong-image-digest")' in authority
+    assert "aws ecs stop-task" in authority
+    assert "aws ecs wait tasks-stopped" in authority
+    assert authority.index('print("reject:wrong-task-definition")') < authority.index(
+        "aws ecs stop-task"
+    )
+
+
+def test_task_authority_classifier_decisions_are_exact():
+    authority = _between(
+        "CANDIDATE_AUTHORITY=$(",
+        "\n        case \"${CANDIDATE_AUTHORITY}\"",
+    )
+    source = authority.split("python3 -c '\n", 1)[1].rsplit("\n')", 1)[0]
+    expected_definition = (
+        "arn:aws:ecs:us-east-1:418384447921:"
+        "task-definition/dsf-ai-task:739"
+    )
+    expected_digest = "sha256:" + ("a" * 64)
+    task_arn = "arn:aws:ecs:us-east-1:418384447921:task/cluster/target"
+
+    def decide(*, definition=expected_definition, digest=expected_digest, service=True):
+        task = {
+            "taskArn": task_arn,
+            "taskDefinitionArn": definition,
+            "lastStatus": "RUNNING",
+            "containers": [{"imageDigest": digest}],
+        }
+        env = os.environ.copy()
+        env.update(
+            {
+                "CANDIDATE_TASK_JSON": json.dumps(task),
+                "CANDIDATE_TASK_ARN": task_arn,
+                "SERVICE_TASKS_TEXT": task_arn if service else "None",
+                "NEW_TASK_DEFINITION_ARN": expected_definition,
+                "EXPECTED_IMAGE_DIGEST": expected_digest,
+            }
+        )
+        return subprocess.run(
+            ["python3", "-c", source],
+            check=True,
+            capture_output=True,
+            env=env,
+            text=True,
+        ).stdout.strip()
+
+    assert decide() == "match"
+    assert decide(definition=expected_definition.replace(":739", ":738")) == (
+        "reject:wrong-task-definition"
+    )
+    assert decide(digest="sha256:" + ("b" * 64)) == "reject:wrong-image-digest"
+    assert decide(service=False) == "reject:not-service-owned"
+    assert decide(digest=None) == "wait"
 
 
 def test_failed_turnover_fails_back_to_the_original_owner():

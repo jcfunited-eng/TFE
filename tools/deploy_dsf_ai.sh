@@ -784,6 +784,20 @@ NEW_REV=$(aws ecs register-task-definition \
     --cli-input-json "${NEW_TASK_DEF}" \
     --query 'taskDefinition.revision' \
     --output text)
+NEW_TASK_DEFINITION_ARN=$(aws ecs describe-task-definition \
+    --task-definition "${TASK_FAMILY}:${NEW_REV}" \
+    --query 'taskDefinition.taskDefinitionArn' --output text)
+if ! NEW_TASK_DEFINITION_ARN="${NEW_TASK_DEFINITION_ARN}" \
+    EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" python3 -c '
+import os
+arn = os.environ["NEW_TASK_DEFINITION_ARN"]
+expected = os.environ["EXPECTED_TASK_DEFINITION"]
+if not arn.endswith("/" + expected):
+    raise SystemExit("registered task-definition ARN does not identify " + expected)
+'; then
+    echo "ERROR: registered task definition could not be identified exactly"
+    exit 1
+fi
 
 echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
 
@@ -1042,48 +1056,151 @@ fi
 echo "[turnover] Old owner STOPPED; new owner start is now permitted."
 
 echo ""
-echo "[7/7] Starting exactly one new owner..."
+# Settle the service's scheduling authority onto the new immutable task
+# definition while there are still zero possible state owners.  Previously the
+# zero-to-one request also changed the task definition and forced a deployment
+# in one operation.  ECS could briefly satisfy the older deployment first,
+# resurrecting the retired image as a state owner.  A zero-owner control-plane
+# transition makes that ordering impossible by construction.
+echo "[owner] Installing the new scheduling authority at zero owners..."
 aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
-    --desired-count 1 --task-definition "${TASK_FAMILY}:${NEW_REV}" \
+    --desired-count 0 --task-definition "${NEW_TASK_DEFINITION_ARN}" \
     --deployment-configuration "${DEPLOY_CONFIG}" --force-new-deployment \
     --query 'service.deployments[0].{status:status,taskDef:taskDefinition}' --output table
+aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}"
+ZERO_TARGET_SERVICE_JSON=$(aws ecs describe-services --cluster "${ECS_CLUSTER}" \
+    --services "${ECS_SERVICE}" --query 'services[0]' --output json)
+if ! ZERO_TARGET_SERVICE_JSON="${ZERO_TARGET_SERVICE_JSON}" \
+    NEW_TASK_DEFINITION_ARN="${NEW_TASK_DEFINITION_ARN}" python3 -c '
+import json, os
+service = json.loads(os.environ["ZERO_TARGET_SERVICE_JSON"])
+expected = os.environ["NEW_TASK_DEFINITION_ARN"]
+counts = {name: service.get(name) for name in (
+    "desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
+    raise SystemExit("service is not settled at zero owners: " + str(counts))
+if service.get("taskDefinition") != expected:
+    raise SystemExit("service scheduling authority is not the target task definition")
+primary = [item for item in service.get("deployments", [])
+           if item.get("status") == "PRIMARY"]
+if len(primary) != 1 or primary[0].get("taskDefinition") != expected:
+    raise SystemExit("PRIMARY deployment is not uniquely the target task definition")
+for item in service.get("deployments", []):
+    item_counts = {name: item.get(name, 0) for name in (
+        "desiredCount", "runningCount", "pendingCount")}
+    if item.get("taskDefinition") != expected and any(item_counts.values()):
+        raise SystemExit(
+            "an older deployment retains scheduling authority: " + str(item_counts)
+        )
+'; then
+    echo "ERROR: new scheduling authority did not settle at zero owners"
+    exit 1
+fi
+echo "[owner] New scheduling authority proven while state ownership remains zero."
+
+# Re-prove the unique image tag immediately before allowing the one target task
+# to exist.  The running task's resolved digest is proven again below.
+TURNOVER_IMAGE_DIGEST=$(aws ecr describe-images \
+    --repository-name "${ECR_REPO}" --image-ids imageTag="${IMAGE_TAG}" \
+    --query 'imageDetails[0].imageDigest' --output text)
+if [ "${TURNOVER_IMAGE_DIGEST}" != "${EXPECTED_IMAGE_DIGEST}" ]; then
+    echo "ERROR: target image tag changed before owner start"
+    exit 1
+fi
+
+echo "[7/7] Starting exactly one new owner..."
+aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
+    --desired-count 1 \
+    --deployment-configuration "${DEPLOY_CONFIG}" \
+    --query 'service.{desired:desiredCount,taskDef:taskDefinition}' --output table
 
 echo "[owner] Waiting for exactly one running task with the new immutable build..."
 NEW_TASK_ARN=""
 NEW_TASK_JSON=""
 for i in $(seq 1 90); do
-    NEW_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    SERVICE_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
         --service-name "${ECS_SERVICE}" --desired-status RUNNING \
         --query 'taskArns' --output text)
-    read -r -a NEW_TASK_ARNS <<< "${NEW_TASKS_TEXT}"
-    if [ "${#NEW_TASK_ARNS[@]}" -eq 1 ] \
-            && [ "${NEW_TASK_ARNS[0]:-None}" != "None" ]; then
+    FAMILY_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+        --family "${TASK_FAMILY}" --desired-status RUNNING \
+        --query 'taskArns' --output text)
+    read -r -a SERVICE_TASK_ARNS <<< "${SERVICE_TASKS_TEXT}"
+    read -r -a FAMILY_TASK_ARNS <<< "${FAMILY_TASKS_TEXT}"
+    REJECTED_TASK=0
+    MATCHING_TASK_ARNS=()
+    MATCHING_TASK_JSON=()
+    for CANDIDATE_TASK_ARN in "${FAMILY_TASK_ARNS[@]}"; do
+        if [ -z "${CANDIDATE_TASK_ARN}" ] || [ "${CANDIDATE_TASK_ARN}" = "None" ]; then
+            continue
+        fi
         CANDIDATE_TASK_JSON=$(aws ecs describe-tasks \
-            --cluster "${ECS_CLUSTER}" --tasks "${NEW_TASK_ARNS[0]}" \
+            --cluster "${ECS_CLUSTER}" --tasks "${CANDIDATE_TASK_ARN}" \
             --query 'tasks[0]' --output json)
-        if CANDIDATE_TASK_JSON="${CANDIDATE_TASK_JSON}" \
-            EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" \
+        CANDIDATE_AUTHORITY=$(CANDIDATE_TASK_JSON="${CANDIDATE_TASK_JSON}" \
+            CANDIDATE_TASK_ARN="${CANDIDATE_TASK_ARN}" \
+            SERVICE_TASKS_TEXT="${SERVICE_TASKS_TEXT}" \
+            NEW_TASK_DEFINITION_ARN="${NEW_TASK_DEFINITION_ARN}" \
             EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
 import json, os
 task = json.loads(os.environ["CANDIDATE_TASK_JSON"])
+task_arn = os.environ["CANDIDATE_TASK_ARN"]
+service_tasks = os.environ["SERVICE_TASKS_TEXT"].split()
 containers = task.get("containers", [])
-if task.get("lastStatus") != "RUNNING":
-    raise SystemExit(1)
-if not task.get("taskDefinitionArn", "").endswith(
-        "/" + os.environ["EXPECTED_TASK_DEFINITION"]
-):
-    raise SystemExit(1)
-if (
-    len(containers) != 1
-    or containers[0].get("imageDigest")
-    != os.environ["EXPECTED_IMAGE_DIGEST"]
-):
-    raise SystemExit(1)
-'; then
-            NEW_TASK_ARN="${NEW_TASK_ARNS[0]}"
-            NEW_TASK_JSON="${CANDIDATE_TASK_JSON}"
-            break
-        fi
+if task_arn not in service_tasks:
+    print("reject:not-service-owned")
+elif task.get("taskDefinitionArn") != os.environ["NEW_TASK_DEFINITION_ARN"]:
+    print("reject:wrong-task-definition")
+elif len(containers) != 1:
+    print("reject:wrong-container-count")
+else:
+    digest = containers[0].get("imageDigest")
+    if digest and digest != os.environ["EXPECTED_IMAGE_DIGEST"]:
+        print("reject:wrong-image-digest")
+    elif task.get("lastStatus") == "RUNNING" and digest:
+        print("match")
+    else:
+        print("wait")
+')
+        case "${CANDIDATE_AUTHORITY}" in
+            reject:*)
+                REJECTION_REASON="${CANDIDATE_AUTHORITY#reject:}"
+                echo "[owner] Rejecting unauthorized task ${CANDIDATE_TASK_ARN}: ${REJECTION_REASON}"
+                aws ecs stop-task --cluster "${ECS_CLUSTER}" \
+                    --task "${CANDIDATE_TASK_ARN}" \
+                    --reason "Rejected by Guala single-owner authority: ${REJECTION_REASON}" \
+                    >/dev/null
+                aws ecs wait tasks-stopped --cluster "${ECS_CLUSTER}" \
+                    --tasks "${CANDIDATE_TASK_ARN}"
+                REJECTED_TASK=1
+                ;;
+            match)
+                MATCHING_TASK_ARNS+=("${CANDIDATE_TASK_ARN}")
+                MATCHING_TASK_JSON+=("${CANDIDATE_TASK_JSON}")
+                ;;
+            wait)
+                ;;
+            *)
+                echo "ERROR: unknown task-authority decision: ${CANDIDATE_AUTHORITY}"
+                exit 1
+                ;;
+        esac
+    done
+    if [ "${REJECTED_TASK}" = "0" ] \
+            && [ "${#MATCHING_TASK_ARNS[@]}" -eq 1 ] \
+            && [ "${#FAMILY_TASK_ARNS[@]}" -eq 1 ] \
+            && [ "${#SERVICE_TASK_ARNS[@]}" -eq 1 ]; then
+        NEW_TASK_ARN="${MATCHING_TASK_ARNS[0]}"
+        NEW_TASK_JSON="${MATCHING_TASK_JSON[0]}"
+        break
+    fi
+    if [ "${#MATCHING_TASK_ARNS[@]}" -gt 1 ]; then
+        echo "ERROR: ECS created more than one valid target state owner"
+        exit 1
+    fi
+    if [ "${REJECTED_TASK}" = "1" ]; then
+        # The target scheduling authority remains installed.  ECS may now
+        # satisfy desired=1 only with the intended immutable definition.
+        echo "[owner] Unauthorized task stopped; awaiting the target owner."
     fi
     ROLLOUT_STATE=$(aws ecs describe-services \
         --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}" \
@@ -1104,13 +1221,14 @@ if [ "${NEW_TASK_ARN}" = "${OLD_TASK_ARN}" ]; then
     echo "ERROR: ECS returned the retired task as the new owner"
     exit 1
 fi
-if ! NEW_TASK_JSON="${NEW_TASK_JSON}" EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" \
+if ! NEW_TASK_JSON="${NEW_TASK_JSON}" \
+    NEW_TASK_DEFINITION_ARN="${NEW_TASK_DEFINITION_ARN}" \
     EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
 import json, os
 task = json.loads(os.environ["NEW_TASK_JSON"])
 if task.get("lastStatus") != "RUNNING":
     raise SystemExit("new task is not RUNNING")
-if not task.get("taskDefinitionArn", "").endswith("/" + os.environ["EXPECTED_TASK_DEFINITION"]):
+if task.get("taskDefinitionArn") != os.environ["NEW_TASK_DEFINITION_ARN"]:
     raise SystemExit("task-definition mismatch")
 containers = task.get("containers", [])
 if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_IMAGE_DIGEST"]:
