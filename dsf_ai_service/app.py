@@ -9135,13 +9135,22 @@ def _authoritative_cold_limits():
 
 
 def _validate_runtime_generation_cold_restore(generation):
-    """Prove one immutable candidate through the exact engine load boundary."""
+    """Prove one immutable candidate outside the live serving process.
+
+    A complete Guala cold restore is intentionally CPU- and memory-intensive.
+    Running that Python workload in a thread inside the sole production owner
+    can starve the event loop and make a healthy owner fail its load-balancer
+    health checks.  Materialization remains here under generation authority;
+    the exact engine load executes in one bounded child process whose memory,
+    GIL, and worker lifecycle cannot enter the serving owner.
+    """
+    import subprocess
+    import sys
     import tempfile
     from dsf_ai_service.substrate.deployment_generation import (
         materialize_verified_generation,
     )
 
-    probe = None
     with tempfile.TemporaryDirectory(
             prefix="guala-cold-restore-") as validation_root:
         active = os.path.join(validation_root, "active")
@@ -9150,44 +9159,47 @@ def _validate_runtime_generation_cold_restore(generation):
             active_directory=active,
         )
         try:
-            probe = Guala()
-            for corpus_id, corpus in SEED_CORPORA.items():
-                probe.add_corpus(
-                    corpus_id,
-                    corpus["title"],
-                    corpus["lines"],
-                )
-            probe.load_full_state(
-                active,
-                require_exact_binary=True,
-                allow_authenticated_legacy_pickle=(
-                    _verified_generation_requires_legacy_pickle_migration(
-                        generation
-                    )
-                ),
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "dsf_ai_service.cold_restore_probe",
+                    "--active-directory",
+                    active,
+                    "--expected-identity",
+                    generation.identity,
+                    "--expected-tick",
+                    str(generation.tick),
+                    *(
+                        ["--allow-authenticated-legacy-pickle"]
+                        if _verified_generation_requires_legacy_pickle_migration(
+                            generation
+                        )
+                        else []
+                    ),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=540,
             )
-            if not bool(getattr(probe, "_load_successful", False)):
+            if completed.returncode != 0:
+                diagnostic = (
+                    (completed.stdout or "") + (completed.stderr or "")
+                )[-4_096:]
                 raise RuntimeError(
-                    "cold-restore probe did not complete an exact engine load")
-            if (
-                getattr(probe, "_guala_identity", None)
-                != generation.identity
-            ):
-                raise RuntimeError(
-                    "cold-restore probe identity differs from generation")
-            if int(probe.tick) != int(generation.tick):
-                raise RuntimeError(
-                    "cold-restore probe tick differs from generation")
+                    "isolated cold-restore probe failed: "
+                    f"{diagnostic or 'no diagnostic output'}"
+                )
             if materialized.generation_uuid != generation.generation_uuid:
                 raise RuntimeError(
                     "cold-restore materialization differs from generation")
             return True
-        finally:
-            if probe is not None:
-                _strict_discard_guala(
-                    probe,
-                    reason="authoritative cold-restore validation",
-                )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError(
+                "isolated cold-restore probe exceeded the existing "
+                "540-second strict seal boundary"
+            ) from error
 
 
 def _seal_runtime_generation(nonce):
