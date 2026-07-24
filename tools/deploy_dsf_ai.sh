@@ -965,8 +965,15 @@ OWNER_FAIL_CLOSED=1
 # seal request counted ITSELF and wait_for_mutations could never drain — every
 # scripted seal 503'd at 120 s.  The exempt alias serves the same handler and
 # works against both old and fixed images.
+#
+# The controller's wire deadline must cover the server's existing strict
+# quiescence boundary.  Revision 739 also cold-restores both retained
+# generations before its candidate; 1800 seconds lets that final legacy
+# turnover finish.  Revision 740 validates only the new immutable candidate,
+# but keeping the controller deadline above the server boundary prevents a
+# completed seal from becoming ambiguous merely because the HTTP client left.
 if ! SLEEP_RESPONSE=$(curl -sS "${CONTROL_CONNECT[@]}" \
-    --connect-timeout 10 --max-time 900 -w "\n__HTTP__%{http_code}" \
+    --connect-timeout 10 --max-time 1800 -w "\n__HTTP__%{http_code}" \
     -X POST -H 'Content-Type: application/json' \
     -H "X-API-Key: ${DEPLOY_API_KEY}" \
     -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
