@@ -4,6 +4,7 @@ import inspect
 import json
 from pathlib import Path
 import sys
+import threading
 from types import SimpleNamespace
 
 import pytest
@@ -66,9 +67,70 @@ def test_boot_audits_immutable_generations_without_disposable_engine_loads():
 
 
 def test_recurring_readiness_never_reaudits_generation_payloads():
-    source = inspect.getsource(appmod._production_runtime_proof)
+    source = inspect.getsource(
+        appmod._production_runtime_proof_under_authority
+    )
     assert "assert_current_reference" in source
     assert "_authoritative_cold_store.inspect" not in source
+
+
+def test_readiness_cannot_observe_a_half_published_hot_generation(
+    monkeypatch,
+):
+    current = {"generation": "old"}
+    loaded = {"generation": "old"}
+    entered = threading.Event()
+    completed = threading.Event()
+    outcome = {}
+
+    def coherent_proof(*, nonce=None):
+        entered.set()
+        assert current["generation"] == loaded["generation"]
+        return {"generation": loaded["generation"], "nonce": nonce}
+
+    monkeypatch.setattr(
+        appmod,
+        "_production_runtime_proof_under_authority",
+        coherent_proof,
+    )
+
+    appmod._persistence_authority_lock.acquire()
+    try:
+        current["generation"] = "new"
+
+        def prove():
+            try:
+                outcome["proof"] = appmod._production_runtime_proof(
+                    nonce="deployment-nonce"
+                )
+            except BaseException as error:
+                outcome["error"] = error
+            finally:
+                completed.set()
+
+        worker = threading.Thread(target=prove)
+        worker.start()
+        assert not entered.wait(timeout=0.1)
+        assert not completed.is_set()
+        loaded["generation"] = "new"
+    finally:
+        appmod._persistence_authority_lock.release()
+
+    worker.join(timeout=2.0)
+    assert not worker.is_alive()
+    assert "error" not in outcome
+    assert outcome["proof"] == {
+        "generation": "new",
+        "nonce": "deployment-nonce",
+    }
+
+
+def test_async_readiness_does_not_block_the_server_on_checkpoint_authority():
+    shallow = inspect.getsource(appmod.ready)
+    deep = inspect.getsource(appmod.ready_guala)
+    assert "await asyncio.to_thread(_production_runtime_proof)" in shallow
+    assert "await asyncio.to_thread(" in deep
+    assert "_production_runtime_proof," in deep
 
 
 def test_legacy_retention_completion_uses_the_real_restored_identity_and_tick(

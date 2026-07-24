@@ -21,6 +21,7 @@ import statistics
 import hashlib as _hashlib
 import traceback
 import base64
+import asyncio
 
 
 def deterministic_motif_id(name):
@@ -8919,7 +8920,7 @@ async def ready():
                 "elapsed_ms": elapsed_ms,
             }
         try:
-            proof = _production_runtime_proof()
+            proof = await asyncio.to_thread(_production_runtime_proof)
         except Exception as error:
             return JSONResponse(
                 status_code=503,
@@ -8978,7 +8979,7 @@ def _ecs_task_runtime_identity():
     }
 
 
-def _production_runtime_proof(nonce=None):
+def _production_runtime_proof_under_authority(nonce=None):
     """Prove code, task, image, owner, CURRENT, seal, and live identity."""
     if not _init_complete or _init_error is not None or _guala is None:
         raise RuntimeError(_init_error or "Guala initialization is incomplete")
@@ -9068,6 +9069,12 @@ def _production_runtime_proof(nonce=None):
     }
 
 
+def _production_runtime_proof(nonce=None):
+    """Read one coherent persistence generation while checkpoints publish."""
+    with _persistence_authority_lock:
+        return _production_runtime_proof_under_authority(nonce=nonce)
+
+
 def _require_readiness_control(request):
     import hmac
     if not _GUALALOOM_API_KEY:
@@ -9104,7 +9111,10 @@ async def ready_guala(request: Request):
     if _REQUIRE_SEALED_STATE:
         nonce = _require_readiness_control(request)
         try:
-            proof = _production_runtime_proof(nonce=nonce)
+            proof = await asyncio.to_thread(
+                _production_runtime_proof,
+                nonce=nonce,
+            )
         except Exception as error:
             return JSONResponse(
                 status_code=503,
