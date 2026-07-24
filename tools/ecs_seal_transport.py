@@ -25,8 +25,17 @@ import textwrap
 
 _NONCE_RE = re.compile(r"[0-9a-f]{64}")
 _RESULT_MARKER = "__GUALA_SEAL_RESULT__"
-_REMOTE_REQUEST_TIMEOUT_SECONDS = 1_800
-_LOCAL_SESSION_TIMEOUT_SECONDS = 1_860
+# Revision 739's one-time migration seal has a measured 668,572,865-byte
+# active state and 1,771,466,055 retained bytes.  Production evidence on
+# 2026-07-24 showed 13.4 minutes restoring the two retained generations,
+# roughly 17 minutes serializing the candidate, and one full candidate
+# restore/upload still outstanding at the former 30-minute deadline.  The
+# 90-minute watchdog covers two complete measured phase envelopes while the
+# generation authority independently caps every candidate at 2 GiB.  This is
+# a failure boundary, not a target duration; revision 742 removes both
+# retained-generation engine restores.
+_REMOTE_REQUEST_TIMEOUT_SECONDS = 5_400
+_LOCAL_SESSION_TIMEOUT_SECONDS = 5_460
 
 
 def _remote_program(nonce: str) -> str:
