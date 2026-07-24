@@ -1235,6 +1235,46 @@ class _DeploymentLifecycle:
 
 
 _deployment_lifecycle = _DeploymentLifecycle()
+_PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS = 30 * 60
+_periodic_cold_checkpoint_status = {
+    "active": False,
+    "last_attempt_at": None,
+    "last_failure": None,
+    "last_failure_at": None,
+    "last_success_at": None,
+    "next_eligible_at": None,
+}
+
+
+class _PeriodicColdCheckpointCadence:
+    """Admit at most one cold-checkpoint attempt per exact interval."""
+
+    def __init__(self, *, monotonic_now, wall_now):
+        self._next_monotonic = (
+            float(monotonic_now)
+            + _PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS
+        )
+        self.next_wall = (
+            float(wall_now)
+            + _PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS
+        )
+
+    def admit(self, *, monotonic_now, wall_now):
+        monotonic_now = float(monotonic_now)
+        wall_now = float(wall_now)
+        if monotonic_now < self._next_monotonic:
+            return False
+        self._next_monotonic = (
+            monotonic_now
+            + _PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS
+        )
+        self.next_wall = (
+            wall_now
+            + _PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS
+        )
+        return True
+
+
 import contextvars as _contextvars
 _lifecycle_mutation_depth = _contextvars.ContextVar(
     "guala_lifecycle_mutation_depth", default=0)
@@ -7906,25 +7946,53 @@ async def startup():
 
     async def _periodic_v6_save():
         save_count = 0
-        _last_cold_wall = 0.0   # wall-clock of last cold save
         loop = asyncio.get_event_loop()
+        cadence = _PeriodicColdCheckpointCadence(
+            monotonic_now=loop.time(),
+            wall_now=time.time(),
+        )
+        _periodic_cold_checkpoint_status["next_eligible_at"] = (
+            cadence.next_wall
+        )
         while True:
             await asyncio.sleep(60)
             if _guala is None:
                 continue
             now = loop.time()
-            do_cold = (now - _last_cold_wall) >= 1800  # 30-min staleness bound
+            wall_now = time.time()
+            do_cold = cadence.admit(
+                monotonic_now=now,
+                wall_now=wall_now,
+            )
+            _periodic_cold_checkpoint_status["next_eligible_at"] = (
+                cadence.next_wall
+            )
             do_wave = save_count > 0 and save_count % 10 == 0
             try:
                 if do_cold:
+                    _periodic_cold_checkpoint_status.update({
+                        "active": True,
+                        "last_attempt_at": wall_now,
+                        "last_failure": None,
+                        "last_failure_at": None,
+                    })
                     await _run_lifecycle_executor(
                         _do_save_and_compact, do_wave)
-                    _last_cold_wall = loop.time()
+                    _periodic_cold_checkpoint_status["last_success_at"] = (
+                        time.time()
+                    )
                 else:
                     await _run_lifecycle_executor(_do_hot_save_and_compact)
             except Exception as e:
+                if do_cold:
+                    _periodic_cold_checkpoint_status.update({
+                        "last_failure": str(e)[:500],
+                        "last_failure_at": time.time(),
+                    })
                 print(f"[save] error: {e}")
             finally:
+                if do_cold:
+                    _periodic_cold_checkpoint_status["active"] = False
                 # GL-CMD-SAVE-CONTAINMENT-91: save_count in finally — wave/snapshot
                 # exceptions can never jam the counter at #10.
                 save_count += 1
@@ -8881,6 +8949,9 @@ def _production_runtime_proof(nonce=None):
         "deployment_baseline_generation": expected["generation_uuid"],
         "deployment_baseline_manifest_sha256": expected["manifest_sha256"],
         "deployment_baseline_tick": expected["tick"],
+        "periodic_cold_checkpoint": dict(
+            _periodic_cold_checkpoint_status
+        ),
         **task,
     }
 
@@ -9190,7 +9261,8 @@ def _validate_runtime_generation_cold_restore(generation):
                     (completed.stdout or "") + (completed.stderr or "")
                 )[-4_096:]
                 raise RuntimeError(
-                    "isolated cold-restore probe failed: "
+                    "isolated cold-restore probe failed with process "
+                    f"return code {completed.returncode}: "
                     f"{diagnostic or 'no diagnostic output'}"
                 )
             if materialized.generation_uuid != generation.generation_uuid:

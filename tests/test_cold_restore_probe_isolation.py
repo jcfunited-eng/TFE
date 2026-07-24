@@ -98,7 +98,10 @@ def test_isolated_probe_failure_and_timeout_fail_generation_closed(
             stderr="",
         ),
     )
-    with pytest.raises(RuntimeError, match="exact load failed"):
+    with pytest.raises(
+        RuntimeError,
+        match="return code 7: exact load failed",
+    ):
         app_module._validate_runtime_generation_cold_restore(generation)
 
     def timeout(*_args, **_values):
@@ -107,3 +110,30 @@ def test_isolated_probe_failure_and_timeout_fail_generation_closed(
     monkeypatch.setattr(subprocess, "run", timeout)
     with pytest.raises(RuntimeError, match="540-second"):
         app_module._validate_runtime_generation_cold_restore(generation)
+
+
+def test_periodic_cold_failure_cannot_become_a_one_minute_retry_storm() -> None:
+    interval = app_module._PERIODIC_COLD_CHECKPOINT_INTERVAL_SECONDS
+    cadence = app_module._PeriodicColdCheckpointCadence(
+        monotonic_now=100.0,
+        wall_now=1_000.0,
+    )
+
+    assert cadence.next_wall == 1_000.0 + interval
+    assert cadence.admit(
+        monotonic_now=100.0 + interval - 1,
+        wall_now=1_000.0 + interval - 1,
+    ) is False
+    assert cadence.admit(
+        monotonic_now=100.0 + interval,
+        wall_now=1_000.0 + interval,
+    ) is True
+    assert cadence.next_wall == 1_000.0 + (2 * interval)
+    assert cadence.admit(
+        monotonic_now=100.0 + interval + 60,
+        wall_now=1_000.0 + interval + 60,
+    ) is False
+    assert cadence.admit(
+        monotonic_now=100.0 + (2 * interval),
+        wall_now=1_000.0 + (2 * interval),
+    ) is True

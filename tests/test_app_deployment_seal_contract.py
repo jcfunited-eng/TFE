@@ -582,3 +582,6 @@ def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
     assert proof["active_recovery_manifest_sha256"] == overlay.manifest_sha256
     assert proof["active_recovery_tick"] == overlay.tick
     assert proof["active_recovery_is_overlay"] is True
+    assert proof["periodic_cold_checkpoint"] == (
+        appmod._periodic_cold_checkpoint_status
+    )
