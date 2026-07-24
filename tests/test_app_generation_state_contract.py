@@ -43,6 +43,9 @@ def test_boot_audits_immutable_generations_without_disposable_engine_loads():
     assert "cold_store.inspect_sealed_boot" in source
     assert "cold_store.inspect_legacy_retention_transition()" in source
     assert "cold_store.reconcile_verified_retention()" not in source
+    assert "_deployment_baseline_generation = authoritative_baseline" in source
+    assert "authoritative_baseline = cold_state.current" in source
+    assert "_deployment_baseline_generation = materialized_baseline" not in source
     completion = inspect.getsource(
         appmod._complete_legacy_cold_retention_transition
     )

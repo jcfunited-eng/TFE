@@ -2451,30 +2451,31 @@ def _prepare_generation_boot():
                 ),
                 retained_generation_uuids=retained_generation_uuids,
             )
-        baseline = materialize_verified_generation(
+        authoritative_baseline = cold_state.current
+        materialized_baseline = materialize_verified_generation(
             generation=cold_state.current,
             active_directory=STATE_DIR,
         )
         live_store = LiveRecoveryGenerationStore(
             LIVE_RECOVERY_STORE_ROOT,
-            baseline=baseline,
+            baseline=materialized_baseline,
             hot_files=Guala.HOT_SAVE_MANIFEST_FILES,
             hmac_key=_deploy_hmac_key(),
         )
         live = live_store.apply_current(STATE_DIR)
-        materialized = live or baseline
+        materialized = live or materialized_baseline
     except BaseException:
         _legacy_cold_retention_transition = None
         owner.release()
         raise
     _generation_owner_lock = owner
     _loaded_generation = materialized
-    _deployment_baseline_generation = baseline
+    _deployment_baseline_generation = authoritative_baseline
     _live_recovery_store = live_store
     _authoritative_cold_store = cold_store
     app.state.generation_owner = owner
     app.state.loaded_generation = materialized
-    app.state.deployment_baseline_generation = baseline
+    app.state.deployment_baseline_generation = authoritative_baseline
     app.state.live_recovery_store = live_store
     app.state.authoritative_cold_store = cold_store
     return materialized
