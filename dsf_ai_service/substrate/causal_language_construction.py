@@ -539,7 +539,12 @@ class CausalLanguageConstructionAuthority:
         with self._lock:
             existing = self._working.get(structure_id)
             if existing is not None:
-                return EpisodeAdmission("unique", "duplicate_structure", existing, False)
+                return EpisodeAdmission(
+                    "unique",
+                    "duplicate_structure",
+                    episode,
+                    False,
+                )
             if len(self._working) >= self._working_capacity:
                 return EpisodeAdmission("unknown", "working_capacity_full", None, False)
             prospective = OrderedDict(self._working)

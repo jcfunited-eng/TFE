@@ -466,7 +466,13 @@ def test_routing_chi_is_irrelevant_but_full_field_change_is_authoritative() -> N
         _settlement("chi-c", sight="blue", routing_chis=(3,)), "chi-c",
     )
     assert same.reason == "duplicate_structure"
+    assert same.stored is False
     assert same.episode.structure_id == first.episode.structure_id
+    assert same.episode.episode_id != first.episode.episode_id
+    assert (
+        same.episode.causal_intake_id
+        != first.episode.causal_intake_id
+    )
     assert changed.episode.structure_id != first.episode.structure_id
     assert all("chi" not in key for key, _value in first.episode.field_roots)
 

@@ -659,6 +659,51 @@ def test_natural_sub_hop_release_reaches_the_token_sequence_boundary(
         engine.strict_shutdown(timeout=30.0)
 
 
+def test_repeated_structure_keeps_the_current_intake_in_prediction(
+    monkeypatch,
+) -> None:
+    _disable_background(monkeypatch)
+    engine = Guala()
+    try:
+        engine._authoritative_hot_generation_publisher = (
+            lambda **_values: None
+        )
+        engine.save_hot_state = lambda _state_dir: None
+        wav_bytes = pcm_s16le_wav(_one_terminal_pcm())
+        engine.teach_isolated_auditory_asset(wav_bytes, "tone")
+        engine.durably_teach_isolated_auditory_token_asset(
+            wav_bytes,
+            "tone",
+            tutor_id="joe",
+            tutor_nonce="repeat-structure-teacher-0001",
+            state_dir="unused",
+        )
+
+        first = _advance(
+            engine,
+            stream_id="repeat-structure-first",
+            epoch_ns=21_000_000_000,
+        )
+        second = _advance(
+            engine,
+            stream_id="repeat-structure-second",
+            epoch_ns=31_000_000_000,
+        )
+
+        assert len(first[1].released_terminals) == 2
+        assert len(second[1].released_terminals) == 2
+        assert engine._causal_language_authority.working_count == 1
+        episode = engine._full_field_prediction.current_episode()
+        assert episode is not None
+        auditory = episode.auditory_attachment
+        assert auditory is not None
+        assert auditory["language_episode"]["causal_intake_id"] == (
+            auditory["causal_intake"]["intake_id"]
+        )
+    finally:
+        engine.strict_shutdown(timeout=30.0)
+
+
 def test_utterance_action_waits_for_terminal_and_language_precedes_selection(
     monkeypatch,
 ) -> None:
