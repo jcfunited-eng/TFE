@@ -1330,7 +1330,7 @@ if [ "${OBSERVATION_HTTP}" != "200" ] || ! \
 import json, os
 with open(os.environ["OBSERVATION_FILE"], encoding="utf-8") as stream:
     value = json.load(stream)
-if value.get("schema") != "guala.observation_snapshot.v1":
+if value.get("schema") != "guala.observation_snapshot.v4":
     raise SystemExit("observation route did not reach the deployed owner")
 if value.get("embodiment", {}).get("status") not in {"observed", "unavailable"}:
     raise SystemExit("observation route returned no explicit embodiment state")
