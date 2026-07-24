@@ -9,6 +9,8 @@ from dsf_ai_service.substrate.causal_action_cycle import ActionCommand
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     MoveCommand,
+    PickCommand,
+    PlaceCommand,
     PoseMM,
     PositionMM,
     encode_command,
@@ -113,6 +115,60 @@ def test_guided_relations_drive_two_actual_w1_steps_then_recurrence(
             assert stable.authority_receipt_sha256 != (
                 transition.authority_receipt_sha256
             )
+    finally:
+        guala.shutdown()
+
+
+def test_guided_pick_and_replace_replays_two_physical_steps_then_recurrence(
+    monkeypatch,
+) -> None:
+    _configure(monkeypatch, "deliberation-pick-place-key")
+    guala = Guala()
+    try:
+        _enable_test_publisher(guala)
+        first = guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="deliberation-pick-demo-0001",
+            port_id=PORT_ID,
+            command_payload=encode_command(PickCommand("W1-object-1")),
+            state_dir="unused",
+        )
+        assert first["causal_play"]["steps"] == []
+        second = guala.durably_demonstrate_embodied_action(
+            tutor_id="joe",
+            nonce="deliberation-place-demo-0002",
+            port_id=PORT_ID,
+            command_payload=encode_command(PlaceCommand(
+                "W1-object-1",
+                PositionMM(1500, 1000, 0),
+            )),
+            state_dir="unused",
+        )
+
+        play = second["causal_play"]
+        assert len(play["steps"]) == 2
+        assert play["dispatch_status"] == "completed"
+        assert play["dispatch_reason"] == "recurrence"
+        world = guala._embodiment_world.observation_snapshot()
+        assert world.revision == 4
+        body = next(
+            item
+            for item in world.bodies
+            if item.body_id == world.self_body_id
+        )
+        object_one = next(
+            item
+            for item in world.objects
+            if item.object_id == "W1-object-1"
+        )
+        assert body.held_object_id is None
+        assert object_one.held_by_body_id is None
+        assert object_one.position == PositionMM(1500, 1000, 0)
+        assert guala._causal_deliberation.status()["terminal_reason"] == (
+            "recurrence"
+        )
+        assert guala._causal_action_dispatcher.status()["active"] is False
+        assert guala._causal_action_cycle.status()["closures"] == 2
     finally:
         guala.shutdown()
 

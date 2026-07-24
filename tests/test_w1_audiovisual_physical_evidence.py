@@ -489,6 +489,51 @@ def test_current_observation_can_be_reproduced_without_committing_state():
     assert owner.status()["settled"] == 0
 
 
+def test_tonic_current_field_distinguishes_and_recurs_after_pick_place():
+    world = _world()
+    authority = _authority(world)
+    initial = authority.mount_current_observation(commit=False)
+    before_pick = world.observation_snapshot()
+    picked = world.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(PickCommand("teaching-object")),
+        causal_intent_receipt_sha256="8" * 64,
+        expected_revision=before_pick.revision,
+    )
+    assert picked.disposition == "applied"
+    held = authority.mount_current_observation(commit=False)
+    before_place = world.observation_snapshot()
+    placed = world.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(PlaceCommand(
+            "teaching-object",
+            PositionMM(1500, 1000, 0),
+        )),
+        causal_intent_receipt_sha256="9" * 64,
+        expected_revision=before_place.revision,
+    )
+    assert placed.disposition == "applied"
+    replaced = authority.mount_current_observation(commit=False)
+
+    initial_fingerprint = initial.causal_settlement.structural_fingerprint
+    held_fingerprint = held.causal_settlement.structural_fingerprint
+    replaced_fingerprint = replaced.causal_settlement.structural_fingerprint
+    assert initial_fingerprint != held_fingerprint
+    assert initial_fingerprint == replaced_fingerprint
+    for interpretation in (
+        *initial.causal_settlement.interpretations,
+        *held.causal_settlement.interpretations,
+        *replaced.causal_settlement.interpretations,
+    ):
+        if interpretation.state != "observed":
+            continue
+        assert all(
+            ("temporal-frame", "tonic-reference-to-current")
+            in substream.coordinates
+            for substream in interpretation.substreams
+        )
+
+
 def test_action_outcome_reservation_commits_or_discards_atomically():
     accepted = []
     world = _world()

@@ -130,6 +130,29 @@ _CARDINAL_HEADINGS = (0, 90_000, 180_000, 270_000)
 _PHYSICAL_RADIUS_SCALE = 1 << 20
 _BODY_REACH_SCALE = 1 << 20
 _OBJECT_MASS_SCALE = 1 << 30
+_ABSENT_VISUAL_DETECTION = (
+    Fraction(0),
+    Fraction(0),
+    Fraction(0),
+    Fraction(-1),
+)
+_NO_CONTACT_REFERENCE = (
+    Fraction(-1),
+    Fraction(0),
+    Fraction(0),
+)
+# A current somatic reading is a physical displacement from the calibrated
+# sensor origin: zero pose/extent and the exact no-contact state.  This is a
+# tonic sensor reference, not a prior world observation or semantic category.
+_TONIC_BODY_REFERENCE = (
+    Fraction(0),
+    Fraction(0),
+    Fraction(0),
+    Fraction(0),
+    Fraction(0),
+    Fraction(0),
+    _NO_CONTACT_REFERENCE[0],
+)
 
 # Prove at import that one complete live PCM transport window fits the exact
 # native full-field wall even at W1's largest admitted visual topology.  Each
@@ -437,13 +460,20 @@ def _visual_inputs(
     *,
     source_time_start: Fraction,
     source_time_end: Fraction,
+    tonic_reference: bool = False,
 ) -> tuple[
     tuple[NativeSensorySubstreamInput, ...],
     str,
     bool,
     tuple[_AnonymousVisualSeriesCandidate, ...],
 ]:
-    first = _anonymous_detections(before)
+    if not isinstance(tonic_reference, bool):
+        raise TypeError("W1 visual tonic-reference flag must be boolean")
+    first = (
+        ()
+        if tonic_reference
+        else _anonymous_detections(before)
+    )
     second = _anonymous_detections(after)
     if not first and not second:
         return (), _digest({"before": (), "after": ()}), False, ()
@@ -475,18 +505,17 @@ def _visual_inputs(
         remaining.remove(track)
         for target in edges[track]:
             indegree[target] -= 1
-    absent = (Fraction(0), Fraction(0), Fraction(0), Fraction(-1))
     witness = []
     inputs = []
     candidates = []
     for ordinal, track in enumerate(merged_order):
         left_values = (
             first_by_track[track].values
-            if track in first_by_track else absent
+            if track in first_by_track else _ABSENT_VISUAL_DETECTION
         )
         right_values = (
             second_by_track[track].values
-            if track in second_by_track else absent
+            if track in second_by_track else _ABSENT_VISUAL_DETECTION
         )
         candidates.append(_AnonymousVisualSeriesCandidate(
             ordinal=ordinal,
@@ -516,6 +545,14 @@ def _visual_inputs(
                         "anonymous-spatial-order", str(ordinal)
                     ),
                     NativeAxisCoordinate("physical-axis", axis),
+                    NativeAxisCoordinate(
+                        "temporal-frame",
+                        (
+                            "tonic-reference-to-current"
+                            if tonic_reference
+                            else "world-before-to-after"
+                        ),
+                    ),
                 ),
                 physical_quantity="normalized-visual-physical-geometry",
                 physical_unit="dimensionless",
@@ -546,7 +583,7 @@ def _held_physical_values(
     if len(held) > 1:
         raise ValueError("W1 self contact topology changed")
     if not held:
-        return Fraction(-1), Fraction(0), Fraction(0)
+        return _NO_CONTACT_REFERENCE
     item = held[0]
     return (
         Fraction(1),
@@ -561,6 +598,7 @@ def _somatic_inputs(
     *,
     source_time_start: Fraction,
     source_time_end: Fraction,
+    tonic_reference: bool = False,
 ) -> tuple[
     dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
     str,
@@ -575,16 +613,26 @@ def _somatic_inputs(
     minimum_x = min(item.bounds.minimum.x for item in after.regions)
     minimum_y = min(item.bounds.minimum.y for item in after.regions)
     minimum_z = min(item.bounds.minimum.z for item in after.regions)
-    before_touch = _held_physical_values(before)
+    if not isinstance(tonic_reference, bool):
+        raise TypeError("W1 somatic tonic-reference flag must be boolean")
+    before_touch = (
+        _NO_CONTACT_REFERENCE
+        if tonic_reference
+        else _held_physical_values(before)
+    )
     after_touch = _held_physical_values(after)
     before_body = (
-        Fraction(before_self.pose.position.x - minimum_x, scale_x),
-        Fraction(before_self.pose.position.y - minimum_y, scale_y),
-        Fraction(before_self.pose.position.z - minimum_z, scale_z),
-        Fraction(before_self.pose.heading_millidegrees, heading_scale),
-        Fraction(before_self.radius_mm, _PHYSICAL_RADIUS_SCALE),
-        Fraction(before_self.reach_mm, _BODY_REACH_SCALE),
-        before_touch[0],
+        _TONIC_BODY_REFERENCE
+        if tonic_reference
+        else (
+            Fraction(before_self.pose.position.x - minimum_x, scale_x),
+            Fraction(before_self.pose.position.y - minimum_y, scale_y),
+            Fraction(before_self.pose.position.z - minimum_z, scale_z),
+            Fraction(before_self.pose.heading_millidegrees, heading_scale),
+            Fraction(before_self.radius_mm, _PHYSICAL_RADIUS_SCALE),
+            Fraction(before_self.reach_mm, _BODY_REACH_SCALE),
+            before_touch[0],
+        )
     )
     after_body = (
         Fraction(after_self.pose.position.x - minimum_x, scale_x),
@@ -631,6 +679,14 @@ def _somatic_inputs(
                         "reference-frame",
                         "proprioceptive" if sense is PhysicalSense.BODY
                         else "body-surface",
+                    ),
+                    NativeAxisCoordinate(
+                        "temporal-frame",
+                        (
+                            "tonic-reference-to-current"
+                            if tonic_reference
+                            else "world-before-to-after"
+                        ),
                     ),
                 ),
                 physical_quantity=(
@@ -1776,11 +1832,15 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         reason: str,
         commit: bool,
         reserve: bool = False,
+        tonic_reference: bool = False,
     ) -> W1PhysicalEvidenceMount:
         if not isinstance(commit, bool):
             raise TypeError("W1 physical boundary commit flag must be boolean")
         if not isinstance(reserve, bool):
             raise TypeError("W1 physical boundary reserve flag must be boolean")
+        if not isinstance(tonic_reference, bool):
+            raise TypeError(
+                "W1 physical boundary tonic-reference flag must be boolean")
         if reserve and commit:
             raise ValueError("W1 physical boundary cannot reserve and commit")
         source_time_start = Fraction(0)
@@ -1795,6 +1855,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             after,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
+            tonic_reference=tonic_reference,
         )
         if visual_order_crossed:
             return self._unsettled(
@@ -1811,6 +1872,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             after,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
+            tonic_reference=tonic_reference,
         )
         states = {
             sense: (
@@ -1833,6 +1895,11 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             ),
             "execution_receipt_sha256": execution_receipt_sha256,
             "somatic_series_sha256": somatic_commitment,
+            "temporal_frame": (
+                "tonic-reference-to-current"
+                if tonic_reference
+                else "world-before-to-after"
+            ),
             "visual_series_sha256": visual_commitment,
         })
         built = build_six_sense_full_field(
@@ -1951,6 +2018,7 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             execution_receipt_sha256=None,
             reason="anonymous_current_physical_field_observed",
             commit=commit,
+            tonic_reference=True,
         )
 
     def mount_action_outcome(
