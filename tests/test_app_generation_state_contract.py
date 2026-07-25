@@ -128,9 +128,97 @@ def test_readiness_cannot_observe_a_half_published_hot_generation(
 def test_async_readiness_does_not_block_the_server_on_checkpoint_authority():
     shallow = inspect.getsource(appmod.ready)
     deep = inspect.getsource(appmod.ready_guala)
-    assert "await asyncio.to_thread(_production_runtime_proof)" in shallow
+    assert "_production_runtime_readiness_snapshot" in shallow
     assert "await asyncio.to_thread(" in deep
     assert "_production_runtime_proof," in deep
+
+
+def test_shallow_readiness_uses_only_a_prior_verified_proof_during_commit(
+    monkeypatch,
+):
+    prior_cache = appmod._last_verified_runtime_readiness
+    calls = []
+
+    def coherent_proof(*, nonce=None):
+        calls.append(nonce)
+        return {"generation": "committed-generation"}
+
+    monkeypatch.setattr(
+        appmod,
+        "_production_runtime_proof_under_authority",
+        coherent_proof,
+    )
+    authority_held = False
+    try:
+        fresh = appmod._production_runtime_readiness_snapshot()
+        assert fresh["generation"] == "committed-generation"
+        assert fresh["persistence_commit_in_progress"] is False
+        assert fresh["readiness_proof_state"] == (
+            "current_committed_generation"
+        )
+        assert calls == [None]
+
+        appmod._persistence_authority_lock.acquire()
+        authority_held = True
+        completed = threading.Event()
+        outcome = {}
+
+        def prove_while_commit_owns_authority():
+            try:
+                outcome["proof"] = (
+                    appmod._production_runtime_readiness_snapshot()
+                )
+            except BaseException as error:
+                outcome["error"] = error
+            finally:
+                completed.set()
+
+        worker = threading.Thread(target=prove_while_commit_owns_authority)
+        worker.start()
+        assert completed.wait(timeout=1.0)
+        worker.join(timeout=1.0)
+        assert not worker.is_alive()
+        assert "error" not in outcome
+        cached = outcome["proof"]
+        assert cached["generation"] == "committed-generation"
+        assert cached["persistence_commit_in_progress"] is True
+        assert cached["readiness_proof_state"] == (
+            "last_verified_committed_generation"
+        )
+        assert cached["readiness_snapshot_age_ms"] >= 0
+        assert calls == [None]
+    finally:
+        if authority_held:
+            appmod._persistence_authority_lock.release()
+        appmod._last_verified_runtime_readiness = prior_cache
+
+
+def test_shallow_readiness_fails_closed_without_a_verified_snapshot():
+    prior_cache = appmod._last_verified_runtime_readiness
+    appmod._last_verified_runtime_readiness = None
+    appmod._persistence_authority_lock.acquire()
+    completed = threading.Event()
+    outcome = {}
+
+    def prove_without_cache():
+        try:
+            appmod._production_runtime_readiness_snapshot()
+        except BaseException as error:
+            outcome["error"] = error
+        finally:
+            completed.set()
+
+    try:
+        worker = threading.Thread(target=prove_without_cache)
+        worker.start()
+        assert completed.wait(timeout=1.0)
+        worker.join(timeout=1.0)
+        assert not worker.is_alive()
+        assert isinstance(outcome.get("error"), RuntimeError)
+        assert "before any readiness proof" in str(outcome["error"])
+    finally:
+        appmod._persistence_authority_lock.release()
+        appmod._last_verified_runtime_readiness = prior_cache
 
 
 def test_legacy_retention_completion_uses_the_real_restored_identity_and_tick(

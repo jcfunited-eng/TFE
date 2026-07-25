@@ -1862,6 +1862,7 @@ _live_recovery_store = None
 _authoritative_cold_store = None
 _legacy_cold_retention_transition = None
 _persistence_authority_lock = threading.RLock()
+_last_verified_runtime_readiness = None
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
 _seed_load_progress = None
@@ -8988,7 +8989,9 @@ async def ready():
                 "elapsed_ms": elapsed_ms,
             }
         try:
-            proof = await asyncio.to_thread(_production_runtime_proof)
+            proof = await asyncio.to_thread(
+                _production_runtime_readiness_snapshot
+            )
         except Exception as error:
             return JSONResponse(
                 status_code=503,
@@ -9141,6 +9144,53 @@ def _production_runtime_proof(nonce=None):
     """Read one coherent persistence generation while checkpoints publish."""
     with _persistence_authority_lock:
         return _production_runtime_proof_under_authority(nonce=nonce)
+
+
+def _production_runtime_readiness_snapshot():
+    """Return current proof or the last coherent proof during publication.
+
+    The ALB calls ``/ready`` as its target-health probe.  Waiting behind a
+    full checkpoint can exceed that probe's timeout even though the live
+    owner, its last committed generation, and its process are healthy.
+    A non-blocking authority acquisition publishes a fresh immutable proof.
+    If a persistence commit currently owns the authority, return only the
+    last proof that completed under that same authority and name its age.
+    No half-published generation is observed and no unverified success is
+    invented.
+    """
+    global _last_verified_runtime_readiness
+    acquired = _persistence_authority_lock.acquire(blocking=False)
+    if acquired:
+        try:
+            proof = _production_runtime_proof_under_authority()
+            verified_at_monotonic_ns = time.monotonic_ns()
+            _last_verified_runtime_readiness = (
+                dict(proof),
+                verified_at_monotonic_ns,
+            )
+            return {
+                **proof,
+                "persistence_commit_in_progress": False,
+                "readiness_proof_state": "current_committed_generation",
+                "readiness_snapshot_age_ms": 0,
+            }
+        finally:
+            _persistence_authority_lock.release()
+    cached = _last_verified_runtime_readiness
+    if cached is None:
+        raise RuntimeError(
+            "persistence commit is in progress before any readiness proof"
+        )
+    proof, verified_at_monotonic_ns = cached
+    return {
+        **dict(proof),
+        "persistence_commit_in_progress": True,
+        "readiness_proof_state": "last_verified_committed_generation",
+        "readiness_snapshot_age_ms": max(
+            0,
+            (time.monotonic_ns() - verified_at_monotonic_ns) // 1_000_000,
+        ),
+    }
 
 
 def _require_readiness_control(request):
