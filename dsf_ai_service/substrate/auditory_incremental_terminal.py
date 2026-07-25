@@ -93,6 +93,7 @@ from dsf_ai_service.substrate.auditory_reciprocity import (
 )
 from dsf_ai_service.substrate.auditory_stream_settlement import (
     AuditoryStreamSettlementReceipt,
+    bind_auditory_stream_settlement,
 )
 from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
@@ -148,6 +149,78 @@ MAX_FULL_GATE_FIELD_SAMPLES_PER_ADVANCE = MAX_NATIVE_SAMPLES_PER_SETTLEMENT
 # This is a resource capacity only; terminal identity and closure never depend
 # on it.
 MAX_RELEASED_TERMINALS_PER_ADVANCE = MAX_EVENT_HOPS
+
+_VERIFIED_SETTLEMENT_CONSTRUCTION_AUTHORITY = object()
+
+
+AuditoryVerifiedFrames = tuple[
+    tuple[
+        int,
+        tuple[float, ...],
+        tuple[float, ...],
+        tuple[float, ...],
+    ],
+    ...,
+]
+
+
+@dataclass(frozen=True, slots=True)
+class AuditoryVerifiedSettlementCapability:
+    """One request-local proof that the complete auditory graph was verified.
+
+    The capability is intentionally not serializable or reconstructable from
+    receipts.  It is issued only after the exact PCM, cochlear continuation,
+    complete explicit L0--L4 field, auditory L5, and causal settlement have
+    been verified together.  Downstream terminal processing must receive the
+    same immutable objects; it cannot substitute an equal-looking graph.
+    """
+
+    pcm_s16le: bytes = field(compare=False, repr=False)
+    capture: AuditoryFullFieldCapture = field(compare=False, repr=False)
+    auditory_l5: AuditoryL5Experience = field(compare=False, repr=False)
+    transport: AuditoryPCMContinuityReceipt = field(compare=False, repr=False)
+    cochlear: AuditoryGammatoneContinuationReceipt = field(
+        compare=False,
+        repr=False,
+    )
+    joint_settlement: AuditoryStreamSettlementReceipt = field(
+        compare=False,
+        repr=False,
+    )
+    verified_frames: AuditoryVerifiedFrames = field(
+        compare=False,
+        repr=False,
+    )
+    _construction_authority: object = field(compare=False, repr=False)
+
+    def verify_linkage(
+        self,
+        *,
+        pcm_s16le: bytes,
+        capture: AuditoryFullFieldCapture,
+        auditory_l5: AuditoryL5Experience,
+        transport: AuditoryPCMContinuityReceipt,
+        cochlear: AuditoryGammatoneContinuationReceipt,
+        joint_settlement: AuditoryStreamSettlementReceipt,
+    ) -> None:
+        if (
+            self._construction_authority
+            is not _VERIFIED_SETTLEMENT_CONSTRUCTION_AUTHORITY
+        ):
+            raise ValueError(
+                "incremental auditory capability lacks construction authority"
+            )
+        if (
+            pcm_s16le is not self.pcm_s16le
+            or capture is not self.capture
+            or auditory_l5 is not self.auditory_l5
+            or transport is not self.transport
+            or cochlear is not self.cochlear
+            or joint_settlement is not self.joint_settlement
+        ):
+            raise ValueError(
+                "incremental auditory capability left its verified transaction"
+            )
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -1700,6 +1773,8 @@ class AuditoryIncrementalTerminalOwner:
     def _frame_values(
         capture: AuditoryFullFieldCapture,
         auditory_l5: AuditoryL5Experience,
+        *,
+        authority_verified: bool = False,
     ) -> tuple[
         tuple[
             int,
@@ -1708,34 +1783,37 @@ class AuditoryIncrementalTerminalOwner:
             tuple[float, ...],
         ], ...
     ]:
-        auditory_l5.verify()
-        if (
-            len(auditory_l5.channels) != COCHLEAR_CHANNEL_COUNT
-            or not auditory_l5.receipt_registry.resolve(
-                auditory_l5.authority_receipt_sha256,
-                "incremental auditory L5 v3 authority",
-            )
-        ):
-            raise ValueError("incremental auditory requires paired L5 v3")
-        if any(
-            len(component.samples) != capture.frame_count
-            or not component.l4_field_tuples
-            or tuple(
-                value.tuple_index for value in component.l4_field_tuples
-            ) != tuple(range(len(component.l4_field_tuples)))
-            or any(
-                tuple(name for name, _ in value.fields) != DSF_FIELD_ORDER
-                for value in component.l4_field_tuples
-            )
-            for channel in auditory_l5.channels
-            for component in (
-                channel.pressure,
-                channel.carrier_phase_advance,
-            )
-        ):
-            raise ValueError(
-                "incremental auditory requires two complete independent L4 banks"
-            )
+        if not isinstance(authority_verified, bool):
+            raise TypeError("auditory L5 verification state must be boolean")
+        if not authority_verified:
+            auditory_l5.verify()
+            if (
+                len(auditory_l5.channels) != COCHLEAR_CHANNEL_COUNT
+                or not auditory_l5.receipt_registry.resolve(
+                    auditory_l5.authority_receipt_sha256,
+                    "incremental auditory L5 v3 authority",
+                )
+            ):
+                raise ValueError("incremental auditory requires paired L5 v3")
+            if any(
+                len(component.samples) != capture.frame_count
+                or not component.l4_field_tuples
+                or tuple(
+                    value.tuple_index for value in component.l4_field_tuples
+                ) != tuple(range(len(component.l4_field_tuples)))
+                or any(
+                    tuple(name for name, _ in value.fields) != DSF_FIELD_ORDER
+                    for value in component.l4_field_tuples
+                )
+                for channel in auditory_l5.channels
+                for component in (
+                    channel.pressure,
+                    channel.carrier_phase_advance,
+                )
+            ):
+                raise ValueError(
+                    "incremental auditory requires two complete independent L4 banks"
+                )
         completions = []
         for offset_ns in capture.channels[0].causal_offsets_ns:
             numerator = offset_ns * PCM_SAMPLE_RATE_HZ
@@ -1800,6 +1878,8 @@ class AuditoryIncrementalTerminalOwner:
         transport: AuditoryPCMContinuityReceipt,
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint: AuditoryStreamSettlementReceipt,
+        *,
+        authorities_verified: bool = False,
     ) -> tuple[
         tuple[
             int,
@@ -1818,10 +1898,15 @@ class AuditoryIncrementalTerminalOwner:
             raise TypeError("incremental terminal requires typed cochlear frames")
         if not isinstance(auditory_l5, AuditoryL5Experience):
             raise TypeError("incremental terminal requires typed auditory L5")
-        transport.verify()
-        cochlear.verify()
-        joint.verify()
-        auditory_l5.verify()
+        if not isinstance(authorities_verified, bool):
+            raise TypeError(
+                "incremental auditory authority state must be boolean"
+            )
+        if not authorities_verified:
+            transport.verify()
+            cochlear.verify()
+            joint.verify()
+            auditory_l5.verify()
         if (
             not isinstance(pcm_s16le, bytes)
             or len(pcm_s16le) != transport.sample_count * 2
@@ -1863,7 +1948,9 @@ class AuditoryIncrementalTerminalOwner:
         ):
             raise ValueError("incremental auditory source interval changed")
         frames = AuditoryIncrementalTerminalOwner._frame_values(
-            capture, auditory_l5
+            capture,
+            auditory_l5,
+            authority_verified=authorities_verified,
         )
         if not frames:
             raise ValueError("incremental auditory chunk has no completed hop")
@@ -1877,6 +1964,54 @@ class AuditoryIncrementalTerminalOwner:
         ):
             raise ValueError("incremental auditory hop identity changed")
         return frames
+
+    @staticmethod
+    def prepare_verified_settlement(
+        *,
+        pcm_s16le: bytes,
+        capture: AuditoryFullFieldCapture,
+        auditory_l5: AuditoryL5Experience,
+        transport: AuditoryPCMContinuityReceipt,
+        cochlear: AuditoryGammatoneContinuationReceipt,
+        causal_settlement: CausalExperienceSettlement,
+    ) -> AuditoryVerifiedSettlementCapability:
+        """Verify the complete graph once and issue a request-local capability."""
+        joint = bind_auditory_stream_settlement(
+            transport=transport,
+            cochlear=cochlear,
+            auditory_l5=auditory_l5,
+            causal_settlement=causal_settlement,
+        )
+        frames = AuditoryIncrementalTerminalOwner._verify_chunk(
+            pcm_s16le,
+            capture,
+            auditory_l5,
+            transport,
+            cochlear,
+            joint,
+            authorities_verified=True,
+        )
+        capability = AuditoryVerifiedSettlementCapability(
+            pcm_s16le=pcm_s16le,
+            capture=capture,
+            auditory_l5=auditory_l5,
+            transport=transport,
+            cochlear=cochlear,
+            joint_settlement=joint,
+            verified_frames=frames,
+            _construction_authority=(
+                _VERIFIED_SETTLEMENT_CONSTRUCTION_AUTHORITY
+            ),
+        )
+        capability.verify_linkage(
+            pcm_s16le=pcm_s16le,
+            capture=capture,
+            auditory_l5=auditory_l5,
+            transport=transport,
+            cochlear=cochlear,
+            joint_settlement=joint,
+        )
+        return capability
 
     def _is_continuous(
         self,
@@ -2761,18 +2896,39 @@ class AuditoryIncrementalTerminalOwner:
         transport: AuditoryPCMContinuityReceipt,
         cochlear: AuditoryGammatoneContinuationReceipt,
         joint_settlement: AuditoryStreamSettlementReceipt,
+        verified_capability: (
+            AuditoryVerifiedSettlementCapability | None
+        ) = None,
     ) -> AuditoryIncrementalAdvance:
         # Verification is intentionally before duplicate recognition: the
         # receipt alone cannot authorize a result for different chunk bytes or
         # a different full-field graph.
-        verified_frames = self._verify_chunk(
-            pcm_s16le,
-            capture,
-            auditory_l5,
-            transport,
-            cochlear,
-            joint_settlement,
-        )
+        if verified_capability is None:
+            verified_frames = self._verify_chunk(
+                pcm_s16le,
+                capture,
+                auditory_l5,
+                transport,
+                cochlear,
+                joint_settlement,
+            )
+        else:
+            if not isinstance(
+                verified_capability,
+                AuditoryVerifiedSettlementCapability,
+            ):
+                raise TypeError(
+                    "incremental terminal requires a typed verified capability"
+                )
+            verified_capability.verify_linkage(
+                pcm_s16le=pcm_s16le,
+                capture=capture,
+                auditory_l5=auditory_l5,
+                transport=transport,
+                cochlear=cochlear,
+                joint_settlement=joint_settlement,
+            )
+            verified_frames = verified_capability.verified_frames
         with self._lock:
             if (
                 transport.receipt_sha256
@@ -3995,6 +4151,7 @@ __all__ = (
     "AuditoryIncrementalTerminalEvent",
     "AuditoryIncrementalTerminalOwner",
     "AuditoryIncrementalTerminalRegistry",
+    "AuditoryVerifiedSettlementCapability",
     "MAX_ACTIVE_TRACKERS",
     "MAX_EVENT_SAMPLES",
     "MAX_EVENT_HOPS",

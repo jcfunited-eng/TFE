@@ -3394,7 +3394,9 @@ class Guala:
         self._auditory_l5_by_assembly = OrderedDict()
         self._latest_auditory_continuation_receipt = None
         self._auditory_prediction_transport_in_commit = None
+        self._auditory_prediction_pcm_in_commit = None
         self._auditory_prediction_joint_by_transport = OrderedDict()
+        self._auditory_verified_capability_by_transport = OrderedDict()
         self._latest_auditory_stream_settlement_receipt = None
         from dsf_ai_service.substrate.auditory_reciprocity import (
             AuditoryReciprocityOwner as _AuditoryReciprocityOwner)
@@ -9485,6 +9487,7 @@ class Guala:
         ):
             return None, None, None
         transport = self._auditory_prediction_transport_in_commit
+        pcm_s16le = self._auditory_prediction_pcm_in_commit
         if (
             transport is None
             or transport.receipt_sha256
@@ -9497,7 +9500,7 @@ class Guala:
                 raise RuntimeError(
                     "continuous auditory settlement lost its transport authority"
                 )
-            transport, capture, mounted_cochlear = mounted
+            transport, capture, mounted_cochlear, pcm_s16le = mounted
             if (
                 mounted_cochlear.receipt_sha256 != cochlear.receipt_sha256
                 or capture.continuation_receipt_sha256
@@ -9506,26 +9509,49 @@ class Guala:
                 raise RuntimeError(
                     "continuous auditory settlement changed its cochlear authority"
                 )
-        from dsf_ai_service.substrate.auditory_stream_settlement import (
-            bind_auditory_stream_settlement,
+        else:
+            capture = self._latest_auditory_full_field_capture
+        if pcm_s16le is None or capture is None:
+            raise RuntimeError(
+                "continuous auditory settlement lost its immutable samples"
+            )
+        from dsf_ai_service.substrate.auditory_incremental_terminal import (
+            AuditoryIncrementalTerminalOwner,
         )
-        joint = bind_auditory_stream_settlement(
+        capability = AuditoryIncrementalTerminalOwner.prepare_verified_settlement(
+            pcm_s16le=pcm_s16le,
+            capture=capture,
             transport=transport,
             cochlear=cochlear,
             auditory_l5=auditory_l5,
             causal_settlement=settlement,
         )
+        joint = capability.joint_settlement
         self._auditory_prediction_joint_by_transport[
             transport.receipt_sha256
         ] = joint
+        self._auditory_verified_capability_by_transport[
+            transport.receipt_sha256
+        ] = capability
         self._auditory_prediction_joint_by_transport.move_to_end(
+            transport.receipt_sha256
+        )
+        self._auditory_verified_capability_by_transport.move_to_end(
             transport.receipt_sha256
         )
         while (
             len(self._auditory_prediction_joint_by_transport)
             > self._auditory_transaction_capacity
         ):
-            self._auditory_prediction_joint_by_transport.popitem(last=False)
+            expired_receipt, _joint = (
+                self._auditory_prediction_joint_by_transport.popitem(
+                    last=False
+                )
+            )
+            self._auditory_verified_capability_by_transport.pop(
+                expired_receipt,
+                None,
+            )
         return transport, cochlear, joint
 
     def _dispatch_recorded_causal_settlement(
@@ -18469,6 +18495,14 @@ class Guala:
             ):
                 if value[0].stream_id == stream_id:
                     del self._auditory_capture_authorities[receipt_sha256]
+                    self._auditory_prediction_joint_by_transport.pop(
+                        receipt_sha256,
+                        None,
+                    )
+                    self._auditory_verified_capability_by_transport.pop(
+                        receipt_sha256,
+                        None,
+                    )
             if self._live_anonymous_encounter_continuity is not None:
                 self._live_anonymous_encounter_continuity.clear_stream(
                     stream_id
@@ -18901,39 +18935,26 @@ class Guala:
                 raise RuntimeError(
                     "continuous auditory terminal lacks full-field authority"
                 )
-            mounted_transport, capture, cochlear = mounted_capture
-            if mounted_transport.receipt_sha256 != transport.receipt_sha256:
+            mounted_transport, capture, cochlear, mounted_pcm = mounted_capture
+            if (
+                mounted_transport.receipt_sha256 != transport.receipt_sha256
+                or mounted_pcm is not pcm_s16le
+            ):
                 raise RuntimeError(
                     "continuous auditory transport authority changed"
                 )
             joint = self._auditory_prediction_joint_by_transport.get(
                 transport.receipt_sha256
             )
-            if joint is None:
-                from dsf_ai_service.substrate.auditory_stream_settlement import (
-                    bind_auditory_stream_settlement,
+            verified_capability = (
+                self._auditory_verified_capability_by_transport.get(
+                    transport.receipt_sha256
                 )
-                joint = bind_auditory_stream_settlement(
-                    transport=transport,
-                    cochlear=cochlear,
-                    auditory_l5=auditory_l5,
-                    causal_settlement=settlement,
+            )
+            if joint is None or verified_capability is None:
+                raise RuntimeError(
+                    "continuous auditory transaction lost verified authority"
                 )
-            else:
-                joint.verify()
-                if (
-                    joint.transport_receipt_sha256
-                    != transport.receipt_sha256
-                    or joint.cochlear_receipt_sha256
-                    != cochlear.receipt_sha256
-                    or joint.auditory_l5_authority_receipt_sha256
-                    != auditory_l5.authority_receipt_sha256
-                    or joint.causal_settlement_authority_receipt_sha256
-                    != settlement.authority_receipt_sha256
-                ):
-                    raise RuntimeError(
-                        "continuous auditory prediction joint changed"
-                    )
             prior_joint = self._latest_auditory_stream_settlement_receipt
             encounter_snapshot = None
             encounter_owner = self._live_anonymous_encounter_continuity
@@ -18959,6 +18980,7 @@ class Guala:
                     transport=transport,
                     cochlear=cochlear,
                     joint_settlement=joint,
+                    verified_capability=verified_capability,
                 )
                 if encounter_owner is not None:
                     if result.status.value == "discontinuity":
@@ -19025,6 +19047,10 @@ class Guala:
             ]
             del self._auditory_l5_by_assembly[settlement.assembly_id]
             self._auditory_prediction_joint_by_transport.pop(
+                transport.receipt_sha256,
+                None,
+            )
+            self._auditory_verified_capability_by_transport.pop(
                 transport.receipt_sha256,
                 None,
             )
@@ -19244,6 +19270,7 @@ class Guala:
                 self._auditory_prediction_transport_in_commit = (
                     auditory_pcm_continuity
                 )
+                self._auditory_prediction_pcm_in_commit = auditory_pcm_s16le
                 try:
                     _closed_window_id, _settlement = (
                         self.window_manager.end_context(
@@ -19254,6 +19281,7 @@ class Guala:
                     )
                 finally:
                     self._auditory_prediction_transport_in_commit = None
+                    self._auditory_prediction_pcm_in_commit = None
             else:
                 _closed_window_id = None
                 _settlement = None
@@ -19264,13 +19292,24 @@ class Guala:
                     auditory_pcm_continuity,
                     auditory_field,
                     self._latest_auditory_continuation_receipt,
+                    auditory_pcm_s16le,
                 )
                 self._auditory_capture_authorities.move_to_end(receipt_sha256)
                 while (
                     len(self._auditory_capture_authorities)
                     > self._auditory_transaction_capacity
                 ):
-                    self._auditory_capture_authorities.popitem(last=False)
+                    expired_receipt, _authority = (
+                        self._auditory_capture_authorities.popitem(last=False)
+                    )
+                    self._auditory_prediction_joint_by_transport.pop(
+                        expired_receipt,
+                        None,
+                    )
+                    self._auditory_verified_capability_by_transport.pop(
+                        expired_receipt,
+                        None,
+                    )
         return {
             "accepted": n_bands_observed > 0,
             "entries_bound": len(auditory_kernel_records),

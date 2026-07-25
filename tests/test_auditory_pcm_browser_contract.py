@@ -48,8 +48,13 @@ def test_browser_epoch_is_fail_closed_and_locally_owned() -> None:
     assert "audio_stream_id:epoch.streamId" in page
     assert "audio_source_epoch_ms:epoch.sourceEpochMs" in page
     assert "if(!epoch.active)return" in page
-    assert "if(!releaseTerminal&&epoch.fetchAbort){epoch.fetchAbort.abort()" in page
-    assert "Promise.resolve(settled).catch(()=>{}).then" in page
+    assert "micSightHandoff=Promise.resolve(settled).catch(()=>{}).then" in page
+    assert "await micSightHandoff;" in page
+    assert (
+        "if(standaloneSightRequest)"
+        "await standaloneSightRequest.catch(()=>{});" in page
+    )
+    assert "standaloneSightRequest=request;" in page
     assert "release_terminal:releaseTerminal" in page
     assert "type:'discontinuity'" in page
     assert "currentFrame!==this.expectedFrame" in page
@@ -66,6 +71,64 @@ def test_post_open_contract_failure_closes_the_known_server_epoch() -> None:
     )
     construction = page.index("const epoch={generation", contract)
     assert contract < cleanup < construction
+
+
+def test_camera_handoff_waits_for_pcm_settlement_and_close_ack() -> None:
+    page = _page()
+    start = page.index("function _closePCMEpoch(")
+    end = page.index("\nfunction _failPCMStream", start)
+    function_source = page[start:end]
+    program = f"""
+      let micSightHandoff=Promise.resolve(),micEpoch=null,micStream=null;
+      let micPCMActive=true,closeCalls=0,resolveSend;
+      function _notifyPCMEpochClose(){{
+        closeCalls+=1;
+        return Promise.resolve();
+      }}
+      {function_source}
+      const sendChain=new Promise(resolve=>{{resolveSend=resolve}});
+      const epoch={{
+        active:true,streamId:'stream-1',sendChain,
+        sightTimers:new Map(),sightBySequence:new Map(),
+        worklet:null,source:null,gain:null,context:null,stream:null
+      }};
+      micEpoch=epoch;
+      _closePCMEpoch(epoch,true,false);
+      if(closeCalls!==0)throw new Error('close raced the in-flight PCM request');
+      resolveSend();
+      micSightHandoff.then(()=>{{
+        if(closeCalls!==1)throw new Error('server close was not acknowledged');
+        process.stdout.write(JSON.stringify({{closeCalls,micPCMActive}}));
+      }}).catch(error=>{{console.error(error);process.exit(1)}});
+    """
+    completed = subprocess.run(
+        ["node", "-e", program],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert json.loads(completed.stdout) == {
+        "closeCalls": 1,
+        "micPCMActive": False,
+    }
+
+
+def test_camera_to_pcm_handoff_awaits_standalone_server_result() -> None:
+    page = _page()
+    start = page.index("async function startMicSoundStream(")
+    end = page.index("\nfunction stopMicSoundStream", start)
+    function_source = page[start:end]
+    handoff = function_source.index("await micSightHandoff;")
+    standalone = function_source.index(
+        "if(standaloneSightRequest)"
+        "await standaloneSightRequest.catch(()=>{});"
+    )
+    open_epoch = function_source.index(
+        "fetchT(`${API}/api/v1/auditory/pcm/open`"
+    )
+    assert handoff < standalone < open_epoch
+    assert "standaloneSightAbort.abort()" not in function_source
 
 
 def test_voice_transcript_pairs_each_reply_with_its_heard_experience() -> None:

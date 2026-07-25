@@ -218,6 +218,62 @@ def test_append_failure_restores_exact_owner_and_same_chunk_retries(
         })
 
 
+def test_verified_capability_prevents_duplicate_full_graph_verification(
+        monkeypatch):
+    mounted = _MountedAuthorities()
+    authorities = mounted.mount(
+        _tone(3_200), sequence=0, first_sample_index=0
+    )
+    capability = AuditoryIncrementalTerminalOwner.prepare_verified_settlement(
+        pcm_s16le=authorities["pcm_s16le"],
+        capture=authorities["capture"],
+        auditory_l5=authorities["auditory_l5"],
+        transport=authorities["transport"],
+        cochlear=authorities["cochlear"],
+        causal_settlement=authorities["causal_settlement"],
+    )
+
+    def duplicate_verification(*_args, **_kwargs):
+        raise AssertionError("verified auditory graph was traversed twice")
+
+    monkeypatch.setattr(
+        type(authorities["transport"]),
+        "verify",
+        duplicate_verification,
+    )
+    monkeypatch.setattr(
+        type(authorities["cochlear"]),
+        "verify",
+        duplicate_verification,
+    )
+    monkeypatch.setattr(
+        type(capability.joint_settlement),
+        "verify",
+        duplicate_verification,
+    )
+    monkeypatch.setattr(
+        type(authorities["auditory_l5"]),
+        "verify",
+        duplicate_verification,
+    )
+
+    owner = AuditoryIncrementalTerminalOwner(
+        reciprocity_owner=AuditoryReciprocityOwner(
+            log_event=lambda *_args, **_kwargs: None,
+            tutor_authority=AuditoryTutorAuthority.unrequired(),
+        )
+    )
+    transaction_authorities = _terminal_authorities(authorities)
+    transaction_authorities["joint_settlement"] = (
+        capability.joint_settlement
+    )
+    result = owner.advance(
+        **transaction_authorities,
+        verified_capability=capability,
+    )
+    result.verify()
+
+
 def test_failure_after_native_step_restores_prior_chunk_not_prior_result(
         monkeypatch):
     owner = AuditoryIncrementalTerminalOwner(
@@ -444,6 +500,17 @@ def test_engine_joint_failure_retains_capture_and_l5_for_exact_retry(
             transport,
             authorities["capture"],
             authorities["cochlear"],
+            authorities["pcm_s16le"],
+        )
+        verified_capability = (
+            AuditoryIncrementalTerminalOwner.prepare_verified_settlement(
+                pcm_s16le=authorities["pcm_s16le"],
+                capture=authorities["capture"],
+                auditory_l5=authorities["auditory_l5"],
+                transport=transport,
+                cochlear=authorities["cochlear"],
+                causal_settlement=settlement,
+            )
         )
         engine._auditory_capture_authorities[
             transport.receipt_sha256
@@ -451,6 +518,12 @@ def test_engine_joint_failure_retains_capture_and_l5_for_exact_retry(
         engine._auditory_l5_by_assembly[
             settlement.assembly_id
         ] = authorities["auditory_l5"]
+        engine._auditory_prediction_joint_by_transport[
+            transport.receipt_sha256
+        ] = verified_capability.joint_settlement
+        engine._auditory_verified_capability_by_transport[
+            transport.receipt_sha256
+        ] = verified_capability
         prior_joint = engine._latest_auditory_stream_settlement_receipt
         prior_advance = engine._latest_auditory_incremental_advance
         original_advance = engine._auditory_incremental_terminals.advance
@@ -490,6 +563,12 @@ def test_engine_joint_failure_retains_capture_and_l5_for_exact_retry(
         result.verify()
         assert transport.receipt_sha256 not in (
             engine._auditory_capture_authorities
+        )
+        assert transport.receipt_sha256 not in (
+            engine._auditory_prediction_joint_by_transport
+        )
+        assert transport.receipt_sha256 not in (
+            engine._auditory_verified_capability_by_transport
         )
         assert settlement.assembly_id not in engine._auditory_l5_by_assembly
         assert engine._latest_auditory_stream_settlement_receipt is joint

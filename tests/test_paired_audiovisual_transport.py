@@ -245,12 +245,13 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
 
 def test_browser_suppresses_duplicate_camera_stream_during_mic_capture() -> None:
     html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert "if(micPCMActive)" in html
+    assert "if(micPCMActive||micTransitionActive)" in html
     assert "utteranceTransitioning" not in html
     assert "utteranceActive" not in html
     assert "sight_frames=await sight.promise" in html
     assert "visualFrameCount:opened.visual_capture.minimum_frames" in html
-    assert "standaloneSightAbort.abort()" in html
+    assert "standaloneSightRequest=request;" in html
+    assert "await micSightHandoff;" in html
     assert "JSON.stringify({text,source,sight_b64})" not in html
     assert "JSON.stringify({text,source})" in html
     assert "audio_first_sample_index:firstSampleIndex" in html

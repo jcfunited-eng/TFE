@@ -203,6 +203,7 @@ let micStream=null,micPCMActive=false,micEpoch=null,micTransitionActive=false;
 let micEpochGeneration=0;
 const PCM_SAMPLE_RATE=16000,PCM_CHUNK_SAMPLES=80000,PCM_MAX_PENDING_CHUNKS=2;
 let visualCaptureContract=null;
+let micSightHandoff=Promise.resolve();
 const auditoryTerminalSeen=new Set(),auditorySequenceSeen=new Set(),deliveredEmissionIds=new Set();
 const auditoryHeardByTerminal=new Map();
 
@@ -317,16 +318,14 @@ function _closePCMEpoch(epoch,notifyServer=true,releaseTerminal=true){
   const streamId=epoch.streamId,settled=epoch.sendChain;
   epoch.active=false;
   epoch.sightTimers.forEach(timers=>timers.forEach(item=>{clearTimeout(item.timer);item.resolve(null)}));epoch.sightTimers.clear();epoch.sightBySequence.clear();
-  if(!releaseTerminal&&epoch.fetchAbort){epoch.fetchAbort.abort();epoch.fetchAbort=null}
   if(epoch.worklet){try{epoch.worklet.port.postMessage({type:'stop'});epoch.worklet.disconnect()}catch(e){}epoch.worklet=null}
   if(epoch.source){try{epoch.source.disconnect()}catch(e){}epoch.source=null}
   if(epoch.gain){try{epoch.gain.disconnect()}catch(e){}epoch.gain=null}
   if(epoch.context){try{epoch.context.close()}catch(e){}epoch.context=null}
   if(epoch.stream){epoch.stream.getTracks().forEach(track=>track.stop());epoch.stream=null}
-  if(notifyServer&&streamId){
-    if(releaseTerminal)Promise.resolve(settled).catch(()=>{}).then(()=>_notifyPCMEpochClose(streamId,true));
-    else _notifyPCMEpochClose(streamId,false);
-  }
+  micSightHandoff=Promise.resolve(settled).catch(()=>{}).then(()=>
+    notifyServer&&streamId?_notifyPCMEpochClose(streamId,releaseTerminal):undefined
+  ).catch(()=>{});
   epoch.streamId=null;
   if(micEpoch===epoch){micEpoch=null;micStream=null;micPCMActive=false}
 }
@@ -402,6 +401,9 @@ function _admitPCMChunk(epoch,buffer){
 }
 
 async function startMicSoundStream(stream,generation){
+  await micSightHandoff;
+  if(standaloneSightRequest)await standaloneSightRequest.catch(()=>{});
+  if(generation!==micEpochGeneration)throw new Error('microphone start was superseded');
   const openedResponse=await fetchT(`${API}/api/v1/auditory/pcm/open`,{method:'POST'},10000);
   const opened=await openedResponse.json();
   if(!opened.ok||opened.sample_rate_hz!==PCM_SAMPLE_RATE||opened.chunk_samples!==PCM_CHUNK_SAMPLES){
@@ -503,7 +505,6 @@ async function startMicSoundStream(stream,generation){
     await Promise.race([started,new Promise((_,reject)=>setTimeout(()=>reject(new Error('audio sample clock did not start')),10000))]);
     if(generation!==micEpochGeneration)throw new Error('microphone start was superseded');
     micEpoch=epoch;micStream=stream;micPCMActive=true;
-    if(standaloneSightAbort){standaloneSightAbort.abort();standaloneSightAbort=null}
     return epoch;
   }catch(error){
     _closePCMEpoch(epoch,true,false);throw error;
@@ -547,7 +548,7 @@ async function requestMic(){
   }finally{micTransitionActive=false}
 }
 // GL-BRIEF-SENSORY-IO Part C: camera sight streaming
-let sightStreamTimer=null,sightStreamWaitResolve=null,sightStreamGeneration=0,standaloneSightAbort=null;
+let sightStreamTimer=null,sightStreamWaitResolve=null,sightStreamGeneration=0,standaloneSightAbort=null,standaloneSightRequest=null;
 async function getVisualCaptureContract(){
   if(visualCaptureContract)return visualCaptureContract;
   const response=await fetchT(`${API}/api/v1/visual/capture-contract`,{},10000);
@@ -569,23 +570,30 @@ function startSightStream(){
       const contract=await getVisualCaptureContract();
       const intervalMs=5000,frameCount=contract.minimum_frames;
       while(generation===sightStreamGeneration&&camStream){
-        if(micPCMActive){if(!await waitSightDelay(250,generation))return;continue}
+        await micSightHandoff;
+        if(generation!==sightStreamGeneration||!camStream)return;
+        if(micPCMActive||micTransitionActive){if(!await waitSightDelay(250,generation))return;continue}
         const capture_started_ms=Math.round(performance.timeOrigin+performance.now());
         const sight_frames=[];
         for(let index=0;index<frameCount;index++){
           const target=capture_started_ms+(index+1)*intervalMs/(frameCount+1);
           if(!await waitSightDelay(Math.max(0,target-(performance.timeOrigin+performance.now())),generation))return;
-          if(micPCMActive)break;
+          if(micPCMActive||micTransitionActive)break;
           const frame=await captureConversationSight();if(frame)sight_frames.push(frame);
         }
-        if(micPCMActive)continue;
+        if(micPCMActive||micTransitionActive)continue;
         const capture_ended_ms=capture_started_ms+intervalMs;
         const abort=new AbortController();standaloneSightAbort=abort;
-        let response;
-        try{response=await fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:'',capture_started_ms,capture_ended_ms,sight_frames}),signal:abort.signal},25000)}
+        const request=(async()=>{
+          const response=await fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:'',capture_started_ms,capture_ended_ms,sight_frames}),signal:abort.signal},25000);
+          return response.json();
+        })();
+        standaloneSightRequest=request;
+        let result;
+        try{result=await request}
         catch(error){if(abort.signal.aborted){if(generation!==sightStreamGeneration)return;continue}throw error}
-        finally{if(standaloneSightAbort===abort)standaloneSightAbort=null}
-        const result=await response.json(),status=document.getElementById('cam-status');
+        finally{if(standaloneSightAbort===abort)standaloneSightAbort=null;if(standaloneSightRequest===request)standaloneSightRequest=null}
+        const status=document.getElementById('cam-status');
         if(!result.ok){status.textContent='raw sight rejected: '+(result.error||result.reason||'unknown error');status.style.color='#f85149';continue}
         const regions=result.visual_region&&result.visual_region.regions?result.visual_region.regions.length:0;
         status.textContent='raw sight active — '+regions+' structural region'+(regions===1?'':'s')+', names unlearned';status.style.color='var(--text-muted)';
