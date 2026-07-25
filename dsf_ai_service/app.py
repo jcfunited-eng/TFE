@@ -3828,6 +3828,48 @@ async def sound_frame(msg: GLMessage):
                 "spoken_word_recognition": recognition}
     def _decode():
         t0 = time.time()
+        profile_started = time.perf_counter()
+        profile_durations = {}
+        profile_emitted = False
+
+        def _record_profile_stage(name, started):
+            profile_durations[name] = (
+                time.perf_counter() - started
+            )
+
+        def _emit_profile(outcome):
+            nonlocal profile_emitted
+            if profile_emitted:
+                return
+            profile_emitted = True
+            profile_durations["total"] = (
+                time.perf_counter() - profile_started
+            )
+            ordered = " ".join(
+                f"{name}={profile_durations[name]:.6f}"
+                for name in (
+                    "transport",
+                    "context_begin",
+                    "visual",
+                    "sound",
+                    "settlement",
+                    "terminal",
+                    "status",
+                    "reply",
+                    "speech_boundary",
+                    "total",
+                )
+                if name in profile_durations
+            )
+            print(
+                "[sound-frame-stage] "
+                f"outcome={outcome} "
+                f"pcm={msg.audio_encoding == 'pcm_s16le'} "
+                f"visual_claimed={visual_claimed} "
+                f"capture_purpose={auditory_event_boundary} "
+                f"{ordered}"
+            )
+
         try:
             import dsf_ai_service.substrate_runner as _sr
             try:
@@ -3868,8 +3910,10 @@ async def sound_frame(msg: GLMessage):
             else:
                 wav = _sr._webm_to_wav_bytes(audio_bytes)
             if not wav:
+                _emit_profile("decode_failed")
                 return {"ok": False, "error": "decode_failed",
                         "spoken_word_recognition": recognition}
+            _record_profile_stage("transport", profile_started)
             # a8277fa ordering: submit transcription to the owned single-
             # worker executor BEFORE raw-sense processing so STT decode
             # overlaps process_sound_frame instead of following it.
@@ -3890,6 +3934,7 @@ async def sound_frame(msg: GLMessage):
             unavailable = ["touch", "smell", "taste", "body"]
             if not visual_claimed:
                 unavailable.insert(0, "sight")
+            context_begin_started = time.perf_counter()
             _guala.window_manager.begin_context(
                 context_id,
                 trigger_reason="audiovisual_capture",
@@ -3904,7 +3949,12 @@ async def sound_frame(msg: GLMessage):
                     "sensor_unavailable": unavailable,
                 },
             )
+            _record_profile_stage(
+                "context_begin",
+                context_begin_started,
+            )
             try:
+                visual_started = time.perf_counter()
                 if visual_claimed:
                     try:
                         if visual_transport_error:
@@ -3956,6 +4006,8 @@ async def sound_frame(msg: GLMessage):
                             error_type=type(sight_error).__name__,
                             error=str(sight_error),
                         )
+                _record_profile_stage("visual", visual_started)
+                sound_started = time.perf_counter()
                 try:
                     sound_receipt = _guala.process_sound_frame(
                         wav,
@@ -3982,7 +4034,10 @@ async def sound_frame(msg: GLMessage):
                         error_type=type(sound_error).__name__,
                         error=str(sound_error),
                     )
+                finally:
+                    _record_profile_stage("sound", sound_started)
             finally:
+                settlement_started = time.perf_counter()
                 try:
                     closed_window_id, settlement = (
                         _guala.window_manager.end_context(
@@ -4014,6 +4069,11 @@ async def sound_frame(msg: GLMessage):
                         context_id,
                         "live_audiovisual_settlement_failed",
                     )
+                finally:
+                    _record_profile_stage(
+                        "settlement",
+                        settlement_started,
+                    )
             causal_boundary = (
                 "unsettled" if not boundary_settled
                 else "audiovisual" if observed_senses == ["sight", "sound"]
@@ -4022,6 +4082,7 @@ async def sound_frame(msg: GLMessage):
             )
             stream_settlement_receipt = None
             incremental_terminal = None
+            terminal_started = time.perf_counter()
             if pcm_acceptance is not None and boundary_settled:
                 (
                     stream_settlement_receipt,
@@ -4033,6 +4094,8 @@ async def sound_frame(msg: GLMessage):
                 )
                 stream_settlement_receipt.verify()
                 incremental_terminal.verify()
+            _record_profile_stage("terminal", terminal_started)
+            status_started = time.perf_counter()
             auditory_status = _guala.auditory_l5_status()
             token_sequence_status = auditory_status.get(
                 "token_sequence", {}
@@ -4109,18 +4172,22 @@ async def sound_frame(msg: GLMessage):
                 )
                 else None
             )
+            _record_profile_stage("status", status_started)
             reply_admitted = None
             terminal_event_id = (
                 terminal_candidate.event_id
                 if terminal_candidate is not None
                 else None
             )
+            reply_started = time.perf_counter()
             if terminal_candidate is not None:
                 reply_admitted = _maybe_trigger_voice_reply(
                     terminal_candidate,
                     _guala.tick,
                 )
+            _record_profile_stage("reply", reply_started)
             if recognition_future is None:
+                _emit_profile("settled")
                 print(f"[sound-frame] {time.time()-t0:.3f}s")
                 result = {
                     "ok": "sound" in observed_senses and boundary_settled,
@@ -4193,6 +4260,7 @@ async def sound_frame(msg: GLMessage):
             from dsf_ai_service.speech_transducer import (
                 spoken_word_transduction_status)
             tw0 = time.time()
+            speech_boundary_started = time.perf_counter()
             recognition_status = "no_speech"
             spoken = ""
             try:
@@ -4216,8 +4284,13 @@ async def sound_frame(msg: GLMessage):
                       f"{type(recognition_error).__name__}: "
                       f"{recognition_error}")
             finally:
+                _record_profile_stage(
+                    "speech_boundary",
+                    speech_boundary_started,
+                )
                 print(f"[voice-whisper] {time.time()-tw0:.3f}s "
                       f"status={recognition_status}")
+            _emit_profile("settled_with_boundary_transcription")
             print(f"[sound-frame] {time.time()-t0:.3f}s")
             result = {
                 "ok": (recognition_status != "error"
@@ -4294,6 +4367,7 @@ async def sound_frame(msg: GLMessage):
                 result["sensory_errors"] = sensory_errors
             return result
         except Exception as e:
+            _emit_profile(f"error:{type(e).__name__}")
             if msg.audio_encoding == "pcm_s16le" and msg.audio_stream_id:
                 _reject_auditory_pcm_epoch(msg.audio_stream_id)
             return {"ok": False, "error": str(e),
