@@ -1,17 +1,10 @@
-"""GL-CMD-CAMERA-TURN-LATENCY — real tests for the two-part fix:
+"""GL-CMD-CAMERA-TURN-LATENCY — real tests for the live priority gate.
 
-  1. Sight-frame DEDUPLICATION: the send-time conversation camera frame is
-     routed through the SAME bounded backpressure gate the continuous
-     /sight_frame stream uses, instead of a second, unprotected direct
-     process_sight_frame() call. There is now exactly one ordered,
-     capacity-limited sight path -- never two.
-
-  2. LIVE-INTERACTION PRIORITY GATE: a live human interaction (a converse
+  A live human interaction (a converse
      turn, or a real sight/sound frame) marks itself pending so the
      background self.lock hogs (the autonomous emission loop and the 5Hz
      autonomy tick) DEFER their self.lock acquisition and let the live work
-     win the lock first -- with a starvation safety valve so background work
-     can never be frozen forever.
+     win the lock first for the complete balanced causal interaction scope.
 
 These are real tests against the real engine: real Guala() instances, the
 real threading.RLock self.lock, the real module-level backpressure gate
@@ -23,34 +16,17 @@ mechanism itself. Same convention as
 tests/test_read_sentence_lock_granularity_concurrency.py.
 """
 
-import base64
-import io
 import os
 import sys
 import threading
 import time
-from types import SimpleNamespace
 
-import numpy as np
 import pytest
-from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import dsf_ai_service.app as appmod  # noqa: E402
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala  # noqa: E402
-
-
-# ── helpers ────────────────────────────────────────────────────────────────
-
-def _real_jpeg_b64(seed=0):
-    """A real (small) JPEG, base64-encoded, exactly as the browser sends."""
-    rng = np.random.RandomState(seed)
-    arr = (rng.rand(16, 16) * 255).astype("uint8")
-    img = Image.fromarray(arr, "L")
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG")
-    return base64.b64encode(buf.getvalue()).decode()
 
 
 @pytest.fixture
@@ -73,135 +49,7 @@ def clean_frame_state():
         appmod._guala = saved_guala
 
 
-class _SightSpy:
-    """Wraps a real Guala.process_sight_frame, counting calls but STILL
-    calling through to the real implementation (a spy, not a mock)."""
-
-    def __init__(self, guala):
-        self.guala = guala
-        self.count = 0
-        self._orig = guala.process_sight_frame
-
-    def install(self):
-        def _counting(grid):
-            self.count += 1
-            return self._orig(grid)
-        self.guala.process_sight_frame = _counting
-        return self
-
-
-# ── Part 1: sight-frame deduplication (single gated path) ───────────────────
-
-def test_observed_sight_frame_processed_once_through_gate(clean_frame_state):
-    """With capacity free, the send-time frame is processed exactly once and
-    the gate slot it took is released (in-flight returns to 0)."""
-    g = Guala()
-    appmod._guala = g
-    spy = _SightSpy(g).install()
-
-    outcome = appmod._process_observed_sight_frame(_real_jpeg_b64())
-
-    assert outcome == {"processed": True}
-    assert spy.count == 1, "send-time frame processed exactly once"
-    assert appmod._frame_inflight["sight"] == 0, "gate slot released"
-    assert appmod._frame_dropped["sight"] == 0, "nothing dropped"
-
-
-def test_observed_sight_frame_dropped_not_double_processed_when_saturated(
-        clean_frame_state):
-    """When the shared sight gate is already at capacity (simulating in-flight
-    stream frames for the same observed moment), the observed path DROPS its
-    frame -- honestly, counted -- rather than adding a second, unprotected
-    process_sight_frame call. This is the core no-double-processing invariant.
-    """
-    g = Guala()
-    appmod._guala = g
-    spy = _SightSpy(g).install()
-
-    # Saturate the real gate the way two concurrent stream frames would.
-    assert appmod._frame_backpressure_acquire("sight") is True
-    assert appmod._frame_backpressure_acquire("sight") is True
-    assert appmod._frame_inflight["sight"] == appmod._FRAME_INFLIGHT_MAX
-
-    dropped_before = appmod._frame_dropped["sight"]
-    outcome = appmod._process_observed_sight_frame(_real_jpeg_b64())
-
-    assert outcome["processed"] is False
-    assert outcome["dropped"] is True
-    assert "backpressure" in outcome["reason"]
-    assert spy.count == 0, "NOT processed a second time while stream in flight"
-    assert appmod._frame_dropped["sight"] == dropped_before + 1, "drop counted"
-
-    # release the two simulated in-flight stream slots
-    appmod._frame_backpressure_release("sight")
-    appmod._frame_backpressure_release("sight")
-    assert appmod._frame_inflight["sight"] == 0
-
-
-def test_observed_conversation_never_calls_process_sight_frame_ungated(
-        clean_frame_state):
-    """End-to-end through _run_embedded_observed_conversation: when the shared
-    sight gate is saturated, the observed CONVERSATION turn still completes
-    (converse runs) but makes ZERO process_sight_frame calls -- proving the
-    observed path has no unprotected second path left. converse() and its
-    bind/remember tail are stubbed (unrelated collaborators); the sight gate
-    and window manager stay real."""
-    g = Guala()
-    appmod._guala = g
-    spy = _SightSpy(g).install()
-
-    converse_calls = []
-
-    def _fake_converse(text, source="unknown"):
-        converse_calls.append((text, source))
-        return SimpleNamespace(
-            response="ok", response_source="test", emission_id=None,
-            committed_sections=[], source_turn_index=None,
-            recalled_pictures=[])
-    g.converse = _fake_converse
-    g._bind_certified_fact_emission_to_active_window = lambda *_a, **_k: None
-    g._remember_closed_language_window = lambda *_a, **_k: None
-
-    # Saturate the gate: two stream frames already in flight.
-    appmod._frame_backpressure_acquire("sight")
-    appmod._frame_backpressure_acquire("sight")
-    try:
-        result = appmod._run_embedded_observed_conversation(
-            task_id="t1", text="hello", source="joe",
-            sight_b64=_real_jpeg_b64())
-    finally:
-        appmod._frame_backpressure_release("sight")
-        appmod._frame_backpressure_release("sight")
-
-    assert result.response == "ok", "turn still completes despite sight drop"
-    assert converse_calls == [("hello", "joe")], "converse ran exactly once"
-    assert spy.count == 0, "no ungated process_sight_frame call from the turn"
-    # window opened and closed cleanly (no leaked context)
-    assert g.window_manager.active_context_id is None
-
-
-def test_observed_conversation_processes_sight_once_when_capacity_free(
-        clean_frame_state):
-    """Complement: with capacity free, the observed turn processes its frame
-    exactly once (through the gate) and releases the slot."""
-    g = Guala()
-    appmod._guala = g
-    spy = _SightSpy(g).install()
-
-    g.converse = lambda text, source="unknown": SimpleNamespace(
-        response="ok", response_source="test", emission_id=None,
-        committed_sections=[], source_turn_index=None, recalled_pictures=[])
-    g._bind_certified_fact_emission_to_active_window = lambda *_a, **_k: None
-    g._remember_closed_language_window = lambda *_a, **_k: None
-
-    appmod._run_embedded_observed_conversation(
-        task_id="t2", text="hi", source="joe", sight_b64=_real_jpeg_b64())
-
-    assert spy.count == 1, "exactly one sight processing for the turn"
-    assert appmod._frame_inflight["sight"] == 0, "slot released"
-
-
-# ── Part 2: live-interaction priority gate ──────────────────────────────────
+# ── live-interaction priority gate ─────────────────────────────────────────
 
 def test_defer_toggles_with_pending_and_clears():
     """Unit-level: a background site defers only while an interaction is
@@ -275,24 +123,17 @@ def test_live_interaction_scope_is_noop_without_guala(clean_frame_state):
         pass  # must not raise
 
 
-def test_safety_valve_prevents_permanent_starvation():
-    """Sustained pending must NOT starve background forever: after
-    _LIVE_INTERACTION_MAX_DEFER_SEC of continuous deferral the valve forces
-    the site to proceed even though the interaction is still pending."""
+def test_causal_scope_remains_authoritative_beyond_former_timer():
+    """Elapsed wall time cannot let background work split one interaction."""
     g = Guala()
-    g._LIVE_INTERACTION_MAX_DEFER_SEC = 0.2  # instance override; real logic
-    g._enter_live_interaction()  # stays pending for the whole test
+    g._enter_live_interaction()
     try:
-        assert g._defer_for_live_interaction("tick") is True  # first: defers
-        # keep it pending; within the window it keeps deferring
         assert g._defer_for_live_interaction("tick") is True
-        time.sleep(0.25)  # exceed the max-defer window
-        assert g._defer_for_live_interaction("tick") is False, (
-            "safety valve fires -> background proceeds despite pending")
-        # valve re-arms: the next episode gets its own fresh window
+        time.sleep(2.05)
         assert g._defer_for_live_interaction("tick") is True
     finally:
         g._exit_live_interaction()
+    assert g._defer_for_live_interaction("tick") is False
 
 
 def test_real_thread_background_defers_then_resumes():

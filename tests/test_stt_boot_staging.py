@@ -109,9 +109,9 @@ def test_prewarm_failure_is_loud_but_contained(monkeypatch, capsys):
 
 def test_dockerfile_records_the_staged_truth():
     dockerfile = (ROOT / "dsf_ai_service" / "Dockerfile").read_text()
-    assert "ENV VOICE_WHISPER=1" in dockerfile
-    assert "ENV VOICE_WHISPER_WORKER=1" in dockerfile, (
-        "worker lane is the image default (spec v3 acceptance criterion 7)")
+    assert "ENV VOICE_WHISPER=0" in dockerfile
+    assert "faster-whisper" not in dockerfile
+    assert "WhisperModel('tiny'" not in dockerfile
 
 
 def test_health_exposes_speech_telemetry_without_constructing(monkeypatch):
@@ -124,11 +124,12 @@ def test_health_exposes_speech_telemetry_without_constructing(monkeypatch):
     assert transducer._speech_recognizer is None
 
 
-def test_honest_unavailable_report_survives_the_staging(monkeypatch):
-    """STT off or worker down: the UI banner path keeps working — the report
-    for a non-configured capability is exactly the Fact-Strand-era one."""
+def test_honest_not_attempted_report_survives_the_staging(monkeypatch):
+    """An unprocessed request is not mislabeled as missing auditory L5."""
     monkeypatch.delenv("VOICE_WHISPER", raising=False)
+    monkeypatch.setattr(appmod, "_guala", object())
+    monkeypatch.setattr(appmod, "_is_remote", lambda: False)
     report = appmod._spoken_word_recognition_report("joe_voice")
-    assert report["status"] == "unavailable"
-    assert report["available"] is False
+    assert report["status"] == "not_attempted"
+    assert report["available"] is True
     assert report["raw_sensing"]["available"] is True

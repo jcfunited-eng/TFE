@@ -157,3 +157,25 @@ def test_settle_queues_budget_expiry_names_the_backlog(engine):
             g.settle_queues(budget_s=0.0, threshold=1)
     finally:
         g._organism_pause_req.clear()
+
+
+def test_strict_quiescence_stops_producers_and_drains_exactly(engine):
+    g, _ = engine
+    g.start_autonomy_loop(interval=0.05)
+    g.start_daydream_loop()
+    for index in range(6):
+        g._enqueue_organism_remember(f"boundary{index}")
+        g._enqueue_tapestry_expose(f"left{index}", f"right{index}")
+
+    proof = g.quiesce_background_workers(timeout=120.0)
+
+    assert proof["queues_drained"] is True
+    assert proof["engine_threads_joined"] is True
+    assert all(
+        state["unfinished"] == 0 and state["queued"] == 0
+        for state in proof["queues"].values()
+    )
+    assert not g._reading_thread.is_alive()
+    assert not g._daydream_thread.is_alive()
+    with pytest.raises(RuntimeError, match="after quiescence"):
+        g._enqueue_organism_remember("rejected")

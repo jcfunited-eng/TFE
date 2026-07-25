@@ -47,14 +47,15 @@ class _OrderedGuala:
         self.events.append("manual_sleep")
 
     def settle_queues(self, budget_s=420.0, threshold=8):
-        # Seal settle (2026-07-16): backlog drains BEFORE the strict window.
-        self.events.append("settle_queues")
-        return {"settled": True, "started": {}, "remaining": {},
-                "budget_s": budget_s, "threshold": threshold}
+        raise AssertionError("production sealing must not use threshold settle")
 
     def quiesce_background_workers(self, timeout):
+        assert timeout == 540.0
         self.events.append("engine_strict_stop")
-        return {"engine_quiesced": True}
+        return {"engine_quiesced": True, "queues": {
+            "organism": {"unfinished": 0, "queued": 0},
+            "tapestry": {"unfinished": 0, "queued": 0},
+        }}
 
 
 @pytest.fixture
@@ -68,6 +69,7 @@ def ordered_handoff(monkeypatch, tmp_path):
     monkeypatch.setattr(appmod, "_guala", guala)
     monkeypatch.setattr(appmod, "STATE_DIR", str(tmp_path))
     monkeypatch.setattr(appmod, "_converse_tasks", {})
+    monkeypatch.setenv("SEAL_SETTLE_BUDGET_S", "420")
 
     real_auth = appmod._require_deploy_control
 
@@ -171,11 +173,10 @@ def test_authenticated_handoff_orders_every_writer_before_seal(
         "app_task_stop",
         "admission_drain_2",
         "converse_task_terminalization",
-        "manual_sleep",
-        "settle_queues",
         "v7_flush",
         "persistence_stops",
         "runner_strict_stop",
+        "manual_sleep",
         "engine_strict_stop",
         "stage_and_remote_proof",
         "sealed",
@@ -222,6 +223,108 @@ def test_late_generation_proof_failure_stays_quiescing_without_certificate(
         "remote read-back differs from staged generation")
     assert ordered_handoff.events[-1] == "stage_and_remote_proof_failed"
     assert "sealed" not in ordered_handoff.events
+
+
+def test_engine_drain_failure_stays_quiescing_and_never_stages(
+        ordered_handoff, monkeypatch):
+    """A non-zero engine boundary cannot create or publish a generation."""
+
+    def fail_engine_drain(timeout):
+        assert timeout == 540.0
+        ordered_handoff.events.append("engine_strict_stop_failed")
+        raise RuntimeError("quiescence timed out draining tapestry queue")
+
+    def forbidden_stage(_nonce):
+        raise AssertionError("generation staged after failed exact-zero drain")
+
+    monkeypatch.setattr(
+        ordered_handoff.guala,
+        "quiesce_background_workers",
+        fail_engine_drain,
+    )
+    monkeypatch.setattr(appmod, "_seal_runtime_generation", forbidden_stage)
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/internal/deployment/quiesce",
+                headers={
+                    "X-API-Key": "control-secret",
+                    "X-Deploy-Nonce": "nonce-drain-failure",
+                },
+                json={"deploy_nonce": "nonce-drain-failure"},
+            )
+
+    response = _run(scenario())
+
+    assert response.status_code == 503
+    assert response.json()["ok"] is False
+    assert "tapestry" in response.json()["error"]
+    snapshot = ordered_handoff.lifecycle.snapshot()
+    assert snapshot["state"] == "QUIESCING"
+    assert snapshot["certificate"] is None
+    assert "sealed" not in ordered_handoff.events
+
+
+@pytest.mark.parametrize("state", ["QUIESCING", "SEALED"])
+def test_shallow_ready_keeps_controlled_drain_alive_for_alb(
+        monkeypatch, state):
+    lifecycle = appmod._DeploymentLifecycle()
+    lifecycle.begin_quiescence("nonce-ready")
+    if state == "SEALED":
+        lifecycle.seal(_certificate())
+    monkeypatch.setattr(appmod, "_deployment_lifecycle", lifecycle)
+    monkeypatch.setattr(appmod, "_REQUIRE_SEALED_STATE", True)
+    monkeypatch.setattr(appmod, "_boot_halted", None)
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.get("/ready")
+
+    response = _run(scenario())
+
+    assert response.status_code == 200
+    assert response.json()["ready"] is False
+    assert response.json()["draining"] is True
+    assert response.json()["lifecycle"] == state
+
+
+@pytest.mark.parametrize("value", ["not-a-number", "-1", "nan", "inf"])
+def test_invalid_settle_budget_fails_closed_before_engine_drain(
+        ordered_handoff, monkeypatch, value):
+    monkeypatch.setenv("SEAL_SETTLE_BUDGET_S", value)
+
+    def forbidden_stage(_nonce):
+        raise AssertionError("invalid timeout reached generation staging")
+
+    monkeypatch.setattr(appmod, "_seal_runtime_generation", forbidden_stage)
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/internal/deployment/quiesce",
+                headers={
+                    "X-API-Key": "control-secret",
+                    "X-Deploy-Nonce": f"nonce-{value}",
+                },
+                json={"deploy_nonce": f"nonce-{value}"},
+            )
+
+    response = _run(scenario())
+
+    assert response.status_code == 503
+    assert "finite non-negative" in response.json()["error"]
+    assert ordered_handoff.lifecycle.snapshot()["state"] == "QUIESCING"
+    assert "engine_strict_stop" not in ordered_handoff.events
 
 
 def test_sealed_shutdown_writes_nothing_and_releases_owner(monkeypatch):
@@ -306,6 +409,13 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
     )
     monkeypatch.setattr(appmod, "_generation_owner_lock", owner)
     monkeypatch.setattr(appmod, "_loaded_generation", generation)
+    monkeypatch.setattr(
+        appmod, "_deployment_baseline_generation", generation)
+    monkeypatch.setattr(
+        appmod,
+        "_live_recovery_store",
+        SimpleNamespace(load_current=lambda: None),
+    )
 
     actual_git = "1" * 40
     expected_git = "2" * 40 if mismatch == "build" else actual_git
@@ -366,3 +476,93 @@ def test_deep_readiness_rejects_every_runtime_identity_mismatch(
     assert response.json()["ready"] is False
     assert error_fragment in response.json()["error"]
 
+
+def test_deep_readiness_keeps_sealed_baseline_and_active_overlay_distinct(
+        monkeypatch):
+    """A valid hot overlay cannot replace the deployment seal's identity."""
+    lifecycle = appmod._DeploymentLifecycle()
+    baseline = SimpleNamespace(
+        generation_uuid=_certificate()["generation_uuid"],
+        identity=_certificate()["identity"],
+        manifest_sha256=_certificate()["manifest_sha256"],
+        tick=_certificate()["tick"],
+    )
+    overlay = SimpleNamespace(
+        generation_uuid="22222222-2222-4222-8222-222222222222",
+        identity=baseline.identity,
+        manifest_sha256="c" * 64,
+        tick=baseline.tick + 11,
+    )
+
+    monkeypatch.setattr(appmod, "_deployment_lifecycle", lifecycle)
+    monkeypatch.setattr(appmod, "_REQUIRE_SEALED_STATE", True)
+    monkeypatch.setattr(appmod, "_GUALALOOM_API_KEY", "control-secret")
+    monkeypatch.setattr(appmod, "_init_complete", True)
+    monkeypatch.setattr(appmod, "_init_error", None)
+    monkeypatch.setattr(
+        appmod,
+        "_guala",
+        SimpleNamespace(_guala_identity=baseline.identity, tick=overlay.tick),
+    )
+    monkeypatch.setattr(
+        appmod, "_generation_owner_lock", SimpleNamespace(acquired=True))
+    monkeypatch.setattr(appmod, "_loaded_generation", overlay)
+    monkeypatch.setattr(
+        appmod, "_deployment_baseline_generation", baseline)
+    monkeypatch.setattr(
+        appmod,
+        "_live_recovery_store",
+        SimpleNamespace(load_current=lambda: overlay),
+    )
+
+    actual_git = "1" * 40
+    actual_task = "dsf-ai:41"
+    actual_image = "sha256:" + "3" * 64
+    monkeypatch.setenv("DEPLOY_EXPECTED_GIT_SHA", actual_git)
+    monkeypatch.setenv("DEPLOY_EXPECTED_TASK_DEFINITION", actual_task)
+    monkeypatch.setenv("DEPLOY_EXPECTED_IMAGE_DIGEST", actual_image)
+    monkeypatch.setattr(appmod, "_read_build_git_sha", lambda: actual_git)
+    monkeypatch.setattr(
+        appmod,
+        "_ecs_task_runtime_identity",
+        lambda: {
+            "task_definition": actual_task,
+            "image_digest": actual_image,
+        },
+    )
+
+    def load_seal(_root, *, hmac_key, expected_nonce):
+        assert hmac_key == appmod._deploy_hmac_key()
+        assert expected_nonce == "readiness-nonce"
+        return _certificate()
+
+    monkeypatch.setattr(
+        deployment_generation,
+        "load_and_verify_deployment_seal",
+        load_seal,
+    )
+
+    async def scenario():
+        transport = httpx.ASGITransport(
+            app=appmod.app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(
+                transport=transport, base_url="http://test") as client:
+            return await client.get(
+                "/internal/deployment/readiness",
+                headers={
+                    "X-API-Key": "control-secret",
+                    "X-Deploy-Nonce": "readiness-nonce",
+                },
+            )
+
+    response = _run(scenario())
+    assert response.status_code == 200
+    proof = response.json()
+    assert proof["ready"] is True
+    assert proof["generation"] == baseline.generation_uuid
+    assert proof["manifest_sha256"] == baseline.manifest_sha256
+    assert proof["generation_tick"] == baseline.tick
+    assert proof["active_recovery_generation"] == overlay.generation_uuid
+    assert proof["active_recovery_manifest_sha256"] == overlay.manifest_sha256
+    assert proof["active_recovery_tick"] == overlay.tick
+    assert proof["active_recovery_is_overlay"] is True

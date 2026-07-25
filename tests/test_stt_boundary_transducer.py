@@ -4,7 +4,7 @@ Port of tests/test_stt_runtime_ownership.py from stranded commit a8277fa
 ("fix(stt): own recognizer lifecycle and fail visibly") onto the live
 lineage, extended with real functional wiring proofs against the current
 /sound_frame handler: the transducer runs at the boundary, the FULL
-transcript enters through converse(source="joe") -- GL-FIX-VOICE-REPLY-
+transcript enters through converse(source="auditory:unresolved_source") --
 DOOR-20260720: was read_sentence() until confirmed live that path updates
 memory/presence but never composes a reply -- and every failure is loud,
 never fabricated or silently-empty words.
@@ -189,6 +189,7 @@ def _recording_guala(*, reply=""):
     guala = SimpleNamespace(
         tick=42,
         _latest_causal_settlement=None,
+        _latest_auditory_l5_experience=None,
         read_sentence=lambda text, source=None, bundle_id=None: sentences.append(
             {"text": text, "source": source, "bundle_id": bundle_id}),
         converse=lambda text, source=None: (
@@ -196,6 +197,17 @@ def _recording_guala(*, reply=""):
             _FakeTurnResult(reply))[1],
         _self_hear=lambda *a, **kw: None,
         _log_substrate_event=lambda *a, **kw: None,
+        auditory_l5_status=lambda: {
+            "latest_experience_id": "0" * 64,
+            "recognition_boundary": "utterance",
+            "recognition_attempted": True,
+            "recognitions": [
+                {"kind": "spoken_form", "state": "unknown",
+                 "tutor_label": None, "candidate_labels": []},
+                {"kind": "source_continuity", "state": "unknown",
+                 "tutor_label": None, "candidate_labels": []},
+            ],
+        },
     )
     def process_sound_frame(wav, source=None, **_kwargs):
         frames.append((wav, source))
@@ -205,6 +217,8 @@ def _recording_guala(*, reply=""):
             interpretations=(SimpleNamespace(sense="sound", state="observed"),),
             verify=lambda: None,
         )
+        guala._latest_auditory_l5_experience = SimpleNamespace(
+            assembly_id=f"causal-{window_id}")
         return {"accepted": True, "closed_window_id": window_id,
                 "settlement": guala._latest_causal_settlement}
     guala.process_sound_frame = process_sound_frame
@@ -219,10 +233,11 @@ def _wait_for_voice_reply_idle():
         _time.sleep(0.02)
 
 
-def _post_sound_frame(source="joe_voice"):
+def _post_sound_frame(source="joe_voice", capture_purpose="utterance"):
     return asyncio.run(appmod.sound_frame(
         appmod.GLMessage(text=base64.b64encode(b"webm").decode(),
                          source=source,
+                         capture_purpose=capture_purpose,
                          capture_started_ms=1_000,
                          capture_ended_ms=6_000)))
 
@@ -249,14 +264,16 @@ def test_transcribed_speech_enters_through_converse(
 
     assert resp["ok"] is True
     assert resp["raw_sound"] == "accepted"
-    assert resp["transcript"] == "hello there guala"
-    assert resp["spoken_word_recognition"]["status"] == "recognized"
+    assert resp["boundary_transcript"] == "hello there guala"
+    assert "transcript" not in resp
+    assert resp["spoken_word_recognition"]["status"] == "unknown"
+    assert resp["boundary_transcription"]["status"] == "recognized"
     assert resp["spoken_word_recognition"]["available"] is True
     # Raw sound STILL reached the substrate (transducer is additive).
     assert frames == [(b"RIFFwav", "joe_voice")]
     # The FULL transcript entered through converse() -- the one real door
     # that both establishes presence AND can compose a reply.
-    assert converses == [{"text": "hello there guala", "source": "joe"}]
+    assert converses == []
     # read_sentence is NOT also called -- that would process the same
     # transcript twice (converse() reads its input into the substrate
     # itself as part of composing a reply).
@@ -273,11 +290,49 @@ def test_no_speech_is_honest_and_never_reaches_converse(
     resp = _post_sound_frame()
 
     assert resp["ok"] is True
-    assert resp["spoken_word_recognition"]["status"] == "no_speech"
+    assert resp["spoken_word_recognition"]["status"] == "unknown"
+    assert resp["boundary_transcription"]["status"] == "no_speech"
     assert "transcript" not in resp
     assert sentences == [], "no fabricated words from silent audio"
     assert converses == [], "no fabricated reply attempt from silent audio"
     assert len(frames) == 1, "raw sound still processed"
+
+
+def test_label_only_encoded_recognition_cannot_open_cognition_door(
+        clean_frame_state, monkeypatch):
+    monkeypatch.delenv("VOICE_WHISPER", raising=False)
+    guala, sentences, frames, converses = _recording_guala()
+    guala.auditory_l5_status = lambda: {
+        "latest_experience_id": "0" * 64,
+        "recognition_boundary": "utterance",
+        "recognition_attempted": True,
+        "recognitions": [
+            {
+                "kind": "spoken_form",
+                "state": "unique",
+                "tutor_label": "hello guala",
+                "candidate_labels": ["hello guala"],
+            },
+            {
+                "kind": "source_continuity",
+                "state": "unknown",
+                "tutor_label": None,
+                "candidate_labels": [],
+            },
+        ],
+    }
+    appmod._guala = guala
+
+    resp = _post_sound_frame()
+
+    assert resp["ok"] is True
+    assert resp["spoken_word_recognition"]["status"] == "unique"
+    assert resp["transcript"] == "hello guala"
+    assert resp["terminal_event_id"] is None
+    assert resp["reply_admitted"] is None
+    assert converses == []
+    assert sentences == []
+    assert len(frames) == 1
 
 
 def test_transcription_error_is_loud_and_never_fabricates(
@@ -296,8 +351,8 @@ def test_transcription_error_is_loud_and_never_fabricates(
 
     assert resp["ok"] is False
     assert resp["error"] == "speech_recognition_failed"
-    assert resp["spoken_word_recognition"]["status"] == "error"
-    assert resp["spoken_word_recognition"]["available"] is False
+    assert resp["spoken_word_recognition"]["status"] == "unknown"
+    assert resp["boundary_transcription"]["status"] == "error"
     assert "transcript" not in resp
     assert sentences == [], "an error NEVER becomes words"
     assert converses == [], "an error NEVER becomes a reply attempt"
@@ -319,7 +374,7 @@ def test_disabled_flag_keeps_the_honest_unavailable_report(
     resp = _post_sound_frame()
 
     assert resp["ok"] is True
-    assert resp["spoken_word_recognition"]["status"] == "unavailable"
+    assert resp["spoken_word_recognition"]["status"] == "unknown"
     assert called == [], "transducer never invoked while disabled"
     assert sentences == []
 
@@ -351,7 +406,8 @@ def test_wall_timeout_degrades_a_wedged_transducer_to_the_typed_error(
     assert elapsed < 1.4, "the frame returned at the wall, not the sleep"
     assert resp["ok"] is False
     assert resp["error"] == "speech_recognition_failed"
-    assert resp["spoken_word_recognition"]["status"] == "error"
+    assert resp["spoken_word_recognition"]["status"] == "unknown"
+    assert resp["boundary_transcription"]["status"] == "error"
     assert "transcript" not in resp
     assert sentences == [], "a timed-out transduction NEVER becomes words"
     assert len(frames) == 1, "raw sound experience survives the wall"
@@ -382,10 +438,10 @@ def test_ambient_sources_are_never_transcribed(clean_frame_state, monkeypatch):
         transducer, "transcribe_sound",
         lambda wav: called.append(wav) or "")
 
-    resp = _post_sound_frame(source="ambient")
+    resp = _post_sound_frame(source="ambient", capture_purpose="ambient")
 
     assert resp["ok"] is True
-    assert resp["spoken_word_recognition"]["status"] == "unavailable"
+    assert resp["spoken_word_recognition"]["status"] == "not_attempted"
     assert called == []
     assert sentences == []
 

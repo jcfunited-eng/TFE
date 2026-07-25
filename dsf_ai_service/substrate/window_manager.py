@@ -1323,6 +1323,38 @@ class WindowManager:
             return window_id, settlement_result
         return window_id
 
+    def discard_unsettled_context(
+            self, context_id: str,
+            reason: str = "context_failed") -> Optional[str]:
+        """Release one transient context after its atomic settlement failed.
+
+        ``end_context`` deliberately leaves a failed settlement immutable and
+        retryable.  A caller that owns a non-retryable physical capture may
+        instead fail that capture closed with this explicit terminal action.
+        No closed record, chi index entry, or WAL entry is created.
+        """
+        with self._lock:
+            window = self._contexts.get(context_id)
+            if window is None:
+                return None
+            if window._settlement_in_progress:
+                raise WindowIntegrityError(
+                    "cannot discard a context while settlement is in progress")
+            removed = self._contexts.pop(context_id, None)
+            if removed is not window:
+                raise WindowIntegrityError(
+                    "binding context changed during failed-capture discard")
+            if self._bound_context.get() == context_id:
+                self._bound_context.set(None)
+            event = {
+                "window_id": window.window_id,
+                "context_id": context_id,
+                "close_reason": str(reason),
+                "entry_count": len(window.entries),
+            }
+        self._log_event("window_discarded_unsettled", **event)
+        return window.window_id
+
     def close(self, reason: str, context_id: Optional[str] = None) -> Optional[str]:
         """Backward-compatible close of only the caller's bound context.
 

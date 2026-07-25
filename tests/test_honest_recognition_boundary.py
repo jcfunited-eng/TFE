@@ -195,30 +195,27 @@ def test_production_surfaces_contain_no_pretrained_recognition_authority():
     assert "max_workers=1" in app_text
     assert "speech_recognition_failed" in app_text
 
-    # The image carries the pinned transducer runtime and bakes the model
-    # at build time; the nogil experiment image and the deploy script stay
-    # transducer-free (task-def env is not the flag authority anymore).
+    # Production carries no ML speech runtime or model. Auditory L5 owns
+    # recognition and the dormant accessibility transducer is not installed.
     dockerfile = (ROOT / "dsf_ai_service/Dockerfile").read_text()
-    assert "faster-whisper==" in dockerfile
-    assert "WhisperModel('tiny'" in dockerfile
-    assert "ENV VOICE_WHISPER=1" in dockerfile
+    assert "faster-whisper==" not in dockerfile
+    assert "WhisperModel('tiny'" not in dockerfile
+    assert "ENV VOICE_WHISPER=0" in dockerfile
     nogil_dockerfile = (ROOT / "dsf_ai_service/Dockerfile.nogil").read_text()
     for token in ["faster_whisper", "faster-whisper", "WhisperModel",
                   "VOICE_WHISPER", "WHISPER_MODEL_PATH"]:
         assert token not in nogil_dockerfile
-    # The live acceptance gate has passed: production must explicitly keep
-    # the boundary sense enabled.  This remains configuration, not recognition
-    # authority; the deploy script still may not name model/library surfaces.
+    # The deploy definition independently keeps the ML path off.
     deploy_script = (ROOT / "tools/deploy_dsf_ai.sh").read_text()
     for token in ["faster_whisper", "faster-whisper", "WhisperModel",
                   "WHISPER_MODEL_PATH"]:
         assert token not in deploy_script
     assert deploy_script.count(
-        "{'name': 'VOICE_WHISPER', 'value': '1'}") == 1
-    assert "{'name': 'VOICE_WHISPER', 'value': '0'}" not in deploy_script
+        "{'name': 'VOICE_WHISPER', 'value': '0'}") == 1
+    assert "{'name': 'VOICE_WHISPER', 'value': '1'}" not in deploy_script
 
     html = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
-    assert "spoken-word recognition unavailable" in html
+    assert "auditory L5 ready" in html
     assert "object naming unavailable" in html
     assert '<input id="msg" type="text"' in html
 

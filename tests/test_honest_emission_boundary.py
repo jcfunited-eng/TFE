@@ -67,7 +67,6 @@ def _fact_transport_provenance(word="warm", trace_id="trace-transport"):
     return FactEmissionTokenProvenance(
         word=word,
         structural_fingerprint="f" * 64,
-        recognized_strand_ids=("strand-transport",),
         supports=(FactEmissionSupport(
             window_id="window-transport",
             entry_index=1,
@@ -78,6 +77,33 @@ def _fact_transport_provenance(word="warm", trace_id="trace-transport"):
             modalities=("word", "sight", "sound"),
         ),),
     )
+
+
+def test_fact_provenance_persists_only_bounded_causal_witnesses():
+    record = _fact_transport_provenance().as_record()
+
+    assert record["authority"] == "language_fact_strand_reciprocity_v2"
+    assert "recognized_strand_ids" not in record
+    assert record["structural_fingerprint"] == "f" * 64
+    assert record["supports"][0]["source_strand_id"] == "strand-transport"
+
+
+def test_legacy_recurrence_index_normalizes_without_losing_causal_witness():
+    support = _fact_transport_provenance().supports[0].as_record()
+    records = {"emission": {"commit_provenance": [{
+        "authority": "language_fact_strand_reciprocity_v1",
+        "word": "warm",
+        "structural_fingerprint": "f" * 64,
+        "recognized_strand_ids": [f"redundant-{index}" for index in range(10_000)],
+        "supports": [support],
+    }]}}
+
+    Guala._normalize_emission_provenance_records(records)
+
+    item = records["emission"]["commit_provenance"][0]
+    assert item["authority"] == "language_fact_strand_reciprocity_v2"
+    assert "recognized_strand_ids" not in item
+    assert item["supports"] == [support]
 
 
 def test_only_labeled_commits_surface(monkeypatch):
