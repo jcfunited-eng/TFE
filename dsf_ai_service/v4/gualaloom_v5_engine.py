@@ -23998,14 +23998,13 @@ class Guala:
                 },
             })
 
-            # 4. Atlas — serialize entries directly (faster than deepcopy)
-            snap_atlas = self._envelope({
-                "entries": {str(k): list(v)
-                            for k, v in self.atlas.entries.items()},
-                "tick": self.atlas.tick,
-                # GL-SPC-HEMISPHERE-ARCH: cross-hemi links (empty at Phase 0)
-                "cross_hemi_links": [],
-            })
+            # 4. Atlas — detach the complete living field before releasing
+            # the snapshot boundary.  A bucket-only copy retains the live
+            # entry dictionaries; later cognition can then advance last_tick
+            # inside the supposedly frozen cold generation.
+            snap_atlas = self._envelope(
+                self.atlas.persistence_snapshot()
+            )
 
             # 5. Deep Atlas — freeze only the copy-on-write structural
             # references under the engine lock.  The 20M-link exact

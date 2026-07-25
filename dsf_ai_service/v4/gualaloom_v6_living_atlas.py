@@ -147,6 +147,25 @@ class LivingAtlas:
         # experience boundaries and never populate a closed-window mirror.
         self.windows = {}
 
+    def persistence_snapshot(self):
+        """Return a detached, lossless snapshot of the complete living field.
+
+        A cold save releases the engine's brief snapshot boundary before it
+        performs slow EFS writes.  Every binding dictionary, including nested
+        structural facts and causal citations, therefore has to be detached
+        here.  Copying only the bucket lists leaves their live dictionaries
+        shared with cognition and can move ``last_tick`` beyond the captured
+        core tick while that older generation is being serialized.
+        """
+        return {
+            "entries": {
+                str(chi): copy.deepcopy(bindings)
+                for chi, bindings in self.entries.items()
+            },
+            "tick": self.tick,
+            "cross_hemi_links": [],
+        }
+
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
