@@ -203,7 +203,7 @@ let micStream=null,micPCMActive=false,micEpoch=null,micTransitionActive=false;
 let micEpochGeneration=0;
 const PCM_SAMPLE_RATE=16000,PCM_CHUNK_SAMPLES=80000,PCM_MAX_PENDING_CHUNKS=2;
 let visualCaptureContract=null;
-const auditoryTerminalSeen=new Set(),deliveredEmissionIds=new Set();
+const auditoryTerminalSeen=new Set(),auditorySequenceSeen=new Set(),deliveredEmissionIds=new Set();
 const auditoryHeardByTerminal=new Map();
 
 function _rememberBounded(set,value){
@@ -251,6 +251,23 @@ async function _pollAuditoryReply(terminalEventId){
 }
 
 function _handleAuditoryTerminal(result){
+  const sequence=result&&result.pcm_continuity&&result.pcm_continuity.auditory_token_sequence;
+  if(sequence&&typeof sequence.sequence_id==='string'&&!auditorySequenceSeen.has(sequence.sequence_id)){
+    const occurrences=Array.isArray(sequence.occurrences)?sequence.occurrences:[];
+    const forms=[];
+    let sequenceUnique=occurrences.length>0;
+    for(const occurrence of occurrences){
+      const candidates=occurrence&&Array.isArray(occurrence.token_candidates)?occurrence.token_candidates:[];
+      if(occurrence.classification_state!=='unique'||candidates.length!==1||typeof candidates[0].token_form!=='string'||!candidates[0].token_form){
+        sequenceUnique=false;break;
+      }
+      forms.push(candidates[0].token_form);
+    }
+    if(sequenceUnique){
+      _rememberBounded(auditorySequenceSeen,sequence.sequence_id);
+      addMsg('heard: "'+forms.join(' ')+'"','user');
+    }
+  }
   const recognized=result.recognized_form||(result.spoken_word_recognition&&result.spoken_word_recognition.recognized_form);
   const terminalEventId=result.terminal_event_id;
   if(!recognized||!terminalEventId||auditoryTerminalSeen.has(terminalEventId))return;

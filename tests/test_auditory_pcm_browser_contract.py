@@ -76,6 +76,49 @@ def test_voice_transcript_pairs_each_reply_with_its_heard_experience() -> None:
     assert "_rememberBoundedMap(auditoryHeardByTerminal" in page
 
 
+def test_authenticated_multi_token_sequence_is_visible_once_without_stt() -> None:
+    page = _page()
+    start = page.index("function _handleAuditoryTerminal(")
+    end = page.index("\nfunction _pcmBase64", start)
+    function_source = page[start:end]
+    program = f"""
+      const auditoryTerminalSeen=new Set(),auditorySequenceSeen=new Set();
+      const auditoryHeardByTerminal=new Map();
+      const rendered=[];
+      function _rememberBounded(set,value){{set.add(value)}}
+      function _rememberBoundedMap(map,key,value){{map.set(key,value)}}
+      function addMsg(text,kind){{rendered.push({{text,kind}})}}
+      function _pollAuditoryReply(){{throw new Error('no reply was admitted')}}
+      {function_source}
+      const result={{
+        pcm_continuity:{{
+          auditory_token_sequence:{{
+            sequence_id:'sequence-1',
+            occurrences:[
+              {{classification_state:'unique',token_candidates:[{{token_form:'hello'}}]}},
+              {{classification_state:'unique',token_candidates:[{{token_form:'guala'}}]}}
+            ]
+          }}
+        }},
+        spoken_word_recognition:{{recognized_form:null}},
+        terminal_event_id:null
+      }};
+      _handleAuditoryTerminal(result);
+      _handleAuditoryTerminal(result);
+      process.stdout.write(JSON.stringify(rendered));
+    """
+    completed = subprocess.run(
+        ["node", "-e", program],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert json.loads(completed.stdout) == [
+        {"text": 'heard: "hello guala"', "kind": "user"}
+    ]
+
+
 def test_paired_sight_temporally_samples_the_physical_pcm_interval() -> None:
     page = _page()
     start = page.index("function _schedulePCMSight(")
