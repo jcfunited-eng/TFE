@@ -1558,7 +1558,7 @@ def stage_commit_upload(
 
 
 def stage_authoritative_commit_upload(
-        *, store_root: str | os.PathLike[str], identity: str, tick: int,
+        *, store_root: str | os.PathLike[str], identity: str,
         save_callback: Callable[[Path, BoundedStageAdmission], Any],
         s3_client: Any, bucket: str,
         prefix: str, hmac_key: bytes, nonce: bytes | str,
@@ -1592,7 +1592,7 @@ def stage_authoritative_commit_upload(
         seal_json: bytes | None = None
         prepared_generation_uuid: str | None = None
         try:
-            save_callback(stage, admission)
+            captured_tick = save_callback(stage, admission)
             staged_files = _discover_staged_files(
                 stage,
                 max_total_bytes=max_encoded_generation_bytes,
@@ -1600,6 +1600,10 @@ def stage_authoritative_commit_upload(
                 max_path_bytes=max_dynamic_path_bytes,
             )
             admission.verify_complete(staged_files)
+            # The generation's time authority comes from the completed frozen
+            # state, never from a live tick sampled before the save callback
+            # acquired its snapshot boundary.
+            captured_tick = _tick(captured_tick)
 
             def validate_after_stage_release(
                     generation: LoadedGeneration) -> bool:
@@ -1637,7 +1641,7 @@ def stage_authoritative_commit_upload(
                 pre_publish_validator=validate_after_stage_release,
             )
             state = authority.commit(
-                tick=_tick(tick),
+                tick=captured_tick,
                 files=staged_files,
                 pre_publish_action=upload_before_publication,
             )

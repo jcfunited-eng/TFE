@@ -9373,6 +9373,23 @@ def _write_runtime_generation_stage(stage, admission):
         suffixes=(".audio",),
         admission=admission,
     )
+    prepared = getattr(
+        _guala,
+        "_prepared_authoritative_full_checkpoint",
+        None,
+    )
+    if not isinstance(prepared, dict):
+        raise RuntimeError(
+            "runtime generation stage has no frozen checkpoint instant")
+    captured_tick = prepared.get("tick")
+    if (
+        isinstance(captured_tick, bool)
+        or not isinstance(captured_tick, int)
+        or captured_tick < 0
+    ):
+        raise RuntimeError(
+            "runtime generation stage checkpoint tick is invalid")
+    return captured_tick
 
 
 def _authoritative_cold_limits():
@@ -9483,8 +9500,6 @@ def _seal_runtime_generation(nonce):
                 if not isinstance(identity, str) or not identity:
                     raise RuntimeError(
                         "Guala identity is absent; generation cannot be sealed")
-                tick = int(_guala.tick)
-
                 bucket = os.environ.get(
                     "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
                 prefix = os.environ.get(
@@ -9498,7 +9513,6 @@ def _seal_runtime_generation(nonce):
                 result = stage_authoritative_commit_upload(
                     store_root=GENERATION_STORE_ROOT,
                     identity=identity,
-                    tick=tick,
                     save_callback=_write_runtime_generation_stage,
                     s3_client=boto3.client("s3", region_name="us-east-1"),
                     bucket=bucket,

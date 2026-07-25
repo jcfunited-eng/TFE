@@ -90,7 +90,8 @@ class FakeS3:
         return {"Deleted": list(Delete["Objects"])}
 
 
-def _save_callback(stage, admission=None, *, marker="one"):
+def _save_callback(
+        stage, admission=None, *, marker="one", checkpoint_tick=88):
     nested = stage / "nested"
     nested.mkdir()
     core = json.dumps({"marker": marker, "tick": 7})
@@ -100,13 +101,14 @@ def _save_callback(stage, admission=None, *, marker="one"):
         (stage / "core.json").write_text(core)
         (nested / "atlas.json").write_text(atlas)
         (stage / "organism.bin").write_bytes(organism)
-        return
+        return checkpoint_tick
     with admission.open_text(stage / "core.json") as handle:
         handle.write(core)
     with admission.open_text(nested / "atlas.json") as handle:
         handle.write(atlas)
     with admission.open_binary(stage / "organism.bin") as handle:
         handle.write(organism)
+    return checkpoint_tick
 
 
 def _committed_generation(tmp_path, *, marker="one"):
@@ -192,7 +194,6 @@ def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
     first = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=88,
         save_callback=_save_callback,
         s3_client=fake,
         bucket="test-bucket",
@@ -211,11 +212,11 @@ def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
         learned.mkdir(parents=True)
         with admission.open_binary(learned / "learned.bin") as handle:
             handle.write(b"learned-picture")
+        return 89
 
     second = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=89,
         save_callback=save_with_learned_media,
         s3_client=fake,
         bucket="test-bucket",
@@ -234,11 +235,11 @@ def test_authoritative_stage_seals_dynamic_contracts_and_retains_exact_two(
         learned.mkdir()
         with admission.open_binary(learned / "third.audio") as handle:
             handle.write(b"third-sound")
+        return 90
 
     third = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=90,
         save_callback=save_third_contract,
         s3_client=fake,
         bucket="test-bucket",
@@ -313,7 +314,6 @@ def test_current_generation_seal_ignores_stale_legacy_pointer(tmp_path) -> None:
     first = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=88,
         save_callback=_save_callback,
         s3_client=fake,
         bucket="test-bucket",
@@ -328,11 +328,11 @@ def test_current_generation_seal_ignores_stale_legacy_pointer(tmp_path) -> None:
     second = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=89,
         save_callback=lambda stage, admission: _save_callback(
             stage,
             admission,
             marker="two",
+            checkpoint_tick=89,
         ),
         s3_client=fake,
         bucket="test-bucket",
@@ -390,7 +390,6 @@ def test_authoritative_remote_failure_cleans_candidate_prefix_and_seal(
         stage_authoritative_commit_upload(
             store_root=root,
             identity=IDENTITY,
-            tick=88,
             save_callback=_save_callback,
             s3_client=fake,
             bucket="test-bucket",
@@ -430,7 +429,6 @@ def test_authoritative_stage_rejects_write_before_crossing_byte_capacity(
         stage_authoritative_commit_upload(
             store_root=tmp_path / "store",
             identity=IDENTITY,
-            tick=88,
             save_callback=oversized_save,
             s3_client=FakeS3(),
             bucket="test-bucket",
@@ -459,7 +457,6 @@ def test_authoritative_stage_rejects_unadmitted_writer(
         stage_authoritative_commit_upload(
             store_root=tmp_path / "store",
             identity=IDENTITY,
-            tick=88,
             save_callback=bypass_admission,
             s3_client=FakeS3(),
             bucket="test-bucket",
@@ -488,7 +485,6 @@ def test_authoritative_stage_rejects_unrepresented_empty_directories(
         stage_authoritative_commit_upload(
             store_root=tmp_path / "store",
             identity=IDENTITY,
-            tick=88,
             save_callback=empty_directory_bypass,
             s3_client=FakeS3(),
             bucket="test-bucket",
@@ -521,7 +517,6 @@ def test_authoritative_seal_failure_removes_remote_and_candidate(
         stage_authoritative_commit_upload(
             store_root=root,
             identity=IDENTITY,
-            tick=88,
             save_callback=_save_callback,
             s3_client=fake,
             bucket="test-bucket",
@@ -558,7 +553,6 @@ def test_authoritative_current_failure_before_swap_removes_prepared_state(
         stage_authoritative_commit_upload(
             store_root=root,
             identity=IDENTITY,
-            tick=88,
             save_callback=_save_callback,
             s3_client=fake,
             bucket="test-bucket",
@@ -599,7 +593,6 @@ def test_authoritative_current_post_swap_failure_preserves_recoverable_state(
         stage_authoritative_commit_upload(
             store_root=root,
             identity=IDENTITY,
-            tick=88,
             save_callback=_save_callback,
             s3_client=fake,
             bucket="test-bucket",
@@ -662,7 +655,6 @@ def test_authoritative_restart_retires_first_boot_prepublication_crash(
         stage_authoritative_commit_upload(
             store_root=root,
             identity=IDENTITY,
-            tick=88,
             save_callback=_save_callback,
             s3_client=fake,
             bucket="test-bucket",
@@ -687,8 +679,11 @@ def test_authoritative_restart_retires_first_boot_prepublication_crash(
     result = stage_authoritative_commit_upload(
         store_root=root,
         identity=IDENTITY,
-        tick=89,
-        save_callback=_save_callback,
+        save_callback=lambda stage, admission: _save_callback(
+            stage,
+            admission,
+            checkpoint_tick=89,
+        ),
         s3_client=fake,
         bucket="test-bucket",
         prefix="ae/state",
