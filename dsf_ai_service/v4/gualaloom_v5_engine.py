@@ -24010,6 +24010,15 @@ class Guala:
             # references under the engine lock.  The 20M-link exact
             # columnar encoding runs after this lock is released.
             deep_snapshot = self.deep_atlas.persistence_snapshot()
+            # WaveAtlas is part of this same physical instant.  Its cells,
+            # binding dictionaries, and phase vectors are mutable, so the
+            # later NPZ writer must receive this detached field rather than
+            # rereading the moving live atlas after the core tick is frozen.
+            wave_atlas_snapshot = (
+                self.wave_atlas.persistence_snapshot()
+                if self.wave_atlas is not None
+                else None
+            )
 
             # 6. Sections
             sections_data = {}
@@ -24359,6 +24368,7 @@ class Guala:
                     "state_file_ticks": dict(
                         _prospective_state_file_ticks
                     ),
+                    "wave_atlas_snapshot": wave_atlas_snapshot,
                     "growth_claim_ids": tuple(
                         _organism_checkpoint_growth_claim_ids
                     ),
@@ -24465,22 +24475,58 @@ class Guala:
             return
         npz_path = os.path.join(state_dir, "wave_atlas.npz")
         tmp_path = npz_path + ".tmp"
-        save_tick = self.tick
-        try:
-            n_cells = len(self.wave_atlas.cells)
-            n_bind = sum(len(c.bindings) for c in self.wave_atlas.cells.values())
-            admission = getattr(
+        admission = getattr(
+            self,
+            "_active_persistence_admission",
+            None,
+        )
+        if admission is not None:
+            prepared = getattr(
                 self,
-                "_active_persistence_admission",
+                "_prepared_authoritative_full_checkpoint",
                 None,
             )
+            if not isinstance(prepared, dict):
+                raise RuntimeError(
+                    "authoritative WaveAtlas save has no prepared "
+                    "full-checkpoint instant"
+                )
+            save_tick = prepared.get("tick")
+            wave_snapshot = prepared.get("wave_atlas_snapshot")
+            if (
+                isinstance(save_tick, bool)
+                or not isinstance(save_tick, int)
+                or save_tick < 0
+            ):
+                raise RuntimeError(
+                    "prepared WaveAtlas checkpoint tick is invalid")
+            if not isinstance(wave_snapshot, dict):
+                raise RuntimeError(
+                    "prepared WaveAtlas checkpoint field is absent")
+        else:
+            with self.lock:
+                save_tick = int(self.tick)
+                wave_snapshot = self.wave_atlas.persistence_snapshot()
+        try:
+            snapshot_cells = wave_snapshot["cells"]
+            n_cells = len(snapshot_cells)
+            n_bind = sum(
+                len(cell["bindings"])
+                for cell in snapshot_cells.values()
+            )
             if admission is None:
-                self.wave_atlas.to_npz(tmp_path)
+                self.wave_atlas.to_npz(
+                    tmp_path,
+                    snapshot=wave_snapshot,
+                )
             else:
                 with admission.open_binary(
                         tmp_path,
                         logical_path=npz_path) as target:
-                    self.wave_atlas.to_npz(target)
+                    self.wave_atlas.to_npz(
+                        target,
+                        snapshot=wave_snapshot,
+                    )
             # GL-RPT-PERSIST-FIX-74 discipline: fsync data + directory before rename
             with open(tmp_path, "rb") as _f:
                 os.fsync(_f.fileno())

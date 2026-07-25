@@ -18,6 +18,7 @@ def _bare_guala():
     """Build only the coordination surface needed by these unit tests."""
     guala = object.__new__(Guala)
     guala._persistence_lock = threading.RLock()
+    guala.lock = threading.RLock()
     guala._event_log_lock = threading.RLock()
     guala.tick = 0
     guala._guala_identity = "persistence-test"
@@ -80,7 +81,15 @@ def test_wave_write_failure_propagates_and_cleans_tmp(tmp_path):
         cells = {}
 
         @staticmethod
-        def to_npz(_path):
+        def persistence_snapshot():
+            return {"cells": {}, "subdivision_count": 0}
+
+        @staticmethod
+        def to_npz(_path, *, snapshot=None):
+            assert snapshot == {
+                "cells": {},
+                "subdivision_count": 0,
+            }
             raise OSError("wave write failed")
 
     guala.wave_atlas = BrokenWaveAtlas()

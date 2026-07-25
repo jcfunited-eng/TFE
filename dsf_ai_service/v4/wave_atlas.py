@@ -13,6 +13,7 @@ import os
 import sys
 import logging
 import threading
+import copy
 
 import numpy as np
 
@@ -242,6 +243,33 @@ class WaveAtlas:
     # Persistence (64-C: save/load to skip rebuild on subsequent boots)
     # ──────────────────────────────────────────────────────────────────────────
 
+    def persistence_snapshot(self) -> dict:
+        """Detach the complete wave field for one exact persistence instant.
+
+        WaveAtlas writes reinforce binding dictionaries and phase vectors in
+        place.  A container-only copy would therefore remain live after the
+        engine's checkpoint boundary was released.  The detached snapshot is
+        deliberately lossless: every cell aggregate, phase component, binding
+        fact, tick, and saturation state is retained.
+        """
+        cells = {}
+        for chi_idx, cell in self.cells.items():
+            cells[int(chi_idx)] = {
+                "bindings": copy.deepcopy(cell.bindings),
+                "aggregate_strength": float(cell.aggregate_strength),
+                "phase_vec": (
+                    None
+                    if cell.phase_vec is None
+                    else cell.phase_vec.copy()
+                ),
+                "last_tick": int(cell.last_tick),
+                "saturated": bool(cell.saturated),
+            }
+        return {
+            "cells": cells,
+            "subdivision_count": int(self._subdivision_count),
+        }
+
     def to_dict(self) -> dict:
         """Serialize WaveAtlas for EFS persistence. Phase_vec stored as list."""
         import numpy as np
@@ -261,12 +289,20 @@ class WaveAtlas:
             }
         return {"version": 1, "cells": cells_out}
 
-    def to_npz(self, path) -> None:
+    def to_npz(self, path, *, snapshot=None) -> None:
         """GL-CMD-WAVE-SEMANTICS-85 Part C.1: persist as numpy .npz (compressed).
         Phase vecs stored as float32 re/im arrays; bindings as gzip-compressed JSON.
         Target: <5MB after Part B.3 migration collapses to ~8-25k bindings."""
         import numpy as np, json, gzip
-        chi_idxs = sorted(self.cells.keys())
+        if snapshot is None:
+            snapshot = self.persistence_snapshot()
+        if not isinstance(snapshot, dict):
+            raise TypeError("WaveAtlas persistence snapshot must be a mapping")
+        snapshot_cells = snapshot.get("cells")
+        if not isinstance(snapshot_cells, dict):
+            raise ValueError(
+                "WaveAtlas persistence snapshot cells must be a mapping")
+        chi_idxs = sorted(snapshot_cells.keys())
         n = len(chi_idxs)
         agg_str = np.zeros(n, dtype=np.float32)
         last_ticks = np.zeros(n, dtype=np.int64)
@@ -276,15 +312,16 @@ class WaveAtlas:
         pv_valid = np.zeros(n, dtype=np.bool_)
         bindings_all = []
         for i, ci in enumerate(chi_idxs):
-            cell = self.cells[ci]
-            agg_str[i] = cell.aggregate_strength
-            last_ticks[i] = cell.last_tick
-            saturated[i] = cell.saturated
-            if cell.phase_vec is not None:
-                pv_re[i] = cell.phase_vec.real.astype(np.float32)
-                pv_im[i] = cell.phase_vec.imag.astype(np.float32)
+            cell = snapshot_cells[ci]
+            agg_str[i] = cell["aggregate_strength"]
+            last_ticks[i] = cell["last_tick"]
+            saturated[i] = cell["saturated"]
+            phase_vec = cell["phase_vec"]
+            if phase_vec is not None:
+                pv_re[i] = phase_vec.real.astype(np.float32)
+                pv_im[i] = phase_vec.imag.astype(np.float32)
                 pv_valid[i] = True
-            bindings_all.append(cell.bindings)
+            bindings_all.append(cell["bindings"])
         bindings_bytes = gzip.compress(json.dumps(bindings_all).encode("utf-8"), compresslevel=6)
         bindings_arr = np.frombuffer(bindings_bytes, dtype=np.uint8)
         # Write via file object — numpy.savez_compressed auto-appends .npz when given a

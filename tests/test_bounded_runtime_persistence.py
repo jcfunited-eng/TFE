@@ -34,6 +34,13 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
     audio.write_bytes(b"video-audio")
     guala = Guala()
     guala.wave_atlas = WaveAtlas()
+    guala.wave_atlas.record(
+        "audio_left",
+        1,
+        17,
+        tick=guala.tick,
+        salience=1.0,
+    )
     picture = PictureItem(
         item_id="picture-1",
         title="bounded picture",
@@ -66,6 +73,17 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
             str(stage),
             publish_generation=False,
         )
+        captured_tick = (
+            guala._prepared_authoritative_full_checkpoint["tick"]
+        )
+        guala.tick += 100
+        guala.wave_atlas.record(
+            "audio_right",
+            2,
+            31,
+            tick=guala.tick,
+            salience=1.0,
+        )
         guala._save_wave_atlas(str(stage))
 
     assert guala._state_file_ticks == prior_state_file_ticks
@@ -74,12 +92,24 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
         (stage / "guala_core.json").read_text(encoding="utf-8")
     )
     staged_ticks = staged_core["data"]["state_file_ticks"]
+    wave_binding = json.loads(
+        (stage / "wave_atlas.npz.binding.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    staged_wave = WaveAtlas()
+    staged_wave.load_from_npz(str(stage / "wave_atlas.npz"))
+    assert staged_core["saved_at_tick"] == captured_tick
+    assert wave_binding["saved_at_tick"] == captured_tick
+    assert staged_wave.binding_count() == 1
+    assert staged_wave.read_near(17, radius=0)[0]["section"] == "audio_left"
+    assert staged_wave.read_near(31, radius=0) == []
     guala.finalize_authoritative_full_checkpoint(
-        expected_tick=guala.tick,
+        expected_tick=captured_tick,
         state_file_ticks=staged_ticks,
     )
     assert guala._state_file_ticks == staged_ticks
-    assert guala._last_save_tick == guala.tick
+    assert guala._last_save_tick == captured_tick
 
     files = _discover_staged_files(
         stage,
@@ -96,7 +126,7 @@ def test_real_guala_cold_save_uses_only_bounded_writers_and_roundtrips(
 
     assert restored._load_successful is True
     assert restored._guala_identity == guala._guala_identity
-    assert restored.tick == guala.tick
+    assert restored.tick == captured_tick
     assert {
         "guala_organism.sgr",
         "guala_organism.sgr.binding.json",
