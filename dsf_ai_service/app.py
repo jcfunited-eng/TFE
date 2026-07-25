@@ -7910,6 +7910,20 @@ async def startup():
         print(f"[DSF-AI] SUBSTRATE_MODE=remote — substrate runs in separate process")
         return
 
+    # The application owns one fixed four-process executor for the independent
+    # native L0--L4 port constructions.  Warm every worker before Guala boots:
+    # capture must never create processes, silently run serially, or discover
+    # missing execution capacity after readiness.
+    from dsf_ai_service.glew_runtime.exact_field_executor import (
+        start_exact_field_executor,
+    )
+    os.environ["GUALA_EXACT_FIELD_EXECUTOR_REQUIRED"] = "1"
+    exact_field_owner = start_exact_field_executor()
+    print(
+        "[glew] exact native field executor ready: "
+        f"{exact_field_owner.worker_count} fixed workers"
+    )
+
     # Embedded mode: print the T1 boot banner before _gl_init fires
     print("[app] Booting substrate in-process...")
 
@@ -8468,6 +8482,10 @@ async def shutdown():
     if _generation_owner_lock is not None:
         _generation_owner_lock.release()
         _generation_owner_lock = None
+    from dsf_ai_service.glew_runtime.exact_field_executor import (
+        stop_exact_field_executor,
+    )
+    await asyncio.to_thread(stop_exact_field_executor)
 
 
 # ── GL-CMD-STDP-INTROSPECTION-EVE-20260707-v1: read-only STDP state ──
@@ -9059,6 +9077,13 @@ def _production_runtime_proof_under_authority(nonce=None):
     if (_generation_owner_lock is None
             or not _generation_owner_lock.acquired):
         raise RuntimeError("process does not hold the EFS owner lease")
+    from dsf_ai_service.glew_runtime.exact_field_executor import (
+        exact_field_executor,
+    )
+    exact_field_owner = exact_field_executor()
+    if exact_field_owner is None:
+        raise RuntimeError("exact field executor owner is absent")
+    exact_field_owner.assert_healthy()
     if (_loaded_generation is None
             or _deployment_baseline_generation is None
             or _live_recovery_store is None

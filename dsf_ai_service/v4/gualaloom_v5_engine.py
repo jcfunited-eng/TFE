@@ -7850,7 +7850,9 @@ class Guala:
 
         from fractions import Fraction
         from dsf_ai_service.glew_runtime.native_sensory_full_field import (
-            NativeSensorySubstreamInput, build_six_sense_full_field)
+            NativeSensorySubstreamInput,
+            build_transaction_owned_six_sense_full_field,
+        )
         from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
             NativeAxisCoordinate, PhysicalSense, SENSE_ORDER,
             SenseBoundaryState)
@@ -8013,7 +8015,7 @@ class Guala:
             )
             for sense in SENSE_ORDER
         }
-        built = build_six_sense_full_field(
+        built = build_transaction_owned_six_sense_full_field(
             assembly_id=f"causal-{record['window_id']}",
             source_time_start=start,
             source_time_end=end,

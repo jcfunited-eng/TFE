@@ -758,12 +758,26 @@ class ExactCausalExperienceOwner:
         value,
     ) -> tuple[str, int, str]:
         digest = value.profile.physical_derivation_receipt_sha256
+        if (
+            value.profile.sense.value != sense
+            or not value.profile.substream_id
+            or not value.profile.physical_quantity
+            or not value.profile.physical_unit
+        ):
+            raise ReceiptError(
+                "causal substream source evidence belongs to another field"
+            )
+        if built.has_transaction_construction_authority:
+            sample_count, commitment = built.source_sample_commitment(digest)
+            return digest, sample_count, commitment
         payload = built.receipt_registry.resolve(
             digest,
             "causal substream source evidence",
         )
         if receipt_sha256(payload) != digest:
-            raise ReceiptError("causal substream source evidence digest changed")
+            raise ReceiptError(
+                "causal substream source evidence digest changed"
+            )
         try:
             raw = json.loads(payload)
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -784,7 +798,9 @@ class ExactCausalExperienceOwner:
             )
         raw_samples = raw.get("samples")
         if not isinstance(raw_samples, list) or not raw_samples:
-            raise ReceiptError("causal substream source evidence is empty")
+            raise ReceiptError(
+                "causal substream source evidence is empty"
+            )
         samples = []
         for expected_index, sample in enumerate(raw_samples):
             if (
@@ -880,7 +896,10 @@ class ExactCausalExperienceOwner:
             raise TypeError("causal settlement reserve flag must be boolean")
         if reserve and commit:
             raise ValueError("causal settlement cannot reserve and commit together")
-        built.boundary.verify(built.receipt_registry)
+        if built.has_transaction_construction_authority:
+            built.verify_construction()
+        else:
+            built.boundary.verify(built.receipt_registry)
         with self._lock:
             self._require_sequence_owner_locked()
             if self._prepared_reservation is not None:

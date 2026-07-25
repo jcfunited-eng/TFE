@@ -252,56 +252,10 @@ class AuditoryL5Experience:
     receipt_registry: ReceiptRegistry
 
     def verify(self) -> None:
-        if self.event_boundary not in ("ambient", "utterance"):
-            raise ReceiptError("auditory L5 event boundary is invalid")
-        if self.relation not in (
-            "first_observation",
-            "recurrence",
-            "structural_change",
-        ):
-            raise ReceiptError("auditory L5 relation is invalid")
-        require_fraction(self.source_time_start, "auditory L5 source start")
-        require_fraction(self.source_time_end, "auditory L5 source end")
-        if self.source_time_end <= self.source_time_start:
-            raise ReceiptError("auditory L5 source interval is invalid")
-        if (
-            self.receipt_registry.profile_binding_sha256
-            != receipt_sha256(AUDITORY_L5_AUTHORITY_PROFILE)
-        ):
-            raise ReceiptError("auditory L5 authority profile changed")
-        _validate_channels(self.channels)
-        _verify_upstream_chain(self)
-        for channel in self.channels:
-            channel.verify(self.receipt_registry)
-        structural = _digest(AuditoryL5Owner._structural_payload(self.channels))
-        if structural != self.structural_fingerprint:
-            raise ReceiptError("auditory L5 structural field was altered")
-        expected_id = _digest({
-            "assembly_id": self.assembly_id,
-            "auditory_structural_fingerprint": structural,
-        })
-        if expected_id != self.experience_id:
-            raise ReceiptError("auditory L5 experience identity was altered")
-        payload = _authority_payload(
-            experience_id=self.experience_id,
-            structural_fingerprint=self.structural_fingerprint,
-            assembly_id=self.assembly_id,
-            relation=self.relation,
-            event_boundary=self.event_boundary,
-            source_time_start=self.source_time_start,
-            source_time_end=self.source_time_end,
-            channels=self.channels,
-            assembly_receipt_sha256=self.assembly_receipt_sha256,
+        _verify_experience(
+            self,
+            verify_upstream=True,
         )
-        mounted = self.receipt_registry.resolve(
-            self.authority_receipt_sha256,
-            "auditory L5 authority",
-        )
-        if (
-            mounted != payload
-            or receipt_sha256(payload) != self.authority_receipt_sha256
-        ):
-            raise ReceiptError("auditory L5 authority receipt was altered")
 
 
 def _validate_sample(sample: AuditoryL5ComponentSample, index: int) -> None:
@@ -750,6 +704,74 @@ def _verify_upstream_chain(experience: AuditoryL5Experience) -> None:
         )
 
 
+def _verify_experience(
+    experience: AuditoryL5Experience,
+    *,
+    verify_upstream: bool,
+) -> None:
+    """Verify all L5 authority, optionally rewalking its upstream graph."""
+    if experience.event_boundary not in ("ambient", "utterance"):
+        raise ReceiptError("auditory L5 event boundary is invalid")
+    if experience.relation not in (
+        "first_observation",
+        "recurrence",
+        "structural_change",
+    ):
+        raise ReceiptError("auditory L5 relation is invalid")
+    require_fraction(
+        experience.source_time_start,
+        "auditory L5 source start",
+    )
+    require_fraction(
+        experience.source_time_end,
+        "auditory L5 source end",
+    )
+    if experience.source_time_end <= experience.source_time_start:
+        raise ReceiptError("auditory L5 source interval is invalid")
+    if (
+        experience.receipt_registry.profile_binding_sha256
+        != receipt_sha256(AUDITORY_L5_AUTHORITY_PROFILE)
+    ):
+        raise ReceiptError("auditory L5 authority profile changed")
+    _validate_channels(experience.channels)
+    if verify_upstream:
+        _verify_upstream_chain(experience)
+    for channel in experience.channels:
+        channel.verify(experience.receipt_registry)
+    structural = _digest(
+        AuditoryL5Owner._structural_payload(experience.channels)
+    )
+    if structural != experience.structural_fingerprint:
+        raise ReceiptError("auditory L5 structural field was altered")
+    expected_id = _digest({
+        "assembly_id": experience.assembly_id,
+        "auditory_structural_fingerprint": structural,
+    })
+    if expected_id != experience.experience_id:
+        raise ReceiptError("auditory L5 experience identity was altered")
+    payload = _authority_payload(
+        experience_id=experience.experience_id,
+        structural_fingerprint=experience.structural_fingerprint,
+        assembly_id=experience.assembly_id,
+        relation=experience.relation,
+        event_boundary=experience.event_boundary,
+        source_time_start=experience.source_time_start,
+        source_time_end=experience.source_time_end,
+        channels=experience.channels,
+        assembly_receipt_sha256=experience.assembly_receipt_sha256,
+    )
+    mounted = experience.receipt_registry.resolve(
+        experience.authority_receipt_sha256,
+        "auditory L5 authority",
+    )
+    if (
+        mounted != payload
+        or receipt_sha256(payload)
+        != experience.authority_receipt_sha256
+    ):
+        raise ReceiptError("auditory L5 authority receipt was altered")
+
+
 def _verify_receipt_capacity(
     upstream_registry: ReceiptRegistry,
 ) -> None:
@@ -817,6 +839,8 @@ def _build_component(
 def _build_channels(
     built: BuiltSixSenseFullField,
     sound,
+    *,
+    transaction_verified: bool,
 ) -> tuple[
     tuple[AuditoryL5CochlearChannel, ...],
     tuple[bytes, ...],
@@ -852,7 +876,8 @@ def _build_channels(
             carrier_phase_advance=phase,
             pair_receipt_sha256="0" * 64,
         )
-        _validate_channel(provisional)
+        if not transaction_verified:
+            _validate_channel(provisional)
         pair_payload = _pair_payload(provisional)
         channel = AuditoryL5CochlearChannel(
             cochlear_index=provisional.cochlear_index,
@@ -864,8 +889,48 @@ def _build_channels(
         channels.append(channel)
         payloads.extend((pressure_payload, phase_payload, pair_payload))
     result = tuple(channels)
-    _validate_channels(result)
+    if transaction_verified:
+        if (
+            len(result) != COCHLEAR_CHANNEL_COUNT
+            or tuple(channel.cochlear_index for channel in result)
+            != tuple(range(COCHLEAR_CHANNEL_COUNT))
+        ):
+            raise ReceiptError(
+                "constructed auditory L5 channel topology changed"
+            )
+    else:
+        _validate_channels(result)
     return result, tuple(payloads)
+
+
+def _verify_constructed_experience(
+    *,
+    experience: AuditoryL5Experience,
+    built: BuiltSixSenseFullField,
+) -> None:
+    """Verify all new L5 authority inside one authenticated build.
+
+    Only the immutable upstream graph traversal is skipped: the native builder
+    already verified that exact boundary and registry, and their per-build
+    authority binds both object identities.  Every L5 field, identity, channel,
+    and newly issued receipt is still verified exactly once before publication.
+    """
+    built.verify_construction(
+        boundary=experience.upstream_boundary,
+        receipt_registry=experience.upstream_receipt_registry,
+    )
+    if (
+        experience.assembly_id != built.boundary.assembly_id
+        or experience.assembly_receipt_sha256
+        != built.boundary.authority_receipt_sha256
+    ):
+        raise ReceiptError(
+            "constructed auditory L5 authority left its verified field"
+        )
+    _verify_experience(
+        experience,
+        verify_upstream=False,
+    )
 
 
 class AuditoryL5Owner:
@@ -959,12 +1024,18 @@ class AuditoryL5Owner:
             raise ValueError("auditory event boundary must be ambient or utterance")
         if not isinstance(built, BuiltSixSenseFullField):
             raise TypeError("auditory L5 requires a built six-sense full field")
-        try:
-            built.boundary.verify(built.receipt_registry)
-        except IndexError as exc:
-            raise ReceiptError(
-                "auditory L5 upstream kernel basin is incomplete"
-            ) from exc
+        transaction_verified = (
+            built.has_transaction_construction_authority
+        )
+        if transaction_verified:
+            built.verify_construction()
+        else:
+            try:
+                built.boundary.verify(built.receipt_registry)
+            except IndexError as exc:
+                raise ReceiptError(
+                    "auditory L5 upstream kernel basin is incomplete"
+                ) from exc
         sound = next(
             boundary
             for boundary in built.boundary.boundaries
@@ -978,6 +1049,7 @@ class AuditoryL5Owner:
         channels, component_and_pair_payloads = _build_channels(
             built,
             sound,
+            transaction_verified=transaction_verified,
         )
         _verify_receipt_capacity(built.receipt_registry)
         fingerprint = _digest(self._structural_payload(channels))
@@ -1035,7 +1107,13 @@ class AuditoryL5Owner:
                 upstream_receipt_registry=built.receipt_registry,
                 receipt_registry=receipt_registry,
             )
-            experience.verify()
+            if transaction_verified:
+                _verify_constructed_experience(
+                    experience=experience,
+                    built=built,
+                )
+            else:
+                experience.verify()
             if previous is not None:
                 key = (previous, fingerprint)
                 self._transitions[key] = self._transitions.get(key, 0) + 1

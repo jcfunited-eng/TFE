@@ -9,8 +9,10 @@ compatibility vector is introduced here.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
+import os
 from dataclasses import dataclass
 from fractions import Fraction
 from typing import Mapping
@@ -52,6 +54,9 @@ from .story_global_uf_basin import port_kernel_basin_from_trace_record
 PROFILE_PAYLOAD = b"guala.live.native_sensory_l0_l4.profile.v1"
 RELEVANCE_PAYLOAD = b"guala.live.native_sensory.exact_source_relevance.v1"
 ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v1"
+SOURCE_SAMPLE_COMMITMENT_SCHEMA = (
+    "guala.exact_causal_experience.source_samples.v1"
+)
 
 # Deterministic resource-safety boundary. These are transport/runtime limits,
 # not sensory physics and not cognition. They cap the largest single causal
@@ -67,6 +72,8 @@ MAX_NATIVE_SOUND_SUBSTREAMS = 64
 MAX_NATIVE_SIGHT_SUBSTREAMS = 76
 MAX_NATIVE_SAMPLES_PER_SUBSTREAM = 2048
 MAX_NATIVE_SAMPLES_PER_SETTLEMENT = 32768
+
+_TRANSACTION_BUILD_REQUEST = object()
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -149,9 +156,84 @@ class NativeSensorySubstreamInput:
 
 
 @dataclass(frozen=True, slots=True)
+class _VerifiedFullFieldConstruction:
+    boundary: SixSenseFullFieldBoundary
+    receipt_registry: ReceiptRegistry
+    source_sample_commitments: tuple[tuple[str, int, str], ...]
+
+
+@dataclass(frozen=True, slots=True)
 class BuiltSixSenseFullField:
     boundary: SixSenseFullFieldBoundary
     receipt_registry: ReceiptRegistry
+    source_sample_commitments: tuple[tuple[str, int, str], ...]
+    _construction_authority: _VerifiedFullFieldConstruction | None
+
+    @property
+    def has_transaction_construction_authority(self) -> bool:
+        try:
+            self.verify_construction()
+        except ValueError:
+            return False
+        return True
+
+    def verify_construction(
+        self,
+        *,
+        boundary: SixSenseFullFieldBoundary | None = None,
+        receipt_registry: ReceiptRegistry | None = None,
+    ) -> None:
+        """Authenticate one immutable, request-local completed build.
+
+        This capability cannot be serialized or recreated from receipt text.
+        It only avoids repeating verification while the exact frozen objects
+        that were fully verified by ``build_six_sense_full_field`` remain
+        inside the same transaction.
+        """
+        authority = self._construction_authority
+        if not isinstance(
+            authority,
+            _VerifiedFullFieldConstruction,
+        ):
+            raise ValueError(
+                "six-sense full field lacks construction authority"
+            )
+        if (
+            authority.boundary is not self.boundary
+            or authority.receipt_registry is not self.receipt_registry
+            or authority.source_sample_commitments
+            is not self.source_sample_commitments
+        ):
+            raise ValueError(
+                "six-sense full field construction authority was copied"
+            )
+        if (
+            boundary is not None
+            and boundary is not self.boundary
+        ) or (
+            receipt_registry is not None
+            and receipt_registry is not self.receipt_registry
+        ):
+            raise ValueError(
+                "six-sense full field left its verified transaction"
+            )
+
+    def source_sample_commitment(
+        self,
+        source_evidence_stream_receipt_sha256: str,
+    ) -> tuple[int, str]:
+        self.verify_construction()
+        matches = tuple(
+            (sample_count, commitment)
+            for digest, sample_count, commitment
+            in self.source_sample_commitments
+            if digest == source_evidence_stream_receipt_sha256
+        )
+        if len(matches) != 1:
+            raise ValueError(
+                "verified full field lacks one exact source commitment"
+            )
+        return matches[0]
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,6 +243,33 @@ class _PreparedPort:
     adapter: KernelNativeInputStream
     profile: NativeSubstreamProfile
     input_payloads: tuple[bytes, ...]
+    source_sample_commitment_sha256: str
+
+
+def _source_sample_commitment(
+    samples: tuple[EvidenceSample, ...],
+) -> str:
+    payload = {
+        "samples": [
+            {
+                "phase_turns": (
+                    f"{sample.phase_turns.numerator}/"
+                    f"{sample.phase_turns.denominator}"
+                ),
+                "signal": (
+                    f"{sample.signal.numerator}/{sample.signal.denominator}"
+                ),
+                "source_index": sample.source_index,
+                "timestamp": (
+                    f"{sample.timestamp.numerator}/"
+                    f"{sample.timestamp.denominator}"
+                ),
+            }
+            for sample in samples
+        ],
+        "schema": SOURCE_SAMPLE_COMMITMENT_SCHEMA,
+    }
+    return hashlib.sha256(_canonical_bytes(payload)).hexdigest()
 
 
 def _prepare_port(
@@ -269,6 +378,9 @@ def _prepare_port(
             adapter_payload,
             profile_payload,
         ),
+        source_sample_commitment_sha256=(
+            _source_sample_commitment(samples)
+        ),
     )
 
 
@@ -280,8 +392,15 @@ def build_six_sense_full_field(
     observed_substreams: Mapping[
         PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
     states: Mapping[PhysicalSense, SenseBoundaryState],
+    _transaction_authority: object | None = None,
 ) -> BuiltSixSenseFullField:
     """Build and verify one exact, complete six-sense pre-L5 boundary."""
+    if (
+        _transaction_authority is not None
+        and _transaction_authority
+        is not _TRANSACTION_BUILD_REQUEST
+    ):
+        raise ValueError("native full-field transaction authority is invalid")
     require_identifier(assembly_id, "six-sense assembly_id")
     require_fraction(source_time_start, "source_time_start")
     require_fraction(source_time_end, "source_time_end")
@@ -302,9 +421,11 @@ def build_six_sense_full_field(
                 raise ValueError(
                     "native sensory sample time falls outside the causal interval")
 
-    prepared_by_sense: dict[PhysicalSense, tuple[_PreparedPort, ...]] = {}
     payloads = [PROFILE_PAYLOAD]
     total_samples = 0
+    ordered_native_ports: list[
+        tuple[PhysicalSense, NativeSensorySubstreamInput]
+    ] = []
     for sense in SENSE_ORDER:
         native_ports = observed_substreams.get(sense, ())
         if native_ports:
@@ -322,46 +443,144 @@ def build_six_sense_full_field(
             if tuple(port.topology_index for port in native_ports) != tuple(
                     range(len(native_ports))):
                 raise ValueError("native sensory topology is incomplete or reordered")
-            prepared = tuple(
-                _prepare_port(port, assembly_id=assembly_id)
-                for port in native_ports
-            )
             total_samples += sum(
                 len(port.normalized_signal) for port in native_ports)
             if total_samples > MAX_NATIVE_SAMPLES_PER_SETTLEMENT:
                 raise ValueError("native sensory inputs exceed the total settlement sample boundary")
-            prepared_by_sense[sense] = prepared
-            for port in prepared:
-                payloads.extend(port.input_payloads)
+            ordered_native_ports.extend(
+                (sense, port) for port in native_ports
+            )
 
-    input_registry = ReceiptRegistry.from_payloads(
-        profile_payload=PROFILE_PAYLOAD,
-        receipt_payloads=tuple(
-            payload for payload in _unique_payloads(payloads)
-            if payload != PROFILE_PAYLOAD
-        ),
-    )
     substreams_by_sense: dict[
         PhysicalSense, tuple[SensorySubstreamFullField, ...]] = {}
     topology_by_sense: dict[PhysicalSense, NativeSenseTopology] = {}
-    for sense, prepared_ports in prepared_by_sense.items():
+    source_sample_commitments = []
+    from .exact_field_executor import exact_field_executor
+    executor = exact_field_executor()
+    if (
+        executor is None
+        and os.environ.get(
+            "GUALA_EXACT_FIELD_EXECUTOR_REQUIRED",
+            "0",
+        ) == "1"
+    ):
+        raise RuntimeError(
+            "required exact field executor owner is absent"
+        )
+    parallel_results = (
+        executor.build_ports(
+            (native, assembly_id)
+            for _sense, native in ordered_native_ports
+        )
+        if executor is not None and ordered_native_ports
+        else ()
+        if executor is not None
+        else None
+    )
+    result_index = 0
+    for sense in SENSE_ORDER:
+        native_ports = observed_substreams.get(sense, ())
+        if not native_ports:
+            continue
         full_substreams = []
-        for prepared in prepared_ports:
-            trace_record = run_ratified_native_l0_l4_trace(
-                stream=prepared.stream,
-                adapter=prepared.adapter,
-                receipt_registry=input_registry,
+        profiles = []
+        if parallel_results is None:
+            prepared_ports = tuple(
+                _prepare_port(port, assembly_id=assembly_id)
+                for port in native_ports
             )
+            for prepared in prepared_ports:
+                payloads.extend(prepared.input_payloads)
+            input_registry = ReceiptRegistry.from_payloads(
+                profile_payload=PROFILE_PAYLOAD,
+                receipt_payloads=tuple(
+                    payload
+                    for payload in _unique_payloads(payloads)
+                    if payload != PROFILE_PAYLOAD
+                ),
+            )
+            port_results = []
+            for prepared in prepared_ports:
+                trace_record = run_ratified_native_l0_l4_trace(
+                    stream=prepared.stream,
+                    adapter=prepared.adapter,
+                    receipt_registry=input_registry,
+                )
+                basin, basin_payloads = port_kernel_basin_from_trace_record(
+                    lane_id=sense.value,
+                    port_id=prepared.native.substream_id,
+                    trace_record=trace_record,
+                )
+                port_results.append((
+                    prepared.native,
+                    prepared.profile,
+                    prepared.input_payloads,
+                    trace_record,
+                    basin,
+                    basin_payloads,
+                    prepared.source_sample_commitment_sha256,
+                ))
+        else:
+            port_results = []
+            for native in native_ports:
+                result = parallel_results[result_index]
+                result_index += 1
+                expected = _prepare_port(
+                    native,
+                    assembly_id=assembly_id,
+                )
+                if (
+                    result.profile != expected.profile
+                    or result.input_payloads != expected.input_payloads
+                    or result.source_sample_commitment_sha256
+                    != expected.source_sample_commitment_sha256
+                ):
+                    raise RuntimeError(
+                        "exact field worker changed native input authority"
+                    )
+                port_results.append((
+                    native,
+                    expected.profile,
+                    expected.input_payloads,
+                    result.trace,
+                    result.basin,
+                    result.basin_payloads,
+                    expected.source_sample_commitment_sha256,
+                ))
+            for port_result in port_results:
+                payloads.extend(port_result[2])
+        for (
+            native,
+            profile,
+            input_payloads,
+            trace_record,
+            basin,
+            basin_payloads,
+            source_commitment,
+        ) in port_results:
+            payloads.extend(input_payloads)
             payloads.append(trace_record.payload)
-            basin, basin_payloads = port_kernel_basin_from_trace_record(
-                lane_id=sense.value,
-                port_id=prepared.native.substream_id,
-                trace_record=trace_record,
-            )
             payloads.extend(basin_payloads)
+            if (
+                {
+                    value.source_l0_l4_trace_receipt_sha256
+                    for value in basin.exact_dsf_field_tuples
+                }
+                != {trace_record.digest}
+            ):
+                raise RuntimeError(
+                    "exact field worker changed its trace authority"
+                )
             full_substreams.append(
-                SensorySubstreamFullField(prepared.profile, basin))
-        profiles = tuple(port.profile for port in prepared_ports)
+                SensorySubstreamFullField(profile, basin)
+            )
+            profiles.append(profile)
+            source_sample_commitments.append((
+                profile.physical_derivation_receipt_sha256,
+                len(native.normalized_signal),
+                source_commitment,
+            ))
+        profiles = tuple(profiles)
         topology_payload = native_sense_topology_receipt_payload(
             topology_id=f"topology-{assembly_id}-{sense.value}",
             sense=sense,
@@ -376,6 +595,14 @@ def build_six_sense_full_field(
         )
         topology_by_sense[sense] = topology
         substreams_by_sense[sense] = tuple(full_substreams)
+
+    if (
+        parallel_results is not None
+        and result_index != len(parallel_results)
+    ):
+        raise RuntimeError(
+            "exact field worker changed complete topology cardinality"
+        )
 
     causal_payload = _canonical_bytes({
         "assembly_id": assembly_id,
@@ -442,7 +669,52 @@ def build_six_sense_full_field(
         ),
     )
     assembly.verify(registry)
-    return BuiltSixSenseFullField(assembly, registry)
+    source_sample_commitment_tuple = tuple(
+        source_sample_commitments
+    )
+    construction_authority = (
+        _VerifiedFullFieldConstruction(
+            assembly,
+            registry,
+            source_sample_commitment_tuple,
+        )
+        if _transaction_authority is _TRANSACTION_BUILD_REQUEST
+        else None
+    )
+    built = BuiltSixSenseFullField(
+        assembly,
+        registry,
+        source_sample_commitment_tuple,
+        construction_authority,
+    )
+    if _transaction_authority is not None:
+        built.verify_construction(
+            boundary=assembly,
+            receipt_registry=registry,
+        )
+    return built
+
+
+def build_transaction_owned_six_sense_full_field(
+    *,
+    assembly_id: str,
+    source_time_start: Fraction,
+    source_time_end: Fraction,
+    observed_substreams: Mapping[
+        PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+    states: Mapping[PhysicalSense, SenseBoundaryState],
+) -> BuiltSixSenseFullField:
+    """Build a capability that must remain inside one engine transaction."""
+    return build_six_sense_full_field(
+        assembly_id=assembly_id,
+        source_time_start=source_time_start,
+        source_time_end=source_time_end,
+        observed_substreams=observed_substreams,
+        states=states,
+        _transaction_authority=(
+            _TRANSACTION_BUILD_REQUEST
+        ),
+    )
 
 
 __all__ = (
@@ -454,4 +726,5 @@ __all__ = (
     "MAX_NATIVE_SUBSTREAMS_PER_SENSE",
     "NativeSensorySubstreamInput",
     "build_six_sense_full_field",
+    "build_transaction_owned_six_sense_full_field",
 )
