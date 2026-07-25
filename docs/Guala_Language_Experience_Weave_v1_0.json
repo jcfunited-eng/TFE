@@ -1,0 +1,774 @@
+{
+  "arcloom_profile": {
+    "evolution": {
+      "affine_crank_nicolson": "(I+i*delta_tau*H_total/(2*hbar))*psi_next=(I-i*delta_tau*H_total/(2*hbar))*psi-(i*delta_tau/(2*hbar))*(J_now+J_next)",
+      "delta_tau": {
+        "exact_rational": "1/24",
+        "status": "proposed_for_final_ratification"
+      },
+      "driven_norm_rule": {
+        "balance": "norm_next_squared-norm_now_squared=(2*delta_tau/hbar)*Im(inner(psi_mid,J_mid))",
+        "normalization_projection": "forbidden",
+        "receipt": "record_norm_before_norm_after_expected_balance_and_binary64_residual",
+        "residual_limit": {
+          "max_ulp": 8,
+          "status": "proposed_for_final_ratification"
+        },
+        "rule": "driven_norm_change_must_match_the_explicit_source_balance_or_fail_closed",
+        "status": "proposed_for_final_ratification"
+      },
+      "hbar": {
+        "exact_rational": "1/1",
+        "status": "proposed_for_final_ratification"
+      },
+      "integration_steps_per_gate": {
+        "status": "proposed_for_final_ratification",
+        "value": 24
+      },
+      "norm_invariant_scope": "unforced_evolution_only; J_equal_zero",
+      "solver": "float64_fixed_order_no_pivot_substitution",
+      "zero_state_rule": "unknown_no_commit"
+    },
+    "hamiltonian": {
+      "H_base": {
+        "operator": "zero_144_by_144",
+        "status": "proposed_for_final_ratification"
+      },
+      "H_goal": {
+        "operator": "zero_144_by_144_until_a_separately_ratified_goal_field_exists",
+        "status": "proposed_for_final_ratification"
+      },
+      "H_law": {
+        "operator": "zero_144_by_144_until_a_separately_ratified_language_law_exists",
+        "status": "proposed_for_final_ratification"
+      },
+      "H_mem": {
+        "bound": "because_every_relation_operator_has_spectral_norm_at_most_one_and_sum_relation_mass_is_at_most_M_total_equal_one_the_H_mem_spectral_norm_is_at_most_one",
+        "directed_relation_operator": "for_distinct_unit_endpoint_rays_u_and_v_let_A=outer(Phi_u,conj(Phi_v)); K_(u_to_v)=((A+A_dagger)+i*(A-A_dagger))/(2*sqrt(2))_and_K_(v_to_u)=((A+A_dagger)-i*(A-A_dagger))/(2*sqrt(2)); for_u_equal_v_use_the_rank_one_projector; each_operator_is_Hermitian_direction_distinct_when_u_differs_from_v_and_has_certified_spectral_norm_at_most_one",
+        "interval_authority": "none_until_endpoint_normalization_directed_K_construction_interval_relation_masses_Hermiticity_and_the_spectral_norm_bound_are_certified_by_the_ratified_complex_ball_operator; until_then_H_mem_is_zero_and_memory_has_no_commit_or_output_influence",
+        "masked_mode_precondition": "before_H_mem_use_every_endpoint_mode_must_have_a_proved_finite_nonzero_norm_under_the_authoritative_current_validity_operator_and_be_normalized_for_the_operator_only; a_changed_mask_that_makes_a_mode_zero_dependent_or_ambiguous_is_unknown_no_memory_influence",
+        "operator": "sum_over_canonical_directed_relations_e(m_active[e]*K_e)_using_the_explicit_directed_relation_operator",
+        "pre_solve_receipt": "record_endpoint_validity_masks_endpoint_norms_relation_mass_sum_H_mem_hermiticity_and_the_derived_operator_norm_bound",
+        "status": "proposed_for_final_ratification"
+      },
+      "H_safety": {
+        "normal_operator": "zero_144_by_144",
+        "safe_mode_action": "J_zero_goals_zero_commit_frozen_memory_frozen_output_zero",
+        "status": "proposed_for_final_ratification"
+      },
+      "hermiticity": "required_exactly_before_every_solve"
+    },
+    "mapinject": {
+      "amplitude": {
+        "J_max": {
+          "exact_rational": "1/1",
+          "status": "proposed_for_final_ratification"
+        },
+        "a_0": {
+          "exact_rational": "1/1",
+          "status": "proposed_for_final_ratification"
+        },
+        "a_max": {
+          "exact_rational": "1/1",
+          "status": "proposed_for_final_ratification"
+        },
+        "a_negative_space_max": {
+          "exact_rational": "0/1",
+          "status": "proposed_for_final_ratification"
+        },
+        "equation": "clamp(a_0*w_k*URF_k*(1-U_star_k)*(1-N_gate),0,a_max)",
+        "w_k": {
+          "rule": "the_exact_canonical_L2_w_k_from_the_typed_lane_record; unit_substitution_is_forbidden",
+          "status": "proposed_for_final_ratification"
+        }
+      },
+      "direct_sum": {
+        "lane_aggregation": "block_direct_sum_only; never_average_explicit_fields",
+        "norm_factor": "1/sqrt(valid_lane_count)",
+        "zero_valid_lane_rule": "unknown_no_injection"
+      },
+      "evidence_encoding": {
+        "block_normalization": "for_v_in_TVR_or_CV_compute_ray(v)=v/sqrt(sum_i(v_i^2))_when_the_exact_squared_norm_is_positive; an_exact_valid_zero_block_remains_three_exact_zeros_with_its_validity_and_zero_kind_preserved; invalid_is_never_zero",
+        "categorical_Reg_k": "preserved_in_the_typed_record_and_excluded_from_numeric_projection_until_a_separately_ratified_structural_operator_uses_it; integer_or_one_hot_encoding_is_forbidden",
+        "magnitude_preservation": "raw_TVR_and_CV_values_remain_authoritative_in_the_typed_gate_record; ray_encoding_is_MapInject_transport_only_and_never_replaces_them",
+        "numeric_authority": "proposed_for_final_ratification_and_none_for_implementation_until_deterministic_sqrt_projection_and_test_vectors_are_ratified",
+        "numeric_order": [
+          "norm_TVR_T",
+          "norm_TVR_V",
+          "norm_TVR_R",
+          "w_k",
+          "norm_CV_T",
+          "norm_CV_V",
+          "norm_CV_R",
+          "S_k",
+          "U_k",
+          "IAS_k",
+          "URF_k",
+          "D_k",
+          "M_k",
+          "R_rev_k",
+          "U_star_k",
+          "C_k",
+          "P_k",
+          "B_k",
+          "N_gate"
+        ],
+        "zero_rule": "a_valid_zero_TVR_or_CV_ray_is_quiescent_evidence_not_missing_evidence_and_cannot_by_itself_authorize_commit"
+      },
+      "evidence_order_per_lane": [
+        "norm_TVR_T",
+        "norm_TVR_V",
+        "norm_TVR_R",
+        "w_k",
+        "norm_CV_T",
+        "norm_CV_V",
+        "norm_CV_R",
+        "S_k",
+        "U_k",
+        "IAS_k",
+        "URF_k",
+        "D_k",
+        "M_k",
+        "R_rev_k",
+        "U_star_k",
+        "C_k",
+        "P_k",
+        "B_k",
+        "N_gate"
+      ],
+      "orthonormal_projection": {
+        "columns": 19,
+        "hash_algorithm": "SHA-256",
+        "hash_frame": "UTF8(weave_id)+NUL+UTF8(lane_id)+NUL+uint32_be(row)+uint32_be(column)",
+        "hash_to_unit_float": "form_the_exact_rational_uint256_be(digest)/(2^256-1)_then_round_once_to_binary64_ties_to_even",
+        "matrix_entry": "2*hash_to_unit_float-1",
+        "qr": "fixed_column_order_Householder_float64",
+        "qr_rank_failure": "unknown_no_commit",
+        "rows_per_lane": 24,
+        "sign_rule": "multiply_Q_column_to_make_R_diagonal_positive; exact_zero_diagonal_is_rank_failure",
+        "status": "proposed_for_final_ratification"
+      },
+      "zero_vector_rule": "normalize(P_in*e)==zero_means_quiescent_unknown_no_evolution"
+    },
+    "mode_bank": {
+      "dimension": 144,
+      "invalid_lane_rule": "invalid_lane_blocks_are_exact_zero_and_are_excluded_from_overlaps_centroids_and_H_mem",
+      "lane_block_order": [
+        "language",
+        "sight",
+        "sound",
+        "touch",
+        "smell",
+        "taste"
+      ],
+      "nodes_per_lane": 24,
+      "psi_initial_state": {
+        "rule": "exact_zero_at_clean_genesis; only_an_admitted_joint_MapInject_source_may_move_psi",
+        "status": "proposed_for_final_ratification"
+      },
+      "tie_break": "lowest_canonical_mode_id_for_serialization_only; equal_dominance_is_unknown"
+    }
+  },
+  "authority": {
+    "approved_corrections": [
+      "l6_combined_rank_and_fixed_ambient_dimension_correction",
+      "l6_tau_equal_1_minus_1_over_e",
+      "nine_field_agnostic_governance_tuple_with_sense_specific_L5_applicability",
+      "universal_growth_decay_law_with_local_memory_state_and_event_derived_support"
+    ],
+    "architecture_status": "proposed_for_final_ratification",
+    "authoritative_sources": [
+      "docs/ArcLoom_Master_Specification_v5_0.tex",
+      "docs/ArcLoom_Spec_v0_4.txt",
+      "docs/WeaveSpec_v0_1.txt",
+      "docs/L6_Topological_Constraint_Layer_Spec.tex"
+    ],
+    "forbidden_authority_sources": [
+      "illustrative_WeaveSpec_values_without_this_ratification",
+      "experimental_RECIPE_values_without_this_ratification",
+      "legacy_language_hash_or_suffix_replay",
+      "legacy_L6_gamma_clamps",
+      "legacy_threshold_or_top_k_voice_paths",
+      "machine_learning_or_probabilistic_models"
+    ],
+    "proposed_corrections": [
+      "affine_crank_nicolson_forcing_sign_and_i_over_hbar",
+      "norm_conservation_limited_to_unforced_evolution"
+    ],
+    "requested_architecture": "joint_lived_language_and_sensory_field_through_MapInject_psi_entropy_commit_Krimelack_memory_and_corrected_L6",
+    "supersedes_for_language_authority": [
+      "language_fact_strand_reciprocity_v1",
+      "deterministic_exact_window_suffix_replay",
+      "legacy_v5_commit",
+      "legacy_v5_commit_organ"
+    ]
+  },
+  "authors": [
+    "Joseph Forrester"
+  ],
+  "checkpoint": {
+    "canonical_state": [
+      "exact_profile_bytes_and_SHA256",
+      "generation_identity_parent_lineage_and_manifest",
+      "structural_time_gate_and_sample_counters",
+      "input_reorder_buffers_faults_and_SafeMode",
+      "every_lane_Krimelack_phase_winding_and_open_window_state",
+      "psi_and_closed_experience_trajectory_ring",
+      "P_in_hash_and_Hamiltonian_receipt",
+      "complete_mode_bank_in_canonical_order",
+      "Fact_Strands_V_W_adj_and_pos",
+      "commit_genesis_rate_and_cooldown_state",
+      "L6_constraint_disruption_and_recovery_latch",
+      "output_binding_and_self_sense_state"
+    ],
+    "complex_and_float_encoding": "use_determinism_profile_encoding_only",
+    "derived_legacy_import": "forbidden",
+    "generation": "immutable_manifest_last_then_atomic_CURRENT",
+    "profile_hash_mismatch": "boot_failure",
+    "restore": "bit_exact_cold_restore_receipt_required_before_publication",
+    "schema": "guala_glew_checkpoint_v1"
+  },
+  "commit_policy": {
+    "ambiguity": "unknown_no_commit_no_output",
+    "bootstrap": {
+      "approved_on": "2026-07-12",
+      "authority_status": "approved_by_joseph",
+      "first_mode": "from_exact_zero_psi_capture_the_first_full_field_SafeMode_clear_corrected_L6_locked_positive_R_event_experience_only_when_the_exact_mode_innovation_operator_proves_nonzero",
+      "genesis_disruption_baseline": "the_first_integrity_complete_experience_has_no_predecessor_comparison_sets_delta_ext_zero_and_may_evaluate_the_lock; it_does_not_hide_any_source_time_schema_calibration_or_integrity_fault",
+      "language_output_during_bootstrap": "forbidden",
+      "normal_commit_enabled_at_mode_count": 2,
+      "one_mode_rule": "normal_entropy_commit_undefined_and_forbidden",
+      "second_mode": "capture_the_next_full_field_SafeMode_clear_corrected_L6_locked_experience_only_if_the_exact_mode_innovation_operator_proves_positive_independent_rank; different_psi_bytes_alone_are_insufficient",
+      "side_effects_forbidden": [
+        "adjacency_reinforcement",
+        "language_output",
+        "self_hearing"
+      ],
+      "zero_centroid_rule": "unknown_no_mode"
+    },
+    "det_commit": {
+      "exact_rational": "17/20",
+      "status": "proposed_for_final_ratification"
+    },
+    "entropy": {
+      "Det_k": "1-H_k/H_0",
+      "H_0": "natural_log(mode_count)",
+      "H_k": "-sum_over_all_modes(p_i*natural_log(p_i)); zero_probability_term_is_zero",
+      "mode_count_less_than_two": "undefined_unknown_no_normal_commit",
+      "overlap_denominator_zero": "unknown_no_commit"
+    },
+    "field_commit": "SafeMode_false AND corrected_L6_lock_true AND Det_k>=det_commit AND max_all_mode_p_i>=p_commit",
+    "mode_growth": {
+      "active_mode_bound": "rank_of_the_fixed_ambient_lattice; growth_cannot_create_more_independent_modes_than_the_lattice_dimension",
+      "authority_status": "approved_physical_principle_exact_operator_proposed_for_final_ratification",
+      "basis_rule": "for_existing_independent_mode_columns_B_and_candidate_x_compute_u=(I-B*(B_dagger*B)^(-1)*B_dagger)*x_with_B_empty_meaning_u=x; append_only_if_R_event_is_positive_and_exact_u_dagger_u_is_positive",
+      "canonical_mode_representative": "divide_u_by_its_first_nonzero_complex_component_in_canonical_coordinate_order_so_that_component_is_exactly_one_plus_zero_i; store_exact_binary_rational_complex_components_without_unit_normalization",
+      "centroid": "x=sum_of_every_post_gate_psi_in_the_complete_closed_experience_without_pre_normalization; exact_zero_is_unknown_no_mode_and_the_canonical_projective_representative_is_formed_only_after_innovation",
+      "duplicate_or_dependent": "zero_exact_rank_increment_creates_no_mode_and_no_alias",
+      "eligibility": "fresh_external_or_explicit_story_emulator_full_field_experience_with_SafeMode_false_corrected_L6_lock_positive_R_event_and_positive_exact_mode_innovation",
+      "exact_arithmetic": "projection_Gram_inverse_rank_and_zero_tests_use_canonical_exact_binary_rational_complex_arithmetic; singular_Gram_is_unknown_no_growth",
+      "experience_funding": "positive_R_event_licenses_evaluation_of_one_candidate_mode_for_the_closed_experience; exact_positive_innovation_appends_at_most_that_one_mode; language_only_or_self_generated_recall_funds_zero",
+      "growth_charge_storage": "no_unbounded_accumulated_counter; the_current_closed_experience_funds_only_its_atomic_growth_transition",
+      "implementation_authority": "none_until_authoritative_C_joint_MapInject_seven_field_DSF_and_applicable_L5_governance_dependencies_are_ratified",
+      "novelty_threshold": "forbidden; exact_rank_increment_is_the_only_growth_authority",
+      "probability_rule": "for_every_mode_ray_Phi_i_and_authoritative_current_validity_operator_P_valid_compute_alpha_i=abs(inner(Phi_i,P_valid*x))^2/inner(Phi_i,P_valid*Phi_i)_then_p_i=alpha_i/sum_j(alpha_j); zero_nonfinite_or_ambiguous_denominator_is_unknown_no_commit",
+      "snapshot_scope": "the_complete_closed_experience; no_arbitrary_snapshot_count",
+      "zero_centroid": "unknown_no_mode"
+    },
+    "p_commit": {
+      "exact_rational": "7/10",
+      "status": "proposed_for_final_ratification"
+    },
+    "rate_boundary": "at_most_one_Fact_Strand_per_closed_experience",
+    "safe_mode": "freeze_commit_and_memory",
+    "unknown_boundary": "missing_invalid_ambiguous_zero_or_unproved_field_is_unknown"
+  },
+  "couplers": {
+    "inputs": [
+      {
+        "id": "language",
+        "required_for_language_commit": true,
+        "schema": "unicode_scalar_balanced_ternary_14_with_validity",
+        "type": "typed_language_only_in_v1; speech_input_unavailable_until_a_separate_ratified_acoustic_coupler"
+      },
+      {
+        "id": "sight",
+        "schema": "bounded_signed_waveform_with_scale_and_validity",
+        "type": "observed_or_explicitly_emulated_waveform"
+      },
+      {
+        "id": "sound",
+        "schema": "bounded_signed_waveform_with_scale_and_validity",
+        "type": "observed_or_explicitly_emulated_waveform"
+      },
+      {
+        "id": "touch",
+        "schema": "bounded_signed_waveform_with_scale_and_validity",
+        "type": "observed_or_explicitly_emulated_waveform"
+      },
+      {
+        "id": "smell",
+        "schema": "bounded_signed_waveform_with_scale_and_validity",
+        "type": "observed_or_explicitly_emulated_waveform"
+      },
+      {
+        "id": "taste",
+        "schema": "bounded_signed_waveform_with_scale_and_validity",
+        "type": "observed_or_explicitly_emulated_waveform"
+      }
+    ],
+    "krimelack_transduction": {
+      "calibration": "each_lane_has_a_signed_versioned_receipt_for_exact_rational_kappa_in_turns_per_signal_unit_per_structural_time_unit_source_time_mapping_units_range_uncertainty_derivation_and_SHA256; missing_or_unproved_calibration_is_invalid",
+      "event_rule": "store_relative_phase_as_exact_rational_turns_theta; theta_next=theta+kappa*s*delta_t; emit_signed_winding_events_for_every_integer_boundary_crossed_in_causal_order_and_retain_the_exact_fractional_turn",
+      "invalid_sample": "advances_source_time_without_extrapolating_phase_latches_disruption_and_makes_the_open_window_audit_only; a_gap_is_never_hidden_by_time_compression",
+      "omega_0": "excluded_from_relative_phase_transduction_because_the_carrier_cancels_exactly; an_uncancelled_carrier_requires_a_separately_ratified_absolute_phase_coupler",
+      "phase_reset": "forbidden_at_window_boundaries; phase_winding_source_epoch_and_fractional_turn_persist_across_windows_and_checkpoints; only_clean_genesis_or_explicit_recalibration_may_reset_and_recalibration_latches_disruption",
+      "sample_delta_t": "exact_positive_rational_difference_between_consecutive_admitted_source_timestamps_in_the_signed_timebase",
+      "status": "proposed_for_final_ratification",
+      "threshold": "one_exact_turn_with_boundary_equality_owned_by_the_later_sample",
+      "word_or_label_mapping": "forbidden"
+    },
+    "language_capture": {
+      "codepoint_encoding": "minimal_balanced_ternary_in_14_fixed_places_least_significant_first",
+      "normalization": "Unicode_NFC; preserve_original_bytes_and_normalized_scalars",
+      "sample_to_positive_kernel_input": "F=1+s/2; inverse_s=2*(F-1)",
+      "scalar_range": "U+0000_through_U+10FFFF_excluding_unpaired_surrogates",
+      "status": "proposed_for_final_ratification",
+      "trit_signal": "-1_or_0_or_+1_with_separate_validity; invalid_is_never_numeric_zero"
+    },
+    "outputs": [
+      {
+        "id": "screen",
+        "max_magnitude": "one_valid_unicode_scalar_binding_per_committed_output_event",
+        "max_rate": "one_output_event_per_field_commit",
+        "safe_hold": "empty_output",
+        "type": "language_render"
+      }
+    ],
+    "sensory_capture": {
+      "admission": "language_plus_at_least_three_valid_observed_or_explicitly_emulated_sensory_waveforms_in_the_same_closed_window_because_fixed_42_dimensional_L6_needs_at_least_27_potentially_constrained_columns_to_cross_n_start_over_e",
+      "calibration": "each_sample_preserves_source_id_source_epoch_consecutive_sample_index_exact_rational_timestamp_raw_integer_code_physical_unit_calibration_id_validity_and_fault; the_signed_calibration_uses_a_fixed_rational_affine_map_to_s_in_minus_one_through_plus_one",
+      "emulator_prohibition": "no_word_table_may_select_a_sensory_waveform",
+      "emulator_requirement": "scene_or_event_parameters_and_generator_version_are_explicit_provenance",
+      "kernel_input_map": "F=1+s/2_in_the_strictly_positive_interval_one_half_through_three_halves_with_exact_inverse_s=2*(F-1); out_of_range_saturation_or_noninvertibility_is_invalid_never_clamped",
+      "missing_lane": "invalid_not_zero",
+      "normalization": "per_window_or_future_dependent_normalization_is_forbidden; fixed_calibration_preserves_absolute_physical_magnitude_and_valid_exact_zero_is_quiescence",
+      "origin": "exactly_observed_or_emulated",
+      "status": "proposed_for_final_ratification"
+    },
+    "window": {
+      "close_authority": "explicit_context_close_only",
+      "failed_partial_window": "audit_only_never_commit",
+      "lane_weight": "equal",
+      "modality_name_alone": "never_experience_evidence"
+    }
+  },
+  "created_utc": "2026-07-12T00:00:00Z",
+  "description": "Proposed complete production Language Experience Weave for Guala. It preserves separate lived fields, fails closed, performs a clean-generation cutover, and forbids legacy replay, lookup, ML, heuristic voice, and compatibility restoration.",
+  "determinism": {
+    "canonical_float": "IEEE-754_binary64_encoded_as_lowercase_C99_hex_string",
+    "canonical_json": "UTF-8_recursively_sorted_keys_two_space_indent_LF_line_endings_single_trailing_LF",
+    "complex_encoding": "two_element_array_of_canonical_float_strings_real_then_imaginary",
+    "hash": "SHA-256_over_exact_canonical_bytes",
+    "nan_or_infinity": "invalid_fail_closed",
+    "ordering": "canonical_id_ascending_unless_an_explicit_ordered_trace",
+    "precision": "float64",
+    "randomness": "forbidden",
+    "tie_break": "lowest_canonical_id_for_non_cognitive_iteration_and_serialization_only; cognition_ties_are_unknown"
+  },
+  "fact_strand": {
+    "id_authority": "integrity_only_never_recognition",
+    "required_payload": [
+      "schema_and_profile_hash",
+      "window_identity_origin_and_provenance",
+      "raw_lane_traces_scales_and_validity",
+      "every_valid_lane_complete_L0_L1_L2_L3_record_seven_explicit_L4_DSF_fields_separate_S_UF_support_floor_and_R_UF_resonance_confirmation_plus_explicit_validity_global_UF_validation_record_and_per_sense_L5_governance_applicability_receipts",
+      "MapInject_matrix_hash_evidence_injection_and_amplitude",
+      "psi_pre_post_and_gate_trajectory",
+      "H_total_and_Crank_Nicolson_receipt",
+      "complete_mode_bank_overlaps_probabilities_entropy_and_Det",
+      "commit_or_genesis_receipt",
+      "corrected_L6_constraint_rank_Omega_tau_disruption_and_recovery_receipt",
+      "Krimelack_motif_and_adjacency_mutations",
+      "exact_language_output_binding_or_explicit_no_output"
+    ],
+    "schema": "guala_language_fact_strand_v1",
+    "tamper_rule": "any_missing_or_mismatched_required_field_is_invalid_unknown"
+  },
+  "goals": [],
+  "governance": {
+    "fail_closed_language_commit": {
+      "approved_on": "2026-07-12",
+      "authority_status": "approved_by_joseph",
+      "conditions": [
+        "missing_or_invalid_complete_L0_L3_record_or_seven_field_L4_DSF_for_any_lane_marked_valid_or_missing_required_global_UF_validation_or_applicable_L5_governance_receipt",
+        "missing_invalid_or_ambiguous_corrected_L6_proof",
+        "SafeMode",
+        "unrecovered_disruption",
+        "zero_or_nonfinite_field_state",
+        "nonunique_dominant_mode",
+        "unverified_output_binding"
+      ],
+      "result": "unknown_silence_no_commit_no_memory_mutation"
+    },
+    "output_bounds": {
+      "language": "only_exact_certified_output_binding",
+      "safe_hold": "empty"
+    },
+    "uf_hardening": "required",
+    "unavailable_substrate": "HTTP_503_with_explicit_reason_never_fallback_speech"
+  },
+  "krimelack_memory": {
+    "adjacency": {
+      "authority_status": "approved_physical_principle_exact_operator_proposed_for_final_ratification",
+      "capacity": {
+        "H_mem_consumption": "W_adj[e]=m_active[e]",
+        "M_total": "1_as_the_memory_field_mass_unit_not_a_commit_threshold",
+        "initial_state": "m_quiescent=M_total_and_every_relation_m_active=0",
+        "invariant": "m_quiescent+sum_over_all_canonical_relations(m_active[e])=M_total_with_every_mass_nonnegative",
+        "mutation_failure": "any_negative_nonfinite_or_nonconserved_result_is_SafeMode_and_no_memory_mutation"
+      },
+      "experience_support": {
+        "eligibility": "fresh_external_or_explicit_story_emulator_full_field_commit_only; self_generated_recall_language_only_invalid_or_unlocked_experience_has_zero_support",
+        "full_field_geometry": "for_each_admitted_gate_interval_form_z_l_in_the_same_ratified_lane_preserving_pre_direct_sum_19_coordinate_evidence_basis_with_seven_per_gate_DSF_fields_then_construct_K[a,b]=inner(z_a,z_b)_and_R_geometry=det(K)/product_a(K[a,a]); direct_sum_lane_blocks_are_forbidden_as_z_l_because_they_make_nonzero_lanes_trivially_orthogonal; fewer_than_four_valid_lived_lanes_any_zero_lane_norm_or_nonpositive_exact_R_geometry_means_zero_funding",
+        "missing_authority": "missing_invalid_or_unratified_lane_evidence_MapInject_hbar_E_mem_structural_time_P_valid_seven_field_DSF_global_UF_validation_or_any_L5_governance_field_declared_required_for_that_sense_is_unknown_no_growth_no_reignition_and_no_decay_mutation",
+        "relation_support": "x_previous_and_x_current_are_exactly_the_same_complete_closed_experience_centroid_candidates_used_by_mode_growth_under_one_identical_authoritative_P_valid; for_directed_relation_e=(u,v)_set_c_u_prev=abs(inner(Phi_u,P_valid*x_previous))^2/(inner(Phi_u,P_valid*Phi_u)*inner(x_previous,P_valid*x_previous))_and_c_v_now_analogously_then_s_e=c_u_prev*c_v_now; a_valid_SafeMode_clear_all_lane_Negative_Space_zero_state_has_s_e=0_while_any_other_zero_invalid_or_mask_mismatch_is_unknown",
+        "repeatable_experience_funding": "P_joint(t)=sum_over_nonlanguage_valid_lanes(inner(J_lane(t),J_lane(t)))/(hbar*E_mem)_with_units_inverse_structural_time; rho_joint(t)=R_geometry(t)*P_joint(t); R_event=integral_over_the_closed_experience_of_rho_joint(t)*dt_is_dimensionless_and_is_recomputed_for_every_fresh_eligible_experience_without_history_novelty",
+        "support_range": "s_e_is_zero_through_one_by_Cauchy_Schwarz; R_event_is_nonnegative_and_is_not_clamped",
+        "support_scope": "R_event_and_s_e_are_memory_energy_couplings_only_and_never_replace_the_explicit_field_L6_or_commit_authorities"
+      },
+      "local_structural_action": {
+        "admissibility": "local_stiffness_k_e_and_damping_gamma_e_must_be_finite_strictly_positive_and_dimensionally_compatible; otherwise_unknown_no_memory_mutation",
+        "calibration_artifact": "canonical_component_class_geometry_material_environment_units_k_e_gamma_e_derivation_measurement_uncertainty_source_and_SHA256",
+        "element_assignment": "each_new_canonical_relation_id_is_atomically_bound_to_the_lowest_available_physical_or_virtual_memory_element_id_in_the_signed_resource_manifest_and_never_reassigned; calibration_follows_the_element_not_the_semantic_relation",
+        "embodiment": "k_e_and_gamma_e_are_measured_from_the_local_memory_element_material_coupling_geometry_and_environment",
+        "emulator": "k_e_and_gamma_e_are_derived_from_the_versioned_virtual_memory_element_energy_and_dissipation_equations_and_never_from_a_relation_label_expected_answer_or_tuned_test_result",
+        "event_role": "an_event_supplies_full_field_geometric_support_injection_action_and_admitted_duration_but_never_supplies_or_resets_nu_e",
+        "frequency_derivation": "nu_e=k_e/gamma_e_from_local_linear_relaxation_gamma_e*dm/dt=-k_e*m",
+        "rule": "xi_e(t_1)-xi_e(t_0)=nu_e*(t_1-t_0)_using_only_exact_admitted_positive_structural_time_intervals",
+        "time_authority": "the_signed_calibration_receipt_must_define_the_exact_mapping_from_input_timestamps_to_the_structural_time_unit_used_by_hbar_k_e_and_gamma_e; missing_or_dimensionally_inconsistent_mapping_is_unknown_no_memory_mutation",
+        "unavailable_or_uncertain_calibration": "unknown_no_memory_mutation; a_per_relation_lookup_value_without_the_derivation_receipt_is_forbidden",
+        "uncertainty": "embodied_k_e_gamma_e_and_nu_e_are_certified_intervals_propagated_by_the_ratified_interval_mass_flow; no_nominal_value_may_be_selected; if_the_interval_cannot_prove_nonnegative_conserved_state_or_a_unique_downstream_commit_the_result_is_unknown",
+        "universality": "every_relation_uses_the_same_mass_flow_law_while_nu_e_and_state_are_local"
+      },
+      "mass_flow": {
+        "decay_rate": "d_e=N_all*(1-s_e)",
+        "excitation_rate": "g_e(t)=rho_joint(t)*s_e(t)_with_units_inverse_structural_time_and_zero_for_language_only_or_self_generated_recall",
+        "generator": "for_state_x=(m_quiescent,m_active[1],...,m_active[n])_set_G[e,q]=g_e_G[q,e]=nu_e*d_e_G[q,q]=-sum_e(g_e)_G[e,e]=-nu_e*d_e_and_every_other_entry_zero",
+        "natural_decay": "when_g_e=0_s_e=0_and_N_all=1_then_m_active[e](t+delta_t)=m_active[e](t)*exp(-nu_e*delta_t)_and_the_lost_mass_flows_to_m_quiescent",
+        "no_projection_or_clamp": "x_next=matrix_exponential(G*delta_t)*x_over_each_exact_constant_field_interval; clipping_thresholding_pruning_and_post_normalization_are_forbidden",
+        "numeric_authority": {
+          "backend": "pinned_single_thread_FLINT_3_6_0_Arb_C_API_with_source_build_and_container_hashes; python_flint_is_test_only",
+          "canonical_state": "canonical_relation_order_plus_each_Arb_component_exact_outward_dyadic_lower_and_upper_endpoints_and_the_exact_affine_sum_one_constraint; an_interval_containing_positive_mass_is_never_rewritten_as_point_zero",
+          "downstream_constraint": "the_component_enclosures_and_exact_affine_simplex_constraint_are_one_correlated_state_and_must_be_carried_together_through_H_mem_Crank_Nicolson_entropy_commit_and_output; independent_midpoint_or_box_selection_is_forbidden",
+          "method": "certified_sparse_uniformization_ball_v1",
+          "orientation": "column_state_with_nonnegative_off_diagonals_and_exact_zero_column_sums",
+          "precision_schedule": "start_at_the_smallest_power_of_two_bits_covering_every_exact_input_mantissa_and_one_64_bit_backend_limb_then_double_deterministically_only_when_positivity_affine_conservation_finite_backend_containment_or_a_required_downstream_unique_result_proof_is_indeterminate; resource_exhaustion_is_unknown_no_mutation",
+          "proof": "choose_one_exact_outward_dyadic_Lambda_bar_greater_than_or_equal_to_the_certified_supremum_over_the_entire_interval_generator_family_of_max_j(-G[j,j]); Lambda_bar_zero_with_a_proved_zero_G_family_means_exact_identity; otherwise_for_each_G_define_P(G)=I+G/Lambda_bar_and_prove_nonnegativity_and_exact_column_stochasticity_from_shared_correlated_expressions_then_exp(G*dt)*x=exp(-z)*sum_from_k_zero_to_infinity(z^k/k!)*P(G)^k*x_with_z=Lambda_bar*dt",
+          "random_sampling": "forbidden; uniformization_is_evaluation_of_the_deterministic_series_only",
+          "receipt": "exact_input_and_order_hash_G_column_proofs_Lambda_P_proofs_backend_hash_precision_schedule_series_depth_Poisson_tail_component_dyadic_enclosures_nonnegativity_affine_conservation_and_output_hash",
+          "status": "proposed_for_final_ratification_and_none_for_implementation_until_backend_package_canonical_encoder_conformance_vectors_and_interval_downstream_operators_pass",
+          "tail_rule": "the_uncomputed_Poisson_tail_is_retained_as_certified_nonnegative_simplex_mass_in_the_component_enclosures_and_is_never_dropped_or_renormalized",
+          "unavailable_or_indeterminate": "unknown_no_memory_mutation",
+          "why_no_point_quantizer": "every_finite_point_grid_can_map_positive_active_mass_to_zero_and_would_create_an_unapproved_cognitive_quiescence_threshold"
+        },
+        "reignition": "later_exact_structural_support_makes_g_e_positive_and_transfers_mass_from_m_quiescent_back_to_the_supported_relation",
+        "simultaneous_support_and_negative_space": "invalid_gate_no_memory_mutation",
+        "state_update": "solve_dx/dt=G*x_over_each_exact_admitted_structural_time_interval_then_compose_the_interval_operators_in_causal_order",
+        "structural_decay_gate": "d_e_may_be_positive_only_when_every_authoritatively_active_lane_is_in_canonical_L1_Negative_Space",
+        "why_bounded": "G_is_a_conservative_positive_mass_transfer_generator_so_nonnegative_mass_and_M_total_are_preserved_without_a_ceiling_or_runaway_guard"
+      },
+      "prohibitions": [
+        "fixed_decay_per_tick_or_gate",
+        "fixed_reinforcement_increment",
+        "wall_clock_forgetting_timer",
+        "per_event_decay_constant",
+        "strength_prune_or_forgetting_threshold",
+        "adjacency_weight_as_merge_authority"
+      ]
+    },
+    "chi_topology": {
+      "authority": "audit_and_locality_only_never_language_certification",
+      "edges": "only_explicit_temporal_successor_or_same_gate_cross_lane_binding_relationships",
+      "experimental_trit_adjacency": "forbidden",
+      "graph": "one_vertex_per_valid_Krimelack_event; duplicate_event_identity_is_one_vertex",
+      "invariant": "chi=vertices-edges; connected_components_and_independent_cycles_are_recorded_separately",
+      "status": "proposed_for_final_ratification"
+    },
+    "folding": {
+      "cost": "sum_over_u_v(W_adj[u,v]*abs(pos[u]-pos[v]))",
+      "epsilon_fold": "0",
+      "positions": "unique_nonnegative_integers",
+      "rule": "apply_first_strictly_cost_reducing_pair_swap_in_ascending_mode_id_order_until_none_exists",
+      "status": "proposed_for_final_ratification"
+    },
+    "merge": {
+      "active_state_effect": "when_mode_innovation_is_positive_the_new_mode_and_composite_are_appended_atomically; otherwise_the_composite_may_reference_only_existing_modes_and_the_bounded_N_squared_relation_table_and_adds_no_active_mode_or_relation_family",
+      "admission": "at_most_one_composite_per_closed_full_field_commit_with_corrected_L6_lock_and_positive_R_event; positive_mode_innovation_is_not_required_once_the_ambient_mode_rank_is_full",
+      "canonical_DAG": "fixed_operator_version_fixed_leaf_identity_fixed_causal_edge_order_and_canonical_topological_order; cycles_are_invalid",
+      "deletion": "forbidden",
+      "idempotence": "get_or_create_by_composite_id_then_require_full_canonical_byte_equality_after_hash_lookup; the_same_relation_DAG_can_never_create_a_second_composite_and_a_hash_collision_is_integrity_SafeMode",
+      "identity": "composite_id=SHA256(UTF8('GLEW1-COMPOSITE')+NUL+canonical_relation_DAG_bytes)",
+      "relation_DAG": "operator_and_version_ordered_causal_edges_and_leaf_motif_ids",
+      "rule": "adjacency_mass_never_creates_a_composite; only_a_fresh_full_field_commit_with_corrected_L6_lock_and_positive_R_event_may_create_one",
+      "status": "proposed_for_final_ratification"
+    },
+    "motif": "motif_identity_is_only_the_canonical_structural_content_and_excludes_provenance_time_and_receipt_identity; repeat_evidence_adds_a_Fact_Strand_receipt_to_the_same_motif; temporal_relations_are_directed_and_H_mem_may_use_only_one_active_mass_per_ordered_mode_pair_through_the_explicit_symmetric_operator_while_preserving_directional_metadata",
+    "recall": {
+      "authority": "may_construct_H_mem_only; never_recognition_or_output_certification",
+      "candidate_scope": "the_complete_rank_bounded_active_mode_bank_and_complete_N_squared_active_relation_table_reached_by_exact_canonical_indexes; no_top_k_truncation_and_no_immutable_receipt_scan",
+      "certification": "fresh_full_field_commit_and_corrected_L6_lock_only",
+      "unknown_or_tie": "unknown_no_output"
+    },
+    "state": [
+      "V_immutable_motifs",
+      "W_adj_canonical_deterministic_active_mass_encodings_and_quiescent_reservoir",
+      "pos_integer_locality"
+    ]
+  },
+  "l6_profile": {
+    "approval": {
+      "approved_on": "2026-07-12",
+      "authority_status": "approved_by_joseph",
+      "correction": "replaces_invalid_cross_dimensional_Gamma_volume_ratio_and_sum_of_independent_ranks"
+    },
+    "constraint_builder": {
+      "active_lane_order": "fixed_language_sight_sound_touch_smell_taste_order; invalid_or_missing_lanes_retain_unresolved_ambient_columns_and_never_shrink_n_start",
+      "ambient_columns": "fixed_42_columns_equal_six_lanes_times_seven_per_gate_L4_DSF_fields; optional_L5_governance_fields_and_global_UF_validation_never_change_L6_ambient_dimension",
+      "combined_operator": "vertically_stack_only_authoritative_nonzero_constraint_rows_emitted_with_provenance_in_the_fixed_42_column_basis_then_compute_one_rank; scalar_equality_hashes_buckets_and_reconstruction_from_DSF_values_are_forbidden",
+      "field_order": [
+        "D_k",
+        "M_k",
+        "R_rev_k",
+        "U_star_k",
+        "C_k",
+        "P_k",
+        "B_k"
+      ],
+      "implementation_authority": "none_until_each_canonical_lane_provider_emits_ratified_fixed_42_basis_constraint_rows",
+      "rank_arithmetic": "exact_arithmetic_over_the_canonical_constraint_row_domain_with_no_numeric_tolerance; the_row_domain_and_elimination_algorithm_require_final_ratification",
+      "separate_governance": "global_UF_validation_and_sense_specific_L5_S_UF_support_floor_or_R_UF_resonance_confirmation_are_outside_L6_rank_and_cannot_add_or_remove_ambient_columns",
+      "status": "proposed_for_final_ratification",
+      "uncertainty_rule": "U_star_never_adds_rank_or_reduces_freedom; lock_additionally_requires_U_star_exactly_zero_in_every_active_lane"
+    },
+    "disruption_recovery": {
+      "delta_ext": "1_iff_norm(psi_now-psi_previous)>lambda_disc*sigma_phi_or_lane_validity_changes_or_integrity_fault_occurs",
+      "genesis_baseline": "the_first_complete_valid_experience_sets_psi_previous_and_sigma_phi_and_evaluates_delta_ext_as_zero",
+      "lambda_disc": {
+        "exact_rational": "1/1",
+        "status": "proposed_for_final_ratification"
+      },
+      "observation_window": "one_closed_experience",
+      "recovery": "while_latched_evaluate_one_subsequent_complete_SafeMode_clear_experience_with_unchanged_lane_validity_using_the_provisional_lock_predicate_that_ignores_only_the_latch; passing_clears_the_latch_but_cannot_commit_or_emit_until_the_next_experience",
+      "sigma_phi": "root_mean_square_norm_of_successive_psi_differences_in_the_immediately_prior_closed_experience",
+      "status": "proposed_for_final_ratification"
+    },
+    "lock": {
+      "Omega": "((n_start-n_eff)/n_start)*recovery_factor",
+      "n_eff": "n_start-rank(C_combined)",
+      "n_start": "42_fixed_ambient_columns",
+      "predicate": "valid_lane_count_at_least_4 AND every_active_lane_U_star_exactly_zero AND Omega>tau AND n_eff<n_start/e AND disruption_latch_clear",
+      "recovery_factor": "1_if_disruption_latch_clear_else_0",
+      "tau": "1-1/e"
+    },
+    "zero_or_missing_constraint": "unknown_no_lock"
+  },
+  "laws": [],
+  "legacy_decommission": {
+    "approved_clean_generation_cutover": {
+      "approved_on": "2026-07-12",
+      "authority_status": "approved_by_joseph",
+      "policy": "no_wholesale_revision_614_state_restore"
+    },
+    "archive": {
+      "mount_in_runtime": false,
+      "retention": "immutable_indefinite_until_Joseph_approves_otherwise",
+      "role": "forensic_recovery_evidence_only",
+      "source": "complete_revision_614_EFS_recovery_point"
+    },
+    "boot": {
+      "accepted_schema": "GLEW_v1_clean_generation_only",
+      "compatibility_loader": "forbidden",
+      "legacy_schema": "reject_with_explicit_error",
+      "missing_clean_generation": "fail_readiness_never_initialize_from_legacy"
+    },
+    "code_removal_ledger": [
+      "language_fact_strand_reciprocity_v1_hash_index_as_voice_authority",
+      "deterministic_exact_window_suffix_replay_as_voice_authority",
+      "v4/gualaloom_v4_chi_atlas_l6.py::L6_TCL",
+      "docs/dsf_qutrit_loom_sim.py_gamma_clamp_as_runtime_authority",
+      "legacy_v5_commit_and_v5_commit_organ_speech_certification",
+      "grandurun_top_k_ranked_voice_and_SVO_fallbacks",
+      "KEYHOLE_CONTENT_COUPLING_ENABLED_voice_path",
+      "RECALL_BACKEND_legacy_stdp_shadow_voice_dispatch",
+      "grounded_vocab_or_static_word_table_recognition_authority",
+      "OpenAI_or_other_model_lookup_generation",
+      "legacy_boot_restore_compatibility_branches_and_dormant_reenable_flags"
+    ],
+    "derived_state_forbidden": [
+      "legacy_modes_and_mode_strengths",
+      "legacy_section_commits",
+      "legacy_atlas_and_chi_buckets",
+      "legacy_tapestry_and_organism_learned_state",
+      "legacy_wave_atlas",
+      "legacy_deep_atlas",
+      "legacy_adjacency_and_recall_scores",
+      "legacy_learned_thresholds_gamma_and_homeostatic_state",
+      "legacy_compatibility_vectors_caches_and_override_tables",
+      "legacy_emission_and_teacher_reinforcement_records"
+    ],
+    "identity": {
+      "legacy_identity_use": "lineage_reference_in_cutover_certificate_only",
+      "new_runtime_identity": "new_clean_generation_identity",
+      "status": "proposed_for_final_ratification"
+    },
+    "selective_raw_evidence_import": {
+      "admission": "item_level_hash_provenance_integrity_and_coupler_schema_must_pass_then_reingest_through_GLEW_from_raw_bytes",
+      "allowed_classes": [
+        "original_typed_or_uploaded_text_with_source_and_time_provenance",
+        "original_image_bytes",
+        "original_audio_samples",
+        "original_video_frames_and_audio",
+        "explicit_story_emulator_event_parameters_and_generator_version"
+      ],
+      "derived_fields_may_not_be_copied": true,
+      "failure": "quarantine_item_with_reason",
+      "implicit_admission": "forbidden"
+    },
+    "state_removal_ledger": [
+      "all_revision_614_runtime_derived_files_outside_the_forensic_archive",
+      "all_sleep_markers_and_mutable_owner_markers",
+      "all_legacy_model_pickles_npz_caches_and_compatibility_JSON",
+      "all_legacy_CURRENT_pointers_or_restore_receipts"
+    ]
+  },
+  "memory_policy": {
+    "active_mode_bound": "at_most_N_exactly_independent_modes_for_ambient_rank_N",
+    "active_relation_bound": "at_most_N*N_canonical_directed_relation_subspaces_for_ambient_rank_N",
+    "deletion": "forbidden; Negative_Space_compresses_weight_to_quiescence",
+    "export": {
+      "allow_share": false,
+      "default": "private"
+    },
+    "external_resource_boundary": "before_admitting_a_window_prove_reserved_bytes_for_current_generation_plus_the_worst_case_bounded_open_capture_and_atomic_transaction_plus_a_second_sealed_generation; exhaustion_enters_SafeMode_before_mutation_and_never_evicts_or_partially_writes",
+    "input_buffer": "bounded_streaming_capture_with_the_bound_derived_from_the_mounted_physical_resource_manifest; overflow_is_an_explicit_invalid_window_and_SafeMode_before_partial_evidence",
+    "motif_identity": "content_addressed_get_or_create_never_duplicate_append",
+    "sleep_consolidation": {
+      "active_purge": "remove_rebuildable_L5_interpretation_and_working_cache_entries_for_tuple_members_with_a_ratified_not_applicable_receipt_and_transfer_any_active_influence_to_the_quiescent_reservoir",
+      "destructive_fact_deletion": "forbidden",
+      "eligibility": "canonical_Negative_Space_quiescence_and_SafeMode_clear_sleep_admission_only; wall_clock_age_storage_pressure_and_count_thresholds_are_forbidden",
+      "preservation": "the_original_nine_field_structural_tuple_validity_provenance_Fact_Strand_and_not_applicable_receipt_remain_immutable_content_addressed_evidence",
+      "reactivation": "a_later_ratified_sense_governance_profile_may_re_evaluate_the_preserved_structural_fact_without_restoring_any_legacy_derived_cache",
+      "status": "proposed_for_final_ratification"
+    },
+    "strand_storage": "immutable_content_addressed_evidence_under_the_external_resource_boundary; this_boundary_never_changes_cognitive_rank_or_memory_mass"
+  },
+  "output_profile": {
+    "actuation": {
+      "binding": "dominant_committed_motif_exact_coexperienced_14_trit_language_output_binding",
+      "decode": "balanced_ternary_arithmetic_to_Unicode_scalar; no_dictionary_or_vocabulary_lookup",
+      "dominance": "unique_maximum_across_complete_mode_bank",
+      "gate": "normal_field_commit_and_corrected_L6_lock_and_verified_binding",
+      "status": "proposed_for_final_ratification"
+    },
+    "continuation": {
+      "candidate_scope": "complete_mode_bank_and_Krimelack_H_mem",
+      "exact_suffix_or_stored_next_word_walk": "forbidden",
+      "next_step": "emitted_language_binding_and_the_selected_motif_exact_cited_sensory_traces_reenter_one_new_window_as_emulated_recall_self_sense_then_the_full_field_settles_again",
+      "stop": "first_unknown_noncommit_ambiguity_SafeMode_or_unrecovered_disruption",
+      "word_or_token_count_cap": "none"
+    },
+    "safe_hold": "empty_language_and_silence"
+  },
+  "ratification": {
+    "approved_architecture_inputs": [
+      "clean_generation_cutover",
+      "fail_closed_language_commits",
+      "nine_field_agnostic_structural_governance_tuple_with_sense_specific_L5_applicability",
+      "corrected_combined_rank_L6_with_tau_1_minus_1_over_e",
+      "silent_two_distinct_experience_genesis_transition",
+      "universal_growth_decay_law_local_memory_state_and_event_derived_support"
+    ],
+    "final_profile_decision_required": "approve_or_reject_all_remaining_proposed_for_final_ratification_values_as_one_frozen_profile",
+    "implementation_authority": "none_until_final_profile_approval",
+    "production_authority": "none_until_implementation_conformance_adversarial_tests_restart_tests_and_live_validation_pass",
+    "status": "awaiting_Joseph_final_profile_ratification"
+  },
+  "title": "Guala Language Experience Weave",
+  "uf_profile": {
+    "UF_validation": {
+      "canonical_names": "global_S(UF)_perturbation_stability_and_R(UF)_robustness; these_are_not_the_L5_support_floor_or_resonance_confirmation_fields",
+      "implementation_authority": "none_until_one_nonconflicting_exact_operator_weights_window_boundaries_perturbation_rules_and_deterministic_reduction_are_ratified",
+      "never": "a_per_lane_L4_coordinate_or_MapInject_numeric_coordinate",
+      "scope": "one_separate_window_level_validation_record_with_operator_profile_and_source_hashes",
+      "unavailable": "SafeMode_and_unknown_no_commit"
+    },
+    "canonical_provider": {
+      "bundle_SHA256": "61565249247db89e7a363149b31b0c8985775d097a61e496660ca77661bb0376",
+      "conformance_honesty": "the_identified_frozen_snapshot_contains_documented_implementation_differences_from_UF_Spec_v1_4_0_and_is_not_claimed_fully_conformant",
+      "semantic_spec": "UF-Spec_v1.4.0",
+      "semantic_spec_SHA256": "01a4499fc0cf3014b49b9b4f7b067c1deae33f96a8dd20e9d059752f0d4bc7a2",
+      "source_commit": "13874b016d8e16033bcef0c7782db8226115814a"
+    },
+    "current_approximate_gualaloom_v4_uf_kernel": "forbidden_as_production_authority",
+    "full_field_or_reduced": "complete_typed_L0_L4_record_plus_separately_sourced_S_UF_support_floor_and_R_UF_resonance_confirmation_global_UF_validation_and_sense_specific_L5_applicability_records; the_19_coordinate_MapInject_surface_is_transport_only_not_field_authority",
+    "insufficient_provider": "unknown_fail_closed_no_commit",
+    "l4_field_order": [
+      "D_k",
+      "M_k",
+      "R_rev_k",
+      "U_star_k",
+      "C_k",
+      "P_k",
+      "B_k"
+    ],
+    "l5_governance": {
+      "applicability_states": {
+        "not_applicable": "the_field_is_excluded_for_that_sense_without_inserting_numeric_zero_or_causing_failure",
+        "required_and_available": "evaluate_the_field_by_the_ratified_sense_specific_operator_and_preserve_its_separate_result",
+        "required_but_unavailable": "unknown_fail_closed_for_that_governed_language_commit"
+      },
+      "field_relationship": "L5_evaluates_applicable_members_of_the_unchanged_nine_field_structural_tuple_as_relationships_and_never_collapses_them_into_a_bonus_drag_score",
+      "natural_governance": "each_sense_profile_declares_independently_which_tuple_relationships_are_required_or_not_applicable_and_the_reason_from_that_sense_physics",
+      "never": "a_kernel_L4_coordinate_a_MapInject_numeric_coordinate_an_L6_ambient_column_or_a_forced_universal_veto",
+      "operator_authority": "L5_owns_only_the_sense_specific_applicability_and_interpretation_operator; it_never_invents_changes_or_overwrites_the_upstream_tuple_values",
+      "unused_value_rule": "a_structural_value_ruled_not_applicable_remains_recorded_and_is_neither_zero_missing_failed_nor_unfavorable"
+    },
+    "lane_evaluation": "each_valid_lane_runs_frozen_L0_L4_independently_and_preserves_raw_samples_and_provenance_every_SEV_complete_GateL1State_complete_GateInterpretation_complete_ResonanceResult_and_the_seven_field_DSF",
+    "legacy_decision_vector": "forbidden_as_authority",
+    "nonflattening": "no_weighted_sum_scalar_score_or_cross_lane_average_may_replace_explicit_fields",
+    "numeric_transport": "the_19_coordinate_mapinject_evidence_encoding_in_arcloom_profile.mapinject; Reg_k_and_all_nonprojected_fields_remain_typed_and_authoritative",
+    "safe_mode": "authoritative",
+    "structural_governance_tuple": {
+      "R_UF_resonance_confirmation": "distinguishes_structurally_reinforced_motion_from_isolated_motion",
+      "S_UF_support_floor": "separates_weak_structure_from_viable_structure",
+      "fields": [
+        "D_k",
+        "M_k",
+        "R_rev_k",
+        "U_star_k",
+        "C_k",
+        "P_k",
+        "B_k",
+        "S_UF_support_floor",
+        "R_UF_resonance_confirmation"
+      ],
+      "immutability": "L5_interpretation_never_changes_reorders_or_replaces_tuple_values",
+      "provider_authority": {
+        "arithmetic": "exact_rational_relevance_and_time_integration_plus_certified_FLINT_Arb_complex_ball_phase_coherence; ordinary_float_trigonometry_is_forbidden",
+        "bioequivalent_relevance": "r_l(t)_must_be_supplied_by_the_ratified_mass_conserving_local_chemical_transduction_network_with_persisted_receptor_resource_and_recovery_state; kinetic_parameters_come_from_signed_virtual_chemistry_or_embodied_measurement_receipts",
+        "diagnostic_relevance_only": "r=0_in_N_else_D/(D+tau_D)_is_a_nonproduction_probe_that_proved_the_legacy_hardcoded_one_blocks_Negative_Space; it_is_forbidden_as_the_final_GLEW_relevance_provider",
+        "required_coupling_graph": "for_each_valid_sensory_lane_the_required_physical_edge_is_language_to_that_lane; the_language_lane_uses_all_active_required_language_to_sense_edges; edges_are_declared_by_the_mounted_weave_not_selected_from_results",
+        "resonance_confirmation": "z_l(t)=sqrt(r_l(t))*exp(i*2*pi*theta_l(t)); for_edge_e=(j,m)_gamma_e_squared=abs(integral_G(z_j*conj(z_m))*dt)^2/(integral_G(r_j)*dt*integral_G(r_m)*dt); R_UF_for_lane_s_is_the_minimum_gamma_e_squared_over_required_edges_incident_to_s",
+        "status": "S_UF_and_R_UF_operator_architecture_approved_by_Joseph_on_2026_07_13_but_no_implementation_authority_until_the_bioequivalent_chemical_relevance_network_pinned_FLINT_Arb_backend_exact_discrete_window_operator_canonical_interval_encoding_and_conformance_vectors_pass",
+        "support_floor": "S_UF_for_lane_s=(1/T_G)*integral_G(r_s(t))*dt_for_exact_positive_gate_duration_T_G",
+        "validity": "missing_invalid_misaligned_or_indeterminate_input_is_unknown; exact_valid_quiescence_gives_S_UF_zero_and_gives_R_UF_zero_for_an_applicable_required_edge_with_proved_zero_energy; not_applicable_comes_only_from_the_signed_sense_profile_and_is_never_numeric_zero",
+        "window_reduction": "define_one_common_causal_grid_and_positive_exact_weights_q_j_then_inner(f,g)_G=sum_j(q_j*f(t_j)*conj(g(t_j)))_S_l=sum_j(q_j*r_l(t_j))/sum_j(q_j)_and_gamma_uses_this_same_inner_product; resampling_interpolation_or_crossing_an_invalid_gap_is_forbidden_without_a_separately_ratified_operator"
+      },
+      "source_boundary": "the_first_seven_fields_are_the_frozen_L4_DSF; S_UF_and_R_UF_are_separately_sourced_agnostic_structural_fields_with_their_own_provider_operator_and_validity_receipts"
+    },
+    "typed_Reg_k": "preserved_as_the_canonical_L2_category_and_never_encoded_as_an_unratified_number"
+  },
+  "version": "1.0.0-proposed",
+  "weave_id": "guala.language.experience.glew-1"
+}

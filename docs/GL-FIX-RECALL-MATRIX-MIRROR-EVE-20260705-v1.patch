@@ -1,0 +1,112 @@
+diff --git a/dsf_ai_service/loom_model/binding_atlas.py b/dsf_ai_service/loom_model/binding_atlas.py
+index b8a122d..f10929d 100644
+--- a/dsf_ai_service/loom_model/binding_atlas.py
++++ b/dsf_ai_service/loom_model/binding_atlas.py
+@@ -209,6 +209,7 @@ class BindingAtlas:
+                         cell.aggregate_strength += strength
+                         cell.last_tick = tick
+                         cell.saturated = cell.aggregate_strength > _sat_thresh_default()
++                        self._mirror_put(concept, state_vec)
+                         return
+             # Index pointed somewhere stale (shouldn't happen in practice,
+             # but honest fall-through rather than trusting a dangling
+@@ -221,6 +222,7 @@ class BindingAtlas:
+         cell = self.cells.get(final_chi)
+         if cell is not None:
+             cell.last_tick = tick
++        self._mirror_put(concept, state_vec)
+ 
+     def _recall_best_lanes(self, query_lanes: Dict[str, np.ndarray]) -> Tuple[Optional[str], float]:
+         """GL-CMD-CROSS-SENSE-RECALL-208: unchanged brute-force scan over
+@@ -236,6 +238,64 @@ class BindingAtlas:
+                 best_concept, best_score, found = b["concept"], score, True
+         return (best_concept, best_score) if found else (None, 0.0)
+ 
++
++    # ── GL-FIX-RECALL-MATRIX-MIRROR (Eve, 2026-07-05) ──────────────────
++    # Incremental matrix mirror of the flat-vector store. recall_best()'s
++    # deployed form re-traversed every cell and re-stacked ~vocab-size
++    # vectors from Python objects ON EVERY CALL (no cache): measured
++    # 9.7ms/neuron solo and 285ms/neuron under production's real thread
++    # mix (GIL-holding pure Python), = 1.0s..30.2s per organism recall at
++    # 14k concepts / 106 neurons -- reproducing the live 17-34s incident.
++    # The mirror keeps one preallocated float64 matrix + concept row
++    # index, updated incrementally by record(); recall becomes a single
++    # numpy matmul (0.8ms/neuron, GIL-RELEASING, load-immune). The wave-
++    # cell store remains the source of truth; the mirror is layout-
++    # independent (concept->vector), so spillover/subdivision rehoming
++    # never desyncs it. Single-writer contract unchanged (only the
++    # organism worker calls record()); readers tolerate one-append-stale
++    # views per the store's own declared race tolerance. Capacity grows
++    # by doubling with an ATOMIC REFERENCE SWAP (new array built, then
++    # rebound) so a concurrent matmul never sees a torn buffer. Zero new
++    # constants, zero locks, zero behavior change: same _cosine_best over
++    # the same deduplicated data.
++    # Pickle-safety: attrs are lazily healed via getattr (the same
++    # schema-evolution pattern -198 used for Embryo), so organisms saved
++    # before this fix restore and run without migration.
++
++    def _mirror_put(self, concept: str, state_vec: "np.ndarray") -> None:
++        row_of = getattr(self, "_m_row", None)
++        if row_of is None:
++            self._m_row = row_of = {}
++            self._m_concepts = []
++            self._m_matrix = None
++            self._m_len = 0
++        m = self._m_matrix
++        r = row_of.get(concept)
++        if r is not None:
++            m[r] = state_vec  # freshest encoding wins, matching record()
++            return
++        if m is None or self._m_len >= m.shape[0]:
++            cap = max(256, (0 if m is None else m.shape[0]) * 2)
++            grown = np.zeros((cap, state_vec.shape[0]), dtype=np.float64)
++            if m is not None and self._m_len:
++                grown[: self._m_len] = m[: self._m_len]
++            self._m_matrix = m = grown  # atomic ref swap; old readers keep old buffer
++        m[self._m_len] = state_vec
++        self._m_concepts.append(concept)
++        row_of[concept] = self._m_len
++        self._m_len += 1
++
++    def _mirror_rebuild(self) -> None:
++        """One-time build from the store (first recall on a restored
++        instance, or any instance predating this fix)."""
++        self._m_row = {}
++        self._m_concepts = []
++        self._m_matrix = None
++        self._m_len = 0
++        for cell in self.cells.values():
++            for b in cell.bindings:
++                self._mirror_put(b["concept"], b["state_vec"])
++
+     def recall_best(self, target_vec: StateVec) -> Tuple[Optional[str], float]:
+         """Per-lane dicts (resonant_spectral): masked lane-normalized
+         cosine over the simple binding list, unchanged from -208.
+@@ -278,12 +338,13 @@ class BindingAtlas:
+         if isinstance(target_vec, dict):
+             return self._recall_best_lanes(target_vec)
+ 
+-        all_bindings: List[dict] = [b for cell in self.cells.values() for b in cell.bindings]
+-        if not all_bindings:
++        if not self.cells:
+             return None, 0.0
+-        matrix = np.stack([b["state_vec"] for b in all_bindings])
+-        concepts = [b["concept"] for b in all_bindings]
+-        return _cosine_best(target_vec, matrix, concepts)
++        if getattr(self, "_m_matrix", None) is None or getattr(self, "_m_len", 0) == 0:
++            self._mirror_rebuild()
++            if self._m_len == 0:
++                return None, 0.0
++        return _cosine_best(target_vec, self._m_matrix[: self._m_len], self._m_concepts)
+ 
+     @property
+     def bindings(self) -> int:
+@@ -293,3 +354,7 @@ class BindingAtlas:
+         self.cells.clear()
+         self._concept_to_chi.clear()
+         self._lane_bindings.clear()
++        self._m_row = {}
++        self._m_concepts = []
++        self._m_matrix = None
++        self._m_len = 0

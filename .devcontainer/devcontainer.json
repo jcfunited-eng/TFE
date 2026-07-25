@@ -1,6 +1,6 @@
 {
   "name": "Tao Financial Engine (Python 3.11)",
-  "image": "python:3.11",
+  "image": "python:3.11-slim",
   "mounts": [
     "source=E:\\TFEBackup,target=/mnt/tfebackup,type=bind,consistency=cached",
     "source=E:\\TFEBackup\\CodexHome,target=/root/.codex,type=bind,consistency=cached",
@@ -10,8 +10,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python",
-        "openai.chatgpt",
         "anthropic.claude-code"
       ]
     }

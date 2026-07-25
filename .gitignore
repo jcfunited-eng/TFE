@@ -82,3 +82,7 @@ docs/Aurelion/.venv.zip
 # Large Aurelion files (too big for GitHub)
 docs/Aurelion/language_memory*.json
 docs/Aurelion/.venv.zip
+
+# Local Claude Code config/credentials backup — never commit, contains
+# real credentials (.credentials.json) and session state
+.claude-backup/
