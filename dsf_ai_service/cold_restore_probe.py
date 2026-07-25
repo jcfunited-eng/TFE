@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 
 
 def _arguments() -> argparse.Namespace:
@@ -20,10 +21,23 @@ def _arguments() -> argparse.Namespace:
 def main() -> int:
     values = _arguments()
     from dsf_ai_service.app import SEED_CORPORA
+    from dsf_ai_service.glew_runtime.exact_field_executor import (
+        start_exact_field_executor,
+        stop_exact_field_executor,
+    )
     from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
-    probe = Guala()
+    # The serving owner requires the fixed exact-field executor before Guala
+    # can construct or restore any native full-field state.  The isolated
+    # validator must reproduce that same boot boundary; otherwise it rejects
+    # a valid generation merely because its own execution organ is absent.
+    os.environ["GUALA_EXACT_FIELD_EXECUTOR_REQUIRED"] = "1"
+    exact_field_owner = start_exact_field_executor()
+    exact_field_owner.assert_healthy()
+
+    probe = None
     try:
+        probe = Guala()
         for corpus_id, corpus in SEED_CORPORA.items():
             probe.add_corpus(
                 corpus_id,
@@ -54,7 +68,11 @@ def main() -> int:
             )
         return 0
     finally:
-        probe.quiesce_background_workers(timeout=120.0)
+        try:
+            if probe is not None:
+                probe.quiesce_background_workers(timeout=120.0)
+        finally:
+            stop_exact_field_executor()
 
 
 if __name__ == "__main__":
