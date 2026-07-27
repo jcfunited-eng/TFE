@@ -8,6 +8,11 @@
  * daily from settled account state. Cash freed by intraday exits
  * accumulates untouched until the next day's pass.
  *
+ * CH3 EXCEPTION: the scalp channel re-arms every 15 min after the entry
+ * window until 18:00 UTC (2 PM ET) — an intraday channel whose entries
+ * cancel unfilled deserves more than one shot per day. 3WA/CH2 remain
+ * strictly once-daily.
+ *
  * Runs as a background process started by tfe_startup.sh.
  * Exits cleanly on SIGTERM.
  */
@@ -176,14 +181,9 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
 }
 
 /**
- * Daily entry pass — runs ONCE per trading day.
- * Evaluates all channels from settled account state.
+ * Kill switch — env var or config row halts all entries.
  */
-async function runDailyEntryPass() {
-  console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
-  console.log(`[DAILY-ENTRY] Starting daily entry pass at ${new Date().toISOString()}`);
-
-  // ── Kill switch ──────────────────────────────────────────────────────
+async function checkEntriesHalted() {
   let entriesHalted = process.env.TFE_ENTRIES_HALTED === "1";
   if (!entriesHalted) {
     try {
@@ -193,7 +193,56 @@ async function runDailyEntryPass() {
       entriesHalted = haltRes.rows[0]?.value === "true";
     } catch { /* non-fatal */ }
   }
-  if (entriesHalted) {
+  return entriesHalted;
+}
+
+/**
+ * Same-day exit exclusion set (brief point 4): tickers closed in the ledger
+ * today plus tickers with open sell orders on Alpaca right now. Prevents
+ * buy+sell collision (May 27 BELFB/LPLA/NVT incident). Throws on failure —
+ * callers FAIL CLOSED and skip their pass.
+ */
+async function buildSameDayExitTickers() {
+  // 1. Tickers closed in the ledger today
+  const exitRes = await pool.query(
+    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+     FROM personal_trade_ledger
+     WHERE status = 'closed'
+       AND exit_filled_at >= CURRENT_DATE`
+  );
+  const sameDayExitTickers = new Set(exitRes.rows.map(r => r.ticker));
+
+  // 2. Tickers with open/unfilled sell orders on Alpaca right now
+  const modeRes = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+  );
+  const mode = modeRes.rows[0]?.value ?? "paper";
+  const base = mode === "live" ? "https://api.alpaca.markets" : "https://paper-api.alpaca.markets";
+  const sellRes = await fetch(`${base}/v2/orders?status=open&side=sell&limit=200`, {
+    headers: {
+      "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+      "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
+    },
+  });
+  const openSells = await sellRes.json();
+  if (Array.isArray(openSells)) {
+    for (const o of openSells) {
+      sameDayExitTickers.add(String(o.symbol).trim().toUpperCase());
+    }
+  }
+  return sameDayExitTickers;
+}
+
+/**
+ * Daily entry pass — runs ONCE per trading day.
+ * Evaluates all channels from settled account state.
+ */
+async function runDailyEntryPass() {
+  console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
+  console.log(`[DAILY-ENTRY] Starting daily entry pass at ${new Date().toISOString()}`);
+
+  // ── Kill switch ──────────────────────────────────────────────────────
+  if (await checkEntriesHalted()) {
     console.log(`[DAILY-ENTRY] KILL SWITCH ACTIVE — no entries today`);
     console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
     return;
@@ -229,40 +278,10 @@ async function runDailyEntryPass() {
   };
 
   // ── Same-day exit exclusion (brief point 4) ────────────────────────
-  // Any ticker the sentinel exited today OR with an open/unfilled sell
-  // order right now is ineligible for entry. Prevents buy+sell collision
-  // (May 27 BELFB/LPLA/NVT incident).
   // FAIL CLOSED: if either query fails, abort the entire pass for today.
   let sameDayExitTickers;
   try {
-    // 1. Tickers closed in the ledger today
-    const exitRes = await pool.query(
-      `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
-       FROM personal_trade_ledger
-       WHERE status = 'closed'
-         AND exit_filled_at >= CURRENT_DATE`
-    );
-    sameDayExitTickers = new Set(exitRes.rows.map(r => r.ticker));
-
-    // 2. Tickers with open/unfilled sell orders on Alpaca right now
-    const modeRes = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-    );
-    const mode = modeRes.rows[0]?.value ?? "paper";
-    const base = mode === "live" ? "https://api.alpaca.markets" : "https://paper-api.alpaca.markets";
-    const sellRes = await fetch(`${base}/v2/orders?status=open&side=sell&limit=200`, {
-      headers: {
-        "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
-        "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
-      },
-    });
-    const openSells = await sellRes.json();
-    if (Array.isArray(openSells)) {
-      for (const o of openSells) {
-        sameDayExitTickers.add(String(o.symbol).trim().toUpperCase());
-      }
-    }
-
+    sameDayExitTickers = await buildSameDayExitTickers();
     if (sameDayExitTickers.size > 0) {
       console.log(`[DAILY-ENTRY] Same-day exit exclusions: ${[...sameDayExitTickers].sort().join(', ')}`);
     }
@@ -317,6 +336,66 @@ async function runDailyEntryPass() {
   console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
 }
 
+// ── CH3 intraday re-arm ──────────────────────────────────────────────────
+// The daily pass gives CH3 one shot at ~13:45 UTC. When that entry never
+// fills (stale-entry cancel, 4-for-4 on 7/24–7/27) or nothing is HOT yet,
+// the slots sit idle all day while the strategist's own gates (pool
+// dollars, already-traded-today, recent losers, daily loss limit) would
+// happily authorize a later attempt. Re-arm: after the entry window
+// closes, re-run the CH3 hunter every 15 min until the cutoff. CH3 only —
+// 3WA/CH2 stay strictly once-daily. Every strategist and bridge gate
+// still applies on each pass.
+const CH3_REARM_INTERVAL_MS   = 15 * 60 * 1000;
+const CH3_REARM_CUTOFF_UTC_MIN = 18 * 60;  // 2:00 PM ET — runway before the 3:30 EOD flatten
+let lastCh3RearmAt = 0;
+
+export function isCh3RearmWindow(now = new Date()) {
+  const minuteOfDay = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const entryWindowEnd = (MARKET_OPEN_UTC_H * 60 + MARKET_OPEN_UTC_M) + 45; // 14:15 UTC
+  return minuteOfDay > entryWindowEnd && minuteOfDay < CH3_REARM_CUTOFF_UTC_MIN;
+}
+
+async function runCh3RearmPass() {
+  if (await checkEntriesHalted()) {
+    console.log(`[CH3-REARM] Kill switch active — skipping`);
+    return;
+  }
+
+  let acct;
+  try {
+    acct = await fetchAccountState();
+  } catch (err) {
+    console.error(`[CH3-REARM] Account fetch failed: ${err.message} — skipping`);
+    return;
+  }
+  if (acct.cash <= 0) return;
+
+  // FAIL CLOSED on exclusion data, same as the daily pass.
+  let sameDayExitTickers;
+  try {
+    sameDayExitTickers = await buildSameDayExitTickers();
+  } catch (err) {
+    console.error(`[CH3-REARM] Exclusion data unavailable — skipping (${err.message})`);
+    return;
+  }
+
+  const budget = {
+    cashRemaining: acct.cash,
+    invested: acct.invested,
+    funded: acct.funded,
+    perTrade: acct.funded * (2.5 / 100),
+  };
+
+  const ch3Signals = await getCh3Signals();
+  if (!ch3Signals.length) return;
+
+  console.log(`[CH3-REARM] ${ch3Signals.length} signal(s) on re-arm pass`);
+  for (const signal of ch3Signals) {
+    if (budget.cashRemaining <= 0) break;
+    await submitEntry(signal, executeCh3MarketOrder, "CH3-REARM", budget, sameDayExitTickers);
+  }
+}
+
 async function main() {
   console.log("[SENTINEL-DAEMON] Started. Sentinel every 5 min. Entries once daily after open.");
   await loadEntryPassDate();
@@ -350,6 +429,16 @@ async function main() {
           await runDailyEntryPass();
         } catch (err) {
           console.error(`[DAILY-ENTRY] Fatal: ${err.message}`);
+        }
+      }
+
+      // ── CH3 re-arm: every 15 min after the entry window, until cutoff ─
+      if (isCh3RearmWindow() && Date.now() - lastCh3RearmAt >= CH3_REARM_INTERVAL_MS) {
+        lastCh3RearmAt = Date.now();
+        try {
+          await runCh3RearmPass();
+        } catch (err) {
+          console.error(`[CH3-REARM] Fatal: ${err.message}`);
         }
       }
     } else {

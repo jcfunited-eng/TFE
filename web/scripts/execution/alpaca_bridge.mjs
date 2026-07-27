@@ -74,6 +74,26 @@ export function computeCh3EntryPrices(quote, tpPct, slPct) {
   return { limitPrice, takeProfitPrice, stopLossPrice };
 }
 
+// CH3 entry quote anchor. The IEX last trade on a thin name can be minutes
+// stale and sit below the real market — 2026-07-27 OSPN: last trade ~15.12
+// while the live book was 15.49/15.60, so the marketable limit (15.17)
+// rested 2.8% under the ask and died in the stale-entry cancel. Four
+// straight CH3 entries (7/24–7/27) went unfilled this way. Entry therefore
+// anchors to the live ASK when it's sane, and falls back to the last trade
+// only when it isn't. An ask more than 10% above the last print is treated
+// as a junk quote, not a price.
+const CH3_ASK_SANITY_MAX = 0.10;
+
+export function resolveCh3EntryQuote({ trade, ask }) {
+  const t = Number.isFinite(trade) && trade > 0 ? trade : null;
+  const a = Number.isFinite(ask)   && ask   > 0 ? ask   : null;
+  if (a !== null && (t === null || a <= t * (1 + CH3_ASK_SANITY_MAX))) {
+    return { quote: a, source: "ask" };
+  }
+  if (t !== null) return { quote: t, source: "trade" };
+  return { quote: null, source: "none" };
+}
+
 // ── DB pool ───────────────────────────────────────────────────────────────
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -246,6 +266,27 @@ async function fetchLatestPrice(ticker) {
     throw new Error(`[BRIDGE] fetchLatestPrice: could not resolve price for ${ticker}`);
   }
   return close;
+}
+
+/**
+ * Latest live quote (IEX top-of-book). Returns nulls rather than throwing —
+ * the caller decides how to degrade when the book is unavailable.
+ */
+async function fetchLatestQuote(ticker) {
+  try {
+    const q = await alpacaGet(
+      `/v2/stocks/${encodeURIComponent(ticker)}/quotes/latest?feed=iex`,
+      ALPACA_DATA_URL,
+    );
+    const bid = parseFloat(q?.quote?.bp ?? 0);
+    const ask = parseFloat(q?.quote?.ap ?? 0);
+    return {
+      bid: isFinite(bid) && bid > 0 ? bid : null,
+      ask: isFinite(ask) && ask > 0 ? ask : null,
+    };
+  } catch {
+    return { bid: null, ask: null };
+  }
 }
 
 // ── Account equity ────────────────────────────────────────────────────────
@@ -883,28 +924,39 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, "invalid_ch3_signal");
   }
 
-  let currentPrice, atr, ch3Cash;
+  let lastTrade, liveQuote, atr, ch3Cash;
   try {
-    [{ cash: ch3Cash }, currentPrice] = await Promise.all([
+    [{ cash: ch3Cash }, lastTrade, liveQuote] = await Promise.all([
       fetchAccountState(BASE),
-      fetchLatestPrice(ticker),
+      fetchLatestPrice(ticker).catch(() => null),
+      fetchLatestQuote(ticker),
     ]);
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
   }
 
-  if (currentPrice < MIN_SHARE_PRICE) {
-    return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
+  const { quote: entryAnchor, source: quoteSource } =
+    resolveCh3EntryQuote({ trade: lastTrade, ask: liveQuote.ask });
+  if (entryAnchor === null) {
+    return rejectSignal(signal, "no_entry_quote: neither live ask nor last trade available");
+  }
+  console.log(
+    `[CH3-BRIDGE] ${ticker} entry anchor=${entryAnchor} (${quoteSource}) | ` +
+    `trade=${lastTrade ?? "n/a"} bid=${liveQuote.bid ?? "n/a"} ask=${liveQuote.ask ?? "n/a"}`
+  );
+
+  if (entryAnchor < MIN_SHARE_PRICE) {
+    return rejectSignal(signal, `price_below_minimum: ${entryAnchor} < ${MIN_SHARE_PRICE}`);
   }
 
   // Compute ATR for price-scaled stops
   try {
-    ({ atr } = await computeATR(ticker, currentPrice));
+    ({ atr } = await computeATR(ticker, entryAnchor));
   } catch (err) {
     return rejectSignal(signal, `atr_fetch_failed: ${err.message}`);
   }
 
-  const entryQuote = parseFloat(currentPrice.toFixed(2));
+  const entryQuote = parseFloat(entryAnchor.toFixed(2));
   // Percentage-based exits from structural register forensics:
   //   Stop: -5% hard stop (profit factor 3.81 across 1832 trades)
   //   TP: +50% wide ceiling (sentinel manages trailing)
