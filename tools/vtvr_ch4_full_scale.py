@@ -59,25 +59,29 @@ def main():
     cohorts = [c for c in cohorts if len(c) >= 10]
     print(f"{len(symbols)} symbols in {len(cohorts)} cohorts")
 
-    all_dates = None
+    all_dates = set()
     in_state = {}
     prices = {}
     for ci, cohort in enumerate(cohorts):
         print(f"Cohort {ci + 1}/{len(cohorts)}: building joint field...")
         try:
-            dates, st, _ltr, px = cohort_signals(cohort)
+            # 1200+ bars required per symbol; one IPO must not gut a cohort
+            dates, st, _ltr, px = cohort_signals(cohort, min_days=1200)
         except Exception as e:
             print(f"  cohort {ci + 1} failed ({e}) — skipped")
             continue
-        ds = set(dates)
-        all_dates = ds if all_dates is None else (all_dates & ds)
+        if len(px[dates[0]]) < 15:
+            print(f"  cohort {ci + 1}: fewer than 15 usable symbols — skipped")
+            continue
+        # UNION across cohorts: each cohort trades on its own dates
+        all_dates.update(dates)
         for d, syms in st.items():
             in_state.setdefault(d, set()).update(syms)
         for d, m in px.items():
             prices.setdefault(d, {}).update(m)
 
     dates = sorted(all_dates)
-    print(f"Simultaneous dates across cohorts: {len(dates)}")
+    print(f"Union of cohort dates: {len(dates)}")
 
     # ── book simulation: validated protocol ─────────────────────────────
     cash = FUNDED
