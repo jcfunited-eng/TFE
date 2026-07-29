@@ -82,6 +82,43 @@ the strongest oriented-area (lead–lag) edge in the window is **PHM~TRMB**
 homebuilder led/lagged the industrial and the banks around specific dates.
 Production TFE has no representation in which that fact can exist.
 
+## Widened test — pre-registered walk-forward falsification (2026-07-28)
+
+`tools/vtvr_leadlag_walkforward.py`. Protocol frozen before first run:
+30 declared tickers (10 live holdings + 20 liquid large caps), 328
+simultaneous daily observations, 60/40 in-sample/out-of-sample split,
+two mechanical rules (R1: trade the top-10 |wedge| spreads in the
+direction chosen by in-sample persistence; R2: harvest the top-10 frozen
+in-sample lead-correlation pairs), 5 bps/position-day cost haircut.
+Success bar: OOS net expectancy > 0 AND hit rate > 51%.
+
+**Result: NOT CONFIRMED — on both rules.**
+
+| | R1 (wedge spreads) | R2 (lead pairs) |
+|---|---|---|
+| OOS positions | 1,310 | 1,309 |
+| Hit rate | 47.2% | 49.5% |
+| Net per position | −19.7 bps | −8.7 bps |
+| Cumulative | −25.8% | −11.5% |
+
+Measurement findings (reported regardless of outcome):
+- **M1 wedge persistence = 50.1%** — at daily scale the relation field's
+  sign is a coin flip step-to-step (near-martingale).
+- **M2**: every strong in-sample lead correlation was negative
+  (cross-pair mean reversion), and none of it survived out-of-sample.
+
+Honest interpretation: the joint field provably retains more structure,
+but its two simplest daily harvests carry no tradeable edge on this
+window — consistent with the kernel philosophy's own doctrine that raw
+kernel output is not a return predictor and edge lives in the L5
+translation. The result constrains, it does not condemn: daily bars are
+the coarsest causal scale, and exact-time lead–lag phenomena are
+documented at intraday scales this test never touched. Lawful next
+walk-ups, in order of promise: (a) the same falsification at minute
+scale, (b) the relation field as a *confirmation filter* on existing
+CH2/CH3 decisions rather than a standalone signal — each pre-registered
+the same way.
+
 ## Boundaries honored
 
 - No import from `uf_core`, the L5 layer, the refresh pipeline, or
