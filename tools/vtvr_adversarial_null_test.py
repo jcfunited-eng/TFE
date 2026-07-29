@@ -37,7 +37,7 @@ from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.isolated_market_vtvr_side_kernel import dimensionalize  # noqa: E402
+from tools.isolated_vtvr_side_kernel import dimensionalize  # noqa: E402
 from tools.vtvr_structure_search import (  # noqa: E402
     build_field,
     per_step_arrays,

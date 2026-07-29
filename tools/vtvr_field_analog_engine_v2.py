@@ -152,6 +152,7 @@ def main():
 
     signals = []
     all_rows = []
+    detail = []
     for qn, m in enumerate(queries):
         for i in range(n):
             qo = objs[(m, i)]
@@ -176,6 +177,18 @@ def main():
                              for b in best])
             cons = float((outs > 0).mean())
             all_rows.append((cons, fwd[m, i]))
+            detail.append({
+                "date": common[m][:10], "sym": symbols[i],
+                "m": m, "i": i, "consensus": cons,
+                "fwd": float(fwd[m, i]),
+                "analogs": [
+                    {"date": common[base_keys[b][0]][:10],
+                     "sym": symbols[base_keys[b][1]],
+                     "dist": float(fd[list(cand).index(b)]) if b in cand else None,
+                     "fwd": float(fwd[base_keys[b][0], base_keys[b][1]])}
+                    for b in best
+                ],
+            })
             if cons >= CONSENSUS:
                 signals.append((m, i))
         if qn % 20 == 0:
@@ -196,6 +209,14 @@ def main():
               f"| mean {100 * _mean(s_rets):+.2f}%/{HORIZON} bars")
     else:
         print("No signals at the declared consensus bar.")
+
+    import json as _json
+    out_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "artifacts", "vtvr_observer")
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "v2_run_details.json"), "w") as fh:
+        _json.dump(detail, fh)
+    print(f"Details persisted: {len(detail)} query records")
 
     print()
     print("Consensus deciles:")

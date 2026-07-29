@@ -57,7 +57,7 @@ from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.isolated_market_vtvr_side_kernel import dimensionalize  # noqa: E402
+from tools.isolated_vtvr_side_kernel import dimensionalize  # noqa: E402
 from tools.run_market_vtvr_capture import (  # noqa: E402
     fetch_exact_bars,
     iso_to_rational_seconds,

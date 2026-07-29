@@ -47,7 +47,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.isolated_market_vtvr_side_kernel import dimensionalize  # noqa: E402
+from tools.isolated_vtvr_side_kernel import dimensionalize  # noqa: E402
 from tools.run_market_vtvr_capture import (  # noqa: E402
     fetch_exact_bars,
     iso_to_rational_seconds,
@@ -67,11 +67,13 @@ def _mean(xs):
     return sum(xs) / len(xs) if xs else 0.0
 
 
-def build_field(universe=None):
+def build_field(universe=None, min_days=None):
     # Explicit parameter: callers MUST pass their universe. Reassigning
     # another module's UNIVERSE global does NOT reach this function (that
     # bug silently re-ran cohort A for every "different" universe on
     # 2026-07-29 — replication and full-scale runs before the fix are void).
+    # min_days: drop short-history symbols BEFORE the simultaneity
+    # intersection — one recent IPO must not truncate a whole cohort.
     roster = list(universe) if universe is not None else list(UNIVERSE)
     from datetime import datetime, timedelta, timezone
     start_iso = (datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)) \
@@ -82,6 +84,12 @@ def build_field(universe=None):
             per_symbol[s] = fetch_exact_bars(s, "1Day", BAR_LIMIT, start_iso)
         except Exception as e:
             print(f"  {s}: fetch failed ({e}) — dropped")
+    if min_days:
+        short = [s for s, bars in per_symbol.items() if len(bars) < min_days]
+        for s in short:
+            del per_symbol[s]
+        if short:
+            print(f"  dropped {len(short)} short-history symbols (<{min_days} bars)")
     symbols = [s for s in roster if per_symbol.get(s)]
     common = sorted(set.intersection(*(set(per_symbol[s].keys()) for s in symbols)))
     if len(common) > 2048:

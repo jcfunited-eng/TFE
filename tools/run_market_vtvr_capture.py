@@ -3,7 +3,7 @@ run_market_vtvr_capture.py
 ===========================
 
 NON-CANONICAL — one authenticated joint market capture through the isolated
-TFE VTVR side kernel (see tools/isolated_market_vtvr_side_kernel.py).
+TFE VTVR side kernel (see tools/isolated_vtvr_side_kernel.py).
 
 This is the side kernel's lawful next walk-up step: real simultaneous market
 observations, exact decimal custody from the wire (JSON numbers are parsed
@@ -33,7 +33,7 @@ from fractions import Fraction
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.isolated_market_vtvr_side_kernel import run_experience  # noqa: E402
+from tools.isolated_vtvr_side_kernel import run_experience  # noqa: E402
 
 DATA_URL = "https://data.alpaca.markets"
 

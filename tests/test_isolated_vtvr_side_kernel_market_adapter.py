@@ -5,14 +5,14 @@ Mirrors the four walk-up validations of the Guala "UF Side Kernel VTVR v2"
 reconstruction (27 July 2026), adapted to the market domain, plus boundary
 contracts. These tests grant the side kernel no canonical authority.
 
-Run: python -m pytest tests/test_isolated_market_vtvr_side_kernel.py -q
+Run: python -m pytest tests/test_isolated_vtvr_side_kernel.py -q
 """
 
 from fractions import Fraction as F
 
 import pytest
 
-from tools.isolated_market_vtvr_side_kernel import (
+from tools.isolated_vtvr_side_kernel import (
     dimensionalize,
     form_event,
     run_experience,

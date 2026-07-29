@@ -1,51 +1,52 @@
 """
-isolated_market_vtvr_side_kernel.py
-====================================
+isolated_vtvr_side_kernel.py
+=============================
 
-NON-CANONICAL RESEARCH ARTIFACT — TFE joint-field side kernel.
+NON-CANONICAL RESEARCH ARTIFACT — domain-agnostic joint-field side kernel.
 
-This module is an isolated reconstruction of the ORIGINAL UF intent for the
-TFE domain, mirroring the Guala side kernel "UF Side Kernel VTVR v2 — A
-Non-Canonical Vector–Time–Volume–Relation Reconstruction" (27 July 2026):
+Isolated reconstruction of the original UF intent, mirroring the Guala
+side kernel "UF Side Kernel VTVR v2 — A Non-Canonical Vector–Time–Volume–
+Relation Reconstruction" (27 July 2026):
 
     Before interpretation, resonance, decision, memory, or meaning, data is
     dimensionalized as one joint Vector–Time–Volume–Relation field.
 
-It does NOT modify, supersede, evaluate, or inherit authority from the
-canonical TFE kernel (uf_core L0–L4), the L5 decision layer, the refresh
-pipeline, or any production serving path. It imports nothing from them and
-they import nothing from it. It makes no trading claim.
+The kernel knows nothing about any domain. Its inputs are vertices,
+exact causal times, simultaneous rational observation vectors, and a
+declared physical grouping. Its outputs are the four typed structures and
+their receipts. Domain adapters live in separate files and are not this kernel's
+concern.
 
-What it does differently from the production kernel, by construction:
+Properties, by construction:
 
-  * Vector    — N stocks enter as ONE simultaneous vector per causal time,
-                not N independent single-wire kernels.
-  * Time      — exact causal timestamps are retained and used (Δt enters
-                the volume and velocity laws); time is never an array index.
-  * Volume    — componentwise swept volume |Δx̂|·Δt is retained per stock
-                per time; no cross-vertex sum has decision authority.
-  * Relation  — the complete pair-relation field over all N(N-1)/2 edges is
-                retained at every time, including the oriented-area (wedge)
-                relation that encodes lead–lag between stocks; it is never
-                replaced by a count, mean, norm, or weighted sum.
-  * Exactness — all arithmetic is exact rational (fractions.Fraction); all
-                layers emit deterministic SHA-256 receipts over canonical
-                JSON. Two identical runs are byte-identical.
-  * No scalar collapse — no weighted resonance score, no gating of active
-                evidence to zero, no "last row" export. Every layer retains
-                the complete typed structure of the layer below.
+  * Vector    — N vertices enter as ONE simultaneous vector per causal
+                time, never N independent scalar kernels.
+  * Time      — exact causal timestamps are retained and enter the laws
+                (Δt appears in volume and velocity); time is never an
+                array index.
+  * Volume    — componentwise swept volume |Δx̂|·Δt is retained per
+                vertex per time; no cross-vertex sum has authority.
+  * Relation  — the complete pair-relation field over all N(N-1)/2 edges
+                is retained at every time, including the oriented-area
+                (wedge) relation that preserves causal delay structure
+                between vertex subsets; never replaced by a count, mean,
+                norm, or weighted sum.
+  * Exactness — all arithmetic is exact rational (fractions.Fraction);
+                all layers emit deterministic SHA-256 receipts over
+                canonical JSON. Two identical runs are byte-identical.
+  * No scalar collapse — no weighted resonance score, no gating of
+                active evidence to zero, no "last row" export. Every
+                layer retains the complete typed structure below it.
 
-Declared physical grouping (non-ratified reconstruction choice):
-  One group covering all N stocks. The group-gain quotient therefore
-  removes exactly a market-common positive rescale (currency/unit
-  redenomination). A single stock's split is NOT common gain and is a
-  calibration concern deliberately left to future work, as is negative
-  gain (orientation reversal). This mirrors the VTVR v2 stance that no
-  particular production grouping is ratified.
+Declared grouping (non-ratified reconstruction choice): one group over
+all N vertices, so the group-gain quotient removes exactly a common
+positive rescale of the whole field. Per-vertex gain calibration and
+negative gain (orientation reversal) are declared future work, mirroring
+the VTVR v2 stance that no particular grouping is ratified.
 
-Known incompleteness (deliberate, mirroring VTVR v2 §Known incompleteness):
-  no causal segmentation, no adaptive gates, no memory, no L5/L6, no
-  source separation, no production persistence, no deployment.
+Known incompleteness (deliberate, mirroring VTVR v2): no causal
+segmentation, no adaptive gates, no memory, no L5/L6, no source
+separation, no production persistence, no deployment.
 
 Bounds: 2 ≤ N ≤ 64, 2 ≤ M ≤ 2048, strictly increasing exact times.
 Cost: O(M·N²) retained in full; truncation is prohibited — exceeding the
