@@ -67,17 +67,22 @@ def _mean(xs):
     return sum(xs) / len(xs) if xs else 0.0
 
 
-def build_field():
+def build_field(universe=None):
+    # Explicit parameter: callers MUST pass their universe. Reassigning
+    # another module's UNIVERSE global does NOT reach this function (that
+    # bug silently re-ran cohort A for every "different" universe on
+    # 2026-07-29 — replication and full-scale runs before the fix are void).
+    roster = list(universe) if universe is not None else list(UNIVERSE)
     from datetime import datetime, timedelta, timezone
     start_iso = (datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)) \
         .strftime("%Y-%m-%dT%H:%M:%SZ")
     per_symbol = {}
-    for s in UNIVERSE:
+    for s in roster:
         try:
             per_symbol[s] = fetch_exact_bars(s, "1Day", BAR_LIMIT, start_iso)
         except Exception as e:
             print(f"  {s}: fetch failed ({e}) — dropped")
-    symbols = [s for s in UNIVERSE if per_symbol.get(s)]
+    symbols = [s for s in roster if per_symbol.get(s)]
     common = sorted(set.intersection(*(set(per_symbol[s].keys()) for s in symbols)))
     if len(common) > 2048:
         common = common[-2048:]  # kernel bound; keep the most recent

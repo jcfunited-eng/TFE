@@ -59,9 +59,9 @@ def thirds(descs, key, n):
 def main():
     overlap = set(COHORT_B) & set(wf.UNIVERSE)
     assert not overlap, f"cohort overlap: {overlap}"
-    wf.UNIVERSE = COHORT_B  # build_field reads this module-level list
 
-    symbols, common, field, px = build_field()
+    symbols, common, field, px = build_field(COHORT_B)
+    assert set(symbols) <= set(COHORT_B), "universe plumbing broken"
     arrs = per_step_arrays(symbols, field)
     n, m_total = arrs["n"], arrs["m"]
 

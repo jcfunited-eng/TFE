@@ -228,6 +228,26 @@ consumers. Walk-up test 1 asserts complete per-time vector, volume, and
 relation retention through L4 — any future flattening fails the suite
 loudly before it can ship.
 
+## CORRECTION — 2026-07-29 — replication claim VOID; true replication FAILS
+
+A universe-plumbing bug (fixed in `build_field(universe=...)`) caused every
+"different universe" run on 2026-07-28/29 to silently re-measure cohort A:
+the reported "virgin cohort B replication" (78.2% @60), the 60-name CH4
+dress rehearsal, and the first "300-name" full-scale run are all VOID.
+
+True cohort B replication (bug fixed, 2026-07-29): star state WR@60
+55.9% vs baseline 54.9%; WR@90 64.3% with mean +2.87% vs baseline
++4.29% — a win-rate bump that UNDERPERFORMS baseline in dollars.
+
+**The coherent-laggard state does not transfer across universes as a
+money edge.** What survives: (a) within-cohort-A consistency
+(search 77.8% / holdout 78.0%) and (b) the destruction nulls — the
+cohort A structure is real temporal-relational signal, but its trading
+translation is universe-specific as defined. Status downgraded from
+"replicated" to "cohort-local; cross-universe falsified at first test."
+The honest next walk-up: independent structure searches per universe and
+only states surviving BOTH earn further attention.
+
 ## Boundaries honored
 
 - No import from `uf_core`, the L5 layer, the refresh pipeline, or

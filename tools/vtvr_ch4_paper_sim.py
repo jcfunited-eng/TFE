@@ -78,8 +78,7 @@ BACKTEST_JSON = os.path.join(ART_DIR, "ch4_backtest.json")
 
 def cohort_signals(universe):
     """Per-date state membership + per-stock LTRND band + prices, one cohort."""
-    wf.UNIVERSE = universe
-    symbols, common, field, px = build_field()
+    symbols, common, field, px = build_field(universe)
     arrs = per_step_arrays(symbols, field)
     n, m_total = arrs["n"], arrs["m"]
 
