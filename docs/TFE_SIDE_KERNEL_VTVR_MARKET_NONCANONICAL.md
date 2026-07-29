@@ -119,6 +119,49 @@ scale, (b) the relation field as a *confirmation filter* on existing
 CH2/CH3 decisions rather than a standalone signal — each pre-registered
 the same way.
 
+## Structural forward study — 120-bar window (2026-07-28)
+
+`tools/vtvr_structural_forward_study.py`: 30 tickers, 754 simultaneous
+days (2024-01 → 2026-07), 574 evaluation dates. Five joint-field
+descriptors per stock per date from the trailing 120 bars (leadership,
+cohesion, breathing, reversal, pressure), cross-sectional quartiles,
+forward 20/60-bar outcomes, every band reported.
+
+Findings:
+- **REVERSAL sorts the future monotonically**: smooth structural motion
+  beat choppy by **2.66% excess over 60 bars** (Q1 +1.02% → Q4 −1.65%),
+  monotone at both horizons in the pooled sample (half-split unstable —
+  sign flips in H1).
+- **Moderate beats extremes, stably**: the middle band of PRESSURE
+  (+1.56%/+2.00% excess by half), COHESION (+0.48%/+2.66%), and
+  BREATHING (+0.24%/+0.67%) outperformed both extremes at 60 bars with
+  the same sign in BOTH halves.
+- No single descriptor passed the frozen Q4−Q1 materiality bar; the
+  stable signal lives in the middle bands, which the bar didn't measure.
+
+## Favorable-structure backtest — CALM-COHERENT state (2026-07-28)
+
+`tools/vtvr_favorable_structure_backtest.py`. The composite state the
+tables point to — **smooth motion + moderate pressure + moderate
+cohesion** ("calm-coherent", ~6.8 of 30 stocks per date) — backtested
+CH2-style against the universe over the same 574 dates:
+
+| Horizon | Universe | Calm-coherent | Edge |
+|---|---|---|---|
+| 20 bars | +1.26%, 55.8% win | +1.57%, 59.0% win | **+0.31%** |
+| 60 bars | +3.52%, 59.4% win | +4.46%, 62.5% win | **+0.94%** |
+
+Half-split: H1 −0.78%, H2 **+2.53%** at 60 bars — the state's edge is
+regime-dependent on this window and strengthened materially in the most
+recent ~14 months. At the last evaluation date the state held NBIX, BDX,
+AZZ (three current CH2 holdings), AMZN, JPM, XOM, JNJ, WMT, PEP.
+
+Status: the gate was composed from this window's own band tables, so its
+final authority requires forward confirmation on data it has never seen
+(running it as a daily observer alongside CH2 is the natural next
+walk-up). It is structure-first, threshold-free (rank bands only), and
+uses only relation-field quantities production cannot see.
+
 ## Boundaries honored
 
 - No import from `uf_core`, the L5 layer, the refresh pipeline, or
