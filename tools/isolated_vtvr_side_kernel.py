@@ -44,6 +44,15 @@ positive rescale of the whole field. Per-vertex gain calibration and
 negative gain (orientation reversal) are declared future work, mirroring
 the VTVR v2 stance that no particular grouping is ratified.
 
+Declared m=0 conventions (the spec's difference formulas need m-1 and do
+not define m=0): backward relation facts r⁻, rΔ, r∧ are zero at m=0
+while r⁺ is computed; displacement, velocity, acceleration, and volume
+are zero rows at m=0; L2 relation_change at m=0 carries ρ₀ itself rather
+than a zero fact — an irregular convention found by the 2026-07-29
+adversarial audit, documented here rather than silently changed
+mid-experiment (nothing downstream consumes it; receipts are consistent
+across all runs).
+
 Known incompleteness (deliberate, mirroring VTVR v2): no causal
 segmentation, no adaptive gates, no memory, no L5/L6, no source
 separation, no production persistence, no deployment.
