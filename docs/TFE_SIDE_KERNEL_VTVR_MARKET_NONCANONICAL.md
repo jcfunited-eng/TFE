@@ -248,6 +248,26 @@ translation is universe-specific as defined. Status downgraded from
 The honest next walk-up: independent structure searches per universe and
 only states surviving BOTH earn further attention.
 
+## FULL-SCALE VERDICT — 2026-07-29 — no edge over blind deployment
+
+Corrected full-scale rehearsal (300 declared names, real cohorts, union
+dates, 1200-bar history floor, validated protocol, $5k × 20 slots):
+$100k → **$218,785 (+15.3%/yr)**, 333 trades, 54.4% win, max DD −25.8%,
+~94% average deployment. The control (`tools/vtvr_ch4_null_book.py`):
+identical mechanics with SHA-256-blind entries → **$230,496 (+16.4%/yr)**.
+
+**The state book lost to the blind book. The return is the tape plus the
+hold mechanics, not the physics.** CH4 deploys nothing and claims nothing.
+
+Diagnosis (the flattening was downstream): the kernel retained the
+complete joint field; the study layer compressed it into scalar window
+descriptors and mined rank-band conjunctions — flattening + outcome
+search at the translation layer, the exact failure mode the original
+intent forbids. Universe-local coincidence survives that method; law
+does not. Next lawful step: state the restoring-flow hypothesis as a
+dynamical law on the conserved share field itself, derive predictions,
+falsify across universes — physics first, no band mining.
+
 ## Boundaries honored
 
 - No import from `uf_core`, the L5 layer, the refresh pipeline, or
