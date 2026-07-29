@@ -6,27 +6,25 @@ NON-CANONICAL — "CH4" paper simulation of the coherent-laggard state with
 CH2's economics and an L5 domain translation. Simulation only: no orders,
 no production import, kernel untouched.
 
-ECONOMICS (mirrors CH2):
+ECONOMICS:
     funded          $100,000
-    per position    $2,500 (2.5% of funded)
+    per position    $5,000 (20-slot book)
     cash-constrained: skip entries when cash < position size
 
-L5 TRANSLATION (declared, physics-grounded, no tuned constants):
-    ENTRY   stock enters COHERENT LAGGARD at close of day t
-            (BRTH.L:MID & COH.S:HI & LTRND.L:LO, thirds within its
-            cohort) → buy at close of day t+1 (one-bar lag, no
-            look-ahead). No re-entry while held; 20-bar cooldown
-            after any exit.
-    EXIT    whichever comes first:
-      restored   leadership trend reaches the TOP third for 3
-                 consecutive bars — the drain has fully reversed; the
-                 restoring flow has completed (structure complete)
-      timeout    90 bars in position (the physics horizon)
-      failsafe   close below -15% from entry (disaster guard —
-                 structure claims are not crash claims)
+LIVE BOOK (the deployed path):
+    UNIVERSE  cohort A only (home field), min 1200 bars per symbol.
+    ENTRY     current engine: bands_v1 (FLATTENED — 3 rank-band rule;
+              flagged by the 2026-07-29 post-audit; replacement is the
+              whole-object field engine, wired in only after its
+              walk-forward test). Signal at close of bar t fills on the
+              next processed bar. Engine version stamped on every entry.
+    EXIT      horizon (90 MARKET bars, counted by bar dates, not runner
+              invocations) or failsafe (-15%). 20-bar cooldown.
+    GUARD     a bar is processed at most once; holidays and repeat runs
+              are no-ops.
 
-UNIVERSE  cohorts A + B (60 names), state evaluated within each cohort
-          exactly as validated. Signals merge into ONE cash book.
+BACKTEST MODE: legacy dress-rehearsal (A+B, restored-exit era) — kept
+for history, superseded by vtvr_ch4_full_scale.py.
 
 MODES
     --backtest              dress rehearsal over all available dates;
@@ -62,7 +60,7 @@ from tools.vtvr_structure_search import (  # noqa: E402
 from tools.vtvr_star_state_replication import COHORT_B  # noqa: E402
 
 FUNDED = 100_000.0
-POSITION = 2_500.0
+POSITION = 5_000.0
 HOLD_MAX = 90
 RESTORE_BARS = 3
 FAILSAFE = -0.15
@@ -76,9 +74,9 @@ BOOK_PATH = os.path.join(ART_DIR, "ch4_book.json")
 BACKTEST_JSON = os.path.join(ART_DIR, "ch4_backtest.json")
 
 
-def cohort_signals(universe):
+def cohort_signals(universe, min_days=None):
     """Per-date state membership + per-stock LTRND band + prices, one cohort."""
-    symbols, common, field, px = build_field(universe)
+    symbols, common, field, px = build_field(universe, min_days=min_days)
     arrs = per_step_arrays(symbols, field)
     n, m_total = arrs["n"], arrs["m"]
 
@@ -245,7 +243,17 @@ def backtest():
 
 
 def live():
-    dates, in_state, ltrnd_lo, prices = merged_universe_data()
+    # HOME FIELD (Joe, 2026-07-29): the live book trades the coherent
+    # laggard on the field where it is holdout-proven (cohort A), with the
+    # validated protocol: 90-bar horizon + failsafe. Forward bars are the
+    # judge no search ever touched.
+    dates, in_state, ltrnd_lo, prices = cohort_signals(list(wf.UNIVERSE), min_days=1200)
+    n_syms = len(prices[dates[-1]])
+    if n_syms != len(wf.UNIVERSE):
+        raise SystemExit(
+            f"Field composition changed: {n_syms} of {len(wf.UNIVERSE)} "
+            f"symbols usable — bands would rank a different field. Halting "
+            f"instead of silently reshaping.")
     os.makedirs(ART_DIR, exist_ok=True)
     if os.path.exists(BOOK_PATH):
         with open(BOOK_PATH, encoding="utf-8") as fh:
@@ -255,10 +263,15 @@ def live():
                 "closed": [], "cooldown": {}}
         print(f"New CH4 paper book opened {dates[-1]} with ${FUNDED:,.0f}")
 
-    # Replay simulate() mechanics for just the latest bar
+    # Process only a bar we have not processed before (Defect-2 guard:
+    # holidays and repeat runs are no-ops).
     d = dates[-1]
     k = len(dates) - 1
+    if book.get("last_bar") == d:
+        print(f"Bar {d} already processed — no-op.")
+        return
     px_d = prices[d]
+    date_index = {dd: idx for idx, dd in enumerate(dates)}
 
     for sym in sorted(book.get("pending", [])):
         if sym in book["open"] or px_d.get(sym) is None:
@@ -267,23 +280,24 @@ def live():
             continue
         book["open"][sym] = {
             "entry_date": d, "entry_px": px_d[sym],
-            "shares": POSITION / px_d[sym], "bars": 0, "restore_run": 0,
+            "shares": POSITION / px_d[sym],
+            "engine": "bands_v1_flattened",
         }
         book["cash"] -= POSITION
-        print(f"ENTER {sym} @ {px_d[sym]:.2f}")
+        print(f"ENTER {sym} @ {px_d[sym]:.2f} [bands_v1_flattened]")
 
     for sym in list(book["open"]):
         p = book["open"][sym]
         px_now = px_d.get(sym)
         if px_now is None:
             continue
-        p["bars"] += 1
+        # Market-bar age (Defect-1 fix): counted from bar dates, never
+        # from runner invocations.
+        bars_held = k - date_index.get(p["entry_date"], k)
+        p["bars"] = bars_held
         ret = px_now / p["entry_px"] - 1
-        p["restore_run"] = p["restore_run"] + 1 \
-            if sym in ltrnd_lo.get(d, set()) else 0
         reason = ("failsafe" if ret <= FAILSAFE else
-                  "restored" if p["restore_run"] >= RESTORE_BARS else
-                  "timeout" if p["bars"] >= HOLD_MAX else None)
+                  "horizon" if bars_held >= HOLD_MAX else None)
         if reason:
             proceeds = p["shares"] * px_now
             book["cash"] += proceeds
@@ -291,6 +305,8 @@ def live():
                 "sym": sym, "entry_date": p["entry_date"], "exit_date": d,
                 "pnl": round(proceeds - POSITION, 2),
                 "ret_pct": round(ret * 100, 2), "reason": reason,
+                "bars": p["bars"],
+                "engine": p.get("engine", "bands_v1_flattened"),
             })
             book["cooldown"][sym] = d
             del book["open"][sym]
