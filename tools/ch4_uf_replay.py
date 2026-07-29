@@ -86,7 +86,28 @@ def replay_frame(df: pd.DataFrame, symbol: str, field_mode: str):
     return dates, closes, states
 
 
-def signal_rows(symbol: str, dates, closes, states: List[Optional[DayState]]):
+def boundary_flags(closes: np.ndarray, field_mode: str) -> np.ndarray:
+    """Causal same-day gate-close condition: D_end[t] = |dF[t]| + sigma[t]
+    (endpoint kappa = 0) >= tau_D. Sufficient for a true boundary since
+    kappa >= 0. Splits signals into EVENT-resolution (a gate verifiably
+    closed today) vs forming-gate (daily-flicker). Declared decomposition."""
+    from quarantine_historical_kernel import KernelParameters as _KP
+    p = _KP()
+    F = closes.astype(float) if field_mode == "RAW" else np.log(closes.astype(float))
+    n = len(F)
+    dF = np.zeros(n)
+    if n > 1:
+        dF[1:] = np.diff(F)
+    sig = np.zeros(n)
+    for t in range(n):
+        w0 = max(0, t - p.W + 1)
+        win = F[w0 : t + 1]
+        sig[t] = float(np.mean((win - win.mean()) ** 2))
+    return (p.alpha_1 * np.abs(dF) + p.alpha_2 * sig) >= p.tau_D
+
+
+def signal_rows(symbol: str, dates, closes, states: List[Optional[DayState]],
+                bflags: Optional[np.ndarray] = None):
     """Fresh CP-2 governed signals (the lineage-realized rule), price floor
     applied at signal time. Strict ch06-mapping actions are tallied by the
     caller for the report but produced no trades in the preserved run."""
@@ -106,6 +127,7 @@ def signal_rows(symbol: str, dates, closes, states: List[Optional[DayState]]):
                 "Q_20": s.Q_20, "F_n": s.F_n, "x_m": s.x_m, "chi_n": s.chi_n,
                 "strict_action": s.action, "ignition": s.ignition,
                 "gate_count": s.gate_count, "event_type": s.event_type,
+                "boundary_today": int(bool(bflags[t])) if bflags is not None else None,
             }
             for h in HORIZONS:
                 row[f"ret_{h}"] = (
@@ -280,7 +302,7 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
         except Exception as e:
             print(f"  {sym}: FAILED {e}")
             continue
-        rows = signal_rows(sym, dates, closes, states)
+        rows = signal_rows(sym, dates, closes, states, boundary_flags(closes, mode))
         all_rows.extend(rows)
         # compact per-symbol record: full states are not retained (memory)
         acts = [s.action_cp2 if s is not None else None for s in states]
@@ -291,6 +313,8 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
                   f"elapsed={el:.0f}s", flush=True)
 
     summary = summarize_signals(all_rows)
+    event_rows = [r for r in all_rows if r.get("boundary_today") == 1]
+    summary_event = summarize_signals(event_rows)
     book = run_book(all_rows, frames)
     result = {
         "engine": "ch4_uf_engine v1 (preserved lineage kernel + full ch06 action mapping)",
@@ -302,11 +326,13 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
         },
         "symbols_evaluated": len(frames),
         "signals": summary,
+        "signals_event_resolution": summary_event,
         "book": {k: v for k, v in book.items() if k != "trades"},
     }
     out_path = os.path.join(OUT_DIR, f"ch4_uf_{tag}_{mode}.json")
     with open(out_path, "w") as f:
-        json.dump({**result, "book_trades": book["trades"]}, f, indent=1, default=str)
+        json.dump({**result, "book_trades": book["trades"],
+                   "signal_rows": all_rows}, f, indent=1, default=str)
     print(json.dumps(result, indent=1, default=str))
     print(f"filed: {out_path}")
 
