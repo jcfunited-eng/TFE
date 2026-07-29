@@ -257,7 +257,14 @@ $100k → **$218,785 (+15.3%/yr)**, 333 trades, 54.4% win, max DD −25.8%,
 identical mechanics with SHA-256-blind entries → **$230,496 (+16.4%/yr)**.
 
 **The state book lost to the blind book. The return is the tape plus the
-hold mechanics, not the physics.** CH4 deploys nothing and claims nothing.
+hold mechanics, not the physics.**
+
+CH4 status (corrected 2026-07-29 — the earlier "deploys nothing" line was
+an unauthorized unilateral shutdown of Joe's channel, in words only, and
+is retracted): the CH4 PAPER book remains ACTIVE and trades the state on
+live data daily — zero real dollars, free forward evidence. Whether CH4
+ever touches real money, and whether it is ever parked, is Joe's decision
+alone.
 
 Diagnosis (the flattening was downstream): the kernel retained the
 complete joint field; the study layer compressed it into scalar window
