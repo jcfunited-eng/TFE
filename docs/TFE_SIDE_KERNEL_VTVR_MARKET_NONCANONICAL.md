@@ -162,6 +162,72 @@ final authority requires forward confirmation on data it has never seen
 walk-up). It is structure-first, threshold-free (rank bands only), and
 uses only relation-field quantities production cannot see.
 
+## Structure search, L5 translation, replication, adversarial nulls (2026-07-28)
+
+Free-play mandate over the frozen kernel's outputs (kernel byte-identical
+since first commit; walk-up retention contracts green throughout).
+
+**Search** (`tools/vtvr_structure_search.py`): 30 tickers, 1,502 joint
+days (2020-07 → 2026-07), 1,322 eligible dates (120-bar entry filter),
+54 structural atoms at two scales (W=120, W=30) + field-level herd
+context, all single/pair/triple states, 70/30 date split, support ≥ 400.
+
+**Surviving star state — COHERENT LAGGARD**
+`BRTH.L:MID & COH.S:HI & LTRND.L:LO` — moderate 120-bar breathing,
+top-third 30-bar herd coherence, bottom-third 120-bar leadership trend.
+
+| Test | N | WR@60 | WR@90 | mean fwd90 |
+|---|---|---|---|---|
+| Cohort A search | 418 | 77.8% | — | — |
+| Cohort A holdout | 200–220 | 78.0% | 82.7% | +10.50% |
+| **Cohort B (virgin universe)** | 602 | **78.2%** | **79.4%** | **+10.27%** |
+| Universe baselines | — | 56–58% | 56–58% | +3.9–4.5% |
+
+Three independent confirmations within half a point at 60 bars. The
+holdout also *killed* several equally-strong-in-search rival states
+(77–78% search → 31–43% holdout), demonstrating the harness
+discriminates luck from structure.
+
+**L5 translation** (`tools/vtvr_l5_translation_study.py`): edge grows
+with hold length (55% @20 → 77.7% @60 → 82.7% @90 on holdout); meadow
+conditioning (field coherence LO at entry) reached 88.9% @90 (+12.37%)
+on cohort A holdout but did not clearly replicate on cohort B (81.1% LO
+vs 80.8% HI) — recorded as unproven, not adopted.
+
+**Adversarial destruction nulls** (`tools/vtvr_adversarial_null_test.py`),
+per the physics-not-quant doctrine — the edge must vanish when the
+structure is destroyed while all return distributions are preserved:
+
+- NULL A (per-stock deterministic shred; relations + time destroyed):
+  edge **−15.4pp** at 90 bars — the state becomes an anti-signal.
+- NULL B (joint date shred; relations kept, time destroyed):
+  edge **−0.2pp** — fully collapsed.
+
+Live-data edge: **+21–23pp**. The state reads real temporal-relational
+fabric; it is not a distributional artifact.
+
+**Physical mechanism (stated, falsifiable):** in the group-normalized
+field, structural shares are conserved (they sum to 1). A component
+whose share has drained (laggard) while it remains dynamically coupled
+to the field (high recent coherence) and alive (mid breathing) sits in
+a restoring-flow configuration: the conserved, coupled field pulls it
+back toward its coupled position. The tables confirm the mechanism's
+own failure predictions: laggards that are decoupled or still draining
+(high breathing trend) do NOT recover — those states collapsed in
+holdout exactly as the mechanism requires.
+
+**Live observer** (`tools/vtvr_daily_observer.py`): appends daily state
+memberships to `artifacts/vtvr_observer/observations.jsonl` (gitignored
+data); `--score` grades matured observations. First observation logged
+2026-07-28 (calm_coherent: BDX, DORM, JNJ, NBIX, PEP, WMT, XOM;
+smooth_laggard: WMT; coherent_laggard: empty — the state is selective,
+~1.5% of stock-days).
+
+**No-flattening contract:** the kernel file is frozen; all studies are
+consumers. Walk-up test 1 asserts complete per-time vector, volume, and
+relation retention through L4 — any future flattening fails the suite
+loudly before it can ship.
+
 ## Boundaries honored
 
 - No import from `uf_core`, the L5 layer, the refresh pipeline, or
