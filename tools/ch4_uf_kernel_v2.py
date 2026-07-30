@@ -290,6 +290,8 @@ class ChainV2:
     b_tail: Tuple[float, ...] = ()
     ustar_tail: Tuple[float, ...] = ()
     drift_tail: Tuple[float, ...] = ()
+    fn_tail: Tuple[float, ...] = ()      # trailing W=20 event F_n (prior)
+    suf_tail: Tuple[float, ...] = ()     # trailing W=20 event S_UF (prior)
 
     def copy(self) -> "ChainV2":
         return ChainV2(**vars(self))
@@ -309,6 +311,7 @@ class DayStateV2:
     Q_20_z: float
     chi_z: float
     action_z: str
+    action_diamond: str
     S_UF: float
     x_f: float
     x_m: float
@@ -493,6 +496,25 @@ def step_chain_v2(st: ChainV2, g: GateV2, date_ord: float) -> DayStateV2:
     action = _mapping(q20, F_n, chi_n)
     action_z = _mapping(q20_z, F_n_z, chi_z)
 
+    # THE DIAMOND (declared from ch06's joint-admissibility semantics with
+    # registry constants only, BEFORE any measurement): the rare
+    # configuration where the field is directional, fully coherent,
+    # anomaly-free, out of negative space, at LOW free energy and HIGH
+    # stability relative to the vertex's own trailing W=20 events (band
+    # constants 0.25/0.75 are the registry's pinned quantile bands).
+    action_diamond = "HOLD"
+    if len(st.fn_tail) >= W:
+        fn_lo = float(np.percentile(np.array(st.fn_tail), 25))
+        fn_hi = float(np.percentile(np.array(st.fn_tail), 75))
+        suf_lo = float(np.percentile(np.array(st.suf_tail), 25))
+        suf_hi = float(np.percentile(np.array(st.suf_tail), 75))
+        base_ok = (IAS == 0 and g.N_gate == 0 and chi_raw == 1.0)
+        if base_ok and D_dir == 1 and F_n <= fn_lo and S_UF >= suf_hi:
+            action_diamond = "ACCUMULATE"
+        elif base_ok and D_dir == -1 and F_n >= fn_hi and S_UF <= suf_lo:
+            action_diamond = "AVOID"
+
+
     # mutate
     st.last_R = R_res
     st.last_URF2 = st.last_URF
@@ -511,12 +533,14 @@ def step_chain_v2(st: ChainV2, g: GateV2, date_ord: float) -> DayStateV2:
     st.r_tail, st.s_tail, st.u_tail, st.c_tail = r_tail, s_tail, u_tail, c_tail
     st.g_tail, st.hyst_tail, st.b_tail = g_tail, hyst_tail, b_tail
     st.ustar_tail, st.drift_tail = ustar_tail, drift_tail
+    st.fn_tail = (st.fn_tail + (F_n,))[-W:]
+    st.suf_tail = (st.suf_tail + (S_UF,))[-W:]
 
     return DayStateV2(
         action=action, ignition=ignition, extinction=extinction,
         Q_5=q5, Q_20=q20, Q_60=q60, F_n=F_n, chi_n=chi_n,
         F_n_z=F_n_z, Q_20_z=q20_z, chi_z=chi_z, action_z=action_z,
-        S_UF=S_UF,
+        action_diamond=action_diamond, S_UF=S_UF,
         x_f=x_f, x_m=x_m, x_s=x_s, rho_n=rho, s_n=surprise,
         D_k=D_dir, B_k=B, Rev_k=Rev, U_star_k=float(U_star), regime=Reg,
         event_type=event_type, gate_count=st.k,
@@ -596,6 +620,7 @@ def assert_causal_v2(dates, closes, volumes, states, sample) -> None:
             vols[: t + 1] if vols is not None else None, warmup=t)[t]
         assert redo is not None, f"causality v2: no state at t={t}"
         ok = (redo.action == states[t].action
+              and redo.action_diamond == states[t].action_diamond
               and abs(redo.Q_20 - states[t].Q_20) < 1e-9
               and abs(redo.F_n - states[t].F_n) < 1e-9
               and redo.gate_count == states[t].gate_count)

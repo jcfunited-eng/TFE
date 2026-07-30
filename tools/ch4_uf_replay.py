@@ -107,12 +107,13 @@ def signal_rows_v2(symbol: str, dates, closes, states):
     n = len(closes)
     prev_action = None
     prev_action_z = None
+    prev_diamond = None
     prev_ie = (0, 0)
     prev_k = None
     for t in range(n):
         s = states[t]
         if s is None:
-            prev_action = prev_action_z = None
+            prev_action = prev_action_z = prev_diamond = None
             prev_ie = (0, 0)
             prev_k = None
             continue
@@ -127,6 +128,8 @@ def signal_rows_v2(symbol: str, dates, closes, states):
             emits.append(("primitive", "ACCUMULATE"))
         if s.extinction == 1 and prev_ie[1] == 0:
             emits.append(("primitive", "AVOID"))
+        if s.action_diamond != prev_diamond and s.action_diamond in ("ACCUMULATE", "AVOID"):
+            emits.append(("diamond", s.action_diamond))
 
         if closes[t] >= PRICE_FLOOR:
             for channel, side in emits:
@@ -147,6 +150,7 @@ def signal_rows_v2(symbol: str, dates, closes, states):
                 rows.append(row)
         prev_action = s.action
         prev_action_z = s.action_z
+        prev_diamond = s.action_diamond
         prev_ie = (s.ignition, s.extinction)
         prev_k = s.gate_count
     return rows
@@ -388,10 +392,10 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
 
     if mode == "V2":
         summary = {ch: summarize_signals([r for r in all_rows if r["channel"] == ch])
-                   for ch in ("strict", "strict_z", "primitive")}
+                   for ch in ("strict", "strict_z", "primitive", "diamond")}
         event_rows = [r for r in all_rows if r.get("boundary_today") == 1]
         summary_event = {ch: summarize_signals([r for r in event_rows if r["channel"] == ch])
-                         for ch in ("strict", "strict_z", "primitive")}
+                         for ch in ("strict", "strict_z", "primitive", "diamond")}
         book_rows = [r for r in all_rows if r["channel"] == "primitive"]
     else:
         summary = summarize_signals(all_rows)
