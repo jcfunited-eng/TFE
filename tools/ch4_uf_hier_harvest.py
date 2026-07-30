@@ -207,6 +207,9 @@ def main():
     morph_open = {}
     morph_store = defaultdict(list)
     hier_trades = []
+    conf_open = {}
+    conf_hist = defaultdict(lambda: [0, 0])   # species -> [wins, total] completed cycles
+    conf_trades = []
     TIER_LIST = (0.75, 0.85, 0.90, 0.95)
 
     for d_next, big, eb, gb, disp, sym, issue_d, exit_d, issue_px in obs:
@@ -253,11 +256,45 @@ def main():
                          "ret_pct": round(ret_now, 3),
                          "reason": "RIPE" if ripe else "COLLAPSE"})
                     morph_store[mo["species"]].append(mo["peak_gate"])
+                    ch0 = conf_hist[mo["species"]]
+                    ch0[0] += 1 if ret_now > 0 else 0
+                    ch0[1] += 1
                     morph_open.pop(sym, None)
             if morph_open.get(sym) is None and pred_up and live >= 0.90 and issue_px > 0:
                 morph_open[sym] = {"species": k0, "issue_d": issue_d,
                                    "px": issue_px, "gates": 0,
                                    "peak_ret": 0.0, "peak_gate": 0}
+            # --- confident harvesting targets: same mechanics, but the
+            # entry ALSO requires the species' own causal cycle record to
+            # show reliable wins ( >= 5 completed cycles, win share >=
+            # 0.75 — the pinned band, applied to the species' harvest
+            # history rather than its step history)
+            co = conf_open.get(sym)
+            if co is not None and issue_px > 0 and issue_d > co["issue_d"]:
+                co["gates"] += 1
+                ret_now = 100 * (issue_px / co["px"] - 1.0)
+                if ret_now > co["peak_ret"]:
+                    co["peak_ret"] = ret_now
+                    co["peak_gate"] = co["gates"]
+                hist = morph_store.get(co["species"], [])
+                target = (int(np.median(hist[-50:])) if len(hist) >= 3 else None)
+                ripe = target is not None and co["gates"] >= max(1, target)
+                collapse = not pred_up
+                if ripe or collapse:
+                    conf_trades.append(
+                        {"symbol": sym, "in": co["issue_d"], "out": issue_d,
+                         "ret_pct": round(ret_now, 3),
+                         "reason": "RIPE" if ripe else "COLLAPSE"})
+                    ch2 = conf_hist[co["species"]]
+                    ch2[0] += 1 if ret_now > 0 else 0
+                    ch2[1] += 1
+                    conf_open.pop(sym, None)
+            if conf_open.get(sym) is None and pred_up and live >= 0.90 and issue_px > 0:
+                w2, t2 = conf_hist[k0]
+                if t2 >= 5 and (w2 / t2) >= 0.75:
+                    conf_open[sym] = {"species": k0, "issue_d": issue_d,
+                                      "px": issue_px, "gates": 0,
+                                      "peak_ret": 0.0, "peak_gate": 0}
         # update all three stores
         if disp > 0:
             S2p[k2s] += 1; S1p[k1] += 1; S0p[k0] += 1
@@ -307,7 +344,15 @@ def main():
             prev = eq
         if cy:
             byy[cy] = round(100 * (cash / ys - 1), 2)
+        reason_split = {}
+        for rn in ("RIPE", "COLLAPSE"):
+            rr = np.array([t["ret_pct"] for t in trades if t.get("reason") == rn])
+            if len(rr):
+                reason_split[rn] = {"n": int(len(rr)),
+                                    "wr": round(100 * float((rr > 0).mean()), 2),
+                                    "mean": round(float(rr.mean()), 2)}
         return {"trades": len(trades),
+                "reason_split": reason_split,
                 "wr_pct": round(100 * float((rets > 0).mean()), 2),
                 "mean_pct": round(float(rets.mean()), 2),
                 "median_pct": round(float(np.median(rets)), 2),
@@ -325,7 +370,8 @@ def main():
     result = {"frame": "hierarchical schema memory (species>herd-E>herd-EG backoff)",
               "levels_used": dict(level_used),
               "tiers": tier_out,
-              "hier_harvest": harvest_summary(hier_trades)}
+              "hier_harvest": harvest_summary(hier_trades),
+              "confident_harvest": harvest_summary(conf_trades)}
     out = os.path.join(OUT_DIR, "ch4_uf_hier_harvest.json")
     with open(out, "w") as f:
         json.dump(result, f, indent=1)
