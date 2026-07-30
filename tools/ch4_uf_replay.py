@@ -65,8 +65,9 @@ BOOK_MAX_POS = 10
 BOOK_HORIZON = 20
 
 
-def load_store() -> pd.DataFrame:
-    df = pd.read_parquet(PARQUET, columns=["Date", "Symbol", "Close"])
+def load_store(with_volume: bool = False) -> pd.DataFrame:
+    cols = ["Date", "Symbol", "Close"] + (["Volume"] if with_volume else [])
+    df = pd.read_parquet(PARQUET, columns=cols)
     df["Date"] = pd.to_datetime(df["Date"])
     return df
 
@@ -84,6 +85,71 @@ def replay_frame(df: pd.DataFrame, symbol: str, field_mode: str):
     closes = sub["Close"].to_numpy(dtype=float)
     states = replay_symbol(dates, closes, field_mode=field_mode, warmup=WARMUP)
     return dates, closes, states
+
+
+def replay_frame_v2(df: pd.DataFrame, symbol: str):
+    """Conformant v2 realization (ch4_uf_kernel_v2): normalized field,
+    adaptive ‖ΔSEV‖ gating, attention relevance from Volume, coherent CV,
+    spec S/w/Reg, de-stubbed S(UF), full Γ, graded χ."""
+    from tools.ch4_uf_kernel_v2 import replay_symbol_v2
+    sub = df[df["Symbol"] == symbol].sort_values("Date")
+    dates = sub["Date"].dt.date.tolist()
+    closes = sub["Close"].to_numpy(dtype=float)
+    vols = sub["Volume"].to_numpy(dtype=float) if "Volume" in sub.columns else None
+    states = replay_symbol_v2(dates, closes, vols, warmup=WARMUP)
+    return dates, closes, states
+
+
+def signal_rows_v2(symbol: str, dates, closes, states):
+    """V2 signals: fresh strict-governance transitions; event-resolution
+    flag = a new gate verifiably closed this bar (gate_count increased)."""
+    rows = []
+    n = len(closes)
+    prev_action = None
+    prev_action_z = None
+    prev_ie = (0, 0)
+    prev_k = None
+    for t in range(n):
+        s = states[t]
+        if s is None:
+            prev_action = prev_action_z = None
+            prev_ie = (0, 0)
+            prev_k = None
+            continue
+        new_gate = int(prev_k is not None and s.gate_count > prev_k)
+
+        emits = []  # (channel, side)
+        if s.action != prev_action and s.action in ("ACCUMULATE", "AVOID"):
+            emits.append(("strict", s.action))
+        if s.action_z != prev_action_z and s.action_z in ("ACCUMULATE", "AVOID"):
+            emits.append(("strict_z", s.action_z))
+        if s.ignition == 1 and prev_ie[0] == 0:
+            emits.append(("primitive", "ACCUMULATE"))
+        if s.extinction == 1 and prev_ie[1] == 0:
+            emits.append(("primitive", "AVOID"))
+
+        if closes[t] >= PRICE_FLOOR:
+            for channel, side in emits:
+                row = {
+                    "symbol": symbol, "date": str(dates[t]), "t": t,
+                    "channel": channel, "action": side,
+                    "close": float(closes[t]),
+                    "Q_20": s.Q_20, "F_n": s.F_n, "F_n_z": s.F_n_z,
+                    "x_m": s.x_m, "chi_n": s.chi_n, "S_UF": s.S_UF,
+                    "ignition": s.ignition, "extinction": s.extinction,
+                    "regime": s.regime, "gate_count": s.gate_count,
+                    "event_type": s.event_type, "boundary_today": new_gate,
+                }
+                for h in HORIZONS:
+                    row[f"ret_{h}"] = (
+                        float(closes[t + h] / closes[t] - 1.0) if t + h < n else None
+                    )
+                rows.append(row)
+        prev_action = s.action
+        prev_action_z = s.action_z
+        prev_ie = (s.ignition, s.extinction)
+        prev_k = s.gate_count
+    return rows
 
 
 def boundary_flags(closes: np.ndarray, field_mode: str) -> np.ndarray:
@@ -291,31 +357,48 @@ def cmd_test() -> int:
 
 
 def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
-    df = load_store()
+    df = load_store(with_volume=(mode == "V2"))
     os.makedirs(OUT_DIR, exist_ok=True)
     frames: Dict[str, tuple] = {}
     all_rows: List[dict] = []
     t0 = time.time()
     for i, sym in enumerate(symbols):
         try:
-            dates, closes, states = replay_frame(df, sym, mode)
+            if mode == "V2":
+                dates, closes, states = replay_frame_v2(df, sym)
+            else:
+                dates, closes, states = replay_frame(df, sym, mode)
         except Exception as e:
             print(f"  {sym}: FAILED {e}")
             continue
-        rows = signal_rows(sym, dates, closes, states, boundary_flags(closes, mode))
+        if mode == "V2":
+            rows = signal_rows_v2(sym, dates, closes, states)
+            # book exits ride the primitive extinction channel (declared)
+            acts = [("AVOID" if (s is not None and s.extinction == 1) else
+                     (s.action if s is not None else None)) for s in states]
+        else:
+            rows = signal_rows(sym, dates, closes, states, boundary_flags(closes, mode))
+            acts = [s.action_cp2 if s is not None else None for s in states]
         all_rows.extend(rows)
-        # compact per-symbol record: full states are not retained (memory)
-        acts = [s.action_cp2 if s is not None else None for s in states]
         frames[sym] = (dates, closes, acts)
         if (i + 1) % 25 == 0 or i == len(symbols) - 1:
             el = time.time() - t0
             print(f"  [{i+1}/{len(symbols)}] {sym} signals_total={len(all_rows)} "
                   f"elapsed={el:.0f}s", flush=True)
 
-    summary = summarize_signals(all_rows)
-    event_rows = [r for r in all_rows if r.get("boundary_today") == 1]
-    summary_event = summarize_signals(event_rows)
-    book = run_book(all_rows, frames)
+    if mode == "V2":
+        summary = {ch: summarize_signals([r for r in all_rows if r["channel"] == ch])
+                   for ch in ("strict", "strict_z", "primitive")}
+        event_rows = [r for r in all_rows if r.get("boundary_today") == 1]
+        summary_event = {ch: summarize_signals([r for r in event_rows if r["channel"] == ch])
+                         for ch in ("strict", "strict_z", "primitive")}
+        book_rows = [r for r in all_rows if r["channel"] == "primitive"]
+    else:
+        summary = summarize_signals(all_rows)
+        event_rows = [r for r in all_rows if r.get("boundary_today") == 1]
+        summary_event = summarize_signals(event_rows)
+        book_rows = all_rows
+    book = run_book(book_rows, frames)
     result = {
         "engine": "ch4_uf_engine v1 (preserved lineage kernel + full ch06 action mapping)",
         "field_mode": mode,
