@@ -157,26 +157,30 @@ def main():
         for k in range(2, len(gs)):
             d_prev, cls_prev, _, _, _ = gs[k - 2]
             d_cur, cls_cur, _, ta_cur, tb_cur = gs[k - 1]
-            d_next, cls_next, disp_next, _, _ = gs[k]
+            d_next, cls_next, disp_next, ta_n, tb_n = gs[k]
             if closes[tb_cur - 1] < PRICE_FLOOR:
                 continue
             species = (cls_prev, cls_cur)
-            obs.append((str(d_next), species, disp_next, sym, str(d_cur)))
+            # issue date = the close where gate k-1 ended (prediction
+            # moment); exit date = last close of gate k (outcome moment)
+            issue_d = str(dates[tb_cur - 1])
+            exit_d = str(dates[tb_n - 1])
+            obs.append((str(d_next), species, disp_next, sym, issue_d, exit_d))
         if (i + 1) % 500 == 0:
             print(f"  [{i+1}/{len(uni)}] obs={len(obs)} {time.time()-t0:.0f}s",
                   flush=True)
     print(f"eligible symbols: {kept}; observations: {len(obs)}")
 
     # 2) causal field-wide schema accumulation in global date order
-    obs.sort(key=lambda x: (x[0], x[3]))
+    obs.sort(key=lambda x: (x[0], x[3]))  # by completion date (causal availability)
     store_pos = defaultdict(int)
     store_neg = defaultdict(int)
     # snapshot the FINAL spectrum (for the census) and also record each
     # observation's PRE-observation species stats (causal view)
     causal_rows = []
-    for d_next, sp, disp, sym, d_cur in obs:
+    for d_next, sp, disp, sym, issue_d, exit_d in obs:
         p, q = store_pos[sp], store_neg[sp]
-        causal_rows.append((sp, p, q, disp, d_next, sym))
+        causal_rows.append((sp, p, q, disp, d_next, sym, issue_d, exit_d))
         if disp > 0:
             store_pos[sp] += 1
         elif disp < 0:
@@ -213,7 +217,11 @@ def main():
     causal_by_sp = defaultdict(lambda: [0, 0])
     sym_div = defaultdict(set)
     year_hits = defaultdict(lambda: defaultdict(lambda: [0, 0]))
-    for sp, p, q, disp, d_next, sym in causal_rows:
+    # THE AGGREGATE TEST: every causal prediction issued by a species
+    # whose live (pre-observation) record had n >= W and consistency >=
+    # the pinned upper band (0.75) at issue time. Persisted in full.
+    band_preds = []
+    for sp, p, q, disp, d_next, sym, issue_d, exit_d in causal_rows:
         sym_div[sp].add(sym)
         n = p + q
         if n < W:
@@ -225,6 +233,16 @@ def main():
         yh = year_hits[sp][d_next[:4]]
         yh[0] += 1 if hit else 0
         yh[1] += 1
+        live_cons = max(p, q) / n
+        if live_cons >= 0.75:
+            band_preds.append({
+                "date": d_next, "symbol": sym,
+                "issue_date": issue_d, "exit_date": exit_d,
+                "dir": "UP" if pred_up else "DOWN",
+                "live_n": n, "live_cons": round(live_cons, 4),
+                "disp_pct": round(100 * disp, 3),
+                "hit": bool(hit),
+            })
 
     causal_hits = sum(v[0] for v in causal_by_sp.values())
     causal_tot = sum(v[1] for v in causal_by_sp.values())
@@ -245,9 +263,32 @@ def main():
             "causal_by_year": {y: f"{v[0]}/{v[1]}" for y, v in sorted(yh.items())},
         })
 
+    # aggregate band-prediction record (per year, per direction)
+    def agg(preds):
+        if not preds:
+            return {}
+        hits = sum(1 for r in preds if r["hit"])
+        disps = [r["disp_pct"] for r in preds]
+        signed = [r["disp_pct"] if r["dir"] == "UP" else -r["disp_pct"] for r in preds]
+        return {"n": len(preds),
+                "hit_pct": round(100 * hits / len(preds), 2),
+                "mean_signed_disp_pct": round(float(np.mean(signed)), 3),
+                "median_abs_disp_pct": round(float(np.median(np.abs(disps))), 3)}
+
+    band_by_year = {}
+    for r in band_preds:
+        band_by_year.setdefault(r["date"][:4], []).append(r)
+    band_summary = {
+        "all": agg(band_preds),
+        "UP": agg([r for r in band_preds if r["dir"] == "UP"]),
+        "DOWN": agg([r for r in band_preds if r["dir"] == "DOWN"]),
+        "by_year": {y: agg(v) for y, v in sorted(band_by_year.items())},
+    }
+
     result = {
         "frame": "temporal geometric species spectrum (mosaic-class bigrams, "
                  "field schema memory, causal)",
+        "band_predictions": band_summary,
         "eligible_symbols": kept,
         "observations": len(obs),
         "field_up_base_rate_pct": round(100 * base, 2),
@@ -263,7 +304,7 @@ def main():
     }
     out = os.path.join(OUT_DIR, "ch4_uf_spectrum.json")
     with open(out, "w") as f:
-        json.dump(result, f, indent=1)
+        json.dump({**result, "band_prediction_rows": band_preds}, f, indent=1)
     print(json.dumps(result, indent=1))
     print("filed:", out)
 
