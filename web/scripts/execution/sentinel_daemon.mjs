@@ -181,6 +181,25 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
 }
 
 /**
+ * CH3-only kill switch — env var or config row halts CH3 entries ONLY.
+ * CH2 and every other channel are untouched by this flag. Added
+ * 2026-07-30 after the CH3 diagnosis (19% WR, -$449 since 07-07):
+ * entries halt, exits/brackets stay fully active so open scalps unwind.
+ */
+async function checkCh3EntriesHalted() {
+  let halted = process.env.CH3_ENTRIES_HALTED === "1";
+  if (!halted) {
+    try {
+      const res = await pool.query(
+        `SELECT value FROM pee1_execution_config WHERE key = 'ch3_entries_halted' LIMIT 1`
+      );
+      halted = res.rows[0]?.value === "true";
+    } catch { /* non-fatal */ }
+  }
+  return halted;
+}
+
+/**
  * Kill switch — env var or config row halts all entries.
  */
 async function checkEntriesHalted() {
@@ -319,11 +338,15 @@ async function runDailyEntryPass() {
 
   // ── Channel 3: CH3 intraday ─────────────────────────────────────────
   try {
-    const ch3Signals = await getCh3Signals();
-    for (const signal of ch3Signals) {
-      if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget, sameDayExitTickers);
-      if (result.ok) totalEntries++;
+    if (await checkCh3EntriesHalted()) {
+      console.log("[CH3-ENTRY] CH3 entries halted by switch — skipping (exits unaffected)");
+    } else {
+      const ch3Signals = await getCh3Signals();
+      for (const signal of ch3Signals) {
+        if (budget.cashRemaining <= 0) break;
+        const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget, sameDayExitTickers);
+        if (result.ok) totalEntries++;
+      }
     }
   } catch (err) {
     console.error(`[CH3-ENTRY] Error: ${err.message}`);
@@ -358,6 +381,10 @@ export function isCh3RearmWindow(now = new Date()) {
 async function runCh3RearmPass() {
   if (await checkEntriesHalted()) {
     console.log(`[CH3-REARM] Kill switch active — skipping`);
+    return;
+  }
+  if (await checkCh3EntriesHalted()) {
+    console.log(`[CH3-REARM] CH3 entries halted by switch — skipping (exits unaffected)`);
     return;
   }
 
