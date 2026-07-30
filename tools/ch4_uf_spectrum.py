@@ -201,10 +201,16 @@ def main():
             issue_d = str(dates[tb_cur - 1])
             exit_d = str(dates[tb_n - 1])
             cx = ctx[tb_cur - 1]
+            # pooled spelling: coarsest-lattice term only (h=4) — merges
+            # near-identical species so records fatten (deep tiers need n)
+            pool_prev = (cls_prev[0][2], cls_prev[1])
+            pool_cur = (cls_cur[0][2], cls_cur[1])
             for alpha, species in (
                 ("bigram", (cls_prev, cls_cur)),
                 ("bigram_ctx", (cls_prev, cls_cur, cx)),
                 ("trigram", (cls_p2, cls_prev, cls_cur)),
+                ("pooled", (pool_prev, pool_cur)),
+                ("pooled_ctx", (pool_prev, pool_cur, cx)),
             ):
                 obs.append((str(d_next), (alpha, species), disp_next, sym, issue_d, exit_d))
         if (i + 1) % 500 == 0:
