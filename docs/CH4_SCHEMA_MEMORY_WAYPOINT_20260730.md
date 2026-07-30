@@ -74,3 +74,8 @@ density remains the target. Next levers: down-species density (mirror
 alphabet is thinner), per-side book composition, finer time resolution
 (daily bars may be the coarse rung of the flare physics), then the
 validation/repeatability protocol and live-forward.
+
+## Validation receipt (2026-07-30)
+Deterministic rerun of the polarity-complete harvest: output byte-identical
+(SHA-256 1ca98b0decee43a8… on both runs). The frontier is exactly
+reproducible from the store — the deterministic-validation leg holds.
