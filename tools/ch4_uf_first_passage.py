@@ -217,6 +217,7 @@ def main():
     mplain_open = {}
     mplain_trades = []
     mpeak_store = defaultdict(list)     # species -> [down-yield history] (+%)
+    mshape_store = defaultdict(list)    # species -> [gates-to-trough history]
     mtrough_store = defaultdict(list)   # species -> [adverse (up) excursion]
     mfp_open = {(q, et, sm): {} for q in (25,) for et in (0.75, 0.85, 0.90) for sm in (True, False)}
     mfp_trades = {(q, et, sm): [] for q in (25,) for et in (0.75, 0.85, 0.90) for sm in (True, False)}
@@ -287,9 +288,10 @@ def main():
                     up_ret = 100 * (float(np.max(seg_hi)) / mm["px"] - 1.0)
                     if up_ret > mm["trough_ret"]:
                         mm["trough_ret"] = up_ret
-                hist = mshape_hist = mpeak_store.get(mm["species"], [])
+                mhist = mshape_store.get(mm["species"], [])
+                target_g = (int(np.median(mhist[-50:])) if len(mhist) >= 3 else None)
                 collapse_m = pred_up
-                ripe_m = mm["gates"] >= 3 and len(mshape_hist) >= 3
+                ripe_m = target_g is not None and mm["gates"] >= max(1, target_g)
                 if ripe_m or collapse_m:
                     mplain_trades.append(
                         {"symbol": sym, "in": mm["issue_d"], "out": issue_d,
@@ -297,6 +299,7 @@ def main():
                          "reason": "RIPE" if ripe_m else "COLLAPSE"})
                     mpeak_store[mm["species"]].append(mm["peak_ret"])
                     mtrough_store[mm["species"]].append(mm["trough_ret"])
+                    mshape_store[mm["species"]].append(mm["peak_gate"])
                     mplain_open.pop(sym, None)
             if mplain_open.get(sym) is None and (not pred_up) and live >= BAND and issue_px > 0:
                 mplain_open[sym] = {"species": k0, "issue_d": issue_d,
