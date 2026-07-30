@@ -50,3 +50,27 @@ Hierarchical harvest (running) → deepest-tier entries × morphology
 collection; DOWN-side energy collection; then validation & repeatability
 protocol (deterministic rerun + live-forward on the side page, on
 approval).
+
+
+## Polarity-complete first-passage frontier (2026-07-30, decade store)
+
+Ride-unbounded is FALSIFIED at every tier (even 85% WR bleeds: collapse
+tail unbounded). With species-quantile targets, adverse-excursion stops,
+and BOTH polarities collected:
+
+| Cell (q25 targets) | n | WR | mean/trade | decade book | character |
+|---|---|---|---|---|---|
+| BOTH t75 stop | 1,925 | 61.1% | +0.53% | **+97%** | EVERY year positive incl 2022 (+9.0) |
+| BOTH t85 stop | 271 | 67.9% | +0.66% | +18.5% | every year positive |
+| NEG t85 stop | 88 | 79.5% | +0.74% | +6.7% | highest clean WR, positive mean |
+| NEG t90 stop | 35 | 82.9% | +0.83% | +2.9% | WR champion, sparse |
+| any ride cell | — | 78–85% | negative | negative | falsified |
+
+Physics confirmed: negative-energy harvest is real (down-side symmetric
+law collected short); bounded excursions are mandatory; the every-
+condition property comes from polarity completeness. Open gap: the
+highest-WR positive cells run ~80–83% at 35–88 events/decade — 91% at
+density remains the target. Next levers: down-species density (mirror
+alphabet is thinner), per-side book composition, finer time resolution
+(daily bars may be the coarse rung of the flare physics), then the
+validation/repeatability protocol and live-forward.
