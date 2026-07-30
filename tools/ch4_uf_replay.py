@@ -365,6 +365,7 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
     frames: Dict[str, tuple] = {}
     all_rows: List[dict] = []
+    state_dump: Dict[str, tuple] = {}
     t0 = time.time()
     for i, sym in enumerate(symbols):
         try:
@@ -380,6 +381,15 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
             # book exits ride the primitive extinction channel (declared)
             acts = [("AVOID" if (s is not None and s.extinction == 1) else
                      (s.action if s is not None else None)) for s in states]
+            # compact per-day state matrix for the cross-structure layer
+            import numpy as _np
+            mat = _np.full((len(states), 8), _np.nan, dtype=_np.float32)
+            for _t, s in enumerate(states):
+                if s is not None:
+                    mat[_t] = (s.R_res, s.URF, s.ignition, s.extinction,
+                               s.F_n, s.S_UF, s.D_k, closes[_t])
+            state_dump[sym] = (
+                _np.array([str(dd) for dd in dates]), mat)
         else:
             rows = signal_rows(sym, dates, closes, states, boundary_flags(closes, mode))
             acts = [s.action_cp2 if s is not None else None for s in states]
@@ -416,6 +426,15 @@ def _evaluate(symbols: List[str], mode: str, tag: str) -> None:
         "signals_event_resolution": summary_event,
         "book": {k: v for k, v in book.items() if k != "trades"},
     }
+    if mode == "V2" and state_dump:
+        import numpy as _np
+        npz_payload = {}
+        for _sym, (_dts, _mat) in state_dump.items():
+            npz_payload[f"{_sym}__dates"] = _dts
+            npz_payload[f"{_sym}__mat"] = _mat
+        _np.savez_compressed(os.path.join(OUT_DIR, f"v2_states_{tag}.npz"),
+                             **npz_payload)
+        print(f"state matrices: {len(state_dump)} symbols -> v2_states_{tag}.npz")
     out_path = os.path.join(OUT_DIR, f"ch4_uf_{tag}_{mode}.json")
     with open(out_path, "w") as f:
         json.dump({**result, "book_trades": book["trades"],

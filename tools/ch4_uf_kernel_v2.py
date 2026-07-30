@@ -313,6 +313,8 @@ class DayStateV2:
     action_z: str
     action_diamond: str
     S_UF: float
+    R_res: float
+    URF: float
     x_f: float
     x_m: float
     x_s: float
@@ -541,6 +543,7 @@ def step_chain_v2(st: ChainV2, g: GateV2, date_ord: float) -> DayStateV2:
         Q_5=q5, Q_20=q20, Q_60=q60, F_n=F_n, chi_n=chi_n,
         F_n_z=F_n_z, Q_20_z=q20_z, chi_z=chi_z, action_z=action_z,
         action_diamond=action_diamond, S_UF=S_UF,
+        R_res=float(R_res), URF=float(URF),
         x_f=x_f, x_m=x_m, x_s=x_s, rho_n=rho, s_n=surprise,
         D_k=D_dir, B_k=B, Rev_k=Rev, U_star_k=float(U_star), regime=Reg,
         event_type=event_type, gate_count=st.k,
