@@ -27,8 +27,10 @@ CASH0, SLICE, MAX_POS = 100_000.0, 0.10, 10
 
 def run(min_cons: float):
     d = json.load(open(os.path.join(OUT_DIR, "ch4_uf_spectrum.json")))
+    alpha = os.environ.get("SCHEMA_ALPHA", "bigram")
     rows = [r for r in d["band_prediction_rows"]
-            if r["dir"] == "UP" and r["live_cons"] >= min_cons]
+            if r["dir"] == "UP" and r["live_cons"] >= min_cons
+            and r.get("alpha", "bigram") == alpha]
     rows.sort(key=lambda r: (r["issue_date"], r["symbol"]))
 
     # event calendar
@@ -96,6 +98,7 @@ def run(min_cons: float):
         by_year[cy] = round(100 * (final / ys - 1), 2)
 
     out = {
+        "alpha": alpha,
         "tier_min_live_cons": min_cons,
         "trades": len(trades),
         "wr_pct": round(100 * wins / len(rets), 2) if rets else None,

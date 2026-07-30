@@ -57,7 +57,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tools.ch4_uf_kernel_v2 import compute_l0_v2, LATTICES  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PARQUET = os.path.join(ROOT, "quarantine_12k_universe.parquet")
+PARQUET = os.environ.get("CH4_STORE") or os.path.join(ROOT, "quarantine_12k_universe.parquet")
 OUT_DIR = os.path.join(ROOT, "artifacts", "ch4_uf")
 W = 20
 LIFE_MIN = 0.90
@@ -125,6 +125,42 @@ def gate_stream(dates, closes, vols):
     return out
 
 
+def coarse_context_map(dates, closes, vols):
+    """Per native day: displacement sign of the last FINALIZED k=20
+    coarse gate (finalized = its successor block complete; same causal
+    rule as the fixed ladder). Context alphabet {-1, 0, +1, None}."""
+    k = 20
+    n = len(closes)
+    m = n // k
+    if m < 30:
+        return [None] * n
+    idx_end = [(j + 1) * k - 1 for j in range(m)]
+    c2 = np.array([closes[i] for i in idx_end])
+    v2 = np.array([float(np.sum(vols[j * k:(j + 1) * k])) for j in range(m)]) if vols is not None else None
+    d2 = [dates[i] for i in idx_end]
+    gs2 = gate_stream(d2, c2, v2)
+    # per coarse gate: sign, END BLOCK index; finalized when the NEXT
+    # block after its end exists
+    ctx = [None] * n
+    if not gs2:
+        return ctx
+    # map: for each native day t, last coarse gate whose end-block's
+    # successor block is complete at t
+    gate_ends = []
+    for (d_end, cls, disp, ta, tb) in gs2:
+        # tb is an index into the COARSE series; its end block is tb-1
+        end_block = tb - 1
+        final_day = idx_end[end_block + 1] if end_block + 1 < m else None
+        if final_day is not None:
+            gate_ends.append((final_day, 1 if disp > 0 else (-1 if disp < 0 else 0)))
+    gi = -1
+    for t in range(n):
+        while gi + 1 < len(gate_ends) and gate_ends[gi + 1][0] <= t:
+            gi += 1
+        ctx[t] = gate_ends[gi][1] if gi >= 0 else None
+    return ctx
+
+
 def main():
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10 ** 9
     df = pd.read_parquet(PARQUET, columns=["Date", "Symbol", "Close", "Volume"])
@@ -154,18 +190,23 @@ def main():
             gs = gate_stream(dates, closes, vols)
         except Exception:
             continue
-        for k in range(2, len(gs)):
+        ctx = coarse_context_map(dates, closes, vols)
+        for k in range(3, len(gs)):
+            d_p2, cls_p2, _, _, _ = gs[k - 3]
             d_prev, cls_prev, _, _, _ = gs[k - 2]
             d_cur, cls_cur, _, ta_cur, tb_cur = gs[k - 1]
             d_next, cls_next, disp_next, ta_n, tb_n = gs[k]
             if closes[tb_cur - 1] < PRICE_FLOOR:
                 continue
-            species = (cls_prev, cls_cur)
-            # issue date = the close where gate k-1 ended (prediction
-            # moment); exit date = last close of gate k (outcome moment)
             issue_d = str(dates[tb_cur - 1])
             exit_d = str(dates[tb_n - 1])
-            obs.append((str(d_next), species, disp_next, sym, issue_d, exit_d))
+            cx = ctx[tb_cur - 1]
+            for alpha, species in (
+                ("bigram", (cls_prev, cls_cur)),
+                ("bigram_ctx", (cls_prev, cls_cur, cx)),
+                ("trigram", (cls_p2, cls_prev, cls_cur)),
+            ):
+                obs.append((str(d_next), (alpha, species), disp_next, sym, issue_d, exit_d))
         if (i + 1) % 500 == 0:
             print(f"  [{i+1}/{len(uni)}] obs={len(obs)} {time.time()-t0:.0f}s",
                   flush=True)
@@ -236,7 +277,7 @@ def main():
         live_cons = max(p, q) / n
         if live_cons >= 0.75:
             band_preds.append({
-                "date": d_next, "symbol": sym,
+                "date": d_next, "symbol": sym, "alpha": sp[0],
                 "issue_date": issue_d, "exit_date": exit_d,
                 "dir": "UP" if pred_up else "DOWN",
                 "live_n": n, "live_cons": round(live_cons, 4),
