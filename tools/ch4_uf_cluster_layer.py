@@ -56,6 +56,28 @@ CASH0, SLICE, MAX_POS, BOOK_H = 100_000.0, 0.10, 10, 20
 
 COL_R, COL_URF, COL_IGN, COL_EXT, COL_FN, COL_SUF, COL_D, COL_CLOSE = range(8)
 
+# STRUCTURAL ELIGIBILITY (Joe 2026-07-30: "weed out the chattle first —
+# the very tool tells you the structure"): a vertex's events count only
+# while its own kernel-visible life qualifies it. Constant and form are
+# the in-repo pre-declared LIFE principle (whole-history physics tool +
+# physics-gate v3 zombie exclusion): fraction of the vertex's known bars
+# with real displacement >= 0.90, evaluated causally at each day over
+# its entire known life. No finance statistics — displacement is the
+# SEV's own ΔF axis.
+LIFE_MIN = 0.90
+
+
+def life_fraction(closes: np.ndarray) -> np.ndarray:
+    """Causal lifetime alive-fraction per day: share of bars [1..t] with
+    nonzero close displacement."""
+    n = len(closes)
+    moved = np.zeros(n)
+    if n > 1:
+        moved[1:] = (np.abs(np.diff(closes)) > 0).astype(float)
+    cum = np.cumsum(moved)
+    denom = np.maximum(np.arange(n), 1)
+    return cum / denom
+
 
 def load_states(npz_path):
     z = np.load(npz_path, allow_pickle=False)
@@ -71,14 +93,17 @@ def load_states(npz_path):
     return frames, dates, d_index
 
 
-def field_coherence(frames, dates, d_index):
+def field_coherence(frames, dates, d_index, life):
+    """C(t) over ELIGIBLE (living) vertices only — the meadow of living
+    things, per the structural-eligibility rule."""
     n = len(dates)
     tot = np.zeros(n)
     cnt = np.zeros(n)
     for s, (dts, mat) in frames.items():
+        lf = life[s]
         for j, d in enumerate(dts):
             r = mat[j, COL_R]
-            if np.isfinite(r):
+            if np.isfinite(r) and lf[j] >= LIFE_MIN:
                 i = d_index[d]
                 tot[i] += r
                 cnt[i] += 1
@@ -100,15 +125,18 @@ def field_bands(C):
     return lo, hi
 
 
-def collect_signals(frames, d_index, C, lo, hi):
+def collect_signals(frames, d_index, C, lo, hi, life):
     rows = []
     for s, (dts, mat) in frames.items():
         n = len(dts)
+        lf = life[s]
         for j in range(n):
             ign = mat[j, COL_IGN] == 1.0
             ext = mat[j, COL_EXT] == 1.0
             if not (ign or ext):
                 continue
+            if lf[j] < LIFE_MIN:
+                continue        # structural eligibility: the vertex must be alive
             px = float(mat[j, COL_CLOSE])
             if not np.isfinite(px) or px < PRICE_FLOOR:
                 continue
@@ -241,16 +269,22 @@ def main():
     npz = sys.argv[1]
     frames, dates, d_index = load_states(npz)
     print(f"{len(frames)} symbols, {len(dates)} field days")
-    C, cnt = field_coherence(frames, dates, d_index)
+    life = {s: life_fraction(mat[:, COL_CLOSE]) for s, (dts, mat) in frames.items()}
+    elig_final = sum(1 for s in frames if life[s][-1] >= LIFE_MIN)
+    print(f"structurally eligible at final bar: {elig_final}/{len(frames)}")
+    C, cnt = field_coherence(frames, dates, d_index, life)
     lo, hi = field_bands(C)
-    rows = collect_signals(frames, d_index, C, lo, hi)
+    rows = collect_signals(frames, d_index, C, lo, hi, life)
     summary = summarize(rows)
     book = run_book(rows, frames)
     result = {
-        "layer": "cross-structure resonance (meadow linkage, orig §5.2 + lineage T3)",
+        "layer": "cross-structure resonance (meadow linkage, orig §5.2 + lineage T3) "
+                 "on the structurally-eligible field (LIFE >= 0.90, in-repo principle)",
         "declared": "vertex ignition/extinction admitted by field-coherence bands "
                     f"(trailing W={W} days, pinned {BAND_LO}/{BAND_HI} bands); "
-                    "anti-band and mid-band filed with equal weight",
+                    "anti-band and mid-band filed with equal weight; eligibility "
+                    "and coherence computed over living vertices only, causally",
+        "eligible_at_final_bar": elig_final,
         "field_days": int(np.isfinite(C).sum()),
         "signals": summary,
         "book_meadow": {k: v for k, v in book.items() if k != "trades"},
