@@ -204,12 +204,14 @@ def main():
     S0p, S0n = defaultdict(int), defaultdict(int)
     S1p, S1n = defaultdict(int), defaultdict(int)
     S2p, S2n = defaultdict(int), defaultdict(int)
-    QUANTS = (5, 10, 15, 25)
-    fp_open = {q: {} for q in QUANTS}        # sym -> position
+    QUANTS = (25,)
+    ENTRY_TIERS = (0.75, 0.85, 0.90)
+    STOP_MODES = (True, False)
+    fp_open = {(q, et, sm): {} for q in QUANTS for et in ENTRY_TIERS for sm in STOP_MODES}
     peak_store = defaultdict(list)           # species -> [peak_ret history]
     trough_store = defaultdict(list)         # species -> [adverse excursion history]
     shape_store = defaultdict(list)          # species -> [peak_gate history]
-    fp_trades = {q: [] for q in QUANTS}
+    fp_trades = {(q, et, sm): [] for q in QUANTS for et in ENTRY_TIERS for sm in STOP_MODES}
     plain_open = {}
     plain_trades = []
 
@@ -265,14 +267,14 @@ def main():
                                    "peak_ret": 0.0, "peak_gate": 0,
                                    "trough_ret": 0.0}
 
-            # ---- first-passage ledgers, one per declared quantile
-            for qq in QUANTS:
-                fo = fp_open[qq].get(sym)
+            # ---- first-passage ledgers: quantile x entry-tier x stop-mode
+            for (qq, et, sm) in list(fp_trades.keys()):
+                fo = fp_open[(qq, et, sm)].get(sym)
                 if fo is not None and issue_px > 0 and issue_d > fo["issue_d"]:
                     cls = sym_closes(sym)
                     seg = cls[fo["last_ix"] + 1: issue_ix + 1]
                     tgt_px = fo["px"] * (1.0 + fo["target"] / 100.0)
-                    stp_px = fo["px"] * (1.0 + fo["stop"] / 100.0)
+                    stp_px = (fo["px"] * (1.0 + fo["stop"] / 100.0)) if sm else 0.0
                     hit_t = -1
                     hit_s = -1
                     for jj, pxv in enumerate(seg):
@@ -283,42 +285,38 @@ def main():
                         if hit_t >= 0 or hit_s >= 0:
                             break
                     if hit_t >= 0 and (hit_s < 0 or hit_t <= hit_s):
-                        fp_trades[qq].append(
+                        fp_trades[(qq, et, sm)].append(
                             {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
                              "ret_pct": round(fo["target"], 3),
                              "reason": "TARGET"})
-                        fp_open[qq].pop(sym, None)
+                        fp_open[(qq, et, sm)].pop(sym, None)
                     elif hit_s >= 0:
-                        fp_trades[qq].append(
+                        fp_trades[(qq, et, sm)].append(
                             {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
                              "ret_pct": round(fo["stop"], 3),
                              "reason": "STOP"})
-                        fp_open[qq].pop(sym, None)
+                        fp_open[(qq, et, sm)].pop(sym, None)
                     else:
                         collapse = not pred_up
                         if collapse:
                             ret_now = 100 * (issue_px / fo["px"] - 1.0)
-                            fp_trades[qq].append(
+                            fp_trades[(qq, et, sm)].append(
                                 {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
                                  "ret_pct": round(ret_now, 3),
                                  "reason": "COLLAPSE"})
-                            fp_open[qq].pop(sym, None)
+                            fp_open[(qq, et, sm)].pop(sym, None)
                         else:
                             fo["last_ix"] = issue_ix
-                if fp_open[qq].get(sym) is None and pred_up and live >= BAND and issue_px > 0:
+                if fp_open[(qq, et, sm)].get(sym) is None and pred_up and live >= et and issue_px > 0:
                     hist = peak_store.get(k0, [])
                     thist = trough_store.get(k0, [])
                     if len(hist) >= 3 and len(thist) >= 3:
                         tgt = float(np.percentile(np.array(hist[-50:]), qq))
                         stop = float(np.percentile(np.array(thist[-50:]), 25))
-                        # stop = the species' deep adverse band (25th pct of
-                        # trough history = worse than 75% of its cycles)
-                        # ENERGY-POSITIVE GATE: collect only flares whose
-                        # typical yield covers their typical adverse
-                        # excursion (target >= |stop|, ratio 1 — the
-                        # natural boundary, no invented constant)
-                        if tgt > 0 and stop < 0 and tgt >= abs(stop):
-                            fp_open[qq][sym] = {"species": k0, "issue_d": issue_d,
+                        gate_ok = (tgt > 0 and stop < 0 and tgt >= abs(stop)) if sm \
+                                  else (tgt > 0)
+                        if gate_ok:
+                            fp_open[(qq, et, sm)][sym] = {"species": k0, "issue_d": issue_d,
                                                 "px": issue_px, "target": tgt,
                                                 "stop": stop, "last_ix": issue_ix}
         if disp > 0:
@@ -390,8 +388,8 @@ def main():
               "expected_touch_note": "target at peak-quantile q predicts a "
                   "touch rate near (100-q)% of completed cycles, path bonus on top",
               "plain_morphology_control": harvest_summary(plain_trades)}
-    for qq in QUANTS:
-        result[f"fp_q{qq}"] = harvest_summary(fp_trades[qq])
+    for (qq, et, sm), trs in fp_trades.items():
+        result[f"fp_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
     out = os.path.join(OUT_DIR, "ch4_uf_first_passage.json")
     with open(out, "w") as f:
         json.dump(result, f, indent=1)
