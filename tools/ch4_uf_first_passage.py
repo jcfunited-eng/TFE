@@ -214,6 +214,12 @@ def main():
     fp_trades = {(q, et, sm): [] for q in QUANTS for et in ENTRY_TIERS for sm in STOP_MODES}
     plain_open = {}
     plain_trades = []
+    mplain_open = {}
+    mplain_trades = []
+    mpeak_store = defaultdict(list)     # species -> [down-yield history] (+%)
+    mtrough_store = defaultdict(list)   # species -> [adverse (up) excursion]
+    mfp_open = {(q, et, sm): {} for q in (25,) for et in (0.75, 0.85, 0.90) for sm in (True, False)}
+    mfp_trades = {(q, et, sm): [] for q in (25,) for et in (0.75, 0.85, 0.90) for sm in (True, False)}
 
     def sym_closes(sym):
         dts, cls, vols = frames[sym]
@@ -266,6 +272,85 @@ def main():
                                    "px": issue_px, "gates": 0, "ix": issue_ix,
                                    "peak_ret": 0.0, "peak_gate": 0,
                                    "trough_ret": 0.0}
+
+            # ---- MIRROR plain ledger (negative-energy shapes)
+            mm = mplain_open.get(sym)
+            if mm is not None and issue_px > 0 and issue_d > mm["issue_d"]:
+                mm["gates"] += 1
+                dn_now = 100 * (1.0 - issue_px / mm["px"])     # +% of decline
+                if dn_now > mm["peak_ret"]:
+                    mm["peak_ret"] = dn_now
+                    mm["peak_gate"] = mm["gates"]
+                cls_all = sym_closes(sym)
+                seg_hi = cls_all[mm["ix"] + 1: issue_ix + 1]
+                if len(seg_hi):
+                    up_ret = 100 * (float(np.max(seg_hi)) / mm["px"] - 1.0)
+                    if up_ret > mm["trough_ret"]:
+                        mm["trough_ret"] = up_ret
+                hist = mshape_hist = mpeak_store.get(mm["species"], [])
+                collapse_m = pred_up
+                ripe_m = mm["gates"] >= 3 and len(mshape_hist) >= 3
+                if ripe_m or collapse_m:
+                    mplain_trades.append(
+                        {"symbol": sym, "in": mm["issue_d"], "out": issue_d,
+                         "ret_pct": round(dn_now, 3),
+                         "reason": "RIPE" if ripe_m else "COLLAPSE"})
+                    mpeak_store[mm["species"]].append(mm["peak_ret"])
+                    mtrough_store[mm["species"]].append(mm["trough_ret"])
+                    mplain_open.pop(sym, None)
+            if mplain_open.get(sym) is None and (not pred_up) and live >= BAND and issue_px > 0:
+                mplain_open[sym] = {"species": k0, "issue_d": issue_d,
+                                    "px": issue_px, "gates": 0, "ix": issue_ix,
+                                    "peak_ret": 0.0, "peak_gate": 0,
+                                    "trough_ret": 0.0}
+
+            # ---- MIRROR first-passage ledgers (short collection)
+            for (qq, et, sm) in list(mfp_trades.keys()):
+                fo = mfp_open[(qq, et, sm)].get(sym)
+                if fo is not None and issue_px > 0 and issue_d > fo["issue_d"]:
+                    cls = sym_closes(sym)
+                    seg = cls[fo["last_ix"] + 1: issue_ix + 1]
+                    tgt_px = fo["px"] * (1.0 - fo["target"] / 100.0)
+                    stp_px = (fo["px"] * (1.0 + fo["stop"] / 100.0)) if sm else 1e18
+                    hit_t = -1
+                    hit_s = -1
+                    for jj, pxv in enumerate(seg):
+                        if hit_t < 0 and pxv <= tgt_px:
+                            hit_t = jj
+                        if hit_s < 0 and pxv >= stp_px:
+                            hit_s = jj
+                        if hit_t >= 0 or hit_s >= 0:
+                            break
+                    if hit_t >= 0 and (hit_s < 0 or hit_t <= hit_s):
+                        mfp_trades[(qq, et, sm)].append(
+                            {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                             "ret_pct": round(fo["target"], 3), "reason": "TARGET"})
+                        mfp_open[(qq, et, sm)].pop(sym, None)
+                    elif hit_s >= 0:
+                        mfp_trades[(qq, et, sm)].append(
+                            {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                             "ret_pct": round(-fo["stop"], 3), "reason": "STOP"})
+                        mfp_open[(qq, et, sm)].pop(sym, None)
+                    else:
+                        if pred_up:      # mirror collapse = field turns up
+                            ret_now = 100 * (1.0 - issue_px / fo["px"])
+                            mfp_trades[(qq, et, sm)].append(
+                                {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                                 "ret_pct": round(ret_now, 3), "reason": "COLLAPSE"})
+                            mfp_open[(qq, et, sm)].pop(sym, None)
+                        else:
+                            fo["last_ix"] = issue_ix
+                if mfp_open[(qq, et, sm)].get(sym) is None and (not pred_up) and live >= et and issue_px > 0:
+                    hist = mpeak_store.get(k0, [])
+                    thist = mtrough_store.get(k0, [])
+                    if len(hist) >= 3 and len(thist) >= 3:
+                        tgt = float(np.percentile(np.array(hist[-50:]), qq))
+                        stop = float(np.percentile(np.array(thist[-50:]), 75))
+                        gate_ok = (tgt > 0 and stop > 0 and tgt >= abs(stop)) if sm else (tgt > 0)
+                        if gate_ok:
+                            mfp_open[(qq, et, sm)][sym] = {"species": k0, "issue_d": issue_d,
+                                                "px": issue_px, "target": tgt,
+                                                "stop": stop, "last_ix": issue_ix}
 
             # ---- first-passage ledgers: quantile x entry-tier x stop-mode
             for (qq, et, sm) in list(fp_trades.keys()):
@@ -390,6 +475,11 @@ def main():
               "plain_morphology_control": harvest_summary(plain_trades)}
     for (qq, et, sm), trs in fp_trades.items():
         result[f"fp_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
+    for (qq, et, sm), trs in mfp_trades.items():
+        result[f"NEG_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
+    for (qq, et, sm) in fp_trades:
+        both = fp_trades[(qq, et, sm)] + mfp_trades[(qq, et, sm)]
+        result[f"BOTH_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(both)
     out = os.path.join(OUT_DIR, "ch4_uf_first_passage.json")
     with open(out, "w") as f:
         json.dump(result, f, indent=1)
