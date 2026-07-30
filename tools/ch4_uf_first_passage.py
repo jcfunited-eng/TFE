@@ -204,9 +204,10 @@ def main():
     S0p, S0n = defaultdict(int), defaultdict(int)
     S1p, S1n = defaultdict(int), defaultdict(int)
     S2p, S2n = defaultdict(int), defaultdict(int)
-    QUANTS = (25, 50, 75)
+    QUANTS = (5, 10, 15, 25)
     fp_open = {q: {} for q in QUANTS}        # sym -> position
     peak_store = defaultdict(list)           # species -> [peak_ret history]
+    trough_store = defaultdict(list)         # species -> [adverse excursion history]
     shape_store = defaultdict(list)          # species -> [peak_gate history]
     fp_trades = {q: [] for q in QUANTS}
     plain_open = {}
@@ -239,6 +240,12 @@ def main():
                 if ret_now > mo["peak_ret"]:
                     mo["peak_ret"] = ret_now
                     mo["peak_gate"] = mo["gates"]
+                cls_all = sym_closes(sym)
+                seg_lo = cls_all[mo["ix"] + 1: issue_ix + 1]
+                if len(seg_lo):
+                    lo_ret = 100 * (float(np.min(seg_lo)) / mo["px"] - 1.0)
+                    if lo_ret < mo["trough_ret"]:
+                        mo["trough_ret"] = lo_ret
                 hist = shape_store.get(mo["species"], [])
                 target_g = (int(np.median(hist[-50:])) if len(hist) >= 3 else None)
                 ripe = target_g is not None and mo["gates"] >= max(1, target_g)
@@ -250,11 +257,13 @@ def main():
                          "reason": "RIPE" if ripe else "COLLAPSE"})
                     shape_store[mo["species"]].append(mo["peak_gate"])
                     peak_store[mo["species"]].append(mo["peak_ret"])
+                    trough_store[mo["species"]].append(mo["trough_ret"])
                     plain_open.pop(sym, None)
             if plain_open.get(sym) is None and pred_up and live >= BAND and issue_px > 0:
                 plain_open[sym] = {"species": k0, "issue_d": issue_d,
                                    "px": issue_px, "gates": 0, "ix": issue_ix,
-                                   "peak_ret": 0.0, "peak_gate": 0}
+                                   "peak_ret": 0.0, "peak_gate": 0,
+                                   "trough_ret": 0.0}
 
             # ---- first-passage ledgers, one per declared quantile
             for qq in QUANTS:
@@ -263,12 +272,27 @@ def main():
                     cls = sym_closes(sym)
                     seg = cls[fo["last_ix"] + 1: issue_ix + 1]
                     tgt_px = fo["px"] * (1.0 + fo["target"] / 100.0)
-                    touched = bool(len(seg)) and bool(np.max(seg) >= tgt_px)
-                    if touched:
+                    stp_px = fo["px"] * (1.0 + fo["stop"] / 100.0)
+                    hit_t = -1
+                    hit_s = -1
+                    for jj, pxv in enumerate(seg):
+                        if hit_t < 0 and pxv >= tgt_px:
+                            hit_t = jj
+                        if hit_s < 0 and pxv <= stp_px:
+                            hit_s = jj
+                        if hit_t >= 0 or hit_s >= 0:
+                            break
+                    if hit_t >= 0 and (hit_s < 0 or hit_t <= hit_s):
                         fp_trades[qq].append(
                             {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
                              "ret_pct": round(fo["target"], 3),
                              "reason": "TARGET"})
+                        fp_open[qq].pop(sym, None)
+                    elif hit_s >= 0:
+                        fp_trades[qq].append(
+                            {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                             "ret_pct": round(fo["stop"], 3),
+                             "reason": "STOP"})
                         fp_open[qq].pop(sym, None)
                     else:
                         collapse = not pred_up
@@ -283,12 +307,16 @@ def main():
                             fo["last_ix"] = issue_ix
                 if fp_open[qq].get(sym) is None and pred_up and live >= BAND and issue_px > 0:
                     hist = peak_store.get(k0, [])
-                    if len(hist) >= 3:
+                    thist = trough_store.get(k0, [])
+                    if len(hist) >= 3 and len(thist) >= 3:
                         tgt = float(np.percentile(np.array(hist[-50:]), qq))
-                        if tgt > 0:
+                        stop = float(np.percentile(np.array(thist[-50:]), 25))
+                        # stop = the species' deep adverse band (25th pct of
+                        # trough history = worse than 75% of its cycles)
+                        if tgt > 0 and stop < 0:
                             fp_open[qq][sym] = {"species": k0, "issue_d": issue_d,
                                                 "px": issue_px, "target": tgt,
-                                                "last_ix": issue_ix}
+                                                "stop": stop, "last_ix": issue_ix}
         if disp > 0:
             S2p[k2s] += 1; S1p[k1] += 1; S0p[k0] += 1
         elif disp < 0:
@@ -338,7 +366,7 @@ def main():
         if cy:
             byy[cy] = round(100 * (cash / ys - 1), 2)
         reason_split = {}
-        for rn in ("RIPE", "COLLAPSE"):
+        for rn in ("RIPE", "COLLAPSE", "TARGET", "STOP"):
             rr = np.array([t["ret_pct"] for t in trades if t.get("reason") == rn])
             if len(rr):
                 reason_split[rn] = {"n": int(len(rr)),
