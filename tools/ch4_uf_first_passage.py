@@ -313,7 +313,11 @@ def main():
                         stop = float(np.percentile(np.array(thist[-50:]), 25))
                         # stop = the species' deep adverse band (25th pct of
                         # trough history = worse than 75% of its cycles)
-                        if tgt > 0 and stop < 0:
+                        # ENERGY-POSITIVE GATE: collect only flares whose
+                        # typical yield covers their typical adverse
+                        # excursion (target >= |stop|, ratio 1 — the
+                        # natural boundary, no invented constant)
+                        if tgt > 0 and stop < 0 and tgt >= abs(stop):
                             fp_open[qq][sym] = {"species": k0, "issue_d": issue_d,
                                                 "px": issue_px, "target": tgt,
                                                 "stop": stop, "last_ix": issue_ix}
