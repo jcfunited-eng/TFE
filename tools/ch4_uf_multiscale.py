@@ -109,12 +109,17 @@ def coarse_flags(dates, closes, vols, k):
         if s is not None:
             blk_up[j] = (s.URF > 0.0) and (s.D_k == 1)
             blk_dn[j] = (s.URF == 0.0) or (s.D_k == -1)
-    # map to native days: last complete block ending <= t
+    # map to native days — FINALIZED blocks only: block j's curvature
+    # (and hence its chain state) needs block j+1, so j is usable at
+    # native day t only once idx_end[j+1] <= t. Never uses a state that
+    # could change later; up-to-2k publication lag is the honest price
+    # of block physics. (Fixes a look-ahead leak caught in self-audit.)
     j = -1
     for t in range(n):
-        while j + 1 < len(idx_end) and idx_end[j + 1] <= t:
+        while j + 1 < len(idx_end) - 1 and idx_end[j + 2] <= t:
             j += 1
-        if j >= 0:
+        # invariant: block j is usable iff its successor j+1 is complete
+        if j >= 0 and idx_end[j + 1] <= t:
             up[t] = blk_up[j]
             down[t] = blk_dn[j]
     return up, down
@@ -299,9 +304,28 @@ def main():
             assert side_tr == r["side"] and ch_tr == r["channel"], \
                 f"MULTISCALE CAUSALITY VIOLATION {sym}@{t}: {side_tr}/{ch_tr} vs {r['side']}/{r['channel']}"
             checked += 1
-            if checked >= 5:
+            if checked >= 30:
                 break
-        print(f"causality on {checked} diamond days: OK")
+        # also check non-diamond channels (leak shows up as channel drift)
+        others = [r for r in all_rows if r["channel"] != "diamond"][:10]
+        for r in others:
+            sym, t = r["symbol"], r["t"]
+            dates, closes, vols, _ = frames[sym]
+            ups = {}
+            dns = {}
+            for k in SCALES:
+                u, dn = coarse_flags(dates[: t + 1], closes[: t + 1], vols[: t + 1], k)
+                ups[k], dns[k] = u[t], dn[t]
+            cu = all(ups[k] for k in SCALES)
+            cd = all(dns[k] for k in SCALES)
+            if r["side"] == "ACCUMULATE":
+                ch_tr = "diamond" if cu else ("glass" if cd else "mid")
+            else:
+                ch_tr = "diamond" if cd else ("glass" if cu else "mid")
+            assert ch_tr == r["channel"], \
+                f"MULTISCALE CAUSALITY VIOLATION {sym}@{t}: {ch_tr} vs {r['channel']}"
+            checked += 1
+        print(f"causality on {checked} sampled days (all channels): OK")
 
     summary = summarize(all_rows)
     book = run_book(all_rows, frames)
