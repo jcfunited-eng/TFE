@@ -200,6 +200,7 @@ def main():
                 continue
             issue_d = str(dates[tb_cur - 1])
             exit_d = str(dates[tb_n - 1])
+            issue_px = float(closes[tb_cur - 1])
             cx = ctx[tb_cur - 1]
             # pooled spelling: coarsest-lattice term only (h=4) — merges
             # near-identical species so records fatten (deep tiers need n)
@@ -212,7 +213,7 @@ def main():
                 ("pooled", (pool_prev, pool_cur)),
                 ("pooled_ctx", (pool_prev, pool_cur, cx)),
             ):
-                obs.append((str(d_next), (alpha, species), disp_next, sym, issue_d, exit_d))
+                obs.append((str(d_next), (alpha, species), disp_next, sym, issue_d, exit_d, issue_px))
         if (i + 1) % 500 == 0:
             print(f"  [{i+1}/{len(uni)}] obs={len(obs)} {time.time()-t0:.0f}s",
                   flush=True)
@@ -225,9 +226,9 @@ def main():
     # snapshot the FINAL spectrum (for the census) and also record each
     # observation's PRE-observation species stats (causal view)
     causal_rows = []
-    for d_next, sp, disp, sym, issue_d, exit_d in obs:
+    for d_next, sp, disp, sym, issue_d, exit_d, issue_px in obs:
         p, q = store_pos[sp], store_neg[sp]
-        causal_rows.append((sp, p, q, disp, d_next, sym, issue_d, exit_d))
+        causal_rows.append((sp, p, q, disp, d_next, sym, issue_d, exit_d, issue_px))
         if disp > 0:
             store_pos[sp] += 1
         elif disp < 0:
@@ -268,8 +269,39 @@ def main():
     # whose live (pre-observation) record had n >= W and consistency >=
     # the pinned upper band (0.75) at issue time. Persisted in full.
     band_preds = []
-    for sp, p, q, disp, d_next, sym, issue_d, exit_d in causal_rows:
+    # CYCLE LEDGER (declared): per alphabet — enter long at a band-UP
+    # prediction's issue close (live_cons >= 0.75, n >= W); exit at the
+    # FIRST subsequent established DOWN-majority prediction (n >= W, any
+    # consistency — the field's ordinary collapse reading) at ITS issue
+    # close; force-close at the last seen price. Causal on both ends.
+    cycle_open = {}          # (alpha, sym) -> (issue_d, px)
+    cycle_last_px = {}       # (alpha, sym) -> (date, px)
+    cycle_trades = defaultdict(list)   # alpha -> trades
+    for sp, p, q, disp, d_next, sym, issue_d, exit_d, issue_px in causal_rows:
         sym_div[sp].add(sym)
+        alpha_key = sp[0]
+        k2 = (alpha_key, sym)
+        cycle_last_px[k2] = (issue_d, issue_px)
+        n2 = p + q
+        if n2 >= W:
+            pred_up2 = p >= q
+            oc = cycle_open.get(k2)
+            if oc is None and pred_up2 and (max(p, q) / n2) >= 0.75 and issue_px > 0:
+                cycle_open[k2] = (issue_d, issue_px)
+            elif oc is not None and not pred_up2 and issue_px > 0 and issue_d > oc[0]:
+                cycle_trades[alpha_key].append(
+                    {"symbol": sym, "in": oc[0], "out": issue_d,
+                     "ret_pct": round(100 * (issue_px / oc[1] - 1.0), 3)})
+                cycle_open.pop(k2, None)
+    for (alpha_key, sym), oc in cycle_open.items():
+        lp = cycle_last_px.get((alpha_key, sym))
+        if lp and lp[1] > 0 and lp[0] > oc[0]:
+            cycle_trades[alpha_key].append(
+                {"symbol": sym, "in": oc[0], "out": lp[0],
+                 "ret_pct": round(100 * (lp[1] / oc[1] - 1.0), 3),
+                 "eod": True})
+
+    for sp, p, q, disp, d_next, sym, issue_d, exit_d, issue_px in causal_rows:
         n = p + q
         if n < W:
             continue
@@ -332,9 +364,69 @@ def main():
         "by_year": {y: agg(v) for y, v in sorted(band_by_year.items())},
     }
 
+    # cycle-harvest summaries + declared book per alphabet
+    def cycle_summary(trades):
+        if not trades:
+            return {}
+        rets = np.array([t["ret_pct"] for t in trades])
+        by = defaultdict(list)
+        for t in trades:
+            by[t["in"][:4]].append(t["ret_pct"])
+        evs = sorted(trades, key=lambda t: (t["in"], t["symbol"]))
+        cal = defaultdict(lambda: {"i": [], "o": []})
+        for i, t in enumerate(evs):
+            cal[t["in"]]["i"].append(i)
+            cal[t["out"]]["o"].append(i)
+        cash, open_pos, held = 100_000.0, {}, set()
+        curve = []
+        for day in sorted(cal.keys()):
+            for i in sorted(cal[day]["o"]):
+                if i in open_pos:
+                    amt = open_pos.pop(i)
+                    held.discard(evs[i]["symbol"])
+                    cash += amt * (1 + evs[i]["ret_pct"] / 100)
+            for i in sorted(cal[day]["i"], key=lambda j: evs[j]["symbol"]):
+                t = evs[i]
+                if t["symbol"] in held or len(open_pos) >= 10:
+                    continue
+                eq = cash + sum(open_pos.values())
+                b = min(cash, 0.10 * eq)
+                if b <= 0:
+                    continue
+                open_pos[i] = b
+                held.add(t["symbol"])
+                cash -= b
+            curve.append((day, cash + sum(open_pos.values())))
+        for i in list(open_pos):
+            cash += open_pos.pop(i) * (1 + evs[i]["ret_pct"] / 100)
+        byy = {}
+        prev = ys = 100_000.0
+        cy = curve[0][0][:4] if curve else None
+        for day, eq in curve:
+            if day[:4] != cy:
+                byy[cy] = round(100 * (prev / ys - 1), 2)
+                cy, ys = day[:4], prev
+            prev = eq
+        if cy:
+            byy[cy] = round(100 * (cash / ys - 1), 2)
+        return {
+            "trades": len(trades),
+            "wr_pct": round(100 * float((rets > 0).mean()), 2),
+            "mean_pct": round(float(rets.mean()), 2),
+            "median_pct": round(float(np.median(rets)), 2),
+            "by_year_wr": {y: {"n": len(v),
+                               "wr": round(100 * float((np.array(v) > 0).mean()), 1)}
+                           for y, v in sorted(by.items())},
+            "book_total_pct": round(100 * (cash / 100_000.0 - 1), 2),
+            "book_by_year": byy,
+        }
+
+    cycles_out = {a: cycle_summary(tr) for a, tr in cycle_trades.items()}
+
     result = {
         "frame": "temporal geometric species spectrum (mosaic-class bigrams, "
                  "field schema memory, causal)",
+        "cycle_harvest": cycles_out,
         "band_predictions": band_summary,
         "eligible_symbols": kept,
         "observations": len(obs),
