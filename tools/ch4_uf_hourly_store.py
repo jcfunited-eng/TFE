@@ -36,11 +36,11 @@ import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PARQUET = os.path.join(ROOT, "quarantine_12k_universe.parquet")
-OUT_PARQUET = os.path.join(ROOT, "ch4_hourly_universe.parquet")
-CACHE_DIR = os.path.join(ROOT, "artifacts", "ch4_uf", "hourly_cache")
+OUT_PARQUET = os.path.join(ROOT, "ch4_hourly_universe_full.parquet")
+CACHE_DIR = os.path.join(ROOT, "artifacts", "ch4_uf", "hourly_cache_full")
 MIN_BARS = 1250
 PRICE_FLOOR = 5.0
-START, END = "2021-01-01", "2026-03-24"
+START, END = "2016-01-01", "2026-03-24"
 SEAM_START = "2021-03-26"
 SEAM_TOL = 0.005
 REQ_SLEEP = 0.15   # ~6-7 req/s, polite
