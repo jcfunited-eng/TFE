@@ -47,7 +47,39 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tools.ch4_uf_spectrum import gate_stream, life_fraction, W  # noqa: E402
-from tools.ch4_uf_reverse_census import zigzag, PHASE_LEN  # noqa: E402
+from tools.ch4_uf_reverse_census import zigzag, PHASE_LEN, REV_MULT  # noqa: E402
+
+
+def causal_leg_direction(closes):
+    """Per-bar direction of the confirmed leg: +1 rising from a confirmed
+    trough, -1 falling from a confirmed peak, 0 warm-up. Uses only bars
+    <= t (pivot confirmation = threshold crossing, same rule as the
+    census zigzag but evaluated forward)."""
+    n = len(closes)
+    moves = np.abs(np.diff(closes))
+    out = np.zeros(n, dtype=int)
+    direction = 0
+    ext_i = 0
+    for t in range(1, n):
+        w0 = max(0, t - W)
+        med = float(np.median(moves[w0:t])) if t > w0 else 0.0
+        thresh = REV_MULT * max(med, 1e-9)
+        if direction >= 0 and closes[t] > closes[ext_i]:
+            ext_i = t
+            if direction == 0:
+                direction = 1
+        elif direction <= 0 and closes[t] < closes[ext_i]:
+            ext_i = t
+            if direction == 0:
+                direction = -1
+        if direction == 1 and closes[ext_i] - closes[t] > thresh:
+            direction = -1
+            ext_i = t
+        elif direction == -1 and closes[t] - closes[ext_i] > thresh:
+            direction = 1
+            ext_i = t
+        out[t] = direction
+    return out
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PARQUET = os.environ.get("CH4_STORE") or os.path.join(ROOT, "quarantine_12k_universe_ext.parquet")
@@ -129,6 +161,7 @@ def main():
     # stream in date order (warm from 2016, predictions used post-split)
     obs = []
     for sym, (dates, closes, vols, gs) in frames.items():
+        leg = causal_leg_direction(closes)
         for k in range(2, len(gs)):
             d_prev, cls_prev, _, _, _ = gs[k - 2]
             d_cur, cls_cur, _, ta_c, tb_c = gs[k - 1]
@@ -136,14 +169,14 @@ def main():
             issue_d = dates[tb_c - 1]
             issue_px = float(closes[tb_c - 1])
             obs.append((str(d_next), (cls_prev, cls_cur), disp_next, sym,
-                        issue_d, issue_px))
+                        issue_d, issue_px, int(leg[tb_c - 1])))
     obs.sort(key=lambda x: (x[0], x[3]))
     print(f"observations: {len(obs)}")
 
     Sp, Sn = defaultdict(int), defaultdict(int)
     open_pos = {}
     trades = []
-    for d_next, sp, disp, sym, issue_d, issue_px in obs:
+    for d_next, sp, disp, sym, issue_d, issue_px, legdir in obs:
         p, q = Sp[sp], Sn[sp]
         n = p + q
         pred_up = p >= q if n >= W else True
@@ -160,7 +193,7 @@ def main():
                 open_pos.pop(sym, None)
         # entries: frozen rise-birth species completing, post-split
         if sym not in open_pos and sp in rise_set and issue_d >= SPLIT \
-                and issue_px >= PRICE_FLOOR:
+                and issue_px >= PRICE_FLOOR and legdir == -1:
             open_pos[sym] = {"in": issue_d, "px": issue_px}
         if disp > 0:
             Sp[sp] += 1
