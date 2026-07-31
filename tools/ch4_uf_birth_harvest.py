@@ -105,6 +105,7 @@ def main():
     # ---- pass 1: SELECTION census on the first window only
     rise_birth = defaultdict(int)
     fall_birth = defaultdict(int)
+    comp_total = defaultdict(int)
     frames = {}
     t0 = time.time()
     for i, sym in enumerate(uni):
@@ -128,32 +129,70 @@ def main():
                     bar_bigram[t] = (prev_cls, cls)
             prev_cls = cls
         piv = zigzag(closes)
+        # birth maps: bar -> +1 if a rise segment starts at this bar,
+        # -1 for a fall start (hindsight labels, TRAINING WINDOW ONLY)
+        birth_at = {}
         for a, b in zip(piv[:-1], piv[1:]):
-            if b <= a or closes[a] <= 0 or dates[a] >= SPLIT:
+            if b <= a or closes[a] <= 0:
                 continue
-            kind = rise_birth if closes[b] > closes[a] else fall_birth
-            for t in range(a, min(a + PHASE_LEN, b + 1)):
-                k = bar_bigram[t]
-                if k is not None and closes[t] >= PRICE_FLOOR:
-                    kind[k] += 1
+            birth_at[a] = 1 if closes[b] > closes[a] else -1
+        # completion-aligned: for each species completion in the training
+        # window, does a rise/fall birth occur within PHASE_LEN bars
+        # (before or after — the birth neighborhood)?
+        for k in range(1, len(gs)):
+            d_cur, cls_cur, _, ta_c, tb_c = gs[k]
+            t_issue = tb_c - 1
+            if t_issue >= len(closes) or dates[t_issue] >= SPLIT:
+                continue
+            if closes[t_issue] < PRICE_FLOOR:
+                continue
+            sp = (gs[k - 1][1], cls_cur)
+            lab = 0
+            for dt in range(-PHASE_LEN, PHASE_LEN + 1):
+                lab = birth_at.get(t_issue + dt, 0) or lab
+                if lab:
+                    break
+            comp_total[sp] += 1
+            if lab == 1:
+                rise_birth[sp] += 1
+            elif lab == -1:
+                fall_birth[sp] += 1
         if (i + 1) % 500 == 0:
             print(f"  pass1 [{i+1}/{len(uni)}] {time.time()-t0:.0f}s", flush=True)
 
-    r_tot = max(1, sum(rise_birth.values()))
-    f_tot = max(1, sum(fall_birth.values()))
+    # posterior spectrum (spectrum-first): P(rise birth near | completion)
+    posts = []
+    for sp, tot in comp_total.items():
+        if tot >= MIN_N:
+            posts.append((rise_birth[sp] / tot, fall_birth[sp] / tot, tot, sp))
+    import numpy as _np
+    if posts:
+        pr = _np.array([p[0] for p in posts])
+        print("posterior spectrum P(rise-birth near|completion): "
+              f"n_species={len(posts)} p50={_np.percentile(pr,50):.3f} "
+              f"p90={_np.percentile(pr,90):.3f} p99={_np.percentile(pr,99):.3f} max={pr.max():.3f}")
     rise_set = set()
     fall_set = set()
-    for k, v in rise_birth.items():
-        if v >= MIN_N:
-            asym = (v / r_tot) / max(fall_birth.get(k, 0) / f_tot, 1e-9)
-            if asym >= MIN_ASYM:
-                rise_set.add(k)
-    for k, v in fall_birth.items():
-        if v >= MIN_N:
-            asym = (v / f_tot) / max(rise_birth.get(k, 0) / r_tot, 1e-9)
-            if asym >= MIN_ASYM:
-                fall_set.add(k)
-    print(f"FROZEN sets: rise-birth species={len(rise_set)}, fall-birth={len(fall_set)}")
+    # freeze at the pinned band 0.75 posterior; if empty, take the top
+    # decile (reported, not hidden) so the harvest is still evaluated
+    for p_r, p_f, tot, sp in posts:
+        if p_r >= 0.75:
+            rise_set.add(sp)
+        if p_f >= 0.75:
+            fall_set.add(sp)
+    used_band = 0.75
+    if not rise_set and posts:
+        cut = float(_np.percentile(pr, 90))
+        used_band = round(cut, 3)
+        for p_r, p_f, tot, sp in posts:
+            if p_r >= cut:
+                rise_set.add(sp)
+        pf = _np.array([p[1] for p in posts])
+        cutf = float(_np.percentile(pf, 90))
+        for p_r, p_f, tot, sp in posts:
+            if p_f >= cutf:
+                fall_set.add(sp)
+    print(f"FROZEN sets @posterior>={used_band}: rise={len(rise_set)}, fall={len(fall_set)}")
 
     # ---- pass 2: causal evaluation on the second window
     # collapse fallback: established DOWN-majority via the causal schema
