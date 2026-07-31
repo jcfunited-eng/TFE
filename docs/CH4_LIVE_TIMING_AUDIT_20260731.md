@@ -72,6 +72,20 @@ live timing; the dollars never did.
    post-reveal structure; others (longer horizons, cross-symbol herd
    completions, magnitude-conditioned objects) remain unmeasured.
 
+## Addendum (same day): the reveal is TWO bars
+
+`kappa(t) = |F(t+1) − 2F(t) + F(t−1)|` — the boundary flag at t is only
+final once bar t+1 exists (the kernel's own finalization comment).
+True knowability is therefore the close of bar t+2's open… i.e. one bar
+later than even this audit's strict fills assumed. Every falsification
+above is thus CONSERVATIVE (real capturable is smaller still); the law
+is unaffected (completion signs do not depend on when they are
+learned). Corollary for path 1: during the true reveal bar, all
+quantities of the closing gate are final EXCEPT the single provisional
+kappa/N term — the species prediction is computable BEFORE the boundary
+confirms, and provisional detection from finer sub-bars is an O(1)
+update per sub-bar.
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
