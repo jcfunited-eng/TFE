@@ -372,14 +372,16 @@ def main():
                     if touched:
                         wrc_trades[et].append(
                             {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
-                             "ret_pct": round(fo["target"], 3), "reason": "TARGET"})
+                             "ret_pct": round(fo["target"], 3), "reason": "TARGET",
+                             "bound_pct": fo.get("bound", 2.0)})
                         wrc_pred.append((fo["p_touch"], 1))
                         wrc_open[et].pop(sym, None)
                     elif not pred_up:
                         ret_now = 100 * (issue_px / fo["px"] - 1.0)
                         wrc_trades[et].append(
                             {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
-                             "ret_pct": round(ret_now, 3), "reason": "COLLAPSE"})
+                             "ret_pct": round(ret_now, 3), "reason": "COLLAPSE",
+                             "bound_pct": fo.get("bound", 2.0)})
                         wrc_pred.append((fo["p_touch"], 0))
                         wrc_open[et].pop(sym, None)
                     else:
@@ -393,9 +395,11 @@ def main():
                         tgt = float(np.percentile(arr, 100 * (1 - WR_BAR)))
                         p_touch = float((arr >= tgt).mean())
                         if tgt > 0 and p_touch >= WR_BAR:
+                            thist = trough_store.get(k0, [])
+                            bound = abs(float(np.percentile(np.array(thist[-50:]), 25))) if len(thist) >= 3 else 2.0
                             wrc_open[et][sym] = {"species": k0, "issue_d": issue_d,
                                                  "px": issue_px, "target": tgt,
-                                                 "p_touch": p_touch,
+                                                 "p_touch": p_touch, "bound": max(bound, 0.25),
                                                  "last_ix": issue_ix}
 
             # ---- first-passage ledgers: quantile x entry-tier x stop-mode
@@ -515,6 +519,66 @@ def main():
                 "book_total_pct": round(100 * (cash / 100_000.0 - 1), 2),
                 "book_by_year": byy}
 
+    def field_book(trades, risk_per_pos_pct=1.0, max_gross_pct=100.0):
+        """Physics-fair financial controls (declared): every certified
+        harvest taken concurrently; each position sized so its species'
+        adverse bound risks risk_per_pos_pct of current equity; gross
+        exposure capped at max_gross_pct; return reported on equity AND
+        on deployed capital; no idle-cash dilution hidden."""
+        if not trades:
+            return {}
+        evs = sorted(trades, key=lambda t: (t["in"], t["symbol"]))
+        cal = defaultdict(lambda: {"i": [], "o": []})
+        for i, t in enumerate(evs):
+            cal[t["in"]]["i"].append(i)
+            cal[t["out"]]["o"].append(i)
+        eq = 100_000.0
+        open_pos = {}
+        deployed_ret_sum = 0.0
+        deployed_notional = 0.0
+        exposure_samples = []
+        curve = []
+        for day in sorted(cal.keys()):
+            for i in cal[day]["o"]:
+                if i in open_pos:
+                    notional = open_pos.pop(i)
+                    pnl = notional * evs[i]["ret_pct"] / 100.0
+                    eq += pnl
+                    deployed_ret_sum += pnl
+                    deployed_notional += notional
+            gross = sum(open_pos.values())
+            for i in cal[day]["i"]:
+                t = evs[i]
+                bound = max(float(t.get("bound_pct", 2.0)), 0.25)
+                notional = eq * (risk_per_pos_pct / bound)
+                if gross + notional > eq * (max_gross_pct / 100.0):
+                    notional = max(0.0, eq * (max_gross_pct / 100.0) - gross)
+                if notional <= 0:
+                    continue
+                open_pos[i] = notional
+                gross += notional
+            exposure_samples.append(gross / eq if eq > 0 else 0)
+            curve.append((day, eq))
+        for i in list(open_pos):
+            notional = open_pos.pop(i)
+            eq += notional * evs[i]["ret_pct"] / 100.0
+            deployed_notional += notional
+        byy = {}
+        prev = ys = 100_000.0
+        cy = curve[0][0][:4] if curve else None
+        for day, e in curve:
+            if day[:4] != cy:
+                byy[cy] = round(100 * (prev / ys - 1), 2)
+                cy, ys = day[:4], prev
+            prev = e
+        if cy:
+            byy[cy] = round(100 * (eq / ys - 1), 2)
+        return {"final_equity": round(eq, 2),
+                "total_return_pct": round(100 * (eq / 100_000.0 - 1), 2),
+                "return_on_deployed_pct": round(100 * deployed_ret_sum / deployed_notional, 3) if deployed_notional else None,
+                "mean_gross_exposure_pct": round(100 * float(np.mean(exposure_samples)), 1) if exposure_samples else 0,
+                "by_year": byy}
+
     result = {"frame": "first-passage harvest (species peak-quantile targets)",
               "expected_touch_note": "target at peak-quantile q predicts a "
                   "touch rate near (100-q)% of completed cycles, path bonus on top",
@@ -523,6 +587,13 @@ def main():
         result[f"fp_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
     for et, trs in wrc_trades.items():
         result[f"WRC91_t{int(et*100)}"] = harvest_summary(trs)
+        result[f"WRC91_t{int(et*100)}_FIELDBOOK"] = field_book(trs)
+    for (qq, et, sm) in list(fp_trades.keys()):
+        both = fp_trades[(qq, et, sm)] + mfp_trades[(qq, et, sm)]
+        for t in both:
+            t.setdefault("bound_pct", abs(t.get("ret_pct", 2.0)) if t.get("reason") == "STOP" else 2.0)
+        if sm:
+            result[f"BOTH_q{qq}_t{int(et*100)}_stop_FIELDBOOK"] = field_book(both)
     if wrc_pred:
         preds = np.array([p for p, h in wrc_pred])
         hits = np.array([h for p, h in wrc_pred])
