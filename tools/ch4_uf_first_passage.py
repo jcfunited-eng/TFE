@@ -207,6 +207,10 @@ def main():
     QUANTS = (25,)
     ENTRY_TIERS = (0.75, 0.85, 0.90)
     STOP_MODES = (True, False)
+    WR_BAR = 0.91                     # Joe's bar, used as the INPUT constraint
+    wrc_open = {et: {} for et in ENTRY_TIERS}
+    wrc_trades = {et: [] for et in ENTRY_TIERS}
+    wrc_pred = []                     # (predicted_touch, hit) calibration rows
     fp_open = {(q, et, sm): {} for q in QUANTS for et in ENTRY_TIERS for sm in STOP_MODES}
     peak_store = defaultdict(list)           # species -> [peak_ret history]
     trough_store = defaultdict(list)         # species -> [adverse excursion history]
@@ -355,6 +359,45 @@ def main():
                                                 "px": issue_px, "target": tgt,
                                                 "stop": stop, "last_ix": issue_ix}
 
+            # ---- WR-CONSTRAINED ledgers: per-species largest target with
+            #      causal touch record >= WR_BAR; ride window (collapse
+            #      exit); calibration rows filed for honesty
+            for et in ENTRY_TIERS:
+                fo = wrc_open[et].get(sym)
+                if fo is not None and issue_px > 0 and issue_d > fo["issue_d"]:
+                    cls = sym_closes(sym)
+                    seg = cls[fo["last_ix"] + 1: issue_ix + 1]
+                    tgt_px = fo["px"] * (1.0 + fo["target"] / 100.0)
+                    touched = bool(len(seg)) and bool(np.max(seg) >= tgt_px)
+                    if touched:
+                        wrc_trades[et].append(
+                            {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                             "ret_pct": round(fo["target"], 3), "reason": "TARGET"})
+                        wrc_pred.append((fo["p_touch"], 1))
+                        wrc_open[et].pop(sym, None)
+                    elif not pred_up:
+                        ret_now = 100 * (issue_px / fo["px"] - 1.0)
+                        wrc_trades[et].append(
+                            {"symbol": sym, "in": fo["issue_d"], "out": issue_d,
+                             "ret_pct": round(ret_now, 3), "reason": "COLLAPSE"})
+                        wrc_pred.append((fo["p_touch"], 0))
+                        wrc_open[et].pop(sym, None)
+                    else:
+                        fo["last_ix"] = issue_ix
+                if wrc_open[et].get(sym) is None and pred_up and live >= et and issue_px > 0:
+                    hist = peak_store.get(k0, [])
+                    if len(hist) >= 10:
+                        arr = np.array(hist[-50:])
+                        # largest x with P(peak >= x) >= WR_BAR:
+                        # the (1-WR_BAR) quantile of the peak distribution
+                        tgt = float(np.percentile(arr, 100 * (1 - WR_BAR)))
+                        p_touch = float((arr >= tgt).mean())
+                        if tgt > 0 and p_touch >= WR_BAR:
+                            wrc_open[et][sym] = {"species": k0, "issue_d": issue_d,
+                                                 "px": issue_px, "target": tgt,
+                                                 "p_touch": p_touch,
+                                                 "last_ix": issue_ix}
+
             # ---- first-passage ledgers: quantile x entry-tier x stop-mode
             for (qq, et, sm) in list(fp_trades.keys()):
                 fo = fp_open[(qq, et, sm)].get(sym)
@@ -478,6 +521,16 @@ def main():
               "plain_morphology_control": harvest_summary(plain_trades)}
     for (qq, et, sm), trs in fp_trades.items():
         result[f"fp_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
+    for et, trs in wrc_trades.items():
+        result[f"WRC91_t{int(et*100)}"] = harvest_summary(trs)
+    if wrc_pred:
+        preds = np.array([p for p, h in wrc_pred])
+        hits = np.array([h for p, h in wrc_pred])
+        result["WRC91_calibration"] = {
+            "n": int(len(hits)),
+            "predicted_touch_mean_pct": round(100 * float(preds.mean()), 2),
+            "realized_touch_pct": round(100 * float(hits.mean()), 2),
+        }
     for (qq, et, sm), trs in mfp_trades.items():
         result[f"NEG_q{qq}_t{int(et*100)}_{'stop' if sm else 'ride'}"] = harvest_summary(trs)
     for (qq, et, sm) in fp_trades:
