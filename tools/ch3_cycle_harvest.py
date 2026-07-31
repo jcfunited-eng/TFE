@@ -41,6 +41,12 @@ OUT = os.environ.get("CH3_HARVEST_OUT") or os.path.join(
 CASH0 = 100_000.0
 SLICE_PCT = 10.0
 MAX_OPEN = 10
+# CH3_MORPH=1: morphology exits — each species' own causal median
+# gates-to-peak (>=3 completed cycles required; before that, the
+# ordinary opposing-majority exit applies). Peak = best return at any
+# prediction event during the cycle; the gate clock is the symbol's
+# prediction-event stream. All stores causal.
+MORPH = os.environ.get("CH3_MORPH") == "1"
 
 
 def main():
@@ -53,9 +59,10 @@ def main():
           f"entries at band>={band_min}")
 
     books = {}                  # entry-year -> dict(cash, trades, wins)
-    held = {}                   # sym -> (year, notional, entry_px, side, entry_d)
+    held = {}                   # sym -> position dict
     hold_hours = []
     last_event = {}             # sym -> (issue_d, issue_px) for force-close
+    morph_store = defaultdict(list)   # species -> peak-gate history
 
     def book(y):
         if y not in books:
@@ -63,34 +70,48 @@ def main():
         return books[y]
 
     def settle(sym, px, d):
-        y, notional, epx, side, ed = held.pop(sym)
-        ret = 100 * (px / epx - 1.0) * side
-        b = books[y]
-        b["cash"] += notional * (1 + ret / 100.0)
+        h = held.pop(sym)
+        ret = 100 * (px / h["epx"] - 1.0) * h["side"]
+        b = books[h["y"]]
+        b["cash"] += h["notional"] * (1 + ret / 100.0)
         b["rets"].append(ret)
-        t0 = pd.to_datetime(str(ed), format="%Y%m%d%H%M")
+        if MORPH:                       # record the completed cycle's shape
+            morph_store[h["sp"]].append(h["peak_gate"])
+        t0 = pd.to_datetime(str(h["ed"]), format="%Y%m%d%H%M")
         t1 = pd.to_datetime(str(d), format="%Y%m%d%H%M")
         hold_hours.append((t1 - t0).total_seconds() / 3600)
 
-    cols = ["issue_d", "sym", "pred", "band", "issue_px"]
-    for issue_d, sym, pred, band, ipx in zip(
+    cols = ["issue_d", "sym", "pred", "band", "issue_px", "species"]
+    for issue_d, sym, pred, band, ipx, spc in zip(
             *(df[c].to_numpy() for c in cols)):
         last_event[sym] = (issue_d, ipx)
-        if sym in held:
-            side = held[sym][3]
-            if int(pred) == -side:          # majority against: exit
+        h = held.get(sym)
+        if h is not None:
+            h["gates"] += 1
+            r = 100 * (float(ipx) / h["epx"] - 1.0) * h["side"]
+            if r > h["peak_ret"]:
+                h["peak_ret"], h["peak_gate"] = r, h["gates"]
+            hist = morph_store.get(h["sp"], []) if MORPH else []
+            if MORPH and len(hist) >= 3:
+                if h["gates"] >= int(np.median(hist)):
+                    settle(sym, ipx, issue_d)
+                    continue
+            if int(pred) == -h["side"]:     # ordinary collapse exit
                 settle(sym, ipx, issue_d)
             continue
         if band < band_min:
             continue
         y = int(issue_d // key_div)
         b = book(y)
-        open_here = sum(1 for h in held.values() if h[0] == y)
+        open_here = sum(1 for x in held.values() if x["y"] == y)
         notional = min(b["cash"] * SLICE_PCT / 100.0, b["cash"])
         if open_here >= MAX_OPEN or notional <= 0:
             continue
         b["cash"] -= notional
-        held[sym] = (y, notional, float(ipx), int(pred), int(issue_d))
+        held[sym] = {"y": y, "notional": notional, "epx": float(ipx),
+                     "side": int(pred), "ed": int(issue_d),
+                     "sp": int(spc), "gates": 0,
+                     "peak_ret": 0.0, "peak_gate": 0}
 
     for sym in list(held.keys()):           # force-close leftovers
         d, px = last_event[sym]
@@ -110,10 +131,11 @@ def main():
             "ret_pct": round(100 * (b["cash"] / CASH0 - 1), 2)}
     hh = np.array(hold_hours) if hold_hours else np.array([0.0])
     result = {
-        "frame": f"cycle read, live-true fills — entry band>={band_min} "
-                 "at reveal close, exit first opposing majority at its "
-                 "reveal close, both polarities, 10% slices max-10, "
-                 "fresh $100k per entry-year",
+        "frame": f"{'morphology' if MORPH else 'cycle'} read, live-true "
+                 f"fills — entry band>={band_min} at reveal close, exit "
+                 f"{'species median gates-to-peak (causal, >=3 cycles) else ' if MORPH else ''}"
+                 "first opposing majority at its reveal close, both "
+                 "polarities, 10% slices max-10, fresh $100k per entry-year",
         "holding_hours_median": round(float(np.median(hh)), 1),
         "holding_hours_p90": round(float(np.percentile(hh, 90)), 1),
         "by_year": by_year}
