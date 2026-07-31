@@ -208,6 +208,9 @@ def main():
     ENTRY_TIERS = (0.75, 0.85, 0.90)
     STOP_MODES = (True, False)
     WR_BAR = 0.91                     # Joe's bar, used as the INPUT constraint
+    # ASSEMBLED BOOK: every proven entry flow; certified-touch exits
+    asm_open = {}
+    asm_trades = []
     wrc_open = {et: {} for et in ENTRY_TIERS}
     wrc_trades = {et: [] for et in ENTRY_TIERS}
     wrc_pred = []                     # (predicted_touch, hit) calibration rows
@@ -358,6 +361,63 @@ def main():
                             mfp_open[(qq, et, sm)][sym] = {"species": k0, "issue_d": issue_d,
                                                 "px": issue_px, "target": tgt,
                                                 "stop": stop, "last_ix": issue_ix}
+
+            # ---- ASSEMBLED BOOK (the machine, not the parts):
+            # ENTRY on any proven flow: band-UP prediction (>= BAND) long,
+            # band-DOWN short (mirror), on the eligible field. EXIT at the
+            # position's certified touch target when its species certifies
+            # one (P(touch) >= WR_BAR causally); else at the ordinary
+            # collapse call. Sizing left to the field book (risk parity).
+            ap = asm_open.get(sym)
+            if ap is not None and issue_px > 0 and issue_d > ap["in"]:
+                cls_arr = sym_closes(sym)
+                seg = cls_arr[ap["last_ix"] + 1: issue_ix + 1]
+                done_trade = None
+                if ap["target"] is not None and len(seg):
+                    if ap["side"] == 1:
+                        tgt_px = ap["px"] * (1.0 + ap["target"] / 100.0)
+                        if np.max(seg) >= tgt_px:
+                            done_trade = ("TARGET", ap["target"])
+                    else:
+                        tgt_px = ap["px"] * (1.0 - ap["target"] / 100.0)
+                        if np.min(seg) <= tgt_px:
+                            done_trade = ("TARGET", ap["target"])
+                if done_trade is None:
+                    collapse = (not pred_up) if ap["side"] == 1 else pred_up
+                    if collapse:
+                        raw = 100 * (issue_px / ap["px"] - 1.0)
+                        ret = raw if ap["side"] == 1 else -raw
+                        done_trade = ("COLLAPSE", ret)
+                if done_trade is not None:
+                    reason, ret = done_trade
+                    asm_trades.append({"symbol": sym, "in": ap["in"],
+                                       "out": issue_d, "ret_pct": round(ret, 3),
+                                       "reason": reason, "side": ap["side"],
+                                       "bound_pct": ap["bound"]})
+                    asm_open.pop(sym, None)
+                else:
+                    ap["last_ix"] = issue_ix
+            if asm_open.get(sym) is None and n >= W and live >= BAND and issue_px > 0:
+                side = 1 if pred_up else -1
+                if side == 1:
+                    hist = peak_store.get(k0, [])
+                    thist = trough_store.get(k0, [])
+                else:
+                    hist = mpeak_store.get(k0, [])
+                    thist = mtrough_store.get(k0, [])
+                tgt = None
+                if len(hist) >= 10:
+                    arr = np.array(hist[-50:])
+                    cand = float(np.percentile(arr, 100 * (1 - WR_BAR)))
+                    if cand > 0 and float((arr >= cand).mean()) >= WR_BAR:
+                        tgt = cand
+                bound = 2.0
+                if len(thist) >= 3:
+                    b_ = np.percentile(np.array(thist[-50:]), 25 if side == 1 else 75)
+                    bound = max(abs(float(b_)), 0.25)
+                asm_open[sym] = {"in": issue_d, "px": issue_px, "side": side,
+                                 "target": tgt, "bound": bound,
+                                 "last_ix": issue_ix}
 
             # ---- WR-CONSTRAINED ledgers: per-species largest target with
             #      causal touch record >= WR_BAR; ride window (collapse
@@ -588,6 +648,11 @@ def main():
     for et, trs in wrc_trades.items():
         result[f"WRC91_t{int(et*100)}"] = harvest_summary(trs)
         result[f"WRC91_t{int(et*100)}_FIELDBOOK"] = field_book(trs)
+    result["ASSEMBLED"] = harvest_summary(asm_trades)
+    result["ASSEMBLED_FIELDBOOK_1pct"] = field_book(asm_trades, risk_per_pos_pct=1.0)
+    result["ASSEMBLED_FIELDBOOK_2pct"] = field_book(asm_trades, risk_per_pos_pct=2.0)
+    cert = [t for t in asm_trades if t["reason"] == "TARGET"]
+    result["ASSEMBLED_certified_share_pct"] = round(100 * len(cert) / max(1, len(asm_trades)), 2)
     for (qq, et, sm) in list(fp_trades.keys()):
         both = fp_trades[(qq, et, sm)] + mfp_trades[(qq, et, sm)]
         for t in both:
