@@ -201,7 +201,20 @@ def main():
                 "reason": ("TARGET" if hit_target else
                            "COARSE_FLIP" if coarse_flip else "BOUND")})
             del book["positions"][sym]
-    # entries
+    # entries — never on a Friday close (no new weekend exposure;
+    # exits above still process)
+    if datetime.strptime(bar_date, "%Y-%m-%d").weekday() == 4:
+        print("Friday close: entries skipped (weekend rule); exits processed")
+        book["last_processed"] = bar_date
+        book["last_run_utc"] = datetime.now(timezone.utc).isoformat()
+        book["equity_mark"] = round(book["cash"] + sum(
+            p["notional"] for p in book["positions"].values()), 2)
+        os.makedirs(os.path.dirname(BOOK_PATH), exist_ok=True)
+        with open(BOOK_PATH, "w") as f:
+            json.dump(book, f, indent=1)
+        print(f"book: open={len(book['positions'])} closed={len(book['closed'])} "
+              f"cash=${book['cash']:,.2f}")
+        return 0
     equity = book["cash"] + sum(p["notional"] for p in book["positions"].values())
     gross = sum(p["notional"] for p in book["positions"].values())
     for d in sorted(decisions, key=lambda x: x["symbol"]):
