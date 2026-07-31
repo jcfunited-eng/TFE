@@ -59,6 +59,13 @@ BAND = 0.75
 # persist predictions at >= this live band; CH3_KEEP_ALL=1 keeps EVERY
 # n>=W prediction (cycle exits need ordinary-majority reads)
 KEEP_BAND = 0.0 if os.environ.get("CH3_KEEP_ALL") == "1" else 0.70
+# CH3_TRADE_DISP=1: the completion object becomes the TRADABLE
+# displacement — reveal close to reveal close (issue_px -> exit_px) —
+# instead of the gate displacement (which includes the reveal bar and
+# cannot be captured live). Same schema memory, same causality; the
+# question becomes: are there species whose CAPTURABLE completions are
+# consistent?
+TRADE_DISP = os.environ.get("CH3_TRADE_DISP") == "1"
 ALPHAS = ("bigram", "bigram_ctx", "pooled_ctx")
 # sharding: CH3_OBS_SHARD="k/K" collects observations for its slice of
 # the universe and exits; CH3_OBS_MERGE=1 loads all shards and runs the
@@ -188,6 +195,9 @@ def main():
         for c in ("d_next", "issue_d", "exit_d"):
             odf[c] = odf[c].astype("int64")
 
+    if TRADE_DISP:
+        odf["disp"] = (odf["exit_px"] / odf["issue_px"] - 1.0) \
+            .replace([np.inf, -np.inf], 0.0).fillna(0.0)
     odf["sym"] = odf["sym"].astype("category")
     # STRICT AS-OF-ISSUE ledger: completions apply in availability
     # order (d_next = the completion's reveal close); every prediction
