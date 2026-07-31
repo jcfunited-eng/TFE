@@ -89,14 +89,15 @@ def main():
                     open_f.update(out=dates[t], outcome="COMPLETE", ret=YIELD_PCT)
                     finds.append(open_f); open_f = None
                 else:
-                    # the coarse structure must first TURN with the trade,
-                    # then its flip AGAINST the trade ends the window; a
-                    # fine flip against the trade before the coarse turn
-                    # is the early death (bounded small)
+                    # STOCK-LEVEL WINDOW: the find lives until the coarse
+                    # structure, having turned with it, flips against it —
+                    # or 250 bars pass. Fine-scale churn never kills the
+                    # find (that is harvest mechanics, not detection).
+                    open_f["age"] = open_f.get("age", 0) + 1
                     if not open_f["coarse_turned"] and dirs_c[t] == side:
                         open_f["coarse_turned"] = True
                     ended = (open_f["coarse_turned"] and flips_c[t] == -side) or \
-                            (not open_f["coarse_turned"] and fine8_flips[t] == -side)
+                            open_f["age"] >= 250
                     if ended:
                         raw = 100 * (closes[t] / open_f["px"] - 1.0)
                         open_f.update(out=dates[t], outcome="FAIL",
