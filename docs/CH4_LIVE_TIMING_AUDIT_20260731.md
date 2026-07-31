@@ -86,6 +86,23 @@ kappa/N term — the species prediction is computable BEFORE the boundary
 confirms, and provisional detection from finer sub-bars is an O(1)
 update per sub-bar.
 
+## Addendum 2: early capture measured and closed
+
+Provisional detection from 15-min partials is ~100% precise AND ~100%
+complete at the FIRST 15-min close of the reveal bar (302,853/302,862
+fires confirmed; 9 missed; ch3_early_reveal.json) — the boundary
+decision is dominated by terms final at the gate close; the provisional
+kappa/N term almost never flips it. The earliest honest fill therefore
+exists 15 minutes into the reveal bar. Measured on the 60-name m15
+store: the species spectrum on the early-capturable window (first
+15-min close of reveal bar → same instant of the next gate) is at the
+binomial null with marginal excess; the declared book is ±1%/yr noise
+(ch3_early_capture.json). Conclusion: at these alphabets the payout
+concentrates in the first 15 minutes of the reveal bar — ahead of any
+honest fill at 15-min sampling. Capturing it would require sub-15-min
+sampling (1-min partials), which remains the one unmeasured corner of
+path 1.
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
