@@ -22,6 +22,11 @@ THE HUNT (every 15 minutes during market hours):
   GRADE     at each later cycle and at the close: target touched =
             HIT; reversal bound breached or session end = MISS with
             the would-be cost.
+  BOOK      theoretical $100,000: every find is a simulated fill at
+            the find close, sized risk-parity (a stop-out costs 1% of
+            equity; gross <= 100%), sold at target / stop / close —
+            flat overnight always (quick cash, never a bag). Dollars
+            are the record.
 
 State: artifacts/vtvr_observer/ch3_shadow_log.json (grades included).
 Usage:
@@ -50,6 +55,9 @@ BARS_PER_SESSION = 26          # 15-min bars in 6.5h
 W_BARS = 26                    # trailing window = one session
 REV_MULT = 4
 PRICE_FLOOR = 5.0
+CASH0 = 100_000.0
+RISK_PCT = 1.0                 # a stop-out costs 1% of equity
+MAX_GROSS_PCT = 100.0
 
 
 def watchlist():
@@ -130,14 +138,40 @@ def quick_yield_record(closes, flips):
 def load_log():
     if os.path.exists(LOG_PATH):
         with open(LOG_PATH) as f:
-            return json.load(f)
-    return {"engine": ENGINE, "finds": [], "days": {}}
+            log = json.load(f)
+    else:
+        log = {"engine": ENGINE, "finds": [], "days": {}}
+    log.setdefault("book", {"cash": CASH0, "start": CASH0})
+    return log
 
 
 def save_log(log):
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
     with open(LOG_PATH, "w") as f:
         json.dump(log, f, indent=1)
+
+
+def open_notional(log):
+    return sum(f.get("notional", 0.0) for f in log["finds"]
+               if f["status"] == "OPEN")
+
+
+def size_find(book, held, bound_pct):
+    """Risk-parity theoretical fill: losing the stop costs RISK_PCT of
+    equity; gross capped at MAX_GROSS_PCT; never exceeds cash."""
+    equity = book["cash"] + held
+    notional = equity * RISK_PCT / max(bound_pct, 0.2)
+    notional = min(notional, equity * MAX_GROSS_PCT / 100.0 - held,
+                   book["cash"])
+    return round(notional, 2) if notional > 0 else 0.0
+
+
+def settle(book, f, status, now, ret_pct):
+    """Simulated sell: return the notional plus its result to cash."""
+    pnl = round(f.get("notional", 0.0) * ret_pct / 100.0, 2)
+    book["cash"] = round(book["cash"] + f.get("notional", 0.0) + pnl, 2)
+    f.update(status=status, resolved=now, ret_pct=round(ret_pct, 2),
+             pnl=pnl)
 
 
 def cycle():
@@ -157,22 +191,21 @@ def cycle():
         dirs, flips, origin, moves = leg_walk(closes)
         t = len(closes) - 1
 
-        # grade any live find on this symbol
+        # grade any live find on this symbol (theoretical sell)
         f = live.get(sym)
         if f is not None:
             if f["side"] == 1 and closes[t] >= f["target_px"]:
-                f.update(status="HIT", resolved=now,
-                         ret_pct=round(100 * (f["target_px"] / f["entry_px"] - 1), 2))
+                settle(log["book"], f, "HIT", now,
+                       100 * (f["target_px"] / f["entry_px"] - 1))
                 graded += 1
             elif f["side"] == -1 and closes[t] <= f["target_px"]:
-                f.update(status="HIT", resolved=now,
-                         ret_pct=round(100 * (1 - f["target_px"] / f["entry_px"]), 2))
+                settle(log["book"], f, "HIT", now,
+                       100 * (1 - f["target_px"] / f["entry_px"]))
                 graded += 1
             else:
                 adverse = 100 * (closes[t] / f["entry_px"] - 1) * f["side"]
                 if adverse <= -f["bound_pct"]:
-                    f.update(status="MISS", resolved=now,
-                             ret_pct=round(adverse, 2))
+                    settle(log["book"], f, "MISS", now, adverse)
                     graded += 1
             continue
 
@@ -200,16 +233,20 @@ def cycle():
             continue
         tgt_px = closes[t] * (1 + tgt_pct / 100) if side == 1 \
             else closes[t] * (1 - tgt_pct / 100)
+        bnd = round(max(bound_pct, 0.2), 2)
+        notional = size_find(log["book"], open_notional(log), bnd)
+        log["book"]["cash"] = round(log["book"]["cash"] - notional, 2)
         log["finds"].append({
             "engine": ENGINE, "date": today, "found_at": now,
             "symbol": sym, "side": side, "entry_px": round(float(closes[t]), 4),
             "target_pct": round(tgt_pct, 2), "target_px": round(float(tgt_px), 4),
-            "bound_pct": round(max(bound_pct, 0.2), 2),
+            "bound_pct": bnd, "notional": notional,
             "status": "OPEN"})
         new_finds += 1
     save_log(log)
     print(f"[shadow] {now} cycle: {new_finds} new finds, {graded} graded, "
-          f"{sum(1 for f in log['finds'] if f['date'] == today)} today total")
+          f"{sum(1 for f in log['finds'] if f['date'] == today)} today total, "
+          f"cash=${log['book']['cash']:,.2f} held=${open_notional(log):,.2f}")
 
 
 def close_day():
@@ -226,7 +263,12 @@ def close_day():
         for f in log["finds"]:
             if f["symbol"] == sym and f["date"] == today and f["status"] == "OPEN":
                 ret = 100 * (px / f["entry_px"] - 1) * f["side"]
-                f.update(status="EOD", resolved=now, ret_pct=round(ret, 2))
+                settle(log["book"], f, "EOD", now, ret)
+    # any find that could not be priced at the close still settles flat
+    # at entry (the book never carries positions overnight)
+    for f in log["finds"]:
+        if f["status"] == "OPEN":
+            settle(log["book"], f, "EOD", now, 0.0)
     day = [f for f in log["finds"] if f["date"] == today]
     hits = sum(1 for f in day if f["status"] == "HIT")
     done = [f for f in day if f["status"] in ("HIT", "MISS", "EOD")]
@@ -234,7 +276,9 @@ def close_day():
     log["days"][today] = {
         "finds": len(day), "hits": hits,
         "hit_rate_pct": round(100 * hits / len(done), 1) if done else None,
-        "mean_ret_pct": round(float(np.mean(rets)), 2) if rets else None}
+        "mean_ret_pct": round(float(np.mean(rets)), 2) if rets else None,
+        "pnl_usd": round(sum(f.get("pnl", 0.0) for f in done), 2),
+        "book_value": log["book"]["cash"]}
     save_log(log)
     print(f"[shadow] close {today}: {json.dumps(log['days'][today])}")
 

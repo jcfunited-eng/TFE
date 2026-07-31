@@ -1,53 +1,83 @@
 """
 ch3_shadow_page.py — render the CH3 shadow hunter log to HTML.
+
+The shadow runs a theoretical $100,000 book: every find is a simulated
+buy (or short) sized against its own stop, sold at target / stop / the
+close. This page shows the book and every fill.
+
 Usage: python tools/ch3_shadow_page.py /path/out.html
 """
 from __future__ import annotations
-import json, os, sys
+
+import json
+import os
+import sys
 from datetime import datetime, timezone
 
 LOG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "artifacts", "vtvr_observer", "ch3_shadow_log.json")
+CASH0 = 100_000.0
+
 
 def main():
     out_path = sys.argv[1]
-    log = {"finds": [], "days": {}}
+    log = {"finds": [], "days": {}, "book": {"cash": CASH0, "start": CASH0}}
     if os.path.exists(LOG):
         log = json.load(open(LOG))
-    finds = sorted(log.get("finds", []), key=lambda f: f.get("found_at", ""), reverse=True)
+    book = log.get("book", {"cash": CASH0, "start": CASH0})
+    finds = sorted(log.get("finds", []), key=lambda f: f.get("found_at", ""),
+                   reverse=True)
     days = log.get("days", {})
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     today = stamp[:10]
     tf = [f for f in finds if f.get("date") == today]
-    open_n = sum(1 for f in tf if f["status"] == "OPEN")
+    open_f = [f for f in finds if f["status"] == "OPEN"]
+    held = sum(f.get("notional", 0.0) for f in open_f)
+    value = book["cash"] + held
+    made = value - book.get("start", CASH0)
     hit_n = sum(1 for f in tf if f["status"] == "HIT")
+    mcls = "up" if made >= 0 else "dn"
 
     rows = ""
     for f in finds[:120]:
         st = f["status"]
         cls = "up" if st == "HIT" else ("dn" if st == "MISS" else "")
         ret = f.get("ret_pct")
+        pnl = f.get("pnl")
+        if pnl is not None:
+            pcls = "up" if pnl >= 0 else "dn"
+            pnl_s = f'<td class="num {pcls}">${pnl:+,.2f}</td>'
+        else:
+            pnl_s = '<td class="num">—</td>'
         rows += (f'<tr><td>{f["date"]}</td><td>{f.get("found_at","")[11:16]}</td>'
                  f'<td class="tk">{f["symbol"]}</td>'
                  f'<td><span class="badge">{"LONG" if f["side"]==1 else "SHORT"}</span></td>'
                  f'<td class="num">${f["entry_px"]}</td>'
+                 f'<td class="num">${f.get("notional", 0):,.0f}</td>'
                  f'<td class="num">+{f["target_pct"]}%</td>'
                  f'<td class="num">-{f["bound_pct"]}%</td>'
                  f'<td class="{cls}">{st}</td>'
-                 f'<td class="num {cls}">{("%+.2f%%" % ret) if ret is not None else "—"}</td></tr>')
+                 f'<td class="num {cls}">{("%+.2f%%" % ret) if ret is not None else "—"}</td>'
+                 f'{pnl_s}</tr>')
     if not rows:
-        rows = ('<tr><td colspan="9" class="empty">No finds logged yet — the '
-                'hunter cycles every 15 minutes during market hours and only '
-                'logs when the intraday spring stands on a stock.</td></tr>')
+        rows = ('<tr><td colspan="11" class="empty">No finds logged yet — the '
+                'hunter sweeps every 15 minutes during market hours and buys '
+                'only when the intraday spring stands on a stock.</td></tr>')
 
     day_rows = ""
     for d, s in sorted(days.items(), reverse=True):
+        dp = s.get("pnl_usd")
+        dcls = "up" if (dp or 0) >= 0 else "dn"
+        bv = s.get("book_value")
+        dp_s = f'${dp:+,.2f}' if dp is not None else "—"
+        bv_s = f'${bv:,.2f}' if bv is not None else "—"
         day_rows += (f'<tr><td>{d}</td><td class="num">{s["finds"]}</td>'
                      f'<td class="num">{s["hits"]}</td>'
                      f'<td class="num">{s["hit_rate_pct"] if s["hit_rate_pct"] is not None else "—"}%</td>'
-                     f'<td class="num">{("%+.2f%%" % s["mean_ret_pct"]) if s["mean_ret_pct"] is not None else "—"}</td></tr>')
+                     f'<td class="num {dcls}">{dp_s}</td>'
+                     f'<td class="num">{bv_s}</td></tr>')
     if not day_rows:
-        day_rows = '<tr><td colspan="5" class="empty">First session in progress.</td></tr>'
+        day_rows = '<tr><td colspan="6" class="empty">First session in progress.</td></tr>'
 
     html = f"""<title>CH3 Shadow Hunter</title>
 <style>
@@ -73,6 +103,7 @@ h1 {{ font-size:1.15rem; margin:0; }}
 .tile {{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }}
 .tile .k {{ font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }}
 .tile .v {{ font-size:1.15rem; font-weight:650; font-variant-numeric:tabular-nums; margin-top:2px; }}
+.v.up {{ color:var(--up); }} .v.dn {{ color:var(--dn); }}
 .card {{ background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }}
 .card h2 {{ font-size:.8rem; margin:0; padding:12px 16px; }}
 .twrap {{ overflow-x:auto; }}
@@ -91,38 +122,46 @@ td.empty {{ color:var(--muted); text-align:center; padding:22px; }}
 </style>
 <main>
 <header>
-  <h1>CH3 — Shadow Hunter <span class="badge">NO ORDERS</span></h1>
-  <div class="sub">Engine ch3_spring_intraday_v1 · cycles every 15 minutes during
-   market hours · logs and grades what it WOULD trade · live channel remains
-   halted · page updated {stamp}</div>
+  <h1>CH3 — Shadow Hunter <span class="badge">NO REAL ORDERS</span></h1>
+  <div class="sub">Engine ch3_spring_intraday_v1 · theoretical $100,000 book ·
+   sweeps every 15 minutes during market hours · buys and sells are simulated
+   at the engine's own prices · flat at every close · page updated {stamp}</div>
 </header>
 <section class="tiles">
+  <div class="tile"><div class="k">Book value</div><div class="v">${value:,.2f}</div></div>
+  <div class="tile"><div class="k">Made so far</div><div class="v {mcls}">${made:+,.2f}</div></div>
   <div class="tile"><div class="k">Finds today</div><div class="v">{len(tf)}</div></div>
-  <div class="tile"><div class="k">Open</div><div class="v">{open_n}</div></div>
   <div class="tile"><div class="k">Hits today</div><div class="v">{hit_n}</div></div>
-  <div class="tile"><div class="k">Sessions logged</div><div class="v">{len(days)}</div></div>
+  <div class="tile"><div class="k">Open now</div><div class="v">{len(open_f)}</div></div>
+  <div class="tile"><div class="k">Sessions</div><div class="v">{len(days)}</div></div>
 </section>
 <section class="card">
-  <h2>Day summaries</h2>
+  <h2>Day results</h2>
   <div class="twrap"><table>
-    <thead><tr><th>Date</th><th>Finds</th><th>Hits</th><th>Hit rate</th><th>Mean result</th></tr></thead>
+    <thead><tr><th>Date</th><th>Finds</th><th>Hits</th><th>Hit rate</th>
+      <th>Made</th><th>Book value</th></tr></thead>
     <tbody>{day_rows}</tbody></table></div>
 </section>
 <section class="card">
-  <h2>Find log <small></small></h2>
+  <h2>Simulated trades</h2>
   <div class="twrap"><table>
     <thead><tr><th>Date</th><th>Time</th><th>Ticker</th><th>Side</th>
-      <th>Entry</th><th>Target</th><th>Bound</th><th>Status</th><th>Result</th></tr></thead>
+      <th>Entry</th><th>Size</th><th>Target</th><th>Stop</th><th>Status</th>
+      <th>Result</th><th>P&amp;L $</th></tr></thead>
     <tbody>{rows}</tbody></table></div>
 </section>
-<p class="foot">Shadow record only — no orders are placed. Each find shows the
-entry, target, and bound the engine would have used; HIT means the target was
-touched, MISS means the bound was breached, EOD means the session ended first.
+<p class="foot">Shadow record only — no real orders are placed. Every find is a
+theoretical buy (or short) at the engine's find price, sized so a stop-out
+costs 1% of the book, sold at the target, the stop, or the close — never held
+overnight. HIT means the target was touched, MISS means the stop was hit,
+EOD means the session ended and the position was closed at the last price.
 This record decides when the live channel re-arms.</p>
 </main>
 """
-    open(out_path, "w").write(html)
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(html)
     print("page written:", out_path)
+
 
 if __name__ == "__main__":
     main()
