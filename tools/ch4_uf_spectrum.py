@@ -277,6 +277,15 @@ def main():
     cycle_open = {}          # (alpha, sym) -> (issue_d, px)
     cycle_last_px = {}       # (alpha, sym) -> (date, px)
     cycle_trades = defaultdict(list)   # alpha -> trades
+    # MORPHOLOGY HARVEST (declared): each species' exit comes from its
+    # OWN causally-accumulated cycle shape — the median gates-to-peak of
+    # its prior completed cycles (>= 3 completed cycles required; before
+    # that, morphology entries fall back to the ordinary-collapse exit).
+    # Peak = the best return seen at any prediction event during the
+    # cycle. All stores strictly causal.
+    morph_open = {}          # (alpha, sym) -> dict(species, issue_d, px, gates, peak_ret, peak_gate)
+    morph_store = defaultdict(list)    # species -> [peak_gate history]
+    morph_trades = defaultdict(list)   # alpha -> trades
     for sp, p, q, disp, d_next, sym, issue_d, exit_d, issue_px in causal_rows:
         sym_div[sp].add(sym)
         alpha_key = sp[0]
@@ -293,6 +302,32 @@ def main():
                     {"symbol": sym, "in": oc[0], "out": issue_d,
                      "ret_pct": round(100 * (issue_px / oc[1] - 1.0), 3)})
                 cycle_open.pop(k2, None)
+
+            # --- morphology ledger (same entries; species-shaped exits)
+            mo = morph_open.get(k2)
+            if mo is not None and issue_px > 0 and issue_d > mo["issue_d"]:
+                mo["gates"] += 1
+                ret_now = 100 * (issue_px / mo["px"] - 1.0)
+                if ret_now > mo["peak_ret"]:
+                    mo["peak_ret"] = ret_now
+                    mo["peak_gate"] = mo["gates"]
+                hist = morph_store.get(mo["species"], [])
+                target = (int(np.median(hist[-50:])) if len(hist) >= 3 else None)
+                collapse = not pred_up2
+                ripe = target is not None and mo["gates"] >= max(1, target)
+                if ripe or collapse:
+                    morph_trades[alpha_key].append(
+                        {"symbol": sym, "in": mo["issue_d"], "out": issue_d,
+                         "ret_pct": round(ret_now, 3),
+                         "reason": "RIPE" if ripe else "COLLAPSE"})
+                    morph_store[mo["species"]].append(mo["peak_gate"])
+                    morph_open.pop(k2, None)
+            if morph_open.get(k2) is None and pred_up2 and (max(p, q) / n2) >= 0.75 and issue_px > 0:
+                sp_key = sp
+                if morph_open.get(k2) is None and (k2 not in morph_open):
+                    morph_open[k2] = {"species": sp_key, "issue_d": issue_d,
+                                      "px": issue_px, "gates": 0,
+                                      "peak_ret": 0.0, "peak_gate": 0}
     for (alpha_key, sym), oc in cycle_open.items():
         lp = cycle_last_px.get((alpha_key, sym))
         if lp and lp[1] > 0 and lp[0] > oc[0]:
@@ -422,11 +457,13 @@ def main():
         }
 
     cycles_out = {a: cycle_summary(tr) for a, tr in cycle_trades.items()}
+    morph_out = {a: cycle_summary(tr) for a, tr in morph_trades.items()}
 
     result = {
         "frame": "temporal geometric species spectrum (mosaic-class bigrams, "
                  "field schema memory, causal)",
         "cycle_harvest": cycles_out,
+        "morphology_harvest": morph_out,
         "band_predictions": band_summary,
         "eligible_symbols": kept,
         "observations": len(obs),
