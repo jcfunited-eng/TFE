@@ -108,13 +108,20 @@ def collect_obs(syms, t0, tag=""):
             d_prev, cls_prev, _, _, _ = gs[k - 2]
             d_cur, cls_cur, _, ta_cur, tb_cur = gs[k - 1]
             d_next, cls_next, disp_next, ta_n, tb_n = gs[k]
-            if closes[tb_cur - 1] < PRICE_FLOOR:
+            # LIVE-TRUE timing: boundary(t) needs bar t — a gate ending
+            # at tb-1 is first KNOWN at the close of bar tb. Issue at
+            # closes[tb_cur] (the reveal bar of the current gate);
+            # completion becomes known at closes[tb_n] (the reveal bar
+            # of the predicted gate). Prices and availability both slip.
+            if tb_cur >= len(closes) or tb_n >= len(closes):
                 continue
-            issue_d = dates[tb_cur - 1]
-            exit_d = dates[tb_n - 1]
-            issue_px = float(closes[tb_cur - 1])
-            exit_px = float(closes[tb_n - 1])
-            cx = ctx[tb_cur - 1]
+            if closes[tb_cur] < PRICE_FLOOR:
+                continue
+            issue_d = dates[tb_cur]
+            exit_d = dates[tb_n]
+            issue_px = float(closes[tb_cur])
+            exit_px = float(closes[tb_n])
+            cx = ctx[tb_cur]
             pool_prev = (cls_prev[0][2], cls_prev[1])
             pool_cur = (cls_cur[0][2], cls_cur[1])
             for ai, (alpha, species) in enumerate((
@@ -149,27 +156,64 @@ def main():
 
     if MERGE:
         parts = sorted(os.listdir(SHARD_DIR))
-        odf = pd.concat([pd.read_parquet(os.path.join(SHARD_DIR, p))
-                         for p in parts], ignore_index=True)
+        dfs = []
+        for p in parts:
+            d = pd.read_parquet(os.path.join(SHARD_DIR, p))
+            for c in ("d_next", "issue_d", "exit_d"):
+                d[c] = d[c].astype("int64")     # "YYYYMMDDHH" -> int
+            dfs.append(d)
+        odf = pd.concat(dfs, ignore_index=True)
+        del dfs
         kept = -1
         print(f"merged {len(parts)} shards: obs={len(odf)} "
               f"({time.time()-t0:.0f}s)", flush=True)
     else:
         kept, odf = collect_obs(universe(limit), t0)
+        for c in ("d_next", "issue_d", "exit_d"):
+            odf[c] = odf[c].astype("int64")
 
-    odf = odf.sort_values(["d_next", "sym"], kind="mergesort")
-    obs = list(odf.itertuples(index=False, name=None))
-    print(f"eligible: {kept} symbols; observations: {len(obs)} "
+    odf["sym"] = odf["sym"].astype("category")
+    # STRICT AS-OF-ISSUE ledger: completions apply in availability
+    # order (d_next = the completion's reveal close); every prediction
+    # reads the record as of its ISSUE close — completions revealed at
+    # or after the issue close are excluded (no contamination from the
+    # window between issue and completion).
+    odf = odf.sort_values(["issue_d", "sym"], kind="mergesort")
+    sym_cats = odf["sym"].cat.categories.tolist()
+    arrs = (odf["d_next"].to_numpy(), odf["sp"].to_numpy(),
+            odf["alpha"].to_numpy(), odf["disp"].to_numpy(),
+            odf["sym"].cat.codes.to_numpy(), odf["issue_d"].to_numpy(),
+            odf["exit_d"].to_numpy(), odf["issue_px"].to_numpy(),
+            odf["exit_px"].to_numpy())
+    n_obs = len(odf)
+    c_order = np.argsort(arrs[0], kind="stable")
+    c_avail = arrs[0][c_order]
+    c_sp = arrs[1][c_order]
+    c_disp = arrs[3][c_order]
+    del odf
+    print(f"eligible: {kept} symbols; observations: {n_obs} "
           f"({time.time()-t0:.0f}s)", flush=True)
 
+    def obs_iter(chunk=2_000_000):
+        for s in range(0, n_obs, chunk):
+            yield from zip(*(a[s:s + chunk].tolist() for a in arrs))
+
     # causal schema accumulation, strict global completion order
-    obs.sort(key=lambda x: (x[0], x[3]))
     pos = defaultdict(int)
     neg = defaultdict(int)
     agg = defaultdict(lambda: defaultdict(lambda: [0, 0]))   # alpha -> year -> [hit, n]
     keep_rows = []
     alpha0_ids = set()          # species ids seen under the bigram alphabet
-    for d_next, sp, ai, disp, sym, issue_d, exit_d, ipx, epx in obs:
+    cp = 0                       # completion pointer (availability order)
+    for d_next, sp, ai, disp, sym_c, issue_d, exit_d, ipx, epx in obs_iter():
+        while cp < n_obs and c_avail[cp] < issue_d:
+            csp = int(c_sp[cp])
+            cd = c_disp[cp]
+            if cd > 0:
+                pos[csp] += 1
+            elif cd < 0:
+                neg[csp] += 1
+            cp += 1
         p, q = pos[sp], neg[sp]
         n = p + q
         if n >= W:
@@ -177,20 +221,24 @@ def main():
             band = max(f, 1 - f)
             pred = 1 if f >= 0.5 else -1
             if band >= BAND and disp != 0:
-                y = issue_d[:4]
+                y = str(issue_d // 10 ** 6)
                 a = agg[ALPHAS[ai]][y]
                 a[0] += 1 if (disp > 0) == (pred > 0) else 0
                 a[1] += 1
             if band >= KEEP_BAND:
-                keep_rows.append((ALPHAS[ai], int(sp), issue_d, exit_d,
-                                  sym, pred, band, n, ipx, epx,
-                                  float(disp)))
-        if disp > 0:
-            pos[sp] += 1
-        elif disp < 0:
-            neg[sp] += 1
+                keep_rows.append((ALPHAS[ai], int(sp), int(issue_d),
+                                  int(exit_d), sym_cats[sym_c], pred,
+                                  band, n, ipx, epx, float(disp)))
         if ai == 0:
             alpha0_ids.add(sp)
+    while cp < n_obs:            # drain remaining completions (census)
+        csp = int(c_sp[cp])
+        cd = c_disp[cp]
+        if cd > 0:
+            pos[csp] += 1
+        elif cd < 0:
+            neg[csp] += 1
+        cp += 1
 
     # spectrum census vs null (existence check at the rung)
     species_n = {sp: (pos[sp] + neg[sp], pos[sp] / (pos[sp] + neg[sp]))
@@ -217,7 +265,7 @@ def main():
                  "aggregate per year",
         "store": os.path.basename(STORE),
         "eligible_symbols": kept,
-        "observations": len(obs),
+        "observations": n_obs,
         "bigram_species_n_ge_W": len(species_n),
         "field_base_up_rate": round(base, 4),
         "spectrum_hist_edges": edges,
