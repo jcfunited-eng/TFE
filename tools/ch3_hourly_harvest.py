@@ -32,9 +32,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PREDS = os.path.join(ROOT, "artifacts", "ch4_uf",
-                     "ch3_hourly_band_preds.parquet")
-OUT = os.path.join(ROOT, "artifacts", "ch4_uf", "ch3_hourly_harvest.json")
+PREDS = os.environ.get("CH3_PREDS") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "ch3_hourly_band_preds.parquet")
+OUT = os.environ.get("CH3_HARVEST_OUT") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "ch3_hourly_harvest.json")
 CASH0 = 100_000.0
 SLICE_PCT = 10.0
 MAX_OPEN = 10
@@ -50,7 +51,8 @@ def main():
     import heapq
     by_year = {}
     hold_hours = []
-    for year, sub in df.groupby(df["issue_d"] // 10 ** 6):
+    key_div = 10 ** 8 if df["issue_d"].max() > 10 ** 10 else 10 ** 6
+    for year, sub in df.groupby(df["issue_d"] // key_div):
         cash, held, heap, settled = CASH0, {}, [], []
         skipped = 0
         for r in sub.itertuples(index=False):
@@ -71,8 +73,9 @@ def main():
             cash -= notional
             held[r.sym] = notional
             heapq.heappush(heap, (r.exit_d, r.sym, notional, ret))
-            t0 = pd.to_datetime(str(r.issue_d), format="%Y%m%d%H")
-            t1 = pd.to_datetime(str(r.exit_d), format="%Y%m%d%H")
+            fmt = "%Y%m%d%H%M" if key_div == 10 ** 8 else "%Y%m%d%H"
+            t0 = pd.to_datetime(str(r.issue_d), format=fmt)
+            t1 = pd.to_datetime(str(r.exit_d), format=fmt)
             hold_hours.append((t1 - t0).total_seconds() / 3600)
         while heap:
             _d, hsym, notional, ret = heapq.heappop(heap)

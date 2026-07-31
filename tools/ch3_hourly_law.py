@@ -46,12 +46,15 @@ from tools.ch4_uf_spectrum import (  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORE = os.environ.get("CH3_STORE") or os.path.join(
     ROOT, "ch4_hourly_universe_full.parquet")
-OUT = os.path.join(ROOT, "artifacts", "ch4_uf", "ch3_hourly_law.json")
-PREDS_OUT = os.path.join(ROOT, "artifacts", "ch4_uf",
-                         "ch3_hourly_band_preds.parquet")
+OUT = os.environ.get("CH3_LAW_OUT") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "ch3_hourly_law.json")
+PREDS_OUT = os.environ.get("CH3_PREDS_OUT") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "ch3_hourly_band_preds.parquet")
 LIFE_MIN = 0.90
 PRICE_FLOOR = 5.0
-MIN_BARS = 3500            # ~2 years of session hours
+# rung: "hour" (session hours), "m15" (session 15-min bars), "daily"
+RUNG = os.environ.get("CH3_RUNG", "hour")
+MIN_BARS = {"hour": 3500, "m15": 10000, "daily": 1250}[RUNG]
 BAND = 0.75
 KEEP_BAND = 0.70           # persist predictions at >= this live band
 ALPHAS = ("bigram", "bigram_ctx", "pooled_ctx")
@@ -61,7 +64,8 @@ ALPHAS = ("bigram", "bigram_ctx", "pooled_ctx")
 # deterministic blake2b 64-bit id — never the salted builtin hash.
 SHARD = os.environ.get("CH3_OBS_SHARD")
 MERGE = os.environ.get("CH3_OBS_MERGE") == "1"
-SHARD_DIR = os.path.join(ROOT, "artifacts", "ch4_uf", "law_obs_shards")
+SHARD_DIR = os.environ.get("CH3_SHARD_DIR") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "law_obs_shards")
 
 
 def sp_id(alpha: str, species) -> int:
@@ -81,11 +85,21 @@ def universe(limit):
 def collect_obs(syms, t0, tag=""):
     df = pd.read_parquet(STORE, columns=["Date", "Symbol", "Close", "Volume"],
                          filters=[("Symbol", "in", list(syms))])
-    ts = pd.to_datetime(df["Date"]).dt.tz_localize("UTC") \
-        .dt.tz_convert("America/New_York")
-    rth = (ts.dt.hour >= 9) & (ts.dt.hour <= 15) & (ts.dt.weekday <= 4)
-    df = df[rth].copy()
-    df["hkey"] = ts[rth].dt.strftime("%Y%m%d%H").to_numpy()
+    # 12-digit key YYYYMMDDHHMM at every rung (daily -> 0000)
+    if RUNG == "daily":
+        df["hkey"] = pd.to_datetime(df["Date"]).dt.strftime("%Y%m%d0000") \
+            .to_numpy()
+    else:
+        ts = pd.to_datetime(df["Date"]).dt.tz_localize("UTC") \
+            .dt.tz_convert("America/New_York")
+        if RUNG == "m15":
+            mod = ts.dt.hour * 60 + ts.dt.minute
+            rth = (mod >= 570) & (mod <= 945) & (ts.dt.weekday <= 4)
+        else:
+            rth = (ts.dt.hour >= 9) & (ts.dt.hour <= 15) \
+                & (ts.dt.weekday <= 4)
+        df = df[rth].copy()
+        df["hkey"] = ts[rth].dt.strftime("%Y%m%d%H%M").to_numpy()
     print(f"{tag}session-hour rows: {len(df)} ({time.time()-t0:.0f}s)",
           flush=True)
     obs = []
@@ -221,7 +235,7 @@ def main():
             band = max(f, 1 - f)
             pred = 1 if f >= 0.5 else -1
             if band >= BAND and disp != 0:
-                y = str(issue_d // 10 ** 6)
+                y = str(issue_d // 10 ** 8)
                 a = agg[ALPHAS[ai]][y]
                 a[0] += 1 if (disp > 0) == (pred > 0) else 0
                 a[1] += 1
