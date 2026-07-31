@@ -82,11 +82,17 @@ def fetch_15m(symbol, days=11):
 
 
 def leg_walk(closes, mult=REV_MULT, W_=W_BARS):
+    """Besides direction/flip/origin, expose at each flip bar the leg
+    that just ENDED: its origin price (prev_org) and its extreme
+    (ext_px). For an up-flip that is the finished decline: peak ->
+    trough — the energy the spring actually stored."""
     n = len(closes)
     moves = np.abs(np.diff(closes))
     dirs = np.zeros(n, dtype=int)
     flips = np.zeros(n, dtype=int)
     origin = np.zeros(n)
+    prev_org = np.zeros(n)
+    ext_px = np.zeros(n)
     direction, ext_i, org = 0, 0, closes[0] if n else 0
     for t in range(1, n):
         w0 = max(0, t - W_)
@@ -99,16 +105,20 @@ def leg_walk(closes, mult=REV_MULT, W_=W_BARS):
             ext_i = t
             direction = direction or -1
         if direction == 1 and closes[ext_i] - closes[t] > thresh:
+            prev_org[t] = org
+            ext_px[t] = closes[ext_i]
             org = closes[ext_i]
             direction, ext_i = -1, t
             flips[t] = -1
         elif direction == -1 and closes[t] - closes[ext_i] > thresh:
+            prev_org[t] = org
+            ext_px[t] = closes[ext_i]
             org = closes[ext_i]
             direction, ext_i = 1, t
             flips[t] = 1
         dirs[t] = direction
         origin[t] = org
-    return dirs, flips, origin, moves
+    return dirs, flips, origin, moves, prev_org, ext_px
 
 
 def quick_yield_record(closes, flips):
@@ -188,7 +198,7 @@ def cycle():
             continue
         if len(closes) < 3 * W_BARS or closes[-1] < PRICE_FLOOR:
             continue
-        dirs, flips, origin, moves = leg_walk(closes)
+        dirs, flips, origin, moves, prev_org, ext_px = leg_walk(closes)
         t = len(closes) - 1
 
         # grade any live find on this symbol (theoretical sell)
@@ -213,9 +223,8 @@ def cycle():
         side = int(flips[t]) if flips[t] != 0 else 0
         if side == 0 or dirs[t] != side:
             continue
-        org = origin[t]
-        if org <= 0:
-            continue
+        if prev_org[t] <= 0 or ext_px[t] <= 0:
+            continue                        # the ended leg has no measured origin yet
         rems = quick_yield_record(closes[:-W_BARS], flips[:-W_BARS])
         store = rems[side]
         if len(store) < 10:
@@ -223,10 +232,11 @@ def cycle():
         tgt_pct = float(np.median(np.array(store[-40:])))
         w0 = max(1, t - W_BARS)
         bound_pct = 100 * REV_MULT * float(np.median(moves[w0 - 1:t])) / closes[t]
-        # energy present: the countertrend structure moved at least the
-        # target's worth from its origin; spring loaded: last 4 bars
-        # quieter than the session
-        drawn = 100 * abs(1 - closes[t] / org)
+        # energy present: the leg that just ENDED spanned at least the
+        # target's worth (for a long: the decline peak -> trough); spring
+        # loaded: last 4 bars quieter than the session
+        drawn = 100 * (1 - ext_px[t] / prev_org[t]) if side == 1 \
+            else 100 * (ext_px[t] / prev_org[t] - 1)
         q_now = float(np.median(moves[max(1, t - 4) - 1:t]))
         q_ref = float(np.median(moves[w0 - 1:t]))
         if drawn < tgt_pct or not (q_now < q_ref) or tgt_pct < bound_pct:
