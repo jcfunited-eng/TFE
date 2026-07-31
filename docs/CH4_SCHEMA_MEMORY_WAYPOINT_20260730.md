@@ -79,3 +79,18 @@ validation/repeatability protocol and live-forward.
 Deterministic rerun of the polarity-complete harvest: output byte-identical
 (SHA-256 1ca98b0decee43a8… on both runs). The frontier is exactly
 reproducible from the store — the deterministic-validation leg holds.
+
+
+## Hourly rung replication (2026-07-31, 53M bars, 2021-2026)
+
+The daily-rung physics signature REPLICATES at the independent hourly
+resolution: ride cells 76-85% WR but negative; bounded both-polarity
+collection positive EVERY year — BOTH t75 stop: n=3,063, +99.2% total
+(+19.0/+21.7/+11.0/+12.0/+8.7/+1.8 by year, 2022 strongest). Same
+frontier geometry at both rungs = the law is scale-repeatable.
+
+Next construction (declared): WR-CONSTRAINED targets — per species the
+LARGEST target whose causal touch record >= 0.91 (Joe's bar as input;
+"confident harvesting targets within the WR targets"), ride-to-collapse
+window, with a realized-vs-predicted touch calibration table as the
+honesty check.
