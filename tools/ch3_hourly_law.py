@@ -56,7 +56,9 @@ PRICE_FLOOR = 5.0
 RUNG = os.environ.get("CH3_RUNG", "hour")
 MIN_BARS = {"hour": 3500, "m15": 10000, "daily": 1250}[RUNG]
 BAND = 0.75
-KEEP_BAND = 0.70           # persist predictions at >= this live band
+# persist predictions at >= this live band; CH3_KEEP_ALL=1 keeps EVERY
+# n>=W prediction (cycle exits need ordinary-majority reads)
+KEEP_BAND = 0.0 if os.environ.get("CH3_KEEP_ALL") == "1" else 0.70
 ALPHAS = ("bigram", "bigram_ctx", "pooled_ctx")
 # sharding: CH3_OBS_SHARD="k/K" collects observations for its slice of
 # the universe and exits; CH3_OBS_MERGE=1 loads all shards and runs the
