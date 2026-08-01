@@ -1,0 +1,219 @@
+<!doctype html>
+<!--
+doc_id: loomscan-live-organism-scan-v2
+Type: read-only dual-schema live organism instrument
+Decision authority: false
+Biological localization authority: false
+Function illumination authority: latest causal contribution receipt only
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="guala-observation-contract" content="guala.observation_snapshot.v5, guala.owner_free.observation.v1">
+<title>Loom Scan — Guala live organism</title>
+<style>
+:root{
+  color-scheme:dark;--bg:#020711;--panel:#071725;--panel2:#0a2031;--line:#17425c;
+  --text:#eaf8ff;--muted:#83a4b5;--cyan:#55ddff;--green:#60f2ac;--amber:#ffc85a;
+  --red:#ff7080;--blue:#619eff;--violet:#aa8dff;--pink:#ff76cf;--orange:#ffa05b;--teal:#48e5d1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg)}
+body{color:var(--text);font:13px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 50% -12%,#0a3150 0,transparent 42%),var(--bg)}
+a{color:var(--cyan);text-decoration:none}
+header{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px clamp(12px,3vw,34px);border-bottom:1px solid var(--line);background:rgba(2,7,17,.94);backdrop-filter:blur(14px)}
+h1{margin:0;color:var(--cyan);font-size:18px}.subtle{color:var(--muted);font-size:10px}
+main{width:min(100%,1500px);margin:auto;padding:12px clamp(8px,2vw,26px) 32px}
+.truth{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;padding:8px 11px;border:1px solid var(--line);border-left:4px solid var(--teal);background:rgba(7,23,37,.88)}
+.truth strong{font-size:11px}.truth small{color:var(--muted);font-size:9px}
+.now{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:1px;margin-bottom:9px;overflow:hidden;border:1px solid var(--line);border-radius:9px;background:var(--line)}
+.now-cell{min-width:0;padding:9px 11px;background:linear-gradient(135deg,#071a2a,#06131f)}
+.now-cell span{display:block;color:var(--muted);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.now-cell strong{display:block;margin-top:2px;overflow:hidden;color:#dff8ff;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.now-cell.primary strong{font-size:14px;color:var(--amber)}
+.scan{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:9px}
+.brain-stage{position:relative;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#020812;aspect-ratio:16/10;box-shadow:0 18px 55px rgba(0,0,0,.38)}
+.brain-stage>img{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;opacity:.73;filter:saturate(.86) contrast(1.08)}
+.brain-stage:after{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(2,8,18,.72),transparent 22%,transparent 78%,rgba(2,8,18,.72)),linear-gradient(0deg,rgba(2,8,18,.72),transparent 22%)}
+.hemisphere{position:absolute;z-index:6;top:8px;color:#b9e8f5;font-size:7px;letter-spacing:.13em;text-transform:uppercase;text-shadow:0 2px 8px #000}.hemisphere.left{left:30%}.hemisphere.right{right:29%}
+.diagram-lines{position:absolute;z-index:2;inset:0;width:100%;height:100%;pointer-events:none}.leader{vector-effect:non-scaling-stroke;stroke-width:1;stroke:var(--node);opacity:.25}.leader.perturbed{stroke-width:2;opacity:1;filter:drop-shadow(0 0 4px var(--node))}.leader.unavailable{stroke:#66757e;stroke-dasharray:2 3;opacity:.15}.leader.not-observed{stroke-dasharray:2 3;opacity:.2}
+.function-marker{position:absolute;z-index:4;width:9px;height:9px;transform:translate(-50%,-50%);border:1px solid #daf8ff;border-radius:50%;background:var(--node);box-shadow:0 0 6px var(--node);opacity:.34}.function-marker.perturbed{width:14px;height:14px;opacity:1;box-shadow:0 0 8px var(--node),0 0 21px var(--node);animation:pulse 1.35s ease-in-out infinite alternate}.function-marker.quiescent{opacity:.42}.function-marker.unavailable{filter:saturate(0);opacity:.18}
+.function-label{position:absolute;z-index:5;width:20%;min-height:25px;display:flex;align-items:center;gap:4px;transform:translateY(-50%);padding:3px 5px;border:1px solid color-mix(in srgb,var(--node) 38%,var(--line));border-radius:5px;background:rgba(2,12,22,.88);color:#c8dee8;font-size:7px;line-height:1.08}.function-label.left{left:.6%;justify-content:flex-end;text-align:right}.function-label.right{right:.6%}.function-label:before{content:"";flex:0 0 5px;width:5px;height:5px;border-radius:50%;background:var(--node);opacity:.5}.function-label.left:before{order:2}.function-label b{display:block;font-size:7px}.function-label small{display:block;color:#7995a2;font-size:6px}.function-label.perturbed{border-color:var(--node);color:white;background:color-mix(in srgb,var(--node) 16%,rgba(2,12,22,.92));box-shadow:0 0 10px color-mix(in srgb,var(--node) 48%,transparent)}.function-label.perturbed:before{opacity:1;box-shadow:0 0 8px var(--node)}.function-label.unavailable{filter:saturate(0);opacity:.35}.function-label.not-observed{opacity:.7}
+.sensory-strip{position:absolute;z-index:7;left:22%;right:22%;bottom:7px;display:grid;grid-template-columns:repeat(6,1fr);gap:3px}.sense{min-width:0;padding:4px 2px;border:1px solid color-mix(in srgb,var(--node) 38%,var(--line));border-radius:5px;background:rgba(2,12,22,.9);text-align:center}.sense b{display:block;color:var(--node);font-size:11px}.sense span{display:block;overflow:hidden;color:#b5ced8;font-size:6px;text-overflow:ellipsis;text-transform:uppercase}.sense small{display:block;color:#76909d;font-size:5px}
+@keyframes pulse{from{filter:brightness(.85)}to{filter:brightness(1.55)}}
+.meters{display:flex;flex-direction:column;gap:7px}.meter{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:linear-gradient(135deg,var(--panel2),var(--panel))}.meter h2{margin:0 0 5px;color:var(--cyan);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.meter strong{display:block;color:#e5f7ff;font-size:16px}.meter p{margin:2px 0 0;color:var(--muted);font-size:8px}.meter-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.meter-grid .meter{min-width:0}.flow{display:flex;gap:5px;margin:6px 0}.flow i{width:7px;height:7px;border:1px solid #476574;border-radius:50%;background:#122b38}.flow.perturbed i{background:var(--teal);border-color:#c2fff5;box-shadow:0 0 7px var(--teal);animation:flow 1.7s ease-in-out infinite}.flow.perturbed i:nth-child(2){animation-delay:.15s}.flow.perturbed i:nth-child(3){animation-delay:.3s}.flow.perturbed i:nth-child(4){animation-delay:.45s}.flow.perturbed i:nth-child(5){animation-delay:.6s}.flow.perturbed i:nth-child(6){animation-delay:.75s}@keyframes flow{50%{transform:scale(1.35);opacity:.55}}
+.bar{height:5px;margin:6px 0 4px;overflow:hidden;border-radius:4px;background:#102a39}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .3s ease}
+.growth{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.growth-card{position:relative;min-height:61px;padding:8px 11px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:linear-gradient(135deg,var(--panel2),var(--panel))}.growth-card:after{content:"";position:absolute;right:-27px;bottom:-44px;width:85px;height:85px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 68%);opacity:.24}.growth-card span{display:block;color:var(--muted);font-size:8px;letter-spacing:.11em;text-transform:uppercase}.growth-card strong{display:inline-block;margin-right:6px;color:var(--glow);font-size:24px}.growth-card small{color:var(--muted);font-size:8px}
+.legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 8px;padding:5px 8px;color:var(--muted);font-size:7px}.legend i{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:#6e7c84}.legend .active i{background:var(--green);box-shadow:0 0 7px var(--green)}.legend .quiet i{background:var(--blue);opacity:.55}
+details.technical{margin-top:8px;border:1px solid var(--line);border-radius:8px;background:#05111d}details.technical>summary{cursor:pointer;padding:10px 12px;color:var(--cyan);font-size:10px;font-weight:700}.technical-body{max-height:500px;overflow:auto;padding:0 8px 9px}.technical-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.technical-card{min-width:0;padding:8px;border:1px solid var(--line);background:var(--panel)}.technical-card h3{margin:0 0 5px;color:var(--teal);font-size:8px;letter-spacing:.08em;text-transform:uppercase}.technical-value{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted);font:8px/1.4 ui-monospace,monospace}.wide{grid-column:1/-1}table{width:100%;border-collapse:collapse;font:8px/1.3 ui-monospace,monospace}th,td{padding:4px;border-top:1px solid var(--line);text-align:left;vertical-align:top;overflow-wrap:anywhere}th{color:var(--muted)}
+footer{width:min(100%,1500px);margin:auto;padding:0 clamp(8px,2vw,26px) 22px;color:var(--muted);font-size:8px}
+.available{color:var(--green)!important}.warning{color:var(--amber)!important}.unavailable{color:var(--red)!important}
+@media(max-width:980px){.scan{grid-template-columns:1fr}.meters{display:grid;grid-template-columns:repeat(2,1fr)}.meter-grid{display:contents}}
+@media(max-width:620px){.now{grid-template-columns:1fr 1fr}.now-cell.primary{grid-column:1/-1}.brain-stage{aspect-ratio:10/13}.brain-stage>img{object-fit:cover}.function-label{width:28%;font-size:6px}.function-label b{font-size:6px}.function-label small{font-size:5px}.sensory-strip{left:29%;right:29%;grid-template-columns:repeat(2,1fr)}.meters{grid-template-columns:1fr}.growth{grid-template-columns:repeat(3,1fr)}.growth-card strong{font-size:19px}.technical-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.function-marker.perturbed,.flow.perturbed i{animation:none}}
+</style>
+</head>
+<body>
+<header><div><h1>Loom Scan</h1><div id="header-state" class="subtle">Connecting to Guala…</div></div><a href="/gualaloom.html">Guala Loom →</a></header>
+<main>
+  <div class="truth"><div><strong>Live organism observation</strong><br><small>The 15 names are distributed cognitive-function gauges—not fifteen anatomical modules. A gauge lights only from the latest causal contribution receipt. Dark means no current evidence.</small></div><div id="scan-age" class="subtle">awaiting snapshot</div></div>
+  <section class="now" aria-label="What Guala is doing now">
+    <div class="now-cell primary"><span>Guala now</span><strong id="now-activity">Connecting…</strong></div>
+    <div class="now-cell"><span>Causal trigger</span><strong id="now-trigger">Awaiting observation</strong></div>
+    <div class="now-cell"><span>Attention / focus</span><strong id="now-focus">Not observed</strong></div>
+    <div class="now-cell"><span>Physical action</span><strong id="now-action">Not observed</strong></div>
+    <div class="now-cell"><span>Latest receipt</span><strong id="now-receipt">Unavailable</strong></div>
+  </section>
+  <section class="scan" aria-label="Live functional brain scan">
+    <div class="brain-stage" id="brain-stage">
+      <img src="/guala-brain-foundation-v1.png" alt="Two-hemisphere visualization used as a functional activity canvas">
+      <svg class="diagram-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><g id="leader-lines"></g><g id="activity-links"></g></svg>
+      <div class="hemisphere left">Left functional field</div><div class="hemisphere right">Right functional field</div>
+      <div class="sensory-strip" id="sensory-strip" aria-label="Current sensory neuron populations"></div>
+    </div>
+    <aside class="meters" aria-label="Live organism meters">
+      <section class="meter"><h2>Organism</h2><strong id="organism-state">Connecting…</strong><p id="organism-detail">Awaiting a truthful observation.</p></section>
+      <section class="meter"><h2>Latest causal episode</h2><strong id="episode-total">Not observed</strong><p id="episode-detail">Awaiting a post-start contribution receipt.</p></section>
+      <div class="meter-grid">
+        <section class="meter"><h2>Neurons</h2><strong id="neuron-total">—</strong><p id="neuron-detail">Current count pending.</p></section>
+        <section class="meter"><h2>Couplings</h2><strong id="coupling-total">—</strong><p>Current structural edges</p></section>
+      </div>
+      <section class="meter"><h2>Neurochemical flow</h2><div id="fluid-meter" class="flow" aria-label="Flow not observed"><i></i><i></i><i></i><i></i><i></i><i></i></div><strong id="fluid-state">—</strong><p id="fluid-detail">Awaiting exact flow state.</p></section>
+      <section class="meter"><h2>Needs / causal inquiry</h2><strong id="needs-state">—</strong><p id="needs-detail">Awaiting current need state.</p></section>
+      <section class="meter"><h2>Body / world</h2><strong id="body-state">—</strong><p id="body-detail">Awaiting embodiment state.</p></section>
+      <section class="meter"><h2>Bounded retained state</h2><strong id="resource-state">—</strong><div class="bar"><i id="resource-bar"></i></div><p id="resource-detail">Awaiting measured byte state.</p></section>
+    </aside>
+  </section>
+  <div class="legend"><span class="active"><i></i>current receipt: perturbed</span><span class="quiet"><i></i>current receipt: quiescent</span><span><i></i>no current receipt / unavailable</span><span>Retained state never masquerades as current activity.</span></div>
+  <section class="growth" aria-label="Learned structural growth">
+    <div class="growth-card" style="--glow:#54dcff"><span>Mosaics</span><strong id="mosaic-count">—</strong><small>learned THING structures</small></div>
+    <div class="growth-card" style="--glow:#a88cff"><span>Tapestries</span><strong id="tapestry-count">—</strong><small>related mosaic structures</small></div>
+    <div class="growth-card" style="--glow:#5cf0aa"><span>Weaves</span><strong id="weave-count">—</strong><small>expressive learned structures</small></div>
+  </section>
+  <details class="technical">
+    <summary>Exact DSF, authority, persistence, and mechanism evidence</summary>
+    <div class="technical-body"><div class="technical-grid">
+      <section class="technical-card"><h3>Snapshot</h3><div id="snapshot" class="technical-value">awaiting observation</div></section>
+      <section class="technical-card"><h3>Full-field contract</h3><div id="field-contract" class="technical-value">awaiting field</div></section>
+      <section class="technical-card"><h3>Persistence</h3><div id="persistence" class="technical-value">awaiting authority</div></section>
+      <section class="technical-card"><h3>World</h3><div id="world" class="technical-value">awaiting embodiment</div></section>
+      <section class="technical-card wide"><h3>Exact latest field tuples</h3><div style="overflow:auto"><table><thead><tr><th>sense</th><th>state</th><th>substream</th><th>tuple</th><th>D / M / R / U / C / P / B</th></tr></thead><tbody id="field-rows"></tbody></table></div></section>
+    </div></div>
+  </details>
+</main>
+<footer>Functional placement is an observation visualization, not a claim of human biological localization. Illumination requires current causal evidence; missing facts remain visibly unknown.</footer>
+<script>
+"use strict";
+const API="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com";
+const OBSERVATION_ROUTE="/api/v1/gualaloom/observation";
+const OBSERVATION_SCHEMA="guala.observation_snapshot.v5";
+const OWNER_FREE_OBSERVATION_SCHEMA="guala.owner_free.observation.v1";
+const WIRING_SCHEMA="guala.whole_organism.permanent_wiring.observation.v2";
+const FIELD_NAMES=["D_k","M_k","R_rev_k","U_star_k","C_k","P_k","B_k"];
+const SVG_NS="http://www.w3.org/2000/svg";
+const SENSES=[
+  ["sight","Vision","#54dcff"],["sound","Hearing","#a88cff"],["touch","Touch","#5cf0aa"],
+  ["smell","Smell","#ff73cd"],["taste","Taste","#ff9f55"],["body","Body","#ffc85a"]
+];
+const FUNCTIONS=[
+  [1,"Recall","left",33,22,"#54dcff",["state:recognition-attention","growth:mosaic-relations","growth:tapestry"]],
+  [2,"Composition / syntax","right",65,22,"#a88cff",["growth:mosaic-relations","growth:tapestry-relations","growth:weave"]],
+  [3,"Association","left",39,31,"#5cf0aa",["growth:mosaic-relations","growth:mosaic"]],
+  [4,"Retention","right",59,31,"#ffc85a",["growth:mosaic","growth:tapestry"]],
+  [5,"Cross-modal binding","left",43,40,"#47e3d0",["growth:mosaic"]],
+  [6,"Habituation","right",57,40,"#ff9f55",["state:recovery","state:recognition-attention"]],
+  [7,"Recognition","left",40,49,"#54dcff",["state:recognition-attention"]],
+  [8,"Attention","right",60,49,"#ff73cd",["state:recognition-attention","state:needs"]],
+  [9,"Sequence","left",42,58,"#a88cff",["growth:mosaic-relations","growth:tapestry-relations"]],
+  [10,"Imagination","right",58,58,"#5cf0aa",["growth:dream-internally-simulated","growth:weave"]],
+  [11,"Reflection","left",39,67,"#ffc85a",["state:reflection-meta-monitor"]],
+  [12,"Cross-hemisphere integration","right",61,67,"#47e3d0",[]],
+  [13,"Other-mind modelling","left",35,76,"#ff73cd",["state:other-perspective-model"]],
+  [14,"Affect modulation","right",65,76,"#ff9f55",["state:internal-physical-chemical","state:neurochemical-flow"]],
+  [15,"Meta-monitoring","left",45,84,"#54dcff",["state:reflection-meta-monitor"]]
+];
+let observationBusy=false;
+const functionViews=new Map();
+function isRecord(value){return value!==null&&typeof value==="object"&&!Array.isArray(value)}
+function hasOwn(value,name){return isRecord(value)&&Object.prototype.hasOwnProperty.call(value,name)}
+function measured(value){return Number.isSafeInteger(value)&&value>=0?value:null}
+function exact(value){if(value===null)return "null";if(typeof value==="string"||typeof value==="number"||typeof value==="boolean")return String(value);return JSON.stringify(value,null,2)}
+function shortReceipt(value){return typeof value==="string"&&/^[0-9a-f]{64}$/.test(value)?value.slice(0,12)+"…":"unavailable"}
+function formatBytes(value){if(!Number.isSafeInteger(value)||value<0)return "unknown";if(value>=1048576)return (value/1048576).toFixed(value>=10485760?0:1)+" MiB";if(value>=1024)return (value/1024).toFixed(1)+" KiB";return value+" B"}
+function stateWord(value){return ["perturbed","quiescent","unavailable"].includes(value)?value:"not-observed"}
+function wiringFrom(snapshot){const value=snapshot.passive_whole_organism_thing_learning?.whole_organism_permanent_wiring;return isRecord(value)&&value.schema===WIRING_SCHEMA?value:null}
+function latestActivity(wiring){return isRecord(wiring?.latest_episode_activity)?wiring.latest_episode_activity:null}
+function currentMechanisms(wiring){const current=isRecord(wiring?.current_owner_state)?wiring.current_owner_state:null;return isRecord(current?.mechanisms)?current.mechanisms:{}}
+function line(x1,y1,x2,y2,color){const element=document.createElementNS(SVG_NS,"line");element.setAttribute("x1",x1);element.setAttribute("y1",y1);element.setAttribute("x2",x2);element.setAttribute("y2",y2);element.setAttribute("class","leader not-observed");element.style.setProperty("--node",color);return element}
+function createBrain(){
+  const stage=document.getElementById("brain-stage"),leaders=document.getElementById("leader-lines");
+  const sideIndex={left:0,right:0};
+  for(const [number,name,side,x,y,color,evidence] of FUNCTIONS){
+    const slot=sideIndex[side]++,labelY=12+slot*10.5;
+    const label=document.createElement("div");label.className="function-label "+side+" not-observed";label.style.top=labelY+"%";label.style.setProperty("--node",color);
+    const text=document.createElement("span"),title=document.createElement("b"),status=document.createElement("small");title.textContent=number+" · "+name;status.textContent="no current receipt";text.append(title,status);label.appendChild(text);stage.appendChild(label);
+    const marker=document.createElement("div");marker.className="function-marker not-observed";marker.style.left=x+"%";marker.style.top=y+"%";marker.style.setProperty("--node",color);stage.appendChild(marker);
+    const leader=line(side==="left"?20.5:79.5,labelY,x,y,color);leaders.appendChild(leader);
+    functionViews.set(number,{label,status,marker,leader,evidence,name});
+  }
+  const strip=document.getElementById("sensory-strip");
+  for(const [sense,name,color] of SENSES){const item=document.createElement("div");item.className="sense";item.style.setProperty("--node",color);item.innerHTML="<span>"+name+"</span><b id=\"sense-"+sense+"\">—</b><small id=\"sense-"+sense+"-state\">neurons</small>";strip.appendChild(item)}
+}
+function cognitiveState(number,evidence,states,activityObserved,snapshot){
+  if(!activityObserved)return ["not-observed","no current receipt"];
+  if(number===5){const receptors=Object.keys(states).filter(key=>key.startsWith("receptor:")&&states[key]==="perturbed");return receptors.length>=2&&states["growth:mosaic"]==="perturbed"?["perturbed","current causal receipt"]:["quiescent","not recruited in receipt"]}
+  if(number===12){const receptors=Object.keys(states).filter(key=>key.startsWith("receptor:")&&states[key]==="perturbed");return receptors.length>=2?["perturbed","multi-region receipt"]:["quiescent","not recruited in receipt"]}
+  if(evidence.some(id=>states[id]==="perturbed"))return ["perturbed","current causal receipt"];
+  if(evidence.some(id=>states[id]==="quiescent"))return ["quiescent","quiescent in receipt"];
+  return ["quiescent","not recruited in receipt"];
+}
+function renderFunctions(snapshot){
+  const wiring=wiringFrom(snapshot),activity=latestActivity(wiring),observed=isRecord(activity)&&activity.status==="observed"&&isRecord(activity.contribution_states),states=observed?activity.contribution_states:{};
+  for(const [number,view] of functionViews){const result=cognitiveState(number,view.evidence,states,observed,snapshot),state=result[0];view.label.className=view.label.className.replace(/ (perturbed|quiescent|unavailable|not-observed)$/," "+state);view.marker.className="function-marker "+state;view.leader.setAttribute("class","leader "+state);view.status.textContent=result[1]}
+  if(!observed){document.getElementById("episode-total").textContent="Not observed";document.getElementById("episode-detail").textContent="No post-start causal contribution receipt; retained state is not animated.";return}
+  const counts=isRecord(activity.activity_counts)?activity.activity_counts:{};document.getElementById("episode-total").textContent=(measured(counts.perturbed)??"Unknown")+" perturbed";document.getElementById("episode-detail").textContent=(measured(counts.quiescent)??"unknown")+" quiescent · receipt "+shortReceipt(activity.settlement_receipt_sha256)
+}
+function renderNow(snapshot){
+  const wiring=wiringFrom(snapshot),activity=latestActivity(wiring),cognition=isRecord(snapshot.cognition_activity)?snapshot.cognition_activity:null,action=isRecord(snapshot.causal_action)?snapshot.causal_action:null;
+  const observed=isRecord(activity)&&activity.status==="observed";
+  document.getElementById("now-activity").textContent=observed?"Causal episode observed":"No current causal transition observed";
+  document.getElementById("now-trigger").textContent=observed?"Authenticated settlement":String(activity?.reason||cognition?.reason||"No trigger observed").replaceAll("_"," ");
+  document.getElementById("now-focus").textContent=cognition?.status==="observed"||cognition?.status==="available"?String(cognition.focus||cognition.activity||cognition.status):"Not observed";
+  const dispatcher=isRecord(action?.dispatcher)?action.dispatcher:null;document.getElementById("now-action").textContent=dispatcher?.active===true?String(dispatcher.phase||"active execution"):"No active execution observed";
+  document.getElementById("now-receipt").textContent=observed?shortReceipt(activity.settlement_receipt_sha256):"Unavailable";
+}
+function renderSummary(snapshot){
+  const tick=Number.isSafeInteger(snapshot.observed_at_tick)?snapshot.observed_at_tick.toLocaleString():"unknown",emb=snapshot.embodiment,region=isRecord(emb?.location)?String(emb.location.region_id||"unknown region"):"unknown region";
+  document.getElementById("header-state").textContent="Guala present · live tick "+tick;document.getElementById("scan-age").textContent="snapshot "+shortReceipt(snapshot.snapshot_receipt_sha256);
+  document.getElementById("organism-state").textContent="Present";document.getElementById("organism-state").className="available";document.getElementById("organism-detail").textContent="Observed in "+region+" · presence does not imply current cognitive activity";
+}
+function renderCounts(snapshot){
+  const population=isRecord(snapshot.neuron_population)?snapshot.neuron_population:{};const neurons=measured(population.neurons),edges=measured(population.edges);
+  document.getElementById("neuron-total").textContent=neurons===null?"Unknown":neurons.toLocaleString();document.getElementById("neuron-detail").textContent="current neurons · full field "+(population.full_field===true?"preserved":"not proven");document.getElementById("coupling-total").textContent=edges===null?"Unknown":edges.toLocaleString();
+  for(const [sense] of SENSES){const count=measured(population.neurons_by_sense?.[sense]),active=measured(population.perturbed_neurons_by_sense?.[sense]);document.getElementById("sense-"+sense).textContent=count===null?"—":String(count);document.getElementById("sense-"+sense+"-state").textContent=active===null?"state unknown":active+" retained perturbed"}
+  const used=measured(snapshot.persistence_health?.physical_bytes?.used_bytes),ceiling=measured(snapshot.persistence_health?.physical_bytes?.ceiling_bytes);document.getElementById("resource-state").textContent=used===null?"Unknown":formatBytes(used);document.getElementById("resource-detail").textContent=(ceiling===null?"ceiling unavailable":formatBytes(ceiling)+" measured ceiling")+" · this is storage, not learned maturity";document.getElementById("resource-bar").style.width=used!==null&&ceiling?Math.min(100,100*used/ceiling)+"%":"0%";
+}
+function renderFlowNeedsBody(snapshot){
+  const flow=isRecord(snapshot.internal_neurochemical_flow)?snapshot.internal_neurochemical_flow:null,meter=document.getElementById("fluid-meter"),state=flow?.available===true?stateWord(flow.mechanism_state):"unavailable";meter.className="flow "+(state==="perturbed"?"perturbed":"");document.getElementById("fluid-state").textContent=state.replaceAll("-"," ");document.getElementById("fluid-detail").textContent=flow?.available===true?(exact(flow.mounted_sensory_carriers)+" sensory carriers · field time "+exact(flow.field_source_time)+" · retained state"):"No chemical-flow authority supplied";
+  const current=currentMechanisms(wiringFrom(snapshot)),need=isRecord(current["state:needs"]?.state_projection)?current["state:needs"].state_projection:null;document.getElementById("needs-state").textContent=need?.active_need===true?"Need present":"No active need observed";document.getElementById("needs-detail").textContent=need?((measured(need.bindings)??0)+" learned bindings · "+(need.active_opportunity===true?"opportunity active":"no active opportunity")):"Current need state unavailable";
+  const emb=snapshot.embodiment,pos=Array.isArray(emb?.bodies)?emb.bodies.find(body=>body.body_id===emb.self_body_id)?.pose?.position:null;document.getElementById("body-state").textContent=isRecord(emb?.location)?String(emb.location.region_id):"Unknown";document.getElementById("body-detail").textContent=isRecord(pos)?"position "+pos.x_mm+", "+pos.y_mm+", "+pos.z_mm+" mm · retained body state":"Current body position unavailable";
+}
+function renderGrowth(snapshot){const memory=snapshot.integrated_thing_memory?.durable_state,tapestry=snapshot.tapestry_relations,dream=snapshot.dream_wake_weave||snapshot.dreaming;for(const [id,value] of [["mosaic-count",measured(memory?.mosaic_count)],["tapestry-count",measured(tapestry?.tapestries)],["weave-count",measured(dream?.weaves)]])document.getElementById(id).textContent=value===null?"—":String(value)}
+function addRow(values){const row=document.createElement("tr");for(const value of values){const cell=document.createElement("td");cell.textContent=value;row.appendChild(cell)}document.getElementById("field-rows").appendChild(row)}
+function renderTechnical(snapshot){
+  document.getElementById("snapshot").textContent="tick "+exact(snapshot.observed_at_tick)+"\nschema "+exact(snapshot.schema)+"\nreceipt "+shortReceipt(snapshot.snapshot_receipt_sha256);
+  const authority=snapshot.full_field_authority,rows=document.getElementById("field-rows");rows.replaceChildren();if(!isRecord(authority)){document.getElementById("field-contract").textContent="full-field authority unavailable";addRow(["none","unknown","none","—","no field supplied"])}else{const contract=isRecord(authority.view_contract)?authority.view_contract:{},required=Array.isArray(contract.required_fields)?contract.required_fields:[];document.getElementById("field-contract").textContent="available "+exact(authority.available)+"\nfield order "+(JSON.stringify(required)===JSON.stringify(FIELD_NAMES)?"complete":"not supplied")+"\nprojection "+exact(hasOwn(contract,"projection")?contract.projection:"unknown")+"\nprojection loss "+exact(hasOwn(contract,"projection_loss")?contract.projection_loss:"unknown");for(const sense of Array.isArray(authority.senses)?authority.senses:[])for(const stream of Array.isArray(sense.substreams)?sense.substreams:[]){const fields=Array.isArray(stream.fields)?stream.fields:[],complete=JSON.stringify(fields.map(item=>Array.isArray(item)?item[0]:null))===JSON.stringify(FIELD_NAMES);addRow([exact(sense.sense),exact(sense.state),exact(stream.substream_id),exact(stream.tuple_index),complete?fields.map(item=>item[0]+"="+exact(item[1])).join(" · "):"complete field unavailable"])}if(!rows.children.length)addRow(["none","unknown","none","—","no current field tuples"])}
+  const bytes=snapshot.persistence_health?.physical_bytes;document.getElementById("persistence").textContent=isRecord(bytes)?"status "+exact(bytes.status)+"\nused "+exact(bytes.used_bytes)+" bytes\nceiling "+exact(bytes.ceiling_bytes)+" bytes":"physical byte authority unavailable";
+  const emb=snapshot.embodiment;document.getElementById("world").textContent=isRecord(emb)?"region "+exact(emb.location?.region_id)+"\nrevision "+exact(emb.location?.revision)+"\nbodies "+exact(Array.isArray(emb.bodies)?emb.bodies.length:"unknown")+"\nobjects "+exact(Array.isArray(emb.objects)?emb.objects.length:"unknown"):"embodiment unavailable";
+}
+function renderOwnerFree(snapshot){
+  document.getElementById("header-state").textContent="Guala "+exact(snapshot.status)+" · owner-free sequence "+exact(snapshot.sequence);document.getElementById("scan-age").textContent="state "+shortReceipt(snapshot.state_sha256);document.getElementById("organism-state").textContent=exact(snapshot.status);document.getElementById("organism-detail").textContent="Owner-free domain observation; per-function causal receipts are not supplied";document.getElementById("now-activity").textContent="Per-function activity not supplied";document.getElementById("now-trigger").textContent="Owner-free observation";document.getElementById("now-focus").textContent="Not separately observed";document.getElementById("now-action").textContent="Not separately observed";document.getElementById("now-receipt").textContent=shortReceipt(snapshot.state_sha256);
+  for(const view of functionViews.values()){view.label.className=view.label.className.replace(/ (perturbed|quiescent|unavailable|not-observed)$/," not-observed");view.marker.className="function-marker not-observed";view.leader.setAttribute("class","leader not-observed");view.status.textContent="not separately supplied"}
+  const fabric=isRecord(snapshot.materialized_fabric)?snapshot.materialized_fabric:null;document.getElementById("neuron-total").textContent=measured(fabric?.materialized_neuron_count)===null?"Unknown":String(fabric.materialized_neuron_count);document.getElementById("neuron-detail").textContent="materialized count; per-sense populations not supplied";document.getElementById("coupling-total").textContent="Unknown";for(const [sense] of SENSES){document.getElementById("sense-"+sense).textContent="—";document.getElementById("sense-"+sense+"-state").textContent="not supplied"}document.getElementById("mosaic-count").textContent=measured(fabric?.mosaic_count)===null?"—":String(fabric.mosaic_count);document.getElementById("tapestry-count").textContent="—";document.getElementById("weave-count").textContent="—";document.getElementById("episode-total").textContent="Domain aggregate only";document.getElementById("episode-detail").textContent="No invented per-function activity";document.getElementById("snapshot").textContent="sequence "+exact(snapshot.sequence)+"\norganism "+exact(snapshot.organism_id)+"\nstate "+shortReceipt(snapshot.state_sha256);document.getElementById("field-contract").textContent=isRecord(snapshot.full_field_bank)?"owner-free full-field bank\nfield order "+exact(snapshot.full_field_bank.field_order)+"\nroot "+shortReceipt(snapshot.full_field_bank.root_sha256):"no current full-field bank supplied";document.getElementById("field-rows").replaceChildren();addRow(["owner-free","aggregate","bank","—","see field contract"]);document.getElementById("persistence").textContent="organism state "+shortReceipt(snapshot.state_sha256);document.getElementById("world").textContent="embodiment not supplied by owner-free observation v1";
+}
+function renderUnavailable(reason){document.getElementById("header-state").textContent="Observation unavailable · "+reason;document.getElementById("organism-state").textContent="Unavailable";document.getElementById("organism-detail").textContent=reason;document.getElementById("now-activity").textContent="Observation unavailable";for(const view of functionViews.values()){view.label.className=view.label.className.replace(/ (perturbed|quiescent|unavailable|not-observed)$/," unavailable");view.marker.className="function-marker unavailable";view.leader.setAttribute("class","leader unavailable");view.status.textContent="observation unavailable"}}
+async function poll(){if(observationBusy)return;observationBusy=true;try{const response=await fetch(API+OBSERVATION_ROUTE,{method:"GET",cache:"no-store",headers:{Accept:"application/json"}});if(!response.ok)throw new Error("HTTP "+response.status);const snapshot=await response.json();if(snapshot.schema===OBSERVATION_SCHEMA){renderSummary(snapshot);renderNow(snapshot);renderFunctions(snapshot);renderCounts(snapshot);renderFlowNeedsBody(snapshot);renderGrowth(snapshot);renderTechnical(snapshot)}else if(snapshot.schema===OWNER_FREE_OBSERVATION_SCHEMA)renderOwnerFree(snapshot);else throw new Error("supported observation schema unavailable")}catch(error){renderUnavailable(error instanceof Error?error.message:"observation failed")}finally{observationBusy=false;setTimeout(poll,2000)}}
+createBrain();poll();
+</script>
+</body>
+</html>
