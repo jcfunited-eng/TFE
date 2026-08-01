@@ -124,20 +124,27 @@ def replay(events, last_day):
     pending = defaultdict(list)      # sym -> [(entry_day, sp, entry_px, side, events_since)]
     vopen = {}                       # sym -> dict (virtual position)
     decisions = {"entries": [], "exits": []}
+    day_buffer = []                  # completions land at day ROLLOVER:
+    cur_day = None                   # records are strictly as-of prior close
     for day, sym, sp, px in events:
+        if day != cur_day:
+            for b_sp, b_sign in day_buffer:
+                if b_sign > 0:
+                    pos[b_sp] += 1
+                elif b_sign < 0:
+                    neg[b_sp] += 1
+            day_buffer = []
+            cur_day = day
         # settle completions: this event completes any K_EXIT-old entry
         # candidates' displacement for the ledger (the K=3 completion
-        # object), knowable now
+        # object) — buffered until the next day (strict as-of-issue)
         lst = pending[sym]
         for rec in lst:
             rec[4] += 1
         while lst and lst[0][4] >= K_EXIT:
             e_day, e_sp, e_px, _side, _n = lst.pop(0)
             d = px / e_px - 1.0
-            if d > 0:
-                pos[e_sp] += 1
-            elif d < 0:
-                neg[e_sp] += 1
+            day_buffer.append((e_sp, 1 if d > 0 else (-1 if d < 0 else 0)))
         # virtual position exit
         h = vopen.get(sym)
         if h is not None:
@@ -157,6 +164,8 @@ def replay(events, last_day):
             vopen[sym] = {"entry_day": day, "entry_px": px, "side": side,
                           "events": 0, "band": round(max(p, q) / n, 3),
                           "n": n}
+            decisions.setdefault("per_year", defaultdict(int))
+            decisions["per_year"][day // 10 ** 4] += 1
             if day == last_day:
                 decisions["entries"].append(
                     {"sym": sym, "side": side, "px": px,
@@ -171,6 +180,8 @@ def main():
     events, last_day = build_event_stream(asof)
     print(f"events: {len(events)} | latest store day: {last_day}")
     vopen, decisions = replay(events, last_day)
+    print("virtual entries per year:",
+          dict(sorted(decisions.get("per_year", {}).items())))
     print(f"latest-day decisions: {len(decisions['entries'])} entries, "
           f"{len(decisions['exits'])} exits | virtual open: {len(vopen)}")
     for d in decisions["entries"]:

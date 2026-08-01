@@ -49,8 +49,8 @@ def main():
                       f'<td>{p["entry_date"]}</td></tr>')
     if not open_rows:
         open_rows = ('<tr><td colspan="7" class="empty">No open positions — '
-                     'the engine enters only when energy, compression, and '
-                     'release stand together on a vertex.</td></tr>')
+                     'the engine enters only on a completed pattern whose '
+                     'herd-conditioned record is 75%+ consistent.</td></tr>')
 
     closed_rows = ""
     for t in sorted(closed, key=lambda x: x["exit_date"], reverse=True):
@@ -125,8 +125,9 @@ td.empty {{ color:var(--muted); text-align:center; padding:22px; }}
 <main>
 <header>
   <h1>CH4 — Paper Trades <span class="badge">CH4</span></h1>
-  <div class="sub">Engine vtvr_spring_v1 · original VTVR joint-field kernel ·
-   last processed bar {last_bar} · page updated {stamp} · paper only</div>
+  <div class="sub">Engine herd_kgate_v1 · herd-conditioned structural species,
+   full 5,200-name field · last processed bar {last_bar} ·
+   page updated {stamp} · paper only</div>
 </header>
 
 <section class="tiles">
@@ -146,18 +147,21 @@ td.empty {{ color:var(--muted); text-align:center; padding:22px; }}
 <section class="card">
   <h2>How this engine decides</h2>
   <div class="method">
-    Structural computation runs on the original VTVR joint-field kernel
-    (exact arithmetic, full retention, 60-name field). A position opens only
-    when three physical facts stand together at a closed bar:
-    <b>energy</b> — the stock has declined at least 26.8% from the origin of
-    its large structure (26.8 is derived from the 36.7% harvest target, not
-    chosen); <b>compression</b> — the kernel's swept-volume field has gone
-    quiet against its own recent normal; <b>release</b> — the kernel's
-    structural-share momentum has turned and the fine price structure has
-    flipped with it. Exits: the +36.7% harvest, the large structure turning
-    against the position, or the reversal bound. Short side by mirror
-    symmetry. Sizing risks 1% of equity per position against each
-    stock's own reversal bound. Every trade carries its engine version.
+    Every stock's price history is read as a stream of structural
+    episodes; each episode gets a shape classification, and consecutive
+    shapes form a pattern. The engine keeps a strict as-of-that-moment
+    record of how each pattern resolved <b>within its herd weather</b> —
+    the energy and appetite of the population of similar stocks that day.
+    A position opens only when a pattern completes whose herd-conditioned
+    record calls the next move's direction at 75%+ consistency across at
+    least 20 prior cases (long or short). It closes at the stock's third
+    subsequent episode boundary. No new positions before a weekend.
+    Sizing: 10% of the book per position, at most 10 open. This
+    construction is the only one that survived the full honest-timing
+    audit and replicated on independent data; its measured historical
+    scale is low single digits per year, and this page measures it
+    live-forward against that stated expectation. Every trade carries its
+    engine version.
   </div>
 </section>
 
