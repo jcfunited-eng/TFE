@@ -159,6 +159,31 @@ def main():
     herd_G_band = {c: trailing_band3(herd_G[c]) for c in herd_G}
     print("herd weather ready")
 
+    # optional export: per-(symbol, day) herd state table, then exit.
+    # Lets other constructions condition on the same causal herd frame
+    # without duplicating this computation.
+    export_path = os.environ.get("CH4_HERD_EXPORT")
+    if export_path:
+        eb_of = np.full((S, nD), -1, dtype=np.int8)
+        gb_of = np.full((S, nD), -1, dtype=np.int8)
+        for c in herd_E_band:
+            mask = cell_of == c
+            idx = np.where(mask)
+            eb_of[idx] = herd_E_band[c][idx[1]]
+            gb_of[idx] = herd_G_band[c][idx[1]]
+        ok = (cell_of >= 0) & (eb_of >= 0) & (gb_of >= 0)
+        si_idx, di_idx = np.where(ok)
+        inv_sym = {v: k for k, v in sym_ix.items()}
+        out_df = pd.DataFrame({
+            "sym": [inv_sym[s] for s in si_idx],
+            "date": [all_dates[d].replace("-", "") for d in di_idx],
+            "cell": cell_of[ok].astype(np.int16),
+            "eband": eb_of[ok].astype(np.int8),
+            "gband": gb_of[ok].astype(np.int8)})
+        out_df.to_parquet(export_path, index=False)
+        print(f"herd state exported: {len(out_df)} rows -> {export_path}")
+        return
+
     # ---- PASS 2: observations with herd-state alphabets
     obs = []
     for i, (sym, (dates, closes, vols)) in enumerate(frames.items()):
