@@ -26,11 +26,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PREDS = os.path.join(ROOT, "artifacts", "ch4_uf",
-                     "ch3_daily_preds_all.parquet")
+PREDS = os.environ.get("CH3_PREDS") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", "ch3_daily_preds_all.parquet")
 HERD = os.path.join(ROOT, "artifacts", "ch4_uf", "herd_state_daily.parquet")
 K = int(os.environ.get("CH4_K", "5"))
-OUT = os.path.join(ROOT, "artifacts", "ch4_uf", f"ch4_kgate_herd_K{K}.json")
+# HERD_LAG=1: join the PRIOR day's herd state (required for intraday
+# issue instants — day D's herd state uses day-D closes and is only
+# knowable at the daily close). 0 for daily streams (same instant).
+HERD_LAG = int(os.environ.get("CH4_HERD_LAG", "0"))
+OUT = os.environ.get("CH4_OUT") or os.path.join(
+    ROOT, "artifacts", "ch4_uf", f"ch4_kgate_herd_K{K}.json")
 W = 20
 BAND = 0.75
 CASH0, SLICE_PCT, MAX_OPEN = 100_000.0, 10.0, 10
@@ -47,13 +52,35 @@ def main():
     df = pd.read_parquet(PREDS)
     df = df[df["alpha"] == "bigram"].sort_values(["sym", "issue_d"],
                                                  kind="mergesort")
-    key_div = 10 ** 8 if df["issue_d"].max() > 10 ** 10 else 10 ** 6
-    day_div = 10 ** 4 if key_div == 10 ** 8 else 1
+    mx = int(df["issue_d"].max())
+    if mx > 10 ** 10:              # 12-digit YYYYMMDDHHMM
+        key_div, day_div = 10 ** 8, 10 ** 4
+    elif mx > 10 ** 9:             # 10-digit YYYYMMDDHH (early hourly)
+        key_div, day_div = 10 ** 6, 10 ** 2
+    else:                          # 8-digit YYYYMMDD
+        key_div, day_div = 10 ** 4, 1
     herd = pd.read_parquet(HERD)
     hmap = {(s, d): (c, e, g) for s, d, c, e, g in zip(
         herd["sym"], herd["date"].astype(int), herd["cell"],
         herd["eband"], herd["gband"])}
-    print(f"preds {len(df)} | herd states {len(hmap)}")
+    herd_days = sorted(herd["date"].astype(int).unique())
+    prev_day = {d: (herd_days[i - 1] if i > 0 else None)
+                for i, d in enumerate(herd_days)}
+    day_pos = {d: i for i, d in enumerate(herd_days)}
+
+    def herd_at(sym, day):
+        if HERD_LAG == 0:
+            return hmap.get((sym, day))
+        # prior trading day's state (day may not be in herd_days if the
+        # issue day is intraday-only; walk back to the latest earlier)
+        if day in day_pos:
+            d = prev_day[day]
+        else:
+            import bisect
+            i = bisect.bisect_left(herd_days, day) - 1
+            d = herd_days[i] if i >= 0 else None
+        return hmap.get((sym, d)) if d is not None else None
+    print(f"preds {len(df)} | herd states {len(hmap)} | lag={HERD_LAG}")
 
     obs = []          # (avail, sp_id, alpha_idx, disp, sym, issue, ipx, epx)
     for sym, sub in df.groupby("sym", sort=False):
@@ -64,7 +91,7 @@ def main():
         for i in range(n - K):
             if px[i] <= 0:
                 continue
-            st = hmap.get((sym, int(idd[i] // day_div)))
+            st = herd_at(sym, int(idd[i] // day_div))
             if st is None:
                 continue
             c, e, g = st
