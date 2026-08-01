@@ -131,6 +131,23 @@ Open refinement (declared): the harvest cycle on this object —
 species-quantile targets + adverse stops evaluated at gate-reveal
 closes, replacing the blind K-gate exit. (ch4_kgate_herd*.json)
 
+## Addendum 5 (2026-08-01): harvest shapes rarely mature; edge is real but small
+
+The declared quantile-shape harvest barely activates: HG species are too
+fine to earn 10 completed harvests (daily exits ~100% at the K=3
+baseline). Hourly improves modestly (9/11 years, +$43k vs +$23k blind).
+Critically, the daily book flips 10/11 -> 6/11 between two
+near-identical ledger implementations of the same trades — the herd
+K-gate edge is REAL in direction (replicates across rungs and
+conditionings) but small enough that implementation details move the
+book. Honest scale: low single digits per year. DECISION: wire the
+simplest replicated form (K=3, bigram_HG entries, K=3 exit,
+herd state at issue) into the CH4 paper channel as engine
+herd_kgate_v1 for LIVE-FORWARD measurement — the paper book is the
+instrument for exactly this. Expectation stated in advance: ~+2-6%/yr
+scale, not yet the goal; live-forward divergence from that range is
+itself information. (ch4_kgate_harvest_*.json)
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
