@@ -115,6 +115,22 @@ the campaign's own measurements: HERD-conditioned objects (the 73.6%
 completion-sign tier) applied to the K-gate tradable displacement —
 being built next. (ch4_kgate_law_K*.json)
 
+## Addendum 4 (2026-08-01): herd conditioning — first replicated positive
+
+Herd-conditioned K-gate tradable displacement (species x herd energy x
+greed at issue, strict as-of-issue, reveal-slipped, prior-day herd
+state for intraday causality):
+- daily K=3 HG: 10/11 years positive (+$47.8k/decade, 2022 -3.5% only)
+- hourly (independent rung, blind application): conditioning improves
+  the unconditioned book at K=3 (-$9.7k -> +$23k HG / +$41k H) and
+  K=5 (+$36k -> +$58k HG); 7-8/11 years positive.
+The herd effect REPLICATES across rungs under fully honest timing —
+the first surviving positive of this audit. Magnitude is modest
+(~+2-5%/yr, worst years -3..-8%): real, not yet deployable dollars.
+Open refinement (declared): the harvest cycle on this object —
+species-quantile targets + adverse stops evaluated at gate-reveal
+closes, replacing the blind K-gate exit. (ch4_kgate_herd*.json)
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
