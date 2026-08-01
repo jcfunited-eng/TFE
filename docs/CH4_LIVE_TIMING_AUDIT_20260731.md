@@ -103,6 +103,18 @@ honest fill at 15-min sampling. Capturing it would require sub-15-min
 sampling (1-min partials), which remains the one unmeasured corner of
 path 1.
 
+## Addendum 3 (2026-08-01): multi-gate horizons, unconditioned — a whisper
+
+K-gate tradable displacement (enter at event i's reveal-slipped issue
+close, exit at event i+K's; K=3/5/10; daily stream, strict as-of-issue):
+spectra ~= null with a small consistent extreme-tail excess (K=5: 7
+species vs 1.3 expected at 0.85–0.90); post-2016 band years wobble
+42–63%; declared books +$15k–$70k per decade, 7–9 of 11 years positive.
+Real but far below deployable. Next (and last standing) candidate from
+the campaign's own measurements: HERD-conditioned objects (the 73.6%
+completion-sign tier) applied to the K-gate tradable displacement —
+being built next. (ch4_kgate_law_K*.json)
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
