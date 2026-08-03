@@ -46,7 +46,19 @@
       "Bash(apt-get install:*)",
       "Bash(psql -U postgres -d tfe_validation -c \"SELECT COUNT\\(*\\) as latest FROM runtime_decisions_latest; SELECT COUNT\\(*\\) as bars FROM daily_bars;\")",
       "Bash(gh repo:*)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Bash(aws ecs describe-task-definition *)",
+      "Bash(aws ecs describe-services *)",
+      "Bash(aws ecs describe-tasks *)",
+      "Bash(aws ecs list-tasks *)",
+      "Bash(aws logs get-log-events *)",
+      "Bash(aws logs filter-log-events *)",
+      "Bash(aws logs describe-log-streams *)",
+      "Bash(aws logs tail *)",
+      "Bash(aws sts get-caller-identity *)",
+      "Bash(aws secretsmanager get-secret-value *)",
+      "Bash(aws codebuild batch-get-builds *)",
+      "Bash(aws ecr describe-images *)"
     ],
     "defaultMode": "bypassPermissions"
   }
