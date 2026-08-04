@@ -148,6 +148,25 @@ instrument for exactly this. Expectation stated in advance: ~+2-6%/yr
 scale, not yet the goal; live-forward divergence from that range is
 itself information. (ch4_kgate_harvest_*.json)
 
+
+## Addendum 6 (2026-08-04): the law is the PHYSICS — canonical confirmation
+
+Run freely chosen during the granted hour. Species law rebuilt on the
+CANONICAL uf_core kernel (production v1.4.0: quiet-interval gates,
+pinned tau_D=0.20, log-normalized field), 5,219 symbols, 172,433
+observations, strict as-of-issue, reveal=+2 bars:
+**58.6-77.9% direction accuracy EVERY year 2016-2026 (11/11).**
+Fourth independent gate construction to carry the law (divergent daily,
+hourly, m15, now canonical). The law is a property of the physics.
+
+Canonical gates are COARSE (~40/symbol/decade, weeks-months long) —
+the ownership timescale, where the reveal tax amortizes to ~nothing.
+The naive ride-to-next-gate money read is NOT yet positive (magnitude
+asymmetry; 2020 crisis clustering whips the short side). Next
+construction: polarity-aware harvest governance (species-quantile
+targets/stops — the read that fixed this at the daily rung) on
+canonical gates + herd conditioning + DSF gating. (ch4_canon_law.json)
+
 ## Reproduction
 
 `tools/ch3_hourly_law.py` (CH3_RUNG=daily|hour|m15, CH3_TRADE_DISP=1
