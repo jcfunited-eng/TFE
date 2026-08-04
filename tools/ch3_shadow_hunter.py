@@ -79,7 +79,7 @@ PRESS_PCT = 2.0        # within 2% of the day extreme = still pressing
 STOP_PCT = 1.5
 TARGET_PCT = 3.0       # 2:1 bracket
 MAX_OPEN = 5
-SLICE_MAX_PCT = 20.0
+SLICE_MAX_PCT = 2.0    # learning stakes until the live grades earn more
 
 
 def _mkey():
