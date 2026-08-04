@@ -43,7 +43,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 LOG_PATH = os.path.join(ROOT, "artifacts", "vtvr_observer",
                         "ch3_shadow_log.json")
-ENGINE = "ch3_reveal_fade_v1"
+ENGINE = "ch3_reveal_fade_v1.1"
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
@@ -95,6 +95,14 @@ def main():
                  pnl=pnl, exit_px=float(px))
         settled += 1
 
+    # herd greed at the latest day (exported by the same nightly pass,
+    # knowable at this close): fade ONLY spikes the herd is not backing
+    herd = pd.read_parquet(os.path.join(
+        ROOT, "artifacts", "ch4_uf", "herd_state_live.parquet"))
+    hday = int(pd.Timestamp(latest).strftime("%Y%m%d"))
+    gband = {s: int(g) for s, d, g in zip(
+        herd["sym"], herd["date"].astype(int), herd["gband"]) if int(d) == hday}
+
     # today's reveal events
     sub = df[df["Date"].isin(days[-25:])]
     events = []
@@ -109,8 +117,14 @@ def main():
         gain = 100 * (c[-1] / c[-2] - 1)
         vavg = float(np.mean(v[-21:-1]))
         if gain >= EVENT_GAIN and vavg > 0 and v[-1] >= VOL_MULT * vavg:
+            g = gband.get(sym)          # None = no herd; 0 = low greed
+            if g is not None and g >= 1:
+                continue                # herd is backing it: a birth, not a collapse
+            run20 = 100 * (c[-2] / c[-22] - 1) if len(c) >= 22 and c[-22] > 0 else 0.0
             events.append({"symbol": sym, "gain": round(gain, 1),
                            "close": float(c[-1]),
+                           "herd": "none" if g is None else "low",
+                           "prerun": round(run20, 1),
                            "dollar_vol": float(v[-1] * c[-1])})
     events.sort(key=lambda e: -e["dollar_vol"])
     held = {f["symbol"] for f in log["finds"] if f["status"] == "OPEN"}
@@ -132,7 +146,7 @@ def main():
             "entry_px": round(e["close"], 4),
             "target_pct": None, "target_px": None, "bound_pct": None,
             "notional": SLICE_USD, "day_chg_pct": e["gain"],
-            "catalyst": "REVEAL", "status": "OPEN"})
+            "catalyst": f"REVEAL/herd-{e['herd']}", "status": "OPEN"})
         held.add(e["symbol"])
         opened += 1
 
