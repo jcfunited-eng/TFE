@@ -126,6 +126,10 @@ def main():
                            "herd": "none" if g is None else "low",
                            "prerun": round(run20, 1),
                            "dollar_vol": float(v[-1] * c[-1])})
+    # visibility guard: the day's 3 biggest %-gainers are the measured
+    # trap stratum (best paper mean, fattest squeeze tail) — skip them
+    events.sort(key=lambda e: -e["gain"])
+    events = events[3:] if len(events) > 3 else []
     events.sort(key=lambda e: -e["dollar_vol"])
     held = {f["symbol"] for f in log["finds"] if f["status"] == "OPEN"}
     opened = 0
