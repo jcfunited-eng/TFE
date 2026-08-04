@@ -48,7 +48,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tools.vtvr_star_state_replication import COHORT_B  # noqa: E402
 
-ENGINE = "ch3_spring_intraday_v1"
+ENGINE = "ch3_mover_grab_v1"
 LOG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         "artifacts", "vtvr_observer", "ch3_shadow_log.json")
 BARS_PER_SESSION = 26          # 15-min bars in 6.5h
@@ -63,6 +63,67 @@ MAX_GROSS_PCT = 100.0
 def watchlist():
     from tools.vtvr_structure_search import UNIVERSE as COHORT_A
     return sorted(set(list(COHORT_A) + list(COHORT_B)))
+
+
+# --- real-life awareness: the day's actual energy ---------------------
+# ch3_mover_grab_v1 (2026-08-04). The quick-grabber goes WHERE THE
+# ENERGY ALREADY IS: the day's real movers on real volume, right now —
+# not a fixed watchlist, not a predicted spring. Selection is by
+# REALIZED energy (an observable), entry is continuation while the move
+# still presses, risk is a hard bracket, always flat by the close.
+MIN_PX = 3.0
+MIN_CHG = 7.0          # day move %, both sides
+MAX_CHG = 100.0
+MIN_DOLLAR_VOL = 25e6  # real participation, not a ghost print
+PRESS_PCT = 2.0        # within 2% of the day extreme = still pressing
+STOP_PCT = 1.5
+TARGET_PCT = 3.0       # 2:1 bracket
+MAX_OPEN = 5
+SLICE_MAX_PCT = 20.0
+
+
+def _mkey():
+    return (os.environ.get("MASSIVE_API_KEY")
+            or os.environ.get("POLYGON_API_KEY", ""))
+
+
+def movers():
+    """Top gainers/losers snapshots — the day's realized energy."""
+    out = []
+    for kind, side in (("gainers", 1), ("losers", -1)):
+        url = (f"https://api.polygon.io/v2/snapshot/locale/us/markets/"
+               f"stocks/{kind}?apiKey={_mkey()}")
+        try:
+            with urllib.request.urlopen(url, timeout=30) as r:
+                d = json.loads(r.read())
+        except Exception:
+            continue
+        for t in d.get("tickers") or []:
+            day = t.get("day") or {}
+            mn = t.get("min") or {}
+            px = float(mn.get("c") or day.get("c") or 0)
+            chg = float(t.get("todaysChangePerc") or 0)
+            dv = float(day.get("v") or 0) * float(day.get("vw") or 0)
+            sym = t.get("ticker", "")
+            if (px < MIN_PX or "." in sym or abs(chg) < MIN_CHG
+                    or abs(chg) > MAX_CHG or dv < MIN_DOLLAR_VOL):
+                continue
+            out.append({"symbol": sym, "side": side, "px": px, "chg": chg,
+                        "hi": float(day.get("h") or px),
+                        "lo": float(day.get("l") or px),
+                        "dollar_vol": dv})
+    return out
+
+
+def last_price(sym):
+    url = (f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/"
+           f"tickers/{sym}?apiKey={_mkey()}")
+    with urllib.request.urlopen(url, timeout=30) as r:
+        d = json.loads(r.read())
+    t = d.get("ticker") or {}
+    mn = t.get("min") or {}
+    day = t.get("day") or {}
+    return float(mn.get("c") or day.get("c") or 0)
 
 
 def fetch_15m(symbol, days=11):
@@ -190,68 +251,63 @@ def cycle():
     today = now[:10]
     live = {f["symbol"]: f for f in log["finds"]
             if f["date"] == today and f["status"] == "OPEN"}
+    traded_today = {f["symbol"] for f in log["finds"] if f["date"] == today}
     new_finds, graded = 0, 0
-    for sym in watchlist():
+
+    # 1) grade open grabs at current prices (theoretical sells)
+    for sym, f in list(live.items()):
         try:
-            ts, closes = fetch_15m(sym)
+            px = last_price(sym)
         except Exception:
             continue
-        if len(closes) < 3 * W_BARS or closes[-1] < PRICE_FLOOR:
+        if px <= 0:
             continue
-        dirs, flips, origin, moves, prev_org, ext_px = leg_walk(closes)
-        t = len(closes) - 1
-
-        # grade any live find on this symbol (theoretical sell)
-        f = live.get(sym)
-        if f is not None:
-            if f["side"] == 1 and closes[t] >= f["target_px"]:
-                settle(log["book"], f, "HIT", now,
-                       100 * (f["target_px"] / f["entry_px"] - 1))
+        if f["side"] == 1 and px >= f["target_px"]:
+            settle(log["book"], f, "HIT", now,
+                   100 * (f["target_px"] / f["entry_px"] - 1))
+            graded += 1
+        elif f["side"] == -1 and px <= f["target_px"]:
+            settle(log["book"], f, "HIT", now,
+                   100 * (1 - f["target_px"] / f["entry_px"]))
+            graded += 1
+        else:
+            adverse = 100 * (px / f["entry_px"] - 1) * f["side"]
+            if adverse <= -f["bound_pct"]:
+                settle(log["book"], f, "MISS", now, adverse)
                 graded += 1
-            elif f["side"] == -1 and closes[t] <= f["target_px"]:
-                settle(log["book"], f, "HIT", now,
-                       100 * (1 - f["target_px"] / f["entry_px"]))
-                graded += 1
-            else:
-                adverse = 100 * (closes[t] / f["entry_px"] - 1) * f["side"]
-                if adverse <= -f["bound_pct"]:
-                    settle(log["book"], f, "MISS", now, adverse)
-                    graded += 1
-            continue
 
-        # hunt: the intraday spring
-        side = int(flips[t]) if flips[t] != 0 else 0
-        if side == 0 or dirs[t] != side:
+    # 2) hunt where the energy already is: today's real movers
+    open_now = sum(1 for f in log["finds"] if f["status"] == "OPEN")
+    for m in sorted(movers(), key=lambda x: -x["dollar_vol"]):
+        if open_now >= MAX_OPEN:
+            break
+        sym, side, px = m["symbol"], m["side"], m["px"]
+        if sym in traded_today or px <= 0:
             continue
-        if prev_org[t] <= 0 or ext_px[t] <= 0:
-            continue                        # the ended leg has no measured origin yet
-        rems = quick_yield_record(closes[:-W_BARS], flips[:-W_BARS])
-        store = rems[side]
-        if len(store) < 10:
+        # still pressing: within PRESS_PCT of the day extreme in the
+        # move's direction (energy not yet faded)
+        if side == 1 and 100 * (m["hi"] - px) / m["hi"] > PRESS_PCT:
             continue
-        tgt_pct = float(np.median(np.array(store[-40:])))
-        w0 = max(1, t - W_BARS)
-        bound_pct = 100 * REV_MULT * float(np.median(moves[w0 - 1:t])) / closes[t]
-        # energy present: the leg that just ENDED spanned at least the
-        # target's worth (for a long: the decline peak -> trough); spring
-        # loaded: last 4 bars quieter than the session
-        drawn = 100 * (1 - ext_px[t] / prev_org[t]) if side == 1 \
-            else 100 * (ext_px[t] / prev_org[t] - 1)
-        q_now = float(np.median(moves[max(1, t - 4) - 1:t]))
-        q_ref = float(np.median(moves[w0 - 1:t]))
-        if drawn < tgt_pct or not (q_now < q_ref) or tgt_pct < bound_pct:
+        if side == -1 and 100 * (px - m["lo"]) / max(m["lo"], 1e-9) > PRESS_PCT:
             continue
-        tgt_px = closes[t] * (1 + tgt_pct / 100) if side == 1 \
-            else closes[t] * (1 - tgt_pct / 100)
-        bnd = round(max(bound_pct, 0.2), 2)
-        notional = size_find(log["book"], open_notional(log), bnd)
+        tgt_px = px * (1 + TARGET_PCT / 100) if side == 1 \
+            else px * (1 - TARGET_PCT / 100)
+        notional = size_find(log["book"], open_notional(log), STOP_PCT)
+        notional = min(notional,
+                       round((log["book"]["cash"] + open_notional(log))
+                             * SLICE_MAX_PCT / 100, 2))
+        if notional <= 0:
+            continue
         log["book"]["cash"] = round(log["book"]["cash"] - notional, 2)
         log["finds"].append({
             "engine": ENGINE, "date": today, "found_at": now,
-            "symbol": sym, "side": side, "entry_px": round(float(closes[t]), 4),
-            "target_pct": round(tgt_pct, 2), "target_px": round(float(tgt_px), 4),
-            "bound_pct": bnd, "notional": notional,
+            "symbol": sym, "side": side, "entry_px": round(px, 4),
+            "target_pct": TARGET_PCT, "target_px": round(tgt_px, 4),
+            "bound_pct": STOP_PCT, "notional": notional,
+            "day_chg_pct": round(m["chg"], 1),
             "status": "OPEN"})
+        traded_today.add(sym)
+        open_now += 1
         new_finds += 1
     save_log(log)
     print(f"[shadow] {now} cycle: {new_finds} new finds, {graded} graded, "
@@ -266,10 +322,11 @@ def close_day():
     for sym in {f["symbol"] for f in log["finds"]
                 if f["date"] == today and f["status"] == "OPEN"}:
         try:
-            ts, closes = fetch_15m(sym, days=2)
+            px = float(last_price(sym))
         except Exception:
             continue
-        px = float(closes[-1])
+        if px <= 0:
+            continue
         for f in log["finds"]:
             if f["symbol"] == sym and f["date"] == today and f["status"] == "OPEN":
                 ret = 100 * (px / f["entry_px"] - 1) * f["side"]

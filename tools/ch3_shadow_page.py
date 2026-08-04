@@ -123,9 +123,10 @@ td.empty {{ color:var(--muted); text-align:center; padding:22px; }}
 <main>
 <header>
   <h1>CH3 — Shadow Hunter <span class="badge">NO REAL ORDERS</span></h1>
-  <div class="sub">Engine ch3_spring_intraday_v1 · theoretical $100,000 book ·
-   sweeps every 15 minutes during market hours · buys and sells are simulated
-   at the engine's own prices · flat at every close · page updated {stamp}</div>
+  <div class="sub">Engine {log.get("engine", "ch3_mover_grab_v1")} ·
+   theoretical $100,000 book · hunts the day's REAL movers (big move on
+   big volume, right now) · continuation grabs with a hard 2:1 bracket ·
+   flat at every close · page updated {stamp}</div>
 </header>
 <section class="tiles">
   <div class="tile"><div class="k">Book value</div><div class="v">${value:,.2f}</div></div>
