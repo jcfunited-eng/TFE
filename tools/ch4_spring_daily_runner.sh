@@ -17,7 +17,9 @@ while true; do
         CH4_HERD_EXPORT=artifacts/ch4_uf/herd_state_live.parquet \
         python tools/ch4_uf_spectrum_herd.py
       python tools/ch4_herd_kgate_live.py
+      python tools/ch3_reveal_fade.py
       python tools/ch4_spring_page.py artifacts/vtvr_observer/ch4_page.html
+      python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html
     } >> artifacts/vtvr_observer/spring_passes.log 2>&1
     echo "[spring-runner] close pass done $(date -u +%FT%TZ)"
     sleep 3600

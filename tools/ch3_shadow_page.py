@@ -153,9 +153,11 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
 <main>
 <header>
   <h1>CH3 — Shadow Hunter</h1>
-  <div class="sub">Hunts the day's real movers · continuation grabs,
-   hard 2:1 bracket, flat at every close · SIMULATED — no real orders ·
-   engine {log.get("engine", "ch3_mover_grab_v1")} · updated {stamp}</div>
+  <div class="sub">The reveal-fade channel: shorts the day's violent
+   up-spikes at the close, holds five sessions, time exit · measured
+   +1.33%/event 2016-2026, positive every year since 2021 · SIMULATED —
+   no real orders, borrow costs not modeled ·
+   engine {log.get("engine", "ch3_reveal_fade_v1")} · updated {stamp}</div>
 </header>
 <div class="acct">Shadow account: equity {money(equity)} · cash {money(book["cash"])}</div>
 <section class="tiles">
