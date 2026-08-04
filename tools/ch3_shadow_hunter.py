@@ -115,6 +115,50 @@ def movers():
     return out
 
 
+NEG_NEWS = ("offering", "dilution", "registered direct", "reverse split",
+            "going concern", "delisting", "warrant", "at-the-market",
+            "shelf", "convertible")
+POS_NEWS = ("earnings", "beats", "beat", "raises", "guidance", "fda",
+            "approval", "clearance", "contract", "acquisition", "merger",
+            "partnership", "buyback", "award")
+
+
+def ticker_type(log, sym):
+    """CS = common stock. Cached; anything else (leveraged ETPs, funds,
+    warrants) is not a company and gets skipped."""
+    cache = log.setdefault("tick_types", {})
+    if sym in cache:
+        return cache[sym]
+    try:
+        url = f"https://api.polygon.io/v3/reference/tickers/{sym}?apiKey={_mkey()}"
+        with urllib.request.urlopen(url, timeout=20) as r:
+            t = (json.loads(r.read()).get("results") or {}).get("type", "?")
+    except Exception:
+        t = "?"
+    cache[sym] = t
+    return t
+
+
+def catalyst(sym):
+    """Read the candidate's actual headlines. Returns 'NEG', 'POS',
+    'NONE', or 'OTHER'."""
+    try:
+        url = (f"https://api.polygon.io/v2/reference/news?ticker={sym}"
+               f"&limit=6&apiKey={_mkey()}")
+        with urllib.request.urlopen(url, timeout=20) as r:
+            arts = json.loads(r.read()).get("results") or []
+    except Exception:
+        return "OTHER"
+    if not arts:
+        return "NONE"
+    text = " ".join((a.get("title") or "").lower() for a in arts[:6])
+    if any(k in text for k in NEG_NEWS):
+        return "NEG"
+    if any(k in text for k in POS_NEWS):
+        return "POS"
+    return "OTHER"
+
+
 def last_price(sym):
     url = (f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/"
            f"tickers/{sym}?apiKey={_mkey()}")
@@ -290,12 +334,23 @@ def cycle():
             continue
         if side == -1 and 100 * (px - m["lo"]) / max(m["lo"], 1e-9) > PRESS_PCT:
             continue
+        # a real company, not a leveraged/inverse product or fund
+        if ticker_type(log, sym) != "CS":
+            continue
+        # read the actual news before touching it
+        cat = catalyst(sym)
+        if side == 1 and cat == "NEG":
+            continue                 # up big while announcing dilution: fade, not ride
+        if side == -1 and cat == "POS":
+            continue                 # down big against good news: fighting a recovery
+        size_frac = 1.0 if cat in ("POS", "NEG") else 0.5
+        # no news on a violent move = pump risk: half size
         tgt_px = px * (1 + TARGET_PCT / 100) if side == 1 \
             else px * (1 - TARGET_PCT / 100)
         notional = size_find(log["book"], open_notional(log), STOP_PCT)
         notional = min(notional,
                        round((log["book"]["cash"] + open_notional(log))
-                             * SLICE_MAX_PCT / 100, 2))
+                             * SLICE_MAX_PCT / 100 * size_frac, 2))
         if notional <= 0:
             continue
         log["book"]["cash"] = round(log["book"]["cash"] - notional, 2)
@@ -304,7 +359,7 @@ def cycle():
             "symbol": sym, "side": side, "entry_px": round(px, 4),
             "target_pct": TARGET_PCT, "target_px": round(tgt_px, 4),
             "bound_pct": STOP_PCT, "notional": notional,
-            "day_chg_pct": round(m["chg"], 1),
+            "day_chg_pct": round(m["chg"], 1), "catalyst": cat,
             "status": "OPEN"})
         traded_today.add(sym)
         open_now += 1
