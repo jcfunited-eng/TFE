@@ -1,0 +1,84 @@
+{
+  "generated_at_utc": "2026-03-10T02:04:17.611Z",
+  "status": "scaffold_only",
+  "cp_profile": "CP-0",
+  "rollout_state": "registry_only_no_behavior_change",
+  "lineage_baseline": "Section 9 strict lineage baseline for L5 revisions remains in force.",
+  "source_truth": [
+    "web_user_data/TFE_5_3_Implementation_Plan_v2_4.md",
+    "web_user_data/TFE_Specification_v2_4.tex",
+    "web_user_data/TFE_Spec_Internal_Review_v2_4.md",
+    "current_l5_code_truth_to_spec_gap_latest.json",
+    "exact_path_alignment_readiness_latest.json"
+  ],
+  "registry_name": "information_event_registry_v1",
+  "purpose": "Controlled informational-event registry. Each event type requires provenance, timestamp, signed severity, temporal decay, and sphere-of-impact tags before activation.",
+  "informational_events": [
+    {
+      "id": "insider_transaction",
+      "label": "Insider Transaction",
+      "event_block": "Xi_insider",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1747"
+      ]
+    },
+    {
+      "id": "insider_conviction_cluster",
+      "label": "Insider-Conviction Cluster",
+      "event_block": "Xi_insider",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1573"
+      ]
+    },
+    {
+      "id": "ownership_change",
+      "label": "Ownership Change",
+      "event_block": "Xi_ownership",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1747"
+      ]
+    },
+    {
+      "id": "company_news_catalyst",
+      "label": "Company News / Catalyst",
+      "event_block": "Xi_news",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1747"
+      ]
+    },
+    {
+      "id": "filing_event",
+      "label": "Filing Event",
+      "event_block": "Xi_filing",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1751"
+      ]
+    },
+    {
+      "id": "merger_financing_distress_cluster",
+      "label": "Merger / Financing / Distress Cluster",
+      "event_block": "epoch_or_info",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1574"
+      ]
+    },
+    {
+      "id": "company_news_contagion_or_sympathy",
+      "label": "Company-News Contagion / Sympathy Effect",
+      "event_block": "epoch_or_info",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1575"
+      ]
+    }
+  ]
+}

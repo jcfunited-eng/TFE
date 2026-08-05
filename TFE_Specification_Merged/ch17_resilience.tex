@@ -1,0 +1,13 @@
+\chapter{Resilience and Runtime Visibility}
+\section{Resilience Baseline}
+The minimum resilience target for TFE is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item deterministic deployment records;
+    \item source and publication artifact retention;
+    \item recoverable runtime state;
+    \item cloud-level redundancy before specialized hardware redundancy;
+    \item ordered time and durable event sequencing.
+\end{enumerate}
+
+\section{Ordered Time Rule}
+Runtime events, phase transitions, and activation decisions shall be timestamped in a deterministic ordered manner sufficient to reconstruct run sequence and publication outcome.

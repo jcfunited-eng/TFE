@@ -1,0 +1,33 @@
+{
+  "status": "pass",
+  "generated_at_utc": "2026-03-04T21:39:32Z",
+  "summary_json": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-quality-audit-lane-20260304T213113Z/summary.json",
+  "ranked_table_csv": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-quality-audit-lane-20260304T213113Z/ranked-table.csv",
+  "winner": {
+    "variant_name": "policy_runtime_current",
+    "source_mode": "runtime",
+    "eval_mode": "runtime",
+    "min_bars": 252,
+    "policy_path": "/workspaces/Tao_Financial_Engine/pscf_policy_runtime.json",
+    "gates": {
+      "gate_5day": false,
+      "gate_20day": false,
+      "gate_60day": false,
+      "gate_sp_plus_4_proxy_avg": false,
+      "gate_coverage": false,
+      "gate_fallback": false,
+      "quality_gate_count": 0,
+      "reliability_gate_count": 0,
+      "total_gate_count": 0
+    },
+    "horizon_outcome_over_index_pct": {
+      "5": 75.0,
+      "20": 66.3716814159292,
+      "60": 40.5
+    },
+    "avg_outcome_over_index_pct": 60.623893805309734,
+    "coverage_rate": 0.7701266290784731,
+    "fallback_rate": 0.22987337092152693,
+    "reason": "Winner has highest total gate count; among ties it has stronger 5/20/60+avg quality profile and better reliability (higher coverage, lower fallback)."
+  }
+}

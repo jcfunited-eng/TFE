@@ -1,0 +1,867 @@
+$date
+	Sat Apr 18 03:41:23 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module arcloom_tb $end
+$var wire 2 ! top_steer [1:0] $end
+$var wire 2 " top_speed [1:0] $end
+$var wire 36 # top_loom_state [35:0] $end
+$var wire 8 $ top_krim_score [7:0] $end
+$var wire 1 % top_dsf_valid $end
+$var wire 1 & top_dsf_safe_mode $end
+$var wire 32 ' top_dsf_U_star [31:0] $end
+$var wire 1 ( top_dsf_R_rev $end
+$var wire 32 ) top_dsf_P [31:0] $end
+$var wire 32 * top_dsf_M [31:0] $end
+$var wire 2 + top_dsf_D [1:0] $end
+$var wire 4 , top_dsf_C [3:0] $end
+$var wire 32 - top_dsf_B [31:0] $end
+$var wire 2 . top_conf [1:0] $end
+$var wire 2 / tb_steer [1:0] $end
+$var wire 2 0 tb_speed [1:0] $end
+$var wire 36 1 tb_loom_state [35:0] $end
+$var wire 16 2 tb_f_mmtm_2 [15:0] $end
+$var wire 16 3 tb_f_mmtm_1 [15:0] $end
+$var wire 16 4 tb_f_mmtm_0 [15:0] $end
+$var wire 16 5 tb_f_dcsn_2 [15:0] $end
+$var wire 16 6 tb_f_dcsn_1 [15:0] $end
+$var wire 16 7 tb_f_dcsn_0 [15:0] $end
+$var wire 16 8 tb_f_ctx_2 [15:0] $end
+$var wire 16 9 tb_f_ctx_1 [15:0] $end
+$var wire 16 : tb_f_ctx_0 [15:0] $end
+$var wire 2 ; tb_conf [1:0] $end
+$var wire 8 < ml_sum [7:0] $end
+$var wire 2 = ml_carry [1:0] $end
+$var reg 1 > clk $end
+$var reg 8 ? ml_a [7:0] $end
+$var reg 8 @ ml_b [7:0] $end
+$var reg 36 A prev_loom [35:0] $end
+$var reg 1 B rst_n $end
+$var reg 12 C sensor_adc [11:0] $end
+$var reg 1 D sensor_valid $end
+$var reg 6 E tb_accl [5:0] $end
+$var reg 6 F tb_dir [5:0] $end
+$var reg 6 G tb_dist [5:0] $end
+$var integer 32 H a_val [31:0] $end
+$var integer 32 I b_val [31:0] $end
+$var integer 32 J expected [31:0] $end
+$var integer 32 K fail_count [31:0] $end
+$var integer 32 L i [31:0] $end
+$var integer 32 M pass_count [31:0] $end
+$var integer 32 N sum_val [31:0] $end
+$var integer 32 O test_num [31:0] $end
+$scope function bt_val $end
+$var reg 8 P bt [7:0] $end
+$var integer 32 Q d [31:0] $end
+$var integer 32 R v [31:0] $end
+$upscope $end
+$scope module adder_uut $end
+$var wire 8 S a [7:0] $end
+$var wire 8 T b [7:0] $end
+$var wire 2 U c_final [1:0] $end
+$var wire 8 V sum_out [7:0] $end
+$var parameter 32 W N $end
+$scope begin digit[0] $end
+$var parameter 2 X i $end
+$scope module fa $end
+$var wire 2 Y a [1:0] $end
+$var wire 2 Z b [1:0] $end
+$var wire 2 [ c_in [1:0] $end
+$var wire 3 \ total [2:0] $end
+$var wire 3 ] c_s [2:0] $end
+$var wire 3 ^ b_s [2:0] $end
+$var wire 3 _ a_s [2:0] $end
+$var reg 2 ` c_out [1:0] $end
+$var reg 2 a sum_out [1:0] $end
+$upscope $end
+$upscope $end
+$scope begin digit[1] $end
+$var parameter 2 b i $end
+$scope module fa $end
+$var wire 2 c a [1:0] $end
+$var wire 2 d b [1:0] $end
+$var wire 2 e c_in [1:0] $end
+$var wire 3 f total [2:0] $end
+$var wire 3 g c_s [2:0] $end
+$var wire 3 h b_s [2:0] $end
+$var wire 3 i a_s [2:0] $end
+$var reg 2 j c_out [1:0] $end
+$var reg 2 k sum_out [1:0] $end
+$upscope $end
+$upscope $end
+$scope begin digit[2] $end
+$var parameter 3 l i $end
+$scope module fa $end
+$var wire 2 m a [1:0] $end
+$var wire 2 n b [1:0] $end
+$var wire 2 o c_in [1:0] $end
+$var wire 3 p total [2:0] $end
+$var wire 3 q c_s [2:0] $end
+$var wire 3 r b_s [2:0] $end
+$var wire 3 s a_s [2:0] $end
+$var reg 2 t c_out [1:0] $end
+$var reg 2 u sum_out [1:0] $end
+$upscope $end
+$upscope $end
+$scope begin digit[3] $end
+$var parameter 3 v i $end
+$scope module fa $end
+$var wire 2 w a [1:0] $end
+$var wire 2 x b [1:0] $end
+$var wire 2 y c_in [1:0] $end
+$var wire 3 z total [2:0] $end
+$var wire 3 { c_s [2:0] $end
+$var wire 3 | b_s [2:0] $end
+$var wire 3 } a_s [2:0] $end
+$var reg 2 ~ c_out [1:0] $end
+$var reg 2 !" sum_out [1:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$scope module sppu_uut $end
+$var wire 2 "" decision_conf [1:0] $end
+$var wire 2 #" decision_speed [1:0] $end
+$var wire 2 $" decision_steer [1:0] $end
+$var wire 8 %" ext_h_ctx [7:0] $end
+$var wire 8 &" ext_h_dcsn [7:0] $end
+$var wire 8 '" ext_h_mmtm [7:0] $end
+$var wire 6 (" in_accel [5:0] $end
+$var wire 6 )" in_direction [5:0] $end
+$var wire 6 *" in_distance [5:0] $end
+$var wire 2 +" mmtm_2 [1:0] $end
+$var wire 2 ," mmtm_1 [1:0] $end
+$var wire 2 -" mmtm_0 [1:0] $end
+$var wire 36 ." loom_state [35:0] $end
+$var wire 18 /" input_trits [17:0] $end
+$var wire 16 0" field_mmtm_2 [15:0] $end
+$var wire 16 1" field_mmtm_1 [15:0] $end
+$var wire 16 2" field_mmtm_0 [15:0] $end
+$var wire 16 3" field_dcsn_2 [15:0] $end
+$var wire 16 4" field_dcsn_1 [15:0] $end
+$var wire 16 5" field_dcsn_0 [15:0] $end
+$var wire 16 6" field_ctx_2 [15:0] $end
+$var wire 16 7" field_ctx_1 [15:0] $end
+$var wire 16 8" field_ctx_0 [15:0] $end
+$var wire 30 9" dcsn_sources [29:0] $end
+$var wire 2 :" dcsn_2 [1:0] $end
+$var wire 2 ;" dcsn_1 [1:0] $end
+$var wire 2 <" dcsn_0 [1:0] $end
+$var wire 2 =" ctx_2 [1:0] $end
+$var wire 2 >" ctx_1 [1:0] $end
+$var wire 2 ?" ctx_0 [1:0] $end
+$var parameter 16 @" DEAD_ZONE $end
+$var parameter 72 A" W_CTX_0 $end
+$var parameter 72 B" W_CTX_1 $end
+$var parameter 72 C" W_CTX_2 $end
+$var parameter 120 D" W_DCSN_0 $end
+$var parameter 120 E" W_DCSN_1 $end
+$var parameter 120 F" W_DCSN_2 $end
+$var parameter 72 G" W_MMTM_0 $end
+$var parameter 72 H" W_MMTM_1 $end
+$var parameter 72 I" W_MMTM_2 $end
+$scope module ctx_field_0 $end
+$var wire 18 J" coupled_trits [17:0] $end
+$var wire 8 K" external_h [7:0] $end
+$var wire 16 L" field_value [15:0] $end
+$var wire 72 M" weights [71:0] $end
+$var wire 2 N" trit_out [1:0] $end
+$var parameter 16 O" DEAD_ZONE $end
+$var parameter 32 P" N_INPUTS $end
+$var reg 16 Q" total [15:0] $end
+$var integer 32 R" i [31:0] $end
+$upscope $end
+$scope module ctx_field_1 $end
+$var wire 18 S" coupled_trits [17:0] $end
+$var wire 8 T" external_h [7:0] $end
+$var wire 16 U" field_value [15:0] $end
+$var wire 72 V" weights [71:0] $end
+$var wire 2 W" trit_out [1:0] $end
+$var parameter 16 X" DEAD_ZONE $end
+$var parameter 32 Y" N_INPUTS $end
+$var reg 16 Z" total [15:0] $end
+$var integer 32 [" i [31:0] $end
+$upscope $end
+$scope module ctx_field_2 $end
+$var wire 18 \" coupled_trits [17:0] $end
+$var wire 8 ]" external_h [7:0] $end
+$var wire 16 ^" field_value [15:0] $end
+$var wire 72 _" weights [71:0] $end
+$var wire 2 `" trit_out [1:0] $end
+$var parameter 16 a" DEAD_ZONE $end
+$var parameter 32 b" N_INPUTS $end
+$var reg 16 c" total [15:0] $end
+$var integer 32 d" i [31:0] $end
+$upscope $end
+$scope module dcsn_field_0 $end
+$var wire 30 e" coupled_trits [29:0] $end
+$var wire 8 f" external_h [7:0] $end
+$var wire 16 g" field_value [15:0] $end
+$var wire 120 h" weights [119:0] $end
+$var wire 2 i" trit_out [1:0] $end
+$var parameter 16 j" DEAD_ZONE $end
+$var parameter 32 k" N_INPUTS $end
+$var reg 16 l" total [15:0] $end
+$var integer 32 m" i [31:0] $end
+$upscope $end
+$scope module dcsn_field_1 $end
+$var wire 30 n" coupled_trits [29:0] $end
+$var wire 8 o" external_h [7:0] $end
+$var wire 16 p" field_value [15:0] $end
+$var wire 120 q" weights [119:0] $end
+$var wire 2 r" trit_out [1:0] $end
+$var parameter 16 s" DEAD_ZONE $end
+$var parameter 32 t" N_INPUTS $end
+$var reg 16 u" total [15:0] $end
+$var integer 32 v" i [31:0] $end
+$upscope $end
+$scope module dcsn_field_2 $end
+$var wire 30 w" coupled_trits [29:0] $end
+$var wire 8 x" external_h [7:0] $end
+$var wire 16 y" field_value [15:0] $end
+$var wire 120 z" weights [119:0] $end
+$var wire 2 {" trit_out [1:0] $end
+$var parameter 16 |" DEAD_ZONE $end
+$var parameter 32 }" N_INPUTS $end
+$var reg 16 ~" total [15:0] $end
+$var integer 32 !# i [31:0] $end
+$upscope $end
+$scope module mmtm_field_0 $end
+$var wire 18 "# coupled_trits [17:0] $end
+$var wire 8 ## external_h [7:0] $end
+$var wire 16 $# field_value [15:0] $end
+$var wire 72 %# weights [71:0] $end
+$var wire 2 &# trit_out [1:0] $end
+$var parameter 16 '# DEAD_ZONE $end
+$var parameter 32 (# N_INPUTS $end
+$var reg 16 )# total [15:0] $end
+$var integer 32 *# i [31:0] $end
+$upscope $end
+$scope module mmtm_field_1 $end
+$var wire 18 +# coupled_trits [17:0] $end
+$var wire 8 ,# external_h [7:0] $end
+$var wire 16 -# field_value [15:0] $end
+$var wire 72 .# weights [71:0] $end
+$var wire 2 /# trit_out [1:0] $end
+$var parameter 16 0# DEAD_ZONE $end
+$var parameter 32 1# N_INPUTS $end
+$var reg 16 2# total [15:0] $end
+$var integer 32 3# i [31:0] $end
+$upscope $end
+$scope module mmtm_field_2 $end
+$var wire 18 4# coupled_trits [17:0] $end
+$var wire 8 5# external_h [7:0] $end
+$var wire 16 6# field_value [15:0] $end
+$var wire 72 7# weights [71:0] $end
+$var wire 2 8# trit_out [1:0] $end
+$var parameter 16 9# DEAD_ZONE $end
+$var parameter 32 :# N_INPUTS $end
+$var reg 16 ;# total [15:0] $end
+$var integer 32 <# i [31:0] $end
+$upscope $end
+$upscope $end
+$scope module top_uut $end
+$var wire 1 > clk $end
+$var wire 1 =# commit_eligible $end
+$var wire 8 ># krimelack_score [7:0] $end
+$var wire 1 B rst_n $end
+$var wire 12 ?# sensor_adc [11:0] $end
+$var wire 1 D sensor_valid $end
+$var wire 36 @# recalled_motif [35:0] $end
+$var wire 8 A# recall_score [7:0] $end
+$var wire 36 B# loom_state [35:0] $end
+$var wire 32 C# f_norm_approx [31:0] $end
+$var wire 1 % dsf_valid $end
+$var wire 1 & dsf_safe_mode $end
+$var wire 32 D# dsf_U_star [31:0] $end
+$var wire 1 ( dsf_R_rev $end
+$var wire 32 E# dsf_P [31:0] $end
+$var wire 32 F# dsf_M [31:0] $end
+$var wire 2 G# dsf_D [1:0] $end
+$var wire 4 H# dsf_C [3:0] $end
+$var wire 32 I# dsf_B [31:0] $end
+$var wire 6 J# dist_strand [5:0] $end
+$var wire 6 K# dir_strand [5:0] $end
+$var wire 2 L# decision_steer [1:0] $end
+$var wire 2 M# decision_speed [1:0] $end
+$var wire 2 N# decision_conf [1:0] $end
+$var wire 6 O# accl_strand [5:0] $end
+$var reg 8 P# dsf_bias_dcsn [7:0] $end
+$var reg 8 Q# dsf_bias_mmtm [7:0] $end
+$scope module bsil_inst $end
+$var wire 1 D adc_valid $end
+$var wire 12 R# adc_value [11:0] $end
+$var wire 1 > clk $end
+$var wire 1 B rst_n $end
+$var wire 13 S# prev_delta [12:0] $end
+$var wire 13 T# delta [12:0] $end
+$var wire 13 U# accel [12:0] $end
+$var parameter 12 V# ACCEL_THRESH_0 $end
+$var parameter 12 W# ACCEL_THRESH_1 $end
+$var parameter 12 X# ACCEL_THRESH_2 $end
+$var parameter 12 Y# DELTA_THRESH_0 $end
+$var parameter 12 Z# DELTA_THRESH_1 $end
+$var parameter 12 [# DELTA_THRESH_2 $end
+$var parameter 12 \# DIST_HI_0 $end
+$var parameter 12 ]# DIST_HI_1 $end
+$var parameter 12 ^# DIST_HI_2 $end
+$var parameter 12 _# DIST_LO_0 $end
+$var parameter 12 `# DIST_LO_1 $end
+$var parameter 12 a# DIST_LO_2 $end
+$var reg 6 b# accel_strand [5:0] $end
+$var reg 6 c# direction_strand [5:0] $end
+$var reg 6 d# distance_strand [5:0] $end
+$var reg 1 e# has_prev $end
+$var reg 1 f# has_prev2 $end
+$var reg 12 g# prev_prev_value [11:0] $end
+$var reg 12 h# prev_value [11:0] $end
+$scope function encode_delta_trit $end
+$var reg 13 i# d [12:0] $end
+$var reg 12 j# thresh [11:0] $end
+$upscope $end
+$scope function encode_trit $end
+$var reg 12 k# hi [11:0] $end
+$var reg 12 l# lo [11:0] $end
+$var reg 12 m# val [11:0] $end
+$upscope $end
+$upscope $end
+$scope module krimelack_inst $end
+$var wire 1 > clk $end
+$var wire 1 B rst_n $end
+$var wire 1 =# store $end
+$var wire 36 n# state_in [35:0] $end
+$var wire 36 o# query [35:0] $end
+$var parameter 32 p# DEPTH $end
+$var parameter 32 q# TRIT_WIDTH $end
+$var reg 8 r# best [7:0] $end
+$var reg 4 s# best_idx [3:0] $end
+$var reg 36 t# best_match [35:0] $end
+$var reg 4 u# count [3:0] $end
+$var reg 8 v# match_score [7:0] $end
+$var reg 4 w# midx [3:0] $end
+$var reg 5 x# tidx [4:0] $end
+$var reg 4 y# write_ptr [3:0] $end
+$upscope $end
+$scope module sppu_inst $end
+$var wire 2 z# decision_conf [1:0] $end
+$var wire 2 {# decision_speed [1:0] $end
+$var wire 2 |# decision_steer [1:0] $end
+$var wire 8 }# ext_h_ctx [7:0] $end
+$var wire 8 ~# ext_h_dcsn [7:0] $end
+$var wire 8 !$ ext_h_mmtm [7:0] $end
+$var wire 6 "$ in_accel [5:0] $end
+$var wire 6 #$ in_direction [5:0] $end
+$var wire 6 $$ in_distance [5:0] $end
+$var wire 2 %$ mmtm_2 [1:0] $end
+$var wire 2 &$ mmtm_1 [1:0] $end
+$var wire 2 '$ mmtm_0 [1:0] $end
+$var wire 36 ($ loom_state [35:0] $end
+$var wire 18 )$ input_trits [17:0] $end
+$var wire 16 *$ field_mmtm_2 [15:0] $end
+$var wire 16 +$ field_mmtm_1 [15:0] $end
+$var wire 16 ,$ field_mmtm_0 [15:0] $end
+$var wire 16 -$ field_dcsn_2 [15:0] $end
+$var wire 16 .$ field_dcsn_1 [15:0] $end
+$var wire 16 /$ field_dcsn_0 [15:0] $end
+$var wire 16 0$ field_ctx_2 [15:0] $end
+$var wire 16 1$ field_ctx_1 [15:0] $end
+$var wire 16 2$ field_ctx_0 [15:0] $end
+$var wire 30 3$ dcsn_sources [29:0] $end
+$var wire 2 4$ dcsn_2 [1:0] $end
+$var wire 2 5$ dcsn_1 [1:0] $end
+$var wire 2 6$ dcsn_0 [1:0] $end
+$var wire 2 7$ ctx_2 [1:0] $end
+$var wire 2 8$ ctx_1 [1:0] $end
+$var wire 2 9$ ctx_0 [1:0] $end
+$var parameter 16 :$ DEAD_ZONE $end
+$var parameter 72 ;$ W_CTX_0 $end
+$var parameter 72 <$ W_CTX_1 $end
+$var parameter 72 =$ W_CTX_2 $end
+$var parameter 120 >$ W_DCSN_0 $end
+$var parameter 120 ?$ W_DCSN_1 $end
+$var parameter 120 @$ W_DCSN_2 $end
+$var parameter 72 A$ W_MMTM_0 $end
+$var parameter 72 B$ W_MMTM_1 $end
+$var parameter 72 C$ W_MMTM_2 $end
+$scope module ctx_field_0 $end
+$var wire 18 D$ coupled_trits [17:0] $end
+$var wire 8 E$ external_h [7:0] $end
+$var wire 16 F$ field_value [15:0] $end
+$var wire 72 G$ weights [71:0] $end
+$var wire 2 H$ trit_out [1:0] $end
+$var parameter 16 I$ DEAD_ZONE $end
+$var parameter 32 J$ N_INPUTS $end
+$var reg 16 K$ total [15:0] $end
+$var integer 32 L$ i [31:0] $end
+$upscope $end
+$scope module ctx_field_1 $end
+$var wire 18 M$ coupled_trits [17:0] $end
+$var wire 8 N$ external_h [7:0] $end
+$var wire 16 O$ field_value [15:0] $end
+$var wire 72 P$ weights [71:0] $end
+$var wire 2 Q$ trit_out [1:0] $end
+$var parameter 16 R$ DEAD_ZONE $end
+$var parameter 32 S$ N_INPUTS $end
+$var reg 16 T$ total [15:0] $end
+$var integer 32 U$ i [31:0] $end
+$upscope $end
+$scope module ctx_field_2 $end
+$var wire 18 V$ coupled_trits [17:0] $end
+$var wire 8 W$ external_h [7:0] $end
+$var wire 16 X$ field_value [15:0] $end
+$var wire 72 Y$ weights [71:0] $end
+$var wire 2 Z$ trit_out [1:0] $end
+$var parameter 16 [$ DEAD_ZONE $end
+$var parameter 32 \$ N_INPUTS $end
+$var reg 16 ]$ total [15:0] $end
+$var integer 32 ^$ i [31:0] $end
+$upscope $end
+$scope module dcsn_field_0 $end
+$var wire 30 _$ coupled_trits [29:0] $end
+$var wire 8 `$ external_h [7:0] $end
+$var wire 16 a$ field_value [15:0] $end
+$var wire 120 b$ weights [119:0] $end
+$var wire 2 c$ trit_out [1:0] $end
+$var parameter 16 d$ DEAD_ZONE $end
+$var parameter 32 e$ N_INPUTS $end
+$var reg 16 f$ total [15:0] $end
+$var integer 32 g$ i [31:0] $end
+$upscope $end
+$scope module dcsn_field_1 $end
+$var wire 30 h$ coupled_trits [29:0] $end
+$var wire 8 i$ external_h [7:0] $end
+$var wire 16 j$ field_value [15:0] $end
+$var wire 120 k$ weights [119:0] $end
+$var wire 2 l$ trit_out [1:0] $end
+$var parameter 16 m$ DEAD_ZONE $end
+$var parameter 32 n$ N_INPUTS $end
+$var reg 16 o$ total [15:0] $end
+$var integer 32 p$ i [31:0] $end
+$upscope $end
+$scope module dcsn_field_2 $end
+$var wire 30 q$ coupled_trits [29:0] $end
+$var wire 8 r$ external_h [7:0] $end
+$var wire 16 s$ field_value [15:0] $end
+$var wire 120 t$ weights [119:0] $end
+$var wire 2 u$ trit_out [1:0] $end
+$var parameter 16 v$ DEAD_ZONE $end
+$var parameter 32 w$ N_INPUTS $end
+$var reg 16 x$ total [15:0] $end
+$var integer 32 y$ i [31:0] $end
+$upscope $end
+$scope module mmtm_field_0 $end
+$var wire 18 z$ coupled_trits [17:0] $end
+$var wire 8 {$ external_h [7:0] $end
+$var wire 16 |$ field_value [15:0] $end
+$var wire 72 }$ weights [71:0] $end
+$var wire 2 ~$ trit_out [1:0] $end
+$var parameter 16 !% DEAD_ZONE $end
+$var parameter 32 "% N_INPUTS $end
+$var reg 16 #% total [15:0] $end
+$var integer 32 $% i [31:0] $end
+$upscope $end
+$scope module mmtm_field_1 $end
+$var wire 18 %% coupled_trits [17:0] $end
+$var wire 8 &% external_h [7:0] $end
+$var wire 16 '% field_value [15:0] $end
+$var wire 72 (% weights [71:0] $end
+$var wire 2 )% trit_out [1:0] $end
+$var parameter 16 *% DEAD_ZONE $end
+$var parameter 32 +% N_INPUTS $end
+$var reg 16 ,% total [15:0] $end
+$var integer 32 -% i [31:0] $end
+$upscope $end
+$scope module mmtm_field_2 $end
+$var wire 18 .% coupled_trits [17:0] $end
+$var wire 8 /% external_h [7:0] $end
+$var wire 16 0% field_value [15:0] $end
+$var wire 72 1% weights [71:0] $end
+$var wire 2 2% trit_out [1:0] $end
+$var parameter 16 3% DEAD_ZONE $end
+$var parameter 32 4% N_INPUTS $end
+$var reg 16 5% total [15:0] $end
+$var integer 32 6% i [31:0] $end
+$upscope $end
+$upscope $end
+$scope module uf_pipeline_inst $end
+$var wire 32 7% F_norm_in [31:0] $end
+$var wire 1 > clk $end
+$var wire 32 8% l0_D_t [31:0] $end
+$var wire 1 9% l0_N $end
+$var wire 1 :% l0_boundary $end
+$var wire 32 ;% l0_dF [31:0] $end
+$var wire 32 <% l0_kappa [31:0] $end
+$var wire 32 =% l0_sigma [31:0] $end
+$var wire 1 >% l0_valid $end
+$var wire 1 B rst_n $end
+$var wire 1 D valid_in $end
+$var wire 1 ?% l3_valid $end
+$var wire 1 @% l3_g_k $end
+$var wire 32 A% l3_U_k [31:0] $end
+$var wire 32 B% l3_URF_k [31:0] $end
+$var wire 32 C% l3_R_scalar [31:0] $end
+$var wire 1 D% l3_IAS_k $end
+$var wire 1 E% l3_Hyst_k $end
+$var wire 4 F% l3_C_k [3:0] $end
+$var wire 32 G% l2_w_k [31:0] $end
+$var wire 1 H% l2_valid $end
+$var wire 32 I% l2_U_k [31:0] $end
+$var wire 32 J% l2_S_k [31:0] $end
+$var wire 1 K% l2_IAS_k $end
+$var wire 4 L% l2_C_k [3:0] $end
+$var wire 32 M% l2_CV_norm [31:0] $end
+$var wire 1 N% l1_valid $end
+$var wire 32 O% l1_dF_min [31:0] $end
+$var wire 32 P% l1_dF_max [31:0] $end
+$var wire 32 Q% l1_V_k [31:0] $end
+$var wire 32 R% l1_T_k [31:0] $end
+$var wire 16 S% l1_T_count [15:0] $end
+$var wire 32 T% l1_R_k [31:0] $end
+$var wire 16 U% l1_N_sum [15:0] $end
+$var wire 4 V% l1_C_k [3:0] $end
+$var wire 1 W% l0_valid_w $end
+$var wire 32 X% l0_sigma_w [31:0] $end
+$var wire 32 Y% l0_kappa_w [31:0] $end
+$var wire 32 Z% l0_dF_w [31:0] $end
+$var wire 1 [% l0_boundary_w $end
+$var wire 1 \% l0_N_w $end
+$var wire 32 ]% l0_D_t_w [31:0] $end
+$var wire 1 % dsf_valid $end
+$var wire 1 & dsf_safe_mode $end
+$var wire 32 ^% dsf_U_star [31:0] $end
+$var wire 1 ( dsf_R_rev $end
+$var wire 32 _% dsf_P [31:0] $end
+$var wire 32 `% dsf_M [31:0] $end
+$var wire 2 a% dsf_D [1:0] $end
+$var wire 4 b% dsf_C [3:0] $end
+$var wire 32 c% dsf_B [31:0] $end
+$var wire 32 d% abs_dF [31:0] $end
+$scope module l0_inst $end
+$var wire 32 e% F_norm_in [31:0] $end
+$var wire 1 f% N_calc $end
+$var wire 1 > clk $end
+$var wire 1 B rst_n $end
+$var wire 32 g% sigma_calc [31:0] $end
+$var wire 1 D valid_in $end
+$var wire 32 h% kappa_raw [31:0] $end
+$var wire 32 i% kappa_calc [31:0] $end
+$var wire 32 j% dF_calc [31:0] $end
+$var wire 1 k% boundary_internal $end
+$var wire 32 l% abs_dF [31:0] $end
+$var wire 32 m% D_t_internal [31:0] $end
+$var parameter 32 n% ALPHA1 $end
+$var parameter 32 o% ALPHA2 $end
+$var parameter 32 p% ALPHA3 $end
+$var parameter 32 q% TAU_D $end
+$var parameter 32 r% TAU_DELTA $end
+$var parameter 32 s% TAU_K $end
+$var parameter 32 t% TAU_S $end
+$var parameter 32 u% WINDOW $end
+$var reg 32 v% D_t_out [31:0] $end
+$var reg 32 w% F_norm_out [31:0] $end
+$var reg 32 x% F_prev [31:0] $end
+$var reg 32 y% F_prev2 [31:0] $end
+$var reg 1 \% N_out $end
+$var reg 32 z% dF_out [31:0] $end
+$var reg 1 [% gate_boundary $end
+$var reg 32 {% gate_count [31:0] $end
+$var reg 1 |% has_prev $end
+$var reg 1 }% has_prev2 $end
+$var reg 32 ~% kappa_out [31:0] $end
+$var reg 32 !& sigma_out [31:0] $end
+$var reg 1 W% valid_out $end
+$var reg 5 "& window_count [4:0] $end
+$var reg 5 #& window_ptr [4:0] $end
+$var reg 32 $& window_sum [31:0] $end
+$var integer 32 %& i [31:0] $end
+$scope module boundary_inst $end
+$var wire 1 > clk $end
+$var wire 32 && dF_in [31:0] $end
+$var wire 32 '& kappa_in [31:0] $end
+$var wire 1 B rst_n $end
+$var wire 32 (& sigma_in [31:0] $end
+$var wire 1 )& valid_in $end
+$var wire 64 *& term3_full [63:0] $end
+$var wire 32 +& term3 [31:0] $end
+$var wire 64 ,& term2_full [63:0] $end
+$var wire 32 -& term2 [31:0] $end
+$var wire 64 .& term1_full [63:0] $end
+$var wire 32 /& term1 [31:0] $end
+$var wire 1 0& boundary_comb $end
+$var wire 32 1& abs_dF [31:0] $end
+$var wire 32 2& D_t_comb [31:0] $end
+$var parameter 32 3& ALPHA1 $end
+$var parameter 32 4& ALPHA2 $end
+$var parameter 32 5& ALPHA3 $end
+$var parameter 32 6& TAU_D $end
+$var reg 32 7& D_t_out [31:0] $end
+$var reg 1 k% gate_boundary $end
+$var reg 32 8& gate_count [31:0] $end
+$var reg 1 9& valid_out $end
+$upscope $end
+$upscope $end
+$scope module l1_inst $end
+$var wire 1 \% N_in $end
+$var wire 32 :& abs_dF [31:0] $end
+$var wire 1 [% boundary_in $end
+$var wire 1 > clk $end
+$var wire 32 ;& kappa [31:0] $end
+$var wire 1 <& match_01 $end
+$var wire 1 =& match_02 $end
+$var wire 1 >& match_12 $end
+$var wire 1 B rst_n $end
+$var wire 32 ?& sigma [31:0] $end
+$var wire 1 W% valid_in $end
+$var wire 64 @& vt3_full [63:0] $end
+$var wire 32 A& vt3 [31:0] $end
+$var wire 64 B& vt2_full [63:0] $end
+$var wire 32 C& vt2 [31:0] $end
+$var wire 64 D& vt1_full [63:0] $end
+$var wire 32 E& vt1 [31:0] $end
+$var wire 32 F& v_sample [31:0] $end
+$var wire 33 G& v_next_wide [32:0] $end
+$var wire 32 H& v_next [31:0] $end
+$var wire 16 I& p2_v_raw [15:0] $end
+$var wire 8 J& p2_v [7:0] $end
+$var wire 16 K& p2_t_raw [15:0] $end
+$var wire 8 L& p2_t [7:0] $end
+$var wire 16 M& p2_r_raw [15:0] $end
+$var wire 8 N& p2_r [7:0] $end
+$var wire 16 O& p1_v_raw [15:0] $end
+$var wire 8 P& p1_v [7:0] $end
+$var wire 16 Q& p1_t_raw [15:0] $end
+$var wire 8 R& p1_t [7:0] $end
+$var wire 16 S& p1_r_raw [15:0] $end
+$var wire 8 T& p1_r [7:0] $end
+$var wire 16 U& p0_v_raw [15:0] $end
+$var wire 8 V& p0_v [7:0] $end
+$var wire 16 W& p0_t_raw [15:0] $end
+$var wire 8 X& p0_t [7:0] $end
+$var wire 16 Y& p0_r_raw [15:0] $end
+$var wire 8 Z& p0_r [7:0] $end
+$var wire 4 [& c_val [3:0] $end
+$var parameter 32 \& BETA1 $end
+$var parameter 32 ]& BETA2 $end
+$var parameter 32 ^& BETA3 $end
+$var parameter 32 _& L0_R_SH $end
+$var parameter 32 `& L0_T_SH $end
+$var parameter 32 a& L0_V_SH $end
+$var parameter 32 b& L1_R_SH $end
+$var parameter 32 c& L1_T_SH $end
+$var parameter 32 d& L1_V_SH $end
+$var parameter 32 e& L2_R_SH $end
+$var parameter 32 f& L2_T_SH $end
+$var parameter 32 g& L2_V_SH $end
+$var parameter 32 h& MIN_GATE_LEN $end
+$var reg 4 i& C_k [3:0] $end
+$var reg 16 j& N_sum_out [15:0] $end
+$var reg 32 k& R_k [31:0] $end
+$var reg 16 l& T_count_out [15:0] $end
+$var reg 32 m& T_k [31:0] $end
+$var reg 32 n& V_k [31:0] $end
+$var reg 32 o& dF_max_out [31:0] $end
+$var reg 32 p& dF_min_out [31:0] $end
+$var reg 32 q& df_max [31:0] $end
+$var reg 32 r& df_min [31:0] $end
+$var reg 1 s& in_gate $end
+$var reg 16 t& n_count [15:0] $end
+$var reg 32 u& r_accum [31:0] $end
+$var reg 16 v& t_count [15:0] $end
+$var reg 32 w& v_accum [31:0] $end
+$var reg 1 N% valid_out $end
+$upscope $end
+$scope module l2_inst $end
+$var wire 4 x& C_k [3:0] $end
+$var wire 16 y& N_sum [15:0] $end
+$var wire 16 z& T_count [15:0] $end
+$var wire 32 {& V_k [31:0] $end
+$var wire 1 > clk $end
+$var wire 32 |& dF_max [31:0] $end
+$var wire 32 }& dF_min [31:0] $end
+$var wire 1 B rst_n $end
+$var wire 1 N% valid_in $end
+$var wire 32 ~& w_raw [31:0] $end
+$var wire 32 !' w_clamped [31:0] $end
+$var wire 32 "' u_term3 [31:0] $end
+$var wire 32 #' u_term2 [31:0] $end
+$var wire 32 $' u_term1 [31:0] $end
+$var wire 64 %' u_t2_full [63:0] $end
+$var wire 32 &' u_sum [31:0] $end
+$var wire 32 '' u_clamped [31:0] $end
+$var wire 1 (' n_majority $end
+$var wire 1 )' ias_flag $end
+$var wire 32 *' dF_range [31:0] $end
+$var wire 32 +' cv_raw [31:0] $end
+$var wire 32 ,' cv_clamped [31:0] $end
+$var parameter 32 -' CV_SHIFT $end
+$var parameter 32 .' LAMBDA1 $end
+$var parameter 32 /' LAMBDA2 $end
+$var parameter 32 0' LAMBDA3 $end
+$var parameter 32 1' ONE $end
+$var parameter 32 2' U_ANOMALY $end
+$var parameter 32 3' U_MAX $end
+$var parameter 32 4' W_SHIFT $end
+$var reg 32 5' CV_norm [31:0] $end
+$var reg 4 6' C_k_out [3:0] $end
+$var reg 1 K% IAS_k $end
+$var reg 32 7' S_k [31:0] $end
+$var reg 32 8' U_k [31:0] $end
+$var reg 1 H% valid_out $end
+$var reg 32 9' w_k [31:0] $end
+$upscope $end
+$scope module l3_inst $end
+$var wire 32 :' CV_norm [31:0] $end
+$var wire 4 ;' C_k [3:0] $end
+$var wire 1 K% IAS_k $end
+$var wire 32 <' S_k [31:0] $end
+$var wire 32 =' U_k [31:0] $end
+$var wire 1 > clk $end
+$var wire 1 >' gate_pass $end
+$var wire 1 B rst_n $end
+$var wire 32 ?' rv_0 [31:0] $end
+$var wire 32 @' rv_1 [31:0] $end
+$var wire 32 A' rv_2 [31:0] $end
+$var wire 32 B' rv_3 [31:0] $end
+$var wire 1 H% valid_in $end
+$var wire 32 C' w_k [31:0] $end
+$var wire 32 D' urf_val [31:0] $end
+$var wire 32 E' rv_sum [31:0] $end
+$var wire 32 F' rv_4 [31:0] $end
+$var wire 32 G' r_raw [31:0] $end
+$var wire 64 H' r_prod [63:0] $end
+$var wire 32 I' r_diff [31:0] $end
+$var wire 32 J' r_clamped [31:0] $end
+$var wire 1 K' hyst_flag $end
+$var parameter 32 L' H_MAX $end
+$var parameter 32 M' INV_5 $end
+$var parameter 32 N' ONE $end
+$var parameter 32 O' U_MAX $end
+$var reg 4 P' C_k_out [3:0] $end
+$var reg 1 E% Hyst_k $end
+$var reg 1 D% IAS_k_out $end
+$var reg 32 Q' R_prev [31:0] $end
+$var reg 32 R' R_scalar [31:0] $end
+$var reg 32 S' URF_k [31:0] $end
+$var reg 32 T' U_k_out [31:0] $end
+$var reg 1 @% g_k $end
+$var reg 32 U' inv_1_plus_c [31:0] $end
+$var reg 1 ?% valid_out $end
+$upscope $end
+$scope module l4_inst $end
+$var wire 4 V' C_k [3:0] $end
+$var wire 1 E% Hyst_k $end
+$var wire 1 D% IAS_k $end
+$var wire 32 W' R_scalar [31:0] $end
+$var wire 32 X' U_k [31:0] $end
+$var wire 1 > clk $end
+$var wire 32 Y' oldest_B [31:0] $end
+$var wire 32 Z' oldest_U [31:0] $end
+$var wire 1 [' recovery_ok $end
+$var wire 1 \' rev_val $end
+$var wire 1 B rst_n $end
+$var wire 2 ]' safe_D [1:0] $end
+$var wire 32 ^' safe_M [31:0] $end
+$var wire 32 _' safe_P [31:0] $end
+$var wire 1 `' safe_R_rev $end
+$var wire 32 a' safe_U_star [31:0] $end
+$var wire 1 b' safe_trigger $end
+$var wire 1 ?% valid_in $end
+$var wire 64 c' xi_1mu_full [63:0] $end
+$var wire 32 d' xi_1mu [31:0] $end
+$var wire 32 e' var_B [31:0] $end
+$var wire 32 f' u_star_val [31:0] $end
+$var wire 32 g' u_bar [31:0] $end
+$var wire 32 h' u_adj [31:0] $end
+$var wire 32 i' s_uf [31:0] $end
+$var wire 64 j' s_term2_full [63:0] $end
+$var wire 64 k' s_term1_full [63:0] $end
+$var wire 32 l' p_val_clean [31:0] $end
+$var wire 32 m' p_val [31:0] $end
+$var wire 3 n' p_diff [2:0] $end
+$var wire 3 o' p_abs [2:0] $end
+$var wire 32 p' one_minus_var [31:0] $end
+$var wire 32 q' one_minus_ustar [31:0] $end
+$var wire 32 r' one_minus_ub [31:0] $end
+$var wire 64 s' oldest_B_sq_full [63:0] $end
+$var wire 32 t' oldest_B_sq [31:0] $end
+$var wire 64 u' mean_B_squared_full [63:0] $end
+$var wire 32 v' mean_B_squared [31:0] $end
+$var wire 32 w' mean_B_sq [31:0] $end
+$var wire 32 x' mean_B [31:0] $end
+$var wire 32 y' m_val [31:0] $end
+$var wire 32 z' growth_mag [31:0] $end
+$var wire 64 {' growth_full [63:0] $end
+$var wire 32 |' delta_R [31:0] $end
+$var wire 64 }' decay_full [63:0] $end
+$var wire 32 ~' decay [31:0] $end
+$var wire 2 !( d_val [1:0] $end
+$var wire 3 "( d_signed [2:0] $end
+$var wire 3 #( d_prev_signed [2:0] $end
+$var wire 64 $( b_sq_full [63:0] $end
+$var wire 32 %( b_sq [31:0] $end
+$var wire 33 &( b_next_wide [32:0] $end
+$var wire 32 '( b_clamped [31:0] $end
+$var wire 32 (( abs_delta_R [31:0] $end
+$var parameter 32 )( B_INIT $end
+$var parameter 32 *( B_MAX $end
+$var parameter 32 +( B_MIN $end
+$var parameter 32 ,( CHI $end
+$var parameter 32 -( DWELL $end
+$var parameter 32 .( EPS_D $end
+$var parameter 32 /( ETA_H $end
+$var parameter 32 0( ETA_IAS $end
+$var parameter 32 1( K_S $end
+$var parameter 32 2( K_S_SHIFT $end
+$var parameter 32 3( LAMBDA_B $end
+$var parameter 32 4( LAMBDA_U $end
+$var parameter 32 5( ONE $end
+$var parameter 32 6( S_MIN $end
+$var parameter 32 7( TWO $end
+$var parameter 32 8( XI $end
+$var reg 32 9( B_k [31:0] $end
+$var reg 32 :( B_prev [31:0] $end
+$var reg 4 ;( C_k_out [3:0] $end
+$var reg 2 <( D_k [1:0] $end
+$var reg 2 =( D_prev [1:0] $end
+$var reg 32 >( M_k [31:0] $end
+$var reg 32 ?( P_k [31:0] $end
+$var reg 32 @( R_prev [31:0] $end
+$var reg 32 A( R_prev2 [31:0] $end
+$var reg 1 ( R_rev_k $end
+$var reg 32 B( U_star_k [31:0] $end
+$var reg 1 C( has_prev $end
+$var reg 1 D( has_prev2 $end
+$var reg 1 E( in_safe_mode $end
+$var reg 4 F( recovery_count [3:0] $end
+$var reg 1 & safe_mode $end
+$var reg 32 G( sum_B [31:0] $end
+$var reg 32 H( sum_B_sq [31:0] $end
+$var reg 32 I( sum_U [31:0] $end
+$var reg 1 % valid_out $end
+$var reg 4 J( win_count [3:0] $end
+$var reg 3 K( win_ptr [2:0] $end
+$var integer 32 L( i [31:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$scope begin exhaustive $end
+$var reg 8 M( ta [7:0] $end
+$var reg 8 N( tb_ex [7:0] $end
+$var integer 32 O( exhaust_fail [31:0] $end
+$var integer 32 P( exhaust_pass [31:0] $end
+$var integer 32 Q( ia [31:0] $end
+$var integer 32 R( ib [31:0] $end
+$var integer 32 S( va [31:0] $end
+$var integer 32 T( vb [31:0] $end
+$var integer 32 U( ve [31:0] $end
+$var integer 32 V( vs [31:0] $end
+$upscope $end
+$scope task check $end
+$var reg 1 W( condition $end
+$var reg 256 X( name [255:0] $end
+$upscope $end
+$upscope $end

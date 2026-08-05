@@ -1,0 +1,129 @@
+diff --git a/dsf_ai_service/v4/gualaloom_v5_engine.py b/dsf_ai_service/v4/gualaloom_v5_engine.py
+index 7af28c1..7d61248 100644
+--- a/dsf_ai_service/v4/gualaloom_v5_engine.py
++++ b/dsf_ai_service/v4/gualaloom_v5_engine.py
+@@ -6854,6 +6854,18 @@ class Guala:
+ 
+     # ── Save ──
+ 
++    def _serialize_sight_motifs(self):
++        """GL-194: one serialization for both lanes (cold always; hot only
++        as a one-time migration when guala_sight_motifs.json is absent)."""
++        return self._envelope({
++            "sight_motifs": [
++                {"motif_id": m.motif_id, "n_firings": m.n_firings,
++                 "source_history": m.source_history[:20],
++                 "founded_at_tick": m.founded_at_tick}
++                for m in self.sight.motifs
++            ] if hasattr(self, 'sight') else [],
++        })
++
+     def save_hot_state(self, state_dir="state"):
+         """GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot-lane save.
+         Writes small stores only (core/needs/coord/visual/sounds/videos/bucket/teaching).
+@@ -6929,6 +6941,16 @@ class Guala:
+                     for src, entries in self.coordinator._source_interaction_log.items()
+                 },
+             })
++            # GL-194: sight_motifs EVICTED from the hot lane. One entry per
++            # vocab motif (18.9k live and growing) x source_history[:20] made
++            # guala_visual.json a vocab-scaled store: built in-lock every 60s
++            # (stalling converse turns on self.lock) then json.dump+fsync'd
++            # to EFS — measured live at 15-49s/cycle vs the -86 design's <5s
++            # target. -86's own doctrine: hot lane = small stores;
++            # vocab-scaled = cold. Motifs now live in guala_sight_motifs.json:
++            # written by the cold lane, and once at the first hot save after
++            # boot if the file is absent (migration write — closes the crash
++            # window between deploy-boot and the first cold save).
+             snap_visual = self._envelope({
+                 "pictures": {
+                     pid: {"item_id": p.item_id, "title": p.title,
+@@ -6941,14 +6963,16 @@ class Guala:
+                           "original_height": getattr(p, 'original_height', None)}
+                     for pid, p in self._pictures.items()
+                 },
+-                "sight_motifs": [
+-                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
+-                     "source_history": m.source_history[:20],
+-                     "founded_at_tick": m.founded_at_tick}
+-                    for m in self.sight.motifs
+-                ] if hasattr(self, 'sight') else [],
++                "sight_motifs": [],
++                "sight_motifs_file": "guala_sight_motifs.json",
++                "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
+                 "n_visual_fragments": len(self._visual_fragments),
+             })
++            _need_motif_migration = (
++                hasattr(self, 'sight')
++                and not os.path.exists(os.path.join(state_dir, "guala_sight_motifs.json")))
++            snap_sight_motifs = (self._serialize_sight_motifs()
++                                 if _need_motif_migration else None)
+             snap_sounds = self._envelope(dict(self._sounds))
+             snap_videos = self._envelope({
+                 vid: {"item_id": v.item_id, "title": v.title,
+@@ -6994,6 +7018,9 @@ class Guala:
+             ("guala_sounds.json", snap_sounds),
+             ("guala_videos.json", snap_videos),
+         ]
++        if snap_sight_motifs is not None:
++            # GL-194 one-time migration write (see snap_visual comment).
++            writes.append(("guala_sight_motifs.json", snap_sight_motifs))
+         _failures = []
+         results = {}
+         for filename, data in writes:
+@@ -7156,14 +7183,13 @@ class Guala:
+                           "original_height": getattr(p, 'original_height', None)}
+                     for pid, p in self._pictures.items()
+                 },
+-                "sight_motifs": [
+-                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
+-                     "source_history": m.source_history[:20],
+-                     "founded_at_tick": m.founded_at_tick}
+-                    for m in self.sight.motifs
+-                ] if hasattr(self, 'sight') else [],
++                "sight_motifs": [],
++                "sight_motifs_file": "guala_sight_motifs.json",
++                "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
+                 "n_visual_fragments": len(self._visual_fragments),
+             })
++            # GL-194: vocab-scaled motif store rides the COLD lane only.
++            snap_sight_motifs = self._serialize_sight_motifs()
+             # Snapshot picture grids (numpy arrays are immutable-ish, shallow copy OK)
+             snap_pic_grids = {pid: p.intensity_grid
+                               for pid, p in self._pictures.items()
+@@ -7234,6 +7260,7 @@ class Guala:
+             ("guala_survival.json", snap_survival),   # GL-102: cold file for survival history
+             ("guala_bucket.json", snap_bucket),
+             ("guala_visual.json", snap_visual),
++            ("guala_sight_motifs.json", snap_sight_motifs),  # GL-194: cold, vocab-scaled
+             ("guala_sounds.json", snap_sounds),
+             ("guala_videos.json", snap_videos),
+         ]
+@@ -7694,6 +7721,19 @@ class Guala:
+                     with open(visual_path) as fh:
+                         vraw = json.load(fh)
+                     vdata = vraw.get("data", vraw)
++                    # GL-194: motifs live in their own cold file now.
++                    # Prefer it; fall back to legacy inline sight_motifs
++                    # (pre-194 saves) so no on-disk state is stranded.
++                    sm_path = os.path.join(state_dir, "guala_sight_motifs.json")
++                    if os.path.exists(sm_path):
++                        try:
++                            with open(sm_path) as fh2:
++                                smraw = json.load(fh2)
++                            smdata = smraw.get("data", smraw)
++                            vdata["sight_motifs"] = smdata.get("sight_motifs", [])
++                        except Exception as _sme:
++                            print(f"[GualaLoom] sight_motifs load failed, "
++                                  f"using inline legacy if any: {_sme}")
+                     self._apply_visual(vdata, state_dir)
+                 except Exception as e:
+                     print(f"[GualaLoom] Visual load: {e}")
+@@ -8411,6 +8451,7 @@ class Guala:
+ 
+     # D6: report-only files (not boot-required, but tracked for health)
+     REPORT_FILES = ["guala_deep_atlas.json", "guala_visual.json",
++                     "guala_sight_motifs.json",  # GL-194
+                      "guala_sounds.json", "guala_videos.json"]
+ 
+     def persistence_health(self, state_dir="state"):

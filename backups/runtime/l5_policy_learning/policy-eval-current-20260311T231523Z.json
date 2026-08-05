@@ -1,0 +1,225 @@
+{
+  "generated_at_utc": "2026-03-11T23:15:25Z",
+  "label": "current_runtime",
+  "config": {
+    "horizons": [
+      5,
+      20,
+      60
+    ],
+    "min_bars": 252,
+    "benchmark": "SPY",
+    "decision_source": "policy_cell_mapping_rowtrace",
+    "anomaly_accounting": "row-trace does not include anomaly flags; adjusted scores equal raw scores",
+    "anomaly_any_definition": "unavailable_in_row_trace",
+    "row_trace_path": "real_world_cleaned_universe_l5_row_trace_full.csv",
+    "spy_dataset_path": "backups/strict-ab-frozen-dataset-20260306T180841Z.json",
+    "horizon_decision_overrides_path": "policy_horizon_overrides.json",
+    "horizon_decision_overrides_cells_by_horizon": {
+      "5": 0,
+      "20": 1,
+      "60": 4
+    },
+    "horizon_decision_overrides_resolution": {
+      "io_mode": "file",
+      "horizon_decision_overrides_path": "policy_horizon_overrides.json",
+      "source": "file",
+      "postgres_enabled": false,
+      "postgres_strict": false
+    }
+  },
+  "horizon_summaries": {
+    "5": {
+      "evaluations": 5293,
+      "decision_counts": {
+        "Accumulate": 3302,
+        "Avoid": 1815,
+        "Hold": 176
+      },
+      "active_share": 0.9667485358020026,
+      "action": {
+        "n": 5293,
+        "mean": 0.0029534416822561385,
+        "median": 0.0008984725965857088,
+        "std": 0.11508717822326908,
+        "pct_positive": 0.5068959002456074,
+        "pct_negative": 0.45002833931607783
+      },
+      "benchmark_spy": {
+        "n": 5293,
+        "mean": 0.011460830067635696,
+        "median": 0.01197763001453156,
+        "std": 0.0033812486890509,
+        "pct_positive": 0.9780842622331382,
+        "pct_negative": 0.021915737766861895
+      },
+      "excess_vs_spy": {
+        "n": 5293,
+        "mean": -0.008507388385378362,
+        "median": -0.010412990859436588,
+        "std": 0.11511681414984552,
+        "pct_positive": 0.40222935953145666,
+        "pct_negative": 0.5977706404685433
+      },
+      "action_anomaly_accounted": {
+        "n": 5293,
+        "mean": 0.0029534416822561385,
+        "median": 0.0008984725965857088,
+        "std": 0.11508717822326908,
+        "pct_positive": 0.5068959002456074,
+        "pct_negative": 0.45002833931607783
+      },
+      "excess_vs_spy_anomaly_accounted": {
+        "n": 5293,
+        "mean": -0.008507388385378362,
+        "median": -0.010412990859436588,
+        "std": 0.11511681414984552,
+        "pct_positive": 0.40222935953145666,
+        "pct_negative": 0.5977706404685433
+      },
+      "outcome_over_index_pct": 40.222935953145665,
+      "outcome_over_index_pct_anomaly_accounted": 40.222935953145665,
+      "anomalies": {
+        "anomaly_any_count": 0,
+        "anomaly_any_rate_pct": 0.0
+      },
+      "policy_mapping": {
+        "mapped_count": 5178,
+        "unmapped_count": 115,
+        "mapped_rate_pct": 97.82731910069904,
+        "unmapped_rate_pct": 2.1726808993009636
+      },
+      "decision_overrides": {
+        "horizon_key_override_count": 0
+      }
+    },
+    "20": {
+      "evaluations": 5293,
+      "decision_counts": {
+        "Accumulate": 3879,
+        "Avoid": 1272,
+        "Hold": 142
+      },
+      "active_share": 0.9731721141129794,
+      "action": {
+        "n": 5293,
+        "mean": -0.00874743096343047,
+        "median": 0.0,
+        "std": 0.2874798356969125,
+        "pct_positive": 0.49027016814660873,
+        "pct_negative": 0.4806348006801436
+      },
+      "benchmark_spy": {
+        "n": 5293,
+        "mean": 0.0006684251257907691,
+        "median": 0.0006531394234954302,
+        "std": 0.0024394910775734024,
+        "pct_positive": 0.9746835443037974,
+        "pct_negative": 0.02531645569620253
+      },
+      "excess_vs_spy": {
+        "n": 5293,
+        "mean": -0.009415856089221157,
+        "median": -0.0006531394234954302,
+        "std": 0.28760760697943116,
+        "pct_positive": 0.4864915926695636,
+        "pct_negative": 0.5135084073304365
+      },
+      "action_anomaly_accounted": {
+        "n": 5293,
+        "mean": -0.00874743096343047,
+        "median": 0.0,
+        "std": 0.2874798356969125,
+        "pct_positive": 0.49027016814660873,
+        "pct_negative": 0.4806348006801436
+      },
+      "excess_vs_spy_anomaly_accounted": {
+        "n": 5293,
+        "mean": -0.009415856089221157,
+        "median": -0.0006531394234954302,
+        "std": 0.28760760697943116,
+        "pct_positive": 0.4864915926695636,
+        "pct_negative": 0.5135084073304365
+      },
+      "outcome_over_index_pct": 48.64915926695636,
+      "outcome_over_index_pct_anomaly_accounted": 48.64915926695636,
+      "anomalies": {
+        "anomaly_any_count": 0,
+        "anomaly_any_rate_pct": 0.0
+      },
+      "policy_mapping": {
+        "mapped_count": 5212,
+        "unmapped_count": 81,
+        "mapped_rate_pct": 98.46967693179671,
+        "unmapped_rate_pct": 1.5303230682032873
+      },
+      "decision_overrides": {
+        "horizon_key_override_count": 564
+      }
+    },
+    "60": {
+      "evaluations": 5293,
+      "decision_counts": {
+        "Accumulate": 2705,
+        "Avoid": 2436,
+        "Hold": 152
+      },
+      "active_share": 0.9712828263744568,
+      "action": {
+        "n": 5293,
+        "mean": 0.056674681180706246,
+        "median": 0.002892960462873795,
+        "std": 2.0584859527043724,
+        "pct_positive": 0.5061401851501984,
+        "pct_negative": 0.4634422822595881
+      },
+      "benchmark_spy": {
+        "n": 5293,
+        "mean": 0.045391435019282056,
+        "median": 0.04612840083152503,
+        "std": 0.00640566425525966,
+        "pct_positive": 0.9988664273568865,
+        "pct_negative": 0.0011335726431135461
+      },
+      "excess_vs_spy": {
+        "n": 5293,
+        "mean": 0.011283246161421224,
+        "median": -0.03987600948029979,
+        "std": 2.058873884522475,
+        "pct_positive": 0.4226336671075005,
+        "pct_negative": 0.5773663328924995
+      },
+      "action_anomaly_accounted": {
+        "n": 5293,
+        "mean": 0.056674681180706246,
+        "median": 0.002892960462873795,
+        "std": 2.0584859527043724,
+        "pct_positive": 0.5061401851501984,
+        "pct_negative": 0.4634422822595881
+      },
+      "excess_vs_spy_anomaly_accounted": {
+        "n": 5293,
+        "mean": 0.011283246161421224,
+        "median": -0.03987600948029979,
+        "std": 2.058873884522475,
+        "pct_positive": 0.4226336671075005,
+        "pct_negative": 0.5773663328924995
+      },
+      "outcome_over_index_pct": 42.26336671075005,
+      "outcome_over_index_pct_anomaly_accounted": 42.26336671075005,
+      "anomalies": {
+        "anomaly_any_count": 0,
+        "anomaly_any_rate_pct": 0.0
+      },
+      "policy_mapping": {
+        "mapped_count": 5199,
+        "unmapped_count": 94,
+        "mapped_rate_pct": 98.22406952578878,
+        "unmapped_rate_pct": 1.7759304742112223
+      },
+      "decision_overrides": {
+        "horizon_key_override_count": 652
+      }
+    }
+  }
+}

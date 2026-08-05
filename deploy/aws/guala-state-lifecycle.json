@@ -1,0 +1,74 @@
+{
+  "Rules": [
+    {
+      "ID": "expire-noncurrent-versions",
+      "Filter": {},
+      "Status": "Enabled",
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 14
+      }
+    },
+    {
+      "ID": "abort-incomplete-multipart",
+      "Filter": {},
+      "Status": "Enabled",
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 2
+      }
+    },
+    {
+      "ID": "expire-alb-logs",
+      "Filter": {
+        "Prefix": "alb-access-logs/"
+      },
+      "Status": "Enabled",
+      "Expiration": {
+        "Days": 30
+      }
+    },
+    {
+      "ID": "guala-abort-incomplete-multipart-1d",
+      "Filter": {},
+      "Status": "Enabled",
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 1
+      }
+    },
+    {
+      "ID": "guala-generations-protect-current-expire-noncurrent-1d",
+      "Filter": {
+        "Prefix": "guala/generations/"
+      },
+      "Status": "Enabled",
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 1
+      }
+    },
+    {
+      "ID": "guala-events-bounded-7d-noncurrent-1d",
+      "Filter": {
+        "Prefix": "guala/events/"
+      },
+      "Status": "Enabled",
+      "Expiration": {
+        "Days": 7
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 1
+      }
+    },
+    {
+      "ID": "guala-checkpoints-bounded-7d-noncurrent-1d",
+      "Filter": {
+        "Prefix": "guala/checkpoints/"
+      },
+      "Status": "Enabled",
+      "Expiration": {
+        "Days": 7
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 1
+      }
+    }
+  ]
+}

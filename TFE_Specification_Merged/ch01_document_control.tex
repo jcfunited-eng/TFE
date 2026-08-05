@@ -1,0 +1,100 @@
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+TFE is specified here as a \emph{research instantiation} of DSF-AI. Canonical UF L0--L4 are treated as deterministic, domain-agnostic structural interpreters imported without semantic modification. TFE L5 is the financial governance layer: it is responsible for domain preparation, protected structural memory, multi-timescale interpretation, runtime artifact control, and restrained research-side action formation.
+
+This version corrects a prior deficiency by integrating SES / UF-Core security controls as \emph{normative first-class requirements}, not a mere reference. It also clarifies that TFE computes and governs \emph{structure and geometry} rather than training a direct return-prediction engine, and it separates the scientific thesis from pragmatic implementation compromises by specifying protected operating profiles and explicit L5 conformance profiles. CAP/PRP remain the protected-boundary operating profiles, while CP-0/CP-1/CP-2 distinguish current production, transitional hybrid, and thesis-faithful L5 implementations:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields cross the protected boundary to standard TFE consumers.
+    \item \textbf{Protected Research Profile (PRP):} richer structural payloads are consumed only inside a controlled research boundary where SES protection, chain-of-custody, and auditability remain intact.
+\end{enumerate}
+
+The governing thesis for TFE is that, in continuity-rich financial time series, decisions should arise from temporal continuity, field evolution, multi-scale memory, negative space, cross-view consistency, and bounded domain rules, \emph{not} from generic flattened lag tables or unconstrained supervised heuristics. TFE therefore treats any row-first serialized approximation as a pragmatic implementation profile, not as the canonical test of the thesis.
+
+As of v2.5, current production CP-0 is more sharply characterized: decision provenance persistence and full frozen-context parity are green; typed fallback semantics are green; exact-path alignment has been safely adopted and restores L0 exact coverage for a majority of current rows without decision drift; long-side rulebook decomposition and blocked-family contract work are complete; structural recency contract definition is complete but blocked by missing snapshot materialization fields; epoch contract definition is complete but blocked by an unstable numeric regime-code representation, a missing gap-state enum, and an unimplemented sidecar projection join; quote-family activation remains blocked because quote publication is not aligned with the active snapshot and freshness is outside the validation window.
+
+The v2.7 re-architecture resets the system architecture around one deterministic backbone:
+\[
+\texttt{source} \rightarrow \texttt{normalize} \rightarrow \texttt{assess candidate} \rightarrow \texttt{publish immutable bundle} \rightarrow \texttt{serve active bundle}
+\]
+This revision treats TFE as a financial advisor platform and establishes the Source Plane, Assessment and Publication Plane, Serving Plane, Enrichment Plane, Refresh State Machine, Product Deployment Plane, and Migration/Cutover as normative architecture.
+
+This consolidated specification:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item imports canonical UF L0--L4 and their financial adapter boundary;
+    \item normatively integrates SES/UF-Core security, envelope protection, and threat responses;
+    \item defines a deterministic multi-view, multi-core, event-driven L5 with shared long/mid/short memory;
+    \item makes explicit how TFE computes geometric structure, event-tape dynamics, and bounded decision support differently from standard predictive analytics and supervised ML;
+    \item defines the deterministic source-assess-publish-serve architecture with immutable publication bundles and phase-ledger state machine;
+    \item defines finance-specific rules, admissible heuristics, strategy classes, epoch mosaics, sector/sphere coupling, runtime snapshots, persistence, auditability, and validation;
+    \item defines conformance, benchmark, and release rules, including a commercial kill rule; and
+    \item states applicability boundaries and non-goals, including the distinction between continuity-rich time-series problems and symbolic/combinatorial tasks better served by other methods.
+\end{enumerate}
+
+\chapter{Document Control, Purpose, and Scope}
+\section{Purpose}
+\meta{State why TFE exists and what this specification governs.}{UF v1.4.0 kernel definition, UF-Core/SES security specification, financial domain constraints, DSF-AI thesis, governance requirements.}{Controlled purpose statement and scope boundary.}
+
+The purpose of TFE is to instantiate DSF-AI in a financial research setting while preserving the canonical role of UF L0--L4 as structural interpreters. TFE does not redefine UF. It constrains how UF outputs are invoked, protected, persisted, interpreted over time, validated, and transformed into governed research signals.
+
+The purpose of the v2.7 architecture layer is to define the target deterministic architecture for TFE as a commercially operable advisor system with auditable publication semantics, strict stage boundaries, and exact runtime state visibility.
+
+\section{Scope}
+\meta{Define the boundaries of the present specification.}{Financial time series, UF kernel outputs, protected runtime artifacts, validation controls, approved rules.}{In-scope and out-of-scope statements.}
+
+In scope:
+\begin{itemize}
+    \item financial-domain input preparation and deterministic invocation of canonical UF L0--L4;
+    \item SES / UF-Core protection over UF-SP and derivative protected research representations;
+    \item TFE L5 state, governance, action gating, multi-timescale memory, runtime snapshot semantics, persistence, validation, and auditability;
+    \item controlled use of richer structural payloads only inside the protected research profile;
+    \item source acquisition and normalization contracts;
+    \item candidate build, assessment, publication, activation, and serving contracts;
+    \item refresh and phase-ledger state machines;
+    \item deployment/release plane separation;
+    \item deterministic identifiers, invariants, and failure semantics;
+    \item validation, traceability, and conformance rules.
+\end{itemize}
+
+Out of scope:
+\begin{itemize}
+    \item autonomous trading or brokerage execution;
+    \item modification of canonical UF kernel semantics;
+    \item unsupported benchmark claims or commercial statements without artifact-backed evidence;
+    \item symbolic/combinatorial prediction domains in which the sequential structural assumptions of DSF-AI do not hold without a separate domain engine;
+    \item marketing claims;
+    \item aspirational functionality without a declared contract;
+    \item uncontrolled heuristic behavior;
+    \item undocumented cross-boundary shortcuts;
+    \item microsecond trading-latency optimization as the principal architecture target.
+\end{itemize}
+
+\section{Roles and Responsibilities}
+\meta{Define the responsibility classes required by good documentation practice and controlled execution.}{Project governance structure and quality responsibilities.}{Role definitions and control obligations.}
+
+At minimum, the following roles shall exist:
+\begin{itemize}
+    \item \textbf{Specification Owner:} accountable for scope, approvals, and controlled revision of this specification.
+    \item \textbf{Kernel Steward:} responsible for UF version compatibility, import correctness, and non-modification of canonical semantics.
+    \item \textbf{Security Steward:} responsible for SES integration, envelope controls, keying assumptions, threat response implementation, and chain-of-custody security events.
+    \item \textbf{L5 Steward:} responsible for TFE governance logic, multi-scale memory design, and domain-rule correctness.
+    \item \textbf{Validator:} responsible for conformance, reproducibility, benchmark execution, and release disposition.
+    \item \textbf{Records Steward:} responsible for audit trails, retention, and controlled records.
+\end{itemize}
+
+\section{TFE as a Research Instantiation of DSF-AI}
+\meta{Locate TFE inside the broader DSF-AI program.}{DSF-AI thesis, canonical UF kernel, domain-specific governance requirements.}{A precise identity for TFE.}
+
+TFE is a domain-specific research instantiation of DSF-AI. In TFE:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item UF L0--L4 provide deterministic structural interpretation of an ordered financial window.
+    \item TFE L5 maintains governed memory over sequences of structural events and runtime metadata.
+    \item Approved domain rules determine when structural states are admissible for external research interpretation.
+    \item Outputs are qualitative research signals with abstention and fail-safe behavior, not autonomous execution directives.
+\end{enumerate}
+
+\section{Applicability Boundary and Complementarity}
+\meta{State where TFE is expected to add value and where complementary methods remain appropriate.}{Domain characteristics, sequence continuity, symbolic density, validation goals.}{Explicit applicability boundary.}
+
+TFE is designed for continuity-rich sequential domains in which structural stability, robustness, phase transition, collapse, event ordering, temporal continuity, negative space, and coupled fast/medium/slow memory are meaningful.
+
+A useful shorthand is that DSF-AI is strongest for the ``1/2/3'' aspects of a domain --- continuous ordered evolution, structural geometry, and phase-sensitive field dynamics --- whereas conventional ML or symbolic/combinatorial engines remain valuable for the ``A/B/C'' aspects --- discrete class labeling, large symbolic search, or rule-dense combinatorics. TFE is therefore specified as a complementary research system, not a blanket replacement for every modeling paradigm.

@@ -1,0 +1,4 @@
+Aurelion — Mosaic Run Report (v3.0)
+Corpus: Draft Baxter Validation Master Plan Aurelion test.txt
+Steps: 400, Window: 16, Stride: 4
+

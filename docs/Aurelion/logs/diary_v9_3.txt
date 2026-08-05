@@ -1,0 +1,44 @@
+[08:12:30] Reflecting on  φ=0.00 H=0.00
+[08:27:30] Reflecting on  φ=0.00 H=0.00
+[08:42:30] Reflecting on  φ=0.00 H=0.00
+[08:57:30] Reflecting on  φ=0.00 H=0.00
+[09:12:30] Reflecting on  φ=0.00 H=0.00
+[09:27:30] Reflecting on  φ=0.00 H=0.00
+[09:42:30] Reflecting on  φ=0.00 H=0.00
+[09:57:30] Reflecting on  φ=0.00 H=0.00
+[10:12:30] Reflecting on  φ=0.00 H=0.00
+[10:27:30] Reflecting on  φ=0.00 H=0.00
+[10:42:30] Reflecting on  φ=0.00 H=0.00
+[10:57:30] Reflecting on  φ=0.00 H=0.00
+[11:12:30] Reflecting on  φ=0.00 H=0.00
+[11:27:30] Reflecting on  φ=0.00 H=0.00
+[11:42:30] Reflecting on  φ=0.00 H=0.00
+[11:57:30] Reflecting on  φ=0.00 H=0.00
+[12:23:13] Reflecting on corpus↔the, and↔corpus, corpus↔is, corpus↔of φ=0.05 H=1.00
+[12:38:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=-0.04 H=1.00
+[12:53:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=0.04 H=1.00
+[13:08:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=0.03 H=1.00
+[13:23:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=0.08 H=1.00
+[13:38:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=0.03 H=1.00
+[13:53:13] Reflecting on corpus↔the, and↔corpus, corpus↔of, corpus↔to φ=0.14 H=1.00
+[14:08:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.00 H=1.00
+[14:23:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.14 H=1.00
+[14:38:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.10 H=1.00
+[14:53:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.00 H=1.00
+[15:08:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.03 H=1.00
+[15:23:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.08 H=1.00
+[15:38:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.03 H=1.00
+[15:53:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.01 H=1.00
+[16:08:13] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=-0.01 H=1.00
+[16:23:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.01 H=1.00
+[16:38:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=-0.03 H=1.00
+[16:53:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.01 H=1.00
+[17:08:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=-0.03 H=1.00
+[17:23:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.04 H=1.00
+[17:38:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=-0.02 H=1.00
+[17:53:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.02 H=1.00
+[18:08:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=-0.03 H=1.00
+[18:23:14] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.02 H=1.00
+[18:38:15] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.02 H=1.00
+[18:53:15] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.05 H=1.00
+[19:08:15] Reflecting on corpus↔the, corpus↔of, and↔corpus, corpus↔to φ=0.00 H=1.00

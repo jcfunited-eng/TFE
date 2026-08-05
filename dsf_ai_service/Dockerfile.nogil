@@ -1,0 +1,76 @@
+FROM public.ecr.aws/docker/library/python:3.11-slim
+
+# GL-CMD-NOGIL-PYTHON-TEST-EVE-20260707-v2 -- test-only variant, NOT the
+# production Dockerfile. Ships a real free-threaded Python 3.14 interpreter
+# (python3.14t) alongside the base image's regular Python, matching the
+# dispatch's own framing ("Base: Python 3.14 free-threaded (python3.14t
+# binary)"). The official python:3.14-slim image does not build a
+# free-threaded variant itself, so this installs one the same proven way
+# used to verify the dependency gate in GL-RPT-NOGIL-PYTHON-TEST-C1-
+# 20260707-v2.md: `uv python install 3.14t`, a real, portable, pre-built
+# interpreter from python-build-standalone -- no source compilation.
+
+ARG GIT_SHA=unknown
+ARG BUILD_TS=unknown
+LABEL org.opencontainers.image.revision="${GIT_SHA}" \
+      com.gualaloom.build_ts="${BUILD_TS}" \
+      com.gualaloom.variant="nogil-test"
+RUN printf 'git_sha=%s built=%s variant=nogil-test\n' "${GIT_SHA}" "${BUILD_TS}" > /BUILD_INFO
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_TS=${BUILD_TS}
+ENV GUALA_NOGIL_VARIANT=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg curl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+RUN uv python install 3.14t
+RUN uv venv --python 3.14t /opt/nogil-venv
+
+# This test variant uses the same ML-free dependency boundary as production.
+# --only-binary=:all: is retained so dependency installation fails loudly
+# instead of compiling an unverified source build.
+RUN uv pip install --python /opt/nogil-venv/bin/python --only-binary=:all: \
+    fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets
+
+# Copy only what the service needs (mirrors the production Dockerfile)
+COPY uf_core/ /app/uf_core/
+COPY ses_core/ /app/ses_core/
+COPY tools/derive_sppu_weights.py tools/wave_constants.py tools/wave_spillover.py /app/tools/
+COPY dsf_ai_service/ /app/dsf_ai_service/
+
+# GualaLoom state dir -- ephemeral container-local storage for this test
+# variant. Deliberately NOT mounting the production EFS volume
+# (gualaloom-state / fs-0abb85854a3251b3c): two processes (production's
+# real Guala + this test process) writing the same organism-state files
+# concurrently would risk corrupting or losing live, persistent substrate
+# state that this session has treated as sacred all night. This test
+# service boots with fresh, empty state, which (with no local identity
+# file present) triggers the app's own existing identity-mismatch ->
+# restore-from-S3-backup fallback on boot -- a real, pre-existing code
+# path, not something built for this test.
+RUN mkdir -p /app/state/dreams
+
+# Pre-seed dream_gate_cleared.json: a known, confirmed-unrelated gap in
+# that S3-restore fallback is that _backup_to_s3's hardcoded file list
+# (dsf_ai_service/app.py ~5032-5044) never includes this marker, so ANY
+# S3-restored boot hits app.py:1326-1330's DREAM GATE RuntimeError and
+# _guala never gets assigned -- permanently blocking /ready regardless of
+# interpreter. Confirmed via direct testing this boot and by reading the
+# marker's own writer (gualaloom_v5_engine.py:6163-6177, a plain
+# {"cleared_at_tick": int, "via": str} JSON file). This is a data/config
+# file in this test's own isolated, ephemeral local disk -- not a
+# substrate code change, and not something written to or read from
+# production's shared EFS or S3 bucket.
+RUN printf '{"cleared_at_tick": 0, "via": "nogil_test_preseed_efs_absent"}' > /app/state/dream_gate_cleared.json
+
+ENV PYTHONPATH=/app
+
+# Same deterministic neuron flags as production; no scripted text emission.
+ENV LATERAL_INHIBITION_ENABLED=1
+
+EXPOSE 8080
+
+CMD ["/opt/nogil-venv/bin/python", "-m", "uvicorn", "dsf_ai_service.app:app", "--host", "0.0.0.0", "--port", "8080"]

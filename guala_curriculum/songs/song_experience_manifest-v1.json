@@ -1,0 +1,104 @@
+{
+  "schema": "guala.external_tutor_song_experience_manifest.v1",
+  "authority_boundary": {
+    "external_tutor_media": true,
+    "glyph_identity_authority": false,
+    "meaning_authority": false,
+    "recognition_authority": false,
+    "transcript_authority": false,
+    "word_authority": false
+  },
+  "sample_format": {
+    "channels": 1,
+    "encoding": "pcm_s16le",
+    "sample_rate_hz": 16000
+  },
+  "experiences": [
+    {
+      "experience_id": "alphabet-song-cc-by-sa-3.0-v1",
+      "audio": {
+        "path": "guala_curriculum/songs/alphabet-song-cc-by-sa-3.0-v1.wav",
+        "sample_count": 382851,
+        "sha256": "f3ec359209fddf33326062256409074e0df87558e8bbceb924e0f4fa213d9d31"
+      },
+      "visual_program": {
+        "alignment_claim": "simultaneous_alphabet_surface_set_only",
+        "object_ids": [
+          "W1-optical-surface-01",
+          "W1-optical-surface-02",
+          "W1-optical-surface-03",
+          "W1-optical-surface-04",
+          "W1-optical-surface-05",
+          "W1-optical-surface-06",
+          "W1-optical-surface-07",
+          "W1-optical-surface-08",
+          "W1-optical-surface-09",
+          "W1-optical-surface-10",
+          "W1-optical-surface-11",
+          "W1-optical-surface-12",
+          "W1-optical-surface-13",
+          "W1-optical-surface-14",
+          "W1-optical-surface-15",
+          "W1-optical-surface-16",
+          "W1-optical-surface-17",
+          "W1-optical-surface-18",
+          "W1-optical-surface-19",
+          "W1-optical-surface-20",
+          "W1-optical-surface-21",
+          "W1-optical-surface-22",
+          "W1-optical-surface-23",
+          "W1-optical-surface-24",
+          "W1-optical-surface-25",
+          "W1-optical-surface-26"
+        ],
+        "per_letter_timing_authority": false
+      }
+    },
+    {
+      "experience_id": "count-up-one-to-ten-v1",
+      "audio": {
+        "path": "guala_curriculum/songs/count-up-one-to-ten-v1.wav",
+        "sample_count": 192000,
+        "sha256": "a0b1e7320223c3053663f634073b256b96aff12b89d2a8a2d48013555c3ffb75"
+      },
+      "visual_program": {
+        "alignment_claim": "exact_sample_interval_surface_sequence",
+        "slots": [
+          {"first_sample_index": 0, "sample_count": 19200, "object_id": "W1-optical-surface-27"},
+          {"first_sample_index": 19200, "sample_count": 19200, "object_id": "W1-optical-surface-28"},
+          {"first_sample_index": 38400, "sample_count": 19200, "object_id": "W1-optical-surface-29"},
+          {"first_sample_index": 57600, "sample_count": 19200, "object_id": "W1-optical-surface-30"},
+          {"first_sample_index": 76800, "sample_count": 19200, "object_id": "W1-optical-surface-31"},
+          {"first_sample_index": 96000, "sample_count": 19200, "object_id": "W1-optical-surface-32"},
+          {"first_sample_index": 115200, "sample_count": 19200, "object_id": "W1-optical-surface-33"},
+          {"first_sample_index": 134400, "sample_count": 19200, "object_id": "W1-optical-surface-34"},
+          {"first_sample_index": 153600, "sample_count": 19200, "object_id": "W1-optical-surface-35"},
+          {"first_sample_index": 172800, "sample_count": 19200, "object_id": "W1-optical-surface-36"}
+        ]
+      }
+    },
+    {
+      "experience_id": "count-down-ten-to-one-v1",
+      "audio": {
+        "path": "guala_curriculum/songs/count-down-ten-to-one-v1.wav",
+        "sample_count": 192000,
+        "sha256": "34abfb0a7bf7b853c5fb7b09436fc8e550abaca8bd6eacd2305838523f18695f"
+      },
+      "visual_program": {
+        "alignment_claim": "exact_sample_interval_surface_sequence",
+        "slots": [
+          {"first_sample_index": 0, "sample_count": 19200, "object_id": "W1-optical-surface-36"},
+          {"first_sample_index": 19200, "sample_count": 19200, "object_id": "W1-optical-surface-35"},
+          {"first_sample_index": 38400, "sample_count": 19200, "object_id": "W1-optical-surface-34"},
+          {"first_sample_index": 57600, "sample_count": 19200, "object_id": "W1-optical-surface-33"},
+          {"first_sample_index": 76800, "sample_count": 19200, "object_id": "W1-optical-surface-32"},
+          {"first_sample_index": 96000, "sample_count": 19200, "object_id": "W1-optical-surface-31"},
+          {"first_sample_index": 115200, "sample_count": 19200, "object_id": "W1-optical-surface-30"},
+          {"first_sample_index": 134400, "sample_count": 19200, "object_id": "W1-optical-surface-29"},
+          {"first_sample_index": 153600, "sample_count": 19200, "object_id": "W1-optical-surface-28"},
+          {"first_sample_index": 172800, "sample_count": 19200, "object_id": "W1-optical-surface-27"}
+        ]
+      }
+    }
+  ]
+}

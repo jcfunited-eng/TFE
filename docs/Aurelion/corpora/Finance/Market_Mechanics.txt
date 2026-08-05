@@ -1,0 +1,21 @@
+1️⃣ Market_Mechanics.txt
+
+Markets exist to connect buyers and sellers and to create reliable prices.
+Every trade begins as an order: a message telling an exchange what you want to buy or sell, how much, and under what conditions.
+
+Order types
+
+Market order: executes immediately at the best available price.
+
+Limit order: sets a maximum price to pay or minimum price to accept.
+
+Stop and stop-limit: trigger only when a price threshold is reached.
+
+Inside a matching engine, orders line up by price then time—the first better-priced, earliest-submitted order fills first.
+Liquidity providers post resting limit orders; liquidity takers remove them.
+The small difference between best bid and best ask is the spread, a measure of transaction cost and market depth.
+
+High-frequency traders and market makers quote both sides to keep spreads narrow.
+After execution, trades are cleared (positions netted) and settled—usually T + 1 in U.S. equities—through central clearinghouses that guarantee performance.
+
+Think of the market as a continuously updating ledger where prices emerge from competition, not decree.

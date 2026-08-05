@@ -1,0 +1,131 @@
+\chapter{Serving Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define serving truth for investor routes and admin runtime-status routes.}{Active publication pointer, active publication bundle, hot serving cache state, approved request contract, and phase-ledger truth for operational status routes.}{Deterministic route response, exact publication identity, exact serving state, and exact blocking reason when serving is unavailable.}
+
+\subsection{Purpose}
+The Serving Plane shall expose one active publication truth for investor-facing outputs and one ledger-sourced operational truth for runtime-status outputs. Investor-serving routes and administrative runtime-status routes are distinct route classes and shall not be allowed to blur their data contracts.
+
+\subsection{Inputs}
+The only permitted investor-serving inputs are:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the active publication pointer;
+    \item the active publication bundle named by that pointer;
+    \item the hot serving cache derived from that active publication bundle;
+    \item request parameters allowed by the route contract.
+\end{enumerate}
+
+Administrative runtime-status routes may additionally read:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the phase-ledger run header;
+    \item the phase-ledger child rows;
+    \item deployment records when deployment status is explicitly in scope.
+\end{enumerate}
+
+\subsection{Outputs}
+Every serving response that exposes publication state shall declare:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the active publication identity used to answer the request;
+    \item the serving state;
+    \item the blocking reason code and detail if the route cannot serve valid truth.
+\end{enumerate}
+
+\section{Serving Contracts}
+Investor-facing routes shall be computed from the active publication bundle only. No route may recompute investor-facing recommendation truth from raw runtime rows, raw vendor data, or local policy files not cited by the active publication manifest.
+
+Administrative runtime-status routes shall read current phase truth from the phase ledger directly. They may summarize or project that truth for response purposes, but they shall not infer current phase from logs, ad hoc timers, or free-form text.
+
+\section{Hot Serving Cache Rule}
+The serving layer may maintain a hot in-memory cache only if:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the cache is keyed by \texttt{active\_publication\_id};
+    \item the cache contents are derived only from the active publication bundle;
+    \item cache invalidation occurs whenever the active publication pointer changes;
+    \item cache rebuild failure does not authorize fallback to mixed or ad hoc runtime truth.
+\end{enumerate}
+
+If the cache is unavailable, the route may rebuild from the active publication bundle or return an explicit blocked response. It shall not synthesize investor-serving truth from partial runtime state.
+
+\section{Conflation Rule}
+Conflation may be applied only to route fields explicitly designated as non-decision display fields. Conflation shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the underlying publication identity remains the active publication identity;
+    \item conflation does not alter recommendation truth, suitability truth, or publication identity;
+    \item conflation does not combine values from different active publication identities;
+    \item the response discloses the serving state required by the route contract.
+\end{enumerate}
+
+\section{Required Route Fields}
+Every route that exposes publication state shall expose, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{active\_publication\_id};
+    \item \texttt{serving\_state};
+    \item \texttt{blocking\_reason\_code};
+    \item \texttt{blocking\_reason\_detail}.
+\end{enumerate}
+
+Every administrative runtime-status route shall additionally expose, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{current\_phase\_name};
+    \item \texttt{current\_phase\_status};
+    \item \texttt{current\_phase\_started\_at};
+    \item \texttt{current\_phase\_last\_heartbeat\_at};
+    \item \texttt{validation\_status};
+    \item \texttt{snapshot\_publication\_id};
+    \item \texttt{quote\_publication\_id};
+    \item \texttt{quote\_binding\_status};
+    \item \texttt{phase\_ledger\_source}.
+\end{enumerate}
+
+If the route cannot read the required ledger or publication truth, it shall return an explicit blocked or unavailable state rather than inferred text.
+
+\section{Invariants}
+The Serving Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item every investor-facing response resolves to exactly one active publication identity;
+    \item the hot cache identity equals the active publication identity or the cache is invalid;
+    \item administrative current-phase values match the ledger truth used to compute them;
+    \item no route may silently replace missing canonical truth with guessed truth.
+\end{enumerate}
+
+\section{State Transitions}
+The serving cache lifecycle shall allow only these transitions:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{empty} \(\rightarrow\) \texttt{loading};
+    \item \texttt{loading} \(\rightarrow\) \texttt{active} or \texttt{blocked};
+    \item \texttt{active} \(\rightarrow\) \texttt{stale} when the pointer changes;
+    \item \texttt{stale} \(\rightarrow\) \texttt{loading};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{loading} after operator-approved retry or valid pointer refresh.
+\end{enumerate}
+
+The route contract shall not expose \texttt{active} for a cache whose identity does not match the active publication pointer.
+
+\section{Failure Semantics}
+Serving failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_unavailable};
+    \item \texttt{bundle\_identity\_mismatch};
+    \item \texttt{cache\_derivation\_failure};
+    \item \texttt{runtime\_status\_unavailable};
+    \item \texttt{route\_contract\_violation}.
+\end{enumerate}
+
+If an investor-serving route lacks a valid active publication pointer or a valid active publication bundle, the route shall expose \texttt{publication\_unavailable}. If an administrative route cannot read ledger truth, it shall expose \texttt{runtime\_status\_unavailable}. Neither case may be masked by stale success output.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item all investor-serving routes expose the same active publication identity for the same environment at the same observation time;
+    \item pointer changes invalidate and reload the hot serving cache before the new serving identity is declared active;
+    \item administrative runtime-status responses match the run header and phase child-row truth without log inference;
+    \item blocked serving returns exact reason codes and details instead of partial success payloads.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for pointer reads, cache derivation, investor-serving routes, and administrative runtime-status routes;
+    \item runtime objects \texttt{active\_publication\_pointer}, \texttt{publication\_bundle}, \texttt{hot\_serving\_cache}, and \texttt{phase\_ledger};
+    \item conformance tests for bundle identity consistency, pointer-switch cache invalidation, ledger-sourced admin truth, and blocking-reason exposure;
+    \item acceptance evidence consisting of route captures, cache rebuild records, pointer audit rows, and ledger-backed runtime-status responses.
+\end{enumerate}

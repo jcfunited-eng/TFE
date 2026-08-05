@@ -1,0 +1,19 @@
+{
+  "60": {
+    "reg=STABLE|D=-1|M=-1|Rrev=1|U1|C=3|P2|B=-1|S=B0|R=B0|CD=B4|SE=NONE": "Accumulate",
+    "reg=STABLE|D=0|M=0|Rrev=0|U1|C=3|P0|B=0|S=B2|R=B1|CD=B4|SE=NONE": "Avoid",
+    "reg=STABLE|D=0|M=0|Rrev=0|U1|C=3|P0|B=-1|S=B1|R=B0|CD=B4|SE=NONE": "Avoid",
+    "reg=DEGENERATE|D=-1|M=0|Rrev=0|U2|C=3|P1|B=-1|S=B2|R=B2|CD=B4|SE=NONE": "Accumulate",
+    "reg=TRANSITIONAL|D=-1|M=-1|Rrev=1|U1|C=3|P2|B=-1|S=B0|R=B0|CD=B4|SE=NONE": "Avoid",
+    "reg=DEGENERATE|D=1|M=0|Rrev=0|U2|C=3|P1|B=-1|S=B2|R=B1|CD=B4|SE=NONE": "Avoid",
+    "reg=STABLE|D=-1|M=1|Rrev=0|U1|C=3|P0|B=-1|S=B0|R=B0|CD=B4|SE=NONE": "Accumulate",
+    "reg=DEGENERATE|D=1|M=1|Rrev=0|U1|C=3|P0|B=-1|S=B0|R=B0|CD=B4|SE=NONE": "Accumulate",
+    "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U1|C=3|P0|B=-1|S=B1|R=B0|CD=B4|SE=NONE": "Accumulate",
+    "reg=TRANSITIONAL|D=1|M=1|Rrev=1|U1|C=3|P2|B=-1|S=B0|R=B0|CD=B4|SE=NONE": "Avoid",
+    "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U1|C=3|P0|B=-1|S=B1|R=B1|CD=B4|SE=NONE": "Accumulate",
+    "reg=DEGENERATE|D=0|M=0|Rrev=0|U2|C=3|P0|B=-1|S=B1|R=B1|CD=B4|SE=NONE": "Accumulate",
+    "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U1|C=3|P0|B=-1|S=B1|R=B0|CD=B4|SE=NONE": "Avoid",
+    "reg=STABLE|D=-1|M=-1|Rrev=1|U1|C=3|P2|B=-1|S=B1|R=B1|CD=B4|SE=NONE": "Accumulate",
+    "reg=DEGENERATE|D=0|M=1|Rrev=0|U2|C=3|P1|B=-1|S=B2|R=B1|CD=B4|SE=NONE": "Accumulate"
+  }
+}

@@ -1,0 +1,325 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\hypersetup{colorlinks=true, linkcolor=blue!70!black, urlcolor=blue!70!black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{TFE Structural Physics --- Confidential}
+\lhead{Structural Exit Assessment Specification}
+\rfoot{Page \thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries Structural Exit Assessment\\[0.3em]
+  Specification\par}
+  \vspace{0.5cm}
+  {\large\itshape Full-Tuple Deterioration Analysis\\
+  for Position Hold/Cut Decisions\par}
+  \vspace{2cm}
+  {\large Tao Financial Engine --- Internal Specification\par}
+  \vspace{0.5cm}
+  {\normalsize Version 1.0 \quad|\quad May 2026\par}
+  \vspace{0.5cm}
+  {\normalsize Status: \textbf{Approved Design --- Implementation Pending}\par}
+  \vspace{3cm}
+  \begin{abstract}
+    \noindent
+    This specification defines the structural exit assessment for held positions
+    in the Tao Financial Engine. When a position enters the intermediate loss zone
+    (between 0\% and $-10$\%), the system assesses whether the structural energy
+    that justified the entry has dissipated or is merely paused. The assessment
+    reads the full coupled kernel tuple as a single geometric object, using three
+    inputs: the horse (the stock's own structural history with this shape), the
+    herd (structural peers assessed individually then read collectively), and
+    match confidence (distance to closest precedent). The $-10$\% catastrophic
+    floor remains unconditionally active regardless of assessment outcome.
+  \end{abstract}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Motivation}
+
+\subsection{The Exit Gap}
+
+The current exit logic checks individual structural fields:
+\begin{itemize}
+  \item EXIT-A: $S_{UF} \geq 0.75$ (acceleration complete)
+  \item EXIT-B: $D_k \neq 1$ (directional collapse)
+  \item EXIT-F: price loss $\geq 10\%$ (catastrophic floor)
+  \item EXIT-R9: no losing exit before 7 calendar days
+\end{itemize}
+
+Between 0\% and $-10$\%, positions sit with no intermediate structural check.
+A stock can be down 7\% with its structural thesis completely broken across
+every kernel field, and the system will hold it for the full 7-day window
+(or until $-10$\%) because no single field has crossed its individual threshold.
+
+\subsection{The Principle}
+
+The kernel produces a coupled tuple:
+\[
+  \boldsymbol{\psi} = (D_k, M_k, B_k, R_{rev,k}, U^*_k, C_k, P_k, R_k)
+\]
+
+This tuple describes a single geometric structural state. It is not eight
+independent signals. The coupling carries information that individual field
+checks destroy.
+
+A position where $D_k = 0$ but $M_k > 0$, $B_k$ holding, $S_{UF}$ stable
+is a fundamentally different structural state than one where $D_k = 0$ and
+all other fields are also deteriorating --- even though a single-field exit
+check on $D_k$ would treat them identically.
+
+\textbf{The exit assessment must read the full tuple as one geometric object.}
+This is the same principle as entry selection (KERNEL\_PHILOSOPHY.md) applied
+to exit decisions.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Diamond Analogy}
+
+A gemologist does not evaluate a diamond by checking clarity separately,
+then carat, then color, then voting. The gemologist reads the stone as a
+whole: ``VS2 H round brilliant'' is a single classification that captures
+the full profile. The individual characteristics inform the grade, but the
+grade is the thing.
+
+The structural exit assessment works the same way. The full tuple vector
+$\boldsymbol{\psi}$ is the diamond. We find historical diamonds with the
+same cut (nearest neighbors in the full tuple space) and ask: what happened
+to those diamonds?
+
+We do \textbf{not} decompose $\boldsymbol{\psi}$ into individual fields
+and narrate each one. The distance metric reads all facets simultaneously.
+The output is: ``this shape historically leads to recovery 62\% of the time
+for this stock, and 70\% of the time for its structural peers.'' Not:
+``$D_k$ says go but $M_k$ says slow down.''
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Assessment Method}
+
+\subsection{When It Runs}
+
+The assessment triggers when a held position enters the intermediate loss
+zone: unrealized loss exceeds a threshold (initially $-2\%$) but has not
+yet reached the $-10\%$ catastrophic floor. It does \textbf{not} run on
+every sentinel cycle --- only when deterioration is detected.
+
+\subsection{Three Inputs}
+
+\subsubsection{Input 1: The Horse (Self-History)}
+
+For the stock in question, retrieve its full structural history from
+\texttt{runtime\_decisions\_history} (production) or the governed states
+parquet (backtest).
+
+Compute the Euclidean distance from the current tuple $\boldsymbol{\psi}_{\text{now}}$
+to every historical tuple $\boldsymbol{\psi}_i$ for this stock:
+\[
+  d_i = \left\| \frac{\boldsymbol{\psi}_{\text{now}} - \boldsymbol{\psi}_i}
+  {\boldsymbol{r}} \right\|_2
+\]
+where $\boldsymbol{r}$ is the per-field range vector computed from this
+stock's own history (normalizing so each field contributes equally to the
+distance, preventing high-magnitude fields from dominating).
+
+Take the $N$ closest matches (initially $N = 30$). For each match, look up
+what the price did at 10, 20, and 30 days forward. Report:
+\begin{itemize}
+  \item 20-day win rate across the $N$ matches
+  \item Average 20-day return
+  \item Distance of the closest match (match confidence)
+\end{itemize}
+
+\subsubsection{Input 2: The Herd (Structural Peers)}
+
+Find the stock's \emph{structural peers}: stocks whose structural personality
+profile (mean tuple over their full history) is most similar.
+
+For each of the top 20 structural peers:
+\begin{enumerate}
+  \item Run that peer's \textbf{own} full history through the same distance
+        computation against the target tuple
+  \item Take its top 20 closest self-matches
+  \item Compute its 20-day WR from those matches
+  \item Classify: BULL ($\geq 60\%$), MIXED (40--60\%), BEAR ($\leq 40\%$)
+\end{enumerate}
+
+Read the collective verdict: count of BULL / BEAR / MIXED across all 20 peers.
+
+This is \textbf{not} a single nearest-neighbor lookup across the universe.
+Each peer is assessed individually against its own history, then the verdicts
+are read collectively. This captures swarm behavior: are structurally similar
+stocks recovering from this shape, or deteriorating?
+
+\subsubsection{Input 3: Match Confidence}
+
+The Euclidean distance of the closest self-match. Tight distance means the
+stock has been in this exact geometric shape before and the precedent is
+strong. Wide distance means unfamiliar territory and the precedent is weak.
+
+\subsection{Epoch Weighting}
+
+The assessment should be weighted by the current epoch state. If the macro
+environment is hostile for this stock's sector (epoch pressure $< -0.5$),
+discount the bull case. If the macro environment is favorable, the bull
+case is reinforced.
+
+This is not a veto --- it is a weighting factor on the structural precedent.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Decision Rules}
+
+\subsection{Structural Energy Dissipated --- CUT}
+
+All three of the following:
+\begin{enumerate}
+  \item The horse's full-tuple self-match 20-day WR $\leq 50\%$
+  \item The herd's collective verdict: BULL count $\leq$ BEAR $+$ MIXED
+  \item The closest self-match distance is wide (above the stock's own
+        historical median match distance)
+\end{enumerate}
+
+\textbf{Action:} Exit the position. Do not wait for $-10$\% floor.
+Do not wait for 7-day minimum hold to expire. The structural thesis
+is dead.
+
+\subsection{Structural Energy Paused --- HOLD}
+
+All three of the following:
+\begin{enumerate}
+  \item The horse's full-tuple self-match 20-day WR $> 55\%$
+  \item The herd's collective verdict: BULL count $> 2 \times$ BEAR count
+  \item The closest self-match distance is tight (below the stock's own
+        historical median match distance)
+\end{enumerate}
+
+\textbf{Action:} Hold through the intermediate loss. The structural energy
+is stored but delayed (false start / magma pattern). Extend the observation
+window. Watch for the resumption signal.
+
+\textbf{The $-10$\% catastrophic floor remains unconditionally active.}
+The hold decision says ``don't cut early on intermediate noise.'' The floor
+says ``if the structural read was wrong, protect capital.'' These are not
+contradictory --- they operate at different scales. Even when all instruments
+say eruption is likely, you still have an evacuation line.
+
+\subsection{Ambiguous --- DEFAULT}
+
+If neither CUT nor HOLD criteria are met:
+\begin{itemize}
+  \item Fall through to existing exit logic (EXIT-B, EXIT-C, EXIT-R9)
+  \item No additional action
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data Requirements}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Data} & \textbf{Source} & \textbf{Notes} \\
+\midrule
+Stock's own tuple history & \texttt{runtime\_decisions\_history} & Per-bar, all fields \\
+Forward returns & Polygon API / cached bars & 10d, 20d, 30d \\
+Structural personality profiles & Precomputed weekly batch & Mean/std of tuple per stock \\
+Epoch state & \texttt{g32\_state.json} & Current sector pressures \\
+Current tuple & \texttt{runtime\_decisions\_latest} & \texttt{snapshot\_row\_json} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Relationship to Other Specifications}
+
+\subsection{3WA (Three-Wave Alignment)}
+
+The 3WA model (\texttt{docs/structural\_wave\_alignment\_spec.tex}) addresses
+\emph{entry} quality --- identifying high-confidence crystallisation events.
+This specification addresses \emph{exit} quality --- assessing whether a
+held position's structural thesis remains intact.
+
+They are complementary. A 3WA-tagged entry that enters the intermediate loss
+zone would be assessed by this exit framework like any other position.
+
+\subsection{Per-Stock Relative Thresholds (Step 2)}
+
+The structural personality profiles computed for per-stock thresholds (species
+classification, $\bar{\delta}_i$, $\sigma_i$) are the same profiles used to
+identify structural peers in the herd assessment. The data infrastructure
+is shared.
+
+\subsection{EXIT-R9 (7-Day Minimum Hold)}
+
+EXIT-R9 blocks losing exits for 7 calendar days. This specification can
+override that hold when the CUT criteria are met --- the structural thesis
+is dead and waiting 7 days only deepens the loss.
+
+When the HOLD criteria are met, EXIT-R9's hold is reinforced --- the
+structural precedent supports waiting.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Implementation Notes}
+
+\begin{enumerate}
+  \item \textbf{Performance:} The horse lookup queries one stock's history
+        ($\sim$1,200 rows for 5-year established stocks). The herd lookup
+        queries 20 peers $\times$ $\sim$1,200 rows each. Total: $\sim$25,000
+        rows. This runs only on deteriorating positions, not every cycle.
+        Expected load: 1--5 positions per assessment, a few times per week.
+  \item \textbf{Caching:} Structural personality profiles should be cached
+        and refreshed weekly. Peer lists are stable over days/weeks.
+  \item \textbf{Forward returns:} In production, forward returns are not
+        available (we don't know the future). The horse/herd WR is computed
+        from \emph{historical} forward returns at historical match points ---
+        ``when this stock was in this shape 6 months ago, what happened
+        over the next 20 days?'' This is backward-looking analysis, not
+        forward prediction.
+  \item \textbf{Production vs quarantine data:} Production kernel uses
+        log-normalized L0. Quarantine uses raw. The tuple shapes should be
+        similar but absolute values differ. The assessment should use
+        production's own \texttt{runtime\_decisions\_history}, not quarantine
+        data.
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Validation}
+
+Before deployment:
+\begin{enumerate}
+  \item Run the assessment on all closed positions in the trade ledger
+        that hit $-5\%$ or worse. Would CUT have fired earlier? Would HOLD
+        have correctly identified false starts?
+  \item Compare to actual outcomes: of positions that recovered, how many
+        would HOLD have correctly identified? Of positions that continued
+        to $-10\%$, how many would CUT have caught earlier?
+  \item Shadow-run alongside existing exits for 2 weeks before promoting
+        to active.
+\end{enumerate}
+
+\vspace{2em}
+\noindent\textit{This specification was developed from a structural assessment
+session on May 27, 2026, using BSM and VIRT as live case studies. The
+horse/herd/topology framework and the diamond analogy are from Joseph.
+The full-tuple-as-single-object constraint is a core architectural
+principle documented in KERNEL\_PHILOSOPHY.md.}
+
+\end{document}

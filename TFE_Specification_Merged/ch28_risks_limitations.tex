@@ -1,0 +1,44 @@
+\chapter{Risks, Limitations, and Future Profiles}
+\section{Known Risks}
+\meta{State the principal design and operational risks.}{Architecture, runtime semantics, validation findings.}{Risk register summary.}
+
+Principal risks include:
+\begin{itemize}
+    \item migration drift between local and deployed architectures;
+    \item stale runtime snapshots or wrong latest-selection ordering;
+    \item semantically invalid stage-skip reuse;
+    \item silent heuristic substitution for thesis-faithful logic;
+    \item reduced temporal structure caused by row-first materialization.
+\end{itemize}
+
+\section{Limitations}
+\meta{State what TFE does not claim.}{Present architecture and benchmark state.}{Explicit limitation statements.}
+
+TFE does not claim that:
+\begin{itemize}
+    \item structural stability metrics alone are predictive of profit or loss;
+    \item every domain is appropriate for DSF-first treatment;
+    \item a pragmatic serialized implementation is automatically a faithful test of the full DSF-AI thesis;
+    \item unsupported comparative benchmark tables are valid evidence.
+\end{itemize}
+
+\section{Future Profiles (Informative)}
+\meta{Identify computational profiles that may reduce overhead further while preserving thesis fidelity.}{Current normative design and future hardware/software options.}{Informative future-profile catalogue.}
+
+Future profiles of interest include:
+\begin{itemize}
+    \item selective state-space realizations that preserve one shared event-driven latent state while reducing update overhead on long sequences;
+    \item fixed-dynamics reservoir profiles that trade training cost for richer temporal traces;
+    \item analog or compute-in-memory realizations for event-driven state updates under a deterministic audit envelope;
+    \item hybrid profiles in which the canonical UF kernel remains unchanged while L5 uses an efficient structured state machine rather than a row-first learned model.
+\end{itemize}
+These future profiles are informative only until a controlled implementation and conformance review prove semantic equivalence or thesis-improving value.
+\meta{Identify future profiles consistent with the present specification.}{DSF-AI research vision and compute constraints.}{Informative future directions.}
+
+Potential future profiles include:
+\begin{itemize}
+    \item deterministic event-driven reservoir-style L5 profiles with fixed internal dynamics and lightweight governed readout;
+    \item topology-aware structural summaries over event tapes;
+    \item analog or neuromorphic realizations of the shared-state update equations, provided they preserve deterministic equivalence at the specification boundary;
+    \item split-brain protected deployments consistent with SES and domain binding.
+\end{itemize}

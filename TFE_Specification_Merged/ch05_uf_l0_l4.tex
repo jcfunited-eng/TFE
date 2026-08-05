@@ -1,0 +1,242 @@
+\chapter{Canonical UF L0--L4 Imported into TFE}
+\section{Import Rule}
+\meta{State how TFE uses L0--L4.}{Canonical UF v1.4.0 kernel specification and versions.}{Binding rule for TFE.}
+
+TFE shall treat UF L0--L4 as canonical and imported. TFE shall not modify kernel semantics, reinterpret internal operators, or silently replace invariants with local heuristics. Any semantic kernel change requires a new compatible kernel version and validation package.
+
+
+\section{Structural-Perceptual Role of L0--L4}
+\meta{State what L0--L4 are doing in scientific terms so the specification does not reduce them to a sterile feature list.}{Canonical UF semantics and the DSF-AI thesis.}{A precise description of L0--L4 as deterministic structural perception.}
+
+L0--L4 are the canonical structural-perceptual core of TFE. They do not learn and they do not predict. Their purpose is to transform a strictly ordered stream into a bounded sequence of structural states by repeatedly answering six primitive questions: what is present, how it is changing, how dispersed it is, how sharply it bends, how relevant the local state is to the current field, and whether meaningful absence or quietness is itself informative. In that sense the kernel is ``brain-like'' only in the limited scientific sense that it decomposes perception into ordered deterministic stages rather than jumping directly from raw values to recommendations.
+
+The present financial adapter uses only the closing-price series as the primary scalar signal, but the canonical import rule permits multiple cores $c\in\mathcal{C}$ provided that each core remains semantically canonical and independently auditable. A multi-core TFE therefore consists of parallel canonical perceptions of the same world under different admissible scalarizations or views, not of arbitrary heuristic feature branches. Every downstream TFE object shall therefore retain provenance to the originating core and gate so that the final governance layer interprets a family of structural perceptions rather than a decontextualized table of numbers.
+
+
+\section{Canonical Structural Geometry Objects}
+\meta{Make explicit the intermediate geometric entities that L0--L4 create and preserve so the kernel is not mistaken for a generic feature extractor.}{Ordered scalar field streams, gate descriptors, resonance outputs, DSF outputs, and core provenance.}{A formal catalog of structural geometry objects.}
+
+The canonical kernel induces the following ordered family of geometric objects:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Local structural point} $\gamma_c(t)$: the six-tuple of presence, motion, dispersion, curvature, relevance, and quiet-state indicator.
+    \item \textbf{Gate object} $G_{k,c}$: a maximal contiguous region of bounded geometric continuity.
+    \item \textbf{Gate descriptor manifold} $\mathfrak{G}_{k,c}$: duration, variation, relevance, multi-resolution partition signatures, cardinality, and gate-transition magnitude.
+    \item \textbf{Interpretive object} $ISF_{k,c}$: bounded structural meaning attached to a gate object.
+    \item \textbf{Resonance object} $\mathfrak{R}_{k,c}$: coherence, hysteresis, admissibility, and usable resonance.
+    \item \textbf{Decision-state object} $\mathfrak{D}_{k,c}$: directional sign, curvature, reversal, penalized uncertainty, persistence stress, and bounded potential.
+    \item \textbf{Trajectory object} $\mathcal{T}_{c}(k)$: the ordered history of gate/resonance/DSF objects for one core.
+    \item \textbf{Cross-core structural scene} $\mathfrak{T}(k)$: the collection of trajectory objects viewed together under deterministic fusion.
+\end{enumerate}
+
+A normative implementation shall preserve these objects or their lossless deterministic equivalents. An implementation that immediately flattens them into decontextualized rows without preserving ordered object identity shall be classified as a pragmatic approximation.
+
+\section{L0: Structural Evaluation Vector Construction}
+\meta{Convert the raw ordered input into the primitive structural-perceptual tuple used by every later layer.}{Strictly ordered canonical input series $I_C=\{(t_i,C_i)\}_{i=1}^{n}$ for one core $c$, deterministic adapter parameters, and admissibility checks.}{Normalized structural field $NSF_c = \{SEV_c(t_i)\}_{i=1}^{n}$.}
+
+L0 is the primitive structural-perceptual stage. It is not ``feature engineering'' in the ordinary ML sense. It is the deterministic reduction of an ordered signal into a minimal local state that preserves: magnitude, motion, dispersion, curvature, relevance, and negative-space / quiet-state information. These six quantities are the smallest admissible basis from which downstream gates and structural states are allowed to arise.
+
+For core $c$ at time $t$ let $F_c(t)$ denote the scalar field presented to UF by the adapter. Canonical definitions imported into TFE are:
+\begin{align*}
+\Delta F_c(t) &= F_c(t)-F_c(t-\Delta t),\\
+\bar F_{c,W}(t) &= \frac{1}{W}\sum_{j=0}^{W-1}F_c(t-j\Delta t),\\
+\sigma_c(t) &= \frac{1}{W}\sum_{j=0}^{W-1}\left\lVert F_c(t-j\Delta t)-\bar F_{c,W}(t)\right\rVert^2,\\
+\kappa_c(t) &= \left\lVert F_c(t+\Delta t)-2F_c(t)+F_c(t-\Delta t)\right\rVert,\\
+r_c(t) &= \psi_r\!\left(F_c(t-W_r\Delta t:t)\right),\\
+N_c(t) &= \begin{cases}
+1, & \sigma_c(t)<\sigma_{min}\ \wedge\ \lVert\Delta F_c(t)\rVert<\delta_{min}\ \wedge\ \kappa_c(t)<\kappa_{min},\\
+0, & \text{otherwise,}
+\end{cases}\\
+SEV_c(t) &= \big(F_c(t),\Delta F_c(t),\sigma_c(t),\kappa_c(t),r_c(t),N_c(t)\big).
+\end{align*}
+Here $\psi_r$ is the canonical deterministic relevance operator imported with the UF kernel. TFE may not replace it with a local learned or heuristic score.
+
+Interpretive meaning of the tuple is fixed:
+\begin{itemize}
+    \item $F_c(t)$ = presence / local magnitude;
+    \item $\Delta F_c(t)$ = first-order motion;
+    \item $\sigma_c(t)$ = local field dispersion;
+    \item $\kappa_c(t)$ = local bending / acceleration of structure;
+    \item $r_c(t)$ = relevance of the local state to the active field;
+    \item $N_c(t)$ = negative-space indicator showing that quietness, absence, or lack of dispersion is itself structurally informative.
+\end{itemize}
+
+L0 admissibility rules are strict. The following conditions shall hard-fail the evaluation before L1:
+\begin{itemize}
+    \item non-monotone timestamps;
+    \item missing required bars within a window beyond approved calendar rules;
+    \item non-finite values or invalid price domain;
+    \item duplicate timestamps in one core stream;
+    \item silent imputation not recorded in the audit trail.
+\end{itemize}
+
+L0 invariants:
+\begin{align*}
+\sigma_c(t) &\ge 0,\\
+\kappa_c(t) &\ge 0,\\
+N_c(t) &\in \{0,1\},\\
+SEV_c(t) &\in \mathbb{R}^5\times\{0,1\}.
+\end{align*}
+L0 outputs shall be serializable without loss of ordering, core identity, or deterministic equality.
+
+\section{L1: Gate Segmentation and Structural Quantization}
+\meta{Partition the primitive structural field into coherent intervals and derive gate-level descriptors that can be compared across time and across cores.}{$NSF_c=\{SEV_c(t)\}$.}{$G_{k,c}$, $TVR_{k,c}$, $P_\ell(G_{k,c})$, $C_{k,c}$, $\delta_g(G_{k,c})$, and gate provenance records.}
+
+L1 is the stage at which local perception becomes interval structure. A gate is not simply a moving window. It is a maximal contiguous interval whose internal variation remains below the canonical deviation threshold while preserving ordering. Gates therefore act as the primitive ``objects'' of structural interpretation.
+
+For each core $c$, define the gate boundary functional
+\begin{align*}
+D_c(t) &= \alpha_1\lVert\Delta F_c(t)\rVert + \alpha_2\sigma_c(t) + \alpha_3\kappa_c(t),\\
+D_c(t) &\ge \tau_D \Rightarrow \text{boundary at } t.
+\end{align*}
+A gate $G_{k,c}=[t_a,t_b)$ is the maximal half-open interval satisfying boundary admissibility and ordering consistency. Half-open intervals are required so that adjacent gates tile the ordered stream without overlap ambiguity.
+
+Imported descriptors are:
+\begin{align*}
+TVR_{k,c} &= (T_{k,c},V_{k,c},R_{k,c}),\\
+T_{k,c} &= t_b-t_a,\\
+V_{k,c} &= \int_{t_a}^{t_b}(\beta_1\lVert\Delta F_c\rVert+\beta_2\sigma_c+\beta_3\kappa_c)\,dt,\\
+R_{k,c} &= \int_{t_a}^{t_b}r_c(t)\,dt,\\
+P_\ell(G_{k,c}) &= \left(\left\lfloor\frac{T_{k,c}}{h_1^{(\ell)}}\right\rfloor,\left\lfloor\frac{V_{k,c}}{h_2^{(\ell)}}\right\rfloor,\left\lfloor\frac{R_{k,c}}{h_3^{(\ell)}}\right\rfloor\right),\\
+C_{k,c} &= \left|\{P_1(G_{k,c}),\dots,P_L(G_{k,c})\}\right|,\\
+\delta_g(G_{k,c}) &= \lVert \mu_{k,c}-\mu_{k-1,c}\rVert.
+\end{align*}
+
+Operationally, L1 provides three things:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a deterministic tiling of ordered history into structural objects;
+    \item a multi-resolution quantization of those objects, so similarity and complexity can be assessed without raw-value dependence;
+    \item a bridge from local perception to interval identity, which later enables resonance, memory, and cross-core comparison.
+\end{enumerate}
+
+Required L1 controls:
+\begin{itemize}
+    \item tie-handling at $D_c(t)=\tau_D$ shall be deterministic and versioned;
+    \item minimum and maximum gate width constraints, if used, must be declared in the controlled parameter registry;
+    \item any merged/split gate post-processing must be prohibited unless it is part of the canonical kernel version.
+\end{itemize}
+
+\section{L2: Interpretive Structural Field}
+\meta{Convert gate objects into bounded, domain-independent interpretations that preserve structure without yet making domain judgments.}{$\{G_{k,c},TVR_{k,c},P_\ell(G_{k,c}),C_{k,c},\delta_g(G_{k,c}),N_c(G_{k,c})\}$.}{$ISF_{k,c}=(w_{k,c},CV_{k,c},S_{k,c},Reg_{k,c},U_{k,c},IAS_{k,c})$.}
+
+L2 is the first interpretive stage. It does not assign financial meaning. It assigns structural meaning. The central requirement is that identical gate objects under the same kernel version map to identical interpretive states regardless of environment, implementation language, or deployment profile.
+
+Canonical structure:
+\begin{align*}
+ISF_{k,c} &= (w_{k,c},CV_{k,c},S_{k,c},Reg_{k,c},U_{k,c},IAS_{k,c}),\\
+CV_{k,c} &= TVR_{k,c}-\mu_{k,c},\\
+S_{k,c} &= \psi_s\!\left(TVR_{k,c},P_1(G_{k,c}),\dots,P_L(G_{k,c}),C_{k,c},\delta_g(G_{k,c})\right),\\
+Reg_{k,c} &= \phi_{reg}\!\left(P_1(G_{k,c}),\dots,P_L(G_{k,c}),C_{k,c}\right),\\
+U_{k,c} &= \psi_u\!\left(C_{k,c},\delta_g(G_{k,c}),N_c(G_{k,c})\right),\\
+IAS_{k,c} &= \phi_{ias}\!\left(S_{k,c},U_{k,c},\delta_g(G_{k,c})\right).
+\end{align*}
+Here $\psi_s$, $\phi_{reg}$, $\psi_u$, and $\phi_{ias}$ are canonical imported operators. TFE may reference their outputs but may not substitute local semantics.
+
+Interpretive roles:
+\begin{itemize}
+    \item $w_{k,c}\in[0,1]$ = normalized structural intensity;
+    \item $CV_{k,c}$ = centered variation tensor / vector used for shape comparison;
+    \item $S_{k,c}$ = bounded structural score;
+    \item $Reg_{k,c}$ = canonical regime label or index;
+    \item $U_{k,c}$ = structural uncertainty only, not market uncertainty or probability;
+    \item $IAS_{k,c}$ = anomaly / instability flag for later suppression logic.
+\end{itemize}
+
+L2 is where the kernel stops being merely descriptive and becomes interpretive, but it remains domain-agnostic. That distinction is crucial: all later financial semantics belong to TFE, not to the UF kernel.
+
+\section{L3: Resonance Engine}
+\meta{Derive second-order structural coherence, suppress unstable transitions, and prepare a bounded field suitable for state formation.}{$ISF_{k,c}$ and divergence-related descriptors.}{$R_{k,c}$, $Hyst_{k,c}$, $g_{k,c}$, and $URF_{k,c}$.}
+
+L3 is the resonance stage. If L2 says what kind of structural object a gate is, L3 says whether adjacent interpretive objects participate in a coherent field or are merely passing noise. Resonance is therefore a second-order structural quantity: it summarizes whether the interpreted gates are mutually supportive under bounded uncertainty.
+
+Imported resonance functional and gating are:
+\begin{align*}
+R_{k,c} &= \frac{1}{Z}\left(\lambda_1w_{k,c} + \lambda_2\frac{\norm{CV_{k,c}}}{\norm{CV}_{max}} + \lambda_3S_{k,c} + \lambda_4\frac{1}{1+C_{k,c}} + \lambda_5(1-U_{k,c})\right),\\
+Hyst_{k,c} &= \mathbf{1}\{|R_{k,c}-R_{k-1,c}|>h_{max}\},\\
+g_{k,c} &= \mathbf{1}\{(U_{k,c}\le U_{max})\wedge(IAS_{k,c}=0)\wedge(Hyst_{k,c}=0)\},\\
+URF_{k,c} &= g_{k,c}\,R_{k,c}.
+\end{align*}
+
+Interpretive meaning:
+\begin{itemize}
+    \item $R_{k,c}$ = raw structural coherence prior to gating;
+    \item $Hyst_{k,c}$ = excessive resonance jump detector;
+    \item $g_{k,c}$ = admissibility gate for resonance;
+    \item $URF_{k,c}$ = usable resonance field entering L4.
+\end{itemize}
+
+Any implementation that bypasses hysteresis or anomaly suppression is non-conformant, because it turns resonance into a generic score rather than a bounded structural field.
+
+\section{L4: Decision State Field}
+\meta{Transform gated resonance into the canonical structural state vector that TFE is allowed to govern but not redefine.}{$URF_{k,c}$, $R_{k,c}$, $R_{k-1,c}$, $R_{k-2,c}$, and uncertainty/anomaly context.}{$DSF_{k,c}=(D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},C_{k,c},P_{k,c},B_{k,c})$.}
+
+L4 is the terminal kernel stage. It is called the Decision State Field not because it is already a decision, but because it is the minimal state that a governance layer may legitimately interpret. TFE is allowed to act \emph{on} DSF, but not to alter what DSF means.
+
+Imported DSF equations are:
+\begin{align*}
+\Delta R_{k,c} &= R_{k,c}-R_{k-1,c},\\
+D_{k,c} &= \begin{cases}+1,& \Delta R_{k,c}>\varepsilon_D,\\0,& |\Delta R_{k,c}|\le \varepsilon_D,\\-1,& \Delta R_{k,c}< -\varepsilon_D,\end{cases}\\
+M_{k,c} &= R_{k,c}-2R_{k-1,c}+R_{k-2,c},\\
+Rev_{k,c} &= \mathbf{1}\{D_{k,c}D_{k-1,c}<0\},\\
+U^{\ast}_{k,c} &= U_{k,c} + \eta_HHyst_{k,c} + \eta_{IAS}IAS_{k,c},\\
+P_{k,c} &= |D_{k,c}-D_{k-1,c}|,\\
+B_{k,c} &= \clip\big(B_{k-1,c}+\xi(1-U^{\ast}_{k,c})\Delta R_{k,c}-\chi U^{\ast}_{k,c},\,B_{min},B_{max}\big),\\
+DSF_{k,c} &= (D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},C_{k,c},P_{k,c},B_{k,c}).
+\end{align*}
+
+Component semantics are fixed:
+\begin{itemize}
+    \item $D_{k,c}$ = directional sign of resonance change;
+    \item $M_{k,c}$ = second-order curvature / momentum of the resonance field;
+    \item $Rev_{k,c}$ = reversal indicator;
+    \item $U^{\ast}_{k,c}$ = penalized uncertainty / instability;
+    \item $C_{k,c}$ = structural complexity/cardinality inherited from L1;
+    \item $P_{k,c}$ = directional discontinuity / persistence stress;
+    \item $B_{k,c}$ = bounded potential integrating stable resonance over time.
+\end{itemize}
+
+DSF is a structural field, not a recommendation, probability, forecast, return target, or utility estimate. Any L5 implementation that directly labels $DSF$ as ``buy'', ``sell'', or ``accuracy'' without the TFE governance rules is non-conformant.
+
+In a multi-core configuration, each core emits its own ordered DSF stream. TFE shall preserve core identity and gate provenance when converting these streams into the structural event tape.
+
+
+\section{How Structural Geometry Supports Decision-Making}
+\meta{Explain precisely how the kernel supports decision-making without itself becoming a recommendation engine.}{Ordered DSF trajectories, cross-core trajectories, and later L5 governance rules.}{A deterministic bridge statement from kernel geometry to governed action.}
+
+The kernel supports decision-making by transforming raw series data into bounded geometric evidence. The support path is:
+\[
+\text{raw field} \rightarrow \text{local structural points} \rightarrow \text{gates} \rightarrow \text{interpretive objects} \rightarrow \text{resonance objects} \rightarrow \text{DSF trajectories}.
+\]
+This path matters because L5 can ask questions that ordinary predictive analytics usually does not ask directly:
+\begin{itemize}
+    \item Is the present state part of a coherent structural trajectory or an isolated fluctuation?
+    \item Is the field bending toward continuation, reversal, or collapse?
+    \item Is the absence of movement itself informative?
+    \item Do multiple cores/views agree on the existence of the structure?
+    \item Does the structure remain admissible under external epoch pressure and financial governance?
+\end{itemize}
+
+The kernel therefore does not decide \emph{what return will occur}. It determines \emph{what structural object exists, how stable it is, how it is changing, and whether that change is geometrically coherent enough to be governed by L5}. L5 then uses this bounded geometric evidence together with domain rules to admit, suppress, or abstain.
+
+\section{Stability, Robustness, and SafeMode}
+\meta{Define the scalar summary quantities that gate external use.}{Canonical DSF outputs over a window and their perturbed variants.}{$S(UF)$, $R(UF)$, GSS, DSS, DSF-Stability, SafeMode.}
+
+Imported summaries:
+\begin{align*}
+S(UF) &= \lambda_c(1-Coh)+\lambda_h(1-H_s)+\lambda_b(1-Var(B))+\lambda_u(1-\bar U)+\lambda_d(1-Drift(T)),\\
+R(UF) &= 1-\frac{1}{K}\sum_{i=1}^{K}\left|S(UF)-S(UF^{(i)})\right|.
+\end{align*}
+
+Perturbation levels are $\sigma_{pct}\in\{0.1\%,0.2\%,0.5\%,1.0\%,2.0\%\}$. SafeMode shall activate whenever structural stability drops below the configured threshold or hardening rules otherwise require degraded operation.
+
+\section{Input Domain}
+\meta{Define financial inputs accepted by TFE.}{Daily OHLCV bars, symbol, timeframe, domain parameters, version identifiers.}{Validated closing-price series and invocation metadata.}
+
+Imported financial input rules:
+\[
+I = \{(t_i,O_i,H_i,L_i,C_i,V_i)\}_{i=1}^{n},\quad t_i<t_{i+1},\quad H_i\ge L_i,\quad O_i,C_i\in[L_i,H_i],\quad V_i\ge 0.
+\]
+The adapter shall pass only the closing-price series
+\[
+I_C = \{(t_i,C_i)\}_{i=1}^{n}
+\]
+to canonical L0. Evaluation windows must be contiguous in trading days, minimum-length compliant, and version-bound.

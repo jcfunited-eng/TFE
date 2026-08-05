@@ -1,0 +1,21 @@
+Monetary Policy and Central Banking.txt
+
+Central banks sit at the heart of modern economies.
+Their mission: maintain price stability, full employment, and confidence in the financial system.
+
+Main tools
+
+Open-market operations: buying or selling government securities to control money supply.
+
+Discount rate: the rate charged to commercial banks for short-term borrowing.
+
+Reserve requirements: the fraction of deposits banks must hold.
+
+Quantitative easing (QE): large-scale asset purchases to inject liquidity.
+
+When inflation rises, a central bank tightens policy—raising rates and draining reserves.
+When recession looms, it eases—lowering rates and adding liquidity.
+Each decision ripples outward: mortgage costs change, currencies strengthen or weaken, and investor sentiment shifts.
+
+Example:
+A 0.25 % rate cut by the Federal Reserve reduces borrowing costs, encouraging spending, which lifts corporate earnings and, often, stock prices.

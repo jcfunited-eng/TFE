@@ -1,0 +1,84 @@
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs
+*.log
+
+# Secrets/local state
+.env
+.env.*
+*.pem
+*.key
+*.crt
+!certs/
+!certs/rds-global-bundle.pem
+tfe_root_key.bin
+tfe_session_secret.bin
+tfe_users.json
+
+# Runtime/generated local data (keep out of git unless explicitly approved)
+uf_snapshot.json
+uf_snapshot_old_backup.json
+uf_structural_cache.json
+portfolio_manual.json
+watchlist.csv
+admin_refresh_latest.log
+admin_refresh_status.json
+
+# Editor/OS
+.vscode/
+.DS_Store
+
+# User data — never commit (security/privacy)
+tfe_encrypted_portfolios/
+web_user_data/
+
+# Generated run artifacts (recreatable from source)
+artifacts/
+admin_refresh_history.jsonl
+*_latest.json
+*_latest.md
+
+# Temporary and backup runtime files
+*.tmp.json
+*.bak
+uf_snapshot.dev_*.json
+uf_snapshot.ses.json.pre-aws-align.bak
+uf_snapshot_old_backup.ses.json
+
+# One-off generated report and audit outputs
+ab_adaptive_vs_fixed_report.json
+ab_adaptive_vs_fixed_sanity_samples.txt
+accumulate_sanity_check.json
+energy_entropy_output.txt
+l5_backtest_vs_spy_5y.json
+real_world_cleaned_universe_anchor_audit_l5.json
+real_world_cleaned_universe_l5_primitive_only_row_trace.csv
+real_world_cleaned_universe_l5_primitive_only_row_trace_metadata.json
+real_world_uf_audit_from_ab_sample.json
+real_world_uf_audit_from_ab_sample.txt
+tfe_portfolio_index.json
+tau_d_calibration_filtered_dt_report.json
+tau_d_calibration_full_universe_report.json
+unmapped_policy_keys_report.json
+uf_policy_what_if_from_row_trace.json
+uf_policy_what_if_recommended_changes.csv
+validation-report-v1.json
+validation_sample.csv
+readonly-production-verification-path.json
+data/tfe.db
+docs/pynq_z2_v3.0.1.zip
+g32_state.json
+quarantine_12k_governed_states.parquet
+quarantine_12k_universe.parquet
+DOC_UPDATES_MAY28.md
+
+# Large Aurelion files — too big for GitHub
+docs/Aurelion/language_memory*.json
+docs/Aurelion/.venv.zip
+
+# Large Aurelion files (too big for GitHub)
+docs/Aurelion/language_memory*.json
+docs/Aurelion/.venv.zip

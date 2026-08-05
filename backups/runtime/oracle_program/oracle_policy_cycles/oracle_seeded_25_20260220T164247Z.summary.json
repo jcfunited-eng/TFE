@@ -1,0 +1,26 @@
+{
+  "cycle_id": "oracle_seeded_25_20260220T164247Z",
+  "generated_at_utc": "2026-02-20T16:44:18Z",
+  "requested_runs": 25,
+  "completed_runs": 25,
+  "seed_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-candidate-20260220T161452Z.json",
+  "runtime_policy_path": "/tmp/oracle_seeded_25_20260220T164247Z_runtime_policy.json",
+  "baseline_score_reference": 65.84995589389956,
+  "best": {
+    "run": 22,
+    "avg_outcome_over_index_pct": 67.78743231331066,
+    "h5": 78.84397431054023,
+    "h20": 83.7363052512278,
+    "h60": 40.78201737816396,
+    "current_avg_outcome_over_index_pct": 64.5636569701549,
+    "delta_avg_outcome_over_index_pct": 3.223775343155765,
+    "report_path": "/workspaces/Tao_Financial_Engine/backups/runtime/l5_policy_learning/l5-policy-learning-report-20260220T164405Z.json",
+    "candidate_eval_path": "/workspaces/Tao_Financial_Engine/backups/runtime/l5_policy_learning/policy-eval-candidate-20260220T164405Z.json",
+    "current_eval_path": "/workspaces/Tao_Financial_Engine/backups/runtime/l5_policy_learning/policy-eval-current-20260220T164405Z.json",
+    "delta_vs_baseline_score": 1.937476419411098
+  },
+  "log_jsonl": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/oracle_policy_cycles/oracle_seeded_25_20260220T164247Z.jsonl",
+  "elapsed_seconds": 90.873,
+  "recovered_at_utc": "2026-02-20T16:45:00Z",
+  "recovery_note": "Recovered report links and candidate scores from generated L5 reports (parser fallback)."
+}

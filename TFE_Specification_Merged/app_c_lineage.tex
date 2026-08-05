@@ -1,0 +1,42 @@
+\chapter{Strict Function-by-Function Lineage Appendix (L4 to L5 to Advisor)}
+\section{Canonical Replay Lineage (Refresh and Runtime Path)}
+\meta{Provide a strict code-truth lineage map from canonical UF structural state to production L5 runtime and advisor surfaces.}{Current code-truth implementation paths.}{A formal runtime lineage appendix.}
+
+The canonical replay/runtime lineage is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Canonical UF structural state is computed by \texttt{compute\_uf\_structural\_state(close)} and yields $level3.regime$, $level4.(S_{UF},R_{UF},stability,max\_drawdown)$, and $level5.(decision\_vector,D_k,M_k,R_{rev,k},U_k^{\ast},C_k,P_k,B_k,decision\_guard,hardening)$.
+    \item That UF state is flattened for snapshot row creation and materialized per symbol into snapshot rows used by runtime and downstream sync.
+    \item Snapshot rebuild writes the runtime snapshot artifact and persists the SES envelope.
+    \item Runtime bridge sync deduplicates rows and publishes runtime tables for decisions, symbols, metrics, and daily bars.
+    \item L5 replay policy generation recomputes UF state on validation/replay data, extracts the L4/L5 components, constructs cell keys, and learns decision statistics per cell.
+    \item Candidate assembly, anomaly overlay, evaluation, promotion, and optional autopromotion publish the current runtime policy.
+    \item Advisor APIs load runtime rows, reconstruct policy candidates from the snapshot row, and emit user-visible recommendation or portfolio actions with fallback reason codes.
+\end{enumerate}
+
+\section{Row-Trace Lineage}
+The row-trace lineage is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item rolling windows are evaluated with canonical UF state computation;
+    \item a serialized row-trace artifact stores decision timestamp, regime, structural state components, and forward outcome;
+    \item L5 row-trace policy generation rebuilds policy cells from the serialized rows;
+    \item evaluation reuses the same candidate-key mechanics and SPY-relative benchmark alignment.
+\end{enumerate}
+
+\section{Field-Level Lineage Map}
+The strict field-level lineage is:
+\begin{itemize}
+    \item \texttt{regime} is produced by canonical UF and used in both L5 keying and advisor-side key reconstruction.
+    \item \texttt{S\_UF}, \texttt{R\_UF}, and \texttt{stability\_score} are produced by canonical UF, used for key enrichment/buckets, and influence advisor confidence.
+    \item \texttt{decision\_vector}, \texttt{D\_k}, \texttt{M\_k}, \texttt{R\_rev\_k}, \texttt{U\_star\_k}, \texttt{C\_k}, \texttt{P\_k}, and \texttt{B\_k} are produced by canonical UF, flattened in snapshot rows, consumed by L5 key extraction, and reconsumed by advisor-side policy key extraction.
+    \item \texttt{decision\_guard} and \texttt{hardening} flags are produced by canonical UF and are used in anomaly accounting and advisor anomaly-fallback logic.
+\end{itemize}
+
+\section{Publication Boundaries and Declared Transform Points}
+The current publication and transform points are:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item runtime policy publication occurs either through atomic file promotion or runtime-table persistence;
+    \item advisor policy reads are bootstrapped from the runtime policy artifact and snapshot row payloads;
+    \item recommendation and portfolio outputs are shaped from recomputed decision provenance at request time;
+    \item declared transform/loss points include snapshot flattening, row-trace serialization, null precomputed decision-provenance fields in runtime tables, and candidate-key fallback chains.
+\end{enumerate}
+This appendix is normative for CP-0 and informative for CP-1/CP-2 migration planning.

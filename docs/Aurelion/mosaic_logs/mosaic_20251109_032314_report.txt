@@ -1,0 +1,7 @@
+Aurelion — Mosaic Run Report (v3.0)
+Corpus: Draft Baxter Validation Master Plan 110506.doc
+Steps: 400, Window: 16, Stride: 4
+
+[cluster 1] score=0.293 φ=0.295 H=0.457 energy=0.98 :: tokens=vk, bjbjz, z, k, p, l
+[cluster 2] score=0.214 φ=0.218 H=0.556 energy=0.96 :: tokens=l, r, w, p, o, g
+[cluster 3] score=0.172 φ=0.174 H=0.585 energy=0.97 :: tokens=l, w, r, f, o, mz

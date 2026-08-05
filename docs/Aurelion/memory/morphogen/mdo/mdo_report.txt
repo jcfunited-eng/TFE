@@ -1,0 +1,8 @@
+[2025-11-12T12:20:23Z] MDO Report
+  window=50 files=7/7  dreams=3 daydreams=4
+  approved=1 quarantine=6 osf_aborts=6
+  ethics_avg≈0.369  bias: clean=7 flagged=0
+  entropy(last=0.166) trend=up
+  energy(last=0.546) trend=up
+  top_tapestries: self, curiosity, random_5, finance, random_7
+  last=20251112T052000Z-6ae42669188f-daydream.json at 2025-11-12T05:20:00Z

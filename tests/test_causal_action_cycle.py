@@ -1,0 +1,578 @@
+from __future__ import annotations
+
+import base64
+import hashlib
+import math
+import os
+import sys
+from fractions import Fraction
+
+import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    NativeSensorySubstreamInput,
+    build_six_sense_full_field,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    NativeAxisCoordinate,
+    PhysicalSense,
+    SENSE_ORDER,
+    SenseBoundaryState,
+)
+from dsf_ai_service.substrate.causal_action_cycle import (
+    ActionCommand,
+    CausalActionCycle,
+)
+from dsf_ai_service.substrate.exact_causal_experience import (
+    ExactCausalExperienceOwner,
+)
+
+
+def _action(value: str) -> ActionCommand:
+    return ActionCommand.embodiment("test.body", value.encode("utf-8"))
+
+
+def _built(assembly_id: str, *, frequency: int = 8):
+    count = 96
+    sight = NativeSensorySubstreamInput(
+        sense=PhysicalSense.SIGHT,
+        sensor_id="cycle-test-camera",
+        substream_id="fixation-0",
+        topology_index=0,
+        coordinates=(NativeAxisCoordinate("fixation", "center"),),
+        physical_quantity="light-intensity",
+        physical_unit="normalized-intensity",
+        source_times=tuple(Fraction(index, 200) for index in range(count)),
+        normalized_signal=tuple(
+            math.sin(2 * math.pi * frequency * index / 200)
+            for index in range(count)
+        ),
+        phase_turns=tuple(Fraction(index // 12) for index in range(count)),
+    )
+    return build_six_sense_full_field(
+        assembly_id=assembly_id,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(count, 200),
+        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        states={
+            sense: (
+                SenseBoundaryState.OBSERVED
+                if sense is PhysicalSense.SIGHT
+                else SenseBoundaryState.SENSOR_UNAVAILABLE
+            )
+            for sense in SENSE_ORDER
+        },
+    )
+
+
+def _settlement(
+    assembly_id: str,
+    *,
+    frequency: int = 8,
+    routing_chis: tuple[int, ...] = (),
+):
+    return ExactCausalExperienceOwner(
+        on_settlement=lambda _value: None,
+        log_event=lambda *_args, **_kwargs: None,
+    ).settle(
+        _built(assembly_id, frequency=frequency),
+        routing_chis=routing_chis,
+        source_tags=(f"source:{assembly_id}",),
+    )
+
+
+def _teach(
+    cycle: CausalActionCycle,
+    trigger,
+    action: ActionCommand,
+    nonce: str,
+):
+    cycle.accept(trigger)
+    relation = cycle.issue_teacher_relation(
+        trigger_reference=trigger.event_id,
+        action=action,
+        source="joe",
+        nonce=nonce,
+    )
+    return cycle.learn(
+        trigger_reference=trigger.event_id,
+        action=action,
+        teacher_relation=relation,
+    )
+
+
+def _close(
+    cycle: CausalActionCycle,
+    trigger,
+    outcome,
+    *,
+    executor_label: str,
+    decision: str,
+    feedback_nonce: str,
+):
+    selection = cycle.select(trigger)
+    assert selection.status == "committed"
+    execution = cycle.record_execution(
+        intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(
+            executor_label.encode("utf-8")
+        ).hexdigest(),
+        disposition="executed",
+    )
+    observed = cycle.observe_outcome(
+        execution_receipt_sha256=execution.authority_receipt_sha256,
+        settlement=outcome,
+    )
+    feedback = cycle.apply_feedback(
+        outcome_receipt_sha256=observed.authority_receipt_sha256,
+        decision=decision,
+        source="joe",
+        nonce=feedback_nonce,
+    )
+    return selection.intent, execution, observed, feedback
+
+
+def test_full_field_identity_ignores_chi_and_distinguishes_changed_field() -> None:
+    trigger = _settlement("identity-a", routing_chis=(3,))
+    same = _settlement("identity-b", routing_chis=(91,))
+    changed = _settlement("identity-c", frequency=9, routing_chis=(3,))
+    assert trigger.structural_fingerprint == same.structural_fingerprint
+    assert trigger.routing_chis != same.routing_chis
+    assert trigger.structural_fingerprint != changed.structural_fingerprint
+
+    cycle = CausalActionCycle(authority_key="cycle-identity-key")
+    action = _action("I see it")
+    _teach(cycle, trigger, action, "identity-teacher-nonce-0001")
+    selected = cycle.select(same)
+    assert selected.status == "committed"
+    assert selected.intent.action == action
+    unknown = cycle.select(changed)
+    assert unknown.status == "unknown"
+    assert unknown.intent is None
+    assert unknown.stop_reason == "causal_action_unknown"
+
+
+def test_exact_relation_upgrades_once_to_independent_teaching_evidence() -> None:
+    trigger = _settlement("evidence-upgrade-trigger")
+    cycle = CausalActionCycle(authority_key="cycle-evidence-upgrade-key")
+    cycle.accept(trigger)
+    action = _action("experienced reply")
+    nonce = "evidence-upgrade-teacher-nonce-0001"
+    legacy = cycle.teach(
+        trigger_reference=trigger.event_id,
+        action=action,
+        source="joe",
+        nonce=nonce,
+    )
+    assert (
+        legacy.teacher_relation.teaching_evidence_receipt_sha256
+        is None
+    )
+    evidence = hashlib.sha256(
+        b"separately-experienced-spoken-action"
+    ).hexdigest()
+    upgraded = cycle.teach(
+        trigger_reference=trigger.event_id,
+        action=action,
+        source="joe",
+        nonce="evidence-upgrade-teacher-nonce-0002",
+        teaching_evidence_receipt_sha256=evidence,
+    )
+    assert upgraded.binding_id == legacy.binding_id
+    assert (
+        upgraded.teacher_relation.teaching_evidence_receipt_sha256
+        == evidence
+    )
+    verified = cycle.verified_relation_evidence()
+    assert len(verified) == 1
+    assert verified[0].teaching_evidence_receipt_sha256 == evidence
+    restored = CausalActionCycle(authority_key="cycle-evidence-upgrade-key")
+    restored.restore_encoded(cycle.encoded_snapshot())
+    assert (
+        restored.verified_relation_evidence()[0]
+        .teaching_evidence_receipt_sha256
+        == evidence
+    )
+
+
+def test_embodiment_cycle_closes_and_restores_with_full_receipt_chain() -> None:
+    trigger = _settlement("embodiment-trigger", routing_chis=(4, 12))
+    repeated = _settlement("embodiment-repeat", routing_chis=(77,))
+    outcome = _settlement("embodiment-outcome", frequency=11)
+    cycle = CausalActionCycle(authority_key="cycle-embodiment-key")
+    action = ActionCommand.embodiment(
+        "body.motion.primary",
+        b"\x01\x00\x7f\x22exact-port-command\x00",
+    )
+    binding = _teach(
+        cycle,
+        trigger,
+        action,
+        "embodiment-teacher-nonce-0001",
+    )
+    assert binding.status == "provisional"
+    intent, execution, observed, feedback = _close(
+        cycle,
+        repeated,
+        outcome,
+        executor_label="embodiment-executor-1",
+        decision="confirm",
+        feedback_nonce="embodiment-feedback-nonce-0001",
+    )
+    assert intent.action == action
+    assert execution.executor_receipt_sha256
+    assert observed.outcome_structural_fingerprint == outcome.structural_fingerprint
+    assert feedback.decision == "confirm"
+    status = cycle.status()
+    assert status["binding_statuses"]["confirmed"] == 1
+    assert status["closures"] == 1
+    assert status["intents"] == status["executions"] == status["outcomes"] == 0
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(authority_key="cycle-embodiment-key")
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot
+    assert restored.status()["binding_statuses"]["confirmed"] == 1
+    selected = restored.select(
+        _settlement("embodiment-after-restart", routing_chis=(1, 99))
+    )
+    assert selected.status == "committed"
+    assert selected.intent.action == action
+
+
+def test_negative_feedback_revokes_and_ambiguous_relations_fail_closed() -> None:
+    trigger = _settlement("revoke-trigger")
+    cycle = CausalActionCycle(authority_key="cycle-revoke-key")
+    _teach(
+        cycle,
+        trigger,
+        _action("stop"),
+        "revoke-teacher-nonce-0001",
+    )
+    _close(
+        cycle,
+        _settlement("revoke-repeat", routing_chis=(2,)),
+        _settlement("revoke-outcome", frequency=12),
+        executor_label="revoke-executor",
+        decision="revoke",
+        feedback_nonce="revoke-feedback-nonce-0001",
+    )
+    revoked = cycle.select(_settlement("revoke-after", routing_chis=(88,)))
+    assert revoked.status == "unknown"
+    assert revoked.intent is None
+
+    other = CausalActionCycle(authority_key="cycle-ambiguous-key")
+    _teach(
+        other,
+        trigger,
+        _action("first"),
+        "ambiguous-teacher-nonce-0001",
+    )
+    _teach(
+        other,
+        trigger,
+        ActionCommand.embodiment("body.indicator", b"second"),
+        "ambiguous-teacher-nonce-0002",
+    )
+    ambiguous = other.select(_settlement("ambiguous-repeat", routing_chis=(90,)))
+    assert ambiguous.status == "ambiguous"
+    assert ambiguous.intent is None
+    assert other.status()["intents"] == 0
+
+
+def test_closed_cycles_compact_and_continue_beyond_transaction_capacity() -> None:
+    trigger = _settlement("compact-teach")
+    cycle = CausalActionCycle(
+        authority_key="cycle-compact-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    _teach(
+        cycle,
+        trigger,
+        _action("again"),
+        "compact-teacher-nonce-0001",
+    )
+    for index in range(4):
+        _close(
+            cycle,
+            _settlement(f"compact-trigger-{index}", routing_chis=(index + 20,)),
+            _settlement(f"compact-outcome-{index}", frequency=20 + index),
+            executor_label=f"compact-executor-{index}",
+            decision="confirm",
+            feedback_nonce=f"compact-feedback-nonce-{index:04d}",
+        )
+        status = cycle.status()
+        assert status["closures"] == 1
+        assert status["intents"] == 0
+        assert status["executions"] == 0
+        assert status["outcomes"] == 0
+        assert status["evidence"] <= 3
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(
+        authority_key="cycle-compact-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot
+
+
+def test_unattended_observed_cycles_close_neutrally_beyond_capacity_and_restore() -> None:
+    trigger = _settlement("observed-teach")
+    cycle = CausalActionCycle(
+        authority_key="cycle-observed-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    _teach(
+        cycle,
+        trigger,
+        _action("observe"),
+        "observed-teacher-nonce-0001",
+    )
+    for index in range(4):
+        selection = cycle.select(
+            _settlement(f"observed-trigger-{index}", routing_chis=(50 + index,))
+        )
+        execution = cycle.record_execution(
+            intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+            executor_receipt_sha256=hashlib.sha256(
+                f"observed-executor-{index}".encode("utf-8")
+            ).hexdigest(),
+            disposition="executed",
+        )
+        outcome = cycle.observe_outcome(
+            execution_receipt_sha256=execution.authority_receipt_sha256,
+            settlement=_settlement(
+                f"observed-outcome-{index}", frequency=40 + index
+            ),
+        )
+        closed = cycle.close_observed(
+            outcome_receipt_sha256=outcome.authority_receipt_sha256
+        )
+        assert closed.decision == "observe"
+        assert closed.resulting_binding_status == "provisional"
+        status = cycle.status()
+        assert status["binding_statuses"]["provisional"] == 1
+        assert status["closures"] == 1
+        assert status["intents"] == 0
+        assert status["executions"] == 0
+        assert status["outcomes"] == 0
+        assert status["evidence"] <= 3
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(
+        authority_key="cycle-observed-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot
+    assert restored.status()["binding_statuses"]["provisional"] == 1
+    assert restored.select(_settlement("observed-after-restore")).status == "committed"
+
+
+def test_nonce_replay_and_rejected_execution_fail_without_capacity_leaks() -> None:
+    trigger = _settlement("replay-teach")
+    cycle = CausalActionCycle(
+        authority_key="cycle-replay-key",
+        transaction_capacity=1,
+        evidence_capacity=5,
+    )
+    action = _action("retry")
+    _teach(cycle, trigger, action, "single-teacher-nonce-0001")
+    with pytest.raises(ValueError, match="teacher nonce was already used"):
+        cycle.issue_teacher_relation(
+            trigger_reference=trigger.event_id,
+            action=_action("different"),
+            source="joe",
+            nonce="single-teacher-nonce-0001",
+        )
+
+    rejected = cycle.select(_settlement("rejected-trigger"))
+    receipt = cycle.record_execution(
+        intent_receipt_sha256=rejected.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(b"executor-rejected").hexdigest(),
+        disposition="rejected",
+    )
+    assert receipt.disposition == "rejected"
+    assert cycle.status()["intents"] == 0
+    assert cycle.status()["executions"] == 0
+
+    first_nonce = "single-feedback-nonce-0001"
+    _close(
+        cycle,
+        _settlement("replay-trigger-one"),
+        _settlement("replay-outcome-one", frequency=31),
+        executor_label="replay-executor-one",
+        decision="confirm",
+        feedback_nonce=first_nonce,
+    )
+    selection = cycle.select(_settlement("replay-trigger-two"))
+    execution = cycle.record_execution(
+        intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(b"replay-executor-two").hexdigest(),
+        disposition="executed",
+    )
+    outcome = cycle.observe_outcome(
+        execution_receipt_sha256=execution.authority_receipt_sha256,
+        settlement=_settlement("replay-outcome-two", frequency=32),
+    )
+    with pytest.raises(ValueError, match="feedback nonce was already used"):
+        cycle.apply_feedback(
+            outcome_receipt_sha256=outcome.authority_receipt_sha256,
+            decision="confirm",
+            source="joe",
+            nonce=first_nonce,
+        )
+    cycle.apply_feedback(
+        outcome_receipt_sha256=outcome.authority_receipt_sha256,
+        decision="confirm",
+        source="joe",
+        nonce="single-feedback-nonce-0002",
+    )
+    assert cycle.status()["intents"] == 0
+    assert cycle.status()["executions"] == 0
+    assert cycle.status()["outcomes"] == 0
+
+
+def test_read_only_perception_copy_and_live_intent_verifier() -> None:
+    trigger = _settlement("read-only-trigger", routing_chis=(7, 19))
+    cycle = CausalActionCycle(authority_key="cycle-read-only-key")
+    cycle.accept(trigger)
+    first = cycle.perception_record(trigger.event_id)
+    assert first["event_id"] == trigger.event_id
+    assert len(first["interpretations"]) == 6
+    first["event_id"] = "changed-copy"
+    assert cycle.perception_record(trigger.event_id)["event_id"] == trigger.event_id
+
+    _teach(
+        cycle,
+        trigger,
+        _action("live"),
+        "read-only-teacher-nonce-0001",
+    )
+    selection = cycle.select(_settlement("read-only-repeat", routing_chis=(88,)))
+    assert cycle.verify_live_intent(selection.intent)
+    assert cycle.live_intent(
+        selection.intent.authority_receipt_sha256
+    ) == selection.intent
+    assert cycle.live_intent("not-a-receipt") is None
+    assert "TRUSTED-INTERNAL" in CausalActionCycle.record_execution.__doc__
+    cycle.record_execution(
+        intent_receipt_sha256=selection.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(b"read-only-rejected").hexdigest(),
+        disposition="rejected",
+    )
+    assert not cycle.verify_live_intent(selection.intent)
+    assert cycle.live_intent(
+        selection.intent.authority_receipt_sha256
+    ) is None
+
+
+def test_capacity_and_state_hmac_reject_without_partial_mutation() -> None:
+    first = _settlement("bounded-first")
+    second = _settlement("bounded-second", frequency=10)
+    cycle = CausalActionCycle(
+        authority_key="cycle-bounds-key",
+        working_capacity=1,
+        binding_capacity=1,
+        max_command_bytes=8,
+    )
+    cycle.accept(first)
+    cycle.accept(second)
+    assert cycle.status()["working_perceptions"] == 1
+    with pytest.raises(ValueError, match="working memory"):
+        cycle.issue_teacher_relation(
+            trigger_reference=first.event_id,
+            action=_action("gone"),
+            source="joe",
+            nonce="bounded-teacher-nonce-0001",
+        )
+    with pytest.raises(ValueError, match="byte boundary"):
+        cycle.issue_teacher_relation(
+            trigger_reference=second.event_id,
+            action=ActionCommand.embodiment("body.test", b"123456789"),
+            source="joe",
+            nonce="bounded-teacher-nonce-0002",
+        )
+    _teach(
+        cycle,
+        second,
+        _action("bounded"),
+        "bounded-teacher-nonce-0003",
+    )
+    with pytest.raises(RuntimeError, match="binding capacity"):
+        _teach(
+            cycle,
+            second,
+            _action("other"),
+            "bounded-teacher-nonce-0004",
+        )
+
+    snapshot = cycle.encoded_snapshot()
+    damaged = dict(snapshot)
+    payload = bytearray(base64.b64decode(damaged["payload_base64"]))
+    payload[-2] ^= 1
+    damaged["payload_base64"] = base64.b64encode(payload).decode("ascii")
+    restored = CausalActionCycle(
+        authority_key="cycle-bounds-key",
+        working_capacity=1,
+        binding_capacity=1,
+        max_command_bytes=8,
+    )
+    with pytest.raises(ValueError, match="HMAC changed"):
+        restored.restore_encoded(damaged)
+    assert restored.status()["bindings"] == 0
+
+
+def test_teacher_can_review_latest_neutral_closure_without_reopening_cycle() -> None:
+    trigger = _settlement("review-trigger")
+    outcome = _settlement("review-outcome", frequency=41)
+    cycle = CausalActionCycle(authority_key="cycle-review-key")
+    binding = _teach(
+        cycle,
+        trigger,
+        _action("review me"),
+        "review-teacher-nonce-0001",
+    )
+    selected = cycle.select(_settlement("review-repeat"))
+    execution = cycle.record_execution(
+        intent_receipt_sha256=selected.intent.authority_receipt_sha256,
+        executor_receipt_sha256=hashlib.sha256(
+            b"review-executor"
+        ).hexdigest(),
+        disposition="executed",
+    )
+    observed = cycle.observe_outcome(
+        execution_receipt_sha256=execution.authority_receipt_sha256,
+        settlement=outcome,
+    )
+    cycle.close_observed(
+        outcome_receipt_sha256=observed.authority_receipt_sha256
+    )
+
+    feedback = cycle.review_latest_closure(
+        binding_id=binding.binding_id,
+        decision="confirm",
+        source="joe",
+        nonce="review-feedback-nonce-0001",
+    )
+    assert feedback.decision == "confirm"
+    assert cycle.status()["binding_statuses"] == {
+        "provisional": 0,
+        "confirmed": 1,
+        "revoked": 0,
+    }
+    assert cycle.status()["intents"] == 0
+    assert cycle.status()["executions"] == 0
+    assert cycle.status()["outcomes"] == 0
+
+    snapshot = cycle.encoded_snapshot()
+    restored = CausalActionCycle(authority_key="cycle-review-key")
+    restored.restore_encoded(snapshot)
+    assert restored.encoded_snapshot() == snapshot

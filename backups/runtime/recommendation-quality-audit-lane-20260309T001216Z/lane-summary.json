@@ -1,0 +1,8 @@
+{
+  "status": "error",
+  "generated_at_utc": "2026-03-09T00:23:48Z",
+  "summary_json": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-quality-audit-lane-20260309T001216Z/summary.json",
+  "ranked_table_csv": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-quality-audit-lane-20260309T001216Z/ranked-table.csv",
+  "runner_exit_code": 1,
+  "failure_count": 1
+}

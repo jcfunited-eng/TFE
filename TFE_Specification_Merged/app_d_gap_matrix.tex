@@ -1,0 +1,16 @@
+\chapter{Production-vs-Target Gap Matrix Appendix}
+\section{Gap Matrix}
+\begin{longtable}{p{0.16\textwidth}p{0.23\textwidth}p{0.23\textwidth}p{0.28\textwidth}}
+\toprule
+Capability & CP-0 Current Production & CP-2 Target & Gap / Required Change \\
+\midrule
+Primary runtime object & snapshot rows + PSCF keys & structural event tape + shared state & add lossless event-tape sidecar; preserve CP-0 \\
+Temporal representation & compressed regime/recency proxies & explicit ordered state evolution & build state trace and event admission registry \\
+Multi-horizon logic & production policy + advisor horizon semantics & one shared state with terminal horizon heads & create shared-state canary offline \\
+Negative-space role & present in theory, weakly material in current probes & materially active in governance state & instrument and test explicit negative-space state usage \\
+Epoch role & strongly material, partially opaque & explicit decomposed field with source/sector semantics & decompose epoch block, persist components and provenance \\
+Fallback & candidate-key fallback chains & typed exact-to-degraded ladder & persist fallback levels and expose them in quality/provenance \\
+Decision provenance & recomputed at request time & persisted, traceable, reconstructable & persist decision provenance columns and audit joins \\
+Commercial proof & fragmented across panels and gates & unified three-plane proof model & implement proof-plane reporting and overlap benchmarking \\
+\bottomrule
+\end{longtable}

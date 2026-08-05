@@ -1,0 +1,35 @@
+{
+  "schema": "guala.audit.auditory_monotonic_union_walkup_plan.v1",
+  "law_path": "tools/isolated_auditory_monotonic_union_law.py",
+  "law_sha256": "3f69984d171018447fca025555d67e7c80dada96b8b32174032cabca2fd33664",
+  "local_cell_law_path": "tools/probe_auditory_thing_local_interval_mosaic.py",
+  "local_cell_law_sha256": "1e4c1d118975e46cbf7fe9f1a7036e6e95112eb08289cb509ed726eda7e45362",
+  "words": [
+    "down",
+    "go",
+    "left"
+  ],
+  "skip_valid_speakers_per_word": 256,
+  "training_speakers_per_thing": 40,
+  "held_out_speakers_per_thing": 20,
+  "source_disjoint_across_all_speech": true,
+  "physical_training_captures": 120,
+  "physical_held_out_captures": 60,
+  "physical_control_captures": {
+    "unknown_stop_speech": 1,
+    "generated_tone": 1,
+    "equal_gain_overlap": 1
+  },
+  "physical_capture_count": 183,
+  "memory_growth_comparison": [
+    20,
+    40
+  ],
+  "gate": {
+    "held_out_required_correct": 60,
+    "unknown_stop_speech": "unknown",
+    "generated_tone": "unknown",
+    "equal_gain_overlap": "ambiguous",
+    "all_monotonic_growth_checks": true
+  }
+}

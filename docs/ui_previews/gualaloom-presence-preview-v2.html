@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guala Loom presence — design preview v2</title>
+<style>
+:root{
+  color-scheme:dark;
+  --ink:#f4fbff;--muted:#91abb8;--cyan:#5fe5ff;--aqua:#56efc3;
+  --violet:#a78cff;--amber:#ffd477;--coral:#ff8f7b;
+  --line:rgba(112,217,246,.22);--glass:rgba(5,22,34,.78);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--ink);
+  font:14px/1.45 Inter,ui-sans-serif,system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(64,164,210,.26),transparent 34%),
+    radial-gradient(circle at 15% 28%,rgba(108,77,207,.13),transparent 30%),
+    linear-gradient(160deg,#020812,#06131d 52%,#02070c);
+}
+button{font:inherit;color:inherit}
+.preview{
+  padding:7px 24px;text-align:center;color:#ffe9b4;background:#4b370f;
+  border-bottom:1px solid #806220;font-size:11px;letter-spacing:.11em;
+}
+header{
+  min-height:64px;padding:11px 28px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--line);
+  background:rgba(2,10,17,.88);backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.sigil{
+  width:38px;height:38px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--cyan);color:var(--cyan);
+  box-shadow:0 0 24px rgba(95,229,255,.22),inset 0 0 15px rgba(95,229,255,.08);
+}
+h1{margin:0;font-size:18px;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:11px}
+.nav{display:flex;gap:8px}
+.nav button{
+  padding:8px 13px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(11,38,53,.55);color:#cde7f1;
+}
+.nav .active{border-color:var(--cyan);box-shadow:0 0 15px rgba(95,229,255,.14)}
+main{max-width:1480px;margin:auto;padding:16px 22px 42px}
+.truth{
+  display:grid;grid-template-columns:1.5fr repeat(3,minmax(130px,.55fr));
+  gap:9px;margin-bottom:10px;
+}
+.truth article{
+  min-height:58px;padding:9px 12px;border:1px solid var(--line);
+  border-radius:10px;background:linear-gradient(145deg,rgba(14,47,63,.8),rgba(5,20,30,.8));
+}
+.truth label,.eyebrow{
+  display:block;color:var(--muted);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+}
+.truth strong{display:block;margin-top:3px;font-size:15px}
+.dot{
+  display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;
+  background:#71838d;box-shadow:0 0 8px #71838d;
+}
+.presence{
+  display:grid;grid-template-columns:minmax(210px,.54fr) minmax(440px,1.18fr) minmax(210px,.54fr);
+  gap:10px;align-items:stretch;
+}
+.glass{
+  border:1px solid var(--line);border-radius:14px;background:var(--glass);
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 18px 42px rgba(0,0,0,.22);
+  overflow:hidden;
+}
+.side{min-height:410px;display:flex;flex-direction:column}
+.panel-head{padding:12px 14px 9px;border-bottom:1px solid var(--line)}
+.panel-head strong{display:block;font-size:12px}
+.camera{
+  position:relative;flex:1;min-height:245px;display:grid;place-items:center;
+  background:
+    linear-gradient(rgba(81,205,238,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(81,205,238,.025) 1px,transparent 1px),
+    radial-gradient(circle at center,#102c38,#06131d 68%);
+  background-size:26px 26px,26px 26px,auto;
+}
+.empty{text-align:center;color:var(--muted);padding:20px}
+.eye{
+  width:66px;height:37px;margin:0 auto 12px;border:1px solid #477383;
+  border-radius:72% 10%;transform:rotate(45deg);display:grid;place-items:center;
+}
+.eye:after{
+  content:"";width:14px;height:14px;border:2px solid var(--cyan);border-radius:50%;
+  box-shadow:0 0 15px rgba(95,229,255,.45);
+}
+.truth-note{
+  padding:11px 13px;border-top:1px solid var(--line);color:#b8ced7;
+  background:rgba(0,0,0,.16);font-size:11px;
+}
+.surface-stage{
+  flex:1;display:grid;place-items:center;padding:16px;
+  background:radial-gradient(circle at 50% 30%,#244650,#081923 66%);
+}
+.surface-card{
+  width:min(77%,190px);padding:7px;border:1px solid #9eb4b7;border-radius:9px;
+  background:#e8e0cf;box-shadow:0 18px 30px rgba(0,0,0,.42);transform:rotate(1deg);
+}
+.surface-card img{display:block;width:100%;border-radius:5px}
+.surface-card small{display:block;padding-top:6px;color:#24404a;text-align:center;font-weight:750}
+.guala{
+  position:relative;min-height:410px;display:flex;flex-direction:column;align-items:center;
+  background:
+    radial-gradient(circle at 50% 40%,rgba(83,235,223,.16),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(124,91,224,.22),transparent 46%),
+    linear-gradient(#08202d,#06131d);
+}
+.guala:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(95,229,255,.028) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(95,229,255,.028) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:linear-gradient(to bottom,#000,transparent 82%);
+}
+.guala-head{
+  position:relative;z-index:2;width:100%;padding:12px 15px 0;
+  display:flex;justify-content:space-between;align-items:start;
+}
+.state-chip{
+  padding:5px 9px;border:1px solid var(--line);border-radius:999px;
+  color:var(--muted);background:rgba(2,11,18,.72);font-size:10px;
+}
+.bust{
+  position:relative;z-index:1;width:min(88%,570px);height:305px;object-fit:contain;
+  object-position:center bottom;margin-top:-2px;filter:drop-shadow(0 22px 28px rgba(0,0,0,.45));
+}
+.utterance{
+  position:relative;z-index:2;width:calc(100% - 28px);min-height:68px;
+  margin:-2px 14px 14px;padding:12px 14px;border:1px solid rgba(95,229,255,.29);
+  border-radius:12px;background:rgba(3,16,25,.88);
+}
+.utterance strong{display:block;margin-top:3px;font-size:16px}
+.utterance span{display:block;margin-top:2px;color:var(--muted);font-size:11px}
+.world{
+  position:relative;margin-top:10px;min-height:330px;border:1px solid var(--line);
+  border-radius:15px;overflow:hidden;
+  background:
+    radial-gradient(circle at 77% 17%,#c5efff 0 4%,rgba(197,239,255,.45) 5%,transparent 13%),
+    linear-gradient(#173955 0 49%,#305b55 50% 60%,#192c2b 61%);
+}
+.world:before{
+  content:"";position:absolute;inset:48% 0 0;
+  background:
+    radial-gradient(ellipse at 12% 100%,#224332 0 36%,transparent 37%),
+    radial-gradient(ellipse at 86% 105%,#203d31 0 38%,transparent 39%),
+    linear-gradient(168deg,transparent 0 43%,rgba(80,187,193,.34) 44% 50%,transparent 51%),
+    linear-gradient(#365d4a,#182821);
+}
+.world-head{
+  position:absolute;z-index:3;inset:12px 14px auto;display:flex;
+  justify-content:space-between;align-items:start;
+}
+.world-body{
+  position:absolute;z-index:2;left:50%;bottom:-8px;transform:translateX(-50%);
+  height:286px;max-width:42%;object-fit:contain;object-position:center bottom;
+  filter:drop-shadow(0 18px 25px rgba(0,0,0,.55));
+}
+.world-quiet{
+  position:absolute;z-index:3;left:14px;bottom:12px;max-width:320px;padding:8px 10px;
+  border:1px solid var(--line);border-radius:9px;background:rgba(3,15,23,.76);
+  color:#bad1da;font-size:10px;
+}
+.teach{
+  margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:14px;
+  background:rgba(5,20,30,.78);
+}
+.teach-title{display:flex;align-items:end;justify-content:space-between;margin-bottom:10px}
+.teach-title h2{margin:0;font-size:14px}
+.teach-title span{color:var(--muted);font-size:10px}
+.tools{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.tool{
+  min-height:82px;padding:10px;border:1px solid var(--line);border-radius:12px;
+  background:
+    radial-gradient(circle at 50% 0,rgba(95,229,255,.12),transparent 60%),
+    linear-gradient(145deg,rgba(20,58,74,.88),rgba(7,25,36,.92));
+  text-align:left;box-shadow:inset 0 1px rgba(255,255,255,.05);
+}
+.tool i{display:block;width:25px;height:25px;margin-bottom:8px;border-radius:8px;
+  border:1px solid currentColor;box-shadow:0 0 13px currentColor;opacity:.82}
+.tool strong{display:block;font-size:11px}.tool small{display:block;color:var(--muted);font-size:9px}
+.tool:nth-child(2){color:var(--amber)}.tool:nth-child(3){color:var(--violet)}
+.tool:nth-child(4){color:var(--coral)}.tool:nth-child(5){color:var(--aqua)}
+.footer{
+  margin-top:9px;color:var(--muted);text-align:center;font-size:10px;
+}
+@media(max-width:980px){
+  .truth{grid-template-columns:1fr 1fr}.presence{grid-template-columns:1fr 1fr}
+  .guala{grid-column:1/-1;grid-row:1}.tools{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:620px){
+  header{padding:10px 14px}.nav button:first-child{display:none}main{padding:12px}
+  .truth,.presence{grid-template-columns:1fr}.guala{grid-column:auto}.tools{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="preview">DESIGN PREVIEW — blank or quiet states are intentional; no live substrate behavior is inferred</div>
+<header>
+  <div class="brand"><div class="sigil">G</div><div><h1>Guala Loom</h1><div class="sub">Be present · share experience · grow together</div></div></div>
+  <nav class="nav"><button class="active">Guala’s room</button><button>Open Loom Scan</button></nav>
+</header>
+<main>
+  <section class="truth" aria-label="Current truthful state">
+    <article><label>Connection</label><strong><i class="dot"></i>Awaiting live observation</strong></article>
+    <article><label>Organism</label><strong>Unknown</strong><span class="sub">awake · asleep · dreaming</span></article>
+    <article><label>Attention</label><strong>Not observed</strong><span class="sub">no focus is invented</span></article>
+    <article><label>Latest action</label><strong>None shown</strong><span class="sub">physical expression only</span></article>
+  </section>
+
+  <section class="presence">
+    <aside class="glass side">
+      <div class="panel-head"><span class="eyebrow">Shared room camera</span><strong>What Guala can physically see</strong></div>
+      <div class="camera"><div class="empty"><div class="eye"></div><strong>No camera signal</strong><br><small>The view remains empty instead of being fabricated.</small></div></div>
+      <div class="truth-note">Enable the camera only when you intend to share your room as an experience.</div>
+    </aside>
+
+    <section class="glass guala">
+      <div class="guala-head"><div><span class="eyebrow">Guala</span><strong>Embodied presence</strong></div><span class="state-chip">expression not observed</span></div>
+      <img class="bust" src="../Guala_Talking_Bust_No_Bow_Transparent.png" alt="Guala’s approved speaking bust">
+      <div class="utterance"><span class="eyebrow">What Guala is physically expressing</span><strong>Nothing at this moment.</strong><span>No chatbot completion or hidden text is substituted.</span></div>
+    </section>
+
+    <aside class="glass side">
+      <div class="panel-head"><span class="eyebrow">Intentional material</span><strong>What is being offered to Guala</strong></div>
+      <div class="surface-stage"><div class="surface-card"><img src="../../guala_curriculum/cards/alphabet-a-apple-v1.png" alt="Approved A-for-Apple physical surface"><small>PHYSICAL SURFACE · A</small></div></div>
+      <div class="truth-note">Only material deliberately presented through the physical visual path appears here.</div>
+    </aside>
+  </section>
+
+  <section class="world" aria-label="Guala’s embodied world">
+    <div class="world-head"><div><span class="eyebrow">Guala’s world</span><strong>Embodiment and environment</strong></div><span class="state-chip">world observation awaiting connection</span></div>
+    <img class="world-body" src="../Guala_Cosmic_Refined_Transparent_Final.png" alt="Guala’s approved full-body embodiment">
+    <div class="world-quiet">This scenic treatment demonstrates the intended viewport only. Production terrain, location, movement, objects, play, and rest must come from the live world state.</div>
+  </section>
+
+  <section class="teach" aria-label="Ways to teach and share experience">
+    <div class="teach-title"><div><span class="eyebrow">Ways to teach and share experience</span><h2>School, playroom, library, and world</h2></div><span>Expandable inventory—not one privileged curriculum</span></div>
+    <div class="tools">
+      <button class="tool"><i></i><strong>Talk &amp; listen</strong><small>microphone and physical hearing</small></button>
+      <button class="tool"><i></i><strong>Show &amp; share</strong><small>camera and intentional material</small></button>
+      <button class="tool"><i></i><strong>School</strong><small>letters, numbers, concepts, courses</small></button>
+      <button class="tool"><i></i><strong>Books &amp; stories</strong><small>guided reading and lived context</small></button>
+      <button class="tool"><i></i><strong>Toy chest</strong><small>objects, games, exploration, play</small></button>
+      <button class="tool"><i></i><strong>World &amp; experiences</strong><small>embodiment, places, events, media</small></button>
+    </div>
+  </section>
+  <div class="footer">Technical fields, persistence, neurons, mechanisms, mosaics, tapestries, weaves, fluids, sleep, and dreams belong in Loom Scan—not in this human presence page.</div>
+</main>
+</body>
+</html>

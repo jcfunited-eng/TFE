@@ -1,0 +1,564 @@
+{
+  "timestamp": "2026-05-13T05:22:07.527066",
+  "version": "v2_multi_signal",
+  "overall": {
+    "spearman_rho": -0.26325655664487846,
+    "pearson_r": -0.3519198206233193,
+    "kendall_tau": -0.17627661877765755
+  },
+  "results": [
+    {
+      "formula": "LiCoO2",
+      "e_hull": 0.0,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.45849138326559524
+    },
+    {
+      "formula": "LiNiO2",
+      "e_hull": 0.012,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4519442656813983
+    },
+    {
+      "formula": "LiMnO2_layered",
+      "e_hull": 0.045,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4385445242844691
+    },
+    {
+      "formula": "LiNi1/3Mn1/3Co1/3O2",
+      "e_hull": 0.005,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4874806763751791
+    },
+    {
+      "formula": "LiMn2O4",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.42995204889702876
+    },
+    {
+      "formula": "LiNi0.5Mn1.5O4",
+      "e_hull": 0.02,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4309370698227415
+    },
+    {
+      "formula": "LiFePO4",
+      "e_hull": 0.0,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.46619980971288266
+    },
+    {
+      "formula": "LiMnPO4",
+      "e_hull": 0.0,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4646995570808018
+    },
+    {
+      "formula": "LiCoPO4",
+      "e_hull": 0.03,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.47486984435901897
+    },
+    {
+      "formula": "LiMnO2_rocksalt",
+      "e_hull": 0.15,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "rocksalt",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.39966691668576365
+    },
+    {
+      "formula": "LiNiO2_rocksalt",
+      "e_hull": 0.18,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "rocksalt",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.3931192971129408
+    },
+    {
+      "formula": "Li2MnO3",
+      "e_hull": 0.0,
+      "crystal_system": "monoclinic",
+      "spacegroup": "C2/m",
+      "category": "layered_extra",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4375521188811421
+    },
+    {
+      "formula": "LiCoO2_stretched",
+      "e_hull": 0.12,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_distorted",
+      "n_signals": 4,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.5019322573204289
+    },
+    {
+      "formula": "LiMn2O4_expanded",
+      "e_hull": 0.2,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_distorted",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4332337324826783
+    },
+    {
+      "formula": "LiFePO4_compressed",
+      "e_hull": 0.095,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine_distorted",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4531991482581082
+    },
+    {
+      "formula": "Li2MnO3_hex",
+      "e_hull": 0.015,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.49963722755559453
+    },
+    {
+      "formula": "TiO2_rutile",
+      "e_hull": 0.0,
+      "crystal_system": "tetragonal",
+      "spacegroup": "P42/mnm",
+      "category": "control",
+      "n_signals": 4,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.43417037019311105
+    },
+    {
+      "formula": "BaTiO3",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Pm-3m",
+      "category": "control",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.41518852099328984
+    },
+    {
+      "formula": "Li7La3Zr2O12",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Ia-3d",
+      "category": "garnet",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.497074232436245
+    },
+    {
+      "formula": "Li2O",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "binary",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.3727373273145971
+    },
+    {
+      "formula": "NaCoO2",
+      "e_hull": 0.01,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_Na",
+      "n_signals": 4,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.5018362307954072
+    },
+    {
+      "formula": "LiMnO3_disordered",
+      "e_hull": 0.35,
+      "crystal_system": "cubic",
+      "spacegroup": "P1",
+      "category": "disordered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4272230056387564
+    },
+    {
+      "formula": "LiCoO2_disordered",
+      "e_hull": 0.25,
+      "crystal_system": "cubic",
+      "spacegroup": "P1",
+      "category": "disordered",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.42895726807201606
+    },
+    {
+      "formula": "LiCoO2_ca4.5",
+      "e_hull": 0.02,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4748818086480234
+    },
+    {
+      "formula": "LiCoO2_ca4.8",
+      "e_hull": 0.005,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4332461286625228
+    },
+    {
+      "formula": "LiCoO2_ca5.0",
+      "e_hull": 0.0,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.43263196136678767
+    },
+    {
+      "formula": "LiCoO2_ca5.2",
+      "e_hull": 0.01,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 4,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4810422466738916
+    },
+    {
+      "formula": "LiCoO2_ca5.5",
+      "e_hull": 0.05,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 4,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.5017451343919213
+    },
+    {
+      "formula": "LiCoO2_ca6.0",
+      "e_hull": 0.15,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "n_signals": 3,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.3936995701247482
+    },
+    {
+      "formula": "LiMn2O4_a7.8",
+      "e_hull": 0.15,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4487492256864431
+    },
+    {
+      "formula": "LiMn2O4_a8.0",
+      "e_hull": 0.05,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.4235605846099022
+    },
+    {
+      "formula": "LiMn2O4_a8.2",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.42995204889702876
+    },
+    {
+      "formula": "LiMn2O4_a8.4",
+      "e_hull": 0.03,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.42648321464817995
+    },
+    {
+      "formula": "LiMn2O4_a8.6",
+      "e_hull": 0.1,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.3950765638406231
+    },
+    {
+      "formula": "LiMn2O4_a8.8",
+      "e_hull": 0.25,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "n_signals": 5,
+      "signals_used": [
+        "rdf",
+        "partial_MO",
+        "partial_MM",
+        "bond_angles",
+        "coordination"
+      ],
+      "dsf_stability_score": 0.3988871278732773
+    }
+  ]
+}

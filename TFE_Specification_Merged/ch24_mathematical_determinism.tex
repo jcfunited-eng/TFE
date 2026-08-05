@@ -1,0 +1,19 @@
+\chapter{Mathematical Determinism and Invariants}
+\section{Serving Invariant}
+For any response \(R_t\) at time \(t\), there exists exactly one active publication bundle \(p^*\) such that:
+\[
+R_t = g(p^*, q_t)
+\]
+where \(q_t\) is the request and \(g\) is the route-specific serving function.
+
+\section{No Mixed Bundle Invariant}
+No route may construct \(R_t\) from two distinct publication identities \(p_i\) and \(p_j\) with \(p_i \ne p_j\).
+
+\section{Assessment-Then-Publish Invariant}
+For any publication bundle \(p\), there exists an assessment report \(a\) such that:
+\[
+\operatorname{Publishable}(p) \iff \operatorname{AssessmentStatus}(a)=\texttt{pass}
+\]
+
+\section{Canonical-Source Invariant}
+For any candidate bundle \(c\), there exists exactly one normalized package identity \(n\) cited by the candidate manifest, and every external data dependency used to produce \(c\) shall be traceable through \(n\) to source packages.

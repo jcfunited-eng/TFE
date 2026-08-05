@@ -1,0 +1,151 @@
+{
+  "schema": "guala.production_storage_profile_status.v5",
+  "production_deployment_status": "storage_mechanics_and_approved_ceiling_ready_live_cutover_and_restart_pending",
+  "accounting_authority": "verified_reachable_unique_content_plus_manifest_and_authenticated_receipt_deltas",
+  "production_readiness": {
+    "static_capacity_multiplication_is_authoritative": false,
+    "current_rule": "Measure the exact unique chunks reachable from authenticated retained manifests, then add only manifest, pointer, deployment-seal, and observational-receipt bytes.",
+    "zero_learning_rule": "The full-engine generation writer must produce zero changed learned files and zero new learned-content chunk bytes. Only named manifest and receipt paths may change.",
+    "causal_mutation_rule": "Every changed learned file and every newly retained learned-content chunk must be covered exactly by an HMAC-authenticated generation mutation receipt bound to the engine's opaque causal authority receipt SHA-256.",
+    "content_delta_producer": {
+      "source": "dsf_ai_service/substrate/generation_content_delta.py",
+      "schema": "guala.generation_content_delta.v1",
+      "coverage_schema": "guala.causal_generation_mutation_receipt.v1",
+      "storage_interprets_cognition": false,
+      "proved_cleanup": "A rejected uncovered mutation retains no candidate generation or unreachable content chunk locally and writes no S3 object because validation precedes upload."
+    },
+    "full_engine_integration_status": "pending_aristotle_engine_path_roles_and_causal_receipt_binding"
+  },
+  "current_observed_storage_after_completed_purge": {
+    "s3_generation_namespace": {
+      "logical_bytes": 1260250898,
+      "objects": 185,
+      "noncurrent_versions": 0,
+      "delete_markers": 0,
+      "nongeneration_objects": 0,
+      "status": "exact_generation_only_namespace"
+    },
+    "efs_namespace": {
+      "logical_bytes": 1917332185,
+      "recovery_v2_present": false,
+      "interrupted_unpublished_candidate_present": false,
+      "removed_interrupted_candidate_bytes": 640118634,
+      "status": "post_reconciliation_observation"
+    },
+    "superseded_recovery_history_pending_bytes": 0,
+    "interrupted_cold_candidate_pending_bytes": 0
+  },
+  "producer_bounds": {
+    "cold_generations": "CURRENT plus one verified predecessor; one unpublished candidate exists only inside the atomic transaction.",
+    "cold_content": "Content-addressed shared chunks are retained by exact manifest reachability; generation directories contain manifests only.",
+    "live_recovery": "Three retained overlays and one transaction candidate use shared content-addressed chunks; unchanged teaching state is stored once.",
+    "ring": {
+      "maximum_receipt_bytes": 273,
+      "maximum_segment_bytes": 1048576,
+      "maximum_checkpoint_bytes": 283,
+      "body_policy": "event detail is represented only by its SHA-256 and byte count"
+    },
+    "diary": {
+      "maximum_receipt_bytes": 987,
+      "maximum_records_per_utc_day": 4000,
+      "retained_utc_days": 7,
+      "body_policy": "observational detail is not copied into the durable diary"
+    },
+    "orphan_cleanup": "Failed transactions discard unpublished candidates immediately; sealed boot removes verified candidates newer than authenticated CURRENT and reconciles unreachable chunks."
+  },
+  "legacy_active_state_cutover": {
+    "owner": "aristotle",
+    "status": "pending",
+    "required_result": "Place the exact legacy organism, deep-atlas, and old word/chi/scripted-meaning bytes in temporary authenticated migration escrow only. Active startup must neither inflate nor consult them. After the new active state passes exact cold restore and live cutover proof, hard-delete every escrow object version and delete marker and verify absence.",
+    "active_graph_classification": {
+      "preserve": "Lawful neuron physical and dynamic state plus the new explicit auditory field and causal THING state.",
+      "retire": "Old word/chi binding accumulation, scripted meaning authorities, legacy wave snapshots, and deep-atlas meaning payloads."
+    },
+    "escrow_retirement_gate": "The migrated active generation must pass exact identity, tick, lawful 106-neuron physical/dynamic-state, auditory-state, and causal-THING cold restore; the deployed task must then pass live cutover verification before version-aware hard purge of all escrow bytes.",
+    "escrow_final_state": "absent_locally_and_remotely_with_no_versions_or_delete_markers",
+    "deep_atlas_legacy_bytes": 260074435,
+    "structural_graph_exact_production_proof": {
+      "legacy_v1_bytes": 288645120,
+      "content_sha256": "6c346c17d5f4ddb15c0b5d6ee6fe5097bddf1a8896bf85ae4a19ef55479fed9c",
+      "compact_lossless_v2_bytes": 238071808,
+      "storage_reduction_bytes": 50573312,
+      "storage_reduction_percent": 17.52,
+      "restored_neurons": 106,
+      "node_count": 1732485,
+      "edge_count": 6649778,
+      "wave_cell_objects": 35728,
+      "float64_six_element_array_nodes": 706538,
+      "float64_six_element_raw_bytes": 33913824,
+      "dict_nodes": 880572,
+      "offline_peak_rss_kib": 1267368,
+      "diagnosis": "Most graph volume is legacy wave and chi binding accumulation rather than the lawful 106-neuron physical state.",
+      "active_authority": "Only lawful neuron physical/dynamic state plus explicit causal THING and auditory field state remain active. Old word/chi/scripted meaning is retired, and its temporary migration escrow is hard-purged after the exact restore and live cutover gate."
+    }
+  },
+  "deployed_runtime_transition": {
+    "live_observation_2026_07_28": {
+      "task_definition": "dsf-ai-task:764",
+      "task_started_at_utc": "2026-07-27T17:07:39.476000Z",
+      "approved_ceiling_environment_present": false,
+      "efs_size_bytes_at_2026_07_28T01_41_00Z": 1945745408,
+      "container_du_logical_bytes": 1944682496,
+      "active_logical_bytes": 635801600,
+      "sealed_logical_bytes": 1281880064,
+      "live_recovery_logical_bytes": 26988544,
+      "classification": "old_full_copy_writer_still_live_candidate_not_deployed"
+    },
+    "legacy_ring_events_log_bytes": 4693425,
+    "legacy_ring_events_log_lines": 26997,
+    "legacy_ring_status": "The currently deployed process wrote old full-detail telemetry. Retire it only after the new receipt-only writer is deployed and authenticated.",
+    "old_process_vm_rss_kib": 5167800,
+    "old_process_vm_hwm_kib": 6221804,
+    "required_action": "Restart the task as part of deployment to reclaim the old process heap, then verify receipt-only ring and content-addressed live recovery before retiring the legacy event log.",
+    "live_recovery_old_overlay_count": 3,
+    "old_repeated_teaching_bytes_per_overlay": 6897330,
+    "new_code_status": "LiveRecoveryGenerationStore requires content_addressed=True and the unchanged 7 MiB teaching-body proof stores its chunks once."
+  },
+  "hard_global_refusal_ceiling": {
+    "environment": "GUALA_PERSISTENT_STORAGE_CEILING_BYTES",
+    "approved_bytes": 5368709120,
+    "approved_binary_gib": 5,
+    "classification": "operator_approved_hard_global_write_refusal_not_storage_target",
+    "candidate_startup_contract": "missing, noninteger, or nonpositive configuration halts readiness; a different value from the durable scope receipt is rejected by the shared physical-byte authority.",
+    "candidate_deployment_definition": "configured",
+    "live_task_definition_revision_764": "not_configured",
+    "live_cutover_status": "pending"
+  },
+  "emergency_infrastructure_refusal_envelope": {
+    "classification": "write_refusal_only_not_storage_target_forecast_or_steady_state",
+    "configured_generation_protocol_limit_bytes": 2147483648,
+    "peak_bytes": 19948772648,
+    "retained_bytes": 13260399138,
+    "production_readiness_authority": false,
+    "reason_retained": "This derived protocol census remains diagnostic only. The separately approved 5368709120-byte hard global ceiling is the candidate write authority. These values must not be used to justify normal retained storage."
+  },
+  "missing_infrastructure_fact": null,
+  "repo_storage_migrations": [
+    "content_addressed_cold_generation_chunks",
+    "content_addressed_live_recovery_chunks",
+    "version_aware_remote_reachability_reconciliation",
+    "sealed_boot_interrupted_candidate_cleanup",
+    "receipt_only_ring_persistence",
+    "receipt_only_observational_diary",
+    "cold_active_materialization_retirement",
+    "full_generation_content_delta_census_and_causal_coverage"
+  ],
+  "active_writer_authority_coverage": {
+    "process_lifetime_efs_owner_record": "shared_physical_byte_authority",
+    "verified_generation_active_materialization": "shared_physical_byte_authority",
+    "owner_scoped_hot_state_stage": "shared_physical_byte_authority_then_content_addressed_live_recovery",
+    "ring_persistence_consumer": "shared_physical_byte_authority_receipt_only",
+    "ring_s3_recovery_replacement": "version_aware_exact_key_retirement",
+    "deployment_seal_and_transaction_metadata": "shared_physical_byte_authority"
+  },
+  "failure_contract": {
+    "capacity_crossing": "refuse before mutation",
+    "uncovered_learned_mutation": "refuse before remote upload and remove the unpublished local candidate plus unreachable chunks",
+    "atomic_replacement_failure": "restore prior bytes and remove temporary candidate",
+    "learned_state_deletion": "forbidden; capacity refusal never deletes reachable learned state",
+    "remote_retirement": "retain exactly objects reachable from authenticated generation manifests and hard-delete every unreachable version and delete marker"
+  }
+}

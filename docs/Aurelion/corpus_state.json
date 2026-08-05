@@ -1,0 +1,20 @@
+{
+  "active_filter": "",
+  "files": [
+    "corpora\\Ethics\\Nicomachean by Aristotle.txt",
+    "corpora\\Ethics\\Speech 1 The Personal Compass.txt",
+    "corpora\\Ethics\\Speech 2 The Coffee Bean Principle.txt",
+    "corpora\\Ethics\\Speech 3 The Power and Responsibili.txt",
+    "corpora\\finance_news.txt",
+    "corpora\\Language\\Frankenstein.txt",
+    "corpora\\Language\\Love Poems and Others.txt",
+    "corpora\\Language\\Paradise Lost.txt",
+    "corpora\\Language\\Works of Edgar Allan Poe.txt",
+    "corpora\\Science\\Anatomy  of  the  Brain.txt",
+    "corpora\\Science\\APPLIED PHYSIOLOGY.txt",
+    "corpora\\Science\\nasa_mission.txt",
+    "corpora\\weather_noaa.txt"
+  ],
+  "idx": 0,
+  "line_pos": 1239
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<!-- doc_id: GL-MDL-LOOM-SCAN-PROTO-EVE-20260702-v1
+     Type: MDL — Loom Scan prototype, Tier 1+2, per GL-CMD-LOOM-SCAN-BRIEF-EVE-20260702-v1
+     Data: REAL captures from 2026-07-02 session (two /status reads, 22 events, ticks 14109300–14110576).
+     Read-only instrument. No network calls. Illustrative elements are labeled in the footer legend. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>loom scan — prototype v1</title>
+<style>
+  :root{
+    --bg:#0C1526; --panel:#0F1A2E; --ink:#8FA6BF; --ink-dim:#5A6E85; --ink-bright:#C9DAEA;
+    --cyan:#4FC6F2; --violet:#9B8CFF; --amber:#F5B84D; --teal:#2FB89A;
+    --red:#E05656; --green:#4FBE7B; --yellow:#D9B44A;
+    --hair:rgba(79,198,242,.14); --hair2:rgba(79,198,242,.07);
+    --mono:ui-monospace,'SF Mono','Cascadia Mono','JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12px;line-height:1.5}
+  body{padding:14px 16px 28px;max-width:1180px;margin:0 auto}
+  .lc{text-transform:lowercase;letter-spacing:.04em}
+  .lbl{font-size:10px;color:var(--ink-dim);letter-spacing:.08em}
+  .val{color:var(--ink-bright)}
+  .hair-t{border-top:1px solid var(--hair)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:baseline}
+  .g{background:var(--green)} .y{background:var(--yellow)} .r{background:var(--red)} .na{background:var(--ink-dim)}
+
+  header{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--hair)}
+  .wordmark{color:var(--cyan);font-size:13px;letter-spacing:.14em}
+  .wordmark span{color:var(--ink-dim);letter-spacing:.06em;font-size:10px;margin-left:10px}
+  .hdr-right{font-size:10px;color:var(--ink-dim);text-align:right}
+  .hdr-right b{color:var(--amber);font-weight:normal}
+
+  /* activity strip */
+  .activity{display:grid;grid-template-columns:1.4fr 1fr 1fr .9fr;gap:22px;padding:12px 0;border-bottom:1px solid var(--hair);align-items:end}
+  .act-kind{font-size:15px;color:var(--ink-bright)}
+  .act-kind em{font-style:normal;color:var(--cyan)}
+  .budget{height:3px;background:var(--hair2);margin-top:7px;position:relative}
+  .budget i{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);width:0%}
+  .spark{width:100%;height:34px;display:block}
+  .mini-stat{font-size:11px}
+  .mini-stat .val{font-size:14px}
+
+  .grid{display:grid;grid-template-columns:640px 1fr;gap:26px;padding:16px 0}
+  @media(max-width:1020px){.grid{grid-template-columns:1fr}}
+
+  /* scan */
+  .scanwrap{position:relative}
+  svg text{font-family:var(--mono)}
+  .scan-caption{font-size:10px;color:var(--ink-dim);margin-top:6px;display:flex;justify-content:space-between}
+
+  /* right column */
+  .col h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin:14px 0 8px}
+  .col h3:first-child{margin-top:2px}
+  .organ{margin-bottom:7px}
+  .organ .bar{height:6px;background:var(--hair2);position:relative;margin-top:3px}
+  .organ .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--teal);opacity:.85}
+  .organ .row{display:flex;justify-content:space-between;font-size:10px}
+  .health .vital{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px}
+  .health .vital:last-child{border-bottom:none}
+  .health .note{color:var(--ink-dim);font-size:10px;text-align:right;max-width:60%}
+
+  /* modality band */
+  .band{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--hair)}
+  .lane{padding:8px 10px;border:1px solid var(--hair2);border-radius:2px;min-height:58px}
+  .lane .nm{font-size:10px;color:var(--ink-dim)}
+  .lane .st{margin-top:6px;font-size:10px;color:var(--ink)}
+  .lane .glow{height:3px;margin-top:8px;background:var(--hair2)}
+  .lane .glow i{display:block;height:100%;background:var(--cyan);width:0%;transition:width .5s,opacity .5s}
+  .lane.hot{border-color:rgba(79,198,242,.45)}
+  .band-cap{grid-column:1/-1;font-size:10px;color:var(--ink-dim)}
+
+  /* scene strip */
+  .scene{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 0;border-top:1px solid var(--hair)}
+  .scene .cell{border:1px dashed var(--hair);border-radius:2px;padding:10px;min-height:44px;color:var(--ink-dim);font-size:10px}
+  .scene .cell b{display:block;color:var(--ink-dim);font-weight:normal;letter-spacing:.1em;margin-bottom:4px}
+
+  /* feed */
+  .feed{padding:12px 0;border-top:1px solid var(--hair)}
+  .feed h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin-bottom:8px}
+  .frow{display:grid;grid-template-columns:92px 96px 1fr 110px;gap:12px;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px;align-items:baseline}
+  .frow .t{color:var(--ink-dim);font-size:10px}
+  .tag{font-size:10px;padding:1px 6px;border:1px solid var(--hair);border-radius:2px}
+  .tag.exp{color:var(--cyan);border-color:rgba(79,198,242,.4)}
+  .tag.load{color:var(--ink-dim)}
+  .tag.emit{color:var(--amber);border-color:rgba(245,184,77,.35)}
+  .tag.na{color:var(--ink-dim);border-style:dashed}
+  .src{color:var(--ink-dim);font-size:10px;text-align:right}
+  .frow.dim{opacity:.55}
+
+  footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--hair);font-size:10px;color:var(--ink-dim);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  footer b{color:var(--ink);font-weight:normal}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 5px 0 12px;vertical-align:baseline}
+  button.replay{background:none;border:1px solid rgba(245,184,77,.5);color:var(--amber);font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:4px 12px;border-radius:2px;cursor:pointer}
+  button.replay:hover{background:rgba(245,184,77,.08)}
+  button.replay:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
+  .arc{fill:none;stroke:var(--amber);stroke-width:1.1;opacity:0}
+  .bloom{fill:none;stroke:var(--amber);opacity:0}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark lc">loom scan <span>guala · cdef9bcf · schema v7.2.0 · tier 1+2 prototype</span></div>
+  <div class="hdr-right lc">
+    source: <b>captured snapshot 2026-07-02</b> — not live · production polls /status 1–2s<br>
+    <button class="replay lc" id="replayBtn">replay captured window · ticks 14109300 → 14110000</button>
+  </div>
+</header>
+
+<div class="activity">
+  <div>
+    <div class="lbl lc">current activity</div>
+    <div class="act-kind lc">attending_visual · <em id="actTarget">img_6254.heic</em></div>
+    <div class="budget"><i id="budgetFill"></i></div>
+    <div class="lbl lc" id="budgetLbl" style="margin-top:4px"></div>
+  </div>
+  <div>
+    <div class="lbl lc">affect · valence −0.128 → −0.084 (2 samples)</div>
+    <svg class="spark" id="sparkV" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div>
+    <div class="lbl lc">affect · arousal 1.000 → 1.000 (pinned)</div>
+    <svg class="spark" id="sparkA" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="mini-stat">
+    <div class="lbl lc">ladder</div>
+    <div class="lc"><span class="val">2.0</span> mean utterance · <span class="val">0</span> commits<br><span class="val">174</span> emissions this boot</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="scanwrap">
+    <svg id="scan" viewBox="0 0 640 640" role="img" aria-label="radial chi map"></svg>
+    <div class="scan-caption lc">
+      <span>outer ring: working atlas · 176 chi keys · 6,447 entries (5,981 live)</span>
+      <span>inner ring: deep atlas · 3,753 · <span style="color:var(--violet)">64 survival</span></span>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3 class="lc">organs — em / pr / ep / sc / gp</h3>
+    <div id="organs"></div>
+    <div class="lbl lc" style="margin-top:6px">counts: last observed hemisphere_update sample — live feed gated by hemi env flags; production wires real events</div>
+
+    <h3 class="lc">health — spec §8 thresholds</h3>
+    <div class="health" id="health"></div>
+
+    <h3 class="lc">bindings by strength</h3>
+    <div id="strengthBars"></div>
+    <div class="lbl lc" style="margin-top:6px">cross-modal 104 of 6,447 (1.6%) · released channel 4,124</div>
+  </div>
+</div>
+
+<div class="band" id="band">
+  <div class="band-cap lc">modality band — lit by signature quality of the current window, not volume</div>
+</div>
+
+<div class="scene">
+  <div class="cell lc"><b>place</b>no place lanes yet — lands with story tags (sprint b1)</div>
+  <div class="cell lc"><b>ambient</b>no ambient lanes yet — lands with story tags (sprint b1)</div>
+  <div class="cell lc"><b>participants</b><span id="whoCell">joe present (pair-bond 1.0) · wc absent · c1 absent</span></div>
+</div>
+
+<div class="feed">
+  <h3 class="lc">experience feed — captured window, per-window classification</h3>
+  <div id="feedRows"></div>
+</div>
+
+<footer class="lc">
+  <div class="legend">
+    <b>legend</b><br>
+    <i style="background:var(--cyan)"></i>working binding &nbsp;
+    <i style="background:var(--violet)"></i>deep memory &nbsp;
+    <i style="background:var(--amber)"></i>word→memory arc / emission bloom<br>
+    committed emission = bright bloom · fallback = dim bloom — none committed in this capture, so nothing here is bright. sparse is true.
+  </div>
+  <div>
+    <b>honesty notes</b><br>
+    real: all counts, needs, vitals, anchors (chi 7·9·12·13·14·22·24·26·32), events, feed rows, bond values.<br>
+    illustrative: dot placement inside the ring (per-chi lists need atlas_query wiring); organ counts are the last observed sample.<br>
+    doc_id: GL-MDL-LOOM-SCAN-PROTO-EVE-20260702-v1 · read-only · dedupe on (kind, tick, anchors) implemented
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* ---------- REAL CAPTURES (trimmed to fields used) ---------- */
+const SNAP = {
+  tick: 14110576,
+  needs: {stab:0.000, nov:0.976, conn:0.872, v:-0.084, a:1.000},
+  vPrev: -0.128,
+  atlas: {keys:176, entries:6447, live:5981, strength:665.41,
+          dist:{"0.0-0.1":5029,"0.1-0.3":867,"0.3-0.5":336,"0.5-0.7":97,"0.7-0.9":47,"0.9-1.0":71}},
+  deep: {entries:3753, survival:64},
+  activity: {kind:"ATTENDING_VISUAL", target:"IMG_6254.HEIC", started:14110575, ends:14112575},
+  bonds: {joe:1.0, wc:0.3, c1:0.3},
+  persistence: {last_save_tick:0, note:"first save in flight (~17 min at current disk)"},
+  organs: {em:7782, pr:136, ep:448, sc:100, gp:3}
+};
+const EVENTS = [
+ {tick:14109300,kind:"activity_started",d:{kind:"ATTENDING_VISUAL",target:"img_6254"}},
+ {tick:14109301,kind:"visual_motif_committed",d:{motif:12455,overlap:0.0}},
+ {tick:14109899,kind:"response_window_opened",d:{emitter:"joe",anchors:[13,14,7,32,9]}},
+ {tick:14109899,kind:"experience_bundle",d:{name:"moon-001",lanes:["word","sight","sound","touch"],who:"joe"}},
+ {tick:14109900,kind:"emission_dynamics",d:{content:"play page",commits:0,origin:"fallback",chi:14}},
+ {tick:14109900,kind:"response_window_opened",d:{emitter:"guala",anchors:[14,7,32,9,24]}},
+ {tick:14109929,kind:"response_window_opened",d:{emitter:"joe",anchors:[13,14,26,22,9]}},
+ {tick:14109929,kind:"experience_bundle",d:{name:"moon-002",lanes:["word","sight","sound","touch"],who:"joe"}},
+ {tick:14109959,kind:"response_window_opened",d:{emitter:"joe",anchors:[13,32,14,7,22]}},
+ {tick:14109959,kind:"experience_bundle",d:{name:"moon-003",lanes:["word","sight"],who:"joe"}},
+ {tick:14109999,kind:"activity_started",d:{kind:"ATTENDING_VISUAL",target:"img_6254"}},
+ {tick:14110000,kind:"visual_motif_committed",d:{motif:12459,overlap:0.786}}
+];
+const FEED = [
+ {t:14109300,tag:"na",  tagTxt:"not measurable",  body:"attending_visual · img_6254 · sight lane only — attend gauge broken (-90 diagnosing)", src:"library", dim:true},
+ {t:14109899,tag:"exp", tagTxt:"experience",      body:"bundle moon-001 — e1 (word+sight+sound+touch) · e6 who: joe", src:"bundle·joe"},
+ {t:14109900,tag:"emit",tagTxt:"emitting",        body:"“play page” — fallback origin · 0 commits at 40 ticks", src:"→ joe", dim:true},
+ {t:14109929,tag:"exp", tagTxt:"experience",      body:"bundle moon-002 — e1 (word+sight+sound+touch) · e6 who: joe", src:"bundle·joe"},
+ {t:14109959,tag:"exp", tagTxt:"experience",      body:"bundle moon-003 — e1 (word+sight)", src:"bundle·joe"},
+ {t:14110000,tag:"na",  tagTxt:"not measurable",  body:"attending_visual resumes · visual motif 12459 committed (overlap 0.786)", src:"library", dim:true},
+ {t:14110576,tag:"load",tagTxt:"data load",       body:"curriculum + worldfeed streams (60 + 116 in last emission candidate pool) — language lane only, by design", src:"scaffold", dim:true}
+];
+
+/* ---------- helpers ---------- */
+const NS="http://www.w3.org/2000/svg";
+function el(n,attrs,parent){const e=document.createElementNS(NS,n);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const rnd=mulberry32(14110576);
+const CX=320,CY=320,R_OUT=268,R_DEEP=150;
+const chiAngle=c=>((c%186)/186)*2*Math.PI-Math.PI/2;
+const pt=(r,a)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)];
+
+/* ---------- radial scan ---------- */
+const scan=document.getElementById("scan");
+el("circle",{cx:CX,cy:CY,r:R_OUT+14,fill:"none",stroke:"rgba(79,198,242,.16)","stroke-width":1},scan);
+el("circle",{cx:CX,cy:CY,r:R_DEEP,fill:"none",stroke:"rgba(155,140,255,.35)","stroke-width":1},scan);
+// 176 chi key tick marks
+for(let i=0;i<SNAP.atlas.keys;i++){const a=chiAngle(i*186/SNAP.atlas.keys);
+  const[p1x,p1y]=pt(R_OUT+10,a),[p2x,p2y]=pt(R_OUT+14,a);
+  el("line",{x1:p1x,y1:p1y,x2:p2x,y2:p2y,stroke:"rgba(79,198,242,.28)","stroke-width":1},scan);}
+// weak-binding mass as translucent annuli (haze = truthful density, not dots)
+const hazeBands=[["0.0-0.1",188,214,.10],["0.1-0.3",216,236,.16],["0.3-0.5",238,252,.22]];
+for(const[k,r1,r2,op]of hazeBands){
+  el("circle",{cx:CX,cy:CY,r:(r1+r2)/2,fill:"none",stroke:"rgba(79,198,242,"+op+")","stroke-width":r2-r1},scan);}
+// strong bindings as discrete dots (97+47+71 = 215 real counts)
+const dotBands=[["0.5-0.7",97,2.0,.45],["0.7-0.9",47,2.6,.7],["0.9-1.0",71,3.2,.95]];
+let bandR=256;
+for(const[k,n,sz,op]of dotBands){
+  for(let i=0;i<n;i++){const a=rnd()*2*Math.PI,r=bandR+(rnd()-.5)*10;const[x,y]=pt(r,a);
+    el("circle",{cx:x,cy:y,r:sz,fill:"var(--cyan)",opacity:op},scan);}
+  bandR-=0;}
+// deep atlas: 3753 as violet haze ring + 64 survival ticks
+el("circle",{cx:CX,cy:CY,r:R_DEEP-16,fill:"none",stroke:"rgba(155,140,255,.13)","stroke-width":26},scan);
+for(let i=0;i<SNAP.deep.survival;i++){const a=rnd()*2*Math.PI;const[x,y]=pt(R_DEEP-2,a);
+  el("circle",{cx:x,cy:y,r:2.4,fill:"var(--violet)",opacity:.95},scan);}
+// real anchor chis, true positions, labeled
+const ANCHORS=[7,9,12,13,14,22,24,26,32];
+const anchorPos={};
+for(const c of ANCHORS){const a=chiAngle(c);const[x,y]=pt(R_OUT-4,a);anchorPos[c]=[x,y,a];
+  el("circle",{cx:x,cy:y,r:3.4,fill:"none",stroke:"var(--cyan)","stroke-width":1.2},scan);
+  const[lx,ly]=pt(R_OUT+26,a);
+  el("text",{x:lx,y:ly,"text-anchor":"middle",fill:"var(--ink-dim)","font-size":"9"},scan).textContent="chi "+c;}
+// center readout
+el("text",{x:CX,y:CY-6,"text-anchor":"middle",fill:"var(--ink-bright)","font-size":"13"},scan).textContent="tick 14,110,576";
+el("text",{x:CX,y:CY+12,"text-anchor":"middle",fill:"var(--ink-dim)","font-size":"9"},scan).textContent="atlas strength 665.41";
+// arc + bloom layers (populated on replay)
+const arcLayer=el("g",{id:"arcs"},scan);
+const bloomLayer=el("g",{id:"blooms"},scan);
+
+function drawArc(c1,c2,delay){
+  const[a]=[chiAngle(c1)],[b]=[chiAngle(c2)];
+  const[p1x,p1y]=pt(R_OUT-6,a),[p2x,p2y]=pt(R_OUT-6,b);
+  const mx=(p1x+p2x)/2,my=(p1y+p2y)/2;
+  const cx=CX+(mx-CX)*0.35, cy=CY+(my-CY)*0.35; // pull toward center — lead-wire read
+  const p=el("path",{d:`M ${p1x} ${p1y} Q ${cx} ${cy} ${p2x} ${p2y}`,class:"arc"},arcLayer);
+  setTimeout(()=>{p.style.transition="opacity .4s";p.style.opacity=.75;
+    setTimeout(()=>{p.style.opacity=.12;},2600);},delay);
+}
+function drawBloom(chi,committed,delay){
+  const a=chiAngle(chi);const[x,y]=pt(R_OUT-6,a);
+  for(let i=0;i<3;i++){
+    const c=el("circle",{cx:x,cy:y,r:4,class:"bloom","stroke-width":committed?2:1},bloomLayer);
+    setTimeout(()=>{c.style.transition="all 1.6s ease-out";c.style.opacity=committed?.95:.35;c.setAttribute("r",30+i*14);
+      setTimeout(()=>{c.style.opacity=0;},1400);},delay+i*180);}
+}
+
+/* ---------- organs ---------- */
+const og=document.getElementById("organs");
+const omax=Math.log10(SNAP.organs.em+1);
+for(const[k,v]of Object.entries(SNAP.organs)){
+  const w=Math.max(2,100*Math.log10(v+1)/omax);
+  og.insertAdjacentHTML("beforeend",
+   `<div class="organ"><div class="row lc"><span>${k}</span><span class="val">${v.toLocaleString()}</span></div>
+    <div class="bar"><i style="width:${w}%"></i></div></div>`);
+}
+
+/* ---------- health strip (spec §8) ---------- */
+const H=[
+ ["stability","0.000 pinned","r","red — physics dispatch queued (-88); evidence run live (-90)"],
+ ["arousal","1.000 pinned","r","red — same response as stability red"],
+ ["sleep","no cycle in captured window","na","not measured — window too short to judge vs 6h rule"],
+ ["atlas balance","8,392 → 6,447 today","y","net decay — review intake quality (spec yellow)"],
+ ["persistence","save @ tick 0 this boot","r","first save in flight ~17 min — -92 disk fix pending approval"],
+ ["bonds","joe 1.0 · wc 0.3","g","joe ≥ 0.9 green · wc trending is the goal"]
+];
+document.getElementById("health").innerHTML=H.map(([n,v,c,note])=>
+ `<div class="vital lc"><span><span class="dot ${c}"></span>${n} · <span class="val">${v}</span></span><span class="note">${note}</span></div>`).join("");
+
+/* ---------- strength bars ---------- */
+const sb=document.getElementById("strengthBars");
+const dmax=Math.log10(5029+1);
+for(const[k,v]of Object.entries(SNAP.atlas.dist)){
+  const w=Math.max(2,100*Math.log10(v+1)/dmax);
+  sb.insertAdjacentHTML("beforeend",
+   `<div class="organ"><div class="row lc"><span>${k}</span><span class="val">${v.toLocaleString()}</span></div>
+    <div class="bar"><i style="width:${w}%;background:var(--cyan);opacity:.7"></i></div></div>`);
+}
+
+/* ---------- modality band ---------- */
+const LANES=[["sight","attending img_6254 now",92],["sound","bundle · hush a little baby (recent)",38],
+ ["touch","bundle · soft, cool (recent)",30],["smell","no lane input",0],["taste","no lane input",0],
+ ["language","captions (bundle) · curriculum stream dim",26]];
+const band=document.getElementById("band");
+for(const[nm,st,glow]of LANES){
+  band.insertAdjacentHTML("beforeend",
+   `<div class="lane lc ${glow>60?"hot":""}" data-lane="${nm}"><div class="nm">${nm}</div><div class="st">${st}</div>
+    <div class="glow"><i style="width:${glow}%"></i></div></div>`);
+}
+
+/* ---------- feed ---------- */
+const feedBox=document.getElementById("feedRows");
+function feedRow(f){feedBox.insertAdjacentHTML("beforeend",
+ `<div class="frow ${f.dim?"dim":""}"><span class="t">t ${f.t.toLocaleString()}</span>
+  <span><span class="tag ${f.tag} lc">${f.tagTxt}</span></span>
+  <span class="lc">${f.body}</span><span class="src lc">${f.src}</span></div>`);}
+FEED.forEach(feedRow);
+
+/* ---------- activity budget ---------- */
+(function(){const a=SNAP.activity,done=SNAP.tick-a.started,total=a.ends-a.started;
+ document.getElementById("budgetFill").style.width=Math.min(100,100*done/total)+"%";
+ document.getElementById("budgetLbl").textContent=`tick ${done.toLocaleString()} of ${total.toLocaleString()} budget`;})();
+
+/* ---------- affect sparklines (2 real samples — sparse is true) ---------- */
+function spark(id,vals,lo,hi,color){const s=document.getElementById(id);
+ const xs=[20,180],ys=vals.map(v=>30-26*((v-lo)/(hi-lo)));
+ el("line",{x1:xs[0],y1:ys[0],x2:xs[1],y2:ys[1],stroke:color,"stroke-width":1.4},s);
+ vals.forEach((v,i)=>el("circle",{cx:xs[i],cy:ys[i],r:2.4,fill:color},s));}
+spark("sparkV",[SNAP.vPrev,SNAP.needs.v],-0.3,0.1,"var(--teal)");
+spark("sparkA",[SNAP.needs.a,SNAP.needs.a],0,1,"var(--red)");
+
+/* ---------- replay: streams the captured events, deduped ---------- */
+let playing=false;
+document.getElementById("replayBtn").addEventListener("click",()=>{
+  if(playing)return; playing=true;
+  arcLayer.innerHTML="";bloomLayer.innerHTML="";feedBox.innerHTML="";
+  const seen=new Set(); const t0=EVENTS[0].tick, SCALE=18; // 1 tick ≈ 18ms replay
+  let fi=0;
+  for(const ev of EVENTS){
+    const key=ev.kind+"|"+ev.tick+"|"+JSON.stringify(ev.d.anchors||ev.d.name||ev.d.motif||"");
+    if(seen.has(key))continue; seen.add(key);           // known 3–5× duplicate flood
+    const delay=(ev.tick-t0)*SCALE;
+    if(ev.kind==="response_window_opened"&&ev.d.anchors){
+      const[a0,...rest]=ev.d.anchors;
+      rest.forEach((c,i)=>drawArc(a0,c,delay+i*90));
+    }
+    if(ev.kind==="emission_dynamics")drawBloom(ev.d.chi,ev.d.commits>0,delay);
+    if(ev.kind==="experience_bundle"){
+      setTimeout(()=>{ev.d.lanes.forEach(l=>{
+        const lane=document.querySelector(`[data-lane="${l==="word"?"language":l}"] .glow i`);
+        if(lane){lane.style.width="96%";setTimeout(()=>lane.style.width="34%",1800);}});},delay);
+    }
+  }
+  // stream feed rows on their tick times
+  for(const f of FEED){setTimeout(()=>feedRow(f),(Math.max(f.t,t0)-t0)*SCALE);}
+  setTimeout(()=>{playing=false;},(14110000-t0)*SCALE+2200);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+\chapter{Commercial Benchmarking and Decision Rules}
+\section{Benchmark Matrix}
+\meta{Define the minimum benchmark set required before commercial claims are made.}{Frozen benchmark dataset, frozen configurations, external comparator data where available.}{Benchmark matrix and decision record.}
+
+The minimum benchmark matrix shall contain:
+\begin{itemize}
+    \item TFE keyed baseline;
+    \item current pragmatic serialized L5 implementation;
+    \item thesis-faithful shared-state L5 implementation;
+    \item simple non-DSF baseline;
+    \item standard ML baseline;
+    \item external practical comparator on overlapping symbols/dates if available;
+    \item SPY or equivalent passive baseline.
+\end{itemize}
+Unsupported benchmark claims are prohibited. Any percentage claim shall point to a named artifact package.
+
+\section{External Comparator Overlap Methodology}
+\meta{Resolve open issue 2 by making comparator methodology explicit enough for advisory-style services or rating platforms.}{Comparator outputs, overlap universe, timestamped captures, and frozen TFE outputs.}{Fair comparator package with exact inclusion/exclusion rules.}
+
+External comparator evaluation shall be based only on overlap observations for which all of the following are available:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a captured comparator record with timestamp, symbol, visible rating/advice, source identifier, and immutable hash or screenshot/API export;
+    \item a TFE recommendation or suppression record on the same symbol/date under the same market cutoff policy;
+    \item an agreed action-mapping from comparator labels into the TFE action set $\{ACCUMULATE,HOLD,AVOID,ABSTAIN,NO\_OUTPUT\}$;
+    \item the forward return window required for the horizon under test;
+    \item no evidence of ex-post record modification.
+\end{enumerate}
+
+For symbol $s$ and date $t$, let the comparator action be $A^{cmp}(s,t)$ and TFE action be $A^{tfe}(s,t)$. Only records in the overlap set
+\[
+\mathcal{O}_h = \{(s,t): A^{cmp}(s,t)\ \text{defined},\ A^{tfe}(s,t)\ \text{defined or explicitly suppressed},\ \text{label window for } h \text{ available}\}
+\]
+may be used in the benchmark. Missing comparator records are not treated as TFE wins or losses; they are excluded and counted separately.
+
+Comparator action mapping must be deterministic and versioned. For example, a public five-tier rating platform may be mapped by a registry such as:
+\[
+\text{Very Bullish}\to ACCUMULATE,\quad \text{Bullish}\to ACCUMULATE,\quad \text{Neutral}\to HOLD,\quad \text{Bearish}\to AVOID,\quad \text{Very Bearish}\to AVOID.
+\]
+If the external service provides only rank or score rather than discrete actions, the discretization threshold must be frozen before evaluation and recorded.
+
+Both unconditional and conditional metrics shall be reported:
+\begin{align*}
+OutcomePct_h^{all} &= \frac{1}{|\mathcal{O}_h|}\sum_{(s,t)\in\mathcal{O}_h}\mathbf{1}[Ret(A_h,s,t)>Ret(bench,s,t)],\\
+OutcomePct_h^{active} &= \frac{1}{|\mathcal{O}_h^{active}|}\sum_{(s,t)\in\mathcal{O}_h^{active}}\mathbf{1}[Ret(A_h,s,t)>Ret(bench,s,t)],
+\end{align*}
+with $\mathcal{O}_h^{active}$ containing only acted recommendations. Comparator freshness, stale pages, unavailable ratings, and changed label taxonomies shall all be logged as reason-coded exclusions.
+
+\section{Commercial Kill Rule}
+\meta{Define the decision rule for competitiveness.}{Artifact-backed benchmark matrix.}{Competitive / non-competitive decision for the instantiation.}
+
+If TFE does not materially outperform practical alternatives on artifact-backed results, the current instantiation shall be classified as \textbf{non-competitive}. This decision does not automatically invalidate DSF-AI as a research hypothesis; it invalidates the competitiveness of the present instantiation.

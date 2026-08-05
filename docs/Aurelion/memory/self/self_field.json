@@ -1,0 +1,14 @@
+{
+  "ts": "2025-11-12T15:00:50Z",
+  "nodes": {
+    "stability": 0.5,
+    "novelty": 0.5,
+    "coherence": 0.4,
+    "sentiment": 0.75,
+    "energy": 0.5,
+    "ethics": 0.4,
+    "approvals": 0.0,
+    "osf": 0.0
+  },
+  "note": "balanced"
+}

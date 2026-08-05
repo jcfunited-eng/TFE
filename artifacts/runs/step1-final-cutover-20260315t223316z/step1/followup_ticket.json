@@ -1,0 +1,12 @@
+{
+  "followup_job_id": "followup_job_v1_b4578483503726d1f8374f3f",
+  "triggering_run_id": "step1-final-cutover-20260315t223316z",
+  "publication_bundle_id": "publication_bundle_v1_726246f1dcdfd8d57f795c78",
+  "target_environment": "production",
+  "phase_name": "quote_cache_refresh",
+  "classification": "non_critical_follow_up",
+  "status": "deferred",
+  "publication_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/publications/publication_bundle_v1_726246f1dcdfd8d57f795c78/manifest.json",
+  "operator_visible_status": "quote_cache_refresh deferred; publication_bundle_id=publication_bundle_v1_726246f1dcdfd8d57f795c78; publication remains active while follow-up proceeds independently.",
+  "created_at_utc": "2026-03-15T22:33:53.546Z"
+}

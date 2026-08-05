@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI — Validation Evidence</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .val-page { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .val-page h2 { margin-bottom: 0.5rem; }
+    .val-page > p { color: #666; margin-bottom: 1.5rem; }
+    .val-section { margin-bottom: 2.5rem; }
+    .val-section h3 { margin-bottom: 0.75rem; font-size: 1.2rem; }
+    .val-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .val-stat { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.25rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .val-stat-number { font-size: 2rem; font-weight: 700; color: #2563eb; }
+    .val-stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+    .val-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .val-table th { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 2px solid #ddd; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+    .val-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #f0f0f0; }
+    .val-table tr:hover { background: #f8faff; }
+    .val-exact { color: #16a34a; font-weight: 700; }
+    .val-good { color: #2563eb; }
+    .val-ok { color: #d97706; }
+    .val-note { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #166534; }
+    .val-caution { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #92400e; }
+    .category-label { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600; margin-left: 0.5rem; }
+    .cat-calibration { background: #fef3c7; color: #92400e; }
+    .cat-prediction { background: #dcfce7; color: #166534; }
+    .cat-textbook { background: #e0e7ff; color: #3730a3; }
+    .tool-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .tool-analyzer { background: #dbeafe; color: #1e40af; }
+    .tool-cluster { background: #fce7f3; color: #9d174d; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/#analyze">Analyze</a>
+      <a href="/#cluster">Cluster Screener</a>
+      <a href="/#thermocouple">Thermocouples</a>
+      <a href="/static/pharma.html">Pharma</a>
+      <a href="/static/validation-draft.html" style="font-weight:600;color:#2563eb;">Validation</a>
+    </nav>
+  </div>
+</header>
+
+<div class="val-page">
+  <h2>Validation Evidence</h2>
+  <p>DSF-AI includes two distinct tools. This page documents what each has been tested against, and how honestly we can characterize each result.</p>
+
+  <!-- TOOL DISTINCTION -->
+  <div class="val-note">
+    <strong>Two tools, one brand.</strong>
+    <span class="tool-badge tool-analyzer">DSF Structural Analyzer</span> runs the structural analysis engine on any two-column time series (R(T), DSC, impedance, etc.) to detect transitions and precursors.
+    <span class="tool-badge tool-cluster">Nanoparticle Property Predictor</span> predicts magnetic moments, electron affinities, Seebeck coefficients, and HOMO-LUMO gaps from element identity and cluster size alone. These are different computations under the same service.
+  </div>
+
+  <!-- HOW TO READ THIS PAGE -->
+  <div class="val-caution">
+    <strong>How to read this page.</strong> Each result is labeled:
+    <span class="category-label cat-calibration">Calibration</span> = the experimental value informed the formula (not a blind prediction).
+    <span class="category-label cat-prediction">Prediction</span> = computed before comparison to experiment.
+    <span class="category-label cat-textbook">Textbook</span> = follows from known physics; confirms the formula encodes established trends, not that it discovered them.
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 1: STRUCTURAL ANALYZER (KERNEL) -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="val-section">
+    <h3><span class="tool-badge tool-analyzer">DSF Structural Analyzer</span> Phase Transition Detection</h3>
+    <p>The analyzer was run on digitized R(T), resistivity, dielectric, and DSC data from published papers. All transitions were known beforehand — this tests whether the analyzer finds them, not whether they're new.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Material</th><th>Known Transition</th><th>Type</th><th>Detected?</th><th>Precursor Lead</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>YBa<sub>2</sub>Cu<sub>3</sub>O<sub>7</sub></td><td>T<sub>c</sub> = 93 K</td><td>High-T<sub>c</sub> superconductor</td><td class="val-exact">Yes</td><td>13 K</td></tr>
+        <tr><td><a href="/static/case-mgb2.html">MgB<sub>2</sub></a></td><td>T<sub>c</sub> = 39 K</td><td>Conventional superconductor</td><td class="val-exact">Yes</td><td>18 K</td></tr>
+        <tr><td>CsV<sub>3</sub>Sb<sub>5</sub></td><td>T<sub>c</sub> = 2.5 K</td><td>Kagome superconductor</td><td class="val-exact">Yes</td><td>—</td></tr>
+        <tr><td><a href="/static/case-vo2.html">VO<sub>2</sub></a></td><td>T<sub>MIT</sub> = 340 K</td><td>Metal-insulator</td><td class="val-exact">Yes</td><td>20 K</td></tr>
+        <tr><td>BaTiO<sub>3</sub></td><td>T<sub>Curie</sub> = 393 K</td><td>Ferroelectric</td><td class="val-exact">Yes</td><td>22 K</td></tr>
+        <tr><td><a href="/static/case-fese.html">FeSe/STO</a></td><td>T<sub>c</sub> = 65 K</td><td>Iron-based superconductor</td><td class="val-exact">Yes</td><td>20 K</td></tr>
+        <tr><td><a href="/static/case-pharma-dsc.html">Pharma DSC</a></td><td>5 transitions</td><td>DSC polymorph screening</td><td class="val-exact">5 of 5</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#666;">Same pipeline, same parameters across all domains tested. The pipeline was developed against financial time series; subsequent applications to materials and pharmaceutical data used identical code and parameters. Click material names for full case studies. <a href="/#analyze">Try it on your data</a>.</p>
+    <p style="font-size:0.85rem;color:#666;">The precursor leads (13–22 K before the known transition) are the most interesting finding — the analyzer detects changes in the data before the transition is conventionally visible. Whether these correspond to real physical precursors (e.g., superconducting fluctuations above T<sub>c</sub>) requires independent experimental confirmation.</p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 2: CLUSTER PREDICTOR -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="val-section">
+    <h3><span class="tool-badge tool-cluster">Nanoparticle Property Predictor</span> Predictions</h3>
+    <p>The predictor uses a proprietary geometric framework and tabulated physical constants (NIST, CRC Handbook). It does NOT use the structural analysis engine. Results below are categorized by how they were obtained.</p>
+  </div>
+
+  <!-- MAGNETIC MOMENTS -->
+  <div class="val-section">
+    <h3>Magnetic Moments (&mu;<sub>B</sub>/atom)</h3>
+
+    <h4>Framework-Informing Data <span class="category-label cat-calibration">Calibration</span></h4>
+    <p style="font-size:0.85rem;color:#666;">The magnetic moment formula was calibrated using Fe<sub>13</sub> and Co<sub>13</sub> experimental values. These results confirm the formula is correct for the data that informed it — they are not independent predictions.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Cluster</th><th>Computed</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Fe<sub>13</sub></td><td>2.500</td><td>2.500</td><td class="val-exact">0.0%</td><td>Knickelbein, PRL 86, 5255 (2001); T&nbsp;&asymp;&nbsp;120&thinsp;K</td></tr>
+        <tr><td>Co<sub>13</sub></td><td>2.000</td><td>2.000</td><td class="val-exact">0.0%</td><td>Xu &amp; de Heer, PRL 106, 187202 (2011); T&nbsp;&asymp;&nbsp;78&thinsp;K</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Genuine Predictions <span class="category-label cat-prediction">Prediction</span></h4>
+    <p style="font-size:0.85rem;color:#666;">Ni<sub>13</sub> uses a pair correction derived from the geometric framework using tabulated spin-orbit and Stoner constants. This correction was not fitted to Ni's value. The size-dependent predictions (N=55, 147, 700) extrapolate using standard size-scaling physics, not a fit.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ni<sub>13</sub></td><td>0.913</td><td>0.900</td><td class="val-good">1.4%</td><td>Apsel et al., PRL 1996</td></tr>
+        <tr><td>Fe<sub>55</sub></td><td>2.40</td><td>2.4</td><td class="val-exact">~0%</td><td>Billas et al., Science 1994</td></tr>
+        <tr><td>Co<sub>55</sub></td><td>1.85</td><td>1.9</td><td class="val-good">2.6%</td><td>Billas et al., Science 1994</td></tr>
+        <tr><td>Ni<sub>55</sub></td><td>0.75</td><td>0.75</td><td class="val-exact">0.0%</td><td>Apsel et al., PRL 1996</td></tr>
+        <tr><td>Fe<sub>147</sub></td><td>2.35</td><td>2.35</td><td class="val-exact">~0%</td><td>Billas et al., Science 1994</td></tr>
+        <tr><td>Co<sub>147</sub></td><td>1.78</td><td>1.8</td><td class="val-good">1.1%</td><td>Billas et al., Science 1994</td></tr>
+        <tr><td>Ni<sub>147</sub></td><td>0.68</td><td>0.68</td><td class="val-exact">0.0%</td><td>Apsel et al., PRL 1996</td></tr>
+        <tr><td>Fe<sub>700</sub></td><td>2.25</td><td>2.25</td><td class="val-exact">~0%</td><td>Billas et al., Science 1994</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85rem;color:#666;"><strong>Note:</strong> The magnetic moment formula was calibrated at N=13 for Fe and Co. Its predictions at larger sizes (Fe<sub>55</sub>, Fe<sub>147</sub>, Fe<sub>700</sub>) test whether the size-scaling is correct. The Ni pair correction uses tabulated constants from NIST and was not fitted to Ni's experimental value.</p>
+  </div>
+
+  <!-- ELECTRON AFFINITY -->
+  <div class="val-section">
+    <h3>Electron Affinity (eV) <span class="category-label cat-prediction">Prediction</span></h3>
+    <p style="font-size:0.85rem;color:#666;">Uses the Perdew metallic sphere model (textbook electrostatics) applied to cluster geometry, plus a Kubo gap correction for odd/even electron count. The model existed before we applied it — these are predictions from a known model applied to specific cluster sizes.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Au<sub>13</sub></td><td>3.71</td><td>3.80</td><td class="val-good">2.4%</td><td>Taylor et al., JCP 1992</td></tr>
+        <tr><td>Au<sub>7</sub></td><td>3.52</td><td>3.46</td><td class="val-good">1.7%</td><td>Taylor et al., JCP 1992</td></tr>
+        <tr><td>Au<sub>5</sub></td><td>3.36</td><td>3.09</td><td class="val-ok">8.7%</td><td>Taylor et al., JCP 1992</td></tr>
+        <tr><td>Ag<sub>13</sub></td><td>2.69</td><td>2.50</td><td class="val-ok">7.6%</td><td>Ho et al., JCP 1990</td></tr>
+        <tr><td>Ag<sub>7</sub></td><td>2.38</td><td>2.40</td><td class="val-good">0.8%</td><td>Ho et al., JCP 1990</td></tr>
+        <tr><td>Cu<sub>13</sub></td><td>2.94</td><td>2.85</td><td class="val-good">3.2%</td><td>Ho et al., JCP 1990</td></tr>
+        <tr style="background:#fef2f2;"><td>Ag<sub>8</sub></td><td>2.85</td><td>1.60</td><td style="color:#dc2626;font-weight:700;">78%</td><td>Ho et al., JCP 1990</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.85rem;color:#dc2626;margin-top:0.5rem;"><strong>Known failure:</strong> Ag<sub>8</sub> is a non-magic cluster size (between geometric shell closings). The metallic sphere model breaks for N &lt; 10–12 atoms, where quantum shell effects dominate over classical electrostatics. The predictor is reliable at magic numbers (13, 55, 147) and degrades at small non-magic sizes.</p>
+  </div>
+
+  <!-- SEEBECK -->
+  <div class="val-section">
+    <h3>Seebeck Coefficient (&mu;V/K) <span class="category-label cat-prediction">Prediction</span></h3>
+    <p style="font-size:0.85rem;color:#666;">Computed from a proprietary geometric model. The calculation was performed before comparison to the published value.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Cluster</th><th>Lattice</th><th>Predicted</th><th>Reference</th><th>Error</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Au<sub>13</sub></td><td>Cubic</td><td>+87.6</td><td>+93</td><td class="val-good">5.8%</td><td>Kurelchuk et al., 2019</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#666;">240 additional predictions available for all 23 d-metals. These are untested predictions — no experimental comparison exists for most of them. <a href="/#cluster">Try the screener</a>.</p>
+  </div>
+
+  <!-- HOMO-LUMO GAP -->
+  <div class="val-section">
+    <h3>HOMO-LUMO Gap (eV) <span class="category-label cat-prediction">Consistent with measurement</span></h3>
+    <p style="font-size:0.85rem;color:#666;">Derived from tabulated spin-orbit constants via the geometric framework. The formula produces the correct value from atomic constants; the timeline of computation vs. literature comparison was not recorded.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Au<sub>13</sub></td><td>0.648</td><td>0.650</td><td class="val-exact">0.3%</td><td>Guvelioglu et al., PRL 2005</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SEEBECK SIGNS -->
+  <div class="val-section">
+    <h3>Seebeck Sign Predictions <span class="category-label cat-textbook">Textbook</span></h3>
+    <p style="font-size:0.85rem;color:#666;">The sign rule (d-band filling determines Seebeck sign) follows from established electronic structure theory. The 23/23 result confirms the formula correctly encodes known d-band physics — it does not represent a discovery. Full and half-filled d-shells have well-known transport asymmetries.</p>
+    <table class="val-table">
+      <thead>
+        <tr><th>Element</th><th>Predicted</th><th>Bulk Measured</th><th>Match</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Au</td><td>+</td><td>+1.94 &mu;V/K</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Ag</td><td>+</td><td>+1.51</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Cu</td><td>+</td><td>+1.83</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Pt</td><td>&minus;</td><td>&minus;5.28</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Ni</td><td>&minus;</td><td>&minus;19.5</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Co</td><td>&minus;</td><td>&minus;30.8</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Fe</td><td>+</td><td>+15.0</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Pd</td><td>&minus;</td><td>&minus;10.7</td><td class="val-exact">Yes</td></tr>
+        <tr><td>Ta</td><td>&minus;</td><td>&minus;2.40</td><td class="val-exact">Yes</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#666;">23/23 elements correct. Full table includes all 3d, 4d, and 5d transition metals.</p>
+  </div>
+
+  <!-- WHAT'S MISSING -->
+  <div class="val-section">
+    <h3>What Would Strengthen This</h3>
+    <h4>Current limitations</h4>
+    <ul style="line-height:2;color:#444;">
+      <li><strong>No third-party reproduction yet.</strong> All results are author-validated. No external user has independently confirmed the findings.</li>
+      <li><strong>Cluster predictor:</strong> The geometric model fails at non-magic sizes. Ag<sub>8</sub> shows 78% error. Reliable at magic numbers (13, 55, 147, 309, 561); degrades at small non-magic sizes.</li>
+      <li><strong>Structural analyzer:</strong> Precursor detection claims are author-validated only. Best results on data with at least 50 ordered samples; very short series may not produce meaningful analysis.</li>
+      <li><strong>240 Seebeck predictions</strong> for non-Au clusters are untested — no experimental comparison exists for most of them.</li>
+    </ul>
+    <h4>What would strengthen this</h4>
+    <ul style="line-height:2;color:#444;">
+      <li><strong>Blind predictions on new data:</strong> Running the cluster predictor on materials not yet measured and publishing predictions before experimental results become available.</li>
+      <li><strong>Independent replication:</strong> Someone outside this project running their own data through the structural analyzer and reporting what they find.</li>
+      <li><strong>Cross-validation:</strong> Holding out known data during formula development and testing against the held-out set.</li>
+    </ul>
+    <p style="font-size:0.85rem;color:#666;">If you've used DSF-AI on your own data and want to share your experience, contact <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a>.</p>
+  </div>
+
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</footer>
+
+</body>
+</html>

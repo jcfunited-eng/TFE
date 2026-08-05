@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspaces/Tao_Financial_Engine/tools/recommendation_quality_audit_lane.py", line 451, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspaces/Tao_Financial_Engine/tools/recommendation_quality_audit_lane.py", line 255, in main
+    rowtrace_variant = _run_learning_variant(source_mode="rowtrace", eval_mode="rowtrace", output_dir=out_dir)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspaces/Tao_Financial_Engine/tools/recommendation_quality_audit_lane.py", line 58, in _run_learning_variant
+    raise RuntimeError(f"learning_variant_failed:{source_mode}:{eval_mode}:rc={proc.returncode}:log={log_path}")
+RuntimeError: learning_variant_failed:rowtrace:rowtrace:rc=-9:log=/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-quality-audit-lane-20260309T001216Z/learning-rowtrace-rowtrace.log

@@ -1,0 +1,109 @@
+GL-ATTACH-READ-SENTENCE-PROFILE-C1-20260620-01
+cProfile dump — GL-CMD-76 V1.2
+Generated: 2026-06-20
+State: guala/auto/2026-06-20_21-00-15_activity_ended (vocab=3591, atlas=27577, reads=239193)
+Sentence: "peter rabbit lived under the big fir tree with his mother" (11 words, all known)
+Calls: 20 sequential calls of read_sentence
+Platform: GitHub Codespace, Python 3.11
+Total time: 195.896 seconds
+
+== TOP 30 BY TOTTIME ==
+
+         835104462 function calls in 195.896 seconds
+
+   Ordered by: internal time
+   List reduced from 138 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    82020   76.379    0.001  168.589    0.002 gualaloom_v6_living_atlas.py:87(record)
+388226103   32.677    0.000   32.677    0.000 gualaloom_v6_living_atlas.py:169(<genexpr>)
+390773031   30.174    0.000   30.175    0.000 {built-in method builtins.max}
+   413350   18.728    0.000   51.493    0.000 {built-in method builtins.sum}
+   410038   10.368    0.000   10.368    0.000 gualaloom_v6_living_atlas.py:168(<listcomp>)
+    81260    5.424    0.000    5.971    0.000 deep_atlas.py:171(get_prior)
+      700    4.818    0.007  193.063    0.276 gualaloom_v5_engine.py:489(receive)
+    81260    4.115    0.000    4.356    0.000 deep_atlas.py:182(reinstate)
+  4201760    3.890    0.000    7.256    0.000 numpy/linalg/_linalg.py:2598(norm)
+  4201760    1.521    0.000    1.521    0.000 {method 'dot' of 'numpy.ndarray' objects}
+  2102980    0.865    0.000    0.865    0.000 {built-in method numpy.array}
+  2102980    0.756    0.000    1.621    0.000 gualaloom_v4_uf_kernel.py:30(to_array)
+       22    0.671    0.030    0.911    0.041 gualaloom_v6_living_atlas.py:243(decay)
+  4201760    0.638    0.000    0.836    0.000 numpy/linalg/_linalg.py:169(isComplexType)
+  6412502    0.521    0.000    0.521    0.000 {method 'get' of 'dict' objects}
+      700    0.516    0.001    0.517    0.001 gualaloom_v6_living_atlas.py:381(match_score)
+  4201760    0.496    0.000    0.496    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+  8403520    0.439    0.000    0.439    0.000 {built-in method builtins.issubclass}
+    13112    0.351    0.000    0.351    0.000 gualaloom_v6_living_atlas.py:375(<listcomp>)
+  4201760    0.284    0.000    0.284    0.000 numpy/linalg/_linalg.py:2594(_norm_dispatcher)
+   162806    0.276    0.000    0.429    0.000 <frozen os>:674(__getitem__)
+      220    0.261    0.001    0.365    0.002 gualaloom_v6_living_atlas.py:291(bindings_at_chi_neighborhood)
+  4201760    0.226    0.000    0.226    0.000 {built-in method numpy.asarray}
+  2100880    0.175    0.000    0.175    0.000 numpy/_core/multiarray.py:748(dot)
+       88    0.159    0.002    0.663    0.008 gualaloom_v6_living_atlas.py:370(cross_modal_bindings)
+   162520    0.158    0.000    0.737    0.000 deep_atlas.py:34(_deep_prior_enabled)
+   162806    0.152    0.000    0.581    0.000 <frozen _collections_abc>:771(get)
+  2344096    0.151    0.000    0.151    0.000 gualaloom_v6_living_atlas.py:376(<genexpr>)
+   664860    0.124    0.000    0.124    0.000 {built-in method builtins.min}
+   162806    0.089    0.000    0.154    0.000 <frozen os>:756(encode)
+
+== V1.1 BASELINE MEASUREMENTS ==
+
+Sentence: "the cat sat" (3 words, all known)
+  calls 2-5 (ms): 1315, 1276, 1291, 1315
+  median=1296ms p95=1315ms min=1276ms max=1315ms
+
+Sentence: "peter rabbit lived under the big fir tree with his mother" (11 words, all known)
+  calls 2-5 (ms): 4189, 4492, 4501, 4681
+  median=4492ms p95=4681ms min=4189ms max=4681ms
+
+Sentence: "the xylophone zephyr quasar crystalline ephemeral vortex threshold oscillating phenomenon" (10 words, mostly novel)
+  calls 2-5 (ms): 1551, 1637, 1637, 1676
+  median=1637ms p95=1676ms min=1551ms max=1676ms
+
+== V1.4 GROWTH DATA (25 sentences) ==
+
+State at load: vocab=3591 atlas=27577 listen_modes=3495
+ idx  ms    vocab  atlas  listen  words
+  0   4366  3591   27577  3495    18
+  1   4917  3591   27477  3495    18
+  2   4428  3591   27778  3495    19
+  3   2645  3591   27939  3495    14
+  4   3824  3591   28889  3495    18
+  5   4178  3591   28927  3495    16
+  6   5437  3591   29006  3495    17
+  7   4668  3591   29094  3495    18
+  8   5433  3591   29162  3495    17
+  9   1752  3591   29404  3495    12
+ 10   6685  3591   29517  3495    19
+ 11   6121  3591   29698  3495    16
+ 12   3185  3591   29758  3495    20
+ 13   4472  3591   28194  3495    18
+ 14   4319  3591   28317  3495    16
+ 15   5102  3591   28475  3495    17
+ 16   3198  3591   28631  3495    17
+ 17   4684  3591   28704  3495    17
+ 18   3790  3592   28810  3496    21
+ 19   5493  3592   28846  3496    18
+ 20   4944  3592   28912  3496    21
+ 21   3922  3592   28989  3496    18
+ 22   5584  3592   29195  3496    19
+ 23   6595  3592   29230  3496    21
+ 24   7163  3592   28185  3496    23
+
+First 13 sentences median: 4428ms
+Last 12 sentences median:  4684ms
+Overall median: 4492ms  p95: 6595ms
+
+Slope vs atlas_entries: 199.8695 μs/entry (oscillating, not monotonic growth)
+Slope vs listen_modes:  943.8873 ms/mode  (essentially constant at 3495-3496)
+Per-word first half: 259ms/word
+Per-word last half:  270ms/word
+
+== SECTION MODE COUNTS AT LOAD TIME ==
+listen:   3495
+verb:     3203
+intro:    3212
+subject:   574
+object:    986
+modifier:   24
+ground:     33

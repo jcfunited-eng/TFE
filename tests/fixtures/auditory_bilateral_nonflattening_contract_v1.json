@@ -1,0 +1,64 @@
+{
+  "allowed_dispositions": [
+    "difference_preserved",
+    "symmetry_conserved",
+    "static_quiescent_equal",
+    "declared_exact_collapse"
+  ],
+  "candidate_source_sha256": "172b7db634b489c5a07919c108bc09debfb2349e5922e6f91ac5a3fdb1b0cfc6",
+  "current_asymmetric_layer_difference_counts": {
+    "L0_SEV": 32,
+    "L1_GateL1State": 32,
+    "L2_GateInterpretation": 16,
+    "L3_ResonanceResult": 14,
+    "L4_DSF": 14
+  },
+  "current_candidate_test_sha256": "4db52dfc751f1bf4c9b134d992454d901c5b63f2d071d3ed8e7c2a79881f4689",
+  "current_coupled_census_authority_receipt_sha256": "6512124f485031c67db5d0d860822e1f54446d657ea97d6dd35bf58030778aef",
+  "current_coupled_census_file_sha256": "54e664fadc4f5359f8e6b92b102d66e61521a5de3d89726a3a0f268cba1b9f07",
+  "failure_rule": "authenticated_nonzero_physical_or_layer_input_difference_became_zero_without_exact_legitimate_explanation_receipt",
+  "inquiry_checks": [
+    "input_byte_equality",
+    "calibration_and_transfer_path_equality",
+    "left_right_topology_and_order",
+    "declared_exact_operator_collapse",
+    "static_or_quiescent_equality",
+    "adapter_information_loss",
+    "full_field_not_reduced_measurement"
+  ],
+  "layers": [
+    "L0_SEV",
+    "L1_GateL1State",
+    "L2_GateInterpretation",
+    "L3_ResonanceResult",
+    "L4_DSF"
+  ],
+  "required_layer_record_fields": [
+    "layer_id",
+    "left_input_witness_receipt_sha256",
+    "right_input_witness_receipt_sha256",
+    "input_difference_witness_receipt_sha256",
+    "left_output_witness_receipt_sha256",
+    "right_output_witness_receipt_sha256",
+    "output_difference_witness_receipt_sha256",
+    "operator_profile_receipt_sha256",
+    "topology_receipt_sha256",
+    "disposition",
+    "explanation_receipt_sha256"
+  ],
+  "schema": "guala.validation.auditory_bilateral_nonflattening_contract.v1",
+  "topology": {
+    "component_order": [
+      "left:0-31",
+      "right:32-63"
+    ],
+    "left_hemisphere_view": [
+      "left:0-31",
+      "right:32-63"
+    ],
+    "right_hemisphere_view": [
+      "right:32-63",
+      "left:0-31"
+    ]
+  }
+}

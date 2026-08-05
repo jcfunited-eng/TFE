@@ -1,0 +1,112 @@
+{
+  "generated_at_utc": "2026-03-10T02:04:17.611Z",
+  "status": "scaffold_only",
+  "cp_profile": "CP-0",
+  "rollout_state": "registry_only_no_behavior_change",
+  "lineage_baseline": "Section 9 strict lineage baseline for L5 revisions remains in force.",
+  "source_truth": [
+    "web_user_data/TFE_5_3_Implementation_Plan_v2_4.md",
+    "web_user_data/TFE_Specification_v2_4.tex",
+    "web_user_data/TFE_Spec_Internal_Review_v2_4.md",
+    "current_l5_code_truth_to_spec_gap_latest.json",
+    "exact_path_alignment_readiness_latest.json"
+  ],
+  "registry_name": "setup_registry_v1",
+  "purpose": "Controlled setup-family registry for deterministic pattern overlays. No setup is active until separately approved and wired.",
+  "setup_families": [
+    {
+      "id": "double_bottom",
+      "label": "Double-Bottom",
+      "directional_mode": "long",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1738"
+      ]
+    },
+    {
+      "id": "double_top",
+      "label": "Double-Top",
+      "directional_mode": "short_or_avoid",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1738"
+      ]
+    },
+    {
+      "id": "pivot_recovery",
+      "label": "Pivot Recovery",
+      "directional_mode": "long",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1740"
+      ]
+    },
+    {
+      "id": "failed_pivot_breakdown",
+      "label": "Failed-Pivot Breakdown",
+      "directional_mode": "short_or_avoid",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1740"
+      ]
+    },
+    {
+      "id": "moving_average_trend_continuation",
+      "label": "Moving-Average Trend Continuation",
+      "directional_mode": "long",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1741"
+      ]
+    },
+    {
+      "id": "moving_average_crossover",
+      "label": "Moving-Average Crossover",
+      "directional_mode": "long_or_short",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1741"
+      ]
+    },
+    {
+      "id": "bollinger_squeeze_release",
+      "label": "Bollinger Squeeze-Release",
+      "directional_mode": "long_or_short",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1742"
+      ]
+    },
+    {
+      "id": "volatility_expansion_contraction",
+      "label": "Volatility Expansion / Contraction",
+      "directional_mode": "long_or_short",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1742"
+      ]
+    },
+    {
+      "id": "rsi_momentum_exhaustion_reversal",
+      "label": "RSI / Momentum Exhaustion-Reversal",
+      "directional_mode": "long_or_short",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1743"
+      ]
+    },
+    {
+      "id": "breakout_with_structural_confirmation",
+      "label": "Breakout With Structural Confirmation / False-Break Avoidance",
+      "directional_mode": "long_or_short",
+      "minimum_match_requirement": "require_L0_exact",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1744"
+      ]
+    }
+  ]
+}

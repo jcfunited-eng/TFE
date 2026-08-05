@@ -1,0 +1,26 @@
+{
+  "snapshot": "uf_snapshot.json",
+  "policy": "pscf_policy_runtime.json",
+  "total_rows": 10819,
+  "decision_counts": {
+    "Hold": 10819
+  },
+  "reason_counts": {
+    "PSCF_FALLBACK_CELL_UNMAPPED": 9521,
+    "PSCF_FALLBACK_INSUFFICIENT_BARS": 1298
+  },
+  "mapped_rows": 0,
+  "fallback_rows": 10819,
+  "coverage_rate": 0.0,
+  "fallback_rate": 1.0,
+  "mapped_decision_mismatch_count": 0,
+  "mapped_decision_mismatch_samples": [],
+  "strict": {
+    "enabled": true,
+    "min_mapped_rows": 1,
+    "pass": false,
+    "fail_reasons": [
+      "mapped_rows_below_min:0<1"
+    ]
+  }
+}

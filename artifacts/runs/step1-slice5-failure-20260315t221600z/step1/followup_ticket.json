@@ -1,0 +1,12 @@
+{
+  "followup_job_id": "followup_job_v1_41bf3a5b82528070d1dfe0cc",
+  "triggering_run_id": "step1-slice5-failure-20260315t221600z",
+  "publication_bundle_id": "publication_bundle_v1_e8e8f02a402f274232681a2e",
+  "target_environment": "production",
+  "phase_name": "quote_cache_refresh",
+  "classification": "non_critical_follow_up",
+  "status": "failed",
+  "publication_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/publications/publication_bundle_v1_e8e8f02a402f274232681a2e/manifest.json",
+  "operator_visible_status": "quote_cache_refresh failed; publication_bundle_id=publication_bundle_v1_e8e8f02a402f274232681a2e; failure_code=followup_launch_failure; detail=Forced follow-up failure for slice 5 proof.",
+  "created_at_utc": "2026-03-15T22:16:08.803Z"
+}

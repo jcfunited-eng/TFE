@@ -1,0 +1,189 @@
+\chapter{Current Production L5 (CP-0) Code-Truth Profile}
+\section{Purpose and Status}
+\meta{Capture the current production implementation as it exists in code so the specification preserves present truth rather than target intent only.}{Runtime entry points, orchestration scripts, policy engine, advisor surfaces, and configuration controls.}{Normative CP-0 profile description.}
+
+CP-0 is the current productionized TFE L5 profile. It is a governed structural policy runtime, not a loose heuristic layer. It uses PSCF-style structural cell mapping, policy promotion gates, runtime synchronization, validation gates, and advisor-side fallback contracts. CP-0 is temporally compressed rather than fully structurally temporal: it uses regime, recency, bucketed structural state, and candidate-key chains as its primary runtime objects.
+
+\section{Authoritative Entry Points}
+\meta{Define the code-truth entry points from refresh to user-visible advisor outputs.}{Admin refresh API, wrapper scripts, L5 engine, oracle controller, runtime bridge, advisor APIs.}{Authoritative process map for CP-0.}
+
+The authoritative CP-0 orchestration path is:
+\begin{align*}
+\texttt{admin/refresh API} &\rightarrow \texttt{run\_refresh\_with\_l5\_learning.py} \\
+&\rightarrow \texttt{rebuild\_snapshot} \\
+&\rightarrow \texttt{quote/profile cache refresh} \\
+&\rightarrow \texttt{run\_l5\_policy\_learning} \\
+&\rightarrow \texttt{oracle short-cycle (conditional)} \\
+&\rightarrow \texttt{runtime Postgres sync} \\
+&\rightarrow \texttt{validation gate} \\
+&\rightarrow \texttt{advisor APIs}.
+\end{align*}
+
+The core CP-0 engines are:
+\begin{itemize}
+    \item \texttt{l5\_policy\_learning\_pipeline.py}
+    \item \texttt{l5\_postgres\_io.py}
+    \item \texttt{run\_refresh\_with\_l5\_learning.py}
+    \item \texttt{web/scripts/sync\_runtime\_postgres.mjs}
+    \item \texttt{web/scripts/run\_validation\_gate\_v1.mjs}
+    \item \texttt{web/src/lib/runtime-postgres.ts}
+    \item \texttt{web/src/lib/uf-snapshot.ts}
+    \item \texttt{web/src/app/api/recommendations/list/route.ts}
+    \item \texttt{web/src/app/api/portfolio/route.ts}
+\end{itemize}
+
+\section{Structural Keying and Policy Selection}
+\meta{Specify the current structural keying doctrine used by CP-0.}{Flattened UF structural state, optional suffix channels, selection objective, guard thresholds.}{Policy-cell key schema and decision-selection behavior.}
+
+CP-0 uses structural cell keys built from serialized structural fields, including regime, directional/curvature state, uncertainty/persistence buckets, optional stability buckets, and optional suffixes for phase and deterministic multi-view conditions. In symbolic form, one production key is of the form
+\[
+\kappa_{cell}=\big(regime, D, M_{sign}, R_{rev}, U^{\ast}_{bucket}, C, P_{bucket}, B_{sign}, S_{bucket}, R_{bucket}, CD_{bucket}^{opt}, PH^{opt}, SE^{opt}\big).
+\]
+The current decision set is
+\[
+\mathcal{A}_{CP0}=\{\texttt{Accumulate},\texttt{Hold},\texttt{Avoid}\},
+\]
+and the selected cell decision is obtained by optimizing a guarded objective over the stored decision statistics for that key, subject to minimum edge, minimum margin to second-best, and minimum win-rate constraints. If any such guard fails, the action is forced to \texttt{Hold}. This means CP-0 is not an unconstrained classifier; it is a gated structural policy runtime.
+
+\section{Runtime Publication, Validation, and Advisor Contracts}
+\meta{State how CP-0 moves from learned policy to user-visible recommendation surfaces.}{Runtime tables, quote/profile cache, snapshot rows, validation reports, recommendation and portfolio APIs.}{Current production contracts and degraded-mode behavior.}
+
+CP-0 publishes runtime data via the runtime bridge, which rebuilds runtime tables from the latest snapshot and quote/profile caches. Advisor surfaces recompute decision provenance from runtime rows and current policy artifacts at request time. Recommendations and portfolio routes therefore depend on:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item runtime snapshot availability and freshness,
+    \item policy coverage and fallback bounds,
+    \item quote/profile availability,
+    \item runtime validation pass status.
+\end{enumerate}
+
+The recommendations API shall be permitted to return degraded-mode results when freshness or quality gates are missed, but it shall include explicit degraded-mode reason codes. The portfolio allocator shall use the same decision contract and shall map policy decisions to the current action vocabulary (buy more / trim / exit / hold) according to the governed allocator rules in CP-0.
+
+\section{Current CP-0 Exact-Path, Provenance, and Fallback State}
+\meta{Record the current post-A3/A4/A4.2 state of CP-0 after provenance persistence, typed fallback ladder adoption, and exact-family re-anchoring.}{Runtime provenance companion table, exact-path alignment artifacts, typed fallback ladder artifacts, and bounded parity audits.}{Current truth statement for exact coverage, relaxed coverage, degraded coverage, and decision-provenance reliability.}
+
+The current production profile has completed three foundational corrections:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Decision provenance persistence (A3):} persisted decision provenance matches request-time recomputation under full frozen-context parity audit with zero mismatches in key-chain, matched-key, fallback-level, anomaly, epoch, and timestamp/order classes for the audited run.
+    \item \textbf{Typed fallback semantics (A4):} every current path maps deterministically into a typed fallback ladder.
+    \item \textbf{Exact-path alignment (A4.2):} the exact-path anchor has been re-aligned to the populated no-ST exact family with zero selected-cell drift, zero decision drift, and zero fallback-reason drift under shadow verification.
+\end{enumerate}
+
+For the current audited snapshot context of size $N_{snap}=10819$, the adopted exact-family anchor is
+\[
+\texttt{NO\_ST\_EXACT\_FAMILY\_KEEP\_CD\_PHASE\_SPIDER\_STRICT},
+\]
+and the exact-path adoption restores
+\[
+N_{L0}=7215,
+\qquad
+\frac{N_{L0}}{N_{snap}}=66.688234\%.
+\]
+The resulting ladder distribution for the audited context is therefore governed by:
+\begin{align*}
+L0 &: \text{exact structural match, materially restored and now non-zero},\\
+L1 &: \text{relaxed structural match where exact-family conditions still fail},\\
+L2 &: \text{safe policy fallback if explicitly selected by the runtime contract},\\
+L3 &: \text{degraded / unmapped},\\
+L4 &: \text{unavailable or blocked}.
+\end{align*}
+The specification shall treat this post-A4.2 state as current CP-0 truth until superseded by controlled change.
+
+\section{Current Rulebook Coverage and Activation Readiness}
+\meta{State the current governed strategy/rulebook breadth so the specification distinguishes active coverage from intended future breadth.}{Admin/internal rulebook coverage artifacts, long-side decomposition artifacts, blocked-family contract artifacts.}{Current CP-0 coverage truth, ready subfamilies, and blocked families.}
+
+Current CP-0 strategy coverage is dominated by two operational families:
+\begin{align*}
+\text{long-side accumulation/hold candidate context} &\approx 78.066365\% \, \text{of current rows},\\
+\text{abstention / suppression / degraded-mode handling} &\approx 21.933635\% \, \text{of current rows}.
+\end{align*}
+Within the long-side base, the current governed decomposition is:
+\begin{align*}
+N_{accumulation\_core} &= 2997,\\
+N_{hold\_discipline\_core} &= 5449,\\
+N_{hold\_only\_no\_add} &= 4467.
+\end{align*}
+Here, \emph{long-side base} denotes candidate context, not an automatic long-side action. Avoid may appear inside the long-side base as protective no-add / avoidance semantics because CP-0 does not yet have an active short-side family.
+
+The following blocked families are now contract-defined but not activation-ready:
+\begin{itemize}
+    \item \textbf{Valuation-protected accumulation}, \textbf{survivability/capital-preservation-protected accumulation}, and \textbf{margin/quality discipline}: schema-ready but blocked by quote-source freshness and publication alignment failure.
+    \item \textbf{Recency-sensitive accumulation}: contract-defined but blocked because structural recency fields are not yet materialized in snapshot rows.
+    \item \textbf{Epoch-assisted accumulation}: contract-defined but blocked because the runtime row contract does not yet carry a stable epoch-state representation or sidecar projection join.
+    \item \textbf{Pattern/setup, company-news/catalyst, sector/macro epoch intelligence, and short-side families}: still outside active CP-0 behavior and remain governed future families until their contracts and sources are completed and approved.
+\end{itemize}
+
+\section{Structural Recency and Epoch Contract State}
+\meta{Record the present state of structural recency and epoch readiness after A5.4S and A5.5, without inventing behavior not present in code truth.}{Recency contract artifacts, epoch contract artifacts, runtime readiness artifacts.}{Current readiness statement and normative next requirements for CP-0-compatible activation.}
+
+\subsection{Structural Recency}
+A5.5R established that structural recency contract definition is complete, but activation readiness remains blocked only by missing snapshot materialization fields. In particular:
+\begin{itemize}
+    \item the current code truth does not yet materialize any approved \texttt{steps\_since\_*} top-level snapshot fields;
+    \item runtime sync transport is already favorable once those fields exist;
+    \item provenance consumption is already favorable once those fields exist;
+    \item the upper-bound eligible-row lift for recency-sensitive accumulation remains approximately $2997$ rows under the current presence-only gate.
+\end{itemize}
+The specification therefore requires a controlled \textbf{structural recency member registry}, a \textbf{snapshot materialization contract}, and a \textbf{runtime transport contract} before recency-assisted activation may proceed.
+
+\subsection{Epoch State}
+A5.5E established that epoch contract definition is complete but activation readiness is more blocked:
+\begin{itemize}
+    \item textual regime labels are real and usable in current code truth;
+    \item a stable numeric \texttt{regime\_code} contract is not yet defined;
+    \item a \texttt{gap\_state} enum is not yet defined in current code truth;
+    \item the epoch sidecar projection join is not implemented.
+\end{itemize}
+The specification therefore requires a controlled \textbf{regime-code enum registry}, a \textbf{gap-state enum registry}, an \textbf{epoch schema version}, and a \textbf{runtime sidecar projection join contract} before epoch-assisted activation may proceed.
+
+\section{Quote Freshness and Publication Alignment Doctrine}
+\meta{State the current quote-family activation blocker honestly and define the doctrine for quote-source use in CP-0.}{Quote-family field contracts, quote-source readiness artifacts, snapshot publication state, validation freshness gates.}{Controlled doctrine for quote-family activation and a statement of current non-readiness.}
+
+Quote-family contracts are complete at the field-definition level. However, quote-family activation is currently blocked because quote publication is not aligned with the active snapshot and freshness is outside the validation window. The measured state at the time of this revision is:
+\begin{align*}
+\text{publication alignment with active snapshot} &= \texttt{false},\\
+\text{quote age within validation window} &= \texttt{false},\\
+\text{quote-cache lag behind active snapshot} &\approx 155.618\ \text{hours},\\
+\text{quote-cache age versus now} &\approx 239.873\ \text{hours}.
+\end{align*}
+Accordingly:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item quote-family activation shall remain blocked until quote publication is provably aligned with the active snapshot and within the freshness SLA;
+    \item quote-family competitiveness shall not be used as evidence against DSF-AI while quote-source readiness is false;
+    \item quote-source remediation shall run as a parallel operational lane and shall not be confused with L5 structural-memory work.
+\end{enumerate}
+
+\section{Current CP-0 Loss / Transform Points}
+\meta{Make the current representation losses explicit so future work can improve them without pretending they do not exist.}{Current runtime bridge, row-trace export path, candidate-key fallback chain, advisor-side recomputation.}{Declared transform/loss points and their implications.}
+
+The following are declared CP-0 transform/loss points:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item UF structural state is flattened to snapshot rows before advisor consumption.
+    \item Row-trace research paths serialize outcomes and structural fields into CSV-style artifacts.
+    \item Candidate-key fallback chains still relax exact structural matching to preserve coverage, even though the exact-family anchor has now been corrected.
+    \item Structural recency fields are not yet materialized into current snapshot rows.
+    \item Epoch-assisted activation remains blocked by missing stable runtime epoch-state transport and sidecar projection join semantics.
+    \item Quote-family activation remains blocked by quote-source freshness and publication-alignment failure.
+\end{enumerate}
+These transform points do not invalidate CP-0, but they still impose a competitiveness ceiling and motivate both further CP-0 hardening and CP-2 work.
+
+\section{Current Controlled Improvement Sequence}
+\meta{Keep the order of current work explicit so the specification does not confuse completed, blocked, and future work.}{A3--A5.5 completed artifacts, quote-readiness artifacts, and current approved next steps.}{Ordered CP-0 improvement sequence.}
+
+As of this revision, the ordered CP-0-improvement sequence is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{A3 complete / green:} decision provenance persistence and frozen-context parity are complete.
+    \item \textbf{A4 complete / green:} typed fallback semantics are complete.
+    \item \textbf{A4.2 adopted:} exact-path anchor correction is adopted in production semantics with zero decision drift under verification.
+    \item \textbf{A5.1--A5.3 complete:} rulebook coverage, dominant long-side decomposition, and blocked dependency matrix are defined.
+    \item \textbf{A5.4Q complete:} quote-family contracts are complete but source freshness/publication alignment remain blocked.
+    \item \textbf{A5.4S complete:} structural recency and epoch state contracts are defined; recency remains the preferred next path.
+    \item \textbf{A5.5 complete:} recency and epoch activation-readiness artifacts are complete; recency remains blocked only by missing snapshot materialization fields; epoch remains blocked by unstable numeric regime-code semantics, missing gap-state enum, and absent sidecar projection join.
+    \item \textbf{Parallel Lane Q approved but not yet integrated into this revision:} stale quote/publication-alignment remediation is a parallel operational lane and shall be tracked separately until artifacts are available.
+\end{enumerate}
+
+The next normative build priority for CP-0 is therefore:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item structural recency snapshot materialization and runtime transport realization;
+    \item quote freshness/publication-alignment remediation in parallel;
+    \item epoch state stabilization and sidecar projection join only after recency transport is materially in place.
+\end{enumerate}

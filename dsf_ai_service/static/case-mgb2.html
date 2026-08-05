@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Study: MgB2 Superconductor (Tc=39K) | DSF-AI</title>
+  <meta name="description" content="DSF-AI detected the 39K superconducting transition in MgB2 and found precursors extending 18K above Tc. Digitized from Nagamatsu et al., Nature 2001.">
+  <link rel="canonical" href="https://dsf-ai.com/static/case-mgb2.html">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .case-page { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
+    .case-page h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .case-meta { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
+    .case-page h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+    .case-page p { line-height: 1.7; color: #333; margin-bottom: 1rem; }
+    .result-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    .result-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid #ddd; color: #666; font-size: 0.8rem; text-transform: uppercase; }
+    .result-table td { padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detected { color: #16a34a; font-weight: 600; }
+    .highlight { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    .case-cta { text-align: center; padding: 2rem; background: #f8faff; border-radius: 12px; margin: 2rem 0; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav><a href="/">Home</a> <a href="/static/validation.html">Validation</a></nav>
+  </div>
+</header>
+<div class="case-page">
+  <h1>MgB<sub>2</sub> — Conventional Superconductor</h1>
+  <p class="case-meta">Data: Nagamatsu et al., Nature 410, 63 (2001). R(T) from their Figure 2. Known T<sub>c</sub> = 39K.</p>
+
+  <h2>Results</h2>
+  <table class="result-table">
+    <thead><tr><th>Feature</th><th>Known</th><th>DSF-AI</th></tr></thead>
+    <tbody>
+      <tr><td>Transition temperature</td><td>39K</td><td class="detected">38–39K (transitions detected)</td></tr>
+      <tr><td>Precursor onset</td><td>Not reported</td><td class="detected">VOLATILE region extends to 56K — 17K above T<sub>c</sub></td></tr>
+      <tr><td>Zero-resistance state</td><td>Below 36K</td><td class="detected">STABLE from 2K to 36K</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Stability Map</h2>
+  <table class="result-table">
+    <thead><tr><th>Region</th><th>Range</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>STABLE</td><td>2 — 36K</td><td>Superconducting state — zero resistance</td></tr>
+      <tr><td>VOLATILE</td><td>36 — 56K</td><td>Transition region with precursors above T<sub>c</sub></td></tr>
+      <tr><td>DEGENERATE</td><td>56 — 300K</td><td>Normal metallic state</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight">
+    <strong>Notable finding:</strong> MgB<sub>2</sub> is a conventional BCS superconductor. Precursors above T<sub>c</sub> in a BCS system are unexpected and may indicate superconducting fluctuation effects not previously characterized in this material. DSF-AI detected these from the R(T) curve alone.
+  </div>
+
+  <div class="case-cta">
+    <p><a href="/static/real_mgb2_nagamatsu.csv" class="btn btn-secondary">Download MgB2 Data (CSV)</a></p>
+    <p style="margin-top:1rem;"><a href="/#analyze" class="btn btn-primary">Upload &amp; Analyze Free</a></p>
+  </div>
+</div>
+<footer><p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p></footer>
+</body>
+</html>

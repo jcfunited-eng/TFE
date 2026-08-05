@@ -1,0 +1,57 @@
+--- a/dsf_ai_service/v4/gualaloom_v5_engine.py
++++ b/dsf_ai_service/v4/gualaloom_v5_engine.py
+@@ -1008,11 +1008,15 @@
+                                                 dwell_ticks=dwell,
+                                                 deep_atlas=self.deep_atlas,
+                                                 engine_tick=self.tick)
+ 
+-            # v6: Decay heartbeat (DECAY_PAUSED=1 skips entirely for Step 2 experiment)
+-            if os.environ.get("DECAY_PAUSED", "0") != "1":
+-                if self.tick % 10 == 0:
++            # v6: Decay heartbeat. PAUSED mode advances last_tick with rate_scale=0
++            # so unpause does NOT cascade exp(-λ·Δtick) for the duration of the pause.
++            # This is the cascade-on-unpause bug fix (GL-FIX-PAUSE-IDEMPOTENT).
++            if self.tick % 10 == 0:
++                if os.environ.get("DECAY_PAUSED", "0") != "1":
+                     self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
+-                if self.tick % 200 == 0:
++                else:
++                    self.atlas.decay(self.tick, rate_scale=0.0)
++            if os.environ.get("DECAY_PAUSED", "0") != "1" and self.tick % 200 == 0:
+                     self.atlas.forget_below_threshold()
+ 
+             # 8b. V5: Generate questions from gaps in this word's bindings
+@@ -1589,11 +1593,15 @@
+                 elif a.kind == "EMITTING":
+                     self._atick_emitting(a)
+-                # Non-reading: manual atlas decay + coordinator
+-                if os.environ.get("DECAY_PAUSED", "0") != "1":
+-                    if self.tick % 10 == 0:
++                # Non-reading: manual atlas decay + coordinator.
++                # PAUSED mode advances last_tick with rate_scale=0 so unpause
++                # does NOT cascade. (GL-FIX-PAUSE-IDEMPOTENT)
++                if self.tick % 10 == 0:
++                    if os.environ.get("DECAY_PAUSED", "0") != "1":
+                         self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
+-                    if self.tick % 200 == 0:
++                    else:
++                        self.atlas.decay(self.tick, rate_scale=0.0)
++                if os.environ.get("DECAY_PAUSED", "0") != "1" and self.tick % 200 == 0:
+                         self.atlas.forget_below_threshold()
+                 if self.tick % 5 == 0:
+                     self.coordinator.regulate(self, self.needs, self.atlas,
+@@ -1772,8 +1780,11 @@
+         self.needs.stability = min(1.0, self.needs.stability + 0.001)
+         # Atlas consolidation: weak bindings decay faster during sleep
+         # Sleep physiology is hers — NOT modulated by teaching window (Fix C)
+-        if self.tick % 50 == 0 and os.environ.get("DECAY_PAUSED", "0") != "1":
+-            self.atlas.decay(self.tick)
++        # PAUSED mode advances last_tick with rate_scale=0. (GL-FIX-PAUSE-IDEMPOTENT)
++        if self.tick % 50 == 0:
++            if os.environ.get("DECAY_PAUSED", "0") != "1":
++                self.atlas.decay(self.tick)
++            else:
++                self.atlas.decay(self.tick, rate_scale=0.0)
+         # Midpoint → dream
+         midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
+         if self.tick == midpoint:

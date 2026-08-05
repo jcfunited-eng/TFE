@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI — Account</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    const CLERK_PK = 'pk_live_Y2xlcmsuZHNmLWFpLmNvbSQ';
+    (async () => {
+      const { Clerk } = await import('https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/+esm');
+      const clerk = new Clerk(CLERK_PK);
+      await clerk.load();
+      window.Clerk = clerk;
+      window.dispatchEvent(new Event('clerk-loaded'));
+    })();
+  </script>
+  <style>
+    .account-page {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    .account-section {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .account-section h3 {
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+    }
+    .account-row:last-child { border-bottom: none; }
+    .account-label { color: #666; }
+    .account-value { font-weight: 600; }
+    .credits-big {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #2563eb;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .credits-label {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .account-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .usage-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+    .usage-fill {
+      height: 100%;
+      background: #2563eb;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .loading { color: #999; text-align: center; padding: 2rem; }
+    .not-signed-in {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+    .not-signed-in h2 { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/#analyze">Analyze</a>
+      <a href="/#cluster">Cluster Screener</a>
+      <a href="/static/account.html" style="font-weight:600;color:#2563eb;">Account</a>
+      <span id="user-button"></span>
+    </nav>
+  </div>
+</header>
+
+<div class="account-page">
+  <div id="loading" class="loading">Loading account...</div>
+  <div id="not-signed-in" class="not-signed-in" hidden>
+    <h2>Sign in to view your account</h2>
+    <p>You need to be signed in to see your usage and credits.</p>
+    <button class="btn btn-primary" id="sign-in-btn">Sign In</button>
+  </div>
+  <div id="account-content" hidden>
+    <h2>Account</h2>
+
+    <div class="account-section">
+      <h3>Profile</h3>
+      <div class="account-row">
+        <span class="account-label">Name</span>
+        <span class="account-value" id="acct-name"></span>
+      </div>
+      <div class="account-row">
+        <span class="account-label">Email</span>
+        <span class="account-value" id="acct-email"></span>
+      </div>
+      <div class="account-row">
+        <span class="account-label">Member since</span>
+        <span class="account-value" id="acct-joined"></span>
+      </div>
+    </div>
+
+    <div class="account-section">
+      <h3>Credits</h3>
+      <div class="credits-big" id="acct-credits">—</div>
+      <div class="credits-label" id="acct-credits-label">analysis credits remaining</div>
+      <div class="account-row">
+        <span class="account-label">Analyses used</span>
+        <span class="account-value" id="acct-used">—</span>
+      </div>
+      <div class="account-row">
+        <span class="account-label">Plan</span>
+        <span class="account-value" id="acct-plan">—</span>
+      </div>
+      <div class="usage-bar">
+        <div class="usage-fill" id="usage-fill" style="width:0%"></div>
+      </div>
+      <div class="account-actions">
+        <a href="/#pricing" class="btn btn-primary">Buy More Credits</a>
+        <a href="/#analyze" class="btn btn-secondary">Run Analysis</a>
+      </div>
+    </div>
+
+    <div class="account-section">
+      <h3>Cluster Screener</h3>
+      <div class="account-row">
+        <span class="account-label">Status</span>
+        <span class="account-value" style="color:#16a34a;">Always free — unlimited predictions</span>
+      </div>
+      <div class="account-actions">
+        <a href="/#cluster" class="btn btn-secondary">Screen Clusters</a>
+      </div>
+    </div>
+
+    <div class="account-section">
+      <h3>Security</h3>
+      <div class="account-row">
+        <span class="account-label">Data encryption</span>
+        <span class="account-value">SCE-SIV (active)</span>
+      </div>
+      <div class="account-row">
+        <span class="account-label">Your data</span>
+        <span class="account-value">Deleted after analysis</span>
+      </div>
+      <div class="account-row">
+        <span class="account-label">Internal state</span>
+        <span class="account-value">Encrypted &amp; destroyed</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. Universal structural analysis service.</p>
+</footer>
+
+<script>
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+
+async function init() {
+  // Wait for Clerk
+  if (!window.Clerk) {
+    await new Promise(resolve => {
+      window.addEventListener('clerk-loaded', resolve, { once: true });
+      setTimeout(resolve, 10000);
+    });
+  }
+
+  const clerk = window.Clerk;
+  document.getElementById('loading').hidden = true;
+
+  if (!clerk || !clerk.user) {
+    document.getElementById('not-signed-in').hidden = false;
+    const btn = document.getElementById('sign-in-btn');
+    btn.addEventListener('click', () => {
+      if (clerk) clerk.openSignIn({ redirectUrl: window.location.href });
+    });
+    return;
+  }
+
+  // Show account content
+  document.getElementById('account-content').hidden = false;
+
+  // Profile
+  const user = clerk.user;
+  document.getElementById('acct-name').textContent =
+    (user.firstName || '') + ' ' + (user.lastName || '');
+  document.getElementById('acct-email').textContent =
+    user.emailAddresses?.[0]?.emailAddress || '—';
+  document.getElementById('acct-joined').textContent =
+    new Date(user.createdAt).toLocaleDateString();
+
+  // Nav user button
+  const userBtnEl = document.getElementById('user-button');
+  const name = user.firstName || 'Account';
+  const img = user.imageUrl;
+  userBtnEl.innerHTML = `
+    <span class="user-info">
+      ${img ? `<img src="${img}" class="user-avatar" alt="">` : ''}
+      <span class="user-name">${name}</span>
+      <a href="#" id="sign-out-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Sign Out</a>
+    </span>`;
+  document.getElementById('sign-out-link').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await clerk.signOut();
+    location.href = '/';
+  });
+
+  // Fetch credits
+  try {
+    const resp = await fetch(`${API}/api/v1/check-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.id }),
+    });
+    const data = await resp.json();
+
+    const credits = data.credits === -1 ? 'Unlimited' : data.credits;
+    const used = data.analyses_used || 0;
+    const isSubscription = data.reason === 'subscription';
+
+    document.getElementById('acct-credits').textContent = credits;
+    document.getElementById('acct-used').textContent = used;
+    document.getElementById('acct-plan').textContent =
+      isSubscription ? 'Subscription (unlimited)' : 'Pay per analysis';
+
+    if (data.credits !== -1) {
+      const total = used + data.credits;
+      const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+      document.getElementById('usage-fill').style.width = pct + '%';
+      document.getElementById('acct-credits-label').textContent =
+        `analysis credits remaining (${used} used)`;
+    } else {
+      document.getElementById('usage-fill').style.width = '0%';
+      document.getElementById('acct-credits-label').textContent = 'unlimited analyses';
+    }
+  } catch (e) {
+    document.getElementById('acct-credits').textContent = '?';
+    document.getElementById('acct-credits-label').textContent = 'Unable to load credits';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

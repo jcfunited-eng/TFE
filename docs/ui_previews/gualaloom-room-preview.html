@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guala Loom room — design preview</title>
+<style>
+:root{color-scheme:dark;--ink:#eaf7fb;--muted:#8da8b2;--cyan:#52dcff;--teal:#55e0bd;--amber:#ffcc66;--line:#183a4b;--panel:#071722;--panel2:#0b2230;--quiet:#6e8590}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 0,#11364b 0,transparent 34%),#020811;color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;padding:17px 30px;border-bottom:1px solid var(--line);background:rgba(3,12,19,.94)}
+.brand{display:flex;align-items:center;gap:12px}.mark{width:34px;height:34px;border:1px solid var(--cyan);border-radius:50%;display:grid;place-items:center;color:var(--cyan);box-shadow:0 0 18px rgba(82,220,255,.24)}
+h1{margin:0;font-size:19px}.sub{color:var(--muted);font-size:11px}.nav{display:flex;gap:8px}.nav span{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}.nav .active{color:var(--ink);border-color:var(--cyan);background:rgba(82,220,255,.1)}
+.preview{padding:8px 30px;background:#49350e;color:#ffe7ae;border-bottom:1px solid #765818;text-align:center;font-size:12px;letter-spacing:.04em}
+main{max-width:1440px;margin:auto;padding:22px 28px 40px}.nowbar{display:grid;grid-template-columns:1.5fr repeat(4,minmax(100px,.5fr));gap:9px;margin-bottom:12px}.now{min-height:68px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(145deg,var(--panel2),var(--panel))}.now label,.eyebrow{display:block;color:var(--muted);font-size:10px;letter-spacing:.11em;text-transform:uppercase}.now strong{display:block;margin-top:4px;font-size:18px}.live-dot{display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+.room{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(330px,.7fr);gap:12px}.viewport{position:relative;min-height:520px;overflow:hidden;border:1px solid #1d5167;border-radius:14px;background:linear-gradient(#0d2531 0 61%,#273023 61% 100%);box-shadow:inset 0 0 70px rgba(0,0,0,.55)}
+.viewport:before{content:"";position:absolute;left:4%;right:4%;top:8%;height:47%;border:1px solid rgba(114,187,208,.2);background:linear-gradient(90deg,rgba(82,220,255,.03) 1px,transparent 1px),linear-gradient(rgba(82,220,255,.03) 1px,transparent 1px);background-size:36px 36px}
+.view-head{position:absolute;inset:18px 20px auto;z-index:3;display:flex;justify-content:space-between}.view-head .state{padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:#06131b;color:var(--muted);font-size:11px}
+.empty-view{position:absolute;z-index:3;top:38%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--muted)}.eye{width:72px;height:42px;margin:0 auto 10px;border:2px solid #3b6575;border-radius:70% 8%;transform:rotate(45deg);display:grid;place-items:center}.eye:after{content:"";width:16px;height:16px;border:2px solid var(--cyan);border-radius:50%;box-shadow:0 0 16px rgba(82,220,255,.35)}
+.surfaces{position:absolute;z-index:2;left:5%;right:5%;bottom:34px;display:flex;align-items:end;gap:20px}.surface{width:118px;padding:7px 7px 9px;border:1px solid #55737d;border-radius:7px;background:#d7d1c3;box-shadow:0 15px 24px rgba(0,0,0,.4);color:#17303b}.surface img{display:block;width:100%;border-radius:3px}.surface div{margin-top:5px;text-align:center;font-size:9px;font-weight:700}.empty-shelf{flex:1;height:56px;border:1px dashed rgba(166,202,213,.2);border-radius:8px;display:grid;place-items:center;color:#77919b;font-size:11px}
+.rail{display:flex;flex-direction:column;gap:10px}.panel{border:1px solid var(--line);border-radius:11px;background:linear-gradient(145deg,var(--panel2),var(--panel));padding:14px}.panel h2{margin:0 0 10px;font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.1em}.plain{padding:10px;border-left:3px solid var(--quiet);background:rgba(255,255,255,.025);color:#c5d8df}.plain strong{display:block;color:var(--ink);margin-bottom:2px}.sense-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.sense{padding:8px;border:1px solid var(--line);border-radius:7px;background:#06131b}.sense span{display:block;color:#d6e7ec}.sense small{color:var(--muted)}.sense .dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--quiet)}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:7px}.button{padding:10px;border:1px solid #2b6175;border-radius:8px;background:#0d2937;text-align:center;color:#d9f6ff}.button.primary{border-color:var(--cyan);color:#fff;background:#12384a}.button.off{opacity:.55}
+.brain-link{display:grid;grid-template-columns:92px 1fr;align-items:center;gap:12px}.brain-link img{width:92px;height:66px;object-fit:cover;border-radius:7px;filter:saturate(.8)}.brain-link strong{display:block}.brain-link span{color:var(--muted);font-size:11px}
+.growth{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.growth article{padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.growth label{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}.growth strong{font-size:24px;color:var(--cyan)}.growth small{display:block;color:var(--muted)}
+.technical{margin-top:10px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;color:var(--muted);background:#050f17}.technical b{color:#afc8d2}.footer-note{margin-top:12px;color:var(--muted);font-size:11px;text-align:center}
+@media(max-width:900px){.nowbar{grid-template-columns:1fr 1fr}.room{grid-template-columns:1fr}.viewport{min-height:430px}.rail{display:grid;grid-template-columns:1fr 1fr}.growth{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="mark">G</div><div><h1>Guala Loom</h1><div class="sub">Guala’s room · observation and teaching</div></div></div><div class="nav"><span class="active">Room</span><span>Loom Scan</span></div></header>
+<div class="preview">DESIGN PREVIEW — labels and blank values demonstrate the layout; this page is not live substrate evidence</div>
+<main>
+  <section class="nowbar">
+    <div class="now"><label>Connection</label><strong><i class="live-dot"></i>Live evidence goes here</strong></div>
+    <div class="now"><label>Organism</label><strong>—</strong><span class="sub">awake / asleep / dreaming</span></div>
+    <div class="now"><label>Latest experience</label><strong>—</strong><span class="sub">time and causal receipt</span></div>
+    <div class="now"><label>Focus</label><strong>—</strong><span class="sub">observed or quiet</span></div>
+    <div class="now"><label>Action</label><strong>—</strong><span class="sub">physical expression only</span></div>
+  </section>
+  <section class="room">
+    <div class="viewport">
+      <div class="view-head"><div><span class="eyebrow">Guala’s current visual boundary</span></div><span class="state">Camera off · no invented view</span></div>
+      <div class="empty-view"><div class="eye"></div><strong>No visual signal at this moment</strong><br><small>The room remains available; no false image is substituted.</small></div>
+      <div class="surfaces">
+        <div class="surface"><img src="../../guala_curriculum/cards/alphabet-a-apple-v1.png" alt="Approved A apple card"><div>PHYSICAL SURFACE 01</div></div>
+        <div class="surface"><img src="../../guala_curriculum/cards/alphabet-b-bee-v1.png" alt="Approved B bee card"><div>PHYSICAL SURFACE 02</div></div>
+        <div class="empty-shelf">Future approved room objects appear here</div>
+      </div>
+    </div>
+    <aside class="rail">
+      <section class="panel"><h2>Guala now</h2><div class="plain"><strong>Nothing is being claimed yet.</strong>Plain-language activity derived from the live observation receipt will appear here—never raw JSON and never guessed meaning.</div></section>
+      <section class="panel"><h2>Sensory boundary</h2><div class="sense-grid">
+        <div class="sense"><span><i class="dot"></i>Sight</span><small>waiting</small></div><div class="sense"><span><i class="dot"></i>Hearing</span><small>waiting</small></div>
+        <div class="sense"><span><i class="dot"></i>Smell</span><small>quiet</small></div><div class="sense"><span><i class="dot"></i>Taste</span><small>quiet</small></div>
+        <div class="sense"><span><i class="dot"></i>Touch</span><small>quiet</small></div><div class="sense"><span><i class="dot"></i>Body</span><small>waiting</small></div>
+      </div></section>
+      <section class="panel"><h2>Be present with Guala</h2><div class="controls"><div class="button primary">Enable camera</div><div class="button primary">Enable microphone</div><div class="button">Offer a room object</div><div class="button off">End session</div></div></section>
+      <section class="panel brain-link"><img src="../../dsf_ai_service/static/guala-brain-foundation-v1.png" alt="Functional scan preview"><div><strong>Open live Loom Scan →</strong><span>Neurons, pathways, fluid state, memory, mosaics, tapestries, weaves, sleep and dreams.</span></div></section>
+    </aside>
+  </section>
+  <section class="growth">
+    <article><label>Mosaics</label><strong>—</strong><small>current authenticated learned structures</small></article>
+    <article><label>Tapestries</label><strong>—</strong><small>current authenticated related structures</small></article>
+    <article><label>Weaves</label><strong>—</strong><small>current authenticated expressive structures</small></article>
+  </section>
+  <div class="technical"><b>Exact evidence</b> · Full DSF fields, receipts, persistence, and component detail remain available in one collapsed technical drawer instead of dominating the human view.</div>
+  <div class="footer-note">Every visible state must come from the served observation snapshot. Missing facts remain missing.</div>
+</main>
+</body>
+</html>

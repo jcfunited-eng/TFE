@@ -1,0 +1,25 @@
+{
+  "updated_at_utc": "2026-02-23T07:24:26Z",
+  "run_id": 1099,
+  "history_size": 1028,
+  "stale_runs": 4,
+  "arms": {
+    "baseline_estimated": {
+      "runs": 535,
+      "ok_runs": 501,
+      "avg_score": 0.14164251911132505,
+      "std_score": 0.09290656393011634,
+      "best_score": 0.3294772149966117,
+      "above_reference_pct": 0.1996007984031936
+    },
+    "soft_negative_space": {
+      "runs": 535,
+      "ok_runs": 502,
+      "avg_score": 0.13790777116651926,
+      "std_score": 0.10764255296559468,
+      "best_score": 0.27083792482019425,
+      "above_reference_pct": 0.0
+    }
+  },
+  "current_winner_by_avg": "baseline_estimated"
+}

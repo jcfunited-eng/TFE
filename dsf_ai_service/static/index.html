@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI | Automated Phase Transition &amp; Polymorph Detection Software</title>
+  <meta name="description" content="Upload measurement data (DSC, R(T), impedance), get structural transitions, precursors, and regime maps in 60 seconds. Polymorph screening, battery degradation, superconductor analysis. Free first analysis. No physics knowledge required.">
+  <meta name="keywords" content="DSC analysis software, polymorph screening tool, phase transition detection, automated thermal analysis, R(T) analysis, structural transition finder, DSC peak detection, battery cycling analysis, superconductor characterization">
+  <meta property="og:title" content="DSF-AI | Automated Phase Transition Detection">
+  <meta property="og:description" content="Upload any measurement CSV. Get structural transitions, precursors, and regime maps in 60 seconds. Validated against 63 experiments. Free first analysis.">
+  <meta property="og:url" content="https://dsf-ai.com">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://dsf-ai.com">
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    // Load Clerk with UI components
+    const CLERK_PK = 'pk_live_Y2xlcmsuZHNmLWFpLmNvbSQ';
+    (async () => {
+      const { Clerk } = await import('https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/+esm');
+      const clerk = new Clerk(CLERK_PK);
+      await clerk.load();
+      window.Clerk = clerk;
+      window.dispatchEvent(new Event('clerk-loaded'));
+    })();
+  </script>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1 class="logo">DSF<span class="logo-ai">-AI</span></h1>
+    <nav>
+      <a href="#analyze">Analyze</a>
+      <a href="#cluster">Cluster Screener</a>
+      <a href="#thermocouple">Thermocouples</a>
+      <a href="#example">Example</a>
+      <a href="/static/pharma.html">Pharma</a>
+      <a href="/static/validation.html">Validation</a>
+      <a href="#pricing">Pricing</a>
+      <a href="/static/account.html" id="nav-account" class="nav-account" hidden>Account</a>
+      <span id="user-button"></span>
+    </nav>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <h2>Structural analysis tools<br>for measurement data and material properties.</h2>
+  <p class="hero-sub">A family of tools: detect phase transitions in any ordered measurement series, predict nanoparticle properties from geometry, find optimal thermocouple pairs. Different computations, one service.</p>
+  <div class="hero-actions">
+    <a href="#analyze" class="btn btn-primary">Analyze a CSV</a>
+    <a href="#cluster" class="btn btn-secondary">Screen Clusters</a>
+  </div>
+  <div class="hero-domains">
+    <span class="domain-tag">Superconductors</span>
+    <span class="domain-tag">Pharma / Polymorph Screening</span>
+    <span class="domain-tag">Semiconductors</span>
+    <span class="domain-tag">Ferroelectrics</span>
+    <span class="domain-tag">Medical Devices</span>
+    <span class="domain-tag">Geological Data</span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- TAB 1: CSV ANALYSIS -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="analyze" class="section">
+  <h2>DSF Structural Analyzer</h2>
+  <p>Upload a two-column CSV of any ordered positive scalar series — temperature vs resistance, pressure vs volume, time vs voltage. Get transition detection, precursor onset, and stability classification. Deterministic. No training. Same pipeline, same parameters across all domains.</p>
+
+  <div class="upload-area" id="dropzone">
+    <div class="upload-icon">&#x1F4C4;</div>
+    <p>Drop your CSV here or <label for="csv-file" class="file-label">browse</label></p>
+    <input type="file" id="csv-file" accept=".csv" hidden>
+    <p class="upload-hint">Two columns. First analysis free. Max 10 MB.</p>
+    <p id="file-name" class="file-selected" hidden></p>
+  </div>
+
+  <div class="context-row">
+    <input type="text" id="context-input" placeholder="Optional: what kind of data is this? (e.g., 'temperature vs resistance for a thin film')">
+  </div>
+
+  <button id="analyze-btn" class="btn btn-primary" disabled>Analyze</button>
+  <div id="analyze-status" class="status"></div>
+
+  <!-- Results -->
+  <div id="analyze-results" class="results" hidden>
+    <h3>Results</h3>
+
+    <div class="result-cards">
+      <div class="card">
+        <h4>Transitions</h4>
+        <div id="result-transitions"></div>
+      </div>
+      <div class="card">
+        <h4>Regime Map</h4>
+        <div id="result-regimes"></div>
+      </div>
+      <div class="card">
+        <h4>Precursor</h4>
+        <div id="result-precursor"></div>
+      </div>
+      <div class="card">
+        <h4>Uncertainty Peak</h4>
+        <div id="result-uncertainty"></div>
+      </div>
+    </div>
+
+    <div class="result-meta">
+      <span id="result-points"></span>
+      <span id="result-segments"></span>
+      <span id="result-time"></span>
+    </div>
+
+    <div class="download-warning">
+      Download your results now — we do not store your data or analysis. Once you leave this page, the results are gone. Per-analysis credits are consumed on each run. Academic and Industry plans include unlimited re-runs.
+    </div>
+    <div class="download-row">
+      <button id="download-json" class="btn btn-primary">Download JSON</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- TAB 2: CLUSTER SCREENER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="cluster" class="section section-alt">
+  <h2>Nanoparticle Property Predictor</h2>
+  <p>Predict nanoparticle properties from element, cluster size, and lattice type. Proprietary geometric model — a different computation from the CSV analyzer above. 4 property types, 23 d-metals, 5 magic sizes. No DFT. Milliseconds per prediction.</p>
+
+  <div class="cluster-form">
+    <div class="form-group">
+      <label for="cluster-element">Element</label>
+      <select id="cluster-element">
+        <option value="Au">Au — Gold</option>
+        <option value="Ag">Ag — Silver</option>
+        <option value="Cu">Cu — Copper</option>
+        <option value="Pt">Pt — Platinum</option>
+        <option value="Pd">Pd — Palladium</option>
+        <option value="Ni">Ni — Nickel</option>
+        <option value="Co">Co — Cobalt</option>
+        <option value="Fe">Fe — Iron</option>
+        <option value="Mn">Mn — Manganese</option>
+        <option value="Cr">Cr — Chromium</option>
+        <option value="Ir">Ir — Iridium</option>
+        <option value="Rh">Rh — Rhodium</option>
+        <option value="Ru">Ru — Ruthenium</option>
+        <option value="Os">Os — Osmium</option>
+        <option value="Re">Re — Rhenium</option>
+        <option value="W">W — Tungsten</option>
+        <option value="Mo">Mo — Molybdenum</option>
+        <option value="Ta">Ta — Tantalum</option>
+        <option value="Nb">Nb — Niobium</option>
+        <option value="Hf">Hf — Hafnium</option>
+        <option value="Zr">Zr — Zirconium</option>
+        <option value="Ti">Ti — Titanium</option>
+        <option value="V">V — Vanadium</option>
+        <option value="Sc">Sc — Scandium</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="cluster-size">Cluster Size</label>
+      <select id="cluster-size">
+        <option value="13">13 atoms (1 shell)</option>
+        <option value="55">55 atoms (2 shells)</option>
+        <option value="147">147 atoms (3 shells)</option>
+        <option value="309">309 atoms (4 shells)</option>
+        <option value="561">561 atoms (5 shells)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="cluster-lattice">Superlattice</label>
+      <select id="cluster-lattice">
+        <option value="cubic">Cubic</option>
+        <option value="hexagonal">Hexagonal</option>
+      </select>
+    </div>
+    <button id="cluster-btn" class="btn btn-primary">Predict</button>
+  </div>
+
+  <div id="cluster-results" class="results" hidden>
+    <h3 id="cluster-title"></h3>
+    <div class="property-grid">
+      <div class="property-card">
+        <div class="property-label">Magnetic Moment</div>
+        <div class="property-value" id="prop-moment"></div>
+        <div class="property-unit">&mu;<sub>B</sub>/atom</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">Electron Affinity</div>
+        <div class="property-value" id="prop-ea"></div>
+        <div class="property-unit">eV</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">Seebeck Coefficient</div>
+        <div class="property-value" id="prop-seebeck"></div>
+        <div class="property-unit">&mu;V/K</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">HOMO-LUMO Gap</div>
+        <div class="property-value" id="prop-gap"></div>
+        <div class="property-unit">eV</div>
+      </div>
+    </div>
+    <div class="cluster-meta">
+      <span id="cluster-geometry"></span>
+      <span id="cluster-dband"></span>
+      <span id="cluster-disruption"></span>
+    </div>
+    <div id="cluster-warning" class="cluster-warning" hidden></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- THERMOCOUPLE PAIR FINDER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="thermocouple" class="section">
+  <h2>Thermocouple Pair Finder</h2>
+  <p>Utility built on the Cluster Predictor's Seebeck output. Finds the nanoparticle pair with maximum Seebeck difference for highest voltage output.</p>
+
+  <div class="cluster-form">
+    <div class="form-group">
+      <label for="tc-size">Cluster Size</label>
+      <select id="tc-size">
+        <option value="13">13 atoms (1 shell)</option>
+        <option value="55">55 atoms (2 shells)</option>
+        <option value="147">147 atoms (3 shells)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="tc-min-delta">Min &Delta;S (&mu;V/K)</label>
+      <select id="tc-min-delta">
+        <option value="50">50</option>
+        <option value="80" selected>80</option>
+        <option value="100">100</option>
+        <option value="120">120</option>
+        <option value="140">140</option>
+        <option value="150">150</option>
+        <option value="160">160</option>
+      </select>
+    </div>
+    <button id="tc-btn" class="btn btn-primary">Find Pairs</button>
+  </div>
+
+  <div id="tc-results" hidden>
+    <h3 id="tc-title"></h3>
+    <table class="tc-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Material A</th>
+          <th>Material B</th>
+          <th>&Delta;S (&mu;V/K)</th>
+          <th>S<sub>A</sub></th>
+          <th>S<sub>B</sub></th>
+        </tr>
+      </thead>
+      <tbody id="tc-tbody"></tbody>
+    </table>
+    <p class="table-note" id="tc-note"></p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- WORKED EXAMPLE -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="example" class="section">
+  <h2>What DSF-AI Finds</h2>
+  <p>The same engine analyzes data from any domain. Here are real results from physics and pharmaceutical data.</p>
+
+  <div class="example-grid">
+    <div class="card">
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> Superconductor R(T)</h4>
+      <p>YBCO — the most studied superconductor in history.</p>
+      <ul>
+        <li>Transition at <strong>93K</strong> (confirmed)</li>
+        <li>Precursor onset at <strong>106K</strong> — 13K early warning</li>
+        <li>Structural precursors typically require specialized probes (ARPES, NMR). DSF-AI finds them from the transport curve alone.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> Pharma DSC</h4>
+      <p>Simulated drug compound — heat flow vs temperature.</p>
+      <ul>
+        <li>Glass transition at <strong>62°C</strong></li>
+        <li>Polymorph I at <strong>86°C</strong></li>
+        <li>Polymorph II at <strong>143°C</strong></li>
+        <li>Melt at <strong>211°C</strong></li>
+        <li>Decomposition onset at <strong>263°C</strong></li>
+      </ul>
+      <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">5 transitions found automatically. FDA polymorph screening requires identifying all crystalline forms.</p>
+    </div>
+    <div class="card">
+      <h4><span style="background:#fce7f3;color:#9d174d;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Cluster Predictor</span> Au<sub>13</sub></h4>
+      <ul>
+        <li>HOMO-LUMO gap: <strong>0.648 eV</strong> (measured: 0.650 eV, 0.3% off)</li>
+        <li>Seebeck: <strong>+87.6 &mu;V/K</strong> (measured: +93, 5.8% off)</li>
+        <li>Electron affinity: <strong>3.71 eV</strong> (measured: 3.80 eV, 2.4% off)</li>
+      </ul>
+      <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">Geometric model, not the CSV analyzer. <a href="/static/validation.html">Validation details</a>.</p>
+    </div>
+    <div class="card">
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> 7 Materials</h4>
+      <table class="example-table">
+        <tr><th>Data Type</th><th>Domain</th><th>Transitions Found</th></tr>
+        <tr><td>R(T)</td><td>Superconductors (4)</td><td>All detected</td></tr>
+        <tr><td>R(T)</td><td>Metal-insulator</td><td>Yes</td></tr>
+        <tr><td>Dielectric(T)</td><td>Ferroelectric</td><td>Yes</td></tr>
+        <tr><td>DSC</td><td>Pharma polymorph</td><td>5 of 5</td></tr>
+      </table>
+      <p class="table-note">Same engine. No domain configuration. No per-material tuning. <a href="/static/validation.html">Full validation evidence</a>.</p>
+    </div>
+    <div class="card">
+      <h4>Try It On Your Data</h4>
+      <p>Download a sample CSV and upload it above:</p>
+      <ul>
+        <li><a href="/static/sample_ybco.csv">Superconductor R(T)</a> (0.5 KB)</li>
+        <li><a href="/static/sample_pharma_dsc.csv">Pharma DSC</a> (29 KB)</li>
+        <li><a href="/static/sample_vo2.csv">Metal-insulator</a> (0.3 KB)</li>
+        <li><a href="/static/sample_batio3.csv">Ferroelectric</a> (0.4 KB)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- PRICING -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="pricing" class="section section-alt">
+  <h2>Pricing</h2>
+
+  <div class="pricing-free-note">
+    <strong>Cluster Screener is always free.</strong> Predict nanoparticle properties for any element, any cluster size, unlimited predictions. No account required.
+  </div>
+
+  <h3 class="pricing-subtitle">CSV Structural Analysis</h3>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h4>Free Trial</h4>
+      <div class="price">$0</div>
+      <p>First CSV analysis free. No signup.</p>
+    </div>
+    <div class="pricing-card">
+      <h4>Per Analysis</h4>
+      <div class="price">$25</div>
+      <p>Pay per curve. Web upload.</p>
+      <button class="btn btn-small buy-btn" data-tier="per_analysis">Buy Analysis</button>
+    </div>
+    <div class="pricing-card featured">
+      <h4>Academic</h4>
+      <div class="price">$5K/yr</div>
+      <p>Unlimited CSV analyses. API access.</p>
+      <button class="btn btn-small buy-btn" data-tier="academic">Subscribe</button>
+    </div>
+    <div class="pricing-card">
+      <h4>Industry</h4>
+      <div class="price">$50K/yr</div>
+      <p>API + SLA. Batch processing.</p>
+      <button class="btn btn-small buy-btn" data-tier="industry">Contact Us</button>
+    </div>
+  </div>
+  <p class="pricing-contact">Questions about billing or plans? <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<footer>
+  <p>DSF-AI &copy; 2026. Universal structural analysis service.</p>
+  <p class="footer-note"><a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+  <p class="footer-note" style="font-size:0.8rem;color:#999;">Tried DSF-AI on your own data? Tell us what happened — what worked, what didn't, what surprised you. <a href="mailto:support@dsf-ai.com?subject=DSF-AI%20Feedback">Send feedback</a></p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

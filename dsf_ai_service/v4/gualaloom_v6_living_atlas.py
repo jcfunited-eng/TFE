@@ -1,0 +1,1051 @@
+"""
+gualaloom_v6_living_atlas.py — Atlas as living substrate, not append-only ledger
+
+The three primitive facts mechanized into atlas physics:
+
+ENTROPY:  Every binding has a strength in [0,1]. Each tick, all bindings decay
+          by λ * strength. Without reinforcement, every binding fades to noise.
+          This is the negative space operator from the spec, finally wired.
+
+COHESION: Reinforcement on re-encounter. When a chi-band is touched again,
+          the binding's strength increases. Cohesion is the local force that
+          fights entropy — repeated experience accumulating against decay.
+
+GREED IN FLUX: Reinforcement amount is modulated by SALIENCE — the substrate's
+          current state at the moment of encounter. High salience (pair-bond
+          active + unmet need + novel input) produces large reinforcement.
+          Low salience (satisfied state, familiar repetition) produces small
+          reinforcement. Greed for experience is built into HOW MUCH a moment
+          shapes her, not whether moments are recorded.
+
+Meaning is the substrate's current attractor landscape — chi-bands where
+strength has accumulated enough to dominate decay. Forgotten bindings ARE
+forgotten (strength below threshold). Recently-reinforced bindings dominate
+recall. The atlas IS her associative world, alive, decaying, accumulating.
+
+Backward compatibility: keeps ChiAtlas interface (record, match_score,
+cross_modal_bindings, query_associations) so v5 engine works without changes.
+"""
+
+import copy
+import math
+import os
+from collections import defaultdict, Counter
+
+
+# ============================================================
+# Physics constants
+# ============================================================
+
+# Entropy: decay rate per tick (small — bindings fade slowly, allowing
+# accumulation to dominate over short timescales but enforcing forgetting
+# over long ones)
+DECAY_LAMBDA = 0.0001  # per tick (was 0.001 — too aggressive, 10x slower now)
+
+# 60-T: BASE_REINFORCEMENT, SALIENCE_MIN, SALIENCE_MAX dropped.
+# Salience returns raw derivation. Reinforcement scales with salience / (1 + local_density).
+# Kept as module-level names for backward import compatibility (evaluates to None-ish).
+BASE_REINFORCEMENT = None   # superseded by density-scaled impulse (60-T)
+SALIENCE_MIN = None         # clamp removed — high salience is a real signal (60-T)
+SALIENCE_MAX = None         # clamp removed — near-zero is also a real signal (60-T)
+BUNDLE_SALIENCE_BOOST = 1.5   # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes get extra impulse
+
+# Forgetting threshold: bindings below this strength are pruned periodically
+FORGETTING_THRESHOLD = 0.02
+
+# Atlas band (carried from v5)
+CHI_BAND = 2
+
+# GL-BUG-HARD-NEIGHBORHOOD-CUTOFF (Joe, 2026-07-06): decay rate for
+# match_score's distance weighting (see that method for the full rationale).
+# 0.5 gives a smooth, meaningful gradient across the existing band width
+# (d=0 -> 1.0, d=1 -> ~0.61, d=2 -> ~0.37 before mean-normalization) rather
+# than either a hard wall or a decay so steep the band's outer edge stops
+# mattering at all. match_score normalizes these by the band's own mean so
+# a hit smeared evenly across the band still scores where it always did.
+CHI_DISTANCE_DECAY = 0.5
+
+# Strength cap to prevent runaway accumulation
+STRENGTH_CAP = 1.0
+
+# Metaplastic decay constants (GL-BRIEF-033)
+SLOW_DIV = 12          # slow channel = DECAY_LAMBDA / SLOW_DIV (~2.3h half-life)
+DWELL_GATE_META = 4    # dwell >= this → slow channel
+META_K = 2.0           # metaplastic slowdown factor
+
+# GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711: bounded immunity
+# from heterosynaptic redistribution theft (see record()'s reinforce
+# branch below) for freshly-taught, interactively-attended bindings.
+#
+# Root cause (GL-RPT-INDEX-INVARIANT-C1-20260704-163-v1 Part B, re-
+# confirmed live against this current code 2026-07-11): a one-shot
+# give_experience-taught word can be evicted well before it ever gets a
+# second genuine re-exposure OR survives to a real dream/consolidation
+# cycle (dream_promotion_gate only evaluates entries during an actual
+# DREAMING/DAYDREAMING state transition -- reading/chatting alone never
+# triggers it), because *other* words reinforced at its shared chi
+# address steal from it every single time via the mass-conservation
+# redistribution below, long before any such cycle runs.
+#
+# Scope, deliberately narrow:
+#  - CREATION-TIME ONLY. Set once, when a brand-new binding is written
+#    (see the `else:` branch of record()); never renewed on later
+#    touches. A word that goes on to be genuinely, repeatedly
+#    re-encountered earns its durability the normal way (reinforcement_
+#    count's own existing metaplastic slowdown), not through an
+#    indefinitely-extending shield.
+#  - INTERACTIVE SOURCES ONLY. Reuses the exact dwell_ticks=8 signal
+#    read_word already assigns to attended sources (see that method's
+#    "v8 (GL-BRIEF-032): dwell_ticks by source" block) -- not a new
+#    concept, not a new per-caller flag threaded through the codebase.
+#  - HARD TICK CEILING. Bounded regardless of whether/when a real dream
+#    cycle ever fires for this entry, so this can never become
+#    unbounded immunity in practice. Order of magnitude reused from
+#    REORGANIZE_HYPOTHESIS_TTL_TICKS (gualaloom_v5_engine.py, "~ a few
+#    real sleep cycles at 200-tick dream spacing") -- same purpose (give
+#    real consolidation a fair chance before content is treated as
+#    abandoned), same derivation; restated here since this module does
+#    not import that constant.
+#  - VICTIM-SIDE ONLY. A protected entry is exempt from LOSING strength
+#    to another entry's reinforcement at the same chi. It is NOT exempt
+#    from decay() (entropy is untouched, see that method -- unmodified
+#    by this fix), and if a protected entry is itself reinforced, its
+#    own reinforcement still draws from unprotected neighbors exactly as
+#    before (this fix grants no extra offensive power, only defense).
+#
+# ONE_SHOT_PROTECTED_ENABLED: single flag, same rollback convention as
+# META_DECAY_ENABLED/REORGANIZE_ENABLED elsewhere in this codebase.
+ONE_SHOT_PROTECTION_TICKS = 40_000
+ONE_SHOT_PROTECTED_SOURCES = frozenset({"joe", "joe_voice", "wc", "c1"})
+
+
+def _one_shot_protection_enabled():
+    return os.environ.get("ONE_SHOT_PROTECTED_ENABLED", "1") != "0"
+
+
+def _meta_decay_enabled():
+    return os.environ.get("META_DECAY_ENABLED", "1") != "0"
+
+
+# ============================================================
+# Living atlas
+# ============================================================
+
+class LivingAtlas:
+    """Atlas where bindings have strength, decay, and salience-modulated growth.
+
+    Replaces v4/v5 ChiAtlas while preserving interface. Entries are stored as
+    dicts with 'strength' and 'last_tick' alongside existing fields.
+    """
+
+    def __init__(self, band=CHI_BAND):
+        self.band = band
+        self.tick = 0
+        # chi -> list of {section, motif, chi, strength, last_tick, born_tick}
+        self.entries = defaultdict(list)
+        # Compatibility object only. Production BindingWindows are transient
+        # experience boundaries and never populate a closed-window mirror.
+        self.windows = {}
+
+    def persistence_snapshot(self):
+        """Return a detached, lossless snapshot of the complete living field.
+
+        A cold save releases the engine's brief snapshot boundary before it
+        performs slow EFS writes.  Every binding dictionary, including nested
+        structural facts and causal citations, therefore has to be detached
+        here.  Copying only the bucket lists leaves their live dictionaries
+        shared with cognition and can move ``last_tick`` beyond the captured
+        core tick while that older generation is being serialized.
+        """
+        return {
+            "entries": {
+                str(chi): copy.deepcopy(bindings)
+                for chi, bindings in self.entries.items()
+            },
+            "tick": self.tick,
+            "cross_hemi_links": [],
+        }
+
+    def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
+               dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
+               need_pressure=0.0, sensory_refs=None, episode_ref=None,
+               source="corpus", bundle_id=None,
+               presence=None, location=None, sky_state=None,
+               place=None, ambient=None,
+               polarity=1,
+               function_score=0.0, phase_vec=None,
+               window_id=None, window_entry_index=None,
+               structural_fact=None,
+               causal_experience_id=None,
+               causal_intake_receipt_sha256=None,
+               **_extra):
+        """Record a new binding OR reinforce existing one if (section, motif)
+        already present near this chi. Salience modulates the strength impulse.
+
+        GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: window_id/
+        window_entry_index are additive, optional cross-reference fields
+        -- when a caller routes through WindowManager.add_entry(), these
+        name which binding window this specific commit belongs to, so a
+        future recall mechanism can retrieve window siblings. None when a
+        caller writes directly (dream/correction paths, untouched by this
+        dispatch) -- an entry with no window is simply not yet linked to
+        one, same honest-absence convention as sensory_refs/episode_ref
+        being empty. Last-write-wins on reinforcement, same convention as
+        presence/location/sky_state above: window_id reflects the most
+        recent experience-moment that touched this binding, not the
+        original one (episode_ref already covers first-encounter).
+
+        GL-CLARITY-INVARIANCE-UNCAGE: affect kwargs (arousal, valence, surprise,
+        need_pressure) set initial clarity. Grounding kwargs (sensory_refs,
+        episode_ref) track what was happening when the binding formed.
+
+        Salience interpretation:
+          1.0 = baseline (corpus read, no pair-bond, satisfied needs)
+          > 1.0 = elevated (pair-bond active OR unmet need OR novel input)
+          < 1.0 = dampened (familiar repetition, fully satisfied)
+
+        dwell_ticks: how many ticks this binding was attended before commit.
+          Stored at write time for deep atlas compound gate (GL-BRIEF-032).
+          DWELL_GATE_META for dream replay (consolidation IS dwell-earning).
+          Zero for presence pulses (not consolidation events).
+        """
+        if tick is None:
+            tick = self.tick
+        self.tick = max(self.tick, tick)
+        causal_reference = None
+        # Bounded historical citation only.  This pair is never an auditory
+        # recognition or replay authority; live admission remains exclusively
+        # owned by AuditoryIncrementalTerminalRegistry.
+        if (
+            causal_experience_id is None
+            and causal_intake_receipt_sha256 is None
+        ):
+            pass
+        elif (
+            isinstance(causal_experience_id, str)
+            and len(causal_experience_id) == 64
+            and all(
+                character in "0123456789abcdef"
+                for character in causal_experience_id
+            )
+            and isinstance(causal_intake_receipt_sha256, str)
+            and len(causal_intake_receipt_sha256) == 64
+            and all(
+                character in "0123456789abcdef"
+                for character in causal_intake_receipt_sha256
+            )
+        ):
+            causal_reference = {
+                "causal_experience_id": causal_experience_id,
+                "causal_intake_receipt_sha256": (
+                    causal_intake_receipt_sha256
+                ),
+            }
+        else:
+            raise ValueError(
+                "causal Atlas provenance must be a complete digest pair"
+            )
+
+        # 60-T: no salience clamp — raw derivation. High salience IS a real signal.
+        # Impulse = salience / (1 + local_density): empty regions amplify, saturated regions attenuate.
+        _local_strength = 0.0
+        _wa = getattr(self, '_wave_atlas', None)
+        if _wa is not None:
+            _cell = _wa.cells.get(chi_value % 262144)
+            if _cell is not None:
+                _local_strength = _cell.aggregate_strength
+        impulse = salience / (1.0 + _local_strength)
+        # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes earn extra impulse.
+        if bundle_id is not None:
+            impulse *= BUNDLE_SALIENCE_BOOST
+
+        # GL-CLARITY-INVARIANCE-UNCAGE: clarity from affect state
+        # GL-CMD-CROSS-MODAL-STRENGTHEN B3: bundled writes earn +0.2 clarity floor
+        bundle_boost = 0.2 if bundle_id is not None else 0.0
+        clarity = min(1.0, 0.3 + 0.3 * arousal + 0.2 * abs(valence)
+                      + 0.2 * surprise + 0.1 * need_pressure + bundle_boost)
+
+        # For each chi within band, find or create the entry
+        for d in range(-self.band, self.band + 1):
+            chi_k = chi_value + d
+            entries = self.entries[chi_k]
+
+            # Look for existing entry from same (section, motif, polarity).
+            # GL-CMD-C1-POLARITY: +1 and -1 polarity are distinct binding instances.
+            existing = None
+            for e in entries:
+                if (e["section"] == section_name and e["motif"] == motif_id
+                        and e.get("polarity", 1) == polarity):
+                    existing = e
+                    break
+
+            if existing is not None:
+                # GL-CMD-CHI-BAND-MASS-CONSERVATION: capture pre-impulse strength
+                old_strength = existing["strength"]
+                # Reinforce — bounded by cap
+                existing["strength"] = min(STRENGTH_CAP, existing["strength"] + impulse)
+                existing["last_tick"] = tick
+                # encoded_strength = post-impulse strength on EVERY reinforcement
+                existing["encoded_strength"] = existing["strength"]
+                # dwell_ticks tracks max dwell seen (honest record)
+                if dwell_ticks > existing.get("dwell_ticks", 0):
+                    existing["dwell_ticks"] = dwell_ticks
+                # Metaplastic: increment reinforcement count (GL-BRIEF-033)
+                existing["reinforcement_count"] = existing.get("reinforcement_count", 0) + 1
+                # GL-CLARITY: renew clarity on reinforcement (max, not average)
+                existing["clarity"] = max(existing.get("clarity", 0.3), clarity)
+                # GL-METADATA-PIPELINE: store raw affect (max) + source (last-write-wins)
+                existing["arousal"] = max(existing.get("arousal", 0.5), arousal)
+                existing["valence"] = max(existing.get("valence", 0.0), valence)
+                existing["surprise"] = max(existing.get("surprise", 0.0), surprise)
+                existing["source"] = source
+                # GL-CMD-CROSS-MODAL-BUNDLE: last-write-wins on bundle_id
+                if bundle_id is not None:
+                    existing["bundle_id"] = bundle_id
+                # GL-CMD-EPISODE-BINDING: situation — last-write-wins
+                if presence is not None:
+                    existing["presence"] = presence
+                    # GL-FIX-EXPOSURE-GAP-C1-20260711: the last-write-wins
+                    # assignment above discards WHO-was-here history on every
+                    # reinforcement -- a binding first formed with Joe
+                    # present, later touched while he's away, would silently
+                    # forget Joe was ever there (or the reverse). presence_
+                    # ever/presence_observations accumulate the SAME real
+                    # per-call presence snapshot instead of overwriting it --
+                    # no new data source, this only retains what this call
+                    # already computed. See exposure_gap() below for the one
+                    # honest, bounded claim this supports: knowledge-GAP
+                    # tracking (present/absent-in-the-record), never belief
+                    # modeling -- absence of a record is not evidence a
+                    # source truly never learned this elsewhere.
+                    existing["presence_observations"] = (
+                        existing.get("presence_observations", 0) + 1)
+                    _ever = existing.get("presence_ever", [])
+                    for _seen_src in presence:
+                        if _seen_src not in _ever:
+                            _ever.append(_seen_src)
+                    existing["presence_ever"] = _ever
+                if location is not None:
+                    existing["location"] = location
+                if sky_state is not None:
+                    existing["sky_state"] = sky_state
+                # GL-CMD-SCENE-LANES-B1-188 V1: WHERE/AMBIENT lanes -- same
+                # last-write-wins convention as location/sky_state above.
+                if place is not None:
+                    existing["place"] = place
+                if ambient is not None:
+                    existing["ambient"] = ambient
+                # GL-CMD-BINDING-WINDOWS-BUILD: last-write-wins, see record()'s
+                # own docstring for why (current experience-moment, not origin).
+                if window_id is not None:
+                    existing["window_id"] = window_id
+                    existing["window_entry_index"] = window_entry_index
+                if structural_fact is not None and d == 0:
+                    existing["structural_fact"] = copy.deepcopy(
+                        structural_fact)
+                if causal_reference is not None and d == 0:
+                    causal_refs = existing.get(
+                        "causal_experience_refs", []
+                    )
+                    if causal_reference not in causal_refs:
+                        causal_refs.append(causal_reference)
+                    existing["causal_experience_refs"] = causal_refs[-4:]
+                # episode_ref: first-encounter canonical — only set if empty
+                if episode_ref is not None and existing.get("episode_ref") is None:
+                    existing["episode_ref"] = episode_ref
+                # GL-CMD-C1-POLARITY: per-binding-instance, NOT per-coordinate.
+                # Both +1 and -1 bindings coexist for the same motif+chi.
+                # Reinforce preserves the polarity written at binding creation.
+                # (New polarity variants create new entries via the else path.)
+                # GL-CLARITY: accumulate sensory refs
+                if sensory_refs:
+                    refs = existing.get("sensory_refs", [])
+                    for r in sensory_refs:
+                        if r not in refs:
+                            refs.append(r)
+                    existing["sensory_refs"] = refs[-8:]  # cap at 8
+                if episode_ref and episode_ref != existing.get("episode_ref"):
+                    existing["episode_refs"] = (existing.get("episode_refs", [])
+                                                + [episode_ref])[-4:]
+                # GL-CMD-CHI-BAND-MASS-CONSERVATION: heterosynaptic redistribution.
+                # actual_delta (not impulse) accounts for cap absorption.
+                # Redistributes exactly what existing gained from all other entries
+                # at this chi address, proportional to their current strength.
+                actual_delta = existing["strength"] - old_strength
+                if actual_delta > 0:
+                    others = [e for e in entries if e is not existing]
+                    # total_other/share are computed over ALL others, exactly
+                    # as before this fix -- deliberately NOT narrowed to
+                    # unprotected entries. Narrowing the denominator would
+                    # concentrate a protected neighbor's exempted share onto
+                    # the REMAINING ordinary entries at this chi (each would
+                    # then lose MORE than the pre-fix formula gives them,
+                    # purely because of who else happens to share the
+                    # address) -- a real second-order distortion of ordinary
+                    # physics an earlier version of this fix had (caught by
+                    # this file's own adversarial re-review, 2026-07-11).
+                    # Computing shares against the unchanged population and
+                    # only skipping the WRITE for protected entries (below)
+                    # keeps every unprotected entry's own loss identical,
+                    # tick for tick, to what it would have been with no
+                    # protection mechanism in play at all -- the exempted
+                    # share simply goes uncollected (same class of bounded
+                    # non-conservation this method already accepts when
+                    # total_other is 0, i.e. no other residents at all).
+                    total_other = sum(e["strength"] for e in others)
+                    if total_other > 0:
+                        _protection_on = _one_shot_protection_enabled()
+                        for e in others:
+                            # GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711:
+                            # entries still inside their one-shot protection
+                            # window (see ONE_SHOT_PROTECTION_TICKS docstring
+                            # above) do not pay heterosynaptic tax -- skip the
+                            # write, not the share calculation. Ordinary
+                            # bindings (protected_until_tick absent/0, the
+                            # overwhelming common case) are never skipped:
+                            # this branch is then byte-identical to the
+                            # pre-fix code for every entry present.
+                            if (_protection_on
+                                    and e.get("protected_until_tick", 0) > tick):
+                                continue
+                            share = e["strength"] / total_other
+                            e["strength"] = max(0.0,
+                                                e["strength"] - actual_delta * share)
+            else:
+                # New binding — tag encoded_strength and dwell at write time
+                new_strength = min(STRENGTH_CAP, impulse)
+                new_entry = {
+                    "section": section_name,
+                    "motif": motif_id,
+                    "chi": chi_value,
+                    "strength": new_strength,
+                    "last_tick": tick,
+                    "born_tick": tick,
+                    "encoded_strength": new_strength,
+                    "dwell_ticks": dwell_ticks,
+                    "reinforcement_count": 0,
+                    "released": False,
+                    # GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711:
+                    # set ONCE at creation for interactively-taught bindings
+                    # only (see ONE_SHOT_PROTECTION_TICKS docstring above);
+                    # never renewed on later reinforcement. 0 (falsy against
+                    # any real tick) for every ordinary corpus/background/
+                    # self-heard binding -- these are physically identical
+                    # to today's entries in every other respect.
+                    "protected_until_tick": (
+                        tick + ONE_SHOT_PROTECTION_TICKS
+                        if (_one_shot_protection_enabled()
+                            and source in ONE_SHOT_PROTECTED_SOURCES
+                            and dwell_ticks >= DWELL_GATE_META)
+                        else 0
+                    ),
+                    "clarity": clarity,
+                    "initial_clarity": clarity,
+                    "sensory_refs": list(sensory_refs) if sensory_refs else [],
+                    "episode_refs": [episode_ref] if episode_ref else [],
+                    # GL-METADATA-PIPELINE: raw affect + source for 8D grandurun
+                    "arousal": arousal,
+                    "valence": valence,
+                    "surprise": surprise,
+                    "source": source,
+                    # GL-SPC-HEMISPHERE-ARCH: hemisphere tag (Phase 0: always em)
+                    "hemisphere_id": "em",
+                    # GL-CMD-CROSS-MODAL-BUNDLE: AE-native binding marker (None = untagged)
+                    "bundle_id": bundle_id,
+                    # GL-CMD-EPISODE-BINDING: situational context at binding formation
+                    "episode_ref": episode_ref,
+                    "presence":   presence,
+                    # GL-FIX-EXPOSURE-GAP-C1-20260711: see the reinforce
+                    # branch above for the full rationale. presence_
+                    # observations counts real presence checks made on this
+                    # binding (0 if `presence` was never resolved for it, as
+                    # with plain corpus/curriculum reads -- honest "no data",
+                    # never treated as "nobody was here"). presence_ever is
+                    # the union of every source-name this binding has ever
+                    # actually co-occurred with, across creation AND every
+                    # reinforcement -- unlike "presence" above (last-write-
+                    # wins), this is never overwritten, only appended to.
+                    "presence_observations": 1 if presence is not None else 0,
+                    "presence_ever": list(presence) if presence else [],
+                    "location":   location,
+                    "sky_state":  sky_state,
+                    # GL-CMD-SCENE-LANES-B1-188 V1: WHERE/AMBIENT, bound at
+                    # write time same as presence/location/sky_state above.
+                    "place":      place,
+                    "ambient":    ambient,
+                    # GL-CMD-C1-POLARITY: structural polarity {-1, 0, +1}, default +1
+                    "polarity":   polarity,
+                    # 60-C: substrate-derived function/content score (0=content, 1=function)
+                    "function_score": function_score,
+                }
+                if window_id is not None:
+                    new_entry["window_id"] = window_id
+                    new_entry["window_entry_index"] = window_entry_index
+                if structural_fact is not None and d == 0:
+                    # The exact chi cell retains the explicit full field.
+                    # Soft-band routing replicas do not repeat the payload.
+                    new_entry["structural_fact"] = copy.deepcopy(
+                        structural_fact)
+                if causal_reference is not None and d == 0:
+                    new_entry["causal_experience_refs"] = [
+                        causal_reference
+                    ]
+                entries.append(new_entry)
+
+        # Wave atlas parallel write (WAVE_ATLAS_ENABLED=1)
+        self._parallel_wave_write(
+            section_name, motif_id, chi_value, tick,
+            salience, phase_vec, function_score,
+            dwell_ticks, arousal, valence, surprise,
+            need_pressure, sensory_refs, episode_ref,
+            source, bundle_id, presence, location,
+            sky_state, polarity,
+        )
+
+    def _parallel_wave_write(self, section_name, motif_id, chi_value, tick,
+                              salience, phase_vec, function_score,
+                              dwell_ticks, arousal, valence, surprise,
+                              need_pressure, sensory_refs, episode_ref,
+                              source, bundle_id, presence, location,
+                              sky_state, polarity):
+        """Forward write to WaveAtlas if wired (WAVE_ATLAS_ENABLED=1)."""
+        _wa = getattr(self, '_wave_atlas', None)
+        if _wa is None:
+            return
+        try:
+            _wa.record(
+                section_name, motif_id, chi_value, tick=tick,
+                salience=salience, phase_vec=phase_vec,
+                function_score=function_score,
+                dwell_ticks=dwell_ticks, arousal=arousal, valence=valence,
+                surprise=surprise, need_pressure=need_pressure,
+                sensory_refs=sensory_refs, episode_ref=episode_ref,
+                source=source, bundle_id=bundle_id, presence=presence,
+                location=location, sky_state=sky_state, polarity=polarity,
+            )
+        except Exception as _e:
+            import logging
+            logging.getLogger("gualaloom").warning(
+                "[WaveAtlas] parallel write error: %s", _e)
+
+    def repair_pass(self):
+        """GL-CMD-CHI-BAND-MASS-CONSERVATION: one-time renormalization at deploy.
+
+        Rescales chi bands that have accumulated above n × BASELINE.
+        BASELINE = (STRENGTH_CAP + FORGETTING_THRESHOLD) / 2 — substrate-derived
+        midpoint of the meaningful strength range. No tuned constants.
+        Rank order within each band preserved (proportional scale).
+        Returns stats for deploy V2 verification.
+        """
+        BASELINE = (STRENGTH_CAP + FORGETTING_THRESHOLD) / 2
+        repaired_bands = 0
+        repaired_bindings = 0
+        total_strength_before = 0.0
+        total_strength_after = 0.0
+
+        for chi_k, entries in self.entries.items():
+            live = [e for e in entries if e["strength"] >= FORGETTING_THRESHOLD]
+            if not live:
+                continue
+            n = len(live)
+            current_total = sum(e["strength"] for e in live)
+            total_strength_before += current_total
+            target_total = n * BASELINE
+            if current_total > target_total:
+                scale = target_total / current_total
+                for e in live:
+                    e["strength"] *= scale
+                repaired_bands += 1
+                repaired_bindings += n
+                total_strength_after += target_total
+            else:
+                total_strength_after += current_total
+
+        return {
+            "repaired_bands": repaired_bands,
+            "repaired_bindings": repaired_bindings,
+            "total_strength_before": round(total_strength_before, 2),
+            "total_strength_after": round(total_strength_after, 2),
+            "baseline_used": round(BASELINE, 4),
+        }
+
+    def decay(self, current_tick=None, rate_scale=1.0):
+        """Apply per-tick decay to all bindings. Called every 10 ticks.
+
+        GL-BRIEF-033: Two-speed metaplastic decay.
+        A. dwell >= 4 AND not released → slow channel (DECAY_LAMBDA / SLOW_DIV)
+        B. lam_eff = lam_base / (1 + K * reinforcement_count)
+        Legacy entries (no dwell_ticks field) get global DECAY_LAMBDA.
+        META_DECAY_ENABLED=0 → exact legacy behavior.
+        rate_scale: Fix C (GL-FIX-THREE) — external multiplier on lam_eff.
+        1.0 = normal (bit-identical to pre-change). 0.0 = no decay.
+        """
+        if current_tick is None:
+            current_tick = self.tick
+        meta = _meta_decay_enabled()
+        # UNPAUSE: env-var overrides for Step-3 calibrated constants
+        import os as _os
+        _lam = float(_os.environ.get("DECAY_LAMBDA_OVERRIDE", 0) or 0) or DECAY_LAMBDA
+        _sdiv = float(_os.environ.get("SLOW_DIV_OVERRIDE", 0) or 0) or SLOW_DIV
+        for chi_k, entries in self.entries.items():
+            for e in entries:
+                dt = max(0, current_tick - e["last_tick"])
+                if dt > 0:
+                    if meta and "dwell_ticks" in e:
+                        dwell = e.get("dwell_ticks", 0)
+                        released = e.get("released", False)
+                        if dwell >= DWELL_GATE_META and not released:
+                            lam_base = _lam / _sdiv
+                        else:
+                            lam_base = _lam
+                        rc = e.get("reinforcement_count", 0)
+                        lam_eff = lam_base / (1.0 + META_K * rc)
+                    else:
+                        lam_eff = _lam
+                    lam_eff *= rate_scale  # Fix C: external modulation
+                    decay_factor = math.exp(-lam_eff * dt)
+                    e["strength"] *= decay_factor
+                    e["last_tick"] = current_tick
+                    # GL-CLARITY: slow clarity entropy (separate clock, ~10x slower)
+                    if "clarity" in e and dt > 0 and rate_scale > 0:
+                        clarity_lam = lam_eff * 0.1  # 10x slower than strength
+                        e["clarity"] = max(0.05, e["clarity"] * math.exp(-clarity_lam * dt))
+                    # GL-CMD-WAVE-SEMANTICS-85 Part B.2: decay WaveAtlas counterpart
+                    # lockstep — same factor, same operation. Join key: (chi, section, motif).
+                    # Now 1:1 after Part B.1 reinforce semantics; no O(N²) risk.
+                    _wa = getattr(self, '_wave_atlas', None)
+                    if _wa is not None and decay_factor < 1.0:
+                        _e_chi = e.get("chi", chi_k)
+                        _e_sec = e.get("section", "")
+                        _e_mot = e.get("motif", 0)
+                        for _wd in range(-CHI_BAND, CHI_BAND + 1):
+                            _wcell = _wa.cells.get((_e_chi + _wd) % 262144)
+                            if _wcell is None:
+                                continue
+                            for _wb in _wcell.bindings:
+                                if (_wb.get("chi") == _e_chi
+                                        and _wb.get("section") == _e_sec
+                                        and _wb.get("motif") == _e_mot):
+                                    _old = _wb.get("strength", 0.0)
+                                    _wb["strength"] = _old * decay_factor
+                                    _wcell.aggregate_strength -= _old * (1.0 - decay_factor)
+
+    def renew_clarity(self, chi_value, section_name, motif_id, new_clarity):
+        """Renew clarity on a specific binding (e.g. on cortex reinstatement)."""
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["section"] == section_name and e["motif"] == motif_id:
+                    e["clarity"] = max(e.get("clarity", 0.05), new_clarity)
+
+    def bindings_at_chi_neighborhood(self, chi_value, min_strength=0.0,
+                                      min_clarity=0.0):
+        """Return all bindings near a chi value, filtered by strength and clarity."""
+        result = []
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if (e["strength"] >= min_strength
+                        and e.get("clarity", 0.3) >= min_clarity):
+                    result.append(e)
+        return result
+
+    def window_ids_for_chis(self, chis):
+        """GL-FIX-CHI-INDEX-ELIMINATION-20260720: ordered, deduplicated
+        window_ids for a list of EXACT chi values (no neighborhood band
+        expansion -- a faithful replacement for the window-store's own
+        verbatim chi_index, which cross-referenced the exact same thing
+        via a second, separate, boot-eager structure).
+
+        record() has carried window_id/window_entry_index as an explicit
+        cross-reference field on every binding since GL-CMD-BINDING-
+        WINDOWS-BUILD-EVE-20260706-v1 specifically so "a future recall
+        mechanism can retrieve window siblings" from here -- this is that
+        mechanism. The atlas is the one structure real cognition already
+        needs resident; a caller wanting which window(s) touched a chi no
+        longer needs the window store to maintain its own parallel copy
+        of the same cross-reference."""
+        seen = set()
+        window_ids = []
+        for chi in chis:
+            for entry in self.entries.get(int(chi), ()):
+                window_id = entry.get("window_id")
+                if window_id is None or window_id in seen:
+                    continue
+                seen.add(window_id)
+                window_ids.append(window_id)
+        return window_ids
+
+    def amnesty(self, current_tick):
+        """UNPAUSE: reset last_tick on every entry to current_tick.
+        Prevents mass extinction on first decay after long pause.
+        Zero strength changes — last_tick only."""
+        count = 0
+        for entries in self.entries.values():
+            for e in entries:
+                e["last_tick"] = current_tick
+                count += 1
+        return count
+
+    def strength_distribution(self):
+        """Histogram of binding strengths for monitoring."""
+        buckets = {"0.0-0.1": 0, "0.1-0.3": 0, "0.3-0.5": 0,
+                   "0.5-0.7": 0, "0.7-0.9": 0, "0.9-1.0": 0}
+        for entries in self.entries.values():
+            for e in entries:
+                s = e["strength"]
+                if s < 0.1: buckets["0.0-0.1"] += 1
+                elif s < 0.3: buckets["0.1-0.3"] += 1
+                elif s < 0.5: buckets["0.3-0.5"] += 1
+                elif s < 0.7: buckets["0.5-0.7"] += 1
+                elif s < 0.9: buckets["0.7-0.9"] += 1
+                else: buckets["0.9-1.0"] += 1
+        return buckets
+
+    def release_to_fast(self, chi_value, section_name, motif_id):
+        """C: Post-promotion release — entry reverts to fast decay channel.
+        reinforcement_count=0, released=True. dwell_ticks stays honest."""
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["section"] == section_name and e["motif"] == motif_id:
+                    e["reinforcement_count"] = 0
+                    e["released"] = True
+
+    def decay_channel_counts(self):
+        """Instrumentation: count entries by decay channel."""
+        n_fast = 0
+        n_slow = 0
+        n_released = 0
+        for entries in self.entries.values():
+            for e in entries:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if e.get("released", False):
+                    n_released += 1
+                elif e.get("dwell_ticks", 0) >= DWELL_GATE_META:
+                    n_slow += 1
+                else:
+                    n_fast += 1
+        return {"n_fast": n_fast, "n_slow": n_slow, "n_released": n_released}
+
+    def forget_below_threshold(self):
+        """Prune bindings whose strength has decayed below threshold.
+        Returns count of forgotten bindings.
+
+        GL-CMD-WAVE-DIET-82: decay parity — forgotten LivingAtlas bindings are
+        removed from WaveAtlas in the same call so WaveAtlas stays bounded by
+        the same physics, not by a cap. Join key: (section, motif, chi_original).
+        """
+        forgotten = 0
+        forgotten_keys = set()
+        for chi_k in list(self.entries.keys()):
+            survivors = [e for e in self.entries[chi_k]
+                         if e["strength"] >= FORGETTING_THRESHOLD]
+            for e in self.entries[chi_k]:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    forgotten_keys.add((e["section"], e["motif"], e.get("chi", chi_k)))
+            forgotten += len(self.entries[chi_k]) - len(survivors)
+            if survivors:
+                self.entries[chi_k] = survivors
+            else:
+                del self.entries[chi_k]
+        # Prune WaveAtlas counterparts
+        wa = getattr(self, '_wave_atlas', None)
+        if forgotten_keys and wa is not None:
+            for cell in wa.cells.values():
+                orig = len(cell.bindings)
+                cell.bindings = [
+                    b for b in cell.bindings
+                    if (b.get("section"), b.get("motif"), b.get("chi")) not in forgotten_keys
+                ]
+                if len(cell.bindings) != orig:
+                    cell.aggregate_strength = sum(
+                        float(b.get("strength", 0.05)) for b in cell.bindings)
+        return forgotten
+
+    # --- Backward-compatible interface (used by v5 engine) ---
+
+    def cross_modal_bindings(self):
+        """Atlas slots where >= 2 distinct sections committed.
+        Strength-weighted: only count entries with strength > forgetting threshold."""
+        out = []
+        for k, entries in self.entries.items():
+            live = [e for e in entries if e["strength"] >= FORGETTING_THRESHOLD]
+            secs = set(e["section"] for e in live)
+            if len(secs) >= 2:
+                out.append((k, secs, live))
+        return out
+
+    def bundle_grouped_bindings(self):
+        """GL-CMD-CROSS-MODAL-BUNDLE: group live entries by item identifier extracted
+        from bundle_id. Returns list of (item_id, sections_set, entries_list).
+
+        bundle_id format:
+          item:pic:<id>          — picture item (from view/attend)
+          item:snd:<id>          — sound item (from addsound/attend)
+          bundle:<name>:<tick>   — explicit /bundle command
+          context:pic:<id>:<win> — auto-bundle during visual attention
+          context:snd:<id>:<win> — auto-bundle during audio attention
+
+        item:pic:X and context:pic:X:<win> group together under item key X.
+        O(n) single pass over all entries."""
+        import re
+        groups = {}   # item_key -> {"sections": set, "entries": list}
+        for entries in self.entries.values():
+            for e in entries:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                bid = e.get("bundle_id")
+                if not bid:
+                    continue
+                # Extract item key: pic/snd id, or bundle name+tick
+                m = re.match(r"(?:item|context):(pic|snd):([^:]+)", bid)
+                if m:
+                    item_key = f"{m.group(1)}:{m.group(2)}"
+                else:
+                    # bundle:<name>:<tick> — use full bid as key
+                    item_key = bid
+                if item_key not in groups:
+                    groups[item_key] = {"sections": set(), "entries": []}
+                groups[item_key]["sections"].add(e["section"])
+                groups[item_key]["entries"].append(e)
+        # Return only groups with 2+ distinct sections (cross-modal)
+        return [(k, g["sections"], g["entries"])
+                for k, g in groups.items() if len(g["sections"]) >= 2]
+
+    def match_score(self, chi_value, section_name):
+        """For familiarity feedback: how much existing structure is at this chi?
+        v6: weighted by binding strength (forgotten bindings don't count).
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF (Joe, 2026-07-06): this used to treat
+        every chi within the search band as equally relevant and everything
+        outside it as irrelevant -- a hard wall, and one that didn't even use
+        distance WITHIN the band: an entry sitting exactly on chi_value and
+        one sitting `band` steps away counted identically. Real similarity
+        judgments (Shepard 1987, "Toward a Universal Law of Generalization")
+        decay as a negative exponential of distance in the underlying
+        psychological/conceptual space, not a step function -- this replaces
+        the uniform in-band/zero-outside weighting with exactly that: a
+        smooth exp(-CHI_DISTANCE_DECAY * |d|) falloff, so a closer entry
+        genuinely counts for more than a farther one instead of them being
+        indistinguishable. Search radius (self.band) is unchanged -- this
+        only fixes how much a hit at a given distance is worth, not how far
+        out the search reaches."""
+        # GL-BUG-DECAY-MAGNITUDE-SHIFT (Joe, 2026-07-06): raw exp(-k*|d|)
+        # weights are each <= 1.0, so real bindings for a word -- which land
+        # spread across the band rather than stacked at d=0, since a word's
+        # chi drifts slightly on every re-encounter -- would score lower in
+        # total than they did under the old uniform weighting, even though
+        # nothing about that word actually became less familiar. That silent
+        # across-the-board drop was large enough to flip fixed downstream
+        # thresholds (e.g. the >0.3 introspection gate) for already-learned
+        # words the instant this deployed. Normalizing by the band's own mean
+        # weight keeps a hit smeared evenly across the band scoring exactly
+        # where it did before (mean weight_scale == 1.0 by construction),
+        # while a hit concentrated at d=0 now scores higher than before and
+        # one sitting only at the band's edge scores lower -- the intended
+        # Shepard's-law differentiation, without moving the goalposts for
+        # everything she already knows.
+        score = 0.0
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                weight = e["strength"] * weight_scale
+                if e["section"] != section_name:
+                    score += 0.3 * weight
+                else:
+                    score += 0.1 * weight
+        return min(score, 1.0)
+
+    def query_associations(self, section_name, chi_value):
+        """Cross-section associations at this chi.
+        v6: returns strength-weighted associations.
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3,
+        applied here): same hard-cutoff bug match_score had -- an
+        association at the query chi and one at the band's edge counted
+        identically. Weighted by the same mean-normalized
+        exp(-CHI_DISTANCE_DECAY*|d|) falloff (see match_score for the full
+        derivation); clamped to STRENGTH_CAP since a reported strength is
+        elsewhere always <= 1.0."""
+        associated = defaultdict(list)
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if e["section"] != section_name:
+                    weighted = min(STRENGTH_CAP, e["strength"] * weight_scale)
+                    associated[e["section"]].append((e["motif"], weighted))
+        return dict(associated)
+
+    def recall_scene(self, chi_value):
+        """GL-CMD-SCENE-LANES-B1-188 V4: the reader. presence/place/ambient
+        were write-only (bound at record() time, never read back -- -164's
+        audit finding). Returns the scene lanes of the strongest live entry
+        at this chi, or None if nothing live is bound here. Read-only, no
+        side effects -- safe to call from recall/introspection paths.
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3,
+        applied here): "strongest" used to mean raw strength alone, so an
+        entry at the band's edge could beat a closer, equally-strong one.
+        Selection now weights by the same distance falloff match_score
+        uses -- the returned strength is still the winning entry's own raw
+        binding strength, not the distance score; distance only decides
+        which entry wins."""
+        best = None
+        best_score = -1.0
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                score = e["strength"] * weight_scale
+                if score > best_score:
+                    best, best_score = e, score
+        if best is None:
+            return None
+        return {
+            "section": best["section"],
+            "presence": best.get("presence"),
+            "location": best.get("location"),
+            "sky_state": best.get("sky_state"),
+            "place": best.get("place"),
+            "ambient": best.get("ambient"),
+            "episode_ref": best.get("episode_ref"),
+            "strength": best["strength"],
+        }
+
+    def exposure_gap(self, chi_value, tracked_sources):
+        """GL-FIX-EXPOSURE-GAP-C1-20260711: real, gradable knowledge-GAP
+        signal. NOT theory of mind -- read the honest-limits section below
+        before using this anywhere near that phrase.
+
+        Answers, for whatever live binding(s) sit at this chi neighborhood:
+        "has source S's presence ever been recorded on a record() call that
+        touched this binding?" Built entirely from presence_ever/presence_
+        observations (see record()'s own comments) -- the same real
+        Coordinator._presence snapshot record() already receives every call
+        via its `presence` kwarg, just retained across calls instead of
+        being overwritten. Nothing here is fabricated or inferred beyond
+        what was actually recorded.
+
+        Aggregates over every live entry in the chi band (not just the
+        single strongest one recall_scene() picks) -- any real observation,
+        from any binding instance at this address, counts. This mirrors
+        query_associations()'s own whole-band aggregation, not recall_
+        scene()'s single-winner selection, because a gap claim should be
+        as complete as the record allows, not keyed to whichever entry
+        happens to be strongest right now.
+
+        Returns None if there is no live binding here, or if none of the
+        live bindings here have ever had a single real presence check
+        recorded (honest "unknown" -- absence of DATA is never read as
+        absence of a source).
+
+        Returns {source: bool} otherwise. True = "this source has never
+        once been recorded present when any live binding at this address
+        formed or was reinforced." False = "recorded present at least
+        once."
+
+        HONEST LIMITS (do not build on this past what it actually says):
+          - True ("gap") means "no record of exposure in THIS substrate's
+            own presence log," never "this source doesn't know the
+            concept" -- they could have learned it anywhere outside
+            anything Guala tracks. This is a claim about Guala's own
+            records, not about the other person's mind.
+          - False ("seen") means presence co-occurred at least once, NOT
+            that the source attended to, understood, retained, or agrees
+            with the content. Co-occurrence is not comprehension.
+          - This cannot represent a source holding a FALSE belief -- only
+            "recorded absent" vs "recorded present" vs "unknown." It has
+            no second, independent representation of anyone else's mental
+            state, so it is not theory of mind and must never be labeled
+            as such (see GL-RPT-BRAIN-THEORY-OF-MIND-SCOPE-C1-20260711-v1
+            for the full reasoning this deliberately stays inside of).
+          - tracked_sources must be supplied by the caller (no hardcoded
+            roster here) -- callers should read it live from whatever
+            tracks real presence (e.g. Coordinator._presence's own keys)
+            so this never drifts out of sync with the actual roster.
+        """
+        if not tracked_sources:
+            return None
+        observed = False
+        ever = set()
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if e.get("presence_observations", 0) > 0:
+                    observed = True
+                    ever.update(e.get("presence_ever", []))
+        if not observed:
+            return None
+        return {s: (s not in ever) for s in tracked_sources}
+
+    # --- New living-atlas interfaces ---
+
+    def total_strength(self):
+        """Sum of all binding strengths — how much 'meaning' she's currently
+        carrying."""
+        return sum(e["strength"] for entries in self.entries.values()
+                   for e in entries)
+
+    def n_live_bindings(self):
+        """Count of bindings above forgetting threshold."""
+        return sum(1 for entries in self.entries.values() for e in entries
+                   if e["strength"] >= FORGETTING_THRESHOLD)
+
+    def sparse_chi_regions(self, expected_density=10):
+        """Identify chi regions with LOW binding density — where greed-for-
+        experience pulls her toward."""
+        # Look at chi range
+        if not self.entries:
+            return []
+        chis = sorted(self.entries.keys())
+        chi_min, chi_max = chis[0], chis[-1]
+        sparse = []
+        # Sample chi range, find under-populated regions
+        for chi in range(chi_min, chi_max + 1):
+            density = sum(1 for e in self.entries.get(chi, [])
+                          if e["strength"] >= FORGETTING_THRESHOLD)
+            if density < expected_density:
+                sparse.append((chi, density))
+        return sparse
+
+    def strength_distribution(self):
+        """Histogram of binding strengths — diagnostic.
+        Returns dict bin -> count."""
+        bins = {"0.0-0.1": 0, "0.1-0.3": 0, "0.3-0.5": 0,
+                "0.5-0.7": 0, "0.7-0.9": 0, "0.9-1.0": 0}
+        for entries in self.entries.values():
+            for e in entries:
+                s = e["strength"]
+                if s < 0.1: bins["0.0-0.1"] += 1
+                elif s < 0.3: bins["0.1-0.3"] += 1
+                elif s < 0.5: bins["0.3-0.5"] += 1
+                elif s < 0.7: bins["0.5-0.7"] += 1
+                elif s < 0.9: bins["0.7-0.9"] += 1
+                else: bins["0.9-1.0"] += 1
+        return bins
+
+    def snapshot(self):
+        return {
+            "tick": self.tick,
+            "total_strength": round(self.total_strength(), 2),
+            "n_live_bindings": self.n_live_bindings(),
+            "n_total_entries": sum(len(es) for es in self.entries.values()),
+            "n_chi_keys": len(self.entries),
+            "strength_distribution": self.strength_distribution(),
+            "decay_channels": self.decay_channel_counts(),
+            "meta_decay_enabled": _meta_decay_enabled(),
+        }

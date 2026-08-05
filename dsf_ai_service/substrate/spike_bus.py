@@ -1,0 +1,219 @@
+"""spike_bus.py -- GL-CMD-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-EVE-20260707-v1.
+
+Blueprint: GL-BLUEPRINT-AE-SUBSTRATE-EVE-20260707-v1 SS3.3 (spike propagation).
+
+Central priority queue of pending spikes ordered by arrival time. A
+dedicated background thread drains the queue and delivers each spike to
+its target neuron's `receive_spike(spike)` once its arrival time has
+elapsed.
+
+This bus is active in Guala's live organism.  It supplements the unchanged
+krimelack/DSF/psi-lattice path; it does not replace or reinterpret that path.
+Pending transport is capacity-bounded and transient.  Strict quiescence drains
+every accepted spike before the organism's exact cold graph is saved, so the
+bus itself is intentionally absent from cold state.
+"""
+
+from __future__ import annotations
+
+import logging
+import queue
+import threading
+import time
+from dataclasses import dataclass, field
+from typing import Dict, Optional
+
+logger = logging.getLogger("guala.spike_bus")
+
+
+@dataclass(order=True)
+class PendingSpike:
+    arrival_time: float                # wall clock (time.monotonic()) when this spike arrives
+    target_neuron_id: str = field(compare=False)
+    source_neuron_id: str = field(compare=False)
+    weight: float = field(compare=False)
+    metadata: dict = field(default_factory=dict, compare=False)
+
+
+class SpikeBus:
+    """neuron_registry: Dict[str, Any] (or any object supporting `.get(id)`)
+    mapping neuron_id -> neuron instance. Neurons must expose
+    `receive_spike(spike: PendingSpike) -> None`.
+    """
+
+    # How long the delivery loop blocks on an empty queue before re-checking
+    # the stop signal. Bounds shutdown latency without busy-spinning.
+    _QUEUE_POLL_TIMEOUT_S = 0.01
+    # A spike whose arrival is still in the future gets requeued and the
+    # loop sleeps at most this long before re-checking the head of the
+    # queue (a new, earlier-arriving spike may be injected in the meantime).
+    _MAX_WAIT_SLEEP_S = 0.05
+    # Below this remaining wait, deliver immediately rather than requeue --
+    # avoids churning the queue for negligible waits.
+    _MIN_REQUEUE_WAIT_S = 0.001
+
+    def __init__(
+        self,
+        neuron_registry: Dict[str, object],
+        *,
+        pending_capacity: int | None = None,
+    ):
+        if pending_capacity is None:
+            # One external injection boundary joins the registered neural
+            # topology.  Its directed-pair extent is the default backlog
+            # boundary; two slots are the irreducible extent needed to
+            # preserve arrival ordering.
+            topology_extent = len(neuron_registry) + 1
+            pending_capacity = max(2, topology_extent * topology_extent)
+        if (
+            isinstance(pending_capacity, bool)
+            or not isinstance(pending_capacity, int)
+            or pending_capacity <= 0
+        ):
+            raise ValueError("spike bus pending capacity must be positive")
+        self._pending_capacity = pending_capacity
+        self._queue: "queue.PriorityQueue[PendingSpike]" = queue.PriorityQueue(
+            maxsize=pending_capacity
+        )
+        self._neuron_registry = neuron_registry
+        self._stopping = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+        self._admission_lock = threading.Lock()
+        self._accepting = True
+        # Save-time cooperative park (GL: seal full-save raced this
+        # thread's neuron mutations -- "deque mutated during iteration").
+        # pause() parks the delivery loop between spikes; no spikes are
+        # lost, the queue simply holds until resume().
+        self._pause_req = threading.Event()
+        self._pause_ack = threading.Event()
+        # Observability -- read by health checks / harness event-driven
+        # verification (queue depth over time, delivered/dropped counts).
+        self.delivered_count = 0
+        self.dropped_count = 0
+        self.injected_count = 0
+
+    def start(self) -> None:
+        if self._thread is not None:
+            return
+        with self._admission_lock:
+            self._accepting = True
+        self._stopping.clear()
+        self._thread = threading.Thread(
+            target=self._delivery_loop, daemon=True, name="spike_bus"
+        )
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._stopping.set()
+        if self._thread is not None:
+            self._thread.join(timeout=5.0)
+            self._thread = None
+
+    def qsize(self) -> int:
+        return self._queue.qsize()
+
+    @property
+    def pending_capacity(self) -> int:
+        return self._pending_capacity
+
+    def pause(self, timeout: float = 5.0) -> bool:
+        """Park the delivery thread between spikes so the neuron object
+        graph is quiescent (save-time pickling). Returns True once the
+        loop acknowledges the park (immediately if it never started).
+        Admission stays open; queued spikes deliver after resume()."""
+        if self._thread is None or not self._thread.is_alive():
+            return True
+        self._pause_req.set()
+        return self._pause_ack.wait(timeout)
+
+    def resume(self) -> None:
+        """Release a pause(); the delivery loop clears its own ack."""
+        self._pause_req.clear()
+
+    def inject(self, target_id: str, source_id: str, weight: float,
+               arrival_delay_ms: float = 0.0, metadata: Optional[dict] = None) -> None:
+        with self._admission_lock:
+            if not self._accepting:
+                raise RuntimeError("spike admission is quiesced")
+            arrival_time = time.monotonic() + arrival_delay_ms / 1000.0
+            spike = PendingSpike(
+                arrival_time=arrival_time,
+                target_neuron_id=target_id,
+                source_neuron_id=source_id,
+                weight=weight,
+                metadata=metadata or {},
+            )
+            try:
+                self._queue.put_nowait(spike)
+            except queue.Full as error:
+                raise RuntimeError(
+                    "spike bus pending capacity is full"
+                ) from error
+            self.injected_count += 1
+
+    def quiesce(self, timeout: float = 120.0) -> None:
+        """Close admission, deliver every accepted spike, then join."""
+        with self._admission_lock:
+            self._accepting = False
+            accepted = self.injected_count
+        deadline = time.monotonic() + float(timeout)
+        while (self.delivered_count + self.dropped_count < accepted
+               or self._queue.qsize() != 0):
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    "spike bus did not drain "
+                    f"(accepted={accepted}, delivered={self.delivered_count}, "
+                    f"dropped={self.dropped_count}, queued={self._queue.qsize()})")
+            time.sleep(self._QUEUE_POLL_TIMEOUT_S)
+        self.stop()
+
+    def _delivery_loop(self) -> None:
+        while not self._stopping.is_set():
+            if self._pause_req.is_set():
+                self._pause_ack.set()
+                while self._pause_req.is_set() and not self._stopping.is_set():
+                    time.sleep(self._QUEUE_POLL_TIMEOUT_S)
+                self._pause_ack.clear()
+                continue
+            sleep_for = self._QUEUE_POLL_TIMEOUT_S
+            spike = None
+            with self._admission_lock:
+                try:
+                    candidate = self._queue.get_nowait()
+                except queue.Empty:
+                    candidate = None
+                if candidate is not None:
+                    wait = candidate.arrival_time - time.monotonic()
+                    if wait > self._MIN_REQUEUE_WAIT_S:
+                        # Requeue while admission is excluded.  The get above
+                        # reserved this exact slot, so an accepted spike can
+                        # never be lost or push the bounded queue over capacity.
+                        self._queue.task_done()
+                        self._queue.put_nowait(candidate)
+                        sleep_for = min(wait, self._MAX_WAIT_SLEEP_S)
+                    else:
+                        spike = candidate
+            if spike is None:
+                self._stopping.wait(sleep_for)
+                continue
+
+            try:
+                target = self._neuron_registry.get(spike.target_neuron_id)
+                if target is None:
+                    self.dropped_count += 1
+                    logger.warning(
+                        "spike dropped -- unknown target %s",
+                        spike.target_neuron_id,
+                    )
+                    continue
+                try:
+                    target.receive_spike(spike)
+                    self.delivered_count += 1
+                except Exception:
+                    self.dropped_count += 1
+                    logger.exception(
+                        "spike delivery failed, target=%s",
+                        spike.target_neuron_id,
+                    )
+            finally:
+                self._queue.task_done()

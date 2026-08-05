@@ -1,0 +1,44 @@
+{
+  "schema": "guala.audit.auditory_monotonic_union_walkup_plan.v2",
+  "physical_episode_adapter_path": "tools/isolated_auditory_physical_episode.py",
+  "physical_episode_adapter_sha256": "627eb3cd362542e145fa50f289bc91d149ad9eecd3b990ae04f8d287feb7525a",
+  "law_path": "tools/isolated_auditory_monotonic_union_law_v2.py",
+  "law_sha256": "98853292e78a96a861b9a212d3f2e1e0c9a519a716257207ae958b066e414485",
+  "words": [
+    "down",
+    "go",
+    "left"
+  ],
+  "skip_valid_speakers_per_word": 256,
+  "training_speakers_per_thing": 40,
+  "held_out_speakers_per_thing": 20,
+  "source_disjoint_across_all_speech": true,
+  "physical_training_captures": 120,
+  "physical_held_out_captures": 60,
+  "physical_control_captures": {
+    "unknown_stop_speech": 1,
+    "generated_tone": 1,
+    "equal_gain_overlap": 1
+  },
+  "physical_capture_count": 183,
+  "memory_growth_comparison": [
+    20,
+    40
+  ],
+  "temporal_edge_authority": {
+    "same_ear": true,
+    "same_cochlear_channel": true,
+    "same_component_kind": true,
+    "left_end_source_index_equals_right_start_source_index": true,
+    "left_end_source_time_equals_right_start_source_time": true,
+    "left_end_occurrence_receipt_equals_right_start_occurrence_receipt": true,
+    "lexicographic_cross_route_adjacency_forbidden": true
+  },
+  "gate": {
+    "held_out_required_correct": 60,
+    "unknown_stop_speech": "unknown",
+    "generated_tone": "unknown",
+    "equal_gain_overlap": "ambiguous",
+    "all_monotonic_growth_checks": true
+  }
+}

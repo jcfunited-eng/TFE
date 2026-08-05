@@ -1,0 +1,69 @@
+\chapter{Definitions, Symbols, and Acronyms}
+\section{Definitions}
+\begin{longtable}{p{0.23\textwidth}p{0.71\textwidth}}
+\toprule
+Term & Definition \\
+\midrule
+Unified Framework (UF) & Deterministic structural analysis framework defined by Layers L0--L4. \\
+UF Kernel & The reusable structural engine implementing canonical L0--L4. \\
+SEV & Structural Evaluation Vector at L0: $SEV(t)=(F(t),\Delta F(t),\sigma(t),\kappa(t),r(t),N(t))$. \\
+Gate $G_k$ & Contiguous structural interval produced by L1 deviation thresholding. \\
+ISF $ISF_k$ & Interpretive Structural Field at L2: $(w_k,CV_k,S_k,Reg_k,U_k,IAS_k)$. \\
+Resonance $R(k)$ & Scalar coherence quantity at L3. \\
+URF $URF_k$ & Unified resonance field after gating, $URF_k=g_kR(k)$. \\
+DSF $DSF_k$ & Decision State Field at L4: $(D_k,M_k,R_k,U_k^{\ast},C_k,P_k,B_k)$. \\
+UF-SP & Full UF structural payload internal to the protected boundary. \\
+SES Summary & Whitelisted redacted subset of UF-SP allowed in plaintext. \\
+SES Envelope & Structured container holding DomainParams header, SES Summary, and authenticated ciphertext of UF-SP. \\
+DomainParams & Canonical tuple binding keys and payload semantics to one specific UF/TFE evaluation domain. \\
+CAP & Conformant Adapter Profile. Only SES Summary fields are visible to ordinary TFE consumers. \\
+PRP & Protected Research Profile. Richer structural payloads remain inside a controlled research boundary with equivalent SES protection and auditability. \\
+Structural Event Tape & Ordered event stream used by L5 instead of a row-first lag table. \\
+RMM & Resonant Multi-scale Memory; the shared L5 state composed of fast, medium, and slow structural memory bands. \\
+Negative Space & Structural significance of absences, quiet intervals, or unrealized alternatives that constrain admissible histories. \\
+Coherent Potential & Deterministic scalar in $[0,1]$ summarizing favorable field formation conditions from ordered structural evolution. \\
+Runtime Snapshot & Immutable, versioned serving artifact used by TFE UI/API surfaces for a specific run. \\
+SafeMode & Degraded operating mode in which structural instability or environmental risk forbids normal external interpretation. \\
+Source Package & Immutable package of raw acquired inputs for one update cycle. \\
+Normalized Package & Immutable deterministic normalization of one or more source packages. \\
+Candidate Bundle & Immutable decision/publication candidate built from one exact normalized package. \\
+Assessment Report & Deterministic pass/fail report over one exact candidate bundle. \\
+Publication Bundle & Immutable artifact set approved for user-facing serving. \\
+Active Publication Pointer & Single environment-level pointer to the one publication bundle currently authorized for serving. \\
+Phase Ledger & Canonical durable record of phase input, state, heartbeat, output, and failure semantics for one run. \\
+Enrichment & Non-critical follow-up work not required to define publication truth unless explicitly declared publication-critical. \\
+Hot Serving Cache & In-memory serving representation derived from the active publication bundle. \\
+Conflation & Controlled reduction of multiple fast-changing source updates into a latest-valid serving view without redefining canonical publication truth. \\
+\bottomrule
+\end{longtable}
+
+\section{Symbols and Acronyms}
+\begin{longtable}{p{0.18\textwidth}p{0.76\textwidth}}
+\toprule
+Symbol / Acronym & Meaning \\
+\midrule
+$F(t)$ & Raw scalar or vector-valued field evaluated by UF. \\
+$\tau_D$ & L1 gate boundary threshold. \\
+$\sigma_{pct}$ & Perturbation magnitude in validation. \\
+$S(UF)$ & Structural stability functional. \\
+$R(UF)$ & Robustness index under perturbation. \\
+GSS & Gate Stability Score. \\
+DSS & Directional Stability Score. \\
+DSF-Stability & Full DSF consistency score under perturbation. \\
+$\E$ & Structural event tape. \\
+$e_n$ & Event number $n$ in the event tape. \\
+$\tau_n$ & Timestamp of event $e_n$. \\
+$x_f,x_m,x_s$ & Fast, medium, and slow L5 memory states. \\
+$z_n$ & Shared latent L5 structural field at event $n$. \\
+$a_n$ & Mode-amplitude state vector inferred over ordered histories. \\
+$\rho_n$ & Coherent-potential scalar at event $n$. \\
+$\Gamma_n$ & Structural inconsistency functional at event $n$. \\
+$\mathcal{H}$ & Horizon set; in TFE $\mathcal{H}=\{5,20,60\}$. \\
+$Q_h(n)$ & Horizon-specific structural action score derived from the shared field. \\
+ALCOA+ & Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available. \\
+GDP / GDocP & Good Documentation Practice. \\
+DMVE & Deterministic Multi-View Ensemble. \\
+SCE & Structural Cryptography Engine. \\
+KMS/HSM & Key Management Service / Hardware Security Module. \\
+\bottomrule
+\end{longtable}

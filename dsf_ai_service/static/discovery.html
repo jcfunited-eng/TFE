@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Structural Material Discovery — DSF-AI</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .discovery-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .controls label { font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem; }
+    .controls select, .controls input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .checkbox-row input[type=checkbox] { width: auto; }
+    .run-btn { grid-column: 1 / -1; padding: 0.75rem; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 1rem; cursor: pointer; font-weight: 600; }
+    .run-btn:hover { background: var(--accent-hover); }
+    .run-btn:disabled { background: #999; cursor: not-allowed; }
+    .results { display: none; }
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+    .section-card h3 { font-size: 1rem; margin-bottom: 0.75rem; color: var(--accent); }
+    .candidate-card { background: var(--bg-alt); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+    .candidate-rank { font-size: 1.5rem; font-weight: 800; color: var(--accent); float: left; margin-right: 1rem; line-height: 1; }
+    .candidate-comp { font-size: 1.1rem; font-weight: 700; }
+    .candidate-sub { color: var(--text-muted); font-size: 0.9rem; }
+    .chain-step { font-size: 0.85rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: center; }
+    .chain-step:last-child { border-bottom: none; }
+    .chain-filter { font-weight: 700; color: var(--accent); }
+    .chain-basis { font-size: 0.8rem; color: var(--text-muted); grid-column: 1 / -1; }
+    .chain-pass { color: var(--success); font-weight: 600; font-size: 0.85rem; }
+    .chain-fail { color: #c44; font-weight: 600; font-size: 0.85rem; }
+    .audit-wrap { overflow-x: auto; }
+    .audit-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 800px; }
+    .audit-table th { padding: 0.4rem 0.35rem; border-bottom: 2px solid var(--border); text-align: center; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-muted); white-space: nowrap; }
+    .audit-table th:first-child, .audit-table th:nth-child(2) { text-align: left; }
+    .audit-table td { padding: 0.3rem 0.35rem; border-bottom: 1px solid #eee; text-align: center; white-space: nowrap; }
+    .audit-table td:first-child { text-align: left; font-weight: 600; }
+    .audit-table td:nth-child(2) { text-align: left; color: var(--text-muted); font-size: 0.7rem; }
+    .audit-table tr:hover { background: var(--bg-alt); }
+    .audit-table tr.row-survives { background: #f0fdf4; }
+    .audit-table tr.row-survives:hover { background: #dcfce7; }
+    .cp { color: #16a34a; font-weight: 700; }
+    .cf { color: #dc2626; font-weight: 700; }
+    .rs { color: #16a34a; font-weight: 800; }
+    .re { color: #dc2626; font-weight: 600; font-size: 0.7rem; }
+    @media (max-width: 600px) { .controls { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div style="max-width:1100px;margin:0 auto;padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-weight:700;font-size:1.1rem;color:var(--text);">DSF-AI — Structural Material Discovery</span>
+  </div>
+</header>
+<div class="discovery-page">
+  <h1 style="margin-bottom:0.5rem;">Structural Material Discovery</h1>
+  <p style="color:var(--text-muted);margin-bottom:1.5rem;">
+    Structural material discovery via deterministic structural constraint elimination.
+    No training. No ML. Each target property applies its own physics-specific filter set.
+  </p>
+  <div class="controls">
+    <div>
+      <label>Target Property</label>
+      <select id="target">
+        <option value="RTSC">Room-Temperature Superconductivity (Tc &ge; 300K)</option>
+        <option value="HTSC">High-Temperature Superconductivity (Tc &ge; 77K)</option>
+        <option value="FLAT_BAND">Flat-Band Correlated State</option>
+        <option value="CHIRAL_ORDER">Chiral Magnetic Order</option>
+      </select>
+    </div>
+    <div>
+      <label>Max Pressure (GPa) — 0 = ambient only</label>
+      <input type="number" id="pressure" value="0" min="0" step="1">
+    </div>
+    <div>
+      <div class="checkbox-row"><input type="checkbox" id="must2d"><label for="must2d" style="margin:0;">Must be 2D</label></div>
+      <div class="checkbox-row"><input type="checkbox" id="gateable"><label for="gateable" style="margin:0;">Must be gateable</label></div>
+    </div>
+    <div></div>
+    <button class="run-btn" id="run-btn" onclick="runDiscovery()">Run Discovery Algorithm</button>
+  </div>
+  <div class="results" id="results">
+    <div class="section-card">
+      <h3>Surviving Candidates</h3>
+      <div id="candidates"></div>
+    </div>
+    <div class="section-card">
+      <h3>Forcing Chain (Audit Trail)</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">Each filter shows how many materials pass vs are eliminated.</p>
+      <div id="chain"></div>
+    </div>
+    <div class="section-card">
+      <h3 id="audit-title">Full Candidate Audit</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">
+        Every material in the database tested against the current target's filters.
+        <span class="cp">PASS</span> = satisfies filter. <span class="cf">FAIL</span> = eliminated.
+      </p>
+      <div class="audit-wrap"><table class="audit-table"><thead id="audit-head"></thead><tbody id="audit-tbody"></tbody></table></div>
+    </div>
+    <div class="section-card" id="timing-card" style="font-size:0.85rem;color:var(--text-muted);"></div>
+  </div>
+</div>
+<script>
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+const PF = (v) => v ? '<span class="cp">PASS</span>' : '<span class="cf">FAIL</span>';
+
+async function runDiscovery() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = 'Running...';
+  const body = {
+    target_property: document.getElementById('target').value,
+    max_pressure_GPa: parseFloat(document.getElementById('pressure').value) || 0,
+    must_be_2D: document.getElementById('must2d').checked,
+    must_be_gateable: document.getElementById('gateable').checked,
+  };
+  try {
+    const resp = await fetch(`${API}/api/v1/discover`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (data.status !== 'ok') { alert(data.error || 'Error'); return; }
+
+    // Candidates
+    const cd = document.getElementById('candidates');
+    if (data.ranked_candidates.length === 0) {
+      cd.innerHTML = '<p style="color:var(--text-muted);">No candidates survive all filters for this target.</p>';
+    } else {
+      cd.innerHTML = data.ranked_candidates.map((c, i) => `
+        <div class="candidate-card">
+          <span class="candidate-rank">#${i+1}</span>
+          <div class="candidate-comp">${c.material}</div>
+          <div class="candidate-sub">${c.family} &mdash; ${c.geometry} &mdash; ${c.substrate}</div>
+        </div>`).join('');
+    }
+
+    // Forcing chain
+    const ch = document.getElementById('chain');
+    ch.innerHTML = data.forcing_chain.map(f => `
+      <div class="chain-step">
+        <span class="chain-filter">${f.filter}</span>
+        <span class="chain-pass">${f.materials_pass} pass</span>
+        <span class="chain-fail">${f.materials_eliminated} eliminated</span>
+        <span class="chain-basis">${f.basis}</span>
+      </div>`).join('');
+
+    // Audit table
+    const audit = data.family_audit;
+    if (audit && audit.length > 0) {
+      // Build header from checks
+      const filters = audit[0].checks.map(c => c.filter);
+      document.getElementById('audit-title').textContent =
+        `Full Candidate Audit — ${audit.length} Materials`;
+      document.getElementById('audit-head').innerHTML = `<tr>
+        <th>Material</th><th>Family</th>
+        ${filters.map(f => `<th>${f}</th>`).join('')}
+        <th>Result</th></tr>`;
+      document.getElementById('audit-tbody').innerHTML = audit.map(a => {
+        const cls = a.survives ? 'row-survives' : '';
+        const result = a.survives
+          ? '<span class="rs">SURVIVES</span>'
+          : `<span class="re">${a.result}</span>`;
+        const cells = a.checks.map(c => `<td>${PF(c.pass)}</td>`).join('');
+        return `<tr class="${cls}"><td>${a.material}</td><td>${a.family}</td>${cells}<td>${result}</td></tr>`;
+      }).join('');
+    }
+
+    // Timing
+    document.getElementById('timing-card').textContent =
+      `${data.databases_used.total_materials} materials evaluated. ${data.databases_used.survivors} survived. ${data.note}`;
+    document.getElementById('results').style.display = 'block';
+  } catch (e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Run Discovery Algorithm'; }
+}
+</script>
+</body>
+</html>

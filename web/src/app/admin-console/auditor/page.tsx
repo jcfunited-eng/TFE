@@ -1,0 +1,22 @@
+import { requireServerAdminUser } from "@/lib/server-auth";
+import AuditorReport from "@/components/AuditorReport";
+
+export const dynamic = "force-dynamic";
+
+export default async function AuditorPage() {
+  await requireServerAdminUser("/admin-console/auditor");
+
+  return (
+    <main className="min-h-screen bg-gray-950 text-gray-200 p-6">
+      <div className="max-w-screen-2xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold text-white">Trade Audit Console</h1>
+          <p className="text-gray-500 text-xs mt-1">
+            Signal provenance · Execution trace · Stealth queue · Circuit breaker log
+          </p>
+        </div>
+        <AuditorReport />
+      </div>
+    </main>
+  );
+}

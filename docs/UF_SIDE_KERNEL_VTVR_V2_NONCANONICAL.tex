@@ -1,0 +1,632 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks]{hyperref}
+
+\title{UF Side Kernel VTVR v2\\
+\large A Non-Canonical Vector--Time--Volume--Relation Reconstruction}
+\author{Research reconstruction for Joseph Forrester}
+\date{27 July 2026}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Xraw}{\mathbf{x}}
+\newcommand{\Xhat}{\widehat{\mathbf{x}}}
+\newcommand{\DeltaX}{\Delta\widehat{\mathbf{x}}}
+\newcommand{\Volume}{\mathcal{V}}
+\newcommand{\Relation}{\mathcal{R}}
+\newcommand{\VTVR}{\boldsymbol{\Phi}}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{
+\textbf{NON-CANONICAL RESEARCH ARTIFACT.}
+This document specifies an isolated side kernel. It does not modify,
+supersede, reinterpret, evaluate, or inherit authority from Guala's canonical
+L0--L4 kernel. It does not describe the live production hearing path. It does
+not claim word recognition, cognition, or empirical correctness.
+}}
+\end{center}
+
+\tableofcontents
+\newpage
+
+\section{Purpose}
+
+The side kernel tests one narrow reconstruction of the original intent:
+
+\begin{quote}
+Before interpretation, resonance, decision, memory, or meaning, data is
+dimensionalized as one joint \emph{Vector--Time--Volume--Relation} field.
+\end{quote}
+
+The four dimensions are not four scalar coordinates. They are four separate
+typed structures:
+\[
+  \VTVR
+  =
+  \left(
+    \underbrace{\mathcal{X}}_{\text{joint vector trajectory}},
+    \underbrace{\mathcal{T}}_{\text{exact causal time}},
+    \underbrace{\Volume}_{\text{componentwise swept volume}},
+    \underbrace{\Relation}_{\text{complete pair relations}}
+  \right).
+\]
+
+Every subsequent layer retains this complete object. A weighted sum, norm,
+score, class key, bucket, or scalar resonance is never permitted to replace
+it.
+
+\section{Separation from other work}
+
+This reconstruction has no dependency on:
+
+\begin{itemize}[nosep]
+  \item the canonical \texttt{uf\_core} implementation;
+  \item current Guala hearing, adapters, or production serving;
+  \item the prior 496-edge bilateral hearing experiment;
+  \item current corpus findings;
+  \item the first near-original side-kernel prototype;
+  \item the Hardening Framework;
+  \item L5 domain governance, L6 certainty, memory, or semantic grounding.
+\end{itemize}
+
+The implementation is:
+\[
+  \texttt{tools/isolated\_vtvr\_side\_kernel\_v2.py}.
+\]
+Its four walk-up contracts are:
+\[
+  \texttt{tests/test\_isolated\_vtvr\_side\_kernel\_v2.py}.
+\]
+
+\section{Exact input universe}
+
+\subsection{Joint observation}
+
+Let the immutable vertex set be
+\[
+  \mathcal{N}=(n_1,\ldots,n_N),
+  \qquad 2\leq N\leq 64.
+\]
+One observation is a simultaneous vector
+\[
+  \Xraw_m =
+  \left(x_{m,1},\ldots,x_{m,N}\right)\in\Q^N
+\]
+at exact time \(t_m\in\Q\). The closed input is
+\[
+  \mathcal{E}_{\mathrm{raw}}
+  =
+  \left((t_0,\Xraw_0),\ldots,(t_{M-1},\Xraw_{M-1})\right),
+\]
+where
+\[
+  2\leq M\leq 2048,
+  \qquad
+  t_0<t_1<\cdots<t_{M-1}.
+\]
+
+The essential condition is simultaneity. The \(N\) vertices do not enter
+\(N\) independent scalar kernels. They form one vector at each causal
+observation.
+
+\subsection{Physical groups}
+
+The vertices are partitioned before observation into immutable calibrated
+groups:
+\[
+  \mathcal{G}=(G_1,\ldots,G_K),
+\]
+such that the groups are nonempty, disjoint, and cover every vertex exactly
+once.
+
+A group is a declared physical constitution, not a grouping learned from a
+favourable result. Examples might later include one calibrated auditory
+receptor family or one homogeneous sensor bank. This document does not ratify
+any particular production grouping.
+
+\subsection{Raw custody}
+
+The vertex order, groups, times, and every raw rational value are committed to
+one immutable receipt:
+\[
+  H_{\mathrm{raw}}
+  =
+  H\!\left(
+    \mathcal{N},
+    \mathcal{G},
+    \mathcal{T},
+    \mathcal{X}_{\mathrm{raw}}
+  \right).
+\]
+
+No structural normalization may erase or replace this raw authority.
+
+\section{L0: joint dimensionalization}
+
+\subsection{Vector dimension}
+
+For \(i\in G_g\), define the declared positive common-gain structural view:
+\[
+  s_{m,g}
+  =
+  \sum_{j\in G_g}|x_{m,j}|,
+\]
+\[
+  \widehat{x}_{m,i}
+  =
+  \begin{cases}
+    0, & s_{m,g}=0,\\[4pt]
+    x_{m,i}/s_{m,g}, & s_{m,g}\neq 0.
+  \end{cases}
+\]
+
+Thus
+\[
+  \Xhat_m
+  =
+  (\widehat{x}_{m,1},\ldots,\widehat{x}_{m,N})
+  \in\Q^N.
+\]
+
+If every component in one group is multiplied by one common positive rational
+\(c\), then:
+\[
+  \widehat{c\Xraw_m}=\Xhat_m.
+\]
+The raw receipt still changes. A negative gain is not identified with a
+positive gain because it reverses orientation.
+
+\subsection{Time dimension}
+
+The time structure is retained exactly:
+\[
+  \mathcal{T}
+  =
+  \left((t_m,\Delta t_m)\right)_{m=0}^{M-1},
+\]
+\[
+  \Delta t_0=0,
+  \qquad
+  \Delta t_m=t_m-t_{m-1}\quad(m\geq1).
+\]
+
+Time is not inferred from an array index and is not replaced by a duration
+class.
+
+\subsection{Vector displacement}
+
+Define:
+\[
+  \DeltaX_0=\mathbf{0},
+\]
+\[
+  \DeltaX_m
+  =
+  \Xhat_m-\Xhat_{m-1}
+  \quad(m\geq1).
+\]
+
+Every component remains present:
+\[
+  \DeltaX_m
+  =
+  (\Delta\widehat{x}_{m,1},\ldots,
+   \Delta\widehat{x}_{m,N}).
+\]
+
+\subsection{Volume dimension}
+
+The reconstructed local swept-volume vector is:
+\[
+  \mathbf{v}_0=\mathbf{0},
+\]
+\[
+  v_{m,i}
+  =
+  |\Delta\widehat{x}_{m,i}|\,\Delta t_m
+  \quad(m\geq1).
+\]
+
+The accumulated componentwise volume is:
+\[
+  \overline{\mathbf{v}}
+  =
+  \left(
+    \sum_{m=0}^{M-1}v_{m,1},
+    \ldots,
+    \sum_{m=0}^{M-1}v_{m,N}
+  \right).
+\]
+
+No sum across vertices is decision authority. The complete per-time,
+per-vertex volume field remains available.
+
+\subsection{Relation dimension}
+
+The immutable relation topology is the complete unordered graph:
+\[
+  \mathcal{E}
+  =
+  \{(i,j):1\leq i<j\leq N\}.
+\]
+
+For each time \(m\) and edge \((i,j)\), retain four exact facts:
+\[
+  r^{-}_{m,ij}
+  =
+  \widehat{x}_{m-1,i}\widehat{x}_{m-1,j},
+\]
+\[
+  r^{+}_{m,ij}
+  =
+  \widehat{x}_{m,i}\widehat{x}_{m,j},
+\]
+\[
+  r^{\Delta}_{m,ij}
+  =
+  \Delta\widehat{x}_{m,i}
+  \Delta\widehat{x}_{m,j},
+\]
+\[
+  r^{\wedge}_{m,ij}
+  =
+  \widehat{x}_{m-1,i}\widehat{x}_{m,j}
+  -
+  \widehat{x}_{m-1,j}\widehat{x}_{m,i}.
+\]
+
+The wedge term \(r^{\wedge}\) is an exact oriented-area relation between two
+vertices across one causal step. It preserves relational rotation that an
+independent scalar trace cannot represent.
+
+The complete relation fact is:
+\[
+  \rho_{m,ij}
+  =
+  \left(
+    i,j,
+    r^{-}_{m,ij},
+    r^{+}_{m,ij},
+    r^{\Delta}_{m,ij},
+    r^{\wedge}_{m,ij}
+  \right).
+\]
+
+No sign-only reduction is authoritative.
+
+\subsection{Complete L0 output}
+
+L0 emits:
+\[
+  L0
+  =
+  \left(
+    H_{\mathrm{raw}},
+    \mathcal{N},
+    \mathcal{G},
+    \mathcal{E},
+    (\Xhat_m,\Delta t_m,\DeltaX_m,
+     \mathbf{v}_m,\Relation_m)_{m=0}^{M-1}
+  \right).
+\]
+
+\section{L1: the VTVR structural event}
+
+This first side experiment uses one externally closed causal interval. It does
+not invent a threshold-based gate or treat a word boundary as physics.
+
+L1 emits:
+\[
+  \VTVR
+  =
+  \left(
+    (\Xhat_m)_{m=0}^{M-1},
+    (t_m)_{m=0}^{M-1},
+    ((\mathbf{v}_m)_{m=0}^{M-1},
+     \overline{\mathbf{v}}),
+    (\Relation_m)_{m=0}^{M-1}
+  \right).
+\]
+
+The four structures have separate typed fields and one joint structural
+receipt:
+\[
+  H_{\VTVR}=H(\mathcal{X},\mathcal{T},\Volume,\Relation).
+\]
+
+\section{L2: exact joint geometry}
+
+\subsection{Velocity}
+
+For \(m\geq1\):
+\[
+  \mathbf{u}_m
+  =
+  \frac{\Xhat_m-\Xhat_{m-1}}{\Delta t_m},
+\qquad
+  \mathbf{u}_0=\mathbf{0}.
+\]
+
+\subsection{Acceleration}
+
+For \(m\geq1\):
+\[
+  \mathbf{a}_m
+  =
+  \frac{\mathbf{u}_m-\mathbf{u}_{m-1}}
+       {\Delta t_m},
+\qquad
+  \mathbf{a}_0=\mathbf{0}.
+\]
+
+\subsection{Relation change}
+
+For every retained edge fact:
+\[
+  \Delta\rho_{m,ij}
+  =
+  \rho_{m,ij}-\rho_{m-1,ij},
+\]
+where subtraction applies independently to the four rational relation
+components and never to the vertex identities.
+
+L2 retains the complete L1 VTVR object together with every velocity,
+acceleration, and edge-relation change.
+
+\section{L3: non-scalar resonance field}
+
+In this side kernel, resonance means that all vertex and edge trajectories
+are available together:
+\[
+  \mathcal{Z}_{\mathrm{vertex}}
+  =
+  \left(
+    (\widehat{x}_{m,i})_{m=0}^{M-1}
+  \right)_{i=1}^{N},
+\]
+\[
+  \mathcal{Z}_{\mathrm{edge}}
+  =
+  \left(
+    (\rho_{m,ij})_{m=0}^{M-1}
+  \right)_{(i,j)\in\mathcal{E}}.
+\]
+
+No weighted resonance score is calculated. No edge is selected after seeing
+the result. No active evidence is gated to zero.
+
+The field is quiescent exactly when:
+\[
+  \forall m,i:\;v_{m,i}=0.
+\]
+
+\section{L4: joint Decision Structural Field}
+
+L4 is a full-field structural description, not a domain action.
+
+\subsection{Displacement}
+
+\[
+  D_{m,i}
+  =
+  \widehat{x}_{m,i}-\widehat{x}_{m-1,i}.
+\]
+
+\subsection{Motion}
+
+\[
+  M_{m,i}=a_{m,i}.
+\]
+
+\subsection{Reversal}
+
+\[
+  R^{\mathrm{rev}}_{m,i}
+  =
+  \mathbf{1}
+  \left[
+    D_{m-1,i}D_{m,i}<0
+  \right].
+\]
+
+\subsection{Availability and uncertainty}
+
+The present walk-up implementation distinguishes only:
+\[
+  U^{*}_{0,i}=\texttt{genesis},
+\qquad
+  U^{*}_{m,i}=\texttt{observed}\;(m\geq1).
+\]
+
+This is a typed availability fact, not a completed uncertainty theory.
+Unavailable, corrupt, or discontinuous physical inputs must be added as
+separate states before a later version can claim a complete uncertainty
+operator.
+
+\subsection{Cohesion}
+
+\[
+  C_m=(\rho_{m,ij})_{(i,j)\in\mathcal{E}}.
+\]
+
+The full edge field is cohesion authority. It is never replaced by an edge
+count, mean, minimum, norm, or weighted sum.
+
+\subsection{Pressure}
+
+\[
+  P_{m,i}=|a_{m,i}|.
+\]
+
+\subsection{Breathing}
+
+\[
+  B_{m,i}=v_{m,i}-v_{m-1,i}.
+\]
+
+\subsection{Complete L4 object}
+
+\[
+  L4
+  =
+  \left(
+    \mathbf{D},
+    \mathbf{M},
+    \mathbf{R}^{\mathrm{rev}},
+    \mathbf{U}^{*},
+    \mathbf{C},
+    \mathbf{P},
+    \mathbf{B}
+  \right),
+\]
+with every field retaining its time, vertex, or edge indices.
+
+\section{Deterministic receipts}
+
+All receipts use canonical JSON with:
+
+\begin{itemize}[nosep]
+  \item sorted object keys;
+  \item ordered arrays for topology and causal sequence;
+  \item exact fractions encoded as canonical numerator/denominator text;
+  \item SHA-256 authority for each layer and the complete experience.
+\end{itemize}
+
+The complete experience receipt binds:
+\[
+  H_{\mathrm{experience}}
+  =
+  H(H_{\mathrm{raw}},H_{L0},H_{L1},H_{L2},H_{L3},H_{L4}).
+\]
+
+\section{Resource containment}
+
+The implemented side boundary is:
+\[
+  2\leq N\leq64,
+\qquad
+  2\leq M\leq2048,
+\]
+\[
+  |\mathcal{E}|=\frac{N(N-1)}{2}\leq2016.
+\]
+
+Time and retained space are:
+\[
+  O(MN^2),
+\]
+because every pair relation is retained at every time. No truncation or
+partial relation is permitted when the declared bound is exceeded.
+
+\section{Walk-up validation}
+
+\subsection{Test 1: joint field and determinism}
+
+One four-vertex field is executed twice. The test requires:
+
+\begin{itemize}[nosep]
+  \item byte-identical layer and experience receipts;
+  \item four vector components at every time;
+  \item six retained pair relations at every time;
+  \item separate vector, time, volume, and relation structures through L4.
+\end{itemize}
+
+\subsection{Test 2: common positive gain}
+
+Every raw value is multiplied by \(7\). The test requires:
+
+\[
+  H_{\mathrm{raw}}(\mathcal{X})
+  \neq
+  H_{\mathrm{raw}}(7\mathcal{X}),
+\]
+while:
+\[
+  H_{\VTVR}(\mathcal{X})
+  =
+  H_{\VTVR}(7\mathcal{X}).
+\]
+
+\subsection{Test 3: interaural delay}
+
+The two right-side vertices are delayed by one exact causal step. The test
+requires:
+
+\[
+  H_{\VTVR}(\mathcal{X})
+  \neq
+  H_{\VTVR}(\mathcal{X}_{\mathrm{delayed}}),
+\]
+and at least one nonzero oriented-area relation. Thus the gain quotient does
+not erase an ear-delay relation.
+
+\subsection{Test 4: different waveform}
+
+A structurally different four-vertex waveform must differ in:
+
+\[
+  \mathcal{X},\qquad
+  \Volume,\qquad
+  \Relation.
+\]
+
+\subsection{Current result}
+
+On 27 July 2026:
+\[
+  \boxed{\text{4 passed in 0.56 seconds}}
+\]
+
+This proves only that the stated implementation obeys these four small
+contracts. It does not prove that the definitions are sufficient for hearing,
+words, other senses, or cognition.
+
+\section{Known incompleteness}
+
+The side kernel deliberately does not yet contain:
+
+\begin{itemize}
+  \item autonomous causal segmentation or adaptive gates;
+  \item multi-scale cell formation;
+  \item repeated-experience memory;
+  \item L6 certainty or fission;
+  \item source separation;
+  \item word-form learning;
+  \item multisensory association;
+  \item L5 governance;
+  \item production persistence or deployment.
+\end{itemize}
+
+The volume definition and edge-relation constitution are explicit
+reconstruction choices. They are internally exact, but the historical v1.3
+document did not provide sufficient executable formulas to establish them as
+the uniquely intended completion.
+
+\section{Promotion rule}
+
+This side kernel receives no canonical authority from its four passing tests.
+The next lawful walk-up, if separately pursued, is one authenticated physical
+joint sensory capture. A speech corpus, live deployment, canonical kernel
+change, or performance claim is premature.
+
+\section{Final notice}
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{
+\textbf{NON-CANONICAL.}
+This VTVR v2 document and its isolated code are research artifacts only.
+Canonical Guala hearing work remains separate and unchanged.
+}}
+\end{center}
+
+\end{document}

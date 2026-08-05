@@ -1,0 +1,31 @@
+\chapter{Commercial Adaptation Profile}
+\section{Adopted Commercial Patterns}
+TFE shall adopt these commercial patterns:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normalized multi-source intake behind one canonical contract;
+    \item canonical securities, prices, and reference-data truth before advisor logic;
+    \item in-memory hot serving of current active artifacts;
+    \item controlled conflation for advisor-facing rapidly changing market views;
+    \item bounded parallel processing for independent workloads;
+    \item explicit observability and exact stage state;
+    \item front-office, middle-office, and back-office separation.
+\end{enumerate}
+
+\section{Deferred Commercial Patterns}
+TFE may adopt these later if justified:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item GPU-backed analytics or optimization;
+    \item specialized premium feed handlers;
+    \item regional active-active serving;
+    \item extended edge and replica topologies.
+\end{enumerate}
+
+\section{Non-Target Commercial Patterns}
+The following are not first-line architecture targets for TFE:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exchange co-location;
+    \item direct market access infrastructure;
+    \item FPGA packet processing;
+    \item proprietary private global networking;
+    \item microsecond trading latency as the principal system objective.
+\end{enumerate}

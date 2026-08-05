@@ -1,0 +1,569 @@
+\chapter{Financial Governance, Epoch Library, and Strategy Rules}
+\section{Purpose}
+\meta{Define the financial-domain governance layer that converts structurally admissible states into governed research judgments.}{Shared latent field $z_n$, free structural energy $\mathcal{F}_n$, validation summaries, company fundamentals, sector context, epoch mosaic, approved rules.}{Investability score, strategy class, abstention flags, explanation factors, and bounded research actions.}
+
+This chapter is normative for TFE. Its role is to prevent structurally interesting states from being emitted as research recommendations when the broader domain context makes the interpretation non-admissible, over-speculative, or economically inconsistent.
+
+\section{Fundamental Input Set}
+\meta{Declare the minimum company and sector descriptors required for governed financial interpretation.}{Company fundamentals, sector/industry metadata, market-cap class, valuation metrics, balance-sheet metrics, profitability metrics, analyst/quality metadata if approved, and epoch mosaic channels.}{Normalized governance input vector.}
+
+For symbol $s$ at evaluation time $t$, define the minimum governance vector
+\begin{align*}
+g(s,t)=(&PM,GM,OM,FCFM,RevG,EpsG,LEV,ICOV,ROIC,\\
+&PE,EVEBITDA,PB,MCAP,\sigma_{sec},\sigma_{ind},\Xi_t,\Pi_t)
+\end{align*}
+where:
+\begin{itemize}
+\item $PM$ = profit margin;
+\item $GM$ = gross margin;
+\item $OM$ = operating margin;
+\item $FCFM$ = free-cash-flow margin;
+\item $RevG$ = revenue growth;
+\item $EpsG$ = earnings growth;
+\item $LEV$ = leverage ratio;
+\item $ICOV$ = interest coverage;
+\item $ROIC$ = return on invested capital;
+\item valuation terms use approved deterministic market data definitions;
+\item $\sigma_{sec},\sigma_{ind}$ are sector and industry identifiers;
+\item $\Xi_t$ is the epoch mosaic and $\Pi_t$ is the approved rule activation vector.
+\end{itemize}
+
+\section{Fundamental Quality Classes}
+\meta{Discretize core company health variables into deterministic quality classes.}{Governance vector $g(s,t)$.}{Quality classes and penalty triggers.}
+
+For each metric $m\in\{PM,GM,OM,FCFM,RevG,EpsG,LEV,ICOV,ROIC\}$, TFE shall define a versioned threshold triple $(\theta_m^{weak},\theta_m^{mid},\theta_m^{strong})$ and classify:
+\[
+Class_m(s,t)=
+\begin{cases}
+\text{Weak}, & m(s,t) < \theta_m^{weak},\\
+\text{Marginal}, & \theta_m^{weak}\le m(s,t)<\theta_m^{mid},\\
+\text{Adequate}, & \theta_m^{mid}\le m(s,t)<\theta_m^{strong},\\
+\text{Strong}, & m(s,t)\ge \theta_m^{strong}.
+\end{cases}
+\]
+Where low values are better (for example leverage), the inequality direction shall be reversed in the versioned threshold table.
+
+Define a deterministic quality score
+\[
+Q_{fund}(s,t)=\sum_{m\in\mathcal{M}_{+}} w_m q_m(s,t)-\sum_{m\in\mathcal{M}_{-}} w_m q_m(s,t),
+\]
+where each $q_m$ maps the class into a bounded scalar in $[-1,1]$.
+
+
+\section{Normative Baseline Threshold Tables and Sector Overrides}
+\meta{Resolve open issue 1 by making baseline threshold values explicit rather than leaving them only as an abstract registry obligation.}{Fundamental metrics, sector/industry classes, and controlled revision policy.}{Default threshold tables, override factors, and parameter-governance rules.}
+
+Unless superseded by a controlled revision, the normative baseline thresholds for common equity operating-company analysis are:
+
+\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{p{0.18\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.16\textwidth}}
+\toprule
+Metric & Weak & Marginal & Adequate & Strong \\
+\midrule
+Profit Margin ($PM$) & $<3\%$ & $[3,7)\%$ & $[7,15)\%$ & $\ge 15\%$ \\
+Gross Margin ($GM$) & $<20\%$ & $[20,30)\%$ & $[30,45)\%$ & $\ge 45\%$ \\
+Operating Margin ($OM$) & $<4\%$ & $[4,10)\%$ & $[10,18)\%$ & $\ge 18\%$ \\
+FCF Margin ($FCFM$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+Revenue Growth ($RevG$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+EPS Growth ($EpsG$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+Return on Invested Capital ($ROIC$) & $<5\%$ & $[5,10)\%$ & $[10,15)\%$ & $\ge 15\%$ \\
+Interest Coverage ($ICOV$) & $<1.5$ & $[1.5,3)$ & $[3,6)$ & $\ge 6$ \\
+Leverage ($LEV$; lower is better) & $>4.5$ & $(3.0,4.5]$ & $(1.5,3.0]$ & $\le 1.5$ \\
+\bottomrule
+\end{longtable}
+
+Sector and industry overrides shall be multiplicative adjustments to threshold boundaries, not silent redefinitions. Let $\upsilon_m^{sec}(\sigma_{sec})$ and $\upsilon_m^{ind}(\sigma_{ind})$ be controlled factors. The effective threshold boundary for metric $m$ is:
+\[
+\theta^{eff}_{m,r}(s,t)=\theta_{m,r}^{base}\cdot \upsilon_m^{sec}(\sigma_{sec}(s))\cdot \upsilon_m^{ind}(\sigma_{ind}(s)),
+\]
+where $r\in\{weak,mid,strong\}$. Example override policies include:
+\begin{itemize}
+    \item regulated utilities and staples may receive tolerance on raw growth but not on leverage/cash-generation failures;
+    \item software and asset-light IP businesses may tolerate lower tangible-book relevance but not persistent negative free-cash-flow without offsetting growth quality;
+    \item construction, engineering, and industrial project businesses shall require stronger backlog quality, cash conversion, and margin discipline when rates, war, or commodity-input stress is elevated;
+    \item early biotech / pre-profit profiles may be admitted only in explicitly speculative strategy classes.
+\end{itemize}
+All override factors shall be named in the controlled parameter registry and referenced in the audit trail when used.
+
+\section{Speculation and Fragility Penalties}
+\meta{Formalize practical financial exclusions and cautionary penalties.}{Governance vector, class assignments, and epoch mosaic.}{Speculative penalty $\Delta_{spec}$ and hard blocks.}
+
+Define the speculative penalty
+\begin{align*}
+\Delta_{spec}(s,t)=&\lambda_{pm}\mathbf{1}[Class_{PM}=\text{Weak}]
++\lambda_{fcf}\mathbf{1}[Class_{FCFM}=\text{Weak}] \\
+&+\lambda_{rev}\mathbf{1}[Class_{RevG}=\text{Weak}]
++\lambda_{eps}\mathbf{1}[Class_{EpsG}=\text{Weak}] \\
+&+\lambda_{lev}\mathbf{1}[Class_{LEV}=\text{Weak}]
++\lambda_{cov}\mathbf{1}[Class_{ICOV}=\text{Weak}] \\
+&+\lambda_{val}\,Penalty_{val}(s,t).
+\end{align*}
+
+Hard governance blockers shall include, at minimum:
+\begin{itemize}
+\item severe data-quality or accounting incompleteness;
+\item unresolved corporate actions that break comparability;
+\item distress signals beyond approved limits;
+\item explicit sector or epoch exclusion approved by governance;
+\item prohibited speculative profile in the active operating mode.
+\end{itemize}
+
+\section{Sector and Industry Sensitivity Matrices}
+\meta{Represent macro and epoch effects by sector and industry instead of only at the symbol level.}{Sector/industry identifiers and epoch mosaic channels.}{Deterministic sector and industry impact multipliers.}
+
+Let $\Sigma$ be the sector set and $\mathcal{I}$ the industry set. For each sphere-of-impact channel $j\in\{1,\dots,32\}$ define deterministic coupling matrices:
+\[
+M^{sec}\in\mathbb{R}^{32\times |\Sigma|},\qquad M^{ind}\in\mathbb{R}^{32\times |\mathcal{I}|}.
+\]
+Then the epoch-induced sector pressure is
+\[
+\Omega_{sec}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,M^{sec}_{j,\sigma_{sec}(s)},
+\qquad
+\Omega_{ind}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,M^{ind}_{j,\sigma_{ind}(s)}.
+\]
+This supports rules such as ``war-driven infrastructure pressure'', ``building-cycle weakness under rates stress'', or ``energy-cost shock on thin-margin sectors'' without hard-coding one ticker-specific branch.
+
+
+\section{Epoch Source Ingestion and Quantification}
+\meta{Define how real-world events become deterministic epoch objects instead of hand-wavy narrative overlays.}{Approved news/event sources, macro releases, sector data, source reliability registry, and classification taxonomy.}{Quantified epoch candidates ready for library admission.}
+
+Each raw source event $u$ is first normalized into
+\[
+\nu_u=(id_u,src_u,ts_u,class_u,scope_u,dir_u,sev_u,conf_u,pers_u,geo_u,sec_u,ind_u,textHash_u).
+\]
+The admission score for epoch candidacy is
+\[
+\Pi_{epoch}(u)=w_{src}\,Rel(src_u)+w_{sev}\,sev_u+w_{conf}\,conf_u+w_{pers}\,pers_u+w_{scope}\,scope_u-w_{dup}\,Dup(u,\mathcal{L}_{epoch}),
+\]
+where $Rel(src_u)$ is the approved source-reliability score and $Dup(u,\mathcal{L}_{epoch})$ penalizes near-duplicate events already represented in the live library. An event may be admitted as a new epoch object or merged into an existing one only if
+\[
+\Pi_{epoch}(u)\ge \pi_{min}^{epoch}.
+\]
+Sphere-of-impact projection is deterministic:
+\[
+\xi_u = M_{class(class_u)}\,\Gamma_{geo}(geo_u)\,\Gamma_{scope}(scope_u)\,\Gamma_{dir}(dir_u),
+\]
+where $M_{class(class_u)}\in\mathbb{R}^{32}$ is the base sphere vector for the event class and the $\Gamma$ terms are diagonal scaling operators. This mechanism allows world-event news to become part of the epoch library without hand-coded ticker narratives.
+
+\section{Epoch Objects and Epoch Library}
+\meta{Define the controlled external-world event library as a first-class object in TFE.}{Curated event sources, approved taxonomies, source provenance, severity/confidence assessments, and decay settings.}{Versioned epoch objects and the active epoch library.}
+
+Each epoch object $\varepsilon_k$ shall be:
+\[
+\varepsilon_k = (id_k,class_k,t_k^{start},t_k^{end},sev_k,conf_k,pers_k,\xi_k,src_k,decay_k)
+\]
+where:
+\begin{itemize}
+\item $class_k$ is the epoch class (e.g. rates, war, regulation, energy, logistics, labor, consumer stress, building cycle);
+\item $sev_k\in[0,1]$ is severity;
+\item $conf_k\in[0,1]$ is confidence;
+\item $pers_k\in[0,1]$ is persistence weight;
+\item $\xi_k\in\mathbb{R}^{32}$ is the sphere-of-impact vector;
+\item $src_k$ is provenance metadata;
+\item $decay_k$ is the temporal decay constant or kernel.
+\end{itemize}
+
+The active epoch amplitude of object $k$ at time $t$ is
+\[
+\omega_k(t)=sev_k\cdot conf_k\cdot pers_k\cdot \exp(-decay_k\cdot \max(0,t-t_k^{end}))\cdot \mathbf{1}[t\ge t_k^{start}].
+\]
+
+\section{Epoch Mosaic and Sphere-of-Impact Field}
+\meta{Fuse epoch objects into a shared macro-context field that can interact with structural memory.}{Active epoch objects and sphere vectors.}{Epoch mosaic $\Xi_t \in \mathbb{R}^{32}$.}
+
+The 32-channel epoch mosaic is
+\[
+\Xi_t = \sum_{k=1}^{K_t} \omega_k(t)\,\xi_k.
+\]
+Channels shall be versioned and documented; examples include rates, war/geopolitics, credit stress, building cycle, energy, consumer pressure, logistics, regulation, fiscal impulse, labor pressure, technology cycle, and supply-chain strain.
+
+\section{G32 Coordinator}
+\meta{Define the deterministic coordinator that maintains the live epoch mosaic, resolves source conflicts, and couples external event structure into the shared TFE field.}{Admitted epoch objects, source-reliability registry, sector/industry mappings, market-level summaries, and approved priorities.}{Versioned G32 state vector, event resolution decisions, and derived context scalars.}
+
+The G32 Coordinator is the deterministic control process over the epoch library. It is not a discretionary news reader. It performs four duties:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item admit / reject / merge epoch candidates;
+    \item maintain the live 32-channel epoch mosaic;
+    \item resolve conflicts between simultaneous or contradictory epoch objects;
+    \item project the epoch mosaic into sector, industry, and company exposures used by L5.
+\end{enumerate}
+
+Its state is
+\[
+G32_t=(\Xi_t,\bar\Xi_t,\Delta\Xi_t,\Pi_t^{epoch},\mathcal{L}_{epoch,t},\mathcal{R}_t),
+\]
+where $\mathcal{L}_{epoch,t}$ is the active epoch object set and $\mathcal{R}_t$ is the conflict-resolution ledger.
+
+State updates are
+\begin{align*}
+\Xi_t &= \sum_{k=1}^{K_t} \omega_k(t)\,\xi_k,\\
+\bar \Xi_t &= \alpha_g \bar \Xi_{t-1} + (1-\alpha_g)\Xi_t,\\
+\Delta \Xi_t &= \Xi_t-\bar \Xi_t,\\
+\Pi_t^{epoch} &= \phi_{epoch}\!\left(\Xi_t,\Delta\Xi_t,\mathcal{L}_{epoch,t},\mathcal{R}_t\right).
+\end{align*}
+
+Conflict resolution between epoch objects $a$ and $b$ shall be deterministic. Define overlap score
+\[
+O(a,b)=\frac{\langle \xi_a,\xi_b\rangle_+}{\|\xi_a\|\,\|\xi_b\|+\varepsilon_o}
+\]
+and contradiction score
+\[
+K(a,b)=\frac{\langle \xi_a,-\xi_b\rangle_+}{\|\xi_a\|\,\|\xi_b\|+\varepsilon_o}.
+\]
+If $O(a,b)\ge o_{merge}$ and source-class rules permit, the objects may be merged; if $K(a,b)\ge k_{conflict}$ the coordinator shall retain both only with a recorded conflict entry and may force lower confidence until the contradiction resolves.
+
+The coordinator may emit derived context scalars such as
+\[
+WarPressure_t,\; RatesPressure_t,\; BuildCyclePressure_t,\; ConsumerStress_t,\; EnergyInputStress_t,\; ReconstructionImpulse_t,
+\]
+but these are deterministic projections of the epoch mosaic and must be reconstructable from the registered channel map.
+
+\section{Epoch-Symbol Coupling}
+\meta{Map the epoch mosaic to a company-specific impact quantity.}{Epoch mosaic, sector and industry couplings, company exposure flags.}{Company-specific epoch pressure $\Omega_{epoch}(s,t)$.}
+
+Let $\rho_{s,j}\in[-1,1]$ be the approved exposure of symbol $s$ to sphere $j$. Then:
+\[
+\Omega_{epoch}(s,t)=\sum_{j=1}^{32}\rho_{s,j}\,\Xi_{t,j} + \Omega_{sec}(s,t)+\Omega_{ind}(s,t).
+\]
+Positive values may help or hurt depending on the sign convention of the affected strategy class; the sign and interpretation must be fixed in the channel registry.
+
+\section{Structural-Financial Investability Score}
+\meta{Combine structural state, fundamentals, and epoch pressure into one governed investability quantity.}{Structural action score $Q_h$, free structural energy $\mathcal{F}_n$, fundamental score, speculative penalty, epoch pressure, and approved strategy weights.}{Investability score $IS_h(s,t)$.}
+
+For horizon $h$ define
+\begin{align*}
+IS_h(s,t)=&\alpha_h Q_h(n)-\beta_h \mathcal{F}_n+\gamma_h Q_{fund}(s,t)\\
+&-\delta_h \Delta_{spec}(s,t)+\eta_h \Omega_{epoch}(s,t)+\zeta_h \Omega_{strat}(s,t),
+\end{align*}
+where $\Omega_{strat}(s,t)$ is an approved strategy-class adjustment described below.
+
+\section{Strategy Classes}
+\meta{Formalize distinct research strategy families so that the same structural signal can be interpreted differently under value, quality, defensive, cyclic, or speculative lenses.}{Fundamentals, epoch context, and structural state.}{Strategy-class weights and gates.}
+
+At minimum, TFE shall define the following strategy classes:
+\begin{itemize}
+\item \textbf{Quality Defensive}
+\item \textbf{Growth / Innovation}
+\item \textbf{Cyclical / Recovery}
+\item \textbf{Value / Mean Reversion}
+\item \textbf{Speculative Tactical}
+\end{itemize}
+
+Each class $c$ has a deterministic parameter tuple
+\[
+\Theta_c=(\alpha_h,\beta_h,\gamma_h,\delta_h,\eta_h,\zeta_h,\theta_h^+,\theta_h^-,\mathcal{F}_{max},\chi_{min},\mathcal{B}_c)
+\]
+and a blocker set $\mathcal{B}_c$. For example, the Quality Defensive class may block weak margins and weak cash generation entirely, while the Speculative Tactical class may allow them subject to a much larger penalty and mandatory abstention when epoch stress is adverse.
+
+
+\section{Investment Strategy Rule Book}
+\meta{Expand the financial strategy layer into a competitive and maintainable rule set rather than a thin strategy label scaffold.}{Fundamental classes, epoch pressures, sector/industry metadata, structural scores, and active strategy class.}{Strategy-specific admissibility, penalties, preferred structures, and abstention triggers.}
+
+In addition to the minimum strategy classes already defined, TFE shall maintain the following normative strategy families:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Quality Compounder}: requires sustained profitability, strong cash generation, acceptable leverage, and positive structural persistence.
+    \item \textbf{Dividend / Income Defensive}: emphasizes stability, cash generation, balance-sheet resilience, and avoidance of fragility under rates or consumer stress.
+    \item \textbf{Deep Value / Mean Reversion}: tolerates weaker recent trends only if valuation discount, balance-sheet survivability, and structural reversal quality are present.
+    \item \textbf{Cyclical / Recovery}: allows temporally weak fundamentals when epoch and sector conditions imply recoverable cycle transition and collapse risk is controlled.
+    \item \textbf{Capital-Light Growth / Innovation}: emphasizes revenue growth, gross margin strength, and capital efficiency, while penalizing persistent dilution or unstable cash conversion.
+    \item \textbf{Asset / Infrastructure / Industrial Execution}: emphasizes margin discipline, backlog quality, project execution, and rates / commodity / war-sensitive risk modifiers.
+    \item \textbf{Commodity / Energy Leverage}: interprets structural states through commodity and geopolitically coupled epoch channels, with explicit volatility penalties.
+    \item \textbf{Special Situation / Turnaround}: admits distressed or transition names only when structural reversal, survivability, and event-driven epoch support are all strong.
+    \item \textbf{Speculative Tactical}: highest tolerance for fragility, but only with explicit speculative operating mode and mandatory abstention under instability.
+\end{enumerate}
+
+For strategy class $c$, define the admissibility functional
+\[
+\mathcal{A}_c(s,t)=\mathbf{1}[Q_{fund}(s,t)\ge q_c^{min}]\cdot \mathbf{1}[\Delta_{spec}(s,t)\le d_c^{max}]\cdot \mathbf{1}[\Omega_{epoch}^{-}(s,t)\le e_c^{max}]\cdot \mathbf{1}[\mathcal{F}_n\le f_c^{max}],
+\]
+where $\Omega_{epoch}^{-}$ denotes adverse epoch pressure under the sign convention of the class.
+
+Examples of mandatory strategy logic:
+\begin{itemize}
+    \item Thin-margin businesses default to non-admissible in Quality Compounder and Dividend/Income Defensive unless cash conversion, backlog quality, and epoch support jointly offset the weakness.
+    \item Construction / engineering / building-cycle exposed businesses must receive additional penalties under elevated rates pressure, commodity-input inflation, or war-driven project uncertainty unless explicit reconstruction/fiscal impulse epochs dominate and margin discipline is above the class floor.
+    \item High-beta growth names may be attractive in Growth / Innovation only if gross-margin strength and growth quality dominate valuation and dilution penalties.
+    \item Special Situation / Turnaround names require explicit evidence of survivability: interest coverage, liquidity runway, and structural reversal quality must all pass the class minimum.
+\end{itemize}
+
+
+
+\section{Short Exposure and Downside Research Strategy Families}
+\meta{Add explicit downside and short-side research semantics so TFE can reason about avoid/short conditions as structured opportunities rather than only as long-side exclusion.}{Structural state, fragility penalties, epoch pressure, valuation tension, and borrow/shortability metadata if approved.}{Short-side admissibility and downside strategy rules.}
+
+TFE shall support downside-oriented strategy families including at minimum:
+\begin{itemize}
+    \item \textbf{Structural Breakdown Short}: activated when negative structural pressure, adverse epoch field, and weak survivability co-occur.
+    \item \textbf{Frailty / Overvaluation Short}: activated when valuation tension and fragility penalties are jointly elevated and no stabilizing epoch support is present.
+    \item \textbf{Cyclical Downturn / Demand Shock Short}: activated when adverse sector-condition tensors dominate and structural persistence turns negative.
+\end{itemize}
+
+For a short-side family $c^{-}$, define downside admissibility
+\[
+\mathcal{A}_{c^{-}}(s,t)=\mathbf{1}[B^{hard}_{long}(s,t)=1 \;\vee\; IS_h(s,t)\le -\vartheta_{c^{-}}^{-}]\cdot \mathbf{1}[\Omega_{epoch}^{-}(s,t)\ge e_{c^{-}}^{min}]\cdot \mathbf{1}[M_{disc}(s,t)\le m_{c^{-}}^{max}].
+\]
+Short-side outputs remain research states and shall not imply executable shorting unless the operating profile explicitly allows it.
+
+\section{Pattern and Formation Strategy Families}
+\meta{Incorporate deterministic chart-formation and setup families as governed interpretations of structural geometry rather than vendor-style indicator dumping.}{Gate trajectories, resonance changes, moving-average states, momentum/oscillation states, and strategy family.}{Pattern setup activations and penalties.}
+
+The following setup families shall be available as deterministic pattern interpretations:
+\begin{itemize}
+    \item double bottom / double top;
+    \item pivot bottom / pivot top;
+    \item RSI oversold / overbought extremes under structural confirmation;
+    \item Bollinger breakout and squeeze-release under structural confirmation;
+    \item short-term / long-term rising-trend or breakdown families;
+    \item moving-average alignment families including 7/21/35/100-day slope and crossover states;
+    \item golden-cross / death-cross families with structural confirmation requirement.
+\end{itemize}
+
+These setups are not primary decisions by themselves. Each setup contributes a bounded setup field
+\[
+\Psi_{setup}(s,t)=\sum_{u\in\mathcal{U}_{setup}} w_u\,\psi_u(s,t),
+\]
+where each $\psi_u$ is only admissible if supported by structural continuity, not by price pattern alone.
+
+\section{Insider Transaction and Ownership-Signal Rules}
+\meta{Add a controlled mechanism for insider-transaction and ownership signals so company-specific conviction or warning can influence governance without becoming opaque heuristics.}{Approved insider/ownership source events, company identity, role weighting, transaction timing, and structural state.}{Insider-pressure contribution and governance effects.}
+
+Let insider-event stream for symbol $s$ be $\mathcal{I}_{ins}(s,t)$. For each approved insider event $i\in\mathcal{I}_{ins}(s,t)$ define signed contribution
+\[
+\iota_i = \operatorname{sgn}(dir_i)\,w_{role(i)}\,w_{size(i)}\,w_{recency(i)}\,w_{cluster(i)}.
+\]
+The bounded insider field is
+\[
+\Upsilon_{ins}(s,t)=\clip\!\left(\sum_{i\in\mathcal{I}_{ins}(s,t)} \iota_i,-\iota_{max},\iota_{max}\right).
+\]
+Insider-derived boosts or penalties shall never override hard structural or survivability blocks; they only shift admissibility inside the allowed governance envelope.
+
+\section{Company-Specific News and Catalyst Rules}
+\meta{Make company-specific news a first-class governed input rather than an unstructured note.}{Approved company news events, event source reliability, company identity, sphere-of-impact mapping, and epoch/structural state.}{Company-specific catalyst field and governance effect.}
+
+Company-specific news events shall be converted into controlled catalyst objects with at minimum:
+\[
+\chi_i=(type_i,dir_i,scope_i,severity_i,persist_i,sourceRel_i,sectorSpan_i,companySpan_i).
+\]
+Examples include:
+\begin{itemize}
+    \item earnings surprise and guidance change;
+    \item management change;
+    \item contract win/loss;
+    \item major customer concentration change;
+    \item litigation / regulation / accounting issue;
+    \item merger, divestiture, financing, dilution, buyback, or bankruptcy-risk update;
+    \item product launch, recall, cyber incident, or supply disruption.
+\end{itemize}
+The company catalyst field is
+\[
+\Upsilon_{news}(s,t)=\sum_{i\in\mathcal{N}_{comp}(s,t)} sourceRel_i\,severity_i\,persist_i\,\rho_{s,i}\,\operatorname{sgn}(dir_i),
+\]
+with explicit cap and decay rules. Company news may also spawn or reinforce epoch objects if its sphere exceeds company scope.
+
+\section{Advanced Epoch Trading Intelligence}
+\meta{Specify how external world events and trading-context epochs become a structured mosaic that can support tactical and strategic decisions beyond bare long/mid/short memory.}{Epoch candidates, company/news catalysts, sector-condition tensors, source reliability, and G32 coordination.}{An operational epoch-intelligence layer.}
+
+The epoch library is not only a memory aid; it is a live external-field interpreter. In addition to macro epochs, TFE shall support tactical epoch classes such as:
+\begin{itemize}
+    \item earnings season dispersion;
+    \item sector rotation / de-rating / re-rating;
+    \item policy / rates shock;
+    \item war / geopolitical escalation;
+    \item commodity squeeze / relief;
+    \item insider-conviction cluster;
+    \item merger / financing / distress cluster;
+    \item company-news contagion or sympathy effect.
+\end{itemize}
+Each tactical epoch is projected into the sphere-of-impact basis and coordinated by G32 alongside slower macro epochs. The resulting field allows TFE to distinguish, for example, a technically attractive setup occurring inside a hostile external mosaic from the same setup occurring inside a supportive one.
+
+
+\section{Strategy Family Selection and Dominance Logic}
+\meta{Specify how strategy families compete or cooperate for governance authority at a given symbol-time state.}{Investability score components, strategy admissibility functionals, epoch pressures, and structural state.}{Active strategy family weights and dominance ordering.}
+
+TFE shall not assume a single strategy family is globally active. Let $\mathcal{C}_{strat}$ be the approved strategy-family set. For each class $c\in\mathcal{C}_{strat}$ define class activation score
+\[
+\kappa_c(s,t)=\mathcal{A}_c(s,t)\cdot \exp\big(\mu_c\Omega_{strat,c}(s,t)+\nu_c Q_{fund,c}(s,t)-\omega_c\mathcal{F}_n\big).
+\]
+Normalized strategy weights are
+\[
+\pi_c(s,t)=\frac{\kappa_c(s,t)}{\sum_{c'\in\mathcal{C}_{strat}}\kappa_{c'}(s,t)+\varepsilon_{\pi}}.
+\]
+A strategy family is \emph{dominant} if $\pi_c(s,t)\ge \pi_{dom}$; multiple families may remain active if no single dominant family exists. Mixed-family operation is permitted only if all active families agree on action sign or if an explicit class-precedence registry resolves the conflict. Otherwise the governed result shall be \texttt{ABSTAIN}.
+
+\section{Capital Preservation, Survivability, and Exclusion Rules}
+\meta{State the hard financial-protection rules that prevent structurally attractive but economically fragile names from becoming research recommendations.}{Fundamental quality classes, liquidity/distress data where approved, epoch pressures, and strategy family.}{Hard blocks, survivability penalties, and capital-preservation controls.}
+
+Define survivability score
+\[
+S_{surv}(s,t)=\alpha_{liq}Q_{liq}(s,t)+\alpha_{cov}q_{ICOV}(s,t)+\alpha_{lev}q_{LEV}(s,t)+\alpha_{fcf}q_{FCFM}(s,t)-\alpha_{stress}\Omega_{stress}^{+}(s,t),
+\]
+where $\Omega_{stress}^{+}$ aggregates adverse rates, credit, regulation, litigation, war, commodity-input, and demand-stress channels. A symbol shall be hard-blocked if any of the following hold in a non-speculative operating mode:
+\begin{itemize}
+    \item $S_{surv}(s,t) < s_{surv}^{min}$;
+    \item weak interest coverage coexists with adverse refinancing/rates pressure;
+    \item negative free-cash-flow persistence coexists with weak margin quality and no approved turnaround/innovation exemption;
+    \item explicit governance exclusion list or unresolved accounting/material-disclosure defect is present.
+\end{itemize}
+These rules intentionally bias the system toward capital preservation when structural geometry and financial survivability disagree.
+
+\section{Valuation, Margin Discipline, and Re-rating Logic}
+\meta{Differentiate value from cheapness and growth from overpaying by encoding deterministic valuation and margin-discipline logic.}{Valuation metrics, profitability metrics, growth metrics, and strategy family.}{Valuation adjustment term and margin-discipline controls.}
+
+Define a valuation tension term
+\[
+V_{ten}(s,t)=\sum_{m\in\{PE,EVEBITDA,PB\}} w_m^{val}\,\operatorname{clip}\!\left(\frac{m(s,t)-\theta_m^{fair}(\sigma_{sec},\sigma_{ind},c)}{\theta_m^{fair}(\sigma_{sec},\sigma_{ind},c)+\varepsilon_m},-1,1\right).
+\]
+Define margin-discipline term
+\[
+M_{disc}(s,t)=\lambda_{pm}q_{PM}(s,t)+\lambda_{gm}q_{GM}(s,t)+\lambda_{om}q_{OM}(s,t)+\lambda_{fcf}q_{FCFM}(s,t).
+\]
+For asset-heavy, project-driven, or construction-like businesses, positive structural states shall not be sufficient if
+\[
+M_{disc}(s,t)<m_{disc}^{min}
+\]
+under elevated rates or input-cost stress. In other words, TFE distinguishes ``cheap because temporarily misunderstood'' from ``cheap because structurally weak business economics are being punished correctly.''
+
+\section{Epoch-Aligned Opportunity and Avoidance Logic}
+\meta{Make the epoch library operational at the strategy level by defining deterministic opportunity and avoidance transforms.}{Epoch mosaic, sector-condition tensors, company exposure factors, strategy family, and structural state.}{Epoch-conditioned opportunity and avoidance adjustments.}
+
+Let positive and adverse epoch projections be
+\[
+\Omega_{epoch}^{+}(s,t)=\sum_{j=1}^{32} \rho^{+}_{s,j}\,[\Xi_{t,j}]_{+},
+\qquad
+\Omega_{epoch}^{-}(s,t)=\sum_{j=1}^{32} \rho^{-}_{s,j}\,[-\Xi_{t,j}]_{+}.
+\]
+Then the epoch-conditioned opportunity term for strategy class $c$ is
+\[
+\Upsilon_{epoch,c}(s,t)=\eta_c^{+}\Omega_{epoch}^{+}(s,t)-\eta_c^{-}\Omega_{epoch}^{-}(s,t).
+\]
+This supports governance such as:
+\begin{itemize}
+    \item reconstruction or fiscal-capex epochs may help selected infrastructure/industrial names only if margin discipline and survivability are acceptable;
+    \item war-related demand may help defense/security/logistics channels while simultaneously worsening cost, uncertainty, or project-risk channels elsewhere;
+    \item rates and credit stress can dominate otherwise favorable local structure in housing/build products or levered cyclicals;
+    \item regulatory or litigation epochs can force avoidance even when the local structural state looks attractive.
+\end{itemize}
+
+\section{Research Allocation and Concentration Constraints}
+\meta{Add portfolio-like research controls so TFE does not emit unrealistically concentrated or internally contradictory recommendation sets.}{Governed actions, strategy weights, sector exposures, and active epoch mosaic.}{Research allocation flags, concentration penalties, and optional suppression conditions.}
+
+Although TFE is a research system, it shall support deterministic concentration checks over any emitted watchlist or recommendation batch. Let $W_t$ be the active recommendation set at time $t$. Define sector concentration
+\[
+Conc_{sec}(t)=\max_{\sigma\in\Sigma}\frac{|\{s\in W_t:\sigma_{sec}(s)=\sigma\}|}{|W_t|+\varepsilon_W}.
+\]
+If $Conc_{sec}(t)>c_{sec}^{max}$ under a dominant adverse epoch affecting that sector, TFE may emit a concentration warning or suppress lower-ranked candidates according to the approved operating profile. This is not portfolio optimization; it is controlled research hygiene against monoculture recommendations.
+
+\section{Sector-Condition Interaction Rules}
+\meta{Make the interaction between world conditions and sectors explicit so that the epoch library is operational, not decorative.}{Epoch mosaic, strategy class, sector/industry IDs, and company-specific exposures.}{Sector-conditioned penalties, boosts, and hard blocks.}
+
+Let $\Upsilon_{sec}(s,t)$ denote the sector-condition interaction term. Then
+\[
+\Upsilon_{sec}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,\Lambda_{j,\sigma_{sec}(s),c}\,+\sum_{j=1}^{32}\Xi_{t,j}\,\Lambda'_{j,\sigma_{ind}(s),c},
+\]
+where $\Lambda$ and $\Lambda'$ are controlled strategy-conditional interaction tensors. Mandatory rule families include:
+\begin{itemize}
+    \item rates and credit stress penalize housing, building products, highly levered industrials, and thin-margin project businesses unless offset by explicit fiscal/reconstruction epochs;
+    \item war/geopolitical conflict may raise opportunity in defense, logistics, energy security, or reconstruction-aligned industries, but simultaneously raise cost/uncertainty penalties in margin-thin builders and globally exposed cyclicals;
+    \item consumer-stress epochs penalize discretionary, retail, and low-pricing-power sectors more strongly than staples or mission-critical enterprise software;
+    \item energy/input-cost stress penalizes businesses with low gross margin and weak pass-through power;
+    \item regulation/litigation epochs may hard-block or heavily penalize affected sectors regardless of short-term structural attractiveness.
+\end{itemize}
+The strategy adjustment term in the investability score shall therefore be
+\begin{align*}
+\Omega_{strat}(s,t)=\Upsilon_{sec}(s,t)+\Upsilon_{company}(s,t),
+\end{align*}
+where $\Upsilon_{company}$ captures company-specific exposures such as contract mix, geographic concentration, backlog quality, capital intensity, and customer concentration.
+
+\section{Domain Decision Rule}
+\meta{Convert structural and financial governance quantities into final research actions.}{Investability scores, hard and soft blockers, strategy class.}{Final governed action state.}
+
+For active strategy class $c$ and horizon $h$:
+\[
+A_h^{final}(s,t)=
+\begin{cases}
+\text{NO\_OUTPUT}, & B^{hard}(s,t)=1,\\
+\text{ABSTAIN}, & B^{soft}(s,t)=1,\\
+\text{ACCUMULATE}, & IS_h(s,t)\ge \vartheta_{c,h}^{+},\\
+\text{AVOID}, & IS_h(s,t)\le -\vartheta_{c,h}^{-},\\
+\text{HOLD}, & \text{otherwise.}
+\end{cases}
+\]
+
+\section{Approved Heuristics and Explicit Non-Heuristics}
+\meta{Separate allowed practical inevitabilities from impermissible thesis-substituting shortcuts.}{Candidate rule and governance registry.}{Approval or rejection.}
+
+Approved heuristics are limited to:
+\begin{itemize}
+\item stale snapshot rejection;
+\item explicit data-integrity rejection;
+\item forced abstention on collapse or SafeMode;
+\item approved sector/epoch hard-blocks;
+\item deterministic cooldowns after explicit structural reversals.
+\end{itemize}
+
+The following are explicitly non-admissible in the normative design unless separately justified and approved:
+\begin{itemize}
+\item replacing the event tape with a primary lag-table representation;
+\item semantic separation of 5/20/60 as independent modeling worlds;
+\item silent retuning of thresholds to ``make the run work'';
+\item undeclared overrides based on one-off stories or ad hoc ticker intuition.
+\end{itemize}
+
+
+
+\section{Short-Side and Downside Strategy Families}
+\meta{Add explicit governed short-side strategy families so TFE can reason about downside opportunities and protection rather than only long-side accumulation.}{Structural state, epoch mosaic, sector conditions, survivability state, borrow/marketability constraints where available.}{Short-side strategy classifications, hard blocks, and score adjustments.}
+
+TFE shall support at minimum the following short-side strategy families:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Structural Breakdown Short:} negative structural transition with rising instability and adverse epoch alignment.
+    \item \textbf{Overvaluation Mean-Reversion Short:} weak margin/quality, stretched valuation, and structural exhaustion.
+    \item \textbf{Catalyst-Driven Downside Short:} adverse company-specific or sector-wide event with weak absorptive structure.
+    \item \textbf{Avoid-Only Protection Mode:} no active short signal, but deterministic suppression of long-side exposure.
+\end{enumerate}
+Define a governed short score
+\[
+IS_h^{short}(s,t)=\omega_1\,[-\Psi_h(s,t)]_{+}+\omega_2\,[V_{ten}(s,t)]_{+}+\omega_3\,\Omega_{epoch}^{-}(s,t)+\omega_4\,\chi_{frag}(s,t)-\omega_5\,Q_{borrow}(s,t),
+\]
+where $\chi_{frag}$ is structural fragility and $Q_{borrow}$ is an optional operational feasibility term. A short-side action shall only be admissible when the approved operating mode permits short-side research outputs.
+
+\section{Pattern and Setup Strategy Families}
+\meta{Add deterministic pattern/setup families to make the strategy rulebook competitive with practical advisory systems while remaining structurally governed.}{Price path, structural state, event tape, volatility envelope, and approved technical transforms.}{Pattern/setup families and scoring adjustments.}
+
+Approved setup families may include, when explicitly enabled and versioned:
+\begin{itemize}
+    \item double-bottom / double-top shots;
+    \item pivot recoveries and failed-pivot breakdowns;
+    \item moving-average trend continuation and crossover families;
+    \item Bollinger squeeze-release and volatility expansion/contraction setups;
+    \item RSI and momentum exhaustion / reversal setups;
+    \item breakout with structural confirmation and false-break avoidance.
+\end{itemize}
+These families shall not be treated as independent alpha engines. They are deterministic strategy overlays on the structural state. Each setup shall be represented as a bounded deterministic setup vector $\mathcal{S}_{setup}(s,t)$ whose components modify strategy-family eligibility and confidence but cannot override hard blocks from survivability, security, or adverse epoch governance.
+
+\section{Insider, Ownership, and Company-Specific News Rules}
+\meta{Incorporate informational governance channels that practical advisory systems use, while preserving deterministic gating and provenance.}{Insider transaction records, ownership changes, company-specific news/catalysts, source reliability, and epoch policy.}{Informational event adjustments, blocks, or abstentions.}
+
+TFE shall support a governed informational-event block
+\[
+\Xi^{info}(s,t)=\Xi^{insider}(s,t)+\Xi^{ownership}(s,t)+\Xi^{news}(s,t)+\Xi^{filing}(s,t),
+\]
+where each component is computed from admitted sources only and carries source reliability, temporal decay, and sphere-of-impact tags. The informational-event adjustment is
+\[
+\Upsilon_{info}(s,t)=\sum_{q} \beta_q\,\rho_q(s,t)\,\phi_q(t),
+\]
+with $q$ ranging over admitted informational events, $\rho_q$ the company exposure/relevance, and $\phi_q$ the decayed signed event severity. Insider or ownership signals shall never be used without provenance, timestamp, and source confidence; ambiguous or stale informational events shall degrade to abstention or no-op rather than silently influencing recommendations.
+
+\section{Competitive Financial Rulebook Doctrine}
+\meta{State the rulebook goal relative to practical advisory platforms while keeping TFE thesis-faithful.}{All financial strategy families, epoch logic, informational events, and governance controls.}{A doctrine for competitive but controlled financial governance.}
+
+The financial rulebook shall be considered competitive only if it covers, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item long-side accumulation and hold discipline;
+    \item short-side and downside-protection families;
+    \item pattern/setup-based tactical opportunities;
+    \item company-specific and sector/macro epoch intelligence;
+    \item valuation, margin, survivability, and concentration discipline;
+    \item explicit abstention and degraded-mode rules.
+\end{enumerate}
+The doctrine is not to imitate conventional advisor products superficially. It is to map practical strategy families into deterministic structural governance so that the geometry/field thesis remains intact while commercial usefulness improves.

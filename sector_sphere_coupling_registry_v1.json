@@ -1,0 +1,76 @@
+{
+  "generated_at_utc": "2026-03-10T02:04:17.611Z",
+  "status": "scaffold_only",
+  "cp_profile": "CP-0",
+  "rollout_state": "registry_only_no_behavior_change",
+  "lineage_baseline": "Section 9 strict lineage baseline for L5 revisions remains in force.",
+  "source_truth": [
+    "web_user_data/TFE_5_3_Implementation_Plan_v2_4.md",
+    "web_user_data/TFE_Specification_v2_4.tex",
+    "web_user_data/TFE_Spec_Internal_Review_v2_4.md",
+    "current_l5_code_truth_to_spec_gap_latest.json",
+    "exact_path_alignment_readiness_latest.json"
+  ],
+  "registry_name": "sector_sphere_coupling_registry_v1",
+  "purpose": "Controlled sector/sphere coupling registry for epoch and sector-condition interaction rules. Couplings are declared only; no numeric tensors are introduced in this scaffold.",
+  "couplings": [
+    {
+      "id": "rates_credit_vs_housing_building_leverage",
+      "label": "Rates / Credit Stress vs Housing, Building Products, Levered Industrials, Thin-Margin Projects",
+      "effect_mode": "penalize_or_hard_block",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1668"
+      ]
+    },
+    {
+      "id": "war_geopolitics_vs_defense_logistics_energy_security_reconstruction",
+      "label": "War / Geopolitical Conflict vs Defense, Logistics, Energy Security, Reconstruction",
+      "effect_mode": "conditional_opportunity_with_parallel_cost_risk_penalties",
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1669"
+      ]
+    },
+    {
+      "id": "consumer_stress_vs_discretionary_retail_low_pricing_power",
+      "label": "Consumer Stress vs Discretionary, Retail, Low-Pricing-Power Sectors",
+      "effect_mode": "penalize",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1670"
+      ]
+    },
+    {
+      "id": "energy_input_cost_stress_vs_low_margin_weak_pass_through",
+      "label": "Energy / Input-Cost Stress vs Low-Margin Weak Pass-Through Businesses",
+      "effect_mode": "penalize",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1671"
+      ]
+    },
+    {
+      "id": "regulation_litigation_vs_affected_sectors",
+      "label": "Regulation / Litigation vs Affected Sectors",
+      "effect_mode": "hard_block_or_heavy_penalty",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1672"
+      ]
+    },
+    {
+      "id": "reconstruction_or_fiscal_capex_vs_selected_infrastructure_industrials",
+      "label": "Reconstruction / Fiscal-Capex vs Selected Infrastructure / Industrial Names",
+      "effect_mode": "conditional_opportunity_if_margin_and_survivability_pass",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1639"
+      ]
+    },
+    {
+      "id": "rates_and_credit_stress_vs_housing_and_build_products",
+      "label": "Rates and Credit Stress vs Housing / Build-Products",
+      "effect_mode": "dominant_avoidance_if_local_structure_conflicts",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1641"
+      ]
+    }
+  ]
+}

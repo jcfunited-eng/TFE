@@ -1,0 +1,12 @@
+{
+  "followup_job_id": "followup_job_v1_3e884da776452f5a30ce9027",
+  "triggering_run_id": "phase-c-contract-proof-20260316t013747z",
+  "publication_bundle_id": "publication_bundle_v1_94aeaea07cf9b36c9e7322cf",
+  "target_environment": "production",
+  "phase_name": "quote_cache_refresh",
+  "classification": "non_critical_follow_up",
+  "status": "deferred",
+  "publication_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/publications/publication_bundle_v1_94aeaea07cf9b36c9e7322cf/manifest.json",
+  "operator_visible_status": "quote_cache_refresh deferred; publication_bundle_id=publication_bundle_v1_94aeaea07cf9b36c9e7322cf; publication remains active while follow-up proceeds independently.",
+  "created_at_utc": "2026-03-16T01:37:52.887Z"
+}

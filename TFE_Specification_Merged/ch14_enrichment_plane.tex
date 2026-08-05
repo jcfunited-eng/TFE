@@ -1,0 +1,98 @@
+\chapter{Enrichment Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define the follow-up lane that must not redefine publication truth.}{Triggered run identity, enrichment phase classification, active publication identity when applicable, and bounded input contract for each enrichment phase.}{Enrichment output artifact, enrichment phase ledger row, success/failure disposition, and operator-visible follow-up status.}
+
+\subsection{Purpose}
+The Enrichment Plane performs follow-up work that may improve display quality, completeness, or downstream convenience without redefining the active publication truth. It exists to keep non-critical work visible and controlled without allowing it to block publication by accident.
+
+\subsection{Inputs}
+Every enrichment phase shall declare:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the triggering \texttt{run\_id};
+    \item the enrichment phase name;
+    \item the phase classification;
+    \item the input contract required for that enrichment phase;
+    \item the publication identity, if the phase is post-activation.
+\end{enumerate}
+
+\subsection{Outputs}
+Every enrichment phase shall produce:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one phase-ledger record;
+    \item zero or one enrichment artifact set;
+    \item explicit success or failure semantics;
+    \item an operator-visible follow-up status.
+\end{enumerate}
+
+\section{Enrichment Classification Rule}
+Each enrichment phase shall be classified as exactly one of:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{non\_critical\_follow\_up};
+    \item \texttt{publication\_critical};
+    \item \texttt{disabled}.
+\end{enumerate}
+
+The default classification shall be \texttt{non\_critical\_follow\_up}. Reclassifying an enrichment phase to \texttt{publication\_critical} shall require an explicit specification revision and corresponding conformance updates.
+
+\section{Full-Universe Quote-Cache Rule}
+For the current active workstream and for full-universe runs:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{quote\_cache\_refresh} shall execute as a non-critical follow-up phase;
+    \item quote-cache completion shall not be required before publication activation;
+    \item quote-cache failure shall be ledgered explicitly and surfaced to operators;
+    \item quote-cache outputs may improve display responsiveness but shall not redefine the active publication bundle.
+\end{enumerate}
+
+\section{Profile Overrides Follow-Up Rule}
+Unless a later controlled revision states otherwise, \texttt{profile\_overrides\_refresh} shall also be treated as a non-critical follow-up phase for full-universe publication. Any output it produces shall be versioned and linked back to the triggering \texttt{run\_id}.
+
+\section{Invariants}
+The Enrichment Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item enrichment does not mutate an already activated publication bundle;
+    \item non-critical enrichment failure does not roll back the active publication pointer;
+    \item every enrichment artifact is traceable to the triggering run and input contract;
+    \item every enrichment phase remains visible through ledger state even when it is not publication-blocking.
+\end{enumerate}
+
+\section{State Transitions}
+The allowed enrichment state progression shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{deferred} \(\rightarrow\) \texttt{launched};
+    \item \texttt{launched} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{running} \(\rightarrow\) \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{disabled} is terminal for that run and shall not masquerade as success.
+\end{enumerate}
+
+If an enrichment phase is explicitly classified publication-critical for a specific bundle class, its terminal state shall be reached before activation. Otherwise, activation may complete while the enrichment phase remains non-terminal.
+
+\section{Failure Semantics}
+Enrichment failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{enrichment\_launch\_failure};
+    \item \texttt{enrichment\_runtime\_failure};
+    \item \texttt{enrichment\_output\_invalid};
+    \item \texttt{critical\_enrichment\_block};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+A non-critical enrichment failure shall not be reclassified as publication failure merely because it is noisy or user-visible. It shall remain an enrichment failure unless the dependency was explicitly marked publication-critical for that bundle class before the run started.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item full-universe publication can activate while \texttt{quote\_cache\_refresh} remains deferred, running, blocked, or failed as a non-critical phase;
+    \item non-critical enrichment failures remain visible in ledger state and operator outputs;
+    \item enrichment artifacts are versioned and linked to the triggering run identity;
+    \item no enrichment path mutates an already activated publication bundle in place.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for quote-cache follow-up, profile-overrides follow-up, and enrichment status exposure;
+    \item runtime objects \texttt{phase\_ledger}, enrichment output artifacts, and publication identities cited by post-activation follow-up work;
+    \item conformance tests for non-blocking quote-cache behavior, enrichment failure visibility, and enrichment-to-run traceability;
+    \item acceptance evidence consisting of phase-ledger rows, operator summaries, enrichment artifact manifests, and publication records showing non-blocking activation.
+\end{enumerate}

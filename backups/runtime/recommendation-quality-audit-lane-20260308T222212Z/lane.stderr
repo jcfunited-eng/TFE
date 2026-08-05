@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspaces/Tao_Financial_Engine/tools/recommendation_quality_audit_lane.py", line 451, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspaces/Tao_Financial_Engine/tools/recommendation_quality_audit_lane.py", line 263, in main
+    audit_report = h60.run_audit(
+                   ^^^^^^^^^^^^^^
+  File "/workspaces/Tao_Financial_Engine/tools/h60_deterministic_physics_audit.py", line 134, in run_audit
+    raise ValueError("One or more horizons have zero evaluable rows; cannot run deterministic audit.")
+ValueError: One or more horizons have zero evaluable rows; cannot run deterministic audit.

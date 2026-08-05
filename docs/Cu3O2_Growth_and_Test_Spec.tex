@@ -1,0 +1,342 @@
+% ============================================================
+%  Cu₃O₂ Kagome Monolayer on LaAlO₃(111)
+%  Growth and Electrical Characterization Specification
+%  For contract/facility use — no theoretical framework
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs, array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!60!black}
+\definecolor{nm-gray}{RGB}{100,100,100}
+\definecolor{nm-green}{RGB}{20,100,40}
+\definecolor{nm-red}{RGB}{160,30,30}
+
+\pagestyle{fancy}\fancyhf{}
+\rhead{\textcolor{nm-gray}{\small Cu$_3$O$_2$ Growth \& Test Spec}}
+\lhead{\textcolor{nm-gray}{\small Joseph Forrester}}
+\cfoot{\thepage}
+
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}\onehalfspacing
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Cu$_3$O$_2$ Kagome Monolayer}}\\[4pt]
+  {\LARGE \textbf{on LaAlO$_3$(111)}}\\[6pt]
+  {\large Growth and Electrical Characterization Specification}\\[10pt]
+  {\color{nm-gray}\small Joseph Forrester \quad|\quad
+    Independent Researcher}\\[4pt]
+  {\color{nm-gray}\small May 2026 \quad|\quad Revised from April 2026}
+\end{center}
+
+\vspace{1em}\hrule\vspace{1em}
+
+% ============================================================
+\section*{Overview}
+
+This document specifies the growth of a Cu$_3$O$_2$ sub-monolayer
+on LaAlO$_3$(111) by molecular beam epitaxy, followed by
+electrostatic gating and electrical transport measurement.
+The deliverables are:
+
+\begin{enumerate}[nosep]
+  \item Verified Cu$_3$O$_2$ kagome monolayer on LAO(111)
+        (RHEED, XPS confirmation)
+  \item Sheet resistance vs.\ temperature ($R_\square(T)$)
+        from 400~K to 2~K at multiple gate voltages
+  \item Raw data files for all measurements
+\end{enumerate}
+
+% ============================================================
+\section{Substrate}
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Material & LaAlO$_3$ (LAO), single crystal --- primary \\
+ & SrTiO$_3$ (STO), single crystal --- secondary
+  (1--2 samples for strain comparison) \\
+Orientation & (111) face (both substrates) \\
+Miscut & $< 0.3^\circ$ \\
+Size & 5~mm $\times$ 5~mm or 10~mm $\times$ 10~mm \\
+Quantity & 5 LAO + 2 STO substrates minimum \\
+Supplier & MTI Corporation, CrysTec, or equivalent \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Substrate Preparation}
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Step} & \textbf{Specification} \\
+\midrule
+1. Solvent clean & Ultrasonic in acetone (5~min), isopropanol
+  (5~min), deionized water rinse, N$_2$ dry \\
+2. Anneal & $1000^\circ$C in $10^{-6}$~Torr O$_2$ for 1~hour \\
+3. Verification & RHEED: sharp $(1 \times 1)$ streaks confirming
+  atomically flat, ordered surface \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Cu$_3$O$_2$ Deposition}
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Source & E-beam evaporator, 99.999\% Cu \\
+Substrate temperature & $650^\circ$C ($\pm 10^\circ$C) \\
+Oxygen source & RF oxygen plasma (remote configuration),
+  equivalent flux to $5 \times 10^{-5}$~Torr molecular O$_2$ \\
+Deposition rate & 0.005~\AA/s (monitored by quartz crystal
+  microbalance) \\
+Target coverage & 0.5 monolayer equivalent \\
+Estimated duration & $\sim 25$~minutes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{In-situ monitoring:}
+\begin{itemize}[nosep]
+  \item RHEED: observe transition from $(1 \times 1)$ to
+        $(2 \times 2)$ or
+        $(\sqrt{3} \times \sqrt{3})R30^\circ$ reconstruction.
+        Either pattern confirms kagome ordering on the (111)
+        surface.
+  \item If RHEED shows 3D spots or no reconstruction, the growth
+        has failed. Adjust temperature or O$_2$ pressure.
+\end{itemize}
+
+\textbf{Post-deposition:}
+\begin{itemize}[nosep]
+  \item Optional post-anneal: $650^\circ$C,
+        $5 \times 10^{-5}$~Torr O$_2$, 10~minutes
+  \item Cool to room temperature under O$_2$ to maintain
+        Cu$^{2+}$ oxidation state
+\end{itemize}
+
+\textbf{Why these conditions:}
+\begin{itemize}[nosep]
+  \item $650^\circ$C provides sufficient Cu surface diffusion
+        for thermodynamic equilibrium while remaining below the
+        Cu desorption threshold. Window: 400--750$^\circ$C.
+  \item RF oxygen plasma (remote): Atomic oxygen oxidizes Cu
+        to Cu$^{2+}$ on contact, reducing the metallic Cu$^0$
+        lifetime by $\sim 1000\times$ compared to molecular
+        O$_2$. This suppresses Cu-Cu clustering and favors
+        2D kagome formation. Remote plasma configuration
+        prevents energetic ion damage to the substrate.
+        Equivalent O flux to $5 \times 10^{-5}$~Torr
+        molecular O$_2$.
+  \item 0.005~\AA/s ensures each deposited atom has time
+        ($\sim 10^{11}$ hops) to reach its equilibrium position
+        before the next atom arrives. This prevents kinetic
+        trapping.
+  \item 0.5~ML prevents 3D island formation while providing
+        sufficient coverage for a connected kagome network.
+\end{itemize}
+
+% ============================================================
+\section{Post-Growth Verification}
+
+\begin{center}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Method} & \textbf{Target} & \textbf{Accept / Reject} \\
+\midrule
+RHEED & $(2 \times 2)$ streaks &
+  Accept: streaky reconstruction.
+  Reject: 3D spots or $(1 \times 1)$ only. \\
+XPS & Cu 2p$_{3/2}$ &
+  Accept: $933.5 \pm 0.5$~eV (Cu$^{2+}$).
+  Reject: $932.5$~eV (Cu$^0$ metal) or
+  $935$~eV (Cu$^{3+}$). \\
+STM (if available) & Surface structure &
+  Accept: corner-sharing triangles with
+  $5.4 \pm 0.5$~\AA\ periodicity.
+  Reject: disordered or island morphology. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Note:} STM is desirable but not required for the
+transport measurement to proceed. RHEED + XPS are sufficient
+to confirm the correct phase.
+
+% ============================================================
+\section{Electrical Contact Fabrication}
+
+Four-point probe geometry for sheet resistance measurement:
+
+\begin{itemize}[nosep]
+  \item Deposit 4 contact pads (Ti/Au, 5/50~nm) by e-beam
+        evaporation through a shadow mask, in van der Pauw
+        configuration (4 corners of the sample)
+  \item Wire bond or use indium press contacts to measurement
+        leads
+  \item Verify ohmic contact at room temperature before
+        proceeding
+\end{itemize}
+
+% ============================================================
+\section{Electrostatic Gating}
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Ionic liquid & DEME-TFSI
+  (N,N-diethyl-N-methyl-N-(2-methoxyethyl)ammonium
+  bis(trifluoromethylsulfonyl)imide) \\
+Application & Drop of ionic liquid covering the film surface
+  between the contact pads \\
+Gate electrode & Pt wire or coil suspended in the ionic liquid,
+  not touching the film \\
+Gate voltage range & $V_g = 0$ to $+4.5$~V in 0.5~V steps \\
+Leakage check & Gate current $< 1$~$\mu$A at each $V_g$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Note:} Ionic liquid gating must be applied at or above
+room temperature (the ionic liquid freezes below $\sim 220$~K).
+Set the gate voltage at room temperature, allow 5--10 minutes
+for the electric double layer to form, then cool while
+maintaining $V_g$.
+
+% ============================================================
+\section{Transport Measurement}
+
+\subsection{Primary Measurement: $R_\square(T)$}
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Instrument & PPMS, cryostat, or any system capable of
+  controlled temperature sweep with electrical measurement \\
+Temperature range & 400~K down to 2~K \\
+Sweep direction & \textbf{Cool from 400~K to 2~K}
+  (start above 400~K) \\
+Sweep rate & 1--2~K/min \\
+Measurement current & 1--10~$\mu$A (AC or DC, low enough to
+  avoid heating the monolayer) \\
+Data points & Record $R_\square$ at every 0.5~K or continuous
+  logging \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Measurement Sequence}
+
+Perform the following runs on each verified sample:
+
+\begin{enumerate}[nosep]
+  \item $V_g = 0$~V: baseline (film likely insulating)
+  \item $V_g = +1.0$~V: light gating
+  \item $V_g = +2.0$~V
+  \item $V_g = +3.0$~V
+  \item $V_g = +4.0$~V
+  \item $V_g = +4.5$~V: maximum gating
+\end{enumerate}
+
+At each gate voltage:
+\begin{itemize}[nosep]
+  \item Set $V_g$ at 300~K, wait 10~minutes
+  \item Heat to 400~K
+  \item Cool to 2~K at 1--2~K/min while logging $R_\square(T)$
+  \item Warm back to 300~K before changing $V_g$
+\end{itemize}
+
+\subsection{What to Look For}
+
+\begin{itemize}[nosep]
+  \item A sharp drop in $R_\square$ at any temperature during
+        cooling indicates a phase transition
+  \item If $R_\square$ drops to the instrument noise floor
+        ($< 0.01~\Omega$/sq), this indicates zero-resistance
+        state
+  \item Record the onset temperature of any transition as
+        $T_{\text{onset}}$ and the zero-resistance temperature
+        as $T_{\text{zero}}$
+  \item If no transition is observed at any gate voltage,
+        record the $R_\square(T)$ curves as-is --- this is
+        still useful data
+\end{itemize}
+
+% ============================================================
+\section{Deliverables}
+
+\begin{enumerate}[nosep]
+  \item RHEED images: pre-deposition and post-deposition
+  \item XPS spectrum of Cu 2p region
+  \item STM image (if available)
+  \item $R_\square(T)$ data for each gate voltage (raw data
+        files, not just plots)
+  \item Gate leakage current vs.\ $V_g$ at room temperature
+  \item Photos of sample with contacts and ionic liquid
+        applied
+  \item Any anomalies or deviations from the specified
+        protocol, documented
+\end{enumerate}
+
+% ============================================================
+\section{Sample Handling Notes}
+
+\begin{itemize}[nosep]
+  \item Store samples in vacuum or dry N$_2$ after growth
+        (Cu$^{2+}$ may reduce in ambient over days/weeks)
+  \item Handle with non-metallic tweezers only (avoid
+        contamination)
+  \item The ionic liquid is hygroscopic --- apply in a
+        glovebox or dry environment
+  \item Samples can be shipped in vacuum-sealed containers
+        if growth and measurement are at different facilities
+\end{itemize}
+
+% ============================================================
+\section{Interface Chemistry (for grower reference)}
+
+Cu does not react with or diffuse into LaAlO$_3$:
+
+\begin{center}
+\begin{tabular}{@{}lrc@{}}
+\toprule
+\textbf{Reaction} & $\Delta H$ (kJ/mol) & \textbf{Occurs?} \\
+\midrule
+Cu$_3$O$_2$ on LAO surface & $-365$ &
+  \textcolor{nm-green}{\textbf{Yes (favorable)}} \\
+Cu substitutes for Al in LAO & $+694$ &
+  \textcolor{nm-red}{No (forbidden)} \\
+La$_2$CuO$_4$ at interface & $+144$ &
+  \textcolor{nm-red}{No (forbidden)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Al diffusion from LAO at $650^\circ$C: $< 0.01$~\AA\ in
+2~hours. The interface remains atomically sharp.
+
+\vspace{2em}\hrule\vspace{0.5em}
+{\color{nm-gray}\small Joseph Forrester --- Independent
+Researcher --- May 2026 (Rev.\ 2)}
+
+\end{document}

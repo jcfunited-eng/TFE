@@ -1,0 +1,37 @@
+\chapter{Architecture Principles}
+\section{Determinism Rule}
+\meta{Define system-wide determinism.}{Inputs, contracts, identity functions.}{Normative determinism rule.}
+
+For every controlled run \(r\), there shall exist a deterministic mapping:
+\[
+f_r : \mathcal{S}_r \times \mathcal{N}_r \times \mathcal{P}_r \rightarrow \mathcal{C}_r
+\]
+where:
+\begin{itemize}
+    \item \(\mathcal{S}_r\) is the source-package identity set,
+    \item \(\mathcal{N}_r\) is the normalized-package identity set,
+    \item \(\mathcal{P}_r\) is the policy/model/config identity set,
+    \item \(\mathcal{C}_r\) is the candidate-bundle identity.
+\end{itemize}
+
+No user-facing publication may be produced without an explicit identity chain from \(\mathcal{S}_r\) to \(\mathcal{C}_r\).
+
+\section{Advisor-System Rule}
+TFE shall be optimized for advisor-system correctness, workflow efficiency, deterministic publication, and reliable client/advisor outputs before it is optimized for extreme trading latency.
+
+\section{Separation Rule}
+Critical-path publication semantics shall be separated from:
+\begin{itemize}
+    \item deployment-only concerns,
+    \item asynchronous enrichment,
+    \item UI parity probes,
+    \item optional analytics,
+    \item non-critical quality probes.
+\end{itemize}
+
+\section{Single Active Truth Rule}
+For each environment \(e\), there shall exist at most one active publication pointer:
+\[
+\left| A_e \right| \le 1
+\]
+where \(A_e\) is the set of active publication bundles in environment \(e\).

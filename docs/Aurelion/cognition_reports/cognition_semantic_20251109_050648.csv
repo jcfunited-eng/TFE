@@ -1,0 +1,4 @@
+file,domain,phi,H,energy,intent,reason,tokens,meta_tokens
+finance_news.txt,finance,0.194,-0.0,0.194,EXPLORE,"Mixed signal (φ=0.19, H=0.00, e=0.19).",market investors data yields stay remained elevated longer rates stay rates reserve indicated,market investors data yields stay remained elevated longer rates stay
+nasa_mission.txt,science,0.291,-0.0,0.291,EXPLORE,"Mixed signal (φ=0.29, H=0.00, e=0.29).",artemis mission updated updated spaceflight surface surface landing trajectory simulations trajectory spaceflight spaceflight safety,artemis mission updated updated spaceflight surface surface landing trajectory simulations trajectory
+weather_noaa.txt,weather,0.366,-0.0,0.366,EXPLORE,"Mixed signal (φ=0.37, H=0.00, e=0.37).",air low secondary cold likely wednesday secondary likely follow cooler bringing cooler cooler drier,air low secondary cold likely wednesday secondary likely follow cooler

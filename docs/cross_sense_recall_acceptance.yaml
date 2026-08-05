@@ -1,0 +1,143 @@
+scenario:
+  id: GL-SCN-CROSS-SENSE-RECALL-ACCEPTANCE-EVE-20260706-v1
+  purpose: |
+    Acceptance test for cross-sense recall. Verifies that after a
+    picture+sound+word experience is bound into one window, a partial
+    sound cue produces a recall query that returns the original window
+    with picture and word entries intact.
+    Fails if no recall_query_executed event fires, or if the returned
+    window count is zero, or if the top-ranked window does not contain
+    the picture and word entries paired with the cue sound.
+  category: mechanism
+  target_mechanism: cross-sense-recall
+
+preconditions:
+  substrate_state: clean_slate
+  components_ready:
+    - ingest
+    - sight
+    - sound
+    - word
+    - window_manager
+    - atlas
+    - recall_engine
+  presence_state:
+    joe: false
+    wc: true
+    c1: false
+  suppression:
+    curriculum_feeds: "off"
+    world_feed: "off"
+    autonomy_reading: "off"
+  wait_for_ready_timeout_sec: 30
+
+probe:
+  method: sequence
+  auth_as: wc
+  sequence:
+    - t_offset_ms: 0
+      method: wake
+      payload:
+        source: wc
+
+    - t_offset_ms: 500
+      method: give_experience
+      payload:
+        picture_ref: "test-images/ball.png"
+        sound_ref: "test-sounds/bounce.wav"
+        word: "ball"
+        source_tag: wc
+
+    - t_offset_ms: 3000
+      method: give_experience
+      payload:
+        sound_ref: "test-sounds/bounce.wav"
+        source_tag: wc
+        expect: probe_recall
+
+expectations:
+
+  events_must_fire:
+
+    - kind: window_opened
+      count_min: 2
+      count_max: 2
+      within_ms: 4000
+
+    - kind: window_entry_added
+      count_min: 4
+      count_max: 4
+      within_ms: 4000
+
+    - kind: window_closed
+      count_min: 2
+      count_max: 2
+      within_ms: 5000
+
+    - kind: recall_query_executed
+      count_min: 1
+      count_max: 3
+      within_ms: 6000
+      assertions:
+        windows_returned_min: 1
+        windows_returned_max: 5
+
+  components_must_activate:
+    - window_manager
+    - atlas
+    - recall_engine
+    - sight
+    - sound
+    - word
+
+  atlas_deltas:
+    windows_added_min: 2
+    windows_added_max: 2
+    entries_added_min: 4
+    entries_added_max: 4
+
+  emission_provenance:
+    required: false
+
+  observability_thresholds:
+    peak_cpu_percent_max: 50
+    peak_memory_delta_mb_max: 100
+    peak_event_loop_lag_ms_max: 50
+    subscription_lag_max_events: 10
+    network_errors: 0
+
+  negative_expectations:
+
+    - kind: emission_suppressed_no_presence
+      count_max: 0
+
+    - kind: shadow_divergence
+      count_max: 0
+
+    - kind: unauth_request
+      count_max: 0
+
+    - kind: security_alert
+      count_max: 0
+
+    - kind: recall_query_failed
+      count_max: 0
+
+run:
+  timeout_sec: 20
+  resource_caps:
+    max_memory_delta_mb: 500
+    max_cpu_seconds: 60
+    max_disk_write_mb: 100
+    max_egress_mb: 10
+
+cleanup:
+  restore_state: none
+  clear_captured_events: false
+  delete_probe_artifacts_from_atlas: false
+
+metadata:
+  author: EVE
+  created_date: "2026-07-06"
+  changelog:
+    - v1: initial acceptance test for cross-sense recall build

@@ -1,0 +1,34 @@
+\chapter{Change Control, Deviations, and CAPA}
+\section{Versioning}
+\meta{Prevent silent semantic drift.}{Proposed changes to kernel import, L5 equations, summaries, schemas, thresholds, or runtime behavior.}{Major / minor / patch decision and required controls.}
+
+Versioning policy:
+\begin{itemize}
+    \item \textbf{Major:} any semantic change to imported kernel behavior, L5 state equations, L5 action mapping, SES semantics, validation logic, or runtime-snapshot semantics.
+    \item \textbf{Minor:} additive backward-compatible extensions such as new reports, new tests, or new non-semantic fields.
+    \item \textbf{Patch:} documentation corrections, clarifications, or bug fixes that do not alter semantics.
+\end{itemize}
+
+\section{Deviation Handling}
+\meta{Control cases where expected behavior or procedure is not met.}{Observed discrepancy, impacted artifact(s), root-cause status.}{Deviation record and disposition.}
+
+Each deviation shall record:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item unique identifier;
+    \item observed issue;
+    \item impacted runs, snapshots, or documents;
+    \item root-cause status;
+    \item containment action;
+    \item CAPA reference if required.
+\end{enumerate}
+
+\section{CAPA}
+\meta{Define corrective and preventive action handling.}{Closed investigation and approved action plan.}{Verified CAPA closure.}
+
+CAPA closure shall require objective evidence that:
+\begin{itemize}
+    \item the correction was applied;
+    \item the earliest identified divergence was removed;
+    \item no new non-conformances were introduced;
+    \item validation and release status were updated.
+\end{itemize}

@@ -1,0 +1,602 @@
+{
+  "AAMI": {
+    "tau_in_days": 60,
+    "tau_out_days": 20,
+    "expansion_days": 0,
+    "remaining_days": 20,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "20d left"
+  },
+  "AGNC": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "AIZ": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "ARDT": {
+    "tau_in_days": 3,
+    "tau_out_days": 1,
+    "expansion_days": 114,
+    "remaining_days": 0,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "ARW": {
+    "tau_in_days": 217,
+    "tau_out_days": 72,
+    "expansion_days": 59,
+    "remaining_days": 13,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "13d left"
+  },
+  "ASR": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "BDX": {
+    "tau_in_days": 219,
+    "tau_out_days": 73,
+    "expansion_days": 57,
+    "remaining_days": 16,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "16d left"
+  },
+  "BELFB": {
+    "tau_in_days": 5,
+    "tau_out_days": 1,
+    "expansion_days": 0,
+    "remaining_days": 1,
+    "total_gates": 8,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "1d left"
+  },
+  "BIRK": {
+    "tau_in_days": 184,
+    "tau_out_days": 61,
+    "expansion_days": 92,
+    "remaining_days": 0,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "BOH": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "BSM": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "CCB": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "CHIQ": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "CMDB": {
+    "tau_in_days": 99,
+    "tau_out_days": 33,
+    "expansion_days": 149,
+    "remaining_days": 0,
+    "total_gates": 4,
+    "total_bars": 248,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "COPP": {
+    "tau_in_days": 64,
+    "tau_out_days": 21,
+    "expansion_days": 0,
+    "remaining_days": 21,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "21d left"
+  },
+  "COPZ": {
+    "tau_in_days": 8,
+    "tau_out_days": 2,
+    "expansion_days": 0,
+    "remaining_days": 2,
+    "total_gates": 14,
+    "total_bars": 52,
+    "current_dk": -1.0,
+    "status": "2d left"
+  },
+  "CRTO": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "CTRI": {
+    "tau_in_days": 31,
+    "tau_out_days": 10,
+    "expansion_days": 245,
+    "remaining_days": 0,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "DEI": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "DHI": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "DINO": {
+    "tau_in_days": 52,
+    "tau_out_days": 17,
+    "expansion_days": 0,
+    "remaining_days": 17,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "17d left"
+  },
+  "FOXA": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "FSCO": {
+    "tau_in_days": 236,
+    "tau_out_days": 78,
+    "expansion_days": 40,
+    "remaining_days": 38,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "38d left"
+  },
+  "FSS": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "FTDR": {
+    "tau_in_days": 75,
+    "tau_out_days": 25,
+    "expansion_days": 46,
+    "remaining_days": 0,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "HTBK": {
+    "tau_in_days": 266,
+    "tau_out_days": 88,
+    "expansion_days": 0,
+    "remaining_days": 88,
+    "total_gates": 1,
+    "total_bars": 266,
+    "current_dk": 0.0,
+    "status": "88d left"
+  },
+  "IMAX": {
+    "tau_in_days": 230,
+    "tau_out_days": 76,
+    "expansion_days": 46,
+    "remaining_days": 30,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "30d left"
+  },
+  "INR": {
+    "tau_in_days": 69,
+    "tau_out_days": 23,
+    "expansion_days": 198,
+    "remaining_days": 0,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "JJSF": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 3,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "KBA": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "KSPI": {
+    "tau_in_days": 232,
+    "tau_out_days": 77,
+    "expansion_days": 44,
+    "remaining_days": 33,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "33d left"
+  },
+  "LPLA": {
+    "tau_in_days": 142,
+    "tau_out_days": 47,
+    "expansion_days": 125,
+    "remaining_days": 0,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "MED": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "MSBI": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "MSCI": {
+    "tau_in_days": 148,
+    "tau_out_days": 49,
+    "expansion_days": 128,
+    "remaining_days": 0,
+    "total_gates": 3,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "NBIX": {
+    "tau_in_days": 55,
+    "tau_out_days": 18,
+    "expansion_days": 0,
+    "remaining_days": 18,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "18d left"
+  },
+  "NOMD": {
+    "tau_in_days": 240,
+    "tau_out_days": 80,
+    "expansion_days": 36,
+    "remaining_days": 44,
+    "total_gates": 3,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "44d left"
+  },
+  "NPKI": {
+    "tau_in_days": 25,
+    "tau_out_days": 8,
+    "expansion_days": 251,
+    "remaining_days": 0,
+    "total_gates": 7,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "NVT": {
+    "tau_in_days": 125,
+    "tau_out_days": 41,
+    "expansion_days": 0,
+    "remaining_days": 41,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "41d left"
+  },
+  "PHM": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "PNFP": {
+    "tau_in_days": 267,
+    "tau_out_days": 89,
+    "expansion_days": 0,
+    "remaining_days": 89,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "89d left"
+  },
+  "PODD": {
+    "tau_in_days": 3,
+    "tau_out_days": 1,
+    "expansion_days": 0,
+    "remaining_days": 1,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "1d left"
+  },
+  "REGN": {
+    "tau_in_days": 148,
+    "tau_out_days": 49,
+    "expansion_days": 128,
+    "remaining_days": 0,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "RRX": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 6,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "SGU": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "SMHX": {
+    "tau_in_days": 136,
+    "tau_out_days": 45,
+    "expansion_days": 140,
+    "remaining_days": 0,
+    "total_gates": 4,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "SOHU": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "SONO": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 5,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "STC": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "TLX": {
+    "tau_in_days": 46,
+    "tau_out_days": 15,
+    "expansion_days": 0,
+    "remaining_days": 15,
+    "total_gates": 9,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "15d left"
+  },
+  "TMF": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "TOL": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "TSMZ": {
+    "tau_in_days": 136,
+    "tau_out_days": 45,
+    "expansion_days": 140,
+    "remaining_days": 0,
+    "total_gates": 3,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "EXPIRED"
+  },
+  "TXRH": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 1,
+    "total_bars": 276,
+    "current_dk": 0.0,
+    "status": "92d left"
+  },
+  "USCB": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "VRTS": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "VSTL": {
+    "tau_in_days": 3,
+    "tau_out_days": 1,
+    "expansion_days": 0,
+    "remaining_days": 1,
+    "total_gates": 38,
+    "total_bars": 197,
+    "current_dk": -1.0,
+    "status": "1d left"
+  },
+  "WCLD": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  },
+  "WKC": {
+    "tau_in_days": 270,
+    "tau_out_days": 90,
+    "expansion_days": 6,
+    "remaining_days": 84,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": 1.0,
+    "status": "84d left"
+  },
+  "WOR": {
+    "tau_in_days": 276,
+    "tau_out_days": 92,
+    "expansion_days": 0,
+    "remaining_days": 92,
+    "total_gates": 2,
+    "total_bars": 276,
+    "current_dk": -1.0,
+    "status": "92d left"
+  }
+}

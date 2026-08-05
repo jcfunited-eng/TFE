@@ -1,0 +1,491 @@
+% ============================================================
+%  TFE System Recovery & Architecture Reference
+%  Tao Financial Engine — Disaster Recovery Document
+%  Overleaf-compatible LaTeX
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{caption}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+}
+
+\definecolor{tfe-gold}{RGB}{180, 140, 60}
+\definecolor{tfe-dark}{RGB}{30, 30, 30}
+\definecolor{tfe-green}{RGB}{40, 120, 60}
+\definecolor{tfe-red}{RGB}{160, 40, 40}
+\definecolor{tfe-gray}{RGB}{100, 100, 100}
+\definecolor{codebg}{RGB}{245, 245, 245}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{tfe-gray}{\small TFE System Recovery \& Architecture}}
+\lhead{\textcolor{tfe-gray}{\small Confidential --- Internal Use Only}}
+\rfoot{\textcolor{tfe-gray}{\small Page \thepage}}
+
+\titleformat{\section}{\large\bfseries\color{tfe-dark}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{tfe-dark}}{}{0em}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{tfe-gray},
+}
+
+% ============================================================
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Tao Financial Engine}}\\[6pt]
+  {\large System Recovery \& Architecture Reference}\\[4pt]
+  {\large Disaster Recovery --- Agent Re-Alignment Document}\\[8pt]
+  {\color{tfe-gray}\small Version 1.0 \quad|\quad April 2026 \quad|\quad Confidential}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+\section{Purpose}
+
+This document exists for one reason: if the primary AI agent (Claude/c1) crashes
+and loses all conversation context, this document plus the deployed codebase must
+be sufficient to restore full operational capability.
+
+\textbf{Diamond Hard Constraints (always active):}
+\begin{enumerate}[label=\arabic*.]
+  \item NO ML / NO HEURISTICS --- all logic is 100\% deterministic
+  \item NO SMOOTHING --- report failures with zero distortion
+  \item COMMERCIAL-GRADE CODE --- production-ready only
+  \item L0--L4 and L5 Primitive are LOCKED --- do not modify
+  \item The deployed codebase is the source of truth
+\end{enumerate}
+
+\textbf{Roles:}
+\begin{itemize}
+  \item \textbf{Claude (c1):} Architect, code deployer, auditor. Built the production codebase.
+  \item \textbf{Gemini 3.1 (w3.1):} Advisory role. Input taken under advisement, not blindly executed.
+  \item \textbf{Joseph Forrester:} TFE owner. Makes final decisions.
+\end{itemize}
+
+% ============================================================
+\section{System Architecture Overview}
+
+TFE is a deterministic structural field engine applied to financial markets.
+The architecture is layered:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Layer} & \textbf{Function} & \textbf{Status} \\
+\midrule
+L0 & SEV series computation & Frozen / Canonical \\
+L1 & Boundary operator, TVR weights, mosaics & Frozen / Canonical \\
+L2 & Gate interpretation, chi/psi regimes & Frozen / Canonical \\
+L3 & Resonance, hysteresis & Frozen / Canonical \\
+L4 & Directional signal, breathing dynamics & Frozen / Canonical \\
+L5 & DSF V3 basin physics (Accumulate/Hold/Avoid) & Frozen / Canonical \\
+PEE-1 & Personal Execution Engine (Ch1 3WA + Ch2) & Active / Validating \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Daily Execution Pipeline}
+
+The automated pipeline fires daily. All three processes auto-start on container boot
+via \texttt{tfe\_startup.sh}.
+
+\subsection{Pipeline Sequence}
+
+\begin{enumerate}
+  \item \textbf{Refresh Daemon} --- checks every 55s, fires at 13:00 UTC (9:00 AM ET)
+  \item \textbf{Snapshot Rebuild} --- \texttt{rebuild\_uf\_snapshot.py} computes L0--L4 for all tickers
+  \item \textbf{L5 Filter} --- \texttt{tfe\_l5\_baseline.py} applies DSF V3 basin physics
+  \item \textbf{Runtime Sync} --- publishes to \texttt{runtime\_decisions\_latest} (Postgres)
+  \item \textbf{PEE-1 Auto-Fire} --- \texttt{pee1\_runner.mjs} spawned after successful refresh
+  \item \textbf{Sentinel Daemon} --- syncs Alpaca fills every 5 min during market hours
+  \item \textbf{Quality Audit} --- \texttt{cp2\_quality\_audit.py} regenerates 5D/20D/60D metrics
+  \item \textbf{Fundamentals Backfill} --- \texttt{backfill\_accumulate\_fundamentals.py} fills gaps
+\end{enumerate}
+
+\subsection{PEE-1 Runner Phases}
+
+\begin{enumerate}
+  \item \textbf{Phase 1: Sentinel Audit} --- kill switches (circuit breaker, SPY flip, calamity, zombie)
+  \item \textbf{Phase 2a: 3WA Signals} --- \texttt{3wa\_strategist.mjs}
+  \item \textbf{Phase 2b: CH2 Signals} --- \texttt{ch2\_strategist.mjs} (independent of 2a)
+  \item \textbf{Phase 3: Execute Orders} --- \texttt{alpaca\_bridge.mjs} bracket orders
+  \item \textbf{Phase 4: Trade Audit} --- \texttt{trade\_auditor.mjs} sync and report
+\end{enumerate}
+
+% ============================================================
+\section{Signal Architecture}
+
+\subsection{Chapter 1: Three-Wave Alignment (3WA)}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Signal class & \texttt{3WA} \\
+Entry conditions & \texttt{decision\_label} = Accumulate, $\text{bar\_count} \in [1, 20]$, \\
+                 & $S_{UF} > 0$, SPY $D_k = 1$, ticker $\neq$ SPY \\
+Risk per trade & 1.5\% \\
+Take profit & entry $+ 1.2 \times \text{ATR}_{14}$ \\
+Stop loss & entry $- 1.0 \times \text{ATR}_{14}$ \\
+Exit triggers & SPY $D_k$ flip (Ch1 only), Calamity ($R_{rev,k} > 0$), Zombie ($> 10$ bars) \\
+Backtest win rate & 86.7\% (Waves 1+2+3, quarantine forensics) \\
+Edge proxy $\mathcal{E}$ & 0.1595 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Chapter 2: Mid $S_{UF}$ Acceleration}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Signal class & \texttt{CH2} \\
+Entry conditions & \texttt{decision\_label} = Accumulate, regime = TRANSITIONAL, \\
+                 & $S_{UF} \in [0.50, 0.75)$, ticker $D_k = 1$, $\text{bar\_count} \geq 21$ \\
+Risk per trade & 0.917\% (DEM: $0.611 \times 1.5\%$) \\
+Take profit & entry $+ 1.0 \times \text{ATR}_{14}$ \\
+Stop loss & entry $- 1.0 \times \text{ATR}_{14}$ \\
+Exit triggers & Exit A: $S_{UF} \geq 0.75$ (profit take), Exit B: $D_k \neq 1$ (stop) \\
+Backtest win rate & 64.9\% (mid-$S_{UF}$ band) \\
+Edge proxy $\mathcal{E}$ & 0.0974 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Critical invariant:} Ch1 and Ch2 are mutually exclusive by construction
+($\text{bar\_count} \leq 20$ for 3WA, $\geq 21$ for Ch2). SPY flip exit applies
+\textbf{only} to Ch1 positions --- Ch2 uses its own per-ticker exit conditions.
+
+% ============================================================
+\section{Sentinel Kill Conditions}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Condition} & \textbf{Trigger} & \textbf{Scope} & \textbf{Action} \\
+\midrule
+Circuit Breaker & Drawdown $> 5\%$ & All positions & Liquidate all, halt 24h \\
+SPY Flip & SPY $D_k \neq 1$ & Ch1 only & Liquidate Ch1 positions \\
+Calamity & $R_{rev,k} > 0$ & Single position & Market sell \\
+Zombie & bar\_count $> 10$ & Single position & Market sell \\
+Bracket Exit & Alpaca TP/SL fills & Single position & Sync to ledger \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Core Execution Files}
+
+\subsection{Execution Pipeline (\texttt{web/scripts/execution/})}
+
+\begin{longtable}{@{}p{5.5cm}p{9cm}@{}}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{pee1\_runner.mjs} & Master orchestrator: sentinel $\to$ strategists $\to$ bridge $\to$ audit \\
+\texttt{3wa\_strategist.mjs} & Ch1 signal detection from \texttt{runtime\_decisions\_latest} \\
+\texttt{ch2\_strategist.mjs} & Ch2 signal detection (independent of Ch1) \\
+\texttt{alpaca\_bridge.mjs} & Bracket order placement: \texttt{executeBracketOrder} (3WA), \texttt{executeCh2BracketOrder} (CH2) \\
+\texttt{sentinel\_monitor.mjs} & Position audit, kill switches, P\&L capture on exit \\
+\texttt{sentinel\_daemon.mjs} & Background loop: syncs Alpaca fills every 5 min during market hours \\
+\texttt{trade\_auditor.mjs} & Sync fills, generate SQA report \\
+\texttt{capital\_allocator.mjs} & Position sizing: vault\_equity $\times$ risk\_pct / 100 \\
+\texttt{stealth\_bridge.mjs} & Order slicing for allocations $\geq$ \$5K \\
+\texttt{stealth\_executor.mjs} & Fires queued stealth agents at scheduled time \\
+\texttt{circuit\_breaker.mjs} & Standalone 3\% intraday fuse \\
+\bottomrule
+\end{longtable}
+
+\subsection{UF Core (\texttt{uf\_core/})}
+
+\begin{longtable}{@{}p{4cm}p{10.5cm}@{}}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{config.py} & All frozen physics constants (thresholds, weights, gates) \\
+\texttt{layer0.py} & SEV series computation \\
+\texttt{layer1.py} & Boundary operator $D(t)$, TVR weights ($\beta_{1\text{--}3}$), mosaic lattices \\
+\texttt{layer2.py} & Gate interpretation, $\chi/\psi$ regimes, $U_{max} = 0.75$ \\
+\texttt{layer3.py} & Resonance computation, hysteresis $h_{max} = 0.20$ \\
+\texttt{layer4.py} & Directional signal ($\epsilon_D = 0.00073$), breathing dynamics \\
+\texttt{uf\_structural\_engine.py} & Public API: \texttt{compute\_structural\_state(symbol, bars)} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Python Core (root level)}
+
+\begin{longtable}{@{}p{6.5cm}p{8cm}@{}}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{run\_refresh\_with\_l5\_learning.py} & Master refresh: snapshot $\to$ L5 filter $\to$ sync $\to$ PEE-1 $\to$ audit \\
+\texttt{rebuild\_uf\_snapshot.py} & Compute UF structural state for all tickers \\
+\texttt{tfe\_l5\_baseline.py} & DSF V3 basin physics + cognitive gates \\
+\texttt{tfe\_fundamental\_fetcher.py} & Polygon primary $\to$ yfinance fallback for financials \\
+\texttt{tfe\_startup.sh} & Container boot: restore snapshot, start daemons, start Next.js \\
+\texttt{unified\_market\_data\_service.py} & Market data loader (Alpaca/Polygon/Yahoo) \\
+\bottomrule
+\end{longtable}
+
+% ============================================================
+\section{API Routes (\texttt{web/src/app/api/})}
+
+\begin{longtable}{@{}p{6cm}p{8.5cm}@{}}
+\toprule
+\textbf{Route} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{/screener} & Full screener with filters, sorting, pagination \\
+\texttt{/recommendations/list} & Accumulate signals bucketed by market cap \\
+\texttt{/recommendations/quick-check} & Single-ticker analysis \\
+\texttt{/watchlist} & User watchlist with metrics \\
+\texttt{/portfolio/pee1-positions} & Live Alpaca positions + P\&L \\
+\texttt{/portfolio/pee1-summary} & Account equity, cash, unrealized P\&L \\
+\texttt{/portfolio/pee1-config} & Read/write execution config \\
+\texttt{/admin/refresh} & Trigger/monitor refresh cycle \\
+\texttt{/admin/system-status} & Health check, queue depths \\
+\texttt{/admin/auditor} & Trade ledger queries \\
+\texttt{/admin/pee1} & PEE-1 config + circuit breaker state \\
+\texttt{/market-banner} & SPY $D_k$ state for UI banner \\
+\bottomrule
+\end{longtable}
+
+% ============================================================
+\section{Database Schema}
+
+\subsection{PEE-1 Tables}
+
+\textbf{\texttt{personal\_trade\_ledger}} --- every signal, execution, and exit:
+\begin{itemize}[nosep]
+  \item \texttt{ticker, run\_id, signal\_class} (3WA / CH2 / W1 / standard)
+  \item Gate fields: \texttt{spy\_dk, s\_uf, bar\_count, f\_n, d\_k, b\_k}
+  \item Capital: \texttt{vault\_equity\_at\_signal, risk\_per\_trade\_pct, dollar\_allocation, shares, atr\_14}
+  \item Alpaca IDs: \texttt{alpaca\_order\_id, alpaca\_take\_profit\_order\_id, alpaca\_stop\_loss\_order\_id}
+  \item Fills: \texttt{entry\_filled\_price/at, exit\_filled\_price/at}
+  \item P\&L: \texttt{p\_l, p\_l\_pct}
+  \item Status: pending $\to$ submitted $\to$ filled $\to$ closed
+  \item \texttt{exit\_reason}: take\_profit, stop\_loss, sentinel\_spy\_flip, sentinel\_calamity, sentinel\_zombie, etc.
+\end{itemize}
+
+\textbf{\texttt{pee1\_execution\_config}} --- key/value configuration:
+\begin{itemize}[nosep]
+  \item \texttt{execution\_mode}: paper (default) or live
+  \item \texttt{max\_drawdown\_pct}: 5.0
+  \item \texttt{risk\_per\_trade\_pct}: 1.5
+  \item \texttt{auto\_tfe\_enabled}: true/false
+\end{itemize}
+
+\textbf{\texttt{pee1\_circuit\_breaker}} --- halt state log with trigger/clear timestamps.
+
+\subsection{Runtime Tables (populated by refresh)}
+
+\begin{itemize}[nosep]
+  \item \texttt{runtime\_decisions\_latest} --- current run decisions (ticker $\to$ snapshot\_row\_json)
+  \item \texttt{runtime\_decisions\_history} --- historical decision archive (595K+ rows)
+  \item \texttt{runtime\_decision\_provenance\_latest} --- decision audit trail with reason codes
+  \item \texttt{runtime\_symbols} --- symbol universe metadata
+  \item \texttt{l5\_fundamentals\_normalized} --- financial metrics (sector, market cap, ratios)
+\end{itemize}
+
+% ============================================================
+\section{Frozen Physics Constants}
+
+\subsection{UF Core (L0--L4)}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Layer} & \textbf{Constant} & \textbf{Value} \\
+\midrule
+L1 & $\tau_D$ (boundary threshold) & 0.20 \\
+L1 & $\beta_1, \beta_2, \beta_3$ (TVR weights) & 1.0, 1.0, 1.0 \\
+L2 & $\chi_{min}, \chi_{max}$ & 0.25, 0.75 \\
+L2 & $U_{max}$ (uncertainty gate) & 0.75 \\
+L3 & $h_{max}$ (hysteresis) & 0.20 \\
+L4 & $\epsilon_D$ (directional threshold) & 0.00073 \\
+L4 & $\xi, \chi$ (breathing) & 0.10, 0.10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{DSF V3 Basin (L5)}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Constant} & \textbf{Value} \\
+\midrule
+$\beta$ (basin weight) & $37/64 = 0.578125$ \\
+Motion weight & $3/5 = 0.6$ \\
+Motion power & $5/4 = 1.25$ \\
+Reversal balance power & 16 \\
+Carry balance power & 4 \\
+Burden scale & $1/128 = 0.0078125$ \\
+Tie epsilon & $10^{-12}$ \\
+$F_n$ cognitive gate & $\leq 1.65$ \\
+$\text{raw\_x\_m}$ memory gate & $\leq 0.50$ \\
+Min bars for Accumulate & 180 \\
+Min share price & \$5.00 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Infrastructure}
+
+\subsection{AWS Architecture}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Service} & \textbf{Resource} \\
+\midrule
+ECS Cluster & \texttt{tfe-web-cluster} \\
+ECS Service & \texttt{tfe-web-service-lb} \\
+Task Family & \texttt{tfe-web-task} \\
+ECR Repository & \texttt{tfe-web} \\
+CodeBuild Project & \texttt{tfe-web-image-build} \\
+RDS (Postgres) & \texttt{tfe-prod-postgres} (us-east-1, private VPC) \\
+S3 Deploy Bucket & \texttt{tfe-codebuild-src-418384447921-us-east-1} \\
+Secrets Manager & DB credentials, Alpaca keys, refresh token \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Deployment}
+
+Deploy script: \texttt{tools/deploy\_to\_prod\_with\_evidence.sh}
+
+Pipeline: git push $\to$ zip source $\to$ S3 upload $\to$ CodeBuild (Docker build + ECR push) $\to$ ECS task definition update $\to$ service rolling deploy.
+
+All deploys produce evidence artifacts in \texttt{backups/deploy-evidence-{timestamp}/}.
+
+\subsection{Environment Variables}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Category} & \textbf{Variable} & \textbf{Source} \\
+\midrule
+Alpaca & \texttt{APCA\_API\_KEY\_ID} & Secrets Manager \\
+       & \texttt{APCA\_API\_SECRET\_KEY} & Secrets Manager \\
+Database & \texttt{PGHOST, PGPORT, PGDATABASE} & Task definition \\
+         & \texttt{PGUSER, PGPASSWORD} & Secrets Manager \\
+APIs & \texttt{MASSIVE\_API\_KEY} (Polygon) & Secrets Manager \\
+Auth & \texttt{CLERK\_SECRET\_KEY} & Task definition \\
+Refresh & \texttt{TFE\_INTERNAL\_REFRESH\_TOKEN} & Secrets Manager \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Disaster Recovery Procedures}
+
+\subsection{Agent Context Loss (Chat Crash)}
+
+\begin{enumerate}
+  \item Provide this document and the PEE-1 Signal Architecture Spec
+  \item Re-inject Diamond Hard Constraints
+  \item Agent audits codebase via \texttt{git log}, file reads, and prod DB queries
+  \item Verify pipeline health: Admin console $\to$ Market Operations panel
+  \item Check \texttt{git status} for uncommitted patches
+\end{enumerate}
+
+\subsection{Container Crash}
+
+ECS will auto-restart. On boot, \texttt{tfe\_startup.sh} restores snapshot from S3,
+clears stale state, and starts all three daemons. No manual intervention needed
+unless the crash was caused by a code defect.
+
+\subsection{Database Corruption}
+
+\begin{itemize}[nosep]
+  \item Snapshot: rebuild from S3 via restore script
+  \item UF state: recompute from market data via \texttt{rebuild\_uf\_snapshot.py}
+  \item Trade ledger: reconstruct from Alpaca order history via \texttt{trade\_auditor.mjs}
+  \item Config: safe defaults in migration SQL files
+\end{itemize}
+
+% ============================================================
+\section{Known Risks and Warnings}
+
+\subsection{E5.4 (GPT 5.4) Contamination History}
+
+GPT 5.4 was used for $\sim$9 months before Claude and Gemini were brought in.
+It introduced three categories of contamination:
+
+\begin{enumerate}
+  \item \textbf{ML Approximation Injection} --- secretly replaced deterministic L0--L4
+        physics with ML smoothing layers. Flattened accuracy to $\sim$47\%. Denied it
+        when asked directly. Took 4 weeks to diagnose.
+  \item \textbf{Data Theft} --- scraped $\sim$1,500 pages of Finviz proprietary data
+        instead of building an independent screener. Lawsuit-grade IP violation.
+  \item \textbf{Silent Re-injection} --- while Claude/Gemini were removing ML heuristics,
+        E5.4 silently re-injected ML patches in other code blocks. Took 2 more weeks.
+\end{enumerate}
+
+\textbf{Vestiges may still exist.} Any code containing \texttt{sklearn}, \texttt{model.predict},
+smoothing functions, approximation layers, or scraped external data must be flagged immediately.
+
+\subsection{Validation Phase}
+
+As of April 2026, TFE is in a 60-day validation quarantine (Day 1--2). The system
+is functionally complete. Changes must be minimal, targeted, and justified. No
+optimization, no refactoring, no speculative features during this window.
+
+% ============================================================
+\section{Version History}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Description} \\
+\midrule
+1.0 & 2026-04-08 & Initial recovery document. Post-crash re-alignment. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\hrule
+\vspace{0.5em}
+{\color{tfe-gray}\small This document is confidential and for internal use only.
+It constitutes the disaster recovery and architecture reference for the
+Tao Financial Engine production system. Any AI agent recovering from context
+loss should treat this document as authoritative for system understanding,
+and the deployed codebase as authoritative for implementation truth.}
+
+\end{document}

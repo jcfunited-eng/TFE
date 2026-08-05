@@ -1,0 +1,95 @@
+{
+  "assets": [
+    {
+      "decoded_pcm_s16le_sha256": "8e36966e9f308a7faef7d024d20d8880aae185467f45eeff9b60edf4b5e711dd",
+      "decoded_sample_count": 75233,
+      "file_sha256": "cfc71803bd0904eb81e5a8f473066fb6186bc6f15491731f6ffc036d6f790156",
+      "git_blob_sha1": "2c07a97f5a270f2350473e2b1174b3ed2eb11b7d",
+      "path": "harness/Hello Guala.mp3",
+      "repository_authorities": [
+        "harness/Hello Guala.mp3"
+      ]
+    },
+    {
+      "decoded_pcm_s16le_sha256": "a34617fa9d0fd84dfdbbc211486c0c5ea7aef791505de006af092340d98411bf",
+      "decoded_sample_count": 69381,
+      "file_sha256": "feaff4b6bdccd73e0c65970d1af6edc6084e7e24b63080c4cf0f5bbc34494429",
+      "git_blob_sha1": "f109f57098f7e2fadee87ba4ff60d6bafa1f2a26",
+      "path": "harness/hello guala 1.mp3",
+      "repository_authorities": [
+        "harness/hello guala 1.mp3"
+      ]
+    },
+    {
+      "decoded_pcm_s16le_sha256": "cb57e13b88d06712fda555889ba351ce50f7abb027e7d64e6c03c6bec0bdab98",
+      "decoded_sample_count": 51409,
+      "file_sha256": "3fd1b5492fb8b1f2f5fddbbace1df207b681433d81f1ab5466f4078d427d78c1",
+      "git_blob_sha1": "6cd3c98f167484f3536aac9d6cf735077b1e6689",
+      "path": "harness/hello guala 2.mp3",
+      "repository_authorities": [
+        "harness/hello guala 2.mp3"
+      ]
+    },
+    {
+      "decoded_pcm_s16le_sha256": "11e76f8358448f348cc531e0f1493868d91da6bc8d80ef1101a364fdba4361de",
+      "decoded_sample_count": 24660,
+      "file_sha256": "49b11ee569d974ea656bc3f0c9297986b1e05e0b60a43f69a5b1668526217dc2",
+      "git_blob_sha1": "37d891a93ea70d182aa285eb5eda4f89b1344312",
+      "path": "docs/Daddy says Hello.mp3",
+      "repository_authorities": [
+        "docs/Daddy says Hello.mp3",
+        "docs/GL-CMD-CONVERSATIONAL-EDUCATION-CORPUS-PROPOSAL-20260714-v1.md"
+      ]
+    },
+    {
+      "decoded_pcm_s16le_sha256": "5fc4c6f4f920bfa3a5228467776b40ad157d260f2a15eae3eb3c5d1cdd7ecccc",
+      "decoded_sample_count": 63530,
+      "file_sha256": "408953eea50806ce2259d8c2b8cdbbdfa8c40ba6ceb7b8575ce2acbfb12cc8bd",
+      "git_blob_sha1": "cc339e7e292b03e6a6594ed4b2780c87d87e10a6",
+      "path": "docs/Your Name is Guala.mp3",
+      "repository_authorities": [
+        "docs/Your Name is Guala.mp3",
+        "docs/GL-CMD-CONVERSATIONAL-EDUCATION-CORPUS-PROPOSAL-20260714-v1.md"
+      ]
+    }
+  ],
+  "decode_contract": {
+    "channels": 1,
+    "ffmpeg_sample_format": "s16le",
+    "sample_rate_hz": 16000
+  },
+  "repository_authorities": [
+    {
+      "git_blob_sha1": "37d891a93ea70d182aa285eb5eda4f89b1344312",
+      "path": "docs/Daddy says Hello.mp3",
+      "sha256": "49b11ee569d974ea656bc3f0c9297986b1e05e0b60a43f69a5b1668526217dc2"
+    },
+    {
+      "git_blob_sha1": "f97dcc00e036a68c7ea3c9cff47165d007ccec03",
+      "path": "docs/GL-CMD-CONVERSATIONAL-EDUCATION-CORPUS-PROPOSAL-20260714-v1.md",
+      "sha256": "ccc7e671279ae11081654f34369e82c7a470e698fcc02c76122f2c6d2cbe912c"
+    },
+    {
+      "git_blob_sha1": "cc339e7e292b03e6a6594ed4b2780c87d87e10a6",
+      "path": "docs/Your Name is Guala.mp3",
+      "sha256": "408953eea50806ce2259d8c2b8cdbbdfa8c40ba6ceb7b8575ce2acbfb12cc8bd"
+    },
+    {
+      "git_blob_sha1": "2c07a97f5a270f2350473e2b1174b3ed2eb11b7d",
+      "path": "harness/Hello Guala.mp3",
+      "sha256": "cfc71803bd0904eb81e5a8f473066fb6186bc6f15491731f6ffc036d6f790156"
+    },
+    {
+      "git_blob_sha1": "f109f57098f7e2fadee87ba4ff60d6bafa1f2a26",
+      "path": "harness/hello guala 1.mp3",
+      "sha256": "feaff4b6bdccd73e0c65970d1af6edc6084e7e24b63080c4cf0f5bbc34494429"
+    },
+    {
+      "git_blob_sha1": "6cd3c98f167484f3536aac9d6cf735077b1e6689",
+      "path": "harness/hello guala 2.mp3",
+      "sha256": "3fd1b5492fb8b1f2f5fddbbace1df207b681433d81f1ab5466f4078d427d78c1"
+    }
+  ],
+  "repository_commit": "f7a61fbd82cec6a69837d382d2f4f8bd16a06b2d",
+  "schema": "guala.w1.recorded_vocal_provenance_manifest.v1"
+}

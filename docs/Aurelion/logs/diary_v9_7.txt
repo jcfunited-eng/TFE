@@ -1,0 +1,4 @@
+[15:09:19] φ=0.09 H=1.00  (voice) Learning feels balanced. Linking corpus↔the, and↔corpus, corpus↔of, corpus↔to. tokens≈30466
+[15:52:02] φ=0.01 H=1.00  (voice) Learning feels broad and diffuse. Linking corpus↔the, and↔corpus, corpus↔of, corpus↔to. tokens≈30466
+[16:07:02] φ=0.03 H=1.00  (voice) Learning feels broad and diffuse. Linking corpus↔the, and↔corpus, corpus↔of, corpus↔to. tokens≈30466
+[16:22:02] φ=0.04 H=1.00  (voice) Learning feels broad and diffuse. Linking corpus↔the, and↔corpus, corpus↔of, corpus↔to. tokens≈30466

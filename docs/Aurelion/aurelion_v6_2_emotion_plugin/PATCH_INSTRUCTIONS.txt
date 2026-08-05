@@ -1,0 +1,30 @@
+
+PATCH GUIDE — Wire the Emotional Cognition Layer into v6.1
+
+1) Place this folder's contents into your v6.1 root (keeping subfolders).
+
+2) In aurelion_core_v6_1_self_explaining.py:
+
+   a) Add imports near the top:
+      from emotion_layer import EmotionEngine
+      from modules.state_manager import SystemToneTarget
+
+   b) After your core/system init, create the engine:
+      emo = EmotionEngine(config_path="config_emotion.json")
+
+   c) In your main loop, after receiving `user_text`:
+      emo_state = emo.update_from_text(user_text)
+
+   d) Right before you render/generate the assistant reply, decide your desired tone
+      (this can be static or based on intent) then blend:
+      system_target = SystemToneTarget(valence=0.25, arousal=0.30, label="supportive").to_tone()
+      blended_tone = emo.blend_with_system_tone(system_target)
+
+   e) Include the meta summary in your self-explaining output structure:
+      meta = emo.meta_summary(intent=current_intent, tone=blended_tone)
+      # Add `meta` to your existing explanation print/log block.
+
+   f) (Optional) Expose a command to toggle/mute emotion effects:
+      /emotion on|off, /emotion status — implement as a simple flag gating steps c–e.
+
+3) Test quickly with:  python run_emotion_demo.py

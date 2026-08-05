@@ -1,0 +1,491 @@
+{
+  "authentication": {
+    "algorithm": "HMAC-SHA256",
+    "key_id": "candidate-test-hmac-key-not-production",
+      "signature_sha256": "1db6c580d7e30269db042dfbd0967707d4fc58c65c5a6e09396697f3f0575219"
+  },
+  "body": {
+    "authority_scope": "candidate_test_only_not_production_authority",
+    "backends": [
+      {
+        "authority_id": "candidate-story-arb-128",
+        "authority_receipt_sha256": "1b2aa054d94d07d69e769ddaf7b838f3a3caab9b9029f1d98932bde3d55f1672",
+        "working_precision_bits": 128
+      },
+      {
+        "authority_id": "candidate-story-arb-256",
+        "authority_receipt_sha256": "8c6f6291f735d8d9998e23e42aae80986992c9b42e214a0663c55253b0c39593",
+        "working_precision_bits": 256
+      }
+    ],
+    "manifest_id": "nondimensional-five-sense-virtual-story-chemistry-v2",
+    "ports": [
+      {
+        "activation_susceptibility": {
+          "authority_receipt_sha256": "b3b97ed4505d995ccf0109c891915dc1cfef3aa17cb29684cbeb0ce0091314f5",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one boundary-flux unit is defined to produce unit R-to-A propensity per structural-time unit in a fully available virtual receiver; therefore susceptibility is exactly one by definition",
+            "receipt_id": "story-auditory.native-port-0:R-to-A-susceptibility:derivation"
+          },
+          "susceptibility_id": "story-auditory.native-port-0:R-to-A-susceptibility",
+          "susceptibility_per_native_signal_unit_per_time_unit": "1/1"
+        },
+        "initial_state": {
+          "active_mass": "0/1",
+          "authority_receipt_sha256": "1a47538923275892f2d8fd04799417253e3bbc59e74f9be304f8d87334b3ce42",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one conserved receiver-mass unit begins at genesis as exactly R=1, A=0, D=0 by virtual receiver definition",
+            "receipt_id": "story-auditory.native-port-0:initial-state-derivation"
+          },
+          "desensitized_mass": "0/1",
+          "initial_condition_id": "story-auditory.native-port-0:nondimensional-genesis",
+          "receipt_sha256": "8ea875b8fbe8a042cef21fb1b9c2a82cf8015c1a20d68ec019479d807e279b60",
+          "resting_mass": "1/1",
+          "source_time": "0/1",
+          "total_receptor_mass": "1/1"
+        },
+        "kernel_binding": {
+          "adapter_id": "story-auditory.native-port-0:frozen-kernel-adapter",
+          "authority_receipt_sha256": "f6bd2da2c67ffe60474190872422e273ebc981fc070e4c271037de66c64cde8b",
+          "derivation": {
+            "basis": "ratified_exact_normalized_story_to_frozen_kernel_map",
+            "explanation": "the mounted normalized signal s uses the frozen exact reversible map F=1+s/2 while certified binary64 relevance crosses by exact fraction identity; no field or relevance is flattened together",
+            "receipt_id": "story-auditory.native-port-0:frozen-kernel-binding-derivation"
+          },
+          "lane_id": "sound"
+        },
+        "native_signal_unit": "virtual-normalized-acoustic-boundary-flux",
+        "native_signal_unit_authority": {
+          "authority_receipt_sha256": "0c74c7b056f15d780043352578c6dfa9c32e80c678c02c11666f3a710c7d9dce",
+          "basis": "nondimensional_virtual_story_boundary_flux_unit_definition",
+          "dimension": "dimensionless_signed_boundary_flux_in_closed_interval_minus_one_to_one",
+          "explanation": "one boundary-flux unit is defined as the flux producing unit R-to-A propensity in a fully available virtual receiver; emulator authority only",
+          "receipt_id": "story-auditory.native-port-0:native-unit-authority",
+          "unit": "virtual-normalized-acoustic-boundary-flux"
+        },
+        "port_id": "story-auditory.native-port-0",
+        "rates": [
+          {
+            "authority_receipt_sha256": "9e4c9a79eac398c3c187a716330abf7a0331c1abbecd7be25a7500568e2b1bd3",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver uses the same defined recovery-time unit for direct active-to-resting relaxation; coefficient is exactly one by unit definition",
+              "receipt_id": "story-auditory.native-port-0:A_to_R_deactivation:derivation"
+            },
+            "rate_id": "story-auditory.native-port-0:A_to_R_deactivation:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "A_to_R_deactivation"
+          },
+          {
+            "authority_receipt_sha256": "5d9e03b85075ee60a8a90f2fffdfcdc63a6377859b24e90a0c632d2cce278baa",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver has no separate desensitizing bath before embodiment; the mounted transfer propensity is exactly absent, not thresholded",
+              "receipt_id": "story-auditory.native-port-0:A_to_D_desensitization:derivation"
+            },
+            "rate_id": "story-auditory.native-port-0:A_to_D_desensitization:rate",
+            "rate_per_time_unit": "0/1",
+            "transition": "A_to_D_desensitization"
+          },
+          {
+            "authority_receipt_sha256": "ec38703a0311613c7a6117dcbcf2adfa55e735f78919d529ba21036bf2febb13",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "one structural-time unit is the virtual desensitized-to-resting recovery time; recovery coefficient is exactly one by definition",
+              "receipt_id": "story-auditory.native-port-0:D_to_R_recovery:derivation"
+            },
+            "rate_id": "story-auditory.native-port-0:D_to_R_recovery:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "D_to_R_recovery"
+          }
+        ],
+        "time_unit": {
+          "authority_id": "story-auditory.native-port-0:time-authority",
+          "authority_receipt_sha256": "a9c6ee492492fbd78d7aa04477ebeef78b1f6054522ac45575638499a8c8691c",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one structural-time unit is defined as the virtual receiver recovery time; its emulator second ratio is exactly one by unit definition",
+            "receipt_id": "story-auditory.native-port-0:time-derivation"
+          },
+          "seconds_per_unit": "1/1",
+          "time_unit_id": "story-auditory.native-port-0:structural-time-unit"
+        }
+      },
+      {
+        "activation_susceptibility": {
+          "authority_receipt_sha256": "cbde948fbc51f09ba304bbe5e7e3a52979f7e5cd5aecb8b7fe9b08311d778817",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one boundary-flux unit is defined to produce unit R-to-A propensity per structural-time unit in a fully available virtual receiver; therefore susceptibility is exactly one by definition",
+            "receipt_id": "story-smell.native-port-0:R-to-A-susceptibility:derivation"
+          },
+          "susceptibility_id": "story-smell.native-port-0:R-to-A-susceptibility",
+          "susceptibility_per_native_signal_unit_per_time_unit": "1/1"
+        },
+        "initial_state": {
+          "active_mass": "0/1",
+          "authority_receipt_sha256": "386e1abbec5f845918e371da4d820b68b19ac5f500e560eb5ba44ccc1b72cbd9",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one conserved receiver-mass unit begins at genesis as exactly R=1, A=0, D=0 by virtual receiver definition",
+            "receipt_id": "story-smell.native-port-0:initial-state-derivation"
+          },
+          "desensitized_mass": "0/1",
+          "initial_condition_id": "story-smell.native-port-0:nondimensional-genesis",
+          "receipt_sha256": "842b84befc320d44a4713c13606cdf3ec996918b7c10b570073e8290e5ad771e",
+          "resting_mass": "1/1",
+          "source_time": "0/1",
+          "total_receptor_mass": "1/1"
+        },
+        "kernel_binding": {
+          "adapter_id": "story-smell.native-port-0:frozen-kernel-adapter",
+          "authority_receipt_sha256": "78995c9a92bbbb90473560afea28cd9623da35f651ec2aaa0696068c81e3c9a2",
+          "derivation": {
+            "basis": "ratified_exact_normalized_story_to_frozen_kernel_map",
+            "explanation": "the mounted normalized signal s uses the frozen exact reversible map F=1+s/2 while certified binary64 relevance crosses by exact fraction identity; no field or relevance is flattened together",
+            "receipt_id": "story-smell.native-port-0:frozen-kernel-binding-derivation"
+          },
+          "lane_id": "smell"
+        },
+        "native_signal_unit": "virtual-normalized-olfactory-boundary-flux",
+        "native_signal_unit_authority": {
+          "authority_receipt_sha256": "ebe63e45413cfc00c73c86ce30254bbbfe63ef5135c219441d0a0d8f3a3c2125",
+          "basis": "nondimensional_virtual_story_boundary_flux_unit_definition",
+          "dimension": "dimensionless_signed_boundary_flux_in_closed_interval_minus_one_to_one",
+          "explanation": "one boundary-flux unit is defined as the flux producing unit R-to-A propensity in a fully available virtual receiver; emulator authority only",
+          "receipt_id": "story-smell.native-port-0:native-unit-authority",
+          "unit": "virtual-normalized-olfactory-boundary-flux"
+        },
+        "port_id": "story-smell.native-port-0",
+        "rates": [
+          {
+            "authority_receipt_sha256": "c5057482b102183e581e6eff2f95cb39a6ed52724ef1a4adc25147500d3e2922",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver uses the same defined recovery-time unit for direct active-to-resting relaxation; coefficient is exactly one by unit definition",
+              "receipt_id": "story-smell.native-port-0:A_to_R_deactivation:derivation"
+            },
+            "rate_id": "story-smell.native-port-0:A_to_R_deactivation:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "A_to_R_deactivation"
+          },
+          {
+            "authority_receipt_sha256": "8fa415e12b9a1225ed544ecd594a21da95d6212232d65b332d71778428857e77",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver has no separate desensitizing bath before embodiment; the mounted transfer propensity is exactly absent, not thresholded",
+              "receipt_id": "story-smell.native-port-0:A_to_D_desensitization:derivation"
+            },
+            "rate_id": "story-smell.native-port-0:A_to_D_desensitization:rate",
+            "rate_per_time_unit": "0/1",
+            "transition": "A_to_D_desensitization"
+          },
+          {
+            "authority_receipt_sha256": "ab72041f68a07ef751ceb8744868ee130c27b072d68944b8c8d38f516143e310",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "one structural-time unit is the virtual desensitized-to-resting recovery time; recovery coefficient is exactly one by definition",
+              "receipt_id": "story-smell.native-port-0:D_to_R_recovery:derivation"
+            },
+            "rate_id": "story-smell.native-port-0:D_to_R_recovery:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "D_to_R_recovery"
+          }
+        ],
+        "time_unit": {
+          "authority_id": "story-smell.native-port-0:time-authority",
+          "authority_receipt_sha256": "ee9bf40fc2975fb00d32ea04d43391c68b6a2b3a7e511e3b8e0d3993481b5cd4",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one structural-time unit is defined as the virtual receiver recovery time; its emulator second ratio is exactly one by unit definition",
+            "receipt_id": "story-smell.native-port-0:time-derivation"
+          },
+          "seconds_per_unit": "1/1",
+          "time_unit_id": "story-smell.native-port-0:structural-time-unit"
+        }
+      },
+      {
+        "activation_susceptibility": {
+          "authority_receipt_sha256": "5b93e0e3379de57f8230299e977518c9741749cfd32763566b281c4c34a28f66",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one boundary-flux unit is defined to produce unit R-to-A propensity per structural-time unit in a fully available virtual receiver; therefore susceptibility is exactly one by definition",
+            "receipt_id": "story-taste.native-port-0:R-to-A-susceptibility:derivation"
+          },
+          "susceptibility_id": "story-taste.native-port-0:R-to-A-susceptibility",
+          "susceptibility_per_native_signal_unit_per_time_unit": "1/1"
+        },
+        "initial_state": {
+          "active_mass": "0/1",
+          "authority_receipt_sha256": "12d47d96448035bc06aadce96884e81e15a2016ad469fc7b7eb074b3b86cc350",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one conserved receiver-mass unit begins at genesis as exactly R=1, A=0, D=0 by virtual receiver definition",
+            "receipt_id": "story-taste.native-port-0:initial-state-derivation"
+          },
+          "desensitized_mass": "0/1",
+          "initial_condition_id": "story-taste.native-port-0:nondimensional-genesis",
+          "receipt_sha256": "c0b63e9e52e2ba80acdcd9a1ca72092931d757de6c1f1db7157f9c156dbe5ffb",
+          "resting_mass": "1/1",
+          "source_time": "0/1",
+          "total_receptor_mass": "1/1"
+        },
+        "kernel_binding": {
+          "adapter_id": "story-taste.native-port-0:frozen-kernel-adapter",
+          "authority_receipt_sha256": "61baf7e4e1116a0bd936767470daf122e4fbbe60941a2d308f1139bf1c2b0718",
+          "derivation": {
+            "basis": "ratified_exact_normalized_story_to_frozen_kernel_map",
+            "explanation": "the mounted normalized signal s uses the frozen exact reversible map F=1+s/2 while certified binary64 relevance crosses by exact fraction identity; no field or relevance is flattened together",
+            "receipt_id": "story-taste.native-port-0:frozen-kernel-binding-derivation"
+          },
+          "lane_id": "taste"
+        },
+        "native_signal_unit": "virtual-normalized-gustatory-boundary-flux",
+        "native_signal_unit_authority": {
+          "authority_receipt_sha256": "21e0ce761d9547c5471550191392bc7209e57ae75c2470d2f3b639f410300ab3",
+          "basis": "nondimensional_virtual_story_boundary_flux_unit_definition",
+          "dimension": "dimensionless_signed_boundary_flux_in_closed_interval_minus_one_to_one",
+          "explanation": "one boundary-flux unit is defined as the flux producing unit R-to-A propensity in a fully available virtual receiver; emulator authority only",
+          "receipt_id": "story-taste.native-port-0:native-unit-authority",
+          "unit": "virtual-normalized-gustatory-boundary-flux"
+        },
+        "port_id": "story-taste.native-port-0",
+        "rates": [
+          {
+            "authority_receipt_sha256": "c12126e36a257ec5e617a0b6899da70dff6cda226c2f3496b0dc034426aaac7c",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver uses the same defined recovery-time unit for direct active-to-resting relaxation; coefficient is exactly one by unit definition",
+              "receipt_id": "story-taste.native-port-0:A_to_R_deactivation:derivation"
+            },
+            "rate_id": "story-taste.native-port-0:A_to_R_deactivation:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "A_to_R_deactivation"
+          },
+          {
+            "authority_receipt_sha256": "7f3a9d1f09db9c51b97ae5fcec8a416a546b6ffef7d9d61a1327fce0a8595d70",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver has no separate desensitizing bath before embodiment; the mounted transfer propensity is exactly absent, not thresholded",
+              "receipt_id": "story-taste.native-port-0:A_to_D_desensitization:derivation"
+            },
+            "rate_id": "story-taste.native-port-0:A_to_D_desensitization:rate",
+            "rate_per_time_unit": "0/1",
+            "transition": "A_to_D_desensitization"
+          },
+          {
+            "authority_receipt_sha256": "271c0de97ebc6f3f0274fcb93205c13b09a2a1f9d72f9ec40ae2cafe1e4001e9",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "one structural-time unit is the virtual desensitized-to-resting recovery time; recovery coefficient is exactly one by definition",
+              "receipt_id": "story-taste.native-port-0:D_to_R_recovery:derivation"
+            },
+            "rate_id": "story-taste.native-port-0:D_to_R_recovery:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "D_to_R_recovery"
+          }
+        ],
+        "time_unit": {
+          "authority_id": "story-taste.native-port-0:time-authority",
+          "authority_receipt_sha256": "d79d823a8b680f0efe88fce37db6f80c15548e45e75e75e377a11dadd03efb6e",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one structural-time unit is defined as the virtual receiver recovery time; its emulator second ratio is exactly one by unit definition",
+            "receipt_id": "story-taste.native-port-0:time-derivation"
+          },
+          "seconds_per_unit": "1/1",
+          "time_unit_id": "story-taste.native-port-0:structural-time-unit"
+        }
+      },
+      {
+        "activation_susceptibility": {
+          "authority_receipt_sha256": "abea62603ebffc8a6763a6ad2bdff330c908385a4c53e18b55aca1ddac3247f6",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one boundary-flux unit is defined to produce unit R-to-A propensity per structural-time unit in a fully available virtual receiver; therefore susceptibility is exactly one by definition",
+            "receipt_id": "story-touch.native-port-0:R-to-A-susceptibility:derivation"
+          },
+          "susceptibility_id": "story-touch.native-port-0:R-to-A-susceptibility",
+          "susceptibility_per_native_signal_unit_per_time_unit": "1/1"
+        },
+        "initial_state": {
+          "active_mass": "0/1",
+          "authority_receipt_sha256": "1b0447a37a37194db3ed7dde9a955673738f81878b0c77f3e32a74ae6b3ffeae",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one conserved receiver-mass unit begins at genesis as exactly R=1, A=0, D=0 by virtual receiver definition",
+            "receipt_id": "story-touch.native-port-0:initial-state-derivation"
+          },
+          "desensitized_mass": "0/1",
+          "initial_condition_id": "story-touch.native-port-0:nondimensional-genesis",
+          "receipt_sha256": "57e884976e8b162079dae8c2aa1aac1bdece691bbe48364c48cfe6d0d81a1495",
+          "resting_mass": "1/1",
+          "source_time": "0/1",
+          "total_receptor_mass": "1/1"
+        },
+        "kernel_binding": {
+          "adapter_id": "story-touch.native-port-0:frozen-kernel-adapter",
+          "authority_receipt_sha256": "85bb5f55df0fdf4b29684e8bd873cbefb412489dea5637c572fb1634f101ad5c",
+          "derivation": {
+            "basis": "ratified_exact_normalized_story_to_frozen_kernel_map",
+            "explanation": "the mounted normalized signal s uses the frozen exact reversible map F=1+s/2 while certified binary64 relevance crosses by exact fraction identity; no field or relevance is flattened together",
+            "receipt_id": "story-touch.native-port-0:frozen-kernel-binding-derivation"
+          },
+          "lane_id": "touch"
+        },
+        "native_signal_unit": "virtual-normalized-tactile-boundary-flux",
+        "native_signal_unit_authority": {
+          "authority_receipt_sha256": "a030e4ae95bd98229aa9dd5bf099d048acafa2269e4f6782062270491d9fbc2a",
+          "basis": "nondimensional_virtual_story_boundary_flux_unit_definition",
+          "dimension": "dimensionless_signed_boundary_flux_in_closed_interval_minus_one_to_one",
+          "explanation": "one boundary-flux unit is defined as the flux producing unit R-to-A propensity in a fully available virtual receiver; emulator authority only",
+          "receipt_id": "story-touch.native-port-0:native-unit-authority",
+          "unit": "virtual-normalized-tactile-boundary-flux"
+        },
+        "port_id": "story-touch.native-port-0",
+        "rates": [
+          {
+            "authority_receipt_sha256": "a74ca4cc4887ac9e9b987ee57d8a2185884c636c99e471dbb80216e20b5124e0",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver uses the same defined recovery-time unit for direct active-to-resting relaxation; coefficient is exactly one by unit definition",
+              "receipt_id": "story-touch.native-port-0:A_to_R_deactivation:derivation"
+            },
+            "rate_id": "story-touch.native-port-0:A_to_R_deactivation:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "A_to_R_deactivation"
+          },
+          {
+            "authority_receipt_sha256": "eb1e660122b3694a4e7120d2b714111cdbc4c9714bfae4ac38f88da9e88e8120",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver has no separate desensitizing bath before embodiment; the mounted transfer propensity is exactly absent, not thresholded",
+              "receipt_id": "story-touch.native-port-0:A_to_D_desensitization:derivation"
+            },
+            "rate_id": "story-touch.native-port-0:A_to_D_desensitization:rate",
+            "rate_per_time_unit": "0/1",
+            "transition": "A_to_D_desensitization"
+          },
+          {
+            "authority_receipt_sha256": "7cafcdc2f9986ead4773594d4ae7592b3c834a1c18c74c973772f9cd5acb74d2",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "one structural-time unit is the virtual desensitized-to-resting recovery time; recovery coefficient is exactly one by definition",
+              "receipt_id": "story-touch.native-port-0:D_to_R_recovery:derivation"
+            },
+            "rate_id": "story-touch.native-port-0:D_to_R_recovery:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "D_to_R_recovery"
+          }
+        ],
+        "time_unit": {
+          "authority_id": "story-touch.native-port-0:time-authority",
+          "authority_receipt_sha256": "507916b510775d3e1a5e850663edbbcf90c2ee76fded7d9424bb569f3d830818",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one structural-time unit is defined as the virtual receiver recovery time; its emulator second ratio is exactly one by unit definition",
+            "receipt_id": "story-touch.native-port-0:time-derivation"
+          },
+          "seconds_per_unit": "1/1",
+          "time_unit_id": "story-touch.native-port-0:structural-time-unit"
+        }
+      },
+      {
+        "activation_susceptibility": {
+          "authority_receipt_sha256": "90be5549c7eb22f5fa44922ce86ac2e437613b4592da2648ccbaeb8d82f4b323",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one boundary-flux unit is defined to produce unit R-to-A propensity per structural-time unit in a fully available virtual receiver; therefore susceptibility is exactly one by definition",
+            "receipt_id": "story-vision.native-port-0:R-to-A-susceptibility:derivation"
+          },
+          "susceptibility_id": "story-vision.native-port-0:R-to-A-susceptibility",
+          "susceptibility_per_native_signal_unit_per_time_unit": "1/1"
+        },
+        "initial_state": {
+          "active_mass": "0/1",
+          "authority_receipt_sha256": "a84c018ff13767139772973ec0b298d939d369ba5bffde4953b2ea0786fd07d0",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one conserved receiver-mass unit begins at genesis as exactly R=1, A=0, D=0 by virtual receiver definition",
+            "receipt_id": "story-vision.native-port-0:initial-state-derivation"
+          },
+          "desensitized_mass": "0/1",
+          "initial_condition_id": "story-vision.native-port-0:nondimensional-genesis",
+          "receipt_sha256": "47a50f71bc6ab34dc8ad6e5af49c0b124b872322813f6ac8673617ecdecda812",
+          "resting_mass": "1/1",
+          "source_time": "0/1",
+          "total_receptor_mass": "1/1"
+        },
+        "kernel_binding": {
+          "adapter_id": "story-vision.native-port-0:frozen-kernel-adapter",
+          "authority_receipt_sha256": "ecc3302ff0f06d917561a1f37071843b74e18b79f5d398c02ae4b4a8abac64de",
+          "derivation": {
+            "basis": "ratified_exact_normalized_story_to_frozen_kernel_map",
+            "explanation": "the mounted normalized signal s uses the frozen exact reversible map F=1+s/2 while certified binary64 relevance crosses by exact fraction identity; no field or relevance is flattened together",
+            "receipt_id": "story-vision.native-port-0:frozen-kernel-binding-derivation"
+          },
+          "lane_id": "sight"
+        },
+        "native_signal_unit": "virtual-normalized-optical-boundary-flux",
+        "native_signal_unit_authority": {
+          "authority_receipt_sha256": "a4d5a116bdf0234698689129a189f3b113082705e3485d14de6a7cbfef02d018",
+          "basis": "nondimensional_virtual_story_boundary_flux_unit_definition",
+          "dimension": "dimensionless_signed_boundary_flux_in_closed_interval_minus_one_to_one",
+          "explanation": "one boundary-flux unit is defined as the flux producing unit R-to-A propensity in a fully available virtual receiver; emulator authority only",
+          "receipt_id": "story-vision.native-port-0:native-unit-authority",
+          "unit": "virtual-normalized-optical-boundary-flux"
+        },
+        "port_id": "story-vision.native-port-0",
+        "rates": [
+          {
+            "authority_receipt_sha256": "9befca77527532307f37863d724a24891877cf0d1ab90b9dc8e56fd43aea7150",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver uses the same defined recovery-time unit for direct active-to-resting relaxation; coefficient is exactly one by unit definition",
+              "receipt_id": "story-vision.native-port-0:A_to_R_deactivation:derivation"
+            },
+            "rate_id": "story-vision.native-port-0:A_to_R_deactivation:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "A_to_R_deactivation"
+          },
+          {
+            "authority_receipt_sha256": "43f07369a56c822bef2372944683501117d4d63df0a24b34f729f1d8b846fe9c",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "the clean virtual receiver has no separate desensitizing bath before embodiment; the mounted transfer propensity is exactly absent, not thresholded",
+              "receipt_id": "story-vision.native-port-0:A_to_D_desensitization:derivation"
+            },
+            "rate_id": "story-vision.native-port-0:A_to_D_desensitization:rate",
+            "rate_per_time_unit": "0/1",
+            "transition": "A_to_D_desensitization"
+          },
+          {
+            "authority_receipt_sha256": "49b2b56856bd0d16ccee59828d6c5e5e1b52c81e0365a4e5f416ee4628f4fa59",
+            "derivation": {
+              "basis": "nondimensional_virtual_story_unit_definition",
+              "explanation": "one structural-time unit is the virtual desensitized-to-resting recovery time; recovery coefficient is exactly one by definition",
+              "receipt_id": "story-vision.native-port-0:D_to_R_recovery:derivation"
+            },
+            "rate_id": "story-vision.native-port-0:D_to_R_recovery:rate",
+            "rate_per_time_unit": "1/1",
+            "transition": "D_to_R_recovery"
+          }
+        ],
+        "time_unit": {
+          "authority_id": "story-vision.native-port-0:time-authority",
+          "authority_receipt_sha256": "89a35f902b31957fd36d22db69292bef96edf5c05a7483244fc14311ed4504b2",
+          "derivation": {
+            "basis": "nondimensional_virtual_story_unit_definition",
+            "explanation": "one structural-time unit is defined as the virtual receiver recovery time; its emulator second ratio is exactly one by unit definition",
+            "receipt_id": "story-vision.native-port-0:time-derivation"
+          },
+          "seconds_per_unit": "1/1",
+          "time_unit_id": "story-vision.native-port-0:structural-time-unit"
+        }
+      }
+    ],
+    "schema": "glew.virtual_story_chemistry_manifest.v2"
+  }
+}

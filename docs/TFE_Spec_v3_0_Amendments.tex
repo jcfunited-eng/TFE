@@ -1,0 +1,276 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\title{TFE Specification v3.0 --- Proposed Amendments\\[0.5em]
+\large Draft Package for Review}
+\author{TFE Engineering}
+\date{May 26, 2026}
+
+\newcommand{\specref}[1]{\textit{(TFE Spec v3.0, \S#1)}}
+\newcommand{\ufspecref}[1]{\textit{(UF--Spec v1.4.0, \S#1)}}
+\newcommand{\draft}[1]{\textcolor{red}{\textbf{[DRAFT: #1]}}}
+\newcommand{\approved}{\textcolor{green!60!black}{\textbf{[APPROVED]}}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+These amendments apply to the \textbf{TFE Specification v3.0 (Consolidated)},
+which governs the financial domain adapter and its use of the UF Kernel.
+The UF Kernel itself is defined by UF--Spec v1.4.0 and is not modified by
+these amendments. All changes are within the domain adapter boundary
+(TFE Spec Part~IV, Sections~D.1--D.10) or document existing approved
+deviations from the canonical UF invocation rules.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ======================================================================
+\section{Amendment A: Adapter Pre-Processing Transform}
+\label{sec:amendment-a}
+% ======================================================================
+
+\subsection{Status}
+\draft{Pending backtest results. Adopt if Condition~A WR is within 5\,pp of Condition~C on 20-day returns.}
+
+\subsection{Applicable Section}
+Section~3 (Structural Evaluation Vectors), new subsection 3.11.
+
+\subsection{Amendment Text}
+
+\subsubsection*{3.11 Adapter Pre-Processing}
+
+Domain adapters (Part~IV) MAY apply a pre-processing transform $\mathcal{T}$
+to the raw field $F(t)$ before L0 evaluation, provided all of the following
+conditions hold:
+
+\begin{enumerate}[label=(\roman*)]
+    \item $\mathcal{T}$ is deterministic and stateless.
+    \item $\mathcal{T}$ is strictly monotonic: $F(a) > F(b) \Rightarrow \mathcal{T}(F(a)) > \mathcal{T}(F(b))$.
+    \item $\mathcal{T}$ is invertible: the original field $F$ is recoverable from $\mathcal{T}(F)$.
+    \item $\mathcal{T}$ is documented in the adapter specification (Section~16).
+    \item All downstream operators ($\Delta F$, $\sigma$, $\kappa$, $N$) operate on the transformed field.
+\end{enumerate}
+
+The Financial Domain Adapter (Section~16) approves the following transform
+for cross-symbol scale-invariance:
+\[
+    F_{\text{norm}}(t) = \log(F(t) + \varepsilon), \quad \varepsilon = 10^{-8}
+\]
+
+\subsubsection*{Rationale}
+Stock prices span \$0.01 to \$5{,}000+. Without log normalization, the gate
+boundary operator $D(t) = \alpha_1|\Delta F| + \alpha_2\sigma + \alpha_3\kappa$
+is dominated by absolute price level---a \$1 move in a \$500 stock and a \$5
+stock produce the same $\Delta F$ despite representing 0.2\% and 20\% respectively.
+Log normalization converts $\Delta F$ to approximate log-returns, making
+$\tau_D$ scale-invariant across the symbol universe.
+
+\subsubsection*{Perturbation Stability}
+The log transform is Lipschitz-continuous on $[F_{\min}, \infty)$ where
+$F_{\min}$ is the domain price floor (currently \$5 per ENTRY-R3). On this
+domain, the Lipschitz constant is $1/F_{\min} = 0.2$, and the perturbation
+stability constraint \specref{3.9}
+\[
+    \|SEV(F + \varepsilon) - SEV(F)\| \leq C\|\varepsilon\|
+\]
+is trivially satisfied with $C = 0.2$.
+
+\subsubsection*{Impact on Compliance}
+L1--L4 operators are unchanged. Only the input to L0 is pre-processed. The
+transform is invertible ($\exp$), so the original field is recoverable.
+No kernel invariant \specref{8} is violated.
+
+% ======================================================================
+\section{Amendment B: L0 Input Restored to Raw Field}
+\label{sec:amendment-b}
+% ======================================================================
+
+\subsection{Status}
+\draft{Pending backtest results. Adopt if Condition~C WR exceeds Condition~A by $\geq 5$\,pp on 20-day returns.}
+
+\subsection{Applicable Section}
+Section~3.3 (Inputs) and Section~3.6 (Derived Structural Quantities).
+
+\subsection{Amendment Text}
+
+Restore L0 to strict spec compliance. Remove the undocumented log
+normalization from \texttt{uf\_core/layer0.py}.
+
+\subsubsection*{Change}
+\begin{verbatim}
+  # Remove:
+  F_norm = np.log(F_raw + EPS)
+
+  # Replace with:
+  F_norm = F_raw  # Raw field per UF-Spec Section 3.3
+\end{verbatim}
+
+\subsubsection*{Rationale}
+UF--Spec v1.4.0, Section~3.3 defines the input as ``a raw time-indexed field
+$F : T \to \mathbb{R}^d$.'' Section~3.6 defines $\Delta F(t) = F(t) - F(t - \Delta t)$
+directly on $F$. No normalization step is specified between input and
+derived quantities.
+
+Per Section~1.5 (Compliance Principle): ``the UF Kernel MUST match this
+specification exactly.'' Per Section~19.1 (Deterministic Behavior Requirement):
+all implementations must be reproducible from the spec alone.
+
+\subsubsection*{Impact Assessment}
+\begin{itemize}
+    \item $\Delta F$ becomes a price delta (not log-return). Units change.
+    \item $\sigma(t)$ and $\kappa(t)$ become scale-dependent across symbol price range.
+    \item $\tau_D = 0.20$ acquires units of dollars. For a \$5 stock this is a 4\% move;
+          for a \$500 stock this is 0.04\%.
+\end{itemize}
+
+\subsubsection*{Migration Requirements}
+\begin{enumerate}
+    \item Modify \texttt{uf\_core/layer0.py} to remove log transform.
+    \item Determine whether $\tau_D$ becomes a per-symbol parameter (calibration
+          table) or whether L1 requires additional normalization to restore
+          scale-invariance without log. This is a non-trivial design decision.
+    \item Re-run full universe snapshot to regenerate all kernel outputs.
+    \item Validate gate count distribution and signal WR against baseline.
+    \item Compare gate counts for \$5 vs \$500 stocks to quantify scale-sensitivity.
+\end{enumerate}
+
+% ======================================================================
+\section{Amendment C: L1 Boundary Comparator Override}
+\label{sec:amendment-c}
+% ======================================================================
+
+\subsection{Status}
+\approved\ (In production code since February 2026. This amendment documents
+an existing approved deviation.)
+
+\subsection{Applicable Section}
+Section~4.3 (Gate Boundary Operator), new subsection 4.3.1.
+
+\subsection{Amendment Text}
+
+\subsubsection*{4.3.1 Boundary Comparator Override}
+
+The Financial Domain Adapter (Section~16) overrides the canonical boundary
+comparator from $D(t) \geq \tau_D$ to:
+\[
+    D(t) > \tau_D \implies \text{boundary} \quad \text{(strict inequality)}
+\]
+This override is controlled by the configuration parameter
+\texttt{gate\_boundary\_strict\_gt} (default: \texttt{True} for financial domain).
+
+\subsubsection*{Rationale}
+Preferred convention for the financial domain. In the continuous limit,
+$D(t) = \tau_D$ exactly is measure-zero and the two comparators are
+equivalent. In the discrete-bar implementation, exact equality is rare
+(observed in $<$0.1\% of bars across the production universe). The strict
+inequality is adopted as the financial domain default for consistency.
+
+\subsubsection*{Compliance}
+\begin{itemize}
+    \item Documented in \texttt{uf\_core/config.py} as \texttt{gate\_boundary\_strict\_gt}.
+    \item Approved as a domain condition per Section~16.2 (UF Invocation Rules).
+    \item Version-controlled (boolean flag, not a silent semantic change).
+    \item Deterministic and auditable per Section~19.1.
+\end{itemize}
+
+% ======================================================================
+\section{CP-0 $\to$ CP-2 Gap Analysis: L5 Cognitive Pipeline}
+\label{sec:gap-analysis}
+% ======================================================================
+
+\subsection{Status}
+Scoping document. No code changes proposed. Informational only.
+
+\subsection{Purpose}
+Enumerate what the quarantine cognitive pipeline (CP-2) provides that
+production's L5 decision layer (basin-argmax) does not, per UF--Spec
+chapters 6--7 and the \texttt{quarantine\_historical\_kernel.py} implementation.
+
+\subsection{Production L5: Basin-Argmax Decision Rule}
+
+Production uses a basin-argmax formula with frozen rational constants:
+\begin{align}
+    \text{accumulate} &= \text{live} \cdot \text{motion} \cdot (1 - R_{\text{rev}})
+        \cdot (1 - \text{adverse}) \cdot (1 - \text{burden}) \\
+    \text{hold} &= \text{contested} \cdot (1 - \text{break}) + \text{live} \cdot
+        R_{\text{rev}} \cdot \text{balance} + \ldots \\
+    \text{avoid} &= \text{rupture} + (\text{live} + \text{contested}) \cdot \text{break}
+\end{align}
+with constants $\beta = 37/64$, motion power $= 5/4$, reversal balance power $= 16$,
+carry balance power $= 4$, burden scale $= 1/128$.
+
+\subsection{Identified Gaps}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Component} & \textbf{Quarantine} & \textbf{Production Status} \\
+\midrule
+Event tape & Per-date sequential & Final-gate only \\
+Latent field ($x_f, x_m, x_s$) & CV-1.0 integrators & Not used \\
+Cognitive load ($F_n$) & Computed & Computed but disabled \\
+Horizon heads ($Q_5, Q_{20}, Q_{60}$) & Computed & Not computed \\
+Cross-horizon coherence ($\chi_n$) & Computed & Not computed \\
+Decision rule & $Q_{20} > 0.65 \wedge F_n \leq 0.45 \wedge \chi_n \geq 1$
+    & Basin-argmax (different formula) \\
+Decision constants & Threshold-based & Frozen rationals (undocumented origin) \\
+\bottomrule
+\end{tabular}
+\caption{CP-2 components missing from production L5.}
+\end{table}
+
+\subsection{Decision Formula Constants}
+
+The basin-argmax constants ($37/64$, $16$th power, $1/128$, etc.) lack a
+derivation or calibration record. If L5 is rebuilt, these constants need either:
+\begin{enumerate}[label=(\alph*)]
+    \item A mathematical derivation from kernel invariants, or
+    \item An empirical calibration record showing how they were selected, or
+    \item Explicit labeling as heuristic parameters subject to recalibration.
+\end{enumerate}
+
+\subsection{Migration Safety}
+
+Any L5 rebuild that replaces the basin-argmax formula MUST:
+\begin{enumerate}
+    \item Shadow-run the new decision rule alongside the current one for $\geq 200$ trades.
+    \item Track both WR and P\&L independently during the shadow period.
+    \item Define explicit promotion criteria (e.g., new rule WR $\geq$ old rule WR $- 3$\,pp).
+    \item Only promote after shadow criteria are met for two consecutive weeks.
+    \item Maintain rollback capability to the current formula for 30 days post-promotion.
+\end{enumerate}
+
+The current 57\% held-position WR is the live floor. No rebuild should risk
+going below it without explicit approval.
+
+% ======================================================================
+\section{Conformance Summary}
+\label{sec:conformance}
+% ======================================================================
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Layer} & \textbf{Production} & \textbf{Quarantine} & \textbf{Spec} & \textbf{Status} \\
+\midrule
+L0 $F(t)$ & $\log(F + \varepsilon)$ & Raw $F$ & Raw $F$ (\S3.3) & Amendment A or B \\
+L0 $r(t)$ & $1.0$ (placeholder) & $\psi_r$ (invented) & Undefined & Spec gap \\
+L1 boundary & $>$ (strict) & $\geq$ & $\geq$ (\S4.3) & Amendment C \\
+L2 & Matches spec & Different formulas & \S5.7--5.10 & Production correct \\
+L3 & Matches spec & Matches spec & \S6.4--6.7 & Both correct \\
+L4 & Matches spec & No $U^*$ clamp & \S7.3--7.7 & Production correct \\
+\bottomrule
+\end{tabular}
+\caption{Conformance status across layers.}
+\end{table}
+
+\end{document}

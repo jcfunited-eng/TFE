@@ -1,0 +1,22 @@
+Global_Markets.txt
+
+Trading never truly sleeps.
+When New York closes, London is already handing off to Tokyo and Hong Kong.
+
+Major equity venues:
+
+NYSE, NASDAQ – U.S.
+
+LSE, Euronext, Deutsche Börse – Europe
+
+TSE, HKEX, SGX – Asia-Pacific
+
+Index families (S&P 500, Dow, Nikkei 225, FTSE 100) summarize regional performance.
+
+Beneath equities lies a web of derivatives, commodities, and foreign-exchange markets:
+
+CME Group, ICE, Eurex – futures and options
+
+FX interbank network – global currency pairs traded 24 h a day
+
+Clearinghouses such as DTCC or LCH Clearnet sit at the center, reducing counter-party risk by standing between buyer and seller.

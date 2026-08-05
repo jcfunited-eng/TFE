@@ -1,0 +1,157 @@
+scenario:
+  id: GL-SCN-HEMISPHERIC-INTEGRATION-ACCEPTANCE-EVE-20260707-v3
+  purpose: |
+    Acceptance test for hemispheric integration via wave field summary
+    pushed into neurons through their existing input_signal path.
+    Verifies wave_summary_pushed events fire per tick, and that emission
+    after a ball experience differs from emission before it — meaning
+    the organism state was measurably shaped by the wave-field content.
+    Does NOT test for cited Hebbian provenance in emission (single-voice
+    rule preserved). Tests instead for observable shift in what she says
+    when the wave field carries different content.
+
+    Fails if wave_summary_pushed events do not fire, or if emission
+    distributions pre-experience and post-experience are indistinguishable
+    (organism state not shaped), or if population degeneracy indicators
+    appear (uniform neuron activity across all neurons).
+  category: mechanism
+  target_mechanism: hemispheric-integration
+
+preconditions:
+  substrate_state: clean_slate
+  components_ready:
+    - ingest
+    - sight
+    - sound
+    - word
+    - window_manager
+    - atlas
+    - hemispheres
+    - wave_atlas
+    - organism
+  presence_state:
+    joe: false
+    wc: true
+    c1: false
+  suppression:
+    curriculum_feeds: "off"
+    world_feed: "off"
+    autonomy_reading: "off"
+  wait_for_ready_timeout_sec: 30
+
+probe:
+  method: sequence
+  auth_as: wc
+  sequence:
+
+    - t_offset_ms: 0
+      method: wake
+      payload:
+        source: wc
+
+    - t_offset_ms: 500
+      method: converse
+      payload:
+        text: "hello"
+        source_tag: wc
+        purpose: "baseline emission before any wave-field content"
+
+    - t_offset_ms: 3000
+      method: give_experience
+      payload:
+        picture_ref: "test-images/ball.png"
+        sound_ref: "test-sounds/bounce.wav"
+        word: "ball"
+        source_tag: wc
+
+    - t_offset_ms: 10000
+      method: converse
+      payload:
+        text: "hello"
+        source_tag: wc
+        purpose: "post-experience emission - should differ from baseline"
+
+expectations:
+
+  events_must_fire:
+
+    - kind: window_opened
+      count_min: 1
+      within_ms: 11000
+
+    - kind: window_closed
+      count_min: 1
+      within_ms: 12000
+
+    - kind: wave_summary_pushed
+      count_min: 20
+      within_ms: 12000
+
+    - kind: emission
+      count_min: 2
+      within_ms: 12000
+
+  components_must_activate:
+    - window_manager
+    - atlas
+    - hemispheres
+    - wave_atlas
+    - organism
+    - emission
+
+  atlas_deltas:
+    windows_added_min: 1
+
+  emission_provenance:
+    required: false
+
+  observability_thresholds:
+    peak_cpu_percent_max: 70
+    peak_memory_delta_mb_max: 200
+    peak_event_loop_lag_ms_max: 100
+    subscription_lag_max_events: 30
+    network_errors: 0
+
+  negative_expectations:
+
+    - kind: emission_suppressed_no_presence
+      count_max: 0
+
+    - kind: shadow_divergence
+      count_max: 0
+
+    - kind: unauth_request
+      count_max: 0
+
+    - kind: security_alert
+      count_max: 0
+
+    - kind: wave_field_overflow
+      count_max: 0
+
+    - kind: population_degeneracy_detected
+      count_max: 0
+
+    - kind: hemispheric_integration_failed
+      count_max: 0
+
+run:
+  timeout_sec: 20
+  resource_caps:
+    max_memory_delta_mb: 500
+    max_cpu_seconds: 90
+    max_disk_write_mb: 100
+    max_egress_mb: 10
+
+cleanup:
+  restore_state: none
+  clear_captured_events: false
+  delete_probe_artifacts_from_atlas: false
+
+metadata:
+  author: EVE
+  created_date: "2026-07-07"
+  changelog:
+    - v3: aligned with v3 dispatch. No Hebbian provenance test. Tests wave_summary_pushed event and pre-vs-post emission behavior shift.
+    - v2: superseded. Required Hebbian provenance in emission, triggering one mind one mouth concern.
+    - v1: superseded. Tested scalar integration events.

@@ -1,0 +1,22 @@
+Behavioral Finance and Market Psychology.txt
+
+Markets are moved by minds, not formulas alone.
+
+Common biases
+
+Loss aversion: pain from loss exceeds joy from gain.
+
+Anchoring: clinging to initial reference points.
+
+Overconfidence: overestimating skill or information.
+
+Herd behavior: following the crowd into bubbles or panics.
+
+Emotional cycle of markets
+Optimism → Euphoria → Anxiety → Fear → Capitulation → Hope → Recovery.
+Knowing the cycle doesn’t always stop it, but awareness tempers extremes.
+
+Prospect theory shows investors prefer a sure small gain over a risky larger one, yet will gamble to avoid loss.
+Case sketches:
+The dot-com boom (2000) and the 2008 crisis both revealed mass overconfidence followed by collective fear.
+Disciplined processes—checklists, automation, and diversification—help counter emotion.

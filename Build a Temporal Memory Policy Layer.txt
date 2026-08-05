@@ -1,0 +1,90 @@
+Build a Temporal Memory Policy Layer for TFE with strict separation between canonical UF core and predictive research logic.
+
+Non-negotiable rules:
+1. Do NOT modify canonical UF L0-L4 logic, invariants, stability metrics, L2 regimes, L3 resonance, or hardening behavior.
+2. Treat Section 10 as the current hardening section. Any Section 23 references are legacy aliases only and must be normalized.
+3. Keep two clearly separated modes:
+   - UF-compliant/canonical mode
+   - TFE-research temporal-policy mode
+4. If a component uses richer L4/DSF research artifacts for prediction, do NOT label it as canonical UF or compliant financial-adapter behavior.
+5. Version all research-mode artifacts separately.
+
+Objective:
+Test whether temporal memory above L4 improves 5D, and whether 20D/60D also benefit.
+
+Deliverables:
+A. Data/feasibility
+- Create audit_temporal_dataset.py
+- Inputs: merged historical row-trace dataset
+- Outputs:
+  - rows_total
+  - unique decision timestamps by horizon
+  - timestamp mass histogram
+  - max timestamp-disjoint train fraction
+  - feasible purged walk-forward block counts by horizon
+  - duplicate/conflict checks
+- Hard-fail if timestamp depth is insufficient for the requested experiment.
+
+B. Temporal dataset builder
+- Create build_temporal_policy_dataset.py
+- For each example at timestamp t, construct features using ONLY as-of-time information:
+  - current L4/UF state
+  - lag stack of prior states over configurable lookback N
+  - deltas / delta-of-deltas
+  - sign flips and flip recency
+  - regime dwell time
+  - time since reversal / structural transition
+  - rolling means/std/ranges over recent states
+- Support horizons 5D, 20D, 60D.
+- No future leakage.
+
+C. Model family
+Implement four comparable models:
+1. Frozen keyed baseline (existing runtime policy)
+2. Snapshot continuous baseline (current state only)
+3. Transition model (current + lag/delta features)
+4. Sequence model (TCN/GRU/Transformer-lite) over prior state sequence
+
+Use shared temporal trunk + horizon-specific heads if practical.
+Allow optional abstain head, but evaluate unconditional metrics first.
+
+D. Evaluation
+- Create eval_temporal_walkforward.py
+- Use timestamp-based purged walk-forward with embargo equal to horizon
+- Compare all models on identical test rows
+- Report:
+  - outcome_over_index_pct
+  - mean_excess_vs_spy
+  - coverage
+  - action mix
+  - calibration
+  - cost_bps sensitivity
+  - per-split metrics
+  - per-regime metrics
+
+E. Falsification logic
+Test these hypotheses:
+H1. Sequence model > snapshot model on 5D => true temporal memory matters.
+H2. Transition model ~= sequence model => most useful memory is captured by explicit lag/delta features.
+H3. 20D/60D also improve => temporal memory is broadly useful, not only 5D.
+H4. No model beats snapshot baseline after enough timestamp depth => the limitation is target noise/data, not model form.
+
+F. Promotion criteria
+Do NOT promote any temporal model unless:
+- improvement is positive across multiple walk-forward blocks, not only pooled average
+- improvement survives cost assumptions
+- denominator parity is maintained
+- results are reproducible across reruns
+- all outputs include manifest + config + exact split boundaries
+
+Suggested file names:
+- audit_temporal_dataset.py
+- build_temporal_policy_dataset.py
+- train_snapshot_continuous.py
+- train_transition_model.py
+- train_sequence_model.py
+- eval_temporal_walkforward.py
+- compare_temporal_vs_keyed.py
+
+Important interpretation rule:
+This work is testing whether predictive temporal memory should live above canonical L0-L4. It is NOT evidence that L0-L4 should become non-agnostic or stateful.

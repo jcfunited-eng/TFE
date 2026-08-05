@@ -1,0 +1,17 @@
+{
+  "publication_bundle_id": "publication_bundle_v1_94aeaea07cf9b36c9e7322cf",
+  "run_id": "phase-c-contract-proof-20260316t013747z",
+  "candidate_bundle_id": "candidate_bundle_v1_cb86c27555d4ed6c35516958",
+  "assessment_report_id": "assessment_report_v1_3782c40a751176fbd0fae005",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "target_environment": "production",
+  "previous_active_publication_id": null,
+  "activation_audit_id": "publication_activation_v1_9c26e9e1c37ecd4a90956f19",
+  "candidate_bundle_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/phase-c-contract-proof-20260316t013747z/step1/candidate_bundle/manifest.json",
+  "assessment_report_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/phase-c-contract-proof-20260316t013747z/step1/assessment_report.json",
+  "committed_at_utc": "2026-03-16T01:37:52.811Z"
+}

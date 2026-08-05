@@ -1,0 +1,1417 @@
+\documentclass[11pt,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{array,booktabs,longtable}
+\usepackage{enumitem}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{warningred}{RGB}{145,0,0}
+\definecolor{quietgray}{RGB}{70,70,70}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=warningred,
+  urlcolor=blue,
+  pdftitle={NON-CANONICAL UF-Spec v1.3 Completed Reconstruction},
+  pdfauthor={Posterity reconstruction; not canonical UF authority}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{warningred}{\bfseries NON-CANONICAL SPECULATIVE RECONSTRUCTION}}
+\fancyhead[R]{\small Does not modify or supersede canonical L0--L4}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{15pt}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\B}{\{0,1\}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\sha}{\operatorname{SHA256}}
+\newcommand{\Receipt}{\operatorname{Receipt}}
+\newcommand{\Field}{\mathcal{F}}
+\newcommand{\Vertices}{\mathcal{V}}
+\newcommand{\Edges}{\mathcal{E}}
+\newcommand{\Groups}{\mathcal{G}}
+\newcommand{\Scales}{\mathcal{S}}
+\newcommand{\Perspectives}{\mathcal{P}}
+\newcommand{\Atoms}{\mathcal{A}}
+\newcommand{\DSF}{\operatorname{DSF}}
+\newcommand{\Lsix}{\operatorname{L6}}
+\newcommand{\given}{\,\middle|\,}
+
+\title{\textcolor{warningred}{\Huge\bfseries NON-CANONICAL}\\[0.7em]
+UF-Spec v1.3 Completed Joint-Field Reconstruction\\[0.5em]
+\Large Speculative posterity document}
+\author{Reconstructed from UF-Spec v1.3.0 source structure, current canonical
+implementation, and the 2026-07-27 auditory audits}
+\date{27 July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\textcolor{warningred}{\Large\bfseries THIS DOCUMENT IS NOT CANONICAL}\\[0.6em]
+\textbf{It is a speculative reconstruction for posterity. It does not modify,
+replace, ratify, reinterpret, or supersede the frozen canonical L0--L4
+kernel. It authorizes no production change.}\\[0.5em]
+Where this document differs from running code, the running canonical code and
+its authenticated receipts remain authoritative. Joseph Forrester remains the
+only authority who may approve a canonical kernel change.
+}}
+\end{center}
+
+\vspace{1em}
+
+\begin{abstract}
+The historical UF-Spec v1.3.0 describes a domain-agnostic structural pipeline
+whose primitive input is a simultaneous multidimensional field. It names
+State Embedding Vectors, gates, Time--Volume--Relevance descriptions,
+multi-lattice mosaics, interpretive contrasts, resonance, and decision
+surfaces, but many equations are schematic and several later formulas compress
+the field into scores or probabilities. The current canonical implementation
+is much more precise operationally: it executes a frozen L0--L4 trajectory on
+each verified physical port, records every L0--L4 trace, and retains every
+ordered
+\[
+  (D_k,M_k,R_{\mathrm{rev},k},U_k^\star,C_k,P_k,B_k)
+\]
+tuple under immutable receipt authority. It does not, however, constitute the
+complete simultaneous joint-field operator imagined by the v1.3 prose.
+
+This document reconstructs one possible complete joint-field mathematics. It
+uses exact finite sets, rational values, typed vertex and edge fibers, causal
+dyadic scales, exact order relations, immutable receipts, and fail-closed
+validation. It never reduces the field to a compatibility vector, weighted
+score, learned representation, or probabilistic surrogate. L5 governance,
+canonical L6 exhaustion, memory, and speculative hardening are explicitly
+outside L0--L4.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Status, authority, and rules of reading}
+
+\subsection{Epistemic labels}
+
+Every statement in this document belongs to exactly one of these categories:
+\begin{description}[leftmargin=3.2cm,style=nextline]
+  \item[Historical v1.3] A statement present in
+  \texttt{UF\_Spec\_v1.3.0\_Final\_Structure.docx}. Historical does not mean
+  implemented, complete, or currently authoritative.
+  \item[Current canonical] A behavior demonstrated by the frozen current code
+  or its authenticated receipts. This remains authoritative.
+  \item[Audited finding] A result of an isolated, label-blind audit. An audit
+  may falsify a claim; it cannot silently promote a new operator.
+  \item[Reconstruction] A proposed completion of missing joint-field
+  mathematics. Every such equation is non-canonical.
+  \item[Speculative hardening] A low-evidentiary-weight safety proposition
+  with no authority to alter the field or a decision.
+\end{description}
+
+\subsection{Non-negotiable architecture constraints}
+
+\begin{enumerate}
+  \item L0--L4 is domain agnostic. Domain meaning enters only after L4.
+  \item The full explicit field is authoritative. A score, bucket, cell key,
+  compatibility vector, or selected pivot is never a substitute.
+  \item All operators are deterministic. There is no ML, training, fitted
+  parameter, stochastic inference, transcript, or hidden label.
+  \item Every output is causally supported by a finite input interval and an
+  immutable topology.
+  \item Missing, invalid, unavailable, and observed quiescent input are
+  different states.
+  \item Every exact field value and every structural relation has immutable
+  custody. Derived sign/zero classes are secondary metadata.
+  \item L5, L6, memory, and hardening cannot write backward into L0--L4.
+\end{enumerate}
+
+\subsection{Source custody}
+
+The historical source DOCX has SHA-256
+\begin{quote}\ttfamily
+4e90a21c45bf668a323f87177a92936d47eea8ebf03ff3c18693dccf06255b2b.
+\end{quote}
+The current canonical reference surfaces used in this reconstruction are the
+frozen \texttt{uf\_core/layer0.py} through \texttt{layer4.py}, the receipt
+boundary in \texttt{closed\_experience.py}, and the complete seven-field
+authority in \texttt{global\_uf.py}. Their hashes at reconstruction time are
+listed in Appendix~\ref{app:provenance}.
+
+\section{Architecture boundary}
+
+\subsection{Separated layers}
+
+\[
+\boxed{
+  \text{physical evidence}
+  \longrightarrow
+  \underbrace{L0\longrightarrow L1\longrightarrow L2\longrightarrow
+  L3\longrightarrow L4}_{\text{domain-agnostic frozen-kernel territory}}
+  \longrightarrow
+  \underbrace{L5}_{\text{domain governance}}
+  \longrightarrow
+  \underbrace{L6}_{\text{exact relation exhaustion}}
+}
+\]
+
+Memory observes authenticated experience boundaries; it is not an input
+shortcut into the kernel. Hardening may issue a separate veto or quarantine
+certificate; it does not rewrite an L0--L4 value.
+
+\subsection{What ``joint field'' means}
+
+A joint field is not a concatenated vector used as a score. It is a typed
+finite structure:
+\[
+  \mathfrak{J}
+  =
+  \left(
+    \Vertices,\Edges,\Groups,\Perspectives,\Scales,
+    \{X_{k,v}\}_{k,v},
+    \{Y_{k,e}\}_{k,e}
+  \right).
+\]
+Here \(\Vertices\) are physical component fibers, \(\Edges\) are ratified
+physical relations, \(\Groups\) are calibrated physical groupings,
+\(\Perspectives\) are lossless views, and \(\Scales\) are causal temporal
+scales. Vertex and edge fields remain typed and separate. A whole-field
+receipt commits to the topology and every ordered value.
+
+\section{Mathematical universe}
+
+\subsection{Finite exact inputs}
+
+Let time be \(k\in\{0,\ldots,T-1\}\). Let
+\(\Vertices=\{v_1,\ldots,v_V\}\) and
+\(\Edges\subseteq\{\{u,v\}:u,v\in\Vertices,u\neq v\}\).
+Each observed integer sensor code \(c_{k,v}\in\Z\) is mounted with exact
+calibration quantum \(q_v\in\Q_{>0}\) and exact origin code \(c_v^0\):
+\[
+  x_{k,v}=q_v(c_{k,v}-c_v^0)\in\Q.
+\]
+Artificial text is retained as exact UTF-8 custody and is not coerced into a
+numeric field. A modality adapter may instead provide an exact rational
+physical value, but it must provide the calibration and derivation receipt.
+
+The observation state is
+\[
+  A_{k,v}\in
+  \{\mathsf{observed},\mathsf{quiescent},
+    \mathsf{unavailable},\mathsf{invalid}\}.
+\]
+Only \(\mathsf{observed}\) and \(\mathsf{quiescent}\) enter computation.
+Unavailable or invalid required fibers cause an \(\mathsf{UNKNOWN}\) or
+fail-closed result; they are never replaced by zero.
+
+\subsection{Exact auxiliary operators}
+
+\[
+\sgn(z)=
+\begin{cases}
+-1,&z<0,\\
+0,&z=0,\\
++1,&z>0,
+\end{cases}
+\qquad
+\clip_{[a,b]}(z)=\min\{b,\max\{a,z\}\}.
+\]
+For a nonempty finite sequence \(z_1,\ldots,z_n\in\Q\),
+\[
+  \operatorname{mean}(z)=\frac{1}{n}\sum_{i=1}^n z_i,
+  \qquad
+  \operatorname{var}(z)=
+  \frac{1}{n}\sum_{i=1}^n
+  \left(z_i-\operatorname{mean}(z)\right)^2.
+\]
+All of these remain rational. No tolerance is implicit.
+
+\subsection{Causal scale constitution}
+
+For a finite window of length \(T\), the reconstructed scale family is
+\[
+  \Scales_T=\{2^j:0\leq j\leq\lfloor\log_2 T\rfloor\}.
+\]
+For \(s\in\Scales_T\), define the causal interval
+\[
+  I_{k,s}=\{\max(0,k-s+1),\ldots,k\}.
+\]
+Dyadic scales are a speculative reconstruction of the ``fractal'' and
+multi-scale intent in v1.3. They are not claimed to be canonical.
+
+\section{Reconstructed L0: exact joint structural field}
+
+\subsection{Raw custody and group normalization}
+
+Let \(\Groups\) be a partition of \(\Vertices\) into physically ratified
+groups. For \(g\in\Groups\),
+\[
+  a_{k,g}=\sum_{v\in g}|x_{k,v}|,
+  \qquad
+  \widehat{x}_{k,v}=
+  \begin{cases}
+    x_{k,v}/a_{k,g},&a_{k,g}>0,\\
+    0,&a_{k,g}=0,
+  \end{cases}
+  \quad v\in g.
+\]
+The raw \(x_{k,v}\) is retained. Group normalization removes one common
+positive scale within a declared physical group but preserves orientation and
+all component ratios. It does not normalize the whole modality through one
+global scalar.
+
+The exact negative-space fact is
+\[
+  N_{k,g}=
+  \mathbf{1}\!\left[
+    \forall v\in g:\,
+    A_{k,v}\in\{\mathsf{observed},\mathsf{quiescent}\}
+    \ \land\ a_{k,g}=0
+  \right].
+\]
+This cannot be true for unavailable or invalid input.
+
+\subsection{Local and multi-scale geometry}
+
+\[
+  \Delta_{k,v}=
+  \begin{cases}
+    0,&k=0,\\
+    \widehat{x}_{k,v}-\widehat{x}_{k-1,v},&k>0,
+  \end{cases}
+\]
+\[
+  \kappa_{k,v}=
+  \begin{cases}
+    0,&k<2,\\
+    \Delta_{k,v}-\Delta_{k-1,v},&k\geq2,
+  \end{cases}
+\]
+\[
+  \mu^{(s)}_{k,v}
+  =\frac{1}{|I_{k,s}|}\sum_{j\in I_{k,s}}\widehat{x}_{j,v},
+  \qquad
+  \sigma^{(s)}_{k,v}
+  =\frac{1}{|I_{k,s}|}
+    \sum_{j\in I_{k,s}}
+    \left(\widehat{x}_{j,v}-\mu^{(s)}_{k,v}\right)^2.
+\]
+
+Relevance \(r_{k,v}\in\Q_{\geq0}\) is supplied by the authenticated physical
+receptor or domain-neutral calibration boundary. L0 does not invent it.
+For a pressure receptor, a physically ratified relation such as squared
+pressure relevance may be supplied, but that law belongs to the receptor
+contract and is not universalized here.
+
+\subsection{Complete L0 output}
+
+\[
+  L0_k=
+  \left(
+    \{x_{k,v}\}_v,
+    \{\widehat{x}_{k,v}\}_v,
+    \{\Delta_{k,v}\}_v,
+    \{\kappa_{k,v}\}_v,
+    \{\mu^{(s)}_{k,v},\sigma^{(s)}_{k,v}\}_{s,v},
+    \{r_{k,v}\}_v,
+    \{N_{k,g}\}_g,
+    \{A_{k,v}\}_v
+  \right).
+\]
+No component may be discarded after normalization. The L0 receipt is
+\[
+  \mathcal{R}^{L0}_k
+  =
+  \sha\!\left(
+    \mathcal{R}_{\mathrm{topology}}
+    \Vert \mathcal{R}_{\mathrm{input}}
+    \Vert \operatorname{canonical}(L0_k)
+  \right).
+\]
+
+\section{Reconstructed L1: causal gates and lossless mosaics}
+
+\subsection{Exact structural signature}
+
+For every \(s\in\Scales_T\), the local structural signature is
+\[
+  \Sigma^{(s)}_k
+  =
+  \left(
+    \{\sgn(\Delta_{k,v})\}_v,
+    \{\sgn(\kappa_{k,v})\}_v,
+    \{\sgn(\sigma^{(s)}_{k,v}
+      -\sigma^{(s)}_{k-1,v})\}_v,
+    \{N_{k,g}\}_g,
+    \{A_{k,v}\}_v
+  \right).
+\]
+The first causal value uses zero for an unavailable predecessor only when the
+pre-window state receipt explicitly supplies zero; otherwise the result is
+\(\mathsf{UNKNOWN}\).
+
+\subsection{Gate partition}
+
+At scale \(s\), a gate \(G^{(s)}_m=[a_m,b_m]\) is a maximal contiguous
+interval on which \(\Sigma^{(s)}_k\) is constant:
+\[
+  \forall k\in[a_m,b_m],\quad
+  \Sigma^{(s)}_k=\Sigma^{(s)}_{a_m},
+\]
+\[
+  a_m=0\ \lor\
+  \Sigma^{(s)}_{a_m-1}\neq\Sigma^{(s)}_{a_m},
+  \qquad
+  b_m=T-1\ \lor\
+  \Sigma^{(s)}_{b_m+1}\neq\Sigma^{(s)}_{b_m}.
+\]
+This removes the v1.3 adaptive threshold
+\(\tau_0+\alpha\operatorname{Var}(\cdot)\) from the reconstruction. A threshold
+may be a valid calibrated sensor-resolution law, but it cannot be guessed,
+fitted, or hidden inside the kernel.
+
+\subsection{Full TVR geometry}
+
+For \(G=[a,b]\), define duration and component tensors
+\[
+  T_G=b-a+1,
+  \qquad
+  V_{G,v}=\sum_{k=a}^{b}|\Delta_{k,v}|,
+  \qquad
+  R_{G,v}=\sum_{k=a}^{b}r_{k,v},
+\]
+\[
+  Q^{(s)}_{G,v}=\sum_{k=a}^{b}\sigma^{(s)}_{k,v},
+  \qquad
+  K_{G,v}=\sum_{k=a}^{b}\kappa_{k,v}.
+\]
+The reconstructed TVR is not a three-scalar fingerprint:
+\[
+  \operatorname{TVR}^{\mathrm{joint}}_G
+  =
+  \left(
+    T_G,\{V_{G,v}\}_v,\{R_{G,v}\}_v,
+    \{Q^{(s)}_{G,v}\}_{s,v},\{K_{G,v}\}_v
+  \right).
+\]
+
+\subsection{Lossless mosaic perspectives}
+
+A perspective \(\pi\in\Perspectives\) is a ratified tuple
+\[
+  \pi=(\Vertices_\pi,\Edges_\pi,\mathcal{D}_\pi)
+\]
+where \(\Vertices_\pi\subseteq\Vertices\),
+\(\Edges_\pi\) is the induced physical edge set, and
+\(\mathcal{D}_\pi\) is a declared subset of descriptors. Its projection is
+\[
+  P_\pi(G)=
+  \left(
+    G,\,
+    \operatorname{TVR}^{\mathrm{joint}}_G
+      \big|_{\Vertices_\pi,\mathcal{D}_\pi},\,
+    \Edges_\pi,\,
+    \preceq_{G,\pi}
+  \right),
+\]
+where \(\preceq_{G,\pi}\) contains every exact component preorder for every
+retained descriptor:
+\[
+  u\preceq_{G,\pi,f}v
+  \iff X_{G,u,f}\leq X_{G,v,f}.
+\]
+The complete mosaic is the ordered family
+\[
+  \mathcal{M}_G=\{P_\pi(G):\pi\in\Perspectives\}.
+\]
+No cell, class, or majority vote replaces a perspective. Cross-perspective
+disagreement is retained as an explicit relation:
+\[
+  \mathcal{X}_G=
+  \{(\pi,\pi',u,v,f):
+  (u\preceq_{\pi,f}v)\oplus(u\preceq_{\pi',f}v)\}.
+\]
+
+\subsection{Complete L1 output}
+
+\[
+  L1=
+  \left\{
+    G^{(s)}_m,\operatorname{TVR}^{\mathrm{joint}}_{G^{(s)}_m},
+    \mathcal{M}_{G^{(s)}_m},\mathcal{X}_{G^{(s)}_m}
+    :s\in\Scales_T,m
+  \right\}.
+\]
+
+\section{Reconstructed L2: full interpretive relations}
+
+\subsection{Causal baselines}
+
+For a gate \(G^{(s)}_m\), let
+\[
+  J_{m,W}=\{\max(0,m-W),\ldots,m-1\},
+\]
+where \(W\in\Z_{>0}\) is an explicit constitutional memory bound, not a fitted
+window. For any descriptor tensor \(X\),
+\[
+  \overline{X}^{(s)}_{m,v}
+  =
+  \begin{cases}
+  X^{(s)}_{m,v},&J_{m,W}=\varnothing,\\[2mm]
+  |J_{m,W}|^{-1}
+    \sum_{j\in J_{m,W}}X^{(s)}_{j,v},&\text{otherwise}.
+  \end{cases}
+\]
+The full contrast tensor is
+\[
+  CV^{(s)}_{m,v,f}
+  =X^{(s)}_{m,v,f}-\overline{X}^{(s)}_{m,v,f},
+  \quad
+  f\in\{V,R,Q,K\}.
+\]
+
+\subsection{Interpretive facts, not weights}
+
+The component interpretation is the exact order-type tuple
+\[
+  I^{(s)}_{m,v}
+  =
+  \left(
+    \sgn CV_{m,v,V},
+    \sgn CV_{m,v,R},
+    \sgn CV_{m,v,Q},
+    \sgn CV_{m,v,K},
+    N_{G,g(v)}
+  \right).
+\]
+The word ``regime'' denotes this explicit tuple or a reversible symbolic name
+for it. No static lookup name is authoritative; the tuple is.
+
+Cross-scale and cross-perspective uncertainty is a set of contradiction atoms:
+\[
+  \mathcal{U}_m=
+  \left\{
+  (s,s',v,f):
+  \sgn CV^{(s)}_{m,v,f}\,
+  \sgn CV^{(s')}_{m,v,f}=-1
+  \right\}
+  \cup \mathcal{X}_{G_m}.
+\]
+There is no weighted scalar \(w_k\), \(S_k\), or \(U_k\) in the reconstructed
+authority. If such a scalar is calculated for display, it is a reduced
+diagnostic and must disclose its lost atoms.
+
+\subsection{Complete L2 output}
+
+\[
+  L2_m=
+  \left(
+    \{CV^{(s)}_{m,v,f}\}_{s,v,f},
+    \{I^{(s)}_{m,v}\}_{s,v},
+    \mathcal{U}_m,
+    \{\mathcal{M}_{G^{(s)}_m}\}_s,
+    \{\mathcal{X}_{G^{(s)}_m}\}_s
+  \right).
+\]
+
+\section{Reconstructed L3: structural resonance field}
+
+\subsection{Edge relations}
+
+For \(e=\{u,v\}\in\Edges\), descriptor \(f\), scale \(s\), and gate \(m\),
+define the oriented edge contrast
+\[
+  q^{(s)}_{m,e,f}
+  =
+  \sgn\!\left(
+    CV^{(s)}_{m,u,f}-CV^{(s)}_{m,v,f}
+  \right).
+\]
+The exact temporal resonance fact is
+\[
+  \rho^{(s)}_{m,e,f}
+  =
+  \begin{cases}
+  +1,&q^{(s)}_{m,e,f}=q^{(s)}_{m-1,e,f}\neq0,\\
+  -1,&q^{(s)}_{m,e,f}=-q^{(s)}_{m-1,e,f}\neq0,\\
+  0,&\text{otherwise}.
+  \end{cases}
+\]
+The exact cross-scale relation is
+\[
+  \rho^{(s,s')}_{m,e,f}
+  =
+  q^{(s)}_{m,e,f}\,q^{(s')}_{m,e,f}
+  \in\{-1,0,+1\}.
+\]
+Every edge, descriptor, scale, and scale pair is retained. Resonance is this
+field of facts; it is not
+\(\lambda_1w+\cdots+\lambda_5(1-U)\).
+
+\subsection{Vertex facts and coherent components}
+
+The vertex fact is
+\[
+  \rho^{(s)}_{m,v,f}=\sgn CV^{(s)}_{m,v,f}.
+\]
+For a declared descriptor set \(F_\pi\), define a positive coherence graph
+\[
+  \mathcal{C}^{(s)}_m
+  =
+  \left(
+    \Vertices,\,
+    \left\{
+      e\in\Edges:
+      \forall f\in F_\pi,\,
+      \rho^{(s)}_{m,e,f}\in\{0,+1\}
+      \ \land\
+      \exists f:\rho^{(s)}_{m,e,f}=+1
+    \right\}
+  \right).
+\]
+Its connected components are retained as coherent clusters. A cluster is a
+derived topology, never an averaged resonance score.
+
+\subsection{Hysteresis and anchors}
+
+Hysteresis is an observed change fact:
+\[
+  H^{(s)}_{m,e,f}
+  =
+  \mathbf{1}\!\left[
+    \rho^{(s)}_{m,e,f}\neq
+    \rho^{(s)}_{m-1,e,f}
+  \right].
+\]
+It does not overwrite current resonance with a previous scalar. A temporal
+anchor is an immutable recurrence receipt for an exact L3 subfield:
+\[
+  A_i=
+  \sha\!\left(
+    \operatorname{canonical}
+    (\rho|_{\Atoms_i},\mathcal{U}|_{\Atoms_i},
+     \mathcal{C}|_{\Atoms_i})
+  \right).
+\]
+Anchor equality is exact receipt equality under a declared quotient. The
+quotient and every loss must be recorded.
+
+\subsection{Complete L3 output}
+
+\[
+  L3_m=
+  \left(
+    \{\rho^{(s)}_{m,v,f}\}_{s,v,f},
+    \{\rho^{(s)}_{m,e,f}\}_{s,e,f},
+    \{\rho^{(s,s')}_{m,e,f}\}_{s,s',e,f},
+    \{H^{(s)}_{m,e,f}\}_{s,e,f},
+    \{\mathcal{C}^{(s)}_m\}_s,
+    \{A_i\},
+    \mathcal{U}_m
+  \right).
+\]
+
+\section{Reconstructed L4: complete Decision Structural Field}
+
+\subsection{Typed atom set}
+
+Let
+\[
+  \Atoms_V=\Scales_T\times\Vertices\times\{V,R,Q,K\},
+  \qquad
+  \Atoms_E=\Scales_T\times\Edges\times\{V,R,Q,K\},
+\]
+\[
+  \Atoms=\Atoms_V\sqcup\Atoms_E.
+\]
+The disjoint union matters: vertex and edge facts are never flattened into
+one anonymous vector. Let \(\rho_{m,a}\in\{-1,0,+1\}\) be the corresponding
+L3 fact.
+
+\subsection{Seven explicit fields}
+
+For every applicable atom \(a\), define:
+\[
+  D_{m,a}=
+  \begin{cases}
+  0,&m=0,\\
+  \rho_{m,a}-\rho_{m-1,a},&m>0,
+  \end{cases}
+\]
+\[
+  M_{m,a}=
+  \begin{cases}
+  0,&m<2,\\
+  \rho_{m,a}-2\rho_{m-1,a}+\rho_{m-2,a},&m\geq2,
+  \end{cases}
+\]
+\[
+  R_{\mathrm{rev},m,a}
+  =
+  \mathbf{1}[D_{m,a}D_{m-1,a}<0],
+\]
+\[
+  U^\star_{m,a}
+  =
+  \mathbf{1}[a\text{ participates in an atom of }\mathcal{U}_m],
+\]
+\[
+  P_{m,a}=|D_{m,a}-D_{m-1,a}|.
+\]
+
+The cohesion field remains an edge field:
+\[
+  C_{m,(s,e,f)}=\rho^{(s)}_{m,e,f},
+  \qquad (s,e,f)\in\Atoms_E.
+\]
+It is not ``support minus drag'', an average, or a count.
+
+Breathing is a bounded atom-wise state with constitutionally declared exact
+\(\xi,\chi\in\Q_{\geq0}\) and \(B_{\min},B_{\max}\in\Q\):
+\[
+  B_{0,a}=0,
+\]
+\[
+  B_{m,a}
+  =
+  \clip_{[B_{\min},B_{\max}]}
+  \left(
+    B_{m-1,a}
+    +\xi(1-U^\star_{m,a})D_{m,a}
+    -\chi U^\star_{m,a}
+  \right).
+\]
+The parameters are part of the reconstruction constitution and receipt. They
+may not be tuned on labels. This breathing equation is speculative; the
+current canonical equation remains authoritative in production.
+
+\subsection{Complete L4 output}
+
+\[
+  \DSF_m=
+  \left(
+    \{D_{m,a}\}_{a\in\Atoms},
+    \{M_{m,a}\}_{a\in\Atoms},
+    \{R_{\mathrm{rev},m,a}\}_{a\in\Atoms},
+    \{U^\star_{m,a}\}_{a\in\Atoms},
+    \{C_{m,a}\}_{a\in\Atoms_E},
+    \{P_{m,a}\}_{a\in\Atoms},
+    \{B_{m,a}\}_{a\in\Atoms}
+  \right).
+\]
+The ordered seven-field product and its typed indices are indivisible:
+\[
+  \mathcal{R}^{L4}_m
+  =
+  \sha\!\left(
+    \mathcal{R}^{L3}_m
+    \Vert\mathcal{R}_{\mathrm{constitution}}
+    \Vert\operatorname{canonical}(\DSF_m)
+  \right).
+\]
+Sign/zero labels, selected pivots, cell keys, and compatibility vectors are
+secondary derived descriptions only.
+
+\section{Cross-layer invariants}
+
+The reconstruction is valid only if all of the following are mechanically
+verified.
+
+\begin{enumerate}
+  \item \textbf{Topology conservation.}
+  \(\Vertices,\Edges,\Groups,\Perspectives\) are immutable for one settlement.
+  Every downstream index resolves to that topology receipt.
+  \item \textbf{Causal support.} Every gate and tuple records one closed raw
+  interval \([a,b]\); intervals cover the admitted source grid without gaps,
+  overlap ambiguity, padding, or crop.
+  \item \textbf{Full-field conservation.} Every required vertex, edge,
+  descriptor, scale, and perspective is retained or the result is
+  \(\mathsf{UNKNOWN}\).
+  \item \textbf{Exact custody.} Numeric authority is integer or rational.
+  Any binary64 boundary must be encoded by its exact binary64 rational value
+  and labelled as such.
+  \item \textbf{Negative-space distinction.} Structural quiescence cannot be
+  inferred from unavailable, invalid, missing, or zero-filled input.
+  \item \textbf{No label flow.} Domain labels, transcripts, command names, and
+  outcomes cannot enter L0--L4 or a relation constructor.
+  \item \textbf{No learned state.} Repeating the same input, topology,
+  constitution, and pre-window state yields byte-identical receipts.
+  \item \textbf{No scalar authority.} A scalar summary cannot authorize a
+  field relation or decision.
+  \item \textbf{Perspective conservation.} Disagreement is retained as
+  \(\mathcal{X}\), never suppressed by majority.
+  \item \textbf{Layer identity.} Gate identity and causal interval agree at
+  L1, L2, L3, and L4.
+  \item \textbf{Receipt closure.} Every receipt dependency resolves; missing
+  authority is not treated as false or zero.
+\end{enumerate}
+
+\section{L5 domain governance: deliberately separate}
+
+L5 receives the complete \(\DSF_m\), its topology, causal support, and
+receipts:
+\[
+  O_m=\Psi_{\mathrm{domain}}
+  \left(
+    \DSF_m,\mathcal{R}^{L4}_m,\Theta_{\mathrm{domain}}
+  \right).
+\]
+The following are hard boundaries:
+\begin{enumerate}
+  \item L5 cannot alter L0--L4, topology, receipts, or memory history.
+  \item A domain action must cite the exact field atoms that authorize it.
+  \item A domain adapter may form a reduced output only if the exact reduction
+  is approved, named, and loss-catalogued. The reduction is not renamed
+  ``full DSF evaluation''.
+  \item Financial L5 governance remains DSF V3 basin physics. This
+  reconstruction does not redesign it.
+  \item The 2026-07-27 hearing audit did not justify promotion of a new
+  auditory L5 operator.
+\end{enumerate}
+
+\section{L6 exact relation exhaustion: deliberately separate}
+
+For a declared finite relation with \(n_{\mathrm{start}}\) dimensions,
+matching non-null count \(m_{\mathrm{nn}}\), and matching quiescent count
+\(m_{\mathrm{q}}\), the current canonical exhaustion law is
+\[
+  n_{\mathrm{eff}}
+  =
+  n_{\mathrm{start}}-m_{\mathrm{nn}}-m_{\mathrm{q}},
+  \qquad
+  \kappa_6=
+  \left\lceil\frac{n_{\mathrm{start}}}{e}\right\rceil,
+\]
+\[
+  \Lsix=\mathsf{LOCK}
+  \iff
+  n_{\mathrm{eff}}<\kappa_6.
+\]
+This decision is integer and deterministic once the matching relation is
+declared. It does not decide which quotient is physically correct.
+
+For a joint-field relation:
+\begin{enumerate}
+  \item the atom universe and equivalence relation are declared before labels;
+  \item every quotient lists the exact information it discards;
+  \item each typed partition is evaluated independently;
+  \item the strict joint relation is a conjunction, not a weighted score;
+  \item labels classify the completed matrix only;
+  \item a lock has no semantic authority until held-out selectivity is
+  demonstrated.
+\end{enumerate}
+
+\section{Memory: deliberately separate}
+
+\subsection{Immutable experience record}
+
+An experience is
+\[
+  E_i=
+  \left(
+    \mathcal{R}_{\mathrm{input}},
+    \mathcal{R}_{\mathrm{topology}},
+    \mathcal{R}^{L0:L4},
+    [t_a,t_b],
+    \mathcal{R}_{\mathrm{relation\ constitution}}
+  \right).
+\]
+It is append-only. Updating an index uses an idempotent upsert of the same
+receipt identity; delete-and-reinsert is forbidden.
+
+\subsection{Bounded tiers}
+
+\begin{align*}
+  |\mathrm{STM}|&\leq N_{\mathrm{STM}},\\
+  |\mathrm{MTM}|&\leq N_{\mathrm{MTM}},\\
+  |\mathrm{LTM}|&\leq N_{\mathrm{LTM}},\\
+  \deg_{\mathrm{SchemaGraph}}(v)&\leq d_{\max}.
+\end{align*}
+All bounds are explicit constitutional integers. Eviction is deterministic
+and receipt-preserving. Memory may nominate prior receipts for a relation, but
+it cannot inject a prototype, label, or similarity score into L0--L4.
+
+\subsection{No promotion without falsification}
+
+A recurrent structure may enter durable memory only after:
+\begin{enumerate}
+  \item exact source-disjoint held-out validation;
+  \item rejection of every declared cross-class reference;
+  \item ambiguity and overlap tests;
+  \item demonstrated stability under physical transformations within scope;
+  \item a frozen relation constitution and loss catalogue.
+\end{enumerate}
+
+\section{Speculative hardening: low evidentiary weight}
+
+\textcolor{warningred}{\bfseries This section is speculative, non-canonical,
+and deliberately low-weight.} ``Low-weight'' means low evidentiary standing,
+not a hidden numeric coefficient.
+
+Hardening produces a separate certificate
+\[
+  \mathcal{H}_m=
+  \left(
+    \mathcal{V}^{\mathrm{violated}}_m,
+    \mathcal{R}^{L0:L4}_m,
+    \mathsf{disposition}
+  \right),
+\]
+where
+\[
+  \mathsf{disposition}\in
+  \{\mathsf{clear},\mathsf{quarantine},\mathsf{unknown}\}.
+\]
+It may quarantine an output when a hard invariant fails. It may not:
+\begin{itemize}
+  \item multiply, smooth, suppress, or overwrite a DSF field;
+  \item down-weight an inconvenient perspective;
+  \item create a fallback value;
+  \item alter memory to hide a contradiction;
+  \item convert a missing authority into conservative numeric output.
+\end{itemize}
+
+Historical AGS, resonance hysteresis, IAS, BDSC, entropy suppression, and
+coarse-graining are therefore not reconstructed as active kernel physics.
+Each would require its own deterministic derivation and falsification before
+promotion. Until then, hardening is a fail-closed observer only.
+
+\section{Resource bounds}
+
+Let:
+\[
+  T=|\text{causal samples}|,\quad
+  V=|\Vertices|,\quad E=|\Edges|,\quad
+  S=|\Scales_T|,\quad P=|\Perspectives|,\quad d=4.
+\]
+Then \(S\leq1+\lfloor\log_2T\rfloor\), gates per scale are at most \(T\), and
+\[
+  |\Atoms_V|=SVd,\qquad |\Atoms_E|=SEd.
+\]
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.20\textwidth}
+                  >{\raggedright\arraybackslash}p{0.32\textwidth}
+                  >{\raggedright\arraybackslash}p{0.38\textwidth}}
+\toprule
+Surface & Time bound & Retained space bound\\
+\midrule
+\endfirsthead
+\toprule
+Surface & Time bound & Retained space bound\\
+\midrule
+\endhead
+L0 & \(O(TVS)\) with causal rational prefix sums &
+\(O(VS)\) streaming; \(O(TVS)\) for a closed audit trace\\
+L1 gates & \(O(TVS)\) &
+\(O(TS)\) gate intervals plus full descriptors\\
+L1 perspectives & \(O(TP(V+E)d)\) worst case &
+\(O(TP(V+E)d)\) when every projection witness is retained\\
+L2 & \(O(TS(V+E)d)\) &
+\(O(TS(V+E)d)\) closed trace\\
+L3 & \(O(TS(V+E)d+TS^2Ed)\) &
+\(O(TS(V+E)d+TS^2Ed)\) including cross-scale facts\\
+L4 & \(O(T|\Atoms|)\) &
+\(O(T|\Atoms|)\) closed trace; \(O(|\Atoms|)\) streaming\\
+Pair relation & \(O(|\Atoms|)\) per pair after signatures &
+\(O(|\Atoms|)\) witnesses plus matrix receipts\\
+\bottomrule
+\end{longtable}
+
+These are containment bounds, not performance claims. An implementation must
+reject an input before exceeding its declared capacity.
+
+\subsection{Current implementation bounds, not reconstruction constants}
+
+At reconstruction time the current full-field boundary declares:
+\[
+  \text{sound ports}\leq64,\qquad
+  \text{samples per substream}\leq2048,\qquad
+  \text{samples per settlement}\leq32768.
+\]
+The physical auditory audit used 64 ports (32 per ear) and 100 cochlear
+observations. These facts describe current capacity; they do not ratify the
+reconstructed joint-field dimensions.
+
+\section{Validation and falsification gates}
+
+\subsection{Kernel integrity gates}
+
+All must pass at \(100\%\):
+\begin{enumerate}
+  \item identical input and constitution produce byte-identical receipts;
+  \item one raw-code adjacent perturbation is either exactly replayed or
+  explicitly unavailable;
+  \item every required vertex, edge, scale, descriptor, and perspective is
+  present;
+  \item all causal intervals cover their source without gaps;
+  \item serial and parallel execution produce identical results;
+  \item no label or learned state appears in an L0--L4 dependency graph;
+  \item tampering with any value, topology edge, interval, or receipt fails
+  verification;
+  \item bounded inputs never exceed declared resource bounds silently.
+\end{enumerate}
+
+\subsection{Joint-field differential gates}
+
+\begin{enumerate}
+  \item \textbf{Common-scale test.} A declared common positive group scale
+  changes raw custody but leaves \(\widehat{x}\) invariant.
+  \item \textbf{Orientation test.} Multiplication by a negative scale changes
+  orientation and must not lock as the same positive-scale relation.
+  \item \textbf{Topology test.} Removing or permuting an edge changes the
+  topology and whole-field receipt.
+  \item \textbf{Multiplicity test.} Repeating an event changes the exact
+  trajectory receipt even when a local order alphabet is unchanged.
+  \item \textbf{Cross-scale test.} A relation present at one scale but
+  contradicted at another remains an explicit uncertainty atom.
+  \item \textbf{Negative-space test.} Observed zero, unavailable input, and
+  corrupted input produce three different results.
+  \item \textbf{Non-flattening test.} No compatibility vector or scalar can
+  reconstruct or replace the full receipt authority.
+\end{enumerate}
+
+\subsection{Semantic recurrence falsification gate}
+
+For any proposed relation:
+\begin{enumerate}
+  \item build the complete label-blind \(N\times N\) relation matrix;
+  \item reveal labels only after all relations and receipts exist;
+  \item require all held-out same-class references to lock;
+  \item require every held-out cross-class reference to reject;
+  \item require source-disjoint speakers or emitters;
+  \item test repeated exposure, overlap, ambiguity, and unknown rejection
+  separately;
+  \item if selective recurrence is absent at raw input, do not attribute its
+  absence downstream to a kernel layer.
+\end{enumerate}
+The project-wide physics-accuracy floor is \(85\%\), but a claimed exact
+identity or hard invariant requires \(100\%\). A lower empirical rate cannot
+be relabelled exact.
+
+\subsection{Auditory findings that constrain this reconstruction}
+
+The authenticated 2026-07-27 audit used 64 source-disjoint speakers, eight
+commands, five references and three held-out speakers per command. It compared
+raw PCM, cochlear receptor, L0, L1, L2, L3, L4, a physical brainstem relation,
+and physical stereo L4.
+
+\begin{longtable}{lrrr}
+\toprule
+Layer & Local within locks & Local cross locks & Held-out passes\\
+\midrule
+\endfirsthead
+\toprule
+Layer & Local within locks & Local cross locks & Held-out passes\\
+\midrule
+\endhead
+Raw PCM & 224/224 & 1792/1792 & 0/24\\
+Cochlear receptor & 157/224 & 1290/1792 & 0/24\\
+L0 & 217/224 & 1736/1792 & 0/24\\
+L1 & 0/224 & 0/1792 & 0/24\\
+L2 & 0/224 & 0/1792 & 0/24\\
+L3 & 0/224 & 0/1792 & 0/24\\
+L4 & 1/224 & 8/1792 & 0/24\\
+Physical brainstem & 210/224 & 1682/1792 & 0/24\\
+Physical stereo L4 & 0/224 & 8/1792 & 0/24\\
+\bottomrule
+\end{longtable}
+
+The exact whole-trajectory positive-scale quotient locked 0 within and 0 cross
+at every layer. Thus neither declared quotient established selective raw
+recurrence, and no earliest recurrence-loss boundary was proved. This
+reconstruction must not be presented as a proven repair.
+
+Physical segregation was a separate success: exact W1 propagation paths
+\[
+  (d_L,d_R)_A=(10,14),\qquad
+  (d_L,d_R)_B=(14,10)
+\]
+with attenuation \(1\) recovered both overlapping scaled emitters exactly in
+8/8 corpus checks. Source segregation does not imply word recurrence.
+
+\subsection{Required future falsification}
+
+The reconstruction is rejected or remains non-canonical if any of these
+occurs:
+\begin{itemize}
+  \item it cannot preserve every explicit field and topology witness;
+  \item a scalar or static bucket becomes decision authority;
+  \item a held-out relation improves only after labels or parameter fitting;
+  \item cross-class recurrence is not lower than same-class recurrence;
+  \item serial and parallel receipts differ;
+  \item an exact physical counterexample is masked by hardening;
+  \item resource use is unbounded or a bound silently truncates evidence;
+  \item performance on one domain requires modifying L0--L4 for that domain.
+\end{itemize}
+
+\section{Original v1.3 / current canonical / reconstruction mapping}
+
+\small
+\begin{longtable}{
+>{\raggedright\arraybackslash}p{0.14\textwidth}
+>{\raggedright\arraybackslash}p{0.25\textwidth}
+>{\raggedright\arraybackslash}p{0.26\textwidth}
+>{\raggedright\arraybackslash}p{0.27\textwidth}}
+\toprule
+Surface & Historical v1.3 & Current canonical reality &
+Non-canonical reconstruction\\
+\midrule
+\endfirsthead
+\toprule
+Surface & Historical v1.3 & Current canonical reality &
+Non-canonical reconstruction\\
+\midrule
+\endhead
+Input field &
+\(F(t)=[x_1(t),\ldots,x_n(t)]\); modality and relevance named &
+Verified native ports, calibration, topology, source relevance, and receipt
+custody &
+Exact rational vertex field on immutable physical graph, with explicit
+availability states\\
+\addlinespace
+L0 normalization &
+\(\bar F=S(L(F))\), with log or variance stabilization left open &
+Per-port dimensionless mapping; frozen code applies log and binary64
+operations, then receipts exact binary64 rationals &
+Group-projective rational normalization with raw custody; no transcendental
+or global scalar normalization\\
+\addlinespace
+SEV &
+Values, first difference, variance, relevance, negative space &
+Per-port \(F_{\rm norm},dF,\sigma,\kappa,r,N\) &
+Joint tensors over every vertex and causal dyadic scale\\
+\addlinespace
+Negative space &
+Flag plus source classification prose &
+Per-port threshold-derived \(N\), with physical availability handled at the
+boundary &
+Exact observed-zero group fact; unavailable and invalid remain distinct\\
+\addlinespace
+Gate boundary &
+\(\|SEV_t-SEV_{t-1}\|>\tau_0+\alpha\operatorname{Var}\) or \(N\) change &
+Per-port weighted deviation and configured threshold &
+Maximal intervals of unchanged complete sign/zero structural signature;
+no fitted threshold\\
+\addlinespace
+TVR &
+Five-value fingerprint in early text; three-value computational form elsewhere &
+Per-port \((T,V,R)\) &
+Duration plus full component tensors \(V,R,Q,K\), retaining all coordinates\\
+\addlinespace
+Mosaic &
+Multiple lattice projections and consensus count &
+Per-port floor-quantized projections; divergence count \(C_k\) &
+Lossless perspective restrictions, complete order relations, and explicit
+disagreement atoms\\
+\addlinespace
+L2 contrast &
+\(CV=TVR-\overline{TVR}_{\rm local}\) &
+Per-port global gate-window mean and three-component contrast &
+Causal component/descriptor/scale contrast tensor\\
+\addlinespace
+L2 interpretation &
+Weight \(w\), scalar score \(S\), regimes, anomaly suppression &
+Bounded \(w,S,U\), IAS flag, regime class &
+Exact interpretation tuples and contradiction sets; no scalar authority\\
+\addlinespace
+L3 resonance &
+Underdefined \(R(w,CV,S,g)\), later weighted scalar intent &
+Per-port normalized weighted scalar resonance, hysteresis, gate, URF &
+Vertex, physical-edge, temporal, and cross-scale resonance facts retained
+jointly\\
+\addlinespace
+Hysteresis &
+Hold previous scalar outside a threshold &
+Binary change threshold can suppress URF through gating &
+Change fact retained; never overwrites the current field\\
+\addlinespace
+L4 direction &
+Directional probability surface &
+Per-port ternary direction from URF difference and fixed epsilon &
+Exact atom-wise structural displacement \(D=\Delta\rho\)\\
+\addlinespace
+L4 tuple &
+DPS, momentum, reversal probability, pressure band, corrected signal &
+Exact receipt-bound ordered
+\((D,M,R_{\rm rev},U^\star,C,P,B)\) per port &
+Same seven named fields as complete typed vertex/edge tensors\\
+\addlinespace
+Exactness &
+Deterministic intent; numeric representation underdefined &
+Binary64 computation with exact \texttt{Fraction.from\_float} receipt encoding &
+Rational mathematics throughout, with any binary64 boundary labelled\\
+\addlinespace
+Full field &
+Simultaneous multidimensional ontology &
+Complete topology of independent per-port L0--L4 traces; exact tuple custody &
+One simultaneous joint vertex/edge/scale/perspective operator\\
+\addlinespace
+L5 &
+Only domain-specific layer; stateless adapter prose &
+Separate domain owners and deterministic governance surfaces &
+Receives complete L4 field; cannot mutate kernel or claim a reduced score is
+full evaluation\\
+\addlinespace
+L6 &
+Not part of the v1.3 L0--L5 layer list &
+Canonical integer exhaustion law &
+Unchanged and separate; relation constitution and quotient loss remain explicit\\
+\addlinespace
+Memory &
+STM/MTM/LTM and schemas can feed L1--L3 under caps &
+Multiple receipt-bound memory and recurrence services exist outside kernel &
+Append-only authenticated experiences; no backward injection into L0--L4\\
+\addlinespace
+Hardening &
+AGS, RH, IAS, BDSC, SEC, coarse-graining, SafeMode &
+Some frozen thresholds and separate fail-closed authorities; optional legacy
+hardening code also exists &
+Low-evidentiary-weight observer/veto certificate only; cannot modify DSF\\
+\addlinespace
+Validation &
+Noise averages, weighted global stability, probabilities, and stress suites &
+Exact receipts, replays, topology checks, tests, plus empirical domain audits &
+Exact invariants at 100\%; label-blind complete matrices for empirical
+falsification; no probabilistic shortcut\\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Minimal implementation contract for an isolated shadow}
+
+This section is not an instruction to modify production. It defines what an
+isolated falsification implementation would have to prove.
+
+\begin{enumerate}
+  \item Accept one immutable topology, constitution, pre-window state, and
+  complete rational observation window.
+  \item Build L0 jointly across all required vertices.
+  \item Build every dyadic-scale gate partition without truncation.
+  \item Retain every TVR component and every perspective witness.
+  \item Build all L2 contrasts and uncertainty atoms.
+  \item Build all physical-edge and cross-scale L3 facts.
+  \item Emit the complete seven-field L4 typed product.
+  \item Authenticate every layer and the whole dependency graph.
+  \item Run current canonical and reconstruction side by side; never route the
+  reconstruction into production.
+  \item Falsify on source-disjoint held-out physical data before requesting
+  architectural review.
+\end{enumerate}
+
+Backward compatibility is observational only:
+\begin{itemize}
+  \item current canonical inputs, outputs, schemas, and receipts remain
+  unchanged;
+  \item the reconstruction uses new schema identifiers and a disjoint import
+  path;
+  \item no existing receipt is reinterpreted;
+  \item comparison reports name both authorities and never select a winner
+  automatically.
+\end{itemize}
+
+\section{Conclusions}
+
+The historical v1.3 document contains the correct high-level ambition of a
+domain-neutral, structural, deterministic, multidimensional field engine, but
+it does not supply a complete implementation-grade joint-field mathematics.
+The current canonical implementation supplies strong execution, causal, and
+receipt discipline while applying the kernel independently to physical ports.
+This reconstruction shows one coherent way the original joint-field intent
+could be written without flattening:
+\begin{itemize}
+  \item exact rational vertex and edge fibers;
+  \item causal multi-scale gates;
+  \item lossless mosaic perspectives;
+  \item explicit contrasts and contradiction atoms;
+  \item resonance as a physical relation field;
+  \item all seven L4 fields retained as typed tensors;
+  \item L5, L6, memory, and hardening strictly separated.
+\end{itemize}
+
+It remains speculative. The auditory evidence does not demonstrate that this
+architecture restores selective recurrence, and therefore it authorizes no
+kernel change. Its posterity value is a precise, falsifiable statement of the
+joint-field proposition that the historical document left incomplete.
+
+\appendix
+
+\section{Current canonical equations retained for comparison}
+
+This appendix records the current code-level form; it does not change it.
+For one port, the current frozen trajectory includes:
+\[
+  F_{\mathrm{norm}}(k)=\log(F(k)+\epsilon),
+\quad
+  dF_k=F_{\mathrm{norm}}(k)-F_{\mathrm{norm}}(k-1),
+\]
+\[
+  D^{L1}_k=\alpha_1|dF_k|+\alpha_2\sigma_k+\alpha_3\kappa_k,
+\quad
+  \operatorname{boundary}_k=
+  \mathbf{1}[D^{L1}_k>\tau_D]
+\]
+under the configured strict comparison.
+
+For a gate:
+\[
+  T_k=b-a,\qquad
+  V_k=\sum_{i=a}^{b}
+  (\beta_1|dF_i|+\beta_2\sigma_i+\beta_3\kappa_i),
+\qquad
+  R_k=\sum_{i=a}^{b}r_i.
+\]
+Current mosaics apply declared lattice steps \(h_{\ell,j}\):
+\[
+  P_\ell(G_k)=
+  \left(
+    \left\lfloor T_k/h_{\ell,1}\right\rfloor,
+    \left\lfloor V_k/h_{\ell,2}\right\rfloor,
+    \left\lfloor R_k/h_{\ell,3}\right\rfloor
+  \right).
+\]
+
+Current L2 and L3 include:
+\[
+  CV_k=TVR_k-\operatorname{mean}(TVR),
+\]
+\[
+  S_k=\clip_{[0,1]}
+  \left(
+    \gamma_1w_k+\gamma_2\psi_k+
+    \frac{\gamma_3}{1+C_k}
+  \right),
+\]
+\[
+  U_k=\clip_{[0,1]}
+  \left(
+    \lambda_{u1}\frac{C_k-1}{L-1}
+    \lambda_{u2}\frac{\delta_{g,k}}{\delta_{\max}}
+    \lambda_{u3}N_k
+  \right),
+\]
+\[
+  R_k=\clip_{[0,1]}
+  \frac{
+    \lambda_1w_k+\lambda_2\psi_k+\lambda_3S_k+
+    \lambda_4/(1+C_k)+\lambda_5(1-U_k)
+  }{\sum_{j=1}^{5}\lambda_j},
+\]
+\[
+  \widetilde R_k=g_kR_k.
+\]
+
+Current L4 includes:
+\[
+  D_k=
+  \begin{cases}
+  +1,&\Delta\widetilde R_k>\epsilon_D,\\
+  -1,&\Delta\widetilde R_k<-\epsilon_D,\\
+  0,&\text{otherwise},
+  \end{cases}
+\]
+\[
+  M_k=\widetilde R_k-2\widetilde R_{k-1}+\widetilde R_{k-2},
+\qquad
+  R_{\mathrm{rev},k}=\mathbf{1}[D_kD_{k-1}<0],
+\]
+\[
+  U^\star_k=
+  \clip_{[0,1]}(U_k+\eta_HH_k+\eta_{\mathrm{IAS}}IAS_k),
+\]
+\[
+  P_k=|D_k-D_{k-1}|,
+\]
+\[
+  B_k=
+  \clip_{[B_{\min},B_{\max}]}
+  \left(
+    B_{k-1}+\xi(1-U^\star_k)\Delta\widetilde R_k-\chi U^\star_k
+  \right).
+\]
+The exact ordered tuple is receipt authority. The formulas above are included
+to expose the mapping, not to endorse a reconstruction change.
+
+\section{Physical binaural reconstruction boundary}
+
+For the isolated W1 audit:
+\[
+  e_L=(0,100,0)\ {\rm mm},\qquad
+  e_R=(0,-100,0)\ {\rm mm},
+\]
+\[
+  s_A=(200,100,0)\ {\rm mm},\qquad
+  s_B=(200,-100,0)\ {\rm mm}.
+\]
+The exact paths were
+\[
+  p_A=(10,14,1,1),\qquad p_B=(14,10,1,1),
+\]
+where the tuple is left delay, right delay, left attenuation, right
+attenuation. Both ears entered separate L0--L4 port fibers. The brainstem audit
+retained per-band path-delay, envelope-level, cumulative-phase, and
+phase-advance differences. Mirrored assemblies received
+\[
+  H_L=[E_L,E_R],\qquad H_R=[E_R,E_L],
+\]
+with no tuned weights and no ear-to-single-hemisphere shortcut.
+
+The chamber omitted pinna transfer, head shadow, diffraction, reflections,
+reverberation, and sensor noise. These remain missing physical operators.
+
+\section{Provenance hashes}
+\label{app:provenance}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.45\textwidth}
+                  >{\ttfamily\small\raggedright\arraybackslash}p{0.49\textwidth}}
+\toprule
+Artifact & SHA-256\\
+\midrule
+\endfirsthead
+\toprule
+Artifact & SHA-256\\
+\midrule
+\endhead
+Historical UF-Spec v1.3.0 DOCX &
+4e90a21c45bf668a323f87177a92936d47eea8ebf03ff3c18693dccf06255b2b\\
+\texttt{uf\_core/layer0.py} &
+20932787e15b3048f2031ea5b9cef937aa7e13650aebea0582c6002d1b731424\\
+\texttt{uf\_core/layer1.py} &
+29e59061cf73aadd0730178170b90fbfdb157cd7bdec8358baf111a54d0bcc2d\\
+\texttt{uf\_core/layer2.py} &
+6ae12c7a79027fcf259370b7bf1f6209853ce763ac188a39477213344a0d19e8\\
+\texttt{uf\_core/layer3.py} &
+e4e25c175dc8c92d0e85a635be2214da3d5ed50331a66609e641c0f998562cb7\\
+\texttt{uf\_core/layer4.py} &
+a5be7e422c3954117622845d3da4994fa62227c46c0a72936d80d7f665fdc21a\\
+\texttt{closed\_experience.py} &
+8b1b93285c6857aced04ebd76673a4b65f289a650b490a2a676160986f10b39c\\
+\texttt{global\_uf.py} &
+9bef90569199344b50a7c7ff17c806ba935f27b202f0c8cd85b3bad69e0cb659\\
+Compact auditory loss report &
+f1f7f2d1e83139e37d8fd154fbf3282995860b7f511c1cb13be4f6020b261b36\\
+Full auditory report authority &
+fa944f83daf07c26778e31072c77f8e5d626036d686e6070585bda671e7f1ec0\\
+\bottomrule
+\end{longtable}
+
+\section{Final non-canonical notice}
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\textcolor{warningred}{\Large\bfseries NON-CANONICAL SPECULATIVE RECONSTRUCTION}\\[0.5em]
+This document is a falsifiable posterity reconstruction only. It does not
+modify or supersede canonical L0--L4, does not promote a hearing operator, and
+does not authorize production implementation.
+}}
+\end{center}
+
+\end{document}

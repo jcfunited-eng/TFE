@@ -1,0 +1,24 @@
+{
+  "version": "6.2-plugin",
+  "decay": {
+    "half_life_turns": 6,
+    "min_valence": -1.0,
+    "max_valence": 1.0,
+    "min_arousal": 0.0,
+    "max_arousal": 1.0
+  },
+  "blend": {
+    "mirror_strength": 0.45,
+    "stability_bias": 0.20,
+    "novelty_bias": 0.15
+  },
+  "safety": {
+    "clamp_aggression": 0.7,
+    "negative_valence_floor": -0.6,
+    "max_shift_per_turn": 0.35
+  },
+  "memory": {
+    "persist_last_n": 12,
+    "persist_on_events": ["strong_shift", "conflict", "repair"]
+  }
+}

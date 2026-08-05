@@ -1,0 +1,24 @@
+\chapter{Source Plane}
+\section{Tiered Sourcing Model}
+\meta{Define source classes and their role.}{Vendor feeds, internal data, reference data.}{Normalized source hierarchy.}
+
+TFE shall use three source tiers:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Tier 1}: primary production-critical source used to construct canonical normalized truth;
+    \item \textbf{Tier 2}: secondary or backup source used for reconciliation, backfill, enrichment, or controlled fallback;
+    \item \textbf{Tier 3}: internal operational data used for portfolios, accounts, preferences, and advisor workflows.
+\end{enumerate}
+
+\section{Canonical Normalization Rule}
+All Tier 1 and Tier 2 external data shall be transformed into one canonical normalized contract before use by assessment or publication.
+
+\section{Source Package Contract}
+Each source package shall contain:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item source identity
+    \item acquisition timestamp
+    \item source class
+    \item raw payload reference
+    \item integrity status
+    \item failure code and failure detail if acquisition is incomplete
+\end{enumerate}

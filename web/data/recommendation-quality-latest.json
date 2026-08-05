@@ -1,0 +1,63 @@
+{
+  "generated_at_utc": "2026-04-01T00:00:00Z",
+  "status": "insufficient_history",
+  "cp_profile": "CP-2",
+  "inputs": {
+    "snapshot": "/app/uf_snapshot.json",
+    "runtime_policy": "CP-2 DSF V3 deterministic basin physics",
+    "targets": {
+      "target_5": 95.0,
+      "target_20": 97.0,
+      "target_60": 69.0,
+      "target_avg": 64.0,
+      "target_coverage": 0.95,
+      "target_fallback_max": 0.05
+    },
+    "notes": {
+      "accuracy_assessment_contract": "Outcome-over-index metrics are computed on CP-2 V3 Accumulate decisions re-derived from runtime_decisions_history using frozen DSF V3 basin physics. Fallback rows (insufficient bars or missing fields) are excluded. A decision is mature for horizon H when at least H*1.5 calendar days have elapsed since the snapshot timestamp."
+    }
+  },
+  "winner": {
+    "variant_name": "CP2_DSF_V3",
+    "source_mode": "deterministic",
+    "eval_mode": "deterministic",
+    "min_bars": 180,
+    "policy_path": "web/scripts/runtime_decision_provenance.mjs",
+    "gates": {
+      "gate_5day": false,
+      "gate_20day": false,
+      "gate_60day": false,
+      "gate_sp_plus_4_proxy_avg": false,
+      "gate_coverage": false,
+      "gate_fallback": false,
+      "quality_gate_count": 0,
+      "reliability_gate_count": 0,
+      "total_gate_count": 0
+    },
+    "horizon_outcome_over_index_pct": {
+      "5": null,
+      "20": null,
+      "60": null
+    },
+    "avg_outcome_over_index_pct": null,
+    "coverage_rate": null,
+    "fallback_rate": null,
+    "reason": "CP-2 profile initialised. Outcome metrics will populate automatically after the next full refresh cycle once sufficient decision history (10+ mature decisions per horizon) has accumulated."
+  },
+  "cp2_audit": {
+    "profile": "CP-2",
+    "decision_physics": "DSF_V3_DETERMINISTIC_BASIN",
+    "total_rows": null,
+    "evaluated_rows": null,
+    "fallback_rows": null,
+    "accumulate_decisions_in_window": 0,
+    "history_window_days": 120,
+    "min_sample_per_horizon": 10,
+    "horizon_sample_counts": {
+      "5": 0,
+      "20": 0,
+      "60": 0
+    },
+    "reason_code_distribution": {}
+  }
+}

@@ -1,0 +1,206 @@
+\chapter{Mathematics Used}
+\section{Mathematical Inventory}
+\meta{Declare the mathematical families used in TFE.}{Canonical UF equations, SES controls, event-driven L5 architecture, validation and governance requirements.}{A bounded mathematical inventory for implementation and review.}
+
+TFE uses the following mathematics:
+\begin{itemize}
+    \item discrete-time dynamical systems for state updates over ordered structural events;
+    \item linear algebra for vectors, matrices, projections, norms, clamping, stable affine recursions, and deterministic fusion across views/cores;
+    \item finite-difference calculus for local variation, curvature, second differences, and drift measures;
+    \item order theory and set operations for gate formation, event ordering, and deterministic tie-breaking;
+    \item information-theoretic quantities for entropy-like dispersion, disagreement, and uncertainty normalization;
+    \item graph and topology-inspired summaries where structural connectivity or trajectory shape is represented deterministically;
+    \item security mathematics for canonical serialization, authenticated encryption, domain binding, deterministic key derivation, and audit-stable identifiers;
+    \item validation mathematics for controlled perturbation, invariance checks, boundedness proofs, collapse detection, migration parity, and benchmark comparison.
+\end{itemize}
+
+
+\section{Structural Geometry as the Primary Computational Object}
+\meta{Explain what TFE is actually computing when it claims to compute structure or geometry.}{Ordered scalar or multi-core field streams, canonical UF operators, event tape primitives, epoch fields, and approved governance rules.}{A deterministic statement of the geometric objects carried through the system.}
+
+TFE does not treat an input series primarily as a list of observations for supervised target fitting. It treats the ordered series as a field from which deterministic geometric objects are extracted, stabilized, compared, and governed. The primary computational objects are therefore not labels but structured entities: local structural tuples, contiguous gates, gate trajectories, resonance transitions, negative-space intervals, bounded potential states, cross-core disagreement surfaces, and epoch-coupled external fields.
+
+For one core $c$, let the canonical local geometric primitive at time $t$ be
+\[
+\gamma_c(t)=\big(F_c(t),\,\Delta F_c(t),\,\sigma_c(t),\,\kappa_c(t),\,r_c(t),\,N_c(t)\big).
+\]
+A gate $G_{k,c}$ is then a maximal contiguous interval of admissible geometric continuity. The gate trajectory over an ordered set of gates is
+\[
+\mathcal{T}_{c}(k)=\big(G_{1,c},G_{2,c},\dots,G_{k,c}\big),
+\]
+and the ordered family of cross-core trajectories is
+\[
+\mathfrak{T}(k)=\{\mathcal{T}_{c}(k)\}_{c\in\mathcal{C}}.
+\]
+TFE L5 does not directly score raw prices. It governs over derived geometric objects such as:
+\begin{align*}
+\mathfrak{G}_{k,c} &= \big(T_{k,c},V_{k,c},R_{k,c},C_{k,c},\delta_g(G_{k,c})\big),\\
+\mathfrak{R}_{k,c} &= \big(R_{k,c},Hyst_{k,c},g_{k,c},URF_{k,c}\big),\\
+\mathfrak{D}_{k,c} &= \big(D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},P_{k,c},B_{k,c}\big),\\
+\mathfrak{X}_{n} &= \big(\Xi_n,\bar\Xi_n,\Delta\Xi_n\big),\\
+\mathfrak{Z}_{n} &= \big(x_f^n,x_m^n,x_s^n,a_n,\rho_n,\Gamma_n,z_n\big).
+\end{align*}
+The system therefore computes geometric continuity, geometric discontinuity, quiet structure, multi-scale persistence, and external-field interference. That is the scientific meaning of ``computing structure'' in TFE.
+
+\section{Difference from Standard ML and Predictive Data Analytics}
+\meta{Make explicit how TFE differs mathematically from standard supervised prediction or generic predictive analytics.}{The TFE mathematical formalism and standard predictive-learning archetypes.}{A formal contrast statement.}
+
+A standard supervised predictive system typically solves
+\[
+\theta^{\star}=\arg\min_{\theta}\sum_{i=1}^{N}\mathcal{L}\big(y_i, f_{\theta}(x_i)\big),
+\]
+and produces
+\[
+\hat y = f_{\theta}(x).
+\]
+Predictive data analytics may relax the learning rule or add post-hoc business logic, but the primary scientific object is still a target estimate, score, or probability conditioned on a row-wise feature vector.
+
+TFE is different in three ways:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Primary object.} The primary object is a geometric structural state evolving over ordered events, not a target label estimate.
+    \item \textbf{Update rule.} The primary recursion is a state evolution over structural events,
+    \[
+    z_n = \Phi\big(z_{n-1}, e_n, \Xi_n, \Pi_n\big),
+    \]
+    not a direct one-shot prediction from a row vector.
+    \item \textbf{Decision rule.} A research action is emitted only after structural admissibility, financial governance, epoch coupling, and bounded inconsistency tests are passed:
+    \[
+    A_h^{final}(s,t)=\mathcal{G}_h\big(z_n,Q_{fund}(s,t),\Xi_n,\Pi_n\big),
+    \]
+    where $\mathcal{G}_h$ is deterministic and abstention is an admissible output.
+\end{enumerate}
+
+TFE may use fitted components in pragmatic approximations or future profiles, but the normative design is not defined by empirical loss minimization. It is defined by structural extraction, bounded state evolution, and governed admissibility. If an implementation reduces the system to a feature table plus a target learner, it has crossed into approximation space and must be labeled accordingly.
+
+\section{Computational Overhead and Complexity Budget}
+\meta{State how the normative design controls computational cost and why event-driven structural computation is intended to be lighter than large-scale row-centric ML.}{Input length $n$, core count $|\mathcal{C}|$, gate count $K$, event count $N_E$, epoch-object count $K_{\Xi}$, and shared-state dimensions.}{A computational budget model and explicit complexity contrast.}
+
+For one symbol and one core over $n$ ordered bars, the canonical kernel has the following asymptotic budget under bounded-window operators:
+\begin{align*}
+\text{L0 cost} &= O(n),\\
+\text{L1 cost} &= O(n),\\
+\text{L2--L4 cost} &= O(K),
+\end{align*}
+where $K\le n$ is the number of gates. For $|\mathcal{C}|$ cores, kernel cost is
+\[
+O\big(|\mathcal{C}|(n+K)\big).
+\]
+
+The normative L5 is event-driven. Let $N_E$ be the number of emitted structural events, with typically $N_E\ll n$ under stable-event sparsification. For shared state dimensions $(d_f,d_m,d_s,d_a,d_z)$, the update cost is
+\[
+O\Big(N_E\big(d_f^2+d_m^2+d_s^2+d_f d_m+d_m d_s+d_a+d_z\big)\Big),
+\]
+which in implementation shall be reduced by sparse, diagonal, banded, or low-rank operator choices where possible. Epoch-library update cost is
+\[
+O\big(K_{\Xi}\cdot 32 + 32\cdot(|\Sigma|+|\mathcal{I}|)\big),
+\]
+with $32$ fixed by the sphere-of-impact basis.
+
+The important contrast is with row-first predictive analytics. If a pragmatic row-table approximation has $R$ rows and $p$ features, then storage and processing often scale as
+\[
+M_{row}=O(Rp),\qquad C_{row}=O(Rp\,d_{model}),
+\]
+where $d_{model}$ is model-dependent. In the normative event-driven design,
+\[
+M_{event}=O(N_E d_E + d_f+d_m+d_s+d_a+d_z + K_{\Xi}\cdot 32),
+\]
+which is intentionally bounded by sparse events and compact state rather than by every bar-feature combination.
+
+TFE therefore seeks efficiency not by ``doing less reasoning'' but by refusing to treat every timestamp-feature cell as equally meaningful. Structural quietness, gate continuity, and event sparsification are part of the computational strategy.
+
+\section{Efficient L5 Computational Profiles}
+\meta{State the preferred and optional computational realizations of L5 so overhead, eco-efficiency, and thesis fidelity can be discussed concretely.}{Event count $N_E$, state dimensions, core/view count, and horizon count.}{A deterministic L5 computational profile catalogue.}
+
+The normative baseline is the \textbf{event-driven shared-state profile}. In this profile, L5 maintains one shared structural state per symbol and updates only when an event on the structural event tape occurs. Let $d_z$ be the shared state dimension and let $r\ll d_z$ denote an allowed low-rank update rank. A low-rank baseline update has cost
+\[
+C_{L5}^{base}=O\big(N_E(d_z r + d_z + |\mathcal{C}|d_z)\big).
+\]
+This is the preferred research profile because it preserves temporal continuity while avoiding row-first table inflation.
+
+The following optional profiles are permitted as \emph{implementation profiles}, not as semantic replacements:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Sparse Low-Rank State Update Profile}: the transition operators are diagonal, block-diagonal, banded, or low-rank. This is the preferred software profile for ordinary CPU execution.
+    \item \textbf{Selective State-Space Profile}: a structured state-space realization may be used if it remains deterministic and if state is updated from the event tape rather than from a primary row table. The intended computational scaling is linear or near-linear in event count.
+    \item \textbf{Reservoir / Fixed Dynamics Profile}: a fixed recurrent reservoir may be used so long as readout and governance remain deterministic, versioned, and auditable. This profile is attractive when rich temporal traces are desired without heavy training overhead.
+    \item \textbf{Analog / Compute-in-Memory Profile}: future hardware profiles may map the shared-state updates or reservoir dynamics onto analog or in-memory substrates, provided the deterministic state semantics, audit rules, and protected-boundary constraints remain satisfied.
+\end{enumerate}
+
+The following are \textbf{not} preferred for thesis-faithful operation:
+\begin{itemize}
+    \item row-first full-history materialization with every bar treated as an equal computational object;
+    \item horizon-separated state worlds for 5/20/60 as primary semantics;
+    \item quadratic-cost attention over raw bar histories when an event-driven state update suffices;
+    \item black-box model substitution that removes reconstructability of why a recommendation was admissible.
+\end{itemize}
+
+\section{Computational Advantages and Disadvantages of the TFE Approach}
+\meta{Make explicit the expected strengths and weaknesses of structural event-driven computation relative to standard ML and predictive analytics.}{The baseline and optional computational profiles.}{An auditable advantages/disadvantages statement.}
+
+\textbf{Expected advantages:}
+\begin{itemize}
+    \item \textbf{Event sparsity advantage.} Compute scales with meaningful structural change rather than every bar-feature cell.
+    \item \textbf{Shared-state advantage.} One shared long/mid/short state can serve multiple horizon heads without re-running independent horizon worlds.
+    \item \textbf{Auditability advantage.} Recommendations can be traced to structural events, state variables, and approved rules rather than opaque score flows.
+    \item \textbf{Eco-efficiency advantage.} The baseline profile is intended to reduce memory movement, repeated materialization, and large-parameter training pressure compared with standard heavy-sequence ML.
+    \item \textbf{Graceful abstention advantage.} If structure is weak or contradictory, the system may abstain rather than forcing a prediction.
+\end{itemize}
+
+\textbf{Expected disadvantages / risks:}
+\begin{itemize}
+    \item \textbf{Registry burden.} A strong event-driven rule system depends on disciplined registries for thresholds, sector overrides, epoch taxonomies, and strategy blocks.
+    \item \textbf{Implementation fragility.} A careless implementation can silently fall back into row-first predictive analytics while appearing to be thesis-faithful.
+    \item \textbf{Coverage trade-off.} Event sparsity and abstention may reduce coverage if the structural gate is too conservative.
+    \item \textbf{Domain-rule maintenance burden.} Financial and epoch rules require careful curation to remain current and competitive.
+    \item \textbf{Hardware-profile uncertainty.} Analog or reservoir-inspired profiles may be more eco-friendly, but only if the deployment discipline remains strong and the semantics stay reconstructable.
+\end{itemize}
+
+
+\section{Deterministic Computability Rule}
+\meta{Constrain all mathematics to deterministic execution.}{All algorithmic sections of this specification.}{A computability rule.}
+
+Unless a section is explicitly marked as optional profile or external benchmark reference, all computations in this specification are deterministic functions of declared inputs, versions, parameters, and approved rules. Randomization inside the kernel is prohibited. Any seeded pseudo-random process used in validation or optional deterministic diversity must be externally controlled, seeded, logged, and reproducible.
+
+
+\section{State Spaces, Domains, and Codomains}
+\meta{Make every major formal object type-explicit so the specification is mathematically closed.}{All formal objects introduced in later chapters.}{Typed state spaces and admissible domains.}
+
+The principal state spaces used by TFE are:
+\begin{align*}
+I &= \{(t_i,O_i,H_i,L_i,C_i,V_i)\}_{i=1}^{n},\\
+I_C &= \{(t_i,C_i)\}_{i=1}^{n},\\
+SEV(t_i) &\in \mathbb{R}^{6},\\
+G_k &\in \mathcal{G},\\
+ISF_k &\in \mathbb{R}^{d_{ISF}},\\
+DSF_k &\in \mathbb{R}^{7},\\
+e_n &\in \mathcal{E}\subset \mathbb{R}^{d_E}\times\mathcal{M}\times\mathcal{U},\\
+x_f^n &\in \mathbb{R}^{d_f},\quad x_m^n \in \mathbb{R}^{d_m},\quad x_s^n\in\mathbb{R}^{d_s},\\
+a_n &\in \mathbb{R}^{d_a},\quad z_n\in\mathbb{R}^{d_z},\\
+\Xi_n &\in \mathbb{R}^{32},\quad \Pi_n\in\{0,1\}^{d_{\Pi}},\\
+Q_h(n) &\in \mathbb{R},\quad h\in\{5,20,60\},\\
+A_h(n) &\in \{\text{ACCUMULATE},\text{HOLD},\text{AVOID},\text{ABSTAIN},\text{NO\_OUTPUT}\}.
+\end{align*}
+
+All update rules are total functions on their admissible domains. Any malformed input outside the admissible domain shall produce explicit rejection, never silent coercion.
+
+\section{Deterministic Serialization and Equality}
+\meta{Define the mathematical meaning of deterministic object equality and serialization closure.}{Formal records, event tapes, snapshots, envelopes, and audit records.}{Deterministic equality and digest rules.}
+
+For any structured object $X$, let $\operatorname{Ser}(X)$ denote a canonical byte serialization. Then:
+\[
+X =_{\mathrm{sem}} Y \iff \operatorname{Ser}(X)=\operatorname{Ser}(Y).
+\]
+Where semantic equality is profile-dependent (for example, stage-skip equivalence), the specification shall explicitly state the semantic tuple used. Digest functions are defined as
+\[
+H(X)=\operatorname{SHA256}(\operatorname{Ser}(X)).
+\]
+
+\section{Deterministic Tie-Breaks and Boundary Rules}
+\meta{Prevent underspecified behavior at threshold boundaries and ties.}{All decision points, sorting, and categorical choices.}{Global tie-break semantics.}
+
+Unless a narrower rule is stated locally, TFE shall use the following deterministic conventions:
+\begin{enumerate}[leftmargin=1.2cm]
+\item For threshold comparisons, equality belongs to the \emph{non-triggering} side unless otherwise specified.
+\item For $\arg\max$ or $\arg\min$ over tied values, choose the smallest stable index under the declared ordering key.
+\item For merged events at identical timestamps, order by $(timestamp, source\_priority, event\_type\_priority, stable\_source\_index)$.
+\item Missing values are not imputed silently in normative operation.
+\end{enumerate}

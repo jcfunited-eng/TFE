@@ -1,0 +1,87 @@
+{
+  "behavior_bundle_sha256": "f270be00b01d0941a2d8eb508965c108061f907f04beb6431d57b7f37cb3272a",
+  "behavior_cases": {
+    "adapted_signed_sensor": {
+      "dsf_count": 22,
+      "gate_count": 22,
+      "sha256": "2008f58683dcf3731226043448357139f2c9aa26adb5cf233b1aa95369550cdc"
+    },
+    "financial_positive": {
+      "dsf_count": 1,
+      "gate_count": 1,
+      "sha256": "fda4a41a350b4736b5f36185a39fcee1b2da0bd282ea234ad22232dacd3e32d3"
+    },
+    "physiological_positive": {
+      "dsf_count": 12,
+      "gate_count": 12,
+      "sha256": "3ed887e2181b3e8d5e2c2b3b543c9a0809b466a002a49dae603d469c8bb889d8"
+    },
+    "quiescent": {
+      "dsf_count": 1,
+      "gate_count": 1,
+      "sha256": "e2da407c4e46a5fe02235ad696cec93f911fefdfc4015ae830a2e274b80803a9"
+    },
+    "thermal_positive": {
+      "dsf_count": 1,
+      "gate_count": 1,
+      "sha256": "15c861491077f39e2651703a07617c4961dda563e3ed2e15ee4c71e9da7f094e"
+    }
+  },
+  "canonical_commit": "6509971e987d4a1f161ffcfcadc3ec68568322c6",
+  "canonical_source_bundle_sha256": "c8b95decde72946e2beccc8513f9d64f7bfc6b58e5736edb3fffd54b4749357b",
+  "canonical_sources": [
+    {
+      "bytes": 2430,
+      "path": "uf_core/config.py",
+      "sha256": "b87ebb0ee7c58a109e10cd4f161613da6bd0c21fb67dc00a3d90aad7e391121c"
+    },
+    {
+      "bytes": 7253,
+      "path": "uf_core/layer0.py",
+      "sha256": "20932787e15b3048f2031ea5b9cef937aa7e13650aebea0582c6002d1b731424"
+    },
+    {
+      "bytes": 9258,
+      "path": "uf_core/layer1.py",
+      "sha256": "29e59061cf73aadd0730178170b90fbfdb157cd7bdec8358baf111a54d0bcc2d"
+    },
+    {
+      "bytes": 6394,
+      "path": "uf_core/layer2.py",
+      "sha256": "6ae12c7a79027fcf259370b7bf1f6209853ce763ac188a39477213344a0d19e8"
+    },
+    {
+      "bytes": 4351,
+      "path": "uf_core/layer3.py",
+      "sha256": "e4e25c175dc8c92d0e85a635be2214da3d5ed50331a66609e641c0f998562cb7"
+    },
+    {
+      "bytes": 6652,
+      "path": "uf_core/layer4.py",
+      "sha256": "a5be7e422c3954117622845d3da4994fa62227c46c0a72936d80d7f665fdc21a"
+    },
+    {
+      "bytes": 12008,
+      "path": "uf_core/uf_structural_engine.py",
+      "sha256": "2d595c244eb34a6e8a00c75ad85d8c58abfca3232ab35b3d2edf49a6da9fa284"
+    }
+  ],
+  "complete_trace_schemas": [
+    "glew.provider.complete_signed_port_l0_l4_trace.v3",
+    "glew.provider.complete_physical_port_l0_l4_trace.v4"
+  ],
+  "differential_baseline": {
+    "command": "PYTHONHASHSEED=0 python -m pytest -q native/guala_core/tests/test_differential.py tests/test_uf_relevance_adapter.py",
+    "result": "15 passed"
+  },
+  "dsf_field_order": [
+    "D_k",
+    "M_k",
+    "R_rev_k",
+    "U_star_k",
+    "C_k",
+    "P_k",
+    "B_k"
+  ],
+  "schema": "guala.validation.uf_kernel_backward_compatibility_baseline.v1"
+}

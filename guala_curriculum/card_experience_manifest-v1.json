@@ -1,0 +1,522 @@
+{
+  "schema": "guala.external_tutor_card_experience_manifest.v1",
+  "authority_boundary": {
+    "external_tutor_pairing": true,
+    "internal_identity_authority": false,
+    "internal_meaning_authority": false,
+    "internal_pronunciation_authority": false,
+    "internal_recognition_authority": false
+  },
+  "sample_format": {
+    "channels": 1,
+    "encoding": "pcm_s16le",
+    "sample_rate_hz": 16000
+  },
+  "approved_experience_count": 36,
+  "experiences": [
+    {
+      "experience_id": "alphabet-a",
+      "surface": {
+        "object_id": "W1-optical-surface-01",
+        "path": "guala_curriculum/cards/alphabet-a-apple-v1.png",
+        "sha256": "849827f6dc371856674ff15fc78f676602e44526cd1a2866e18b779069b16d9d"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/a-apple-tutor-v1.wav",
+        "sample_count": 26196,
+        "sha256": "51ec5253429f8ca0b68359f7069e9ee8ac85bc3488c5f2c73d6d7a75912a75e3"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-b",
+      "surface": {
+        "object_id": "W1-optical-surface-02",
+        "path": "guala_curriculum/cards/alphabet-b-bee-v1.png",
+        "sha256": "b728f6bb25a44c442bc44a033b03f7ca5e39b9bba54e59c42a444683c9993ce0"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/b-bee-tutor-v1.wav",
+        "sample_count": 29709,
+        "sha256": "8325113dcb4d035aa497ac4b18912698e16dfc6a17f93d94ae236b4ccdb35911"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-c",
+      "surface": {
+        "object_id": "W1-optical-surface-03",
+        "path": "guala_curriculum/cards/C-is-for-Cat.png",
+        "sha256": "763fd86bfaaa59d5c7698b7475772bd9dede70764937c4dc6918a492038a1082"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/c-cat-tutor-v1.wav",
+        "sample_count": 39239,
+        "sha256": "4e4bd1c3087e8b218d7ec333ca01b82a5e2b499a899666ec1f5c7072d5bc73ac"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-d",
+      "surface": {
+        "object_id": "W1-optical-surface-04",
+        "path": "guala_curriculum/cards/D-is-for-Dolphin.png",
+        "sha256": "b408cf717bc509c45b8747a06a288ff7e8cfb086e7eac46d8b705cb6df039dd1"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/d-dolphin-tutor-v1.wav",
+        "sample_count": 32175,
+        "sha256": "f5cae2ac778c9244d1c36750e9463951257a203f1d4ac5b2024a9be9737f8f4e"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-e",
+      "surface": {
+        "object_id": "W1-optical-surface-05",
+        "path": "guala_curriculum/cards/E-is-for-Elephant.png",
+        "sha256": "a9dbd7c3199375db4c26df6b549ca404ea696b1bd38271693e01f0057d0bc32c"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/e-elephant-tutor-v1.wav",
+        "sample_count": 31051,
+        "sha256": "24531bd3a5e3c345db61319ac30e20991a8774764f8760ef1a5f458591b09eea"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-f",
+      "surface": {
+        "object_id": "W1-optical-surface-06",
+        "path": "guala_curriculum/cards/F-is-for-Fox.png",
+        "sha256": "fde4f88e758ac630a655a4f2ccc302e31a74c16ba341bb41eabdb03fbb3bd604"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/f-fox-tutor-v1.wav",
+        "sample_count": 32681,
+        "sha256": "efd916fce069785cbf09a5061d0c338073205894076081d6fbe8d83cc248b05c"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-g",
+      "surface": {
+        "object_id": "W1-optical-surface-07",
+        "path": "guala_curriculum/cards/G-is-for-Giraffe.png",
+        "sha256": "69f2c02b62ef76dc3f54093fb0b62590325c16c66e9e7e9db32835a69c5514b6"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/g-giraffe-tutor-v1.wav",
+        "sample_count": 30884,
+        "sha256": "b0c01d01b6183f812469a252cb1445ef10dfb601031a11ef7dbf877b30b65bfe"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-h",
+      "surface": {
+        "object_id": "W1-optical-surface-08",
+        "path": "guala_curriculum/cards/H-is-for-House.png",
+        "sha256": "b5560b400f074eeef9719a2c8302ea67d2f81b99054a851b1beeffba971ec6aa"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/h-house-tutor-v1.wav",
+        "sample_count": 32596,
+        "sha256": "60bf34c60e7de649957b476c9ca247fe8855c5399a53ef1da1f3763aa6f329b8"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-i",
+      "surface": {
+        "object_id": "W1-optical-surface-09",
+        "path": "guala_curriculum/cards/I-is-for-Ice-Cream.png",
+        "sha256": "481defcc64ccc9a6885e9c44b49aad97d23e1ac0bf9428497e7022569fc2fcda"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/i-ice-cream-tutor-v1.wav",
+        "sample_count": 43273,
+        "sha256": "07f773e90c8e8f15a64583d7463592e91e7a62607232d596f5ecaafab0ddd762"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-j",
+      "surface": {
+        "object_id": "W1-optical-surface-10",
+        "path": "guala_curriculum/cards/J-is-for-Jellyfish.png",
+        "sha256": "ee137f2f8083d9d62c2c14a7fcd8ff7168be900e02ce4d56067712c37327634c"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/j-jellyfish-tutor-v1.wav",
+        "sample_count": 34792,
+        "sha256": "d6acb0405f506b27c667a8f8672242501742c9c4e10b66be0d514df17d1360d2"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-k",
+      "surface": {
+        "object_id": "W1-optical-surface-11",
+        "path": "guala_curriculum/cards/K-is-for-Kite.png",
+        "sha256": "08a28750906f2b01058e42e107296aab9356cf98cb02b3314606bf2be9f29d38"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/k-kite-tutor-v1.wav",
+        "sample_count": 32898,
+        "sha256": "da9118b29e3bb2e77c4543ee3718875fced9b015202bc2040708ebaf7611e05d"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-l",
+      "surface": {
+        "object_id": "W1-optical-surface-12",
+        "path": "guala_curriculum/cards/L-is-for-Lion.png",
+        "sha256": "465ae6b476d643511cbf740e978d619585839685a90d474bc4bfb7afdd17a477"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/l-lion-tutor-v1.wav",
+        "sample_count": 31815,
+        "sha256": "182dea4fd8ad64d30c6d15ed3c08b325ec1df4733f24ae02a17538209e970485"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-m",
+      "surface": {
+        "object_id": "W1-optical-surface-13",
+        "path": "guala_curriculum/cards/M-is-for-Mushroom.png",
+        "sha256": "5cf935ba126e445887d8f7bf598576569abde7213ed4c4ae829d1635a1cc342a"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/m-mushroom-tutor-v1.wav",
+        "sample_count": 32609,
+        "sha256": "a187340be5f42008e062c77a328d4d5559791b0f100f2c137cf918e022213697"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-n",
+      "surface": {
+        "object_id": "W1-optical-surface-14",
+        "path": "guala_curriculum/cards/N-is-for-Nest.png",
+        "sha256": "baf40fa594ca33c0702cfd81cb9cebf472a538135f6f22029aa9bb952326da02"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/n-nest-tutor-v1.wav",
+        "sample_count": 30588,
+        "sha256": "7ff9c0c4e436aaaa3637df7f2850537f2903d2feb5ad7ab9dbffe73faa16060d"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-o",
+      "surface": {
+        "object_id": "W1-optical-surface-15",
+        "path": "guala_curriculum/cards/O-is-for-Owl.png",
+        "sha256": "7c7989528a6c708cca7307941bbced19e2692a8fb8b614b672ae3a9e40a961c6"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/o-owl-tutor-v1.wav",
+        "sample_count": 28567,
+        "sha256": "cf4e7ebc466ebf27a2635570f295fb696b4580a2dd069d769a0650aeac31c455"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-p",
+      "surface": {
+        "object_id": "W1-optical-surface-16",
+        "path": "guala_curriculum/cards/P-is-for-Penguin.png",
+        "sha256": "575065ddaedd1c7c5649ee262872df6323697aff7a5ff1e465ad997165141aaa"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/p-penguin-tutor-v1.wav",
+        "sample_count": 34594,
+        "sha256": "1c08c3aac8879276dca1a6cd0730065f8d94f09b0a7f45109f59ed453e6a6a94"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-q",
+      "surface": {
+        "object_id": "W1-optical-surface-17",
+        "path": "guala_curriculum/cards/Q-is-for-Queen.png",
+        "sha256": "c0774c1d37f092fae0ff6e3c323fe20390a43b921385a149e93b57922d71924a"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/q-queen-tutor-v1.wav",
+        "sample_count": 35776,
+        "sha256": "8c385106d766a55b04efb86b10801c5dd3df64fb47e20cf7266041ee3f3a88e5"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-r",
+      "surface": {
+        "object_id": "W1-optical-surface-18",
+        "path": "guala_curriculum/cards/R-is-for-Rabbit.png",
+        "sha256": "85af37d8c10c7377c04f366c656b5f7cf8afc83a99b24905c0e9674e30ad315a"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/r-rabbit-tutor-v1.wav",
+        "sample_count": 31519,
+        "sha256": "8dfc4c95f5331d3c952f1b2a292c4c0a5f60f63a3b015a5152f902ed319a9664"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-s",
+      "surface": {
+        "object_id": "W1-optical-surface-19",
+        "path": "guala_curriculum/cards/S-is-for-Snail.png",
+        "sha256": "a419f73c1914cb1b86eb4c8498fb1e7f555630ec0f49cbf541ed8f8ab8204069"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/s-snail-tutor-v1.wav",
+        "sample_count": 32953,
+        "sha256": "c06be481ca345c11244f96c3c4df28e5347cbdc003e212c3dd8d82550b57717d"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-t",
+      "surface": {
+        "object_id": "W1-optical-surface-20",
+        "path": "guala_curriculum/cards/T-is-for-Turtle.png",
+        "sha256": "1262bf8d69b1d6124efc7df5a5c7a9ee259eaa39d7561e9fe255bb6d3953e13c"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/t-turtle-tutor-v1.wav",
+        "sample_count": 31725,
+        "sha256": "b914c2fede95b2f4ede73d7b889046b66cff6395847c13a98afc0cd442615de6"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-u",
+      "surface": {
+        "object_id": "W1-optical-surface-21",
+        "path": "guala_curriculum/cards/U-is-for-Umbrella.png",
+        "sha256": "899f32d57b698089b170ed7d7b050ffa741558802b402601cc57e518a5c9cd05"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/u-umbrella-tutor-v1.wav",
+        "sample_count": 32351,
+        "sha256": "0f5a095897014cef06cd9b725ddc69a2230e925d38a94c7ae1f0852e85797241"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-v",
+      "surface": {
+        "object_id": "W1-optical-surface-22",
+        "path": "guala_curriculum/cards/V-is-for-Violin.png",
+        "sha256": "89d03a6f6a7fb812b627d30e53cea6a171952e158830ea949e109b3dd2caa470"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/v-violin-tutor-v1.wav",
+        "sample_count": 34758,
+        "sha256": "4ec210e6e58ef709f953f8eb8a238a9e913eae80fd7ba3440828abd34b442d98"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-w",
+      "surface": {
+        "object_id": "W1-optical-surface-23",
+        "path": "guala_curriculum/cards/W-is-for-Whale.png",
+        "sha256": "9b6d18a22ff5534967c5c53fd5a30497a9734c302d68e525be8193e45f6495c1"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/w-whale-tutor-v1.wav",
+        "sample_count": 38436,
+        "sha256": "fc8fc630085107573aea7671d6e7f9b4dd1dc0bb7d4479ed258da98d036a115e"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-x",
+      "surface": {
+        "object_id": "W1-optical-surface-24",
+        "path": "guala_curriculum/cards/X-is-for-Xylophone.png",
+        "sha256": "371b0063a31bbd4096326b939d1b741e17a43e0ab3c9e15f54884fe3051112eb"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/x-xylophone-tutor-v1.wav",
+        "sample_count": 38907,
+        "sha256": "65c7e6408b0df77086acf671afbe25b3059a6849a1aa8a6e83ac7f7f8b9e419e"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-y",
+      "surface": {
+        "object_id": "W1-optical-surface-25",
+        "path": "guala_curriculum/cards/Y-is-for-Yak.png",
+        "sha256": "55e4243995c9b5493e7af7b89147afa76876bef92e93033e0e50dfac5aea6748"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/y-yak-tutor-v1.wav",
+        "sample_count": 31881,
+        "sha256": "70ed991000686ddbb6805e8188fb9b78d9d8dabe332148948ae42883b257359f"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "alphabet-z",
+      "surface": {
+        "object_id": "W1-optical-surface-26",
+        "path": "guala_curriculum/cards/Z-is-for-Zebra.png",
+        "sha256": "6f7147cacf557caf91089ab9595db8c55434bd9244efd8b98615791b0ff2c092"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/z-zebra-tutor-v1.wav",
+        "sample_count": 31915,
+        "sha256": "b64aa3eda768d9d75e24ec88af36baab43cdd95df8b197fb51403ca71c71f76b"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-01",
+      "surface": {
+        "object_id": "W1-optical-surface-27",
+        "path": "guala_curriculum/cards/number-01-one-v1.png",
+        "sha256": "157ed65dee6405dc9c070f5cedf1529cbf07986f7783f362444f94c0ac2874bb"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-01-one-tutor-v1.wav",
+        "sample_count": 18272,
+        "sha256": "ba9183108d9eedbcaf18d00e024a6eb630e199bc831ff1e16f1a2a7823e38d4a"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-02",
+      "surface": {
+        "object_id": "W1-optical-surface-28",
+        "path": "guala_curriculum/cards/number-02-two-v1.png",
+        "sha256": "546de5895280dced6f9323f14bf83e2bf983bc75b7ddcb73d4c030393db85822"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-02-two-tutor-v1.wav",
+        "sample_count": 18389,
+        "sha256": "e3ee60ee36d62872db6382b1cd333d287bef3a8fbb4b8132546008be002335da"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-03",
+      "surface": {
+        "object_id": "W1-optical-surface-29",
+        "path": "guala_curriculum/cards/number-03-three-v1.png",
+        "sha256": "8cd323b80cdd9a58e8070f736ee4970cf873fab36f30f0e9bbcaca4685aa18e3"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-03-three-tutor-v1.wav",
+        "sample_count": 19163,
+        "sha256": "d9273b9055ee1aeb2edbb17815b2b5c1fc04418ae6d81745f7137e27ea13f8f1"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-04",
+      "surface": {
+        "object_id": "W1-optical-surface-30",
+        "path": "guala_curriculum/cards/number-04-four-v1.png",
+        "sha256": "435944966efd188e5394ea79dc96ad28abd4c6326e2fabaedcd796909f58b7a6"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-04-four-tutor-v1.wav",
+        "sample_count": 20615,
+        "sha256": "0594e7cfd7899d1df987cd71ca53b814b8278c908c60606dc3c8ebad1fa9a3a1"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-05",
+      "surface": {
+        "object_id": "W1-optical-surface-31",
+        "path": "guala_curriculum/cards/number-05-five-v1.png",
+        "sha256": "49ad2ca6855812120ed7ce4610aeba1899f59dd6ae84e40127b28d8e2e82a62a"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-05-five-tutor-v1.wav",
+        "sample_count": 23148,
+        "sha256": "cf7744336cd695c76225d99aaeb411fd3f038ad3bd406c49ca2be93ee8322864"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-06",
+      "surface": {
+        "object_id": "W1-optical-surface-32",
+        "path": "guala_curriculum/cards/number-06-six-v1.png",
+        "sha256": "948738254bfa4a72b62cd16334d93cac431cbc9c5f79d03a5aa52842ebb57737"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-06-six-tutor-v1.wav",
+        "sample_count": 23124,
+        "sha256": "02aad1a69aad6801cdd31883b332ec1b7551e9d10755efc38120ac1e9d9012d3"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-07",
+      "surface": {
+        "object_id": "W1-optical-surface-33",
+        "path": "guala_curriculum/cards/number-07-seven-v1.png",
+        "sha256": "99c55c81a9f9a07d9d3e3dc1691ced5a6e04094cb5b283c495d9ea5b86808610"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-07-seven-tutor-v1.wav",
+        "sample_count": 24410,
+        "sha256": "41c1baeb4dffa2bd2f8b8e070b6cd6ffc0edf09e4d9922dcb972e773a9806334"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-08",
+      "surface": {
+        "object_id": "W1-optical-surface-34",
+        "path": "guala_curriculum/cards/number-08-eight-v1.png",
+        "sha256": "fe37522fc3fce5cd312484ab85270e851ec3ce7876a3fd443a12346559dd80ea"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-08-eight-tutor-v1.wav",
+        "sample_count": 18033,
+        "sha256": "b597a5f4b48234b701972e94c7f181e5b9bb1af57c055dbb3d1368b79a93e850"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-09",
+      "surface": {
+        "object_id": "W1-optical-surface-35",
+        "path": "guala_curriculum/cards/number-09-nine-v1.png",
+        "sha256": "58abf777d49ff5e02ab4125d262688f0b043a57733e1b72e2352d33d1de3d811"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-09-nine-tutor-v1.wav",
+        "sample_count": 22618,
+        "sha256": "f86d3406688e055542a3ebe2be4e8a9d0ad0ecf4e553fac5fec51ac6cea5ec95"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-10",
+      "surface": {
+        "object_id": "W1-optical-surface-36",
+        "path": "guala_curriculum/cards/number-10-ten-v1.png",
+        "sha256": "4d24f7c79c2daeb892f950b93144647f6465a61b0221510f5f96246d6ac338c1"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-10-ten-tutor-v1.wav",
+        "sample_count": 21345,
+        "sha256": "0dacbdd8bf7c91d307248e97d7f2a665e9e945f783fc01d7fc314b0dbdc855e7"
+      },
+      "presentation_milliseconds": 15000
+    }
+  ]
+}

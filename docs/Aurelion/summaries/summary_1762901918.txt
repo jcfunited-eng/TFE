@@ -1,0 +1,2 @@
+[summary] φ=0.11 H=1.00 tokens≈30466 | hubs: none
+         [ethics] ON care=0.40 fairness=0.25 autonomy=0.20 prudence=0.15 | [bias] ON window=64 | clean

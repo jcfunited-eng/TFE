@@ -1,0 +1,1436 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{L5 Current Layer + Oracle + Advisor Full Spec (Code
+Truth)}\label{l5-current-layer--oracle--advisor-full-spec-code-truth}
+
+As-of: 2026-03-09 UTC
+
+This spec is derived directly from the current code, not design intent.
+It covers:
+
+\begin{itemize}
+\tightlist
+\item
+  L5 policy learning and promotion
+\item
+  Oracle short-cycle optimizer gate
+\item
+  Refresh/runtime sync/validation flow
+\item
+  Advisor surfaces (recommendations + portfolio allocator +
+  quality/probe tooling)
+\end{itemize}
+
+\subsection{1. Authoritative Entry
+Points}\label{1-authoritative-entry-points}
+
+Primary orchestration path:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{web/src/app/api/admin/refresh/route.ts} -\textgreater{} spawns
+  \texttt{run\_refresh\_with\_l5\_learning.py}
+\item
+  \texttt{run\_refresh\_with\_l5\_learning.py} -\textgreater{} refresh
+  -\textgreater{} quote/profile cache refresh -\textgreater{} L5
+  learning -\textgreater{} oracle short-cycle (conditional)
+  -\textgreater{} runtime postgres sync -\textgreater{} validation gate
+\end{itemize}
+
+Core L5 engine:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{l5\_policy\_learning\_pipeline.py}
+\item
+  \texttt{l5\_postgres\_io.py}
+\end{itemize}
+
+Oracle controller:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{tools/oracle\_program/oracle\_program.py}
+\end{itemize}
+
+Advisor/runtime consumption:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{web/src/lib/runtime-postgres.ts}
+\item
+  \texttt{web/src/lib/uf-snapshot.ts}
+\item
+  \texttt{web/src/app/api/recommendations/list/route.ts}
+\item
+  \texttt{web/src/app/api/portfolio/route.ts}
+\item
+  \texttt{web/src/app/api/admin/recommendation-quality/route.ts}
+\end{itemize}
+
+Operational/probe utilities:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{web/scripts/sync\_runtime\_postgres.mjs}
+\item
+  \texttt{web/scripts/run\_validation\_gate\_v1.mjs}
+\item
+  \texttt{web/scripts/portfolio\_advisor\_confidence\_probe.mjs}
+\item
+  \texttt{tools/run\_portfolio\_advisor\_confidence\_probe\_lane.sh}
+\end{itemize}
+
+\subsection{2. End-to-End Refresh -\textgreater{} L5 -\textgreater{}
+Runtime Flow}\label{2-end-to-end-refresh---l5---runtime-flow}
+
+\subsubsection{2.1 Admin refresh API
+behavior}\label{21-admin-refresh-api-behavior}
+
+\texttt{web/src/app/api/admin/refresh/route.ts}:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{mode=snapshot} maps to args:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py\ -\/-refresh-mode\ full\_universe}
+  \end{itemize}
+\item
+  \texttt{mode=universe\_snapshot} maps to args:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py\ -\/-refresh-mode\ full\_universe\ -\/-force-refresh-universe}
+  \end{itemize}
+\item
+  Writes run lifecycle into \texttt{runtime\_refresh\_runs} table (start
+  row + terminal update).
+\item
+  Exports env for downstream scripts (\texttt{TFE\_REFRESH\_*}).
+\end{itemize}
+
+\subsubsection{2.2 Refresh wrapper execution
+order}\label{22-refresh-wrapper-execution-order}
+
+\texttt{run\_refresh\_with\_l5\_learning.py} main sequence:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Run snapshot rebuild (\texttt{rebuild\_snapshot}).
+\item
+  Run quote cache refresh
+  (\texttt{web/scripts/build\_screener\_quote\_cache.py}) unless
+  disabled.
+\item
+  Run profile override refresh
+  (\texttt{web/scripts/build\_screener\_profile\_overrides.py}) unless
+  disabled.
+\item
+  Run L5 policy learning (\texttt{run\_l5\_policy\_learning}) unless
+  skipped.
+\item
+  Resolve oracle short-cycle execution plan.
+\item
+  Optionally run oracle short-cycle
+  (\texttt{tools/oracle\_program/oracle\_program.py\ short-cycle}).
+\item
+  Enforce oracle gates if short-cycle ran:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    return-lift target met (default target 4.0)
+  \item
+    epoch library schema == \texttt{v1}
+  \end{itemize}
+\item
+  Sync runtime data to Postgres
+  (\texttt{web/scripts/sync\_runtime\_postgres.mjs}).
+\item
+  Run validation gate
+  (\texttt{web/scripts/run\_validation\_gate\_v1.mjs}) and require
+  \texttt{status=pass}.
+\end{enumerate}
+
+Resume support:
+
+\begin{itemize}
+\tightlist
+\item
+  Post-L5/pre-oracle checkpoint persisted locally and optionally
+  S3-backed.
+\item
+  Stage key: \texttt{post\_l5\_pre\_oracle}.
+\end{itemize}
+
+\subsection{3. L5 Policy Learning: Current
+Implementation}\label{3-l5-policy-learning-current-implementation}
+
+\subsubsection{3.1 Data sources and
+modes}\label{31-data-sources-and-modes}
+
+\texttt{l5\_policy\_learning\_pipeline.py} supports:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{POLICY\_SOURCE\_MODE}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{replay} (default)
+  \item
+    \texttt{rowtrace}
+  \item
+    \texttt{hybrid} (merge rowtrace-first with replay fallback)
+  \end{itemize}
+\item
+  \texttt{EVAL\_MODE}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{replay} (default)
+  \item
+    \texttt{rowtrace}
+  \end{itemize}
+\end{itemize}
+
+I/O mode (\texttt{TFE\_L5\_POLICY\_IO\_MODE} via
+\texttt{l5\_postgres\_io.py}):
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{file}
+\item
+  \texttt{hybrid} (try Postgres, fallback file)
+\item
+  \texttt{postgres} (strict)
+\end{itemize}
+
+\subsubsection{3.2 Structural keying (L4 -\textgreater{} L5 cell
+mapping)}\label{32-structural-keying-l4---l5-cell-mapping}
+
+Both policy generation and evaluation build PSCF cell keys from
+structural fields:
+
+\begin{itemize}
+\tightlist
+\item
+  regime
+\item
+  D, M-sign, R\_rev, U bucket
+\item
+  C, P bucket, B-sign
+\item
+  S bucket, R bucket
+\item
+  optional CD bucket by regime mode
+\item
+  optional stability bucket
+\item
+  optional IRF phase suffix
+\item
+  optional Spider Eyes suffix
+\end{itemize}
+
+Key functions:
+
+\begin{itemize}
+\tightlist
+\item
+  Row-trace keying: \texttt{\_row\_trace\_cell\_key},
+  \texttt{\_row\_trace\_cell\_key\_candidates}
+\item
+  Runtime state keying: \texttt{\_state\_cell\_key},
+  \texttt{\_state\_cell\_key\_candidates}
+\end{itemize}
+
+Key schema string embedded in artifacts:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{regime\ +\ D\ +\ M\_sign\ +\ R\_rev\ +\ U\_bucket\ +\ C\ +\ P\_bucket\ +\ B\_sign\ +\ S\_bucket3\ +\ R\_bucket3\ +\ CD\_bucket\_opt\ +\ PH\_opt\ +\ SE\_opt}
+\end{itemize}
+
+\subsubsection{3.3 Decision selection and explicit optimization
+guards}\label{33-decision-selection-and-explicit-optimization-guards}
+
+Cell-level decision picks best among
+\texttt{\{Accumulate,\ Hold,\ Avoid\}} using:
+
+\begin{itemize}
+\tightlist
+\item
+  default objective: weighted mean excess vs SPY by horizon
+  (\texttt{SELECTION\_OBJECTIVE=excess})
+\item
+  optional objective: mean action return
+  (\texttt{SELECTION\_OBJECTIVE=action\_return})
+\end{itemize}
+
+Explicit hold guards for non-Hold outcomes:
+
+\begin{itemize}
+\tightlist
+\item
+  minimum action edge (\texttt{TFE\_POLICY\_MIN\_ACTION\_EDGE})
+\item
+  minimum margin to second-best
+  (\texttt{TFE\_POLICY\_MIN\_ACTION\_MARGIN})
+\item
+  minimum winrate (\texttt{TFE\_POLICY\_MIN\_ACTION\_WINRATE\_PCT})
+\end{itemize}
+
+If a guard fails, decision is forced to \texttt{Hold} with reason
+markers in decision stats.
+
+\subsubsection{3.4 Replay generation
+specifics}\label{34-replay-generation-specifics}
+
+Replay generation (\texttt{\_generate\_policy\_from\_replay\_dataset}):
+
+\begin{itemize}
+\tightlist
+\item
+  Computes UF state per bar using
+  \texttt{compute\_uf\_structural\_state}.
+\item
+  Tracks anomaly flags from decision guard/hardening.
+\item
+  Scores with two tracks per cell:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    clean samples (no anomaly)
+  \item
+    all samples
+  \end{itemize}
+\item
+  Selection policy:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    use clean-sample stats if available
+  \item
+    fallback to all-sample stats when clean empty
+  \end{itemize}
+\end{itemize}
+
+Includes symbol timeout and state-compute timeout controls.
+
+\subsubsection{3.5 Merge, anomaly overlay, eval,
+promotion}\label{35-merge-anomaly-overlay-eval-promotion}
+
+Merge behavior:
+
+\begin{itemize}
+\tightlist
+\item
+  Primary-first, secondary fallback (\texttt{\_merge\_policies}).
+\item
+  Optional low-support filter for primary via
+  \texttt{TFE\_POLICY\_MIN\_PRIMARY\_CELL\_SAMPLES}.
+\end{itemize}
+
+Anomaly overlay:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{\_overlay\_anomaly\_profiles} fills missing anomaly profile
+  from anomaly-watch policy.
+\end{itemize}
+
+Evaluation:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{\_evaluate\_policy} on replay dataset
+\item
+  \texttt{\_evaluate\_policy\_rowtrace} on row-trace dataset
+\item
+  Produces per-horizon summaries for 5/20/60 including:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    excess vs SPY
+  \item
+    outcome-over-index
+  \item
+    mapping rates
+  \item
+    anomaly-accounted variants
+  \end{itemize}
+\end{itemize}
+
+Promotion gate (\texttt{\_compare\_candidate\_vs\_current}):
+
+\begin{itemize}
+\tightlist
+\item
+  promote only if all true:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    aggregate delta excess (anomaly-accounted mean) \textgreater= 0
+  \item
+    delta outcome-over-index \textgreater= 0 for all horizons
+  \item
+    mapping rate delta \textgreater= 0 for all horizons
+  \end{itemize}
+\end{itemize}
+
+Auto-promotion:
+
+\begin{itemize}
+\tightlist
+\item
+  requires gate pass + \texttt{TFE\_POLICY\_AUTO\_PROMOTE=true}
+\item
+  strict postgres mode promotes to Postgres runtime table only
+\item
+  non-strict can atomically replace runtime policy file
+\end{itemize}
+
+\subsection{4. Oracle Short-Cycle Gate}\label{4-oracle-short-cycle-gate}
+
+\subsubsection{4.1 Invocation point and skip/run
+policy}\label{41-invocation-point-and-skiprun-policy}
+
+\texttt{run\_refresh\_with\_l5\_learning.py} decides if oracle
+short-cycle runs:
+
+\begin{itemize}
+\tightlist
+\item
+  Skip rule for targeted refresh with no effective rows.
+\item
+  Trigger policy (\texttt{TFE\_REFRESH\_ORACLE\_TRIGGER\_POLICY}):
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{always}
+  \item
+    \texttt{scheduled\_only}
+  \item
+    \texttt{explicit\_only}
+  \item
+    default \texttt{scheduled\_or\_explicit}
+  \end{itemize}
+\item
+  Explicit override:
+  \texttt{TFE\_REFRESH\_ORACLE\_ALLOW\_SHORT\_CYCLE=1}
+\end{itemize}
+
+\subsubsection{4.2 Oracle controller
+behavior}\label{42-oracle-controller-behavior}
+
+\texttt{tools/oracle\_program/oracle\_program.py\ short-cycle}:
+
+\begin{itemize}
+\tightlist
+\item
+  Preflight checks critical files/path alias.
+\item
+  Launches runner process, polls progress, writes heartbeat.
+\item
+  Recovery controls:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    max runner restarts (\texttt{TFE\_ORACLE\_MAX\_RUNNER\_RESTARTS},
+    default 3)
+  \item
+    deterministic failure signature repeat cap
+    (\texttt{TFE\_ORACLE\_MAX\_DETERMINISTIC\_SIGNATURE\_REPEATS},
+    default 2)
+  \end{itemize}
+\item
+  Timeout controls:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    cycle timeout
+  \item
+    no-progress timeout (effective timeout \textgreater= runner timeout
+    + 120 sec)
+  \end{itemize}
+\end{itemize}
+
+Output summary includes:
+
+\begin{itemize}
+\tightlist
+\item
+  target metric id
+\item
+  requested/actual additional runs
+\item
+  best score
+\item
+  target met boolean
+\item
+  latest epoch schema and status
+\item
+  session log path + state snapshot path
+\end{itemize}
+
+\subsubsection{4.3 Gate enforced in refresh
+wrapper}\label{43-gate-enforced-in-refresh-wrapper}
+
+If oracle ran, refresh wrapper hard-fails unless:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{best\_score\ \textgreater{}=\ target\_return\_lift\_pct}
+  (default target 4.0)
+\item
+  \texttt{epoch\_library\_confidence\_schema\ ==\ "v1"}
+\end{itemize}
+
+\subsection{5. Runtime Sync and Validation
+Contract}\label{5-runtime-sync-and-validation-contract}
+
+\subsubsection{5.1 Runtime sync}\label{51-runtime-sync}
+
+\texttt{web/scripts/sync\_runtime\_postgres.mjs}:
+
+\begin{itemize}
+\tightlist
+\item
+  Reads \texttt{uf\_snapshot.json} +
+  \texttt{web/data/screener-quote-cache.json}.
+\item
+  Dedupe snapshot rows by ticker (bar\_count/price/stability tie-break
+  ordering).
+\item
+  Rebuilds runtime tables each run:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{runtime\_decisions\_latest}
+  \item
+    \texttt{runtime\_symbols}
+  \item
+    \texttt{runtime\_metrics\_latest}
+  \item
+    \texttt{runtime\_bars\_daily}
+  \end{itemize}
+\item
+  Upserts \texttt{runtime\_refresh\_runs} row with optimizer and epoch
+  fields from env.
+\end{itemize}
+
+\subsubsection{5.2 Validation gate}\label{52-validation-gate}
+
+\texttt{web/scripts/run\_validation\_gate\_v1.mjs}:
+
+\begin{itemize}
+\tightlist
+\item
+  Performs runtime freshness and data checks.
+\item
+  Optional API filter behavior checks with sign-in.
+\item
+  Persists results to \texttt{runtime\_validation\_reports}.
+\item
+  Refresh wrapper requires final validation \texttt{status=pass}.
+\end{itemize}
+
+\subsection{6. Advisor Layer (Recommendations +
+Portfolio)}\label{6-advisor-layer-recommendations--portfolio}
+
+\subsubsection{6.1 Runtime snapshot/quote load
+path}\label{61-runtime-snapshotquote-load-path}
+
+\texttt{web/src/lib/runtime-postgres.ts}:
+
+\begin{itemize}
+\tightlist
+\item
+  Source is Postgres when \texttt{TFE\_RUNTIME\_DATA\_SOURCE=postgres}.
+\item
+  Reads from:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{runtime\_decisions\_latest} (snapshot rows)
+  \item
+    \texttt{runtime\_symbols} (quote/profile rows)
+  \end{itemize}
+\item
+  Has in-memory cache TTL and retry controls.
+\item
+  If fresh read fails, stale cache fallback can be used within max-stale
+  window.
+\end{itemize}
+
+\subsubsection{6.2 Decisioning contract used by advisor
+APIs}\label{62-decisioning-contract-used-by-advisor-apis}
+
+\texttt{web/src/lib/uf-snapshot.ts}:
+
+\begin{itemize}
+\tightlist
+\item
+  Converts snapshot row to structural basis.
+\item
+  Rebuilds candidate PSCF keys and matches against loaded runtime policy
+  (\texttt{pscf\_policy\_runtime.json} or fallback).
+\item
+  Returns one decision with provenance:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    policy-matched decision (\texttt{PSCF\_POLICY\_DECISION})
+  \item
+    fallback hold reason codes:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \texttt{PSCF\_FALLBACK\_INSUFFICIENT\_BARS}
+    \item
+      \texttt{PSCF\_FALLBACK\_STRUCTURAL\_INCOMPLETE}
+    \item
+      \texttt{PSCF\_FALLBACK\_POLICY\_MISSING}
+    \item
+      \texttt{PSCF\_FALLBACK\_CELL\_KEY\_UNAVAILABLE}
+    \item
+      \texttt{PSCF\_FALLBACK\_CELL\_UNMAPPED}
+    \item
+      \texttt{PSCF\_FALLBACK\_ANOMALOUS} (if anomaly fallback enabled)
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{6.3 Recommendations API
+behavior}\label{63-recommendations-api-behavior}
+
+\texttt{web/src/app/api/recommendations/list/route.ts}:
+
+\begin{itemize}
+\tightlist
+\item
+  Requires authenticated user.
+\item
+  Hard 503 if snapshot load fails/unavailable/invalid timestamp or quote
+  cache unavailable.
+\item
+  Computes recommendation health gates:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    coverage minimum
+    (\texttt{TFE\_RECOMMENDATIONS\_POLICY\_COVERAGE\_MIN})
+  \item
+    fallback maximum
+    (\texttt{TFE\_RECOMMENDATIONS\_POLICY\_FALLBACK\_MAX})
+  \end{itemize}
+\item
+  Computes freshness gate:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    stale if age\_minutes \textgreater{}
+    \texttt{TFE\_RECOMMENDATIONS\_MAX\_AGE\_MINUTES}
+  \end{itemize}
+\item
+  On stale or quality-gate miss: returns data in degraded mode (not
+  necessarily 503), with \texttt{degraded=true} and reason list.
+\end{itemize}
+
+\subsubsection{6.4 Portfolio advisor
+behavior}\label{64-portfolio-advisor-behavior}
+
+\texttt{web/src/app/api/portfolio/route.ts}:
+
+\begin{itemize}
+\tightlist
+\item
+  Uses runtime snapshot + quote cache + live price map.
+\item
+  Builds position decisions from same \texttt{decisionInfoFromRow}
+  contract.
+\item
+  Allocator method: \texttt{PFSC\_STRUCTURAL\_ALLOCATOR\_V1}.
+\item
+  Action set: \texttt{BUY\_MORE}, \texttt{TRIM}, \texttt{EXIT},
+  \texttt{HOLD}.
+\item
+  Core rules:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{Avoid} -\textgreater{} target 0 -\textgreater{}
+    \texttt{EXIT}
+  \item
+    \texttt{Accumulate} score = confidence
+  \item
+    \texttt{Hold} score = confidence * 0.5
+  \item
+    fallback-unmapped hold suppresses buy-more
+  \item
+    trim on accumulate is suppressed
+    (\texttt{ALLOW\_TRIM\_WHEN\_DECISION\_IS\_ACCUMULATE=false})
+  \item
+    rebalance threshold = 1.0 pct points drift
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{6.5 Advisor quality/probe
+tooling}\label{65-advisor-qualityprobe-tooling}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{web/src/app/api/admin/recommendation-quality/route.ts} exposes
+  latest quality audit summary and winner gates.
+\item
+  \texttt{web/scripts/portfolio\_advisor\_confidence\_probe.mjs} runs
+  browser/API checks for portfolio advisor contract and provenance
+  fields.
+\item
+  \texttt{tools/run\_portfolio\_advisor\_confidence\_probe\_lane.sh}
+  automates probe lane including temporary admin user creation/cleanup.
+\end{itemize}
+
+\subsection{7. Current Explicit Optimization/Control
+Knobs}\label{7-current-explicit-optimizationcontrol-knobs}
+
+\subsubsection{7.1 Refresh + oracle wrapper
+knobs}\label{71-refresh--oracle-wrapper-knobs}
+
+Key env vars in \texttt{run\_refresh\_with\_l5\_learning.py}:
+
+\begin{itemize}
+\tightlist
+\item
+  Refresh resume/checkpoint:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_REFRESH\_RESUME\_FROM\_CHECKPOINT}
+  \item
+    \texttt{TFE\_REFRESH\_RESUME\_CHECKPOINT\_DIR}
+  \item
+    \texttt{TFE\_REFRESH\_RESUME\_S3\_URI}
+  \item
+    \texttt{TFE\_REFRESH\_RESUME\_MAX\_AGE\_SECONDS}
+  \end{itemize}
+\item
+  Quote/profile refresh:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_REFRESH\_REBUILD\_QUOTE\_CACHE}
+  \item
+    \texttt{TFE\_QUOTE\_CACHE\_WORKERS}
+  \item
+    \texttt{TFE\_QUOTE\_CACHE\_TIMEOUT\_SEC}
+  \item
+    \texttt{TFE\_QUOTE\_CACHE\_SAVE\_EVERY}
+  \item
+    \texttt{TFE\_QUOTE\_CACHE\_MIN\_NON\_META\_FIELDS}
+  \item
+    \texttt{TFE\_REFRESH\_BUILD\_PROFILE\_OVERRIDES}
+  \item
+    \texttt{TFE\_PROFILE\_OVERRIDE\_WORKERS}
+  \item
+    \texttt{TFE\_PROFILE\_OVERRIDE\_TIMEOUT\_SEC}
+  \item
+    \texttt{TFE\_PROFILE\_OVERRIDE\_SAVE\_EVERY}
+  \item
+    \texttt{TFE\_PROFILE\_OVERRIDE\_LIMIT}
+  \end{itemize}
+\item
+  Oracle short-cycle:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_TRIGGER\_POLICY}
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_ALLOW\_SHORT\_CYCLE}
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_SHORT\_CYCLE\_RUNS}
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_TIMEOUT\_SECONDS}
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_POLL\_SECONDS}
+  \item
+    \texttt{TFE\_REFRESH\_ORACLE\_NO\_PROGRESS\_TIMEOUT\_SECONDS}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{7.2 L5 learning knobs}\label{72-l5-learning-knobs}
+
+Key env vars in \texttt{l5\_policy\_learning\_pipeline.py}:
+
+\begin{itemize}
+\tightlist
+\item
+  Mode/source:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_POLICY\_SOURCE\_MODE}
+  \item
+    \texttt{TFE\_POLICY\_EVAL\_MODE}
+  \item
+    \texttt{TFE\_L5\_POLICY\_IO\_MODE}
+  \end{itemize}
+\item
+  Cell/key behavior:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_POLICY\_CD\_BUCKET\_EDGES}
+  \item
+    \texttt{TFE\_POLICY\_CD\_REGIME\_MODE}
+  \item
+    \texttt{TFE\_POLICY\_INCLUDE\_STABILITY\_BUCKET}
+  \item
+    \texttt{TFE\_POLICY\_IRF\_MODE}
+  \item
+    \texttt{TFE\_POLICY\_SPIDER\_EYES\_MODE}
+  \end{itemize}
+\item
+  Selection and guards:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_POLICY\_SELECTION\_OBJECTIVE}
+  \item
+    \texttt{TFE\_POLICY\_MIN\_ACTION\_EDGE}
+  \item
+    \texttt{TFE\_POLICY\_MIN\_ACTION\_MARGIN}
+  \item
+    \texttt{TFE\_POLICY\_MIN\_ACTION\_WINRATE\_PCT}
+  \item
+    \texttt{TFE\_POLICY\_HORIZON\_WEIGHTS}
+  \end{itemize}
+\item
+  Merge/promotion:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_POLICY\_MIN\_PRIMARY\_CELL\_SAMPLES}
+  \item
+    \texttt{TFE\_POLICY\_AUTO\_PROMOTE}
+  \item
+    \texttt{TFE\_POLICY\_HORIZON\_DECISION\_OVERRIDES\_PATH}
+  \end{itemize}
+\item
+  Timeouts/sampling:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_POLICY\_REPLAY\_SYMBOL\_TIMEOUT\_SECONDS}
+  \item
+    \texttt{TFE\_POLICY\_EVAL\_SYMBOL\_TIMEOUT\_SECONDS}
+  \item
+    \texttt{TFE\_POLICY\_SYMBOL\_TIMEOUT\_CHECK\_INTERVAL\_BARS}
+  \item
+    \texttt{TFE\_POLICY\_STATE\_COMPUTE\_TIMEOUT\_SECONDS}
+  \item
+    \texttt{TFE\_POLICY\_REFRESH\_CANDIDATE\_SAMPLE\_ON\_TARGETED}
+  \item
+    \texttt{TFE\_POLICY\_REFRESH\_CANDIDATE\_SAMPLE\_SIZE}
+  \item
+    \texttt{TFE\_POLICY\_REFRESH\_CANDIDATE\_SAMPLE\_SEED}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{7.3 Advisor/runtime knobs}\label{73-advisorruntime-knobs}
+
+\begin{itemize}
+\tightlist
+\item
+  Runtime postgres loader:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_RUNTIME\_DATA\_SOURCE}
+  \item
+    \texttt{TFE\_RUNTIME\_POSTGRES\_CACHE\_TTL\_MS}
+  \item
+    \texttt{TFE\_RUNTIME\_POSTGRES\_CACHE\_MAX\_STALE\_MS}
+  \item
+    \texttt{TFE\_RUNTIME\_POSTGRES\_READ\_RETRY\_ATTEMPTS}
+  \item
+    \texttt{TFE\_RUNTIME\_POSTGRES\_READ\_RETRY\_DELAY\_MS}
+  \end{itemize}
+\item
+  Decision fallback behavior:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_MIN\_BARS}
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_ANOMALY\_FALLBACK}
+  \item
+    \texttt{TFE\_PSCF\_POLICY\_PATH}
+  \end{itemize}
+\item
+  Recommendations endpoint gates:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_SNAPSHOT\_TIMEOUT\_MS}
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_POLICY\_COVERAGE\_MIN}
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_POLICY\_FALLBACK\_MAX}
+  \item
+    \texttt{TFE\_RECOMMENDATIONS\_MAX\_AGE\_MINUTES}
+  \end{itemize}
+\item
+  Portfolio endpoint:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{TFE\_PORTFOLIO\_SNAPSHOT\_TIMEOUT\_MS}
+  \end{itemize}
+\end{itemize}
+
+\subsection{8. Practical Classification of Current L5
+Path}\label{8-practical-classification-of-current-l5-path}
+
+Based on current implementation boundaries:
+
+\begin{itemize}
+\tightlist
+\item
+  L5 is currently a cell-mapped policy layer built from serialized
+  structural features and evaluated against SPY-relative outcomes.
+\item
+  Promotion is non-regression gated across horizons plus mapping-rate
+  non-degradation.
+\item
+  Advisor surfaces consume runtime snapshot rows + policy key matching
+  with explicit fallback contract.
+\end{itemize}
+
+Operationally this is a pragmatic, productionized policy runtime with
+explicit gates and fallbacks, not an unconstrained heuristic path.
+
+\subsection{9. Strict Function-by-Function Lineage Appendix (L4
+-\textgreater{} L5 -\textgreater{}
+Advisor)}\label{9-strict-function-by-function-lineage-appendix-l4---l5---advisor}
+
+This appendix is a strict runtime lineage map from UF structural outputs
+to L5 policy use and then advisor outputs.
+
+\subsubsection{9.1 Canonical replay lineage (refresh/runtime
+path)}\label{91-canonical-replay-lineage-refreshruntime-path}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  UF-Core structural state is computed:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{uf\_core/uf\_structural\_engine.py:245}
+    \texttt{compute\_uf\_structural\_state(close)}
+  \item
+    Produces:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \texttt{level3.regime}
+    \item
+      \texttt{level4.S\_UF}, \texttt{level4.R\_UF},
+      \texttt{level4.stability\_score}, \texttt{level4.max\_drawdown}
+    \item
+      \texttt{level5.decision\_vector}, \texttt{level5.D\_k},
+      \texttt{level5.M\_k}, \texttt{level5.R\_rev\_k},
+      \texttt{level5.U\_star\_k}, \texttt{level5.C\_k},
+      \texttt{level5.P\_k}, \texttt{level5.B\_k}
+    \item
+      \texttt{level5.decision\_guard}, \texttt{level5.hardening}
+    \end{itemize}
+  \end{itemize}
+\item
+  UF state is flattened for snapshot row creation:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{uf\_core/uf\_structural\_engine.py:431}
+    \texttt{compute\_structural\_state(symbol,\ bars)}
+  \item
+    Carries the same L3/L4/L5 fields into flat dict keys used by
+    snapshot builders.
+  \end{itemize}
+\item
+  Snapshot row is materialized per symbol:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{uf\_mdg\_snapshot.py:202}
+    \texttt{evaluate\_symbol\_snapshot(...)}
+  \item
+    Calls \texttt{compute\_structural\_state} at
+    \texttt{uf\_mdg\_snapshot.py:282}
+  \item
+    Emits one row containing \texttt{regime}, \texttt{S\_UF},
+    \texttt{R\_UF}, \texttt{stability\_score},
+    \texttt{decision\_vector}, \texttt{D\_k..B\_k},
+    \texttt{decision\_guard}, \texttt{bar\_count}.
+  \end{itemize}
+\item
+  Snapshot rebuild writes the row-set to runtime snapshot artifact:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{rebuild\_uf\_snapshot.py:620}
+    \texttt{rebuild\_snapshot(...)}
+  \item
+    Appends rows at \texttt{rebuild\_uf\_snapshot.py:754}
+  \item
+    Writes SES envelope via \texttt{\_save\_snapshot\_envelope} at
+    \texttt{rebuild\_uf\_snapshot.py:787}
+  \end{itemize}
+\item
+  Runtime bridge sync pushes snapshot rows into Postgres runtime tables:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{web/scripts/sync\_runtime\_postgres.mjs:415} \texttt{main()}
+  \item
+    Dedupe rows via \texttt{dedupeSnapshotRows}
+    (\texttt{web/scripts/sync\_runtime\_postgres.mjs:243})
+  \item
+    Inserts \texttt{runtime\_decisions\_latest},
+    \texttt{runtime\_symbols}, \texttt{runtime\_metrics\_latest},
+    \texttt{runtime\_bars\_daily}.
+  \end{itemize}
+\item
+  L5 replay policy generation recomputes UF state from validation
+  dataset bars:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:273}
+    \texttt{\_compute\_uf\_state\_guarded(...)} calls
+    \texttt{compute\_uf\_structural\_state}
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:538}
+    \texttt{\_level5\_l4\_components(...)} extracts
+    \texttt{D/M/R/U/C/P/B}
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:601}
+    \texttt{\_state\_cell\_key(...)} and \texttt{:638}
+    \texttt{\_state\_cell\_key\_candidates(...)} build cell keys
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:1553}
+    \texttt{\_generate\_policy\_from\_replay\_dataset(...)} scores
+    decisions per cell
+  \end{itemize}
+\item
+  L5 candidate assembly and gating:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:1773}
+    \texttt{\_merge\_policies(...)}
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:1867}
+    \texttt{\_overlay\_anomaly\_profiles(...)}
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:2154}
+    \texttt{\_evaluate\_policy(...)}
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:2534}
+    \texttt{\_compare\_candidate\_vs\_current(...)} promotion gates
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:2876}
+    \texttt{run\_l5\_policy\_learning(...)} orchestrates full L5 cycle
+  \end{itemize}
+\item
+  Refresh wrapper executes gating and runtime publish:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py:710}
+    \texttt{\_run\_oracle\_optimizer\_short\_cycle(...)}
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py:865}
+    \texttt{\_resolve\_oracle\_execution\_plan(...)}
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py:593}
+    \texttt{\_run\_runtime\_postgres\_sync(...)}
+  \item
+    \texttt{run\_refresh\_with\_l5\_learning.py:655}
+    \texttt{\_run\_validation\_gate(...)}
+  \end{itemize}
+\item
+  Advisor APIs read runtime rows and derive user-visible decisions:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Runtime load: \texttt{web/src/lib/runtime-postgres.ts:596}
+    \texttt{loadRuntimeSnapshotRowsFromPostgres()} and \texttt{:631}
+    \texttt{loadRuntimeQuoteCacheFromPostgres()}
+  \item
+    Decision mapping: \texttt{web/src/lib/uf-snapshot.ts:383}
+    \texttt{resolveStructuralBasis(...)} -\textgreater{} \texttt{:550}
+    \texttt{pscfCellKeyCandidatesFromRow(...)} -\textgreater{}
+    \texttt{:671} \texttt{policyDecisionFromRow(...)}
+  \item
+    Public decision surface: \texttt{web/src/lib/uf-snapshot.ts:921}
+    \texttt{decisionInfoFromRow(...)}
+  \item
+    Recommendations response shaping:
+    \texttt{web/src/app/api/recommendations/list/route.ts:89}
+    \texttt{toRecommendationRow(...)} and \texttt{:317}
+    \texttt{GET(...)}
+  \item
+    Portfolio advisor shaping:
+    \texttt{web/src/app/api/portfolio/route.ts:344}
+    \texttt{aggregatePositions(...)}, \texttt{:185}
+    \texttt{buildAllocatorPlan(...)}, and \texttt{:470}
+    \texttt{GET(...)}
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{9.2 Row-trace lineage (L4 snapshot export -\textgreater{}
+L5 row-trace policy
+path)}\label{92-row-trace-lineage-l4-snapshot-export---l5-row-trace-policy-path}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Row-trace exporter computes UF structural state per rolling window:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{real\_world\_cleaned\_universe\_l5\_row\_trace\_export.py:404}
+    calls \texttt{compute\_uf\_structural\_state(close\_series)}
+  \item
+    Extracts \texttt{C\_k} via \texttt{extract\_c\_k(...)} at
+    \texttt{real\_world\_cleaned\_universe\_l5\_row\_trace\_export.py:143}
+    and call site \texttt{:415}
+  \item
+    Writes
+    \texttt{real\_world\_cleaned\_universe\_l5\_row\_trace\_full.csv} at
+    \texttt{:321} with \texttt{decision\_timestamp}, \texttt{regime},
+    \texttt{D/M/R\_rev/U\_star/C\_k/P/B}, \texttt{forward\_return}.
+  \end{itemize}
+\item
+  L5 row-trace policy generation consumes that CSV:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:1400}
+    \texttt{\_generate\_policy\_from\_row\_trace(...)}
+  \item
+    Cell key construction from CSV row via
+    \texttt{\_row\_trace\_cell\_key(...)} (\texttt{:462}) and candidate
+    variants (\texttt{:490})
+  \item
+    SPY benchmark alignment via \texttt{\_spy\_forward\_return(...)}
+  \end{itemize}
+\item
+  Row-trace evaluation path uses same candidate matching mechanics:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{l5\_policy\_learning\_pipeline.py:2374}
+    \texttt{\_evaluate\_policy\_rowtrace(...)}
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{9.3 Field-level lineage map
+(strict)}\label{93-field-level-lineage-map-strict}
+
+UF structural output fields -\textgreater{} L5/advisor consumption
+boundaries:
+
+\begin{itemize}
+\item
+  \texttt{regime}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    produced:
+    \texttt{uf\_core/uf\_structural\_engine.py:380}/\texttt{:431}
+  \item
+    used for keying: \texttt{l5\_policy\_learning\_pipeline.py:462},
+    \texttt{:601}, \texttt{web/src/lib/uf-snapshot.ts:383}
+  \end{itemize}
+\item
+  \texttt{S\_UF}, \texttt{R\_UF}, \texttt{stability\_score}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    produced:
+    \texttt{uf\_core/uf\_structural\_engine.py:380-384}/\texttt{:431}
+  \item
+    used for key enrichment/buckets:
+    \texttt{l5\_policy\_learning\_pipeline.py:474-476},
+    \texttt{:616-618}
+  \item
+    used for advisor confidence:
+    \texttt{web/src/app/api/recommendations/list/route.ts:95},
+    \texttt{web/src/app/api/portfolio/route.ts:214}
+  \end{itemize}
+\item
+  \texttt{decision\_vector}, \texttt{D\_k}, \texttt{M\_k},
+  \texttt{R\_rev\_k}, \texttt{U\_star\_k}, \texttt{C\_k}, \texttt{P\_k},
+  \texttt{B\_k}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    produced:
+    \texttt{uf\_core/uf\_structural\_engine.py:387-395}/\texttt{:431}
+  \item
+    flattened in snapshot row: \texttt{uf\_mdg\_snapshot.py:333-340}
+  \item
+    consumed by L5 key extractor:
+    \texttt{l5\_policy\_learning\_pipeline.py:538-594}
+  \item
+    consumed by advisor key extractor:
+    \texttt{web/src/lib/uf-snapshot.ts:383-548}
+  \end{itemize}
+\item
+  \texttt{decision\_guard}, \texttt{hardening} flags
+
+  \begin{itemize}
+  \tightlist
+  \item
+    produced: \texttt{uf\_core/uf\_structural\_engine.py:398-410}
+  \item
+    used in L5 anomaly accounting:
+    \texttt{l5\_policy\_learning\_pipeline.py:1921-1947}
+  \item
+    used in advisor anomaly fallback path:
+    \texttt{web/src/lib/uf-snapshot.ts:611-669}, \texttt{:751-771}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{9.4 L5 -\textgreater{} advisor publication
+boundaries}\label{94-l5---advisor-publication-boundaries}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Runtime policy artifact publication:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    file promotion path: \texttt{l5\_policy\_learning\_pipeline.py:2848}
+    \texttt{\_atomic\_promote(...)}
+  \item
+    postgres persistence path:
+    \texttt{l5\_policy\_learning\_pipeline.py:2756}
+    \texttt{\_persist\_l5\_outputs\_to\_postgres(...)}
+  \end{itemize}
+\item
+  Advisor policy read path:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    policy load bootstrap: \texttt{web/src/lib/uf-snapshot.ts:262}
+    \texttt{loadPscfPolicyRuntime()}
+  \item
+    decision fallback reason codes emitted in
+    \texttt{policyDecisionFromRow(...)}
+    (\texttt{web/src/lib/uf-snapshot.ts:671})
+  \end{itemize}
+\item
+  Advisor response outputs:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Recommendations list includes:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \texttt{decision}, \texttt{decisionReason},
+      \texttt{decisionReasonCode}, \texttt{fallbackUsed},
+      \texttt{fallbackReason}, policy key provenance
+    \item
+      built in \texttt{web/src/app/api/recommendations/list/route.ts:89}
+    \end{itemize}
+  \item
+    Portfolio API includes:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      position decision fields + allocator action/reason rows
+    \item
+      built by \texttt{aggregatePositions(...)}
+      (\texttt{web/src/app/api/portfolio/route.ts:344}) and
+      \texttt{buildAllocatorPlan(...)} (\texttt{:185})
+    \end{itemize}
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{9.5 Explicit current loss/transform points (for
+conformance
+diagnosis)}\label{95-explicit-current-losstransform-points-for-conformance-diagnosis}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Snapshot runtime bridge currently inserts null decision-provenance
+  columns in \texttt{runtime\_decisions\_latest} and keeps full snapshot
+  row in \texttt{snapshot\_row\_json}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{web/scripts/sync\_runtime\_postgres.mjs} insert block
+    starting near \texttt{:470}
+  \item
+    advisor decision provenance is recomputed at request time from
+    \texttt{snapshot\_row\_json} + runtime policy, not read from
+    precomputed DB reason fields.
+  \end{itemize}
+\item
+  Row-trace path stores forward outcomes in CSV and rebuilds policy
+  cells from serialized rows:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    exporter write path
+    \texttt{real\_world\_cleaned\_universe\_l5\_row\_trace\_export.py:321-522}
+  \item
+    learner ingest path
+    \texttt{l5\_policy\_learning\_pipeline.py:1400-1549}
+  \end{itemize}
+\item
+  Runtime policy matching uses candidate-key fallback chains (multiple
+  key variants), not a single exact key:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    L5: \texttt{l5\_policy\_learning\_pipeline.py:490}, \texttt{:638}
+  \item
+    advisor: \texttt{web/src/lib/uf-snapshot.ts:550}
+  \end{itemize}
+\end{enumerate}
+
+\end{document}

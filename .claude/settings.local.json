@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(python3 -m json.tool)",
+      "Bash(aws ecs:*)",
+      "Bash(git add:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in d.items\\(\\) if k != ''''checks''''}, indent=2\\)[:500]\\)\")",
+      "Bash(python3 -c \":*)"
+    ]
+  }
+}

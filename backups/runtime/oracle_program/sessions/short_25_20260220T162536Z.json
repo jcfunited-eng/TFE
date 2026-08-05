@@ -1,0 +1,24 @@
+{
+  "session_id": "short_25_20260220T162536Z",
+  "finished_at_utc": "2026-02-20T16:35:24Z",
+  "requested_additional_runs": 25,
+  "actual_additional_runs": 26,
+  "start": {
+    "completed": 952,
+    "latest_run_id": 952,
+    "latest_score": 64.52219026612461,
+    "best_run_id": 10,
+    "best_score": 65.84995589389956
+  },
+  "end": {
+    "completed": 978,
+    "latest_run_id": 978,
+    "latest_score": 64.50953396957203,
+    "best_run_id": 10,
+    "best_score": 65.84995589389956
+  },
+  "session_log_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260220T162536Z.log",
+  "state_snapshot_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/mom_irf_state_snapshot",
+  "runner_restarts": 0,
+  "elapsed_seconds": 587.75
+}

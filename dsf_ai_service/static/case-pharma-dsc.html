@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Study: DSC Polymorph Screening | DSF-AI</title>
+  <meta name="description" content="DSF-AI detected 5 out of 5 thermal transitions in pharmaceutical DSC data, including a glass transition and decomposition onset missed by standard peak-picking. Full results with regime map.">
+  <link rel="canonical" href="https://dsf-ai.com/static/case-pharma-dsc.html">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .case-page { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
+    .case-page h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .case-meta { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
+    .case-page h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+    .case-page p { line-height: 1.7; color: #333; margin-bottom: 1rem; }
+    .result-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    .result-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid #ddd; color: #666; font-size: 0.8rem; text-transform: uppercase; }
+    .result-table td { padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detected { color: #16a34a; font-weight: 600; }
+    .case-cta { text-align: center; padding: 2rem; background: #f8faff; border-radius: 12px; margin: 2rem 0; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/static/pharma.html">Pharma</a>
+      <a href="/static/validation.html">Validation</a>
+    </nav>
+  </div>
+</header>
+
+<div class="case-page">
+  <h1>Case Study: Pharmaceutical DSC Polymorph Screening</h1>
+  <p class="case-meta">DSF-AI detected all 5 thermal transitions including a glass transition and decomposition onset missed by standard peak-picking analysis.</p>
+
+  <h2>The Data</h2>
+  <p>Heat flow vs. temperature for a pharmaceutical compound, measured by differential scanning calorimetry (DSC) from 25&deg;C to 300&deg;C. 2,000 data points. The compound has a known glass transition, two polymorphic conversions, a melt, and a decomposition onset.</p>
+
+  <h2>Results</h2>
+  <table class="result-table">
+    <thead>
+      <tr><th>Transition</th><th>Expected</th><th>DSF-AI Detected</th><th>Regime</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Glass transition</td><td>~55&deg;C</td><td class="detected">62&deg;C</td><td>VOLATILE (61-63&deg;C)</td></tr>
+      <tr><td>Polymorph I conversion</td><td>~86&deg;C</td><td class="detected">86&deg;C</td><td>VOLATILE (81-106&deg;C)</td></tr>
+      <tr><td>Polymorph II conversion</td><td>~143&deg;C</td><td class="detected">143&deg;C</td><td>VOLATILE (139-148&deg;C)</td></tr>
+      <tr><td>Melt</td><td>~211&deg;C</td><td class="detected">211&deg;C</td><td>VOLATILE (206-232&deg;C)</td></tr>
+      <tr><td>Decomposition onset</td><td>~265&deg;C</td><td class="detected">263&deg;C</td><td>VOLATILE (263-300&deg;C)</td></tr>
+    </tbody>
+  </table>
+  <p><strong>5 of 5 transitions detected.</strong> Standard manual peak-picking typically identifies only the two polymorphic peaks and the melt (3 of 5). The glass transition is a subtle step change, not a peak. The decomposition onset is a gradual exotherm, not a sharp feature.</p>
+
+  <h2>Stability Map</h2>
+  <p>DSF-AI classified the entire temperature range into distinct stability regions, identifying where the material is thermally quiet, actively transitioning, or approaching a transition:</p>
+  <table class="result-table">
+    <thead>
+      <tr><th>Region</th><th>Range</th><th>Interpretation</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>STABLE</td><td>25-61&deg;C</td><td>Stable glassy state, no thermal activity</td></tr>
+      <tr><td>VOLATILE</td><td>61-63&deg;C</td><td>Glass transition</td></tr>
+      <tr><td>STABLE</td><td>63-70&deg;C</td><td>Post-glass relaxation</td></tr>
+      <tr><td>TRANSITIONAL</td><td>70-81&deg;C</td><td>Approaching polymorphic conversion</td></tr>
+      <tr><td>VOLATILE</td><td>81-106&deg;C</td><td>Polymorph I conversion (broad)</td></tr>
+      <tr><td>DEGENERATE</td><td>108-139&deg;C</td><td>Stable polymorphic form</td></tr>
+      <tr><td>VOLATILE</td><td>139-148&deg;C</td><td>Polymorph II conversion</td></tr>
+      <tr><td>STABLE</td><td>148-158&deg;C</td><td>Stable post-conversion</td></tr>
+      <tr><td>TRANSITIONAL</td><td>160-206&deg;C</td><td>Pre-melt softening</td></tr>
+      <tr><td>VOLATILE</td><td>206-232&deg;C</td><td>Melt</td></tr>
+      <tr><td>DEGENERATE</td><td>232-263&deg;C</td><td>Liquid state</td></tr>
+      <tr><td>VOLATILE</td><td>263-300&deg;C</td><td>Decomposition onset</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Why This Matters for Pharma</h2>
+  <p>ICH Q6A requires identification of all polymorphic forms. Missing a glass transition means missing an amorphous form. Missing a decomposition onset means potentially overstating thermal stability. DSF-AI provides a fast, automated first pass that flags every transition in the DSC curve — not just the obvious peaks.</p>
+
+  <h2>Try It Yourself</h2>
+  <div class="case-cta">
+    <p>Download the sample DSC data and run it through DSF-AI:</p>
+    <p><a href="/static/sample_pharma_dsc.csv" class="btn btn-secondary">Download Sample DSC (29 KB)</a></p>
+    <p style="margin-top:1rem;"><a href="/#analyze" class="btn btn-primary">Upload &amp; Analyze Free</a></p>
+  </div>
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</footer>
+</body>
+</html>

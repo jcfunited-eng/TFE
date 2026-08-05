@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - aws --version
+      - python3 tools/package_guala_release.py verify-context --context .
+      - python3 -c "import json,os,pathlib; receipt=json.loads(pathlib.Path('_release/release-receipt.json').read_text()); expected=receipt['git_commit']; actual=os.environ.get('GIT_SHA'); assert actual==expected, f'CodeBuild commit mismatch expected={expected} actual={actual}'"
+      - echo Logging in to ECR
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 418384447921.dkr.ecr.us-east-1.amazonaws.com
+  build:
+    commands:
+      - echo Building reviewed Guala runtime closure
+      - docker build --file dsf_ai_service/Dockerfile --build-arg GIT_SHA="$GIT_SHA" --build-arg BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --tag "$IMAGE_URI" .
+  post_build:
+    commands:
+      - echo Pushing image "$IMAGE_URI"
+      - docker push "$IMAGE_URI"

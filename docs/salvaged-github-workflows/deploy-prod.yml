@@ -1,0 +1,169 @@
+name: Deploy TFE To Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_deploy:
+        description: "Type DEPLOY to run the live ECS deployment"
+        required: true
+        default: "NO"
+      aws_region:
+        description: "AWS region for deploy operations"
+        required: true
+        default: "us-east-1"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: tfe-prod-deploy
+  cancel-in-progress: false
+
+jobs:
+  preflight_build_verify:
+    name: Preflight Build Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+      AWS_ACCESS_KEY_ID_FALLBACK: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY_FALLBACK: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare expected workspace path
+        run: |
+          sudo mkdir -p /workspaces
+          if [ -e /workspaces/Tao_Financial_Engine ] || [ -L /workspaces/Tao_Financial_Engine ]; then
+            sudo rm -rf /workspaces/Tao_Financial_Engine
+          fi
+          sudo ln -s "$GITHUB_WORKSPACE" /workspaces/Tao_Financial_Engine
+
+      - name: Validate AWS credential configuration
+        run: |
+          if [ -n "$AWS_DEPLOY_ROLE_ARN" ]; then
+            echo "aws_auth_mode=oidc-role"
+          elif [ -n "$AWS_ACCESS_KEY_ID_FALLBACK" ] && [ -n "$AWS_SECRET_ACCESS_KEY_FALLBACK" ]; then
+            echo "aws_auth_mode=access-key-secrets"
+          else
+            echo "Missing AWS credentials for workflow."
+            echo "Set vars.AWS_DEPLOY_ROLE_ARN OR secrets AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Configure AWS credentials (access key fallback)
+        if: ${{ vars.AWS_DEPLOY_ROLE_ARN == '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Verify deploy gate access
+        run: bash tools/post_rebuild_deploy_gate.sh
+
+      - name: Verify build only (no ECS update)
+        run: bash tools/verify_build_only_with_evidence.sh
+
+      - name: Pack build verify evidence
+        if: always()
+        run: |
+          if [ -f backups/CURRENT_BUILD_VERIFY_EVIDENCE_POINTER.txt ]; then
+            EVIDENCE_DIR="$(cat backups/CURRENT_BUILD_VERIFY_EVIDENCE_POINTER.txt)"
+            if [ -d "$EVIDENCE_DIR" ]; then
+              tar -czf /tmp/build-verify-evidence.tgz -C "$EVIDENCE_DIR" .
+              echo "BUILD_EVIDENCE_ARCHIVE=/tmp/build-verify-evidence.tgz" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Upload build verify evidence
+        if: always() && env.BUILD_EVIDENCE_ARCHIVE != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-verify-evidence
+          path: ${{ env.BUILD_EVIDENCE_ARCHIVE }}
+          if-no-files-found: ignore
+
+  deploy_production:
+    name: Deploy Production
+    needs: preflight_build_verify
+    if: ${{ inputs.run_deploy == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    environment:
+      name: production
+    env:
+      AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+      AWS_ACCESS_KEY_ID_FALLBACK: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY_FALLBACK: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare expected workspace path
+        run: |
+          sudo mkdir -p /workspaces
+          if [ -e /workspaces/Tao_Financial_Engine ] || [ -L /workspaces/Tao_Financial_Engine ]; then
+            sudo rm -rf /workspaces/Tao_Financial_Engine
+          fi
+          sudo ln -s "$GITHUB_WORKSPACE" /workspaces/Tao_Financial_Engine
+
+      - name: Validate AWS credential configuration
+        run: |
+          if [ -n "$AWS_DEPLOY_ROLE_ARN" ]; then
+            echo "aws_auth_mode=oidc-role"
+          elif [ -n "$AWS_ACCESS_KEY_ID_FALLBACK" ] && [ -n "$AWS_SECRET_ACCESS_KEY_FALLBACK" ]; then
+            echo "aws_auth_mode=access-key-secrets"
+          else
+            echo "Missing AWS credentials for workflow."
+            echo "Set vars.AWS_DEPLOY_ROLE_ARN OR secrets AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Configure AWS credentials (access key fallback)
+        if: ${{ vars.AWS_DEPLOY_ROLE_ARN == '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Deploy to production ECS
+        run: bash tools/deploy_to_prod_with_evidence.sh
+
+      - name: Pack deploy evidence
+        if: always()
+        run: |
+          if [ -f backups/CURRENT_DEPLOY_EVIDENCE_POINTER.txt ]; then
+            EVIDENCE_DIR="$(cat backups/CURRENT_DEPLOY_EVIDENCE_POINTER.txt)"
+            if [ -d "$EVIDENCE_DIR" ]; then
+              tar -czf /tmp/deploy-evidence.tgz -C "$EVIDENCE_DIR" .
+              echo "DEPLOY_EVIDENCE_ARCHIVE=/tmp/deploy-evidence.tgz" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Upload deploy evidence
+        if: always() && env.DEPLOY_EVIDENCE_ARCHIVE != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-evidence
+          path: ${{ env.DEPLOY_EVIDENCE_ARCHIVE }}
+          if-no-files-found: ignore

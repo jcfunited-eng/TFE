@@ -1,0 +1,14 @@
+[Unit]
+Description=ArcLoom WiFi (rtl8xxxu with retry)
+After=systemd-modules-load.service
+Wants=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/arcloom-wifi
+TimeoutStartSec=90
+
+[Install]
+WantedBy=multi-user.target

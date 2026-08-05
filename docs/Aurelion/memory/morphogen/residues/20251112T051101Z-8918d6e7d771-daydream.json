@@ -1,0 +1,102 @@
+{
+  "id": "8918d6e7d771",
+  "timestamp": "2025-11-12T05:11:01Z",
+  "origin": "daydream",
+  "tapestries": [
+    "random_2",
+    "random_7",
+    "science",
+    "topic:frankenstein"
+  ],
+  "overlaps": [
+    {
+      "a": "random_2",
+      "b": "science",
+      "weight": 0.57
+    }
+  ],
+  "energy_curve": [
+    0.332,
+    0.377,
+    0.383,
+    0.442,
+    0.418,
+    0.502,
+    0.41,
+    0.506,
+    0.512,
+    0.63,
+    0.572,
+    0.617,
+    0.731,
+    0.817,
+    0.844,
+    0.953,
+    0.968,
+    1.0,
+    1.0,
+    1.0,
+    0.928,
+    0.819,
+    0.707,
+    0.696,
+    0.717,
+    0.645,
+    0.717,
+    0.666
+  ],
+  "entropy_curve": [
+    0.426,
+    0.362,
+    0.376,
+    0.303,
+    0.246,
+    0.313,
+    0.392,
+    0.508,
+    0.607,
+    0.494,
+    0.457,
+    0.486,
+    0.412,
+    0.51,
+    0.43,
+    0.362,
+    0.243,
+    0.307,
+    0.244,
+    0.128,
+    0.202,
+    0.101,
+    0.041,
+    0.041,
+    0.014,
+    0.0,
+    0.049,
+    0.028
+  ],
+  "semantic_tags": [
+    "random_2",
+    "random_7",
+    "science",
+    "topic"
+  ],
+  "hints": [
+    "white-space"
+  ],
+  "ethical_score": 0.42,
+  "bias_scan": {
+    "window": 64,
+    "status": "clean"
+  },
+  "osf_events": [
+    {
+      "type": "affect_polarity",
+      "max_e": 1.0,
+      "min_e": 0.33161719735358
+    }
+  ],
+  "quarantine_until": "2025-11-19",
+  "decay_half_life_days": 7,
+  "approved": false
+}

@@ -1,0 +1,64 @@
+{
+  "generated_at_utc": "2026-03-10T02:04:17.611Z",
+  "status": "scaffold_only",
+  "cp_profile": "CP-0",
+  "rollout_state": "registry_only_no_behavior_change",
+  "lineage_baseline": "Section 9 strict lineage baseline for L5 revisions remains in force.",
+  "source_truth": [
+    "web_user_data/TFE_5_3_Implementation_Plan_v2_4.md",
+    "web_user_data/TFE_Specification_v2_4.tex",
+    "web_user_data/TFE_Spec_Internal_Review_v2_4.md",
+    "current_l5_code_truth_to_spec_gap_latest.json",
+    "exact_path_alignment_readiness_latest.json"
+  ],
+  "registry_name": "heuristics_registry_v1",
+  "purpose": "Approved heuristic registry for CP-0-safe A5 expansion. Only explicit spec-approved heuristics are admitted here; all others remain non-admissible unless separately approved.",
+  "approved_heuristics": [
+    {
+      "id": "stale_snapshot_rejection",
+      "label": "Stale Snapshot Rejection",
+      "status": "approved_not_new",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1692"
+      ]
+    },
+    {
+      "id": "explicit_data_integrity_rejection",
+      "label": "Explicit Data-Integrity Rejection",
+      "status": "approved_not_new",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1693"
+      ]
+    },
+    {
+      "id": "forced_abstention_on_collapse_or_safemode",
+      "label": "Forced Abstention on Collapse or SafeMode",
+      "status": "approved_not_new",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1694"
+      ]
+    },
+    {
+      "id": "approved_sector_epoch_hard_blocks",
+      "label": "Approved Sector / Epoch Hard-Blocks",
+      "status": "approved_not_new",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1695"
+      ]
+    },
+    {
+      "id": "deterministic_cooldowns_after_explicit_structural_reversals",
+      "label": "Deterministic Cooldowns After Explicit Structural Reversals",
+      "status": "approved_not_new",
+      "source_refs": [
+        "TFE_Specification_v2_4.tex:1696"
+      ]
+    }
+  ],
+  "non_admissible_without_separate_approval": [
+    "replacing the event tape with a primary lag-table representation",
+    "semantic separation of 5/20/60 as independent modeling worlds",
+    "silent retuning of thresholds to make the run work",
+    "undeclared overrides based on one-off stories or ad hoc ticker intuition"
+  ]
+}

@@ -1,0 +1,655 @@
+"""Concrete Python boundary for one native resident Guala organism.
+
+The native object is the sole active and pending-state authority.  Python
+retains only that object and returns fixed prepare receipts; it never carries
+prepared organism bytes or a second materialized-fabric state.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import importlib
+import sys
+from dataclasses import dataclass
+from typing import Protocol
+
+
+RUNTIME_SCHEMA = "guala.native.resident_organism_runtime.v3"
+OBSERVATION_SCHEMA = "guala.native.resident_organism_observation.v3"
+PREPARE_SCHEMA = "guala.native.resident_organism_prepare.v3"
+
+_FACTORY_AUTHORITY = object()
+
+
+class NativeJointSourceView(Protocol):
+    """Annotation only; the native prepare method enforces source type."""
+
+    @property
+    def port_count(self) -> int: ...
+
+
+class NativeResidentObservationView(Protocol):
+    @property
+    def schema(self) -> str: ...
+
+    @property
+    def identity(self) -> str: ...
+
+    @property
+    def organism_tick(self) -> int: ...
+
+    @property
+    def fabric_generation(self) -> int: ...
+
+    @property
+    def mounted_generation(self) -> int: ...
+
+    @property
+    def state_bytes(self) -> int: ...
+
+    @property
+    def state_sha256(self) -> str: ...
+
+    @property
+    def fabric_bytes(self) -> int: ...
+
+    @property
+    def fabric_sha256(self) -> str: ...
+
+    @property
+    def joint_field_count(self) -> int: ...
+
+    @property
+    def joint_neuron_count(self) -> int: ...
+
+    @property
+    def cold_restore_authentication_count(self) -> int: ...
+
+    @property
+    def cold_restore_decode_count(self) -> int: ...
+
+    @property
+    def cold_restore_rebuilt_field_count(self) -> int: ...
+
+    @property
+    def mounted_step_completed(self) -> bool: ...
+
+    @property
+    def physical_transition_claimed(self) -> bool: ...
+
+    @property
+    def cognitive_formation_claimed(self) -> bool: ...
+
+    @property
+    def cognitive_ordinal(self) -> int: ...
+
+    @property
+    def cognitive_trace_count(self) -> int: ...
+
+    @property
+    def cognitive_mosaic_count(self) -> int: ...
+
+    @property
+    def formation_activation_count(self) -> int: ...
+
+    @property
+    def partial_cue_reassembly_count(self) -> int: ...
+
+    @property
+    def python_callback_count(self) -> int: ...
+
+
+@dataclass(frozen=True, slots=True)
+class ResidentPrepareEvidence:
+    """Fixed receipt and causal evidence for one native pending candidate."""
+
+    token: bytes
+    token_hex: str
+    predecessor_state_sha256: str
+    prepared_state_sha256: str
+    predecessor_organism_tick: int
+    organism_tick: int
+    predecessor_fabric_generation: int
+    fabric_generation: int
+    predecessor_mounted_generation: int
+    mounted_generation: int
+    predecessor_authentication_count: int
+    predecessor_decode_count: int
+    predecessor_rebuilt_field_count: int
+    current_cohort_evaluation_count: int
+    successor_seal_count: int
+    dsf_delivery_count: int
+    complete_neuron_fractal_count: int
+    recurrent_complete_neuron_fractal_count: int
+    physical_transition_claimed: bool
+    cognitive_formation_claimed: bool
+    cognitive_ordinal: int
+    cognitive_trace_count: int
+    cognitive_mosaic_count: int
+    formation_activation_count: int
+    partial_cue_reassembly_count: int
+    python_callback_count: int
+
+
+def _native_core():
+    return importlib.import_module("guala_core")
+
+
+def _positive_integer(value: object, label: str) -> int:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value <= 0
+        or value > sys.maxsize
+    ):
+        raise ValueError(f"resident organism {label} must be a positive native integer")
+    return value
+
+
+def _nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise RuntimeError(f"resident organism {label} is not a nonnegative integer")
+    return value
+
+
+def _canonical_sha256(value: object, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise RuntimeError(f"resident organism {label} is not canonical SHA-256")
+    return value
+
+
+def _exact_token(value: object) -> bytes:
+    if not isinstance(value, bytes) or len(value) != 32:
+        raise ValueError("resident organism token must be exactly 32 immutable bytes")
+    return value
+
+
+def _concrete_class(core: object, name: str) -> type:
+    candidate = getattr(core, name, None)
+    if not isinstance(candidate, type):
+        raise RuntimeError(f"guala_core does not expose concrete {name}")
+    return candidate
+
+
+def _validate_budget(
+    max_envelope_bytes: object,
+    max_fabric_bytes: object,
+    max_logical_peak_bytes: object,
+) -> tuple[int, int, int]:
+    envelope = _positive_integer(max_envelope_bytes, "envelope budget")
+    fabric = _positive_integer(max_fabric_bytes, "fabric budget")
+    logical = _positive_integer(max_logical_peak_bytes, "logical peak budget")
+    if fabric >= envelope:
+        raise ValueError(
+            "resident organism fabric budget must fit inside its envelope budget"
+        )
+    if logical <= 2 * envelope:
+        raise ValueError(
+            "resident organism logical peak budget must retain two envelopes and workspace"
+        )
+    return envelope, fabric, logical
+
+
+def _observation_signature(
+    observation: NativeResidentObservationView,
+) -> tuple[object, ...]:
+    return (
+        observation.identity,
+        observation.organism_tick,
+        observation.fabric_generation,
+        observation.mounted_generation,
+        observation.state_bytes,
+        observation.state_sha256,
+        observation.fabric_bytes,
+        observation.fabric_sha256,
+        observation.joint_field_count,
+        observation.joint_neuron_count,
+        observation.cognitive_ordinal,
+        observation.cognitive_trace_count,
+        observation.cognitive_mosaic_count,
+    )
+
+
+class NativeResidentOrganism:
+    """Factory-only handle retaining exactly one concrete native runtime."""
+
+    __slots__ = (
+        "__runtime",
+        "__runtime_type",
+        "__observation_type",
+        "__prepare_type",
+    )
+
+    def __new__(cls, authority: object = None, *args: object, **kwargs: object):
+        del args, kwargs
+        if authority is not _FACTORY_AUTHORITY:
+            raise TypeError(
+                "native resident organism must be created by cold restore"
+            )
+        return super().__new__(cls)
+
+    def __init__(
+        self,
+        authority: object,
+        runtime: object,
+        runtime_type: type,
+        observation_type: type,
+        prepare_type: type,
+    ) -> None:
+        if authority is not _FACTORY_AUTHORITY or not isinstance(
+            runtime, runtime_type
+        ):
+            raise TypeError("native resident organism runtime is not concrete")
+        self.__runtime = runtime
+        self.__runtime_type = runtime_type
+        self.__observation_type = observation_type
+        self.__prepare_type = prepare_type
+
+    def _require_observation(
+        self, candidate: object
+    ) -> NativeResidentObservationView:
+        if not isinstance(candidate, self.__observation_type):
+            raise TypeError(
+                "resident organism operation returned a structural impostor"
+            )
+        if candidate.schema != OBSERVATION_SCHEMA:
+            raise RuntimeError("resident organism observation schema changed")
+        if not isinstance(candidate.identity, str) or not candidate.identity:
+            raise RuntimeError("resident organism identity is absent")
+        organism_tick = _nonnegative_integer(
+            candidate.organism_tick, "organism tick"
+        )
+        fabric_generation = _nonnegative_integer(
+            candidate.fabric_generation, "fabric generation"
+        )
+        mounted_generation = _nonnegative_integer(
+            candidate.mounted_generation, "mounted generation"
+        )
+        del organism_tick, fabric_generation, mounted_generation
+        state_bytes = _positive_integer(candidate.state_bytes, "state bytes")
+        fabric_bytes = _positive_integer(candidate.fabric_bytes, "fabric bytes")
+        if fabric_bytes >= state_bytes:
+            raise RuntimeError("resident organism fabric does not fit its envelope")
+        _canonical_sha256(candidate.state_sha256, "state receipt")
+        _canonical_sha256(candidate.fabric_sha256, "fabric receipt")
+        field_count = _nonnegative_integer(
+            candidate.joint_field_count, "joint field count"
+        )
+        neuron_count = _nonnegative_integer(
+            candidate.joint_neuron_count, "joint neuron count"
+        )
+        if neuron_count < field_count:
+            raise RuntimeError("resident organism neuron count lost its fields")
+        if (
+            _nonnegative_integer(
+                candidate.cold_restore_authentication_count,
+                "cold authentication count",
+            )
+            != 1
+            or _nonnegative_integer(
+                candidate.cold_restore_decode_count, "cold decode count"
+            )
+            != 1
+        ):
+            raise RuntimeError("resident organism did not cold restore exactly once")
+        _nonnegative_integer(
+            candidate.cold_restore_rebuilt_field_count,
+            "cold rebuilt field count",
+        )
+        cognitive_ordinal = _nonnegative_integer(
+            candidate.cognitive_ordinal, "cognitive ordinal"
+        )
+        cognitive_trace_count = _nonnegative_integer(
+            candidate.cognitive_trace_count, "cognitive trace count"
+        )
+        cognitive_mosaic_count = _nonnegative_integer(
+            candidate.cognitive_mosaic_count, "cognitive mosaic count"
+        )
+        activation_count = _nonnegative_integer(
+            candidate.formation_activation_count,
+            "formation activation count",
+        )
+        partial_count = _nonnegative_integer(
+            candidate.partial_cue_reassembly_count,
+            "partial cue reassembly count",
+        )
+        if (
+            not isinstance(candidate.mounted_step_completed, bool)
+            or candidate.physical_transition_claimed is not False
+            or candidate.cognitive_formation_claimed is not False
+            or cognitive_ordinal != 0
+            or cognitive_trace_count != 0
+            or cognitive_mosaic_count != 0
+            or activation_count != 0
+            or partial_count != 0
+            or candidate.python_callback_count != 0
+        ):
+            raise RuntimeError("resident organism observation made a false claim")
+        return candidate
+
+    def readiness(self) -> NativeResidentObservationView:
+        """Observe only the active native state."""
+
+        if not isinstance(self.__runtime, self.__runtime_type):
+            raise RuntimeError("resident organism runtime identity changed")
+        return self._require_observation(self.__runtime.readiness())
+
+    def save(self) -> bytes:
+        """Seal only the active GLORUN envelope."""
+
+        observation = self.readiness()
+        state = self.__runtime.save()
+        if (
+            not isinstance(state, bytes)
+            or not state.startswith(b"GLORUN01")
+            or len(state) != observation.state_bytes
+            or hashlib.sha256(state).hexdigest() != observation.state_sha256
+        ):
+            raise RuntimeError("resident organism save changed active custody")
+        return state
+
+    def prepare(self, source: NativeJointSourceView) -> ResidentPrepareEvidence:
+        """Prepare one native candidate and return receipts, never state bytes."""
+
+        source_port_count = _nonnegative_integer(
+            getattr(source, "port_count", None), "source port count"
+        )
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare(source)
+        if not isinstance(candidate, self.__prepare_type):
+            raise TypeError("resident organism prepare returned a structural impostor")
+        if candidate.schema != PREPARE_SCHEMA:
+            raise RuntimeError("resident organism prepare schema changed")
+        token = candidate.token
+        if (
+            not isinstance(token, bytes)
+            or len(token) != 32
+            or candidate.token_hex != token.hex()
+        ):
+            raise RuntimeError("resident organism prepare token changed format")
+        predecessor_state_sha256 = _canonical_sha256(
+            candidate.predecessor_state_sha256, "predecessor state receipt"
+        )
+        prepared_state_sha256 = _canonical_sha256(
+            candidate.prepared_state_sha256, "prepared state receipt"
+        )
+        predecessor_organism_tick = _nonnegative_integer(
+            candidate.predecessor_organism_tick, "predecessor organism tick"
+        )
+        organism_tick = _nonnegative_integer(
+            candidate.organism_tick, "prepared organism tick"
+        )
+        predecessor_fabric_generation = _nonnegative_integer(
+            candidate.predecessor_fabric_generation,
+            "predecessor fabric generation",
+        )
+        fabric_generation = _nonnegative_integer(
+            candidate.fabric_generation, "prepared fabric generation"
+        )
+        predecessor_mounted_generation = _nonnegative_integer(
+            candidate.predecessor_mounted_generation,
+            "predecessor mounted generation",
+        )
+        mounted_generation = _nonnegative_integer(
+            candidate.mounted_generation, "prepared mounted generation"
+        )
+        predecessor_authentication_count = _nonnegative_integer(
+            candidate.predecessor_authentication_count,
+            "prepare predecessor authentication count",
+        )
+        predecessor_decode_count = _nonnegative_integer(
+            candidate.predecessor_decode_count,
+            "prepare predecessor decode count",
+        )
+        predecessor_rebuilt_field_count = _nonnegative_integer(
+            candidate.predecessor_rebuilt_field_count,
+            "prepare predecessor rebuilt field count",
+        )
+        current_cohort_evaluation_count = _nonnegative_integer(
+            candidate.current_cohort_evaluation_count,
+            "current cohort evaluation count",
+        )
+        successor_seal_count = _nonnegative_integer(
+            candidate.successor_seal_count, "successor seal count"
+        )
+        dsf_delivery_count = _nonnegative_integer(
+            candidate.dsf_delivery_count,
+            "DSF delivery count",
+        )
+        complete_neuron_fractal_count = _nonnegative_integer(
+            candidate.complete_neuron_fractal_count,
+            "complete-neuron fractal count",
+        )
+        recurrent_complete_neuron_fractal_count = _nonnegative_integer(
+            candidate.recurrent_complete_neuron_fractal_count,
+            "recurrent complete-neuron fractal count",
+        )
+        cognitive_ordinal = _nonnegative_integer(
+            candidate.cognitive_ordinal, "cognitive ordinal"
+        )
+        cognitive_trace_count = _nonnegative_integer(
+            candidate.cognitive_trace_count, "cognitive trace count"
+        )
+        cognitive_mosaic_count = _nonnegative_integer(
+            candidate.cognitive_mosaic_count, "cognitive mosaic count"
+        )
+        formation_activation_count = _nonnegative_integer(
+            candidate.formation_activation_count,
+            "formation activation count",
+        )
+        partial_cue_reassembly_count = _nonnegative_integer(
+            candidate.partial_cue_reassembly_count,
+            "partial cue reassembly count",
+        )
+        cohort_count_changed = (
+            source_port_count == 0
+            and current_cohort_evaluation_count != 0
+        ) or (
+            source_port_count > 0
+            and not (
+                0 < current_cohort_evaluation_count <= source_port_count
+            )
+        )
+        if (
+            predecessor_state_sha256 != active_before.state_sha256
+            or predecessor_organism_tick != active_before.organism_tick
+            or organism_tick != predecessor_organism_tick + 1
+            or predecessor_fabric_generation
+            != active_before.fabric_generation
+            or fabric_generation != predecessor_fabric_generation + 1
+            or predecessor_mounted_generation
+            != active_before.mounted_generation
+            or mounted_generation != predecessor_mounted_generation + 1
+            or predecessor_authentication_count != 0
+            or predecessor_decode_count != 0
+            or predecessor_rebuilt_field_count != 0
+            or cohort_count_changed
+            or successor_seal_count != 1
+            or complete_neuron_fractal_count > dsf_delivery_count
+            or recurrent_complete_neuron_fractal_count
+            > complete_neuron_fractal_count
+            or candidate.physical_transition_claimed is not False
+            or candidate.cognitive_formation_claimed is not False
+            or cognitive_ordinal != 0
+            or cognitive_trace_count != 0
+            or cognitive_mosaic_count != 0
+            or formation_activation_count != 0
+            or partial_cue_reassembly_count != 0
+            or candidate.python_callback_count != 0
+        ):
+            raise RuntimeError("resident organism prepare changed causal physics")
+        active_after = self.readiness()
+        if _observation_signature(active_after) != _observation_signature(
+            active_before
+        ):
+            raise RuntimeError("resident organism prepare published pending state")
+        return ResidentPrepareEvidence(
+            token=token,
+            token_hex=candidate.token_hex,
+            predecessor_state_sha256=predecessor_state_sha256,
+            prepared_state_sha256=prepared_state_sha256,
+            predecessor_organism_tick=predecessor_organism_tick,
+            organism_tick=organism_tick,
+            predecessor_fabric_generation=predecessor_fabric_generation,
+            fabric_generation=fabric_generation,
+            predecessor_mounted_generation=predecessor_mounted_generation,
+            mounted_generation=mounted_generation,
+            predecessor_authentication_count=predecessor_authentication_count,
+            predecessor_decode_count=predecessor_decode_count,
+            predecessor_rebuilt_field_count=predecessor_rebuilt_field_count,
+            current_cohort_evaluation_count=current_cohort_evaluation_count,
+            successor_seal_count=successor_seal_count,
+            dsf_delivery_count=dsf_delivery_count,
+            complete_neuron_fractal_count=complete_neuron_fractal_count,
+            recurrent_complete_neuron_fractal_count=(
+                recurrent_complete_neuron_fractal_count
+            ),
+            cognitive_ordinal=cognitive_ordinal,
+            cognitive_trace_count=cognitive_trace_count,
+            cognitive_mosaic_count=cognitive_mosaic_count,
+            formation_activation_count=formation_activation_count,
+            partial_cue_reassembly_count=partial_cue_reassembly_count,
+            physical_transition_claimed=False,
+            cognitive_formation_claimed=False,
+            python_callback_count=0,
+        )
+
+    def commit(self, token: bytes) -> NativeResidentObservationView:
+        """Commit the native pending candidate selected by its fixed token."""
+
+        self.__runtime.commit(_exact_token(token))
+        return self.readiness()
+
+    def discard(self, token: bytes) -> NativeResidentObservationView:
+        """Discard the native pending candidate and preserve active state."""
+
+        active_before = self.readiness()
+        self.__runtime.discard(_exact_token(token))
+        active_after = self.readiness()
+        if _observation_signature(active_after) != _observation_signature(
+            active_before
+        ):
+            raise RuntimeError("resident organism discard changed active state")
+        return active_after
+
+
+def restore_native_resident_organism(
+    *,
+    current_envelope: bytes,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> NativeResidentOrganism:
+    """Cold restore one current GLORUN state into one native resident runtime."""
+
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("resident organism cold restore requires GLORUN bytes")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    core = _native_core()
+    runtime_type = _concrete_class(core, "NativeResidentOrganismRuntime")
+    observation_type = _concrete_class(
+        core, "NativeResidentOrganismObservation"
+    )
+    prepare_type = _concrete_class(core, "NativeResidentOrganismPrepare")
+    restore = getattr(core, "restore_native_resident_organism_runtime", None)
+    if not callable(restore):
+        raise RuntimeError("guala_core does not expose resident cold restore")
+    runtime = restore(current_envelope, envelope, fabric, logical)
+    if not isinstance(runtime, runtime_type):
+        raise TypeError("resident organism cold restore returned a structural impostor")
+    if runtime.schema != RUNTIME_SCHEMA:
+        raise RuntimeError("resident organism runtime schema changed")
+    organism = NativeResidentOrganism(
+        _FACTORY_AUTHORITY,
+        runtime,
+        runtime_type,
+        observation_type,
+        prepare_type,
+    )
+    organism.save()
+    return organism
+
+
+def create_native_resident_organism(
+    *,
+    organism_identity: str,
+    organism_tick: int = 0,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> NativeResidentOrganism:
+    """Create the canonical empty native state for a genuinely new organism."""
+
+    if not isinstance(organism_identity, str) or not organism_identity:
+        raise TypeError("resident organism genesis identity must be text")
+    tick = _nonnegative_integer(organism_tick, "genesis organism tick")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    core = _native_core()
+    runtime_type = _concrete_class(core, "NativeResidentOrganismRuntime")
+    observation_type = _concrete_class(
+        core, "NativeResidentOrganismObservation"
+    )
+    prepare_type = _concrete_class(core, "NativeResidentOrganismPrepare")
+    create = getattr(core, "create_native_resident_organism_runtime", None)
+    if not callable(create):
+        raise RuntimeError("guala_core does not expose resident genesis")
+    runtime = create(
+        organism_identity,
+        tick,
+        envelope,
+        fabric,
+        logical,
+    )
+    if not isinstance(runtime, runtime_type):
+        raise TypeError("resident organism genesis returned a structural impostor")
+    if runtime.schema != RUNTIME_SCHEMA:
+        raise RuntimeError("resident organism genesis runtime schema changed")
+    organism = NativeResidentOrganism(
+        _FACTORY_AUTHORITY,
+        runtime,
+        runtime_type,
+        observation_type,
+        prepare_type,
+    )
+    observation = organism.readiness()
+    if (
+        observation.identity != organism_identity
+        or observation.organism_tick != tick
+        or observation.fabric_generation != 0
+        or observation.mounted_generation != 0
+        or observation.joint_field_count != 0
+        or observation.joint_neuron_count != 0
+        or observation.cognitive_ordinal != 0
+        or observation.cognitive_trace_count != 0
+        or observation.cognitive_mosaic_count != 0
+    ):
+        raise RuntimeError("resident organism genesis was not structurally empty")
+    organism.save()
+    return organism
+
+
+__all__ = (
+    "NativeResidentObservationView",
+    "NativeResidentOrganism",
+    "OBSERVATION_SCHEMA",
+    "PREPARE_SCHEMA",
+    "RUNTIME_SCHEMA",
+    "ResidentPrepareEvidence",
+    "create_native_resident_organism",
+    "restore_native_resident_organism",
+)

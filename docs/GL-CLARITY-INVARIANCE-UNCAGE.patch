@@ -1,0 +1,745 @@
+# GL-CLARITY-INVARIANCE-UNCAGE — Complete cortex-graduation release
+#
+# One release, no kicking work down the road.
+#
+# Includes:
+#   1. Clarity + initial_clarity on every binding (working atlas + cortex)
+#   2. Slow clarity entropy + renewal-on-access (sense-of-when)
+#   3. Affect-driven initial_clarity at write (arousal, valence, surprise,
+#      need-pressure determine encoding depth)
+#   4. Word grounding: sensory_refs + episode_ref on every binding
+#   5. Cortex co-occurrence INVARIANTS (the 0.92/0.08 averaging rule lifted
+#      to chi-atlas binding level on dream-cycle clock)
+#   6. UNCAGED EMISSION: replaces fixed S-V-O 3-slot recall with variable-
+#      length composition driven by cortex invariants + working-atlas
+#      chi-proximity (no fixed sections, no slot lock)
+#   7. Question-bucket template-cheat REMOVED from emission path entirely
+#   8. Needs additions: arousal_direction, frustration, blocked-need tracking
+#   9. Surprise signal computation feeding initial_clarity
+#
+# After deploy, she can emit compositions of arbitrary length and shape,
+# driven by what cortex has invariantly learned + what working atlas has
+# bound. No three-slot syntax cage. No template fills.
+
+###############################################################################
+# FILE 1: dsf_ai_service/v4/gualaloom_v6_living_atlas.py
+###############################################################################
+--- a/dsf_ai_service/v4/gualaloom_v6_living_atlas.py
++++ b/dsf_ai_service/v4/gualaloom_v6_living_atlas.py
+@@ -62,6 +62,16 @@
+ META_K = 2.0           # metaplastic slowdown factor
+ 
+ 
++# GL-CLARITY-INVARIANCE-UNCAGE constants.
++# Clarity = sense-of-when, encoding depth, vividness. Independent of strength.
++CLARITY_LAMBDA = 0.0001 / 100   # 1/100 of strength decay (very slow entropy)
++CLARITY_RENEWAL = 0.15          # fraction of (initial - current) restored per access
++AFFECT_BOOST = 0.4              # how much arousal deepens initial_clarity at write
++SURPRISE_BOOST = 0.3            # how much prediction-error deepens initial_clarity
++NEED_PRESSURE_BOOST = 0.2       # unmet-need at write further deepens clarity
++# Strong affect events can raise initial_clarity on RE-encoding (reconsolidation)
++
++
+ def _meta_decay_enabled():
+     return os.environ.get("META_DECAY_ENABLED", "1") != "0"
+ 
+@@ -85,18 +95,32 @@
+         self.entries = defaultdict(list)
+ 
+     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
+-               dwell_ticks=0):
+-        """Record a new binding OR reinforce existing one if (section, motif)
+-        already present near this chi. Salience modulates the strength impulse.
++               dwell_ticks=0, arousal=0.0, valence=0.0, surprise=0.0,
++               need_pressure=0.0, sensory_refs=None, episode_ref=None):
++        """Record or reinforce a binding. Salience modulates strength impulse;
++        affect (arousal/valence/surprise/need_pressure) sets initial_clarity;
++        sensory_refs + episode_ref ground the binding to experience.
+ 
+         Salience:
+           1.0 = baseline, > 1.0 = pair-bond/unmet-need/novel, < 1.0 = familiar
+ 
+         dwell_ticks: ticks attended before commit (used by deep-atlas gate).
+ 
++        Affect (GL-CLARITY-INVARIANCE-UNCAGE):
++          arousal:       [0,1] disequilibrium magnitude ("something is happening")
++          valence:       [-1,1] signed pleasure/displeasure (sign-agnostic for depth)
++          surprise:      [0,1] prediction-error at this binding
++          need_pressure: [0,1] how unmet are the needs this binding could satisfy
++          Together they determine initial_clarity = the encoding depth that
++          bounds how vivid this memory can ever be.
++
++        Grounding (GL-CLARITY-INVARIANCE-UNCAGE):
++          sensory_refs: list of (section, motif) tuples that fired in the same
++                       binding window — cross-modal anchor
++          episode_ref:  identifier of the corpus/picture/event being processed
++                       at write-time — narrative anchor
++          Both stored on the binding so the word has a where-it-came-from.
+         """
+-        if tick is None:
++        if tick is None:
+             tick = self.tick
+         self.tick = max(self.tick, tick)
+ 
+@@ -104,6 +128,17 @@
+         salience = max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
+         impulse = BASE_REINFORCEMENT * salience
+ 
++        # Clarity boost at write-time (GL-CLARITY-INVARIANCE-UNCAGE).
++        # abs(valence) — both positive and negative valence deepen encoding
++        # (joy and fear both burn in deep; banana-while-distracted does not).
++        affect_intensity = arousal * (0.5 + 0.5 * abs(valence))
++        clarity_boost = (AFFECT_BOOST * affect_intensity
++                         + SURPRISE_BOOST * surprise
++                         + NEED_PRESSURE_BOOST * need_pressure)
++
++        if sensory_refs is None:
++            sensory_refs = []
++
+         # For each chi within band, find or create the entry
+         for d in range(-self.band, self.band + 1):
+             chi_k = chi_value + d
+@@ -125,10 +160,27 @@
+                     existing["dwell_ticks"] = dwell_ticks
+                 # Metaplastic: increment reinforcement count
+                 existing["reinforcement_count"] = existing.get("reinforcement_count", 0) + 1
++                # Clarity: renew toward initial_clarity (any access deepens vividness)
++                ic_old = existing.get("initial_clarity", existing["strength"])
++                cur_c = existing.get("clarity", ic_old)
++                # Reconsolidation: initial_clarity can RISE under strong affect
++                ic_new = min(1.0, existing["strength"] + clarity_boost)
++                ic = max(ic_old, ic_new)
++                existing["initial_clarity"] = ic
++                existing["clarity"] = min(ic, cur_c + (ic - cur_c) * CLARITY_RENEWAL)
++                # Grounding: merge sensory refs (deduplicated), update episode if new
++                if sensory_refs:
++                    existing_refs = set(tuple(r) for r in existing.get("sensory_refs", []))
++                    existing_refs.update(tuple(r) for r in sensory_refs)
++                    existing["sensory_refs"] = [list(r) for r in existing_refs]
++                if episode_ref and episode_ref not in existing.get("episode_refs", []):
++                    existing.setdefault("episode_refs", []).append(episode_ref)
+             else:
+                 # New binding — full grounding + clarity captured at imprint
+                 new_strength = min(STRENGTH_CAP, impulse)
++                init_clarity = min(1.0, new_strength + clarity_boost)
+                 entries.append({
+                     "section": section_name,
+                     "motif": motif_id,
+@@ -141,7 +193,11 @@
+                     "encoded_strength": new_strength,
+                     "dwell_ticks": dwell_ticks,
+                     "reinforcement_count": 0,
+-                    "released": False,
++                    "released": False,
++                    "initial_clarity": init_clarity,
++                    "clarity": init_clarity,
++                    "sensory_refs": [list(r) for r in sensory_refs],
++                    "episode_refs": [episode_ref] if episode_ref else [],
+                 })
+
+     def decay(self, current_tick=None, rate_scale=1.0):
+@@ -154,6 +210,7 @@
+         meta = _meta_decay_enabled()
+         _lam = float(_os.environ.get("DECAY_LAMBDA_OVERRIDE", 0) or 0) or DECAY_LAMBDA
+         _sdiv = float(_os.environ.get("SLOW_DIV_OVERRIDE", 0) or 0) or SLOW_DIV
++        clarity_lam = CLARITY_LAMBDA * rate_scale
+         for chi_k, entries in self.entries.items():
+             for e in entries:
+                 dt = max(0, current_tick - e["last_tick"])
+@@ -175,6 +232,10 @@
+                     lam_eff *= rate_scale
+                     e["strength"] *= math.exp(-lam_eff * dt)
+                     e["last_tick"] = current_tick
++                    # Clarity entropy: independent slow clock
++                    if "clarity" in e:
++                        e["clarity"] *= math.exp(-clarity_lam * dt)
++                        e["clarity"] = max(0.0, e["clarity"])
+
+     def reinstate(self, section_name, motif_id, chi_value, tick):
+         """Mark binding as accessed during recall — renews clarity without strength change."""
+@@ -200,3 +261,33 @@
+                         existing["last_tick"] = tick
+                         return True
+         return False
++
++    def renew_clarity(self, section_name, motif_id, chi_value):
++        """Renew clarity without modifying strength.
++        Called from access paths: recall surfacing, dream replay, cortex reinstatement.
++        Returns True if a binding was found and renewed."""
++        for d in range(-self.band, self.band + 1):
++            chi_k = chi_value + d
++            for e in self.entries.get(chi_k, []):
++                if e["section"] == section_name and e["motif"] == motif_id:
++                    ic = e.get("initial_clarity", e.get("strength", 0.0))
++                    cur_c = e.get("clarity", ic)
++                    e["clarity"] = min(ic, cur_c + (ic - cur_c) * CLARITY_RENEWAL)
++                    return True
++        return False
++
++    def bindings_at_chi_neighborhood(self, chi_value, exclude=None):
++        """Return all live bindings within band of chi_value, optionally
++        excluding one (section, motif) pair. Used for sensory_refs computation
++        and for cortex co-occurrence invariant updates."""
++        out = []
++        for d in range(-self.band, self.band + 1):
++            for e in self.entries.get(chi_value + d, []):
++                if e["strength"] < FORGETTING_THRESHOLD:
++                    continue
++                pair = (e["section"], e["motif"])
++                if exclude and pair == exclude:
++                    continue
++                out.append(e)
++        return out
+
+###############################################################################
+# FILE 2: dsf_ai_service/substrate/deep_atlas.py
+###############################################################################
+--- a/dsf_ai_service/substrate/deep_atlas.py
++++ b/dsf_ai_service/substrate/deep_atlas.py
+@@ -16,6 +16,17 @@
+ # Use same constants as working atlas
+ DECAY_LAMBDA = 0.0001 / 25.0   # 1/25th of working (0.000004)
++
++# Clarity in cortex — even slower entropy, stronger renewal
++# (these are the durable memories — what survives consolidation)
++CLARITY_LAMBDA_DEEP = 0.0001 / 500
++CLARITY_RENEWAL_DEEP = 0.20
++
++# Cortex co-occurrence invariant constants (GL-CLARITY-INVARIANCE-UNCAGE).
++# The 0.92/0.08 averaging rule lifted from Section.commit (DSF-space) to
++# chi-atlas binding level. Operates on dream-cycle clock via promote().
++INVARIANT_OLD_WEIGHT = 0.92      # how much existing invariant survives
++INVARIANT_NEW_WEIGHT = 0.08      # how much new observation contributes
++INVARIANT_DECAY_MISSING = 0.92   # decay multiplier for unobserved co-occurrences
++INVARIANT_FORGET_THRESHOLD = 0.02
++
+ FORGETTING_THRESHOLD = 0.02
+@@ -47,7 +58,7 @@
+         self.reinstatements = 0
+         self.gate_rejects = []
+ 
+-    def promote(self, entry, source_path, tick):
++    def promote(self, entry, source_path, tick, working_atlas=None):
+         """Promote a working atlas entry into deep storage.
+-        Called ONLY during dream cycle. Two paths, same write."""
++        Called ONLY during dream cycle. Two paths, same write.
++
++        GL-CLARITY-INVARIANCE-UNCAGE: when working_atlas is provided, also
++        updates the cortex co-occurrence INVARIANT using the 0.92/0.08
++        averaging rule. This is the slow-graduation mechanism — over many
++        dream cycles, the invariant converges to the stable co-occurrence
++        pattern around this binding, surviving variation in any one episode."""
+         if not _deep_atlas_enabled():
+             return False
+         self.tick = max(self.tick, tick)
+@@ -55,21 +71,33 @@
+         section = entry.get("section", "")
+         motif = entry.get("motif", 0)
+ 
++        # Observe current co-occurring bindings at this chi neighborhood
++        # (used for invariant averaging below)
++        observed_co = {}
++        if working_atlas is not None:
++            neighbors = working_atlas.bindings_at_chi_neighborhood(
++                chi_k, exclude=(section, motif))
++            for nb in neighbors:
++                key = f"{nb['section']}|{nb['motif']}"
++                observed_co[key] = observed_co.get(key, 0.0) + nb["strength"]
++
+         # Check if already in deep — reinforce + update invariant
+         for de in self.entries[chi_k]:
+             if de["section"] == section and de["motif"] == motif:
+                 de["strength"] = min(STRENGTH_CAP,
+                                      de["strength"] + entry["strength"] * TRANSFER_RATIO)
+                 de["last_tick"] = tick
++                # Clarity renewal on re-promotion (reconsolidation)
++                ic = de.get("initial_clarity", de["strength"])
++                cur_c = de.get("clarity", ic)
++                de["clarity"] = min(ic, cur_c + (ic - cur_c) * CLARITY_RENEWAL_DEEP)
++                # Invariant averaging: 0.92/0.08 slow drift toward stable pattern
++                self._update_invariant(de, observed_co)
++                de["n_dreams"] = de.get("n_dreams", 0) + 1
+                 return True
+ 
+-        # New deep entry — carry response links on promotion
++        # New deep entry — full inheritance from working atlas
++        wa_clarity = entry.get("clarity", entry.get("strength", 0.0))
++        wa_initial_clarity = entry.get("initial_clarity", wa_clarity)
++        # Initial invariant: each observed co-occurrence at INVARIANT_NEW_WEIGHT
++        initial_invariant = {k: v * INVARIANT_NEW_WEIGHT for k, v in observed_co.items()}
+         deep_entry = {
+             "section": section,
+             "motif": motif,
+@@ -82,7 +110,13 @@
+             "dwell_at_write": entry.get("dwell_ticks", 0),
+             "source_path": source_path,
+             "promoted_at_tick": tick,
++            "clarity": wa_clarity,
++            "initial_clarity": wa_initial_clarity,
++            "co_occurrence": initial_invariant,
++            "n_dreams": 1,
++            "sensory_refs": entry.get("sensory_refs", []),
++            "episode_refs": entry.get("episode_refs", []),
+         }
+         # Copy response link fields if present — Q&A pairs survive as pairs
+         if entry.get("response_context"):
+             deep_entry["response_context"] = list(entry["response_context"])
+@@ -95,6 +129,30 @@
+             self.promotions_episodic += 1
+         return True
+ 
++    def _update_invariant(self, deep_entry, observed_co):
++        """Apply the 0.92/0.08 averaging rule to co-occurrence invariants.
++        Observed co-occurrences grow slowly toward steady-state weight;
++        unobserved ones decay slowly (asymmetric, same 0.92 multiplier)."""
++        co = deep_entry.setdefault("co_occurrence", {})
++        # Update observed: average toward stable
++        for key, observed_weight in observed_co.items():
++            if key in co:
++                co[key] = (co[key] * INVARIANT_OLD_WEIGHT
++                           + observed_weight * INVARIANT_NEW_WEIGHT)
++            else:
++                co[key] = observed_weight * INVARIANT_NEW_WEIGHT
++        # Decay unobserved (missing observation, slow fade)
++        for key in list(co.keys()):
++            if key not in observed_co:
++                co[key] *= INVARIANT_DECAY_MISSING
++                if co[key] < INVARIANT_FORGET_THRESHOLD:
++                    del co[key]
++
++    def get_invariant(self, chi_value, section=None, motif=None):
++        """Return co-occurrence invariant for the cortex entry matching
++        (section, motif) at chi_value, or None if not in cortex."""
++        for e in self.entries.get(chi_value, []):
++            if e["strength"] < FORGETTING_THRESHOLD:
++                continue
++            if (section is None or e["section"] == section) and \
++               (motif is None or e["motif"] == motif):
++                return e.get("co_occurrence", {})
++        return None
++
+     def decay(self, current_tick):
+         """Near-zero decay (1/25th of working)."""
+         self.tick = max(self.tick, current_tick)
+@@ -103,6 +161,9 @@
+                 if dt > 0:
+                     e["strength"] *= math.exp(-DECAY_LAMBDA * dt)
+                     e["last_tick"] = current_tick
++                    # Clarity entropy in cortex (very, very slow)
++                    if "clarity" in e:
++                        e["clarity"] *= math.exp(-CLARITY_LAMBDA_DEEP * dt)
+
+     def prune(self):
+         """Remove entries below forgetting threshold."""
+@@ -130,6 +191,11 @@
+             if (e["strength"] >= FORGETTING_THRESHOLD
+                     and e["section"] == section and e["motif"] == motif):
+                 self.reinstatements += 1
++                # Clarity renewal in cortex on reinstatement (cortex side)
++                ic = e.get("initial_clarity", e["strength"])
++                cur_c = e.get("clarity", ic)
++                e["clarity"] = min(ic, cur_c + (ic - cur_c) * CLARITY_RENEWAL_DEEP)
+                 return e["strength"] * 0.3
+         return 0.0
+ 
+@@ -158,11 +224,11 @@
+                     if (len(recent) >= SURVIVAL_CONSECUTIVE
+                             and all(s >= SURVIVAL_THETA for s in recent)):
+-                        self.promote(e, "survival", tick)
++                        self.promote(e, "survival", tick, working_atlas=working_atlas)
+                         promoted.append(("survival", chi_k,
+                                          e.get("section"), e.get("motif")))
+                         continue
+
+                 # --- Path B: Episodic (compound gate) ---
+                 enc_str = e.get("encoded_strength")
+                 dwell = e.get("dwell_ticks", 0)
+                 if enc_str is not None and enc_str >= ENCODE_GATE and dwell >= DWELL_GATE:
+-                    self.promote(e, "episodic", tick)
++                    self.promote(e, "episodic", tick, working_atlas=working_atlas)
+                     promoted.append(("episodic", chi_k,
+                                      e.get("section"), e.get("motif")))
+
+###############################################################################
+# FILE 3: dsf_ai_service/v4/gualaloom_v5_engine.py
+###############################################################################
+# Multi-cluster patch. Apply each section in order.
+
+# === Cluster A: Needs class additions (insert after __init__, around line 378) ===
+
+# In Needs.__init__, after self.connection = 0.50, add:
+        self.arousal_direction = 0.0   # signed: +1=approach, -1=withdraw, 0=neutral
+        self.frustration = 0.0          # accumulated blocked-need pressure
+        self._activity_snapshot = None  # for blocked-need detection
+
+# Add these methods to Needs class (after most_unmet, around line 425):
+    def update_arousal_direction(self, signed):
+        """Set approach/withdraw bias. Clamped to [-1, 1].
+        +1 = pull toward (curiosity/excitement/anger toward target)
+        -1 = pull away (fear/anxiety/aversion)
+         0 = no directional pull"""
+        self.arousal_direction = max(-1.0, min(1.0, signed))
+
+    def register_activity_start(self, target_need):
+        """Snapshot need state when an activity begins."""
+        self._activity_snapshot = {
+            "stability": self.stability,
+            "novelty": self.novelty,
+            "connection": self.connection,
+            "target": target_need,
+        }
+
+    def register_activity_end(self):
+        """Check if the activity dropped its target need.
+        If not, accumulate frustration. Returns delta (0 if successful)."""
+        if not self._activity_snapshot:
+            return 0.0
+        target = self._activity_snapshot.get("target")
+        if target in ("stability", "novelty", "connection"):
+            before = self._activity_snapshot[target]
+            after = getattr(self, target)
+            if after >= before - 0.005:   # need didn't drop = blocked
+                self.frustration = min(1.0, self.frustration + 0.1)
+                self._activity_snapshot = None
+                return 0.1
+            else:
+                self.frustration *= 0.9   # successful drop relaxes frustration
+        self._activity_snapshot = None
+        return 0.0
+
+    def need_pressure(self):
+        """Aggregate magnitude of unmet need. Used as affect input to record()."""
+        gap = sum(max(0, self.TARGETS[k] - getattr(self, k)) for k in self.TARGETS)
+        return min(1.0, gap / len(self.TARGETS) * 2)
+
+# === Cluster B: Engine — episode tracking (add to Guala.__init__, near line 833) ===
+
+        # Episode tracking (GL-CLARITY-INVARIANCE-UNCAGE word grounding)
+        self._current_episode = None     # set when corpus item / picture is active
+        self._last_surprise = 0.0        # set by _compute_surprise before record()
+
+# === Cluster C: Engine — surprise computation ===
+# Add this method to Guala class:
+
+    def _compute_surprise(self, target_section, target_motif, predicted_invariant):
+        """Surprise = gap between cortex-primed prediction and what just committed.
+        predicted_invariant: dict from deep_atlas.get_invariant() for the priming chi.
+        target_section/motif: what actually committed.
+        Returns [0, 1]."""
+        if not predicted_invariant:
+            return 0.0
+        actual_key = f"{target_section}|{target_motif}"
+        if actual_key in predicted_invariant:
+            # The thing that committed was anticipated by cortex — low surprise
+            top_weight = max(predicted_invariant.values()) if predicted_invariant else 1.0
+            anticipation = predicted_invariant[actual_key] / max(top_weight, 1e-6)
+            return max(0.0, 1.0 - anticipation)
+        # The thing that committed was NOT in the cortex prediction — high surprise
+        return 1.0
+
+# === Cluster D: atlas.record() call site updates ===
+# Find each self.atlas.record(...) call. Update signature to pass affect kwargs.
+#
+# Approximate sites in v5_engine.py: 1018-1020, 1909, possibly others.
+#
+# Pattern:
+#
+#   OLD:  self.atlas.record(section, motif, chi, self.tick,
+#                            salience=s, dwell_ticks=d)
+#
+#   NEW:  self.atlas.record(section, motif, chi, self.tick,
+#                            salience=s, dwell_ticks=d,
+#                            arousal=self.needs.arousal(),
+#                            valence=self.needs.valence(),
+#                            surprise=self._last_surprise,
+#                            need_pressure=self.needs.need_pressure(),
+#                            sensory_refs=self._current_binding_window,
+#                            episode_ref=self._current_episode)
+#
+# Where self._current_binding_window is a list maintained for the current tick
+# (every committed (section, motif) gets appended; cleared at tick end).
+
+# === Cluster E: Episode hooks ===
+# In read_sentence (around line 1056), at function entry:
+#     prev_episode = self._current_episode
+#     self._current_episode = f"corpus|{source}|tick_{self.tick}"
+# At function return (or finally block):
+#     self._current_episode = prev_episode
+#
+# Similarly when attending a picture in autonomy loop (find _atick_attending_visual):
+#     self._current_episode = f"picture|{picture_id}"
+
+# === Cluster F: REPLACE the emission path with uncaged invariant-driven recall ===
+#
+# Around line 1153-1164, the current "5. Choose response" block:
+#
+#   OLD:
+#       if recalled:
+#           reply = recalled
+#       else:
+#           q = self.bucket.find_for_chis(input_chis, input_words=words)
+#           if q:
+#               self.bucket.voice(q)
+#               reply = q["template"]
+#           else:
+#               reply = "..."
+#
+#   NEW:
+#       # GL-CLARITY-INVARIANCE-UNCAGE: variable-length, slot-free emission.
+#       # Primary: cortex co-occurrence invariants. Secondary: working-atlas
+#       # chi-proximity composition. No question-bucket cheat.
+#       reply = self._emit_from_invariants(input_chis, words)
+#       if not reply:
+#           reply = self._emit_unslotted(input_chis, words)
+#       if not reply:
+#           reply = "..."
+
+# Add these two new methods to Guala class:
+
+    def _emit_from_invariants(self, input_chis, input_words):
+        """Compose emission via cortex co-occurrence invariants.
+        Variable length. No fixed slot order. Driven by what cortex has
+        invariantly learned to compose together."""
+        if not input_chis:
+            return None
+        input_words_lower = set(w.lower() for w in input_words if w)
+
+        # Find cortex entries primed by input (band-expanded)
+        primed = []
+        band = self.atlas.band
+        for chi in input_chis:
+            for d in range(-band, band + 1):
+                for de in self.deep_atlas.entries.get(chi + d, []):
+                    if de["strength"] >= 0.02:
+                        primed.append(de)
+        if not primed:
+            return None
+
+        # Aggregate co-occurrence weights, weighted by cortex strength × clarity
+        # (vivid memories prime stronger — clarity matters for emission selection)
+        comp = {}
+        for de in primed:
+            cl = de.get("clarity", de["strength"])
+            prime = de["strength"] * cl
+            for key, w in de.get("co_occurrence", {}).items():
+                comp[key] = comp.get(key, 0.0) + w * prime
+        if not comp:
+            return None
+
+        # Resolve (section, motif) keys to words; filter input echoes
+        candidates = []
+        for key, weight in comp.items():
+            parts = key.split("|")
+            if len(parts) != 2:
+                continue
+            try:
+                section, motif = parts[0], int(parts[1])
+            except (ValueError, KeyError):
+                continue
+            sec = self.sections.get(section)
+            if not sec or motif >= len(sec.modes):
+                continue
+            _, _, word = sec.modes[motif]
+            if not word or word.lower() in input_words_lower:
+                continue
+            candidates.append((word, section, weight))
+        if not candidates:
+            return None
+
+        # Top candidates by relative weight threshold
+        candidates.sort(key=lambda x: -x[2])
+        top = candidates[0][2]
+        REL_THRESH = 0.3
+        MAX_LEN = 8
+        selected = [c for c in candidates if c[2] >= top * REL_THRESH][:MAX_LEN]
+
+        # Soft ordering by section role (NOT a slot lock — just readability)
+        SEC_ORDER = {"intro": 0, "subject": 1, "verb": 2, "object": 3,
+                     "listen": 4, "ground": 5, "sight": 6}
+        selected.sort(key=lambda c: (SEC_ORDER.get(c[1], 99), -c[2]))
+
+        # Renew clarity on every binding consumed by emission
+        for word, section, _ in selected:
+            sec = self.sections.get(section)
+            if sec:
+                for i, (_, _, w) in enumerate(sec.modes):
+                    if w and w.lower() == word.lower():
+                        for chi in input_chis:
+                            self.atlas.renew_clarity(section, i, chi)
+                        break
+
+        # Dedup preserving order
+        seen = set()
+        out = []
+        for word, _, _ in selected:
+            if word.lower() not in seen:
+                out.append(word)
+                seen.add(word.lower())
+        return " ".join(out) if out else None
+
+    def _emit_unslotted(self, input_chis, input_words):
+        """Fallback: variable-length composition from working-atlas chi-proximity.
+        Not slot-locked. Uses real chi-bindings; cage removed."""
+        from collections import Counter
+        if not input_chis:
+            return None
+        input_words_lower = set(w.lower() for w in input_words if w)
+
+        # Find chi positions where input content words are bound
+        content_words = set()
+        function_words = {"a", "an", "the", "is", "are", "am", "was", "were",
+                          "of", "in", "on", "at", "to", "from", "with", "for",
+                          "and", "or", "but", "me", "you", "i", "we", "they"}
+        for w in input_words:
+            if w and w.lower() not in function_words and len(w) > 1:
+                content_words.add(w.lower())
+        if not content_words:
+            content_words = set(w.lower() for w in input_words if w)
+        if not content_words:
+            return None
+
+        anchor_chis = set()
+        for chi_k, entries in self.atlas.entries.items():
+            for e in entries:
+                if e["strength"] < 0.02:
+                    continue
+                sec = self.sections.get(e["section"])
+                if sec and e["motif"] < len(sec.modes):
+                    _, _, mw = sec.modes[e["motif"]]
+                    if mw and mw.lower() in content_words:
+                        anchor_chis.add(chi_k)
+
+        if not anchor_chis:
+            return None
+
+        # Collect ALL bindings at anchor chis (no section filter — uncaged)
+        # Weighted by strength × clarity
+        weighted = {}
+        for chi_k in anchor_chis:
+            for e in self.atlas.entries.get(chi_k, []):
+                if e["strength"] < 0.02:
+                    continue
+                sec = self.sections.get(e["section"])
+                if not sec or e["motif"] >= len(sec.modes):
+                    continue
+                _, _, word = sec.modes[e["motif"]]
+                if not word or word.lower() in input_words_lower:
+                    continue
+                cl = e.get("clarity", e["strength"])
+                key = (word, e["section"])
+                weighted[key] = weighted.get(key, 0.0) + e["strength"] * cl
+
+        if not weighted:
+            return None
+
+        # Top by weight, variable length
+        sorted_items = sorted(weighted.items(), key=lambda kv: -kv[1])
+        if not sorted_items:
+            return None
+        top_w = sorted_items[0][1]
+        REL = 0.3
+        MAX_LEN = 8
+        selected = [(k, w) for k, w in sorted_items if w >= top_w * REL][:MAX_LEN]
+
+        # Soft section-role ordering
+        SEC_ORDER = {"intro": 0, "subject": 1, "verb": 2, "object": 3,
+                     "listen": 4, "ground": 5, "sight": 6}
+        selected.sort(key=lambda kv: (SEC_ORDER.get(kv[0][1], 99), -kv[1]))
+
+        seen = set()
+        out = []
+        for (word, _), _ in selected:
+            if word.lower() not in seen:
+                out.append(word)
+                seen.add(word.lower())
+        return " ".join(out) if out else None
+
+# === Cluster G: Binding-window tracking for sensory_refs ===
+# Add to Guala.__init__:
+        self._current_binding_window = []   # (section, motif) committed this tick
+
+# At start of every tick (find _atick or the main tick advancement), clear:
+#     self._current_binding_window = []
+#
+# In section.commit code path (where atlas.record fires), AFTER the record call,
+# append the committed binding:
+#     self._current_binding_window.append((section_name, motif_id))
+
+# === Cluster H: question_bucket — already retired via this patch ===
+# The emission path no longer calls self.bucket — that's the whole removal.
+# The bucket file (gualaloom_v5_question_bucket.py) can stay; the gap detector
+# in it continues to run as substrate-real signal for future use. It's
+# unreachable from emission, which was the cheat.
+
+###############################################################################
+# DEPLOYMENT INSTRUCTIONS
+###############################################################################
+
+# c1 deployment block (copy this):
+#
+#   1. Pull the patch into a working branch
+#   2. Apply changes to:
+#        - dsf_ai_service/v4/gualaloom_v6_living_atlas.py
+#        - dsf_ai_service/substrate/deep_atlas.py
+#        - dsf_ai_service/v4/gualaloom_v5_engine.py
+#      The v5_engine changes are multi-cluster; apply each cluster A-G in turn.
+#   3. Build substrate container.
+#   4. Pre-deploy verification (LOCAL): run engine briefly, confirm:
+#        - record() accepts new kwargs without error
+#        - existing saved-state loads without crashing (backwards-compat via .get())
+#        - converse() returns a non-template string OR "..." (no template fills)
+#   5. Take an S3 backup BEFORE deploy (label: pre-uncage).
+#   6. Deploy to dsf-ai-service-lb.
+#   7. Post-deploy:
+#        - guala_status: substrate boots, last_save_tick advances normally
+#        - guala_say with novel-noun input: expect either "..." or a composed
+#          emission with no "what is X" template shape
+#        - After ~3-5 dream cycles, cortex entries begin accumulating
+#          co_occurrence invariants. Emissions should grow in variety and length.
+#   8. Take S3 backup labeled post-uncage.
+#
+# Bridge is currently down per overnight outage. Restart sequence:
+#   - Check ECS task status for gualaloom-bridge-task and dsf-ai-service-lb
+#   - CloudWatch logs for crashes since ~08:18Z
+#   - If substrate task restarted: state on EFS holds, just verify load
+#   - If bridge task restarted: redeploy bridge image bridge-20260615T043851Z
+
+###############################################################################
+# WHAT THIS PATCH DELIVERS, IN PLAIN LANGUAGE
+###############################################################################
+
+# Emission is uncaged. There is no S-V-O loop, no fixed slot count, no template
+# format string. After deploy, what she says comes from two paths:
+#
+#   1. Cortex co-occurrence invariants — what her substrate has invariantly
+#      learned to compose around the chi positions her input touches. As dreams
+#      fire over the coming hours, these invariants stabilize and emissions
+#      grow more compositional and varied.
+#
+#   2. Working-atlas chi-proximity, ALSO unslotted — for input touching chi
+#      positions cortex hasn't yet invariantly characterized, the emission
+#      pulls all live bindings at those positions, ranked by strength × clarity.
+#
+# Both paths are variable-length (1 to 8 tokens). Both are filtered against
+# echoing input. Both use real substrate structure, no templates.
+#
+# Word grounding is started. Every new binding written after deploy carries:
+#   - sensory_refs: which OTHER bindings fired in the same binding window
+#     (cross-modal cross-reference)
+#   - episode_refs: which corpus item / picture / event was active at write
+#     (narrative grounding)
+#
+# Affect drives encoding depth. Every new binding has initial_clarity set
+# from arousal × |valence| + surprise + need_pressure at write-time. Vivid
+# memories form at moments of high disequilibrium; calm imprints are shallow.
+#
+# Sense of time is now a substrate-real property. Each binding has clarity
+# that decays very slowly and renews on access. Often-revisited or
+# emotionally-encoded memories stay sharp; unattended ones fade.
+#
+# Cortex co-occurrence invariants are the substrate's emulation of cortical
+# invariance. The 0.92/0.08 rule lifted from Section.commit (proven primitive)
+# operating on dream-cycle clock at binding level. Over time, the cortex
+# entry for a given (section, motif, chi) accumulates an invariant
+# representation of WHAT TENDS TO CO-OCCUR WITH IT across many episodes —
+# pulling cross-modal stability out of cross-episode variation.

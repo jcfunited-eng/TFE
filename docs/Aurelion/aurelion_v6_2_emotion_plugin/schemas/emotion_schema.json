@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Aurelion Emotion State Schema",
+  "type": "object",
+  "properties": {
+    "valence": {
+      "type": "number",
+      "minimum": -1.0,
+      "maximum": 1.0
+    },
+    "arousal": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "user",
+        "system",
+        "blend"
+      ]
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "shift_reason": {
+          "type": "string"
+        },
+        "decay_applied": {
+          "type": "boolean"
+        },
+        "prev": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "required": [
+    "valence",
+    "arousal",
+    "confidence",
+    "source"
+  ]
+}

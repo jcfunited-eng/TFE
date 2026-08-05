@@ -1,0 +1,32 @@
+{
+  "schema": "guala.audit.auditory_direct_full_field_topology_plan.v1",
+  "adapter_path": "tools/isolated_auditory_direct_full_field_topology.py",
+  "adapter_sha256": "e778c8e4ed3a7c5ee3d8c0f4f3e3ab806f1ca7e30f37607a7e4fd1a37aa31528",
+  "corpus_manifest_path": "tests/fixtures/auditory_direct_full_field_topology_corpus_v1.json",
+  "corpus_manifest_sha256": "64e4835379990d7d703c6300633c3d12794c12dcf7e4cd781aa729af5ff37740",
+  "archive_sha256": "49650f2341b26d886b46b3f4fb8fed59e30300b17550f1ee4a768b3106cf93a0",
+  "words": [
+    "down",
+    "go",
+    "left"
+  ],
+  "training_per_thing": 16,
+  "held_out_per_thing": 1,
+  "physical_capture_count": 51,
+  "source_disjoint_speaker_count": 51,
+  "max_frames_per_capture": 800,
+  "max_change_masks_per_capture": 799,
+  "max_encoded_topology_bytes": 131072,
+  "relation": "exact ordered nonzero 64-component L4 tuple-index change-mask topology equality",
+  "duration_is_not_identity": true,
+  "labels_enter_adapter": false,
+  "gate": {
+    "held_out_required_unique_correct": 3,
+    "wrong_allowed": 0,
+    "ambiguous_allowed": 0,
+    "unknown_allowed": 0,
+    "invalid_authority_or_resource_exit": 2,
+    "falsification_exit": 1,
+    "full_pass_exit": 0
+  }
+}

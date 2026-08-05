@@ -1,0 +1,4 @@
+file,domain,phi,H,energy,intent,reason,tokens
+finance_news.txt,finance,0.0,0.0,0.0,EXPLORE,"Mixed signal (φ=0.00, H=0.00, e=0.00).",
+nasa_mission.txt,science,1.0,0.0,0.3824,STABILIZE,Coherence stable (1.00) with acceptable entropy (0.00).,remains schedule remains protocols agency protocols program eventual program procedures ensuring procedures power systems power
+weather_noaa.txt,weather,0.0,0.0,0.0,EXPLORE,"Mixed signal (φ=0.00, H=0.00, e=0.00).",

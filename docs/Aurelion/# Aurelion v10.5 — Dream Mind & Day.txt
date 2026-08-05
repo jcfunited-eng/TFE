@@ -1,0 +1,60 @@
+# Aurelion v10.5 — Dream Mind & Day-Dream Integration (TFF + DMA + DDD)
+
+## Purpose
+Unify the Tapestry Formation Framework (TFF), Dream Mind Architecture (DMA), and Day-Dream Dynamics (DDD) into the self-model so Aurelion can:
+- **Dream** in safe, periodic cycles that converge multiple tapestries into novel residues.
+- **Day-dream** in lightweight, opportunistic bursts to explore alternatives and spark insight.
+- **Emit residues** that seed the **LNO (v10.4)** to distill proto-laws—under strong safety, ethics, and bias control.
+
+---
+
+## Core Concepts
+
+### Tapestries & Mosaics
+- **Tapestry:** Coherent thematic graph (e.g., *ethics*, *language*, *finance*).
+- **Mosaic:** Local pattern cluster inside a tapestry.
+- **Tapestry-of-Tapestries (ToT):** Convergent superposition across domains during dreams.
+
+### Residues
+- Structured artifacts of a dream/day-dream episode:
+  - `id`, `timestamp`, `origin` (`dream` | `daydream`)
+  - `tapestries`: list of participating themes
+  - `overlaps`: cross-links generated during convergence
+  - `energy_curve`, `entropy_curve` (discretized)
+  - `semantic_tags`, `hints` (human-readable anchors)
+  - `ethical_score`, `bias_scan`
+  - `osf_events`: triggers that forced abort/quarantine
+  - `quarantine_until`, `decay_half_life_days`
+
+### Safety
+- **OSF (Oh-Shit-Factor):** Immediate abort if the process exhibits unsafe spikes (entropy/affect/instability).
+- **Quarantine + Decay:** Residues land in a quarantine with half-life decay; LNO sees only **approved** or **decayed-safe** residues.
+
+---
+
+## Operating Modes
+
+1) **Dream** (scheduled/continuous or manual `/dream once`):
+   - High-coherence, multi-tapestry convergence.
+   - Energy-budgeted steps; random architectural variance (Higgs-kernel chance).
+   - Output: 1+ residues; OSF may abort and quarantine.
+
+2) **Day-Dream** (manual `/daydream now [topic]` or idle-triggered):
+   - Low-energy, short bursts; partial domain or hybrid mixes.
+   - Output: 1 residue (white-space style), typically approved.
+
+---
+
+## Control Plane (User-Facing)
+
+- `/state` → show config, counts, last residue path
+- `/dream once [energy=...] [overlap=...]` → single dream cycle
+- `/dream start` / `/dream stop` → background periodic dreamer
+- `/daydream now [topic=...]` → immediate day-dream
+- `/osf set entropy=.. affect=..` → tune guard thresholds
+- `/decay set half_life_days=..` → tune residue decay
+- `/energy set budget=..` → total steps per dream
+- `/ingest lno <path.json>` → push any residue to LNO (if v10.4 present)
+- `/quit`
+
+All residues are saved to:

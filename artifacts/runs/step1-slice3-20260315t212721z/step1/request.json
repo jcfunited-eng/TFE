@@ -1,0 +1,19 @@
+{
+  "run_id": "step1-slice3-20260315t212721z",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "dependency_classification_register": {
+    "normalized_package": "classified",
+    "policy_bundle": "classified",
+    "model_bundle": "classified",
+    "config_bundle": "classified"
+  },
+  "target_environment": "production",
+  "requested_by": "codex",
+  "requested_at_utc": "2026-03-15T21:27:21.000Z",
+  "request_artifact_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/step1-slice3-20260315t212721z/step1/request.json",
+  "request_artifact_relative_path": "artifacts/runs/step1-slice3-20260315t212721z/step1/request.json"
+}

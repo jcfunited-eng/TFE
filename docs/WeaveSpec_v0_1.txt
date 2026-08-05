@@ -1,0 +1,466 @@
+WeaveSpec v0.1
+--------------
+Date: 2026-01-06
+Intent: canonical weave description format (apps as declarative bundles).
+
+0 Locked Decisions
+------------------
+
+WS-1 (Canonical serialization): JSON (UTF‑8) is the canonical form for v0.1 (recommended and now locked).
+WS-2 (Determinism): a WeaveSpec MUST be fully deterministic: no hidden randomness; stable ordering; explicit seeds.
+WS-3 (Validation): every weave MUST declare bounds and SafeMode behavior; UF hardening is mandatory.
+WS-4 (Interop hook): weaves MAY declare BSIL capture profiles and compatibility modes, but BSIL remains external to the weave core.
+
+
+Outline
+-------
+1. What a Weave Is
+2. How a Person Uses Weaves (1-page guide)
+3. Weave Lifecycle (Author → Validate → Mount → Run → Commit → Unmount)
+4. WeaveSpec JSON Structure
+5. Determinism and Seeds
+6. Law-Field and Goal Declarations
+7. Couplers (Input/Output)
+8. Memory Policy and Commit Policy
+9. Governance and Safety (UF + ArcLoom)
+10. Examples (Text Weave + Legacy Teacher Weave)
+11. Glossary
+12. Recommended Next Steps
+
+1. What a Weave Is
+------------------
+A Weave is the ArcLoom equivalent of an app. It specifies how the loom couples to inputs, how it constrains internal settling (laws/goals), what it commits to memory, and how it renders outputs. A weave is mounted, not executed.
+
+2. How a Person Uses Weaves
+---------------------------
+
+You do not need to write code to use a weave.
+
+How to use (plain steps):
+1) Pick a weave (example: “Text Weave”).
+2) Mount it (turn it on). The loom starts listening to inputs.
+3) Interact normally (type/speak/move/gesture). The loom forms episodes (gates) and commits stable motifs.
+4) The weave renders outputs (text/audio/graphics/actions) while staying bounded and safe.
+5) Unmount it (turn it off) when done.
+6) Export or share only if you choose (privacy controls apply).
+
+What you will see:
+• A “Now” panel: current DSF summary and stability status (Safe / Hold / SafeMode).
+• A “History” panel: committed strands (what became stable history).
+• A “Motifs” panel: reusable chunks the weave learned/used.
+
+If the system shows “SafeMode”:
+• It will stop taking outward actions and hold outputs.
+• You can keep interacting; it will resume after recovery.
+
+
+3. Lifecycle
+------------
+Defines the deterministic lifecycle of a weave from authoring to mounting to committing motifs.
+
+3.1 Lifecycle states
+--------------------
+
+Lifecycle states (normative):
+• AUTHORED: WeaveSpec exists.
+• VALIDATED: schema + bounds + UF/ArcLoom compatibility checks pass.
+• MOUNTED: couplers active; governance active.
+• RUNNING: UF emits DSF per gate; ArcLoom evolves ψ; outputs rendered.
+• COMMITTING: determinism thresholds met; strands committed to memory.
+• UNMOUNTED: couplers inactive; memory persisted.
+
+A weave MUST be VALIDATED before it can be MOUNTED.
+
+
+4. JSON structure
+-----------------
+Defines the canonical WeaveSpec JSON format and required fields.
+
+4.1 Schema
+----------
+
+Top-level object (required fields marked *):
+{
+  "weave_id": "string*", 
+  "version": "0.1*",
+  "title": "string*",
+  "description": "string",
+  "authors": ["string"],
+  "created_utc": "YYYY-MM-DDTHH:MM:SSZ*",
+
+  "couplers": { ... }*,
+  "uf_profile": { ... }*,
+  "arcloom_profile": { ... }*,
+
+  "laws": [ ... ]*,
+  "goals": [ ... ],
+  "memory_policy": { ... }*,
+  "commit_policy": { ... }*,
+  "governance": { ... }*,
+
+  "interop": { ... }   // optional: BSIL hooks
+}
+
+Canonicalization:
+• JSON must be UTF‑8.
+• Keys are sorted lexicographically for hashing.
+• Numeric fields must declare precision (e.g., "float32" or "float64") and clamp bounds.
+
+
+5. Determinism
+--------------
+Ensures a weave is deterministic and auditable.
+
+5.1 Determinism rules
+---------------------
+
+Determinism rules (normative):
+• If any randomized procedure exists, it MUST be driven by an explicit seed in WeaveSpec.
+• Tie-breaks MUST be specified (e.g., “lowest id wins”).
+• Precision MUST be specified (float32/float64) and used consistently.
+• All outputs MUST be bounded and SafeHold behavior must be explicit.
+
+Recommended option (and v0.1 locked): 
+Use float64 for UF/ArcLoom core calculations in reference implementations, and record hashes for replay.
+
+
+6 Laws and goals
+----------------
+Defines the declaration of Law-Fields and Goals as selectable constraint bundles.
+
+6.1 Law/Goal examples
+---------------------
+
+Law entry (example):
+{
+  "law_id": "symmetry.basic",
+  "weight": 0.25,
+  "family": "symmetry",
+  "params": { "type": "mirror", "axes": ["x"] },
+  "bounds": { "max_norm": 1.0 }
+}
+
+Goal entry (example):
+{
+  "goal_id": "text.coherence",
+  "weight": 0.40,
+  "family": "coherence",
+  "params": { "style": "plain", "max_len": 2000 },
+  "bounds": { "max_norm": 1.0 }
+}
+
+
+7 Couplers
+----------
+Defines input/output couplers for a weave. Couplers are the only ways a weave touches external reality.
+
+7.1 Coupler schema
+------------------
+
+Example couplers:
+"couplers": {
+  "inputs": [
+    {"id":"mic", "type":"audio", "sample_rate":16000, "schema":"pcm16"},
+    {"id":"kbd", "type":"text",  "schema":"utf8"},
+    {"id":"cam", "type":"vision", "schema":"motion_vectors"}
+  ],
+  "outputs": [
+    {"id":"screen", "type":"text_render", "max_rate_hz":30},
+    {"id":"speaker","type":"audio_render","max_rate_hz":60}
+  ]
+}
+
+Coupler rules (normative):
+• Outputs MUST declare max_rate_hz and max_magnitude.
+• Outputs MUST declare SafeHold behavior (usually “emit nothing”).
+
+
+8 Memory/commit
+---------------
+Defines how the weave stores history and what counts as a commit.
+
+8.1 Commit/memory examples
+--------------------------
+
+Commit policy (example):
+"commit_policy": {
+  "det_commit": 0.85,
+  "p_commit": 0.70,
+  "max_commits_per_min": 30,
+  "cooldown_gates": 2
+}
+
+Memory policy (example):
+"memory_policy": {
+  "motif_budget": 5000,
+  "strand_budget": 20000,
+  "decay": {"half_life_days": 30},
+  "landmarks": {"enabled": true, "max_landmarks": 200},
+  "export": {"default": "private", "allow_share": false}
+}
+
+
+9 Governance
+------------
+Governance binds the weave to UF hardening and defines SafeMode/SafeHold behavior.
+
+9.1 Governance example
+----------------------
+
+"governance": {
+  "uf_hardening": "required",
+  "safe_mode": {
+    "freeze_commits": true,
+    "freeze_memory_updates": true,
+    "disable_outputs": true
+  },
+  "output_bounds": { "y_max": 1.0, "max_actions_per_min": 60 },
+  "logging": { "trace_level": "full", "retain_days": 7 }
+}
+
+
+10 Examples
+-----------
+Two complete examples: a Text Weave and a Legacy Teacher Weave that hooks into BSIL.
+
+10.1 Text Weave example
+-----------------------
+{
+  "arcloom_profile": {
+    "mapinject_seed": "Seed_P_in_demo_text",
+    "n_int_max": 40,
+    "n_int_min": 4
+  },
+  "authors": [
+    "ArcLoom project"
+  ],
+  "commit_policy": {
+    "cooldown_gates": 1,
+    "det_commit": 0.85,
+    "max_commits_per_min": 20,
+    "p_commit": 0.7
+  },
+  "couplers": {
+    "inputs": [
+      {
+        "id": "kbd",
+        "schema": "utf8",
+        "type": "text"
+      },
+      {
+        "id": "mic",
+        "sample_rate": 16000,
+        "schema": "pcm16",
+        "type": "audio"
+      }
+    ],
+    "outputs": [
+      {
+        "id": "screen",
+        "max_magnitude": 1.0,
+        "max_rate_hz": 30,
+        "type": "text_render"
+      }
+    ]
+  },
+  "created_utc": "2026-01-06T00:00:00Z",
+  "description": "A weave for writing and editing text as episode-structured history with bounded outputs.",
+  "goals": [
+    {
+      "bounds": {
+        "max_norm": 1.0
+      },
+      "family": "coherence",
+      "goal_id": "text.coherence",
+      "params": {
+        "max_len": 4000,
+        "style": "plain"
+      },
+      "weight": 0.4
+    }
+  ],
+  "governance": {
+    "logging": {
+      "retain_days": 7,
+      "trace_level": "full"
+    },
+    "output_bounds": {
+      "max_actions_per_min": 60,
+      "y_max": 1.0
+    },
+    "safe_mode": {
+      "disable_outputs": true,
+      "freeze_commits": true,
+      "freeze_memory_updates": true
+    },
+    "uf_hardening": "required"
+  },
+  "laws": [
+    {
+      "bounds": {
+        "max_norm": 1.0
+      },
+      "family": "symmetry",
+      "law_id": "symmetry.basic",
+      "params": {
+        "type": "local_consistency"
+      },
+      "weight": 0.25
+    },
+    {
+      "bounds": {
+        "max_norm": 1.0
+      },
+      "family": "continuity",
+      "law_id": "continuity.basic",
+      "params": {
+        "window": 3
+      },
+      "weight": 0.25
+    }
+  ],
+  "memory_policy": {
+    "decay": {
+      "half_life_days": 60
+    },
+    "export": {
+      "allow_share": false,
+      "default": "private"
+    },
+    "landmarks": {
+      "enabled": true,
+      "max_landmarks": 100
+    },
+    "motif_budget": 2000,
+    "strand_budget": 5000
+  },
+  "title": "Plain Text Weave",
+  "uf_profile": {
+    "bounds": {
+      "delta_max": 10.0,
+      "sigma_max": 1000.0
+    },
+    "delta_min": 0.01,
+    "kappa_min": 0.01,
+    "sigma_min": 0.01,
+    "tau_D": 0.5
+  },
+  "version": "0.1",
+  "weave_id": "weave.text.plain.v01"
+}
+
+10.2 Legacy Teacher Weave example
+---------------------------------
+{
+  "arcloom_profile": {
+    "mapinject_seed": "Seed_P_in_demo_legacy",
+    "n_int_max": 40,
+    "n_int_min": 4
+  },
+  "authors": [
+    "ArcLoom project"
+  ],
+  "commit_policy": {
+    "cooldown_gates": 2,
+    "det_commit": 0.9,
+    "max_commits_per_min": 30,
+    "p_commit": 0.75
+  },
+  "couplers": {
+    "inputs": [],
+    "outputs": []
+  },
+  "created_utc": "2026-01-06T00:00:00Z",
+  "description": "A weave that mounts BSIL in Shadow\u2192Assist progression to ingest a legacy workflow as a story.",
+  "goals": [],
+  "governance": {
+    "logging": {
+      "retain_days": 7,
+      "trace_level": "full"
+    },
+    "output_bounds": {
+      "max_actions_per_min": 0,
+      "y_max": 1.0
+    },
+    "safe_mode": {
+      "disable_outputs": true,
+      "freeze_commits": true,
+      "freeze_memory_updates": true
+    },
+    "uf_hardening": "required"
+  },
+  "interop": {
+    "bsil": {
+      "capture_profile_id": "default_desktop",
+      "consent_required": true,
+      "enabled": true,
+      "mode_sequence": [
+        "shadow",
+        "assist"
+      ]
+    }
+  },
+  "laws": [
+    {
+      "bounds": {
+        "max_norm": 1.0
+      },
+      "family": "consistency",
+      "law_id": "consistency.episode",
+      "params": {
+        "type": "episode_chain"
+      },
+      "weight": 0.5
+    }
+  ],
+  "memory_policy": {
+    "decay": {
+      "half_life_days": 30
+    },
+    "export": {
+      "allow_share": false,
+      "default": "private"
+    },
+    "landmarks": {
+      "enabled": true,
+      "max_landmarks": 200
+    },
+    "motif_budget": 5000,
+    "strand_budget": 20000
+  },
+  "title": "Legacy Teacher Weave",
+  "uf_profile": {
+    "bounds": {
+      "delta_max": 10.0,
+      "sigma_max": 1000.0
+    },
+    "delta_min": 0.01,
+    "kappa_min": 0.01,
+    "sigma_min": 0.01,
+    "tau_D": 0.6
+  },
+  "version": "0.1",
+  "weave_id": "weave.legacy.teacher.v01"
+}
+
+11 Glossary
+-----------
+Glossary of weave terms.
+
+12 Next steps
+-------------
+Practical next steps to make WeaveSpec real and user-friendly.
+
+12 Next steps block
+-------------------
+
+Recommended next step (explicit):
+Use the Text Weave example as the first “hello weave” and validate it with:
+• UF noise robustness and adversarial input tests (where applicable),
+• SafeMode holds (no outward actions in SafeMode),
+• bounded outputs.
+
+If you want, tell me:
+• what your robot’s key sensors are (in plain words),
+and I will draft a robotics weave (still in WeaveSpec JSON) without requiring you to code.
+

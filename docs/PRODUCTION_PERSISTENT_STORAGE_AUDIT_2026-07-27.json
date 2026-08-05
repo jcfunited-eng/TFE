@@ -1,0 +1,223 @@
+{
+  "schema": "guala.production_persistent_storage_audit.v1",
+  "observed_at_utc": "2026-07-27T13:41:01Z",
+  "region": "us-east-1",
+  "account_id": "418384447921",
+  "production_topology": {
+    "ecs_cluster": "tfe-web-cluster",
+    "ecs_service": "dsf-ai-service-lb",
+    "task_definition": "dsf-ai-task:762",
+    "task_availability_zone": "us-east-1f",
+    "task_subnet": "subnet-0b44d1b06f5538685",
+    "task_private_ipv4": "172.31.75.4",
+    "container_mount_path": "/app/guala",
+    "container_mount_read_only": false,
+    "ecs_ephemeral_storage_gib": 20,
+    "efs": {
+      "file_system_id": "fs-0abb85854a3251b3c",
+      "root_directory": "/",
+      "transit_encryption": "ENABLED",
+      "access_point_id": null,
+      "encrypted_at_rest": true,
+      "performance_mode": "generalPurpose",
+      "throughput_mode": "bursting",
+      "size_in_bytes_observation": 2552145920,
+      "matched_task_mount_target": {
+        "mount_target_id": "fsmt-0c211a8ebd8735d7b",
+        "availability_zone": "us-east-1f",
+        "subnet_id": "subnet-0b44d1b06f5538685",
+        "ip_address": "172.31.66.255"
+      },
+      "other_mount_target": {
+        "mount_target_id": "fsmt-065567d4512f4b4d1",
+        "availability_zone": "us-east-1e",
+        "subnet_id": "subnet-0e38e8091dabcecae",
+        "ip_address": "172.31.58.153"
+      }
+    }
+  },
+  "authoritative_ceiling": {
+    "source": "operator_decision_2026-07-28",
+    "status": "candidate_configured_live_deployment_pending",
+    "approved_hard_global_refusal_ceiling_bytes": 5368709120,
+    "classification": "hard_global_write_refusal_ceiling_not_storage_target",
+    "decision_basis": "1917332185 post-purge observed bytes plus the configured 2147483648-byte maximum cold candidate plus approximately one GiB bounded operational headroom, rounded to exactly five binary GiB.",
+    "aws_efs_storage_byte_quota": null,
+    "current_efs_size_is_a_ceiling": false,
+    "ecs_ephemeral_storage_is_a_ceiling_for_efs": false,
+    "live_task_definition_revision": 764,
+    "live_task_definition_has_GUALA_PERSISTENT_STORAGE_CEILING_BYTES": false,
+    "candidate_deployment_definition_has_GUALA_PERSISTENT_STORAGE_CEILING_BYTES": true,
+    "required_infrastructure_fact": null,
+    "evidence": [
+      {
+        "file": "tools/deploy_dsf_ai.sh",
+        "contains": "\"GUALA_PERSISTENT_STORAGE_CEILING_BYTES\": \"5368709120\""
+      },
+      {
+        "file": "dsf_ai_service/app.py",
+        "contains": "operator-approved positive integer hard global refusal"
+      }
+    ]
+  },
+  "authority_integrated_repo_paths": [
+    {
+      "id": "sealed_cold_generation_commit",
+      "file": "dsf_ai_service/substrate/authoritative_cold_generation_store.py"
+    },
+    {
+      "id": "sealed_live_recovery_generation_commit",
+      "file": "dsf_ai_service/substrate/live_recovery_generation.py"
+    }
+  ],
+  "active_production_writers_outside_authority": [
+    {
+      "id": "process_lifetime_efs_owner_record",
+      "target": "/app/guala/.guala-owner.lock",
+      "mechanism": "create, truncate, rewrite, and fsync at sealed boot",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/app.py",
+          "contains": "owner = ProcessLifetimeEFSOwnerLock("
+        },
+        {
+          "file": "dsf_ai_service/substrate/deployment_generation.py",
+          "contains": "os.ftruncate(fd, 0)"
+        }
+      ]
+    },
+    {
+      "id": "verified_generation_active_materialization",
+      "target": "/app/guala/active and sibling materialization/retirement trees",
+      "mechanism": "copy verified generation bytes into a candidate tree, rename it active, and remove the prior tree",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/app.py",
+          "contains": "materialized_baseline = materialize_verified_generation("
+        },
+        {
+          "file": "dsf_ai_service/substrate/deployment_generation.py",
+          "contains": "_write_materialization(candidate, expected)"
+        }
+      ]
+    },
+    {
+      "id": "owner_scoped_hot_state_stage",
+      "target": "/app/guala/active/owner_state/*.tmp and guala_core.json.tmp",
+      "mechanism": "the current owner writes one bounded private stage per owner body; the authoritative publisher commits those staged bytes into the content-addressed live-recovery store and removes every stage before returning",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/app.py",
+          "contains": "_guala.save_hot_state(STATE_DIR)"
+        },
+        {
+          "file": "dsf_ai_service/v4/guala_physical_runtime_core.py",
+          "contains": "self._atomic_write("
+        },
+        {
+          "file": "dsf_ai_service/v4/guala_physical_runtime_core.py",
+          "contains": "_authoritative_hot_generation_publisher"
+        }
+      ]
+    },
+    {
+      "id": "ring_persistence_consumer",
+      "target": "/app/guala/active/ring_events/events.log and checkpoint-SEQ.json",
+      "mechanism": "live append, checkpoint temporary-file replace, truncation, and retention deletion",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/app.py",
+          "contains": "_pers = PersistenceConsumer("
+        },
+        {
+          "file": "dsf_ai_service/substrate/persistence_consumer.py",
+          "contains": "os.ftruncate(self._log_fd.fileno(), 0)"
+        }
+      ]
+    },
+    {
+      "id": "ring_s3_recovery_replacement",
+      "target": "s3://dsf-ai-site-backups/guala/checkpoints and guala/events",
+      "mechanism": "upload the bounded replacement checkpoint and receipt segment, then permanently delete every version and delete marker of the exact superseded keys before advancing the cursor",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/app.py",
+          "contains": "version_aware_retirement=_REQUIRE_SEALED_STATE"
+        },
+        {
+          "file": "dsf_ai_service/substrate/persistence_consumer.py",
+          "contains": "def _delete_all_object_versions(self, s3_key):"
+        }
+      ]
+    },
+    {
+      "id": "deployment_seal_and_transaction_metadata",
+      "target": "/app/guala/sealed/DEPLOYMENT_SEAL.json, deployment-seals/, and .deployment-transaction.lock",
+      "mechanism": "temporary-file publication, pointer replacement, reconciliation deletion, and transaction-lock creation around cold checkpoints",
+      "evidence": [
+        {
+          "file": "dsf_ai_service/substrate/deployment_generation.py",
+          "contains": "persist_generation_deployment_seal("
+        },
+        {
+          "file": "dsf_ai_service/substrate/deployment_generation.py",
+          "contains": "persist_deployment_seal("
+        },
+        {
+          "file": "dsf_ai_service/substrate/deployment_generation.py",
+          "contains": "lock_path = root / DEPLOYMENT_TRANSACTION_LOCK_NAME"
+        }
+      ]
+    }
+  ],
+  "examined_but_not_active_production_writers": [
+    {
+      "id": "binding_window_wal",
+      "reason": "Production constructs WindowManager with retain_closed_windows=False and no production caller configures its WAL."
+    },
+    {
+      "id": "reusable_substrate_event_log",
+      "reason": "EventLog supports PhysicalByteCeilingAuthority but the live app uses the bounded receipt-only PersistenceConsumer; the physical runtime keeps substrate observation receipts in memory."
+    },
+    {
+      "id": "legacy_crash_replay_event_log",
+      "reason": "The current physical runtime has no disk log_event, replay, rotation, or compaction writer. Sealed production leaves any legacy crash-replay body read-only."
+    },
+    {
+      "id": "durable_substrate_diary",
+      "reason": "The current physical runtime reports the disk diary retired with zero disk writes and retains bounded observational receipts in memory."
+    },
+    {
+      "id": "causal_speech_delivery_checkpoint",
+      "reason": "The legacy causal-speech module and checkpoint writer are deleted; current vocal consequence state is owner-scoped."
+    },
+    {
+      "id": "knowledge_gap_ledger",
+      "reason": "The bounded ledger can be read at boot but the current physical runtime has no record_compose_refusal or record_recognition_miss caller."
+    },
+    {
+      "id": "reading_prediction_ledger",
+      "reason": "The bounded ledger module remains, but the current physical runtime has no record_prediction caller."
+    },
+    {
+      "id": "picture_ingress_original",
+      "reason": "The bounded helper remains in app.py but has no route or runtime caller in the current production service."
+    },
+    {
+      "id": "legacy_periodic_snapshots",
+      "reason": "The snapshot and restore entry points fail closed; authenticated immutable generations are the only recovery authority."
+    },
+    {
+      "id": "dream_gate_marker",
+      "reason": "The retired deep-memory dream gate has no writer, boot dependency, or generation-stage copy."
+    },
+    {
+      "id": "human_s3_restore",
+      "reason": "The local restore writer is guarded as a human-only path and is not an automatic production writer."
+    },
+    {
+      "id": "remote_mode_video_handoff",
+      "reason": "The running ECS task is embedded uvicorn mode and has no remote substrate URL."
+    }
+  ]
+}

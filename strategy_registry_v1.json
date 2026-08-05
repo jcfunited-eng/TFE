@@ -1,0 +1,181 @@
+{
+  "generated_at_utc": "2026-03-10T02:04:17.611Z",
+  "status": "scaffold_only",
+  "cp_profile": "CP-0",
+  "rollout_state": "registry_only_no_behavior_change",
+  "lineage_baseline": "Section 9 strict lineage baseline for L5 revisions remains in force.",
+  "source_truth": [
+    "web_user_data/TFE_5_3_Implementation_Plan_v2_4.md",
+    "web_user_data/TFE_Specification_v2_4.tex",
+    "web_user_data/TFE_Spec_Internal_Review_v2_4.md",
+    "current_l5_code_truth_to_spec_gap_latest.json",
+    "exact_path_alignment_readiness_latest.json"
+  ],
+  "registry_name": "strategy_registry_v1",
+  "purpose": "Controlled strategy-family registry for A5 financial rulebook expansion. Families are declared and gated, but not yet wired into CP-0 decision behavior.",
+  "strategy_families": [
+    {
+      "id": "long_side_accumulation_hold_discipline",
+      "label": "Long-Side Accumulation / Hold Discipline",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "doctrine": [
+        "long-side accumulation",
+        "hold discipline",
+        "structural governance retained"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1762"
+      ]
+    },
+    {
+      "id": "short_side_downside_families",
+      "label": "Short-Side / Downside Families",
+      "applies_to": [
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "require_L0_exact",
+      "doctrine": [
+        "structural breakdown short",
+        "overvaluation mean-reversion short",
+        "catalyst-driven downside short",
+        "avoid-only protection mode"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1707"
+      ]
+    },
+    {
+      "id": "pattern_setup_tactical_overlays",
+      "label": "Pattern / Setup Tactical Overlays",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "require_L0_exact",
+      "doctrine": [
+        "deterministic setup overlays",
+        "cannot override hard blockers",
+        "versioned activation only"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1733"
+      ]
+    },
+    {
+      "id": "insider_ownership_rules",
+      "label": "Insider / Ownership Rules",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "doctrine": [
+        "provenance required",
+        "timestamp required",
+        "source confidence required"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1747"
+      ]
+    },
+    {
+      "id": "company_news_catalyst_rules",
+      "label": "Company News / Catalyst Rules",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "doctrine": [
+        "company-specific catalysts",
+        "sphere-of-impact aware",
+        "stale or ambiguous events degrade to abstention or no-op"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1747"
+      ]
+    },
+    {
+      "id": "sector_macro_epoch_intelligence",
+      "label": "Sector / Macro / War / Rates / Build-Cycle / Commodity Rules",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "doctrine": [
+        "epoch-aligned opportunity and avoidance",
+        "sector-condition interaction",
+        "world-condition operationalization"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1629",
+        "TFE_Specification_v2_4.tex:1661"
+      ]
+    },
+    {
+      "id": "valuation_margin_survivability_capital_preservation",
+      "label": "Survivability / Margin / Valuation / Capital-Preservation Rules",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "allow_L1_relaxed",
+      "doctrine": [
+        "hard blocks before structural attractiveness",
+        "valuation tension",
+        "margin discipline",
+        "capital preservation"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1596",
+        "TFE_Specification_v2_4.tex:1612"
+      ]
+    },
+    {
+      "id": "abstention_suppression_degraded_mode",
+      "label": "Explicit Abstention / Suppression / Degraded Mode",
+      "applies_to": [
+        "CP-0",
+        "CP-1",
+        "CP-2"
+      ],
+      "activation_state": "declared_not_active",
+      "minimum_match_requirement": "safe_only_L2_L3_L4",
+      "doctrine": [
+        "explicit abstention",
+        "suppression logic",
+        "degraded-mode hygiene"
+      ],
+      "source_refs": [
+        "TFE_5_3_Implementation_Plan_v2_4.md:A5",
+        "TFE_Specification_v2_4.tex:1762"
+      ]
+    }
+  ]
+}

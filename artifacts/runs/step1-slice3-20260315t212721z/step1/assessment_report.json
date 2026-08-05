@@ -1,0 +1,33 @@
+{
+  "assessment_report_id": "assessment_report_v1_1a5161b49da982b3f3f00fe3",
+  "candidate_bundle_id": "candidate_bundle_v1_07fd921c5865bf13c09f5002",
+  "assessment_rule_set_id": "assessment-rules-v1",
+  "disposition": "fail",
+  "blocking_reason_codes": [
+    "critical_dependency_unsatisfied"
+  ],
+  "blocking_reason_details": [
+    {
+      "reason_code": "critical_dependency_unsatisfied",
+      "reason_detail": "Forced fail for slice 3 proof.",
+      "dependency_id": "publication_gate",
+      "dependency_classification": "publication_critical"
+    }
+  ],
+  "evidence_references": [
+    {
+      "evidence_kind": "candidate_bundle_manifest",
+      "evidence_id": "candidate_bundle_v1_07fd921c5865bf13c09f5002",
+      "evidence_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/step1-slice3-20260315t212721z/step1/candidate_bundle/manifest.json",
+      "evidence_digest_sha256": "1b2b9ab407beea994ec8d5e7541dd6d5c938d037fd96e631f312418b7968c29a"
+    },
+    {
+      "evidence_kind": "assessment_rule_set",
+      "evidence_id": "assessment-rules-v1",
+      "evidence_path": null,
+      "evidence_digest_sha256": "cc61ce21fa90aae1648d2b12e96b3e0935e1331a7f32c03197865d8091c223a9"
+    }
+  ],
+  "publication_allowed": false,
+  "created_at_utc": "2026-03-15T21:27:29.494Z"
+}
