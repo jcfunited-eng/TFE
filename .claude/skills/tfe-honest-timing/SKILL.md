@@ -48,3 +48,14 @@ the fact is knowable is a bench victory.
 Never use Python's builtin hash() for species ids (salted per process —
 see the capacity-probe lesson). Use blake2b via the existing sp_id/hid
 helpers. Any engine must pass: two identical runs -> identical decisions.
+
+## Silence must be proven (added 2026-08-05)
+An engine that never finds and an engine that CANNOT find look
+identical on a quiet page. Any zero-activity streak must be proven
+against capability: replay the same ledger offline and confirm the
+live path would have taken the entries the replay shows. The 08-05 bug:
+entries only become computable one bar after their reveal date, but the
+engine acted only on "today"-dated events — structurally mute since
+launch, caught by Joe's nose, not by the determinism/parity tests.
+Boundary conditions at the live edge need their own test: inject a
+synthetic entry-yesterday case and assert the engine takes it.
