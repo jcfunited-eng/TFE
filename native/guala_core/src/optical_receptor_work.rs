@@ -80,16 +80,27 @@ pub(crate) enum OpticalReceptorWorkError {
     LatticeQuantumUnavailable,
     ResidueOutsideLattice,
     ResidueWidth,
+    OpeningWindowUnavailable,
 }
 
 /// One quantized optical delivery under the ratified 2026-08-05 law: light
 /// arrives as whole quanta on the receiving gate's existing dissipation
 /// lattice. The quantum count is DERIVED from the unchanged continuous
-/// `2·L·T` transduction law by exact-rational accumulation; the sub-quantum
-/// remainder is retained per-site state (same discipline as the retained
-/// charge-carrier phase residue), so delivered energy plus retained residue
-/// equals the exact `2·L·T` integral over any interval sequence — no rounding
-/// loss and no tuned coefficients.
+/// `2·L·T` transduction law by exact-rational accumulation; the remainder is
+/// retained per-site state (same discipline as the retained charge-carrier
+/// phase residue), so delivered energy plus retained residue equals the exact
+/// `2·L·T` integral over any interval sequence — no rounding loss and no
+/// tuned coefficients.
+///
+/// Law 1 (threshold-integrated delivery, ratified 2026-08-05): the receptor
+/// site INTEGRATES to threshold. The accumulator retains its energy across
+/// intervals and delivers only when the accumulated whole-quantum count
+/// reaches the receiving gate's own opening threshold; it then passes at most
+/// the gate's own window cap and retains the exact remainder. Both numbers
+/// are read from the gate's existing anatomy and state
+/// (`gate_opening_quantum_window`) — no new constant. A dark interval adds
+/// nothing, delivers nothing, and erases nothing: the law has no residue
+/// decay term and none was added.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct QuantizedOpticalDelivery {
     pub(crate) delivered_quanta: u128,
@@ -117,35 +128,47 @@ fn big_to_exact_rational(value: &BigRational) -> Result<ExactRational, OpticalRe
 }
 
 /// Integrate one interval's exact transduced energy into the per-site
-/// accumulator and deliver only whole lattice quanta. The predecessor residue
-/// must already lie inside `[0, quantum)`; the successor residue always does.
+/// accumulator and deliver whole lattice quanta only once the accumulated
+/// count reaches the receiving gate's opening threshold. The predecessor
+/// residue must be non-negative; the successor residue always is.
 pub(crate) fn quantize_optical_delivery(
     transduced_energy_zeptojoules: &BigRational,
     predecessor_residue: ExactRational,
     lattice_quantum_zeptojoules: &BigRational,
+    opening_threshold_quanta: u128,
+    window_cap_quanta: u128,
 ) -> Result<QuantizedOpticalDelivery, OpticalReceptorWorkError> {
     if lattice_quantum_zeptojoules <= &BigRational::zero() {
         return Err(OpticalReceptorWorkError::LatticeQuantumUnavailable);
+    }
+    if opening_threshold_quanta == 0 {
+        return Err(OpticalReceptorWorkError::OpeningWindowUnavailable);
     }
     if transduced_energy_zeptojoules.is_negative() {
         return Err(OpticalReceptorWorkError::SourceOutsideReferenceInterval);
     }
     let residue = exact_rational_to_big(predecessor_residue);
-    if residue.is_negative() || &residue >= lattice_quantum_zeptojoules {
+    if residue.is_negative() {
         return Err(OpticalReceptorWorkError::ResidueOutsideLattice);
     }
     let accumulated = residue + transduced_energy_zeptojoules;
-    let delivered_quanta_int = (&accumulated / lattice_quantum_zeptojoules)
+    let accumulated_quanta = (&accumulated / lattice_quantum_zeptojoules)
         .floor()
-        .to_integer();
-    let delivered_quanta = delivered_quanta_int
+        .to_integer()
         .to_u128()
         .ok_or(OpticalReceptorWorkError::ResidueWidth)?;
+    // Threshold-integrated delivery: below the receiving gate's own opening
+    // threshold NOTHING is delivered and everything is retained; at or above
+    // it, at most the gate's own window cap is passed.
+    let delivered_quanta = if accumulated_quanta < opening_threshold_quanta {
+        0
+    } else {
+        accumulated_quanta.min(window_cap_quanta)
+    };
     let delivered_energy_zeptojoules =
-        lattice_quantum_zeptojoules * BigRational::from_integer(delivered_quanta_int);
+        lattice_quantum_zeptojoules * BigRational::from_integer(BigInt::from(delivered_quanta));
     let successor_residue_big = accumulated - &delivered_energy_zeptojoules;
     debug_assert!(!successor_residue_big.is_negative());
-    debug_assert!(&successor_residue_big < lattice_quantum_zeptojoules);
     let successor_residue = big_to_exact_rational(&successor_residue_big)?;
     Ok(QuantizedOpticalDelivery {
         delivered_quanta,
@@ -305,7 +328,7 @@ mod tests {
     /// constants. Luminances span the full 8-bit lattice (k/255), dwell
     /// durations are deliberately irregular, and the sequence includes dark
     /// intervals; every step is checked bit-exactly and the invariant
-    /// `0 ≤ residue < quantum` is checked at every step.
+    /// `0 ≤ residue` is checked at every step.
     #[test]
     fn quantized_delivery_conserves_exact_2lt_over_arbitrary_interval_sequences() {
         let quantum = exact(1, 16);
@@ -333,17 +356,22 @@ mod tests {
                 * exact(*luminance_numerator, 255)
                 * exact(*dwell_numerator, *dwell_denominator);
             exact_total += &energy;
-            let delivery = quantize_optical_delivery(&energy, residue, &quantum).unwrap();
+            let delivery = quantize_optical_delivery(&energy, residue, &quantum, 17, 52).unwrap();
             delivered_total += &delivery.delivered_energy_zeptojoules;
             // Delivered energy is always a whole number of lattice quanta.
             assert_eq!(
                 &delivery.delivered_energy_zeptojoules,
                 &(&quantum * BigRational::from_integer(delivery.delivered_quanta.into()))
             );
+            // Law 1: a delivery is either nothing at all or lies inside the
+            // receiving gate's own opening window.
+            assert!(
+                delivery.delivered_quanta == 0
+                    || (17..=52).contains(&delivery.delivered_quanta)
+            );
             residue = delivery.successor_residue;
             let residue_big = exact_rational_to_big(residue);
             assert!(residue_big >= BigRational::zero());
-            assert!(residue_big < quantum);
             // Bit-exact conservation at EVERY step, not only at the end.
             assert_eq!(&delivered_total + &residue_big, exact_total);
         }
@@ -352,29 +380,113 @@ mod tests {
         assert!(exact_rational_to_big(residue) > BigRational::zero());
     }
 
+    /// Law 1 proof obligation: a sequence that never reaches the receiving
+    /// gate's opening threshold delivers EXACTLY ZERO and retains ALL of it,
+    /// and dark intervals neither deliver nor erase the retained residue.
+    /// These are the real served numbers: a 250 ms hop of the brightest real
+    /// card site (L = 217/255) transduces 2·L·T ≈ 0.4255 zJ ≈ 6.8 lattice
+    /// quanta, far under the 17-quantum barrier of a fresh gate.
+    #[test]
+    fn sub_threshold_sequences_deliver_nothing_and_retain_everything() {
+        let quantum = exact(1, 16);
+        let hop = exact(2, 1) * exact(217, 255) * exact(1, 4);
+        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut exact_total = BigRational::zero();
+        // Two lit hops stay under the threshold (about 13.6 quanta).
+        for _ in 0..2 {
+            exact_total += &hop;
+            let delivery = quantize_optical_delivery(&hop, residue, &quantum, 17, 52).unwrap();
+            assert_eq!(delivery.delivered_quanta, 0);
+            assert!(delivery.gate_work.is_zero());
+            residue = delivery.successor_residue;
+            assert_eq!(exact_rational_to_big(residue), exact_total);
+        }
+        // A dark interval delivers nothing and erases nothing.
+        let dark =
+            quantize_optical_delivery(&BigRational::zero(), residue, &quantum, 17, 52).unwrap();
+        assert_eq!(dark.delivered_quanta, 0);
+        assert_eq!(dark.successor_residue, residue);
+        // The third lit hop crosses the threshold (about 20.4 quanta).
+        exact_total += &hop;
+        let crossed = quantize_optical_delivery(&hop, residue, &quantum, 17, 52).unwrap();
+        assert_eq!(crossed.delivered_quanta, 20);
+        assert_eq!(
+            &crossed.delivered_energy_zeptojoules
+                + exact_rational_to_big(crossed.successor_residue),
+            exact_total
+        );
+    }
+
+    /// Law 1 proof obligation: an accumulation beyond the receiving gate's
+    /// own window cap passes exactly the cap and RETAINS the whole exact
+    /// remainder — several quanta, not a sub-quantum crumb.
+    #[test]
+    fn accumulation_beyond_the_window_cap_delivers_the_cap_and_retains_the_rest() {
+        let quantum = exact(1, 16);
+        let energy = &quantum * BigRational::from_integer(70.into()) + exact(1, 32);
+        let delivery = quantize_optical_delivery(
+            &energy,
+            ExactRational::new(0, 1).unwrap(),
+            &quantum,
+            17,
+            52,
+        )
+        .unwrap();
+        assert_eq!(delivery.delivered_quanta, 52);
+        assert_eq!(
+            exact_rational_to_big(delivery.successor_residue),
+            &quantum * BigRational::from_integer(18.into()) + exact(1, 32)
+        );
+        assert_eq!(
+            &delivery.delivered_energy_zeptojoules
+                + exact_rational_to_big(delivery.successor_residue),
+            energy
+        );
+    }
+
     #[test]
     fn quantized_delivery_refuses_unlawful_residue_and_lattice() {
         let quantum = exact(1, 16);
         let energy = exact(1, 8);
         assert_eq!(
-            quantize_optical_delivery(&energy, ExactRational::new(-1, 32).unwrap(), &quantum),
+            quantize_optical_delivery(
+                &energy,
+                ExactRational::new(-1, 32).unwrap(),
+                &quantum,
+                17,
+                52
+            ),
             Err(OpticalReceptorWorkError::ResidueOutsideLattice)
         );
         assert_eq!(
-            quantize_optical_delivery(&energy, ExactRational::new(1, 16).unwrap(), &quantum),
-            Err(OpticalReceptorWorkError::ResidueOutsideLattice)
-        );
-        assert_eq!(
-            quantize_optical_delivery(&energy, ExactRational::new(0, 1).unwrap(), &exact(0, 1)),
+            quantize_optical_delivery(
+                &energy,
+                ExactRational::new(0, 1).unwrap(),
+                &exact(0, 1),
+                17,
+                52
+            ),
             Err(OpticalReceptorWorkError::LatticeQuantumUnavailable)
         );
         assert_eq!(
             quantize_optical_delivery(
                 &exact(-1, 16),
                 ExactRational::new(0, 1).unwrap(),
-                &quantum
+                &quantum,
+                17,
+                52
             ),
             Err(OpticalReceptorWorkError::SourceOutsideReferenceInterval)
+        );
+        assert_eq!(
+            quantize_optical_delivery(
+                &energy,
+                ExactRational::new(0, 1).unwrap(),
+                &quantum,
+                0,
+                52
+            ),
+            Err(OpticalReceptorWorkError::OpeningWindowUnavailable)
         );
     }
 

@@ -1562,9 +1562,13 @@ pub(crate) fn encode_neuron_physical_state(
         || state.plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
         || state.dna_expression.expressed_product_quanta > anatomy.dna_expression.product_capacity
         || state.dna_expression.waste_quanta > anatomy.dna_expression.waste_capacity
+        // Law 1 (threshold-integrated delivery, ratified 2026-08-05): the
+        // receptor accumulator RETAINS energy across intervals until the
+        // receiving gate's own opening threshold is reached, so a lawful
+        // residue is routinely several whole quanta.  Its only canonical
+        // bound is non-negativity; no anatomy number bounds it from above,
+        // and inventing one would silently destroy retained energy.
         || rational_to_exact(state.optical_quantum_residue) < Exact::zero()
-        || rational_to_exact(state.optical_quantum_residue)
-            >= anatomy.gate.dissipation_quantum_zeptojoules
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
@@ -1709,9 +1713,9 @@ pub(crate) fn decode_neuron_physical_state(
         .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
     if plastic.rest_length_nanometres.parts().0 <= 0
         || plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
+        // Law 1: a retained receptor accumulator is bounded only by
+        // non-negativity (see the encoder).
         || rational_to_exact(optical_quantum_residue) < Exact::zero()
-        || rational_to_exact(optical_quantum_residue)
-            >= anatomy.gate.dissipation_quantum_zeptojoules
         || !reader.finished()
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
@@ -2195,6 +2199,65 @@ fn gate_open_minus_closed_free_energy(
         delta_g -= &contact.open_minus_closed_coupling_zeptojoules * cosine;
     }
     Ok(delta_g)
+}
+
+/// The receiving gate's own opening window, in whole dissipation-lattice
+/// quanta, for the pending local interval.
+///
+/// Ratified 2026-08-05 (Law 1, threshold-integrated delivery). Nothing here
+/// is a new constant: the barrier is this gate's existing exact
+/// open-minus-closed free energy with ZERO receptor work (its chemical,
+/// plastic-support, electrical, and psi-contact terms), read on the same
+/// lattice the gate already dissipates on; the cap is that barrier plus the
+/// gate's declared dissipation capacity, which is the most work one
+/// conformational settlement can lawfully dissipate once the recovery
+/// reaction has freed the gate's full capacity.
+///
+/// * `opening_threshold_quanta` — the least whole quantum count whose work
+///   drives the gate's free energy strictly downhill (`floor(barrier) + 1`).
+/// * `window_cap_quanta` — the greatest whole quantum count whose settlement
+///   still fits the gate's declared dissipation capacity.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct GateOpeningQuantumWindow {
+    pub(crate) opening_threshold_quanta: u128,
+    pub(crate) window_cap_quanta: u128,
+}
+
+pub(crate) fn gate_opening_quantum_window(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    perspective: JointNeuronPerspective<'_>,
+) -> Result<GateOpeningQuantumWindow, NeuronPhysicalError> {
+    let mathloom = settle_shared_dsf_mathloom(perspective, anatomy.mathloom)?;
+    let psi = settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?;
+    let barrier = gate_open_minus_closed_free_energy(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &predecessor.plastic,
+        predecessor.membrane,
+        anatomy.capacitance,
+        &psi.successor,
+        &GateWorkOccurrence::new(Exact::zero()),
+    )?;
+    let barrier_quanta = if barrier.is_positive() {
+        (&barrier / &anatomy.gate.dissipation_quantum_zeptojoules)
+            .floor()
+            .to_integer()
+            .to_u128()
+            .ok_or(GateSettlementError::ArithmeticWidth)?
+    } else {
+        0
+    };
+    let opening_threshold_quanta = barrier_quanta
+        .checked_add(1)
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let window_cap_quanta = barrier_quanta
+        .checked_add(anatomy.gate.dissipation_capacity_quanta)
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    Ok(GateOpeningQuantumWindow {
+        opening_threshold_quanta,
+        window_cap_quanta,
+    })
 }
 
 /// Exact recovery reaction extents needed for every currently downhill gate

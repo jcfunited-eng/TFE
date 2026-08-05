@@ -16,8 +16,8 @@
 //! or three retained fractals.
 
 use crate::complete_neuron::{
-    sparse_physical_state_delta, DnaExpressionContact, GateWorkOccurrence, NeuronIntervalInput,
-    RecoveryContact, SparsePhysicalStateDelta,
+    gate_opening_quantum_window, sparse_physical_state_delta, DnaExpressionContact,
+    GateWorkOccurrence, NeuronIntervalInput, RecoveryContact, SparsePhysicalStateDelta,
 };
 use crate::developmental_electrical_anatomy::{
     DevelopmentalElectricalError, DevelopmentalElectricalSeed,
@@ -1094,22 +1094,39 @@ impl ResidentCognitiveFormationState {
                                 // Quantized optical transduction (ratified
                                 // 2026-08-05): the unchanged 2·L·T law is
                                 // integrated into the site's retained
-                                // exact-rational accumulator and only whole
-                                // gate-lattice quanta are delivered as work;
-                                // the sub-quantum remainder is retained
-                                // per-site state.
+                                // exact-rational accumulator and whole
+                                // gate-lattice quanta are delivered as work
+                                // ONLY once the accumulation reaches the
+                                // receiving gate's own opening threshold
+                                // (Law 1); the remainder is retained per-site
+                                // state.
                                 let receptor = derive_optical_receptor_work(
                                     source,
                                     perspective,
                                     &optical_anatomy,
                                 )
                                 .map_err(FormationError::OpticalWorkUnavailable)?;
+                                let window = gate_opening_quantum_window(
+                                    &cohort.anatomy.neuron_anatomies()[resident_index],
+                                    &cohort.state.neurons()[resident_index],
+                                    perspective,
+                                )
+                                .map_err(|error| {
+                                    FormationError::PhysicalSettlementUnavailable(
+                                        ReachedCohortError::Neuron {
+                                            neuron_index: resident_index,
+                                            error,
+                                        },
+                                    )
+                                })?;
                                 let delivery = quantize_optical_delivery(
                                     &receptor.transduced_energy_zeptojoules,
                                     cohort.state.neurons()[resident_index]
                                         .optical_quantum_residue,
                                     cohort.anatomy.neuron_anatomies()[resident_index]
                                         .gate_dissipation_quantum_zeptojoules(),
+                                    window.opening_threshold_quanta,
+                                    window.window_cap_quanta,
                                 )
                                 .map_err(FormationError::OpticalWorkUnavailable)?;
                                 (

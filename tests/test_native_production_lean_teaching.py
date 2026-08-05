@@ -147,25 +147,34 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     )
     assert third["observation"]["complete_neuron_count"] == LESSON_PORTS
 
-    # PIN CHANGED by the quantized-light law, measured before/after:
-    #   byte-flatness first holds at lesson  BEFORE 2->3  ->  AFTER 3->4
-    # The body takes exactly ONE one-time growth step when the retained
-    # experience is completed (pre- and post-quiescence cohort states are
-    # stored).  Under the old law the second lesson was bit-identical to the
-    # first, so that completion landed on lesson 2 and lessons 2 and 3 were
-    # already equal.  Under the ratified law the advancing retained residue
-    # makes lesson 2 a genuine new settlement, so the completion lands one
-    # lesson later.  Measured bodies, alphabet-a, this exact path:
-    #   L1 1130398, L2 1130430, L3 1940702, L4 1940702, L5 1940702, L6 1940702
-    # The bound itself is unchanged: flat forever after the completion.
+    # PIN CHANGED by Law 1 (threshold-integrated delivery, ratified
+    # 2026-08-05), measured before/after on this exact path:
+    #   L3 == L4 body bytes   BEFORE true  ->  AFTER false (+2016 bytes)
+    # Under the previous law the receptor delivered whole quanta on every
+    # interval but never enough to open a gate, so from the retained-
+    # experience completion onward the body was byte-FLAT.  Under Law 1 the
+    # per-site accumulator retains energy ACROSS lessons and crosses the
+    # gate's own opening threshold on the third lesson: gates open, charge
+    # crosses the authored chain contacts, and the persisted sparse deltas
+    # genuinely differ from lesson to lesson.  The lean bound is therefore
+    # restated as a measured PLATEAU rather than byte equality.  Measured
+    # bodies, alphabet-a, this exact path, 50 consecutive lessons:
+    #   L1 1130398, L2 1130430, L3 1947509, L4 1949525, L5 1981875,
+    #   L6..L14 1982085-1982127, L15 2014393, L16..L50 2014351-2014393
+    # Three one-time steps (the retained-experience completion and two 32 kB
+    # steps) and then flat within 42 bytes for the remaining 35 lessons: the
+    # body stays bounded, it does not grow with age.
     fourth_status, fourth = _teach(CARD_ID)
     assert fourth_status == 200
     assert (
         fourth["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
     )
+    assert fourth["persisted"]["state_bytes"] >= third["persisted"]["state_bytes"]
     assert (
-        fourth["persisted"]["state_bytes"] == third["persisted"]["state_bytes"]
+        fourth["persisted"]["state_bytes"]
+        <= third["persisted"]["state_bytes"] + 4096
     )
+    assert fourth["persisted"]["state_bytes"] <= 2_100_000
     assert fourth["observation"]["complete_neuron_count"] == LESSON_PORTS
 
     # The public observation cache reflects the committed generations.

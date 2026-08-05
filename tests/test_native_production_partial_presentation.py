@@ -133,28 +133,39 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         == partial["persisted"]["state_sha256"]
     )
 
-    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified quantized
-    # optical transduction law): the glimpse commits lawfully but admits no
-    # mosaic.  The real card's optical energy over ONE 250 ms served hop is
-    # still below the gate's +1 zJ plastic support barrier (the brightest
-    # site delivers 7 whole 1/16 zJ lattice quanta; 17 are needed), so no
-    # conformation opens, no current crosses the chain contacts, and the dark
-    # card members never change.  This is recorded, never forced: if the
-    # substrate ever admits one, these assertions report it instead of
-    # hiding it.
+    # MEASURED PHYSICS (2026-08-05, re-measured under Law 1, threshold-
+    # integrated delivery): the glimpse commits lawfully, now genuinely OPENS
+    # gates, and still admits no mosaic.  What changed physically: the
+    # per-site accumulator retains its 2*L*T energy across lessons, so after
+    # two full lessons the brightest lit sites carry ~15 of the 1/16 zJ
+    # lattice quanta; the glimpse hop takes them past the gate's own opening
+    # threshold (17 quanta = the +1 zJ plastic support barrier plus one), the
+    # 12 lit chain-prefix sites open, charge crosses the 500 pS chain
+    # contacts into the dark members, and the eight dark ended hops close the
+    # gates again (measured probe: 81 gate quanta dissipated, 0 gates left
+    # open).
     #
-    # PIN CHANGED by the quantized-light law, measured before/after:
-    #   physically_transitioned_neuron_count  BEFORE 0  ->  AFTER 12
-    # Before, the retained receptor state was bit-identical across identical
-    # presentations, so a repeat glimpse changed nothing.  The ratified law
-    # gives every site a retained exact-rational sub-quantum residue that
-    # advances whenever light is integrated, so the 12 lit chain-prefix sites
-    # now genuinely transition (12 == PARTIAL_PRESENTATION_SITE_COUNT).  The
-    # 15 dark sites still do not change, which is why no mosaic is admitted.
+    # PIN CHANGED by Law 1, measured before/after on this exact path:
+    #   physically_transitioned_neuron_count  BEFORE 12  ->  AFTER 57
+    # 57 is the summed per-hop count over the glimpse and its eight ended
+    # hops: 12 lit sites on the glimpse hop plus the chain neighbours whose
+    # membrane charge the recurrence current actually moves while the
+    # injected charge redistributes.
+    #
+    # The mosaic is still refused, and the refusal reason is now a DIFFERENT
+    # one, read from the physics itself (measurement probe replaying
+    # admit_physical_mosaic on the persisted body): OriginalRelationNotConnected.
+    # The retained ORIGINAL experience is the second full lesson's, which
+    # settled with zero gate openings and therefore zero active electrical
+    # contacts, so its members are not connected by any active relation.  No
+    # electrically active experience has been retained in its place because
+    # inter-neuron charge settlement does not quiesce (see the 2026-08-05
+    # Law 2 diagnosis: whole-elementary-charge oscillation along the chain).
+    # This is recorded, never forced: if the substrate ever admits a mosaic,
+    # these assertions report it instead of hiding it.
     if observed.cognitive_mosaic_count == 0:
         assert (
-            partial["totals"]["physically_transitioned_neuron_count"]
-            == production.PARTIAL_PRESENTATION_SITE_COUNT
+            partial["totals"]["physically_transitioned_neuron_count"] == 57
         )
         assert observed.partial_cue_reassembly_count == 0
     else:

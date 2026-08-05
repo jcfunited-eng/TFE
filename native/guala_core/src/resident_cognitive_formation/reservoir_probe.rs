@@ -187,8 +187,91 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         dna_waste += waste;
     }
 
+    // Law 2 diagnosis (measurement only): the exact separated membrane charge
+    // of every neuron and the retained sub-charge phase of every authored
+    // chain contact, so an external driver can see whether inter-neuron
+    // settlement is still moving WHOLE elementary charges or only carrying
+    // sub-charge phase.
+    let membrane_separated_elementary_charges = cohort
+        .state
+        .neurons()
+        .iter()
+        .map(|state| {
+            state
+                .membrane_state()
+                .separated_elementary_charges()
+                .to_string()
+        })
+        .collect::<Vec<String>>();
+    let contact_carrier_phases = cohort
+        .state
+        .electrical()
+        .contact_states()
+        .iter()
+        .map(|contact| {
+            let (numerator, denominator) = contact.carrier_phase().parts();
+            format!("{numerator}/{denominator}")
+        })
+        .collect::<Vec<String>>();
+
+    // Recognition verdict (measurement only): replay EXACTLY the admission
+    // decision `settle_resident_recurrence_interval` makes — same retained
+    // experience, same learned state, same current cohort state, same
+    // recurrence bits — and report the physics' own refusal variant instead
+    // of inferring one.
+    let recognition = match (
+        cohort.retained_experience.as_ref(),
+        cohort
+            .retained_experience
+            .as_ref()
+            .and_then(|retained| retained.post_experience_quiescent.as_ref()),
+    ) {
+        (Some(retained), Some(learned)) => {
+            let recurrence = cohort.pending_recurrence.as_ref();
+            let original = super::original_settlement(&cohort.anatomy, retained, learned)
+                .expect("original settlement");
+            let actual = super::recurrence_settlement(
+                &cohort.anatomy,
+                learned,
+                cohort.state.clone(),
+                recurrence.map_or_else(
+                    || vec![false; cohort.anatomy.neuron_count()].into_boxed_slice(),
+                    |evidence| evidence.gate_work_perturbed_neurons.clone(),
+                ),
+                recurrence.map_or_else(
+                    || vec![false; cohort.anatomy.contact_count()].into_boxed_slice(),
+                    |evidence| evidence.active_recurrence_contacts.clone(),
+                ),
+            )
+            .expect("recurrence settlement");
+            let verdict = match crate::physical_mosaic::admit_physical_mosaic(
+                &cohort.anatomy,
+                &original,
+                &actual,
+            ) {
+                Ok(_) => "admitted".to_string(),
+                Err(error) => format!("{error:?}"),
+            };
+            json!({
+                "retained_experience": true,
+                "pending_recurrence": recurrence.is_some(),
+                "pending_experience": cohort.pending_experience.is_some(),
+                "verdict": verdict,
+            })
+        }
+        _ => json!({
+            "retained_experience": cohort.retained_experience.is_some(),
+            "pending_recurrence": cohort.pending_recurrence.is_some(),
+            "pending_experience": cohort.pending_experience.is_some(),
+            "verdict": "no retained experience",
+        }),
+    };
+
     json!({
         "neuron_count": cohort.anatomy.neuron_count(),
+        "recognition": recognition,
+        "membrane_separated_elementary_charges": membrane_separated_elementary_charges,
+        "contact_carrier_phases": contact_carrier_phases,
         "gate_state": {
             "total_open_population": gate_open_population.to_string(),
             "neurons_with_open_gates": neurons_with_open_gates,
