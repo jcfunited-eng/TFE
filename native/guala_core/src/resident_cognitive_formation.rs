@@ -32,10 +32,12 @@ use crate::hippocampal_sparse_path::{
 };
 use crate::joint_source_episode::NativeJointSourceEpisode;
 #[cfg(test)]
-use crate::joint_uf_neuron_boundary::prepare_complete_joint_field;
+use crate::joint_uf_neuron_boundary::prepare_complete_joint_field_admitted_fixture;
 use crate::joint_uf_neuron_boundary::{
     bind_neuron_perspective, prepare_complete_joint_field_with_admission, JointNeuronBoundaryError,
 };
+#[cfg(test)]
+use crate::joint_uf_source_adapter::admitted_fixture_episode;
 use crate::joint_uf_source_adapter::{AdmittedJointSourceEpisode, JointUfSourceError};
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, encode_neuron_source_site, NeuronSourceSite,
@@ -655,8 +657,8 @@ impl ResidentCognitiveFormationState {
         if self.hippocampal.checkpoint().root().is_some() {
             return Err(FormationError::HippocampalPublicationRequired);
         }
-        self.prepare_with_hippocampal_cold(
-            source,
+        self.prepare_admitted_with_hippocampal_cold(
+            &admitted_fixture_episode(source),
             &HippocampalColdStore::default(),
             max_encoded_bytes,
         )
@@ -3032,7 +3034,8 @@ mod tests {
         occurrence_index: usize,
         conductance_picosiemens: i128,
     ) -> DevelopmentalElectricalSeed {
-        let shared = prepare_complete_joint_field(source, occurrence_index).unwrap();
+        let shared =
+            prepare_complete_joint_field_admitted_fixture(source, occurrence_index).unwrap();
         let sites = (0..shared.vertex_count())
             .map(|coordinate_index| {
                 let perspective = bind_neuron_perspective(&shared, coordinate_index, 0).unwrap();
@@ -3518,7 +3521,7 @@ mod tests {
             .collect::<Vec<_>>();
         let recurrence_fields = recurrence_sources
             .iter()
-            .map(|source| prepare_complete_joint_field(source, 0).unwrap())
+            .map(|source| prepare_complete_joint_field_admitted_fixture(source, 0).unwrap())
             .collect::<Vec<_>>();
         let cohort = &restored.cohorts[0];
         let catalysts = cohort
@@ -3542,7 +3545,11 @@ mod tests {
         RESIDENT_ACTUAL_RECURRENCE_SETTLEMENTS.with(|count| count.set(0));
         for source in &recurrence_sources {
             let mut prepared = integrated
-                .prepare_with_hippocampal_cold(source, &hippocampal_cold, 16_000_000)
+                .prepare_admitted_with_hippocampal_cold(
+                    &admitted_fixture_episode(source),
+                    &hippocampal_cold,
+                    16_000_000,
+                )
                 .unwrap();
             if let Some(receipt) = prepared.observation.mosaic_formed {
                 assert_eq!(prepared.observation.mosaic_count, 1);
@@ -3603,7 +3610,11 @@ mod tests {
         let predecessor_mosaics = integrated.mosaics.clone();
         RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(0));
         let warm_growth = integrated
-            .prepare_with_hippocampal_cold(&five_receptor_occurrence, &hippocampal_cold, 16_000_000)
+            .prepare_admitted_with_hippocampal_cold(
+                &admitted_fixture_episode(&five_receptor_occurrence),
+                &hippocampal_cold,
+                16_000_000,
+            )
             .unwrap();
         RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| {
             assert_eq!(
@@ -3612,7 +3623,11 @@ mod tests {
             );
         });
         let cold_growth = cold_integrated
-            .prepare_with_hippocampal_cold(&five_receptor_occurrence, &hippocampal_cold, 16_000_000)
+            .prepare_admitted_with_hippocampal_cold(
+                &admitted_fixture_episode(&five_receptor_occurrence),
+                &hippocampal_cold,
+                16_000_000,
+            )
             .unwrap();
         assert_eq!(cold_growth, warm_growth);
         assert_eq!(warm_growth.successor.cohorts.len(), 1);
@@ -3670,7 +3685,11 @@ mod tests {
             let cue = exact_four_single_optical_episode(cue_index);
             for source in std::iter::once(&cue).chain(std::iter::repeat(&dark).take(8)) {
                 let mut prepared = progressive
-                    .prepare_with_hippocampal_cold(source, &progressive_cold, 16_000_000)
+                    .prepare_admitted_with_hippocampal_cold(
+                        &admitted_fixture_episode(source),
+                        &progressive_cold,
+                        16_000_000,
+                    )
                     .unwrap();
                 relation_events += prepared.observation.dynamic_formation_relation_count;
                 tapestry_events += prepared.observation.tapestry_activity_count;
@@ -3709,7 +3728,11 @@ mod tests {
         for cue in &generative_cues {
             for source in std::iter::once(cue).chain(std::iter::repeat(&dark).take(8)) {
                 let mut prepared = generative
-                    .prepare_with_hippocampal_cold(source, &generative_cold, 16_000_000)
+                    .prepare_admitted_with_hippocampal_cold(
+                        &admitted_fixture_episode(source),
+                        &generative_cold,
+                        16_000_000,
+                    )
                     .unwrap();
                 generative_recombination_events +=
                     prepared.observation.generative_recombination_count;

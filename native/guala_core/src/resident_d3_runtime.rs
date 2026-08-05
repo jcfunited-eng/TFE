@@ -1118,7 +1118,7 @@ mod tests {
 
     use super::*;
     use crate::hippocampal_sparse_path::HippocampalColdObject;
-    use crate::joint_uf_source_adapter::AdmittedJointSourceEpisode;
+    use crate::joint_uf_source_adapter::{admitted_fixture_episode, AdmittedJointSourceEpisode};
     use crate::local_cupula_hair_bundle_geometry::LocalCupulaBundleAnatomy;
     use crate::neuron_source_anchor::tests::{
         exact_four_dark_optical_episode, exact_four_partial_optical_episode,
@@ -1237,7 +1237,9 @@ mod tests {
         let mut runtime = ResidentD3Runtime::restore(original.clone(), budget(), &cold).unwrap();
         let body = runtime.yaw_body_state();
         let canal = runtime.canal_state();
-        let prepared = runtime.prepare(&source, Some(&cold)).unwrap();
+        let prepared = runtime
+            .prepare_admitted(&admitted_fixture_episode(&source), Some(&cold))
+            .unwrap();
         assert_eq!(cold.publish_calls, 0);
         let pending = runtime.pending.as_ref().unwrap();
         assert_eq!(pending.yaw_body, body);
@@ -1256,7 +1258,9 @@ mod tests {
         let mut runtime = ResidentD3Runtime::restore(genesis(None), budget(), &cold).unwrap();
         let body = runtime.yaw_body_state();
         let canal = runtime.canal_state();
-        let prepared = runtime.prepare(&source, Some(&cold)).unwrap();
+        let prepared = runtime
+            .prepare_admitted(&admitted_fixture_episode(&source), Some(&cold))
+            .unwrap();
         let pending_envelope = runtime.pending.as_ref().unwrap().envelope.clone();
         runtime.commit(prepared.token(), &mut cold).unwrap();
         assert_eq!(runtime.current_envelope(), pending_envelope);
@@ -1320,11 +1324,15 @@ mod tests {
 
         for receptor in 0..4 {
             let source = exact_four_single_optical_episode(receptor);
-            let prepared = runtime.prepare(&source, Some(&cold)).unwrap();
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(&source), Some(&cold))
+                .unwrap();
             runtime.commit(prepared.token(), &mut cold).unwrap();
         }
         for _ in 0..8 {
-            let prepared = runtime.prepare(&dark, Some(&cold)).unwrap();
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(&dark), Some(&cold))
+                .unwrap();
             runtime.commit(prepared.token(), &mut cold).unwrap();
         }
 
@@ -1336,7 +1344,9 @@ mod tests {
         for source in recurrence_sources {
             let active_before = runtime.current_envelope().to_vec();
             let publish_calls_before_prepare = cold.publish_calls;
-            let prepared = runtime.prepare(source, Some(&cold)).unwrap();
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(source), Some(&cold))
+                .unwrap();
             if !runtime
                 .pending
                 .as_ref()
@@ -1385,9 +1395,9 @@ mod tests {
         let source = exact_optical_episode();
         let mut cold = Cold::default();
         reset_resident_joint_field_evaluation_count();
-        let first = transition_native_resident_d3(
+        let first = transition_native_resident_d3_admitted(
             genesis(None),
-            &source,
+            &admitted_fixture_episode(&source),
             Some(&mut cold),
             budget().max_envelope_bytes,
             budget().max_cognitive_bytes,
@@ -1420,9 +1430,9 @@ mod tests {
             ResidentD3Runtime::restore(first.successor.clone(), budget(), &cold).unwrap();
         let first_lineages = restored.active.cognitive.retained_neuron_lineages();
         assert_eq!(first_lineages.len(), 1);
-        let second = transition_native_resident_d3(
+        let second = transition_native_resident_d3_admitted(
             first.successor,
-            &source,
+            &admitted_fixture_episode(&source),
             Some(&mut cold),
             budget().max_envelope_bytes,
             budget().max_cognitive_bytes,
@@ -1441,9 +1451,9 @@ mod tests {
         let legacy_receipt = [0x5a; 32];
         let source = exact_optical_episode();
         let mut cold = Cold::default();
-        let transitioned = transition_native_resident_d3(
+        let transitioned = transition_native_resident_d3_admitted(
             genesis(Some(legacy_receipt)),
-            &source,
+            &admitted_fixture_episode(&source),
             Some(&mut cold),
             budget().max_envelope_bytes,
             budget().max_cognitive_bytes,

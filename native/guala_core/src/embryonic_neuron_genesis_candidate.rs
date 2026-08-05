@@ -13,7 +13,7 @@ use crate::complete_neuron::{
 };
 use crate::exact_rational::ExactRational;
 use crate::joint_uf_neuron_boundary::{
-    bind_neuron_perspective, prepare_complete_joint_field, JointNeuronPerspective,
+    bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture, JointNeuronPerspective,
 };
 use crate::neuron_source_anchor::tests::exact_episode;
 use crate::neuron_source_anchor::{bind_neuron_source_anchor, NeuronSourceSite};
@@ -164,7 +164,7 @@ fn cohort_interval<'a>(
 #[test]
 fn one_candidate_neuron_forms_one_exact_retained_fractal_and_quiesces() {
     let episode = exact_episode();
-    let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+    let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
     let candidate = candidate_neuron(perspective);
     let predecessor = QuiescentNeuronState::from_state(candidate.state.clone());
@@ -192,7 +192,7 @@ fn one_candidate_neuron_forms_one_exact_retained_fractal_and_quiesces() {
 #[test]
 fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
     let episode = exact_episode();
-    let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+    let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
     let candidate = candidate_neuron(perspective);
     let predecessor = QuiescentNeuronState::from_state(candidate.state.clone());
@@ -263,7 +263,7 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
 #[test]
 fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     let episode = exact_episode();
-    let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+    let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let candidates = (0..4)
         .map(|index| candidate_neuron(bind_neuron_perspective(&shared, index, 0).unwrap()))
         .collect::<Vec<_>>();

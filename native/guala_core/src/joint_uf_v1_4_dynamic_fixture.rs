@@ -1,13 +1,26 @@
-//! Frozen independent oracle for a dynamic, irregular-clock vector occurrence.
+//! Frozen independent oracle for a dynamic, irregular-clock vector occurrence
+//! under the ratified declared-physical-bounds law (UF v1.4 joint lift,
+//! ratified 2026-08-04).
 //!
-//! Expected values were calculated directly from UF v1.4 equations outside
-//! the Rust evaluator and frozen as IEEE-754 bits.  This file deliberately
-//! performs no expected-value recomputation with production helpers.
+//! Expected values were computed independently from the UF v1.4 specification
+//! equations (UF_Spec_v1_4_0_skeleton) in IEEE-754 binary64, outside the Rust
+//! evaluator, and frozen as exact bits on 2026-08-05. The independent
+//! computation and this evaluator agreed bit-for-bit on every value below.
+//! This file deliberately performs no expected-value recomputation with
+//! production helpers.
+//!
+//! Declared physical bounds for this occurrence: both coordinates bounded to
+//! [-1, 1]; maximum admitted gate interval 100. The L2 normalization maxima
+//! are derived from these declared bounds, so the frozen bits are specific to
+//! this declaration.
 
 use num_bigint::BigInt;
 use num_rational::BigRational;
 
-use crate::joint_uf_v1_4::{evaluate, GateInterval, JointIntersampleLaw, JointUfInput, Regime};
+use crate::joint_uf_v1_4::{
+    evaluate_with_physical_bounds, GateInterval, JointIntersampleLaw, JointUfCoordinateBounds,
+    JointUfInput, JointUfPhysicalBounds, Regime,
+};
 
 fn rational(numerator: i64, denominator: i64) -> BigRational {
     BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
@@ -39,8 +52,12 @@ fn independent_dynamic_multigate_oracle_matches_every_l0_l4_family() {
         relevance: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
         intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
     };
-
-    let result = evaluate(input).unwrap();
+    let bounds = JointUfPhysicalBounds::new(
+        vec![JointUfCoordinateBounds::new(-1.0, 1.0).unwrap(); 2],
+        rational(100, 1),
+    )
+    .unwrap();
+    let result = evaluate_with_physical_bounds(input, bounds).unwrap();
     assert_eq!(result.sev.len(), 6);
     let expected_sev = [
         [
@@ -143,27 +160,27 @@ fn independent_dynamic_multigate_oracle_matches_every_l0_l4_family() {
         Regime::Transitional,
         Regime::Transitional,
         Regime::Volatile,
-        Regime::Degenerate,
+        Regime::Transitional,
         Regime::Transitional,
     ];
-    let hysteresis = [false, false, true, false, true];
-    let gate_open = [true, true, false, true, false];
+    let hysteresis = [false, false, false, false, false];
+    let gate_open = [true, true, true, true, true];
     let expected_gate_bits: [[u64; 21]; 5] = [
         [
             0x3fe0000000000000,
             0x3fc3eb851eb851ec,
             0x3fb3333333333334,
             0x0000000000000000,
-            0xbfe0000000000000,
-            0xbfdc8f21300cf2b0,
-            0xbfd428f5c28f5c29,
-            0x3fd955e0411e8650,
-            0x3fde3abbf8ca6434,
+            0x0000000000000000,
+            0x0000000000000000,
+            0x0000000000000000,
+            0x3f9e659aedfabcd5,
+            0x3fc699911f3fc7de,
             0x0000000000000000,
             0x3fd3eb851eb851ec,
-            0x3fe0ad29d4a05327,
-            0x3fe27de4c9ea8e7b,
-            0x3fe27de4c9ea8e7b,
+            0x0000000000000000,
+            0x3fd5d706d94cb659,
+            0x3fd5d706d94cb659,
             0x0000000000000000,
             0x0000000000000000,
             0x0000000000000000,
@@ -177,23 +194,23 @@ fn independent_dynamic_multigate_oracle_matches_every_l0_l4_family() {
             0x3fe247ae147ae148,
             0x3fd0000000000000,
             0x3fd003468688bb1a,
-            0x0000000000000000,
-            0xbf9f587967359160,
-            0xbfc1eb851eb851ec,
-            0x3fe73fe5f3ca46d2,
-            0x3fd8c32c32fc08f7,
-            0x3fd565486a90ccaa,
+            0x3fe0000000000000,
+            0x3fda99999999999a,
+            0x3fc6666666666666,
+            0x3fabe4f37184f01d,
+            0x3fc092eb59910e63,
+            0x3fc6a0bd78236471,
             0x3fe247ae147ae148,
-            0x3fb9d18d7028dfae,
-            0x3fdc54ae79dfde3d,
-            0x3fdc54ae79dfde3d,
+            0x3f44da85a7447900,
+            0x3fd12ab197d01550,
+            0x3fd12ab197d01550,
             0xbff0000000000000,
             0x0000000000000000,
             0x0000000000000000,
-            0x3fd565486a90ccaa,
+            0x3fc6a0bd78236471,
             0x4000000000000000,
             0x3ff0000000000000,
-            0xbfa5b97db2449e6e,
+            0xbf9841f19b03b09b,
         ],
         [
             0x3fe0000000000000,
@@ -201,68 +218,68 @@ fn independent_dynamic_multigate_oracle_matches_every_l0_l4_family() {
             0x3fc6666666666666,
             0x3fd7f74171e31b94,
             0xbfe0000000000000,
-            0xbfcab7dbf9b37efa,
-            0xbfcb851eb851eb86,
-            0x3ff0000000000000,
-            0x3fe46036be39e27c,
-            0x3fd00ec5fcd5d39c,
+            0xbfc6ccccccccccce,
+            0xbfb3333333333334,
+            0x3fb332496ca6d44c,
+            0x3fc88dea48cb7312,
+            0x3f8f0018a9429fe8,
             0x3fe928f5c28f5c29,
-            0x3fda4148755b4eeb,
-            0x3fe5184b3218ecd3,
-            0x0000000000000000,
-            0xbff0000000000000,
-            0xbfd3ad935fea9f84,
-            0x0000000000000000,
-            0x3fd6752c633c3a02,
+            0x3f409a240eef1127,
+            0x3fd66d90c275c36e,
+            0x3fd66d90c275c36e,
             0x3ff0000000000000,
-            0x0000000000000000,
-            0xbfbb337f052d00c1,
+            0x3fc3de68d8449e4e,
+            0x3ff0000000000000,
+            0x3f8f0018a9429fe8,
+            0x3ff0000000000000,
+            0x4000000000000000,
+            0xbf91845fad9fd533,
         ],
         [
             0x4000000000000000,
             0x3ff791a240e04531,
             0x3feccccccccccccd,
             0x3fb2919adc074266,
-            0x3ff0000000000000,
-            0x3febe0d2a20bfc8f,
-            0x3fe051eb851eb852,
-            0x3fedf9f024ee076b,
-            0x3fe753500c4f57cf,
-            0x3fd871977474c376,
+            0x3ff8000000000000,
+            0x3ff14764d03c6e27,
+            0x3fe7333333333334,
+            0x3fb1fb81e51aae7b,
+            0x3fbb7cd44e61b178,
+            0x3fd5855f218f9f89,
             0x3fe791a240e04531,
+            0x3f5ebec182997bd9,
+            0x3fcbfc954520d3fa,
+            0x3fcbfc954520d3fa,
+            0xbff0000000000000,
+            0xbfcb644a95160f1e,
             0x3ff0000000000000,
-            0x3fe69db0e49a32b3,
-            0x3fe69db0e49a32b3,
-            0x3ff0000000000000,
-            0x3ff2640410c510e9,
-            0x3ff0000000000000,
-            0x3fd871977474c376,
+            0x3fd5855f218f9f89,
             0x4008000000000000,
             0x4000000000000000,
-            0xbfb9cbccb5e1db4a,
+            0xbfae743b69bf25b0,
         ],
         [
             0x3ff0000000000000,
             0x3fdaa3d53eab2dcc,
             0x3fe199999999999a,
             0x3fdfd6f131dbf516,
-            0x0000000000000000,
-            0xbfc7c21d017bdbb4,
-            0x3fc47ae147ae147c,
-            0x3fe0f0efccaf9ae3,
-            0x3fd61597487b9acc,
-            0x3fe0000000000000,
-            0x3fdaa3d53eab2dcc,
-            0x3fc61321d57c8a90,
-            0x3fd81145d396156f,
-            0x0000000000000000,
             0xbff0000000000000,
-            0xbff69db0e49a32b3,
+            0xbff0e8acf13579be,
+            0xbfd6666666666666,
+            0x3fa4535b6ec139b8,
+            0x3fbff3e6c84e473d,
+            0x3fc7e84c4684f236,
+            0x3fdaa3d53eab2dcc,
+            0x3f572c530d38e185,
+            0x3fd0ccc021025c6d,
+            0x3fd0ccc021025c6d,
             0x3ff0000000000000,
-            0x3fe3333333333333,
+            0x3fc67b773cae97c2,
+            0x3ff0000000000000,
+            0x3fc7e84c4684f236,
             0x4000000000000000,
             0x4000000000000000,
-            0xbfc8325493ff5c28,
+            0xbfb31877f5ec47c5,
         ],
     ];
 

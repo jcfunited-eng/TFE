@@ -115,6 +115,25 @@ impl AdmittedJointSourceEpisode {
     }
 }
 
+/// Test-only fixture admission: every fixture episode authors its own
+/// coordinate bounds, and every fixture occurrence's source times span at
+/// most two units, so an explicit five-unit maximum causal interval admits
+/// every fixture gate without changing any evaluated value.
+#[cfg(test)]
+pub(crate) fn admitted_fixture_episode(
+    episode: &NativeJointSourceEpisode,
+) -> AdmittedJointSourceEpisode {
+    let ordered_admissions = (0..episode.joint_source_occurrences().len())
+        .map(|occurrence_index| {
+            (
+                occurrence_index,
+                JointUfSourceAdmission::new(BigRational::from_integer(5.into())).unwrap(),
+            )
+        })
+        .collect();
+    AdmittedJointSourceEpisode::new(episode.clone(), ordered_admissions).unwrap()
+}
+
 fn intersample_law(profile: &[u8]) -> Result<JointIntersampleLaw, JointUfSourceError> {
     if profile == SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE {
         Ok(JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear)

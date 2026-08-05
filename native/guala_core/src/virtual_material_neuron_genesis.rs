@@ -440,7 +440,9 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
 mod tests {
     use super::*;
     use crate::complete_neuron::{decode_neuron_physical_cell, encode_neuron_physical_cell};
-    use crate::joint_uf_neuron_boundary::{bind_neuron_perspective, prepare_complete_joint_field};
+    use crate::joint_uf_neuron_boundary::{
+        bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture,
+    };
     use crate::neuron_source_anchor::tests::exact_episode;
     use crate::reached_neuron_cohort::{decode_reached_cohort_cell, encode_reached_cohort_cell};
     use crate::sparse_electrical_contact::SparseElectricalAnatomy;
@@ -448,7 +450,7 @@ mod tests {
     #[test]
     fn production_genesis_is_exact_finite_and_cold_restorable() {
         let episode = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
         let genesis = create_virtual_material_neuron(perspective).unwrap();
         assert_eq!(
@@ -473,13 +475,15 @@ mod tests {
     #[test]
     fn reached_cohort_genesis_preserves_every_source_specialization_and_cell() {
         let episode = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let electrical = SparseElectricalAnatomy::new(shared.vertex_count(), Vec::new()).unwrap();
         let lineages = (1..=shared.vertex_count())
             .map(|index| (index as u128).to_be_bytes())
             .collect();
-        let genesis =
-            create_virtual_material_reached_cohort(&episode, 0, lineages, electrical).unwrap();
+        let genesis = create_virtual_material_reached_cohort_from_shared(
+            &episode, &shared, lineages, electrical,
+        )
+        .unwrap();
         assert_eq!(genesis.anatomy.neuron_count(), shared.vertex_count());
         assert_eq!(genesis.state.neurons().len(), shared.vertex_count());
         assert_eq!(genesis.zero_recovery_catalysts.len(), shared.vertex_count());

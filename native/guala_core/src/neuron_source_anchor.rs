@@ -373,7 +373,9 @@ pub(crate) fn bind_neuron_source_anchor<'a>(
 pub(crate) mod tests {
     use super::*;
     use crate::joint_source_episode::decode_native_joint_source_episode;
-    use crate::joint_uf_neuron_boundary::{bind_neuron_perspective, prepare_complete_joint_field};
+    use crate::joint_uf_neuron_boundary::{
+        bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture,
+    };
 
     const INTERSAMPLE: &[u8] = b"guala.uf.v1.4.sampled_volume_and_relevance_piecewise_linear.v1";
 
@@ -725,7 +727,7 @@ pub(crate) mod tests {
     #[test]
     fn perspectives_borrow_exact_sensory_and_body_ports_without_relabeling() {
         let episode = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let expected = [
             (
                 PhysicalSourceSense::Sight,
@@ -772,7 +774,7 @@ pub(crate) mod tests {
     fn a_different_episode_cannot_relabel_an_existing_perspective() {
         let episode = exact_episode();
         let other = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
         assert_eq!(
             bind_neuron_source_anchor(&other, perspective).unwrap_err(),
@@ -783,7 +785,7 @@ pub(crate) mod tests {
     #[test]
     fn exact_receptor_site_cold_restores_without_samples_or_relabeling() {
         let episode = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         for coordinate in 0..4 {
             let perspective = bind_neuron_perspective(&shared, coordinate, 0).unwrap();
             let site = NeuronSourceSite::from_anchor(

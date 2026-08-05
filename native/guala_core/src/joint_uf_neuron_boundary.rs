@@ -216,6 +216,21 @@ pub(crate) fn prepare_complete_joint_field_fixture(
     )
 }
 
+/// Test-only admitted fixture evaluation: fixture episodes author their own
+/// coordinate bounds, and their source times span at most two units, so an
+/// explicit five-unit maximum causal interval admits every fixture gate.
+#[cfg(test)]
+pub(crate) fn prepare_complete_joint_field_admitted_fixture(
+    episode: &NativeJointSourceEpisode,
+    occurrence_index: usize,
+) -> Result<SharedCompleteJointField, JointNeuronBoundaryError> {
+    prepare_complete_joint_field_with_admission(
+        episode,
+        occurrence_index,
+        &JointUfSourceAdmission::new(BigRational::from_integer(BigInt::from(5))).unwrap(),
+    )
+}
+
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct JointNeuronPerspective<'a> {
     shared: &'a SharedCompleteJointField,

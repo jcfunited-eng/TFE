@@ -383,7 +383,10 @@ mod tests {
         prepare_complete_joint_field_fixture, settle_shared_dsf_mathloom, MathLoomAnatomy,
     };
     use crate::joint_uf_source_adapter::EvaluatedJointSourceOccurrence;
-    use crate::joint_uf_v1_4::{evaluate, JointIntersampleLaw, JointUfInput};
+    use crate::joint_uf_v1_4::{
+        evaluate_with_physical_bounds, JointIntersampleLaw, JointUfCoordinateBounds, JointUfInput,
+        JointUfPhysicalBounds,
+    };
 
     fn lineage(ordinal: u64) -> [u8; 16] {
         let mut value = [0u8; 16];
@@ -407,14 +410,21 @@ mod tests {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let result = evaluate(JointUfInput {
-            times: (0..frames)
-                .map(|value| BigRational::from_integer(value.into()))
-                .collect(),
-            fields,
-            relevance: vec![1.0; frames],
-            intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
-        })
+        let result = evaluate_with_physical_bounds(
+            JointUfInput {
+                times: (0..frames)
+                    .map(|value| BigRational::from_integer(value.into()))
+                    .collect(),
+                fields,
+                relevance: vec![1.0; frames],
+                intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
+            },
+            JointUfPhysicalBounds::new(
+                vec![JointUfCoordinateBounds::new(0.0, 1.0).unwrap(); coordinate_count],
+                BigRational::from_integer(5.into()),
+            )
+            .unwrap(),
+        )
         .unwrap();
         let source_port_indices =
             (source_port_start..source_port_start + coordinate_count).collect::<Vec<_>>();

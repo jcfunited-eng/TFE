@@ -3096,12 +3096,15 @@ mod tests {
 
     use super::*;
     use crate::joint_uf_neuron_boundary::{
-        bind_isolated_neuron_perspective, bind_neuron_perspective, prepare_complete_joint_field,
-        prepare_complete_joint_field_fixture, prepare_isolated_single_neuron_field_fixture,
-        DsfFactFamily, SharedCompleteJointField,
+        bind_isolated_neuron_perspective, bind_neuron_perspective,
+        prepare_complete_joint_field_admitted_fixture, prepare_complete_joint_field_fixture,
+        prepare_isolated_single_neuron_field_fixture, DsfFactFamily, SharedCompleteJointField,
     };
     use crate::joint_uf_source_adapter::EvaluatedJointSourceOccurrence;
-    use crate::joint_uf_v1_4::{evaluate, JointIntersampleLaw, JointUfInput};
+    use crate::joint_uf_v1_4::{
+        evaluate_with_physical_bounds, JointIntersampleLaw, JointUfCoordinateBounds, JointUfInput,
+        JointUfPhysicalBounds, JointUfResult,
+    };
     use crate::neuron_source_anchor::tests::exact_episode;
     use crate::neuron_source_anchor::{
         bind_neuron_source_anchor, NeuronSourceSite, PhysicalSourceSense,
@@ -3175,14 +3178,33 @@ mod tests {
             .collect()
     }
 
+    fn evaluate_fixture(input: JointUfInput, bounds: &[(f64, f64)]) -> JointUfResult {
+        evaluate_with_physical_bounds(
+            input,
+            JointUfPhysicalBounds::new(
+                bounds
+                    .iter()
+                    .map(|(minimum, maximum)| {
+                        JointUfCoordinateBounds::new(*minimum, *maximum).unwrap()
+                    })
+                    .collect(),
+                BigRational::from_integer(BigInt::from(2)),
+            )
+            .unwrap(),
+        )
+        .unwrap()
+    }
+
     fn shared_field() -> SharedCompleteJointField {
-        let field = evaluate(JointUfInput {
-            times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
-            fields: vec![vec![0.0], vec![0.3], vec![0.3], vec![0.0]],
-            relevance: vec![0.1, 0.2, 0.3, 0.4],
-            intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
-        })
-        .unwrap();
+        let field = evaluate_fixture(
+            JointUfInput {
+                times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
+                fields: vec![vec![0.0], vec![0.3], vec![0.3], vec![0.0]],
+                relevance: vec![0.1, 0.2, 0.3, 0.4],
+                intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
+            },
+            &[(0.0, 0.3)],
+        );
         prepare_isolated_single_neuron_field_fixture(
             Arc::from([1_u8, 2, 3]),
             [4; 32],
@@ -3197,18 +3219,20 @@ mod tests {
     }
 
     fn shared_three_neuron_field() -> SharedCompleteJointField {
-        let field = evaluate(JointUfInput {
-            times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
-            fields: vec![
-                vec![0.0, 2.0, -2.0],
-                vec![0.3, 2.4, -1.7],
-                vec![0.3, 2.8, -1.4],
-                vec![0.0, 3.2, -1.1],
-            ],
-            relevance: vec![0.1, 0.2, 0.3, 0.4],
-            intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
-        })
-        .unwrap();
+        let field = evaluate_fixture(
+            JointUfInput {
+                times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
+                fields: vec![
+                    vec![0.0, 2.0, -2.0],
+                    vec![0.3, 2.4, -1.7],
+                    vec![0.3, 2.8, -1.4],
+                    vec![0.0, 3.2, -1.1],
+                ],
+                relevance: vec![0.1, 0.2, 0.3, 0.4],
+                intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
+            },
+            &[(0.0, 0.3), (2.0, 3.2), (-2.0, -1.1)],
+        );
         prepare_complete_joint_field_fixture(
             Arc::from([8_u8, 9, 10]),
             [11; 32],
@@ -3223,18 +3247,20 @@ mod tests {
     }
 
     fn shared_four_neuron_field() -> SharedCompleteJointField {
-        let field = evaluate(JointUfInput {
-            times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
-            fields: vec![
-                vec![0.0, 2.0, -2.0, 4.0],
-                vec![0.3, 2.4, -1.7, 4.2],
-                vec![0.3, 2.8, -1.4, 4.4],
-                vec![0.0, 3.2, -1.1, 4.6],
-            ],
-            relevance: vec![0.1, 0.2, 0.3, 0.4],
-            intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
-        })
-        .unwrap();
+        let field = evaluate_fixture(
+            JointUfInput {
+                times: vec![q(0, 1), q(1, 2), q(1, 1), q(2, 1)],
+                fields: vec![
+                    vec![0.0, 2.0, -2.0, 4.0],
+                    vec![0.3, 2.4, -1.7, 4.2],
+                    vec![0.3, 2.8, -1.4, 4.4],
+                    vec![0.0, 3.2, -1.1, 4.6],
+                ],
+                relevance: vec![0.1, 0.2, 0.3, 0.4],
+                intersample_law: JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear,
+            },
+            &[(-10.0, 10.0), (-10.0, 10.0), (-10.0, 10.0), (-10.0, 10.0)],
+        );
         prepare_complete_joint_field_fixture(
             Arc::from([12_u8, 13, 14]),
             [15; 32],
@@ -3749,7 +3775,7 @@ mod tests {
     #[test]
     fn reached_cohort_requires_exact_sight_sound_and_body_source_anatomy() {
         let episode = exact_episode();
-        let shared = prepare_complete_joint_field(&episode, 0).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let fixtures = [
             physical_fixture(),
             physical_fixture(),
