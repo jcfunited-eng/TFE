@@ -394,24 +394,30 @@ def main() -> int:
             tasks=[task_arn],
         )["tasks"][0]
         containers = task.get("containers", [])
-        if (
-            len(containers) != 1
-            or containers[0].get("exitCode") != 0
-            or not containers[0].get("logStreamName")
-        ):
+        if len(containers) != 1 or containers[0].get("exitCode") != 0:
             raise RuntimeError(
                 "native candidate task failed: "
                 + json.dumps(task.get("stoppedReason"), sort_keys=True)
             )
-        group = task_input["containerDefinitions"][0]["logConfiguration"][
-            "options"
-        ]["awslogs-group"]
+        log_options = task_input["containerDefinitions"][0][
+            "logConfiguration"
+        ]["options"]
+        group = log_options["awslogs-group"]
+        # DescribeTasks does not return the awslogs stream name; it is
+        # deterministic: <stream-prefix>/<container-name>/<task-id>.
+        stream_name = containers[0].get("logStreamName") or "/".join(
+            (
+                log_options["awslogs-stream-prefix"],
+                task_input["containerDefinitions"][0]["name"],
+                task_arn.rsplit("/", 1)[-1],
+            )
+        )
         for _attempt in range(30):
             try:
                 proof = _proof_from_logs(
                     logs,
                     group=group,
-                    stream=containers[0]["logStreamName"],
+                    stream=stream_name,
                     schema=PROOF_SCHEMAS[values.mode],
                 )
                 break
