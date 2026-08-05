@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import os
 import sys
 from dataclasses import dataclass
 from typing import Protocol
@@ -61,6 +62,12 @@ class NativeResidentObservationView(Protocol):
 
     @property
     def joint_neuron_count(self) -> int: ...
+
+    @property
+    def complete_neuron_count(self) -> int: ...
+
+    @property
+    def physically_transitioned_neuron_count(self) -> int: ...
 
     @property
     def cold_restore_authentication_count(self) -> int: ...
@@ -129,6 +136,8 @@ class ResidentPrepareEvidence:
     formation_activation_count: int
     partial_cue_reassembly_count: int
     python_callback_count: int
+    complete_neuron_count: int = 0
+    physically_transitioned_neuron_count: int = 0
 
 
 def _native_core():
@@ -160,6 +169,50 @@ def _canonical_sha256(value: object, label: str) -> str:
     ):
         raise RuntimeError(f"resident organism {label} is not canonical SHA-256")
     return value
+
+
+def _validated_causal_intervals(
+    maximum_causal_intervals: object,
+) -> list[tuple[int, int]]:
+    """Validate caller-authored maximum causal intervals.
+
+    One exact positive rational ``(numerator, denominator)`` per source
+    occurrence, in exact occurrence order.  Every value is authored by the
+    caller as independent environment/anatomy authority; nothing is defaulted
+    or derived here.
+    """
+
+    if not isinstance(maximum_causal_intervals, (tuple, list)) or not (
+        maximum_causal_intervals
+    ):
+        raise ValueError(
+            "resident organism admission requires one authored maximum causal "
+            "interval per source occurrence"
+        )
+    validated: list[tuple[int, int]] = []
+    for index, interval in enumerate(maximum_causal_intervals):
+        if not isinstance(interval, (tuple, list)) or len(interval) != 2:
+            raise TypeError(
+                f"authored admission {index} must be (numerator, denominator)"
+            )
+        numerator, denominator = interval
+        if (
+            isinstance(numerator, bool)
+            or isinstance(denominator, bool)
+            or not isinstance(numerator, int)
+            or not isinstance(denominator, int)
+        ):
+            raise TypeError(
+                f"authored admission {index} must carry exact integers"
+            )
+        if denominator == 0:
+            raise ValueError(f"authored admission {index} has a zero denominator")
+        if numerator * denominator <= 0:
+            raise ValueError(
+                f"authored admission {index} is not a positive causal interval"
+            )
+        validated.append((numerator, denominator))
+    return validated
 
 
 def _exact_token(value: object) -> bytes:
@@ -317,18 +370,34 @@ class NativeResidentOrganism:
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
         )
+        complete_count = _nonnegative_integer(
+            candidate.complete_neuron_count, "complete neuron count"
+        )
+        transitioned_count = _nonnegative_integer(
+            candidate.physically_transitioned_neuron_count,
+            "physically transitioned neuron count",
+        )
+        del cognitive_ordinal, cognitive_trace_count, complete_count
         if (
             not isinstance(candidate.mounted_step_completed, bool)
-            or candidate.physical_transition_claimed is not False
-            or candidate.cognitive_formation_claimed is not False
-            or cognitive_ordinal != 0
-            or cognitive_trace_count != 0
-            or cognitive_mosaic_count != 0
-            or activation_count != 0
-            or partial_count != 0
+            or not isinstance(candidate.physical_transition_claimed, bool)
+            or not isinstance(candidate.cognitive_formation_claimed, bool)
+            or candidate.physical_transition_claimed
+            != (transitioned_count > 0)
             or candidate.python_callback_count != 0
         ):
             raise RuntimeError("resident organism observation made a false claim")
+        if not candidate.mounted_step_completed and (
+            candidate.physical_transition_claimed
+            or candidate.cognitive_formation_claimed
+            or activation_count != 0
+            or partial_count != 0
+            or transitioned_count != 0
+        ):
+            raise RuntimeError(
+                "resident organism cold observation claimed step effects"
+            )
+        del cognitive_mosaic_count
         return candidate
 
     def readiness(self) -> NativeResidentObservationView:
@@ -353,13 +422,66 @@ class NativeResidentOrganism:
         return state
 
     def prepare(self, source: NativeJointSourceView) -> ResidentPrepareEvidence:
-        """Prepare one native candidate and return receipts, never state bytes."""
+        """Prepare one native candidate and return receipts, never state bytes.
+
+        The bare source path remains severed by the mandatory-admission law:
+        the native runtime refuses it because no occurrence admission and no
+        hippocampal cold custody are supplied.  Use :meth:`prepare_admitted`.
+        """
 
         source_port_count = _nonnegative_integer(
             getattr(source, "port_count", None), "source port count"
         )
         active_before = self.readiness()
         candidate = self.__runtime.prepare(source)
+        return self._validated_prepare_evidence(
+            candidate, source_port_count, active_before
+        )
+
+    def prepare_admitted(
+        self,
+        source: NativeJointSourceView,
+        maximum_causal_intervals: object,
+        hippocampal_cold_root: object,
+    ) -> ResidentPrepareEvidence:
+        """Prepare one admitted native candidate and return receipts.
+
+        ``maximum_causal_intervals`` carries one caller-authored maximum
+        causal interval ``(numerator, denominator)`` in source-time units per
+        source occurrence, in exact occurrence order.  It is independent
+        environment/anatomy authority; this boundary never derives it from the
+        occurrence.  ``hippocampal_cold_root`` names the durable external
+        content-addressed cold-custody directory required by resident
+        cognition.
+        """
+
+        source_port_count = _nonnegative_integer(
+            getattr(source, "port_count", None), "source port count"
+        )
+        intervals = _validated_causal_intervals(maximum_causal_intervals)
+        if not isinstance(hippocampal_cold_root, (str, bytes)) and not hasattr(
+            hippocampal_cold_root, "__fspath__"
+        ):
+            raise TypeError(
+                "resident organism hippocampal cold root must be a filesystem path"
+            )
+        cold_root = os.fspath(hippocampal_cold_root)
+        if isinstance(cold_root, bytes):
+            cold_root = os.fsdecode(cold_root)
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_admitted(
+            source, intervals, cold_root
+        )
+        return self._validated_prepare_evidence(
+            candidate, source_port_count, active_before
+        )
+
+    def _validated_prepare_evidence(
+        self,
+        candidate: object,
+        source_port_count: int,
+        active_before: NativeResidentObservationView,
+    ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
         if candidate.schema != PREPARE_SCHEMA:
@@ -445,14 +567,18 @@ class NativeResidentOrganism:
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
         )
+        complete_neuron_count = _nonnegative_integer(
+            candidate.complete_neuron_count, "complete neuron count"
+        )
+        physically_transitioned_neuron_count = _nonnegative_integer(
+            candidate.physically_transitioned_neuron_count,
+            "physically transitioned neuron count",
+        )
+        # A mounted joint cohort exists only where at least two ports share
+        # one exact source clock, so a lawful episode can evaluate zero
+        # mounted cohorts (cognition still receives its occurrences).
         cohort_count_changed = (
-            source_port_count == 0
-            and current_cohort_evaluation_count != 0
-        ) or (
-            source_port_count > 0
-            and not (
-                0 < current_cohort_evaluation_count <= source_port_count
-            )
+            current_cohort_evaluation_count > source_port_count
         )
         if (
             predecessor_state_sha256 != active_before.state_sha256
@@ -472,13 +598,24 @@ class NativeResidentOrganism:
             or complete_neuron_fractal_count > dsf_delivery_count
             or recurrent_complete_neuron_fractal_count
             > complete_neuron_fractal_count
-            or candidate.physical_transition_claimed is not False
-            or candidate.cognitive_formation_claimed is not False
-            or cognitive_ordinal != 0
-            or cognitive_trace_count != 0
-            or cognitive_mosaic_count != 0
-            or formation_activation_count != 0
-            or partial_cue_reassembly_count != 0
+            or not isinstance(candidate.physical_transition_claimed, bool)
+            or not isinstance(candidate.cognitive_formation_claimed, bool)
+            or candidate.physical_transition_claimed
+            != (physically_transitioned_neuron_count > 0)
+            # A cognitive-formation claim must ride on evidence of the
+            # formation kind: mosaic admission, activations, or partial-cue
+            # reassembly stand on their own counters; trace/ordinal advance
+            # is only lawful in a step that delivered genuine neuronal
+            # fractals. A bare-DSF prepare dressing itself in advanced
+            # cognitive counters is an impostor.
+            or (
+                candidate.cognitive_formation_claimed
+                and cognitive_mosaic_count <= active_before.cognitive_mosaic_count
+                and formation_activation_count == 0
+                and partial_cue_reassembly_count
+                <= active_before.partial_cue_reassembly_count
+                and complete_neuron_fractal_count == 0
+            )
             or candidate.python_callback_count != 0
         ):
             raise RuntimeError("resident organism prepare changed causal physics")
@@ -513,9 +650,13 @@ class NativeResidentOrganism:
             cognitive_mosaic_count=cognitive_mosaic_count,
             formation_activation_count=formation_activation_count,
             partial_cue_reassembly_count=partial_cue_reassembly_count,
-            physical_transition_claimed=False,
-            cognitive_formation_claimed=False,
+            physical_transition_claimed=candidate.physical_transition_claimed,
+            cognitive_formation_claimed=candidate.cognitive_formation_claimed,
             python_callback_count=0,
+            complete_neuron_count=complete_neuron_count,
+            physically_transitioned_neuron_count=(
+                physically_transitioned_neuron_count
+            ),
         )
 
     def commit(self, token: bytes) -> NativeResidentObservationView:
@@ -581,15 +722,99 @@ def restore_native_resident_organism(
     return organism
 
 
+def _validated_growth_dna(
+    growth_dna: object,
+    episode_type: type,
+) -> tuple[object, list[tuple[list[int], list[tuple[int, int, int]]]]]:
+    """Validate authored growth DNA: (anatomy_episode, seed_groups).
+
+    Each seed group is (port_indices, contacts): port_indices name joint
+    source ports of the anatomy episode, and each contact is
+    (left_seed_index, right_seed_index, conductance_picosiemens). Every value
+    is authored by the caller; nothing is defaulted or inferred here.
+    """
+
+    if not isinstance(growth_dna, (tuple, list)) or len(growth_dna) != 2:
+        raise TypeError(
+            "resident organism growth_dna must be (anatomy_episode, seed_groups)"
+        )
+    anatomy_episode, seed_groups = growth_dna
+    if not isinstance(anatomy_episode, episode_type):
+        raise TypeError(
+            "resident organism growth_dna anatomy episode must be a concrete "
+            "native joint source episode"
+        )
+    if not isinstance(seed_groups, (tuple, list)) or not seed_groups:
+        raise ValueError(
+            "resident organism growth_dna requires at least one authored seed group"
+        )
+
+    def _index(value: object, label: str) -> int:
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError(f"growth_dna {label} must be a nonnegative integer")
+        return value
+
+    validated_groups: list[tuple[list[int], list[tuple[int, int, int]]]] = []
+    for group_index, group in enumerate(seed_groups):
+        if not isinstance(group, (tuple, list)) or len(group) != 2:
+            raise TypeError(
+                f"growth_dna seed group {group_index} must be "
+                "(port_indices, contacts)"
+            )
+        port_indices, contacts = group
+        if not isinstance(port_indices, (tuple, list)) or not port_indices:
+            raise ValueError(
+                f"growth_dna seed group {group_index} must name at least one "
+                "port index"
+            )
+        validated_ports = [
+            _index(port_index, f"seed group {group_index} port index")
+            for port_index in port_indices
+        ]
+        if not isinstance(contacts, (tuple, list)):
+            raise TypeError(
+                f"growth_dna seed group {group_index} contacts must be a sequence"
+            )
+        validated_contacts: list[tuple[int, int, int]] = []
+        for contact in contacts:
+            if not isinstance(contact, (tuple, list)) or len(contact) != 3:
+                raise TypeError(
+                    f"growth_dna seed group {group_index} contact must be "
+                    "(left_seed_index, right_seed_index, conductance_picosiemens)"
+                )
+            left, right, conductance = contact
+            if isinstance(conductance, bool) or not isinstance(conductance, int):
+                raise ValueError(
+                    f"growth_dna seed group {group_index} conductance must be "
+                    "an authored integer picosiemens value"
+                )
+            validated_contacts.append(
+                (
+                    _index(left, f"seed group {group_index} contact left index"),
+                    _index(right, f"seed group {group_index} contact right index"),
+                    conductance,
+                )
+            )
+        validated_groups.append((validated_ports, validated_contacts))
+    return anatomy_episode, validated_groups
+
+
 def create_native_resident_organism(
     *,
     organism_identity: str,
     organism_tick: int = 0,
+    growth_dna: object,
     max_envelope_bytes: int,
     max_fabric_bytes: int,
     max_logical_peak_bytes: int,
 ) -> NativeResidentOrganism:
-    """Create the canonical empty native state for a genuinely new organism."""
+    """Create the canonical native genesis carrying authored growth DNA.
+
+    ``growth_dna`` is required: growth never invents electrical contacts, so a
+    genesis without authored developmental seeds could never form a physical
+    mosaic. The seeded genesis is still structurally empty — zero cohorts,
+    traces, and mosaics — until its seeds are reached and expressed.
+    """
 
     if not isinstance(organism_identity, str) or not organism_identity:
         raise TypeError("resident organism genesis identity must be text")
@@ -605,12 +830,22 @@ def create_native_resident_organism(
         core, "NativeResidentOrganismObservation"
     )
     prepare_type = _concrete_class(core, "NativeResidentOrganismPrepare")
-    create = getattr(core, "create_native_resident_organism_runtime", None)
+    episode_type = _concrete_class(core, "NativeJointSourceEpisode")
+    anatomy_episode, seed_groups = _validated_growth_dna(
+        growth_dna, episode_type
+    )
+    create = getattr(
+        core, "create_native_resident_organism_runtime_with_growth_dna", None
+    )
     if not callable(create):
-        raise RuntimeError("guala_core does not expose resident genesis")
+        raise RuntimeError(
+            "guala_core does not expose resident growth-dna genesis"
+        )
     runtime = create(
         organism_identity,
         tick,
+        anatomy_episode,
+        seed_groups,
         envelope,
         fabric,
         logical,

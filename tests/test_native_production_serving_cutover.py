@@ -76,13 +76,20 @@ def test_native_readiness_names_only_truthful_available_state(monkeypatch) -> No
 
     value = serving._readiness()
 
-    assert value["ready_scope"] == "http_and_native_current_transport_only"
+    assert (
+        value["ready_scope"]
+        == "http_native_current_and_admitted_sensory_transitions"
+    )
     assert value["organism_tick"] == 23_723_846
     assert "active_recovery_tick" not in value
     assert "native_joint_fractal" not in value
     native = value["native_resident"]
     assert native["available"] is True
     assert native["reached_dsf_perspective_count"] == 96
+    # Truth-coupling: this fixture observation carries zero cognition, so
+    # readiness must refuse to claim any — availability flags follow the
+    # observation's actual counts, never the mounted surface.
+    assert native["complete_neuron_count"] == 0
     assert native["complete_neuron_available"] is False
     assert native["genuine_neuronal_fractal_available"] is False
     assert native["cognition_available"] is False
@@ -90,13 +97,15 @@ def test_native_readiness_names_only_truthful_available_state(monkeypatch) -> No
 
 
 @pytest.mark.asyncio
-async def test_unmounted_sensory_transports_fail_truthfully() -> None:
+async def test_sensory_transports_refuse_truthfully() -> None:
+    # Live-camera sight remains honestly unmounted; sound is mounted but
+    # must refuse a malformed body BEFORE the organism is touched.
     sight = await serving.sight_frame(None)
     sound = await serving.sound_frame(None)
     assert sight.status_code == 503
-    assert sound.status_code == 503
     assert b"not mounted" in sight.body
-    assert b"not mounted" in sound.body
+    assert sound.status_code == 422
+    assert b"mono pcm_s16le WAV body" in sound.body
 
 
 def test_external_curriculum_routes_are_packaged_and_served() -> None:

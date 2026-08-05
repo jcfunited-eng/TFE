@@ -35,6 +35,7 @@ from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.model import receipt_sha256, sha256_digest
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     build_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
@@ -702,6 +703,18 @@ def mount_exact_separated_auditory_fields(
             source_time_end=source_time_end,
             observed_substreams={PhysicalSense.SOUND: inputs},
             states=states,
+            # Every cochlear kernel component transduces the one uniquely
+            # recovered acoustic source over one exact interval: one joint
+            # occurrence per separated source.
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams={PhysicalSense.SOUND: inputs},
+                declared_units=(
+                    tuple(
+                        (PhysicalSense.SOUND, port.topology_index)
+                        for port in inputs
+                    ),
+                ),
+            ),
         )
         auditory_l5 = AuditoryL5Owner(
             log_event=lambda *_args, **_kwargs: None,

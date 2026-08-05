@@ -1,6 +1,7 @@
 use guala_core::{
     create_native_resident_d3_genesis, decode_native_joint_source_episode,
-    transition_native_resident_d3, HippocampalColdObject, HippocampalColdPort,
+    transition_native_resident_d3, transition_native_resident_d3_with_authored_admissions,
+    HippocampalColdObject, HippocampalColdPort,
 };
 use std::collections::BTreeMap;
 
@@ -119,12 +120,29 @@ fn exact_source(episode: &str, reverse: bool) -> guala_core::NativeJointSourceEp
 
 #[test]
 fn normal_library_surface_requires_external_cold_and_survives_restart() {
+    // Each source occurrence spans one source-time unit; the five-unit
+    // maximum causal interval is authored here as independent environment
+    // authority, never derived from the occurrence.
+    const AUTHORED_ADMISSIONS: [(i64, i64); 2] = [(5, 1), (5, 1)];
     let genesis =
         create_native_resident_d3_genesis(IDENTITY, 0, None, ENVELOPE_BYTES, FABRIC_BYTES).unwrap();
     let first_source = exact_source("production-d3-first", false);
-    let absent = transition_native_resident_d3(
+    let unadmitted = transition_native_resident_d3(
         genesis.clone(),
         &first_source,
+        None,
+        ENVELOPE_BYTES,
+        FABRIC_BYTES,
+    )
+    .unwrap_err();
+    assert_eq!(
+        unadmitted,
+        "explicit admitted joint source episode is required"
+    );
+    let absent = transition_native_resident_d3_with_authored_admissions(
+        genesis.clone(),
+        &first_source,
+        &AUTHORED_ADMISSIONS,
         None,
         ENVELOPE_BYTES,
         FABRIC_BYTES,
@@ -133,9 +151,10 @@ fn normal_library_surface_requires_external_cold_and_survives_restart() {
     assert_eq!(absent, "external hippocampal cold custody is required");
 
     let mut cold = ExternalColdCustody::default();
-    let first = transition_native_resident_d3(
+    let first = transition_native_resident_d3_with_authored_admissions(
         genesis,
         &first_source,
+        &AUTHORED_ADMISSIONS,
         Some(&mut cold),
         ENVELOPE_BYTES,
         FABRIC_BYTES,
@@ -152,9 +171,10 @@ fn normal_library_surface_requires_external_cold_and_survives_restart() {
     assert!(capital.evidence().is_empty());
 
     let second_source = exact_source("production-d3-second", true);
-    let restarted = transition_native_resident_d3(
+    let restarted = transition_native_resident_d3_with_authored_admissions(
         first.successor().to_vec(),
         &second_source,
+        &AUTHORED_ADMISSIONS,
         Some(&mut cold),
         ENVELOPE_BYTES,
         FABRIC_BYTES,

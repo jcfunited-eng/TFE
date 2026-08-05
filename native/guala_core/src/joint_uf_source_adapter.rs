@@ -134,6 +134,37 @@ pub(crate) fn admitted_fixture_episode(
     AdmittedJointSourceEpisode::new(episode.clone(), ordered_admissions).unwrap()
 }
 
+/// Pair one exact source episode with the caller's explicitly authored
+/// temporal admissions: one maximum causal interval `(numerator,
+/// denominator)` in source-time units per source occurrence, in exact
+/// occurrence order. The interval is independent environment/anatomy
+/// authority carried by the caller; it is never derived from the occurrence
+/// itself.
+pub(crate) fn admitted_episode_with_authored_intervals(
+    episode: &NativeJointSourceEpisode,
+    maximum_causal_intervals: &[(i64, i64)],
+) -> Result<AdmittedJointSourceEpisode, String> {
+    let ordered_admissions = maximum_causal_intervals
+        .iter()
+        .enumerate()
+        .map(|(occurrence_index, (numerator, denominator))| {
+            if *denominator == 0 {
+                return Err(format!(
+                    "authored admission {occurrence_index} has a zero denominator"
+                ));
+            }
+            JointUfSourceAdmission::new(BigRational::new(
+                num_bigint::BigInt::from(*numerator),
+                num_bigint::BigInt::from(*denominator),
+            ))
+            .map(|admission| (occurrence_index, admission))
+            .map_err(|error| format!("authored admission {occurrence_index} is invalid: {error:?}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    AdmittedJointSourceEpisode::new(episode.clone(), ordered_admissions)
+        .map_err(|error| format!("{error:?}"))
+}
+
 fn intersample_law(profile: &[u8]) -> Result<JointIntersampleLaw, JointUfSourceError> {
     if profile == SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE {
         Ok(JointIntersampleLaw::SampledVolumeAndRelevancePiecewiseLinear)

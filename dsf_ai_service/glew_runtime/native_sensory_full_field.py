@@ -671,6 +671,90 @@ def _source_l0_l4_intervals_from_trace(
     return layer_intervals[0]
 
 
+def declare_joint_source_occurrences(
+    *,
+    observed_substreams: Mapping[
+        PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+    declared_units: tuple[tuple[tuple[PhysicalSense, int], ...], ...],
+    joint_relevance_profile_payload: bytes | None = None,
+) -> tuple:
+    """Author explicit GLJSRC02 occurrences from site-declared physical units.
+
+    Each declared unit names, as ``(sense, topology_index)`` pairs, the
+    receptor ports that the call site declares to settle jointly as one
+    source occurrence (for example the spectral bands of one retinal cell,
+    or both cochlear fields of one binaural acoustic event).  Nothing is
+    inferred here: the unit declaration is the caller's own physical law,
+    and a declared unit whose referenced receptor clocks disagree is
+    rejected rather than repaired.  Joint relevance is declared exactly
+    ``r(t) = 1`` under the canonical UF v1.4 piecewise-linear profile;
+    port-local relevance is never promoted into joint relevance.  The
+    GLJSRC02 encoder re-verifies that the declared units partition every
+    observed receptor exactly once.
+    """
+
+    from .native_joint_source_episode import (
+        NativeJointSourceOccurrenceInput,
+        UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR,
+    )
+
+    relevance_payload = (
+        joint_relevance_profile_payload
+        if joint_relevance_profile_payload is not None
+        else UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
+    )
+    sense_offsets: dict[PhysicalSense, int] = {}
+    ports_by_key: dict[
+        tuple[PhysicalSense, int], NativeSensorySubstreamInput
+    ] = {}
+    running = 0
+    for sense in SENSE_ORDER:
+        ports = observed_substreams.get(sense, ())
+        sense_offsets[sense] = running
+        for port in ports:
+            ports_by_key[(sense, port.topology_index)] = port
+        running += len(ports)
+    occurrences = []
+    for unit in declared_units:
+        if not unit:
+            raise ValueError("declared joint-source unit is empty")
+        global_indices = []
+        for key in unit:
+            sense, topology_index = key
+            if key not in ports_by_key:
+                raise ValueError(
+                    "declared joint-source unit references an "
+                    "unobserved receptor"
+                )
+            global_indices.append(sense_offsets[sense] + topology_index)
+        port_indices = tuple(sorted(global_indices))
+        if len(set(port_indices)) != len(port_indices):
+            raise ValueError("declared joint-source unit repeats a receptor")
+        source_times = ports_by_key[unit[0]].source_times
+        if any(
+            ports_by_key[key].source_times != source_times for key in unit
+        ):
+            raise ValueError(
+                "declared joint-source unit clocks diverge across its "
+                "receptors"
+            )
+        occurrences.append(
+            NativeJointSourceOccurrenceInput(
+                port_indices=port_indices,
+                source_times=source_times,
+                joint_intersample_profile_payload=(
+                    UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
+                ),
+                groups=(tuple(range(len(port_indices))),),
+                joint_relevance_profile_payload=relevance_payload,
+                joint_relevance=(Fraction(1),) * len(source_times),
+            )
+        )
+    return tuple(
+        sorted(occurrences, key=lambda value: value.port_indices)
+    )
+
+
 def build_six_sense_full_field(
     *,
     assembly_id: str,
@@ -1061,4 +1145,5 @@ __all__ = (
     "UNIT_SOURCE_RELEVANCE_RULE",
     "build_six_sense_full_field",
     "build_transaction_owned_six_sense_full_field",
+    "declare_joint_source_occurrences",
 )

@@ -27,6 +27,7 @@ from fractions import Fraction
 
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
@@ -58,6 +59,7 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1BinauralPCM,
 )
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
+    binaural_joint_units,
     binaural_sound_field_inputs,
     body_from_snapshot,
     calibrated_ear_positions,
@@ -72,6 +74,7 @@ from dsf_ai_service.substrate.w1_binaural_receptor_settlement import (
     settle_w1_binaural_receptors,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
+    physical_receptor_joint_units,
     physical_receptor_substreams,
 )
 
@@ -759,6 +762,14 @@ class W1SelfAcousticPropagationAuthority:
                     execution.authority_receipt_sha256
                 ),
             })
+            declared_units = (
+                *physical_receptor_joint_units({
+                    sense: ports
+                    for sense, ports in observed.items()
+                    if sense is not PhysicalSense.SOUND
+                }),
+                *binaural_joint_units(left_sound, right_sound),
+            )
             built = build_transaction_owned_six_sense_full_field(
                 assembly_id=assembly_id,
                 source_time_start=source_time_start,
@@ -772,6 +783,10 @@ class W1SelfAcousticPropagationAuthority:
                     )
                     for sense in SENSE_ORDER
                 },
+                occurrences=declare_joint_source_occurrences(
+                    observed_substreams=observed,
+                    declared_units=declared_units,
+                ),
             )
             causal_token = self._causal.begin_atomic_sequence()
             try:

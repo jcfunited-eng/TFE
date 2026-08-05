@@ -3,19 +3,96 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 import json
 from pathlib import Path
 
 import pytest
 
 from dsf_ai_service import native_production_app as production
+from dsf_ai_service.glew_runtime.native_joint_source_episode import (
+    NativeJointSourceOccurrenceInput,
+    UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR,
+    settle_native_joint_source_episode,
+)
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     create_native_resident_organism,
+)
+from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+    NativeSensorySubstreamInput,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    NativeAxisCoordinate,
+    PhysicalSense,
+    SENSE_ORDER,
+    SenseBoundaryState,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
+
+
+def _growth_dna_fixture():
+    """Authored growth DNA: a four-receptor sight anatomy episode plus one
+    seed group covering its ports as a chain with 500 pS contacts."""
+
+    times = tuple(Fraction(index, 4) for index in range(4))
+
+    def _substream(topology_index: int) -> NativeSensorySubstreamInput:
+        return NativeSensorySubstreamInput(
+            sense=PhysicalSense.SIGHT,
+            sensor_id="sight-organ",
+            substream_id=f"sight-{topology_index}",
+            topology_index=topology_index,
+            coordinates=(
+                NativeAxisCoordinate("receptor", str(topology_index)),
+            ),
+            physical_quantity="normalized_physical_excitation",
+            physical_unit="normalized_binary64",
+            source_times=times,
+            normalized_signal=(0.0, 0.5, -0.25, 1.0),
+            phase_turns=(Fraction(0),) * 4,
+        )
+
+    observed = {
+        PhysicalSense.SIGHT: tuple(_substream(index) for index in range(4)),
+    }
+    states = {
+        sense: (
+            SenseBoundaryState.OBSERVED
+            if sense in observed
+            else SenseBoundaryState.QUIESCENT
+        )
+        for sense in SENSE_ORDER
+    }
+    episode = settle_native_joint_source_episode(
+        assembly_id="growth-dna-anatomy",
+        observed_substreams=observed,
+        states=states,
+        occurrences=(
+            NativeJointSourceOccurrenceInput(
+                port_indices=(0, 1, 2, 3),
+                source_times=times,
+                joint_intersample_profile_payload=(
+                    UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
+                ),
+                groups=((0, 1, 2, 3),),
+                joint_relevance_profile_payload=(
+                    b"guala.test.explicit_joint_relevance.v1"
+                ),
+                joint_relevance=(Fraction(1),) * 4,
+            ),
+        ),
+    )
+    port_count = episode.port_count
+    seed_groups = [
+        (
+            list(range(port_count)),
+            [(index - 1, index, 500) for index in range(1, port_count)],
+        )
+    ]
+    return (episode, seed_groups)
 
 
 @dataclass
@@ -33,6 +110,8 @@ class _Observation:
     cognitive_mosaic_count: int = 0
     cognitive_ordinal: int = 0
     cognitive_trace_count: int = 0
+    complete_neuron_count: int = 0
+    physically_transitioned_neuron_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
@@ -90,6 +169,7 @@ def test_native_genesis_is_empty_physical_state_not_synthetic_cognition() -> Non
     organism = create_native_resident_organism(
         organism_identity=IDENTITY,
         organism_tick=0,
+        growth_dna=_growth_dna_fixture(),
         max_envelope_bytes=67_108_864,
         max_fabric_bytes=67_108_000,
         max_logical_peak_bytes=536_870_912,
@@ -109,7 +189,7 @@ def test_native_genesis_is_empty_physical_state_not_synthetic_cognition() -> Non
 
 
 @pytest.mark.asyncio
-async def test_unmounted_browser_senses_fail_without_touching_organism(
+async def test_unmounted_or_malformed_browser_senses_fail_without_touching_organism(
     monkeypatch,
 ) -> None:
     organism = _Organism()
@@ -117,17 +197,25 @@ async def test_unmounted_browser_senses_fail_without_touching_organism(
     monkeypatch.setattr(production, "_admission", _Admission())
     before = organism.readiness()
     sight = await production.sight_frame(None)
+    # The auditory transition is mounted; a request without a lawful mono
+    # pcm_s16le WAV body is refused before the organism is reached.
     sound = await production.sound_frame(None)
     after = organism.readiness()
     assert sight.status_code == 503
-    assert sound.status_code == 503
-    assert before == after
     assert b"not mounted" in sight.body
-    assert b"not mounted" in sound.body
+    assert sound.status_code == 422
+    assert b'"accepted":false' in sound.body.replace(b" ", b"")
+    assert before == after
 
 
-def test_startup_rejects_retired_cognition_counters(monkeypatch) -> None:
-    changed = _Observation(cognitive_trace_count=1)
+def test_startup_rejects_false_step_claims_at_cold_restore(monkeypatch) -> None:
+    """A cold restore performs no step, so restored state must not claim one.
+
+    Genuine retained cognition (trace, mosaic, complete-neuron counts) is
+    lawful restored state; claimed step effects are not.
+    """
+
+    changed = _Observation(physical_transition_claimed=True)
     monkeypatch.setattr(
         production,
         "derive_native_resident_resource_admission",
@@ -138,7 +226,76 @@ def test_startup_rejects_retired_cognition_counters(monkeypatch) -> None:
         "restore_current_native_organism",
         lambda *_args, **_kwargs: _Restored(_Organism(changed)),
     )
-    with pytest.raises(RuntimeError, match="retired cognitive counters"):
+    with pytest.raises(RuntimeError, match="claimed step effects"):
         production._startup()
     assert production._restored is None
     assert production._admission is None
+
+    activated = _Observation(formation_activation_count=1)
+    monkeypatch.setattr(
+        production,
+        "restore_current_native_organism",
+        lambda *_args, **_kwargs: _Restored(_Organism(activated)),
+    )
+    with pytest.raises(RuntimeError, match="claimed step effects"):
+        production._startup()
+
+
+def test_startup_accepts_genuine_restored_native_cognition(monkeypatch) -> None:
+    """Retained native cognition (mosaics, complete neurons) restores cleanly."""
+
+    learned = _Observation(
+        cognitive_mosaic_count=1,
+        cognitive_ordinal=9,
+        complete_neuron_count=29,
+        joint_field_count=1,
+        joint_neuron_count=29,
+    )
+    monkeypatch.setattr(
+        production,
+        "derive_native_resident_resource_admission",
+        lambda _root: _Admission(),
+    )
+    monkeypatch.setattr(
+        production,
+        "restore_current_native_organism",
+        lambda *_args, **_kwargs: _Restored(_Organism(learned)),
+    )
+    production._startup()
+    try:
+        assert production._restored is not None
+        record = production._native_record()
+        assert record["cognitive_mosaic_count"] == 1
+        assert record["complete_neuron_count"] == 29
+    finally:
+        production._restored = None
+        production._admission = None
+        production._public_observation_body = None
+        production._public_observation_etag = None
+
+
+def test_startup_performs_growth_dna_genesis_when_current_absent(
+    monkeypatch, tmp_path
+) -> None:
+    """An empty state directory births one seeded growth-DNA genesis body."""
+
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    production._startup()
+    try:
+        assert (tmp_path / "CURRENT").is_file()
+        observed = production._restored.organism.readiness()
+        assert observed.organism_tick == 0
+        assert observed.joint_field_count == 0
+        assert observed.joint_neuron_count == 0
+        assert observed.complete_neuron_count == 0
+        assert observed.cognitive_mosaic_count == 0
+        assert observed.python_callback_count == 0
+        # Restart from the same directory restores the same newborn body.
+        first_sha = production._restored.pointer.state_sha256
+        production._startup()
+        assert production._restored.pointer.state_sha256 == first_sha
+    finally:
+        production._restored = None
+        production._admission = None
+        production._public_observation_body = None
+        production._public_observation_etag = None

@@ -52,6 +52,7 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     PAIRED_SOURCE_RELEVANCE_RULE,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -2340,6 +2341,20 @@ class AuditoryIncrementalTerminalOwner:
                 )
                 for sense in SENSE_ORDER
             },
+            # The paired cochlear kernel components transduce one candidate
+            # utterance interval of one authenticated stream: one joint
+            # acoustic occurrence.
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams={
+                    PhysicalSense.SOUND: tuple(components)
+                },
+                declared_units=(
+                    tuple(
+                        (PhysicalSense.SOUND, port.topology_index)
+                        for port in components
+                    ),
+                ),
+            ),
         )
         experience = AuditoryL5Owner(
             log_event=lambda *_args, **_kwargs: None
@@ -2376,6 +2391,13 @@ class AuditoryIncrementalTerminalOwner:
             "source_sample_start": start,
             "stream_id": self._stream_id,
         })
+        rephased_inputs = auditory_kernel_component_inputs(
+            capture,
+            source_anchor=(
+                epoch_start
+                + Fraction(start, PCM_SAMPLE_RATE_HZ)
+            ),
+        )
         built = build_six_sense_full_field(
             assembly_id=f"auditory-rephased-{identity}",
             source_time_start=(
@@ -2385,13 +2407,7 @@ class AuditoryIncrementalTerminalOwner:
                 epoch_start + Fraction(end, PCM_SAMPLE_RATE_HZ)
             ),
             observed_substreams={
-                PhysicalSense.SOUND: auditory_kernel_component_inputs(
-                    capture,
-                    source_anchor=(
-                        epoch_start
-                        + Fraction(start, PCM_SAMPLE_RATE_HZ)
-                    ),
-                )
+                PhysicalSense.SOUND: rephased_inputs
             },
             states={
                 sense: (
@@ -2401,6 +2417,19 @@ class AuditoryIncrementalTerminalOwner:
                 )
                 for sense in SENSE_ORDER
             },
+            # The rephased cochlear kernel components transduce the same one
+            # candidate utterance interval: one joint acoustic occurrence.
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams={
+                    PhysicalSense.SOUND: rephased_inputs
+                },
+                declared_units=(
+                    tuple(
+                        (PhysicalSense.SOUND, port.topology_index)
+                        for port in rephased_inputs
+                    ),
+                ),
+            ),
         )
         experience = AuditoryL5Owner(
             log_event=lambda *_args, **_kwargs: None

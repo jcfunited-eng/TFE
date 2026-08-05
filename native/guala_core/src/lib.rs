@@ -14,7 +14,9 @@ pub use physical_cognitive_capital::{
     CognitiveCapitalEvidenceKind, CognitiveCapitalObservation, COGNITIVE_CAPITAL_SCHEMA,
 };
 pub use resident_d3_runtime::{
-    create_native_resident_d3_genesis, transition_native_resident_d3, NativeResidentD3Transition,
+    create_native_resident_d3_genesis, create_native_resident_d3_genesis_with_growth_dna,
+    transition_native_resident_d3, transition_native_resident_d3_with_authored_admissions,
+    NativeResidentD3Transition,
 };
 
 mod auditory;
@@ -37,6 +39,7 @@ mod exact_time_grid_occurrence;
 mod full_field_bank;
 #[cfg(test)]
 mod hippocampal_reference_page;
+mod hippocampal_directory_cold_store;
 mod hippocampal_sparse_path;
 pub mod joint_field_l0_l4;
 mod joint_source_episode;
@@ -58,6 +61,7 @@ mod optical_receptor_work;
 #[cfg(test)]
 mod ordered_gate_delivery_candidate;
 pub mod organism;
+mod organism_runtime;
 mod physical_cognitive_capital;
 mod physical_mosaic;
 #[cfg(test)]
@@ -120,6 +124,7 @@ fn guala_core(module: &Bound<'_, PyModule>) -> PyResult<()> {
     full_field_bank::register(module)?;
     joint_source_episode::register(module)?;
     materialized_fabric::register(module)?;
+    organism_runtime::register(module)?;
     resident_d3_runtime::register(module)?;
     module.add_function(wrap_pyfunction!(organism_state_structure_check, module)?)?;
     module.add_function(wrap_pyfunction!(unverified_organism_state_receipt, module)?)?;

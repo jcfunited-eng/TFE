@@ -17,6 +17,7 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     BuiltSixSenseFullField,
     NativeSensorySubstreamInput,
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -42,9 +43,11 @@ from dsf_ai_service.substrate.exact_causal_experience import (
 )
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
     W1EarAuditoryTransductionCustody,
+    binaural_joint_units,
     binaural_sound_field_inputs,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
+    physical_receptor_joint_units,
     physical_receptor_substreams,
 )
 
@@ -463,6 +466,27 @@ def material_receptor_substreams(
     return observed
 
 
+def material_receptor_joint_units(
+    observed: dict[
+        PhysicalSense, tuple[NativeSensorySubstreamInput, ...]
+    ],
+) -> tuple[tuple[tuple[PhysicalSense, int], ...], ...]:
+    """Declare this anatomy's joint-source units for one world edge.
+
+    Each material receptor field transduces one signed material contact or
+    diffusion event: the surface receptor axes sample one touched material
+    jointly, the odorant channels sample one airborne mixture jointly, and
+    the tastant channels sample one dissolved mixture jointly.  Each
+    observed material sense is therefore one joint source occurrence.
+    """
+
+    return tuple(
+        tuple((sense, port.topology_index) for port in ports)
+        for sense, ports in observed.items()
+        if ports
+    )
+
+
 def build_coupled_six_sense_full_field(
     *,
     assembly_id: str,
@@ -544,12 +568,28 @@ def build_coupled_six_sense_full_field(
         PhysicalSense.BODY: SenseBoundaryState.OBSERVED,
         **material_states,
     }
+    declared_units = (
+        *physical_receptor_joint_units({
+            PhysicalSense.SIGHT: physical[PhysicalSense.SIGHT],
+            PhysicalSense.BODY: physical[PhysicalSense.BODY],
+        }),
+        *material_receptor_joint_units(material),
+        *(
+            binaural_joint_units(left_sound, right_sound)
+            if sound_substreams
+            else ()
+        ),
+    )
     return build_transaction_owned_six_sense_full_field(
         assembly_id=assembly_id,
         source_time_start=source_time_start,
         source_time_end=source_time_end,
         observed_substreams=observed,
         states={sense: states[sense] for sense in SENSE_ORDER},
+        occurrences=declare_joint_source_occurrences(
+            observed_substreams=observed,
+            declared_units=declared_units,
+        ),
     )
 
 

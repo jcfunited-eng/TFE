@@ -783,6 +783,29 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn from_source_port_equals_the_reached_site_for_every_episode_port() {
+        // Seed expression compares authored sites against reached sites by
+        // exact equality, so the genesis boundary that builds sites with
+        // `from_source_port` must produce values equal to the growth path that
+        // builds them with `from_anchor` from the same episode port.
+        for episode in [exact_episode(), exact_four_optical_episode()] {
+            let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
+            assert_eq!(shared.vertex_count(), 4);
+            for coordinate in 0..shared.vertex_count() {
+                let perspective = bind_neuron_perspective(&shared, coordinate, 0).unwrap();
+                let anchor = bind_neuron_source_anchor(&episode, perspective).unwrap();
+                let reached = NeuronSourceSite::from_anchor(anchor);
+                let port = &episode.joint_source_ports()[anchor.source_port_index()];
+                assert_eq!(NeuronSourceSite::from_source_port(port).unwrap(), reached);
+                // For these episodes the reached coordinate order is the port
+                // order, so a growth-DNA seed authored over ports [0..n) in
+                // order matches the reached cohort exactly.
+                assert_eq!(anchor.source_port_index(), coordinate);
+            }
+        }
+    }
+
+    #[test]
     fn exact_receptor_site_cold_restores_without_samples_or_relabeling() {
         let episode = exact_episode();
         let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();

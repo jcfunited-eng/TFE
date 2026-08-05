@@ -29,6 +29,7 @@
   },
   "canonical_commit": "6509971e987d4a1f161ffcfcadc3ec68568322c6",
   "canonical_source_bundle_sha256": "c8b95decde72946e2beccc8513f9d64f7bfc6b58e5736edb3fffd54b4749357b",
+  "canonical_source_bundle_v2_sha256": "be3d320f256cbaf9ed58463a7af6069a44001c3342714b635d34cdef164759ec",
   "canonical_sources": [
     {
       "bytes": 2430,

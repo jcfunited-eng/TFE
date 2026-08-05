@@ -57,6 +57,7 @@ from dsf_ai_service.substrate.embodiment_world import (
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
@@ -629,6 +630,19 @@ class SelfVocalPCMMotorOwner:
                     )
                     for sense in SENSE_ORDER
                 },
+                # Every cochlear kernel component re-hears the one retained
+                # self-vocal motor emission: one joint acoustic occurrence.
+                occurrences=declare_joint_source_occurrences(
+                    observed_substreams={
+                        PhysicalSense.SOUND: components
+                    },
+                    declared_units=(
+                        tuple(
+                            (PhysicalSense.SOUND, port.topology_index)
+                            for port in components
+                        ),
+                    ),
+                ),
             )
             auditory_l5 = AuditoryL5Owner(
                 log_event=lambda *_args, **_kwargs: None

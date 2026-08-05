@@ -11,9 +11,13 @@ use std::fmt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use num_bigint::BigInt;
+use num_rational::BigRational;
+
+use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
 use crate::hippocampal_sparse_path::HippocampalColdPort;
 use crate::joint_source_episode::NativeJointSourceEpisode;
-use crate::joint_uf_source_adapter::AdmittedJointSourceEpisode;
+use crate::joint_uf_source_adapter::{AdmittedJointSourceEpisode, JointUfSourceAdmission};
 use crate::physical_cognitive_capital::{
     observe_transition_cognitive_capital, CognitiveCapability, CognitiveCapitalDimension,
     CognitiveCapitalObservation, COGNITIVE_CAPITAL_SCHEMA,
@@ -624,6 +628,45 @@ pub fn create_native_resident_d3_genesis(
     .map_err(|error| error.to_string())
 }
 
+/// Genesis with authored developmental growth DNA.
+///
+/// Identical to `create_native_resident_d3_genesis` except that the resident
+/// cognitive state is born carrying the caller's authored unexpressed
+/// electrical seeds instead of an empty seed set. Each seed group names port
+/// indices of `anatomy_episode` (its authored physical source sites) and its
+/// authored contacts as `(left_seed_index, right_seed_index,
+/// conductance_picosiemens)`. Nothing is inferred: a seed expresses later only
+/// when a grown cohort's reached source sites exactly equal the seed's sites.
+pub fn create_native_resident_d3_genesis_with_growth_dna(
+    organism_identity: &str,
+    organism_tick: u64,
+    legacy_predecessor_receipt: Option<[u8; 32]>,
+    anatomy_episode: &NativeJointSourceEpisode,
+    seed_groups: Vec<(Vec<usize>, Vec<(usize, usize, i64)>)>,
+    max_envelope_bytes: usize,
+    max_cognitive_bytes: usize,
+) -> Result<Vec<u8>, String> {
+    let identity = canonical_identity(organism_identity).map_err(|error| error.to_string())?;
+    let budget = ResidentD3Budget::new(max_envelope_bytes, max_cognitive_bytes)
+        .map_err(|error| error.to_string())?;
+    let seeds = build_authored_growth_dna_seeds(anatomy_episode, &seed_groups)?;
+    let cognitive = ResidentCognitiveFormationState::from_developmental_electrical_seeds(seeds)
+        .map_err(|error| error.to_string())?
+        .encode(max_cognitive_bytes)
+        .map_err(|error| error.to_string())?;
+    encode_current_state(
+        identity,
+        organism_tick,
+        0,
+        legacy_predecessor_receipt,
+        YawBodyState::new(0).map_err(|error| format!("yaw-body genesis failed: {error:?}"))?,
+        CanalState::at_rest(),
+        &cognitive,
+        budget,
+    )
+    .map_err(|error| error.to_string())
+}
+
 pub fn transition_native_resident_d3(
     _current_envelope: Vec<u8>,
     _source: &NativeJointSourceEpisode,
@@ -632,6 +675,47 @@ pub fn transition_native_resident_d3(
     _max_cognitive_bytes: usize,
 ) -> Result<NativeResidentD3Transition, String> {
     Err("explicit admitted joint source episode is required".to_owned())
+}
+
+/// Library transition with the caller's explicitly authored temporal
+/// admissions: one maximum causal interval `(numerator, denominator)` in
+/// source-time units per source occurrence, in exact occurrence order. The
+/// interval is independent environment/anatomy authority carried by the
+/// caller; it is never derived from the occurrence itself.
+pub fn transition_native_resident_d3_with_authored_admissions(
+    current_envelope: Vec<u8>,
+    source: &NativeJointSourceEpisode,
+    maximum_causal_intervals: &[(i64, i64)],
+    cold: Option<&mut dyn HippocampalColdPort>,
+    max_envelope_bytes: usize,
+    max_cognitive_bytes: usize,
+) -> Result<NativeResidentD3Transition, String> {
+    let ordered_admissions = maximum_causal_intervals
+        .iter()
+        .enumerate()
+        .map(|(occurrence_index, (numerator, denominator))| {
+            if *denominator == 0 {
+                return Err(format!(
+                    "authored admission {occurrence_index} has a zero denominator"
+                ));
+            }
+            JointUfSourceAdmission::new(BigRational::new(
+                BigInt::from(*numerator),
+                BigInt::from(*denominator),
+            ))
+            .map(|admission| (occurrence_index, admission))
+            .map_err(|error| format!("authored admission {occurrence_index} is invalid: {error:?}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let admitted_source = AdmittedJointSourceEpisode::new(source.clone(), ordered_admissions)
+        .map_err(|error| format!("{error:?}"))?;
+    transition_native_resident_d3_admitted(
+        current_envelope,
+        &admitted_source,
+        cold,
+        max_envelope_bytes,
+        max_cognitive_bytes,
+    )
 }
 
 pub(crate) fn transition_native_resident_d3_admitted(
@@ -1188,6 +1272,34 @@ mod tests {
         .unwrap()
     }
 
+    /// One authored seed group covering every port of the anatomy episode as a
+    /// chain of contacts (left = i - 1, right = i) with an authored conductance
+    /// of 500 pS, mirroring the formation-level `explicit_optical_seed`.
+    fn chain_seed_groups(
+        anatomy: &NativeJointSourceEpisode,
+        conductance_picosiemens: i64,
+    ) -> Vec<(Vec<usize>, Vec<(usize, usize, i64)>)> {
+        let port_count = anatomy.joint_source_ports().len();
+        let ports = (0..port_count).collect::<Vec<_>>();
+        let contacts = (1..port_count)
+            .map(|right| (right - 1, right, conductance_picosiemens))
+            .collect::<Vec<_>>();
+        vec![(ports, contacts)]
+    }
+
+    fn seeded_genesis(anatomy: &NativeJointSourceEpisode) -> Vec<u8> {
+        create_native_resident_d3_genesis_with_growth_dna(
+            IDENTITY,
+            0,
+            None,
+            anatomy,
+            chain_seed_groups(anatomy, 500),
+            budget().max_envelope_bytes,
+            budget().max_cognitive_bytes,
+        )
+        .unwrap()
+    }
+
     #[test]
     fn genesis_mounts_exact_at_rest_body_and_canal_in_one_envelope() {
         let current = genesis(None);
@@ -1319,7 +1431,9 @@ mod tests {
     #[test]
     fn cold_publish_failure_retains_the_same_pending_successor_for_exact_retry() {
         let mut cold = Cold::default();
-        let mut runtime = ResidentD3Runtime::restore(genesis(None), budget(), &cold).unwrap();
+        let anatomy = exact_four_single_optical_episode(0);
+        let mut runtime =
+            ResidentD3Runtime::restore(seeded_genesis(&anatomy), budget(), &cold).unwrap();
         let dark = exact_four_dark_optical_episode();
 
         for receptor in 0..4 {
@@ -1388,6 +1502,92 @@ mod tests {
             exercised,
             "the deterministic recurrence did not stage cold admission"
         );
+    }
+
+    #[test]
+    fn seeded_genesis_envelope_cold_restores_unexpressed_growth_dna_exactly() {
+        let anatomy = exact_four_dark_optical_episode();
+        let current = seeded_genesis(&anatomy);
+        let expected = ResidentCognitiveFormationState::from_developmental_electrical_seeds(
+            build_authored_growth_dna_seeds(&anatomy, &chain_seed_groups(&anatomy, 500)).unwrap(),
+        )
+        .unwrap();
+        let cold = Cold::default();
+        let runtime = ResidentD3Runtime::restore(current.clone(), budget(), &cold).unwrap();
+        assert_eq!(runtime.active.cognitive, expected);
+
+        let parsed = parse_current_state(&current, budget()).unwrap();
+        let decoded = ResidentCognitiveFormationState::decode(
+            parsed.cognitive_bytes,
+            budget().max_cognitive_bytes,
+        )
+        .unwrap();
+        assert_eq!(decoded, expected);
+        assert_eq!(
+            decoded.encode(budget().max_cognitive_bytes).unwrap(),
+            parsed.cognitive_bytes
+        );
+
+        assert_eq!(runtime.observation().organism_tick(), 0);
+        assert_eq!(runtime.observation().cognitive_generation(), 0);
+        assert_eq!(runtime.observation().complete_neuron_count(), 0);
+        assert_eq!(runtime.observation().cognitive_mosaic_count(), 0);
+    }
+
+    #[test]
+    fn seeded_genesis_grows_expressed_contacts_and_admits_a_real_mosaic() {
+        let anatomy = exact_four_single_optical_episode(0);
+        let mut cold = Cold::default();
+        let mut runtime =
+            ResidentD3Runtime::restore(seeded_genesis(&anatomy), budget(), &cold).unwrap();
+        let dark = exact_four_dark_optical_episode();
+
+        for receptor in 0..4 {
+            let source = exact_four_single_optical_episode(receptor);
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(&source), Some(&cold))
+                .unwrap();
+            if receptor == 0 {
+                assert_eq!(prepared.observation().complete_neuron_count(), 4);
+            }
+            runtime.commit(prepared.token(), &mut cold).unwrap();
+        }
+        for _ in 0..8 {
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(&dark), Some(&cold))
+                .unwrap();
+            runtime.commit(prepared.token(), &mut cold).unwrap();
+        }
+        assert_eq!(runtime.observation().cognitive_mosaic_count(), 0);
+
+        let partial = exact_four_partial_optical_episode();
+        let mut admitted_mosaic = false;
+        for source in std::iter::once(&partial).chain(std::iter::repeat(&dark).take(8)) {
+            let prepared = runtime
+                .prepare_admitted(&admitted_fixture_episode(source), Some(&cold))
+                .unwrap();
+            runtime.commit(prepared.token(), &mut cold).unwrap();
+            if runtime.observation().cognitive_mosaic_count() == 1 {
+                admitted_mosaic = true;
+                break;
+            }
+        }
+        assert!(
+            admitted_mosaic,
+            "the authored growth DNA did not lead to an admitted mosaic"
+        );
+
+        let envelope = runtime.current_envelope().to_vec();
+        let restored = ResidentD3Runtime::restore(envelope.clone(), budget(), &cold).unwrap();
+        assert_eq!(restored.observation().cognitive_mosaic_count(), 1);
+        assert_eq!(restored.observation().complete_neuron_count(), 4);
+        let parsed = parse_current_state(&envelope, budget()).unwrap();
+        let decoded = ResidentCognitiveFormationState::decode(
+            parsed.cognitive_bytes,
+            budget().max_cognitive_bytes,
+        )
+        .unwrap();
+        assert_eq!(decoded.summary().mosaic_count, 1);
     }
 
     #[test]

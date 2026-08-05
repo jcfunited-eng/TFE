@@ -2497,6 +2497,11 @@ def _visual_capture_contract():
 
 def _live_sensory_boundary_projection(settlement):
     """Project every exact sense state without granting field authority."""
+    if settlement is None:
+        # A failed or absent settlement has no sense states to project.
+        # Returning None keeps the response truthful and lets the recorded
+        # settlement error surface instead of an AttributeError.
+        return None
     interpretations = tuple(settlement.interpretations)
     if tuple(item.sense for item in interpretations) != _LIVE_SENSORY_ORDER:
         raise ValueError("live settlement changed six-sense order")

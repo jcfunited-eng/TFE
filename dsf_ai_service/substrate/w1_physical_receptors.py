@@ -28,6 +28,7 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     BuiltSixSenseFullField,
     NativeSensorySubstreamInput,
     build_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -866,6 +867,45 @@ def physical_receptor_substreams(
     return observed
 
 
+def physical_receptor_joint_units(
+    observed: Mapping[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+) -> tuple[tuple[tuple[PhysicalSense, int], ...], ...]:
+    """Declare this anatomy's joint-source units for one built interval.
+
+    The declaration follows the receptor anatomy defined in this module:
+    the spectral bands of one retinal cell observe one optical occurrence
+    jointly; the palmar surface's contact axes observe one contact
+    occurrence jointly; the body-displacement axes observe one body-motion
+    occurrence jointly.  Receptor sites (retinal cells) remain separate
+    occurrences, mirroring the foveal per-segment precedent.
+    """
+
+    units: list[tuple[tuple[PhysicalSense, int], ...]] = []
+    for sense, ports in observed.items():
+        if not ports:
+            continue
+        if sense is PhysicalSense.SIGHT:
+            cells: dict[
+                tuple[tuple[str, str], ...], list[int]
+            ] = {}
+            for port in ports:
+                cell = tuple(
+                    (coordinate.axis_id, coordinate.coordinate_id)
+                    for coordinate in port.coordinates
+                    if coordinate.axis_id != "optical-band"
+                )
+                cells.setdefault(cell, []).append(port.topology_index)
+            units.extend(
+                tuple((sense, index) for index in sorted(indices))
+                for indices in cells.values()
+            )
+        else:
+            units.append(
+                tuple((sense, port.topology_index) for port in ports)
+            )
+    return tuple(units)
+
+
 @dataclass(frozen=True, slots=True)
 class OutcomeObservationReceipt:
     world_observation_receipt_sha256: str
@@ -1003,6 +1043,10 @@ class EmbodimentSensoryOutcomeAuthority:
             source_time_end=Fraction(1),
             observed_substreams=observed,
             states=states,
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams=observed,
+                declared_units=physical_receptor_joint_units(observed),
+            ),
         )
         settlement = causal_owner.settle(
             built,
@@ -1037,5 +1081,6 @@ __all__ = (
     "TOUCH_RECEPTOR_COUNT",
     "TRANSDUCER_PROFILE",
     "_is_visible",
+    "physical_receptor_joint_units",
     "physical_receptor_substreams",
 )

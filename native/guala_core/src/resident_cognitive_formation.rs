@@ -649,6 +649,19 @@ impl ResidentCognitiveFormationState {
     }
 
     #[cfg(test)]
+    pub(crate) fn retained_electrical_contact_counts(&self) -> Vec<usize> {
+        self.cohorts
+            .iter()
+            .map(|cohort| cohort.anatomy.contact_count())
+            .collect()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn unexpressed_electrical_seed_count(&self) -> usize {
+        self.unexpressed_electrical_seeds.len()
+    }
+
+    #[cfg(test)]
     pub(crate) fn prepare(
         &self,
         source: &NativeJointSourceEpisode,

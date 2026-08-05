@@ -22,6 +22,7 @@ from dsf_ai_service.glew_runtime.global_uf import DSF_FIELD_ORDER
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -57,6 +58,7 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1BinauralCalibration,
 )
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
+    binaural_joint_units,
     binaural_sound_field_inputs,
     body_from_snapshot,
     calibrated_ear_positions,
@@ -74,6 +76,7 @@ from dsf_ai_service.substrate.w1_binaural_receptor_settlement import (
     settle_w1_binaural_receptors,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
+    physical_receptor_joint_units,
     physical_receptor_substreams,
 )
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
@@ -1237,6 +1240,26 @@ class W1CompanionArticulatoryDemonstrationAuthority:
                         physical[PhysicalSense.BODY]
                     ),
                 }
+                declared_units = (
+                    # Retinal cell bands settle per optical event, the
+                    # companion mouth-aperture edge receptor is its own
+                    # optical stream, and touch/body receptor organs each
+                    # report one occurrence; the companion's speech at the
+                    # two calibrated ears is one binaural occurrence.
+                    *physical_receptor_joint_units({
+                        sense: ports
+                        for sense, ports in observed.items()
+                        if sense is not PhysicalSense.SOUND
+                    }),
+                    *binaural_joint_units(
+                        observed[PhysicalSense.SOUND][
+                            : len(left_custody)
+                        ],
+                        observed[PhysicalSense.SOUND][
+                            len(left_custody) :
+                        ],
+                    ),
+                )
                 built = build_transaction_owned_six_sense_full_field(
                     assembly_id=(
                         "w1-companion-articulation-occurrence-"
@@ -1253,6 +1276,10 @@ class W1CompanionArticulatoryDemonstrationAuthority:
                         )
                         for sense in SENSE_ORDER
                     },
+                    occurrences=declare_joint_source_occurrences(
+                        observed_substreams=observed,
+                        declared_units=declared_units,
+                    ),
                 )
                 causal_token = self._causal.begin_atomic_sequence()
                 l5_token = self._binaural_l5.begin_atomic_sequence()

@@ -26,6 +26,8 @@ class _NativeResidentOrganismObservation:
     cognitive_mosaic_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
+    complete_neuron_count: int = 0
+    physically_transitioned_neuron_count: int = 0
     python_callback_count: int = 0
     schema: str = boundary.OBSERVATION_SCHEMA
     identity: str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
@@ -67,6 +69,8 @@ class _NativeResidentOrganismPrepare:
     cognitive_mosaic_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
+    complete_neuron_count: int = 0
+    physically_transitioned_neuron_count: int = 0
     python_callback_count: int = 0
 
     @property

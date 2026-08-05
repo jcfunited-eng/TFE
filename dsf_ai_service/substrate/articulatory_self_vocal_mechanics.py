@@ -28,6 +28,7 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     BuiltSixSenseFullField,
     NativeSensorySubstreamInput,
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -1416,6 +1417,20 @@ def _actuator_full_field(
                 )
                 for sense in SENSE_ORDER
             },
+            # The laryngeal mechanoreceptor and every vocal-tract section
+            # proprioceptor report one coupled articulatory mechanism
+            # executing one program partition: one joint occurrence.
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams={
+                    PhysicalSense.BODY: (excitation_input, *tract_inputs)
+                },
+                declared_units=(
+                    tuple(
+                        (PhysicalSense.BODY, port.topology_index)
+                        for port in (excitation_input, *tract_inputs)
+                    ),
+                ),
+            ),
         )
         partitions.append(
             ArticulatoryActuatorFullFieldPartition(

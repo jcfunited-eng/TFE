@@ -103,6 +103,10 @@ pub struct HippocampalColdObject {
 }
 
 impl HippocampalColdObject {
+    pub(crate) fn from_parts(address: HippocampalAddress, body: Box<[u8]>) -> Self {
+        Self { address, body }
+    }
+
     pub fn address(&self) -> HippocampalAddress {
         self.address
     }

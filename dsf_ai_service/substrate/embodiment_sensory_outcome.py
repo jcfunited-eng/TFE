@@ -15,6 +15,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import (
     EmbodimentSensoryOutcomeAuthority,
     OutcomeObservationReceipt,
     _is_visible,
+    physical_receptor_joint_units,
     physical_receptor_substreams,
 )
 
@@ -28,5 +29,6 @@ __all__ = (
     "RETINA_SUBSTREAM_COUNT",
     "TRANSDUCER_PROFILE",
     "_is_visible",
+    "physical_receptor_joint_units",
     "physical_receptor_substreams",
 )

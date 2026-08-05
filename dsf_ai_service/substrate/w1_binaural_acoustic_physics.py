@@ -456,11 +456,48 @@ def binaural_sound_field_inputs(
     return custody
 
 
+def binaural_joint_units(
+    left: Sequence[NativeSensorySubstreamInput],
+    right: Sequence[NativeSensorySubstreamInput],
+) -> tuple[tuple[tuple[PhysicalSense, int], ...], ...]:
+    """Declare the joint-source units of one two-ear acoustic interval.
+
+    One acoustic event heard at both ears is one joint source occurrence:
+    every cochlear component port of the left and right calibrated fields
+    settles together, preserving interaural structure.  When the two ears
+    did not share one exact capture clock there is no joint two-ear
+    occurrence to declare, and each ear's capture remains its own
+    occurrence.
+    """
+
+    left_ports = tuple(left)
+    right_ports = tuple(right)
+    if (
+        left_ports
+        and right_ports
+        and left_ports[0].source_times == right_ports[0].source_times
+    ):
+        return (
+            tuple(
+                (PhysicalSense.SOUND, port.topology_index)
+                for port in (*left_ports, *right_ports)
+            ),
+        )
+    return tuple(
+        tuple(
+            (PhysicalSense.SOUND, port.topology_index) for port in ports
+        )
+        for ports in (left_ports, right_ports)
+        if ports
+    )
+
+
 __all__ = [
     "CARDINAL_HEADINGS_MILLIDEGREES",
     "PCM_SAMPLE_WIDTH_BYTES",
     "SPEED_OF_SOUND_MM_PER_SECOND",
     "W1EarAuditoryTransductionCustody",
+    "binaural_joint_units",
     "binaural_sound_field_inputs",
     "body_from_snapshot",
     "calibrated_ear_positions",

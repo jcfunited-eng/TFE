@@ -41,6 +41,7 @@ from fractions import Fraction
 
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     build_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
@@ -69,6 +70,7 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     _visual_inputs,
 )
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
+    binaural_joint_units,
     binaural_sound_field_inputs as _sound_inputs,
     body_from_snapshot as _body,
     calibrated_ear_positions as _ear_positions,
@@ -882,6 +884,15 @@ def mount_authenticated_multi_emitter_binaural_hearing(
             )
             for sense in SENSE_ORDER
         },
+        # One mixed multi-emitter pressure field arriving at both
+        # calibrated ears over one exact capture interval is one joint
+        # binaural acoustic occurrence.
+        occurrences=declare_joint_source_occurrences(
+            observed_substreams={
+                PhysicalSense.SOUND: (*left, *right),
+            },
+            declared_units=binaural_joint_units(left, right),
+        ),
     )
     causal = ExactCausalExperienceOwner(
         on_settlement=lambda _settlement: None,

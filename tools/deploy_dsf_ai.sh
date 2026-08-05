@@ -220,9 +220,16 @@ environment = [
     item for item in environment if item.get("name") not in retired_names
 ]
 values = {item.get("name"): item for item in environment}
+# Ratified storage governance pins (operator decision 2026-07-28): the
+# hard global write-refusal ceiling and the cold-generation protocol limit.
+required_environment = {
+    "GUALA_MAX_COLD_GENERATION_BYTES": "2147483648",
+    "GUALA_PERSISTENT_STORAGE_CEILING_BYTES": "5368709120",
+}
 for name, value in (
     ("DEPLOY_EXPECTED_GIT_SHA", os.environ["GIT_SHA"]),
     ("DEPLOY_EXPECTED_IMAGE_DIGEST", os.environ["IMAGE_DIGEST"]),
+    *sorted(required_environment.items()),
 ):
     if name in values:
         values[name]["value"] = value

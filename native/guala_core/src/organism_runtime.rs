@@ -12,20 +12,29 @@
 //! motivation, action, or language claim. It performs no Python callback and
 //! owns no persistence, owner, lock, or global clock.
 
+use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
 use crate::hippocampal_sparse_path::HippocampalColdPort;
 #[cfg(test)]
 use crate::hippocampal_sparse_path::HippocampalColdStore;
 use crate::joint_source_episode::NativeJointSourceEpisode;
+#[cfg(test)]
+use crate::joint_uf_source_adapter::admitted_fixture_episode;
+use crate::hippocampal_directory_cold_store::DirectoryHippocampalColdStore;
+use crate::joint_uf_source_adapter::{
+    admitted_episode_with_authored_intervals, AdmittedJointSourceEpisode,
+};
 use crate::materialized_fabric::migrate_authenticated_glmfab03_to_current;
+#[cfg(test)]
+use crate::mounted_joint_fractal::transition_mounted_joint_dsf;
 use crate::mounted_joint_fractal::{
     encode_empty_mounted_joint_state, inspect_mounted_joint_dsf_summary,
-    prepare_resident_mounted_generation, restore_resident_mounted_state,
-    transition_mounted_joint_dsf, MountedJointDsfSummary, MountedJointDsfTransition,
-    MountedTransitionPhaseCounts, ResidentMountedRestoreWork, ResidentMountedState,
+    prepare_resident_mounted_generation, restore_resident_mounted_state, MountedJointDsfSummary,
+    MountedJointDsfTransition, MountedTransitionPhaseCounts, ResidentMountedRestoreWork,
+    ResidentMountedState,
 };
 use crate::resident_cognitive_formation::{
-    CognitiveFormationObservation, CognitiveFormationSummary, CognitiveOccurrence,
-    PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
+    CognitiveFormationObservation, CognitiveFormationSummary, PreparedCognitiveFormationTransition,
+    ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
     prepare_resident_receptor_ingress, ResidentReceptorIngressObservation,
@@ -1116,6 +1125,17 @@ impl ResidentOrganismRuntime {
         source: &NativeJointSourceEpisode,
         cold: Option<&mut dyn HippocampalColdPort>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        // The mandatory-admission law: a bare source episode carries no
+        // occurrence admissions, so the cognitive boundary refuses it below.
+        self.prepare_typed_with_cold(source, None, cold)
+    }
+
+    fn prepare_typed_with_cold(
+        &mut self,
+        source: &NativeJointSourceEpisode,
+        admitted_source: Option<&AdmittedJointSourceEpisode>,
+        cold: Option<&mut dyn HippocampalColdPort>,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some() {
             return Err(RuntimeError::PendingCandidateExists);
         }
@@ -1140,8 +1160,6 @@ impl ResidentOrganismRuntime {
         )
         .map_err(RuntimeError::MountedTransition)?;
         let receptor_ingress = prepare_resident_receptor_ingress(&prepared);
-        let cognitive_occurrence = CognitiveOccurrence::from_mounted(&prepared, source)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let phase_counts = prepared.phase_counts();
         let dsf_delivery_count = prepared
             .fields()
@@ -1170,15 +1188,26 @@ impl ResidentOrganismRuntime {
         let successor_mounted_generation = prepared.successor_generation();
         let cognitive_budget =
             cognitive_budget_after_joint(prepared.state_bytes().len(), self.budget)?;
-        let mut cognitive = self
-            .active
+        let mut cognitive = match admitted_source {
+            Some(admitted_source) => self
+                .active
+                .cognitive
+                .prepare_admitted_with_hippocampal_cold(admitted_source, &*cold, cognitive_budget),
+            None => self.active.cognitive.prepare_with_hippocampal_cold(
+                source,
+                &*cold,
+                cognitive_budget,
+            ),
+        }
+        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        self.active
             .cognitive
-            .prepare_with_hippocampal_cold(&cognitive_occurrence, source, cold, cognitive_budget)
+            .publish_prepared_hippocampal(&mut cognitive, cold)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_state = self
             .active
             .cognitive
-            .publish_hippocampal_and_encode_successor(&mut cognitive, cold, cognitive_budget)
+            .encode_successor(&cognitive, cognitive_budget)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let (mounted, joint_state, transition) = prepared.into_resident_parts();
@@ -1238,7 +1267,17 @@ impl ResidentOrganismRuntime {
         source: &NativeJointSourceEpisode,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let mut cold = HippocampalColdStore::default();
-        self.prepare_with_cold(source, Some(&mut cold))
+        self.prepare_with_store(source, &mut cold)
+    }
+
+    #[cfg(test)]
+    fn prepare_with_store(
+        &mut self,
+        source: &NativeJointSourceEpisode,
+        cold: &mut HippocampalColdStore,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        let admitted_source = admitted_fixture_episode(source);
+        self.prepare_typed_with_cold(source, Some(&admitted_source), Some(cold))
     }
 
     fn commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
@@ -1342,6 +1381,43 @@ impl NativeResidentOrganismRuntime {
         })
     }
 
+    /// Prepare one native candidate under the mandatory-admission law.
+    ///
+    /// `maximum_causal_intervals` carries one caller-authored maximum causal
+    /// interval `(numerator, denominator)` in source-time units per source
+    /// occurrence, in exact occurrence order; it is independent
+    /// environment/anatomy authority, never derived from the occurrence.
+    /// `hippocampal_cold_root` names the durable content-addressed external
+    /// cold-custody directory required by resident cognition.
+    fn prepare_admitted(
+        &mut self,
+        py: Python<'_>,
+        source: PyRef<'_, NativeJointSourceEpisode>,
+        maximum_causal_intervals: Vec<(i64, i64)>,
+        hippocampal_cold_root: std::path::PathBuf,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let source = source.clone();
+        let prepared = py
+            .allow_threads(|| -> Result<ResidentPrepareReceipt, String> {
+                let admitted = admitted_episode_with_authored_intervals(
+                    &source,
+                    &maximum_causal_intervals,
+                )?;
+                let mut cold =
+                    DirectoryHippocampalColdStore::open(&hippocampal_cold_root)?;
+                self.runtime
+                    .prepare_typed_with_cold(&source, Some(&admitted), Some(&mut cold))
+                    .map_err(|error| error.to_string())
+            })
+            .map_err(PyValueError::new_err)?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+        })
+    }
+
     fn commit(&mut self, token: Vec<u8>) -> PyResult<()> {
         let token = exact_token(token)?;
         self.runtime
@@ -1417,14 +1493,87 @@ fn create_native_resident_organism_runtime(
     Ok(NativeResidentOrganismRuntime { runtime })
 }
 
+#[pyfunction]
+#[pyo3(signature = (
+    organism_identity,
+    organism_tick,
+    anatomy_episode,
+    seed_groups,
+    max_envelope_bytes=67_108_864,
+    max_fabric_bytes=67_108_000,
+    max_logical_peak_bytes=536_870_912
+))]
+fn create_native_resident_organism_runtime_with_growth_dna(
+    py: Python<'_>,
+    organism_identity: String,
+    organism_tick: u64,
+    anatomy_episode: PyRef<'_, NativeJointSourceEpisode>,
+    seed_groups: Vec<(Vec<usize>, Vec<(usize, usize, i64)>)>,
+    max_envelope_bytes: usize,
+    max_fabric_bytes: usize,
+    max_logical_peak_bytes: usize,
+) -> PyResult<NativeResidentOrganismRuntime> {
+    let anatomy_episode = anatomy_episode.clone();
+    let runtime = py
+        .allow_threads(move || {
+            let budget =
+                RuntimeBudget::new(max_envelope_bytes, max_fabric_bytes, max_logical_peak_bytes)?;
+            create_resident_genesis_with_growth_dna(
+                &organism_identity,
+                organism_tick,
+                &anatomy_episode,
+                &seed_groups,
+                budget,
+            )
+        })
+        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    Ok(NativeResidentOrganismRuntime { runtime })
+}
+
 fn create_resident_genesis(
     organism_identity: &str,
     organism_tick: u64,
     budget: RuntimeBudget,
 ) -> Result<ResidentOrganismRuntime, RuntimeError> {
+    create_resident_genesis_from_state(
+        organism_identity,
+        organism_tick,
+        ResidentCognitiveFormationState::default(),
+        budget,
+    )
+}
+
+/// Genesis carrying authored developmental growth DNA.
+///
+/// Identical to `create_resident_genesis` except that the cognitive state is
+/// born with the caller's authored unexpressed electrical seeds. Each seed
+/// group names port indices of `anatomy_episode` and authored contacts as
+/// `(left_seed_index, right_seed_index, conductance_picosiemens)`. This
+/// boundary never chooses a contact; a seed expresses later only when a grown
+/// cohort's reached source sites exactly equal the seed's sites.
+fn create_resident_genesis_with_growth_dna(
+    organism_identity: &str,
+    organism_tick: u64,
+    anatomy_episode: &NativeJointSourceEpisode,
+    seed_groups: &[(Vec<usize>, Vec<(usize, usize, i64)>)],
+    budget: RuntimeBudget,
+) -> Result<ResidentOrganismRuntime, RuntimeError> {
+    let seeds = build_authored_growth_dna_seeds(anatomy_episode, seed_groups)
+        .map_err(RuntimeError::CognitiveFormation)?;
+    let cognitive = ResidentCognitiveFormationState::from_developmental_electrical_seeds(seeds)
+        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    create_resident_genesis_from_state(organism_identity, organism_tick, cognitive, budget)
+}
+
+fn create_resident_genesis_from_state(
+    organism_identity: &str,
+    organism_tick: u64,
+    cognitive: ResidentCognitiveFormationState,
+    budget: RuntimeBudget,
+) -> Result<ResidentOrganismRuntime, RuntimeError> {
     let identity = canonical_identity(organism_identity)?;
     let joint = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
-    let cognitive = ResidentCognitiveFormationState::default()
+    let cognitive = cognitive
         .encode(cognitive_budget_after_joint(joint.len(), budget)?)
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
     let fabric = encode_fabric(0, &joint, &cognitive, budget)?;
@@ -1719,6 +1868,10 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
         module
     )?)?;
     module.add_function(wrap_pyfunction!(
+        create_native_resident_organism_runtime_with_growth_dna,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
         migrate_authenticated_task853_predecessor_to_native_organism_runtime,
         module
     )?)?;
@@ -1839,12 +1992,10 @@ impl OrganismRuntime {
         {
             return Err(RuntimeError::MountedGenerationDiscontinuity);
         }
-        let cognitive_occurrence = CognitiveOccurrence::from_mounted(&prepared, source)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_state = restore_cognitive_state(&parsed, budget)?;
         let cognitive_budget = cognitive_budget_after_joint(prepared.state_bytes().len(), budget)?;
         let cognitive = cognitive_state
-            .prepare(&cognitive_occurrence, source, cognitive_budget)
+            .prepare(source, cognitive_budget)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_bytes = cognitive_state
             .encode_successor(&cognitive, cognitive_budget)
@@ -2483,7 +2634,10 @@ mod tests {
         assert_eq!(observed.joint_field_count, 1);
         assert_eq!(observed.joint_neuron_count, 2);
         assert_eq!(observed.dsf_delivery_count, 2);
-        assert_eq!(observed.complete_neuron_count, 2);
+        // The current cognitive boundary retains complete neurons only for
+        // exact receptor-typed (optical or vestibular) occurrences; this
+        // generic test source truthfully claims none.
+        assert_eq!(observed.complete_neuron_count, 0);
         assert_eq!(observed.complete_neuron_fractal_count, 0);
         assert_eq!(observed.recurrent_complete_neuron_fractal_count, 0);
         assert_eq!(observed.source_cohort_l0_l4_evaluation_count, 1);
@@ -2635,6 +2789,134 @@ mod tests {
         assert!(!observation.cognitive_formation_claimed);
         assert_eq!(runtime.cold_restore_work().decode_count, 1);
         assert!(runtime.active_envelope().starts_with(MAGIC));
+    }
+
+    #[test]
+    fn resident_growth_dna_genesis_is_structurally_empty_and_carries_only_authored_seeds() {
+        let anatomy = exact_optical_episode();
+        let seed_groups = vec![(vec![0_usize], Vec::<(usize, usize, i64)>::new())];
+        let runtime =
+            create_resident_genesis_with_growth_dna(IDENTITY, 0, &anatomy, &seed_groups, budget())
+                .unwrap();
+        let observation = runtime.observation();
+        assert_eq!(observation.identity.as_slice(), IDENTITY.as_bytes());
+        assert_eq!(observation.organism_tick, 0);
+        assert_eq!(observation.complete_neuron_count, 0);
+        assert_eq!(observation.cognitive_ordinal, 0);
+        assert_eq!(observation.cognitive_trace_count, 0);
+        assert_eq!(observation.cognitive_mosaic_count, 0);
+        assert!(!observation.mounted_step_completed);
+        assert!(!observation.cognitive_formation_claimed);
+        assert_eq!(
+            runtime.active.cognitive.unexpressed_electrical_seed_count(),
+            1
+        );
+        assert!(runtime
+            .active
+            .cognitive
+            .retained_electrical_contact_counts()
+            .is_empty());
+
+        let out_of_range = create_resident_genesis_with_growth_dna(
+            IDENTITY,
+            0,
+            &anatomy,
+            &[(vec![1], vec![])],
+            budget(),
+        )
+        .unwrap_err();
+        assert!(out_of_range.to_string().contains("joint source ports"));
+        let empty_groups =
+            create_resident_genesis_with_growth_dna(IDENTITY, 0, &anatomy, &[], budget())
+                .unwrap_err();
+        assert!(empty_groups
+            .to_string()
+            .contains("at least one authored seed group"));
+    }
+
+    #[test]
+    fn resident_growth_dna_genesis_expresses_contacts_and_admits_a_real_mosaic() {
+        use crate::neuron_source_anchor::tests::{
+            exact_four_dark_optical_episode, exact_four_partial_optical_episode,
+            exact_four_single_optical_episode,
+        };
+        let budget = RuntimeBudget::new(33_554_432, 33_000_000, 100_663_296).unwrap();
+        let anatomy = exact_four_single_optical_episode(0);
+        let seed_groups = vec![(
+            (0..4).collect::<Vec<_>>(),
+            (1..4)
+                .map(|right| (right - 1, right, 500_i64))
+                .collect::<Vec<_>>(),
+        )];
+        let mut runtime =
+            create_resident_genesis_with_growth_dna(IDENTITY, 0, &anatomy, &seed_groups, budget)
+                .unwrap();
+        assert_eq!(runtime.observation().complete_neuron_count, 0);
+        assert_eq!(
+            runtime.active.cognitive.unexpressed_electrical_seed_count(),
+            1
+        );
+
+        let mut cold = HippocampalColdStore::default();
+        let dark = exact_four_dark_optical_episode();
+        for receptor in 0..4 {
+            let source = exact_four_single_optical_episode(receptor);
+            let prepared = runtime.prepare_with_store(&source, &mut cold).unwrap();
+            if receptor == 0 {
+                assert_eq!(prepared.observation.complete_neuron_count, 4);
+                assert!(prepared.observation.physical_transition_claimed);
+            }
+            runtime.commit(prepared.token).unwrap();
+        }
+        // The reached cohort expressed exactly the three authored contacts and
+        // consumed the seed; nothing was inferred at growth time.
+        assert_eq!(
+            runtime
+                .active
+                .cognitive
+                .retained_electrical_contact_counts(),
+            [3]
+        );
+        assert_eq!(
+            runtime.active.cognitive.unexpressed_electrical_seed_count(),
+            0
+        );
+
+        for _ in 0..8 {
+            let prepared = runtime.prepare_with_store(&dark, &mut cold).unwrap();
+            runtime.commit(prepared.token).unwrap();
+        }
+        assert_eq!(runtime.observation().cognitive_mosaic_count, 0);
+
+        let partial = exact_four_partial_optical_episode();
+        let mut admitted_mosaic = false;
+        for source in std::iter::once(&partial).chain(std::iter::repeat(&dark).take(8)) {
+            let prepared = runtime.prepare_with_store(source, &mut cold).unwrap();
+            runtime.commit(prepared.token).unwrap();
+            if runtime.observation().cognitive_mosaic_count == 1 {
+                admitted_mosaic = true;
+                break;
+            }
+        }
+        assert!(
+            admitted_mosaic,
+            "the authored growth DNA did not lead to an admitted mosaic"
+        );
+
+        // The admitted mosaic survives in the sealed envelope as decoded
+        // state, not as a transition counter.
+        let restored =
+            ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget)
+                .unwrap();
+        assert_eq!(restored.observation().cognitive_mosaic_count, 1);
+        assert_eq!(restored.observation().complete_neuron_count, 4);
+        assert_eq!(
+            restored
+                .active
+                .cognitive
+                .retained_electrical_contact_counts(),
+            [3]
+        );
     }
 
     #[test]
@@ -2814,7 +3096,9 @@ mod tests {
             .prepare(&source_with_port_count("formation-origin", 4))
             .unwrap();
         assert!(!first.observation.cognitive_formation_claimed);
-        assert_eq!(first.observation.cognitive_ordinal, 0);
+        // The cognitive ordinal counts admitted source generations, never
+        // claimed cognition: it advances even though nothing formed.
+        assert_eq!(first.observation.cognitive_ordinal, 1);
         assert_eq!(first.observation.cognitive_trace_count, 0);
         assert_eq!(first.observation.cognitive_mosaic_count, 0);
         runtime.commit(first.token).unwrap();
@@ -2823,7 +3107,7 @@ mod tests {
             .prepare(&source_with_port_count("formation-recurrence", 4))
             .unwrap();
         assert!(!second.observation.cognitive_formation_claimed);
-        assert_eq!(second.observation.cognitive_ordinal, 0);
+        assert_eq!(second.observation.cognitive_ordinal, 2);
         assert_eq!(second.observation.cognitive_trace_count, 0);
         assert_eq!(second.observation.cognitive_mosaic_count, 0);
         assert_eq!(second.observation.formation_activation_count, 0);
@@ -2834,7 +3118,7 @@ mod tests {
         let mut restored =
             ResidentOrganismRuntime::restore_envelope(saved.clone(), budget()).unwrap();
         assert_eq!(restored.active_envelope(), saved);
-        assert_eq!(restored.observation().cognitive_ordinal, 0);
+        assert_eq!(restored.observation().cognitive_ordinal, 2);
         assert_eq!(restored.observation().cognitive_trace_count, 0);
         assert_eq!(restored.observation().cognitive_mosaic_count, 0);
 
@@ -2852,7 +3136,7 @@ mod tests {
             budget(),
         )
         .unwrap();
-        assert_eq!(restarted.observation().cognitive_ordinal, 0);
+        assert_eq!(restarted.observation().cognitive_ordinal, 3);
         assert_eq!(restarted.observation().cognitive_mosaic_count, 0);
     }
 
@@ -3143,6 +3427,8 @@ mod tests {
                 "transition_native_organism_runtime",
                 "restore_native_organism_runtime",
                 "restore_native_resident_organism_runtime",
+                "create_native_resident_organism_runtime",
+                "create_native_resident_organism_runtime_with_growth_dna",
                 "migrate_authenticated_task853_predecessor_to_native_organism_runtime",
             ] {
                 assert_eq!(

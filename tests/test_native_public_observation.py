@@ -129,9 +129,11 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         assert section["status"]
         assert section["reason"]
 
+    # Auditory intake and the curriculum's card surface are genuinely
+    # mounted now; every other modality must still refuse honestly.
+    for modality in ("auditory", "visual"):
+        assert value["sensory"][modality]["available"] is True
     for modality in (
-        "visual",
-        "auditory",
         "text",
         "touch",
         "temperature",
@@ -144,6 +146,8 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         assert value["sensory"][modality]["available"] is False
 
     assert value["autonomy"]["action_observed"] is False
+    # The fixture observation carries zero formations; the projection must
+    # report exactly what the observation says, not a hardwired zero.
     assert value["fractals"]["count"] == 0
     assert value["formations"]["mosaic_count"] == 0
     assert value["full_dsf"]["fields"] == [
@@ -169,15 +173,29 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
     assert receipt == serving._receipt(value)
 
 
-def test_capabilities_never_offer_an_unmounted_ingress(monkeypatch) -> None:
+def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
     _mount(monkeypatch)
     value = json.loads(serving.native_observation().body)
     assert value["capabilities"]
-    for capability in value["capabilities"].values():
-        assert capability["available"] is False
-        assert capability["endpoint"] is None
-        assert capability["status"] == "not_mounted"
-        assert "not mounted" in capability["reason"]
+    served_paths = {route.path for route in serving.app.routes}
+    mounted = {
+        name: record
+        for name, record in value["capabilities"].items()
+        if record["available"] is True
+    }
+    # The mounted set is exactly the ingresses with real native transitions.
+    assert set(mounted) == {"microphone", "curriculum"}
+    for record in mounted.values():
+        assert record["status"] == "mounted"
+        assert record["endpoint"] in served_paths
+        assert record["reason"]
+    for name, record in value["capabilities"].items():
+        if name in mounted:
+            continue
+        assert record["available"] is False
+        assert record["endpoint"] is None
+        assert record["status"] == "not_mounted"
+        assert "not mounted" in record["reason"]
 
 
 def test_native_public_surface_contains_no_owner_or_legacy_observation_route(

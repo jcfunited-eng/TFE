@@ -7,6 +7,7 @@
 //! is unavailable rather than inferred.
 
 use crate::exact_rational::ExactRational;
+use crate::joint_source_episode::NativeJointSourceEpisode;
 use crate::neuron_source_anchor::{
     decode_neuron_source_site, encode_neuron_source_site, NeuronSourceSite,
 };
@@ -206,6 +207,78 @@ impl DevelopmentalElectricalSeed {
         }
         Ok(seed)
     }
+}
+
+/// Build authored growth-DNA seeds for a genesis from explicit caller material.
+///
+/// Every source site is carried from a named joint-source port of the caller's
+/// anatomy episode and every contact (endpoints and conductance) is authored by
+/// the caller. Nothing is chosen or inferred here: an out-of-range port index,
+/// an invalid site, or an invalid contact is refused with its exact reason, and
+/// each group is validated by `DevelopmentalElectricalSeed::new` itself.
+pub(crate) fn build_authored_growth_dna_seeds(
+    anatomy_episode: &NativeJointSourceEpisode,
+    seed_groups: &[(Vec<usize>, Vec<(usize, usize, i64)>)],
+) -> Result<Vec<DevelopmentalElectricalSeed>, String> {
+    if seed_groups.is_empty() {
+        return Err("growth-dna genesis requires at least one authored seed group".to_owned());
+    }
+    let ports = anatomy_episode.joint_source_ports();
+    let mut seeds = Vec::new();
+    seeds
+        .try_reserve_exact(seed_groups.len())
+        .map_err(|_| "growth-dna seed group count exceeds addressable memory".to_owned())?;
+    for (group_index, (port_indices, contacts)) in seed_groups.iter().enumerate() {
+        let mut source_sites = Vec::new();
+        source_sites
+            .try_reserve_exact(port_indices.len())
+            .map_err(|_| {
+                format!("growth-dna seed group {group_index} exceeds addressable memory")
+            })?;
+        for port_index in port_indices {
+            let port = ports.get(*port_index).ok_or_else(|| {
+                format!(
+                    "growth-dna seed group {group_index} names port index {port_index} \
+                     but the anatomy episode has only {} joint source ports",
+                    ports.len()
+                )
+            })?;
+            source_sites.push(NeuronSourceSite::from_source_port(port).map_err(|error| {
+                format!(
+                    "growth-dna seed group {group_index} port {port_index} \
+                     is not a valid physical source site: {error:?}"
+                )
+            })?);
+        }
+        let mut authored_contacts = Vec::new();
+        authored_contacts
+            .try_reserve_exact(contacts.len())
+            .map_err(|_| {
+                format!("growth-dna seed group {group_index} exceeds addressable memory")
+            })?;
+        for (left_seed_index, right_seed_index, conductance_picosiemens) in contacts {
+            authored_contacts.push(
+                DevelopmentalElectricalContact::new(
+                    *left_seed_index,
+                    *right_seed_index,
+                    ExactRational::integer(i128::from(*conductance_picosiemens)),
+                    source_sites.len(),
+                )
+                .map_err(|error| {
+                    format!(
+                        "growth-dna seed group {group_index} contact \
+                         ({left_seed_index}, {right_seed_index}) is invalid: {error:?}"
+                    )
+                })?,
+            );
+        }
+        seeds.push(
+            DevelopmentalElectricalSeed::new(source_sites, authored_contacts).map_err(|error| {
+                format!("growth-dna seed group {group_index} is invalid: {error:?}")
+            })?,
+        );
+    }
+    Ok(seeds)
 }
 
 const DEVELOPMENTAL_SEED_MAGIC: &[u8; 8] = b"GLDES01\0";

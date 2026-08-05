@@ -44,6 +44,7 @@ from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     MAX_NATIVE_SOUND_SUBSTREAMS,
     NativeSensorySubstreamInput,
     build_transaction_owned_six_sense_full_field,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -53,6 +54,7 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 )
 from dsf_ai_service.substrate.embodiment_sensory_outcome import (
     _is_visible,
+    physical_receptor_joint_units,
     physical_receptor_substreams,
 )
 from dsf_ai_service.substrate.embodiment_world import (
@@ -89,10 +91,12 @@ from dsf_ai_service.substrate.w1_binaural_receptor_settlement import (
     settle_w1_binaural_receptors,
 )
 from dsf_ai_service.substrate.w1_coupled_material_sensory_physics import (
+    material_receptor_joint_units,
     material_receptor_substreams,
 )
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
     PCM_SAMPLE_WIDTH_BYTES,
+    binaural_joint_units,
     binaural_sound_field_inputs as _sound_inputs,
     body_from_snapshot as _body,
     calibrated_ear_positions as _ear_positions,
@@ -1789,15 +1793,32 @@ class W1AudiovisualPhysicalEvidenceAuthority:
             ),
             "visual_series_sha256": visual_commitment,
         })
+        observed_substreams = {
+            PhysicalSense.SIGHT: visual_inputs,
+            **somatic_inputs,
+        }
+        declared_units = (
+            *physical_receptor_joint_units({
+                sense: ports
+                for sense, ports in observed_substreams.items()
+                if sense in (PhysicalSense.SIGHT, PhysicalSense.BODY)
+            }),
+            *material_receptor_joint_units({
+                sense: ports
+                for sense, ports in somatic_inputs.items()
+                if sense is not PhysicalSense.BODY
+            }),
+        )
         built = build_transaction_owned_six_sense_full_field(
             assembly_id=assembly_id,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
-            observed_substreams={
-                PhysicalSense.SIGHT: visual_inputs,
-                **somatic_inputs,
-            },
+            observed_substreams=observed_substreams,
             states=states,
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams=observed_substreams,
+                declared_units=declared_units,
+            ),
         )
         settlement_owner = (
             self._causal_owner
@@ -2507,16 +2528,34 @@ class W1AudiovisualPhysicalEvidenceAuthority:
                     execution_receipt.authority_receipt_sha256
                 ),
             })
+            observed_substreams = {
+                PhysicalSense.SIGHT: visual_inputs,
+                PhysicalSense.SOUND: sound_inputs,
+                **somatic_inputs,
+            }
+            declared_units = (
+                *physical_receptor_joint_units({
+                    sense: ports
+                    for sense, ports in observed_substreams.items()
+                    if sense in (PhysicalSense.SIGHT, PhysicalSense.BODY)
+                }),
+                *binaural_joint_units(left_sound, right_sound),
+                *material_receptor_joint_units({
+                    sense: ports
+                    for sense, ports in somatic_inputs.items()
+                    if sense is not PhysicalSense.BODY
+                }),
+            )
             built = build_transaction_owned_six_sense_full_field(
                 assembly_id=assembly_id,
                 source_time_start=source_time_start,
                 source_time_end=source_time_end,
-                observed_substreams={
-                    PhysicalSense.SIGHT: visual_inputs,
-                    PhysicalSense.SOUND: sound_inputs,
-                    **somatic_inputs,
-                },
+                observed_substreams=observed_substreams,
                 states=states,
+                occurrences=declare_joint_source_occurrences(
+                    observed_substreams=observed_substreams,
+                    declared_units=declared_units,
+                ),
             )
             settlement = self._causal_owner.settle(
                 built,

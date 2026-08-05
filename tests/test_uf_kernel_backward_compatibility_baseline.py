@@ -110,13 +110,15 @@ def test_canonical_kernel_sources_match_frozen_v1_hashes() -> None:
             "sha256": hashlib.sha256(encoded).hexdigest(),
         }
         assert row == expected
+        # Machine-independent rows only: the v1 bundle digest embedded the
+        # absolute checkout path, so it could never pass outside the machine
+        # that froze it. The per-file sha256 asserts above are the real guard.
         actual.append({
-            "path": str((_ROOT / expected["path"]).resolve()),
             "relative_path": expected["path"],
             "sha256": row["sha256"],
             "size_bytes": row["bytes"],
         })
-    assert _digest(actual) == baseline["canonical_source_bundle_sha256"]
+    assert _digest(actual) == baseline["canonical_source_bundle_v2_sha256"]
 
 
 def test_default_profile_is_bit_exact_for_non_auditory_domains() -> None:

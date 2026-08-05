@@ -11021,6 +11021,7 @@ class Guala:
         from dsf_ai_service.glew_runtime.native_sensory_full_field import (
             NativeSensorySubstreamInput,
             build_transaction_owned_six_sense_full_field,
+            declare_joint_source_occurrences,
         )
         from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
             NativeAxisCoordinate,
@@ -11143,6 +11144,11 @@ class Guala:
 
         auditory_by_index = {}
         visual_by_index = {}
+        # Site-declared joint-source units: each typed auditory kernel
+        # mount is one acoustic capture whose cochlear components settle
+        # jointly; each visual entry's receptor sites settle per optical
+        # event (spectral bands of one site jointly, sites separately).
+        declared_units = []
         for custody in self.window_manager._settlement_custodies_for_record(
             record
         ):
@@ -11170,6 +11176,7 @@ class Guala:
                 raise RuntimeError(
                     "causal sensory window has an unknown typed custody"
                 )
+            mount_unit = []
             for entry_index, native_input in custody.inputs_for_settlement(
                 window_id=str(record.get("window_id") or ""),
                 context_id=str(record.get("context_id") or ""),
@@ -11190,6 +11197,11 @@ class Guala:
                         "auditory settlement custody crossed its public field"
                     )
                 auditory_by_index[entry_index] = native_input
+                mount_unit.append(
+                    (PhysicalSense.SOUND, native_input.topology_index)
+                )
+            if mount_unit:
+                declared_units.append(tuple(mount_unit))
 
         def native_from_record(value, *, entry_index):
             if not isinstance(value, dict):
@@ -11404,6 +11416,23 @@ class Guala:
             observed.setdefault(PhysicalSense.SIGHT, []).extend(
                 native_values
             )
+            entry_sites = {}
+            for native_value in native_values:
+                site = tuple(
+                    (coordinate.axis_id, coordinate.coordinate_id)
+                    for coordinate in native_value.coordinates
+                    if coordinate.axis_id != "optical-band"
+                )
+                entry_sites.setdefault(site, []).append(
+                    native_value.topology_index
+                )
+            declared_units.extend(
+                tuple(
+                    (PhysicalSense.SIGHT, index)
+                    for index in sorted(indices)
+                )
+                for indices in entry_sites.values()
+            )
 
         if set(auditory_by_index) != {
             index
@@ -11492,6 +11521,10 @@ class Guala:
             source_time_end=source_time_end,
             observed_substreams=ordered_observed,
             states=states,
+            occurrences=declare_joint_source_occurrences(
+                observed_substreams=ordered_observed,
+                declared_units=tuple(declared_units),
+            ),
         )
         prior_native_fabric_state = self._native_materialized_fabric_state
         prior_native_fabric_reference = (
