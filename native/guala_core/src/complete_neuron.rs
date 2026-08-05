@@ -3090,6 +3090,463 @@ fn push_i128_delta(
     });
 }
 
+const SPARSE_DELTA_ENTRY_BYTES: usize = 1 + 8 + 1 + 16 + 16;
+
+fn sparse_delta_coordinate_parts(coordinate: PhysicalStateCoordinate) -> (u8, usize) {
+    match coordinate {
+        PhysicalStateCoordinate::PsiWinding(index) => (0, index),
+        PhysicalStateCoordinate::PsiDissipatedEnergy(index) => (1, index),
+        PhysicalStateCoordinate::GateOpenPopulation => (2, 0),
+        PhysicalStateCoordinate::GateDissipatedEnergy => (3, 0),
+        PhysicalStateCoordinate::MembraneSeparatedCharge => (4, 0),
+        PhysicalStateCoordinate::MembraneCarrierPhase => (5, 0),
+        PhysicalStateCoordinate::ConductancePathCarrierPhase(index) => (6, index),
+        PhysicalStateCoordinate::IntracellularCarrier => (7, 0),
+        PhysicalStateCoordinate::ExtracellularCarrier => (8, 0),
+        PhysicalStateCoordinate::RecoveryPsiFuel(index) => (9, index),
+        PhysicalStateCoordinate::RecoveryPsiSpent(index) => (10, index),
+        PhysicalStateCoordinate::RecoveryPsiExportedHeat(index) => (11, index),
+        PhysicalStateCoordinate::RecoveryGateFuel => (12, 0),
+        PhysicalStateCoordinate::RecoveryGateSpent => (13, 0),
+        PhysicalStateCoordinate::RecoveryGateExportedHeat => (14, 0),
+        PhysicalStateCoordinate::PlasticRestLength => (15, 0),
+        PhysicalStateCoordinate::PlasticDissipatedEnergy => (16, 0),
+        PhysicalStateCoordinate::RecoveryPlasticFuel => (17, 0),
+        PhysicalStateCoordinate::RecoveryPlasticSpent => (18, 0),
+        PhysicalStateCoordinate::RecoveryPlasticExportedHeat => (19, 0),
+        PhysicalStateCoordinate::DnaSubstrate => (20, 0),
+        PhysicalStateCoordinate::DnaFuel => (21, 0),
+        PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
+        PhysicalStateCoordinate::DnaWaste => (23, 0),
+    }
+}
+
+fn sparse_delta_coordinate_from_parts(
+    tag: u8,
+    index: usize,
+) -> Result<PhysicalStateCoordinate, NeuronStateCodecError> {
+    let coordinate = match tag {
+        0 => PhysicalStateCoordinate::PsiWinding(index),
+        1 => PhysicalStateCoordinate::PsiDissipatedEnergy(index),
+        2 if index == 0 => PhysicalStateCoordinate::GateOpenPopulation,
+        3 if index == 0 => PhysicalStateCoordinate::GateDissipatedEnergy,
+        4 if index == 0 => PhysicalStateCoordinate::MembraneSeparatedCharge,
+        5 if index == 0 => PhysicalStateCoordinate::MembraneCarrierPhase,
+        6 => PhysicalStateCoordinate::ConductancePathCarrierPhase(index),
+        7 if index == 0 => PhysicalStateCoordinate::IntracellularCarrier,
+        8 if index == 0 => PhysicalStateCoordinate::ExtracellularCarrier,
+        9 => PhysicalStateCoordinate::RecoveryPsiFuel(index),
+        10 => PhysicalStateCoordinate::RecoveryPsiSpent(index),
+        11 => PhysicalStateCoordinate::RecoveryPsiExportedHeat(index),
+        12 if index == 0 => PhysicalStateCoordinate::RecoveryGateFuel,
+        13 if index == 0 => PhysicalStateCoordinate::RecoveryGateSpent,
+        14 if index == 0 => PhysicalStateCoordinate::RecoveryGateExportedHeat,
+        15 if index == 0 => PhysicalStateCoordinate::PlasticRestLength,
+        16 if index == 0 => PhysicalStateCoordinate::PlasticDissipatedEnergy,
+        17 if index == 0 => PhysicalStateCoordinate::RecoveryPlasticFuel,
+        18 if index == 0 => PhysicalStateCoordinate::RecoveryPlasticSpent,
+        19 if index == 0 => PhysicalStateCoordinate::RecoveryPlasticExportedHeat,
+        20 if index == 0 => PhysicalStateCoordinate::DnaSubstrate,
+        21 if index == 0 => PhysicalStateCoordinate::DnaFuel,
+        22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
+        23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
+        _ => return Err(NeuronStateCodecError::InvalidEncoding),
+    };
+    Ok(coordinate)
+}
+
+/// Exact wire form for one already-computed sparse physical-state delta. The
+/// codec transports the existing coordinate machinery only; it computes no new
+/// physics and admits no coordinate the settled delta law cannot produce.
+pub(crate) fn encode_sparse_physical_state_delta(
+    delta: &SparsePhysicalStateDelta,
+) -> Result<Vec<u8>, NeuronStateCodecError> {
+    let mut encoded = Vec::new();
+    push_usize(&mut encoded, delta.entries.len())?;
+    for entry in delta.entries.iter() {
+        let (tag, index) = sparse_delta_coordinate_parts(entry.coordinate);
+        encoded.push(tag);
+        push_usize(&mut encoded, index)?;
+        match entry.delta {
+            ExactPhysicalStateDelta::Integral(signed) => {
+                let (negative, magnitude) = signed.parts();
+                encoded.push(0);
+                push_u128(&mut encoded, magnitude);
+                push_u128(&mut encoded, u128::from(negative));
+            }
+            ExactPhysicalStateDelta::Rational(rational) => {
+                let (numerator, denominator) = rational.parts();
+                encoded.push(1);
+                push_i128(&mut encoded, numerator);
+                push_u128(&mut encoded, denominator);
+            }
+        }
+    }
+    Ok(encoded)
+}
+
+pub(crate) fn decode_sparse_physical_state_delta(
+    encoded: &[u8],
+) -> Result<SparsePhysicalStateDelta, NeuronStateCodecError> {
+    let mut reader = NeuronStateReader::new(encoded);
+    let entry_count = reader.usize()?;
+    let expected_length = entry_count
+        .checked_mul(SPARSE_DELTA_ENTRY_BYTES)
+        .and_then(|value| value.checked_add(8))
+        .ok_or(NeuronStateCodecError::ArithmeticWidth)?;
+    if encoded.len() != expected_length {
+        return Err(NeuronStateCodecError::InvalidEncoding);
+    }
+    let mut entries = Vec::new();
+    entries
+        .try_reserve_exact(entry_count)
+        .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+    for _ in 0..entry_count {
+        let tag = reader.take(1)?[0];
+        let index = reader.usize()?;
+        let coordinate = sparse_delta_coordinate_from_parts(tag, index)?;
+        let kind = reader.take(1)?[0];
+        let delta = match kind {
+            0 => {
+                let magnitude = reader.u128()?;
+                let negative = match reader.u128()? {
+                    0 => false,
+                    1 => true,
+                    _ => return Err(NeuronStateCodecError::InvalidEncoding),
+                };
+                ExactPhysicalStateDelta::Integral(
+                    ExactSignedDelta::from_parts(negative, magnitude)
+                        .ok_or(NeuronStateCodecError::InvalidEncoding)?,
+                )
+            }
+            1 => {
+                let numerator = reader.i128()?;
+                let denominator = reader.u128()?;
+                ExactPhysicalStateDelta::Rational(
+                    ExactRational::new(numerator, denominator)
+                        .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
+                )
+            }
+            _ => return Err(NeuronStateCodecError::InvalidEncoding),
+        };
+        entries.push(
+            PhysicalStateDeltaEntry::new(coordinate, delta)
+                .ok_or(NeuronStateCodecError::InvalidEncoding)?,
+        );
+    }
+    if !reader.finished() {
+        return Err(NeuronStateCodecError::InvalidEncoding);
+    }
+    SparsePhysicalStateDelta::from_canonical_entries(entries)
+        .ok_or(NeuronStateCodecError::InvalidEncoding)
+}
+
+fn apply_unsigned_member_delta(
+    value: u128,
+    delta: ExactSignedDelta,
+) -> Result<u128, NeuronStateCodecError> {
+    let (negative, magnitude) = delta.parts();
+    if negative {
+        value.checked_sub(magnitude)
+    } else {
+        value.checked_add(magnitude)
+    }
+    .ok_or(NeuronStateCodecError::InvalidEncoding)
+}
+
+fn apply_signed_member_delta(
+    value: i128,
+    delta: ExactSignedDelta,
+) -> Result<i128, NeuronStateCodecError> {
+    let (negative, magnitude) = delta.parts();
+    let magnitude =
+        i128::try_from(magnitude).map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+    if negative {
+        value.checked_sub(magnitude)
+    } else {
+        value.checked_add(magnitude)
+    }
+    .ok_or(NeuronStateCodecError::InvalidEncoding)
+}
+
+fn apply_rational_member_delta(
+    base: ExactRational,
+    delta: ExactRational,
+) -> Result<ExactRational, NeuronStateCodecError> {
+    base.checked_add(delta)
+        .map_err(|_| NeuronStateCodecError::InvalidEncoding)
+}
+
+fn apply_phase_member_delta(
+    base: ChargeCarrierPhase,
+    delta: ExactRational,
+) -> Result<ChargeCarrierPhase, NeuronStateCodecError> {
+    let (numerator, denominator) = base.parts();
+    let base = ExactRational::new(numerator, denominator)
+        .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+    let (numerator, denominator) = apply_rational_member_delta(base, delta)?.parts();
+    ChargeCarrierPhase::new(numerator, denominator)
+        .map_err(|_| NeuronStateCodecError::InvalidEncoding)
+}
+
+fn integral_member_delta(
+    delta: ExactPhysicalStateDelta,
+) -> Result<ExactSignedDelta, NeuronStateCodecError> {
+    match delta {
+        ExactPhysicalStateDelta::Integral(signed) => Ok(signed),
+        ExactPhysicalStateDelta::Rational(_) => Err(NeuronStateCodecError::InvalidEncoding),
+    }
+}
+
+fn rational_member_delta(
+    delta: ExactPhysicalStateDelta,
+) -> Result<ExactRational, NeuronStateCodecError> {
+    match delta {
+        ExactPhysicalStateDelta::Rational(rational) => Ok(rational),
+        ExactPhysicalStateDelta::Integral(_) => Err(NeuronStateCodecError::InvalidEncoding),
+    }
+}
+
+/// Reconstruct the exact successor of `base` under one already-settled sparse
+/// physical-state delta. This applies the existing coordinate machinery in the
+/// forward direction; `sparse_physical_state_delta(base, applied)` returns the
+/// same delta. It settles no physics and clamps nothing: any coordinate the
+/// anatomy cannot carry, any capacity violation, and any arithmetic escape
+/// refuses instead of adjusting.
+pub(crate) fn apply_sparse_physical_state_delta(
+    anatomy: &NeuronPhysicalAnatomy,
+    base: &NeuronPhysicalState,
+    delta: &SparsePhysicalStateDelta,
+) -> Result<NeuronPhysicalState, NeuronStateCodecError> {
+    let mut applied = base.clone();
+    let mut separated_elementary_charges =
+        applied.membrane.membrane().separated_elementary_charges();
+    let mut membrane_phase = applied.membrane.membrane().carrier_phase();
+    let mut path_phases = applied.membrane.path_carrier_phases();
+    for entry in delta.entries() {
+        match entry.coordinate() {
+            PhysicalStateCoordinate::PsiWinding(index) => {
+                let ring = applied
+                    .psi
+                    .rings
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                let winding = apply_signed_member_delta(
+                    ring.winding as i8 as i128,
+                    integral_member_delta(entry.delta())?,
+                )?;
+                let winding = decode_winding(
+                    i8::try_from(winding).map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
+                )?;
+                ring.winding = winding;
+                ring.phase_thirds = canonical_phase_thirds(winding);
+            }
+            PhysicalStateCoordinate::PsiDissipatedEnergy(index) => {
+                let ring = applied
+                    .psi
+                    .rings
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                ring.dissipated_quanta = apply_unsigned_member_delta(
+                    ring.dissipated_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::GateOpenPopulation => {
+                applied.gate.open_population = apply_unsigned_member_delta(
+                    applied.gate.open_population,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::GateDissipatedEnergy => {
+                applied.gate.dissipated_quanta = apply_unsigned_member_delta(
+                    applied.gate.dissipated_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::MembraneSeparatedCharge => {
+                separated_elementary_charges = apply_signed_member_delta(
+                    separated_elementary_charges,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::MembraneCarrierPhase => {
+                membrane_phase = apply_phase_member_delta(
+                    membrane_phase,
+                    rational_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::ConductancePathCarrierPhase(index) => {
+                let phase = path_phases
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                *phase = apply_phase_member_delta(*phase, rational_member_delta(entry.delta())?)?;
+            }
+            PhysicalStateCoordinate::IntracellularCarrier => {
+                applied.carriers.intracellular = apply_unsigned_member_delta(
+                    applied.carriers.intracellular,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::ExtracellularCarrier => {
+                applied.carriers.extracellular = apply_unsigned_member_delta(
+                    applied.carriers.extracellular,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPsiFuel(index) => {
+                let lane = applied
+                    .recovery
+                    .psi_lanes
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                lane.fuel_quanta = apply_unsigned_member_delta(
+                    lane.fuel_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPsiSpent(index) => {
+                let lane = applied
+                    .recovery
+                    .psi_lanes
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                lane.spent_quanta = apply_unsigned_member_delta(
+                    lane.spent_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPsiExportedHeat(index) => {
+                let lane = applied
+                    .recovery
+                    .psi_lanes
+                    .get_mut(index)
+                    .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+                lane.exported_heat_quanta = apply_unsigned_member_delta(
+                    lane.exported_heat_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryGateFuel => {
+                applied.recovery.gate_lane.fuel_quanta = apply_unsigned_member_delta(
+                    applied.recovery.gate_lane.fuel_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryGateSpent => {
+                applied.recovery.gate_lane.spent_quanta = apply_unsigned_member_delta(
+                    applied.recovery.gate_lane.spent_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryGateExportedHeat => {
+                applied.recovery.gate_lane.exported_heat_quanta = apply_unsigned_member_delta(
+                    applied.recovery.gate_lane.exported_heat_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::PlasticRestLength => {
+                applied.plastic.rest_length_nanometres = apply_rational_member_delta(
+                    applied.plastic.rest_length_nanometres,
+                    rational_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::PlasticDissipatedEnergy => {
+                applied.plastic.dissipated_quanta = apply_unsigned_member_delta(
+                    applied.plastic.dissipated_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPlasticFuel => {
+                applied.recovery.plastic_lane.fuel_quanta = apply_unsigned_member_delta(
+                    applied.recovery.plastic_lane.fuel_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPlasticSpent => {
+                applied.recovery.plastic_lane.spent_quanta = apply_unsigned_member_delta(
+                    applied.recovery.plastic_lane.spent_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::RecoveryPlasticExportedHeat => {
+                applied.recovery.plastic_lane.exported_heat_quanta = apply_unsigned_member_delta(
+                    applied.recovery.plastic_lane.exported_heat_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::DnaSubstrate => {
+                applied.dna_expression.substrate_quanta = apply_unsigned_member_delta(
+                    applied.dna_expression.substrate_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::DnaFuel => {
+                applied.dna_expression.fuel_quanta = apply_unsigned_member_delta(
+                    applied.dna_expression.fuel_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::DnaExpressedProduct => {
+                applied.dna_expression.expressed_product_quanta = apply_unsigned_member_delta(
+                    applied.dna_expression.expressed_product_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::DnaWaste => {
+                applied.dna_expression.waste_quanta = apply_unsigned_member_delta(
+                    applied.dna_expression.waste_quanta,
+                    integral_member_delta(entry.delta())?,
+                )?;
+            }
+        }
+    }
+    applied.membrane = LocalMembraneConductanceState::from_physical_parts(
+        ElementaryChargeMembraneState::from_physical_parts(
+            separated_elementary_charges,
+            membrane_phase,
+        ),
+        path_phases,
+    );
+    encode_neuron_physical_state(anatomy, &applied)?;
+    Ok(applied)
+}
+
+// Measurement-only test accessors (no production logic): expose otherwise
+// private conserved quantities so probe tests can report them exactly.
+#[cfg(test)]
+impl DnaExpressionState {
+    pub(crate) fn probe_parts(self) -> (u128, u128, u128, u128) {
+        (
+            self.substrate_quanta,
+            self.fuel_quanta,
+            self.expressed_product_quanta,
+            self.waste_quanta,
+        )
+    }
+}
+
+#[cfg(test)]
+impl PlasticSupportState {
+    pub(crate) fn probe_dissipated_quanta(self) -> u128 {
+        self.dissipated_quanta
+    }
+}
+
+#[cfg(test)]
+impl NeuronPhysicalAnatomy {
+    pub(crate) fn probe_plastic_dissipation_capacity_quanta(&self) -> u128 {
+        self.plastic.dissipation_capacity_quanta
+    }
+
+    pub(crate) fn probe_psi_ring_dissipation_capacity_quanta(&self, index: usize) -> Option<u128> {
+        self.psi
+            .rings
+            .get(index)
+            .map(|ring| ring.dissipation_capacity_quanta)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -3111,11 +3568,12 @@ mod tests {
     };
     use crate::physical_mosaic::admit_physical_mosaic;
     use crate::reached_neuron_cohort::{
-        decode_reached_cohort_cell, decode_reached_cohort_state, encode_reached_cohort_cell,
-        encode_reached_cohort_state, settle_reached_cohort_experience_to_quiescence,
-        settle_reached_cohort_interval, settle_reached_cohort_recurrence,
-        settle_reached_cohort_to_quiescence, ReachedCohortAnatomy, ReachedCohortIntervalInput,
-        ReachedCohortState,
+        decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
+        encode_reached_cohort_cell, encode_reached_cohort_cell_v4, encode_reached_cohort_state,
+        encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
+        settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
+        settle_reached_cohort_recurrence, settle_reached_cohort_to_quiescence,
+        ReachedCohortAnatomy, ReachedCohortIntervalInput, ReachedCohortState,
     };
     use crate::sparse_electrical_contact::{
         ElectricalContactAnatomy, SparseElectricalAnatomy, SparseElectricalState,
@@ -3295,8 +3753,10 @@ mod tests {
     }
 
     fn physical_fixture() -> Fixture {
-        let positions = 64;
-        let constraint_count = 7;
+        scaled_physical_fixture(64, 7)
+    }
+
+    fn scaled_physical_fixture(positions: usize, constraint_count: usize) -> Fixture {
         let ring_count = positions * constraint_count * 2;
         let psi = PsiKrimelackAnatomy::new(
             positions,
@@ -4181,5 +4641,257 @@ mod tests {
             mosaic.resident_bytes().unwrap()
                 < learned_predecessor.state().resident_bytes().unwrap()
         );
+    }
+
+    fn wide_cohort(
+        neuron_count: usize,
+    ) -> (Vec<Fixture>, ReachedCohortAnatomy, ReachedCohortState) {
+        let fixtures = (0..neuron_count)
+            .map(|_| physical_fixture())
+            .collect::<Vec<_>>();
+        let electrical_anatomy = SparseElectricalAnatomy::new(neuron_count, Vec::new()).unwrap();
+        let electrical_state = SparseElectricalState::genesis(&electrical_anatomy);
+        let anatomy = ReachedCohortAnatomy::new(
+            fixtures
+                .iter()
+                .map(|fixture| fixture.anatomy.clone())
+                .collect(),
+            fixture_lineages(neuron_count),
+            fixture_source_sites(neuron_count),
+            electrical_anatomy,
+        )
+        .unwrap();
+        let state = ReachedCohortState::new(
+            &anatomy,
+            fixtures
+                .iter()
+                .map(|fixture| fixture.state.clone())
+                .collect(),
+            electrical_state,
+        )
+        .unwrap();
+        (fixtures, anatomy, state)
+    }
+
+    fn read_test_u64(encoded: &[u8], cursor: &mut usize) -> usize {
+        let value = u64::from_le_bytes(encoded[*cursor..*cursor + 8].try_into().unwrap());
+        *cursor += 8;
+        usize::try_from(value).unwrap()
+    }
+
+    /// Structural walk of one `GLRCC04` cell: distinct anatomy-blob count,
+    /// distinct state-blob count, and the byte offset of the derived
+    /// recovery-fluid anatomy digest.
+    fn v4_cell_shape(encoded: &[u8]) -> (usize, usize, usize) {
+        assert_eq!(&encoded[..8], b"GLRCC04\0");
+        let mut cursor = 8;
+        let neuron_count = read_test_u64(encoded, &mut cursor);
+        let anatomy_table_count = read_test_u64(encoded, &mut cursor);
+        for _ in 0..anatomy_table_count {
+            let length = read_test_u64(encoded, &mut cursor);
+            cursor += length;
+        }
+        let state_table_count = read_test_u64(encoded, &mut cursor);
+        for _ in 0..state_table_count {
+            let length = read_test_u64(encoded, &mut cursor);
+            cursor += length;
+        }
+        for _ in 0..neuron_count {
+            cursor += 16;
+            let source_length = read_test_u64(encoded, &mut cursor);
+            cursor += source_length + 32 + 32;
+        }
+        (anatomy_table_count, state_table_count, cursor)
+    }
+
+    #[test]
+    fn content_addressed_cell_dedupes_and_a_single_mutation_adds_exactly_one_blob() {
+        let (_, anatomy, state) = wide_cohort(29);
+        let inline_cell = encode_reached_cohort_cell(&anatomy, &state).unwrap();
+        let deduplicated_cell = encode_reached_cohort_cell_v4(&anatomy, &state).unwrap();
+        let (anatomy_blobs, state_blobs, _) = v4_cell_shape(&deduplicated_cell);
+        assert_eq!(anatomy_blobs, 1);
+        assert_eq!(state_blobs, 1);
+        assert!(deduplicated_cell.len() * 10 < inline_cell.len());
+        let (restored_anatomy, restored_state) =
+            decode_reached_cohort_cell(&deduplicated_cell).unwrap();
+        assert_eq!(restored_anatomy, anatomy);
+        assert_eq!(restored_state, state);
+        assert_eq!(
+            encode_reached_cohort_cell_v4(&restored_anatomy, &restored_state).unwrap(),
+            deduplicated_cell
+        );
+
+        let mut mutated_neurons = state.neurons().to_vec();
+        mutated_neurons[5].carriers = CarrierReservoirs::new(999_999, 1_000_001);
+        let mutated_state =
+            ReachedCohortState::new(&anatomy, mutated_neurons, state.electrical().clone()).unwrap();
+        let mutated_cell = encode_reached_cohort_cell_v4(&anatomy, &mutated_state).unwrap();
+        let (anatomy_blobs, state_blobs, _) = v4_cell_shape(&mutated_cell);
+        assert_eq!(anatomy_blobs, 1);
+        assert_eq!(state_blobs, 2);
+        let (_, remutated) = decode_reached_cohort_cell(&mutated_cell).unwrap();
+        assert_eq!(remutated, mutated_state);
+
+        eprintln!(
+            "MEASURE cohort-cell 29 neurons: inline GLRCC03 = {} B, content-addressed GLRCC04 = {} B",
+            inline_cell.len(),
+            deduplicated_cell.len()
+        );
+        let inline_state = encode_reached_cohort_state(&anatomy, &state).unwrap();
+        let deduplicated_state = encode_reached_cohort_state_v4(&anatomy, &state).unwrap();
+        eprintln!(
+            "MEASURE cohort-state 29 neurons: inline GLRCS03 = {} B, content-addressed GLRCS04 = {} B",
+            inline_state.len(),
+            deduplicated_state.len()
+        );
+    }
+
+    /// The standard 29-neuron post-lesson body at live blob scale: 27
+    /// byte-identical 458-ring card neurons plus two small distinct neurons,
+    /// with retained experience evidence whose POST snapshot equals the
+    /// current state and whose PRE snapshot differs in four members.
+    #[test]
+    fn standard_twenty_nine_neuron_post_lesson_body_measurement() {
+        let card = scaled_physical_fixture(229, 1);
+        let small_a = scaled_physical_fixture(8, 1);
+        let small_b = scaled_physical_fixture(8, 1);
+        let mut small_b_state = small_b.state.clone();
+        small_b_state.carriers = CarrierReservoirs::new(999_999, 1_000_001);
+        let mut anatomies = vec![card.anatomy.clone(); 27];
+        anatomies.push(small_a.anatomy.clone());
+        anatomies.push(small_b.anatomy.clone());
+        let mut states = vec![card.state.clone(); 27];
+        states.push(small_a.state.clone());
+        states.push(small_b_state);
+        let electrical_anatomy = SparseElectricalAnatomy::new(29, Vec::new()).unwrap();
+        let electrical_state = SparseElectricalState::genesis(&electrical_anatomy);
+        let anatomy = ReachedCohortAnatomy::new(
+            anatomies,
+            fixture_lineages(29),
+            fixture_source_sites(29),
+            electrical_anatomy,
+        )
+        .unwrap();
+        let post = ReachedCohortState::new(&anatomy, states, electrical_state).unwrap();
+        let mut pre_neurons = post.neurons().to_vec();
+        for neuron in pre_neurons.iter_mut().take(4) {
+            neuron.carriers = CarrierReservoirs::new(1_000_500, 999_500);
+            neuron.gate.open_population = 1;
+        }
+        let pre =
+            ReachedCohortState::new(&anatomy, pre_neurons, post.electrical().clone()).unwrap();
+
+        let inline_cell = encode_reached_cohort_cell(&anatomy, &post).unwrap();
+        let deduplicated_cell = encode_reached_cohort_cell_v4(&anatomy, &post).unwrap();
+        let inline_snapshot = encode_reached_cohort_state(&anatomy, &pre).unwrap();
+        let pre_delta = encode_reached_cohort_state_delta(&anatomy, &post, &pre).unwrap();
+        assert_eq!(
+            decode_reached_cohort_state_delta(&anatomy, &post, &pre_delta).unwrap(),
+            pre
+        );
+        let (restored_anatomy, restored_post) =
+            decode_reached_cohort_cell(&deduplicated_cell).unwrap();
+        assert_eq!(restored_anatomy, anatomy);
+        assert_eq!(restored_post, post);
+
+        // Evidence framing: magic + mode bytes + length prefixes + the two
+        // bool sections (29 neurons, 0 contacts).
+        let bool_sections = 8 + 29 + 8;
+        let retired_evidence =
+            8 + 8 + inline_snapshot.len() + 1 + 8 + inline_snapshot.len() + bool_sections;
+        let current_evidence = 8 + 1 + 8 + pre_delta.len() + 1 + 32 + bool_sections;
+        let header_and_checkpoint = 90 + 74;
+        let retired_body = header_and_checkpoint + 8 + inline_cell.len() + 3 + 8 + retired_evidence;
+        let current_body =
+            header_and_checkpoint + 8 + deduplicated_cell.len() + 3 + 8 + current_evidence;
+        eprintln!(
+            "MEASURE standard 29-neuron post-lesson body: retired layout = {} B, \
+             content-addressed layout = {} B (cell {} -> {} B, evidence {} -> {} B)",
+            retired_body,
+            current_body,
+            inline_cell.len(),
+            deduplicated_cell.len(),
+            retired_evidence,
+            current_evidence
+        );
+        assert!(current_body < 450_000);
+        assert!(current_body * 10 < retired_body);
+    }
+
+    #[test]
+    fn derived_recovery_fluid_digest_mismatch_is_refused() {
+        let (_, anatomy, state) = wide_cohort(3);
+        let mut cell = encode_reached_cohort_cell_v4(&anatomy, &state).unwrap();
+        assert!(decode_reached_cohort_cell(&cell).is_ok());
+        let (_, _, digest_offset) = v4_cell_shape(&cell);
+        cell[digest_offset] ^= 1;
+        assert!(decode_reached_cohort_cell(&cell).is_err());
+    }
+
+    #[test]
+    fn sparse_delta_wire_and_apply_reconstruct_the_exact_target_state() {
+        let fixture = physical_fixture();
+        let base = fixture.state.clone();
+        let mut target = base.clone();
+        target.gate.open_population = 1;
+        target.carriers = CarrierReservoirs::new(999_000, 1_001_000);
+        target.plastic.rest_length_nanometres = r(3, 2);
+        target.dna_expression.waste_quanta = 7;
+        target.recovery.psi_lanes[3] = RecoveryLaneState {
+            fuel_quanta: 99_998,
+            spent_quanta: 1,
+            exported_heat_quanta: 1,
+        };
+        target.psi.rings[0].winding = BalancedTrit::Positive;
+        target.psi.rings[0].phase_thirds = canonical_phase_thirds(BalancedTrit::Positive);
+        target.membrane = LocalMembraneConductanceState::from_physical_parts(
+            ElementaryChargeMembraneState::from_physical_parts(
+                5,
+                ChargeCarrierPhase::new(1, 3).unwrap(),
+            ),
+            [ChargeCarrierPhase::new(-1, 4).unwrap()],
+        );
+        let delta = sparse_physical_state_delta(&base, &target)
+            .unwrap()
+            .unwrap();
+        let wire = encode_sparse_physical_state_delta(&delta).unwrap();
+        let decoded = decode_sparse_physical_state_delta(&wire).unwrap();
+        assert_eq!(decoded, delta);
+        let applied = apply_sparse_physical_state_delta(&fixture.anatomy, &base, &decoded).unwrap();
+        assert_eq!(applied, target);
+        assert_eq!(
+            sparse_physical_state_delta(&base, &applied).unwrap().unwrap(),
+            delta
+        );
+        assert!(decode_sparse_physical_state_delta(&wire[..wire.len() - 1]).is_err());
+        let mut unordered = wire.clone();
+        unordered[0] = 2;
+        assert!(decode_sparse_physical_state_delta(&unordered).is_err());
+    }
+
+    #[test]
+    fn cohort_state_delta_reconstructs_exactly_and_refuses_digest_divergence() {
+        let (_, anatomy, base) = wide_cohort(4);
+        let mut target_neurons = base.neurons().to_vec();
+        target_neurons[2].carriers = CarrierReservoirs::new(999_999, 1_000_001);
+        target_neurons[2].dna_expression.waste_quanta = 3;
+        let target =
+            ReachedCohortState::new(&anatomy, target_neurons, base.electrical().clone()).unwrap();
+        let encoded = encode_reached_cohort_state_delta(&anatomy, &base, &target).unwrap();
+        let reconstructed = decode_reached_cohort_state_delta(&anatomy, &base, &encoded).unwrap();
+        assert_eq!(reconstructed, target);
+        assert!(encoded.len() * 20 < encode_reached_cohort_state_v4(&anatomy, &target).unwrap().len());
+        eprintln!(
+            "MEASURE cohort-state delta 4 neurons/1 changed: {} B (full GLRCS04 = {} B)",
+            encoded.len(),
+            encode_reached_cohort_state_v4(&anatomy, &target).unwrap().len()
+        );
+
+        let mut lying_digest = encoded.clone();
+        let last = lying_digest.len() - 1;
+        lying_digest[last] ^= 1;
+        assert!(decode_reached_cohort_state_delta(&anatomy, &base, &lying_digest).is_err());
+        assert!(decode_reached_cohort_state_delta(&anatomy, &target, &encoded).is_err());
     }
 }

@@ -13,9 +13,16 @@ pub(crate) type NeuronLineage = [u8; 16];
 pub(crate) type HippocampalAddress = [u8; 32];
 
 const EPISODE_MAGIC: &[u8; 8] = b"GLHEP02\0";
+const EPISODE_V3_MAGIC: &[u8; 8] = b"GLHEP03\0";
 const POSTING_MAGIC: &[u8; 8] = b"GLHPS01\0";
 const RADIX_MAGIC: &[u8; 8] = b"GLHRN01\0";
 const STATE_MAGIC: &[u8; 8] = b"GLHST01\0";
+// Structural (layout-only) magics of the evidence bodies this custody splits
+// into content-addressed snapshot objects. The bytes are owned and validated
+// by the resident cognitive boundary; custody never interprets them beyond
+// the framing needed to store each retained snapshot exactly once.
+const EVIDENCE_EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
+const EVIDENCE_RECURRENT_MAGIC: &[u8; 8] = b"GLHRE01\0";
 const RADIX_DEPTH: usize = 32;
 const ADDRESS_BYTES: usize = 32;
 
@@ -225,7 +232,10 @@ impl ResidentHippocampalIndex {
         }
         validate_episode(episode)?;
         let mut prepared = BTreeMap::new();
-        let episode_bytes = encode_episode(episode)?;
+        let (episode_bytes, referenced_bodies) = encode_episode_record(episode)?;
+        for body in referenced_bodies {
+            add_object(&mut prepared, body);
+        }
         let episode_address = add_object(&mut prepared, episode_bytes);
         let mut root = self.checkpoint.root;
 
@@ -326,10 +336,9 @@ impl ResidentHippocampalIndex {
                 return Err(HippocampalError::LineageMismatch);
             }
             let episode_bytes = read_exact(cold, posting.episode_address)?;
-            let episode = decode_episode(&episode_bytes)?;
-            if episode.episode_generation != posting.episode_generation
-                || episode
-                    .participants
+            let (episode_generation, participants) = decode_episode_summary(&episode_bytes)?;
+            if episode_generation != posting.episode_generation
+                || participants
                     .binary_search_by_key(&lineage, |participant| participant.lineage)
                     .is_err()
             {
@@ -456,7 +465,7 @@ pub(crate) fn resolve_hippocampal_episode(
     address: HippocampalAddress,
 ) -> Result<TypedEpisodeAdmission, HippocampalError> {
     let bytes = read_exact(cold, address)?;
-    decode_episode(&bytes)
+    decode_episode(cold, &bytes)
 }
 
 pub(crate) fn validate_hippocampal_checkpoint(
@@ -472,7 +481,7 @@ pub(crate) fn validate_hippocampal_checkpoint(
     }
     if let Some(episode) = checkpoint.latest_episode {
         let bytes = read_exact(cold, episode)?;
-        decode_episode(&bytes)?;
+        decode_episode(cold, &bytes)?;
     }
     Ok(())
 }
@@ -672,7 +681,188 @@ fn validate_episode(episode: &TypedEpisodeAdmission) -> Result<(), HippocampalEr
     Ok(())
 }
 
-fn encode_episode(episode: &TypedEpisodeAdmission) -> Result<Vec<u8>, HippocampalError> {
+/// Structural decomposition of one original-transition evidence body
+/// (`GLEXP02`, self-contained form) into its retained cohort snapshots. Bodies
+/// that do not carry that exact layout stay whole; both directions are exact
+/// byte-level inverses so the reconstructed body is identical.
+enum OriginalEvidenceSplit<'a> {
+    Whole(&'a [u8]),
+    Split {
+        pre: &'a [u8],
+        post: Option<&'a [u8]>,
+        tail: &'a [u8],
+    },
+}
+
+fn split_original_evidence(body: &[u8]) -> OriginalEvidenceSplit<'_> {
+    fn parse(body: &[u8]) -> Result<OriginalEvidenceSplit<'_>, HippocampalError> {
+        let mut reader = Reader::new(body);
+        if reader.take(EVIDENCE_EXPERIENCE_V2_MAGIC.len())? != EVIDENCE_EXPERIENCE_V2_MAGIC
+            || reader.u8()? != 0
+        {
+            return Err(HippocampalError::MalformedObject);
+        }
+        let pre = reader.bytes()?;
+        let post = match reader.u8()? {
+            0 => None,
+            1 => Some(reader.bytes()?),
+            _ => return Err(HippocampalError::MalformedObject),
+        };
+        let tail = reader.take(body.len() - reader.cursor)?;
+        if pre.is_empty() || post.is_some_and(<[u8]>::is_empty) {
+            return Err(HippocampalError::MalformedObject);
+        }
+        Ok(OriginalEvidenceSplit::Split { pre, post, tail })
+    }
+    parse(body).unwrap_or(OriginalEvidenceSplit::Whole(body))
+}
+
+fn assemble_original_evidence(
+    pre: &[u8],
+    post: Option<&[u8]>,
+    tail: &[u8],
+) -> Result<Vec<u8>, HippocampalError> {
+    let mut body = Vec::new();
+    body.extend_from_slice(EVIDENCE_EXPERIENCE_V2_MAGIC);
+    body.push(0);
+    push_bytes(&mut body, pre)?;
+    match post {
+        None => body.push(0),
+        Some(post) => {
+            body.push(1);
+            push_bytes(&mut body, post)?;
+        }
+    }
+    body.extend_from_slice(tail);
+    Ok(body)
+}
+
+/// Structural decomposition of one recurrent-transition evidence body
+/// (`GLHRE01`) into its learned and recurrent cohort snapshots.
+enum RecurrentEvidenceSplit<'a> {
+    Whole(&'a [u8]),
+    Split {
+        meta: &'a [u8],
+        learned: &'a [u8],
+        recurrent: &'a [u8],
+    },
+}
+
+fn split_recurrent_evidence(body: &[u8]) -> RecurrentEvidenceSplit<'_> {
+    fn parse(body: &[u8]) -> Result<RecurrentEvidenceSplit<'_>, HippocampalError> {
+        let mut reader = Reader::new(body);
+        if reader.take(EVIDENCE_RECURRENT_MAGIC.len())? != EVIDENCE_RECURRENT_MAGIC {
+            return Err(HippocampalError::MalformedObject);
+        }
+        let meta = reader.bytes()?;
+        let learned = reader.bytes()?;
+        let recurrent = reader.bytes()?;
+        if !reader.finished() || learned.is_empty() || recurrent.is_empty() {
+            return Err(HippocampalError::MalformedObject);
+        }
+        Ok(RecurrentEvidenceSplit::Split {
+            meta,
+            learned,
+            recurrent,
+        })
+    }
+    parse(body).unwrap_or(RecurrentEvidenceSplit::Whole(body))
+}
+
+fn assemble_recurrent_evidence(
+    meta: &[u8],
+    learned: &[u8],
+    recurrent: &[u8],
+) -> Result<Vec<u8>, HippocampalError> {
+    let mut body = Vec::new();
+    body.extend_from_slice(EVIDENCE_RECURRENT_MAGIC);
+    push_bytes(&mut body, meta)?;
+    push_bytes(&mut body, learned)?;
+    push_bytes(&mut body, recurrent)?;
+    Ok(body)
+}
+
+fn push_referenced_body(
+    output: &mut Vec<u8>,
+    references: &mut Vec<Vec<u8>>,
+    body: &[u8],
+) -> Result<(), HippocampalError> {
+    output.extend_from_slice(&sha256(body));
+    if !references
+        .iter()
+        .any(|existing| existing.as_slice() == body)
+    {
+        references.push(body.to_vec());
+    }
+    Ok(())
+}
+
+/// Encode one admitted episode as its current `GLHEP03` record plus the
+/// referenced snapshot/evidence bodies. The record retains 32-byte content
+/// addresses where the retired layout retained inline copies; the referenced
+/// bodies are published into the same immutable cold custody, which already
+/// stores each distinct object exactly once.
+fn encode_episode_record(
+    episode: &TypedEpisodeAdmission,
+) -> Result<(Vec<u8>, Vec<Vec<u8>>), HippocampalError> {
+    validate_episode(episode)?;
+    let mut output = Vec::new();
+    let mut references = Vec::new();
+    output.extend_from_slice(EPISODE_V3_MAGIC);
+    output.extend_from_slice(&episode.predecessor_generation.to_le_bytes());
+    output.extend_from_slice(&episode.episode_generation.to_le_bytes());
+    output.extend_from_slice(&episode.source_authority);
+    push_bytes(&mut output, &episode.source_body)?;
+    push_usize(&mut output, episode.source_port_count)?;
+    push_usize(&mut output, episode.source_sample_count)?;
+    push_usize(&mut output, episode.source_occurrence_count)?;
+    push_usize(&mut output, episode.source_occurrence_frame_count)?;
+    push_usize(&mut output, episode.source_occurrence_index)?;
+    push_bytes(&mut output, &episode.physical_mosaic)?;
+    match split_original_evidence(&episode.original_transition_evidence) {
+        OriginalEvidenceSplit::Whole(body) => {
+            output.push(0);
+            push_referenced_body(&mut output, &mut references, body)?;
+        }
+        OriginalEvidenceSplit::Split { pre, post, tail } => {
+            output.push(1);
+            push_referenced_body(&mut output, &mut references, pre)?;
+            match post {
+                None => output.push(0),
+                Some(post) => {
+                    output.push(1);
+                    push_referenced_body(&mut output, &mut references, post)?;
+                }
+            }
+            push_bytes(&mut output, tail)?;
+        }
+    }
+    match split_recurrent_evidence(&episode.recurrent_transition_evidence) {
+        RecurrentEvidenceSplit::Whole(body) => {
+            output.push(0);
+            push_referenced_body(&mut output, &mut references, body)?;
+        }
+        RecurrentEvidenceSplit::Split {
+            meta,
+            learned,
+            recurrent,
+        } => {
+            output.push(1);
+            push_bytes(&mut output, meta)?;
+            push_referenced_body(&mut output, &mut references, learned)?;
+            push_referenced_body(&mut output, &mut references, recurrent)?;
+        }
+    }
+    push_usize(&mut output, episode.participants.len())?;
+    for participant in episode.participants.iter() {
+        output.extend_from_slice(&participant.lineage);
+    }
+    Ok((output, references))
+}
+
+/// The retired inline episode layout, retained only so bodies admitted before
+/// the content-addressed record still restore and re-verify canonically.
+fn encode_episode_v2(episode: &TypedEpisodeAdmission) -> Result<Vec<u8>, HippocampalError> {
     validate_episode(episode)?;
     let mut output = Vec::new();
     output.extend_from_slice(EPISODE_MAGIC);
@@ -695,21 +885,135 @@ fn encode_episode(episode: &TypedEpisodeAdmission) -> Result<Vec<u8>, Hippocampa
     Ok(output)
 }
 
-fn decode_episode(encoded: &[u8]) -> Result<TypedEpisodeAdmission, HippocampalError> {
+struct EpisodeRecordPrefix {
+    predecessor_generation: u64,
+    episode_generation: u64,
+    source_authority: HippocampalAddress,
+    source_body: Box<[u8]>,
+    source_port_count: usize,
+    source_sample_count: usize,
+    source_occurrence_count: usize,
+    source_occurrence_frame_count: usize,
+    source_occurrence_index: usize,
+    physical_mosaic: Box<[u8]>,
+}
+
+fn decode_episode_record_prefix<'a>(
+    reader: &mut Reader<'a>,
+) -> Result<EpisodeRecordPrefix, HippocampalError> {
+    Ok(EpisodeRecordPrefix {
+        predecessor_generation: reader.u64()?,
+        episode_generation: reader.u64()?,
+        source_authority: reader.address()?,
+        source_body: reader.bytes()?.to_vec().into_boxed_slice(),
+        source_port_count: reader.usize()?,
+        source_sample_count: reader.usize()?,
+        source_occurrence_count: reader.usize()?,
+        source_occurrence_frame_count: reader.usize()?,
+        source_occurrence_index: reader.usize()?,
+        physical_mosaic: reader.bytes()?.to_vec().into_boxed_slice(),
+    })
+}
+
+enum OriginalEvidenceReference {
+    Whole(HippocampalAddress),
+    Split {
+        pre: HippocampalAddress,
+        post: Option<HippocampalAddress>,
+        tail: Box<[u8]>,
+    },
+}
+
+enum RecurrentEvidenceReference {
+    Whole(HippocampalAddress),
+    Split {
+        meta: Box<[u8]>,
+        learned: HippocampalAddress,
+        recurrent: HippocampalAddress,
+    },
+}
+
+struct EpisodeRecord {
+    prefix: EpisodeRecordPrefix,
+    original: OriginalEvidenceReference,
+    recurrent: RecurrentEvidenceReference,
+    participants: Box<[EpisodeParticipant]>,
+}
+
+fn decode_episode_record(encoded: &[u8]) -> Result<EpisodeRecord, HippocampalError> {
+    let mut reader = Reader::new(encoded);
+    if reader.take(EPISODE_V3_MAGIC.len())? != EPISODE_V3_MAGIC {
+        return Err(HippocampalError::WrongObjectType);
+    }
+    let prefix = decode_episode_record_prefix(&mut reader)?;
+    let original = match reader.u8()? {
+        0 => OriginalEvidenceReference::Whole(reader.address()?),
+        1 => {
+            let pre = reader.address()?;
+            let post = match reader.u8()? {
+                0 => None,
+                1 => Some(reader.address()?),
+                _ => return Err(HippocampalError::MalformedObject),
+            };
+            let tail = reader.bytes()?.to_vec().into_boxed_slice();
+            OriginalEvidenceReference::Split { pre, post, tail }
+        }
+        _ => return Err(HippocampalError::MalformedObject),
+    };
+    let recurrent = match reader.u8()? {
+        0 => RecurrentEvidenceReference::Whole(reader.address()?),
+        1 => {
+            let meta = reader.bytes()?.to_vec().into_boxed_slice();
+            RecurrentEvidenceReference::Split {
+                meta,
+                learned: reader.address()?,
+                recurrent: reader.address()?,
+            }
+        }
+        _ => return Err(HippocampalError::MalformedObject),
+    };
+    let count = reader.usize()?;
+    reader.require_records(count, 16)?;
+    let mut participants = Vec::new();
+    participants
+        .try_reserve_exact(count)
+        .map_err(|_| HippocampalError::ArithmeticOverflow)?;
+    for _ in 0..count {
+        let lineage = reader.lineage()?;
+        participants.push(EpisodeParticipant { lineage });
+    }
+    if !reader.finished() {
+        return Err(HippocampalError::MalformedObject);
+    }
+    Ok(EpisodeRecord {
+        prefix,
+        original,
+        recurrent,
+        participants: participants.into_boxed_slice(),
+    })
+}
+
+/// Record-level view of one retained episode: exactly the fields navigation is
+/// entitled to (generation ordering and participant binding) without pulling
+/// the referenced snapshot bodies out of cold custody.
+fn decode_episode_summary(
+    encoded: &[u8],
+) -> Result<(u64, Box<[EpisodeParticipant]>), HippocampalError> {
+    if encoded.get(..EPISODE_V3_MAGIC.len()) == Some(EPISODE_V3_MAGIC.as_slice()) {
+        let record = decode_episode_record(encoded)?;
+        Ok((record.prefix.episode_generation, record.participants))
+    } else {
+        let episode = decode_episode_inline(encoded)?;
+        Ok((episode.episode_generation, episode.participants))
+    }
+}
+
+fn decode_episode_inline(encoded: &[u8]) -> Result<TypedEpisodeAdmission, HippocampalError> {
     let mut reader = Reader::new(encoded);
     if reader.take(EPISODE_MAGIC.len())? != EPISODE_MAGIC {
         return Err(HippocampalError::WrongObjectType);
     }
-    let predecessor_generation = reader.u64()?;
-    let episode_generation = reader.u64()?;
-    let source_authority = reader.address()?;
-    let source_body = reader.bytes()?.to_vec().into_boxed_slice();
-    let source_port_count = reader.usize()?;
-    let source_sample_count = reader.usize()?;
-    let source_occurrence_count = reader.usize()?;
-    let source_occurrence_frame_count = reader.usize()?;
-    let source_occurrence_index = reader.usize()?;
-    let physical_mosaic = reader.bytes()?.to_vec().into_boxed_slice();
+    let prefix = decode_episode_record_prefix(&mut reader)?;
     let original_transition_evidence = reader.bytes()?.to_vec().into_boxed_slice();
     let recurrent_transition_evidence = reader.bytes()?.to_vec().into_boxed_slice();
     let count = reader.usize()?;
@@ -726,22 +1030,77 @@ fn decode_episode(encoded: &[u8]) -> Result<TypedEpisodeAdmission, HippocampalEr
         return Err(HippocampalError::MalformedObject);
     }
     let episode = TypedEpisodeAdmission {
-        predecessor_generation,
-        episode_generation,
-        source_authority,
-        source_body,
-        source_port_count,
-        source_sample_count,
-        source_occurrence_count,
-        source_occurrence_frame_count,
-        source_occurrence_index,
-        physical_mosaic,
+        predecessor_generation: prefix.predecessor_generation,
+        episode_generation: prefix.episode_generation,
+        source_authority: prefix.source_authority,
+        source_body: prefix.source_body,
+        source_port_count: prefix.source_port_count,
+        source_sample_count: prefix.source_sample_count,
+        source_occurrence_count: prefix.source_occurrence_count,
+        source_occurrence_frame_count: prefix.source_occurrence_frame_count,
+        source_occurrence_index: prefix.source_occurrence_index,
+        physical_mosaic: prefix.physical_mosaic,
         original_transition_evidence,
         recurrent_transition_evidence,
         participants: participants.into_boxed_slice(),
     };
     validate_episode(&episode)?;
-    if encode_episode(&episode)? != encoded {
+    if encode_episode_v2(&episode)? != encoded {
+        return Err(HippocampalError::MalformedObject);
+    }
+    Ok(episode)
+}
+
+/// Reconstruct one complete typed episode from either admitted layout. For the
+/// content-addressed record every referenced body is fetched from custody
+/// (content-verified by address on read) and reassembled into the exact
+/// original evidence bytes; the canonical re-encode proof then re-splits the
+/// reconstruction and must reproduce the record byte-for-byte.
+fn decode_episode(
+    cold: &dyn HippocampalColdPort,
+    encoded: &[u8],
+) -> Result<TypedEpisodeAdmission, HippocampalError> {
+    if encoded.get(..EPISODE_V3_MAGIC.len()) != Some(EPISODE_V3_MAGIC.as_slice()) {
+        return decode_episode_inline(encoded);
+    }
+    let record = decode_episode_record(encoded)?;
+    let original_transition_evidence = match &record.original {
+        OriginalEvidenceReference::Whole(address) => read_exact(cold, *address)?.into_vec(),
+        OriginalEvidenceReference::Split { pre, post, tail } => {
+            let pre = read_exact(cold, *pre)?;
+            let post = post.map(|address| read_exact(cold, address)).transpose()?;
+            assemble_original_evidence(&pre, post.as_deref(), tail)?
+        }
+    };
+    let recurrent_transition_evidence = match &record.recurrent {
+        RecurrentEvidenceReference::Whole(address) => read_exact(cold, *address)?.into_vec(),
+        RecurrentEvidenceReference::Split {
+            meta,
+            learned,
+            recurrent,
+        } => {
+            let learned = read_exact(cold, *learned)?;
+            let recurrent = read_exact(cold, *recurrent)?;
+            assemble_recurrent_evidence(meta, &learned, &recurrent)?
+        }
+    };
+    let episode = TypedEpisodeAdmission {
+        predecessor_generation: record.prefix.predecessor_generation,
+        episode_generation: record.prefix.episode_generation,
+        source_authority: record.prefix.source_authority,
+        source_body: record.prefix.source_body,
+        source_port_count: record.prefix.source_port_count,
+        source_sample_count: record.prefix.source_sample_count,
+        source_occurrence_count: record.prefix.source_occurrence_count,
+        source_occurrence_frame_count: record.prefix.source_occurrence_frame_count,
+        source_occurrence_index: record.prefix.source_occurrence_index,
+        physical_mosaic: record.prefix.physical_mosaic,
+        original_transition_evidence: original_transition_evidence.into_boxed_slice(),
+        recurrent_transition_evidence: recurrent_transition_evidence.into_boxed_slice(),
+        participants: record.participants,
+    };
+    validate_episode(&episode)?;
+    if encode_episode_record(&episode)?.0 != encoded {
         return Err(HippocampalError::MalformedObject);
     }
     Ok(episode)
@@ -996,19 +1355,116 @@ mod tests {
 
     fn admission_envelope(participants: usize) -> HippocampalAdmissionEnvelope {
         HippocampalAdmissionEnvelope {
-            max_objects: 1 + participants * (1 + RADIX_DEPTH),
+            max_objects: 5 + participants * (1 + RADIX_DEPTH),
             max_object_bytes: 1_000_000,
         }
     }
 
     #[test]
     fn retired_cohort_local_episode_layout_fails_closed() {
-        let mut retired = encode_episode(&episode(1, &[lineage(1)])).unwrap();
+        let cold = HippocampalColdStore::default();
+        let mut retired = encode_episode_v2(&episode(1, &[lineage(1)])).unwrap();
         retired[..EPISODE_MAGIC.len()].copy_from_slice(b"GLHEP01\0");
         assert_eq!(
-            decode_episode(&retired),
+            decode_episode(&cold, &retired),
             Err(HippocampalError::WrongObjectType)
         );
+    }
+
+    #[test]
+    fn split_episode_stores_shared_snapshots_once_and_round_trips_via_directory_store() {
+        use crate::hippocampal_directory_cold_store::DirectoryHippocampalColdStore;
+
+        let root = std::env::temp_dir().join(format!(
+            "guala-episode-reference-test-{}-{}",
+            std::process::id(),
+            line!(),
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let mut cold = DirectoryHippocampalColdStore::open(&root).unwrap();
+        let object_count = |root: &std::path::Path| std::fs::read_dir(root).unwrap().count();
+
+        let pre = b"pre-experience-snapshot-body".to_vec();
+        let shared = b"post-and-learned-snapshot-body".to_vec();
+        let recurrent = b"recurrent-snapshot-body".to_vec();
+        let build = |generation: u64, recurrent_body: &[u8]| {
+            let source_body: Box<[u8]> = vec![1, generation as u8].into_boxed_slice();
+            TypedEpisodeAdmission {
+                predecessor_generation: generation - 1,
+                episode_generation: generation,
+                source_authority: sha256(&source_body),
+                source_body,
+                source_port_count: 1,
+                source_sample_count: 1,
+                source_occurrence_count: 1,
+                source_occurrence_frame_count: 1,
+                source_occurrence_index: 0,
+                physical_mosaic: vec![2, generation as u8].into_boxed_slice(),
+                original_transition_evidence: assemble_original_evidence(
+                    &pre,
+                    Some(&shared),
+                    b"bool-tail",
+                )
+                .unwrap()
+                .into_boxed_slice(),
+                recurrent_transition_evidence: assemble_recurrent_evidence(
+                    b"recurrence-meta",
+                    &shared,
+                    recurrent_body,
+                )
+                .unwrap()
+                .into_boxed_slice(),
+                participants: Box::new([EpisodeParticipant {
+                    lineage: lineage(1),
+                }]),
+            }
+        };
+
+        let first = build(1, &recurrent);
+        let mut index = ResidentHippocampalIndex::default();
+        let prepared = index
+            .prepare(&cold, &first, admission_envelope(1))
+            .unwrap();
+        // record + pre + shared(post == learned, interned once) + recurrent
+        // + one posting + one radix path copy.
+        assert_eq!(prepared.prepared_object_count(), 4 + 1 + RADIX_DEPTH);
+        let published = publish_hippocampal_admission(&mut cold, &prepared).unwrap();
+        index.adopt(published).unwrap();
+        let first_count = object_count(&root);
+        assert_eq!(first_count, 4 + 1 + RADIX_DEPTH);
+        let resolved = resolve_hippocampal_episode(
+            &cold,
+            index.checkpoint().latest_episode().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(resolved, first);
+
+        // A later episode reusing the same snapshots republishes none of them.
+        let second = build(2, b"second-recurrent-snapshot-body");
+        let prepared = index
+            .prepare(&cold, &second, admission_envelope(1))
+            .unwrap();
+        let published = publish_hippocampal_admission(&mut cold, &prepared).unwrap();
+        index.adopt(published).unwrap();
+        let second_count = object_count(&root);
+        // New: record, the one changed snapshot, posting, radix path copy.
+        assert_eq!(second_count - first_count, 3 + RADIX_DEPTH);
+        let resolved = resolve_hippocampal_episode(
+            &cold,
+            index.checkpoint().latest_episode().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(resolved, second);
+        validate_hippocampal_checkpoint(&cold, index.checkpoint()).unwrap();
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn retired_inline_episode_layout_still_resolves_exactly() {
+        let cold = HippocampalColdStore::default();
+        let admitted = episode(1, &[lineage(1), lineage(2)]);
+        let inline = encode_episode_v2(&admitted).unwrap();
+        assert_eq!(decode_episode(&cold, &inline).unwrap(), admitted);
     }
 
     #[test]
@@ -1023,7 +1479,7 @@ mod tests {
                 .prepare(&cold, &episode(1, &lineages), admission_envelope(count))
                 .unwrap();
             assert_eq!(prepared.posting_count(), count);
-            assert!(prepared.prepared_object_count() <= 1 + count * (1 + RADIX_DEPTH));
+            assert!(prepared.prepared_object_count() <= 3 + count * (1 + RADIX_DEPTH));
             assert_eq!(state, ResidentHippocampalIndex::default());
         }
     }

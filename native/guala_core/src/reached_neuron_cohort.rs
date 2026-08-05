@@ -10,11 +10,12 @@
 //! owner, lock, database, receipt, score, label, or inferred connection.
 
 use crate::complete_neuron::{
-    decode_neuron_physical_cell, decode_neuron_physical_state, encode_neuron_physical_cell,
-    encode_neuron_physical_state, settle_extended_interval_with_contact,
-    sparse_physical_state_delta, NeuronAnatomyCodecError, NeuronIntervalInput,
-    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, NeuronStateCodecError,
-    SparsePhysicalStateDelta,
+    apply_sparse_physical_state_delta, decode_neuron_physical_anatomy, decode_neuron_physical_cell,
+    decode_neuron_physical_state, decode_sparse_physical_state_delta, encode_neuron_physical_anatomy,
+    encode_neuron_physical_cell, encode_neuron_physical_state, encode_sparse_physical_state_delta,
+    settle_extended_interval_with_contact, sparse_physical_state_delta, NeuronAnatomyCodecError,
+    NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
+    NeuronStateCodecError, SparsePhysicalStateDelta,
 };
 use crate::elementary_charge_transfer::ChargeCarrierPhase;
 use crate::joint_source_episode::NativeJointSourceEpisode;
@@ -28,6 +29,7 @@ use crate::recovery_fluid_contact::{
     extend_reached_recovery_fluid_state, settle_resident_gate_recovery_before_interval,
     ReachedRecoveryFluidAnatomy, RecoveryFluidError, RecoveryFluidReservoirState,
 };
+use crate::sha256::sha256;
 use crate::sparse_electrical_contact::{
     decode_sparse_electrical_cell, encode_sparse_electrical_cell,
     settle_sparse_electrical_transfers_reached, ElectricalContactState,
@@ -304,11 +306,18 @@ pub(crate) fn extend_reached_cohort_state_with_genesis(
 
 const REACHED_COHORT_CODEC_MAGIC: &[u8; 8] = b"GLRCS03\0";
 const REACHED_COHORT_CELL_CODEC_MAGIC: &[u8; 8] = b"GLRCC03\0";
+const REACHED_COHORT_CODEC_V4_MAGIC: &[u8; 8] = b"GLRCS04\0";
+const REACHED_COHORT_CELL_CODEC_V4_MAGIC: &[u8; 8] = b"GLRCC04\0";
+const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const MIN_REACHED_COHORT_NEURON_RECORD_BYTES: usize = 32;
+const CONTENT_DIGEST_BYTES: usize = 32;
 
 /// Encode the fixed source specialization, complete physical neuron cells, and
 /// sparse electrical fabric as one restartable reached cohort. This boundary
 /// transports already-admitted physics; it selects no anatomy or coefficients.
+/// This is the retired inline layout retained so that pre-deduplication bodies
+/// still restore and re-verify canonically; new bodies use the `GLRCC04`
+/// content-addressed layout.
 pub(crate) fn encode_reached_cohort_cell(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
@@ -353,6 +362,11 @@ pub(crate) fn encode_reached_cohort_cell(
 pub(crate) fn decode_reached_cohort_cell(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    if encoded.get(..REACHED_COHORT_CELL_CODEC_V4_MAGIC.len())
+        == Some(REACHED_COHORT_CELL_CODEC_V4_MAGIC)
+    {
+        return decode_reached_cohort_cell_v4(encoded);
+    }
     let mut reader = CohortStateReader::new(encoded);
     if reader.take(REACHED_COHORT_CELL_CODEC_MAGIC.len())? != REACHED_COHORT_CELL_CODEC_MAGIC {
         return Err(ReachedCohortError::InvalidStateEncoding);
@@ -464,6 +478,9 @@ pub(crate) fn decode_reached_cohort_state(
     anatomy: &ReachedCohortAnatomy,
     encoded: &[u8],
 ) -> Result<ReachedCohortState, ReachedCohortError> {
+    if encoded.get(..REACHED_COHORT_CODEC_V4_MAGIC.len()) == Some(REACHED_COHORT_CODEC_V4_MAGIC) {
+        return decode_reached_cohort_state_v4(anatomy, encoded);
+    }
     let mut reader = CohortStateReader::new(encoded);
     if reader.take(REACHED_COHORT_CODEC_MAGIC.len())? != REACHED_COHORT_CODEC_MAGIC {
         return Err(ReachedCohortError::InvalidStateEncoding);
@@ -505,6 +522,456 @@ pub(crate) fn decode_reached_cohort_state(
     }
     let electrical = SparseElectricalState::from_contact_states(&anatomy.electrical, contacts)?;
     ReachedCohortState::from_mounted_parts(anatomy, neurons, electrical, recovery_fluid)
+}
+
+/// One digest-ordered table of distinct encoded bodies. Insertion keeps the
+/// table sorted by content digest so the encoded form is canonical without a
+/// separate normalization pass.
+#[derive(Default)]
+struct ContentDigestTable {
+    entries: Vec<([u8; CONTENT_DIGEST_BYTES], Vec<u8>)>,
+}
+
+impl ContentDigestTable {
+    fn intern(&mut self, body: Vec<u8>) -> [u8; CONTENT_DIGEST_BYTES] {
+        let digest = sha256(&body);
+        if let Err(position) = self
+            .entries
+            .binary_search_by(|(existing, _)| existing.cmp(&digest))
+        {
+            self.entries.insert(position, (digest, body));
+        }
+        digest
+    }
+
+    fn encode_into(&self, encoded: &mut Vec<u8>) -> Result<(), ReachedCohortError> {
+        push_cohort_usize(encoded, self.entries.len())?;
+        for (_, body) in &self.entries {
+            push_cohort_usize(encoded, body.len())?;
+            encoded.extend_from_slice(body);
+        }
+        Ok(())
+    }
+}
+
+/// Decoded digest table: bodies keyed by digest, with per-entry use tracking so
+/// a table entry no reference names is refused as noncanonical.
+struct DecodedDigestTable<'a> {
+    entries: Vec<([u8; CONTENT_DIGEST_BYTES], &'a [u8])>,
+    used: Vec<bool>,
+}
+
+impl<'a> DecodedDigestTable<'a> {
+    fn decode(reader: &mut CohortStateReader<'a>) -> Result<Self, ReachedCohortError> {
+        let count = reader.usize()?;
+        reader.require_records(count, 8)?;
+        let mut entries: Vec<([u8; CONTENT_DIGEST_BYTES], &[u8])> = Vec::new();
+        entries
+            .try_reserve_exact(count)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        for _ in 0..count {
+            let length = reader.usize()?;
+            let body = reader.take(length)?;
+            let digest = sha256(body);
+            if entries
+                .last()
+                .is_some_and(|(previous, _)| *previous >= digest)
+            {
+                return Err(ReachedCohortError::InvalidStateEncoding);
+            }
+            entries.push((digest, body));
+        }
+        let used = vec![false; entries.len()];
+        Ok(Self { entries, used })
+    }
+
+    fn resolve(&mut self, digest: [u8; CONTENT_DIGEST_BYTES]) -> Result<&'a [u8], ReachedCohortError> {
+        let index = self
+            .entries
+            .binary_search_by(|(existing, _)| existing.cmp(&digest))
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        self.used[index] = true;
+        Ok(self.entries[index].1)
+    }
+
+    fn fully_referenced(&self) -> Result<(), ReachedCohortError> {
+        if self.used.iter().all(|used| *used) {
+            Ok(())
+        } else {
+            Err(ReachedCohortError::InvalidStateEncoding)
+        }
+    }
+}
+
+fn take_content_digest(
+    reader: &mut CohortStateReader<'_>,
+) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
+    reader
+        .take(CONTENT_DIGEST_BYTES)?
+        .try_into()
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)
+}
+
+fn derived_recovery_fluid_anatomy_digest(
+    anatomy: &ReachedCohortAnatomy,
+) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
+    Ok(sha256(&encode_reached_recovery_fluid_anatomy(
+        &anatomy.recovery_fluid,
+    )?))
+}
+
+/// Encode one restartable reached cohort with every distinct neuron-anatomy
+/// and neuron-state body retained exactly once in a digest-ordered table and
+/// per-neuron 32-byte content references. The derived recovery-fluid anatomy
+/// is retained as the 32-byte digest of its canonical encoding; restore
+/// re-derives it from the neuron anatomies and refuses on mismatch. This is a
+/// retention-layer layout only: it transports already-admitted physics and
+/// selects no anatomy or coefficients.
+pub(crate) fn encode_reached_cohort_cell_v4(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if anatomy.neurons.len() != anatomy.source_sites.len()
+        || anatomy.neurons.len() != state.neurons.len()
+        || anatomy.electrical.contact_count() != state.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut anatomy_table = ContentDigestTable::default();
+    let mut state_table = ContentDigestTable::default();
+    let mut anatomy_references = Vec::with_capacity(anatomy.neurons.len());
+    let mut state_references = Vec::with_capacity(anatomy.neurons.len());
+    for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
+        anatomy_references
+            .push(anatomy_table.intern(encode_neuron_physical_anatomy(neuron_anatomy)?));
+        state_references
+            .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_CELL_CODEC_V4_MAGIC);
+    push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
+    anatomy_table.encode_into(&mut encoded)?;
+    state_table.encode_into(&mut encoded)?;
+    for ((lineage, source_site), (anatomy_reference, state_reference)) in anatomy
+        .neuron_lineages
+        .iter()
+        .zip(anatomy.source_sites.iter())
+        .zip(anatomy_references.iter().zip(state_references.iter()))
+    {
+        encoded.extend_from_slice(lineage);
+        let source = encode_neuron_source_site(source_site)?;
+        push_cohort_usize(&mut encoded, source.len())?;
+        encoded.extend_from_slice(&source);
+        encoded.extend_from_slice(anatomy_reference);
+        encoded.extend_from_slice(state_reference);
+    }
+    encoded.extend_from_slice(&derived_recovery_fluid_anatomy_digest(anatomy)?);
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    let electrical = encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)?;
+    push_cohort_usize(&mut encoded, electrical.len())?;
+    encoded.extend_from_slice(&electrical);
+    Ok(encoded)
+}
+
+fn decode_reached_cohort_cell_v4(
+    encoded: &[u8],
+) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    let mut reader = CohortStateReader::new(encoded);
+    if reader.take(REACHED_COHORT_CELL_CODEC_V4_MAGIC.len())? != REACHED_COHORT_CELL_CODEC_V4_MAGIC
+    {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let neuron_count = reader.usize()?;
+    if neuron_count == 0 {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut anatomy_table = DecodedDigestTable::decode(&mut reader)?;
+    let mut state_table = DecodedDigestTable::decode(&mut reader)?;
+    reader.require_records(neuron_count, 16 + 8 + 2 * CONTENT_DIGEST_BYTES)?;
+    let mut source_sites = Vec::new();
+    let mut neuron_lineages = Vec::new();
+    let mut neuron_anatomies: Vec<NeuronPhysicalAnatomy> = Vec::new();
+    let mut neuron_states = Vec::new();
+    source_sites
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_lineages
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_anatomies
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_states
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    let mut decoded_anatomies: Vec<([u8; CONTENT_DIGEST_BYTES], NeuronPhysicalAnatomy)> =
+        Vec::new();
+    for _ in 0..neuron_count {
+        neuron_lineages.push(
+            reader
+                .take(16)?
+                .try_into()
+                .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+        );
+        let source_length = reader.usize()?;
+        source_sites.push(decode_neuron_source_site(reader.take(source_length)?)?);
+        let anatomy_reference = take_content_digest(&mut reader)?;
+        let state_reference = take_content_digest(&mut reader)?;
+        let neuron_anatomy = match decoded_anatomies
+            .iter()
+            .find(|(digest, _)| *digest == anatomy_reference)
+        {
+            Some((_, decoded)) => decoded.clone(),
+            None => {
+                let decoded =
+                    decode_neuron_physical_anatomy(anatomy_table.resolve(anatomy_reference)?)?;
+                decoded_anatomies.push((anatomy_reference, decoded.clone()));
+                decoded
+            }
+        };
+        let neuron_state =
+            decode_neuron_physical_state(&neuron_anatomy, state_table.resolve(state_reference)?)?;
+        neuron_anatomies.push(neuron_anatomy);
+        neuron_states.push(neuron_state);
+    }
+    anatomy_table.fully_referenced()?;
+    state_table.fully_referenced()?;
+    let recovery_anatomy_digest = take_content_digest(&mut reader)?;
+    let recovery_state_length = reader.usize()?;
+    let encoded_recovery_state = reader.take(recovery_state_length)?;
+    let electrical_length = reader.usize()?;
+    let (electrical_anatomy, electrical_state) =
+        decode_sparse_electrical_cell(reader.take(electrical_length)?)?;
+    if !reader.finished() {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let anatomy = ReachedCohortAnatomy::new(
+        neuron_anatomies,
+        neuron_lineages,
+        source_sites,
+        electrical_anatomy,
+    )?;
+    if derived_recovery_fluid_anatomy_digest(&anatomy)? != recovery_anatomy_digest {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let recovery_fluid =
+        decode_reached_recovery_fluid_state(encoded_recovery_state, &anatomy.recovery_fluid)?;
+    let state = ReachedCohortState::from_mounted_parts(
+        &anatomy,
+        neuron_states,
+        electrical_state,
+        recovery_fluid,
+    )?;
+    Ok((anatomy, state))
+}
+
+/// Encode one multi-neuron cohort state with every distinct neuron-state body
+/// retained exactly once in a digest-ordered table and per-neuron 32-byte
+/// content references.
+pub(crate) fn encode_reached_cohort_state_v4(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if state.neurons.len() != anatomy.neurons.len()
+        || state.electrical.contact_count() != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = ContentDigestTable::default();
+    let mut state_references = Vec::with_capacity(state.neurons.len());
+    for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
+        state_references
+            .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_CODEC_V4_MAGIC);
+    push_cohort_usize(&mut encoded, state.neurons.len())?;
+    push_cohort_usize(&mut encoded, state.electrical.contact_count())?;
+    state_table.encode_into(&mut encoded)?;
+    for (lineage, state_reference) in anatomy.neuron_lineages.iter().zip(state_references.iter()) {
+        encoded.extend_from_slice(lineage);
+        encoded.extend_from_slice(state_reference);
+    }
+    for contact in state.electrical.contact_states() {
+        let (numerator, denominator) = contact.carrier_phase().parts();
+        encoded.extend_from_slice(&numerator.to_le_bytes());
+        encoded.extend_from_slice(&denominator.to_le_bytes());
+    }
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    Ok(encoded)
+}
+
+fn decode_reached_cohort_state_v4(
+    anatomy: &ReachedCohortAnatomy,
+    encoded: &[u8],
+) -> Result<ReachedCohortState, ReachedCohortError> {
+    let mut reader = CohortStateReader::new(encoded);
+    if reader.take(REACHED_COHORT_CODEC_V4_MAGIC.len())? != REACHED_COHORT_CODEC_V4_MAGIC {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let neuron_count = reader.usize()?;
+    let contact_count = reader.usize()?;
+    if neuron_count != anatomy.neurons.len() || contact_count != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = DecodedDigestTable::decode(&mut reader)?;
+    reader.require_records(neuron_count, 16 + CONTENT_DIGEST_BYTES)?;
+    let mut neurons = Vec::with_capacity(neuron_count);
+    for (index, neuron_anatomy) in anatomy.neurons.iter().enumerate() {
+        let lineage: [u8; 16] = reader
+            .take(16)?
+            .try_into()
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        if lineage != anatomy.neuron_lineages[index] {
+            return Err(ReachedCohortError::InvalidNeuronLineage);
+        }
+        let state_reference = take_content_digest(&mut reader)?;
+        neurons.push(decode_neuron_physical_state(
+            neuron_anatomy,
+            state_table.resolve(state_reference)?,
+        )?);
+    }
+    state_table.fully_referenced()?;
+    let mut contacts = Vec::with_capacity(contact_count);
+    for _ in 0..contact_count {
+        let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        contacts.push(ElectricalContactState::from_carrier_phase(phase));
+    }
+    let recovery_state_length = reader.usize()?;
+    let recovery_fluid = decode_reached_recovery_fluid_state(
+        reader.take(recovery_state_length)?,
+        &anatomy.recovery_fluid,
+    )?;
+    if !reader.finished() {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let electrical = SparseElectricalState::from_contact_states(&anatomy.electrical, contacts)?;
+    ReachedCohortState::from_mounted_parts(anatomy, neurons, electrical, recovery_fluid)
+}
+
+/// The 32-byte content digest of the canonical `GLRCS04` encoding of one
+/// cohort state.
+pub(crate) fn reached_cohort_state_content_digest(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
+    Ok(sha256(&encode_reached_cohort_state_v4(anatomy, state)?))
+}
+
+/// Encode `target` as per-neuron sparse physical-state deltas against `base`
+/// using the existing settled delta machinery, with the target electrical and
+/// recovery-fluid state carried exactly. The trailing content digest of the
+/// canonical target encoding makes any divergent reconstruction refuse.
+pub(crate) fn encode_reached_cohort_state_delta(
+    anatomy: &ReachedCohortAnatomy,
+    base: &ReachedCohortState,
+    target: &ReachedCohortState,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if base.neurons.len() != anatomy.neurons.len()
+        || target.neurons.len() != anatomy.neurons.len()
+        || base.electrical.contact_count() != anatomy.electrical.contact_count()
+        || target.electrical.contact_count() != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_STATE_DELTA_MAGIC);
+    push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
+    for (neuron_index, (base_neuron, target_neuron)) in
+        base.neurons.iter().zip(target.neurons.iter()).enumerate()
+    {
+        match sparse_physical_state_delta(base_neuron, target_neuron).map_err(|error| {
+            ReachedCohortError::Neuron {
+                neuron_index,
+                error,
+            }
+        })? {
+            None => encoded.push(0),
+            Some(delta) => {
+                encoded.push(1);
+                let body = encode_sparse_physical_state_delta(&delta)?;
+                push_cohort_usize(&mut encoded, body.len())?;
+                encoded.extend_from_slice(&body);
+            }
+        }
+    }
+    for contact in target.electrical.contact_states() {
+        let (numerator, denominator) = contact.carrier_phase().parts();
+        encoded.extend_from_slice(&numerator.to_le_bytes());
+        encoded.extend_from_slice(&denominator.to_le_bytes());
+    }
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, target.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    encoded.extend_from_slice(&reached_cohort_state_content_digest(anatomy, target)?);
+    Ok(encoded)
+}
+
+pub(crate) fn decode_reached_cohort_state_delta(
+    anatomy: &ReachedCohortAnatomy,
+    base: &ReachedCohortState,
+    encoded: &[u8],
+) -> Result<ReachedCohortState, ReachedCohortError> {
+    if base.neurons.len() != anatomy.neurons.len()
+        || base.electrical.contact_count() != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut reader = CohortStateReader::new(encoded);
+    if reader.take(REACHED_COHORT_STATE_DELTA_MAGIC.len())? != REACHED_COHORT_STATE_DELTA_MAGIC {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let neuron_count = reader.usize()?;
+    if neuron_count != anatomy.neurons.len() {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut neurons = Vec::with_capacity(neuron_count);
+    for (neuron_anatomy, base_neuron) in anatomy.neurons.iter().zip(base.neurons.iter()) {
+        match reader.take(1)?[0] {
+            0 => neurons.push(base_neuron.clone()),
+            1 => {
+                let body_length = reader.usize()?;
+                let delta = decode_sparse_physical_state_delta(reader.take(body_length)?)?;
+                neurons.push(apply_sparse_physical_state_delta(
+                    neuron_anatomy,
+                    base_neuron,
+                    &delta,
+                )?);
+            }
+            _ => return Err(ReachedCohortError::InvalidStateEncoding),
+        }
+    }
+    let mut contacts = Vec::with_capacity(anatomy.electrical.contact_count());
+    for _ in 0..anatomy.electrical.contact_count() {
+        let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        contacts.push(ElectricalContactState::from_carrier_phase(phase));
+    }
+    let recovery_state_length = reader.usize()?;
+    let recovery_fluid = decode_reached_recovery_fluid_state(
+        reader.take(recovery_state_length)?,
+        &anatomy.recovery_fluid,
+    )?;
+    let expected_digest = take_content_digest(&mut reader)?;
+    if !reader.finished() {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let electrical = SparseElectricalState::from_contact_states(&anatomy.electrical, contacts)?;
+    let target =
+        ReachedCohortState::from_mounted_parts(anatomy, neurons, electrical, recovery_fluid)?;
+    if reached_cohort_state_content_digest(anatomy, &target)? != expected_digest {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    Ok(target)
 }
 
 fn push_cohort_usize(encoded: &mut Vec<u8>, value: usize) -> Result<(), ReachedCohortError> {

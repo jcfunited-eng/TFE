@@ -65,6 +65,8 @@
         "native/guala_core/src/reached_vestibular_bundle_path.rs",
         "native/guala_core/src/recovery_fluid_contact.rs",
         "native/guala_core/src/resident_cognitive_formation.rs",
+        "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+        "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
         "native/guala_core/src/resident_d3_runtime.rs",
         "native/guala_core/src/resident_receptor_transition.rs",
         "native/guala_core/src/sha256.rs",

@@ -70,3 +70,21 @@ to docs/salvaged-github-workflows/) and S3
    machinery; live verification incl. teaching evidence per the D3 contract.
 5. Fix the baseline test's absolute-path digest (relative + refreeze).
 6. After first deploy: legacy owner-cascade retirement plan.
+
+## Post-deploy fix queue (live, non-blocking)
+1. native_production_app "recall" section hardcodes partial_cue_reassembly_count=0
+   instead of reading the native observation's real value — truth-coupling bug;
+   fix in next deploy alongside the partial-cue lesson mode.
+2. Per-response lesson counts are last-hop-only; surface cumulative per-lesson
+   sums (fractals/transitioned) in the teach-card response.
+3. Hippocampal navigation (read) has no Python binding — needed later for
+   truthful recall observation; write path already lawful via prepare_admitted.
+4. Per-hop whole-body persistence (~7MB x 60 hops = ~400MB written per
+   lesson; ~4s overhead is fine but the write volume violates leanness):
+   persist once per lesson with the same never-serve-unpersisted guarantee.
+5. Cards are two-sense (sight+tutor audio); the card TOUCH surface is not
+   mounted — register per Joe 2026-08-05; closes with touch receptor work.
+6. STRUCTURAL CAP (Joe's reserved concern, recorded sharply): DNA
+   expression is built but uncatalyzed at every call site — neuron count
+   is capped at birth anatomy (29) until expression gets a real catalyst
+   source. Part of the metabolism/intake design.

@@ -18,10 +18,12 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
 - ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session
   deliver caller-supplied PCM pressure as one admitted native episode.
 
-Public observation is one cached, read-only projection per committed native
+Public observation is one cached, read-only projection per persisted native
 generation.  Repeated reads do not call or advance the organism.  Every
-committed native transition refreshes this cache after committing and
-persisting its successor.
+accepted admitted intake (one lesson of hop transitions) commits its hops on
+the in-process organism, persists and publishes the successor body exactly
+once after its final hop, and only then refreshes this cache; readiness is
+served under the same lock, so no surface ever reports unpersisted state.
 """
 
 from __future__ import annotations
@@ -144,6 +146,41 @@ assert (
     LESSON_PORT_COUNT * INTAKE_HOP_MAX_FRAMES
     <= MAX_NATIVE_SAMPLES_PER_SETTLEMENT
 ), "declared lesson hop exceeds the ratified settlement sample bound"
+# Frame count of one quiescent (dark, silent) hop; the same timebase carries
+# the partial-presentation glimpse hop below.
+QUIESCENT_HOP_FRAME_COUNT = INTAKE_HOP_MAX_FRAMES // 2
+
+# Lesson presentation modes.  "full" is the ordinary lesson: the whole card
+# surface is lit and the tutor speaks.  "partial" is a glimpse of part of a
+# familiar card: only part of the card geometry is lit, the rest of the
+# surface is genuinely dark, and the tutor is silent (the ears are not
+# driven, so the acoustic cohort stays quiescent).
+#
+# The lit subset is chosen deterministically from the ports' declared
+# topology coordinates, never randomly: the first
+# PARTIAL_PRESENTATION_SITE_COUNT card sites in row-major (row, column)
+# order — the top strip of the card surface.  That subset is exactly a
+# contiguous prefix of the authored growth-DNA contact chain, which joins
+# consecutive row-major card sites (site i to site i+1 at 500 pS), so the
+# glimpse's recurrence current has an unbroken chain path to every remaining
+# member of the retained formation.  Physical-mosaic admission also requires
+# the cue to be a strict subset of the formation's members, which this
+# 12-of-27 prefix is by construction.
+#
+# Measured (2026-08-05, headless, alphabet-a): the left-column-region
+# variant of this subset (column < 4 of every row) behaves identically —
+# both commit lawfully and neither admits a mosaic — because admission is
+# blocked upstream of the subset choice by the optical energy barrier
+# documented on _partial_card_lesson_hop_episodes.
+PRESENTATION_MODES = ("full", "partial")
+PARTIAL_PRESENTATION_SITE_COUNT = 12
+assert 0 < PARTIAL_PRESENTATION_SITE_COUNT < CARD_SURFACE_PORT_COUNT
+# After the glimpse the presentation genuinely ends; the surface stays dark
+# and the room stays silent while the recurrence current settles.  Eight
+# ended hops mirror the ratified native admission sequence (one partial
+# optical episode followed by up to eight dark episodes) proven in
+# organism_runtime.rs and resident_cognitive_formation.rs.
+PARTIAL_PRESENTATION_ENDED_HOP_COUNT = 8
 
 _ORGANISM_IDENTITY_PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -490,11 +527,19 @@ def _build_public_observation() -> dict[str, Any]:
             tapestry_of_tapestries_count=0,
             weave_count=0,
         ),
+        # Truth-coupled to the decoded native observation: the count is the
+        # last committed transition's step fact, never a hardwired zero.
         "recall": _section(
-            False,
-            "not_implemented",
-            "no hippocampal or distributed physical reassembly is mounted",
-            partial_cue_reassembly_count=0,
+            native["partial_cue_reassembly_count"] > 0,
+            (
+                "physical_partial_cue_reassembly_observed"
+                if native["partial_cue_reassembly_count"] > 0
+                else "no_reassembly_in_last_committed_transition"
+            ),
+            "partial-cue reassembly count is the decoded native observation "
+            "of the last committed transition; no separate recall query "
+            "surface is mounted",
+            partial_cue_reassembly_count=native["partial_cue_reassembly_count"],
         ),
         "cognitive_capital": _section(
             False,
@@ -949,89 +994,167 @@ def _perform_genesis(admission: NativeResidentResourceAdmission) -> None:
     )
 
 
-def _perform_admitted_transition(
+def _commit_admitted_hop(
+    organism: Any,
     episode: Any,
     maximum_causal_intervals: list[tuple[int, int]],
-    intake: str,
 ) -> dict[str, Any]:
-    """Run one admitted prepare/commit and durably publish the successor.
+    """Prepare and commit one admitted hop on the in-process organism only.
 
-    Returns only what the native observation actually says.  If publication
-    of the committed successor fails, the in-process organism is poisoned so
-    the surface degrades honestly instead of serving unpersisted state.
+    No persistence happens here.  The caller holds ``_transition_lock`` and
+    must durably publish the committed body before any observation surface
+    reports it.  Returns only what the native observation actually says.
     """
 
-    global _restored, _boot_error, _last_transition_evidence
+    evidence: ResidentPrepareEvidence = organism.prepare_admitted(
+        episode,
+        maximum_causal_intervals,
+        _hippocampal_cold_root(),
+    )
+    observed = organism.commit(evidence.token)
+    return {
+        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+        "cognitive_trace_count": observed.cognitive_trace_count,
+        "complete_neuron_count": getattr(
+            observed, "complete_neuron_count", 0
+        ),
+        "complete_neuron_fractal_count": (
+            evidence.complete_neuron_fractal_count
+        ),
+        "current_cohort_evaluation_count": (
+            evidence.current_cohort_evaluation_count
+        ),
+        "dsf_delivery_count": evidence.dsf_delivery_count,
+        "formation_activation_count": observed.formation_activation_count,
+        "organism_tick": observed.organism_tick,
+        "partial_cue_reassembly_count": (
+            observed.partial_cue_reassembly_count
+        ),
+        "physically_transitioned_neuron_count": (
+            evidence.physically_transitioned_neuron_count
+        ),
+        "recurrent_complete_neuron_fractal_count": (
+            evidence.recurrent_complete_neuron_fractal_count
+        ),
+        "state_sha256": observed.state_sha256,
+    }
 
+
+def _publish_committed_organism(
+    organism: Any,
+    admission: NativeResidentResourceAdmission,
+    predecessor_state_sha256: str,
+) -> Any:
+    """Stage and publish the committed body; poison the runtime on failure.
+
+    The caller holds ``_transition_lock``.  If publication fails the
+    in-process organism is poisoned so the surface degrades honestly (503)
+    instead of ever serving unpersisted state.
+    """
+
+    global _restored, _boot_error
+    global _public_observation_body, _public_observation_etag
+
+    try:
+        staged = stage_active_native_organism(
+            STATE_ROOT,
+            organism,
+            max_envelope_bytes=admission.max_envelope_bytes,
+        )
+        return publish_staged_native_organism(
+            staged,
+            expected_predecessor_sha256=predecessor_state_sha256,
+            object_store=_object_store(),
+            max_envelope_bytes=admission.max_envelope_bytes,
+            max_fabric_bytes=admission.max_fabric_bytes,
+            max_logical_peak_bytes=admission.max_logical_peak_bytes,
+        )
+    except BaseException as error:
+        _restored = None
+        _boot_error = (
+            "committed native successor could not be published: "
+            f"{type(error).__name__}: {error}"
+        )
+        _public_observation_body = None
+        _public_observation_etag = None
+        raise HTTPException(status_code=503, detail=_boot_error) from error
+
+
+def _perform_admitted_intake(
+    episodes: list[tuple[Any, list[tuple[int, int]]]],
+    intake: str,
+) -> dict[str, Any]:
+    """Commit every hop in-memory, then persist and publish ONCE.
+
+    Efficiency contract: one accepted intake (a whole lesson of hops) writes
+    exactly one durable body generation, after its final hop, instead of one
+    full body save+publish per 250 ms hop.
+
+    Restart-consistency: hops advance only the in-process organism until the
+    single persist; a crash mid-lesson therefore loses only the un-persisted
+    lesson tail and the organism resumes from the last persisted body (the
+    pre-lesson CURRENT).  Safety property preserved: the public observation
+    cache is refreshed only after the persist succeeds, readiness surfaces
+    are served under the same lock, and a persist failure poisons the
+    runtime (503) exactly as before, so no observation or readiness is ever
+    computed from unpersisted state.
+
+    If a hop is refused mid-lesson, the already-committed hop prefix is
+    persisted before the refusal is re-raised, keeping the durable body and
+    the in-process organism identical.
+    """
+
+    global _restored, _last_transition_evidence
+
+    totals = {
+        "complete_neuron_fractal_count": 0,
+        "current_cohort_evaluation_count": 0,
+        "dsf_delivery_count": 0,
+        "partial_cue_reassembly_count": 0,
+        "physically_transitioned_neuron_count": 0,
+        "recurrent_complete_neuron_fractal_count": 0,
+    }
     with _transition_lock:
         restored, admission = _runtime()
         organism = restored.organism
         predecessor = restored.pointer
-        evidence: ResidentPrepareEvidence = organism.prepare_admitted(
-            episode,
-            maximum_causal_intervals,
-            _hippocampal_cold_root(),
-        )
-        observed = organism.commit(evidence.token)
+        last_hop: dict[str, Any] | None = None
+        committed_hop_count = 0
+        intake_error: Exception | None = None
         try:
-            staged = stage_active_native_organism(
-                STATE_ROOT,
-                organism,
-                max_envelope_bytes=admission.max_envelope_bytes,
-            )
-            published = publish_staged_native_organism(
-                staged,
-                expected_predecessor_sha256=predecessor.state_sha256,
-                object_store=_object_store(),
-                max_envelope_bytes=admission.max_envelope_bytes,
-                max_fabric_bytes=admission.max_fabric_bytes,
-                max_logical_peak_bytes=admission.max_logical_peak_bytes,
-            )
-        except BaseException as error:
-            _restored = None
-            _boot_error = (
-                "committed native successor could not be published: "
-                f"{type(error).__name__}: {error}"
-            )
-            global _public_observation_body, _public_observation_etag
-            _public_observation_body = None
-            _public_observation_etag = None
-            raise HTTPException(status_code=503, detail=_boot_error) from error
+            for episode, admissions in episodes:
+                last_hop = _commit_admitted_hop(
+                    organism, episode, admissions
+                )
+                committed_hop_count += 1
+                for key in totals:
+                    totals[key] += last_hop[key]
+        except (RuntimeError, TypeError, ValueError) as error:
+            intake_error = error
+        if last_hop is None or committed_hop_count == 0:
+            if intake_error is not None:
+                raise intake_error
+            raise RuntimeError("admitted intake carried no hop episodes")
+        published = _publish_committed_organism(
+            organism, admission, predecessor.state_sha256
+        )
         _restored = RestoredNativeOrganism(
             organism=organism, pointer=published.pointer
         )
         _last_transition_evidence = {
-            "cognitive_mosaic_count": observed.cognitive_mosaic_count,
-            "cognitive_trace_count": observed.cognitive_trace_count,
-            "complete_neuron_count": getattr(
-                observed, "complete_neuron_count", 0
-            ),
-            "complete_neuron_fractal_count": (
-                evidence.complete_neuron_fractal_count
-            ),
-            "current_cohort_evaluation_count": (
-                evidence.current_cohort_evaluation_count
-            ),
-            "dsf_delivery_count": evidence.dsf_delivery_count,
-            "formation_activation_count": observed.formation_activation_count,
+            **last_hop,
+            "hop_count": committed_hop_count,
             "intake": intake,
-            "organism_tick": observed.organism_tick,
-            "partial_cue_reassembly_count": (
-                observed.partial_cue_reassembly_count
-            ),
-            "physically_transitioned_neuron_count": (
-                evidence.physically_transitioned_neuron_count
-            ),
             "predecessor_state_sha256": predecessor.state_sha256,
-            "recurrent_complete_neuron_fractal_count": (
-                evidence.recurrent_complete_neuron_fractal_count
-            ),
-            "state_sha256": observed.state_sha256,
+            "totals": dict(totals),
         }
         _refresh_public_observation_cache()
+        if intake_error is not None:
+            raise intake_error
         return {
             "accepted": True,
             "ok": True,
+            "hop_count": committed_hop_count,
             "observation": dict(_last_transition_evidence),
             "persisted": {
                 "organism_tick": published.pointer.organism_tick,
@@ -1041,32 +1164,8 @@ def _perform_admitted_transition(
                 "state_sha256": published.pointer.state_sha256,
             },
             "schema": "guala.native_admitted_intake_result.v1",
+            "totals": totals,
         }
-
-
-def _perform_admitted_intake(
-    episodes: list[tuple[Any, list[tuple[int, int]]]],
-    intake: str,
-) -> dict[str, Any]:
-    """Run one admitted transition per hop episode and total the step facts."""
-
-    totals = {
-        "complete_neuron_fractal_count": 0,
-        "current_cohort_evaluation_count": 0,
-        "dsf_delivery_count": 0,
-        "physically_transitioned_neuron_count": 0,
-        "recurrent_complete_neuron_fractal_count": 0,
-    }
-    result: dict[str, Any] | None = None
-    for episode, admissions in episodes:
-        result = _perform_admitted_transition(episode, admissions, intake)
-        observation = result["observation"]
-        for key in totals:
-            totals[key] += observation[key]
-    assert result is not None
-    result["hop_count"] = len(episodes)
-    result["totals"] = totals
-    return result
 
 
 def _card_surface_luminance(surface_path: Path) -> tuple[float, ...]:
@@ -1158,9 +1257,185 @@ def _read_tutor_wav(path: Path, expected_sample_count: object) -> tuple[int, tup
     return 16_000, struct.unpack(f"<{frame_count}h", body)
 
 
+def _quiescent_hop_times() -> tuple[Fraction, ...]:
+    """Exact retained instants of one dark, silent 250 ms hop."""
+
+    return tuple(
+        Fraction(index, QUIESCENT_HOP_FRAME_COUNT)
+        * Fraction(INTAKE_HOP_MILLISECONDS, 1000)
+        for index in range(QUIESCENT_HOP_FRAME_COUNT)
+    )
+
+
+def _whole_roster_hop_episode(
+    assembly_id: str,
+    times: tuple[Fraction, ...],
+    surface_levels: tuple[float, ...],
+    ear_signal: tuple[float, ...],
+    *,
+    separate_optical_occurrence: bool = False,
+) -> Any:
+    """One hop over the whole declared roster on one shared clock.
+
+    ``surface_levels`` carries one constant luminance per card receptor site
+    for the hop; dark sites carry their true 0.0 quiescent samples exactly as
+    the ordinary ended hops do.
+
+    ``separate_optical_occurrence`` declares the card surface and the ears as
+    two co-clocked occurrences instead of one combined occurrence.  This
+    matters physically, not cosmetically: the ratified retinal receptor law
+    settles a reached cohort only for an EXACT optical occurrence (every port
+    of the occurrence a retinal sight port), so a combined sight+sound
+    occurrence delivers its samples without settling the cohort's receptor
+    physics.  A presentation that must reach the retinal cohort — the first
+    hop of a lesson and every partial-cue hop — declares the surface as its
+    own exact optical occurrence.
+    """
+
+    frame_count = len(times)
+    observed = {
+        PhysicalSense.SIGHT: tuple(
+            _card_surface_substream(
+                row,
+                column,
+                times,
+                (surface_levels[row * CARD_SURFACE_COLUMNS + column],)
+                * frame_count,
+            )
+            for row in range(CARD_SURFACE_ROWS)
+            for column in range(CARD_SURFACE_COLUMNS)
+        ),
+        PhysicalSense.SOUND: _ear_ports(times, ear_signal),
+    }
+    if separate_optical_occurrence:
+        occurrences = (
+            _occurrence(
+                tuple(range(CARD_SURFACE_PORT_COUNT)), times, frame_count
+            ),
+            _occurrence(
+                tuple(range(CARD_SURFACE_PORT_COUNT, LESSON_PORT_COUNT)),
+                times,
+                frame_count,
+            ),
+        )
+    else:
+        occurrences = (
+            _occurrence(tuple(range(LESSON_PORT_COUNT)), times, frame_count),
+        )
+    return settle_native_joint_source_episode(
+        assembly_id=assembly_id,
+        observed_substreams=observed,
+        states=_sense_states(observed),
+        occurrences=occurrences,
+    )
+
+
+def _partial_presentation_levels(
+    luminance: tuple[float, ...],
+) -> tuple[float, ...]:
+    """The glimpsed top strip of the real card; the rest is truly dark.
+
+    The lit subset is deterministic from the ports' declared topology
+    coordinates: the first ``PARTIAL_PRESENTATION_SITE_COUNT`` sites in
+    row-major (row, column) order carry their real area-averaged card
+    luminance; every other card site carries the true dark 0.0 sample.  No
+    pixel is fabricated: the lit values are the same physical card raster the
+    full presentation delivers, restricted to that card region.
+    """
+
+    return tuple(
+        (
+            luminance[row * CARD_SURFACE_COLUMNS + column]
+            if row * CARD_SURFACE_COLUMNS + column
+            < PARTIAL_PRESENTATION_SITE_COUNT
+            else 0.0
+        )
+        for row in range(CARD_SURFACE_ROWS)
+        for column in range(CARD_SURFACE_COLUMNS)
+    )
+
+
+def _partial_card_lesson_hop_episodes(
+    card_id: str,
+    presentation_ms: int,
+    luminance: tuple[float, ...],
+) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """Glimpse hops of part of a familiar card: partial light, no tutor.
+
+    One driven hop carries the real card luminance of the chain-prefix card
+    region with true dark samples on the remaining card sites and true
+    silence at both ears (the tutor does not speak), then the presentation
+    genuinely ends and the ratified count of dark, silent hops lets the
+    recurrence current settle through the authored chain contacts.  The same
+    builder path as every other hop declares the occurrences, so the subset
+    ports still settle jointly and quiescent ports still carry their samples.
+
+    Measured outcome (2026-08-05, headless, alphabet-a, after two full
+    lessons): every hop commits lawfully, the cue is a proper strict subset
+    (12 of the 27 formation members), and no mosaic is admitted.  The block
+    is upstream of the cue choice and is energetic, not topological:
+
+    - The ratified retinal law transduces 2 * L * T zeptojoules per site
+      (reference irradiance 4, aperture 1, absorptance 1/2, coupling 1).  A
+      250 ms hop of the brightest real card site (L ~ 0.85) delivers ~0.43
+      zJ, below the +1 zJ plastic support barrier, so the gate free energy
+      stays positive, no conformation opens, gate conductance stays zero,
+      and no current can cross the 500 pS chain contacts.  The dark card
+      sites therefore never change and `admit_physical_mosaic` refuses with
+      RecurrenceDidNotChangeEveryMember.
+    - Raising the dwell until a gate can open requires 2 * L * T in
+      (1, 3.25] zJ AND an exact multiple of the 1/16 zJ dissipation lattice
+      (36 quanta capacity).  Real card sites carry distinct 8-bit luminances,
+      so on one shared presentation clock at most the sites sharing one exact
+      luminance value land on the lattice; any other lit site is refused
+      outright (DissipationNotQuantized).  A spatial card region cannot be
+      lit above the barrier lawfully.
+    - Measured separately: once any gate does open, the injected charge
+      never leaves the 27-site chain — 600 dark hops (150 s) after a single
+      lattice-aligned flip still showed 3-21 neurons changing per hop and no
+      quiescence, so no experience is retained from an electrically active
+      presentation either.  The card lessons that do retain an experience
+      retain one with zero electrical activity.
+
+    Nothing here is forced: the mode delivers the honest partial cue and the
+    observation reports the physics' real answer.
+    """
+
+    times = _quiescent_hop_times()
+    silence = (0.0,) * len(times)
+    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
+    episodes: list[tuple[Any, list[tuple[int, int]]]] = [
+        (
+            _whole_roster_hop_episode(
+                f"curriculum-card-{card_id}-partial-glimpse",
+                times,
+                _partial_presentation_levels(luminance),
+                silence,
+                separate_optical_occurrence=True,
+            ),
+            [(presentation_ms, 1000)] * 2,
+        )
+    ]
+    for ended_index in range(PARTIAL_PRESENTATION_ENDED_HOP_COUNT):
+        episodes.append(
+            (
+                _whole_roster_hop_episode(
+                    f"curriculum-card-{card_id}-partial-ended-{ended_index}",
+                    times,
+                    dark,
+                    silence,
+                    separate_optical_occurrence=True,
+                ),
+                [(presentation_ms, 1000)] * 2,
+            )
+        )
+    return episodes
+
+
 def _card_lesson_hop_episodes(
     card_id: str,
     experience: dict[str, Any],
+    presentation: str = "full",
 ) -> list[tuple[Any, list[tuple[int, int]]]]:
     presentation_ms = experience.get("presentation_milliseconds")
     if (
@@ -1171,6 +1446,12 @@ def _card_lesson_hop_episodes(
         raise ValueError("curriculum presentation window changed")
     surface_path = _verified_media_path(experience.get("surface"), "surface")
     audio_path = _verified_media_path(experience.get("tutor_audio"), "tutor_audio")
+    if presentation == "partial":
+        return _partial_card_lesson_hop_episodes(
+            card_id,
+            presentation_ms,
+            _card_surface_luminance(surface_path),
+        )
     tutor_audio = experience.get("tutor_audio")
     expected_samples = (
         tutor_audio.get("sample_count") if isinstance(tutor_audio, dict) else None
@@ -1251,35 +1532,15 @@ def _card_lesson_hop_episodes(
     # The presentation genuinely ends: the surface is unlit and the tutor is
     # silent.  Two quiescent hops declare that real environment state so the
     # post-quiescence neuron physics can settle what was experienced.
-    quiescent_frame_count = INTAKE_HOP_MAX_FRAMES // 2
-    quiescent_times = tuple(
-        Fraction(index, quiescent_frame_count)
-        * Fraction(INTAKE_HOP_MILLISECONDS, 1000)
-        for index in range(quiescent_frame_count)
-    )
-    quiescent_signal = (0.0,) * quiescent_frame_count
+    quiescent_times = _quiescent_hop_times()
+    quiescent_signal = (0.0,) * len(quiescent_times)
+    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
     for ended_index in range(2):
-        observed = {
-            PhysicalSense.SIGHT: tuple(
-                _card_surface_substream(
-                    row, column, quiescent_times, quiescent_signal
-                )
-                for row in range(CARD_SURFACE_ROWS)
-                for column in range(CARD_SURFACE_COLUMNS)
-            ),
-            PhysicalSense.SOUND: _ear_ports(quiescent_times, quiescent_signal),
-        }
-        episode = settle_native_joint_source_episode(
-            assembly_id=f"curriculum-card-{card_id}-ended-{ended_index}",
-            observed_substreams=observed,
-            states=_sense_states(observed),
-            occurrences=(
-                _occurrence(
-                    tuple(range(LESSON_PORT_COUNT)),
-                    quiescent_times,
-                    quiescent_frame_count,
-                ),
-            ),
+        episode = _whole_roster_hop_episode(
+            f"curriculum-card-{card_id}-ended-{ended_index}",
+            quiescent_times,
+            dark,
+            quiescent_signal,
         )
         episodes.append((episode, [(presentation_ms, 1000)]))
     return episodes
@@ -1397,7 +1658,12 @@ def health() -> dict[str, str]:
 
 @app.get("/ready/guala", dependencies=[Depends(_require_secret)])
 def ready_guala() -> dict[str, Any]:
-    return _readiness()
+    # Readiness reads the live organism, so it must never observe committed
+    # hops whose lesson has not persisted yet: the transition lock is held
+    # for a whole lesson (commit hops in-memory, persist once), and taking
+    # it here means readiness serves only persisted state.
+    with _transition_lock:
+        return _readiness()
 
 
 @app.get(
@@ -1405,7 +1671,8 @@ def ready_guala() -> dict[str, Any]:
     dependencies=[Depends(_require_secret)],
 )
 def runtime_proof() -> dict[str, Any]:
-    return _readiness()
+    with _transition_lock:
+        return _readiness()
 
 
 @app.get("/api/v1/guala/native-observation")
@@ -1448,6 +1715,15 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     card_id = payload.get("card_id") if isinstance(payload, dict) else None
     if not isinstance(card_id, str) or not card_id:
         return _refusal(422, "teach-card requires an approved card_id")
+    presentation = (
+        payload.get("presentation", "full") if isinstance(payload, dict) else "full"
+    )
+    if presentation not in PRESENTATION_MODES:
+        return _refusal(
+            422,
+            "teach-card presentation must be one of "
+            + ", ".join(repr(mode) for mode in PRESENTATION_MODES),
+        )
     try:
         experience = _read_manifest_card(card_id)
     except KeyError:
@@ -1458,20 +1734,23 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return _refusal(503, f"curriculum manifest is unavailable: {error}")
     try:
-        episodes = _card_lesson_hop_episodes(card_id, experience)
+        episodes = _card_lesson_hop_episodes(card_id, experience, presentation)
     except HTTPException:
         raise
     except (OSError, ValueError) as error:
         return _refusal(503, f"approved curriculum media refused: {error}")
     try:
         result = _perform_admitted_intake(
-            episodes, f"curriculum-card:{card_id}"
+            episodes, f"curriculum-card:{card_id}:{presentation}"
         )
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"admitted lesson transition refused: {error}")
-    return JSONResponse(status_code=200, content={"card_id": card_id, **result})
+    return JSONResponse(
+        status_code=200,
+        content={"card_id": card_id, "presentation": presentation, **result},
+    )
 
 
 @app.post("/sight_frame")

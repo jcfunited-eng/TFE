@@ -51,8 +51,10 @@ use crate::physical_mosaic::{
     AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
 };
 use crate::reached_neuron_cohort::{
-    decode_reached_cohort_cell, decode_reached_cohort_state, encode_reached_cohort_cell,
-    encode_reached_cohort_state, extend_reached_cohort_state_with_genesis,
+    decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
+    encode_reached_cohort_cell, encode_reached_cohort_cell_v4, encode_reached_cohort_state,
+    encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
+    extend_reached_cohort_state_with_genesis, reached_cohort_state_content_digest,
     settle_reached_cohort_interval, QuiescentReachedCohortState, ReachedCohortAnatomy,
     ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortPostExperienceSettlement,
     ReachedCohortRecurrenceSettlement, ReachedCohortState,
@@ -74,6 +76,8 @@ use std::fmt;
 
 const MAGIC: &[u8; 8] = b"GLCOG012";
 const VERSION: u16 = 12;
+const MAGIC_V13: &[u8; 8] = b"GLCOG013";
+const VERSION_V13: u16 = 13;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 const HIPPOCAMPAL_CHECKPOINT_BYTES: usize = 8 + 33 + 33;
 const FIXED_BYTES: usize = MAGIC.len()
@@ -87,8 +91,20 @@ const FIXED_BYTES: usize = MAGIC.len()
     + 8
     + HIPPOCAMPAL_CHECKPOINT_BYTES;
 const EXPERIENCE_MAGIC: &[u8; 8] = b"GLEXP01\0";
+const EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
 const RECURRENCE_MAGIC: &[u8; 8] = b"GLREC02\0";
 const HIPPOCAMPAL_RECURRENCE_MAGIC: &[u8; 8] = b"GLHRE01\0";
+const EVIDENCE_DIGEST_BYTES: usize = 32;
+
+/// Which persisted cognitive-image layout a body carries. `V12` is the retired
+/// inline layout the live organism's body predates this change with; it stays
+/// readable and re-verifiable but is never written again. `V13` is the current
+/// content-addressed layout; every new encode emits it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CognitiveCodecFormat {
+    V12,
+    V13,
+}
 
 #[cfg(test)]
 std::thread_local! {
@@ -1140,7 +1156,11 @@ impl ResidentCognitiveFormationState {
                                 hippocampal_cold,
                                 &episode,
                                 HippocampalAdmissionEnvelope {
-                                    max_objects: 1usize
+                                    // One episode record, at most four
+                                    // referenced snapshot/evidence bodies, and
+                                    // one posting plus one radix path copy per
+                                    // participant.
+                                    max_objects: 5usize
                                         .checked_add(
                                             participants
                                                 .checked_mul(33)
@@ -1222,6 +1242,14 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
+        self.encode_with_format(CognitiveCodecFormat::V13, max_encoded_bytes)
+    }
+
+    fn encode_with_format(
+        &self,
+        format: CognitiveCodecFormat,
+        max_encoded_bytes: usize,
+    ) -> Result<Vec<u8>, FormationError> {
         validate_lineage_state(self)?;
         let mut seeds = Vec::new();
         seeds
@@ -1270,17 +1298,30 @@ impl ResidentCognitiveFormationState {
             {
                 return Err(FormationError::NoncanonicalState);
             }
-            let cell = encode_reached_cohort_cell(&cohort.anatomy, &cohort.state)
-                .map_err(|_| FormationError::NoncanonicalState)?;
+            let cell = match format {
+                CognitiveCodecFormat::V12 => {
+                    encode_reached_cohort_cell(&cohort.anatomy, &cohort.state)
+                }
+                CognitiveCodecFormat::V13 => {
+                    encode_reached_cohort_cell_v4(&cohort.anatomy, &cohort.state)
+                }
+            }
+            .map_err(|_| FormationError::NoncanonicalState)?;
+            let encode_evidence = |evidence: &ResidentExperienceEvidence| match format {
+                CognitiveCodecFormat::V12 => encode_experience_evidence(&cohort.anatomy, evidence),
+                CognitiveCodecFormat::V13 => {
+                    encode_experience_evidence_v2(&cohort.anatomy, Some(&cohort.state), evidence)
+                }
+            };
             let pending = cohort
                 .pending_experience
                 .as_ref()
-                .map(|evidence| encode_experience_evidence(&cohort.anatomy, evidence))
+                .map(encode_evidence)
                 .transpose()?;
             let retained = cohort
                 .retained_experience
                 .as_ref()
-                .map(|evidence| encode_experience_evidence(&cohort.anatomy, evidence))
+                .map(encode_evidence)
                 .transpose()?;
             let recurrence = cohort
                 .pending_recurrence
@@ -1340,8 +1381,16 @@ impl ResidentCognitiveFormationState {
             });
         }
         let mut output = Vec::with_capacity(length);
-        output.extend_from_slice(MAGIC);
-        output.extend_from_slice(&VERSION.to_le_bytes());
+        match format {
+            CognitiveCodecFormat::V12 => {
+                output.extend_from_slice(MAGIC);
+                output.extend_from_slice(&VERSION.to_le_bytes());
+            }
+            CognitiveCodecFormat::V13 => {
+                output.extend_from_slice(MAGIC_V13);
+                output.extend_from_slice(&VERSION_V13.to_le_bytes());
+            }
+        }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
         output.extend_from_slice(
@@ -1513,9 +1562,15 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        if bytes.len() >= MAGIC.len() && &bytes[..MAGIC.len()] != MAGIC {
+        let format = if bytes.len() >= MAGIC_V13.len() && &bytes[..MAGIC_V13.len()] == MAGIC_V13 {
+            CognitiveCodecFormat::V13
+        } else if bytes.len() >= MAGIC.len() && &bytes[..MAGIC.len()] == MAGIC {
+            CognitiveCodecFormat::V12
+        } else if bytes.len() >= MAGIC.len() {
             return Err(FormationError::RetiredCognitiveState);
-        }
+        } else {
+            return Err(FormationError::NoncanonicalState);
+        };
         if bytes.len() < FIXED_BYTES {
             return Err(FormationError::NoncanonicalState);
         }
@@ -1526,7 +1581,11 @@ impl ResidentCognitiveFormationState {
                 .map_err(|_| FormationError::NoncanonicalState)?,
         );
         cursor += 2;
-        if version != VERSION {
+        let expected_version = match format {
+            CognitiveCodecFormat::V12 => VERSION,
+            CognitiveCodecFormat::V13 => VERSION_V13,
+        };
+        if version != expected_version {
             return Err(FormationError::BadVersion);
         }
         let generation = take_state_u64(bytes, &mut cursor)?;
@@ -1648,9 +1707,9 @@ impl ResidentCognitiveFormationState {
             .map_err(|_| FormationError::NoncanonicalState)?;
             cursor = cell_end;
             let pending_experience =
-                decode_optional_experience_evidence(bytes, &mut cursor, &anatomy, false)?;
+                decode_optional_experience_evidence(bytes, &mut cursor, &anatomy, &state, false)?;
             let retained_experience =
-                decode_optional_experience_evidence(bytes, &mut cursor, &anatomy, true)?;
+                decode_optional_experience_evidence(bytes, &mut cursor, &anatomy, &state, true)?;
             let pending_recurrence =
                 decode_optional_recurrence_evidence(bytes, &mut cursor, &anatomy)?;
             if pending_recurrence.is_some() && retained_experience.is_none() {
@@ -1723,10 +1782,23 @@ impl ResidentCognitiveFormationState {
             hippocampal,
         };
         validate_lineage_state(&state)?;
-        if state.encode(max_encoded_bytes)? != bytes {
+        if state.encode_with_format(format, max_encoded_bytes)? != bytes {
             return Err(FormationError::NoncanonicalState);
         }
         Ok(state)
+    }
+
+    /// Rewrite one already-admitted body into the current `GLCOG013` layout.
+    /// The decoded structures are unchanged; only the retention layout moves.
+    /// `decode(migrate(bytes))` reproduces exactly the structures that
+    /// `decode(bytes)` produces, which the round-trip law in `decode` proves on
+    /// every restore.
+    #[cfg(test)]
+    pub(crate) fn migrate_to_current_format(
+        bytes: &[u8],
+        max_encoded_bytes: usize,
+    ) -> Result<Vec<u8>, FormationError> {
+        Self::decode(bytes, max_encoded_bytes)?.encode(max_encoded_bytes)
     }
 }
 
@@ -2057,11 +2129,11 @@ fn build_typed_hippocampal_episode(
     if source_generation == 0 {
         return Err(FormationError::NoncanonicalState);
     }
-    let original_transition_evidence = encode_experience_evidence(anatomy, retained)?;
+    let original_transition_evidence = encode_experience_evidence_v2(anatomy, None, retained)?;
     let recurrence_evidence = encode_recurrence_evidence(anatomy, recurrence)?;
-    let learned_state = encode_reached_cohort_state(anatomy, learned)
+    let learned_state = encode_reached_cohort_state_v4(anatomy, learned)
         .map_err(|_| FormationError::NoncanonicalState)?;
-    let recurrent_state = encode_reached_cohort_state(anatomy, &actual_recurrence.successor)
+    let recurrent_state = encode_reached_cohort_state_v4(anatomy, &actual_recurrence.successor)
         .map_err(|_| FormationError::NoncanonicalState)?;
     let mut recurrent_transition_evidence = Vec::new();
     recurrent_transition_evidence.extend_from_slice(HIPPOCAMPAL_RECURRENCE_MAGIC);
@@ -2136,7 +2208,8 @@ fn validate_typed_hippocampal_episode(
         episode.physical_mosaic.len(),
     )
     .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
-    let original = decode_experience_evidence(&episode.original_transition_evidence, anatomy)?;
+    let original =
+        decode_any_experience_evidence(&episode.original_transition_evidence, anatomy, None)?;
     let learned = original
         .post_experience_quiescent
         .as_ref()
@@ -2315,6 +2388,207 @@ fn physical_mosaic_non_admission(error: PhysicalMosaicError) -> bool {
     )
 }
 
+/// Encode one experience evidence record in the `GLEXP02` layout. With a
+/// resident base state (the cohort's current state retained beside the
+/// evidence) the PRE snapshot is carried as per-neuron sparse deltas against
+/// that base and the POST snapshot collapses to a 32-byte content digest when
+/// its canonical encoding is byte-identical to the base's; the byte comparison
+/// happens here, at encode. Without a base (hippocampal episode bodies) both
+/// snapshots are carried as complete content-addressed cohort states. Every
+/// settled value is preserved exactly in all forms.
+fn encode_experience_evidence_v2(
+    anatomy: &ReachedCohortAnatomy,
+    base: Option<&ReachedCohortState>,
+    evidence: &ResidentExperienceEvidence,
+) -> Result<Vec<u8>, FormationError> {
+    if evidence.gate_work_perturbed_neurons.len() != anatomy.neuron_count()
+        || evidence.active_electrical_contacts.len() != anatomy.contact_count()
+    {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(EXPERIENCE_V2_MAGIC);
+    match base {
+        Some(base) => {
+            let body = encode_reached_cohort_state_delta(
+                anatomy,
+                base,
+                &evidence.pre_experience_quiescent,
+            )
+            .map_err(|_| FormationError::NoncanonicalState)?;
+            encoded.push(1);
+            push_length(&mut encoded, body.len())?;
+            encoded.extend_from_slice(&body);
+        }
+        None => {
+            let body = encode_reached_cohort_state_v4(anatomy, &evidence.pre_experience_quiescent)
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            encoded.push(0);
+            push_length(&mut encoded, body.len())?;
+            encoded.extend_from_slice(&body);
+        }
+    }
+    match evidence.post_experience_quiescent.as_ref() {
+        None => encoded.push(0),
+        Some(post) => {
+            let post_body = encode_reached_cohort_state_v4(anatomy, post)
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            let base_body = base
+                .map(|base| encode_reached_cohort_state_v4(anatomy, base))
+                .transpose()
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            match base_body {
+                Some(base_body) if base_body == post_body => {
+                    encoded.push(2);
+                    encoded.extend_from_slice(&sha256(&post_body));
+                }
+                _ => {
+                    encoded.push(1);
+                    push_length(&mut encoded, post_body.len())?;
+                    encoded.extend_from_slice(&post_body);
+                }
+            }
+        }
+    }
+    push_length(&mut encoded, evidence.gate_work_perturbed_neurons.len())?;
+    encoded.extend(
+        evidence
+            .gate_work_perturbed_neurons
+            .iter()
+            .map(|value| u8::from(*value)),
+    );
+    push_length(&mut encoded, evidence.active_electrical_contacts.len())?;
+    encoded.extend(
+        evidence
+            .active_electrical_contacts
+            .iter()
+            .map(|value| u8::from(*value)),
+    );
+    Ok(encoded)
+}
+
+fn decode_experience_evidence_v2(
+    encoded: &[u8],
+    anatomy: &ReachedCohortAnatomy,
+    base: Option<&ReachedCohortState>,
+) -> Result<ResidentExperienceEvidence, FormationError> {
+    if encoded.get(..EXPERIENCE_V2_MAGIC.len()) != Some(EXPERIENCE_V2_MAGIC) {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let mut cursor = EXPERIENCE_V2_MAGIC.len();
+    let pre_mode = *encoded
+        .get(cursor)
+        .ok_or(FormationError::NoncanonicalState)?;
+    cursor = cursor
+        .checked_add(1)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let pre_length = read_length(encoded, &mut cursor)?;
+    let pre_end = cursor
+        .checked_add(pre_length)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let pre_body = encoded
+        .get(cursor..pre_end)
+        .ok_or(FormationError::NoncanonicalState)?;
+    let pre_experience_quiescent = match (pre_mode, base) {
+        (0, None) => decode_reached_cohort_state(anatomy, pre_body)
+            .map_err(|_| FormationError::NoncanonicalState)?,
+        (1, Some(base)) => decode_reached_cohort_state_delta(anatomy, base, pre_body)
+            .map_err(|_| FormationError::NoncanonicalState)?,
+        _ => return Err(FormationError::NoncanonicalState),
+    };
+    cursor = pre_end;
+    let post_mode = *encoded
+        .get(cursor)
+        .ok_or(FormationError::NoncanonicalState)?;
+    cursor = cursor
+        .checked_add(1)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let post_experience_quiescent = match (post_mode, base) {
+        (0, _) => None,
+        (1, _) => {
+            let length = read_length(encoded, &mut cursor)?;
+            let end = cursor
+                .checked_add(length)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            let state = decode_reached_cohort_state(
+                anatomy,
+                encoded
+                    .get(cursor..end)
+                    .ok_or(FormationError::NoncanonicalState)?,
+            )
+            .map_err(|_| FormationError::NoncanonicalState)?;
+            cursor = end;
+            Some(state)
+        }
+        (2, Some(base)) => {
+            let end = cursor
+                .checked_add(EVIDENCE_DIGEST_BYTES)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            let claimed: [u8; EVIDENCE_DIGEST_BYTES] = encoded
+                .get(cursor..end)
+                .ok_or(FormationError::NoncanonicalState)?
+                .try_into()
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            let actual = reached_cohort_state_content_digest(anatomy, base)
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            if claimed != actual {
+                return Err(FormationError::NoncanonicalState);
+            }
+            cursor = end;
+            Some(base.clone())
+        }
+        _ => return Err(FormationError::NoncanonicalState),
+    };
+    let neuron_count = read_length(encoded, &mut cursor)?;
+    if neuron_count != anatomy.neuron_count() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let neuron_end = cursor
+        .checked_add(neuron_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let gate_work_perturbed_neurons = decode_bools(
+        encoded
+            .get(cursor..neuron_end)
+            .ok_or(FormationError::NoncanonicalState)?,
+    )?;
+    cursor = neuron_end;
+    let contact_count = read_length(encoded, &mut cursor)?;
+    if contact_count != anatomy.contact_count() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let contact_end = cursor
+        .checked_add(contact_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let active_electrical_contacts = decode_bools(
+        encoded
+            .get(cursor..contact_end)
+            .ok_or(FormationError::NoncanonicalState)?,
+    )?;
+    if contact_end != encoded.len() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    Ok(ResidentExperienceEvidence {
+        pre_experience_quiescent,
+        post_experience_quiescent,
+        gate_work_perturbed_neurons,
+        active_electrical_contacts,
+    })
+}
+
+/// Decode one experience evidence body in whichever admitted layout its magic
+/// names: the retired inline `GLEXP01` or the current `GLEXP02`.
+fn decode_any_experience_evidence(
+    encoded: &[u8],
+    anatomy: &ReachedCohortAnatomy,
+    base: Option<&ReachedCohortState>,
+) -> Result<ResidentExperienceEvidence, FormationError> {
+    if encoded.get(..EXPERIENCE_V2_MAGIC.len()) == Some(EXPERIENCE_V2_MAGIC) {
+        decode_experience_evidence_v2(encoded, anatomy, base)
+    } else {
+        decode_experience_evidence(encoded, anatomy)
+    }
+}
+
 fn encode_experience_evidence(
     anatomy: &ReachedCohortAnatomy,
     evidence: &ResidentExperienceEvidence,
@@ -2377,6 +2651,7 @@ fn decode_optional_experience_evidence(
     bytes: &[u8],
     cursor: &mut usize,
     anatomy: &ReachedCohortAnatomy,
+    base: &ReachedCohortState,
     retained: bool,
 ) -> Result<Option<ResidentExperienceEvidence>, FormationError> {
     let present = *bytes
@@ -2392,11 +2667,12 @@ fn decode_optional_experience_evidence(
             let end = cursor
                 .checked_add(length)
                 .ok_or(FormationError::ArithmeticOverflow)?;
-            let evidence = decode_experience_evidence(
+            let evidence = decode_any_experience_evidence(
                 bytes
                     .get(*cursor..end)
                     .ok_or(FormationError::NoncanonicalState)?,
                 anatomy,
+                Some(base),
             )?;
             *cursor = end;
             if evidence.post_experience_quiescent.is_some() != retained {
@@ -3007,6 +3283,11 @@ impl fmt::Display for FormationError {
 }
 
 impl std::error::Error for FormationError {}
+
+#[cfg(test)]
+mod reservoir_probe;
+#[cfg(test)]
+mod real_body_migration_probe;
 
 #[cfg(test)]
 mod tests {
@@ -4074,6 +4355,160 @@ mod tests {
         let emitted = emitted.expect("exact vestibular recovery did not reach quiescence");
         assert_eq!(emitted.len(), 1);
         assert_eq!(emitted[0].neuron_lineage, lineage);
+    }
+
+    fn lesson_state_with_retained_experience() -> ResidentCognitiveFormationState {
+        let light = (0..4)
+            .map(exact_four_single_optical_episode)
+            .collect::<Vec<_>>();
+        let dark = exact_four_dark_optical_episode();
+        let seed = explicit_optical_seed(&light[0], 500);
+        let mut state =
+            ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
+                .unwrap();
+        for source in light.iter().chain(std::iter::repeat(&dark).take(8)) {
+            let prepared = state.prepare(source, 16_000_000).unwrap();
+            state.commit(prepared).unwrap();
+        }
+        assert!(state.cohorts[0].retained_experience.is_some());
+        state
+    }
+
+    #[test]
+    fn content_addressed_body_post_marker_and_v12_migration_equivalence() {
+        let state = lesson_state_with_retained_experience();
+        let cohort = &state.cohorts[0];
+        let retained = cohort.retained_experience.as_ref().unwrap();
+        assert_eq!(
+            retained.post_experience_quiescent.as_ref(),
+            Some(&cohort.state)
+        );
+        let v13 = state.encode(16_000_000).unwrap();
+        let v12 = state
+            .encode_with_format(CognitiveCodecFormat::V12, 16_000_000)
+            .unwrap();
+        assert!(v13.len() * 5 < v12.len());
+        eprintln!(
+            "MEASURE resident body 4-neuron lesson: GLCOG012 = {} B, GLCOG013 = {} B",
+            v12.len(),
+            v13.len()
+        );
+        assert_eq!(
+            ResidentCognitiveFormationState::decode(&v13, 16_000_000).unwrap(),
+            state
+        );
+        assert_eq!(
+            ResidentCognitiveFormationState::decode(&v12, 16_000_000).unwrap(),
+            state
+        );
+        let migrated =
+            ResidentCognitiveFormationState::migrate_to_current_format(&v12, 16_000_000).unwrap();
+        assert_eq!(migrated, v13);
+        assert_eq!(
+            ResidentCognitiveFormationState::decode(&migrated, 16_000_000).unwrap(),
+            ResidentCognitiveFormationState::decode(&v12, 16_000_000).unwrap()
+        );
+
+        let evidence =
+            encode_experience_evidence_v2(&cohort.anatomy, Some(&cohort.state), retained).unwrap();
+        let mut cursor = EXPERIENCE_V2_MAGIC.len() + 1;
+        let pre_length = read_length(&evidence, &mut cursor).unwrap();
+        let post_mode_offset = cursor + pre_length;
+        assert_eq!(evidence[post_mode_offset], 2, "post retained as marker");
+        assert_eq!(
+            decode_experience_evidence_v2(&evidence, &cohort.anatomy, Some(&cohort.state)).unwrap(),
+            *retained
+        );
+        let mut lying = evidence.clone();
+        lying[post_mode_offset + 1] ^= 1;
+        assert!(
+            decode_experience_evidence_v2(&lying, &cohort.anatomy, Some(&cohort.state)).is_err()
+        );
+        assert!(decode_experience_evidence_v2(
+            &evidence,
+            &cohort.anatomy,
+            Some(&retained.pre_experience_quiescent)
+        )
+        .is_err());
+
+        let full_form = encode_experience_evidence_v2(
+            &cohort.anatomy,
+            Some(&retained.pre_experience_quiescent),
+            retained,
+        )
+        .unwrap();
+        let mut cursor = EXPERIENCE_V2_MAGIC.len() + 1;
+        let pre_length = read_length(&full_form, &mut cursor).unwrap();
+        assert_eq!(
+            full_form[cursor + pre_length],
+            1,
+            "post differing from the base is retained in full"
+        );
+        assert_eq!(
+            decode_experience_evidence_v2(
+                &full_form,
+                &cohort.anatomy,
+                Some(&retained.pre_experience_quiescent)
+            )
+            .unwrap(),
+            *retained
+        );
+    }
+
+    #[test]
+    fn episode_by_reference_round_trips_through_directory_cold_custody() {
+        let root = std::env::temp_dir().join(format!(
+            "guala-hippocampal-refs-{}-{}",
+            std::process::id(),
+            line!(),
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let mut cold =
+            crate::hippocampal_directory_cold_store::DirectoryHippocampalColdStore::open(&root)
+                .unwrap();
+        let mut state = lesson_state_with_retained_experience();
+        let partial = exact_four_partial_optical_episode();
+        let dark = exact_four_dark_optical_episode();
+        let sources = std::iter::once(&partial)
+            .chain(std::iter::repeat(&dark).take(8))
+            .collect::<Vec<_>>();
+        let mut formed = 0usize;
+        for source in sources {
+            let mut prepared = state
+                .prepare_admitted_with_hippocampal_cold(
+                    &admitted_fixture_episode(source),
+                    &cold,
+                    16_000_000,
+                )
+                .unwrap();
+            if prepared.observation.mosaic_formed.is_some() {
+                formed += 1;
+            }
+            state
+                .publish_hippocampal_and_encode_successor(&mut prepared, &mut cold, 16_000_000)
+                .unwrap();
+            state.commit(prepared).unwrap();
+        }
+        assert_eq!(formed, 1);
+        let address = state.hippocampal.checkpoint().latest_episode().unwrap();
+        let record = cold.read_object(address).unwrap().unwrap();
+        assert_eq!(&record[..8], b"GLHEP03\0");
+        let episode = resolve_hippocampal_episode(&cold, address).unwrap();
+        validate_typed_hippocampal_episode(&state.cohorts[0].anatomy, &episode).unwrap();
+        assert!(
+            record.len()
+                < episode.original_transition_evidence.len()
+                    + episode.recurrent_transition_evidence.len()
+        );
+        state.validate_hippocampal_cold(&cold).unwrap();
+        assert_eq!(resolve_hippocampal_episode(&cold, address).unwrap(), episode);
+        eprintln!(
+            "MEASURE episode record = {} B; reconstructed evidence bodies = {} B + {} B",
+            record.len(),
+            episode.original_transition_evidence.len(),
+            episode.recurrent_transition_evidence.len()
+        );
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

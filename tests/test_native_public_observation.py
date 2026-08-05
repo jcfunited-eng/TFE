@@ -55,6 +55,12 @@ class _Admission:
     derivation: str = "three finite regions"
 
 
+class _ReassemblingOrganism(_Organism):
+    def readiness(self) -> _Observation:
+        self.readiness_calls += 1
+        return _Observation(partial_cue_reassembly_count=3, cognitive_mosaic_count=1)
+
+
 def _mount(monkeypatch) -> _Restored:
     restored = _Restored()
     monkeypatch.setattr(serving, "_restored", restored)
@@ -171,6 +177,28 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
     }
     receipt = value.pop("snapshot_receipt_sha256")
     assert receipt == serving._receipt(value)
+
+
+def test_recall_section_is_truth_coupled_to_the_native_observation(
+    monkeypatch,
+) -> None:
+    # Zero reassembly in the decoded state: recall must refuse honestly.
+    _mount(monkeypatch)
+    quiet = json.loads(serving.native_observation().body)["recall"]
+    assert quiet["available"] is False
+    assert quiet["status"] == "no_reassembly_in_last_committed_transition"
+    assert quiet["partial_cue_reassembly_count"] == 0
+
+    # Nonzero reassembly in the decoded state: the projection must say so,
+    # rather than reporting a hardwired zero.
+    restored = _Restored(organism=_ReassemblingOrganism())
+    monkeypatch.setattr(serving, "_restored", restored)
+    serving._refresh_public_observation_cache()
+    value = json.loads(serving.native_observation().body)
+    assert value["recall"]["available"] is True
+    assert value["recall"]["status"] == "physical_partial_cue_reassembly_observed"
+    assert value["recall"]["partial_cue_reassembly_count"] == 3
+    assert value["formations"]["mosaic_count"] == 1
 
 
 def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
