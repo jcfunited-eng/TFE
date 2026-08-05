@@ -211,8 +211,10 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
         for name, record in value["capabilities"].items()
         if record["available"] is True
     }
-    # The mounted set is exactly the ingresses with real native transitions.
-    assert set(mounted) == {"microphone", "curriculum"}
+    # The mounted set is exactly the ingresses with real native
+    # transitions; standalone hearing is suspended by the ratified
+    # two-real-signal doctrine until a live visual source mounts.
+    assert set(mounted) == {"curriculum"}
     for record in mounted.values():
         assert record["status"] == "mounted"
         assert record["endpoint"] in served_paths

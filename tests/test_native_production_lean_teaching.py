@@ -143,64 +143,70 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
 
 
 @pytest.mark.asyncio
-async def test_sound_frame_and_pcm_session_transition_and_persist(
+async def test_standalone_sound_intake_is_suspended_by_doctrine(
     lean_app,
 ) -> None:
+    """Ratified two-real-signal doctrine (Joe, 2026-08-05): standalone
+    hearing is suspended with an honest refusal until a live visual
+    source mounts; the organism must remain completely untouched."""
+
     production._startup()
-    before_tick = production._restored.organism.readiness().organism_tick
+    before = production._restored.organism.readiness()
+    sound = await production.sound_frame(_Request(_tone_wav()))
+    assert sound.status_code == 503
+    assert b"two senses delivering real signal" in sound.body
+    assert production.pcm_open({"sample_rate_hz": 16_000}).status_code == 503
+    assert production.pcm_close({"session_id": "any"}).status_code == 503
+    after = production._restored.organism.readiness()
+    assert after.organism_tick == before.organism_tick
+    assert after.state_sha256 == before.state_sha256
+    # The suspended implementations remain intact for reactivation the
+    # moment the camera mounts.
+    assert callable(production._suspended_sound_frame)
+    assert callable(production._suspended_pcm_open)
+    assert callable(production._suspended_pcm_close)
 
-    # A malformed body is refused before the organism is reached.
-    refused = await production.sound_frame(_Request(b"not-a-wav"))
-    assert refused.status_code == 422
-    assert (
-        production._restored.organism.readiness().organism_tick == before_tick
-    )
 
-    accepted = await production.sound_frame(_Request(_tone_wav()))
-    assert accepted.status_code == 200
-    result = json.loads(accepted.body)
-    assert result["accepted"] is True
-    assert result["hop_count"] == 2
-    assert (
-        result["totals"]["dsf_delivery_count"]
-        == production.EAR_PORT_COUNT * result["hop_count"]
-    )
-    after_tick = production._restored.organism.readiness().organism_tick
-    assert after_tick == before_tick + result["hop_count"]
-    assert (
-        production._restored.pointer.state_sha256
-        == result["persisted"]["state_sha256"]
-    )
+@pytest.mark.asyncio
+async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
+    """Ratified doctrine (2026-08-05): NO single-sense experiences.
 
-    # The mono PCM session delivers the same admitted intake.
-    opened = json.loads(production.pcm_open({"sample_rate_hz": 16_000}).body)
-    assert opened["accepted"] is True
-    session_id = opened["session_id"]
-    chunk = struct.pack(
-        "<8000h",
-        *(
-            int(4_000 * math.sin(2.0 * math.pi * 220.0 * index / 16_000))
+    Every sound-intake hop episode must declare BOTH mounted senses with
+    TRUE samples: the two ear pressure ports carrying the caller's PCM and
+    all 27 card-surface receptor sites carrying their true dark 0.0
+    luminance, as two lawful occurrences (the surface as its own exact
+    optical occurrence, the ears as theirs).  The proof asserts the built
+    episodes' declared port composition AND that the admitted transition
+    still commits and persists.
+    """
+
+    # The built episodes declare the full 29-port sensorium, never the two
+    # ear ports alone, and exactly two occurrences per hop.
+    episodes = production._mono_pcm_hop_episodes(
+        assembly_prefix="two-sense-proof",
+        samples=tuple(
+            int(5_000 * math.sin(2.0 * math.pi * 260.0 * index / 16_000))
             for index in range(8_000)
         ),
+        sample_rate_hz=16_000,
     )
-    chunked = json.loads(
-        production.pcm_chunk({
-            "session_id": session_id,
-            "pcm_s16le_base64": base64.b64encode(chunk).decode("ascii"),
-        }).body
-    )
-    assert chunked["accepted"] is True
-    assert chunked["retained_sample_count"] == 8_000
-    closed_response = production.pcm_close({"session_id": session_id})
-    assert closed_response.status_code == 200
-    closed = json.loads(closed_response.body)
-    assert closed["accepted"] is True
-    assert closed["hop_count"] == 2
-    assert (
-        production._restored.organism.readiness().organism_tick
-        == after_tick + closed["hop_count"]
-    )
+    assert len(episodes) == 2
+    for episode, intervals in episodes:
+        assert episode.port_count == LESSON_PORTS
+        assert episode.occurrence_count == 2
+        # One caller-authored maximum causal interval per occurrence.
+        assert intervals == [(production.AMBIENT_INTAKE_MAX_SECONDS, 1)] * 2
+        # Every declared port carries one true sample per retained frame:
+        # total samples are the whole sensorium, not an ear-only stream.
+        frame_count = episode.occurrence_frame_count // 2
+        assert episode.source_sample_count == LESSON_PORTS * frame_count
 
-    # A closed session cannot be replayed.
-    replay = production.pcm_close({"session_id": session_id})
-    assert replay.status_code == 404
+    # The live route refuses by doctrine (standalone hearing suspended)
+    # and the organism stays untouched; the whole-sensorium construction
+    # above is what reactivation will serve when the camera mounts.
+    production._startup()
+    before = production._restored.organism.readiness()
+    refused = await production.sound_frame(_Request(_tone_wav()))
+    assert refused.status_code == 503
+    after = production._restored.organism.readiness()
+    assert after.organism_tick == before.organism_tick

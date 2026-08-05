@@ -16,7 +16,10 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   admitted native episode.  The card's letter or number identity is never
   written into the organism; only the physical media samples are delivered.
 - ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session
-  deliver caller-supplied PCM pressure as one admitted native episode.
+  deliver caller-supplied PCM pressure as admitted native episodes carrying
+  the whole mounted sensorium: both ear pressure ports plus all 27
+  card-surface receptor sites at their true dark 0.0 luminance (ratified
+  2026-08-05: no single-sense experiences).
 
 Public observation is one cached, read-only projection per persisted native
 generation.  Repeated reads do not call or advance the organism.  Every
@@ -396,10 +399,12 @@ def _sensory_record() -> dict[str, object]:
         ),
         "auditory": _section(
             True,
-            "mono_admitted_auditory_transition_mounted",
-            "tutor audio and caller-supplied mono PCM reach the resident "
-            "organism as admitted pressure occurrences; the binaural "
-            "transition is not mounted",
+            "lesson_audio_only_standalone_hearing_suspended",
+            "tutor audio inside card lessons reaches the resident organism "
+            "as admitted pressure occurrences; standalone hearing is "
+            "suspended by the ratified two-real-signal doctrine until a "
+            "live visual source mounts; the binaural transition is not "
+            "mounted",
         ),
         "text": _unmounted("native rendered-light receptor transition is not mounted"),
         "touch": _unmounted("native touch receptor transition is not mounted"),
@@ -470,10 +475,10 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "capabilities": {
             "camera": _capability("native visual sensory transition is not mounted"),
-            "microphone": _mounted_capability(
-                "/sound_frame",
-                "caller-supplied mono PCM reaches the resident organism as "
-                "one admitted auditory episode",
+            "microphone": _capability(
+                "standalone hearing is not mounted: the two-real-signal "
+                "doctrine requires a concurrent live visual source, which "
+                "does not exist yet; tutor audio inside card lessons remains"
             ),
             "curriculum": _mounted_capability(
                 "/api/v1/curriculum/teach-card",
@@ -1552,6 +1557,20 @@ def _mono_pcm_hop_episodes(
     samples: tuple[int, ...],
     sample_rate_hz: int,
 ) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """Ambient mono PCM as whole-sensorium hops.
+
+    Ratified doctrine (2026-08-05): NO single-sense experiences — every
+    experience episode carries the organism's full mounted sensorium with
+    TRUE samples.  During ambient sound intake nothing lights the card
+    surface, so every one of the 27 card-surface receptor sites carries its
+    true dark 0.0 luminance sample on the hop's shared clock — the same
+    port declarations, coordinates, units, and dark values as a lesson hop
+    with an unlit card.  The surface is declared as its own exact optical
+    occurrence (the ratified retinal law settles receptor physics only for
+    an exact optical occurrence) and both ears as theirs, exactly as a full
+    lesson's first hop declares them.
+    """
+
     if len(samples) < 2:
         raise ValueError("mono PCM intake requires at least two samples")
     if Fraction(len(samples), sample_rate_hz) > AMBIENT_INTAKE_MAX_SECONDS:
@@ -1561,21 +1580,20 @@ def _mono_pcm_hop_episodes(
     hops = _pcm_hops(samples, sample_rate_hz)
     if not hops:
         raise ValueError("mono PCM intake does not span one intake hop")
+    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
     episodes: list[tuple[Any, list[tuple[int, int]]]] = []
     for hop_index, (times, signal) in enumerate(hops):
-        observed = {PhysicalSense.SOUND: _ear_ports(times, signal)}
-        episode = settle_native_joint_source_episode(
-            assembly_id=f"{assembly_prefix}-hop-{hop_index}",
-            observed_substreams=observed,
-            states=_sense_states(observed),
-            occurrences=(
-                _occurrence(tuple(range(EAR_PORT_COUNT)), times, len(times)),
-            ),
+        episode = _whole_roster_hop_episode(
+            f"{assembly_prefix}-hop-{hop_index}",
+            times,
+            dark,
+            signal,
+            separate_optical_occurrence=True,
         )
         # The maximum causal interval is this app's declared ambient intake
         # window: transport contract authority, never derived from the
-        # occurrence.
-        episodes.append((episode, [(AMBIENT_INTAKE_MAX_SECONDS, 1)]))
+        # occurrence; one interval per declared occurrence.
+        episodes.append((episode, [(AMBIENT_INTAKE_MAX_SECONDS, 1)] * 2))
     return episodes
 
 
@@ -1760,6 +1778,17 @@ async def sight_frame(_request: Request) -> JSONResponse:
 
 @app.post("/sound_frame")
 async def sound_frame(request: Request) -> JSONResponse:
+    # Ratified two-real-signal doctrine: refuse before reading the body —
+    # no standalone-hearing experience may reach the organism at all.
+    return _refusal(503, _SOUND_SUSPENSION_REASON)
+
+
+_SOUND_SUSPENSION_REASON = (
+    "standalone hearing is suspended by ratified doctrine (Joe, 2026-08-05): an experience requires at least two senses delivering real signal, and no live visual source is mounted yet; sound returns when the camera mounts, and tutor audio inside card lessons remains"
+)
+
+
+async def _suspended_sound_frame(request: Request) -> JSONResponse:
     try:
         body = await request.body()
     except BaseException:
@@ -1786,6 +1815,10 @@ async def sound_frame(request: Request) -> JSONResponse:
 
 @app.post("/api/v1/auditory/pcm/open")
 def pcm_open(payload: dict[str, Any] | None = Body(default=None)) -> JSONResponse:
+    return _refusal(503, _SOUND_SUSPENSION_REASON)
+
+
+def _suspended_pcm_open(payload: dict[str, Any] | None = None) -> JSONResponse:
     sample_rate = 16_000
     if isinstance(payload, dict) and "sample_rate_hz" in payload:
         candidate = payload["sample_rate_hz"]
@@ -1851,6 +1884,10 @@ def pcm_chunk(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
 @app.post("/api/v1/auditory/pcm/close")
 def pcm_close(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    return _refusal(503, _SOUND_SUSPENSION_REASON)
+
+
+def _suspended_pcm_close(payload: dict[str, Any]) -> JSONResponse:
     session_id = payload.get("session_id") if isinstance(payload, dict) else None
     if not isinstance(session_id, str):
         return _refusal(422, "pcm close requires session_id")

@@ -98,14 +98,17 @@ def test_native_readiness_names_only_truthful_available_state(monkeypatch) -> No
 
 @pytest.mark.asyncio
 async def test_sensory_transports_refuse_truthfully() -> None:
-    # Live-camera sight remains honestly unmounted; sound is mounted but
-    # must refuse a malformed body BEFORE the organism is touched.
+    # Live-camera sight remains honestly unmounted; standalone hearing is
+    # suspended by the ratified two-real-signal doctrine (Joe, 2026-08-05)
+    # and must refuse BEFORE the body is even read.
     sight = await serving.sight_frame(None)
     sound = await serving.sound_frame(None)
     assert sight.status_code == 503
     assert b"not mounted" in sight.body
-    assert sound.status_code == 422
-    assert b"mono pcm_s16le WAV body" in sound.body
+    assert sound.status_code == 503
+    assert b"two senses delivering real signal" in sound.body
+    assert serving.pcm_open(None).status_code == 503
+    assert serving.pcm_close({"session_id": "x"}).status_code == 503
 
 
 def test_external_curriculum_routes_are_packaged_and_served() -> None:
