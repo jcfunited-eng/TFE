@@ -453,6 +453,7 @@ pub(crate) fn settle_vestibular_neuron_compatibility_interval(
             interval_microseconds: transduction.reached_tick.interval_microseconds,
             recovery: RecoveryContact::new(zero_recovery_catalysts, 0, 0),
             dna_expression: DnaExpressionContact::new(0),
+            optical_successor_residue: None,
         },
         inter_neuron_outward_elementary_charges,
     )?;

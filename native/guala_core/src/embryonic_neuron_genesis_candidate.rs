@@ -69,6 +69,7 @@ fn interval<'a>(
         interval_microseconds: 1_000,
         recovery: RecoveryContact::new(catalysts, 0, 0),
         dna_expression: DnaExpressionContact::new(0),
+        optical_successor_residue: None,
     }
 }
 
@@ -86,6 +87,7 @@ fn optical_interval<'a>(
         interval_microseconds: 1_000,
         recovery: RecoveryContact::new(catalysts, 0, 0),
         dna_expression: DnaExpressionContact::new(0),
+        optical_successor_residue: None,
     }
 }
 
@@ -225,6 +227,7 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
                 interval_microseconds: 1_000,
                 recovery: RecoveryContact::new(&recovery_catalysts, 1, 1),
                 dna_expression: DnaExpressionContact::new(0),
+                optical_successor_residue: None,
             },
             0,
         )

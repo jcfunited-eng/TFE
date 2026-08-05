@@ -43,7 +43,8 @@ use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, encode_neuron_source_site, NeuronSourceSite,
 };
 use crate::optical_receptor_work::{
-    derive_optical_receptor_work, OpticalReceptorAnatomy, OpticalReceptorWorkError,
+    derive_optical_receptor_work, quantize_optical_delivery, OpticalReceptorAnatomy,
+    OpticalReceptorWorkError,
     RETINAL_REFERENCE_IRRADIANCE_UNIT, RETINAL_SPECTRAL_IRRADIANCE_QUANTITY,
 };
 use crate::physical_mosaic::{
@@ -1067,24 +1068,6 @@ impl ResidentCognitiveFormationState {
                     for coordinate_index in coordinate_indices {
                         let perspective = bind_neuron_perspective(&shared, coordinate_index, 0)
                             .map_err(FormationError::JointFieldUnavailable)?;
-                        let (gate_work, interval_microseconds) = if let Some(ingress) = vestibular {
-                            if coordinate_index != 0 {
-                                return Err(FormationError::VestibularUnavailable(
-                                    FunctionalVestibularError::NotIsolatedSingleVertex,
-                                ));
-                            }
-                            (
-                                GateWorkOccurrence::new(
-                                    ingress.transduction().gate_work_zeptojoules.clone(),
-                                ),
-                                ingress.transduction().reached_tick.interval_microseconds,
-                            )
-                        } else {
-                            let receptor =
-                                derive_optical_receptor_work(source, perspective, &optical_anatomy)
-                                    .map_err(FormationError::OpticalWorkUnavailable)?;
-                            (receptor.gate_work, WORLD_MECHANICAL_TICK_MICROSECONDS)
-                        };
                         let resident_index = cohort
                             .anatomy
                             .source_sites()
@@ -1093,12 +1076,55 @@ impl ResidentCognitiveFormationState {
                                 resident == &reached_source_sites[coordinate_index]
                             })
                             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                        let (gate_work, interval_microseconds, optical_successor_residue) =
+                            if let Some(ingress) = vestibular {
+                                if coordinate_index != 0 {
+                                    return Err(FormationError::VestibularUnavailable(
+                                        FunctionalVestibularError::NotIsolatedSingleVertex,
+                                    ));
+                                }
+                                (
+                                    GateWorkOccurrence::new(
+                                        ingress.transduction().gate_work_zeptojoules.clone(),
+                                    ),
+                                    ingress.transduction().reached_tick.interval_microseconds,
+                                    None,
+                                )
+                            } else {
+                                // Quantized optical transduction (ratified
+                                // 2026-08-05): the unchanged 2·L·T law is
+                                // integrated into the site's retained
+                                // exact-rational accumulator and only whole
+                                // gate-lattice quanta are delivered as work;
+                                // the sub-quantum remainder is retained
+                                // per-site state.
+                                let receptor = derive_optical_receptor_work(
+                                    source,
+                                    perspective,
+                                    &optical_anatomy,
+                                )
+                                .map_err(FormationError::OpticalWorkUnavailable)?;
+                                let delivery = quantize_optical_delivery(
+                                    &receptor.transduced_energy_zeptojoules,
+                                    cohort.state.neurons()[resident_index]
+                                        .optical_quantum_residue,
+                                    cohort.anatomy.neuron_anatomies()[resident_index]
+                                        .gate_dissipation_quantum_zeptojoules(),
+                                )
+                                .map_err(FormationError::OpticalWorkUnavailable)?;
+                                (
+                                    delivery.gate_work,
+                                    WORLD_MECHANICAL_TICK_MICROSECONDS,
+                                    Some(delivery.successor_residue),
+                                )
+                            };
                         inputs.push(NeuronIntervalInput {
                             perspective,
                             gate_work,
                             interval_microseconds,
                             recovery: RecoveryContact::new(&catalysts[resident_index], 0, 0),
                             dna_expression: DnaExpressionContact::new(0),
+                            optical_successor_residue,
                         });
                     }
                     let input = ReachedCohortIntervalInput::from_episode(source, inputs)
@@ -3369,6 +3395,7 @@ mod tests {
                     interval_microseconds: WORLD_MECHANICAL_TICK_MICROSECONDS,
                     recovery: RecoveryContact::new(&catalysts[coordinate_index], 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
+                    optical_successor_residue: None,
                 }
             })
             .collect::<Vec<_>>();

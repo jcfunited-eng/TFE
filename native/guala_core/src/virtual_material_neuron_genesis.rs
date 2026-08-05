@@ -428,6 +428,9 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
             PLASTIC_GENESIS_REST_LENGTH_DENOMINATOR as u128,
         )?)
         .map_err(VirtualMaterialGenesisError::Plasticity)?,
+        // Quantized-light law (ratified 2026-08-05): a newborn receptor has
+        // integrated no light, so its retained sub-quantum residue is zero.
+        optical_quantum_residue: ratio(0, 1)?,
     };
     Ok(VirtualMaterialNeuronGenesis {
         anatomy,

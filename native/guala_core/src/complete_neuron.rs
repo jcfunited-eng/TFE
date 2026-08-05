@@ -935,6 +935,12 @@ pub(crate) struct NeuronPhysicalState {
     pub(crate) recovery: RecoveryState,
     pub(crate) dna_expression: DnaExpressionState,
     pub(crate) plastic: PlasticSupportState,
+    /// Retained sub-quantum optical transduction residue (2026-08-05 ratified
+    /// quantized-light law): the exact-rational remainder of the continuous
+    /// `2·L·T` integral not yet deliverable as a whole gate-lattice quantum.
+    /// Always inside `[0, gate dissipation quantum)`. Same retained-residue
+    /// discipline as the charge-carrier phases.
+    pub(crate) optical_quantum_residue: ExactRational,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -987,6 +993,13 @@ impl NeuronPhysicalAnatomy {
         self.gate.dissipation_capacity_quanta()
     }
 
+    /// The receiving gate's exact dissipation-lattice step. Quantized optical
+    /// delivery derives its whole-quantum count from THIS anatomy value; no
+    /// new constant is introduced anywhere.
+    pub(crate) fn gate_dissipation_quantum_zeptojoules(&self) -> &Exact {
+        &self.gate.dissipation_quantum_zeptojoules
+    }
+
     pub(crate) fn recovery_full_saturation_requirement(
         &self,
         address: RecoveryLaneAddress,
@@ -1033,7 +1046,7 @@ impl NeuronPhysicalAnatomy {
     }
 
     pub(crate) fn sparse_delta_coordinate_count(&self) -> Option<usize> {
-        self.psi.ring_count().checked_mul(5)?.checked_add(19)
+        self.psi.ring_count().checked_mul(5)?.checked_add(20)
     }
 }
 
@@ -1549,6 +1562,9 @@ pub(crate) fn encode_neuron_physical_state(
         || state.plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
         || state.dna_expression.expressed_product_quanta > anatomy.dna_expression.product_capacity
         || state.dna_expression.waste_quanta > anatomy.dna_expression.waste_capacity
+        || rational_to_exact(state.optical_quantum_residue) < Exact::zero()
+        || rational_to_exact(state.optical_quantum_residue)
+            >= anatomy.gate.dissipation_quantum_zeptojoules
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
@@ -1602,6 +1618,12 @@ pub(crate) fn encode_neuron_physical_state(
     push_i128(&mut encoded, rest_numerator);
     push_u128(&mut encoded, rest_denominator);
     push_u128(&mut encoded, state.plastic.dissipated_quanta);
+    // Retained quantized-optical sub-quantum residue (ratified 2026-08-05):
+    // encoded with the same exact-rational fixed-width discipline as the
+    // retained charge-carrier phases above.
+    let (residue_numerator, residue_denominator) = state.optical_quantum_residue.parts();
+    push_i128(&mut encoded, residue_numerator);
+    push_u128(&mut encoded, residue_denominator);
     Ok(encoded)
 }
 
@@ -1683,8 +1705,13 @@ pub(crate) fn decode_neuron_physical_state(
             .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
         dissipated_quanta: reader.u128()?,
     };
+    let optical_quantum_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+        .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
     if plastic.rest_length_nanometres.parts().0 <= 0
         || plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
+        || rational_to_exact(optical_quantum_residue) < Exact::zero()
+        || rational_to_exact(optical_quantum_residue)
+            >= anatomy.gate.dissipation_quantum_zeptojoules
         || !reader.finished()
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
@@ -1699,6 +1726,7 @@ pub(crate) fn decode_neuron_physical_state(
         recovery,
         dna_expression,
         plastic,
+        optical_quantum_residue,
     })
 }
 
@@ -1945,6 +1973,7 @@ pub(crate) fn settle_neuron_physical_interval_with_contact<'a>(
         recovery: predecessor.recovery.clone(),
         dna_expression: predecessor.dna_expression,
         plastic: predecessor.plastic.clone(),
+        optical_quantum_residue: predecessor.optical_quantum_residue,
     };
     Ok(NeuronPhysicalInterval {
         mathloom,
@@ -2518,6 +2547,12 @@ pub(crate) struct NeuronIntervalInput<'a> {
     pub(crate) interval_microseconds: u32,
     pub(crate) recovery: RecoveryContact<'a>,
     pub(crate) dna_expression: DnaExpressionContact,
+    /// `Some(residue)` when this interval's gate work is a quantized optical
+    /// delivery (ratified 2026-08-05): the exact sub-quantum remainder to
+    /// retain in the successor state after the whole-quantum delivery carried
+    /// by `gate_work`. `None` for every non-optical delivery: the predecessor
+    /// residue is carried through unchanged.
+    pub(crate) optical_successor_residue: Option<ExactRational>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2561,6 +2596,7 @@ pub(crate) enum PhysicalStateCoordinate {
     DnaFuel,
     DnaExpressedProduct,
     DnaWaste,
+    OpticalQuantumResidue,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -2675,7 +2711,8 @@ fn coordinate_accepts_delta(
         (
             PhysicalStateCoordinate::MembraneCarrierPhase
                 | PhysicalStateCoordinate::ConductancePathCarrierPhase(_)
-                | PhysicalStateCoordinate::PlasticRestLength,
+                | PhysicalStateCoordinate::PlasticRestLength
+                | PhysicalStateCoordinate::OpticalQuantumResidue,
             ExactPhysicalStateDelta::Rational(_)
         ) | (
             PhysicalStateCoordinate::PsiWinding(_)
@@ -2749,6 +2786,12 @@ pub(crate) fn settle_extended_interval_with_contact(
         .any(|current| current.parts().0 != 0)
         || physical.successor.membrane != predecessor.membrane;
     let mut successor = physical.successor;
+    // The retained sub-quantum residue is a receptor accumulator, not a
+    // settled physical coordinate: it does not enter the quiescence
+    // predicate.  The ratified law changes WHAT energy arrives, nothing else.
+    if let Some(residue) = input.optical_successor_residue {
+        successor.optical_quantum_residue = residue;
+    }
     let plastic = settle_plastic_support(
         &anatomy.plastic,
         &predecessor.plastic,
@@ -2828,7 +2871,7 @@ pub(crate) fn sparse_physical_state_delta(
         .rings
         .len()
         .checked_mul(5)
-        .and_then(|count| count.checked_add(19))
+        .and_then(|count| count.checked_add(20))
         .ok_or(NeuronPhysicalError::AnatomyMismatch)?;
     let mut entries = Vec::new();
     entries
@@ -2936,6 +2979,12 @@ pub(crate) fn sparse_physical_state_delta(
         PhysicalStateCoordinate::PlasticRestLength,
         predecessor.plastic.rest_length_nanometres,
         successor.plastic.rest_length_nanometres,
+    )?;
+    push_rational_delta(
+        &mut entries,
+        PhysicalStateCoordinate::OpticalQuantumResidue,
+        predecessor.optical_quantum_residue,
+        successor.optical_quantum_residue,
     )?;
     push_u128_delta(
         &mut entries,
@@ -3118,6 +3167,7 @@ fn sparse_delta_coordinate_parts(coordinate: PhysicalStateCoordinate) -> (u8, us
         PhysicalStateCoordinate::DnaFuel => (21, 0),
         PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
         PhysicalStateCoordinate::DnaWaste => (23, 0),
+        PhysicalStateCoordinate::OpticalQuantumResidue => (24, 0),
     }
 }
 
@@ -3150,6 +3200,7 @@ fn sparse_delta_coordinate_from_parts(
         21 if index == 0 => PhysicalStateCoordinate::DnaFuel,
         22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
         23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
+        24 if index == 0 => PhysicalStateCoordinate::OpticalQuantumResidue,
         _ => return Err(NeuronStateCodecError::InvalidEncoding),
     };
     Ok(coordinate)
@@ -3499,6 +3550,12 @@ pub(crate) fn apply_sparse_physical_state_delta(
                     integral_member_delta(entry.delta())?,
                 )?;
             }
+            PhysicalStateCoordinate::OpticalQuantumResidue => {
+                applied.optical_quantum_residue = apply_rational_member_delta(
+                    applied.optical_quantum_residue,
+                    rational_member_delta(entry.delta())?,
+                )?;
+            }
         }
     }
     applied.membrane = LocalMembraneConductanceState::from_physical_parts(
@@ -3811,6 +3868,7 @@ mod tests {
             ),
             dna_expression: DnaExpressionState::new(100_000, 100_000),
             plastic: PlasticSupportState::new(r(1, 1)).unwrap(),
+            optical_quantum_residue: r(0, 1),
         };
         Fixture {
             anatomy,
@@ -3883,6 +3941,7 @@ mod tests {
             interval_microseconds: 1_000,
             recovery: RecoveryContact::new(catalysts, 0, 0),
             dna_expression: DnaExpressionContact::new(0),
+            optical_successor_residue: None,
         }
     }
 
@@ -3902,6 +3961,7 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
+                    optical_successor_residue: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),
@@ -3923,6 +3983,7 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
+                    optical_successor_residue: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),
@@ -3946,6 +4007,7 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
+                    optical_successor_residue: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),

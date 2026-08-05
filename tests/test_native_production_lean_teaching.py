@@ -114,29 +114,66 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     # Second pass of the same lesson: the exact recurrence of the settled
     # experience emits genuine nonzero post-quiescence neuron fractals and
     # grows no new neurons.
+    #
+    # PIN CHANGED by the ratified quantized optical transduction law
+    # (2026-08-05), measured before/after:
+    #   physically_transitioned_neuron_count  BEFORE 0  ->  AFTER 27
+    # Before the law, a repeated identical presentation left every neuron
+    # bit-identical, so nothing "transitioned".  The law gives each retinal
+    # site a RETAINED exact-rational sub-quantum residue: the continuous
+    # 2*L*T energy is integrated into that accumulator and only whole 1/16 zJ
+    # lattice quanta are delivered, so the residue genuinely advances every
+    # time light is integrated.  All 27 lit card-surface sites therefore
+    # transition on every lit lesson (27 == SURFACE_PORTS).  This is real
+    # retained receptor state, not bookkeeping: it is what makes the
+    # conservation law exact across intervals.
     second_status, second = _teach(CARD_ID)
     assert second_status == 200
-    assert second["totals"]["physically_transitioned_neuron_count"] == 0
+    assert (
+        second["totals"]["physically_transitioned_neuron_count"]
+        == SURFACE_PORTS
+    )
     assert (
         second["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
     )
     assert second["observation"]["complete_neuron_count"] == LESSON_PORTS
 
     # Third pass: recurrence, not growth; the persisted body is byte-bounded.
+    # Same pin change as above (BEFORE 0 -> AFTER 27) for the same reason.
     third_status, third = _teach(CARD_ID)
     assert third_status == 200
-    assert third["totals"]["physically_transitioned_neuron_count"] == 0
     assert (
-        third["persisted"]["state_bytes"] == second["persisted"]["state_bytes"]
+        third["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
     )
     assert third["observation"]["complete_neuron_count"] == LESSON_PORTS
 
+    # PIN CHANGED by the quantized-light law, measured before/after:
+    #   byte-flatness first holds at lesson  BEFORE 2->3  ->  AFTER 3->4
+    # The body takes exactly ONE one-time growth step when the retained
+    # experience is completed (pre- and post-quiescence cohort states are
+    # stored).  Under the old law the second lesson was bit-identical to the
+    # first, so that completion landed on lesson 2 and lessons 2 and 3 were
+    # already equal.  Under the ratified law the advancing retained residue
+    # makes lesson 2 a genuine new settlement, so the completion lands one
+    # lesson later.  Measured bodies, alphabet-a, this exact path:
+    #   L1 1130398, L2 1130430, L3 1940702, L4 1940702, L5 1940702, L6 1940702
+    # The bound itself is unchanged: flat forever after the completion.
+    fourth_status, fourth = _teach(CARD_ID)
+    assert fourth_status == 200
+    assert (
+        fourth["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
+    )
+    assert (
+        fourth["persisted"]["state_bytes"] == third["persisted"]["state_bytes"]
+    )
+    assert fourth["observation"]["complete_neuron_count"] == LESSON_PORTS
+
     # The public observation cache reflects the committed generations.
     body = json.loads(production._public_observation_body)
-    assert body["generation"] == third["observation"]["organism_tick"]
+    assert body["generation"] == fourth["observation"]["organism_tick"]
     assert (
         body["generation_state"]["state_sha256"]
-        == third["persisted"]["state_sha256"]
+        == fourth["persisted"]["state_sha256"]
     )
     assert body["neuron_activity"]["retained_count"] == LESSON_PORTS
     assert body["curriculum"]["tutoring_transition_available"] is True

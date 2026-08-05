@@ -701,6 +701,7 @@ fn encode_coordinate(coordinate: PhysicalStateCoordinate) -> (u8, usize) {
         PhysicalStateCoordinate::DnaFuel => (21, 0),
         PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
         PhysicalStateCoordinate::DnaWaste => (23, 0),
+        PhysicalStateCoordinate::OpticalQuantumResidue => (24, 0),
     }
 }
 
@@ -733,6 +734,7 @@ fn decode_coordinate(
         21 if index == 0 => PhysicalStateCoordinate::DnaFuel,
         22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
         23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
+        24 if index == 0 => PhysicalStateCoordinate::OpticalQuantumResidue,
         _ => return Err(PhysicalMosaicCodecError::InvalidRetainedFractal),
     };
     Ok(coordinate)

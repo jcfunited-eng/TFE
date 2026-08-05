@@ -118,6 +118,22 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
     let mut dna_product = 0u128;
     let mut dna_waste = 0u128;
 
+    let mut gate_open_population = 0u128;
+    let mut neurons_with_open_gates = 0usize;
+    let mut neurons_with_nonzero_residue = 0usize;
+    let mut residues: Vec<String> = Vec::new();
+    for (anatomy, state) in anatomies.iter().zip(cohort.state.neurons().iter()) {
+        gate_open_population += state.gate.open_population();
+        if state.gate.open_population() != 0 {
+            neurons_with_open_gates += 1;
+        }
+        let (residue_numerator, residue_denominator) = state.optical_quantum_residue.parts();
+        if residue_numerator != 0 {
+            neurons_with_nonzero_residue += 1;
+        }
+        residues.push(format!("{residue_numerator}/{residue_denominator}"));
+        let _ = anatomy;
+    }
     for (anatomy, state) in anatomies.iter().zip(cohort.state.neurons().iter()) {
         for index in 0..anatomy.psi_ring_count() {
             let address = RecoveryLaneAddress::Psi(index);
@@ -173,6 +189,14 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
 
     json!({
         "neuron_count": cohort.anatomy.neuron_count(),
+        "gate_state": {
+            "total_open_population": gate_open_population.to_string(),
+            "neurons_with_open_gates": neurons_with_open_gates,
+        },
+        "optical_quantum_residues": {
+            "neurons_with_nonzero_residue": neurons_with_nonzero_residue,
+            "residues_zeptojoules": residues,
+        },
         "reservoir": {
             "fuel_quanta": fuel.to_string(),
             "spent_quanta": spent.to_string(),

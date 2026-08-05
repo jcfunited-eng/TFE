@@ -133,14 +133,29 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         == partial["persisted"]["state_sha256"]
     )
 
-    # MEASURED PHYSICS (2026-08-05): the glimpse commits lawfully but admits
-    # no mosaic, because the real card's optical energy over one hop stays
-    # below the gate's plastic support barrier, so no conformation opens, no
-    # current crosses the chain contacts, and the dark card members never
-    # change.  This is recorded, never forced: if the substrate ever admits
-    # one, these assertions report it instead of hiding it.
+    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified quantized
+    # optical transduction law): the glimpse commits lawfully but admits no
+    # mosaic.  The real card's optical energy over ONE 250 ms served hop is
+    # still below the gate's +1 zJ plastic support barrier (the brightest
+    # site delivers 7 whole 1/16 zJ lattice quanta; 17 are needed), so no
+    # conformation opens, no current crosses the chain contacts, and the dark
+    # card members never change.  This is recorded, never forced: if the
+    # substrate ever admits one, these assertions report it instead of
+    # hiding it.
+    #
+    # PIN CHANGED by the quantized-light law, measured before/after:
+    #   physically_transitioned_neuron_count  BEFORE 0  ->  AFTER 12
+    # Before, the retained receptor state was bit-identical across identical
+    # presentations, so a repeat glimpse changed nothing.  The ratified law
+    # gives every site a retained exact-rational sub-quantum residue that
+    # advances whenever light is integrated, so the 12 lit chain-prefix sites
+    # now genuinely transition (12 == PARTIAL_PRESENTATION_SITE_COUNT).  The
+    # 15 dark sites still do not change, which is why no mosaic is admitted.
     if observed.cognitive_mosaic_count == 0:
-        assert partial["totals"]["physically_transitioned_neuron_count"] == 0
+        assert (
+            partial["totals"]["physically_transitioned_neuron_count"]
+            == production.PARTIAL_PRESENTATION_SITE_COUNT
+        )
         assert observed.partial_cue_reassembly_count == 0
     else:
         assert observed.partial_cue_reassembly_count > 0

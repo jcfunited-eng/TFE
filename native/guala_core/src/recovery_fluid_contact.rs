@@ -433,6 +433,13 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
     }
     let contact = mounted.gate_contact;
     let settled_extent = required_extent
+        // Conservation: the recovery reaction undoes dissipation, so it can
+        // never run further than the dissipation that actually exists. The
+        // lane settlement itself applies this bound, so omitting it here made
+        // the pre-pass demand an extent the lane truthfully could not deliver
+        // and refuse the whole transition with MaterialContinuity. Latent
+        // until the ratified quantized-light law first opened a gate.
+        .min(predecessor_neuron.gate.dissipated_quanta() / heat_per_extent)
         .min(lane_fuel / fuel_per_extent)
         .min((lane_spent_capacity - lane_spent) / spent_per_extent)
         .min((lane_heat_capacity - lane_heat) / heat_per_extent)
