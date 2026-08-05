@@ -84,6 +84,32 @@ description: Operate and develop the live Guala native organism — tree locatio
   GitHub token: workflow-scope-less (use snapshot-relocation push pattern).
 - Page swap: S3 dsf-ai-site + CloudFront invalidation; back up old first.
 
+## Ratifications + delegation record (2026-08-05)
+- Quantized optical transduction RATIFIED (Option A): light as whole
+  gate-lattice quanta, exact-rational accumulator of unchanged 2LT law.
+- By DELEGATION (Joe, migraine day, standing rule "what would nature do";
+  scope: that day's physics decisions only, NEVER identity/money/
+  irreversible): threshold-integrated delivery (receptor integrates to
+  the gate's own opening window; dim=slower) + elementary-charge floor
+  on inter-neuron settlement (flow stops below one elementary charge) +
+  minimal feeding reaction proceeds ahead of its paper.
+- Two-real-signal doctrine: standalone hearing SUSPENDED (503, honest
+  reason) until live camera; tutor audio in lessons stays. Teaching
+  endpoints stay keyless (Joe: "not yet").
+- MEASURED post-quantization: gates open at honest dwell (~0.6-1.3s to
+  threshold by luminance); lit lesson burns ~386 fuel of 14,607 pool =
+  ~38 lessons to exhaustion -> NO lit-gate deploy until feeding exists.
+- MEASURED: ears have NO transduction law at all (amplitude zero effect;
+  tutor audio is transport, not sensation). Auditory receptor law +
+  card touch = sensory section of the metabolism/sensory paper.
+
+## Standing milestone alerts Joe requires (tell him THE MOMENT each is real)
+1. Autonomy: first self-caused action with sensed consequence.
+2. Camera: live sight mounted (+ hearing reactivated with it).
+3. Microphone: reactivated when sight makes it lawful.
+4. FIRST WORD spoken to a prompt — Joe watches LIVE; never mount voice
+   or start babble without telling him first.
+
 ## Joe's standing calibration
 Eternal pessimist; wants clinical evaluations, measured numbers, gaps
 stated before he finds them, fixes over reports, no jargon/paths in chat,
