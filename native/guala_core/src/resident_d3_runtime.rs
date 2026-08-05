@@ -1201,6 +1201,14 @@ mod tests {
     use std::collections::BTreeMap;
 
     use super::*;
+
+    /// Quiet (dark, silent) episodes appended after a presentation so the
+    /// cohort can descend all the way to electrical rest.  Since the
+    /// 2026-08-05 geometric differentiation the members' capacitances differ,
+    /// so a settled cohort equalizes POTENTIAL rather than charge and needs a
+    /// longer quiet tail to go silent than the tie-frozen anatomy did; the
+    /// tail is transport, the quiescence is physics.
+    const DARK_TAIL_EPISODES: usize = 64;
     use crate::hippocampal_sparse_path::HippocampalColdObject;
     use crate::joint_uf_source_adapter::{admitted_fixture_episode, AdmittedJointSourceEpisode};
     use crate::local_cupula_hair_bundle_geometry::LocalCupulaBundleAnatomy;
@@ -1429,7 +1437,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn cold_publish_failure_retains_the_same_pending_successor_for_exact_retry() {
         let mut cold = Cold::default();
         let anatomy = exact_four_single_optical_episode(0);
@@ -1444,7 +1451,7 @@ mod tests {
                 .unwrap();
             runtime.commit(prepared.token(), &mut cold).unwrap();
         }
-        for _ in 0..8 {
+        for _ in 0..DARK_TAIL_EPISODES {
             let prepared = runtime
                 .prepare_admitted(&admitted_fixture_episode(&dark), Some(&cold))
                 .unwrap();
@@ -1453,7 +1460,7 @@ mod tests {
 
         let partial = exact_four_partial_optical_episode();
         let recurrence_sources = std::iter::once(&partial)
-            .chain(std::iter::repeat(&dark).take(8))
+            .chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
             .collect::<Vec<_>>();
         let mut exercised = false;
         for source in recurrence_sources {
@@ -1536,7 +1543,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn seeded_genesis_grows_expressed_contacts_and_admits_a_real_mosaic() {
         let anatomy = exact_four_single_optical_episode(0);
         let mut cold = Cold::default();
@@ -1554,7 +1560,7 @@ mod tests {
             }
             runtime.commit(prepared.token(), &mut cold).unwrap();
         }
-        for _ in 0..8 {
+        for _ in 0..DARK_TAIL_EPISODES {
             let prepared = runtime
                 .prepare_admitted(&admitted_fixture_episode(&dark), Some(&cold))
                 .unwrap();
@@ -1564,7 +1570,7 @@ mod tests {
 
         let partial = exact_four_partial_optical_episode();
         let mut admitted_mosaic = false;
-        for source in std::iter::once(&partial).chain(std::iter::repeat(&dark).take(8)) {
+        for source in std::iter::once(&partial).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES)) {
             let prepared = runtime
                 .prepare_admitted(&admitted_fixture_episode(source), Some(&cold))
                 .unwrap();

@@ -19,8 +19,9 @@ use crate::neuron_source_anchor::tests::exact_episode;
 use crate::neuron_source_anchor::{bind_neuron_source_anchor, NeuronSourceSite};
 use crate::optical_receptor_work::{derive_optical_receptor_work, OpticalReceptorAnatomy};
 use crate::reached_neuron_cohort::{
-    settle_reached_cohort_experience_to_quiescence, QuiescentReachedCohortState,
-    ReachedCohortAnatomy, ReachedCohortIntervalInput, ReachedCohortState,
+    settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
+    QuiescentReachedCohortState, ReachedCohortAnatomy, ReachedCohortIntervalInput,
+    ReachedCohortState,
 };
 use crate::recovery_fluid_contact::{
     settle_recovery_fluid_contact, RecoveryFluidContactAnatomy, RecoveryFluidReservoirAnatomy,
@@ -43,19 +44,36 @@ fn ratio(numerator: i128, denominator: u128) -> ExactRational {
 
 type CandidateNeuron = VirtualMaterialNeuronGenesis;
 
+/// Quiet intervals appended after the driven ones so the differentiated cohort
+/// can descend all the way to electrical rest.  Geometrically differentiated
+/// members equalize POTENTIAL, not charge, so the chain settles to charges
+/// proportional to the members' own capacitances and only then quiesces;
+/// measured at the ratified 500 pS authored conductance this takes fewer than
+/// 64 quiet milliseconds (it took 21,691 at the 1 pS the candidate used
+/// before, which is conductance, not a different law).
+const DARK_TAIL_INTERVALS: usize = 64;
+
 /// Candidate dimensional constitution:
 ///
 /// - one zeptojoule is the virtual Psi coupling-energy unit;
 /// - `9/2 zJ` is derived from the exact unmatched-to-matched ternary-ring drop;
-/// - one pF, one pS, one mV, and one nm are declared virtual material units;
+/// - one pF is the declared virtual capacitance of ONE unit patch of membrane
+///   (each candidate's own capacitance is that base times its declared
+///   territory, per the 2026-08-05 geometric-differentiation ratification);
+///   one pS, one mV, and one nm are declared virtual material units;
 /// - the `2 zJ`, `1 zJ`, and `3/4 zJ` plastic values form an exact
 ///   one-open/one-close return-map cycle;
 /// - 6,242 carriers are `ceil(1 fC / e)` using the exact SI elementary charge.
 ///
 /// The source-work conversion and renewable body/fluid material supply remain
 /// unresolved, which is why this is not a production constructor.
-fn candidate_neuron(perspective: JointNeuronPerspective<'_>) -> CandidateNeuron {
-    create_virtual_material_neuron(perspective).unwrap()
+fn candidate_neuron(
+    episode: &crate::joint_source_episode::NativeJointSourceEpisode,
+    perspective: JointNeuronPerspective<'_>,
+) -> CandidateNeuron {
+    let site =
+        NeuronSourceSite::from_anchor(bind_neuron_source_anchor(episode, perspective).unwrap());
+    create_virtual_material_neuron(perspective, &site).unwrap()
 }
 
 fn interval<'a>(
@@ -168,7 +186,7 @@ fn one_candidate_neuron_forms_one_exact_retained_fractal_and_quiesces() {
     let episode = exact_episode();
     let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-    let candidate = candidate_neuron(perspective);
+    let candidate = candidate_neuron(&episode, perspective);
     let predecessor = QuiescentNeuronState::from_state(candidate.state.clone());
     let settled = settle_experience_to_quiescence(
         &candidate.anatomy,
@@ -196,7 +214,7 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
     let episode = exact_episode();
     let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-    let candidate = candidate_neuron(perspective);
+    let candidate = candidate_neuron(&episode, perspective);
     let predecessor = QuiescentNeuronState::from_state(candidate.state.clone());
     let first = settle_experience_to_quiescence(
         &candidate.anatomy,
@@ -268,7 +286,7 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     let episode = exact_episode();
     let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let candidates = (0..4)
-        .map(|index| candidate_neuron(bind_neuron_perspective(&shared, index, 0).unwrap()))
+        .map(|index| candidate_neuron(&episode, bind_neuron_perspective(&shared, index, 0).unwrap()))
         .collect::<Vec<_>>();
     let source_sites = (0..4)
         .map(|index| {
@@ -284,9 +302,9 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     let electrical = SparseElectricalAnatomy::new(
         4,
         vec![
-            ElectricalContactAnatomy::new(0, 1, ratio(1, 1), 4).unwrap(),
-            ElectricalContactAnatomy::new(1, 2, ratio(1, 1), 4).unwrap(),
-            ElectricalContactAnatomy::new(2, 3, ratio(1, 1), 4).unwrap(),
+            ElectricalContactAnatomy::new(0, 1, ratio(500, 1), 4).unwrap(),
+            ElectricalContactAnatomy::new(1, 2, ratio(500, 1), 4).unwrap(),
+            ElectricalContactAnatomy::new(2, 3, ratio(500, 1), 4).unwrap(),
         ],
     )
     .unwrap();
@@ -311,12 +329,18 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     .unwrap();
     let predecessor = QuiescentReachedCohortState::from_state(state);
     let catalysts = &candidates[0].zero_recovery_catalysts;
-    let intervals = vec![
+    // Dark tail: since the members are geometrically differentiated their
+    // separated charges no longer tie, so the contacts actually conduct and
+    // the cohort needs a longer quiet tail to descend to rest.  It must REACH
+    // rest — a settlement that never quiesces is refused by the settler.
+    let mut intervals = vec![
         cohort_interval(&episode, &shared, catalysts, [-2, 0, -2, 0]),
         cohort_interval(&episode, &shared, catalysts, [0, -2, 0, -2]),
-        cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]),
-        cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]),
     ];
+    intervals.extend(
+        std::iter::repeat_with(|| cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]))
+            .take(DARK_TAIL_INTERVALS),
+    );
     let settled =
         settle_reached_cohort_experience_to_quiescence(&anatomy, &predecessor, &intervals).unwrap();
     assert_eq!(
@@ -328,6 +352,18 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
         4
     );
     assert!(settled.electrical_contact_was_active);
+    // Anti-oscillation: the rest it reached is a FIXED POINT, not one phase of
+    // a limit cycle.  Another quiet millisecond out of the settled state moves
+    // nothing, conducts nothing, and stays quiescent.
+    let at_rest = settle_reached_cohort_interval(
+        &anatomy,
+        settled.quiescent.state(),
+        cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]),
+    )
+    .unwrap();
+    assert!(!at_rest.electrically_active);
+    assert!(at_rest.quiescent);
+    assert_eq!(&at_rest.successor, settled.quiescent.state());
     assert!(settled
         .gate_work_perturbed_neurons
         .iter()
@@ -337,3 +373,4 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
         .iter()
         .all(|active| *active));
 }
+

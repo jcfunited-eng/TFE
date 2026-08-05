@@ -17,7 +17,9 @@ use crate::complete_neuron::{
     NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
     NeuronStateCodecError, SparsePhysicalStateDelta,
 };
+use crate::elementary_charge_membrane::MembraneCapacitance;
 use crate::elementary_charge_transfer::ChargeCarrierPhase;
+use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::NativeJointSourceEpisode;
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, decode_neuron_source_site, encode_neuron_source_site,
@@ -56,6 +58,11 @@ pub(crate) enum ReachedCohortError {
         error: NeuronPhysicalError,
     },
     Source(NeuronSourceAnchorError),
+    /// Two members of this cohort were authored physically identical.  Under
+    /// the geometric-differentiation ratification (2026-08-05) that is not a
+    /// cohort: distinct receptors occupy distinct declared places, and the
+    /// energy-descent transfer law would blockade on the resulting exact tie.
+    DegenerateDeclaredGeometry,
 }
 
 impl From<SparseElectricalError> for ReachedCohortError {
@@ -118,6 +125,17 @@ impl ReachedCohortAnatomy {
                 .any(|(index, lineage)| neuron_lineages[..index].contains(lineage))
         {
             return Err(ReachedCohortError::InvalidNeuronLineage);
+        }
+        // Injectivity, enforced where the cohort is authored: the capacitance
+        // derivation is injective on declared places, so equal capacitances
+        // here mean two members were declared at the same place.  Refuse
+        // rather than author identical pieces (see declared_geometric_anatomy).
+        if neurons.iter().enumerate().any(|(index, neuron)| {
+            neurons[..index]
+                .iter()
+                .any(|earlier| earlier.capacitance() == neuron.capacitance())
+        }) {
+            return Err(ReachedCohortError::DegenerateDeclaredGeometry);
         }
         let recovery_fluid = ReachedRecoveryFluidAnatomy::derive(&neurons)?;
         Ok(Self {
@@ -307,7 +325,7 @@ pub(crate) fn extend_reached_cohort_state_with_genesis(
 const REACHED_COHORT_CODEC_MAGIC: &[u8; 8] = b"GLRCS03\0";
 const REACHED_COHORT_CELL_CODEC_MAGIC: &[u8; 8] = b"GLRCC03\0";
 const REACHED_COHORT_CODEC_V4_MAGIC: &[u8; 8] = b"GLRCS04\0";
-const REACHED_COHORT_CELL_CODEC_V4_MAGIC: &[u8; 8] = b"GLRCC04\0";
+const REACHED_COHORT_CELL_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCC05\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const MIN_REACHED_COHORT_NEURON_RECORD_BYTES: usize = 32;
 const CONTENT_DIGEST_BYTES: usize = 32;
@@ -316,7 +334,7 @@ const CONTENT_DIGEST_BYTES: usize = 32;
 /// sparse electrical fabric as one restartable reached cohort. This boundary
 /// transports already-admitted physics; it selects no anatomy or coefficients.
 /// This is the retired inline layout retained so that pre-deduplication bodies
-/// still restore and re-verify canonically; new bodies use the `GLRCC04`
+/// still restore and re-verify canonically; new bodies use the `GLRCC05`
 /// content-addressed layout.
 pub(crate) fn encode_reached_cohort_cell(
     anatomy: &ReachedCohortAnatomy,
@@ -362,10 +380,10 @@ pub(crate) fn encode_reached_cohort_cell(
 pub(crate) fn decode_reached_cohort_cell(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
-    if encoded.get(..REACHED_COHORT_CELL_CODEC_V4_MAGIC.len())
-        == Some(REACHED_COHORT_CELL_CODEC_V4_MAGIC)
+    if encoded.get(..REACHED_COHORT_CELL_CODEC_V5_MAGIC.len())
+        == Some(REACHED_COHORT_CELL_CODEC_V5_MAGIC)
     {
-        return decode_reached_cohort_cell_v4(encoded);
+        return decode_reached_cohort_cell_v5(encoded);
     }
     let mut reader = CohortStateReader::new(encoded);
     if reader.take(REACHED_COHORT_CELL_CODEC_MAGIC.len())? != REACHED_COHORT_CELL_CODEC_MAGIC {
@@ -612,6 +630,17 @@ fn take_content_digest(
         .map_err(|_| ReachedCohortError::InvalidStateEncoding)
 }
 
+/// The canonical capacitance written into a `GLRCC05` shared-anatomy blob in
+/// place of the member's own geometry-derived value: the authored base, one
+/// unit patch of membrane.  It is a retention-layer placeholder only — every
+/// member's real capacitance travels beside its reference and is restored
+/// exactly — and it is what lets geometrically differentiated siblings still
+/// intern one shared anatomy blob.
+fn shared_anatomy_capacitance_placeholder() -> MembraneCapacitance {
+    MembraneCapacitance::new(ExactRational::integer(1))
+        .expect("one picofarad is a valid capacitance")
+}
+
 fn derived_recovery_fluid_anatomy_digest(
     anatomy: &ReachedCohortAnatomy,
 ) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
@@ -627,7 +656,17 @@ fn derived_recovery_fluid_anatomy_digest(
 /// re-derives it from the neuron anatomies and refuses on mismatch. This is a
 /// retention-layer layout only: it transports already-admitted physics and
 /// selects no anatomy or coefficients.
-pub(crate) fn encode_reached_cohort_cell_v4(
+///
+/// `GLRCC05` splits a member's anatomy the way the 2026-08-05 geometric
+/// differentiation splits it physically.  The interned blob is the member's
+/// SHARED anatomy — its whole encoding with the membrane capacitance written
+/// as the canonical shared placeholder — and the member record carries its own
+/// geometry-derived capacitance as an exact rational in 32 bytes.  Siblings
+/// that differ only by their declared place therefore still intern ONE anatomy
+/// blob, and a genuinely different anatomy still interns its own.  Restore
+/// resolves the shared blob and puts each member's own capacitance back, so
+/// the decoded anatomy is byte-for-byte the anatomy that was encoded.
+pub(crate) fn encode_reached_cohort_cell_v5(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<Vec<u8>, ReachedCohortError> {
@@ -642,20 +681,22 @@ pub(crate) fn encode_reached_cohort_cell_v4(
     let mut anatomy_references = Vec::with_capacity(anatomy.neurons.len());
     let mut state_references = Vec::with_capacity(anatomy.neurons.len());
     for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
-        anatomy_references
-            .push(anatomy_table.intern(encode_neuron_physical_anatomy(neuron_anatomy)?));
+        anatomy_references.push(anatomy_table.intern(encode_neuron_physical_anatomy(
+            &neuron_anatomy.with_capacitance(shared_anatomy_capacitance_placeholder()),
+        )?));
         state_references
             .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
     }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(REACHED_COHORT_CELL_CODEC_V4_MAGIC);
+    encoded.extend_from_slice(REACHED_COHORT_CELL_CODEC_V5_MAGIC);
     push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
     anatomy_table.encode_into(&mut encoded)?;
     state_table.encode_into(&mut encoded)?;
-    for ((lineage, source_site), (anatomy_reference, state_reference)) in anatomy
+    for (((lineage, source_site), neuron_anatomy), (anatomy_reference, state_reference)) in anatomy
         .neuron_lineages
         .iter()
         .zip(anatomy.source_sites.iter())
+        .zip(anatomy.neurons.iter())
         .zip(anatomy_references.iter().zip(state_references.iter()))
     {
         encoded.extend_from_slice(lineage);
@@ -664,6 +705,11 @@ pub(crate) fn encode_reached_cohort_cell_v4(
         encoded.extend_from_slice(&source);
         encoded.extend_from_slice(anatomy_reference);
         encoded.extend_from_slice(state_reference);
+        // This member's own geometry-derived membrane capacitance, beside its
+        // reference to the anatomy it shares with its cohort-mates.
+        let (numerator, denominator) = neuron_anatomy.capacitance().picofarads().parts();
+        encoded.extend_from_slice(&numerator.to_le_bytes());
+        encoded.extend_from_slice(&denominator.to_le_bytes());
     }
     encoded.extend_from_slice(&derived_recovery_fluid_anatomy_digest(anatomy)?);
     let recovery_state =
@@ -676,11 +722,11 @@ pub(crate) fn encode_reached_cohort_cell_v4(
     Ok(encoded)
 }
 
-fn decode_reached_cohort_cell_v4(
+fn decode_reached_cohort_cell_v5(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
     let mut reader = CohortStateReader::new(encoded);
-    if reader.take(REACHED_COHORT_CELL_CODEC_V4_MAGIC.len())? != REACHED_COHORT_CELL_CODEC_V4_MAGIC
+    if reader.take(REACHED_COHORT_CELL_CODEC_V5_MAGIC.len())? != REACHED_COHORT_CELL_CODEC_V5_MAGIC
     {
         return Err(ReachedCohortError::InvalidStateEncoding);
     }
@@ -690,7 +736,7 @@ fn decode_reached_cohort_cell_v4(
     }
     let mut anatomy_table = DecodedDigestTable::decode(&mut reader)?;
     let mut state_table = DecodedDigestTable::decode(&mut reader)?;
-    reader.require_records(neuron_count, 16 + 8 + 2 * CONTENT_DIGEST_BYTES)?;
+    reader.require_records(neuron_count, 16 + 8 + 2 * CONTENT_DIGEST_BYTES + 32)?;
     let mut source_sites = Vec::new();
     let mut neuron_lineages = Vec::new();
     let mut neuron_anatomies: Vec<NeuronPhysicalAnatomy> = Vec::new();
@@ -720,7 +766,7 @@ fn decode_reached_cohort_cell_v4(
         source_sites.push(decode_neuron_source_site(reader.take(source_length)?)?);
         let anatomy_reference = take_content_digest(&mut reader)?;
         let state_reference = take_content_digest(&mut reader)?;
-        let neuron_anatomy = match decoded_anatomies
+        let shared_anatomy = match decoded_anatomies
             .iter()
             .find(|(digest, _)| *digest == anatomy_reference)
         {
@@ -732,6 +778,17 @@ fn decode_reached_cohort_cell_v4(
                 decoded
             }
         };
+        // Put this member's own geometry-derived capacitance back onto the
+        // anatomy it shares with its cohort-mates.
+        let capacitance_numerator = reader.i128()?;
+        let capacitance_denominator = reader.u128()?;
+        let neuron_anatomy = shared_anatomy.with_capacitance(
+            MembraneCapacitance::new(
+                ExactRational::new(capacitance_numerator, capacitance_denominator)
+                    .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+            )
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+        );
         let neuron_state =
             decode_neuron_physical_state(&neuron_anatomy, state_table.resolve(state_reference)?)?;
         neuron_anatomies.push(neuron_anatomy);

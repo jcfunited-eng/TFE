@@ -43,6 +43,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/canonical_l0_l4_batch_api.rs",
     "native/guala_core/src/complete_neuron.rs",
     "native/guala_core/src/content_defined_chunker.rs",
+    "native/guala_core/src/declared_geometric_anatomy.rs",
     "native/guala_core/src/developmental_electrical_anatomy.rs",
     "native/guala_core/src/elementary_charge_membrane.rs",
     "native/guala_core/src/elementary_charge_transfer.rs",

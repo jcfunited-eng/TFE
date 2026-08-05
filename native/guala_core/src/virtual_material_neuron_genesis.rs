@@ -18,7 +18,10 @@ use crate::complete_neuron::{
     PsiKrimelackState, PsiRingAnatomy, PsiSettlementError, RecoveryAnatomy, RecoveryError,
     RecoveryLaneAnatomy, RecoveryLaneState, RecoveryState, TwoStateGateAnatomy, TwoStateGateState,
 };
-use crate::elementary_charge_membrane::{MembraneCapacitance, MembraneChargeError};
+use crate::declared_geometric_anatomy::{
+    membrane_capacitance_from_declared_geometry, DeclaredGeometryError,
+};
+use crate::elementary_charge_membrane::MembraneChargeError;
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_source_episode::NativeJointSourceEpisode;
 use crate::joint_uf_neuron_boundary::{
@@ -58,6 +61,14 @@ const PLASTIC_GENESIS_REST_LENGTH_DENOMINATOR: i64 = 1;
 /// `ceil(1 fC / e)`, where the SI elementary charge is exact.
 const ONE_FEMTOCOULOMB_CARRIER_QUANTA: u128 = 6_242;
 
+/// The authored base membrane capacitance: the picofarad capacitance of ONE
+/// unit patch of this virtual membrane.  It is unchanged from the original
+/// authored anatomy; the geometric-differentiation ratification (2026-08-05)
+/// keeps it as the scale and takes every neuron's spread from the neuron's own
+/// declared territory (see `declared_geometric_anatomy`).
+const BASE_MEMBRANE_CAPACITANCE_PICOFARADS_NUMERATOR: i128 = 1;
+const BASE_MEMBRANE_CAPACITANCE_PICOFARADS_DENOMINATOR: u128 = 1;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum VirtualMaterialGenesisError {
     JointField(JointNeuronBoundaryError),
@@ -70,6 +81,7 @@ pub(crate) enum VirtualMaterialGenesisError {
     Plasticity(PlasticityError),
     Neuron(NeuronPhysicalError),
     Source(NeuronSourceAnchorError),
+    DeclaredGeometry(DeclaredGeometryError),
     Cohort(ReachedCohortError),
     Electrical(SparseElectricalError),
     GateEnergyLatticeUnavailable,
@@ -137,8 +149,9 @@ pub(crate) fn create_virtual_material_reached_cohort_from_shared(
             .map_err(VirtualMaterialGenesisError::JointField)?;
         let source = bind_neuron_source_anchor(episode, perspective)
             .map_err(VirtualMaterialGenesisError::Source)?;
-        let genesis = create_virtual_material_neuron(perspective)?;
-        source_sites.push(NeuronSourceSite::from_anchor(source));
+        let site = NeuronSourceSite::from_anchor(source);
+        let genesis = create_virtual_material_neuron(perspective, &site)?;
+        source_sites.push(site);
         neurons.push(genesis.anatomy);
         states.push(genesis.state);
         catalysts.push(genesis.zero_recovery_catalysts);
@@ -171,11 +184,12 @@ pub(crate) fn extend_virtual_material_reached_cohort_from_shared(
             .map_err(VirtualMaterialGenesisError::JointField)?;
         let source = bind_neuron_source_anchor(episode, perspective)
             .map_err(VirtualMaterialGenesisError::Source)?;
-        let genesis = create_virtual_material_neuron(perspective)?;
+        let site = NeuronSourceSite::from_anchor(source);
+        let genesis = create_virtual_material_neuron(perspective, &site)?;
         cells.push(ReachedNeuronGenesisCell {
             anatomy: genesis.anatomy,
             lineage: *lineage,
-            source_site: NeuronSourceSite::from_anchor(source),
+            source_site: site,
             state: genesis.state,
         });
     }
@@ -285,9 +299,11 @@ fn support_energy_at_rest(
 /// itself create a neuronal fractal.
 pub(crate) fn create_virtual_material_neuron(
     perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
 ) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
     create_virtual_material_neuron_with_gate_energy_quantum(
         perspective,
+        site,
         exact(
             ORDINARY_GATE_DISSIPATION_QUANTUM_NUMERATOR,
             ORDINARY_GATE_DISSIPATION_QUANTUM_DENOMINATOR,
@@ -301,6 +317,7 @@ pub(crate) fn create_virtual_material_neuron(
 /// exact quantum count changes. No energy is rounded or selected by modality.
 pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
     perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
     gate_dissipation_quantum_zeptojoules: BigRational,
 ) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
     if gate_dissipation_quantum_zeptojoules <= BigRational::zero() {
@@ -395,8 +412,17 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
         1,
     )
     .map_err(VirtualMaterialGenesisError::Plasticity)?;
-    let capacitance =
-        MembraneCapacitance::new(ratio(1, 1)?).map_err(VirtualMaterialGenesisError::Membrane)?;
+    // Ratified 2026-08-05: the membrane is as large as the territory this
+    // receptor's own declared place closes off in the organism's sensory
+    // lattice, so no two authored neurons can be physically identical.
+    let capacitance = membrane_capacitance_from_declared_geometry(
+        ratio(
+            BASE_MEMBRANE_CAPACITANCE_PICOFARADS_NUMERATOR,
+            BASE_MEMBRANE_CAPACITANCE_PICOFARADS_DENOMINATOR,
+        )?,
+        site,
+    )
+    .map_err(VirtualMaterialGenesisError::DeclaredGeometry)?;
     let mathloom =
         MathLoomAnatomy::new(positions).map_err(VirtualMaterialGenesisError::JointField)?;
     let anatomy = NeuronPhysicalAnatomy::new(
@@ -455,7 +481,9 @@ mod tests {
         let episode = exact_episode();
         let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-        let genesis = create_virtual_material_neuron(perspective).unwrap();
+        let site =
+            NeuronSourceSite::from_anchor(bind_neuron_source_anchor(&episode, perspective).unwrap());
+        let genesis = create_virtual_material_neuron(perspective, &site).unwrap();
         assert_eq!(
             genesis.zero_recovery_catalysts().len(),
             genesis.state().psi.rings().len()

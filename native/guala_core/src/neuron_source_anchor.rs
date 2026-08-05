@@ -46,6 +46,14 @@ impl PhysicalSourceSense {
             Self::Body => 5,
         }
     }
+
+    /// The declared sense layer this receptor belongs to: the first coordinate
+    /// of its declared place in the organism's sensory lattice.  It is the
+    /// same declared encoding the site's codec already carries, read as a
+    /// position rather than as a tag (see `declared_geometric_anatomy`).
+    pub(crate) fn declared_layer(self) -> u8 {
+        self.encode()
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -133,8 +141,13 @@ impl NeuronSourceSite {
 
     #[cfg(test)]
     pub(crate) fn fixture(topology_index: u32) -> Self {
+        Self::fixture_in_sense(PhysicalSourceSense::Sight, topology_index)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn fixture_in_sense(sense: PhysicalSourceSense, topology_index: u32) -> Self {
         Self {
-            sense: PhysicalSourceSense::Sight,
+            sense,
             topology_index,
             sensor_id: "synthetic-test-receptor".into(),
             substream_id: topology_index.to_string().into_boxed_str(),

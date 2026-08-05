@@ -985,6 +985,23 @@ impl NeuronPhysicalAnatomy {
         self.capacitance
     }
 
+    /// The same anatomy carrying a different membrane capacitance.
+    ///
+    /// Since the 2026-08-05 geometric-differentiation ratification the
+    /// capacitance is the ONLY part of a cohort sibling's authored anatomy
+    /// that its own declared place changes; everything else (the whole Psi
+    /// lattice, gate, recovery, DNA and plastic anatomy) is shared.  Retention
+    /// layers use this to content-address the shared portion once and carry
+    /// each member's own derived capacitance beside its reference, so
+    /// differentiation costs 32 bytes a member instead of a whole duplicated
+    /// anatomy blob.
+    pub(crate) fn with_capacitance(&self, capacitance: MembraneCapacitance) -> Self {
+        Self {
+            capacitance,
+            ..self.clone()
+        }
+    }
+
     pub(crate) fn recovery_anatomy(&self) -> &RecoveryAnatomy {
         &self.recovery
     }
@@ -3677,6 +3694,7 @@ mod tests {
         prepare_complete_joint_field_admitted_fixture, prepare_complete_joint_field_fixture,
         prepare_isolated_single_neuron_field_fixture, DsfFactFamily, SharedCompleteJointField,
     };
+    use crate::declared_geometric_anatomy::membrane_capacitance_from_declared_geometry;
     use crate::joint_uf_source_adapter::EvaluatedJointSourceOccurrence;
     use crate::joint_uf_v1_4::{
         evaluate_with_physical_bounds, JointIntersampleLaw, JointUfCoordinateBounds, JointUfInput,
@@ -3689,7 +3707,7 @@ mod tests {
     use crate::physical_mosaic::admit_physical_mosaic;
     use crate::reached_neuron_cohort::{
         decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
-        encode_reached_cohort_cell, encode_reached_cohort_cell_v4, encode_reached_cohort_state,
+        encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
         encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
         settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
         settle_reached_cohort_recurrence, settle_reached_cohort_to_quiescence,
@@ -3873,10 +3891,31 @@ mod tests {
     }
 
     fn physical_fixture() -> Fixture {
-        scaled_physical_fixture(64, 7)
+        physical_fixture_at(0)
+    }
+
+    /// One fixture neuron authored AT a declared place.  Its membrane
+    /// capacitance is derived from that place exactly as production genesis
+    /// derives it (see `declared_geometric_anatomy`), so a cohort of fixtures
+    /// at distinct places carries distinct anatomy — the differentiated
+    /// fixtures the 2026-08-05 ratification requires.
+    fn physical_fixture_at(topology_index: u32) -> Fixture {
+        scaled_physical_fixture_at(64, 7, topology_index)
+    }
+
+    fn physical_fixtures<const N: usize>() -> [Fixture; N] {
+        std::array::from_fn(|index| physical_fixture_at(index as u32))
     }
 
     fn scaled_physical_fixture(positions: usize, constraint_count: usize) -> Fixture {
+        scaled_physical_fixture_at(positions, constraint_count, 0)
+    }
+
+    fn scaled_physical_fixture_at(
+        positions: usize,
+        constraint_count: usize,
+        topology_index: u32,
+    ) -> Fixture {
         let ring_count = positions * constraint_count * 2;
         let psi = PsiKrimelackAnatomy::new(
             positions,
@@ -3913,7 +3952,11 @@ mod tests {
             MathLoomAnatomy::new(positions).unwrap(),
             psi.clone(),
             gate,
-            MembraneCapacitance::new(r(1, 1)).unwrap(),
+            membrane_capacitance_from_declared_geometry(
+                r(1, 1),
+                &NeuronSourceSite::fixture(topology_index),
+            )
+            .unwrap(),
             recovery,
             dna_expression,
             plastic,
@@ -4213,7 +4256,7 @@ mod tests {
     #[test]
     fn three_complete_neurons_and_one_contact_commit_one_synchronous_generation() {
         let shared = shared_three_neuron_field();
-        let fixtures = [physical_fixture(), physical_fixture(), physical_fixture()];
+        let fixtures = physical_fixtures::<3>();
         let mut predecessor_neurons = fixtures
             .iter()
             .map(|fixture| fixture.state.clone())
@@ -4358,21 +4401,27 @@ mod tests {
     }
 
     #[test]
-    fn odd_charge_residual_is_electrically_quiescent_and_even_settles_to_zero() {
-        // The ratified energy-descent charge-transfer law measured through
-        // the cohort's own quiescence predicate, on the exact anatomy of the
-        // obstruction: 1 pF neurons, one authored 500 pS contact, 1 ms
-        // intervals.
+    fn differentiated_pair_breaks_the_blockade_and_descends() {
+        // The ratified energy-descent charge-transfer law measured through the
+        // cohort's own quiescence predicate, on the anatomy that now exists:
+        // geometrically differentiated neurons (this cohort's first two carry
+        // 1 pF and 3 pF from their own declared places), one authored 500 pS
+        // contact, 1 ms intervals.
         //
-        // MEASURED BEFORE the law: charges (-12,-11) crossed one elementary
-        // charge every second interval forever (+1/-1 limit cycle), so
-        // `electrically_active` was true on every other interval and the
-        // cohort never reached quiescence.
-        // MEASURED AFTER the law: zero lawful moves remain, the contact
-        // conducts nothing, `electrically_active` is false and the cohort is
-        // quiescent on the very first interval.
+        // MEASURED BEFORE the descent law: charges (-12,-11) on IDENTICAL 1 pF
+        // neurons crossed one elementary charge every second interval forever
+        // (+1/-1 limit cycle) and the cohort never quiesced.
+        // MEASURED AFTER the descent law, on identical anatomy: the exact tie
+        // blockaded every one-charge move — quiescent, but frozen.
+        // MEASURED NOW, on differentiated anatomy: the odd residual is NOT
+        // frozen.  Unequal capacitors equalize POTENTIAL, not charge, so the
+        // pair descends — strictly, one whole charge at a time, never
+        // reversing — to the charge split its own geometry demands and only
+        // then goes electrically silent.  That is the blockade broken by
+        // anatomy, which is exactly what the differentiation ratification
+        // claimed it would do.
         let shared = shared_three_neuron_field();
-        let fixtures = [physical_fixture(), physical_fixture(), physical_fixture()];
+        let fixtures = physical_fixtures::<3>();
         let electrical_anatomy = SparseElectricalAnatomy::new(
             3,
             vec![ElectricalContactAnatomy::new(0, 1, r(500, 1), 3).unwrap()],
@@ -4388,6 +4437,14 @@ mod tests {
             electrical_anatomy.clone(),
         )
         .unwrap();
+        assert_eq!(
+            cohort_anatomy
+                .neuron_anatomies()
+                .iter()
+                .map(|anatomy| anatomy.capacitance().picofarads().parts())
+                .collect::<Vec<_>>(),
+            [(1, 1), (3, 1), (6, 1)]
+        );
         let cohort_state = |left: i128, right: i128| {
             let mut neurons = fixtures
                 .iter()
@@ -4426,70 +4483,62 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        // These fixture neurons also run their own local membrane physics,
-        // which moves each neuron's charge on its own account; the contact's
-        // imbalance — the only thing the ratified law governs — is what is
-        // read here, on the first interval out of the measured state.
-        let imbalance = |state: &ReachedCohortState| {
-            let charges = separated(state);
-            charges[0] - charges[1]
-        };
-
-        // Odd residual (the measured obstruction, exactly): zero lawful
-        // moves remain, so no charge crosses, no current is settled, the
-        // contact state is unchanged, and `electrically_active` is FALSE.
+        // The odd residual that used to oscillate, then freeze.  On
+        // differentiated geometry one whole charge crosses immediately, and it
+        // crosses toward the LARGER membrane, which is the descending
+        // direction: stored energy q^2 e^2 / 2C falls when charge moves to the
+        // bigger capacitor.
         let odd = cohort_state(-12, -11);
-        assert_eq!(imbalance(&odd), -1);
+        let opening = separated(&odd);
+        assert_eq!(opening[0] - opening[1], -1);
         let settled = settle_reached_cohort_interval(&cohort_anatomy, &odd, inputs()).unwrap();
-        assert!(!settled.electrically_active);
-        assert_eq!(
-            settled.contact_transitions[0].outward_elementary_charges_from_left,
-            0
-        );
-        assert_eq!(
-            settled.contact_transitions[0].outward_current_from_left_picoamperes,
-            r(0, 1)
-        );
-        assert_eq!(
-            settled.contact_outward_elementary_charges_by_neuron.as_ref(),
-            [0, 0, 0]
-        );
-        assert_eq!(
-            settled.successor.electrical(),
-            &SparseElectricalState::genesis(&electrical_anatomy)
-        );
-        // The same refusal from the mirrored resting orientation.
-        let mirrored = cohort_state(-11, -12);
-        let settled =
-            settle_reached_cohort_interval(&cohort_anatomy, &mirrored, inputs()).unwrap();
-        assert!(!settled.electrically_active);
-
-        // Even difference: exactly one charge crosses, and it crosses in the
-        // descending direction (the more negative neuron receives it).
-        let even = cohort_state(-12, -10);
-        assert_eq!(imbalance(&even), -2);
-        let settled = settle_reached_cohort_interval(&cohort_anatomy, &even, inputs()).unwrap();
         assert!(settled.electrically_active);
-        assert_eq!(
-            settled.contact_transitions[0].outward_elementary_charges_from_left,
-            -1
+        let crossed = settled.contact_transitions[0].outward_elementary_charges_from_left;
+        let after = separated(&settled.successor);
+        eprintln!(
+            "MEASURE differentiated 1 pF / 3 pF pair, 500 pS, odd residual (-12,-11): \
+             crossed {crossed} charges in the first millisecond, charges {opening:?} -> {after:?}"
         );
+        // The blockade is gone: whole charges cross on the very first
+        // millisecond, in one direction, and the pair's exact stored energy
+        // q^2 e^2 / 2C strictly falls.  (Equal-capacitance neighbours could
+        // not move at all: every one-charge move tied exactly.)
+        assert_ne!(crossed, 0);
         assert_eq!(
             settled.contact_outward_elementary_charges_by_neuron.as_ref(),
-            [-1, 1, 0]
+            [crossed, -crossed, 0]
         );
+        // The contact's own ledger is equal and opposite: charge is conserved
+        // across it exactly.  (The members' raw charges also move on their own
+        // local channel accounts, which is why the ledger, not the raw charge,
+        // is what the contact law is read through.)
+        //
+        // Exact descent, in the law's own formula, for the move that was made:
+        // dE * 2 / e^2 = (n^2 - 2 n q_left)/C_left + (n^2 + 2 n q_right)/C_right.
+        let bracket = r(crossed * crossed - 2 * crossed * opening[0], 1)
+            .checked_add(r(crossed * crossed + 2 * crossed * opening[1], 3))
+            .unwrap();
+        assert_eq!(
+            bracket.checked_cmp(r(0, 1)).unwrap(),
+            core::cmp::Ordering::Less
+        );
+        // It moved toward equal potential: the 3 pF membrane takes the charge,
+        // heading for the split where it holds three times the 1 pF membrane's.
+        assert!(crossed < 0);
+
+        // Equal charge on unequal geometry is NOT rest: the larger membrane
+        // still holds the lower potential, so the pair moves.
+        let unequal_geometry = cohort_state(-12, -12);
+        let settled =
+            settle_reached_cohort_interval(&cohort_anatomy, &unequal_geometry, inputs()).unwrap();
+        assert!(settled.electrically_active);
     }
 
     #[test]
     fn reached_cohort_requires_exact_sight_sound_and_body_source_anatomy() {
         let episode = exact_episode();
         let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
-        let fixtures = [
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-        ];
+        let fixtures = physical_fixtures::<4>();
         let source_sites = (0..fixtures.len())
             .map(|index| {
                 NeuronSourceSite::from_anchor(
@@ -4573,7 +4622,7 @@ mod tests {
     #[test]
     fn three_neuron_causal_sequence_emits_three_true_post_quiescence_fractals() {
         let shared = shared_three_neuron_field();
-        let mut fixtures = [physical_fixture(), physical_fixture(), physical_fixture()];
+        let mut fixtures = physical_fixtures::<3>();
         for fixture in &mut fixtures {
             fixture.anatomy.gate.single_channel_conductance_picosiemens = r(2, 1);
         }
@@ -4659,12 +4708,7 @@ mod tests {
     #[test]
     fn four_neuron_partial_cue_recurs_through_sparse_chain_without_state_growth() {
         let shared = shared_four_neuron_field();
-        let fixtures = [
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-        ];
+        let fixtures = physical_fixtures::<4>();
         let electrical_anatomy = SparseElectricalAnatomy::new(
             4,
             vec![
@@ -4769,12 +4813,7 @@ mod tests {
     #[test]
     fn four_neuron_learned_assembly_admits_only_after_partial_cue_and_exact_restart() {
         let shared = shared_four_neuron_field();
-        let mut fixtures = [
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-            physical_fixture(),
-        ];
+        let mut fixtures = physical_fixtures::<4>();
         for fixture in &mut fixtures {
             fixture.anatomy.gate.single_channel_conductance_picosiemens = r(2, 1);
         }
@@ -4895,7 +4934,7 @@ mod tests {
         neuron_count: usize,
     ) -> (Vec<Fixture>, ReachedCohortAnatomy, ReachedCohortState) {
         let fixtures = (0..neuron_count)
-            .map(|_| physical_fixture())
+            .map(|index| physical_fixture_at(index as u32))
             .collect::<Vec<_>>();
         let electrical_anatomy = SparseElectricalAnatomy::new(neuron_count, Vec::new()).unwrap();
         let electrical_state = SparseElectricalState::genesis(&electrical_anatomy);
@@ -4927,11 +4966,11 @@ mod tests {
         usize::try_from(value).unwrap()
     }
 
-    /// Structural walk of one `GLRCC04` cell: distinct anatomy-blob count,
+    /// Structural walk of one `GLRCC05` cell: distinct anatomy-blob count,
     /// distinct state-blob count, and the byte offset of the derived
     /// recovery-fluid anatomy digest.
-    fn v4_cell_shape(encoded: &[u8]) -> (usize, usize, usize) {
-        assert_eq!(&encoded[..8], b"GLRCC04\0");
+    fn v5_cell_shape(encoded: &[u8]) -> (usize, usize, usize) {
+        assert_eq!(&encoded[..8], b"GLRCC05\0");
         let mut cursor = 8;
         let neuron_count = read_test_u64(encoded, &mut cursor);
         let anatomy_table_count = read_test_u64(encoded, &mut cursor);
@@ -4947,7 +4986,9 @@ mod tests {
         for _ in 0..neuron_count {
             cursor += 16;
             let source_length = read_test_u64(encoded, &mut cursor);
-            cursor += source_length + 32 + 32;
+            // source + anatomy reference + state reference + this member's own
+            // geometry-derived capacitance (exact rational, 16 + 16 bytes).
+            cursor += source_length + 32 + 32 + 32;
         }
         (anatomy_table_count, state_table_count, cursor)
     }
@@ -4956,8 +4997,8 @@ mod tests {
     fn content_addressed_cell_dedupes_and_a_single_mutation_adds_exactly_one_blob() {
         let (_, anatomy, state) = wide_cohort(29);
         let inline_cell = encode_reached_cohort_cell(&anatomy, &state).unwrap();
-        let deduplicated_cell = encode_reached_cohort_cell_v4(&anatomy, &state).unwrap();
-        let (anatomy_blobs, state_blobs, _) = v4_cell_shape(&deduplicated_cell);
+        let deduplicated_cell = encode_reached_cohort_cell_v5(&anatomy, &state).unwrap();
+        let (anatomy_blobs, state_blobs, _) = v5_cell_shape(&deduplicated_cell);
         assert_eq!(anatomy_blobs, 1);
         assert_eq!(state_blobs, 1);
         assert!(deduplicated_cell.len() * 10 < inline_cell.len());
@@ -4966,7 +5007,7 @@ mod tests {
         assert_eq!(restored_anatomy, anatomy);
         assert_eq!(restored_state, state);
         assert_eq!(
-            encode_reached_cohort_cell_v4(&restored_anatomy, &restored_state).unwrap(),
+            encode_reached_cohort_cell_v5(&restored_anatomy, &restored_state).unwrap(),
             deduplicated_cell
         );
 
@@ -4974,15 +5015,15 @@ mod tests {
         mutated_neurons[5].carriers = CarrierReservoirs::new(999_999, 1_000_001);
         let mutated_state =
             ReachedCohortState::new(&anatomy, mutated_neurons, state.electrical().clone()).unwrap();
-        let mutated_cell = encode_reached_cohort_cell_v4(&anatomy, &mutated_state).unwrap();
-        let (anatomy_blobs, state_blobs, _) = v4_cell_shape(&mutated_cell);
+        let mutated_cell = encode_reached_cohort_cell_v5(&anatomy, &mutated_state).unwrap();
+        let (anatomy_blobs, state_blobs, _) = v5_cell_shape(&mutated_cell);
         assert_eq!(anatomy_blobs, 1);
         assert_eq!(state_blobs, 2);
         let (_, remutated) = decode_reached_cohort_cell(&mutated_cell).unwrap();
         assert_eq!(remutated, mutated_state);
 
         eprintln!(
-            "MEASURE cohort-cell 29 neurons: inline GLRCC03 = {} B, content-addressed GLRCC04 = {} B",
+            "MEASURE cohort-cell 29 neurons: inline GLRCC03 = {} B, content-addressed GLRCC05 = {} B",
             inline_cell.len(),
             deduplicated_cell.len()
         );
@@ -4996,20 +5037,37 @@ mod tests {
     }
 
     /// The standard 29-neuron post-lesson body at live blob scale: 27
-    /// byte-identical 458-ring card neurons plus two small distinct neurons,
-    /// with retained experience evidence whose POST snapshot equals the
-    /// current state and whose PRE snapshot differs in four members.
+    /// 458-ring card neurons plus two small neurons, with retained experience
+    /// evidence whose POST snapshot equals the current state and whose PRE
+    /// snapshot differs in four members.
+    ///
+    /// Since the 2026-08-05 geometric-differentiation ratification the 27 card
+    /// neurons are no longer byte-identical: each carries the capacitance its
+    /// own declared place derives, so the content-addressed cell codec now
+    /// sees 29 distinct anatomy blobs where it used to see 3.  Everything else
+    /// about a card neuron — its whole 458-ring Psi lattice, gate, recovery,
+    /// DNA and plastic anatomy — is still shared, and the codec's shared
+    /// anatomy section stores that once (`encode_reached_cohort_cell_v5`),
+    /// carrying only the per-site derived parameters per member.
     #[test]
     fn standard_twenty_nine_neuron_post_lesson_body_measurement() {
-        let card = scaled_physical_fixture(229, 1);
-        let small_a = scaled_physical_fixture(8, 1);
-        let small_b = scaled_physical_fixture(8, 1);
+        let card_neurons = (0..27_u32)
+            .map(|topology_index| scaled_physical_fixture_at(229, 1, topology_index))
+            .collect::<Vec<_>>();
+        let small_a = scaled_physical_fixture_at(8, 1, 27);
+        let small_b = scaled_physical_fixture_at(8, 1, 28);
         let mut small_b_state = small_b.state.clone();
         small_b_state.carriers = CarrierReservoirs::new(999_999, 1_000_001);
-        let mut anatomies = vec![card.anatomy.clone(); 27];
+        let mut anatomies = card_neurons
+            .iter()
+            .map(|card| card.anatomy.clone())
+            .collect::<Vec<_>>();
         anatomies.push(small_a.anatomy.clone());
         anatomies.push(small_b.anatomy.clone());
-        let mut states = vec![card.state.clone(); 27];
+        let mut states = card_neurons
+            .iter()
+            .map(|card| card.state.clone())
+            .collect::<Vec<_>>();
         states.push(small_a.state.clone());
         states.push(small_b_state);
         let electrical_anatomy = SparseElectricalAnatomy::new(29, Vec::new()).unwrap();
@@ -5031,7 +5089,7 @@ mod tests {
             ReachedCohortState::new(&anatomy, pre_neurons, post.electrical().clone()).unwrap();
 
         let inline_cell = encode_reached_cohort_cell(&anatomy, &post).unwrap();
-        let deduplicated_cell = encode_reached_cohort_cell_v4(&anatomy, &post).unwrap();
+        let deduplicated_cell = encode_reached_cohort_cell_v5(&anatomy, &post).unwrap();
         let inline_snapshot = encode_reached_cohort_state(&anatomy, &pre).unwrap();
         let pre_delta = encode_reached_cohort_state_delta(&anatomy, &post, &pre).unwrap();
         assert_eq!(
@@ -5042,6 +5100,22 @@ mod tests {
             decode_reached_cohort_cell(&deduplicated_cell).unwrap();
         assert_eq!(restored_anatomy, anatomy);
         assert_eq!(restored_post, post);
+        // The 29 members are now anatomically distinct — no two capacitances
+        // are equal — and the cell still interns exactly TWO anatomy blobs:
+        // the shared 458-ring card anatomy and the shared small anatomy.  The
+        // differentiation costs 29 x 32 bytes of carried capacitance, not 29
+        // duplicated anatomy blobs (which measured 3,485,943 B for this body
+        // before the shared-portion split).
+        let (anatomy_blobs, _, _) = v5_cell_shape(&deduplicated_cell);
+        assert_eq!(anatomy_blobs, 2);
+        let capacitances = anatomy
+            .neuron_anatomies()
+            .iter()
+            .map(|neuron| neuron.capacitance().picofarads().parts())
+            .collect::<Vec<_>>();
+        for (index, capacitance) in capacitances.iter().enumerate() {
+            assert!(!capacitances[..index].contains(capacitance));
+        }
 
         // Evidence framing: magic + mode bytes + length prefixes + the two
         // bool sections (29 neurons, 0 contacts).
@@ -5070,9 +5144,9 @@ mod tests {
     #[test]
     fn derived_recovery_fluid_digest_mismatch_is_refused() {
         let (_, anatomy, state) = wide_cohort(3);
-        let mut cell = encode_reached_cohort_cell_v4(&anatomy, &state).unwrap();
+        let mut cell = encode_reached_cohort_cell_v5(&anatomy, &state).unwrap();
         assert!(decode_reached_cohort_cell(&cell).is_ok());
-        let (_, _, digest_offset) = v4_cell_shape(&cell);
+        let (_, _, digest_offset) = v5_cell_shape(&cell);
         cell[digest_offset] ^= 1;
         assert!(decode_reached_cohort_cell(&cell).is_err());
     }

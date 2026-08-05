@@ -148,37 +148,43 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         == partial["persisted"]["state_sha256"]
     )
 
-    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified
-    # energy-descent charge-transfer law and its companion card-lesson
-    # truthfulness fix): the glimpse commits lawfully, genuinely opens gates,
+    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified geometric
+    # anatomy differentiation — every neuron's membrane capacitance now
+    # derives from its own declared place — on top of the ratified
+    # energy-descent charge-transfer law): the glimpse commits lawfully,
     # moves real charge along the authored chain — and still admits no
     # mosaic.
     #
     # PIN CHANGED, measured before/after on this exact path:
-    #   physically_transitioned_neuron_count  BEFORE 57  ->  AFTER 128
-    # 128 is the summed per-hop count over the glimpse hop and its eight
-    # dark ended hops: the 12 lit chain-prefix sites plus every chain
-    # neighbour whose membrane charge the recurrence current actually moves
-    # while the injected charge redistributes.  It is larger than before
-    # because the two preceding full lessons now deliver seven hops of light
-    # each, so far more charge is on the chain when the glimpse arrives.
+    #   physically_transitioned_neuron_count  57 -> 128 -> 83
+    # 83 is the summed per-hop count over the glimpse hop and its eight dark
+    # ended hops.  It fell from 128 because the chain's members no longer
+    # share one capacitance: charge that used to be shuffled between exactly
+    # equal neighbours now descends once toward the larger membrane and stops
+    # there, so fewer neurons change per dark hop.
     #
-    # The refusal reason, read from the physics itself (measurement probe
-    # replaying admit_physical_mosaic on the served path), is
-    # OriginalRelationNotConnected — measured: members=27, contacts=26,
-    # active-within-members=0.  The retained ORIGINAL experience is the one
-    # the first lesson settled BEFORE the accumulator opened any gate, so it
-    # carries zero active electrical contacts and its 27 members are joined
-    # by no active relation.  No electrically active experience has been
-    # retained in its place: once gates open, the cohort is still
-    # redistributing charge when the lesson's two dark hops end, so no later
-    # experience reaches quiescence.  This is recorded, never forced: if the
-    # substrate ever admits a mosaic, these assertions report it instead of
-    # hiding it.
+    # What this ratification did and did not move, measured on the served
+    # path (headless gauntlet, fresh organism, alphabet-a, two full lessons
+    # then the glimpse):
+    #   - The anatomical blockade is GONE.  The four-receptor end-to-end
+    #     proofs in the crate, whose gate work lands on the dissipation
+    #     lattice, now admit real mosaics on descent-lawful physics.
+    #   - The served card lesson DOES open gates and DOES put charge on the
+    #     chain (reservoir probe, three lit lessons: 16, 13 and 17 neurons
+    #     left with open gates; membrane charges -20, -28, -45 e), and its
+    #     dark tail is already at descent-lawful rest — measured 189
+    #     transitions = 27 sites x 7 lit hops with ZERO in the tail, identical
+    #     at tails of 2, 16 and 64 hops.  The glimpse's own dark tail moves
+    #     about five neurons a hop (gates relaxing closed: the glimpse ends
+    #     with zero open gates) and is still doing so after 256 dark hops.
+    #   - The retained ORIGINAL experience is still the electrically silent
+    #     one the first lesson settled, so admission still refuses.  What
+    #     blocks the served path is now upstream of the anatomy: which
+    #     experience gets retained, not whether charge can flow.
+    # This is recorded, never forced: if the substrate ever admits a mosaic,
+    # these assertions report it instead of hiding it.
     if observed.cognitive_mosaic_count == 0:
-        assert (
-            partial["totals"]["physically_transitioned_neuron_count"] == 128
-        )
+        assert partial["totals"]["physically_transitioned_neuron_count"] == 83
         assert observed.partial_cue_reassembly_count == 0
     else:
         assert observed.partial_cue_reassembly_count > 0

@@ -153,9 +153,11 @@ impl FunctionalVestibularAnatomy {
     pub(crate) fn create_neuron(
         &self,
         perspective: JointNeuronPerspective<'_>,
+        site: &NeuronSourceSite,
     ) -> Result<VirtualMaterialNeuronGenesis, FunctionalVestibularError> {
         create_virtual_material_neuron_with_gate_energy_quantum(
             perspective,
+            site,
             self.gate_energy_quantum_zeptojoules.clone(),
         )
         .map_err(Into::into)
@@ -370,7 +372,8 @@ pub(crate) fn create_single_vertex_vestibular_reached_cohort(
     let source_anchor = bind_neuron_source_anchor(episode, perspective).map_err(|error| {
         FunctionalVestibularError::Genesis(VirtualMaterialGenesisError::Source(error))
     })?;
-    let neuron = vestibular.create_neuron(perspective)?;
+    let site = NeuronSourceSite::from_anchor(source_anchor);
+    let neuron = vestibular.create_neuron(perspective, &site)?;
     let electrical = SparseElectricalAnatomy::new(1, Vec::new()).map_err(|error| {
         FunctionalVestibularError::Genesis(VirtualMaterialGenesisError::Electrical(error))
     })?;
@@ -379,7 +382,7 @@ pub(crate) fn create_single_vertex_vestibular_reached_cohort(
     let anatomy = ReachedCohortAnatomy::new(
         vec![neuron_anatomy],
         vec![neuron_lineage],
-        vec![NeuronSourceSite::from_anchor(source_anchor)],
+        vec![site],
         electrical,
     )
     .map_err(|error| {
@@ -726,7 +729,10 @@ mod tests {
         let (episode, _) = source.joint_source_with_contacts();
         let shared = prepare_complete_joint_field_with_admission(episode, 0, &admission).unwrap();
         let body_perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-        let genesis = anatomy.create_neuron(body_perspective).unwrap();
+        let body_site = NeuronSourceSite::from_anchor(
+            bind_neuron_source_anchor(episode, body_perspective).unwrap(),
+        );
+        let genesis = anatomy.create_neuron(body_perspective, &body_site).unwrap();
         assert_eq!(genesis.anatomy().gate_dissipation_capacity_quanta(), 4_500);
         let settled = settle_vestibular_neuron_compatibility_interval(
             &anatomy,
@@ -789,7 +795,9 @@ mod tests {
         let (episode, _) = source.joint_source_with_contacts();
         let shared = prepare_complete_joint_field_with_admission(episode, 0, &admission).unwrap();
         let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-        let ordinary = create_virtual_material_neuron(perspective).unwrap();
+        let ordinary_site =
+            NeuronSourceSite::from_anchor(bind_neuron_source_anchor(episode, perspective).unwrap());
+        let ordinary = create_virtual_material_neuron(perspective, &ordinary_site).unwrap();
         assert_eq!(ordinary.anatomy().gate_dissipation_capacity_quanta(), 36);
         assert_ne!(
             ordinary.anatomy().gate_dissipation_capacity_quanta(),

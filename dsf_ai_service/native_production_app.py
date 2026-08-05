@@ -184,6 +184,14 @@ assert 0 < PARTIAL_PRESENTATION_SITE_COUNT < CARD_SURFACE_PORT_COUNT
 # optical episode followed by up to eight dark episodes) proven in
 # organism_runtime.rs and resident_cognitive_formation.rs.
 PARTIAL_PRESENTATION_ENDED_HOP_COUNT = 8
+# Quiescent hops declaring the genuinely ended full presentation.  Since the
+# 2026-08-05 geometric-differentiation ratification a cohort's members carry
+# different membrane capacitances, so a lit lesson's cohort settles to EQUAL
+# POTENTIAL rather than equal charge and needs a real quiet tail to get there;
+# a presentation whose tail ends before the cohort is silent retains no
+# experience from what it just saw.  This is transport (how long the app keeps
+# declaring the true dark, silent environment), never physics.
+LESSON_ENDED_HOP_COUNT = 2
 
 _ORGANISM_IDENTITY_PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -1532,7 +1540,7 @@ def _card_lesson_hop_episodes(
     quiescent_times = _quiescent_hop_times()
     quiescent_signal = (0.0,) * len(quiescent_times)
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
-    for ended_index in range(2):
+    for ended_index in range(LESSON_ENDED_HOP_COUNT):
         episode = _whole_roster_hop_episode(
             f"curriculum-card-{card_id}-ended-{ended_index}",
             quiescent_times,

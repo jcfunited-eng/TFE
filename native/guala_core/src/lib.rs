@@ -27,6 +27,7 @@ mod canonical_causal_evidence;
 mod canonical_l0_l4;
 mod complete_neuron;
 mod content_defined_chunker;
+mod declared_geometric_anatomy;
 mod developmental_electrical_anatomy;
 mod elementary_charge_membrane;
 mod elementary_charge_transfer;

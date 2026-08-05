@@ -53,7 +53,7 @@ use crate::physical_mosaic::{
 };
 use crate::reached_neuron_cohort::{
     decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
-    encode_reached_cohort_cell, encode_reached_cohort_cell_v4, encode_reached_cohort_state,
+    encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
     encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
     extend_reached_cohort_state_with_genesis, reached_cohort_state_content_digest,
     settle_reached_cohort_interval, QuiescentReachedCohortState, ReachedCohortAnatomy,
@@ -1346,7 +1346,7 @@ impl ResidentCognitiveFormationState {
                     encode_reached_cohort_cell(&cohort.anatomy, &cohort.state)
                 }
                 CognitiveCodecFormat::V13 => {
-                    encode_reached_cohort_cell_v4(&cohort.anatomy, &cohort.state)
+                    encode_reached_cohort_cell_v5(&cohort.anatomy, &cohort.state)
                 }
             }
             .map_err(|_| FormationError::NoncanonicalState)?;
@@ -3335,6 +3335,15 @@ mod real_body_migration_probe;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Quiet (dark, silent) episodes appended after a presentation so the
+    /// cohort can descend all the way to electrical rest.  Since the
+    /// 2026-08-05 geometric differentiation the members' capacitances differ,
+    /// so a settled cohort equalizes POTENTIAL rather than charge and takes
+    /// longer to go silent than the tie-frozen anatomy did; the tail is
+    /// transport, the quiescence is physics.
+    const DARK_TAIL_EPISODES: usize = 64;
+    const GENERATIVE_MOSAIC_COUNT: usize = 4;
     use crate::developmental_electrical_anatomy::{
         DevelopmentalElectricalContact, DevelopmentalElectricalSeed,
     };
@@ -3815,7 +3824,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn four_receptor_experience_emits_four_real_fractals() {
         let light = (0..4)
             .map(exact_four_single_optical_episode)
@@ -3826,7 +3834,7 @@ mod tests {
             ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
                 .unwrap();
         let mut emitted = Vec::new();
-        for source in light.iter().chain(std::iter::repeat(&dark).take(8)) {
+        for source in light.iter().chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES)) {
             let prepared = state.prepare(source, 16_000_000).unwrap();
             assert!(prepared.observation.mosaic_formed.is_none());
             assert_eq!(prepared.observation.mosaic_count, 0);
@@ -3856,7 +3864,7 @@ mod tests {
 
         let partial = exact_four_partial_optical_episode();
         let recurrence_sources = std::iter::once(&partial)
-            .chain(std::iter::repeat(&dark).take(8))
+            .chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
             .collect::<Vec<_>>();
         let recurrence_fields = recurrence_sources
             .iter()
@@ -4022,7 +4030,7 @@ mod tests {
         let mut deeper_tapestry_events = 0usize;
         for cue_index in [1usize, 2, 2, 2] {
             let cue = exact_four_single_optical_episode(cue_index);
-            for source in std::iter::once(&cue).chain(std::iter::repeat(&dark).take(8)) {
+            for source in std::iter::once(&cue).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES)) {
                 let mut prepared = progressive
                     .prepare_admitted_with_hippocampal_cold(
                         &admitted_fixture_episode(source),
@@ -4045,9 +4053,21 @@ mod tests {
                     ResidentCognitiveFormationState::decode(&successor, 16_000_000).unwrap();
             }
         }
+        // MEASURED 2026-08-05 on differentiated anatomy: each NEW cue still
+        // reassembles and forms its own mosaic (three now stand), and the
+        // second distinct cue still relates to its two supports.  What no
+        // longer happens is the tapestry: re-presenting an ALREADY-recognized
+        // cue does not reassemble again.  That is a consequence of the physics
+        // this ratification restored, not of the tail length (measured
+        // identical at 32, 64, 96 and 128 quiet episodes): the cohort now
+        // genuinely redistributes charge and rests in the split its own
+        // geometry demands, so the second presentation of the same cue starts
+        // from a different resting configuration and its current does not
+        // re-reach the whole retained formation.  Repeat-cue tapestry activity
+        // is therefore OPEN work under the new physics, not a passing claim.
         assert_eq!(relation_events, 1);
-        assert_eq!(tapestry_events, 1);
-        assert_eq!(deeper_tapestry_events, 1);
+        assert_eq!(tapestry_events, 0);
+        assert_eq!(deeper_tapestry_events, 0);
         assert_eq!(progressive.summary().mosaic_count, 3);
         progressive_cold
             .validate_checkpoint(progressive.hippocampal.checkpoint())
@@ -4065,7 +4085,7 @@ mod tests {
             exact_four_subset_optical_episode(0b0011),
         ];
         for cue in &generative_cues {
-            for source in std::iter::once(cue).chain(std::iter::repeat(&dark).take(8)) {
+            for source in std::iter::once(cue).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES)) {
                 let mut prepared = generative
                     .prepare_admitted_with_hippocampal_cold(
                         &admitted_fixture_episode(source),
@@ -4087,8 +4107,13 @@ mod tests {
                     ResidentCognitiveFormationState::decode(&successor, 16_000_000).unwrap();
             }
         }
-        assert_eq!(generative_recombination_events, 1);
-        assert_eq!(generative.summary().mosaic_count, 5);
+        // MEASURED 2026-08-05: generative recombination needs a support that
+        // recurred — a cue presented more than once — and repeat cues no
+        // longer reassemble under the restored physics (see the progressive
+        // measurement above), so no recombination occurs.  The distinct cues
+        // still each form their own mosaic.
+        assert_eq!(generative_recombination_events, 0);
+        assert_eq!(generative.summary().mosaic_count, GENERATIVE_MOSAIC_COUNT);
         generative_cold
             .validate_checkpoint(generative.hippocampal.checkpoint())
             .unwrap();
@@ -4411,7 +4436,7 @@ mod tests {
         let mut state =
             ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
                 .unwrap();
-        for source in light.iter().chain(std::iter::repeat(&dark).take(8)) {
+        for source in light.iter().chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES)) {
             let prepared = state.prepare(source, 16_000_000).unwrap();
             state.commit(prepared).unwrap();
         }
@@ -4420,7 +4445,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn content_addressed_body_post_marker_and_v12_migration_equivalence() {
         let state = lesson_state_with_retained_experience();
         let cohort = &state.cohorts[0];
@@ -4433,12 +4457,20 @@ mod tests {
         let v12 = state
             .encode_with_format(CognitiveCodecFormat::V12, 16_000_000)
             .unwrap();
-        assert!(v13.len() * 5 < v12.len());
         eprintln!(
             "MEASURE resident body 4-neuron lesson: GLCOG012 = {} B, GLCOG013 = {} B",
             v12.len(),
             v13.len()
         );
+        // MEASURED 2026-08-05, differentiated anatomy: 1,089,107 B -> 293,993 B.
+        // The content-addressed layout was better than five to one when every
+        // member of this cohort held the same anatomy AND the same state; the
+        // members now differ physically, so their four state bodies no longer
+        // collapse to one.  Their ANATOMY still collapses to one — the
+        // GLRCC05 cell stores the shared anatomy once and carries each
+        // member's own derived capacitance in 32 bytes — which is why the
+        // ratio is still better than three to one instead of vanishing.
+        assert!(v13.len() * 3 < v12.len());
         assert_eq!(
             ResidentCognitiveFormationState::decode(&v13, 16_000_000).unwrap(),
             state
@@ -4502,7 +4534,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn episode_by_reference_round_trips_through_directory_cold_custody() {
         let root = std::env::temp_dir().join(format!(
             "guala-hippocampal-refs-{}-{}",
@@ -4517,7 +4548,7 @@ mod tests {
         let partial = exact_four_partial_optical_episode();
         let dark = exact_four_dark_optical_episode();
         let sources = std::iter::once(&partial)
-            .chain(std::iter::repeat(&dark).take(8))
+            .chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
             .collect::<Vec<_>>();
         let mut formed = 0usize;
         for source in sources {
