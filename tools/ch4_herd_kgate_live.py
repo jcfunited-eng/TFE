@@ -101,23 +101,26 @@ def build_event_stream(asof: str | None):
         for k in range(1, len(gs)):
             _, cls_prev, _, _, _ = gs[k - 1]
             _, cls_cur, _, _, tb_cur = gs[k]
-            # reveal slip: the gate ending at tb-1 is knowable at bar tb
-            if tb_cur >= len(closes) or closes[tb_cur] < PRICE_FLOOR:
+            # TRUE knowability: the boundary bar tb needs the NEXT bar's
+            # data (kappa) — a gate ending at tb-1 is first COMPUTABLE
+            # at the close of bar tb+1. Fill there, never earlier.
+            issue_ix = tb_cur + 1
+            if issue_ix >= len(closes) or closes[issue_ix] < PRICE_FLOOR:
                 continue
-            day = int(dates[tb_cur])
+            day = int(dates[issue_ix])
             st = hmap.get((sym, day))
             if st is None:
                 continue
             c, e, gb = st
             sp_hg = hid(hid("bigram", ((cls_prev, cls_cur))), "HG", e, gb)
-            events.append((day, sym, sp_hg, float(closes[tb_cur])))
+            events.append((day, sym, sp_hg, float(closes[issue_ix])))
         if dates:
             last_day = max(last_day or "0", dates[-1])
     events.sort(key=lambda x: (x[0], x[1]))
     return events, (int(last_day) if last_day else None)
 
 
-def replay(events, last_day):
+def replay(events, last_day, baseline=0):
     """Chronological HG ledger + virtual position walk. Returns the
     virtual open-position table and today's decisions."""
     pos, neg = defaultdict(int), defaultdict(int)
@@ -151,8 +154,9 @@ def replay(events, last_day):
             h["events"] += 1
             if h["events"] >= K_EXIT:
                 h["exit_day"], h["exit_px"] = day, px
-                if day == last_day:
-                    decisions["exits"].append(dict(h, sym=sym))
+                if day > baseline:
+                    decisions["exits"].append(dict(h, sym=sym,
+                                                   exit_day=day))
                 vopen.pop(sym)
         # candidate entry (every event is a ledger candidate; the
         # BOOK entry additionally needs the band)
@@ -166,9 +170,9 @@ def replay(events, last_day):
                           "n": n}
             decisions.setdefault("per_year", defaultdict(int))
             decisions["per_year"][day // 10 ** 4] += 1
-            if day == last_day:
+            if day > baseline:
                 decisions["entries"].append(
-                    {"sym": sym, "side": side, "px": px,
+                    {"sym": sym, "side": side, "px": px, "day": day,
                      "band": round(max(p, q) / n, 3), "n": n})
         pending[sym].append([day, sp, px, side, 0])
     return vopen, decisions
@@ -179,14 +183,16 @@ def main():
     asof = os.environ.get("CH4_ASOF")
     events, last_day = build_event_stream(asof)
     print(f"events: {len(events)} | latest store day: {last_day}")
-    vopen, decisions = replay(events, last_day)
+    book0 = json.load(open(BOOK_PATH)) if os.path.exists(BOOK_PATH) else {}
+    baseline = int((book0.get("last_processed") or "1900-01-01").replace("-", ""))
+    vopen, decisions = replay(events, last_day, baseline)
     print("virtual entries per year:",
           dict(sorted(decisions.get("per_year", {}).items())))
     print(f"latest-day decisions: {len(decisions['entries'])} entries, "
           f"{len(decisions['exits'])} exits | virtual open: {len(vopen)}")
     for d in decisions["entries"]:
         print(f"  ENTER {'LONG' if d['side'] == 1 else 'SHORT'} {d['sym']} "
-              f"@{d['px']} band={d['band']} n={d['n']}")
+              f"@{d['px']} band={d['band']} n={d['n']} day={d.get('day')}")
     for d in decisions["exits"]:
         print(f"  EXIT {d['sym']} @{d['exit_px']} (entered {d['entry_day']})")
     if dry:
@@ -221,7 +227,8 @@ def main():
     if datetime.strptime(bar_date, "%Y-%m-%d").weekday() == 4:
         print("Friday close: entries skipped (weekend rule)")
     else:
-        for d in sorted(decisions["entries"], key=lambda x: x["sym"]):
+        for d in sorted(decisions["entries"],
+                        key=lambda x: (x.get("day", 0), x["sym"])):
             if d["sym"] in book["positions"] \
                     or len(book["positions"]) >= MAX_OPEN:
                 continue
@@ -230,9 +237,11 @@ def main():
             notional = min(equity * SLICE_PCT / 100.0, book["cash"])
             if notional <= 0:
                 continue
+            dstr = str(d.get("day", 0))
+            entry_date = f"{dstr[:4]}-{dstr[4:6]}-{dstr[6:]}" if len(dstr) == 8 else bar_date
             book["positions"][d["sym"]] = {
                 "side": d["side"], "entry_px": d["px"],
-                "entry_date": bar_date, "notional": round(notional, 2),
+                "entry_date": entry_date, "notional": round(notional, 2),
                 "bound_pct": 0.0, "engine": ENGINE_VERSION}
             book["cash"] -= notional
     book["engine"] = ENGINE_VERSION
