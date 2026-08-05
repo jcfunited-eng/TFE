@@ -86,14 +86,29 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
 
     # First lesson: the 27 retinal card-surface sites transition and become
     # the grown cohort; both ear sites join it in the following hops.
+    #
+    # PIN CHANGED by the card-lesson truthfulness fix (companion to the
+    # ratified energy-descent law, 2026-08-05), measured before/after on this
+    # exact path:
+    #   physically_transitioned_neuron_count  BEFORE 27  ->  AFTER 189
+    #   complete_neuron_fractal_count         BEFORE  0  ->  AFTER  27
+    # The card is physically lit for the WHOLE presentation, but only hop 0
+    # declared the surface as its own exact optical occurrence, so only one
+    # 250 ms hop of the 1.75 s presentation delivered any light at all to the
+    # retinal receptors.  Now every lit hop declares it: all 27 lit sites
+    # transition on each of the 7 lit hops (7 * 27 == 189), the receptor
+    # accumulator crosses the gate's own opening threshold inside the FIRST
+    # lesson, and that first lesson's experience settles to quiescence and
+    # emits its 27 genuine post-quiescence fractals.
     first_status, first = _teach(CARD_ID)
     assert first_status == 200
     assert first["accepted"] is True and first["ok"] is True
     assert first["hop_count"] >= 3
     assert (
         first["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS
+        == SURFACE_PORTS * 7
     )
+    assert first["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
     assert first["observation"]["complete_neuron_count"] == LESSON_PORTS
     assert first["observation"]["cognitive_mosaic_count"] == 0
     assert first["persisted"]["state_sha256"] != genesis_sha
@@ -111,63 +126,56 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
         == first["persisted"]["state_sha256"]
     )
 
-    # Second pass of the same lesson: the exact recurrence of the settled
-    # experience emits genuine nonzero post-quiescence neuron fractals and
-    # grows no new neurons.
+    # Second pass of the same lesson: every lit hop transitions every lit
+    # site again, and no new neuron grows.
     #
-    # PIN CHANGED by the ratified quantized optical transduction law
-    # (2026-08-05), measured before/after:
-    #   physically_transitioned_neuron_count  BEFORE 0  ->  AFTER 27
-    # Before the law, a repeated identical presentation left every neuron
-    # bit-identical, so nothing "transitioned".  The law gives each retinal
-    # site a RETAINED exact-rational sub-quantum residue: the continuous
-    # 2*L*T energy is integrated into that accumulator and only whole 1/16 zJ
-    # lattice quanta are delivered, so the residue genuinely advances every
-    # time light is integrated.  All 27 lit card-surface sites therefore
-    # transition on every lit lesson (27 == SURFACE_PORTS).  This is real
-    # retained receptor state, not bookkeeping: it is what makes the
-    # conservation law exact across intervals.
+    # PIN CHANGED twice, measured before/after on this exact path:
+    #   physically_transitioned_neuron_count  BEFORE 0 -> 27 -> AFTER 189
+    #     The quantized optical transduction law (2026-08-05) gave each
+    #     retinal site a RETAINED exact-rational sub-quantum residue, so a
+    #     repeated identical presentation is no longer bit-identical; the
+    #     truthfulness fix then multiplied the lit hops from 1 to 7.
+    #   complete_neuron_fractal_count         BEFORE 27 -> AFTER 0
+    #     The retained experience is now settled by the FIRST lesson (see
+    #     above), so the second lesson has no newly settled experience to
+    #     emit.  Under the ratified energy-descent law the second lesson's
+    #     cohort is still redistributing charge across the authored chain
+    #     when the two dark ended hops run out, so it does not reach
+    #     quiescence and emits nothing.  Recorded, never forced.
     second_status, second = _teach(CARD_ID)
     assert second_status == 200
     assert (
         second["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS
+        == SURFACE_PORTS * 7
     )
-    assert (
-        second["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
-    )
+    assert second["totals"]["complete_neuron_fractal_count"] == 0
     assert second["observation"]["complete_neuron_count"] == LESSON_PORTS
 
     # Third pass: recurrence, not growth; the persisted body is byte-bounded.
-    # Same pin change as above (BEFORE 0 -> AFTER 27) for the same reason.
+    # Same pin change as above (BEFORE 27 -> AFTER 189) for the same reason.
     third_status, third = _teach(CARD_ID)
     assert third_status == 200
     assert (
-        third["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
+        third["totals"]["physically_transitioned_neuron_count"]
+        == SURFACE_PORTS * 7
     )
     assert third["observation"]["complete_neuron_count"] == LESSON_PORTS
 
-    # PIN CHANGED by Law 1 (threshold-integrated delivery, ratified
-    # 2026-08-05), measured before/after on this exact path:
-    #   L3 == L4 body bytes   BEFORE true  ->  AFTER false (+2016 bytes)
-    # Under the previous law the receptor delivered whole quanta on every
-    # interval but never enough to open a gate, so from the retained-
-    # experience completion onward the body was byte-FLAT.  Under Law 1 the
-    # per-site accumulator retains energy ACROSS lessons and crosses the
-    # gate's own opening threshold on the third lesson: gates open, charge
-    # crosses the authored chain contacts, and the persisted sparse deltas
-    # genuinely differ from lesson to lesson.  The lean bound is therefore
-    # restated as a measured PLATEAU rather than byte equality.  Measured
-    # bodies, alphabet-a, this exact path, 50 consecutive lessons:
-    #   L1 1130398, L2 1130430, L3 1947509, L4 1949525, L5 1981875,
-    #   L6..L14 1982085-1982127, L15 2014393, L16..L50 2014351-2014393
-    # Three one-time steps (the retained-experience completion and two 32 kB
-    # steps) and then flat within 42 bytes for the remaining 35 lessons: the
-    # body stays bounded, it does not grow with age.
+    # PIN RE-MEASURED under the ratified energy-descent law plus the
+    # card-lesson truthfulness fix (2026-08-05).  The lean bound stays a
+    # measured PLATEAU, not byte equality.  Measured bodies, alphabet-a,
+    # this exact served path, 12 consecutive lessons:
+    #   L1 2038932, L2 2038806, L3 2071240, L4 2071240, L5 2071072,
+    #   L6 2071198, L7 2071072, L8 2071240, L9 2071282, L10 2071156,
+    #   L11 2070988, L12 2071240
+    # One 32 kB step at L3 (the retained-experience completion) and then
+    # flat within 294 bytes for the remaining nine lessons: the body stays
+    # bounded, it does not grow with age.
     fourth_status, fourth = _teach(CARD_ID)
     assert fourth_status == 200
     assert (
-        fourth["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
+        fourth["totals"]["physically_transitioned_neuron_count"]
+        == SURFACE_PORTS * 7
     )
     assert fourth["persisted"]["state_bytes"] >= third["persisted"]["state_bytes"]
     assert (

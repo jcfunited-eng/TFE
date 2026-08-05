@@ -88,3 +88,21 @@ to docs/salvaged-github-workflows/) and S3
    expression is built but uncatalyzed at every call site — neuron count
    is capped at birth anatomy (29) until expression gets a real catalyst
    source. Part of the metabolism/intake design.
+
+## Ratification queue for Joe's well-day review (2026-08-05 evening)
+A. ANATOMY DIFFERENTIATION (blocks recognition): all neurons authored at
+   exactly 1 pF -> exact energy ties -> permanent Coulomb blockade of
+   one-charge flow under the ratified energy-descent law. Nature has no
+   exact degeneracy. Needs an authored/derived capacitance variation law.
+   Six end-to-end recognition proofs suspended with this reason (ignored,
+   not deleted; reactivate with the ruling).
+B. MEMBRANE RETURN PATH (metabolic loop): gate work pumps ~-1030
+   elementary charges per lit lesson into the cohort with no reverse path
+   (leak/pump law absent) — monotone ratchet, needs the metabolism paper.
+C. GATE DISSIPATION EXHAUSTION: ~23 lit lessons to gate-ledger exhaustion
+   (745/1044 after 12); recovery reaction never fires at current dynamics
+   (fuel untouched, 15,283/15,283). The feeding paper covers both sides.
+D. TRUE DARK TIME: electrically active experiences need longer real dark
+   to settle than a lesson's two ended hops; delivering the organism's
+   REAL inter-lesson darkness as unattended time is presentation truth
+   AND is autonomy increment 1's time-medium — proceeding as design.

@@ -86,13 +86,28 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
 ) -> None:
     production._startup()
 
-    # Two full presentations: the cohort grows, then the settled experience
-    # emits its genuine post-quiescence fractals and is retained.
+    # Two full presentations: the cohort grows and the FIRST lesson's own
+    # experience settles and emits its genuine post-quiescence fractals.
+    #
+    # PINS CHANGED by the card-lesson truthfulness fix (companion to the
+    # ratified energy-descent law, 2026-08-05), measured before/after on this
+    # exact path:
+    #   lesson 1 physically_transitioned_neuron_count  BEFORE 27 -> AFTER 189
+    #   lesson 1 complete_neuron_fractal_count         BEFORE  0 -> AFTER  27
+    #   lesson 2 complete_neuron_fractal_count         BEFORE 27 -> AFTER   0
+    # Every lit hop now declares the lit card surface as its own exact
+    # optical occurrence (the card really is lit for the whole
+    # presentation), so all 27 sites transition on each of the 7 lit hops
+    # and the receptor accumulator opens gates inside the first lesson.
     first_status, first = _teach(CARD_ID)
     second_status, second = _teach(CARD_ID)
     assert first_status == 200 and second_status == 200
-    assert first["totals"]["physically_transitioned_neuron_count"] == SURFACE_PORTS
-    assert second["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
+    assert (
+        first["totals"]["physically_transitioned_neuron_count"]
+        == SURFACE_PORTS * 7
+    )
+    assert first["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
+    assert second["totals"]["complete_neuron_fractal_count"] == 0
 
     # One partial presentation of the same approved card.
     status, partial = _teach(CARD_ID, "partial")
@@ -133,39 +148,36 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         == partial["persisted"]["state_sha256"]
     )
 
-    # MEASURED PHYSICS (2026-08-05, re-measured under Law 1, threshold-
-    # integrated delivery): the glimpse commits lawfully, now genuinely OPENS
-    # gates, and still admits no mosaic.  What changed physically: the
-    # per-site accumulator retains its 2*L*T energy across lessons, so after
-    # two full lessons the brightest lit sites carry ~15 of the 1/16 zJ
-    # lattice quanta; the glimpse hop takes them past the gate's own opening
-    # threshold (17 quanta = the +1 zJ plastic support barrier plus one), the
-    # 12 lit chain-prefix sites open, charge crosses the 500 pS chain
-    # contacts into the dark members, and the eight dark ended hops close the
-    # gates again (measured probe: 81 gate quanta dissipated, 0 gates left
-    # open).
+    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified
+    # energy-descent charge-transfer law and its companion card-lesson
+    # truthfulness fix): the glimpse commits lawfully, genuinely opens gates,
+    # moves real charge along the authored chain — and still admits no
+    # mosaic.
     #
-    # PIN CHANGED by Law 1, measured before/after on this exact path:
-    #   physically_transitioned_neuron_count  BEFORE 12  ->  AFTER 57
-    # 57 is the summed per-hop count over the glimpse and its eight ended
-    # hops: 12 lit sites on the glimpse hop plus the chain neighbours whose
-    # membrane charge the recurrence current actually moves while the
-    # injected charge redistributes.
+    # PIN CHANGED, measured before/after on this exact path:
+    #   physically_transitioned_neuron_count  BEFORE 57  ->  AFTER 128
+    # 128 is the summed per-hop count over the glimpse hop and its eight
+    # dark ended hops: the 12 lit chain-prefix sites plus every chain
+    # neighbour whose membrane charge the recurrence current actually moves
+    # while the injected charge redistributes.  It is larger than before
+    # because the two preceding full lessons now deliver seven hops of light
+    # each, so far more charge is on the chain when the glimpse arrives.
     #
-    # The mosaic is still refused, and the refusal reason is now a DIFFERENT
-    # one, read from the physics itself (measurement probe replaying
-    # admit_physical_mosaic on the persisted body): OriginalRelationNotConnected.
-    # The retained ORIGINAL experience is the second full lesson's, which
-    # settled with zero gate openings and therefore zero active electrical
-    # contacts, so its members are not connected by any active relation.  No
-    # electrically active experience has been retained in its place because
-    # inter-neuron charge settlement does not quiesce (see the 2026-08-05
-    # Law 2 diagnosis: whole-elementary-charge oscillation along the chain).
-    # This is recorded, never forced: if the substrate ever admits a mosaic,
-    # these assertions report it instead of hiding it.
+    # The refusal reason, read from the physics itself (measurement probe
+    # replaying admit_physical_mosaic on the served path), is
+    # OriginalRelationNotConnected — measured: members=27, contacts=26,
+    # active-within-members=0.  The retained ORIGINAL experience is the one
+    # the first lesson settled BEFORE the accumulator opened any gate, so it
+    # carries zero active electrical contacts and its 27 members are joined
+    # by no active relation.  No electrically active experience has been
+    # retained in its place: once gates open, the cohort is still
+    # redistributing charge when the lesson's two dark hops end, so no later
+    # experience reaches quiescence.  This is recorded, never forced: if the
+    # substrate ever admits a mosaic, these assertions report it instead of
+    # hiding it.
     if observed.cognitive_mosaic_count == 0:
         assert (
-            partial["totals"]["physically_transitioned_neuron_count"] == 57
+            partial["totals"]["physically_transitioned_neuron_count"] == 128
         )
         assert observed.partial_cue_reassembly_count == 0
     else:

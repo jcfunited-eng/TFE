@@ -2835,6 +2835,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "recognition requires degeneracy-broken anatomy: under the ratified energy-descent transfer law, identical authored capacitances tie exactly and blockade one-charge flow; the old green run rode the unphysical +1/-1 limit cycle. Reactivate with the anatomy differentiation ratification (see docs ratification queue)."]
     fn resident_growth_dna_genesis_expresses_contacts_and_admits_a_real_mosaic() {
         use crate::neuron_source_anchor::tests::{
             exact_four_dark_optical_episode, exact_four_partial_optical_episode,

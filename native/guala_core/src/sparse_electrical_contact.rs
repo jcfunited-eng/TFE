@@ -7,8 +7,17 @@
 //! current-state residency are linear in the reached neurons and contacts and
 //! do not grow with organism age.
 //!
+//! Conduction is dissipative and therefore obeys the ratified energy-descent
+//! law (`docs/GUALA_ENERGY_DESCENT_CHARGE_TRANSFER_RATIFICATION_2026-08-05.md`):
+//! whole elementary charges cross a contact only while doing so STRICTLY
+//! decreases the exact stored electrostatic energy of the two participating
+//! neurons.  Ties and increases move zero charge, exactly as the psi ring
+//! refuses a tied successor.  See `stored_energy_strictly_decreases`.
+//!
 //! This module contains no dense topology, neuron polling, owner, lock,
 //! database, score, semantic label, receipt, or history log.
+
+use core::cmp::Ordering;
 
 use crate::elementary_charge_membrane::{
     settle_membrane_elementary_charges, ElementaryChargeMembraneState, MembraneCapacitance,
@@ -115,23 +124,131 @@ pub(crate) struct ElectricalContactTransition {
     pub(crate) outward_elementary_charges_from_left: i128,
 }
 
+/// One endpoint of a contact as the settlement sees it: the exact separated
+/// charge and the authored capacitance that already define its potential.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct ContactEndpoint {
+    potential_millivolts: ExactRational,
+    separated_elementary_charges: i128,
+    capacitance: MembraneCapacitance,
+}
+
+impl ContactEndpoint {
+    fn new(
+        potential_millivolts: ExactRational,
+        membrane: ElementaryChargeMembraneState,
+        capacitance: MembraneCapacitance,
+    ) -> Self {
+        Self {
+            potential_millivolts,
+            separated_elementary_charges: membrane.separated_elementary_charges(),
+            capacitance,
+        }
+    }
+}
+
+/// Exact energy-descent test for moving `transferred_from_left` whole
+/// elementary charges from the left neuron to the right neuron.
+///
+/// A node's stored electrostatic energy in the unit system that already
+/// exists here is `q^2 e^2 / (2 C)`: integrating the existing potential law
+/// `V = q e / C` over the node's own separated charge.  Moving `n` whole
+/// charges from left to right therefore changes the pair's stored energy by
+///
+/// ```text
+///   dE = (e^2 / 2) * [ (n^2 - 2 n q_left) / C_left
+///                    + (n^2 + 2 n q_right) / C_right ]
+/// ```
+///
+/// The factor `e^2 / 2` is strictly positive and common to both terms, so it
+/// cannot change the sign: the exact rational bracket alone decides
+/// lawfulness.  No new constant, threshold, or damping factor is introduced —
+/// only the authored capacitances and the separated charges already in state.
+fn stored_energy_strictly_decreases(
+    left: ContactEndpoint,
+    right: ContactEndpoint,
+    transferred_from_left: i128,
+) -> Result<bool, SparseElectricalError> {
+    let squared = transferred_from_left
+        .checked_mul(transferred_from_left)
+        .ok_or(SparseElectricalError::ArithmeticWidth)?;
+    let doubled = transferred_from_left
+        .checked_mul(2)
+        .ok_or(SparseElectricalError::ArithmeticWidth)?;
+    let left_numerator = squared
+        .checked_sub(
+            doubled
+                .checked_mul(left.separated_elementary_charges)
+                .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        )
+        .ok_or(SparseElectricalError::ArithmeticWidth)?;
+    let right_numerator = squared
+        .checked_add(
+            doubled
+                .checked_mul(right.separated_elementary_charges)
+                .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        )
+        .ok_or(SparseElectricalError::ArithmeticWidth)?;
+    let bracket = ExactRational::integer(left_numerator)
+        .checked_div(left.capacitance.picofarads())?
+        .checked_add(
+            ExactRational::integer(right_numerator)
+                .checked_div(right.capacitance.picofarads())?,
+        )?;
+    Ok(bracket.checked_cmp(ExactRational::integer(0))? == Ordering::Less)
+}
+
+/// A contact that conducts nothing this interval: no charge crosses, no
+/// current is settled, and the unresolved carrier phase is retained exactly.
+fn quiescent_contact(predecessor: ElectricalContactState) -> ElectricalContactTransition {
+    ElectricalContactTransition {
+        successor: predecessor,
+        outward_current_from_left_picoamperes: ExactRational::integer(0),
+        outward_elementary_charges_from_left: 0,
+    }
+}
+
 fn settle_contact(
     anatomy: ElectricalContactAnatomy,
     predecessor: ElectricalContactState,
-    left_potential_millivolts: ExactRational,
-    right_potential_millivolts: ExactRational,
+    left: ContactEndpoint,
+    right: ContactEndpoint,
     interval_microseconds: u32,
 ) -> Result<ElectricalContactTransition, SparseElectricalError> {
-    let potential_difference = left_potential_millivolts.checked_sub(right_potential_millivolts)?;
+    let potential_difference = left
+        .potential_millivolts
+        .checked_sub(right.potential_millivolts)?;
     let current = anatomy
         .conductance_picosiemens
         .checked_mul(potential_difference)?
         .checked_div_unsigned(PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE)?;
+    // Dissipative conduction cannot flow without descent.  Charge is
+    // quantized, so the smallest move this contact could ever make is one
+    // elementary charge in the direction the field drives.  If even that move
+    // does not strictly lower the pair's exact stored energy there is no
+    // lawful move at all: the contact conducts nothing, retains its exact
+    // phase, and the pair rests.  (A move against the drive raises the energy
+    // by `1/C_left + 1/C_right` plus twice the driving gradient, so the
+    // driven direction is the only candidate; when the potentials are equal
+    // both directions raise it.)
+    let driven_direction = i128::from(current.parts().0.signum());
+    if driven_direction == 0 || !stored_energy_strictly_decreases(left, right, driven_direction)? {
+        return Ok(quiescent_contact(predecessor));
+    }
     let carrier = settle_elementary_charge_transfer(
         predecessor.carrier_phase,
         current,
         interval_microseconds,
     )?;
+    // The settled whole-charge transfer itself must descend.  Only a step
+    // that overshoots the pair's equalization point can fail here, which the
+    // authored anatomy cannot reach (500 pS across 1 pF over 1 ms moves half
+    // the imbalance); such a step is refused rather than silently applied.
+    if carrier.outward_elementary_charges != 0
+        && !stored_energy_strictly_decreases(left, right, carrier.outward_elementary_charges)?
+    {
+        return Ok(quiescent_contact(predecessor));
+    }
     Ok(ElectricalContactTransition {
         successor: ElectricalContactState {
             carrier_phase: carrier.successor_phase,
@@ -426,8 +543,16 @@ pub(crate) fn settle_sparse_electrical_transfers(
         let transition = settle_contact(
             contact,
             predecessor_contacts.contacts[index],
-            potentials[contact.left_neuron],
-            potentials[contact.right_neuron],
+            ContactEndpoint::new(
+                potentials[contact.left_neuron],
+                predecessor_membranes[contact.left_neuron],
+                capacitances[contact.left_neuron],
+            ),
+            ContactEndpoint::new(
+                potentials[contact.right_neuron],
+                predecessor_membranes[contact.right_neuron],
+                capacitances[contact.right_neuron],
+            ),
             interval_microseconds,
         )?;
         let right_outward = transition
@@ -503,16 +628,20 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
             settle_contact(
                 contact,
                 predecessor_contacts.contacts[index],
-                potentials[contact.left_neuron],
-                potentials[contact.right_neuron],
+                ContactEndpoint::new(
+                    potentials[contact.left_neuron],
+                    predecessor_membranes[contact.left_neuron],
+                    capacitances[contact.left_neuron],
+                ),
+                ContactEndpoint::new(
+                    potentials[contact.right_neuron],
+                    predecessor_membranes[contact.right_neuron],
+                    capacitances[contact.right_neuron],
+                ),
                 interval_microseconds,
             )?
         } else {
-            ElectricalContactTransition {
-                successor: predecessor_contacts.contacts[index],
-                outward_current_from_left_picoamperes: ExactRational::integer(0),
-                outward_elementary_charges_from_left: 0,
-            }
+            quiescent_contact(predecessor_contacts.contacts[index])
         };
         let right_outward = transition
             .outward_elementary_charges_from_left
@@ -748,6 +877,243 @@ mod tests {
             membranes = settled.successor_membranes.into_vec();
             contact_state = settled.successor_contacts;
         }
+    }
+
+    /// The exact anatomy of the measured obstruction: neuron capacitance
+    /// 1 pF, one authored contact at 500 pS, settled on 1 ms intervals.
+    fn measured_two_neuron_anatomy() -> SparseElectricalAnatomy {
+        SparseElectricalAnatomy::new(
+            2,
+            vec![
+                ElectricalContactAnatomy::new(0, 1, ExactRational::integer(500), 2).unwrap(),
+            ],
+        )
+        .unwrap()
+    }
+
+    fn measured_capacitances() -> Vec<MembraneCapacitance> {
+        capacitances(2)
+    }
+
+    fn run_measured_pair(
+        left_charges: i128,
+        right_charges: i128,
+        intervals: usize,
+    ) -> (Vec<ElementaryChargeMembraneState>, SparseElectricalState, bool) {
+        let anatomy = measured_two_neuron_anatomy();
+        let capacitances = measured_capacitances();
+        let mut contacts = SparseElectricalState::genesis(&anatomy);
+        let mut membranes = vec![
+            ElementaryChargeMembraneState::genesis(left_charges),
+            ElementaryChargeMembraneState::genesis(right_charges),
+        ];
+        let mut any_charge_moved_after_settling = false;
+        let mut settled_at: Option<usize> = None;
+        for index in 0..intervals {
+            let settled = settle_sparse_electrical_contacts(
+                &anatomy,
+                &contacts,
+                &capacitances,
+                &membranes,
+                1_000,
+            )
+            .unwrap();
+            let moved = settled.transitions[0].outward_elementary_charges_from_left != 0;
+            let state_changed = settled.successor_contacts != contacts
+                || settled.successor_membranes.as_ref() != membranes.as_slice();
+            if settled_at.is_some() && moved {
+                any_charge_moved_after_settling = true;
+            }
+            if !state_changed && settled_at.is_none() {
+                settled_at = Some(index);
+            }
+            membranes = settled.successor_membranes.into_vec();
+            contacts = settled.successor_contacts;
+        }
+        (membranes, contacts, any_charge_moved_after_settling)
+    }
+
+    fn charges(membranes: &[ElementaryChargeMembraneState]) -> Vec<i128> {
+        membranes
+            .iter()
+            .map(|membrane| membrane.separated_elementary_charges())
+            .collect()
+    }
+
+    #[test]
+    fn energy_descent_condition_is_exact_and_refuses_ties_and_increases() {
+        // Stored energy of a node is q^2/(2C) in the existing unit system.
+        // With C = 1 pF on both sides the bracket is exactly
+        // (n^2 - 2 n q_left) + (n^2 + 2 n q_right).
+        let unit = MembraneCapacitance::new(ExactRational::integer(1)).unwrap();
+        let left = ContactEndpoint {
+            potential_millivolts: ExactRational::integer(0),
+            separated_elementary_charges: -12,
+            capacitance: unit,
+        };
+        let right = ContactEndpoint {
+            potential_millivolts: ExactRational::integer(0),
+            separated_elementary_charges: -11,
+            capacitance: unit,
+        };
+        // The measured oscillation step: (-12,-11) -> (-11,-12).  Stored
+        // energy is exactly equal (144+121 == 121+144): a TIE, refused.
+        assert!(!stored_energy_strictly_decreases(left, right, -1).unwrap());
+        // The reverse step is an increase, also refused.
+        assert!(!stored_energy_strictly_decreases(left, right, 1).unwrap());
+        // An even imbalance descends by exactly 2 (in units of e^2/2):
+        // (-12,-10) -> (-11,-11) is 244 -> 242.
+        let even_right = ContactEndpoint {
+            separated_elementary_charges: -10,
+            ..right
+        };
+        assert!(stored_energy_strictly_decreases(left, even_right, -1).unwrap());
+        // Overshooting the equalization point is refused: two charges would
+        // take (-12,-10) to (-10,-12), exactly the same stored energy.
+        assert!(!stored_energy_strictly_decreases(left, even_right, -2).unwrap());
+        // Three charges would raise it; refused.
+        assert!(!stored_energy_strictly_decreases(left, even_right, -3).unwrap());
+        // Unequal capacitance is honoured exactly: with C_right = 4 pF the
+        // equalization point moves, so a single charge from the higher
+        // potential still descends.
+        let soft_right = ContactEndpoint {
+            capacitance: MembraneCapacitance::new(ExactRational::integer(4)).unwrap(),
+            separated_elementary_charges: 0,
+            ..right
+        };
+        let charged_left = ContactEndpoint {
+            separated_elementary_charges: 1,
+            ..left
+        };
+        assert!(stored_energy_strictly_decreases(charged_left, soft_right, 1).unwrap());
+        assert!(!stored_energy_strictly_decreases(charged_left, soft_right, -1).unwrap());
+    }
+
+    #[test]
+    fn measured_odd_imbalance_oscillation_terminates_with_zero_lawful_moves() {
+        // MEASURED BEFORE the ratified energy-descent law, this exact
+        // anatomy and state (-12, -11) produced a permanent +1/-1 limit
+        // cycle: one charge crossed every two intervals, forever, so the
+        // contact was electrically active for ever and no experience could
+        // settle.  AFTER the law the pair rests at its one-charge residual
+        // with zero lawful moves remaining.
+        let (membranes, contacts, moved_after_settling) = run_measured_pair(-12, -11, 512);
+        assert_eq!(charges(&membranes), vec![-12, -11]);
+        assert_eq!(contacts, SparseElectricalState::genesis(&measured_two_neuron_anatomy()));
+        assert!(!moved_after_settling);
+
+        // No lawful move remains in either direction, from either resting
+        // orientation of the same odd imbalance.
+        let anatomy = measured_two_neuron_anatomy();
+        let capacitances = measured_capacitances();
+        for pair in [(-12_i128, -11_i128), (-11, -12), (0, 1), (7, 6)] {
+            let membranes = vec![
+                ElementaryChargeMembraneState::genesis(pair.0),
+                ElementaryChargeMembraneState::genesis(pair.1),
+            ];
+            let settled = settle_sparse_electrical_contacts(
+                &anatomy,
+                &SparseElectricalState::genesis(&anatomy),
+                &capacitances,
+                &membranes,
+                1_000,
+            )
+            .unwrap();
+            assert_eq!(settled.transitions[0].outward_elementary_charges_from_left, 0);
+            assert_eq!(
+                settled.transitions[0].outward_current_from_left_picoamperes,
+                ExactRational::integer(0)
+            );
+            assert_eq!(settled.successor_membranes.as_ref(), membranes.as_slice());
+            assert_eq!(
+                settled.successor_contacts,
+                SparseElectricalState::genesis(&anatomy)
+            );
+        }
+    }
+
+    #[test]
+    fn even_imbalance_settles_exactly_to_zero_current_and_odd_rests_at_one_charge() {
+        // Even difference: exact settlement, zero residual, zero current.
+        let (membranes, contacts, moved_after_settling) = run_measured_pair(-12, -10, 64);
+        assert_eq!(charges(&membranes), vec![-11, -11]);
+        assert_eq!(contacts, SparseElectricalState::genesis(&measured_two_neuron_anatomy()));
+        assert!(!moved_after_settling);
+
+        // A larger even difference also reaches exact equality.
+        let (membranes, _, _) = run_measured_pair(1_000, 0, 4_096);
+        assert_eq!(charges(&membranes), vec![500, 500]);
+
+        // Odd difference: rests at exactly one elementary charge of residual
+        // imbalance — a physical resting potential, not a limit cycle.
+        let (membranes, _, moved_after_settling) = run_measured_pair(1_001, 0, 4_096);
+        let resting = charges(&membranes);
+        assert_eq!(resting[0] + resting[1], 1_001);
+        assert_eq!((resting[0] - resting[1]).abs(), 1);
+        assert!(!moved_after_settling);
+    }
+
+    #[test]
+    fn energy_descent_conserves_charge_exactly_and_never_raises_cohort_energy() {
+        // Stored cohort energy sum(q_i^2 / (2 C_i)) with equal capacitance is
+        // proportional to sum(q_i^2); it must never rise, and total charge
+        // must be exactly conserved, along a connected chain.
+        let contacts = vec![
+            ElectricalContactAnatomy::new(0, 1, ExactRational::integer(500), 4).unwrap(),
+            ElectricalContactAnatomy::new(1, 2, ExactRational::integer(500), 4).unwrap(),
+            ElectricalContactAnatomy::new(2, 3, ExactRational::integer(500), 4).unwrap(),
+        ];
+        let anatomy = SparseElectricalAnatomy::new(4, contacts).unwrap();
+        let capacitances = capacitances(4);
+        let mut contact_state = SparseElectricalState::genesis(&anatomy);
+        let mut membranes = vec![
+            ElementaryChargeMembraneState::genesis(1_000),
+            ElementaryChargeMembraneState::genesis(-7),
+            ElementaryChargeMembraneState::genesis(0),
+            ElementaryChargeMembraneState::genesis(-501),
+        ];
+        let conserved = total_charge(&membranes);
+        let mut energy = charges(&membranes)
+            .into_iter()
+            .map(|charge| charge * charge)
+            .sum::<i128>();
+        let mut quiescent_from: Option<usize> = None;
+        for index in 0..4_096 {
+            let settled = settle_sparse_electrical_contacts(
+                &anatomy,
+                &contact_state,
+                &capacitances,
+                &membranes,
+                1_000,
+            )
+            .unwrap();
+            assert_eq!(total_charge(&settled.successor_membranes), conserved);
+            let successor_energy = charges(&settled.successor_membranes)
+                .into_iter()
+                .map(|charge| charge * charge)
+                .sum::<i128>();
+            assert!(successor_energy <= energy);
+            let unchanged = settled.successor_contacts == contact_state
+                && settled.successor_membranes.as_ref() == membranes.as_slice();
+            if unchanged {
+                quiescent_from.get_or_insert(index);
+            } else {
+                assert!(
+                    quiescent_from.is_none(),
+                    "a rested chain moved again at interval {index}"
+                );
+            }
+            energy = successor_energy;
+            membranes = settled.successor_membranes.into_vec();
+            contact_state = settled.successor_contacts;
+        }
+        assert!(quiescent_from.is_some());
+        // Every remaining imbalance is at most one elementary charge.
+        let resting = charges(&membranes);
+        for pair in resting.windows(2) {
+            assert!((pair[0] - pair[1]).abs() <= 1);
+        }
+        assert_eq!(resting.into_iter().sum::<i128>(), conserved);
     }
 
     #[test]

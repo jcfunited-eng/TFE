@@ -1492,38 +1492,30 @@ def _card_lesson_hop_episodes(
             PhysicalSense.SIGHT: sight_ports,
             PhysicalSense.SOUND: _ear_ports(shared_times, audio_signal),
         }
-        if hop_index == 0:
-            # Under the ratified retinal receptor law only an exact optical
-            # occurrence (all retinal sight ports) can genesis the first
-            # reached cohort, so every lesson's first hop declares the lit
-            # surface and the tutor pressure as two co-clocked occurrences;
-            # the exact recurrence of that first hop across lessons is what
-            # lets the settled experience emit its genuine post-quiescence
-            # neuron fractals.  Every later hop declares one combined
-            # occurrence so the ear sites join and stay members of the grown
-            # cohort.
-            occurrences = (
-                _occurrence(
-                    tuple(range(CARD_SURFACE_PORT_COUNT)),
-                    shared_times,
-                    frame_count,
-                ),
-                _occurrence(
-                    tuple(
-                        range(CARD_SURFACE_PORT_COUNT, LESSON_PORT_COUNT)
-                    ),
-                    shared_times,
-                    frame_count,
-                ),
-            )
-        else:
-            occurrences = (
-                _occurrence(
-                    tuple(range(LESSON_PORT_COUNT)),
-                    shared_times,
-                    frame_count,
-                ),
-            )
+        # The card is physically lit for the WHOLE presentation, so every hop
+        # of it declares the lit surface and the tutor pressure as two
+        # co-clocked occurrences.  Under the ratified retinal receptor law
+        # only an exact optical occurrence (every port of the occurrence a
+        # retinal sight port) settles the retinal cohort's receptor physics,
+        # so a hop that folded the surface into a combined sight+sound
+        # occurrence delivered no light at all — the organism was told the
+        # card went dark for 14 of the 15 seconds it was actually lit.  With
+        # every lit hop declaring its optical occurrence, the receptor's
+        # threshold-integrated accumulator integrates the light that really
+        # falls on it for the whole presentation.  The ears still join the
+        # grown cohort through their own co-clocked occurrence on every hop.
+        occurrences = (
+            _occurrence(
+                tuple(range(CARD_SURFACE_PORT_COUNT)),
+                shared_times,
+                frame_count,
+            ),
+            _occurrence(
+                tuple(range(CARD_SURFACE_PORT_COUNT, LESSON_PORT_COUNT)),
+                shared_times,
+                frame_count,
+            ),
+        )
         episode = settle_native_joint_source_episode(
             assembly_id=f"curriculum-card-{card_id}-hop-{hop_index}",
             observed_substreams=observed,

@@ -4358,6 +4358,129 @@ mod tests {
     }
 
     #[test]
+    fn odd_charge_residual_is_electrically_quiescent_and_even_settles_to_zero() {
+        // The ratified energy-descent charge-transfer law measured through
+        // the cohort's own quiescence predicate, on the exact anatomy of the
+        // obstruction: 1 pF neurons, one authored 500 pS contact, 1 ms
+        // intervals.
+        //
+        // MEASURED BEFORE the law: charges (-12,-11) crossed one elementary
+        // charge every second interval forever (+1/-1 limit cycle), so
+        // `electrically_active` was true on every other interval and the
+        // cohort never reached quiescence.
+        // MEASURED AFTER the law: zero lawful moves remain, the contact
+        // conducts nothing, `electrically_active` is false and the cohort is
+        // quiescent on the very first interval.
+        let shared = shared_three_neuron_field();
+        let fixtures = [physical_fixture(), physical_fixture(), physical_fixture()];
+        let electrical_anatomy = SparseElectricalAnatomy::new(
+            3,
+            vec![ElectricalContactAnatomy::new(0, 1, r(500, 1), 3).unwrap()],
+        )
+        .unwrap();
+        let cohort_anatomy = ReachedCohortAnatomy::new(
+            fixtures
+                .iter()
+                .map(|fixture| fixture.anatomy.clone())
+                .collect(),
+            fixture_lineages(fixtures.len()),
+            fixture_source_sites(fixtures.len()),
+            electrical_anatomy.clone(),
+        )
+        .unwrap();
+        let cohort_state = |left: i128, right: i128| {
+            let mut neurons = fixtures
+                .iter()
+                .map(|fixture| fixture.state.clone())
+                .collect::<Vec<_>>();
+            neurons[0].membrane = LocalMembraneConductanceState::genesis(left);
+            neurons[1].membrane = LocalMembraneConductanceState::genesis(right);
+            ReachedCohortState::new(
+                &cohort_anatomy,
+                neurons,
+                SparseElectricalState::genesis(&electrical_anatomy),
+            )
+            .unwrap()
+        };
+        let inputs = || {
+            ReachedCohortIntervalInput::fixture(
+                fixtures
+                    .iter()
+                    .enumerate()
+                    .map(|(index, fixture)| {
+                        interval(
+                            bind_neuron_perspective(&shared, index, 1).unwrap(),
+                            &fixture.zero_catalysts,
+                        )
+                    })
+                    .collect(),
+                fixture_source_sites(fixtures.len()),
+            )
+            .unwrap()
+        };
+        let separated = |state: &ReachedCohortState| {
+            state
+                .neurons()
+                .iter()
+                .map(|neuron| neuron.membrane_state().separated_elementary_charges())
+                .collect::<Vec<_>>()
+        };
+
+        // These fixture neurons also run their own local membrane physics,
+        // which moves each neuron's charge on its own account; the contact's
+        // imbalance — the only thing the ratified law governs — is what is
+        // read here, on the first interval out of the measured state.
+        let imbalance = |state: &ReachedCohortState| {
+            let charges = separated(state);
+            charges[0] - charges[1]
+        };
+
+        // Odd residual (the measured obstruction, exactly): zero lawful
+        // moves remain, so no charge crosses, no current is settled, the
+        // contact state is unchanged, and `electrically_active` is FALSE.
+        let odd = cohort_state(-12, -11);
+        assert_eq!(imbalance(&odd), -1);
+        let settled = settle_reached_cohort_interval(&cohort_anatomy, &odd, inputs()).unwrap();
+        assert!(!settled.electrically_active);
+        assert_eq!(
+            settled.contact_transitions[0].outward_elementary_charges_from_left,
+            0
+        );
+        assert_eq!(
+            settled.contact_transitions[0].outward_current_from_left_picoamperes,
+            r(0, 1)
+        );
+        assert_eq!(
+            settled.contact_outward_elementary_charges_by_neuron.as_ref(),
+            [0, 0, 0]
+        );
+        assert_eq!(
+            settled.successor.electrical(),
+            &SparseElectricalState::genesis(&electrical_anatomy)
+        );
+        // The same refusal from the mirrored resting orientation.
+        let mirrored = cohort_state(-11, -12);
+        let settled =
+            settle_reached_cohort_interval(&cohort_anatomy, &mirrored, inputs()).unwrap();
+        assert!(!settled.electrically_active);
+
+        // Even difference: exactly one charge crosses, and it crosses in the
+        // descending direction (the more negative neuron receives it).
+        let even = cohort_state(-12, -10);
+        assert_eq!(imbalance(&even), -2);
+        let settled = settle_reached_cohort_interval(&cohort_anatomy, &even, inputs()).unwrap();
+        assert!(settled.electrically_active);
+        assert_eq!(
+            settled.contact_transitions[0].outward_elementary_charges_from_left,
+            -1
+        );
+        assert_eq!(
+            settled.contact_outward_elementary_charges_by_neuron.as_ref(),
+            [-1, 1, 0]
+        );
+    }
+
+    #[test]
     fn reached_cohort_requires_exact_sight_sound_and_body_source_anatomy() {
         let episode = exact_episode();
         let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
