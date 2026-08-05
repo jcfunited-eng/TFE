@@ -49,6 +49,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
 )
 
 
+from tests.native_joint_occurrence_support import joint_occurrences_for
 SECRET = b"auditory-token-sequence-test-secret" * 2
 STREAM_ID = "auditory-token-sequence-test-stream"
 EPOCH = Fraction(17, 5)
@@ -87,15 +88,17 @@ def _experience_and_terminal(
     )
     source_start = EPOCH + Fraction(sample_start, PCM_SAMPLE_RATE_HZ)
     source_end = source_start + Fraction(EVENT_SAMPLES, PCM_SAMPLE_RATE_HZ)
+    observed = {
+        PhysicalSense.SOUND: auditory_kernel_component_inputs(
+            capture, source_anchor=source_start
+        )
+    }
     built = build_six_sense_full_field(
         assembly_id=f"token-sequence-{sample_start}-{frequency_hz}",
         source_time_start=source_start,
         source_time_end=source_end,
-        observed_substreams={
-            PhysicalSense.SOUND: auditory_kernel_component_inputs(
-                capture, source_anchor=source_start
-            )
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

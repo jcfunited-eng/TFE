@@ -29,6 +29,7 @@ from dsf_ai_service.substrate.visual_exposure_epoch import (
     VisualExposureEpochAuthority,
 )
 import dsf_ai_service.substrate.visual_region_continuity as visual_module
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"visual-region-test-authority-key-32-bytes-minimum"
@@ -80,7 +81,7 @@ def _built(prepared, assembly_id, *, source_start=0):
         assembly_id=assembly_id,
         source_time_start=Fraction(source_start),
         source_time_end=Fraction(source_start + 5),
-        observed_substreams={PhysicalSense.SIGHT: prepared.substreams},
+        observed_substreams={PhysicalSense.SIGHT: prepared.substreams}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: prepared.substreams}),
         states=states,
     )
 

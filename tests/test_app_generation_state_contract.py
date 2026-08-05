@@ -118,6 +118,7 @@ def test_current_generation_is_exact_native_state_and_cold_restorable(
     writer = Guala()
     reader = None
     try:
+        writer.load_full_state(str(tmp_path))
         writer.tick = 73
         writer.save_full_state(
             tmp_path,
@@ -150,7 +151,7 @@ def test_current_generation_is_exact_native_state_and_cold_restorable(
 
 def test_current_generation_manifest_excludes_retired_cognition() -> None:
     current = set(Guala.FULL_SAVE_MANIFEST_FILES)
-    assert current == {"guala_core.json"}
+    assert current == {"guala_core.json", "guala_organism.glorun"}
     assert "guala_organism.sgr" not in current
     assert "guala_organism.sgr.binding.json" not in current
     assert not any(path.startswith("owner_state/") for path in current)
@@ -171,6 +172,7 @@ def test_current_core_names_only_the_physical_continuity_contract(
     monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", RUNTIME_KEY)
     guala = Guala()
     try:
+        guala.load_full_state(str(tmp_path))
         guala.save_full_state(
             tmp_path,
             publish_generation=False,

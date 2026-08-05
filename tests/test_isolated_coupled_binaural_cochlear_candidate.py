@@ -25,6 +25,7 @@ from tools.isolated_coupled_binaural_cochlear_candidate import (
     RECEPTOR_KINDS,
     CoupledBinauralCochlearAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"isolated-coupled-binaural-candidate-test-key"
@@ -55,7 +56,7 @@ def _build_ear(authority, capture, ear_id):
         source_time_end=Fraction(
             len(_signal()), REQUIRED_SAMPLE_RATE_HZ
         ),
-        observed_substreams={PhysicalSense.SOUND: inputs},
+        observed_substreams={PhysicalSense.SOUND: inputs}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: inputs}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

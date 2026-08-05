@@ -56,6 +56,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 SAMPLE_COUNT = 320
@@ -138,7 +139,7 @@ def _heard_field(
         assembly_id=assembly_id,
         source_time_start=anchor,
         source_time_end=source_end,
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

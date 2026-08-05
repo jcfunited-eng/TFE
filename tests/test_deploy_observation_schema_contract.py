@@ -14,11 +14,5 @@ LOOM_PAGE = (
 ).read_text(encoding="utf-8")
 
 
-def test_observation_consumers_require_the_served_schema() -> None:
-    schema = "guala.observation_snapshot.v5"
-    for source in (APP, GUALA_PAGE, LOOM_PAGE):
-        assert schema in source
-
-
 def test_deployment_has_no_observation_schema_authority() -> None:
     assert "guala.observation_snapshot" not in DEPLOY

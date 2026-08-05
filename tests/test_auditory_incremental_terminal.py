@@ -52,6 +52,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     OBSERVATION_HOP_SAMPLES,
     AuditoryFullFieldStream,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 SOURCE_EPOCH_NS = 1_000_000_000
@@ -144,7 +145,7 @@ class _MountedStream:
             assembly_id=f"incremental-test-{self.stream_id}-{sequence}",
             source_time_start=epoch + Fraction(start, PCM_SAMPLE_RATE_HZ),
             source_time_end=epoch + Fraction(end, PCM_SAMPLE_RATE_HZ),
-            observed_substreams={PhysicalSense.SOUND: ports},
+            observed_substreams={PhysicalSense.SOUND: ports}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: ports}),
             states={
                 sense: (
                     SenseBoundaryState.OBSERVED

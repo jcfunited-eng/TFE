@@ -29,6 +29,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _capture():
@@ -63,7 +64,7 @@ def _experience(capture, *, old_unit_relevance: bool = False):
             capture.input_sample_count,
             REQUIRED_SAMPLE_RATE_HZ,
         ),
-        observed_substreams={PhysicalSense.SOUND: components},
+        observed_substreams={PhysicalSense.SOUND: components}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: components}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

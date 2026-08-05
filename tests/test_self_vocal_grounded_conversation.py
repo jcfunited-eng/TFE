@@ -63,6 +63,7 @@ from dsf_ai_service.substrate.w1_grounded_demonstration import (
     W1GroundedDemonstrationOwner,
     W1GroundedDemonstrationProfile,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"self-vocal-grounded-conversation-test-key"
@@ -115,7 +116,7 @@ def _heard_pcm(
             capture.input_sample_count,
             REQUIRED_SAMPLE_RATE_HZ,
         ),
-        observed_substreams={PhysicalSense.SOUND: components},
+        observed_substreams={PhysicalSense.SOUND: components}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: components}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -169,7 +170,7 @@ def _visual_settlement(assembly_id: str):
         assembly_id=assembly_id,
         source_time_start=Fraction(0),
         source_time_end=Fraction(1),
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

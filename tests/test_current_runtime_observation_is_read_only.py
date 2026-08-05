@@ -5,6 +5,7 @@ from dsf_ai_service.v4.guala_physical_runtime import Guala
 
 def test_repeated_truthful_observation_cannot_accumulate_learned_state(
     monkeypatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
@@ -14,7 +15,10 @@ def test_repeated_truthful_observation_cannot_accumulate_learned_state(
 
     organism = Guala()
     try:
-        owner_state_before = organism._bounded_owner_state_bodies()
+        organism.load_full_state(str(tmp_path))
+        native_before = organism._native_resident_observation_record(
+            organism._native_resident_organism.readiness()
+        )
         event_sequence_before = organism._substrate_event_sequence
         world_before = organism._embodiment_world.observation_snapshot()
         first = organism.observation_snapshot()
@@ -30,7 +34,9 @@ def test_repeated_truthful_observation_cannot_accumulate_learned_state(
         for _ in range(1_000):
             assert organism.observation_snapshot() == first
 
-        assert organism._bounded_owner_state_bodies() == owner_state_before
+        assert organism._native_resident_observation_record(
+            organism._native_resident_organism.readiness()
+        ) == native_before
         assert organism._substrate_event_sequence == event_sequence_before
         assert (
             organism._embodiment_world.observation_snapshot()

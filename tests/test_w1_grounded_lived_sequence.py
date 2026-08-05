@@ -44,6 +44,7 @@ from tests.test_self_vocal_grounded_conversation import (
     _heard_pcm,
     _motor_fixture,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"W1-grounded-lived-sequence-test-key"
@@ -85,7 +86,7 @@ def _visual_settlement(
         assembly_id=assembly_id,
         source_time_start=start,
         source_time_end=end,
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

@@ -45,6 +45,7 @@ from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
 from dsf_ai_service.substrate.w1_companion_vocal_experience import (
     W1CompanionVocalExperienceAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _tone(frequency_hz: int) -> bytes:
@@ -134,7 +135,7 @@ def _sound_settlement(
         pcm=_tone(left_hz),
         source_time_start=start,
     )
-    sound = left
+    sound = tuple(left)
     if right_hz is not None:
         right = _sound_inputs(
             ear="right",
@@ -147,7 +148,7 @@ def _sound_settlement(
         assembly_id="binaural-l5-test-assembly",
         source_time_start=start,
         source_time_end=Fraction(960, 16_000),
-        observed_substreams={PhysicalSense.SOUND: sound},
+        observed_substreams={PhysicalSense.SOUND: sound}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: sound}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

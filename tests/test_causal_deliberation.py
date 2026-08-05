@@ -33,6 +33,7 @@ from dsf_ai_service.substrate.causal_deliberation import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _action(value: str) -> ActionCommand:
@@ -96,7 +97,7 @@ def _settlement(
         assembly_id=name,
         source_time_start=Fraction(0),
         source_time_end=Fraction(count, 200),
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

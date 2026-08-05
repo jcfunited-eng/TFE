@@ -60,6 +60,7 @@ from tests.test_w1_audiovisual_physical_evidence import (
 from tests.test_whole_organism_neuron_population import (
     _owner as _neuron_owner,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 PARTITION_KEY = b"passive-learning-partition-authority-key-v1"
@@ -127,7 +128,7 @@ def _settlement(
         assembly_id=f"causal-{window_id}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(48, 1_000),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     return ExactCausalExperienceOwner(

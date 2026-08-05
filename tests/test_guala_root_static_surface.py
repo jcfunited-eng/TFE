@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_STATIC = ROOT / "dsf_ai_service" / "static"
 PUBLIC_FILES = {
     "guala-brain-foundation-v1.png",
+    "gualaloom-rich-room-v3.png",
     "gualaloom.html",
     "loomscan.html",
     "legal.html",
@@ -74,6 +75,7 @@ def test_root_is_complete_guala_publication(
         local_references.update(LOCAL_REFERENCE.findall(text))
     assert local_references == {
         "/guala-brain-foundation-v1.png",
+        "/gualaloom-rich-room-v3.png",
         "/gualaloom.html",
         "/loomscan.html",
         "/legal.html",

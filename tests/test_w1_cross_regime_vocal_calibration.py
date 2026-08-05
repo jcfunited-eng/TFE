@@ -204,9 +204,9 @@ def _external_observation(q_owner, frequency: int, amplitude: int):
 def _action(world, kind: str, intent_digit: str):
     before = world.observation_snapshot()
     command = (
-        PickCommand("teaching-object")
+        PickCommand("teaching-object", 200_000)
         if kind == "pick"
-        else MoveCommand(PoseMM(PositionMM(1_000, 800, 0), 0))
+        else MoveCommand(PoseMM(PositionMM(1_000, 800, 0), 0), 200_000)
     )
     execution = world.execute_port_command(
         port_id=PORT_ID,
@@ -298,7 +298,6 @@ def _imitation_episode(
     self_acoustic = W1SelfAcousticPropagationAuthority(
         authority_key=KEY,
         world_authority=world,
-        motor_owner=motor_owner,
         causal_owner=ExactCausalExperienceOwner(
             on_settlement=lambda _settlement: None,
             log_event=lambda *_args, **_kwargs: None,
@@ -455,7 +454,6 @@ def _challenge(
     self_acoustic = W1SelfAcousticPropagationAuthority(
         authority_key=KEY,
         world_authority=world,
-        motor_owner=motor_owner,
         causal_owner=ExactCausalExperienceOwner(
             on_settlement=lambda _settlement: None,
             log_event=lambda *_args, **_kwargs: None,

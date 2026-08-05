@@ -11,7 +11,7 @@ def test_text_derived_causal_action_owner_is_absent() -> None:
         ROOT / "dsf_ai_service/substrate/causal_action.py"
     ).exists()
     engine = (
-        ROOT / "dsf_ai_service/v4/gualaloom_v5_engine.py"
+        ROOT / "dsf_ai_service/v4/guala_physical_runtime_core.py"
     ).read_text()
     assert "CausalActionOwner" not in engine
     assert "_causal_action_owner" not in engine

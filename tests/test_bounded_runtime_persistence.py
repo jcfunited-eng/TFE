@@ -33,6 +33,7 @@ def test_real_whole_organism_cold_stage_is_bounded_and_roundtrips(
     stage = tmp_path / "stage"
     stage.mkdir()
     guala = Guala()
+    guala.load_full_state(str(tmp_path / "boot"))
     guala.experience_companion_vocal_pressure(_pressure(12_000))
     captured_binaural = json.loads(
         guala._w1_binaural_auditory_l5_owner
@@ -108,9 +109,12 @@ def test_whole_organism_cold_stage_cannot_cross_byte_capacity(
     tmp_path: Path,
 ) -> None:
     guala = Guala()
+    guala.load_full_state(str(tmp_path / "boot"))
+    stage = tmp_path / "stage"
+    stage.mkdir()
     prior_owner_lineage = dict(guala._owner_freeze_lineage)
     admission = BoundedStageAdmission(
-        tmp_path,
+        stage,
         max_total_bytes=1024,
         max_required_files=8,
         max_path_bytes=4096,
@@ -122,7 +126,7 @@ def test_whole_organism_cold_stage_cannot_cross_byte_capacity(
     ):
         with guala.bounded_persistence_admission(admission):
             guala.save_full_state(
-                str(tmp_path),
+                str(stage),
                 publish_generation=False,
             )
 
@@ -130,7 +134,7 @@ def test_whole_organism_cold_stage_cannot_cross_byte_capacity(
     assert guala._owner_freeze_lineage == prior_owner_lineage
     assert sum(
         path.stat().st_size
-        for path in tmp_path.rglob("*")
+        for path in stage.rglob("*")
         if path.is_file()
     ) <= 1024
 
@@ -147,6 +151,7 @@ def test_discarded_cold_candidate_keeps_both_dirty_gates_open(
     stage = tmp_path / "stage"
     guala = Guala()
     try:
+        guala.load_full_state(str(baseline))
         guala.save_full_state(str(baseline))
         stage.mkdir()
         prior_owner_lineage = {
@@ -200,6 +205,7 @@ def test_rejected_hot_generation_does_not_advance_live_bookkeeping(
         "rejected-hot-whole-organism-generation-key",
     )
     guala = Guala()
+    guala.load_full_state(str(tmp_path))
     guala.save_full_state(str(tmp_path))
     prior_ticks = dict(guala._state_file_ticks)
     prior_last_save_tick = guala._last_save_tick

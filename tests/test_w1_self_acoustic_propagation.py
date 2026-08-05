@@ -68,6 +68,7 @@ from dsf_ai_service.substrate.w1_self_acoustic_propagation import (
     W1SelfAcousticPropagationAuthority,
     W1SelfAcousticState,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 from tests.test_articulatory_self_vocal_motor import _program
 
 
@@ -92,6 +93,12 @@ def _mono_experience(pcm_s16le: bytes, occurrence: int):
         sample_rate_hz=REQUIRED_SAMPLE_RATE_HZ,
     )
     source_start = Fraction(occurrence)
+    observed = {
+        PhysicalSense.SOUND: auditory_kernel_component_inputs(
+            capture,
+            source_anchor=source_start,
+        )
+    }
     built = build_transaction_owned_six_sense_full_field(
         assembly_id=f"self-acoustic-motor-learning-{occurrence}",
         source_time_start=source_start,
@@ -99,12 +106,8 @@ def _mono_experience(pcm_s16le: bytes, occurrence: int):
             capture.input_sample_count,
             REQUIRED_SAMPLE_RATE_HZ,
         ),
-        observed_substreams={
-            PhysicalSense.SOUND: auditory_kernel_component_inputs(
-                capture,
-                source_anchor=source_start,
-            )
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

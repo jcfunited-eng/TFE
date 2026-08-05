@@ -108,7 +108,7 @@ def test_execution_undo_is_owner_bound_single_use_and_stale_safe():
     replay = executor.execute(intent=intent)
     later = _execute(
         world,
-        MoveCommand(PoseMM(PositionMM(800, 1_400, 0), 90_000)),
+        MoveCommand(PoseMM(PositionMM(800, 1_400, 0), 90_000), 200_000),
         901,
     )
     assert later.disposition == "applied"

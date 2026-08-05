@@ -32,6 +32,7 @@ from dsf_ai_service.substrate.causal_prediction import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _settlement(
@@ -60,7 +61,7 @@ def _settlement(
         assembly_id=assembly_id,
         source_time_start=Fraction(0),
         source_time_end=Fraction(count, 512),
-        observed_substreams={PhysicalSense.SIGHT: (signal,)},
+        observed_substreams={PhysicalSense.SIGHT: (signal,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (signal,)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

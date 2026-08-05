@@ -75,6 +75,7 @@ from tests.test_w1_audiovisual_physical_evidence import (
     _authority as _physical_authority,
     _world,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 RECIPROCAL_KEY = b"passive-reciprocal-trace-cutover-key-v2"
@@ -103,7 +104,7 @@ def _trace_settlement(
         assembly_id=f"causal-{window_id}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(48, 1_000),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

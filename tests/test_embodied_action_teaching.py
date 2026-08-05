@@ -151,7 +151,7 @@ def _move_proof(world, physical, *, y_mm: int, intent: int):
     )
     pre = _custody(pre_mount, observation=before)
     payload = encode_command(
-        MoveCommand(PoseMM(PositionMM(1000, y_mm, 0), 90_000))
+        MoveCommand(PoseMM(PositionMM(1000, y_mm, 0), 90_000), 200_000)
     )
     execution = world.execute_port_command(
         port_id=PORT_ID,
@@ -341,7 +341,7 @@ def test_unauthorized_tutor_or_different_command_teaches_nothing() -> None:
                 MoveCommand(PoseMM(
                     PositionMM(1000, 1600, 0),
                     90_000,
-                ))
+                ), 200_000)
             ),
             pre=pre,
             post=post,
@@ -358,7 +358,7 @@ def test_other_body_execution_is_never_taught_as_self_action() -> None:
         observation=before,
     )
     payload = encode_command(
-        MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000))
+        MoveCommand(PoseMM(PositionMM(4000, 4000, 0), 90_000), 200_000)
     )
     execution = world.execute_port_command(
         port_id=SECOND_BODY_PORT_ID,

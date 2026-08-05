@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_engine_has_only_the_embodied_action_cycle_and_dispatcher() -> None:
     engine = (
-        ROOT / "dsf_ai_service/v4/gualaloom_v5_engine.py"
+        ROOT / "dsf_ai_service/v4/guala_physical_runtime_core.py"
     ).read_text()
     assert "_causal_action_cycle" in engine
     assert "_causal_action_dispatcher" in engine

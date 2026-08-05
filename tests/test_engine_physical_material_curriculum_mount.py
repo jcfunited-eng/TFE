@@ -14,12 +14,14 @@ KEY = "engine-physical-material-curriculum-authority-key"
 
 def test_engine_mounts_physical_material_multi_emitter_and_curriculum(
     monkeypatch,
+    tmp_path,
 ):
     monkeypatch.setenv("GUALA_CAUSAL_ACTION_KEY", KEY)
-    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+    from dsf_ai_service.v4.guala_physical_runtime import Guala
 
     engine = Guala()
     try:
+        engine.load_full_state(str(tmp_path))
         assert engine._w1_material_physics.status()["material_count"] == 6
         assert engine._w1_multi_emitter_capture.status()["max_causes"] == 2
         curriculum = engine._custody_native_tutoring_curriculum.status()
@@ -29,7 +31,7 @@ def test_engine_mounts_physical_material_multi_emitter_and_curriculum(
         before = engine._embodiment_world.observation_snapshot()
         execution = engine._embodiment_world.execute_port_command(
             port_id=PORT_ID,
-            command_payload=encode_command(PickCommand("W1-object-1")),
+            command_payload=encode_command(PickCommand("W1-object-1", 200_000)),
             causal_intent_receipt_sha256=hashlib.sha256(
                 b"engine-material-pick"
             ).hexdigest(),

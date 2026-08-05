@@ -77,6 +77,7 @@ def _all_mapping_keys(value: object) -> set[str]:
 
 def test_real_av_window_retries_then_creates_one_unresolved_inquiry(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv("WAVE_ATLAS_ENABLED", "0")
@@ -88,6 +89,7 @@ def test_real_av_window_retries_then_creates_one_unresolved_inquiry(
     )
 
     engine = Guala()
+    engine.load_full_state(str(tmp_path))
     context_id = "test:live-multisensory-inquiry"
     source_start_ns = 1_000_000_000_000
     source_end_ns = source_start_ns + 5_000_000_000

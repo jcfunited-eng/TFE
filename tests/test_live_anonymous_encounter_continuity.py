@@ -27,6 +27,7 @@ from dsf_ai_service.substrate.visual_region_continuity import (
     CanonicalVisualFrame,
     DeterministicVisualRegionContinuityAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"live-anonymous-encounter-test-key"
@@ -71,7 +72,7 @@ def _visual(authority, assembly_id, *, split=False, window_index=0):
         assembly_id=assembly_id,
         source_time_start=Fraction(source_start),
         source_time_end=Fraction(source_start + 5),
-        observed_substreams={PhysicalSense.SIGHT: prepared.substreams},
+        observed_substreams={PhysicalSense.SIGHT: prepared.substreams}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: prepared.substreams}),
         states=states,
     )
     visual = authority.settle_l5(built.boundary, built.receipt_registry)

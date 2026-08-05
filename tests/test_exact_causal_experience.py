@@ -34,6 +34,7 @@ from dsf_ai_service.substrate.native_evidence_custody import (
     NativeEvidenceCustodyOwner,
     NativeEvidenceCustodyWitness,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _boundary(
@@ -74,7 +75,7 @@ def _boundary(
         assembly_id=assembly_id,
         source_time_start=Fraction(0),
         source_time_end=Fraction(sample_count, 200),
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states=states,
     )
 

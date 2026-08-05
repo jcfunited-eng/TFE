@@ -35,12 +35,12 @@ KEY = b"W1-action-vocal-distinction-test-key"
 def _action(world, action_kind: str, intent_digit: str):
     before = world.observation_snapshot()
     command = (
-        PickCommand("teaching-object")
+        PickCommand("teaching-object", 200_000)
         if action_kind == "pick"
         else MoveCommand(PoseMM(
             PositionMM(1_000, 800, 0),
             0,
-        ))
+        ), 200_000)
     )
     result = world.execute_port_command(
         port_id=PORT_ID,

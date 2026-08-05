@@ -26,6 +26,7 @@ from dsf_ai_service.substrate.w1_exact_binaural_source_separation import (
 from tools.isolated_w1_physical_stereo_path import (
     PhysicalStereoAuditAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"isolated-w1-physical-stereo-path-test-key"
@@ -67,7 +68,7 @@ def _mount(capture):
         source_time_end=Fraction(
             capture.capture_sample_count, 16_000
         ),
-        observed_substreams={PhysicalSense.SOUND: inputs},
+        observed_substreams={PhysicalSense.SOUND: inputs}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: inputs}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

@@ -35,6 +35,7 @@ from dsf_ai_service.substrate.settled_experience_custody import (
     SettledExperienceCustodyProfile,
     SettledExperienceSourceKind,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 WINDOW_KEY = b"anonymous-passive-window-authority-key-v1"
@@ -121,7 +122,7 @@ def _settlement(
         ),
         source_time_start=Fraction(0),
         source_time_end=Fraction(48, 1_000),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     return ExactCausalExperienceOwner(

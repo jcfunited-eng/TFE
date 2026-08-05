@@ -26,6 +26,7 @@ def test_lived_state_is_one_exact_cold_restorable_organism(
         "whole-organism-test-key-0123456789abcdef0123456789abcdef",
     )
     first = Guala()
+    first.load_full_state(str(tmp_path))
     first.save_full_state(str(tmp_path), publish_generation=False)
     first_core = (tmp_path / "guala_core.json").read_bytes()
     first_state = json.loads(first_core)["data"]["organism_state"]
@@ -60,6 +61,7 @@ def test_failed_whole_organism_save_leaves_prior_generation_exact(
         "whole-organism-failed-save-0123456789abcdef0123456789ab",
     )
     organism = Guala()
+    organism.load_full_state(str(tmp_path))
     organism.save_full_state(str(tmp_path), publish_generation=False)
     prior = (tmp_path / "guala_core.json").read_bytes()
     original_atomic_write = organism._atomic_write
@@ -83,6 +85,7 @@ def test_changed_whole_organism_bytes_are_rejected(tmp_path, monkeypatch):
         "whole-organism-tamper-test-0123456789abcdef0123456789",
     )
     organism = Guala()
+    organism.load_full_state(str(tmp_path))
     organism.save_full_state(str(tmp_path), publish_generation=False)
     core_path = tmp_path / "guala_core.json"
     changed = json.loads(core_path.read_text())

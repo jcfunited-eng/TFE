@@ -44,6 +44,7 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     _field_texts,
     causal_experience_settlement_receipt_payload,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
@@ -101,14 +102,16 @@ def _sight_inputs():
 
 
 def _build(inputs):
+    observed = {
+        PhysicalSense.SIGHT: _sight_inputs(),
+        PhysicalSense.SOUND: inputs,
+    }
     return build_six_sense_full_field(
         assembly_id="exact-field-executor-equivalence",
         source_time_start=SOURCE_START,
         source_time_end=SOURCE_END,
-        observed_substreams={
-            PhysicalSense.SIGHT: _sight_inputs(),
-            PhysicalSense.SOUND: inputs,
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -121,14 +124,16 @@ def _build(inputs):
 
 
 def _build_transaction(inputs):
+    observed = {
+        PhysicalSense.SIGHT: _sight_inputs(),
+        PhysicalSense.SOUND: inputs,
+    }
     return build_transaction_owned_six_sense_full_field(
         assembly_id="exact-field-executor-equivalence",
         source_time_start=SOURCE_START,
         source_time_end=SOURCE_END,
-        observed_substreams={
-            PhysicalSense.SIGHT: _sight_inputs(),
-            PhysicalSense.SOUND: inputs,
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

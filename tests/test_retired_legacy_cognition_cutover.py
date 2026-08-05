@@ -60,7 +60,7 @@ def _write_exact_state(state_dir, monkeypatch, *, wave=False) -> None:
         monkeypatch.setenv("WAVE_ATLAS_ENABLED", "1")
     writer = Guala()
     try:
-        writer._generate_genesis_identity(str(state_dir))
+        writer.load_full_state(str(state_dir))
         writer.tick = 17
         if wave:
             writer.wave_atlas.record(

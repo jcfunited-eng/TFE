@@ -3,17 +3,7 @@ from __future__ import annotations
 import pytest
 
 from dsf_ai_service.glew_runtime import native_materialized_fabric as boundary
-
-
-class _Source:
-    schema = "guala.native.exact_joint_source_episode.v1"
-    payload_sha256 = "0" * 64
-    port_count = 2
-    source_sample_count = 4
-    python_callback_count = 0
-
-    def as_bytes(self) -> bytes:
-        return b"source"
+from tests.test_native_organism_runtime_boundary import _source_episode
 
 
 class _Result:
@@ -55,7 +45,7 @@ def test_boundary_makes_one_native_call_without_per_port_field_bank(
 ) -> None:
     core = _NativeCore()
     monkeypatch.setattr(boundary, "_native_core", lambda: core)
-    source = _Source()
+    source = _source_episode()
 
     result = boundary.transition_native_materialized_fabric(
         prior_state=None,
@@ -73,7 +63,7 @@ def test_historical_field_bank_argument_is_absent() -> None:
     with pytest.raises(TypeError, match="unexpected keyword"):
         boundary.transition_native_materialized_fabric(
             prior_state=None,
-            bank=_Source(),
+            bank=_source_episode(),
         )
 
 
@@ -82,7 +72,7 @@ def test_working_memory_and_persistent_state_are_separate_boundaries(
 ) -> None:
     core = _NativeCore()
     monkeypatch.setattr(boundary, "_native_core", lambda: core)
-    source = _Source()
+    source = _source_episode()
 
     boundary.transition_native_materialized_fabric(
         prior_state=None,

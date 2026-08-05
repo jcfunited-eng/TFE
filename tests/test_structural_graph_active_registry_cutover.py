@@ -218,7 +218,8 @@ def test_current_registry_source_has_no_retired_import_edge() -> None:
     ).read_text(encoding="utf-8")
     assert "loom_model.tapestry import LoomTapestry" in migration_source
     assert "tools.wave_spillover import Cell" in migration_source
-    assert "__all__ = [\"load_authenticated_legacy_organism_graph\"]" in (
+    assert "__all__" in migration_source
+    assert '"load_authenticated_legacy_organism_graph"' in (
         migration_source
     )
 
@@ -230,6 +231,6 @@ def test_current_registry_source_has_no_retired_import_edge() -> None:
         in one_way_tool_source
     )
     assert (
-        "load_authenticated_legacy_organism_graph,"
+        "authenticated_legacy_organism_graph"
         in one_way_tool_source
     )

@@ -33,6 +33,7 @@ from dsf_ai_service.substrate.w1_binaural_receptor_settlement import (
 )
 
 
+from tests.native_joint_occurrence_support import joint_occurrences_for
 SAMPLE_RATE_HZ = 16_000
 SAMPLE_COUNT = 960
 
@@ -138,13 +139,15 @@ def test_each_ear_is_transduced_and_mounted_once_then_settled_from_custody(
     assert left.native_inputs[0].coordinates[0].coordinate_id == "left"
     assert right.native_inputs[0].coordinates[0].coordinate_id == "right"
 
+    observed = {
+        PhysicalSense.SOUND: (*left, *right),
+    }
     built = build_six_sense_full_field(
         assembly_id="w1-single-transduction-custody",
         source_time_start=source_time_start,
         source_time_end=source_time_end,
-        observed_substreams={
-            PhysicalSense.SOUND: (*left, *right),
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

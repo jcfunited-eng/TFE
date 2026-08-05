@@ -77,6 +77,22 @@ def test_exact_six_lane_assembly_reaches_closed_experience_provider(
     )
     context = preparation.contexts[0]
     authority = mounted[0]
+    # The provider assembler demands the actual physical L6 production,
+    # produced downstream of the sealed experience registry.
+    from dsf_ai_service.glew_runtime.physical_l6_tangents import (
+        produce_physical_l6_tangents,
+    )
+
+    replay_bundles = tuple(
+        item.bundle
+        for item in preparation.story_replay_results
+        if item.bundle is not None
+    )
+    physical_production = produce_physical_l6_tangents(
+        bundles=replay_bundles,
+        pre_window_state=pre_window,
+        receipt_registry=global_result.receipt_registry,
+    )
     bundle = assemble_closed_experience_provider_bundle(
         sealed=context.sealed,
         topology=topology,
@@ -84,16 +100,16 @@ def test_exact_six_lane_assembly_reaches_closed_experience_provider(
         safe_mode_evaluation=authority.safe_mode_evaluation,
         event_support_evaluation=authority.event_support_evaluation,
         global_uf_validation=global_result.validation,
-        l6_production=assembly,
+        l6_production=physical_production,
         l6_predicates=authority.l6_predicates,
         l6_evaluation=authority.l6_evaluation,
         l6_scope=authority.l6_scope,
-        receipt_registry=global_result.receipt_registry,
+        receipt_registry=physical_production.receipt_registry,
     )
 
     assert isinstance(bundle, ClosedExperienceProviderBundle)
-    assert isinstance(bundle.l6_production, HeterogeneousL6Assembly)
-    assert bundle.l6_production is assembly
+    assert bundle.l6_production is physical_production
+    assert isinstance(assembly, HeterogeneousL6Assembly)
     assert tuple(
         value.lane for value in assembly.lane_completeness_receipts
     ) == tuple(L6Lane)

@@ -23,6 +23,7 @@ from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
 from tools.isolated_w1_physical_stereo_path import (
     PhysicalStereoAuditAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"auditory-bilateral-nonflattening-contract-key"
@@ -78,7 +79,7 @@ def _mount_pair(left_pcm: bytes, right_pcm: bytes):
         assembly_id="auditory-bilateral-nonflattening-contract",
         source_time_start=Fraction(0),
         source_time_end=Fraction(sample_count, 16_000),
-        observed_substreams={PhysicalSense.SOUND: inputs},
+        observed_substreams={PhysicalSense.SOUND: inputs}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: inputs}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

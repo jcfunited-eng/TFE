@@ -47,6 +47,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 SOURCE_ANCHOR = Fraction(7, 3)
@@ -70,7 +71,7 @@ def _built(inputs, *, assembly_id: str = "auditory-l5-v3-test"):
         assembly_id=assembly_id,
         source_time_start=SOURCE_ANCHOR,
         source_time_end=SOURCE_ANCHOR + 1,
-        observed_substreams={PhysicalSense.SOUND: tuple(inputs)},
+        observed_substreams={PhysicalSense.SOUND: tuple(inputs)}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: tuple(inputs)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -337,7 +338,7 @@ def test_v3_maximum_capture_receipt_registry_remains_bounded() -> None:
         assembly_id="auditory-l5-maximum-capture",
         source_time_start=SOURCE_ANCHOR,
         source_time_end=SOURCE_ANCHOR + MAX_CAPTURE_SECONDS,
-        observed_substreams={PhysicalSense.SOUND: tuple(inputs)},
+        observed_substreams={PhysicalSense.SOUND: tuple(inputs)}, occurrences=joint_occurrences_for({PhysicalSense.SOUND: tuple(inputs)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

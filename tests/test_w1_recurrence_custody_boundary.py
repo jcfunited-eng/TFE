@@ -140,7 +140,7 @@ def test_signed_spatial_outcome_settles_from_custody_without_remount(
     execution = world.execute_port_command(
         port_id=PORT_ID,
         command_payload=encode_command(MoveCommand(
-            PoseMM(PositionMM(1_000, 1_400, 0), 0)
+            PoseMM(PositionMM(1_000, 1_400, 0), 0), 200_000
         )),
         causal_intent_receipt_sha256="a" * 64,
         expected_revision=before.revision,

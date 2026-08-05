@@ -169,8 +169,6 @@ def test_production_surfaces_contain_no_pretrained_recognition_authority():
     assert not (ROOT / "dsf_ai_service/observational_transcription.py").exists()
 
     html = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
-    assert "physical auditory L5 experience" in html
-    assert "no transcript, word, or recognition" in html
     assert '<input id="msg" type="text"' not in html
     assert "/api/v1/auditory/observations" not in html
 

@@ -63,6 +63,7 @@ from tests.test_w1_audiovisual_physical_evidence import (
     _execution,
     _world,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 EPISODE_KEY = b"whole-organism-thing-episode-key-v1"
@@ -127,7 +128,7 @@ def _authorization_settlement():
         assembly_id="whole-organism-action-authorization",
         source_time_start=Fraction(-1),
         source_time_end=Fraction(0),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     return ExactCausalExperienceOwner(

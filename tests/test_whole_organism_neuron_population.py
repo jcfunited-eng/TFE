@@ -40,6 +40,7 @@ from dsf_ai_service.substrate.whole_organism_neuron_population import (
     NeuronPopulationProfile,
     WholeOrganismNeuronPopulationOwner,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"whole-organism-neuron-population-test-key-v1" * 2
@@ -142,7 +143,7 @@ def _settlement(
         assembly_id=f"neuron-population-{label}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(96, 512),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     return ExactCausalExperienceOwner(

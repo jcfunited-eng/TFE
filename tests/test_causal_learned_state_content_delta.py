@@ -110,7 +110,7 @@ def _causal_owner():
             prior=prior,
         )
 
-    picked = _execute(world, PickCommand("W1-object-1"), 101)
+    picked = _execute(world, PickCommand("W1-object-1", 200_000), 101)
     first_partition = partition(picked, 101)
     owner.admit(first_partition)
     return world, partitions, owner, partition, first_partition
@@ -153,7 +153,7 @@ def test_zero_learning_has_zero_content_growth_and_one_learning_is_one_delta(
 
     moved = _execute(
         world,
-        MoveCommand(PoseMM(PositionMM(1000, 1400, 0), 90_000)),
+        MoveCommand(PoseMM(PositionMM(1000, 1400, 0), 90_000), 200_000),
         102,
     )
     second_partition = partition(moved, 102, first_partition)

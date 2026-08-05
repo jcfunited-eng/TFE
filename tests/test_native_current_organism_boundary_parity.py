@@ -39,6 +39,7 @@ from dsf_ai_service.substrate.owner_scoped_persistence import (
     LEGACY_MISSING_NATIVE_MATERIALIZED_FABRIC_PATH,
 )
 from dsf_ai_service.substrate.window_manager import physical_topology_fact
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 def _port(
@@ -136,7 +137,7 @@ def test_one_native_batch_preserves_current_organism_trace_identity(
         assembly_id=assembly_id,
         source_time_start=Fraction(0),
         source_time_end=Fraction(3, 4),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
 
@@ -168,6 +169,7 @@ def test_one_native_batch_preserves_current_organism_trace_identity(
 
 def test_current_organism_cold_restores_exact_native_fabric(
         monkeypatch,
+        tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
@@ -205,12 +207,14 @@ def test_current_organism_cold_restores_exact_native_fabric(
         assembly_id="native-current-organism-cold-restore",
         source_time_start=Fraction(0),
         source_time_end=Fraction(3, 4),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     source = Guala()
     restored = Guala()
     try:
+        source.load_full_state(str(tmp_path / "source"))
+        restored.load_full_state(str(tmp_path / "restored"))
         source._advance_native_materialized_fabric(
             built.native_joint_source_episode
         )
@@ -246,6 +250,7 @@ def test_current_organism_cold_restores_exact_native_fabric(
 
 def test_prior_native_fabric_requires_and_records_exact_v4_migration(
     monkeypatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
@@ -261,18 +266,23 @@ def test_prior_native_fabric_requires_and_records_exact_v4_migration(
     refuser = Guala()
     migrated = Guala()
     try:
+        source.load_full_state(str(tmp_path / "source"))
+        refuser.load_full_state(str(tmp_path / "refuser"))
+        migrated.load_full_state(str(tmp_path / "migrated"))
+        observed = {
+            PhysicalSense.SIGHT: (_port(
+                PhysicalSense.SIGHT,
+                sensor_id="retina",
+                substream_id="retina-0",
+            ),),
+        }
         source._advance_native_materialized_fabric(
             build_transaction_owned_six_sense_full_field(
                 assembly_id="native-current-organism-v3-migration",
                 source_time_start=Fraction(0),
                 source_time_end=Fraction(3, 4),
-                observed_substreams={
-                    PhysicalSense.SIGHT: (_port(
-                        PhysicalSense.SIGHT,
-                        sensor_id="retina",
-                        substream_id="retina-0",
-                    ),),
-                },
+                observed_substreams=observed,
+                occurrences=joint_occurrences_for(observed),
                 states={
                     sense: (
                         SenseBoundaryState.OBSERVED
@@ -351,6 +361,7 @@ def test_current_runtime_rejects_owner_scoped_predecessor_without_native_fabric(
 
 def test_failed_current_organism_settlement_restores_native_fabric_exactly(
         monkeypatch,
+        tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
@@ -363,6 +374,7 @@ def test_failed_current_organism_settlement_restores_native_fabric_exactly(
         lambda: 1024 * 1024 * 1024,
     )
     organism = Guala()
+    organism.load_full_state(str(tmp_path))
     sight = _port(
         PhysicalSense.SIGHT,
         sensor_id="test-retina",
@@ -381,7 +393,7 @@ def test_failed_current_organism_settlement_restores_native_fabric_exactly(
         assembly_id="native-current-organism-rollback-prior",
         source_time_start=Fraction(0),
         source_time_end=Fraction(3, 4),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
 
@@ -462,6 +474,7 @@ def test_failed_current_organism_settlement_restores_native_fabric_exactly(
 
 def test_native_fabric_refuses_growth_beyond_organism_storage_boundary(
     monkeypatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
@@ -498,11 +511,12 @@ def test_native_fabric_refuses_growth_beyond_organism_storage_boundary(
         assembly_id="native-current-organism-capacity",
         source_time_start=Fraction(0),
         source_time_end=Fraction(3, 4),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states=states,
     )
     organism = Guala()
     try:
+        organism.load_full_state(str(tmp_path))
         with pytest.raises(
             RuntimeError,
             match="exceeds its organism storage boundary",

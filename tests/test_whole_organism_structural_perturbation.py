@@ -94,6 +94,7 @@ def _substream(
     )
 
 
+from tests.native_joint_occurrence_support import joint_occurrences_for
 def _settlement(
     label: str,
     *,
@@ -105,19 +106,21 @@ def _settlement(
         for sense in SENSE_ORDER
     }
     states[PhysicalSense.SIGHT] = SenseBoundaryState.OBSERVED
+    observed = {
+        PhysicalSense.SIGHT: (
+            _substream(
+                label=label,
+                start=start,
+                frequency=frequency,
+            ),
+        ),
+    }
     built = build_six_sense_full_field(
         assembly_id=f"structural-perturbation-{label}",
         source_time_start=start,
         source_time_end=start + Fraction(48, 256),
-        observed_substreams={
-            PhysicalSense.SIGHT: (
-                _substream(
-                    label=label,
-                    start=start,
-                    frequency=frequency,
-                ),
-            ),
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states=states,
     )
     return ExactCausalExperienceOwner(

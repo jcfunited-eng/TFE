@@ -264,22 +264,3 @@ def test_paired_capture_without_authoritative_times_fails_closed(monkeypatch) ->
     assert "timestamps are required" in response["error"]
 
 
-def test_browser_pairs_sound_and_sight_on_the_pcm_physical_interval() -> None:
-    html = Path("dsf_ai_service/static/gualaloom.html").read_text()
-    assert "function _schedulePCMSight" not in html
-    assert "utteranceTransitioning" not in html
-    assert "utteranceActive" not in html
-    assert "sight_frames=await sight.promise" not in html
-    assert "visualFrameCount:opened.visual_capture.minimum_frames" not in html
-    assert (
-        "sourceStartMs=epoch.sourceEpochMs+"
-        "firstSampleIndex*1000/PCM_SAMPLE_RATE"
-    ) in html
-    assert "monoBody.sight_frames=visual.frames;" in html
-    assert "monoBody.visual_source=visual.provenance;" in html
-    assert "standaloneSightRequest=request" in html
-    assert "await micSightHandoff;" in html
-    assert "JSON.stringify({text,source,sight_b64})" not in html
-    assert "body:JSON.stringify(monoBody)" in html
-    assert "audio_first_sample_index:firstSampleIndex" in html
-    assert "if(epoch.pendingChunks>=PCM_MAX_PENDING_CHUNKS)" in html

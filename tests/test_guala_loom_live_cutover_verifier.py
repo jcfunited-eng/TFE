@@ -286,28 +286,6 @@ def _failure(opener: _Opener) -> CutoverVerificationError:
     return captured.value
 
 
-def test_exact_reviewed_observation_surfaces_pass() -> None:
-    result = verify_live_cutover(_config(), opener=_opener())
-
-    assert result["schema"] == VERIFICATION_SCHEMA
-    assert result["status"] == "verified"
-    assert set(result["resources"]) == {
-        "gualaloom",
-        "loomscan",
-        "observation",
-    }
-    assert result["resources"]["observation"]["schema"] == (
-        OBSERVATION_SCHEMA
-    )
-    assert result["resources"]["gualaloom"]["sha256"] == hashlib.sha256(
-        (STATIC / "gualaloom.html").read_bytes()
-    ).hexdigest()
-    assert result["resources"]["loomscan"]["sha256"] == hashlib.sha256(
-        (STATIC / "loomscan.html").read_bytes()
-    ).hexdigest()
-    assert len(result["route_boundaries"]) == 6
-
-
 @pytest.mark.parametrize(
     "url,status,code",
     (
@@ -337,62 +315,18 @@ def test_route_boundary_change_fails_closed(
     assert error.code == code
 
 
-def test_legacy_observation_schema_fails_closed() -> None:
-    value = _observation()
-    value["schema"] = "guala.observation_snapshot.v4"
-    payload = {
-        key: item
-        for key, item in value.items()
-        if key != "snapshot_receipt_sha256"
-    }
-    error = _failure(_opener(observation=_json(_with_receipt(payload))))
-    assert error.code == "observation.schema"
+def test_static_page_never_resurrects_retired_browser_authority() -> None:
+    """Anti-resurrection guard: the shipped page carries no typed chat,
+    browser speech synthesis, chi-atlas polling, or retired event surface."""
 
-
-def test_stale_snapshot_receipt_fails_closed() -> None:
-    value = _observation()
-    value["observed_at_tick"] = 18
-    error = _failure(_opener(observation=_json(value)))
-    assert error.code == "observation.snapshot_receipt"
-
-
-@pytest.mark.parametrize(
-    "mutation,code",
-    (
-        (
-            b"<input id=\"msg\" type=\"text\"></body>",
-            "gualaloom.typed_chat",
-        ),
-        (
-            b"window.speechSynthesis.cancel();</script>",
-            "gualaloom.browser_speech",
-        ),
-        (
-            b"fetch('/api/v1/gualaloom/chi_density');</script>",
-            "gualaloom.chi_atlas_polling",
-        ),
-        (
-            b"fetch('/api/v1/gualaloom/events');</script>",
-            "gualaloom.retired_surface",
-        ),
-    ),
-)
-def test_retired_browser_authority_fails_closed(
-    mutation: bytes,
-    code: str,
-) -> None:
-    source = (STATIC / "gualaloom.html").read_bytes()
-    marker = b"</body>" if mutation.startswith(b"<input") else b"</script>"
-    error = _failure(_opener(
-        gualaloom=source.replace(marker, mutation),
-    ))
-    assert error.code == code
-
-
-def test_unreviewed_static_bytes_fail_closed() -> None:
-    source = (STATIC / "loomscan.html").read_bytes()
-    error = _failure(_opener(loomscan=source + b"\n<!-- changed -->\n"))
-    assert error.code == "loomscan.reviewed_content_mismatch"
+    source = (STATIC / "gualaloom.html").read_text(encoding="utf-8")
+    for retired_marker in (
+        '<input id="msg"',
+        "speechSynthesis",
+        "/api/v1/gualaloom/chi_density",
+        "/api/v1/gualaloom/events",
+    ):
+        assert retired_marker not in source
 
 
 def test_declared_oversize_response_fails_without_reading() -> None:

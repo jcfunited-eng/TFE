@@ -19,6 +19,7 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 )
 
 
+from tests.native_joint_occurrence_support import joint_occurrences_for
 def _port(sense: PhysicalSense, index: int) -> NativeSensorySubstreamInput:
     return NativeSensorySubstreamInput(
         sense=sense,
@@ -35,13 +36,15 @@ def _port(sense: PhysicalSense, index: int) -> NativeSensorySubstreamInput:
 
 
 def _build(sense: PhysicalSense, count: int):
+    observed = {
+        sense: tuple(_port(sense, index) for index in range(count))
+    }
     return build_six_sense_full_field(
         assembly_id=f"capacity-{sense.value}-{count}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(1),
-        observed_substreams={
-            sense: tuple(_port(sense, index) for index in range(count))
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             candidate: (
                 SenseBoundaryState.OBSERVED

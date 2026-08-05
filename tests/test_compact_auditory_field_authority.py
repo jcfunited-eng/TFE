@@ -36,6 +36,7 @@ from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
 )
 
 
+from tests.native_joint_occurrence_support import joint_occurrences_for
 SAMPLE_RATE = 16_000
 
 
@@ -68,13 +69,15 @@ def compact_authority():
         pcm=pcm,
         source_time_start=Fraction(4),
     )
+    observed = {
+        PhysicalSense.SOUND: tuple(sound_inputs),
+    }
     built = build_six_sense_full_field(
         assembly_id="compact-authority-test",
         source_time_start=Fraction(4),
         source_time_end=Fraction(5),
-        observed_substreams={
-            PhysicalSense.SOUND: sound_inputs,
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -242,13 +245,15 @@ def test_two_ear_causal_settlement_closes_into_same_lossless_boundary() -> None:
         pcm=pcm(660),
         source_time_start=start,
     )
+    observed = {
+        PhysicalSense.SOUND: (*left, *right),
+    }
     built = build_six_sense_full_field(
         assembly_id="compact-two-ear-test",
         source_time_start=start,
         source_time_end=Fraction(sample_count, SAMPLE_RATE),
-        observed_substreams={
-            PhysicalSense.SOUND: (*left, *right),
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

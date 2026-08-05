@@ -217,7 +217,7 @@ def test_intervening_world_revision_cannot_be_hidden_as_immediate():
         command_payload=encode_command(MoveCommand(PoseMM(
             PositionMM(1_100, 1_000, 0),
             0,
-        ))),
+        ), 200_000)),
         causal_intent_receipt_sha256="7" * 64,
         expected_revision=before_gap.revision,
     )

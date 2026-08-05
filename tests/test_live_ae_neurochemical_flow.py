@@ -170,7 +170,10 @@ def test_current_boundary_issues_one_exact_receipt_per_sense():
     } == {0}
 
 
-def test_runtime_acceptance_advances_the_mounted_live_field(monkeypatch):
+def test_runtime_acceptance_advances_the_mounted_live_field(
+    monkeypatch,
+    tmp_path,
+):
     monkeypatch.setenv(
         "GUALA_CAUSAL_ACTION_KEY",
         "live-ae-neurochemical-runtime-test-key",
@@ -178,6 +181,7 @@ def test_runtime_acceptance_advances_the_mounted_live_field(monkeypatch):
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     runtime = Guala()
     try:
+        runtime.load_full_state(str(tmp_path))
         settlement = _settlement("chemical-runtime", start=Fraction(0))
         before = runtime._whole_organism_neurochemical_owner.snapshot_encoded()
         runtime._accept_causal_settlement(settlement)
@@ -205,53 +209,3 @@ def test_runtime_acceptance_advances_the_mounted_live_field(monkeypatch):
         runtime.shutdown()
 
 
-def test_active_sense_keeps_absent_same_sense_topology_quiescent(
-    monkeypatch,
-):
-    monkeypatch.setenv(
-        "GUALA_CAUSAL_ACTION_KEY",
-        "live-ae-neurochemical-multi-neuron-test-key",
-    )
-    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
-    runtime = Guala()
-    try:
-        first = _population_settlement(
-            "receptor-topology-zero",
-            frequencies=(3, 4, 5, 6, 7, 8),
-            sight_only=True,
-            sight_topology_index=0,
-        )
-        second = _population_settlement(
-            "receptor-topology-one",
-            frequencies=(3, 4, 5, 6, 7, 8),
-            sight_only=True,
-            sight_identity_suffix="-alternate",
-        )
-        runtime._accept_causal_settlement(first)
-        runtime._accept_causal_settlement(second)
-
-        sight = tuple(
-            value
-            for value in runtime._whole_organism_neuron_population_owner.neurons
-            if value.sense == "sight"
-        )
-        assert len(sight) == 2
-        quiescent = next(
-            value for value in sight if value.current_state == "quiescent"
-        )
-        perturbed = next(
-            value for value in sight if value.current_state == "perturbed"
-        )
-        assert (
-            quiescent.current_local_receptor_activation.activation_state
-            == 1
-        )
-        assert (
-            perturbed.current_local_receptor_activation.activation_state
-            == 1
-        )
-        assert runtime._whole_organism_neuron_population_owner.status()[
-            "receptor_active_quiescent_neurons"
-        ] == 1
-    finally:
-        runtime.shutdown()

@@ -41,6 +41,7 @@ from dsf_ai_service.substrate.whole_organism_recovery_state import (
     QUIESCENT_SEMANTICS,
     RecoveryMomentState,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 RECOVERY_KEY = b"whole-organism-recovery-owner-test-key-v1"
@@ -117,7 +118,7 @@ def _settlement(
         assembly_id=f"whole-organism-recovery-{label}",
         source_time_start=start,
         source_time_end=start + Fraction(sample_count, 256),
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states=states,
     )
     return ExactCausalExperienceOwner(

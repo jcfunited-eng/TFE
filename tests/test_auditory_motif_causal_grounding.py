@@ -52,6 +52,7 @@ from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     REQUIRED_SAMPLE_RATE_HZ,
     transduce_auditory_full_field,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 AUTHORITY_KEY = b"auditory-motif-grounding-test-key"
@@ -112,7 +113,7 @@ def _settlement(
         assembly_id=assembly_id,
         source_time_start=Fraction(0),
         source_time_end=Fraction(1),
-        observed_substreams={PhysicalSense.SIGHT: (sight,)},
+        observed_substreams={PhysicalSense.SIGHT: (sight,)}, occurrences=joint_occurrences_for({PhysicalSense.SIGHT: (sight,)}),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED
@@ -920,6 +921,10 @@ def _physical_linked_episode(
             Fraction(index // 12) for index in range(sight_count)
         ),
     )
+    observed = {
+        PhysicalSense.SIGHT: (sight,),
+        PhysicalSense.SOUND: auditory,
+    }
     built = build_transaction_owned_six_sense_full_field(
         assembly_id=f"linked-grounding-{ordinal}",
         source_time_start=source_anchor,
@@ -927,10 +932,8 @@ def _physical_linked_episode(
             (capture.frame_count + 1) * OBSERVATION_HOP_SAMPLES,
             REQUIRED_SAMPLE_RATE_HZ,
         ),
-        observed_substreams={
-            PhysicalSense.SIGHT: (sight,),
-            PhysicalSense.SOUND: auditory,
-        },
+        observed_substreams=observed,
+        occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

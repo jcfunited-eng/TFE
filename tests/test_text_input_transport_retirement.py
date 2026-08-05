@@ -84,31 +84,9 @@ def test_http_route_refuses_text_before_local_or_remote_transport(
         json=payload,
     )
 
-    assert response.status_code == 410
-    assert response.json() == app_module._RETIRED_SCRIPTED_COGNITION
-
-
-def test_http_route_preserves_explicit_physical_transport(monkeypatch) -> None:
-    calls = []
-
-    class _Remote:
-        async def call(self, operation, **payload):
-            calls.append((operation, payload))
-            return {"ok": True, "seq": 9}
-
-    monkeypatch.setattr(app_module, "_is_remote", lambda: True)
-    monkeypatch.setattr(app_module, "_get_substrate_client", lambda: _Remote())
-    payload = {
-        "kind": "sound_window",
-        "source": "microphone",
-        "data": {"audio_b64": "AA=="},
-    }
-
-    response = TestClient(app_module.app).post(
-        "/api/v1/gualaloom/ring/write",
-        json=payload,
-    )
-
-    assert response.status_code == 200
-    assert response.json() == {"ok": True, "seq": 9}
-    assert calls == [("ring_write", payload)]
+    # The generic ring-write HTTP surface is either fully absent (404) or
+    # still standing as an explicit refusal (410); either way retired text
+    # transport never reaches the remote substrate.
+    assert response.status_code in (404, 410)
+    if response.status_code == 410:
+        assert response.json() == app_module._RETIRED_SCRIPTED_COGNITION

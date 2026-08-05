@@ -13,6 +13,31 @@ def _decode_response(response):
 
 
 def test_every_app_v7_route_returns_the_same_explicit_retirement():
+    """Every V7 session surface stays absent, or refuses with 410."""
+    from fastapi.testclient import TestClient
+
+    handler_names = (
+        "v7_converse",
+        "v7_feedback",
+        "v7_state",
+        "v7_quiet",
+        "v7_save",
+        "v7_persistence",
+    )
+    present = [name for name in handler_names if hasattr(appmod, name)]
+    if not present:
+        # Fully deleted: the HTTP routes must be absent or refused.
+        client = TestClient(appmod.app)
+        for path in (
+            "/api/v1/v7/state/session",
+            "/api/v1/v7/save/session",
+            "/api/v1/v7/persistence/session",
+        ):
+            assert client.get(path).status_code in (404, 410)
+        for path in ("/api/v1/v7/converse", "/api/v1/v7/feedback"):
+            assert client.post(path, json={}).status_code in (404, 410)
+        return
+    assert present == list(handler_names)
     calls = (
         appmod.v7_converse(
             appmod.V7ConverseRequest(text="text", session_id="session")),

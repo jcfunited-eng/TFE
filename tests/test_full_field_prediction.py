@@ -60,6 +60,7 @@ from dsf_ai_service.substrate.w1_binaural_auditory_l5 import (
 from dsf_ai_service.substrate.w1_audiovisual_physical_evidence import (
     W1AudiovisualPhysicalEvidenceAuthority,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 KEY = b"full-field-prediction-test-key-" * 2
@@ -118,7 +119,7 @@ def _settlement(
         assembly_id=f"prediction-{label}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(96, 512),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

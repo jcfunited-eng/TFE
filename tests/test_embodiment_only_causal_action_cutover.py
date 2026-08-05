@@ -165,22 +165,26 @@ def test_active_action_schema_and_sources_have_no_unicode_speech_authority():
     assert {
         group.owner_id for group in OWNER_STATE_GROUPS
     }.isdisjoint({"causal_action", "causal_speech_release"})
-    engine = (
-        ROOT / "dsf_ai_service/v4/gualaloom_v5_engine.py"
-    ).read_text()
-    assert "_execute_causal_speech_request" not in engine
-    assert "causal_speech_output_status" not in engine
-    assert "_causal_action_owner" not in engine
+    engine_path = ROOT / "dsf_ai_service/v4/gualaloom_v5_engine.py"
+    if engine_path.exists():
+        engine = engine_path.read_text()
+        assert "_execute_causal_speech_request" not in engine
+        assert "causal_speech_output_status" not in engine
+        assert "_causal_action_owner" not in engine
 
 
 def test_retired_action_sidecars_are_absent_from_generation_manifests():
-    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
-
     retired = {
         "guala_causal_speech_delivery.json",
         "owner_state/causal_action.json",
         "owner_state/causal_speech_release.json",
     }
+    try:
+        from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+    except ModuleNotFoundError:
+        # The legacy v5 engine is deleted entirely: guard the current
+        # physical runtime manifests instead.
+        from dsf_ai_service.v4.guala_physical_runtime import Guala
     assert retired.isdisjoint(Guala.FULL_SAVE_MANIFEST_FILES)
     assert retired.isdisjoint(Guala.HOT_SAVE_MANIFEST_FILES)
 

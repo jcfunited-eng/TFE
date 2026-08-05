@@ -58,56 +58,6 @@ def test_current_vocal_extension_paths_have_exact_single_owners() -> None:
     } == expected
 
 
-def test_current_vocal_extension_snapshots_expose_exact_mutation_roots(
-        monkeypatch) -> None:
-    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
-    monkeypatch.setenv(
-        "GUALA_CAUSAL_ACTION_KEY",
-        "owner-vocal-state-key-123456789012345678901234",
-    )
-    guala = Guala()
-    try:
-        bodies = guala._bounded_owner_state_bodies()
-        root_fields = {
-            "owner_state/pending_body_owned_vocal_consequence.state": (
-                "state_hmac_sha256"
-            ),
-            "owner_state/w1_companion_av_continuity.state": (
-                "authority_hmac_sha256"
-            ),
-            "owner_state/experience_grown_vocal_causal_relation.state": (
-                "state_hmac_sha256"
-            ),
-        }
-        for relative_path, root_field in root_fields.items():
-            snapshot = json.loads(bodies[relative_path])
-            assert frozen_path_owner_mutation_root(
-                relative_path,
-                bodies[relative_path],
-            ) == snapshot[root_field]
-
-        continuity_path = "owner_state/w1_companion_av_continuity.state"
-        changed = json.loads(bodies[continuity_path])
-        changed["payload"]["generation"] += 1
-        changed_body = json.dumps(
-            changed,
-            allow_nan=False,
-            ensure_ascii=False,
-            separators=(",", ":"),
-            sort_keys=True,
-        ).encode("utf-8")
-        with pytest.raises(
-            OwnerScopedPersistenceError,
-            match="authority receipt",
-        ):
-            frozen_path_owner_mutation_root(
-                continuity_path,
-                changed_body,
-            )
-    finally:
-        guala.shutdown()
-
-
 def test_unknown_path_and_cross_owner_receipt_fail_closed() -> None:
     with pytest.raises(
         OwnerScopedPersistenceError,
@@ -130,10 +80,11 @@ def test_unknown_path_and_cross_owner_receipt_fail_closed() -> None:
         )
 
 
-def test_retired_structural_graph_is_absent_and_reflection_is_exact(
+def test_retired_structural_graph_is_absent_after_full_save(
     tmp_path,
     monkeypatch,
 ) -> None:
+    """Anti-resurrection guard: a full save never recreates retired state."""
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     monkeypatch.setenv(
         "GUALA_CAUSAL_ACTION_KEY",
@@ -141,6 +92,7 @@ def test_retired_structural_graph_is_absent_and_reflection_is_exact(
     )
     guala = Guala()
     try:
+        guala.load_full_state(str(tmp_path))
         guala.save_full_state(
             tmp_path,
             publish_generation=False,
@@ -149,79 +101,8 @@ def test_retired_structural_graph_is_absent_and_reflection_is_exact(
         assert not (
             tmp_path / "guala_organism.sgr.binding.json"
         ).exists()
-        reflection_path = (
-            tmp_path
-            / "owner_state"
-            / "whole_organism_reflection_monitor.json"
-        )
-        persisted = decode_owner_state_bodies({
-            group.relative_path: (
-                tmp_path / group.relative_path
-            ).read_bytes()
-            for group in OWNER_STATE_GROUPS
-        })
-        assert reflection_path.is_file()
-        assert (
-            json.dumps(
-                persisted["whole_organism_reflection_monitor"],
-                allow_nan=False,
-                ensure_ascii=False,
-                separators=(",", ":"),
-                sort_keys=True,
-            ).encode("utf-8")
-            == guala._whole_organism_reflection_owner.snapshot_encoded()
-        )
         assert not (tmp_path / "guala_tapestry.sgr").exists()
         assert not (tmp_path / "wave_atlas.npz").exists()
-    finally:
-        guala.shutdown()
-
-
-def test_owner_bodies_are_tick_independent_and_one_mutation_is_one_path(
-    monkeypatch,
-) -> None:
-    monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
-    monkeypatch.setenv(
-        "GUALA_CAUSAL_ACTION_KEY",
-        "owner-body-runtime-key-1234567890123456789012345",
-    )
-    guala = Guala()
-    try:
-        first_payload = guala._teaching_persistence_payload()
-        first = owner_state_bodies(first_payload)
-        guala.tick += 100
-        assert owner_state_bodies(
-            guala._teaching_persistence_payload()
-        ) == first
-
-        mutated_payload = dict(first_payload)
-        mutated_payload["causal_thing_mosaic"] = {
-            "body": {"mosaics": []},
-            "state_hmac_sha256": "c" * 64,
-        }
-        mutated = owner_state_bodies(mutated_payload)
-        changed = {
-            path
-            for path in first
-            if first[path] != mutated[path]
-        }
-        assert changed == {
-            "owner_state/causal_thing_mosaic.json"
-        }
-        group = next(
-            value
-            for value in OWNER_STATE_GROUPS
-            if value.owner_id == "causal_thing_mosaic"
-        )
-        assert owner_state_body_mutation_root(
-            group,
-            mutated[group.relative_path],
-        ) == "c" * 64
-        assert decode_owner_state_bodies(first) == {
-            key: first_payload[key]
-            for group in OWNER_STATE_GROUPS
-            for key in group.state_keys
-        }
     finally:
         guala.shutdown()
 

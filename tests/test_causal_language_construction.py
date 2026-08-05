@@ -41,6 +41,7 @@ from dsf_ai_service.substrate.causal_language_construction import (
 from dsf_ai_service.substrate.exact_causal_experience import (
     ExactCausalExperienceOwner,
 )
+from tests.native_joint_occurrence_support import joint_occurrences_for
 
 
 TOKEN_SECRET = b"causal-language-token-test-secret" * 2
@@ -276,7 +277,7 @@ def _settlement(
         assembly_id=f"causal-language-{label}",
         source_time_start=Fraction(0),
         source_time_end=Fraction(96, 200),
-        observed_substreams=observed,
+        observed_substreams=observed, occurrences=joint_occurrences_for(observed),
         states={
             sense: (
                 SenseBoundaryState.OBSERVED

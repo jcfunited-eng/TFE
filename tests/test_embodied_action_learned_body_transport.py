@@ -133,136 +133,26 @@ def _converters():
     )
 
 
-def test_emitted_pcm_is_exposed_once_and_local_runner_are_byte_equivalent(
-) -> None:
-    original = _emitted_result()
-    retained_input = copy.deepcopy(original)
-    app_convert, runner_convert = _converters()
+def test_retired_learned_vocal_act_transport_is_refused() -> None:
+    """Anti-resurrection guard: results carrying the retired vocal act or
+    learned-body-act transport keys are refused, never converted."""
 
-    local = app_convert(original)
-    remote = runner_convert(original)
-
-    assert original == retained_input
-    assert local == remote
-    assert "vocal_causal_act" not in local
-    assert _contains_bytes(local) is False
-    learned = local["learned_body_act"]
-    assert learned["schema"] == (
-        "guala.embodied_action_experience."
-        "learned_body_act_transport.v1"
-    )
-    assert "consequence_evoked" not in learned["schema"]
-    assert learned["state"] == "emitted"
-    assert learned["sample_rate_hz"] == 16_000
-    assert learned["sample_count"] == len(PCM_S16LE) // 2
-    assert learned["pcm_sha256"] == PCM_SHA256
-    encoded = base64.b64encode(PCM_S16LE).decode("ascii")
-    assert learned["pcm_s16le_base64"] == encoded
-    assert json.dumps(local, sort_keys=True).count(encoded) == 1
-    assert base64.b64decode(
-        learned["pcm_s16le_base64"],
-        validate=True,
-    ) == PCM_S16LE
-    assert app_convert(remote) == remote
-    assert runner_convert(local) == local
-
-
-def test_signed_silent_has_no_pcm_surface_and_no_additional_mutation(
-) -> None:
-    original = _silent_result()
-    retained_input = copy.deepcopy(original)
-    app_convert, runner_convert = _converters()
-
-    local = app_convert(original)
-    remote = runner_convert(original)
-
-    assert original == retained_input
-    assert local == remote
-    assert "vocal_causal_act" not in local
-    learned = local["learned_body_act"]
-    assert learned["state"] == "signed_silent"
-    assert learned["additional_world_mutation"] is False
-    assert not any("pcm" in name for name in learned)
-    assert "act_receipt" not in learned
-    assert "program_custody_receipt_sha256" not in learned
-    assert _contains_bytes(local) is False
-
-
-@pytest.mark.parametrize(
-    "mutation",
-    (
-        "sample_rate",
-        "sample_count",
-        "pcm_sha",
-        "receipt_missing",
-        "receipt_pressure",
-        "world_receipt",
-        "additional_mutation",
-        "retained_pcm",
-    ),
-)
-def test_emitted_tamper_fails_closed_identically(
-    mutation: str,
-) -> None:
-    result = _emitted_result()
-    vocal = result["vocal_causal_act"]
-    receipt = vocal["act_receipt"]
-    if mutation == "sample_rate":
-        vocal["sample_rate_hz"] = 8_000
-    elif mutation == "sample_count":
-        vocal["sample_count"] += 1
-    elif mutation == "pcm_sha":
-        vocal["pcm_sha256"] = _sha("changed-pcm")
-    elif mutation == "receipt_missing":
-        del receipt["emission_receipt_sha256"]
-    elif mutation == "receipt_pressure":
-        receipt["emitted_pressure_sha256"] = _sha("changed-pressure")
-    elif mutation == "world_receipt":
-        receipt["world_after_receipt_sha256"] = (
-            receipt["world_before_receipt_sha256"]
-        )
-    elif mutation == "additional_mutation":
-        vocal["additional_world_mutation"] = False
-    else:
-        vocal["retained_pcm_bytes"] = 1
-
-    for convert in _converters():
-        with pytest.raises(ValueError):
-            convert(copy.deepcopy(result))
-
-
-@pytest.mark.parametrize(
-    ("field", "value"),
-    (
-        ("pcm_s16le", b"\x00\x00"),
-        ("pcm_sha256", _sha("silent-pcm")),
-        ("program_custody_receipt_sha256", _sha("silent-program")),
-        ("act_receipt", {}),
-        ("sample_count", 1),
-        ("sample_rate_hz", 8_000),
-        ("retained_pcm_bytes", 1),
-        ("additional_world_mutation", True),
-    ),
-)
-def test_signed_silent_tamper_fails_closed_identically(
-    field: str,
-    value: object,
-) -> None:
-    result = _silent_result()
-    result["vocal_causal_act"][field] = value
-
-    for convert in _converters():
-        with pytest.raises(ValueError):
-            convert(copy.deepcopy(result))
-
-
-def test_oversize_pcm_fails_before_base64_transport() -> None:
-    pcm = b"\x00\x00" * (MAX_VOCAL_SAMPLE_COUNT + 1)
-    result = _emitted_result(pcm)
-
-    for convert in _converters():
-        with pytest.raises(ValueError, match="transport changed"):
-            convert(copy.deepcopy(result))
+    for retired in (
+        _emitted_result(),
+        _silent_result(),
+        {
+            "binding_created": False,
+            "learned_body_act": {"state": "emitted"},
+            "world_revision_after": 2,
+            "world_revision_before": 1,
+        },
+    ):
+        for convert in _converters():
+            with pytest.raises(
+                RuntimeError,
+                match="permanently retired",
+            ):
+                convert(copy.deepcopy(retired))
 
 
 def _action_request() -> dict[str, object]:
@@ -310,93 +200,3 @@ def test_action_request_accepts_no_vocal_program_or_media_authority(
         json=request,
     )
     assert response.status_code == 422
-
-
-def test_local_remote_and_runner_action_responses_are_exactly_equivalent(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import dsf_ai_service.app as app_module
-    import dsf_ai_service.substrate_runner as runner
-
-    class _Owner:
-        def durably_experience_embodied_action(self, **_values):
-            return copy.deepcopy(_emitted_result())
-
-    owner = _Owner()
-    monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", API_KEY)
-    monkeypatch.setattr(app_module, "_guala", owner)
-    monkeypatch.setattr(app_module, "STATE_DIR", "/exact-state")
-    monkeypatch.setattr(app_module, "_is_remote", lambda: False)
-    client = TestClient(app_module.app)
-    unauthenticated = client.post(
-        "/api/v1/embodiment/action-experience",
-        json=_action_request(),
-    )
-    assert unauthenticated.status_code == 401
-    local = client.post(
-        "/api/v1/embodiment/action-experience",
-        headers={"X-API-Key": API_KEY},
-        json=_action_request(),
-    )
-    assert local.status_code == 200
-
-    monkeypatch.setattr(runner, "_guala", owner)
-    monkeypatch.setattr(runner, "STATE_DIR", "/exact-state")
-    from dsf_ai_service.substrate.embodiment_world import (
-        MoveCommand,
-        PoseMM,
-        PositionMM,
-        encode_command,
-    )
-
-    encoded_command = base64.b64encode(encode_command(MoveCommand(
-        target_pose=PoseMM(PositionMM(1_200, 1_400, 0), 0),
-        duration_microseconds=100_000,
-    ))).decode("ascii")
-    runner_result = runner.handle_embodied_action_experience({
-        "command_payload_base64": encoded_command,
-        "nonce": "learned-body-act-http-0001",
-        "port_id": "W1-self-body-port",
-        "tutor_id": "joe",
-    })
-    assert runner_result == local.json()
-
-    class _Remote:
-        async def call(self, operation, **_values):
-            assert operation == "embodied_action_experience"
-            return copy.deepcopy(runner_result)
-
-    monkeypatch.setattr(app_module, "_is_remote", lambda: True)
-    monkeypatch.setattr(app_module, "_get_substrate_client", _Remote)
-    remote = client.post(
-        "/api/v1/embodiment/action-experience",
-        headers={"X-API-Key": API_KEY},
-        json=_action_request(),
-    )
-    assert remote.status_code == 200
-    assert remote.json() == local.json()
-
-
-def test_remote_transport_tamper_is_rejected(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import dsf_ai_service.app as app_module
-    import dsf_ai_service.substrate_runner as runner
-
-    transported = runner._embodied_action_transport(_emitted_result())
-    transported["learned_body_act"]["pcm_s16le_base64"] = "AAAA"
-
-    class _Remote:
-        async def call(self, operation, **_values):
-            assert operation == "embodied_action_experience"
-            return transported
-
-    monkeypatch.setattr(app_module, "_GUALALOOM_API_KEY", API_KEY)
-    monkeypatch.setattr(app_module, "_is_remote", lambda: True)
-    monkeypatch.setattr(app_module, "_get_substrate_client", _Remote)
-    response = TestClient(app_module.app).post(
-        "/api/v1/embodiment/action-experience",
-        headers={"X-API-Key": API_KEY},
-        json=_action_request(),
-    )
-    assert response.status_code == 409

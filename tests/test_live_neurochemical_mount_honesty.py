@@ -25,6 +25,7 @@ def test_production_uses_the_exact_live_neurochemical_authority() -> None:
 
 def test_ae_native_chemistry_is_typed_without_biological_claims(
     monkeypatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv(
         "GUALA_CAUSAL_ACTION_KEY",
@@ -33,6 +34,7 @@ def test_ae_native_chemistry_is_typed_without_biological_claims(
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     guala = Guala()
     try:
+        guala.load_full_state(str(tmp_path))
         owner = guala._whole_organism_neurochemical_owner
         assert type(owner) is LiveAENeurochemicalFlowOwner
 
@@ -81,6 +83,7 @@ def test_ae_native_chemistry_is_typed_without_biological_claims(
 
 def test_authenticated_dry_legacy_state_migrates_to_live_genesis(
     monkeypatch,
+    tmp_path,
 ) -> None:
     monkeypatch.setenv(
         "GUALA_CAUSAL_ACTION_KEY",
@@ -89,6 +92,7 @@ def test_authenticated_dry_legacy_state_migrates_to_live_genesis(
     monkeypatch.setenv("EVENT_DRIVEN_SUBSTRATE", "0")
     guala = Guala()
     try:
+        guala.load_full_state(str(tmp_path))
         legacy = UnavailableNeurochemicalFlowOwner(
             authority_key=(
                 guala._whole_organism_neurochemical_authority_key

@@ -233,9 +233,12 @@ def test_start_returns_before_execution_and_terminal_poll_is_one_use(
     )
     started = asyncio.Event()
     release = asyncio.Event()
-    transported = app_module._embodied_action_transport(
-        _emitted_result()
-    )
+    transported = app_module._embodied_action_transport({
+        "binding_created": False,
+        "outcome_settlement_receipt_sha256": _sha("trial-outcome"),
+        "world_revision_after": 18,
+        "world_revision_before": 17,
+    })
 
     async def _blocked_execution(_req, *, command_payload):
         assert isinstance(command_payload, bytes)
@@ -287,8 +290,7 @@ def test_start_returns_before_execution_and_terminal_poll_is_one_use(
         terminal = _response_json(terminal_response)
         assert terminal["result"] == transported
         assert "vocal_causal_act" not in terminal["result"]
-        encoded = base64.b64encode(PCM_S16LE).decode("ascii")
-        assert json.dumps(terminal, sort_keys=True).count(encoded) == 1
+        assert "learned_body_act" not in terminal["result"]
         assert "sight_articulatory_playback" not in json.dumps(terminal)
         with pytest.raises(HTTPException) as captured:
             await app_module.poll_learned_body_act_trial(

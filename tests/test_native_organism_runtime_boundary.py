@@ -8,25 +8,73 @@ import pytest
 from dsf_ai_service.glew_runtime import native_organism_runtime as boundary
 
 
-class _Source:
-    schema = "guala.native.exact_joint_source_episode.v1"
-    port_count = 1
-    source_sample_count = 2
-    python_callback_count = 0
+def _source_episode():
+    """One real settled native joint-source episode (no Python stubs)."""
 
-    def __init__(self) -> None:
-        self._body = b"GLJSRC01-source"
-        self.payload_sha256 = hashlib.sha256(self._body).hexdigest()
+    from fractions import Fraction
 
-    def as_bytes(self) -> bytes:
-        return self._body
+    from dsf_ai_service.glew_runtime.native_joint_source_episode import (
+        NativeJointSourceOccurrenceInput,
+        UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR,
+        settle_native_joint_source_episode,
+    )
+    from dsf_ai_service.glew_runtime.native_sensory_full_field import (
+        NativeSensorySubstreamInput,
+    )
+    from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+        NativeAxisCoordinate,
+        PhysicalSense,
+        SENSE_ORDER,
+        SenseBoundaryState,
+    )
+
+    times = tuple(Fraction(index, 4) for index in range(4))
+    port = NativeSensorySubstreamInput(
+        sense=PhysicalSense.SIGHT,
+        sensor_id="sight-organ",
+        substream_id="sight-0",
+        topology_index=0,
+        coordinates=(NativeAxisCoordinate("receptor", "0"),),
+        physical_quantity="normalized_physical_excitation",
+        physical_unit="normalized_binary64",
+        source_times=times,
+        normalized_signal=(0.0, 0.5, -0.25, 1.0),
+        phase_turns=(Fraction(0),) * 4,
+    )
+    observed = {PhysicalSense.SIGHT: (port,)}
+    states = {
+        sense: (
+            SenseBoundaryState.OBSERVED
+            if sense in observed
+            else SenseBoundaryState.QUIESCENT
+        )
+        for sense in SENSE_ORDER
+    }
+    occurrence = NativeJointSourceOccurrenceInput(
+        port_indices=(0,),
+        source_times=times,
+        joint_intersample_profile_payload=(
+            UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
+        ),
+        groups=((0,),),
+        joint_relevance_profile_payload=(
+            UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
+        ),
+        joint_relevance=(Fraction(1),) * len(times),
+    )
+    return settle_native_joint_source_episode(
+        assembly_id="native-organism-boundary-test",
+        observed_substreams=observed,
+        states=states,
+        occurrences=(occurrence,),
+    )
 
 
 @dataclass
 class _Result:
     payload: bytes
     scope: str
-    source: _Source | None = None
+    source: object | None = None
     predecessor: bytes | None = None
     physical_transition_claimed: bool = False
     cognitive_formation_claimed: bool = False
@@ -68,7 +116,7 @@ class _Result:
     def transitioned(
         cls,
         predecessor: bytes,
-        source: _Source,
+        source,
     ) -> "_Result":
         return cls(
             payload=b"GLORUN01-successor",
@@ -123,7 +171,7 @@ def test_boundary_invokes_one_native_organism_step_without_d2_fallback(
     monkeypatch,
 ) -> None:
     predecessor = b"GLORUN01-predecessor"
-    source = _Source()
+    source = _source_episode()
     result = _Result.transitioned(predecessor, source)
     native = _Native(result)
     monkeypatch.setattr(boundary, "_native_core", lambda: native)
@@ -188,7 +236,7 @@ def test_boundary_refuses_false_or_replayed_transition_claims(
     value: object,
 ) -> None:
     predecessor = b"GLORUN01-predecessor"
-    source = _Source()
+    source = _source_episode()
     result = _Result.transitioned(predecessor, source)
     setattr(result, field, value)
     monkeypatch.setattr(boundary, "_native_core", lambda: _Native(result))
@@ -208,7 +256,7 @@ def test_boundary_refuses_false_or_replayed_transition_claims(
 
 def test_boundary_carries_native_cognitive_formation_observation(monkeypatch) -> None:
     predecessor = b"GLORUN01-predecessor"
-    source = _Source()
+    source = _source_episode()
     result = _Result.transitioned(predecessor, source)
     result.cognitive_formation_claimed = True
     result.cognitive_ordinal = 1
