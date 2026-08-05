@@ -2941,7 +2941,11 @@ mod tests {
     }
 
     #[test]
-    fn resident_runtime_reports_fractal_only_after_real_post_quiescence_inputs() {
+    fn resident_runtime_reports_fractal_only_after_real_stimulus_boundary_inputs() {
+        // Stimulus-boundary closure (ratified 2026-08-05): the runtime
+        // reports the experience fractal on the FIRST genuinely dark episode
+        // after the light — the settlement whose interval carried zero
+        // exogenous optical energy — never during the lit episode itself.
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let light = runtime.prepare(&exact_optical_episode()).unwrap();
         assert_eq!(light.observation.complete_neuron_fractal_count, 0);
@@ -2951,14 +2955,15 @@ mod tests {
             ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget())
                 .unwrap();
         let first_dark = runtime.prepare(&exact_dark_optical_episode()).unwrap();
-        assert_eq!(first_dark.observation.complete_neuron_fractal_count, 0);
+        assert_eq!(first_dark.observation.complete_neuron_fractal_count, 1);
+        assert!(!first_dark.observation.cognitive_formation_claimed);
         runtime.commit(first_dark.token).unwrap();
 
         let mut runtime =
             ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget())
                 .unwrap();
         let second_dark = runtime.prepare(&exact_dark_optical_episode()).unwrap();
-        assert_eq!(second_dark.observation.complete_neuron_fractal_count, 1);
+        assert_eq!(second_dark.observation.complete_neuron_fractal_count, 0);
         assert!(!second_dark.observation.cognitive_formation_claimed);
     }
 

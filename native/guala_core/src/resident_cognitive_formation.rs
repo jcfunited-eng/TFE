@@ -48,15 +48,16 @@ use crate::optical_receptor_work::{
     RETINAL_REFERENCE_IRRADIANCE_UNIT, RETINAL_SPECTRAL_IRRADIANCE_QUANTITY,
 };
 use crate::physical_mosaic::{
-    admit_physical_mosaic, decode_admitted_physical_mosaic, encode_admitted_physical_mosaic,
-    AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
+    admit_physical_mosaic, connected_members, decode_admitted_physical_mosaic,
+    encode_admitted_physical_mosaic, AdmittedPhysicalMosaic, PhysicalMosaicCodecError,
+    PhysicalMosaicError,
 };
 use crate::reached_neuron_cohort::{
     decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
     encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
     encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
     extend_reached_cohort_state_with_genesis, reached_cohort_state_content_digest,
-    settle_reached_cohort_interval, QuiescentReachedCohortState, ReachedCohortAnatomy,
+    settle_reached_cohort_interval, RestReachedCohortState, ReachedCohortAnatomy,
     ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortPostExperienceSettlement,
     ReachedCohortRecurrenceSettlement, ReachedCohortState,
 };
@@ -73,6 +74,7 @@ use crate::virtual_material_neuron_genesis::{
 use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
 use num_rational::BigRational;
+use num_traits::Zero;
 use std::fmt;
 
 const MAGIC: &[u8; 8] = b"GLCOG012";
@@ -379,8 +381,8 @@ struct ResidentReachedCohort {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ResidentExperienceEvidence {
-    pre_experience_quiescent: ReachedCohortState,
-    post_experience_quiescent: Option<ReachedCohortState>,
+    pre_experience_rest: ReachedCohortState,
+    post_experience_rest: Option<ReachedCohortState>,
     gate_work_perturbed_neurons: Box<[bool]>,
     active_electrical_contacts: Box<[bool]>,
 }
@@ -1065,6 +1067,17 @@ impl ResidentCognitiveFormationState {
                     inputs
                         .try_reserve_exact(coordinate_indices.len())
                         .map_err(|_| FormationError::ArithmeticOverflow)?;
+                    // Stimulus-boundary truth signal (ratified 2026-08-05):
+                    // whether this settlement interval carried ANY exogenous
+                    // optical energy, derived from the occurrence's own
+                    // delivered samples — the exact `2·L·T` transduction
+                    // integral each retinal site computes from the light
+                    // that really fell on it.  True dark samples integrate
+                    // to exactly zero.  `None` means the occurrence is not
+                    // optical at all (vestibular ingress), where no optical
+                    // boundary law applies.
+                    let mut exogenous_optical_energy: Option<bool> =
+                        if vestibular.is_some() { None } else { Some(false) };
                     for coordinate_index in coordinate_indices {
                         let perspective = bind_neuron_perspective(&shared, coordinate_index, 0)
                             .map_err(FormationError::JointFieldUnavailable)?;
@@ -1106,6 +1119,9 @@ impl ResidentCognitiveFormationState {
                                     &optical_anatomy,
                                 )
                                 .map_err(FormationError::OpticalWorkUnavailable)?;
+                                if !receptor.transduced_energy_zeptojoules.is_zero() {
+                                    exogenous_optical_energy = Some(true);
+                                }
                                 let window = gate_opening_quantum_window(
                                     &cohort.anatomy.neuron_anatomies()[resident_index],
                                     &cohort.state.neurons()[resident_index],
@@ -1153,6 +1169,7 @@ impl ResidentCognitiveFormationState {
                         &mut cohort,
                         input,
                         gate_work_perturbed_neurons,
+                        exogenous_optical_energy,
                         &mosaics,
                         max_encoded_bytes,
                         source_generation,
@@ -1329,11 +1346,11 @@ impl ResidentCognitiveFormationState {
             if cohort
                 .pending_experience
                 .as_ref()
-                .is_some_and(|evidence| evidence.post_experience_quiescent.is_some())
+                .is_some_and(|evidence| evidence.post_experience_rest.is_some())
                 || cohort
                     .retained_experience
                     .as_ref()
-                    .is_some_and(|evidence| evidence.post_experience_quiescent.is_none())
+                    .is_some_and(|evidence| evidence.post_experience_rest.is_none())
                 || (cohort.pending_experience.is_some() && cohort.retained_experience.is_some())
                 || (cohort.pending_recurrence.is_some()
                     && (cohort.retained_experience.is_none()
@@ -1866,15 +1883,15 @@ fn extend_resident_cohort_evidence(
         .get(predecessor_neuron_count..)
         .ok_or(FormationError::NoncanonicalState)?;
     let extend_experience = |evidence: &mut ResidentExperienceEvidence| {
-        evidence.pre_experience_quiescent = extend_reached_cohort_state_with_genesis(
+        evidence.pre_experience_rest = extend_reached_cohort_state_with_genesis(
             predecessor_anatomy,
-            &evidence.pre_experience_quiescent,
+            &evidence.pre_experience_rest,
             &successor_anatomy,
             genesis_states,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        evidence.post_experience_quiescent = evidence
-            .post_experience_quiescent
+        evidence.post_experience_rest = evidence
+            .post_experience_rest
             .as_ref()
             .map(|state| {
                 extend_reached_cohort_state_with_genesis(
@@ -1911,6 +1928,7 @@ fn settle_resident_physical_interval(
     cohort: &mut ResidentReachedCohort,
     input: ReachedCohortIntervalInput<'_>,
     gate_work_perturbed_neurons: Vec<bool>,
+    exogenous_optical_energy: Option<bool>,
     existing_mosaics: &[AdmittedPhysicalMosaic],
     max_encoded_bytes: usize,
     source_generation: u64,
@@ -1929,7 +1947,12 @@ fn settle_resident_physical_interval(
             source_occurrence_index,
         )
     } else {
-        settle_resident_original_interval(cohort, input, gate_work_perturbed_neurons)
+        settle_resident_original_interval(
+            cohort,
+            input,
+            gate_work_perturbed_neurons,
+            exogenous_optical_energy,
+        )
     }
 }
 
@@ -1937,6 +1960,7 @@ fn settle_resident_original_interval(
     cohort: &mut ResidentReachedCohort,
     input: ReachedCohortIntervalInput<'_>,
     gate_work_perturbed_neurons: Vec<bool>,
+    exogenous_optical_energy: Option<bool>,
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
     let predecessor_state = cohort.state.clone();
     let settlement = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
@@ -1950,8 +1974,8 @@ fn settle_resident_original_interval(
     let active_electrical_contacts = active_contact_bits(&settlement.contact_transitions);
     let mut experience = cohort.pending_experience.clone().or_else(|| {
         (changed_neurons > 0).then(|| ResidentExperienceEvidence {
-            pre_experience_quiescent: predecessor_state,
-            post_experience_quiescent: None,
+            pre_experience_rest: predecessor_state,
+            post_experience_rest: None,
             gate_work_perturbed_neurons: vec![false; cohort.anatomy.neuron_count()]
                 .into_boxed_slice(),
             active_electrical_contacts: vec![false; cohort.anatomy.contact_count()]
@@ -1968,11 +1992,28 @@ fn settle_resident_original_interval(
             &active_electrical_contacts,
         )?;
     }
+    // Stimulus-boundary experience closure (ratified by delegation
+    // 2026-08-05, docs/GUALA_STIMULUS_BOUNDARY_RETENTION_RATIFICATION_
+    // 2026-08-05.md): a pending experience may finalize ONLY on a settlement
+    // whose interval carried zero exogenous optical energy, truth-coupled to
+    // the settled occurrence's own sample content (the exact `2·L·T`
+    // transduction integral).  The stimulus ends the experience; the brain
+    // does not need to fall silent — measured F2: after real electricity the
+    // driven chain never returns to global quiescence, and mid-stimulus
+    // quiet moments must not freeze an electrically silent original.  A
+    // non-optical (vestibular) occurrence carries no optical energy on any
+    // interval; its pre-existing quiescence closure stands unchanged until a
+    // boundary law for that sense is ratified.
+    let stimulus_boundary = match exogenous_optical_energy {
+        Some(carried) => !carried,
+        None => settlement.quiescent,
+    };
     let mut emitted = Vec::new();
-    if settlement.quiescent {
+    if stimulus_boundary {
         if let Some(mut experience) = experience {
+            let mut member_indices = Vec::new();
             for (neuron_index, (predecessor, successor)) in experience
-                .pre_experience_quiescent
+                .pre_experience_rest
                 .neurons()
                 .iter()
                 .zip(settlement.successor.neurons())
@@ -1990,10 +2031,33 @@ fn settle_resident_original_interval(
                         neuron_lineage: cohort.anatomy.neuron_lineages()[neuron_index],
                         delta,
                     });
+                    member_indices.push(neuron_index);
                 }
             }
-            if emitted.len() >= 3 {
-                experience.post_experience_quiescent = Some(settlement.successor.clone());
+            // Participation retention (same ratification): the completion is
+            // retainable as a recognizable original ONLY if its masks satisfy
+            // the admission law's own original-side predicate — at least
+            // three changed members connected through the contacts that were
+            // physically active during the experience (`connected_members`,
+            // reused verbatim from `admit_physical_mosaic`).  A completion
+            // failing it retains NOTHING: the pending experience clears and
+            // there is truthfully no original.
+            let mut member_mask = vec![false; cohort.anatomy.neuron_count()];
+            for member in &member_indices {
+                member_mask[*member] = true;
+            }
+            let endpoints = cohort.anatomy.contact_endpoints().collect::<Vec<_>>();
+            if member_indices.len() >= 3
+                && connected_members(
+                    cohort.anatomy.neuron_count(),
+                    &member_indices,
+                    &member_mask,
+                    &endpoints,
+                    &experience.active_electrical_contacts,
+                    &member_indices[..1],
+                )
+            {
+                experience.post_experience_rest = Some(settlement.successor.clone());
                 cohort.retained_experience = Some(experience);
             }
         }
@@ -2027,7 +2091,7 @@ fn settle_resident_recurrence_interval(
         .as_ref()
         .ok_or(FormationError::NoncanonicalState)?;
     let learned = retained
-        .post_experience_quiescent
+        .post_experience_rest
         .as_ref()
         .ok_or(FormationError::NoncanonicalState)?;
     if cohort.pending_recurrence.is_none()
@@ -2128,9 +2192,9 @@ fn original_settlement(
     retained: &ResidentExperienceEvidence,
     learned: &ReachedCohortState,
 ) -> Result<ReachedCohortPostExperienceSettlement, FormationError> {
-    let neuron_fractals = physical_deltas(anatomy, &retained.pre_experience_quiescent, learned)?;
+    let neuron_fractals = physical_deltas(anatomy, &retained.pre_experience_rest, learned)?;
     Ok(ReachedCohortPostExperienceSettlement {
-        quiescent: QuiescentReachedCohortState::from_state(learned.clone()),
+        rest: RestReachedCohortState::from_state(learned.clone()),
         neuron_fractals,
         electrical_contact_was_active: retained
             .active_electrical_contacts
@@ -2254,7 +2318,7 @@ fn validate_typed_hippocampal_episode(
     let original =
         decode_any_experience_evidence(&episode.original_transition_evidence, anatomy, None)?;
     let learned = original
-        .post_experience_quiescent
+        .post_experience_rest
         .as_ref()
         .ok_or(FormationError::NoncanonicalState)?;
     let mut cursor = HIPPOCAMPAL_RECURRENCE_MAGIC.len();
@@ -2367,7 +2431,7 @@ fn is_proper_partial_cue(
     let mut member_count = 0usize;
     let mut cue_count = 0usize;
     for (index, (prior, successor)) in retained
-        .pre_experience_quiescent
+        .pre_experience_rest
         .neurons()
         .iter()
         .zip(learned.neurons())
@@ -2456,7 +2520,7 @@ fn encode_experience_evidence_v2(
             let body = encode_reached_cohort_state_delta(
                 anatomy,
                 base,
-                &evidence.pre_experience_quiescent,
+                &evidence.pre_experience_rest,
             )
             .map_err(|_| FormationError::NoncanonicalState)?;
             encoded.push(1);
@@ -2464,14 +2528,14 @@ fn encode_experience_evidence_v2(
             encoded.extend_from_slice(&body);
         }
         None => {
-            let body = encode_reached_cohort_state_v4(anatomy, &evidence.pre_experience_quiescent)
+            let body = encode_reached_cohort_state_v4(anatomy, &evidence.pre_experience_rest)
                 .map_err(|_| FormationError::NoncanonicalState)?;
             encoded.push(0);
             push_length(&mut encoded, body.len())?;
             encoded.extend_from_slice(&body);
         }
     }
-    match evidence.post_experience_quiescent.as_ref() {
+    match evidence.post_experience_rest.as_ref() {
         None => encoded.push(0),
         Some(post) => {
             let post_body = encode_reached_cohort_state_v4(anatomy, post)
@@ -2532,7 +2596,7 @@ fn decode_experience_evidence_v2(
     let pre_body = encoded
         .get(cursor..pre_end)
         .ok_or(FormationError::NoncanonicalState)?;
-    let pre_experience_quiescent = match (pre_mode, base) {
+    let pre_experience_rest = match (pre_mode, base) {
         (0, None) => decode_reached_cohort_state(anatomy, pre_body)
             .map_err(|_| FormationError::NoncanonicalState)?,
         (1, Some(base)) => decode_reached_cohort_state_delta(anatomy, base, pre_body)
@@ -2546,7 +2610,7 @@ fn decode_experience_evidence_v2(
     cursor = cursor
         .checked_add(1)
         .ok_or(FormationError::ArithmeticOverflow)?;
-    let post_experience_quiescent = match (post_mode, base) {
+    let post_experience_rest = match (post_mode, base) {
         (0, _) => None,
         (1, _) => {
             let length = read_length(encoded, &mut cursor)?;
@@ -2611,8 +2675,8 @@ fn decode_experience_evidence_v2(
         return Err(FormationError::NoncanonicalState);
     }
     Ok(ResidentExperienceEvidence {
-        pre_experience_quiescent,
-        post_experience_quiescent,
+        pre_experience_rest,
+        post_experience_rest,
         gate_work_perturbed_neurons,
         active_electrical_contacts,
     })
@@ -2641,10 +2705,10 @@ fn encode_experience_evidence(
     {
         return Err(FormationError::NoncanonicalState);
     }
-    let predecessor = encode_reached_cohort_state(anatomy, &evidence.pre_experience_quiescent)
+    let predecessor = encode_reached_cohort_state(anatomy, &evidence.pre_experience_rest)
         .map_err(|_| FormationError::NoncanonicalState)?;
     let successor = evidence
-        .post_experience_quiescent
+        .post_experience_rest
         .as_ref()
         .map(|state| encode_reached_cohort_state(anatomy, state))
         .transpose()
@@ -2718,16 +2782,16 @@ fn decode_optional_experience_evidence(
                 Some(base),
             )?;
             *cursor = end;
-            if evidence.post_experience_quiescent.is_some() != retained {
+            if evidence.post_experience_rest.is_some() != retained {
                 return Err(FormationError::NoncanonicalState);
             }
             if retained {
                 let post = evidence
-                    .post_experience_quiescent
+                    .post_experience_rest
                     .as_ref()
                     .ok_or(FormationError::NoncanonicalState)?;
                 let retained = evidence
-                    .pre_experience_quiescent
+                    .pre_experience_rest
                     .neurons()
                     .iter()
                     .zip(post.neurons())
@@ -2769,7 +2833,7 @@ fn decode_experience_evidence(
     let predecessor_end = cursor
         .checked_add(predecessor_length)
         .ok_or(FormationError::ArithmeticOverflow)?;
-    let pre_experience_quiescent = decode_reached_cohort_state(
+    let pre_experience_rest = decode_reached_cohort_state(
         anatomy,
         encoded
             .get(cursor..predecessor_end)
@@ -2777,7 +2841,7 @@ fn decode_experience_evidence(
     )
     .map_err(|_| FormationError::NoncanonicalState)?;
     cursor = predecessor_end;
-    let post_experience_quiescent = match encoded
+    let post_experience_rest = match encoded
         .get(cursor)
         .copied()
         .ok_or(FormationError::NoncanonicalState)?
@@ -2837,8 +2901,8 @@ fn decode_experience_evidence(
         return Err(FormationError::NoncanonicalState);
     }
     Ok(ResidentExperienceEvidence {
-        pre_experience_quiescent,
-        post_experience_quiescent,
+        pre_experience_rest,
+        post_experience_rest,
         gate_work_perturbed_neurons,
         active_electrical_contacts,
     })
@@ -4183,7 +4247,7 @@ mod tests {
             dormant_lineage_seeds: Box::new([]),
             cohorts: vec![ResidentReachedCohort {
                 anatomy: restored.cohorts[0].anatomy.clone(),
-                state: retained.pre_experience_quiescent.clone(),
+                state: retained.pre_experience_rest.clone(),
                 pending_experience: None,
                 retained_experience: None,
                 pending_recurrence: None,
@@ -4204,14 +4268,14 @@ mod tests {
         let learned = cohort.state.clone();
         let learned_recovery = learned.recovery_fluid().physical_parts();
         let original_fractals = evidence
-            .pre_experience_quiescent
+            .pre_experience_rest
             .neurons()
             .iter()
             .zip(learned.neurons())
             .map(|(prior, successor)| sparse_physical_state_delta(prior, successor).unwrap())
             .collect::<Vec<_>>();
         let original = crate::reached_neuron_cohort::ReachedCohortPostExperienceSettlement {
-            quiescent: crate::reached_neuron_cohort::QuiescentReachedCohortState::from_state(
+            rest: crate::reached_neuron_cohort::RestReachedCohortState::from_state(
                 learned.clone(),
             ),
             neuron_fractals: original_fractals.into_boxed_slice(),
@@ -4243,7 +4307,7 @@ mod tests {
         );
         let control = crate::reached_neuron_cohort::settle_reached_cohort_recurrence(
             &cohort.anatomy,
-            &evidence.pre_experience_quiescent,
+            &evidence.pre_experience_rest,
             &recurrence_inputs,
         )
         .unwrap();
@@ -4290,7 +4354,14 @@ mod tests {
     }
 
     #[test]
-    fn real_dark_successors_emit_only_the_post_quiescence_fractal() {
+    fn real_dark_successor_emits_the_stimulus_boundary_fractal() {
+        // Stimulus-boundary closure (ratified 2026-08-05): the experience
+        // closes on the FIRST settlement whose interval carried zero
+        // exogenous optical energy — the first genuinely dark episode — not
+        // on a later quiescent moment.  A single receptor cell can never
+        // satisfy the participation retention predicate (three connected
+        // changed members), so its completion emits its real fractal and
+        // truthfully retains nothing.
         let light = exact_optical_episode();
         let dark = exact_dark_optical_episode();
         let mut state = ResidentCognitiveFormationState::default();
@@ -4307,20 +4378,28 @@ mod tests {
         assert_eq!(restored, state);
 
         let first_dark = restored.prepare(&dark, 16_000_000).unwrap();
-        assert_eq!(first_dark.observation.complete_neuron_fractal_count, 0);
-        restored.commit(first_dark).unwrap();
-
-        let second_dark = restored.prepare(&dark, 16_000_000).unwrap();
-        assert_eq!(second_dark.observation.complete_neuron_fractal_count, 1);
-        assert_eq!(second_dark.observation.emitted_neuron_fractals.len(), 1);
+        assert_eq!(first_dark.observation.complete_neuron_fractal_count, 1);
+        assert_eq!(first_dark.observation.emitted_neuron_fractals.len(), 1);
         assert_eq!(
-            second_dark.observation.emitted_neuron_fractals[0]
+            first_dark.observation.emitted_neuron_fractals[0]
                 .delta
                 .exact_delta(crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength),
             Some(crate::complete_neuron::ExactPhysicalStateDelta::Rational(
                 crate::exact_rational::ExactRational::new(1, 3).unwrap()
             ))
         );
+        restored.commit(first_dark).unwrap();
+        // Participation retention: one changed member is fewer than the
+        // admission law's three-connected-member floor, so nothing is
+        // retained and the pending experience is truthfully gone.
+        assert!(restored.cohorts[0].retained_experience.is_none());
+        assert!(restored.cohorts[0].pending_experience.is_none());
+
+        // The boundary emission is one-shot: the cell holds its settled
+        // state through the second dark episode, so no new experience opens
+        // and nothing further is emitted.
+        let second_dark = restored.prepare(&dark, 16_000_000).unwrap();
+        assert_eq!(second_dark.observation.complete_neuron_fractal_count, 0);
     }
 
     #[test]
@@ -4449,10 +4528,14 @@ mod tests {
         let state = lesson_state_with_retained_experience();
         let cohort = &state.cohorts[0];
         let retained = cohort.retained_experience.as_ref().unwrap();
-        assert_eq!(
-            retained.post_experience_quiescent.as_ref(),
-            Some(&cohort.state)
-        );
+        // Stimulus-boundary closure (ratified 2026-08-05): the retained
+        // reference is the stimulus-offset REST state — the cohort's state
+        // at the first zero-exogenous-energy settlement.  The cohort keeps
+        // settling endogenously through the dark tail afterwards, so the
+        // retained reference is genuinely distinct from the final state; it
+        // is no longer the current-state digest case.
+        let post = retained.post_experience_rest.as_ref().unwrap();
+        assert_ne!(post, &cohort.state);
         let v13 = state.encode(16_000_000).unwrap();
         let v12 = state
             .encode_with_format(CognitiveCodecFormat::V12, 16_000_000)
@@ -4462,15 +4545,18 @@ mod tests {
             v12.len(),
             v13.len()
         );
-        // MEASURED 2026-08-05, differentiated anatomy: 1,089,107 B -> 293,993 B.
-        // The content-addressed layout was better than five to one when every
-        // member of this cohort held the same anatomy AND the same state; the
-        // members now differ physically, so their four state bodies no longer
-        // collapse to one.  Their ANATOMY still collapses to one — the
+        // MEASURED 2026-08-05, differentiated anatomy + stimulus-boundary
+        // closure: 1,089,107 B -> 427,057 B.  The content-addressed layout
+        // was better than five to one when every member held the same
+        // anatomy AND state, and better than three to one after geometric
+        // differentiation; under the stimulus-boundary law the retained post
+        // rest reference is genuinely distinct from the current state (the
+        // cohort keeps settling after the boundary), so that one state body
+        // no longer collapses to a digest and the honest ratio is better
+        // than five to two.  The ANATOMY still collapses to one — the
         // GLRCC05 cell stores the shared anatomy once and carries each
-        // member's own derived capacitance in 32 bytes — which is why the
-        // ratio is still better than three to one instead of vanishing.
-        assert!(v13.len() * 3 < v12.len());
+        // member's own derived capacitance in 32 bytes.
+        assert!(v13.len() * 5 < v12.len() * 2);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&v13, 16_000_000).unwrap(),
             state
@@ -4487,31 +4573,48 @@ mod tests {
             ResidentCognitiveFormationState::decode(&v12, 16_000_000).unwrap()
         );
 
-        let evidence =
+        // The resident encode (base = current state) now carries the post
+        // rest reference in full (mode 1), because the retained boundary
+        // state differs from the state the cohort settled into afterwards.
+        let resident_form =
             encode_experience_evidence_v2(&cohort.anatomy, Some(&cohort.state), retained).unwrap();
+        let mut cursor = EXPERIENCE_V2_MAGIC.len() + 1;
+        let pre_length = read_length(&resident_form, &mut cursor).unwrap();
+        assert_eq!(
+            resident_form[cursor + pre_length],
+            1,
+            "post differing from the resident base is retained in full"
+        );
+        assert_eq!(
+            decode_experience_evidence_v2(&resident_form, &cohort.anatomy, Some(&cohort.state))
+                .unwrap(),
+            *retained
+        );
+        // The content-addressed marker (mode 2) still collapses the post
+        // body to its digest whenever the base IS byte-identical to it, and
+        // a lying digest is still refused.
+        let evidence = encode_experience_evidence_v2(&cohort.anatomy, Some(post), retained).unwrap();
         let mut cursor = EXPERIENCE_V2_MAGIC.len() + 1;
         let pre_length = read_length(&evidence, &mut cursor).unwrap();
         let post_mode_offset = cursor + pre_length;
         assert_eq!(evidence[post_mode_offset], 2, "post retained as marker");
         assert_eq!(
-            decode_experience_evidence_v2(&evidence, &cohort.anatomy, Some(&cohort.state)).unwrap(),
+            decode_experience_evidence_v2(&evidence, &cohort.anatomy, Some(post)).unwrap(),
             *retained
         );
         let mut lying = evidence.clone();
         lying[post_mode_offset + 1] ^= 1;
-        assert!(
-            decode_experience_evidence_v2(&lying, &cohort.anatomy, Some(&cohort.state)).is_err()
-        );
+        assert!(decode_experience_evidence_v2(&lying, &cohort.anatomy, Some(post)).is_err());
         assert!(decode_experience_evidence_v2(
             &evidence,
             &cohort.anatomy,
-            Some(&retained.pre_experience_quiescent)
+            Some(&retained.pre_experience_rest)
         )
         .is_err());
 
         let full_form = encode_experience_evidence_v2(
             &cohort.anatomy,
-            Some(&retained.pre_experience_quiescent),
+            Some(&retained.pre_experience_rest),
             retained,
         )
         .unwrap();
@@ -4526,7 +4629,7 @@ mod tests {
             decode_experience_evidence_v2(
                 &full_form,
                 &cohort.anatomy,
-                Some(&retained.pre_experience_quiescent)
+                Some(&retained.pre_experience_rest)
             )
             .unwrap(),
             *retained

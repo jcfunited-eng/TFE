@@ -328,7 +328,13 @@ fn active_contacts_within(
         .collect()
 }
 
-fn connected_members(
+/// The admission law's own connectivity predicate: every listed member is
+/// reachable from the roots through contacts that were physically active,
+/// walking only member-to-member bonds.  Shared verbatim with the retention
+/// boundary (stimulus-boundary participation retention, ratified 2026-08-05)
+/// so an original can be retained only if it would satisfy this exact
+/// original-side admission requirement later.
+pub(crate) fn connected_members(
     neuron_count: usize,
     members: &[usize],
     member_mask: &[bool],

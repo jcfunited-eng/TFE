@@ -4695,7 +4695,7 @@ mod tests {
         }
         assert_eq!(
             settled
-                .quiescent
+                .rest
                 .state()
                 .neurons()
                 .iter()
@@ -4890,7 +4890,7 @@ mod tests {
             four_neuron_interval_with_work(&shared, &fixtures, 0, [0, 0, 0, 0]),
             four_neuron_interval_with_work(&shared, &fixtures, 0, [0, 0, 0, 0]),
         ];
-        let learned_predecessor = original.quiescent.clone();
+        let learned_predecessor = original.rest.clone();
         let recurrence = settle_reached_cohort_recurrence(
             &cohort_anatomy,
             learned_predecessor.state(),

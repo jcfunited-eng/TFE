@@ -86,28 +86,30 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
 ) -> None:
     production._startup()
 
-    # Two full presentations: the cohort grows and the FIRST lesson's own
-    # experience settles and emits its genuine post-quiescence fractals.
+    # Two full presentations: the cohort grows, the FIRST lesson's
+    # experience closes at the stimulus boundary and retains a CONNECTED
+    # original, and the SECOND lesson's dwell-staggered partial cues are
+    # admitted as the first served-path physical mosaics.
     #
-    # PINS CHANGED by the card-lesson truthfulness fix (companion to the
-    # ratified energy-descent law, 2026-08-05), measured before/after on this
-    # exact path:
-    #   lesson 1 physically_transitioned_neuron_count  BEFORE 27 -> AFTER 189
-    #   lesson 1 complete_neuron_fractal_count         BEFORE  0 -> AFTER  27
-    #   lesson 2 complete_neuron_fractal_count         BEFORE 27 -> AFTER   0
-    # Every lit hop now declares the lit card surface as its own exact
-    # optical occurrence (the card really is lit for the whole
-    # presentation), so all 27 sites transition on each of the 7 lit hops
-    # and the receptor accumulator opens gates inside the first lesson.
+    # PINS CHANGED by the stimulus-boundary retention ratification
+    # (2026-08-05) and its companion app transport fix, measured
+    # before/after on this exact path:
+    #   lesson 1 physically_transitioned_neuron_count  189 -> AFTER 209
+    #     (the two ended hops now declare the dark surface as an exact
+    #      optical occurrence, so the boundary settlements really happen:
+    #      189 lit + 16 + 4 dark-boundary transitions)
+    #   lesson 1 complete_neuron_fractal_count         stays 27
+    #   lesson 2 complete_neuron_fractal_count         stays  0
+    #   lesson 2 partial_cue_reassembly_count            0 -> AFTER 4
+    #   lesson 2 cognitive_mosaic_count                  0 -> AFTER 4
     first_status, first = _teach(CARD_ID)
     second_status, second = _teach(CARD_ID)
     assert first_status == 200 and second_status == 200
-    assert (
-        first["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS * 7
-    )
+    assert first["totals"]["physically_transitioned_neuron_count"] == 209
     assert first["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
     assert second["totals"]["complete_neuron_fractal_count"] == 0
+    assert second["totals"]["partial_cue_reassembly_count"] == 4
+    assert second["observation"]["cognitive_mosaic_count"] == 4
 
     # One partial presentation of the same approved card.
     status, partial = _teach(CARD_ID, "partial")
@@ -148,49 +150,42 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         == partial["persisted"]["state_sha256"]
     )
 
-    # MEASURED PHYSICS (2026-08-05, re-measured under the ratified geometric
-    # anatomy differentiation — every neuron's membrane capacitance now
-    # derives from its own declared place — on top of the ratified
-    # energy-descent charge-transfer law): the glimpse commits lawfully,
-    # moves real charge along the authored chain — and still admits no
-    # mosaic.
+    # MEASURED PHYSICS (2026-08-05, under the stimulus-boundary retention
+    # ratification): the glimpse commits lawfully and — for the first time
+    # on the served path — its cue is ENERGETICALLY REAL: the persistent
+    # per-site residue accumulators retained from the two full lessons let
+    # all 12 lit sites cross their gates' own opening thresholds inside the
+    # single 250 ms glimpse hop (gate dissipation 399 -> 498 quanta across
+    # the glimpse intake; the old sub-threshold energetics barrier is
+    # measured GONE).  The glimpse still admits no mosaic:
     #
     # PIN CHANGED, measured before/after on this exact path:
-    #   physically_transitioned_neuron_count  57 -> 128 -> 83
-    # 83 is the summed per-hop count over the glimpse hop and its eight dark
-    # ended hops.  It fell from 128 because the chain's members no longer
-    # share one capacitance: charge that used to be shuffled between exactly
-    # equal neighbours now descends once toward the larger membrane and stops
-    # there, so fewer neurons change per dark hop.
+    #   physically_transitioned_neuron_count  83 -> 75
+    # 75 is the summed per-hop count over the glimpse hop and its eight
+    # dark ended hops against the post-recognition lesson-2 body.
     #
-    # What this ratification did and did not move, measured on the served
-    # path (headless gauntlet, fresh organism, alphabet-a, two full lessons
-    # then the glimpse):
-    #   - The anatomical blockade is GONE.  The four-receptor end-to-end
-    #     proofs in the crate, whose gate work lands on the dissipation
-    #     lattice, now admit real mosaics on descent-lawful physics.
-    #   - The served card lesson DOES open gates and DOES put charge on the
-    #     chain (reservoir probe, three lit lessons: 16, 13 and 17 neurons
-    #     left with open gates; membrane charges -20, -28, -45 e), and its
-    #     dark tail is already at descent-lawful rest — measured 189
-    #     transitions = 27 sites x 7 lit hops with ZERO in the tail, identical
-    #     at tails of 2, 16 and 64 hops.  The glimpse's own dark tail moves
-    #     about five neurons a hop (gates relaxing closed: the glimpse ends
-    #     with zero open gates) and is still doing so after 256 dark hops.
-    #   - The retained ORIGINAL experience is still the electrically silent
-    #     one the first lesson settled, so admission still refuses.  What
-    #     blocks the served path is now upstream of the anatomy: which
-    #     experience gets retained, not whether charge can flow.
-    # This is recorded, never forced: if the substrate ever admits a mosaic,
-    # these assertions report it instead of hiding it.
-    if observed.cognitive_mosaic_count == 0:
-        assert partial["totals"]["physically_transitioned_neuron_count"] == 83
-        assert observed.partial_cue_reassembly_count == 0
-    else:
-        assert observed.partial_cue_reassembly_count > 0
-        assert body["recall"]["status"] == (
-            "physical_partial_cue_reassembly_observed"
-        )
+    # The measured refusal (reservoir probe, admission replayed on the
+    # committed body): RecurrenceDidNotReachFormation — the pending
+    # recurrence carries the full 12-site cue with gate work, but only 24
+    # of the 26 authored chain contacts carried current before the ended
+    # hops ran out, so the cue's current has not yet re-reached every
+    # member of the 27-member retained formation.  The pending recurrence
+    # evidence stays alive on the committed body (contact activity is
+    # OR-accumulated), so this is a reach-in-time barrier, not an energy
+    # barrier.  Recorded, never forced: if the substrate admits a glimpse
+    # mosaic, these assertions report it instead of hiding it.
+    assert partial["totals"]["physically_transitioned_neuron_count"] == 75
+    # The glimpse transition itself reported no reassembly, and the public
+    # recall surface says so honestly; the mosaics standing in the body are
+    # the four lesson-2 admissions.
+    assert partial["totals"]["partial_cue_reassembly_count"] == 0
+    assert observed.partial_cue_reassembly_count == 0
+    assert observed.cognitive_mosaic_count == 4
+    assert body["recall"]["available"] is False
+    assert body["recall"]["status"] == (
+        "no_reassembly_in_last_committed_transition"
+    )
+    assert body["formations"]["mosaic_count"] == 4
 
 
 def test_one_lesson_persists_exactly_once_after_its_final_hop(

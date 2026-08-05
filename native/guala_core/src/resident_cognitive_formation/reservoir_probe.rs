@@ -214,6 +214,60 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         })
         .collect::<Vec<String>>();
 
+    // Experience-evidence detail (measurement only): the OR-masks the
+    // retention law actually persisted, so an external driver can see per
+    // hop when the retained original appeared and whether it carries any
+    // electrical participation.
+    fn experience_json(evidence: Option<&super::ResidentExperienceEvidence>) -> Value {
+        match evidence {
+            None => json!(null),
+            Some(evidence) => {
+                let gate_work_count = evidence
+                    .gate_work_perturbed_neurons
+                    .iter()
+                    .filter(|bit| **bit)
+                    .count();
+                let active_contact_count = evidence
+                    .active_electrical_contacts
+                    .iter()
+                    .filter(|bit| **bit)
+                    .count();
+                let member_delta_count = evidence.post_experience_rest.as_ref().map(|post| {
+                    evidence
+                        .pre_experience_rest
+                        .neurons()
+                        .iter()
+                        .zip(post.neurons())
+                        .filter(|(pre, post)| pre != post)
+                        .count()
+                });
+                json!({
+                    "gate_work_perturbed_count": gate_work_count,
+                    "active_electrical_contact_count": active_contact_count,
+                    "post_experience_rest": evidence.post_experience_rest.is_some(),
+                    "member_delta_count": member_delta_count,
+                })
+            }
+        }
+    }
+    let pending_experience_detail = experience_json(cohort.pending_experience.as_ref());
+    let retained_experience_detail = experience_json(cohort.retained_experience.as_ref());
+    let pending_recurrence_detail = match cohort.pending_recurrence.as_ref() {
+        None => json!(null),
+        Some(evidence) => json!({
+            "gate_work_perturbed_count": evidence
+                .gate_work_perturbed_neurons
+                .iter()
+                .filter(|bit| **bit)
+                .count(),
+            "active_recurrence_contact_count": evidence
+                .active_recurrence_contacts
+                .iter()
+                .filter(|bit| **bit)
+                .count(),
+        }),
+    };
+
     // Recognition verdict (measurement only): replay EXACTLY the admission
     // decision `settle_resident_recurrence_interval` makes — same retained
     // experience, same learned state, same current cohort state, same
@@ -224,7 +278,7 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         cohort
             .retained_experience
             .as_ref()
-            .and_then(|retained| retained.post_experience_quiescent.as_ref()),
+            .and_then(|retained| retained.post_experience_rest.as_ref()),
     ) {
         (Some(retained), Some(learned)) => {
             let recurrence = cohort.pending_recurrence.as_ref();
@@ -270,6 +324,9 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
     json!({
         "neuron_count": cohort.anatomy.neuron_count(),
         "recognition": recognition,
+        "pending_experience_detail": pending_experience_detail,
+        "retained_experience_detail": retained_experience_detail,
+        "pending_recurrence_detail": pending_recurrence_detail,
         "membrane_separated_elementary_charges": membrane_separated_elementary_charges,
         "contact_carrier_phases": contact_carrier_phases,
         "gate_state": {

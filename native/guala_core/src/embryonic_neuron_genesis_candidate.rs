@@ -20,7 +20,7 @@ use crate::neuron_source_anchor::{bind_neuron_source_anchor, NeuronSourceSite};
 use crate::optical_receptor_work::{derive_optical_receptor_work, OpticalReceptorAnatomy};
 use crate::reached_neuron_cohort::{
     settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
-    QuiescentReachedCohortState, ReachedCohortAnatomy, ReachedCohortIntervalInput,
+    RestReachedCohortState, ReachedCohortAnatomy, ReachedCohortIntervalInput,
     ReachedCohortState,
 };
 use crate::recovery_fluid_contact::{
@@ -327,7 +327,7 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
         SparseElectricalState::genesis(&electrical),
     )
     .unwrap();
-    let predecessor = QuiescentReachedCohortState::from_state(state);
+    let predecessor = RestReachedCohortState::from_state(state);
     let catalysts = &candidates[0].zero_recovery_catalysts;
     // Dark tail: since the members are geometrically differentiated their
     // separated charges no longer tie, so the contacts actually conduct and
@@ -357,13 +357,13 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     // nothing, conducts nothing, and stays quiescent.
     let at_rest = settle_reached_cohort_interval(
         &anatomy,
-        settled.quiescent.state(),
+        settled.rest.state(),
         cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]),
     )
     .unwrap();
     assert!(!at_rest.electrically_active);
     assert!(at_rest.quiescent);
-    assert_eq!(&at_rest.successor, settled.quiescent.state());
+    assert_eq!(&at_rest.successor, settled.rest.state());
     assert!(settled
         .gate_work_perturbed_neurons
         .iter()

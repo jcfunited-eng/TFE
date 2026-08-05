@@ -85,31 +85,37 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     assert production._restored.pointer.state_sha256 == genesis_sha
 
     # First lesson: the 27 retinal card-surface sites transition and become
-    # the grown cohort; both ear sites join it in the following hops.
+    # the grown cohort; the ears stay declared with true silence but grow
+    # nothing (no auditory transduction law is mounted).
     #
-    # PIN CHANGED by the card-lesson truthfulness fix (companion to the
-    # ratified energy-descent law, 2026-08-05), measured before/after on this
-    # exact path:
-    #   physically_transitioned_neuron_count  BEFORE 27  ->  AFTER 189
-    #   complete_neuron_fractal_count         BEFORE  0  ->  AFTER  27
-    # The card is physically lit for the WHOLE presentation, but only hop 0
-    # declared the surface as its own exact optical occurrence, so only one
-    # 250 ms hop of the 1.75 s presentation delivered any light at all to the
-    # retinal receptors.  Now every lit hop declares it: all 27 lit sites
-    # transition on each of the 7 lit hops (7 * 27 == 189), the receptor
-    # accumulator crosses the gate's own opening threshold inside the FIRST
-    # lesson, and that first lesson's experience settles to quiescence and
-    # emits its 27 genuine post-quiescence fractals.
+    # PIN CHANGED by the stimulus-boundary retention ratification
+    # (2026-08-05) and its companion app transport fix, measured
+    # before/after on this exact path:
+    #   physically_transitioned_neuron_count  189 -> AFTER 209
+    #   complete_neuron_fractal_count         stays 27
+    # Every lit hop declares the lit card surface as its own exact optical
+    # occurrence (7 * 27 == 189 lit transitions), and now the two ENDED hops
+    # do the same with true dark samples, so the cohort physically settles
+    # at presentation end (measured: 16 then 4 neurons transition on the
+    # dark boundary hops; 189 + 16 + 4 == 209).  The first dark settlement
+    # carries zero exogenous optical energy, so the lesson's experience
+    # closes THERE — with its real electrical participation masks (gate
+    # work 27/27, active contacts 26/26) — and emits its 27 genuine
+    # stimulus-boundary fractals.  The retained original is CONNECTED and
+    # satisfies the admission law's own original-side predicate.
     first_status, first = _teach(CARD_ID)
     assert first_status == 200
     assert first["accepted"] is True and first["ok"] is True
     assert first["hop_count"] >= 3
-    assert (
-        first["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS * 7
-    )
+    assert first["totals"]["physically_transitioned_neuron_count"] == 209
     assert first["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
-    assert first["observation"]["complete_neuron_count"] == LESSON_PORTS
+    # PIN CHANGED 29 -> 27 by the same ratification: the two ear neurons
+    # only ever joined the retinal cohort through the OLD ended hops'
+    # combined 29-port occurrence — the exact transport lie this fix
+    # removes.  The ears remain declared with true silence on every hop
+    # (two-sense doctrine), but with no auditory transduction law mounted
+    # they lawfully grow nothing; the grown cohort is the 27 retinal sites.
+    assert first["observation"]["complete_neuron_count"] == SURFACE_PORTS
     assert first["observation"]["cognitive_mosaic_count"] == 0
     assert first["persisted"]["state_sha256"] != genesis_sha
     assert (
@@ -120,70 +126,67 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     # Restart from disk: the taught body restores exactly.
     production._startup()
     restored = production._restored.organism.readiness()
-    assert restored.complete_neuron_count == LESSON_PORTS
+    assert restored.complete_neuron_count == SURFACE_PORTS
     assert (
         production._restored.pointer.state_sha256
         == first["persisted"]["state_sha256"]
     )
 
-    # Second pass of the same lesson: every lit hop transitions every lit
-    # site again, and no new neuron grows.
+    # Second pass of the same lesson: RECURRENCE against the connected
+    # retained original.
     #
-    # PIN CHANGED twice, measured before/after on this exact path:
-    #   physically_transitioned_neuron_count  BEFORE 0 -> 27 -> AFTER 189
-    #     The quantized optical transduction law (2026-08-05) gave each
-    #     retinal site a RETAINED exact-rational sub-quantum residue, so a
-    #     repeated identical presentation is no longer bit-identical; the
-    #     truthfulness fix then multiplied the lit hops from 1 to 7.
-    #   complete_neuron_fractal_count         BEFORE 27 -> AFTER 0
-    #     The retained experience is now settled by the FIRST lesson (see
-    #     above), so the second lesson has no newly settled experience to
-    #     emit.  Under the ratified energy-descent law the second lesson's
-    #     cohort is still redistributing charge across the authored chain
-    #     when the two dark ended hops run out, so it does not reach
-    #     quiescence and emits nothing.  Recorded, never forced.
+    # PINS CHANGED by the stimulus-boundary retention ratification
+    # (2026-08-05), measured before/after on this exact path:
+    #   physically_transitioned_neuron_count  189 -> AFTER 211
+    #   partial_cue_reassembly_count            0 -> AFTER   4
+    #   cognitive_mosaic_count                  0 -> AFTER   4
+    # With a CONNECTED original retained by lesson 1, the second lesson's
+    # dwell-staggered gate openings form proper partial cues in time (the
+    # early hops of a presentation are a partial glimpse of it), and the
+    # physics itself admits four physical mosaics on this served path —
+    # the first served-path recognitions.  Recorded, never forced: these
+    # counts are the decoded native observation.
     second_status, second = _teach(CARD_ID)
     assert second_status == 200
-    assert (
-        second["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS * 7
-    )
+    assert second["totals"]["physically_transitioned_neuron_count"] == 211
     assert second["totals"]["complete_neuron_fractal_count"] == 0
-    assert second["observation"]["complete_neuron_count"] == LESSON_PORTS
+    assert second["totals"]["partial_cue_reassembly_count"] == 4
+    assert second["observation"]["cognitive_mosaic_count"] == 4
+    assert second["observation"]["complete_neuron_count"] == SURFACE_PORTS
 
-    # Third pass: recurrence, not growth; the persisted body is byte-bounded.
-    # Same pin change as above (BEFORE 27 -> AFTER 189) for the same reason.
+    # Third pass: recurrence continues, no growth in neurons.
     third_status, third = _teach(CARD_ID)
     assert third_status == 200
-    assert (
-        third["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS * 7
-    )
-    assert third["observation"]["complete_neuron_count"] == LESSON_PORTS
+    assert third["totals"]["physically_transitioned_neuron_count"] == 213
+    assert third["observation"]["complete_neuron_count"] == SURFACE_PORTS
 
-    # PIN RE-MEASURED under the ratified energy-descent law plus the
-    # card-lesson truthfulness fix (2026-08-05).  The lean bound stays a
-    # measured PLATEAU, not byte equality.  Measured bodies, alphabet-a,
-    # this exact served path, 12 consecutive lessons:
-    #   L1 2038932, L2 2038806, L3 2071240, L4 2071240, L5 2071072,
-    #   L6 2071198, L7 2071072, L8 2071240, L9 2071282, L10 2071156,
-    #   L11 2070988, L12 2071240
-    # One 32 kB step at L3 (the retained-experience completion) and then
-    # flat within 294 bytes for the remaining nine lessons: the body stays
-    # bounded, it does not grow with age.
+    # PIN RE-MEASURED under the stimulus-boundary retention ratification
+    # (2026-08-05).  The body is no longer a flat plateau: it grows ONLY
+    # with each newly DISTINCT admitted mosaic (~116 kB of resident mosaic
+    # reference per admission) while repeated admissions of an
+    # already-formed mosaic add nothing resident.  Measured bodies,
+    # alphabet-a, this exact served path, 6 consecutive lessons:
+    #   L1 2070731 (0 mosaics), L2 2535923 (4), L3 3001071 (8),
+    #   L4 3117277 (9), L5 3233455 (10), L6 3349681 (11)
+    # The new-mosaic rate falls as the cue spectrum saturates (4, 4, 1, 1,
+    # 1); recognition episodes additionally file into hippocampal cold
+    # custody (~1.9 MB per admission, on disk, content-addressed).  The
+    # honest bound is per-new-mosaic, not per-lesson; whether this harvest
+    # rate needs governance is an open doctrine item, stated, not hidden.
     fourth_status, fourth = _teach(CARD_ID)
     assert fourth_status == 200
-    assert (
-        fourth["totals"]["physically_transitioned_neuron_count"]
-        == SURFACE_PORTS * 7
-    )
+    assert fourth["totals"]["physically_transitioned_neuron_count"] == 218
     assert fourth["persisted"]["state_bytes"] >= third["persisted"]["state_bytes"]
-    assert (
-        fourth["persisted"]["state_bytes"]
-        <= third["persisted"]["state_bytes"] + 4096
+    new_mosaics = (
+        fourth["observation"]["cognitive_mosaic_count"]
+        - third["observation"]["cognitive_mosaic_count"]
     )
-    assert fourth["persisted"]["state_bytes"] <= 2_100_000
-    assert fourth["observation"]["complete_neuron_count"] == LESSON_PORTS
+    assert (
+        fourth["persisted"]["state_bytes"] - third["persisted"]["state_bytes"]
+        <= 130_000 * max(new_mosaics, 1)
+    )
+    assert fourth["persisted"]["state_bytes"] <= 3_200_000
+    assert fourth["observation"]["complete_neuron_count"] == SURFACE_PORTS
 
     # The public observation cache reflects the committed generations.
     body = json.loads(production._public_observation_body)
@@ -192,7 +195,7 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
         body["generation_state"]["state_sha256"]
         == fourth["persisted"]["state_sha256"]
     )
-    assert body["neuron_activity"]["retained_count"] == LESSON_PORTS
+    assert body["neuron_activity"]["retained_count"] == SURFACE_PORTS
     assert body["curriculum"]["tutoring_transition_available"] is True
 
 

@@ -1218,12 +1218,20 @@ pub(crate) struct ReachedCohortIntervalSettlement {
     pub(crate) quiescent: bool,
 }
 
+/// The settled reference state the physics measures experience deltas
+/// against.  Historically this wrapper claimed GLOBAL quiescence; measured
+/// F2 (2026-08-05) proved that after real electricity a driven cohort never
+/// returns to global quiescence, so the truthful meaning is REST: the state
+/// the cohort holds at a stimulus-boundary settlement (an interval that
+/// carried zero exogenous stimulus energy).  A proven-quiescent state (the
+/// `settle_reached_cohort_to_quiescence` constructors) is one lawful rest
+/// state; it is no longer the only one.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct QuiescentReachedCohortState {
+pub(crate) struct RestReachedCohortState {
     state: ReachedCohortState,
 }
 
-impl QuiescentReachedCohortState {
+impl RestReachedCohortState {
     pub(crate) fn state(&self) -> &ReachedCohortState {
         &self.state
     }
@@ -1235,7 +1243,7 @@ impl QuiescentReachedCohortState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ReachedCohortPostExperienceSettlement {
-    pub(crate) quiescent: QuiescentReachedCohortState,
+    pub(crate) rest: RestReachedCohortState,
     pub(crate) neuron_fractals: Box<[Option<SparsePhysicalStateDelta>]>,
     pub(crate) electrical_contact_was_active: bool,
     pub(crate) gate_work_perturbed_neurons: Box<[bool]>,
@@ -1370,13 +1378,13 @@ pub(crate) fn settle_reached_cohort_to_quiescence(
     anatomy: &ReachedCohortAnatomy,
     predecessor: &ReachedCohortState,
     intervals: &[ReachedCohortIntervalInput<'_>],
-) -> Result<QuiescentReachedCohortState, ReachedCohortError> {
+) -> Result<RestReachedCohortState, ReachedCohortError> {
     let mut state = predecessor.clone();
     for input in intervals {
         let settled = settle_reached_cohort_interval(anatomy, &state, input.clone())?;
         state = settled.successor;
         if settled.quiescent {
-            return Ok(QuiescentReachedCohortState { state });
+            return Ok(RestReachedCohortState { state });
         }
     }
     Err(ReachedCohortError::SequenceEndedBeforeQuiescence)
@@ -1384,7 +1392,7 @@ pub(crate) fn settle_reached_cohort_to_quiescence(
 
 pub(crate) fn settle_reached_cohort_experience_to_quiescence(
     anatomy: &ReachedCohortAnatomy,
-    predecessor: &QuiescentReachedCohortState,
+    predecessor: &RestReachedCohortState,
     intervals: &[ReachedCohortIntervalInput<'_>],
 ) -> Result<ReachedCohortPostExperienceSettlement, ReachedCohortError> {
     let mut state = predecessor.state.clone();
@@ -1407,17 +1415,17 @@ pub(crate) fn settle_reached_cohort_experience_to_quiescence(
         }
         state = settled.successor;
         if settled.quiescent {
-            quiescent = Some(QuiescentReachedCohortState { state });
+            quiescent = Some(RestReachedCohortState { state });
             break;
         }
     }
-    let quiescent = quiescent.ok_or(ReachedCohortError::SequenceEndedBeforeQuiescence)?;
+    let rest = quiescent.ok_or(ReachedCohortError::SequenceEndedBeforeQuiescence)?;
     let mut fractals = Vec::with_capacity(anatomy.neurons.len());
     for (prior, successor) in predecessor
         .state
         .neurons
         .iter()
-        .zip(quiescent.state.neurons.iter())
+        .zip(rest.state.neurons.iter())
     {
         fractals.push(
             sparse_physical_state_delta(prior, successor).map_err(|error| {
@@ -1429,7 +1437,7 @@ pub(crate) fn settle_reached_cohort_experience_to_quiescence(
         );
     }
     Ok(ReachedCohortPostExperienceSettlement {
-        quiescent,
+        rest,
         neuron_fractals: fractals.into_boxed_slice(),
         electrical_contact_was_active,
         gate_work_perturbed_neurons: gate_work_perturbed_neurons.into_boxed_slice(),
