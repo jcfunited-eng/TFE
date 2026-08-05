@@ -29,6 +29,9 @@ description: Operate and develop the live Guala native organism — tree locatio
   origination is the missing compiled piece).
 
 ## Discipline (violations burned a month; do not relax)
+0. TWO-SENSE MINIMUM (Joe, 2026-08-05): no single-sense experiences.
+   Every experience episode carries the full mounted sensorium with TRUE
+   samples (dark/silence are lawful states, absence of a sense is not).
 1. NOTHING is "complete" without integrated organism proof; nothing is
    "deployed" unless live in production and verified from the public side.
 2. Verify agent claims FIRST-HAND (rerun their headline tests) before
