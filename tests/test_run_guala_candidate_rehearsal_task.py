@@ -157,6 +157,114 @@ def test_every_task_proof_is_exactly_receipted(
     ) == proof
 
 
+GENESIS_ROOT = runner.GENESIS_STORE_PREFIX + "20260805T000000Z"
+
+
+def _genesis_record() -> dict[str, object]:
+    return {
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cognitive_mosaic_count": 0,
+        "cognitive_trace_count": 0,
+        "complete_neuron_count": 29,
+        "complete_neuron_fractal_count": 27,
+        "genesis_state_sha256": "e" * 64,
+        "identity": IDENTITY,
+        "lesson_pass_count": 2,
+        "mode": "genesis-rehearse",
+        "physically_transitioned_neuron_count": 27,
+        "post_teach_state_sha256": "f" * 64,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "schema": "guala.genesis_rehearsal_proof.v1",
+        "state_root": GENESIS_ROOT,
+        "taught_card_id": "alphabet-a",
+    }
+
+
+def _receipted(record: dict[str, object]) -> dict[str, object]:
+    return {
+        **record,
+        "receipt_sha256": hashlib.sha256(runner._canonical(record)).hexdigest(),
+    }
+
+
+def _validate_genesis(proof: dict[str, object]) -> dict[str, object]:
+    return runner._validate_proof(
+        proof,
+        mode="genesis-rehearse",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=None,
+        expected_state_sha256=None,
+        expected_state_root=GENESIS_ROOT,
+    )
+
+
+def test_genesis_rehearsal_task_writes_only_a_throwaway_root() -> None:
+    task = runner.probe_task_definition(
+        _task_definition(),
+        mode="genesis-rehearse",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        genesis_state_root=GENESIS_ROOT,
+    )
+    container = task["containerDefinitions"][0]
+    command = container["command"]
+    assert container["mountPoints"] == [{
+        "containerPath": runner.PRODUCTION_MOUNT,
+        "readOnly": False,
+        "sourceVolume": "gualaloom-state",
+    }]
+    assert "genesis-rehearse" in command
+    assert "--expected-baseline-generation" not in command
+    assert "--expected-active-generation" not in command
+    assert "--expected-tick" not in command
+    environment = {
+        item["name"]: item["value"] for item in container["environment"]
+    }
+    assert environment["GUALA_NATIVE_ORGANISM_ROOT"] == GENESIS_ROOT
+    assert "GUALA_S3_BACKUP_BUCKET" not in environment
+    assert "GUALA_OWNER_LOCK_PATH" not in environment
+    with pytest.raises(ValueError, match="throwaway state root"):
+        runner.probe_task_definition(
+            _task_definition(),
+            mode="genesis-rehearse",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            genesis_state_root="/app/guala/native-organism",
+        )
+
+
+def test_genesis_proof_validation_accepts_an_exact_proof() -> None:
+    proof = _receipted(_genesis_record())
+    assert _validate_genesis(proof) == proof
+
+
+def test_genesis_proof_validation_rejects_zero_fractal_delta() -> None:
+    record = _genesis_record()
+    record["complete_neuron_fractal_count"] = 0
+    with pytest.raises(RuntimeError, match="proof changed"):
+        _validate_genesis(_receipted(record))
+
+
+def test_genesis_proof_validation_rejects_identity_mismatch() -> None:
+    record = _genesis_record()
+    record["identity"] = "99999999-9999-4999-8999-999999999999"
+    with pytest.raises(RuntimeError, match="proof changed"):
+        _validate_genesis(_receipted(record))
+
+
+def test_genesis_proof_validation_rejects_unchanged_state_receipt() -> None:
+    record = _genesis_record()
+    record["post_teach_state_sha256"] = record["genesis_state_sha256"]
+    with pytest.raises(RuntimeError, match="proof changed"):
+        _validate_genesis(_receipted(record))
+
+
 def test_proof_rejects_state_or_receipt_drift() -> None:
     record = {
         "candidate_git_sha": GIT_SHA,

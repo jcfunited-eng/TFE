@@ -13,15 +13,26 @@ import time
 PROBE_FAMILY = "dsf-ai-native-candidate"
 SOURCE_MOUNT = "/source/guala"
 NATIVE_STORE = SOURCE_MOUNT + "/native-organism"
+# The genesis rehearsal runs against the real production mount path (its
+# throwaway state root lives beside, never inside, the real native-organism
+# directory) so the candidate exercises the exact serving filesystem layout.
+PRODUCTION_MOUNT = "/app/guala"
+GENESIS_STORE_PREFIX = PRODUCTION_MOUNT + "/native-organism-rehearsal-"
 EPHEMERAL_GIB = 30
 _SHA = re.compile(r"[0-9a-f]{64}")
+PROOF_SCHEMAS = {
+    "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
+    "publish": "guala.production_native_current_publication.v1",
+    "cold-restore": "guala.production_native_current_cold_restore.v1",
+    "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
+}
 
 
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--mode",
-        choices=("rehearse", "publish", "cold-restore"),
+        choices=("rehearse", "publish", "cold-restore", "genesis-rehearse"),
         required=True,
     )
     parser.add_argument("--cluster", required=True)
@@ -32,7 +43,7 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--expected-baseline-generation")
     parser.add_argument("--expected-active-generation")
     parser.add_argument("--expected-identity", required=True)
-    parser.add_argument("--expected-tick", required=True, type=int)
+    parser.add_argument("--expected-tick", type=int)
     parser.add_argument("--expected-state-sha256")
     parser.add_argument("--region", default="us-east-1")
     return parser.parse_args()
@@ -55,10 +66,11 @@ def probe_task_definition(
     candidate_git_sha: str,
     candidate_image_digest: str,
     expected_identity: str,
-    expected_tick: int,
+    expected_tick: int | None = None,
     expected_baseline_generation: str | None = None,
     expected_active_generation: str | None = None,
     expected_state_sha256: str | None = None,
+    genesis_state_root: str | None = None,
 ) -> dict[str, object]:
     containers = source.get("containerDefinitions")
     if not isinstance(containers, list) or len(containers) != 1:
@@ -81,7 +93,44 @@ def probe_task_definition(
             "STATE_DIR",
         }
     ]
-    if mode == "cold-restore":
+    if mode == "genesis-rehearse":
+        if (
+            not genesis_state_root
+            or not genesis_state_root.startswith(GENESIS_STORE_PREFIX)
+        ):
+            raise ValueError(
+                "genesis rehearsal requires a unique throwaway state root"
+            )
+        command = [
+            "python3",
+            "-m",
+            "dsf_ai_service.candidate_release_rehearsal",
+            "--mode",
+            "genesis-rehearse",
+            "--expected-identity",
+            expected_identity,
+            "--candidate-git-sha",
+            candidate_git_sha,
+            "--candidate-image-digest",
+            candidate_image_digest,
+        ]
+        # The rehearsal's publications must stay inside the throwaway root:
+        # without a remote bucket the app uses its local directory mirror, so
+        # the shared production backup bucket is never written or retired by
+        # a rehearsal (deterministic genesis could otherwise collide with the
+        # real organism's content-addressed keys).
+        environment = [
+            item
+            for item in environment
+            if item.get("name")
+            not in {"GUALA_NATIVE_ORGANISM_ROOT", "GUALA_S3_BACKUP_BUCKET"}
+        ]
+        environment.append(
+            {"name": "GUALA_NATIVE_ORGANISM_ROOT", "value": genesis_state_root}
+        )
+    elif expected_tick is None:
+        raise ValueError("migration task requires the exact source tick")
+    elif mode == "cold-restore":
         if expected_state_sha256 is None:
             raise ValueError("cold restore requires expected state SHA-256")
         command = [
@@ -133,6 +182,7 @@ def probe_task_definition(
     options = dict(log_configuration.get("options") or {})
     options["awslogs-stream-prefix"] = "guala-native-" + mode
     read_only = mode in {"rehearse", "cold-restore"}
+    mount_path = PRODUCTION_MOUNT if mode == "genesis-rehearse" else SOURCE_MOUNT
     container = {
         "command": command,
         "environment": environment,
@@ -140,7 +190,7 @@ def probe_task_definition(
         "image": original.get("image"),
         "logConfiguration": {**log_configuration, "options": options},
         "mountPoints": [{
-            "containerPath": SOURCE_MOUNT,
+            "containerPath": mount_path,
             "readOnly": read_only,
             "sourceVolume": "gualaloom-state",
         }],
@@ -174,21 +224,55 @@ def _validate_proof(
     candidate_git_sha: str,
     candidate_image_digest: str,
     expected_identity: str,
-    expected_tick: int,
+    expected_tick: int | None,
     expected_state_sha256: str | None,
+    expected_state_root: str | None = None,
 ) -> dict[str, object]:
-    schemas = {
-        "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
-        "publish": "guala.production_native_current_publication.v1",
-        "cold-restore": "guala.production_native_current_cold_restore.v1",
-    }
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
     receipt = proof.get("receipt_sha256")
     record = dict(proof)
     record.pop("receipt_sha256", None)
+    if mode == "genesis-rehearse":
+        counts = (
+            proof.get("complete_neuron_fractal_count"),
+            proof.get("physically_transitioned_neuron_count"),
+        )
+        receipts = (
+            proof.get("genesis_state_sha256"),
+            proof.get("post_teach_state_sha256"),
+        )
+        if (
+            proof.get("schema") != PROOF_SCHEMAS[mode]
+            or proof.get("mode") != mode
+            or proof.get("candidate_git_sha") != candidate_git_sha
+            or proof.get("candidate_image_digest") != candidate_image_digest
+            or proof.get("identity") != expected_identity
+            or proof.get("python_callback_count") != 0
+            or proof.get("python_cognition_workers_started") != 0
+            or not isinstance(proof.get("taught_card_id"), str)
+            or not proof["taught_card_id"]
+            or any(
+                not isinstance(count, int)
+                or isinstance(count, bool)
+                or count <= 0
+                for count in counts
+            )
+            or any(
+                not isinstance(value, str) or _SHA.fullmatch(value) is None
+                for value in receipts
+            )
+            or proof["post_teach_state_sha256"] == proof["genesis_state_sha256"]
+            or (
+                expected_state_root is not None
+                and proof.get("state_root") != expected_state_root
+            )
+            or receipt != hashlib.sha256(_canonical(record)).hexdigest()
+        ):
+            raise RuntimeError("native candidate proof changed")
+        return proof
     if (
-        proof.get("schema") != schemas[mode]
+        proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
         or proof.get("candidate_git_sha") != candidate_git_sha
         or proof.get("candidate_image_digest") != candidate_image_digest
@@ -213,7 +297,7 @@ def _validate_proof(
     return proof
 
 
-def _proof_from_logs(logs, *, group: str, stream: str) -> object:
+def _proof_from_logs(logs, *, group: str, stream: str, schema: str) -> object:
     token = None
     messages: list[str] = []
     while True:
@@ -240,9 +324,7 @@ def _proof_from_logs(logs, *, group: str, stream: str) -> object:
             value = json.loads(message)
         except json.JSONDecodeError:
             continue
-        if isinstance(value, dict) and str(value.get("schema", "")).startswith(
-            "guala.production_"
-        ):
+        if isinstance(value, dict) and value.get("schema") == schema:
             proofs.append(value)
     if len(proofs) != 1:
         raise RuntimeError("candidate task did not emit one exact proof")
@@ -258,6 +340,13 @@ def main() -> int:
         raise ValueError("migration task requires exact generation identities")
     if values.mode == "cold-restore" and not values.expected_state_sha256:
         raise ValueError("cold restore requires expected state SHA-256")
+    if values.mode != "genesis-rehearse" and values.expected_tick is None:
+        raise ValueError("migration task requires the exact source tick")
+    genesis_state_root = None
+    if values.mode == "genesis-rehearse":
+        genesis_state_root = GENESIS_STORE_PREFIX + time.strftime(
+            "%Y%m%dT%H%M%SZ", time.gmtime()
+        )
     import boto3
 
     ecs = boto3.client("ecs", region_name=values.region)
@@ -275,6 +364,7 @@ def main() -> int:
         expected_identity=values.expected_identity,
         expected_tick=values.expected_tick,
         expected_state_sha256=values.expected_state_sha256,
+        genesis_state_root=genesis_state_root,
     )
     registered = ecs.register_task_definition(**task_input)["taskDefinition"]
     task_definition_arn = registered["taskDefinitionArn"]
@@ -322,6 +412,7 @@ def main() -> int:
                     logs,
                     group=group,
                     stream=containers[0]["logStreamName"],
+                    schema=PROOF_SCHEMAS[values.mode],
                 )
                 break
             except RuntimeError:
@@ -336,6 +427,7 @@ def main() -> int:
             expected_identity=values.expected_identity,
             expected_tick=values.expected_tick,
             expected_state_sha256=values.expected_state_sha256,
+            expected_state_root=genesis_state_root,
         )
         print(_canonical(validated).decode("ascii"))
         return 0

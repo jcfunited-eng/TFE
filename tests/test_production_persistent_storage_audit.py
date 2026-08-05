@@ -64,7 +64,10 @@ def test_storage_audit_records_approved_ceiling_without_rewriting_history():
 def test_every_inventory_evidence_anchor_exists_in_the_named_source():
     audit = _load_audit()
     writers = audit["active_production_writers_outside_authority"]
-    assert len(writers) == 6
+    # 2026-08-05: the process-lifetime EFS owner lock was retired from
+    # production (moved to examined_but_not_active with a status note),
+    # so the reviewed active census is five writers.
+    assert len(writers) == 5
     assert len({writer["id"] for writer in writers}) == len(writers)
 
     evidence_groups = [audit["authoritative_ceiling"]["evidence"]]

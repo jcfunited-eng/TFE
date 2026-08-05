@@ -203,6 +203,77 @@ def test_rehearsal_proof_binds_artifact_source_and_native_state(
     assert receipt == hashlib.sha256(rehearsal._canonical(proof)).hexdigest()
 
 
+def _genesis_arguments() -> SimpleNamespace:
+    return SimpleNamespace(
+        mode="genesis-rehearse",
+        source_root=None,
+        native_store_root=None,
+        expected_baseline_generation=None,
+        expected_active_generation=None,
+        expected_identity=IDENTITY,
+        expected_tick=None,
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+    )
+
+
+@pytest.fixture()
+def genesis_rehearsal_root(monkeypatch, tmp_path):
+    root = tmp_path / "native-organism-rehearsal"
+    monkeypatch.setenv("GUALA_NATIVE_ORGANISM_ROOT", str(root))
+    monkeypatch.setenv("GUALA_NATIVE_ORGANISM_IDENTITY", IDENTITY)
+    original_state_root = production.STATE_ROOT
+    yield root
+    production.STATE_ROOT = original_state_root
+    production._restored = None
+    production._admission = None
+    production._boot_error = None
+    production._public_observation_body = None
+    production._public_observation_etag = None
+    production._last_transition_evidence = None
+    production._pcm_sessions.clear()
+
+
+def test_genesis_rehearsal_refuses_a_root_with_a_current_organism(
+    genesis_rehearsal_root,
+    monkeypatch,
+) -> None:
+    genesis_rehearsal_root.mkdir(parents=True)
+    (genesis_rehearsal_root / "CURRENT").write_bytes(b"existing organism")
+    monkeypatch.setattr(rehearsal, "_arguments", _genesis_arguments)
+    with pytest.raises(RuntimeError, match="already contains a CURRENT"):
+        rehearsal.main()
+    assert (genesis_rehearsal_root / "CURRENT").read_bytes() == b"existing organism"
+
+
+def test_genesis_rehearsal_headless_proof_on_a_fresh_root(
+    genesis_rehearsal_root,
+    monkeypatch,
+    capsys,
+) -> None:
+    monkeypatch.setattr(rehearsal, "_arguments", _genesis_arguments)
+    assert rehearsal.main() == 0
+    proof = json.loads(capsys.readouterr().out)
+    receipt = proof.pop("receipt_sha256")
+    assert receipt == hashlib.sha256(rehearsal._canonical(proof)).hexdigest()
+    assert proof["schema"] == rehearsal.GENESIS_PROOF_SCHEMA
+    assert proof["mode"] == "genesis-rehearse"
+    assert proof["identity"] == IDENTITY
+    assert proof["state_root"] == str(genesis_rehearsal_root)
+    assert proof["taught_card_id"] == "alphabet-a"
+    assert proof["python_callback_count"] == 0
+    assert (
+        proof["physically_transitioned_neuron_count"]
+        == production.CARD_SURFACE_PORT_COUNT
+    )
+    assert proof["complete_neuron_fractal_count"] > 0
+    assert proof["complete_neuron_count"] == production.LESSON_PORT_COUNT
+    for field in ("genesis_state_sha256", "post_teach_state_sha256"):
+        assert rehearsal._SHA256.fullmatch(proof[field]) is not None
+    assert proof["genesis_state_sha256"] != proof["post_teach_state_sha256"]
+    assert (genesis_rehearsal_root / "CURRENT").is_file()
+
+
 def test_publication_requires_an_explicit_native_store(monkeypatch) -> None:
     monkeypatch.setattr(
         rehearsal,

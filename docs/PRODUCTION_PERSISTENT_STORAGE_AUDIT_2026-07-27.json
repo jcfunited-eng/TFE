@@ -72,21 +72,6 @@
   ],
   "active_production_writers_outside_authority": [
     {
-      "id": "process_lifetime_efs_owner_record",
-      "target": "/app/guala/.guala-owner.lock",
-      "mechanism": "create, truncate, rewrite, and fsync at sealed boot",
-      "evidence": [
-        {
-          "file": "dsf_ai_service/app.py",
-          "contains": "owner = ProcessLifetimeEFSOwnerLock("
-        },
-        {
-          "file": "dsf_ai_service/substrate/deployment_generation.py",
-          "contains": "os.ftruncate(fd, 0)"
-        }
-      ]
-    },
-    {
       "id": "verified_generation_active_materialization",
       "target": "/app/guala/active and sibling materialization/retirement trees",
       "mechanism": "copy verified generation bytes into a candidate tree, rename it active, and remove the prior tree",
@@ -218,6 +203,13 @@
     {
       "id": "remote_mode_video_handoff",
       "reason": "The running ECS task is embedded uvicorn mode and has no remote substrate URL."
+    },
+    {
+      "id": "process_lifetime_efs_owner_record",
+      "target": "/app/guala/.guala-owner.lock",
+      "mechanism": "create, truncate, rewrite, and fsync at sealed boot",
+      "evidence": [],
+      "status_change_2026_08_05": "retired: the process-lifetime EFS owner lock was removed from production during the native-organism cutover (no owner machinery remains in the serving path); evidence anchors no longer exist in source, so this writer is no longer an active production writer"
     }
   ]
 }

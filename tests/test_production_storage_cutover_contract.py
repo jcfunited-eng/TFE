@@ -72,21 +72,25 @@ def test_candidate_task_removes_every_retired_runtime_authority() -> None:
     assert "candidate has more than one persistent state volume" in DEPLOY
 
 
-def test_preflight_and_cold_restore_complete_before_the_single_cutover() -> None:
+def test_preflight_and_genesis_rehearsal_complete_before_the_single_cutover() -> None:
     registration = DEPLOY.index("CANDIDATE_JSON=")
     preflight = DEPLOY.index("python3 tools/preflight_guala_production.py")
     rehearsal = DEPLOY.index(
         "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
     )
-    publication = DEPLOY.index("PUBLICATION_PROOF=")
-    cold_restore = DEPLOY.index("COLD_RESTORE_PROOF=")
-    turnover = DEPLOY.index("aws ecs update-service", cold_restore)
+    rehearsal_task = DEPLOY.index("--mode genesis-rehearse")
+    turnover = DEPLOY.index("aws ecs update-service", rehearsal_task)
     live = DEPLOY.index("CURRENT_RUNNING_TASK=$(verify_live_organism", turnover)
     production_tag = DEPLOY.index(
         "[6/7] Pinning only the live-verified artifact as production-current."
     )
     assert registration < preflight < rehearsal
-    assert rehearsal < publication < cold_restore < turnover < live < production_tag
+    assert rehearsal < rehearsal_task < turnover < live < production_tag
+    # The genesis cutover round-trips no predecessor state: the inheritance
+    # publication and cold-restore steps are absent from this path.
+    assert "PUBLICATION_PROOF=" not in DEPLOY
+    assert "COLD_RESTORE_PROOF=" not in DEPLOY
+    assert '--expected-identity "${GUALA_ORGANISM_IDENTITY}"' in DEPLOY
     assert "REPEAT_CUTOVER=1" in DEPLOY
     assert "rollback=false" in DEPLOY
 

@@ -4,6 +4,14 @@ The rehearsal reads the authenticated legacy predecessor from a read-only
 mount, admits only its hard-bound GLMFAB03 bytes to the separately named native
 migration, and proves raw binary publication/cold restore in ephemeral space.
 Publication repeats that proof against a writable native-organism directory.
+
+The ``genesis-rehearse`` mode serves the genesis cutover instead: on a
+caller-supplied throwaway state root it performs the exact production
+identity-pinned genesis, teaches the first approved curriculum card through
+the production teach-card machinery, and proves that the newborn genuinely
+retains what it was taught.  It refuses any root that already carries a
+CURRENT organism, so it can never touch real state.
+
 Ordinary production boot never imports or invokes this module.
 """
 
@@ -41,6 +49,14 @@ from dsf_ai_service.substrate.native_organism_binary_store import (
 
 PROOF_SCHEMA = "guala.production_candidate_native_restore_rehearsal.v5"
 PUBLICATION_SCHEMA = "guala.production_native_current_publication.v1"
+GENESIS_PROOF_SCHEMA = "guala.genesis_rehearsal_proof.v1"
+CARD_MANIFEST_NAME = "card_experience_manifest-v1.json"
+CARD_MANIFEST_SCHEMA = "guala.external_tutor_card_experience_manifest.v1"
+# The newborn's first presentation grows the lesson cohort; the exact
+# recurrence of the same settled experience on the second presentation is
+# what emits the genuine post-quiescence complete-neuron fractals (the
+# ratified lean-teaching contract), so one taught card takes two passes.
+GENESIS_LESSON_PASS_COUNT = 2
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _GIT = re.compile(r"[0-9a-f]{40}")
 _CONTENT_MANIFEST_SCHEMA = "immutable_generation_content_manifest_v2"
@@ -378,15 +394,141 @@ def _round_trip(store_root: Path, predecessor: bytes, object_store) -> dict[str,
     }
 
 
+def _genesis_rehearsal(*, expected_identity: str) -> dict[str, object]:
+    """Prove identity-pinned genesis and one real lesson on a throwaway root.
+
+    Drives ``dsf_ai_service.native_production_app`` through its own startup
+    and teach-card machinery only; nothing is re-implemented here.  The state
+    root comes from ``GUALA_NATIVE_ORGANISM_ROOT`` and must not already carry
+    a CURRENT organism.
+    """
+
+    root_value = os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "")
+    if not root_value:
+        raise RuntimeError(
+            "genesis rehearsal requires GUALA_NATIVE_ORGANISM_ROOT"
+        )
+    root = Path(root_value)
+    if (root / "CURRENT").exists():
+        raise RuntimeError(
+            "genesis rehearsal root already contains a CURRENT organism; "
+            "refusing to touch existing state"
+        )
+    if os.environ.get("GUALA_NATIVE_ORGANISM_IDENTITY", "") != expected_identity:
+        raise RuntimeError(
+            "GUALA_NATIVE_ORGANISM_IDENTITY does not pin the expected identity"
+        )
+
+    from dsf_ai_service import native_production_app as production
+
+    production.STATE_ROOT = root
+    production._startup()
+    restored = production._restored
+    if restored is None:
+        raise RuntimeError(
+            production._boot_error or "genesis rehearsal startup did not restore"
+        )
+    newborn = restored.organism.readiness()
+    if newborn.identity != expected_identity:
+        raise RuntimeError("newborn identity differs from the pinned identity")
+    if newborn.python_callback_count != 0:
+        raise RuntimeError("newborn reports a Python cognition callback")
+    if newborn.organism_tick != 0:
+        raise RuntimeError("newborn tick is not zero")
+    if (
+        getattr(newborn, "complete_neuron_count", 0)
+        or newborn.joint_neuron_count
+        or newborn.cognitive_mosaic_count
+        or newborn.cognitive_trace_count
+    ):
+        raise RuntimeError("newborn carries cohorts or cognition at birth")
+    if not (root / "CURRENT").is_file():
+        raise RuntimeError(
+            "genesis did not persist CURRENT in the rehearsal root"
+        )
+    genesis_sha = restored.pointer.state_sha256
+
+    experiences = production._manifest_experiences(
+        production.CURRICULUM_ROOT / CARD_MANIFEST_NAME,
+        CARD_MANIFEST_SCHEMA,
+    )
+    if not experiences:
+        raise RuntimeError("approved curriculum manifest is empty")
+    card_id = experiences[0].get("experience_id")
+    if not isinstance(card_id, str) or not card_id:
+        raise RuntimeError("approved curriculum first card identity is absent")
+
+    passes: list[dict[str, object]] = []
+    for _pass in range(GENESIS_LESSON_PASS_COUNT):
+        response = production.teach_card({"card_id": card_id})
+        body = json.loads(bytes(response.body))
+        if response.status_code != 200 or body.get("accepted") is not True:
+            raise RuntimeError(
+                "approved card lesson was refused: "
+                + json.dumps(body, sort_keys=True)
+            )
+        passes.append(body)
+    transitioned = sum(
+        item["totals"]["physically_transitioned_neuron_count"]
+        for item in passes
+    )
+    fractals = sum(
+        item["totals"]["complete_neuron_fractal_count"] for item in passes
+    )
+    if transitioned <= 0:
+        raise RuntimeError(
+            "newborn first lesson grew no physically transitioned neurons"
+        )
+    if fractals <= 0:
+        raise RuntimeError(
+            "taught card recurrence emitted no genuine complete-neuron fractals"
+        )
+    post_sha = passes[-1]["persisted"]["state_sha256"]
+    restored = production._restored
+    if restored is None or restored.pointer.state_sha256 != post_sha:
+        raise RuntimeError("post-teach persisted state receipt changed")
+    observed = restored.organism.readiness()
+    if observed.python_callback_count != 0:
+        raise RuntimeError("taught organism reports a Python cognition callback")
+    if (
+        not isinstance(genesis_sha, str)
+        or _SHA256.fullmatch(genesis_sha) is None
+        or not isinstance(post_sha, str)
+        or _SHA256.fullmatch(post_sha) is None
+        or post_sha == genesis_sha
+    ):
+        raise RuntimeError(
+            "state receipts did not advance from genesis to post-teach"
+        )
+    return {
+        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+        "cognitive_trace_count": observed.cognitive_trace_count,
+        "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
+        "complete_neuron_fractal_count": fractals,
+        "genesis_state_sha256": genesis_sha,
+        "identity": observed.identity,
+        "lesson_pass_count": GENESIS_LESSON_PASS_COUNT,
+        "physically_transitioned_neuron_count": transitioned,
+        "post_teach_state_sha256": post_sha,
+        "python_callback_count": observed.python_callback_count,
+        "state_root": str(root),
+        "taught_card_id": card_id,
+    }
+
+
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=("rehearse", "publish"), required=True)
-    parser.add_argument("--source-root", required=True)
+    parser.add_argument(
+        "--mode",
+        choices=("rehearse", "publish", "genesis-rehearse"),
+        required=True,
+    )
+    parser.add_argument("--source-root")
     parser.add_argument("--native-store-root")
-    parser.add_argument("--expected-baseline-generation", required=True)
-    parser.add_argument("--expected-active-generation", required=True)
+    parser.add_argument("--expected-baseline-generation")
+    parser.add_argument("--expected-active-generation")
     parser.add_argument("--expected-identity", required=True)
-    parser.add_argument("--expected-tick", required=True, type=int)
+    parser.add_argument("--expected-tick", type=int)
     parser.add_argument("--candidate-git-sha", required=True)
     parser.add_argument("--candidate-image-digest", required=True)
     return parser.parse_args()
@@ -394,10 +536,6 @@ def _arguments() -> argparse.Namespace:
 
 def main() -> int:
     values = _arguments()
-    baseline = _uuid(values.expected_baseline_generation, "baseline generation")
-    active = _uuid(values.expected_active_generation, "active generation")
-    identity = _identity(values.expected_identity)
-    tick = _tick(values.expected_tick)
     if _GIT.fullmatch(values.candidate_git_sha) is None:
         raise ValueError("candidate commit is not canonical")
     if (
@@ -405,6 +543,30 @@ def main() -> int:
         or _SHA256.fullmatch(values.candidate_image_digest[7:]) is None
     ):
         raise ValueError("candidate image digest is not canonical")
+    if values.mode == "genesis-rehearse":
+        identity = _uuid(values.expected_identity, "expected identity")
+        record = {
+            "candidate_git_sha": values.candidate_git_sha,
+            "candidate_image_digest": values.candidate_image_digest,
+            "mode": values.mode,
+            "python_cognition_workers_started": 0,
+            "schema": GENESIS_PROOF_SCHEMA,
+            **_genesis_rehearsal(expected_identity=identity),
+        }
+        proof = {**record, "receipt_sha256": _sha256(_canonical(record))}
+        print(_canonical(proof).decode("ascii"), flush=True)
+        return 0
+    if (
+        not values.source_root
+        or not values.expected_baseline_generation
+        or not values.expected_active_generation
+        or values.expected_tick is None
+    ):
+        raise ValueError("migration task requires exact source coordinates")
+    baseline = _uuid(values.expected_baseline_generation, "baseline generation")
+    active = _uuid(values.expected_active_generation, "active generation")
+    identity = _identity(values.expected_identity)
+    tick = _tick(values.expected_tick)
     predecessor = _predecessor(
         Path(values.source_root),
         expected_baseline_generation=baseline,

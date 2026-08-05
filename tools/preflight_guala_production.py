@@ -634,6 +634,7 @@ def validate_readiness(
     *,
     expected_task_definition: str,
     expected_image_digest: str,
+    genesis_cutover: bool = False,
 ) -> dict[str, object]:
     if not isinstance(value, dict):
         raise PreflightError("live readiness is not an object")
@@ -661,7 +662,20 @@ def validate_readiness(
     if not isinstance(native, dict) or native.get("available") is not True:
         raise PreflightError("live native resident observation is unavailable")
     if native.get("python_callback_count") != 0:
-        raise PreflightError("live resident reports Python cognition callbacks")
+        # The pre-native predecessor surface (native_joint_fractal) predates
+        # the callback counter entirely. Under an explicit genesis cutover the
+        # candidate inherits NO cognitive state from the predecessor, so the
+        # missing counter is recorded as a legacy-surface fact instead of
+        # refusing; any nonzero count, and any missing count outside a
+        # declared genesis cutover, still refuses.
+        legacy_surface_without_counter = (
+            "python_callback_count" not in native
+            and value.get("native_resident") is None
+        )
+        if not (genesis_cutover and legacy_surface_without_counter):
+            raise PreflightError(
+                "live resident reports Python cognition callbacks"
+            )
     state_sha = native.get("state_sha256")
     if not isinstance(state_sha, str) or re.fullmatch(r"[0-9a-f]{64}", state_sha) is None:
         raise PreflightError("live resident has no immutable state identity")
@@ -867,6 +881,14 @@ def _arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--expected-commit", required=True)
     parser.add_argument("--candidate-task-definition", required=True)
     parser.add_argument("--candidate-image-digest", required=True)
+    parser.add_argument(
+        "--genesis-cutover",
+        action="store_true",
+        help=(
+            "declare that the candidate performs a fresh identity-pinned "
+            "genesis and inherits no predecessor cognitive state"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -937,6 +959,7 @@ def run_preflight(values: argparse.Namespace, commands: Commands) -> dict[str, o
         _read_live_readiness(commands, api_key),
         expected_task_definition=str(before["task_definition"]),
         expected_image_digest=str(before["image_digest"]),
+        genesis_cutover=bool(getattr(values, "genesis_cutover", False)),
     )
 
     # Resolve, but never modify, the separate public UI targets named by the

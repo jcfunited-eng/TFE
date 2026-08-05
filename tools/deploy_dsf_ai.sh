@@ -25,6 +25,10 @@ CONTROL_ORIGIN="https://dsf-ai.com"
 ALB_DNS="dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
 CONTROL_SECRET_ID="gualaloom/api-key/prod"
 RELEASE_MANIFEST="deploy/guala_release_manifest.json"
+# Identity continuity: the genesis cutover keeps the organism identity minted
+# at the 2026-07-16 genesis; the same pin authors the candidate task
+# environment and the genesis rehearsal expectation.
+GUALA_ORGANISM_IDENTITY="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 DEPLOY_CONFIGURATION="maximumPercent=100,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}"
 REPEAT_CUTOVER=1
 REHEARSE_ONLY=0
@@ -188,6 +192,7 @@ BASE_TASK_JSON=$(aws ecs describe-task-definition \
 REGISTER_JSON=$(printf '%s' "${BASE_TASK_JSON}" | \
     PINNED_IMAGE_URI="${PINNED_IMAGE_URI}" \
     IMAGE_DIGEST="${IMAGE_DIGEST}" GIT_SHA="${GIT_SHA}" \
+    ORGANISM_IDENTITY="${GUALA_ORGANISM_IDENTITY}" \
     python3 -c '
 import json, os, sys
 source = json.load(sys.stdin)
@@ -204,6 +209,10 @@ if len(containers) != 1 or containers[0].get("name") != "dsf-ai":
     raise SystemExit("task definition must contain one dsf-ai container")
 container = containers[0]
 container["image"] = os.environ["PINNED_IMAGE_URI"]
+# The reviewed image entrypoint (native_production_app) is the single
+# serving authority; a stale per-taskdef command override would boot a
+# module that is not in the lean image and crash-loop the service.
+container.pop("command", None)
 environment = container.get("environment", [])
 if len({item.get("name") for item in environment}) != len(environment):
     raise SystemExit("task environment contains duplicate authorities")
@@ -225,6 +234,9 @@ values = {item.get("name"): item for item in environment}
 required_environment = {
     "GUALA_MAX_COLD_GENERATION_BYTES": "2147483648",
     "GUALA_PERSISTENT_STORAGE_CEILING_BYTES": "5368709120",
+    # Identity continuity: rebirth keeps the organism identity minted at
+    # the 2026-07-16 genesis rather than a new random one.
+    "GUALA_NATIVE_ORGANISM_IDENTITY": os.environ["ORGANISM_IDENTITY"],
 }
 for name, value in (
     ("DEPLOY_EXPECTED_GIT_SHA", os.environ["GIT_SHA"]),
@@ -316,11 +328,15 @@ DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
 [ -n "${DEPLOY_API_KEY}" ] && [ "${DEPLOY_API_KEY}" != "None" ] \
     || fail "production control credential is unavailable"
 
+# This deployment is an explicit genesis cutover: the candidate serves the
+# lean native surface, uses a NEW state root, performs identity-pinned fresh
+# genesis, and inherits no predecessor cognitive state.
 python3 tools/preflight_guala_production.py \
     --root "${REPOSITORY_ROOT}" \
     --expected-commit "${GIT_SHA}" \
     --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
     --candidate-image-digest "${IMAGE_DIGEST}" \
+    --genesis-cutover \
     >"${WORK_DIR}/preflight.json"
 
 verify_live_organism() {
@@ -463,29 +479,20 @@ else
     echo "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
 fi
 PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
-CURRENT_SOURCE_TASK_DEFINITION="${SOURCE_TASK_DEFINITION}"
 for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
-    REHEARSAL_SOURCE=$(inspect_live_rehearsal_source \
-        "${CURRENT_SOURCE_TASK_DEFINITION}")
-    REHEARSAL_BASELINE=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["generation"])')
-    REHEARSAL_ACTIVE=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["active_recovery_generation"])')
-    REHEARSAL_IDENTITY=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["identity"])')
-    REHEARSAL_TICK=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["active_recovery_tick"])')
+    # Genesis cutover rehearsal: the live legacy surface is not a rehearsal
+    # source (its facts are already recorded by the preflight), so the
+    # inheritance inspection is skipped.  The candidate proves identity-pinned
+    # fresh genesis and one genuinely retained lesson on a throwaway state
+    # root instead of round-tripping predecessor state.
     REHEARSAL_PROOF=$(python3 tools/run_guala_candidate_rehearsal_task.py \
-        --mode rehearse \
+        --mode genesis-rehearse \
         --cluster "${ECS_CLUSTER}" \
         --service "${ECS_SERVICE}" \
         --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
         --candidate-git-sha "${GIT_SHA}" \
         --candidate-image-digest "${IMAGE_DIGEST}" \
-        --expected-baseline-generation "${REHEARSAL_BASELINE}" \
-        --expected-active-generation "${REHEARSAL_ACTIVE}" \
-        --expected-identity "${REHEARSAL_IDENTITY}" \
-        --expected-tick "${REHEARSAL_TICK}")
+        --expected-identity "${GUALA_ORGANISM_IDENTITY}")
     printf '%s\n' "${REHEARSAL_PROOF}"
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
@@ -504,31 +511,9 @@ print(json.dumps({
 '
         exit 0
     fi
-    PUBLICATION_PROOF=$(python3 tools/run_guala_candidate_rehearsal_task.py \
-        --mode publish \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
-        --candidate-git-sha "${GIT_SHA}" \
-        --candidate-image-digest "${IMAGE_DIGEST}" \
-        --expected-baseline-generation "${REHEARSAL_BASELINE}" \
-        --expected-active-generation "${REHEARSAL_ACTIVE}" \
-        --expected-identity "${REHEARSAL_IDENTITY}" \
-        --expected-tick "${REHEARSAL_TICK}")
-    printf '%s\n' "${PUBLICATION_PROOF}"
-    PUBLISHED_STATE_SHA256=$(printf '%s' "${PUBLICATION_PROOF}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["resident_state_sha256"])')
-    COLD_RESTORE_PROOF=$(python3 tools/run_guala_candidate_rehearsal_task.py \
-        --mode cold-restore \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
-        --candidate-git-sha "${GIT_SHA}" \
-        --candidate-image-digest "${IMAGE_DIGEST}" \
-        --expected-identity "${REHEARSAL_IDENTITY}" \
-        --expected-tick "${REHEARSAL_TICK}" \
-        --expected-state-sha256 "${PUBLISHED_STATE_SHA256}")
-    printf '%s\n' "${COLD_RESTORE_PROOF}"
+    # Genesis cutover: there is no predecessor publication or cold-restore of
+    # inherited state; the candidate performs its own identity-pinned genesis
+    # on its fresh state root at first boot.
     aws ecs update-service \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
@@ -547,7 +532,6 @@ print(json.dumps({
         fail "cutover ${cutover_number} did not replace the running process"
     fi
     PREVIOUS_RUNNING_TASK="${CURRENT_RUNNING_TASK}"
-    CURRENT_SOURCE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}"
     echo "      cutover ${cutover_number}/${REPEAT_CUTOVER}: verified"
 done
 

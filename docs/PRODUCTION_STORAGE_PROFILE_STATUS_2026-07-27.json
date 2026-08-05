@@ -134,7 +134,6 @@
     "full_generation_content_delta_census_and_causal_coverage"
   ],
   "active_writer_authority_coverage": {
-    "process_lifetime_efs_owner_record": "shared_physical_byte_authority",
     "verified_generation_active_materialization": "shared_physical_byte_authority",
     "owner_scoped_hot_state_stage": "shared_physical_byte_authority_then_content_addressed_live_recovery",
     "ring_persistence_consumer": "shared_physical_byte_authority_receipt_only",
@@ -147,5 +146,8 @@
     "atomic_replacement_failure": "restore prior bytes and remove temporary candidate",
     "learned_state_deletion": "forbidden; capacity refusal never deletes reachable learned state",
     "remote_retirement": "retain exactly objects reachable from authenticated generation manifests and hard-delete every unreachable version and delete marker"
+  },
+  "retired_writer_authority_notes": {
+    "process_lifetime_efs_owner_record": "retired 2026-08-05 with the owner-lock removal; moved to examined_but_not_active in the audit inventory"
   }
 }
