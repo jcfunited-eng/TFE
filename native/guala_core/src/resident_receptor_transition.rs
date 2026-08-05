@@ -225,7 +225,7 @@ pub(crate) fn inspect_resident_neuron_admission(
 
 /// Fixed-size, non-authoritative observation of work performed at ingress. It
 /// contains no source, field, neuron, physical, or cognitive body.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) struct ResidentReceptorIngressObservation {
     field_count: usize,
     witness_count: usize,

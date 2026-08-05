@@ -530,6 +530,16 @@ mod tests {
             tapestry_activity_count: 1,
             deeper_tapestry_activity_count: 1,
             generative_recombination_count: 1,
+            rest_recovered_neuron_count: 0,
+            rest_drained_dissipation_quanta: 0,
+            unmet_dissipation_quanta: 0,
+            membrane_returned_elementary_charges: 0,
+            membrane_unreturned_elementary_charges: 0,
+            metabolic_fuel_quanta: 0,
+            nutrition_regenerated_fuel_quanta: 0,
+            nutrition_unabsorbed_waste_quanta: 0,
+            nutrition_vented_heat_quanta: 0,
+            energy: Default::default(),
         }
     }
 

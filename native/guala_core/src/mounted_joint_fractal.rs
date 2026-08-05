@@ -334,7 +334,7 @@ pub(crate) struct DerivedJointFieldInput {
     pub(crate) topology_authority: [u8; 32],
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) struct MountedTransitionPhaseCounts {
     pub(crate) predecessor_authentication_count: usize,
     pub(crate) predecessor_decode_count: usize,

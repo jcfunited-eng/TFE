@@ -12,8 +12,10 @@
 //! This pure transition contains no owner, lock, database, receipt, hash,
 //! serializer, semantic label, score, ML approximation, or legacy VTVR field.
 
-use crate::elementary_charge_membrane::{ElementaryChargeMembraneState, MembraneCapacitance};
-use crate::elementary_charge_transfer::ChargeCarrierPhase;
+use crate::elementary_charge_membrane::{
+    settle_membrane_elementary_charges, ElementaryChargeMembraneState, MembraneCapacitance,
+};
+use crate::elementary_charge_transfer::{settle_elementary_charge_transfer, ChargeCarrierPhase};
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_uf_neuron_boundary::{
     settle_shared_dsf_mathloom, BalancedTrit, BorrowedMathLoomDelivery, JointNeuronBoundaryError,
@@ -3647,6 +3649,242 @@ pub(crate) fn apply_sparse_physical_state_delta(
     );
     encode_neuron_physical_state(anatomy, &applied)?;
     Ok(applied)
+}
+
+// ---------------------------------------------------------------------------
+// Metabolic loop (minimal feeding metabolism, authorized by Joe 2026-08-05).
+//
+// Nothing below introduces a physical constant.  Every quantity read here is
+// already authored in this neuron's anatomy (the gate's single-channel
+// conductance, its dissipation-lattice quantum, the membrane capacitance, the
+// recovery lanes' stoichiometry and the declared dissipation capacities) or is
+// the neuron's own retained state.  The reactions are the ones this module
+// already defines; these entry points only address a lane by name and expose
+// the exact bounds the reservoir-side settlement needs to stay conservative.
+// ---------------------------------------------------------------------------
+
+/// The exact zeptojoules of electrical work carried by one elementary charge
+/// moved across one millivolt.  This is the same conversion the gate's own
+/// free-energy expression already uses; it is named here so the membrane
+/// return path can reuse it instead of restating it.
+fn elementary_charge_millivolt_zeptojoules() -> Exact {
+    Exact::new(
+        BigInt::from(801_088_317_u64),
+        BigInt::from(5_000_000_000_u64),
+    )
+}
+
+impl NeuronPhysicalAnatomy {
+    /// The declared dissipation capacity of one recovery lane's ledger.
+    pub(crate) fn lane_dissipation_capacity_quanta(
+        &self,
+        address: RecoveryLaneAddress,
+    ) -> Option<u128> {
+        match address {
+            RecoveryLaneAddress::Psi(index) => self
+                .psi
+                .rings
+                .get(index)
+                .map(|ring| ring.dissipation_capacity_quanta),
+            RecoveryLaneAddress::Gate => Some(self.gate.dissipation_capacity_quanta),
+            RecoveryLaneAddress::Plastic => Some(self.plastic.dissipation_capacity_quanta),
+        }
+    }
+}
+
+impl NeuronPhysicalState {
+    /// The quanta currently standing in one recovery lane's dissipation ledger
+    /// — the dissipation the lane's recovery reaction can still undo.
+    pub(crate) fn lane_dissipated_quanta(&self, address: RecoveryLaneAddress) -> Option<u128> {
+        match address {
+            RecoveryLaneAddress::Psi(index) => self
+                .psi
+                .rings
+                .get(index)
+                .map(|ring| ring.dissipated_quanta),
+            RecoveryLaneAddress::Gate => Some(self.gate.dissipated_quanta),
+            RecoveryLaneAddress::Plastic => Some(self.plastic.dissipated_quanta),
+        }
+    }
+
+    /// This neuron's signed separated membrane charge, in elementary charges.
+    /// Rest is exactly zero: the state every neuron is authored at
+    /// (`LocalMembraneConductanceState::genesis(0)` in virtual material
+    /// genesis), so the displacement from rest IS this value.
+    pub(crate) fn separated_elementary_charges(&self) -> i128 {
+        self.membrane.membrane().separated_elementary_charges()
+    }
+}
+
+/// One interval of the membrane return path.
+///
+/// `charges` is the signed outward elementary-charge count to transport;
+/// `successor_phase` is the retained sub-charge phase to keep for the next
+/// interval, present only when the whole computed transport is deliverable
+/// (an interval the body cannot pay for keeps the predecessor phase, so no
+/// fraction of a charge is ever lost or invented).
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct MembraneReturnBound {
+    pub(crate) charges: i128,
+    pub(crate) successor_phase: Option<ChargeCarrierPhase>,
+}
+
+/// The elementary-charge return this neuron's own conductive anatomy would
+/// carry toward its authored resting membrane state in one interval.
+///
+/// The bound is the existing `I = g·(V − E)` path law read with the gate's
+/// authored single-channel conductance (one channel's worth of transport) and
+/// the authored rest, zero millivolts, as its reversal potential, integrated
+/// by the existing elementary-charge transfer law over this interval.  The
+/// transport is a real membrane current, so its unresolved fraction is
+/// retained in the membrane's OWN carrier phase — the retained-residue
+/// discipline every other transport in this substrate already keeps, and the
+/// only phase on the membrane state that no other reached law writes.  The
+/// whole-charge result is clamped so a return can never overshoot rest or
+/// reverse sign.
+pub(crate) fn membrane_return_charge_bound(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    interval_microseconds: u32,
+) -> Result<MembraneReturnBound, NeuronPhysicalError> {
+    let separated = predecessor.separated_elementary_charges();
+    if separated == 0 {
+        return Ok(MembraneReturnBound {
+            charges: 0,
+            successor_phase: None,
+        });
+    }
+    let potential = predecessor
+        .membrane
+        .membrane()
+        .potential_millivolts(anatomy.capacitance)
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+    let path = LocalConductancePath::new(
+        anatomy.gate.single_channel_conductance_picosiemens,
+        ExactRational::integer(0),
+    )
+    .map_err(GateSettlementError::from)?;
+    let current = path
+        .current_picoamperes(potential)
+        .map_err(GateSettlementError::from)?;
+    let transfer = settle_elementary_charge_transfer(
+        predecessor.membrane.membrane().carrier_phase(),
+        current,
+        interval_microseconds,
+    )
+    .map_err(MembraneConductanceError::from)
+    .map_err(GateSettlementError::from)?;
+    let charges = clamped_return_charges(separated, transfer.outward_elementary_charges);
+    Ok(MembraneReturnBound {
+        charges,
+        successor_phase: (charges == transfer.outward_elementary_charges)
+            .then_some(transfer.successor_phase),
+    })
+}
+
+fn clamped_return_charges(separated: i128, bound: i128) -> i128 {
+    if separated > 0 {
+        bound.clamp(0, separated)
+    } else {
+        bound.clamp(separated, 0)
+    }
+}
+
+fn membrane_potential_magnitude_zeptojoules_per_charge(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+) -> Result<Exact, NeuronPhysicalError> {
+    let potential = predecessor
+        .membrane
+        .membrane()
+        .potential_millivolts(anatomy.capacitance)
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+    Ok(rational_to_exact(potential).abs() * elementary_charge_millivolt_zeptojoules())
+}
+
+/// The whole quanta of energy the return of `charges` costs, on the gate's own
+/// dissipation lattice.  Rounded UP: the organism pays at least the work it
+/// actually does, never less.
+pub(crate) fn membrane_return_quanta_cost(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    charges: i128,
+) -> Result<u128, NeuronPhysicalError> {
+    if charges == 0 {
+        return Ok(0);
+    }
+    let per_charge = membrane_potential_magnitude_zeptojoules_per_charge(anatomy, predecessor)?;
+    let work = per_charge * Exact::from_integer(BigInt::from(charges.unsigned_abs()));
+    (work / &anatomy.gate.dissipation_quantum_zeptojoules)
+        .ceil()
+        .to_integer()
+        .to_u128()
+        .ok_or(NeuronPhysicalError::Gate(
+            GateSettlementError::ArithmeticWidth,
+        ))
+}
+
+/// The greatest whole elementary-charge return `available_quanta` of energy can
+/// pay for, at this neuron's present membrane potential.  Rounded DOWN.
+pub(crate) fn membrane_return_affordable_charges(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    available_quanta: u128,
+) -> Result<u128, NeuronPhysicalError> {
+    let per_charge = membrane_potential_magnitude_zeptojoules_per_charge(anatomy, predecessor)?;
+    if per_charge.is_zero() {
+        return Ok(0);
+    }
+    let budget = Exact::from_integer(BigInt::from(available_quanta))
+        * &anatomy.gate.dissipation_quantum_zeptojoules;
+    (budget / per_charge)
+        .floor()
+        .to_integer()
+        .to_u128()
+        .ok_or(NeuronPhysicalError::Gate(
+            GateSettlementError::ArithmeticWidth,
+        ))
+}
+
+/// Move `outward_elementary_charges` back across this neuron's membrane.
+///
+/// Charge is conserved, never destroyed: the membrane's separated charge and
+/// the intracellular/extracellular carrier partition move equal and opposite,
+/// exactly as every other transport in this module does.  The retained carrier
+/// phases are untouched — this is a whole-charge transport, not an ensemble
+/// current, so it leaves no sub-charge residue behind.
+pub(crate) fn settle_membrane_return_transport(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    outward_elementary_charges: i128,
+    successor_phase: Option<ChargeCarrierPhase>,
+    interval_microseconds: u32,
+) -> Result<NeuronPhysicalState, NeuronPhysicalError> {
+    let phase = successor_phase.unwrap_or_else(|| predecessor.membrane.membrane().carrier_phase());
+    if outward_elementary_charges == 0 && phase == predecessor.membrane.membrane().carrier_phase() {
+        return Ok(predecessor.clone());
+    }
+    let membrane = settle_membrane_elementary_charges(
+        anatomy.capacitance,
+        predecessor.membrane.membrane(),
+        outward_elementary_charges,
+        interval_microseconds,
+    )
+    .map_err(MembraneConductanceError::from)
+    .map_err(GateSettlementError::from)?;
+    let carriers = move_carriers(predecessor.carriers, outward_elementary_charges)?;
+    let mut successor = predecessor.clone();
+    successor.membrane = LocalMembraneConductanceState::from_physical_parts(
+        ElementaryChargeMembraneState::from_physical_parts(
+            membrane.successor.separated_elementary_charges(),
+            phase,
+        ),
+        predecessor.membrane.path_carrier_phases(),
+    );
+    successor.carriers = carriers;
+    Ok(successor)
 }
 
 // Measurement-only test accessors (no production logic): expose otherwise

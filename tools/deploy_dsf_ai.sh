@@ -237,6 +237,10 @@ required_environment = {
     # Identity continuity: rebirth keeps the organism identity minted at
     # the 2026-07-16 genesis rather than a new random one.
     "GUALA_NATIVE_ORGANISM_IDENTITY": os.environ["ORGANISM_IDENTITY"],
+    # Rebirth (Joe approved 2026-08-05): the differentiated-anatomy law
+    # refuses the old all-identical body, so genesis runs in a fresh state
+    # root; the old root stays untouched on EFS as history.
+    "GUALA_NATIVE_ORGANISM_ROOT": "/app/guala/native-organism-gen2",
 }
 for name, value in (
     ("DEPLOY_EXPECTED_GIT_SHA", os.environ["GIT_SHA"]),

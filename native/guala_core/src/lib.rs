@@ -56,6 +56,7 @@ mod local_gating_spring_energy;
 mod local_membrane_conductance_balance;
 mod local_tip_link_extension;
 mod materialized_fabric;
+mod metabolic_feeding;
 mod mounted_joint_fractal;
 mod neuron_source_anchor;
 mod optical_receptor_work;

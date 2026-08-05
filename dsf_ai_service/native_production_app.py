@@ -15,6 +15,11 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   card (its physical surface luminance and its tutor audio pressure) as one
   admitted native episode.  The card's letter or number identity is never
   written into the organism; only the physical media samples are delivered.
+- ``POST /api/v1/metabolism/feed`` delivers one AUTHORED nutrition
+  declaration (its energy content in the body's own fuel quantum) as one
+  admitted material intake.  It carries no sensory occurrence: it advances
+  the organism tick and the body's energy state and nothing else, and the
+  organism refuses it honestly when it can absorb nothing.
 - ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session
   deliver caller-supplied PCM pressure as admitted native episodes carrying
   the whole mounted sensorium: both ear pressure ports plus all 27
@@ -270,6 +275,16 @@ def _native_record() -> dict[str, Any]:
         },
         "state_bytes": observed.state_bytes,
         "state_sha256": observed.state_sha256,
+        # Energy state (minimal feeding metabolism, 2026-08-05): decoded from
+        # the persisted body, never from the mounted surface.
+        "recovery_fuel_quanta": observed.recovery_fuel_quanta,
+        "recovery_spent_quanta": observed.recovery_spent_quanta,
+        "recovery_heat_quanta": observed.recovery_heat_quanta,
+        "recovery_fuel_capacity_quanta": observed.recovery_fuel_capacity_quanta,
+        "dissipated_quanta": observed.dissipated_quanta,
+        "dissipation_capacity_quanta": observed.dissipation_capacity_quanta,
+        "separated_elementary_charges": observed.separated_elementary_charges,
+        "energy_exhausted": observed.energy_exhausted,
     }
 
 
@@ -496,6 +511,12 @@ def _build_public_observation() -> dict[str, Any]:
                 "one approved card surface and its tutor audio reach the "
                 "resident organism as one admitted native episode",
             ),
+            "nutrition": _mounted_capability(
+                "/api/v1/metabolism/feed",
+                "one authored nutrition declaration reaches the resident "
+                "organism as one admitted material intake and regenerates "
+                "recovery fuel from spent material",
+            ),
             "text_visual": _capability("native rendered-light transition is not mounted"),
             "picture": _capability("native visual material presentation is not mounted"),
             "pdf": _capability("native paged visual presentation is not mounted"),
@@ -556,6 +577,33 @@ def _build_public_observation() -> dict[str, Any]:
             "of the last committed transition; no separate recall query "
             "surface is mounted",
             partial_cue_reassembly_count=native["partial_cue_reassembly_count"],
+        ),
+        # Truth-coupled to the decoded native body: an exhausted ledger or an
+        # empty reservoir reports itself here.  A body that cannot pay for its
+        # own recovery is NOT reported as available.
+        "energy": _section(
+            native["recovery_fuel_capacity_quanta"] > 0
+            and not native["energy_exhausted"],
+            (
+                "no_mounted_energy_system"
+                if native["recovery_fuel_capacity_quanta"] == 0
+                else "energy_exhausted"
+                if native["energy_exhausted"]
+                else "recovery_reservoir_and_ledgers_available"
+            ),
+            "recovery-fluid reservoir, dissipation ledgers and separated "
+            "membrane charge are decoded native physical state; the rest "
+            "metabolism runs on genuinely dark settlements and an authored "
+            "nutrition intake regenerates fuel via "
+            "POST /api/v1/metabolism/feed",
+            dissipated_quanta=native["dissipated_quanta"],
+            dissipation_capacity_quanta=native["dissipation_capacity_quanta"],
+            exhausted=native["energy_exhausted"],
+            recovery_fuel_capacity_quanta=native["recovery_fuel_capacity_quanta"],
+            recovery_fuel_quanta=native["recovery_fuel_quanta"],
+            recovery_heat_quanta=native["recovery_heat_quanta"],
+            recovery_spent_quanta=native["recovery_spent_quanta"],
+            separated_elementary_charges=native["separated_elementary_charges"],
         ),
         "cognitive_capital": _section(
             False,
@@ -667,6 +715,7 @@ def _readiness() -> dict[str, Any]:
                 and _last_transition_evidence["complete_neuron_fractal_count"] > 0
             ),
             "cognition_available": cognition_present,
+            "energy_available": not native["energy_exhausted"],
             "persistence": {
                 "encoding": "raw_glorun01",
                 "ordinary_restore": "CURRENT_only",
@@ -1181,6 +1230,77 @@ def _perform_admitted_intake(
             },
             "schema": "guala.native_admitted_intake_result.v1",
             "totals": totals,
+        }
+
+
+def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
+    """Commit one authored nutrition intake, then persist and publish ONCE.
+
+    Same durability contract as an admitted lesson: the intake advances only
+    the in-process organism until the single persist, the public observation
+    cache is refreshed only after the persist succeeds, and a persist failure
+    poisons the runtime (503) so no surface ever reports unpersisted state.
+    """
+
+    global _restored, _last_transition_evidence
+
+    with _transition_lock:
+        restored, admission = _runtime()
+        organism = restored.organism
+        predecessor = restored.pointer
+        evidence = organism.prepare_nutrition(energy_quanta)
+        observed = organism.commit(evidence.token)
+        published = _publish_committed_organism(
+            organism, admission, predecessor.state_sha256
+        )
+        _restored = RestoredNativeOrganism(
+            organism=organism, pointer=published.pointer
+        )
+        _last_transition_evidence = {
+            "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+            "cognitive_trace_count": observed.cognitive_trace_count,
+            "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
+            "complete_neuron_fractal_count": 0,
+            "current_cohort_evaluation_count": 0,
+            "dsf_delivery_count": 0,
+            "formation_activation_count": observed.formation_activation_count,
+            "hop_count": 1,
+            "intake": f"nutrition:{energy_quanta}",
+            "organism_tick": observed.organism_tick,
+            "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
+            "physically_transitioned_neuron_count": 0,
+            "predecessor_state_sha256": predecessor.state_sha256,
+            "recurrent_complete_neuron_fractal_count": 0,
+            "state_sha256": observed.state_sha256,
+            "totals": {},
+        }
+        _refresh_public_observation_cache()
+        return {
+            "accepted": True,
+            "ok": True,
+            "declared_energy_quanta": energy_quanta,
+            "nutrition": {
+                "regenerated_fuel_quanta": evidence.regenerated_fuel_quanta,
+                "unabsorbed_waste_quanta": evidence.unabsorbed_waste_quanta,
+                "vented_heat_quanta": evidence.vented_heat_quanta,
+            },
+            "energy": {
+                "dissipated_quanta": evidence.dissipated_quanta,
+                "dissipation_capacity_quanta": evidence.dissipation_capacity_quanta,
+                "recovery_fuel_capacity_quanta": evidence.recovery_fuel_capacity_quanta,
+                "recovery_fuel_quanta": evidence.recovery_fuel_quanta,
+                "recovery_heat_quanta": evidence.recovery_heat_quanta,
+                "recovery_spent_quanta": evidence.recovery_spent_quanta,
+                "separated_elementary_charges": evidence.separated_elementary_charges,
+            },
+            "persisted": {
+                "organism_tick": published.pointer.organism_tick,
+                "predecessor_state_sha256": predecessor.state_sha256,
+                "schema": PERSISTENCE_SCHEMA,
+                "state_bytes": published.pointer.state_bytes,
+                "state_sha256": published.pointer.state_sha256,
+            },
+            "schema": "guala.native_nutrition_intake_result.v1",
         }
 
 
@@ -1779,6 +1899,36 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         status_code=200,
         content={"card_id": card_id, "presentation": presentation, **result},
     )
+
+
+@app.post("/api/v1/metabolism/feed")
+def metabolism_feed(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Deliver one AUTHORED nutrition declaration to the resident organism.
+
+    ``energy_quanta`` is the declaration's energy content in the body's own
+    fuel quantum — caller-authored intake declaration authority, exactly like
+    the curriculum card media, never a physics constant.
+    """
+
+    energy_quanta = payload.get("energy_quanta") if isinstance(payload, dict) else None
+    if (
+        isinstance(energy_quanta, bool)
+        or not isinstance(energy_quanta, int)
+        or energy_quanta <= 0
+    ):
+        return _refusal(
+            422,
+            "feed requires a positive integer energy_quanta (the authored "
+            "nutrition declaration's energy content in the body's own fuel "
+            "quantum)",
+        )
+    try:
+        result = _perform_nutrition_intake(energy_quanta)
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"nutrition intake refused: {error}")
+    return JSONResponse(status_code=200, content=result)
 
 
 @app.post("/sight_frame")

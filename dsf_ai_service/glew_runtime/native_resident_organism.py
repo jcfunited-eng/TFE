@@ -105,6 +105,63 @@ class NativeResidentObservationView(Protocol):
     @property
     def python_callback_count(self) -> int: ...
 
+    # Energy state (minimal feeding metabolism, 2026-08-05).  Every value is
+    # the body's own settled physics, decoded from the persisted body.
+    @property
+    def recovery_fuel_quanta(self) -> int: ...
+
+    @property
+    def recovery_spent_quanta(self) -> int: ...
+
+    @property
+    def recovery_heat_quanta(self) -> int: ...
+
+    @property
+    def recovery_fuel_capacity_quanta(self) -> int: ...
+
+    @property
+    def dissipated_quanta(self) -> int: ...
+
+    @property
+    def dissipation_capacity_quanta(self) -> int: ...
+
+    @property
+    def separated_elementary_charges(self) -> int: ...
+
+    @property
+    def energy_exhausted(self) -> bool: ...
+
+
+@dataclass(frozen=True, slots=True)
+class ResidentNutritionEvidence:
+    """Receipts for one prepared AUTHORED nutrition intake.
+
+    A feed is material intake, not a sensory occurrence: it advances the
+    organism tick and the fabric generation and nothing else.  The mounted
+    joint generation is unchanged, and this boundary refuses any candidate
+    that claims otherwise.
+    """
+
+    token: bytes
+    token_hex: str
+    predecessor_state_sha256: str
+    prepared_state_sha256: str
+    predecessor_organism_tick: int
+    organism_tick: int
+    predecessor_fabric_generation: int
+    fabric_generation: int
+    mounted_generation: int
+    regenerated_fuel_quanta: int
+    unabsorbed_waste_quanta: int
+    vented_heat_quanta: int
+    recovery_fuel_quanta: int
+    recovery_spent_quanta: int
+    recovery_heat_quanta: int
+    recovery_fuel_capacity_quanta: int
+    dissipated_quanta: int
+    dissipation_capacity_quanta: int
+    separated_elementary_charges: int
+
 
 @dataclass(frozen=True, slots=True)
 class ResidentPrepareEvidence:
@@ -657,6 +714,107 @@ class NativeResidentOrganism:
             physically_transitioned_neuron_count=(
                 physically_transitioned_neuron_count
             ),
+        )
+
+    def prepare_nutrition(self, energy_quanta: object) -> ResidentNutritionEvidence:
+        """Prepare one AUTHORED nutrition intake and return its receipts.
+
+        ``energy_quanta`` is the intake declaration's energy content in the
+        body's own fuel quantum.  It is caller-authored declaration authority,
+        exactly like curriculum card media; this boundary never derives it
+        from the organism.  The native body refuses the intake outright when
+        it can absorb nothing.
+        """
+
+        quanta = _positive_integer(energy_quanta, "nutrition energy quanta")
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_nutrition(quanta)
+        if not isinstance(candidate, self.__prepare_type):
+            raise TypeError("resident organism prepare returned a structural impostor")
+        if candidate.schema != PREPARE_SCHEMA:
+            raise RuntimeError("resident organism prepare schema changed")
+        token = candidate.token
+        if (
+            not isinstance(token, bytes)
+            or len(token) != 32
+            or candidate.token_hex != token.hex()
+        ):
+            raise RuntimeError("resident organism prepare token changed format")
+        predecessor_state_sha256 = _canonical_sha256(
+            candidate.predecessor_state_sha256, "predecessor state receipt"
+        )
+        prepared_state_sha256 = _canonical_sha256(
+            candidate.prepared_state_sha256, "prepared state receipt"
+        )
+        regenerated = _nonnegative_integer(
+            candidate.nutrition_regenerated_fuel_quanta,
+            "nutrition regenerated fuel quanta",
+        )
+        waste = _nonnegative_integer(
+            candidate.nutrition_unabsorbed_waste_quanta,
+            "nutrition unabsorbed waste quanta",
+        )
+        vented = _nonnegative_integer(
+            candidate.nutrition_vented_heat_quanta, "nutrition vented heat quanta"
+        )
+        if (
+            predecessor_state_sha256 != active_before.state_sha256
+            or candidate.predecessor_organism_tick != active_before.organism_tick
+            or candidate.organism_tick != active_before.organism_tick + 1
+            or candidate.predecessor_fabric_generation
+            != active_before.fabric_generation
+            or candidate.fabric_generation != active_before.fabric_generation + 1
+            # A feed carries no sensory occurrence, so the mounted joint
+            # generation must NOT move.
+            or candidate.mounted_generation != active_before.mounted_generation
+            or candidate.dsf_delivery_count != 0
+            or candidate.complete_neuron_fractal_count != 0
+            or candidate.physical_transition_claimed
+            or candidate.cognitive_formation_claimed
+            # Conservation, re-checked at this boundary: every declared
+            # quantum was either absorbed or exported as waste.
+            or regenerated + waste != quanta
+            or regenerated == 0
+        ):
+            raise RuntimeError("resident organism nutrition intake changed causal physics")
+        active_after = self.readiness()
+        if _observation_signature(active_after) != _observation_signature(
+            active_before
+        ):
+            raise RuntimeError("resident organism prepare published pending state")
+        return ResidentNutritionEvidence(
+            token=token,
+            token_hex=candidate.token_hex,
+            predecessor_state_sha256=predecessor_state_sha256,
+            prepared_state_sha256=prepared_state_sha256,
+            predecessor_organism_tick=candidate.predecessor_organism_tick,
+            organism_tick=candidate.organism_tick,
+            predecessor_fabric_generation=candidate.predecessor_fabric_generation,
+            fabric_generation=candidate.fabric_generation,
+            mounted_generation=candidate.mounted_generation,
+            regenerated_fuel_quanta=regenerated,
+            unabsorbed_waste_quanta=waste,
+            vented_heat_quanta=vented,
+            recovery_fuel_quanta=_nonnegative_integer(
+                candidate.recovery_fuel_quanta, "recovery fuel quanta"
+            ),
+            recovery_spent_quanta=_nonnegative_integer(
+                candidate.recovery_spent_quanta, "recovery spent quanta"
+            ),
+            recovery_heat_quanta=_nonnegative_integer(
+                candidate.recovery_heat_quanta, "recovery heat quanta"
+            ),
+            recovery_fuel_capacity_quanta=_nonnegative_integer(
+                candidate.recovery_fuel_capacity_quanta,
+                "recovery fuel capacity quanta",
+            ),
+            dissipated_quanta=_nonnegative_integer(
+                candidate.dissipated_quanta, "dissipated quanta"
+            ),
+            dissipation_capacity_quanta=_nonnegative_integer(
+                candidate.dissipation_capacity_quanta, "dissipation capacity quanta"
+            ),
+            separated_elementary_charges=int(candidate.separated_elementary_charges),
         )
 
     def commit(self, token: bytes) -> NativeResidentObservationView:

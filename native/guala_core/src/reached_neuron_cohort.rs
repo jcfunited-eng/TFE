@@ -15,7 +15,7 @@ use crate::complete_neuron::{
     encode_neuron_physical_cell, encode_neuron_physical_state, encode_sparse_physical_state_delta,
     settle_extended_interval_with_contact, sparse_physical_state_delta, NeuronAnatomyCodecError,
     NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
-    NeuronStateCodecError, SparsePhysicalStateDelta,
+    NeuronStateCodecError, RecoveryLaneAddress, SparsePhysicalStateDelta,
 };
 use crate::elementary_charge_membrane::MembraneCapacitance;
 use crate::elementary_charge_transfer::ChargeCarrierPhase;
@@ -24,6 +24,10 @@ use crate::joint_source_episode::NativeJointSourceEpisode;
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, decode_neuron_source_site, encode_neuron_source_site,
     NeuronSourceAnchorError, NeuronSourceSite,
+};
+use crate::metabolic_feeding::{
+    settle_dark_rest_neuron, settle_nutrition_feed, settle_reservoir_heat_vent,
+    AuthoredNutritionDeclaration, MetabolicError,
 };
 use crate::recovery_fluid_contact::{
     decode_reached_recovery_fluid_anatomy, decode_reached_recovery_fluid_state,
@@ -58,6 +62,7 @@ pub(crate) enum ReachedCohortError {
         error: NeuronPhysicalError,
     },
     Source(NeuronSourceAnchorError),
+    Metabolic(MetabolicError),
     /// Two members of this cohort were authored physically identical.  Under
     /// the geometric-differentiation ratification (2026-08-05) that is not a
     /// cohort: distinct receptors occupy distinct declared places, and the
@@ -92,6 +97,12 @@ impl From<NeuronAnatomyCodecError> for ReachedCohortError {
 impl From<NeuronSourceAnchorError> for ReachedCohortError {
     fn from(value: NeuronSourceAnchorError) -> Self {
         Self::Source(value)
+    }
+}
+
+impl From<MetabolicError> for ReachedCohortError {
+    fn from(value: MetabolicError) -> Self {
+        Self::Metabolic(value)
     }
 }
 
@@ -1256,6 +1267,215 @@ pub(crate) struct ReachedCohortRecurrenceSettlement {
     pub(crate) neuron_physical_deltas: Box<[Option<SparsePhysicalStateDelta>]>,
     pub(crate) gate_work_perturbed_neurons: Box<[bool]>,
     pub(crate) active_electrical_contacts: Box<[bool]>,
+}
+
+/// What the metabolic loops did to one cohort in one settlement — reported
+/// exactly, including the demand the body could NOT meet.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct ReachedCohortMetabolicObservation {
+    pub(crate) recovered_neuron_count: usize,
+    pub(crate) drained_dissipation_quanta: u128,
+    pub(crate) unmet_dissipation_quanta: u128,
+    pub(crate) returned_elementary_charges: i128,
+    pub(crate) unreturned_elementary_charges: i128,
+    pub(crate) fuel_quanta: u128,
+}
+
+impl ReachedCohortMetabolicObservation {
+    pub(crate) fn changed(&self) -> bool {
+        self.recovered_neuron_count != 0
+    }
+}
+
+/// Settle one genuinely dark interval's metabolism for a whole cohort: every
+/// recovery lane of every neuron, then every membrane's return toward rest,
+/// all paid out of the one shared reservoir.
+///
+/// Conservation, checked here: total carrier material across the cohort is
+/// unchanged (the membrane return moves charge back across the membrane, it
+/// never destroys it), and every settled reaction is the exact one its own
+/// stoichiometry defines.
+pub(crate) fn settle_reached_cohort_dark_rest(
+    anatomy: &ReachedCohortAnatomy,
+    predecessor: &ReachedCohortState,
+    interval_microseconds: u32,
+) -> Result<(ReachedCohortState, ReachedCohortMetabolicObservation), ReachedCohortError> {
+    if predecessor.neurons.len() != anatomy.neurons.len()
+        || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let predecessor_material = total_carrier_material(&predecessor.neurons)?;
+    let mut neurons = predecessor.neurons.to_vec();
+    let mut reservoir = predecessor.recovery_fluid;
+    let mut observation = ReachedCohortMetabolicObservation::default();
+    for (neuron_index, neuron_anatomy) in anatomy.neurons.iter().enumerate() {
+        let settled = settle_dark_rest_neuron(
+            &anatomy.recovery_fluid,
+            neuron_index,
+            neuron_anatomy,
+            &neurons[neuron_index],
+            reservoir,
+            interval_microseconds,
+        )?;
+        observation.drained_dissipation_quanta = observation
+            .drained_dissipation_quanta
+            .checked_add(settled.drained_dissipation_quanta())
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.unmet_dissipation_quanta = observation
+            .unmet_dissipation_quanta
+            .checked_add(settled.unmet_dissipation_quanta())
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.returned_elementary_charges = observation
+            .returned_elementary_charges
+            .checked_add(settled.returned_elementary_charges)
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.unreturned_elementary_charges = observation
+            .unreturned_elementary_charges
+            .checked_add(settled.unreturned_elementary_charges)
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.fuel_quanta = observation
+            .fuel_quanta
+            .checked_add(settled.fuel_quanta())
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        if settled.changed() {
+            observation.recovered_neuron_count = observation
+                .recovered_neuron_count
+                .checked_add(1)
+                .ok_or(ReachedCohortError::MaterialConservation)?;
+        }
+        reservoir = settled.successor_reservoir;
+        neurons[neuron_index] = settled.successor_neuron;
+    }
+    if total_carrier_material(&neurons)? != predecessor_material {
+        return Err(ReachedCohortError::MaterialConservation);
+    }
+    Ok((
+        ReachedCohortState {
+            neurons: neurons.into_boxed_slice(),
+            electrical: predecessor.electrical.clone(),
+            recovery_fluid: reservoir,
+        },
+        observation,
+    ))
+}
+
+/// What one authored nutrition intake did to one cohort.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct ReachedCohortNutritionObservation {
+    pub(crate) regenerated_fuel_quanta: u128,
+    pub(crate) unabsorbed_waste_quanta: u128,
+    pub(crate) vented_heat_quanta: u128,
+}
+
+/// Deliver one authored nutrition declaration to one cohort's reservoir.
+///
+/// Refuses honestly (`MetabolicError::NothingToRegenerate`) when the body is
+/// already carrying every fuel quantum its reservoir can hold.
+pub(crate) fn feed_reached_cohort(
+    anatomy: &ReachedCohortAnatomy,
+    predecessor: &ReachedCohortState,
+    declaration: Option<AuthoredNutritionDeclaration>,
+) -> Result<(ReachedCohortState, ReachedCohortNutritionObservation), ReachedCohortError> {
+    if predecessor.neurons.len() != anatomy.neurons.len() {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let reservoir_anatomy = anatomy.recovery_fluid.reservoir_anatomy();
+    let (successor_reservoir, observation) = match declaration {
+        Some(declaration) => {
+            let settled =
+                settle_nutrition_feed(reservoir_anatomy, predecessor.recovery_fluid, declaration)?;
+            (
+                settled.successor_reservoir,
+                ReachedCohortNutritionObservation {
+                    regenerated_fuel_quanta: settled.regenerated_fuel_quanta,
+                    unabsorbed_waste_quanta: settled.unabsorbed_waste_quanta,
+                    vented_heat_quanta: settled.vented_heat_quanta,
+                },
+            )
+        }
+        // A cohort with nothing to regenerate still exchanges with the
+        // environment: its heat leaves the body ledger.
+        None => {
+            let (successor, vented) =
+                settle_reservoir_heat_vent(reservoir_anatomy, predecessor.recovery_fluid)?;
+            (
+                successor,
+                ReachedCohortNutritionObservation {
+                    regenerated_fuel_quanta: 0,
+                    unabsorbed_waste_quanta: 0,
+                    vented_heat_quanta: vented,
+                },
+            )
+        }
+    };
+    Ok((
+        ReachedCohortState {
+            neurons: predecessor.neurons.clone(),
+            electrical: predecessor.electrical.clone(),
+            recovery_fluid: successor_reservoir,
+        },
+        observation,
+    ))
+}
+
+/// The quanta this cohort's reservoir can still absorb: the spent material it
+/// is carrying.  Nutrition beyond this cannot be absorbed by this cohort.
+pub(crate) fn reached_cohort_absorbable_quanta(state: &ReachedCohortState) -> u128 {
+    state.recovery_fluid.physical_parts().1
+}
+
+/// The cohort reservoir's exact energy state, for the observation surface.
+pub(crate) fn reached_cohort_energy_state(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> ReachedCohortEnergyState {
+    let (fuel_capacity, spent_capacity, heat_capacity) =
+        anatomy.recovery_fluid.reservoir_anatomy().capacities();
+    let (fuel, spent, heat) = state.recovery_fluid.physical_parts();
+    let mut dissipated = 0_u128;
+    let mut dissipation_capacity = 0_u128;
+    let mut separated = 0_i128;
+    for (neuron_anatomy, neuron) in anatomy.neurons.iter().zip(state.neurons.iter()) {
+        for address in (0..neuron_anatomy.psi_ring_count())
+            .map(RecoveryLaneAddress::Psi)
+            .chain([RecoveryLaneAddress::Gate, RecoveryLaneAddress::Plastic])
+        {
+            dissipated = dissipated.saturating_add(
+                neuron.lane_dissipated_quanta(address).unwrap_or_default(),
+            );
+            dissipation_capacity = dissipation_capacity.saturating_add(
+                neuron_anatomy
+                    .lane_dissipation_capacity_quanta(address)
+                    .unwrap_or_default(),
+            );
+        }
+        separated = separated.saturating_add(neuron.separated_elementary_charges());
+    }
+    ReachedCohortEnergyState {
+        fuel_quanta: fuel,
+        spent_quanta: spent,
+        heat_quanta: heat,
+        fuel_capacity_quanta: fuel_capacity,
+        spent_capacity_quanta: spent_capacity,
+        heat_capacity_quanta: heat_capacity,
+        dissipated_quanta: dissipated,
+        dissipation_capacity_quanta: dissipation_capacity,
+        separated_elementary_charges: separated,
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct ReachedCohortEnergyState {
+    pub(crate) fuel_quanta: u128,
+    pub(crate) spent_quanta: u128,
+    pub(crate) heat_quanta: u128,
+    pub(crate) fuel_capacity_quanta: u128,
+    pub(crate) spent_capacity_quanta: u128,
+    pub(crate) heat_capacity_quanta: u128,
+    pub(crate) dissipated_quanta: u128,
+    pub(crate) dissipation_capacity_quanta: u128,
+    pub(crate) separated_elementary_charges: i128,
 }
 
 pub(crate) fn settle_reached_cohort_interval(

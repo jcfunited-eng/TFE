@@ -32,6 +32,8 @@ use crate::mounted_joint_fractal::{
     MountedJointDsfTransition, MountedTransitionPhaseCounts, ResidentMountedRestoreWork,
     ResidentMountedState,
 };
+use crate::metabolic_feeding::AuthoredNutritionDeclaration;
+use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::resident_cognitive_formation::{
     CognitiveFormationObservation, CognitiveFormationSummary, PreparedCognitiveFormationTransition,
     ResidentCognitiveFormationState,
@@ -76,6 +78,7 @@ const RESIDENT_PREPARE_SCHEMA: &str = "guala.native.resident_organism_prepare.v3
 const PREPARE_TOKEN_MAGIC: &[u8; 8] = b"GLRTPN01";
 const RESTORED_SCOPE: &str = "current_native_state_restored";
 const MOUNTED_STEP_SCOPE: &str = "mounted_joint_field_delivery_without_neuronal_cognition";
+const NUTRITION_INTAKE_SCOPE: &str = "authored_nutrition_intake_without_sensory_occurrence";
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -313,6 +316,19 @@ pub(crate) struct RuntimeObservation {
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) python_callback_count: u64,
     pub(crate) derived_budget: DerivedRuntimeBudget,
+    /// The body's energy state and this transition's metabolic facts (minimal
+    /// feeding metabolism, 2026-08-05).  Reported on every observation,
+    /// including a plain restore, so an exhausted body can never be observed
+    /// as a healthy one.
+    pub(crate) energy: ReachedCohortEnergyState,
+    pub(crate) rest_recovered_neuron_count: usize,
+    pub(crate) rest_drained_dissipation_quanta: u128,
+    pub(crate) unmet_dissipation_quanta: u128,
+    pub(crate) membrane_returned_elementary_charges: i128,
+    pub(crate) metabolic_fuel_quanta: u128,
+    pub(crate) nutrition_regenerated_fuel_quanta: u128,
+    pub(crate) nutrition_unabsorbed_waste_quanta: u128,
+    pub(crate) nutrition_vented_heat_quanta: u128,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -423,8 +439,20 @@ struct ResidentPrepareReceipt {
 struct ResidentOrganismRuntime {
     active: ActiveResidentOrganismState,
     pending: Option<PendingResidentOrganismState>,
+    /// One prepared nutrition intake.  A feed advances the cognitive body and
+    /// nothing else — it carries no sensory occurrence, so the mounted joint
+    /// state and its generation are unchanged and travel through verbatim.
+    pending_nutrition: Option<PendingNutritionState>,
     budget: RuntimeBudget,
     next_prepare_ordinal: u64,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct PendingNutritionState {
+    token: [u8; 32],
+    envelope: Vec<u8>,
+    cognitive: PreparedCognitiveFormationTransition,
+    observation: RuntimeObservation,
 }
 
 #[pyclass(module = "guala_core")]
@@ -690,6 +718,100 @@ impl NativeResidentOrganismObservation {
     fn python_callback_count(&self) -> u64 {
         self.observation.python_callback_count
     }
+
+    // Energy state and metabolic facts (minimal feeding metabolism,
+    // 2026-08-05).  Every value is the body's own settled physics; an
+    // exhausted ledger reports itself here instead of succeeding silently.
+    #[getter]
+    fn recovery_fuel_quanta(&self) -> u128 {
+        self.observation.energy.fuel_quanta
+    }
+
+    #[getter]
+    fn recovery_spent_quanta(&self) -> u128 {
+        self.observation.energy.spent_quanta
+    }
+
+    #[getter]
+    fn recovery_heat_quanta(&self) -> u128 {
+        self.observation.energy.heat_quanta
+    }
+
+    #[getter]
+    fn recovery_fuel_capacity_quanta(&self) -> u128 {
+        self.observation.energy.fuel_capacity_quanta
+    }
+
+    #[getter]
+    fn recovery_heat_capacity_quanta(&self) -> u128 {
+        self.observation.energy.heat_capacity_quanta
+    }
+
+    #[getter]
+    fn dissipated_quanta(&self) -> u128 {
+        self.observation.energy.dissipated_quanta
+    }
+
+    #[getter]
+    fn dissipation_capacity_quanta(&self) -> u128 {
+        self.observation.energy.dissipation_capacity_quanta
+    }
+
+    #[getter]
+    fn separated_elementary_charges(&self) -> i128 {
+        self.observation.energy.separated_elementary_charges
+    }
+
+    #[getter]
+    fn energy_exhausted(&self) -> bool {
+        // A body with no mounted cohort has no energy system at all; that is
+        // "no body", not exhaustion, and it is never reported as exhaustion.
+        (self.observation.energy.fuel_capacity_quanta != 0
+            && self.observation.energy.fuel_quanta == 0)
+            || (self.observation.energy.dissipation_capacity_quanta != 0
+                && self.observation.energy.dissipated_quanta
+                    >= self.observation.energy.dissipation_capacity_quanta)
+    }
+
+    #[getter]
+    fn rest_recovered_neuron_count(&self) -> usize {
+        self.observation.rest_recovered_neuron_count
+    }
+
+    #[getter]
+    fn rest_drained_dissipation_quanta(&self) -> u128 {
+        self.observation.rest_drained_dissipation_quanta
+    }
+
+    #[getter]
+    fn unmet_dissipation_quanta(&self) -> u128 {
+        self.observation.unmet_dissipation_quanta
+    }
+
+    #[getter]
+    fn membrane_returned_elementary_charges(&self) -> i128 {
+        self.observation.membrane_returned_elementary_charges
+    }
+
+    #[getter]
+    fn metabolic_fuel_quanta(&self) -> u128 {
+        self.observation.metabolic_fuel_quanta
+    }
+
+    #[getter]
+    fn nutrition_regenerated_fuel_quanta(&self) -> u128 {
+        self.observation.nutrition_regenerated_fuel_quanta
+    }
+
+    #[getter]
+    fn nutrition_unabsorbed_waste_quanta(&self) -> u128 {
+        self.observation.nutrition_unabsorbed_waste_quanta
+    }
+
+    #[getter]
+    fn nutrition_vented_heat_quanta(&self) -> u128 {
+        self.observation.nutrition_vented_heat_quanta
+    }
 }
 
 #[pymethods]
@@ -878,6 +1000,83 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn python_callback_count(&self) -> u64 {
         0
+    }
+
+    // Energy state and metabolic facts of the PREPARED body (minimal feeding
+    // metabolism, 2026-08-05).
+    #[getter]
+    fn recovery_fuel_quanta(&self) -> u128 {
+        self.observation.energy.fuel_quanta
+    }
+
+    #[getter]
+    fn recovery_spent_quanta(&self) -> u128 {
+        self.observation.energy.spent_quanta
+    }
+
+    #[getter]
+    fn recovery_heat_quanta(&self) -> u128 {
+        self.observation.energy.heat_quanta
+    }
+
+    #[getter]
+    fn recovery_fuel_capacity_quanta(&self) -> u128 {
+        self.observation.energy.fuel_capacity_quanta
+    }
+
+    #[getter]
+    fn dissipated_quanta(&self) -> u128 {
+        self.observation.energy.dissipated_quanta
+    }
+
+    #[getter]
+    fn dissipation_capacity_quanta(&self) -> u128 {
+        self.observation.energy.dissipation_capacity_quanta
+    }
+
+    #[getter]
+    fn separated_elementary_charges(&self) -> i128 {
+        self.observation.energy.separated_elementary_charges
+    }
+
+    #[getter]
+    fn rest_recovered_neuron_count(&self) -> usize {
+        self.observation.rest_recovered_neuron_count
+    }
+
+    #[getter]
+    fn rest_drained_dissipation_quanta(&self) -> u128 {
+        self.observation.rest_drained_dissipation_quanta
+    }
+
+    #[getter]
+    fn unmet_dissipation_quanta(&self) -> u128 {
+        self.observation.unmet_dissipation_quanta
+    }
+
+    #[getter]
+    fn membrane_returned_elementary_charges(&self) -> i128 {
+        self.observation.membrane_returned_elementary_charges
+    }
+
+    #[getter]
+    fn metabolic_fuel_quanta(&self) -> u128 {
+        self.observation.metabolic_fuel_quanta
+    }
+
+    #[getter]
+    fn nutrition_regenerated_fuel_quanta(&self) -> u128 {
+        self.observation.nutrition_regenerated_fuel_quanta
+    }
+
+    #[getter]
+    fn nutrition_unabsorbed_waste_quanta(&self) -> u128 {
+        self.observation.nutrition_unabsorbed_waste_quanta
+    }
+
+    #[getter]
+    fn nutrition_vented_heat_quanta(&self) -> u128 {
+        self.observation.nutrition_vented_heat_quanta
     }
 }
 
@@ -1115,6 +1314,7 @@ impl ResidentOrganismRuntime {
                 observation,
             },
             pending: None,
+            pending_nutrition: None,
             budget,
             next_prepare_ordinal: 1,
         })
@@ -1136,7 +1336,7 @@ impl ResidentOrganismRuntime {
         admitted_source: Option<&AdmittedJointSourceEpisode>,
         cold: Option<&mut dyn HippocampalColdPort>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some() {
+        if self.pending.is_some() || self.pending_nutrition.is_some() {
             return Err(RuntimeError::PendingCandidateExists);
         }
         let cold = cold.ok_or(RuntimeError::HippocampalColdCustodyMissing)?;
@@ -1281,6 +1481,22 @@ impl ResidentOrganismRuntime {
     }
 
     fn commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
+        if let Some(pending) = self.pending_nutrition.as_ref() {
+            if pending.token != token {
+                return Err(RuntimeError::PendingTokenMismatch);
+            }
+            let pending = self
+                .pending_nutrition
+                .take()
+                .expect("validated pending nutrition intake");
+            self.active
+                .cognitive
+                .commit(pending.cognitive)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            self.active.envelope = pending.envelope;
+            self.active.observation = pending.observation;
+            return Ok(());
+        }
         let pending = self
             .pending
             .as_ref()
@@ -1303,6 +1519,13 @@ impl ResidentOrganismRuntime {
     }
 
     fn discard(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
+        if let Some(pending) = self.pending_nutrition.as_ref() {
+            if pending.token != token {
+                return Err(RuntimeError::PendingTokenMismatch);
+            }
+            self.pending_nutrition = None;
+            return Ok(());
+        }
         let pending = self
             .pending
             .as_ref()
@@ -1312,6 +1535,87 @@ impl ResidentOrganismRuntime {
         }
         self.pending = None;
         Ok(())
+    }
+
+    /// Prepare one AUTHORED nutrition intake.
+    ///
+    /// A feed is material intake, not a sensory occurrence: the mounted joint
+    /// state and its generation travel through byte-for-byte, and only the
+    /// cognitive body, the organism tick and the fabric generation advance.
+    /// The body refuses honestly (through `CognitiveFormation`) when it can
+    /// absorb nothing.
+    fn prepare_nutrition(
+        &mut self,
+        declaration: AuthoredNutritionDeclaration,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if self.pending.is_some() || self.pending_nutrition.is_some() {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let derived_budget = self.budget.derive()?;
+        let predecessor = self.active.observation;
+        let organism_tick = predecessor
+            .organism_tick
+            .checked_add(1)
+            .ok_or(RuntimeError::OrganismTickOverflow)?;
+        let fabric_generation = predecessor
+            .fabric_generation
+            .checked_add(1)
+            .ok_or(RuntimeError::FabricGenerationOverflow)?;
+        let joint_bytes = {
+            let parsed = parse_current_envelope(&self.active.envelope, self.budget)?;
+            parsed.joint_bytes.to_vec()
+        };
+        let cognitive_budget = cognitive_budget_after_joint(joint_bytes.len(), self.budget)?;
+        let cognitive = self
+            .active
+            .cognitive
+            .prepare_nutrition(declaration, cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let cognitive_state = self
+            .active
+            .cognitive
+            .encode_successor(&cognitive, cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let cognitive_observation = cognitive.observation().clone();
+        let fabric = encode_fabric(
+            fabric_generation,
+            &joint_bytes,
+            &cognitive_state,
+            self.budget,
+        )?;
+        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+        let observation = make_nutrition_observation(
+            &envelope,
+            &predecessor,
+            organism_tick,
+            fabric_generation,
+            &fabric,
+            derived_budget,
+            &cognitive_observation,
+        );
+        let next_prepare_ordinal = self
+            .next_prepare_ordinal
+            .checked_add(1)
+            .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
+        let token = prepare_token(
+            predecessor.state_receipt,
+            observation.state_receipt,
+            sha256(NUTRITION_INTAKE_SCOPE.as_bytes()),
+            self.next_prepare_ordinal,
+        );
+        self.pending_nutrition = Some(PendingNutritionState {
+            token,
+            envelope,
+            cognitive,
+            observation,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(ResidentPrepareReceipt {
+            token,
+            observation,
+            phase_counts: MountedTransitionPhaseCounts::default(),
+            receptor_ingress: ResidentReceptorIngressObservation::default(),
+        })
     }
 
     fn observation(&self) -> RuntimeObservation {
@@ -1407,6 +1711,34 @@ impl NativeResidentOrganismRuntime {
                     DirectoryHippocampalColdStore::open(&hippocampal_cold_root)?;
                 self.runtime
                     .prepare_typed_with_cold(&source, Some(&admitted), Some(&mut cold))
+                    .map_err(|error| error.to_string())
+            })
+            .map_err(PyValueError::new_err)?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+        })
+    }
+
+    /// Deliver one AUTHORED nutrition declaration to the organism.
+    ///
+    /// `energy_quanta` is the declaration's energy content in the body's own
+    /// fuel quantum — an intake declaration, exactly like a curriculum card's
+    /// media, never a physics constant.  The body refuses honestly when it can
+    /// absorb nothing.
+    fn prepare_nutrition(
+        &mut self,
+        py: Python<'_>,
+        energy_quanta: u128,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let prepared = py
+            .allow_threads(|| -> Result<ResidentPrepareReceipt, String> {
+                let declaration = AuthoredNutritionDeclaration::new(energy_quanta)
+                    .map_err(|error| format!("{error:?}"))?;
+                self.runtime
+                    .prepare_nutrition(declaration)
                     .map_err(|error| error.to_string())
             })
             .map_err(PyValueError::new_err)?;
@@ -2289,6 +2621,15 @@ fn make_restored_observation(
         partial_cue_reassembly_count: 0,
         python_callback_count: 0,
         derived_budget,
+        energy: cognitive.energy,
+        rest_recovered_neuron_count: 0,
+        rest_drained_dissipation_quanta: 0,
+        unmet_dissipation_quanta: cognitive.energy.dissipated_quanta,
+        membrane_returned_elementary_charges: 0,
+        metabolic_fuel_quanta: 0,
+        nutrition_regenerated_fuel_quanta: 0,
+        nutrition_unabsorbed_waste_quanta: 0,
+        nutrition_vented_heat_quanta: 0,
     }
 }
 
@@ -2349,6 +2690,76 @@ fn make_step_observation(
         partial_cue_reassembly_count: cognitive.partial_cue_reassembly_count(),
         python_callback_count: 0,
         derived_budget,
+        energy: cognitive.energy,
+        rest_recovered_neuron_count: cognitive.rest_recovered_neuron_count,
+        rest_drained_dissipation_quanta: cognitive.rest_drained_dissipation_quanta,
+        unmet_dissipation_quanta: cognitive.unmet_dissipation_quanta,
+        membrane_returned_elementary_charges: cognitive.membrane_returned_elementary_charges,
+        metabolic_fuel_quanta: cognitive.metabolic_fuel_quanta,
+        nutrition_regenerated_fuel_quanta: cognitive.nutrition_regenerated_fuel_quanta,
+        nutrition_unabsorbed_waste_quanta: cognitive.nutrition_unabsorbed_waste_quanta,
+        nutrition_vented_heat_quanta: cognitive.nutrition_vented_heat_quanta,
+    }
+}
+
+/// One nutrition intake's observation.  It reports honestly what a feed is:
+/// no joint field was reached, no neuron transitioned, and the mounted
+/// generation did not move — only the body's energy state changed.
+fn make_nutrition_observation(
+    envelope: &[u8],
+    predecessor: &RuntimeObservation,
+    organism_tick: u64,
+    fabric_generation: u64,
+    fabric: &[u8],
+    derived_budget: DerivedRuntimeBudget,
+    cognitive: &CognitiveFormationObservation,
+) -> RuntimeObservation {
+    RuntimeObservation {
+        schema: OBSERVATION_SCHEMA,
+        scope: NUTRITION_INTAKE_SCOPE,
+        identity: predecessor.identity,
+        predecessor_state_receipt: Some(predecessor.state_receipt),
+        predecessor_organism_tick: Some(predecessor.organism_tick),
+        organism_tick,
+        predecessor_fabric_generation: Some(predecessor.fabric_generation),
+        fabric_generation,
+        predecessor_mounted_generation: Some(predecessor.mounted_generation),
+        mounted_generation: predecessor.mounted_generation,
+        state_bytes: envelope.len(),
+        state_receipt: sha256(envelope),
+        fabric_bytes: fabric.len(),
+        fabric_receipt: sha256(fabric),
+        joint_field_count: 0,
+        joint_neuron_count: predecessor.joint_neuron_count,
+        dsf_delivery_count: 0,
+        complete_neuron_count: cognitive.complete_neuron_count,
+        physically_transitioned_neuron_count: 0,
+        complete_neuron_fractal_count: 0,
+        recurrent_complete_neuron_fractal_count: 0,
+        source_cohort_l0_l4_evaluation_count: 0,
+        successor_l0_l4_replay_count: 0,
+        joint_transition_receipt: None,
+        episode_relation_candidate_receipt: None,
+        source_authority: None,
+        mounted_step_completed: false,
+        physical_transition_claimed: false,
+        cognitive_formation_claimed: false,
+        cognitive_ordinal: cognitive.cognitive_ordinal,
+        cognitive_trace_count: cognitive.trace_count,
+        cognitive_mosaic_count: cognitive.mosaic_count,
+        formation_activation_count: 0,
+        partial_cue_reassembly_count: 0,
+        python_callback_count: 0,
+        derived_budget,
+        energy: cognitive.energy,
+        rest_recovered_neuron_count: 0,
+        rest_drained_dissipation_quanta: 0,
+        unmet_dissipation_quanta: cognitive.energy.dissipated_quanta,
+        membrane_returned_elementary_charges: 0,
+        metabolic_fuel_quanta: 0,
+        nutrition_regenerated_fuel_quanta: cognitive.nutrition_regenerated_fuel_quanta,
+        nutrition_unabsorbed_waste_quanta: cognitive.nutrition_unabsorbed_waste_quanta,
+        nutrition_vented_heat_quanta: cognitive.nutrition_vented_heat_quanta,
     }
 }
 

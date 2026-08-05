@@ -56,11 +56,15 @@ use crate::reached_neuron_cohort::{
     decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
     encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
     encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
-    extend_reached_cohort_state_with_genesis, reached_cohort_state_content_digest,
+    extend_reached_cohort_state_with_genesis, feed_reached_cohort,
+    reached_cohort_absorbable_quanta, reached_cohort_energy_state,
+    reached_cohort_state_content_digest, settle_reached_cohort_dark_rest,
     settle_reached_cohort_interval, RestReachedCohortState, ReachedCohortAnatomy,
-    ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortPostExperienceSettlement,
+    ReachedCohortEnergyState, ReachedCohortError, ReachedCohortIntervalInput,
+    ReachedCohortMetabolicObservation, ReachedCohortPostExperienceSettlement,
     ReachedCohortRecurrenceSettlement, ReachedCohortState,
 };
+use crate::metabolic_feeding::{AuthoredNutritionDeclaration, MetabolicError};
 use crate::resident_receptor_transition::ResidentVestibularIngress;
 use crate::sha256::sha256;
 use crate::sparse_electrical_contact::SparseElectricalAnatomy;
@@ -151,6 +155,20 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) tapestry_activity_count: usize,
     pub(crate) deeper_tapestry_activity_count: usize,
     pub(crate) generative_recombination_count: usize,
+    /// Metabolic facts of this transition (minimal feeding metabolism,
+    /// authorized 2026-08-05).  Every one of these is a settled physical
+    /// quantity, including the demands the body could NOT meet: an exhausted
+    /// ledger reports itself here instead of succeeding silently.
+    pub(crate) rest_recovered_neuron_count: usize,
+    pub(crate) rest_drained_dissipation_quanta: u128,
+    pub(crate) unmet_dissipation_quanta: u128,
+    pub(crate) membrane_returned_elementary_charges: i128,
+    pub(crate) membrane_unreturned_elementary_charges: i128,
+    pub(crate) metabolic_fuel_quanta: u128,
+    pub(crate) nutrition_regenerated_fuel_quanta: u128,
+    pub(crate) nutrition_unabsorbed_waste_quanta: u128,
+    pub(crate) nutrition_vented_heat_quanta: u128,
+    pub(crate) energy: ReachedCohortEnergyState,
 }
 
 impl CognitiveFormationObservation {
@@ -368,6 +386,9 @@ pub(crate) struct CognitiveFormationSummary {
     pub(crate) trace_count: usize,
     pub(crate) mosaic_count: usize,
     pub(crate) complete_neuron_count: usize,
+    /// The body's decoded energy state.  Present on a restored organism too,
+    /// so a restart never hides an exhausted body.
+    pub(crate) energy: ReachedCohortEnergyState,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -656,7 +677,40 @@ impl ResidentCognitiveFormationState {
                 .iter()
                 .map(|cohort| cohort.anatomy.neuron_count())
                 .sum(),
+            energy: self.energy_state(),
         }
+    }
+
+    /// The body's exact energy state, summed over every mounted cohort: the
+    /// recovery-fluid reservoir, the dissipation ledgers, and the separated
+    /// membrane charge still standing away from rest.
+    pub(crate) fn energy_state(&self) -> ReachedCohortEnergyState {
+        let mut total = ReachedCohortEnergyState::default();
+        for cohort in &self.cohorts {
+            let cohort_energy = reached_cohort_energy_state(&cohort.anatomy, &cohort.state);
+            total.fuel_quanta = total.fuel_quanta.saturating_add(cohort_energy.fuel_quanta);
+            total.spent_quanta = total.spent_quanta.saturating_add(cohort_energy.spent_quanta);
+            total.heat_quanta = total.heat_quanta.saturating_add(cohort_energy.heat_quanta);
+            total.fuel_capacity_quanta = total
+                .fuel_capacity_quanta
+                .saturating_add(cohort_energy.fuel_capacity_quanta);
+            total.spent_capacity_quanta = total
+                .spent_capacity_quanta
+                .saturating_add(cohort_energy.spent_capacity_quanta);
+            total.heat_capacity_quanta = total
+                .heat_capacity_quanta
+                .saturating_add(cohort_energy.heat_capacity_quanta);
+            total.dissipated_quanta = total
+                .dissipated_quanta
+                .saturating_add(cohort_energy.dissipated_quanta);
+            total.dissipation_capacity_quanta = total
+                .dissipation_capacity_quanta
+                .saturating_add(cohort_energy.dissipation_capacity_quanta);
+            total.separated_elementary_charges = total
+                .separated_elementary_charges
+                .saturating_add(cohort_energy.separated_elementary_charges);
+        }
+        total
     }
 
     #[cfg(test)]
@@ -792,6 +846,7 @@ impl ResidentCognitiveFormationState {
         let mut tapestry_activity_count = 0usize;
         let mut deeper_tapestry_activity_count = 0usize;
         let mut generative_recombination_count = 0usize;
+        let mut metabolic = ReachedCohortMetabolicObservation::default();
         for (occurrence_index, occurrence) in source.joint_source_occurrences().iter().enumerate() {
             #[cfg(test)]
             RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(count.get() + 1));
@@ -1176,6 +1231,25 @@ impl ResidentCognitiveFormationState {
                         source,
                         occurrence_index,
                     )?;
+                    metabolic.recovered_neuron_count = metabolic
+                        .recovered_neuron_count
+                        .checked_add(outcome.metabolic.recovered_neuron_count)
+                        .ok_or(FormationError::ArithmeticOverflow)?;
+                    metabolic.drained_dissipation_quanta = metabolic
+                        .drained_dissipation_quanta
+                        .checked_add(outcome.metabolic.drained_dissipation_quanta)
+                        .ok_or(FormationError::ArithmeticOverflow)?;
+                    metabolic.unmet_dissipation_quanta = outcome.metabolic.unmet_dissipation_quanta;
+                    metabolic.returned_elementary_charges = metabolic
+                        .returned_elementary_charges
+                        .checked_add(outcome.metabolic.returned_elementary_charges)
+                        .ok_or(FormationError::ArithmeticOverflow)?;
+                    metabolic.unreturned_elementary_charges =
+                        outcome.metabolic.unreturned_elementary_charges;
+                    metabolic.fuel_quanta = metabolic
+                        .fuel_quanta
+                        .checked_add(outcome.metabolic.fuel_quanta)
+                        .ok_or(FormationError::ArithmeticOverflow)?;
                     let newly_formed_mosaic = outcome.mosaic_formed.is_some();
                     physically_transitioned_neuron_count = physically_transitioned_neuron_count
                         .checked_add(outcome.changed_neurons)
@@ -1257,6 +1331,7 @@ impl ResidentCognitiveFormationState {
         };
         successor.encode(max_encoded_bytes)?;
         let summary = successor.summary();
+        let successor_energy = summary.energy;
         let complete_neuron_count = summary.complete_neuron_count;
         let complete_neuron_fractal_count = emitted_neuron_fractals.len();
         let hippocampal_published = hippocampal_admission.is_none();
@@ -1284,9 +1359,132 @@ impl ResidentCognitiveFormationState {
                 tapestry_activity_count,
                 deeper_tapestry_activity_count,
                 generative_recombination_count,
+                rest_recovered_neuron_count: metabolic.recovered_neuron_count,
+                rest_drained_dissipation_quanta: metabolic.drained_dissipation_quanta,
+                unmet_dissipation_quanta: metabolic.unmet_dissipation_quanta,
+                membrane_returned_elementary_charges: metabolic.returned_elementary_charges,
+                membrane_unreturned_elementary_charges: metabolic.unreturned_elementary_charges,
+                metabolic_fuel_quanta: metabolic.fuel_quanta,
+                nutrition_regenerated_fuel_quanta: 0,
+                nutrition_unabsorbed_waste_quanta: 0,
+                nutrition_vented_heat_quanta: 0,
+                energy: successor_energy,
             },
             hippocampal_admission,
             hippocampal_published,
+        })
+    }
+
+    /// Deliver one AUTHORED nutrition declaration to the body.
+    ///
+    /// This is an intake, not a sensory occurrence: it advances the cognitive
+    /// generation and nothing else.  The declaration's energy is allocated to
+    /// the cohorts that can actually absorb it, in mounted order; whatever no
+    /// cohort can absorb leaves as waste, and every cohort's accumulated heat
+    /// is vented by the same exchange.  A body that can absorb nothing at all
+    /// refuses the intake outright rather than pretending to eat.
+    pub(crate) fn prepare_nutrition(
+        &self,
+        declaration: AuthoredNutritionDeclaration,
+        max_encoded_bytes: usize,
+    ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
+        // Nutrition never touches the hippocampal index: no episode is
+        // admitted, so no publication is required either way.
+        if self.cohorts.is_empty() {
+            return Err(FormationError::NutritionUnavailable(
+                MetabolicError::NothingToRegenerate,
+            ));
+        }
+        let source_generation = self
+            .generation
+            .checked_add(1)
+            .ok_or(FormationError::InvalidSourceGeneration)?;
+        let mut remaining = declaration.energy_quanta();
+        let mut regenerated = 0_u128;
+        let mut vented = 0_u128;
+        let mut cohorts = self.cohorts.to_vec();
+        for cohort in cohorts.iter_mut() {
+            let absorbable = reached_cohort_absorbable_quanta(&cohort.state).min(remaining);
+            let allocation = (absorbable > 0)
+                .then(|| AuthoredNutritionDeclaration::new(absorbable))
+                .transpose()
+                .map_err(FormationError::NutritionUnavailable)?;
+            let (successor, observation) =
+                feed_reached_cohort(&cohort.anatomy, &cohort.state, allocation)
+                    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            cohort.state = successor;
+            regenerated = regenerated
+                .checked_add(observation.regenerated_fuel_quanta)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            vented = vented
+                .checked_add(observation.vented_heat_quanta)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            remaining = remaining
+                .checked_sub(observation.regenerated_fuel_quanta)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+        }
+        if regenerated == 0 {
+            return Err(FormationError::NutritionUnavailable(
+                MetabolicError::NothingToRegenerate,
+            ));
+        }
+        if regenerated
+            .checked_add(remaining)
+            .ok_or(FormationError::ArithmeticOverflow)?
+            != declaration.energy_quanta()
+        {
+            return Err(FormationError::NoncanonicalState);
+        }
+        let successor = Self {
+            generation: source_generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            cohorts: cohorts.into_boxed_slice(),
+            mosaics: self.mosaics.clone(),
+            hippocampal: self.hippocampal,
+        };
+        successor.encode(max_encoded_bytes)?;
+        let summary = successor.summary();
+        Ok(PreparedCognitiveFormationTransition {
+            predecessor: self.clone(),
+            successor,
+            observation: CognitiveFormationObservation {
+                cognitive_ordinal: source_generation,
+                trace_formed: false,
+                mosaic_formed: None,
+                activations: Vec::new(),
+                trace_count: 0,
+                mosaic_count: summary.mosaic_count,
+                dsf_delivery_count: 0,
+                complete_neuron_count: summary.complete_neuron_count,
+                physically_transitioned_neuron_count: 0,
+                complete_neuron_fractal_count: 0,
+                emitted_neuron_fractals: Vec::new(),
+                partial_cue_reassembly_count: 0,
+                dynamic_formation_relation_count: 0,
+                dynamic_linear_formation_count: 0,
+                dynamic_web_formation_count: 0,
+                dynamic_formation_prior_count: 0,
+                dynamic_formation_active_bond_count: 0,
+                tapestry_activity_count: 0,
+                deeper_tapestry_activity_count: 0,
+                generative_recombination_count: 0,
+                rest_recovered_neuron_count: 0,
+                rest_drained_dissipation_quanta: 0,
+                unmet_dissipation_quanta: 0,
+                membrane_returned_elementary_charges: 0,
+                membrane_unreturned_elementary_charges: summary
+                    .energy
+                    .separated_elementary_charges,
+                metabolic_fuel_quanta: 0,
+                nutrition_regenerated_fuel_quanta: regenerated,
+                nutrition_unabsorbed_waste_quanta: remaining,
+                nutrition_vented_heat_quanta: vented,
+                energy: summary.energy,
+            },
+            hippocampal_admission: None,
+            hippocampal_published: true,
         })
     }
 
@@ -1869,6 +2067,9 @@ struct ResidentOpticalIntervalOutcome {
     admitted_mosaic: Option<AdmittedPhysicalMosaic>,
     hippocampal_episode: Option<TypedEpisodeAdmission>,
     partial_cue_reassembly_count: usize,
+    /// What the rest metabolism did on this interval (zero on every interval
+    /// that carried exogenous stimulus energy).
+    metabolic: ReachedCohortMetabolicObservation,
 }
 
 fn extend_resident_cohort_evidence(
@@ -1935,7 +2136,25 @@ fn settle_resident_physical_interval(
     source: &NativeJointSourceEpisode,
     source_occurrence_index: usize,
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
-    if cohort.retained_experience.is_some() {
+    // Rest metabolism (minimal feeding metabolism, authorized 2026-08-05).
+    // A genuinely dark interval — the stimulus-boundary law's OWN truth
+    // signal, derived from the settled occurrence's exact `2·L·T` transduction
+    // integral — is when the body's recovery reactions and its membrane return
+    // path run.  Nothing here decides when it is dark, and nothing runs while
+    // exogenous energy is still arriving.
+    let metabolic = if exogenous_optical_energy == Some(false) {
+        let (successor, observation) = settle_reached_cohort_dark_rest(
+            &cohort.anatomy,
+            &cohort.state,
+            input.interval_microseconds(),
+        )
+        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        cohort.state = successor;
+        observation
+    } else {
+        ReachedCohortMetabolicObservation::default()
+    };
+    let mut outcome = if cohort.retained_experience.is_some() {
         settle_resident_recurrence_interval(
             cohort,
             input,
@@ -1953,7 +2172,9 @@ fn settle_resident_physical_interval(
             gate_work_perturbed_neurons,
             exogenous_optical_energy,
         )
-    }
+    }?;
+    outcome.metabolic = metabolic;
+    Ok(outcome)
 }
 
 fn settle_resident_original_interval(
@@ -2073,6 +2294,7 @@ fn settle_resident_original_interval(
         admitted_mosaic: None,
         hippocampal_episode: None,
         partial_cue_reassembly_count: 0,
+        metabolic: ReachedCohortMetabolicObservation::default(),
     })
 }
 
@@ -2126,6 +2348,7 @@ fn settle_resident_recurrence_interval(
             admitted_mosaic: None,
             hippocampal_episode: None,
             partial_cue_reassembly_count,
+            metabolic: ReachedCohortMetabolicObservation::default(),
         });
     };
     or_bits(
@@ -2157,6 +2380,7 @@ fn settle_resident_recurrence_interval(
                 admitted_mosaic: None,
                 hippocampal_episode: None,
                 partial_cue_reassembly_count,
+                metabolic: ReachedCohortMetabolicObservation::default(),
             });
         }
         Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
@@ -2184,6 +2408,7 @@ fn settle_resident_recurrence_interval(
         admitted_mosaic: (!already_formed).then_some(mosaic),
         hippocampal_episode: Some(hippocampal_episode),
         partial_cue_reassembly_count: 1,
+        metabolic: ReachedCohortMetabolicObservation::default(),
     })
 }
 
@@ -3307,6 +3532,9 @@ pub(crate) enum FormationError {
     PhysicalSettlementUnavailable(ReachedCohortError),
     PhysicalMosaicUnavailable(PhysicalMosaicError),
     PhysicalMosaicCodecUnavailable(PhysicalMosaicCodecError),
+    /// The body truthfully refused an intake: it can absorb nothing, or the
+    /// declaration carried no energy at all.
+    NutritionUnavailable(MetabolicError),
     NeuronLineageAuthorityAbsent,
     NeuronLineageAuthorityChanged,
     HippocampalUnavailable(HippocampalError),
@@ -3357,6 +3585,9 @@ impl fmt::Display for FormationError {
             }
             Self::PhysicalMosaicCodecUnavailable(error) => {
                 write!(output, "physical mosaic persistence is unavailable: {error:?}")
+            }
+            Self::NutritionUnavailable(error) => {
+                write!(output, "the body refuses this nutrition intake: {error:?}")
             }
             Self::NeuronLineageAuthorityAbsent => {
                 write!(output, "resident neuron lineage authority is absent")
@@ -3888,6 +4119,131 @@ mod tests {
     }
 
     #[test]
+    fn feeding_metabolism_sustains_lessons_across_a_feed_and_rest_cycle() {
+        // Served-path proof of the minimal feeding metabolism (authorized
+        // 2026-08-05) on a fresh organism.  MEASURED on this four-receptor
+        // body: the rest metabolism holds every dissipation ledger at zero
+        // for as long as the reservoir can pay, the reservoir is a closed
+        // fuel/spent pool, one lit lesson costs ~312 quanta of a 2,164-quantum
+        // pool, and one authored feed of the body's whole spent load restores
+        // it exactly and vents its heat.
+        let light = (0..4)
+            .map(exact_four_single_optical_episode)
+            .collect::<Vec<_>>();
+        let dark = exact_four_dark_optical_episode();
+        let seed = explicit_optical_seed(&light[0], 500);
+        let mut state =
+            ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
+                .unwrap();
+        let mut cold = HippocampalColdStore::default();
+        let mut teach = |state: &mut ResidentCognitiveFormationState,
+                         cold: &mut HippocampalColdStore| {
+            for source in light.iter().chain(std::iter::repeat(&dark).take(8)) {
+                let mut prepared = state
+                    .prepare_admitted_with_hippocampal_cold(
+                        &admitted_fixture_episode(source),
+                        &*cold,
+                        16_000_000,
+                    )
+                    .unwrap();
+                state.publish_prepared_hippocampal(&mut prepared, cold).unwrap();
+                state.commit(prepared).unwrap();
+            }
+            state.energy_state()
+        };
+
+        let mut lessons_before_exhaustion = 0usize;
+        let mut energy = teach(&mut state, &mut cold);
+        loop {
+            lessons_before_exhaustion += 1;
+            // Material conservation: the reservoir is a closed fuel/spent pool.
+            assert_eq!(
+                energy.fuel_quanta + energy.spent_quanta,
+                energy.fuel_capacity_quanta
+            );
+            // Every quantum of fuel burnt appears as one spent quantum AND one
+            // heat quantum, because every burn drained a dissipation ledger or
+            // paid for a membrane return.
+            assert_eq!(energy.heat_quanta, energy.spent_quanta);
+            if energy.fuel_quanta == 0 {
+                break;
+            }
+            // Rest recovery keeps every dissipation ledger empty for as long as
+            // the body can pay: the old monotone gate ratchet is closed.
+            assert_eq!(energy.dissipated_quanta, 0);
+            assert!(lessons_before_exhaustion < 40, "lessons never exhausted fuel");
+            energy = teach(&mut state, &mut cold);
+        }
+        // MEASURED: seven lit lessons exhaust the reservoir of a fresh
+        // four-receptor body, and only then does dissipation stand unrecovered.
+        assert_eq!(lessons_before_exhaustion, 7);
+        assert!(energy.dissipated_quanta > 0);
+        let exhausted_spent = energy.spent_quanta;
+
+        // Feeding a body that cannot absorb is refused honestly.
+        let mut sated = state.clone();
+        let fed = sated
+            .prepare_nutrition(
+                AuthoredNutritionDeclaration::new(exhausted_spent).unwrap(),
+                16_000_000,
+            )
+            .unwrap();
+        assert_eq!(
+            fed.observation.nutrition_regenerated_fuel_quanta,
+            exhausted_spent
+        );
+        assert_eq!(fed.observation.nutrition_unabsorbed_waste_quanta, 0);
+        assert_eq!(fed.observation.nutrition_vented_heat_quanta, exhausted_spent);
+        sated.commit(fed).unwrap();
+        let after_feed = sated.energy_state();
+        assert_eq!(after_feed.fuel_quanta, after_feed.fuel_capacity_quanta);
+        assert_eq!(after_feed.spent_quanta, 0);
+        assert_eq!(after_feed.heat_quanta, 0);
+        assert!(matches!(
+            sated.prepare_nutrition(
+                AuthoredNutritionDeclaration::new(1).unwrap(),
+                16_000_000,
+            ),
+            Err(FormationError::NutritionUnavailable(
+                MetabolicError::NothingToRegenerate
+            ))
+        ));
+
+        // Over-feeding an absorbing body exports the excess as waste rather
+        // than inventing capacity.
+        let mut overfed = state.clone();
+        let excess = exhausted_spent + 1_000;
+        let prepared = overfed
+            .prepare_nutrition(
+                AuthoredNutritionDeclaration::new(excess).unwrap(),
+                16_000_000,
+            )
+            .unwrap();
+        assert_eq!(
+            prepared.observation.nutrition_regenerated_fuel_quanta
+                + prepared.observation.nutrition_unabsorbed_waste_quanta,
+            excess
+        );
+        assert_eq!(prepared.observation.nutrition_unabsorbed_waste_quanta, 1_000);
+
+        // The fed body learns again: the cycle is sustainable, not a one-shot.
+        let mut lessons_after_feed = 0usize;
+        let mut energy = teach(&mut sated, &mut cold);
+        while energy.fuel_quanta > 0 {
+            lessons_after_feed += 1;
+            assert_eq!(energy.dissipated_quanta, 0);
+            assert_eq!(
+                energy.fuel_quanta + energy.spent_quanta,
+                energy.fuel_capacity_quanta
+            );
+            assert!(lessons_after_feed < 40, "fed body never exhausted fuel");
+            energy = teach(&mut sated, &mut cold);
+        }
+        // MEASURED: one feed buys seven further lit lessons.
+        assert_eq!(lessons_after_feed, 7);
+    }
+
+    #[test]
     fn four_receptor_experience_emits_four_real_fractals() {
         let light = (0..4)
             .map(exact_four_single_optical_episode)
@@ -4298,7 +4654,15 @@ mod tests {
         .unwrap();
         let recurrence_recovery = recurrence.successor.recovery_fluid().physical_parts();
         let recovered_fuel = learned_recovery.0 - recurrence_recovery.0;
-        assert!(recovered_fuel > 0);
+        // MEASURED 2026-08-05 (minimal feeding metabolism): the on-demand gate
+        // recovery this recurrence used to need no longer fires, because the
+        // rest metabolism already drained the gate's dissipation ledger on the
+        // dark intervals of the original experience and paid for it out of the
+        // same reservoir.  The fuel is burnt EARLIER, not never: `learned`
+        // already stands below its own capacity by exactly the spent it
+        // carries, and the pool identity below still holds exactly.
+        assert_eq!(recovered_fuel, 0);
+        assert!(learned_recovery.1 > 0);
         assert_eq!(recurrence_recovery.1 - learned_recovery.1, recovered_fuel);
         assert_eq!(recurrence_recovery.2 - learned_recovery.2, recovered_fuel);
         assert_eq!(

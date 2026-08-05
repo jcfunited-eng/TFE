@@ -101,7 +101,7 @@ impl RecoveryFluidContactAnatomy {
         })
     }
 
-    fn parts(self) -> (u128, u128, u128, u128) {
+    pub(crate) fn parts(self) -> (u128, u128, u128, u128) {
         (
             self.catalyst_capacity_per_interval,
             self.fuel_inward_capacity_per_interval,
@@ -199,6 +199,22 @@ impl ReachedRecoveryFluidAnatomy {
 
     fn neuron(&self, index: usize) -> Option<&RecoveryFluidNeuronAnatomy> {
         self.neurons.get(index)
+    }
+
+    /// The mounted fluid contact serving one neuron's named recovery lane.
+    /// Every lane of every mounted neuron already carries this anatomy; the
+    /// gate lane was simply the only one any settlement ever addressed.
+    pub(crate) fn mounted_contact(
+        &self,
+        neuron_index: usize,
+        address: RecoveryLaneAddress,
+    ) -> Option<RecoveryFluidContactAnatomy> {
+        let mounted = self.neuron(neuron_index)?;
+        match address {
+            RecoveryLaneAddress::Psi(index) => mounted.psi_contacts.get(index).copied(),
+            RecoveryLaneAddress::Gate => Some(mounted.gate_contact),
+            RecoveryLaneAddress::Plastic => Some(mounted.plastic_contact),
+        }
     }
 }
 
