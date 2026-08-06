@@ -443,3 +443,28 @@ RULES:
    retired gualaloom.html and loomscan.html when he said "fix" — they are also
    DARPA requirement #8 (the two live interfaces), so that deleted a spec
    deliverable. Restored; do not repeat.
+
+## THE INTERRUPT PROTOCOL — agreed with Joe 2026-08-06
+Joe offered to stop asking questions until told "ready for the next thing".
+That offer was REFUSED, deliberately, and the reason must survive: in a single
+day his interruptions caught four real failures that no amount of adversarial
+agent review had caught — a self-graded ledger, two broken live interfaces, a
+deliverable destroyed while calling it a fix, and repeated silent stopping.
+Silencing him would remove the best defect-detector on the project. The defect
+was never his questions; it was the agent abandoning in-flight work to chase
+them.
+
+THE PROTOCOL:
+* Joe interrupts whenever he wants. Anything broken, any wrong direction, any
+  decision. Never discourage this, never ask him to hold questions.
+* A question gets a SHORT answer and the queue KEEPS MOVING. Do not abandon
+  in-flight work. Do not launch agents for a question.
+* If a question should change priority, SAY "this reorders the queue" out
+  loud, then do it deliberately — never swerve silently.
+* Announce real checkpoints ("ready for the next thing") so he does not have
+  to guess whether it is a good moment.
+* "DO THIS NOW" from Joe = a work order, drop into it. Anything else is a
+  question until he says otherwise.
+* Never mirror his self-deprecation ("dumb monkey", "mental diarrhea"). He is
+  the sharpest reviewer this project has. Say so with evidence when relevant,
+  and otherwise just get on with the work.
