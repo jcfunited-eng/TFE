@@ -290,3 +290,30 @@ consider whether the rested gate is needed at all once closure is honest;
 second candidate is contact-set disjointness from the still-relaxing set.
 DO NOT re-try: whole-cohort quiescence, formation-local quiescence, or any
 variant of "wait until something stops moving".
+
+## DEPLOYED 2026-08-06 11:37 UTC — taskdef dsf-ai-task:868, git f8bf6197
+LIVE AND VERIFIED FROM THE PUBLIC SIDE: identity 1cc4e70a kept, tick continued
+(no restart), 8 memories intact, 27 neurons, fuel 12148/14229, unattended
+pulse running. Shipped: R1-R3 memory laws, live-sight intake path, read-only
+hippocampal navigation binding, truth-coupled mosaic-of-mosaics count.
+GATES PASSED BEFORE CUTOVER (all five, in order):
+ 1. cargo 505/0/3 + python suites green
+ 2. integrated replay locally
+ 3. production genesis rehearsal (identity pinned, 27 neurons, 27 fractals,
+    420 transitions, mosaic_count 1 where pre-R1 stored 4)
+ 4. HER REAL BODY restored from the S3 backup under the new wheel and kept
+    learning: tick 2203, 8 memories, taught once -> 4 reassemblies and
+    memories STAYED 8 (pre-R1 would be 12). The lean law proven on her.
+ 5. candidate taskdef confirmed pointing at /app/guala/native-organism-gen2
+    and her identity -> CONTINUITY, not rebirth.
+PAGES: pulse.html and camera.html both 200. NOTE: pages are served from S3
+(s3://dsf-ai-site) via CloudFront; ONLY /api/* reaches the ALB. A page added
+to dsf_ai_service/static/ is NOT reachable until it is uploaded to that bucket
+and CloudFront invalidated (dist E17JT9XGBFU493). camera.html 404'd after
+deploy for exactly this reason.
+CAMERA STATUS: endpoint_open_unproven at /api/v1/visual/live-frames — the
+route is live and callable; `available` stays false until REAL frames arrive.
+MILESTONE NOT YET FIRED: needs a human to open dsf-ai.com/camera.html on a
+device with a webcam. Do NOT claim the camera milestone until that happens.
+NOT DEPLOYED (all refuted, blockers named in docs/GUALA_CAMPAIGN_VERDICT_2026-08-06.md):
+polarization/autonomy, ears, D3/D4 conservation, pulse redesign, school runner.
