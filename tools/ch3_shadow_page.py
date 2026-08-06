@@ -39,8 +39,15 @@ def main():
     except Exception:
         pass
     held = sum(f.get("notional", 0.0) for f in opens)
-    unreal = sum(f.get("notional", 0) * ((marks.get(f["symbol"], f["entry_px"])
-                 / f["entry_px"] - 1) * f["side"]) for f in opens)
+    # Display math contract: every row must multiply out by hand.
+    # Shares are fractional (stake / entry), marks are rounded to cents
+    # BEFORE computing P&L, and the tiles are sums of the row values.
+    def row_upl(f):
+        entry = f["entry_px"]
+        cur = round(marks.get(f["symbol"], entry), 2)
+        shares = round(f.get("notional", 0) / entry, 2) if entry else 0.0
+        return shares, cur, round(shares * (cur - entry) * f["side"], 2)
+    unreal = sum(row_upl(f)[2] for f in opens)
     equity = book["cash"] + held + unreal
     realized = book["cash"] + held - book.get("start", CASH0)
     wins = sum(1 for f in closed if (f.get("pnl") or 0) > 0)
@@ -56,15 +63,13 @@ def main():
 
     open_rows = ""
     for f in opens:
-        cur = marks.get(f["symbol"], f["entry_px"])
-        upl = f.get("notional", 0) * (cur / f["entry_px"] - 1) * f["side"]
-        pct = 100 * (cur / f["entry_px"] - 1) * f["side"]
-        shares = int(round(f.get("notional", 0) / f["entry_px"])) if f["entry_px"] else 0
+        shares, cur, upl = row_upl(f)
+        pct = 100 * upl / f["notional"] if f.get("notional") else 0.0
         cls = "pos" if upl >= 0 else "neg"
         open_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
                       f'<td><span class="chip">CH3</span>'
                       f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                      f'<td class="num">{shares}</td>'
+                      f'<td class="num">{shares:,.2f}</td>'
                       f'<td class="num">${f["entry_px"]:,.2f}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'
@@ -78,12 +83,12 @@ def main():
     for f in closed[:60]:
         pnl = f.get("pnl") or 0.0
         pct = f.get("ret_pct") or 0.0
-        shares = int(round(f.get("notional", 0) / f["entry_px"])) if f["entry_px"] else 0
+        shares = (f.get("notional", 0) / f["entry_px"]) if f["entry_px"] else 0.0
         cls = "pos" if pnl >= 0 else "neg"
         closed_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
                         f'<td><span class="chip">CH3</span>'
                         f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                        f'<td class="num">{shares}</td>'
+                        f'<td class="num">{shares:,.2f}</td>'
                         f'<td class="num">${f["entry_px"]:,.2f}</td>'
                         f'<td class="num {cls}">{money(pnl, True)}</td>'
                         f'<td class="num {cls}">{pct:+.2f}%</td>'

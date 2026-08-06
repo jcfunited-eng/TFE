@@ -39,9 +39,15 @@ def main():
         pass
 
     invested = sum(p["notional"] for p in opens.values())
-    unreal = sum(p["notional"] * ((marks.get(s, p["entry_px"])
-                 / p["entry_px"] - 1) * p.get("side", 1))
-                 for s, p in opens.items())
+    # Display math contract: every row must multiply out by hand.
+    # Shares are fractional (stake / entry), marks are rounded to cents
+    # BEFORE computing P&L, and the tiles are sums of the row values.
+    def row_upl(sym, p):
+        entry = p["entry_px"]
+        cur = round(marks.get(sym, entry), 2)
+        shares = round(p["notional"] / entry, 2) if entry else 0.0
+        return shares, cur, round(shares * (cur - entry) * p.get("side", 1), 2)
+    unreal = sum(row_upl(s, p)[2] for s, p in opens.items())
     realized = sum(t.get("pnl", 0.0) for t in closed)
     value = cash + invested + unreal
     total_pl = value - CASH0
@@ -57,16 +63,14 @@ def main():
 
     open_rows = ""
     for sym, p in sorted(opens.items()):
-        cur = marks.get(sym, p["entry_px"])
         side = p.get("side", 1)
-        upl = p["notional"] * (cur / p["entry_px"] - 1) * side
-        pct = 100 * (cur / p["entry_px"] - 1) * side
-        shares = int(round(p["notional"] / p["entry_px"])) if p["entry_px"] else 0
+        shares, cur, upl = row_upl(sym, p)
+        pct = 100 * upl / p["notional"] if p["notional"] else 0.0
         cls = "pos" if upl >= 0 else "neg"
         open_rows += (f'<tr><td class="tk">{sym}</td>'
                       f'<td><span class="chip">CH4</span>'
                       f'{"<span class=chip2>SHORT</span>" if side == -1 else ""}</td>'
-                      f'<td class="num">{shares}</td>'
+                      f'<td class="num">{shares:,.2f}</td>'
                       f'<td class="num">${p["entry_px"]:,.2f}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'
