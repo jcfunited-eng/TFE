@@ -30,6 +30,17 @@ class _Observation:
     partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
+    # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
+    # observation now carries the decoded energy physics; a zero-capacity
+    # fixture body reports no mounted energy system.
+    recovery_fuel_quanta: int = 0
+    recovery_spent_quanta: int = 0
+    recovery_heat_quanta: int = 0
+    recovery_fuel_capacity_quanta: int = 0
+    dissipated_quanta: int = 0
+    dissipation_capacity_quanta: int = 0
+    separated_elementary_charges: int = 0
+    energy_exhausted: bool = False
 
 
 class _Organism:
@@ -119,6 +130,7 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         "fractals",
         "formations",
         "recall",
+        "energy",
         "cognitive_capital",
         "attention",
         "body",
@@ -214,7 +226,9 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
     # The mounted set is exactly the ingresses with real native
     # transitions; standalone hearing is suspended by the ratified
     # two-real-signal doctrine until a live visual source mounts.
-    assert set(mounted) == {"curriculum"}
+    # PIN UPDATED 2026-08-06: the minimal feeding metabolism (2026-08-05)
+    # mounted POST /api/v1/metabolism/feed as a real material intake.
+    assert set(mounted) == {"curriculum", "nutrition"}
     for record in mounted.values():
         assert record["status"] == "mounted"
         assert record["endpoint"] in served_paths

@@ -116,6 +116,16 @@ class _Observation:
     partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
+    # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
+    # observation now carries the decoded energy physics.
+    recovery_fuel_quanta: int = 0
+    recovery_spent_quanta: int = 0
+    recovery_heat_quanta: int = 0
+    recovery_fuel_capacity_quanta: int = 0
+    dissipated_quanta: int = 0
+    dissipation_capacity_quanta: int = 0
+    separated_elementary_charges: int = 0
+    energy_exhausted: bool = False
 
 
 class _Organism:
@@ -197,13 +207,14 @@ async def test_unmounted_or_malformed_browser_senses_fail_without_touching_organ
     monkeypatch.setattr(production, "_admission", _Admission())
     before = organism.readiness()
     sight = await production.sight_frame(None)
-    # The auditory transition is mounted; a request without a lawful mono
-    # pcm_s16le WAV body is refused before the organism is reached.
+    # PIN UPDATED 2026-08-06: standalone hearing is suspended by the
+    # ratified two-real-signal doctrine (Joe, 2026-08-05) and refuses 503
+    # BEFORE the body is even read; the organism stays untouched.
     sound = await production.sound_frame(None)
     after = organism.readiness()
     assert sight.status_code == 503
     assert b"not mounted" in sight.body
-    assert sound.status_code == 422
+    assert sound.status_code == 503
     assert b'"accepted":false' in sound.body.replace(b" ", b"")
     assert before == after
 

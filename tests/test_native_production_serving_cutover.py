@@ -38,6 +38,16 @@ class _Observation:
     partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
+    # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
+    # observation now carries the decoded energy physics.
+    recovery_fuel_quanta: int = 0
+    recovery_spent_quanta: int = 0
+    recovery_heat_quanta: int = 0
+    recovery_fuel_capacity_quanta: int = 0
+    dissipated_quanta: int = 0
+    dissipation_capacity_quanta: int = 0
+    separated_elementary_charges: int = 0
+    energy_exhausted: bool = False
 
 
 class _Organism:

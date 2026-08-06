@@ -71,6 +71,7 @@
         "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
         "native/guala_core/src/resident_d3_runtime.rs",
         "native/guala_core/src/resident_receptor_transition.rs",
+        "native/guala_core/src/scratch_auditory_probe.rs",
         "native/guala_core/src/sha256.rs",
         "native/guala_core/src/sparse_electrical_contact.rs",
         "native/guala_core/src/vestibular_joint_source_builder.rs",

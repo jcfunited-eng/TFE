@@ -25,6 +25,15 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   the whole mounted sensorium: both ear pressure ports plus all 27
   card-surface receptor sites at their true dark 0.0 luminance (ratified
   2026-08-05: no single-sense experiences).
+- UNATTENDED TIME (autonomy increment 1, 2026-08-06): when no external
+  intake is in flight, a background loop grants the organism genuinely
+  dark, silent, unattended intervals — the same lawful construction as a
+  lesson's ended hops (full sensorium, true dark exact optical occurrence,
+  true silence, authored admission).  The passage of time is the medium,
+  never a cause: the interval carries no stimulus, no score, and no
+  injected activity; whatever happens in it is entirely the organism's own
+  retained state (rest recovery reactions, membrane return, ledger drains,
+  retained-state settling — or genuine quiescence, reported as rest).
 
 Public observation is one cached, read-only projection per persisted native
 generation.  Repeated reads do not call or advance the organism.  Every
@@ -201,6 +210,40 @@ PARTIAL_PRESENTATION_ENDED_HOP_COUNT = 8
 # never physics.
 LESSON_ENDED_HOP_COUNT = 2
 
+# ----- Unattended time (autonomy increment 1, 2026-08-06) -----
+# Under the ratified boundary (docs/GUALA_DARPA_FIRST_PROOF_BOUNDARY_
+# 2026-08-04.md: no schedulers-as-cause, no scores; quiescence when no
+# cause) the PASSAGE OF TIME is the medium, not a cause.  The loop below is
+# TRANSPORT: at a low duty cycle it declares the genuinely dark, silent
+# environment the unattended organism is actually in — the exact lawful
+# construction the lesson ended hops already deliver (whole mounted
+# sensorium with TRUE samples, the dark surface as its own exact optical
+# occurrence, true 0.0 silence at both ears, authored admission).  It never
+# injects a stimulus, a score, or scheduled activity; what happens inside
+# the interval is entirely the organism's own retained state, and the
+# public observation reports only what was measured.
+#
+# Cadence and batch are transport contracts, not physics: the hop is the
+# same 250 ms hop every lesson uses; one interval batches the ratified
+# ended-hop count of the partial-presentation admission sequence (8 dark
+# hops = 2 s of declared dark time) and persists exactly ONCE per interval
+# (the write-volume lesson: never one durable body per hop).  At the
+# default 60 s cadence the loop holds the transition lock ~2-3 s/min, so an
+# external intake practically always finds the lock free; the lock is
+# taken non-blocking, so unattended time itself NEVER waits on, delays, or
+# contends with a lesson or feed.
+#
+# Config: unattended time is ON by default; set GUALA_UNATTENDED_TIME=0 to
+# disable it, GUALA_UNATTENDED_CADENCE_SECONDS to change the cadence.  The
+# loop pauses itself while any external request holds the intake lock and
+# while the body is energy-exhausted (rest reactions pay fuel; a starving
+# body must not burn residual fuel on idle time — it refuses honestly and
+# the observation says so).
+UNATTENDED_TIME_ENV = "GUALA_UNATTENDED_TIME"
+UNATTENDED_CADENCE_ENV = "GUALA_UNATTENDED_CADENCE_SECONDS"
+UNATTENDED_CADENCE_SECONDS = 60
+UNATTENDED_HOPS_PER_INTERVAL = PARTIAL_PRESENTATION_ENDED_HOP_COUNT
+
 _ORGANISM_IDENTITY_PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 )
@@ -213,6 +256,10 @@ _public_observation_etag: str | None = None
 _last_transition_evidence: dict[str, Any] | None = None
 _transition_lock = threading.Lock()
 _pcm_sessions: dict[str, dict[str, Any]] = {}
+_last_unattended_evidence: dict[str, Any] | None = None
+_last_unattended_pause: dict[str, Any] | None = None
+_unattended_stop = threading.Event()
+_unattended_thread: threading.Thread | None = None
 
 
 def _canonical(value: object) -> bytes:
@@ -450,6 +497,107 @@ def _sensory_record() -> dict[str, object]:
     )
 
 
+def _autonomy_record() -> dict[str, object]:
+    """Truth-coupled autonomy observation (increment 1: unattended time).
+
+    The section flips available ONLY on measured change during a genuinely
+    dark unattended interval, read from the committed transition evidence
+    and the decoded energy state — never from the mounted surface.  This
+    increment is self-maintenance and genuine rest only: autonomous thought,
+    action, attention, and choice are not mounted, ``action_observed`` stays
+    False, and no claim of action, attention, or choice is ever made here.
+    """
+
+    unattended_time: dict[str, object] = {
+        "cadence_seconds": _unattended_cadence_seconds(),
+        "disable_env": UNATTENDED_TIME_ENV,
+        "enabled": _unattended_time_enabled(),
+        "hop_milliseconds": INTAKE_HOP_MILLISECONDS,
+        "hops_per_interval": UNATTENDED_HOPS_PER_INTERVAL,
+        "last_pause": _last_unattended_pause,
+        "medium": (
+            "the passage of time is transport, never a cause: unattended "
+            "time only declares the genuinely dark, silent environment the "
+            "unattended organism is actually in; whatever happens in it is "
+            "entirely the organism's own retained state"
+        ),
+        "pauses_for_external_intake": True,
+        "pauses_when_energy_exhausted": True,
+    }
+    not_mounted = {
+        "action": _unmounted("no native action actuator is mounted"),
+        "attention": _unmounted("no substrate attention operation is mounted"),
+        "choice": _unmounted("no native choice operation is mounted"),
+        "consequence": _unmounted("no autonomous action consequence exists"),
+        "thought": _unmounted("no native causal thought loop is mounted"),
+    }
+    if _last_unattended_evidence is None:
+        return _section(
+            False,
+            "no_unattended_interval_this_process",
+            "no unattended interval has completed in this process; "
+            "autonomous thought, action, attention, and choice are not "
+            "mounted",
+            action_observed=False,
+            unattended_time=unattended_time,
+            **not_mounted,
+        )
+    category = _last_unattended_evidence["category"]
+    last_interval = {
+        key: _last_unattended_evidence[key]
+        for key in (
+            "declared_dark_milliseconds",
+            "hop_count",
+            "intake",
+            "organism_tick",
+            "state_sha256",
+        )
+    }
+    measured = dict(_last_unattended_evidence["measured"])
+    if category == "self_maintenance_observed":
+        return _section(
+            True,
+            "self_maintenance_observed",
+            "measured recovery, ledger, or membrane change during a "
+            "genuinely dark unattended interval; the body genuinely tended "
+            "itself, and that is self-maintenance only: autonomous thought, "
+            "action, attention, and choice are not mounted",
+            action_observed=False,
+            last_interval=last_interval,
+            self_maintenance=measured,
+            unattended_time=unattended_time,
+            **not_mounted,
+        )
+    if category == "retained_state_settling_observed":
+        return _section(
+            True,
+            "retained_state_settling_observed",
+            "the organism's own retained electrical state kept settling "
+            "through its retained contacts during a genuinely dark "
+            "unattended interval, with zero energy-ledger movement; that is "
+            "the retained state's own physics, not action: autonomous "
+            "thought, action, attention, and choice are not mounted",
+            action_observed=False,
+            last_interval=last_interval,
+            self_maintenance=measured,
+            unattended_time=unattended_time,
+            **not_mounted,
+        )
+    return _section(
+        False,
+        "no_internal_cause",
+        "the last unattended interval measured zero physical change: with "
+        "no external or endogenous cause the organism was genuinely "
+        "quiescent, and that is rest, not activity; autonomous thought, "
+        "action, attention, and choice are not mounted",
+        action_observed=False,
+        last_interval=last_interval,
+        self_maintenance=measured,
+        unattended_time=unattended_time,
+        **not_mounted,
+    )
+
+
 def _last_transition_record() -> dict[str, object]:
     if _last_transition_evidence is None:
         return _section(
@@ -614,11 +762,7 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "attention": _unmounted("no substrate attention operation is mounted"),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
-        "autonomy": _unmounted(
-            "no native causal thought/action loop is mounted",
-            action_observed=False,
-            consequence=_unmounted("no autonomous action consequence exists"),
-        ),
+        "autonomy": _autonomy_record(),
         "articulation": _unmounted(
             "no native articulation or emitted-sound transition is mounted"
         ),
@@ -1169,6 +1313,16 @@ def _perform_admitted_intake(
     the in-process organism identical.
     """
 
+    with _transition_lock:
+        return _perform_admitted_intake_locked(episodes, intake)
+
+
+def _perform_admitted_intake_locked(
+    episodes: list[tuple[Any, list[tuple[int, int]]]],
+    intake: str,
+) -> dict[str, Any]:
+    """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
+
     global _restored, _last_transition_evidence
 
     totals = {
@@ -1179,58 +1333,57 @@ def _perform_admitted_intake(
         "physically_transitioned_neuron_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
-    with _transition_lock:
-        restored, admission = _runtime()
-        organism = restored.organism
-        predecessor = restored.pointer
-        last_hop: dict[str, Any] | None = None
-        committed_hop_count = 0
-        intake_error: Exception | None = None
-        try:
-            for episode, admissions in episodes:
-                last_hop = _commit_admitted_hop(
-                    organism, episode, admissions
-                )
-                committed_hop_count += 1
-                for key in totals:
-                    totals[key] += last_hop[key]
-        except (RuntimeError, TypeError, ValueError) as error:
-            intake_error = error
-        if last_hop is None or committed_hop_count == 0:
-            if intake_error is not None:
-                raise intake_error
-            raise RuntimeError("admitted intake carried no hop episodes")
-        published = _publish_committed_organism(
-            organism, admission, predecessor.state_sha256
-        )
-        _restored = RestoredNativeOrganism(
-            organism=organism, pointer=published.pointer
-        )
-        _last_transition_evidence = {
-            **last_hop,
-            "hop_count": committed_hop_count,
-            "intake": intake,
-            "predecessor_state_sha256": predecessor.state_sha256,
-            "totals": dict(totals),
-        }
-        _refresh_public_observation_cache()
+    restored, admission = _runtime()
+    organism = restored.organism
+    predecessor = restored.pointer
+    last_hop: dict[str, Any] | None = None
+    committed_hop_count = 0
+    intake_error: Exception | None = None
+    try:
+        for episode, admissions in episodes:
+            last_hop = _commit_admitted_hop(
+                organism, episode, admissions
+            )
+            committed_hop_count += 1
+            for key in totals:
+                totals[key] += last_hop[key]
+    except (RuntimeError, TypeError, ValueError) as error:
+        intake_error = error
+    if last_hop is None or committed_hop_count == 0:
         if intake_error is not None:
             raise intake_error
-        return {
-            "accepted": True,
-            "ok": True,
-            "hop_count": committed_hop_count,
-            "observation": dict(_last_transition_evidence),
-            "persisted": {
-                "organism_tick": published.pointer.organism_tick,
-                "predecessor_state_sha256": predecessor.state_sha256,
-                "schema": PERSISTENCE_SCHEMA,
-                "state_bytes": published.pointer.state_bytes,
-                "state_sha256": published.pointer.state_sha256,
-            },
-            "schema": "guala.native_admitted_intake_result.v1",
-            "totals": totals,
-        }
+        raise RuntimeError("admitted intake carried no hop episodes")
+    published = _publish_committed_organism(
+        organism, admission, predecessor.state_sha256
+    )
+    _restored = RestoredNativeOrganism(
+        organism=organism, pointer=published.pointer
+    )
+    _last_transition_evidence = {
+        **last_hop,
+        "hop_count": committed_hop_count,
+        "intake": intake,
+        "predecessor_state_sha256": predecessor.state_sha256,
+        "totals": dict(totals),
+    }
+    _refresh_public_observation_cache()
+    if intake_error is not None:
+        raise intake_error
+    return {
+        "accepted": True,
+        "ok": True,
+        "hop_count": committed_hop_count,
+        "observation": dict(_last_transition_evidence),
+        "persisted": {
+            "organism_tick": published.pointer.organism_tick,
+            "predecessor_state_sha256": predecessor.state_sha256,
+            "schema": PERSISTENCE_SCHEMA,
+            "state_bytes": published.pointer.state_bytes,
+            "state_sha256": published.pointer.state_sha256,
+        },
+        "schema": "guala.native_admitted_intake_result.v1",
+        "totals": totals,
+    }
 
 
 def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
@@ -1302,6 +1455,222 @@ def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
             },
             "schema": "guala.native_nutrition_intake_result.v1",
         }
+
+
+def _unattended_time_enabled() -> bool:
+    value = os.environ.get(UNATTENDED_TIME_ENV, "1").strip().lower()
+    return value not in ("0", "false", "off", "no")
+
+
+def _unattended_cadence_seconds() -> float:
+    raw = os.environ.get(UNATTENDED_CADENCE_ENV, "")
+    try:
+        value = float(raw)
+    except ValueError:
+        return float(UNATTENDED_CADENCE_SECONDS)
+    if value <= 0:
+        return float(UNATTENDED_CADENCE_SECONDS)
+    return value
+
+
+def _unattended_interval_episodes(
+    interval_id: str,
+) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """One genuinely dark, silent unattended interval as lawful hop episodes.
+
+    The exact construction of a lesson's ended hops: the whole mounted
+    sensorium with TRUE samples on the shared 250 ms hop timebase, the dark
+    card surface declared as its own exact optical occurrence (so the retinal
+    cohort physically settles) and both ears as theirs with true 0.0 silence.
+    The authored maximum causal interval is the hop's own declared transport
+    duration.  Nothing here is a stimulus: every sample is the true dark,
+    silent environment the unattended organism is actually in.
+    """
+
+    times = _quiescent_hop_times()
+    silence = (0.0,) * len(times)
+    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
+    return [
+        (
+            _whole_roster_hop_episode(
+                f"unattended-interval-{interval_id}-hop-{hop_index}",
+                times,
+                dark,
+                silence,
+                separate_optical_occurrence=True,
+            ),
+            [(INTAKE_HOP_MILLISECONDS, 1000)] * 2,
+        )
+        for hop_index in range(UNATTENDED_HOPS_PER_INTERVAL)
+    ]
+
+
+_UNATTENDED_ENERGY_KEYS = (
+    "recovery_fuel_quanta",
+    "recovery_spent_quanta",
+    "recovery_heat_quanta",
+    "dissipated_quanta",
+    "separated_elementary_charges",
+)
+
+
+def _attempt_unattended_interval() -> dict[str, Any]:
+    """Deliver one unattended interval if, and only if, the organism is free.
+
+    The transition lock is taken NON-blocking: when any external intake (a
+    lesson, a feed) holds it, unattended time simply steps aside — it never
+    waits on, delays, or contends with an external cause.  An exhausted body
+    pauses unattended time honestly (rest reactions pay fuel).  Every
+    delivered interval commits its hops and persists exactly once, exactly
+    like a lesson, and the truth-coupled evidence records only measured
+    change: energy-ledger movement, retained-state settling, or genuinely
+    nothing.
+    """
+
+    global _last_unattended_evidence, _last_unattended_pause
+
+    if not _unattended_time_enabled():
+        _last_unattended_pause = {
+            "delivered": False,
+            "outcome": "disabled",
+            "reason": f"unattended time is disabled by {UNATTENDED_TIME_ENV}",
+        }
+        return _last_unattended_pause
+    if not _transition_lock.acquire(blocking=False):
+        _last_unattended_pause = {
+            "delivered": False,
+            "outcome": "deferred_external_intake_in_flight",
+            "reason": (
+                "an external intake holds the transition lock; unattended "
+                "time never contends with a lesson or feed"
+            ),
+        }
+        return _last_unattended_pause
+    try:
+        if _restored is None or _admission is None:
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "organism_unavailable",
+                "reason": _boot_error or "native resident organism is unavailable",
+            }
+            return _last_unattended_pause
+        before = _native_record()
+        if before["energy_exhausted"]:
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "paused_energy_exhausted",
+                "reason": (
+                    "the body is energy-exhausted; rest recovery reactions "
+                    "pay fuel, and a starving body must not burn residual "
+                    "fuel on unattended time — paused honestly until it is "
+                    "fed"
+                ),
+                "recovery_fuel_quanta": before["recovery_fuel_quanta"],
+            }
+            _refresh_public_observation_cache()
+            return _last_unattended_pause
+        interval_id = str(uuid.uuid4())
+        try:
+            result = _perform_admitted_intake_locked(
+                _unattended_interval_episodes(interval_id),
+                f"unattended-interval:{interval_id}",
+            )
+            after = _native_record()
+        except HTTPException as error:
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "interval_refused",
+                "reason": f"HTTPException: {error.detail}",
+            }
+            return _last_unattended_pause
+        except (RuntimeError, TypeError, ValueError) as error:
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "interval_refused",
+                "reason": f"{type(error).__name__}: {error}",
+            }
+            return _last_unattended_pause
+        measured = {
+            f"{key}_delta": after[key] - before[key]
+            for key in _UNATTENDED_ENERGY_KEYS
+        }
+        measured["physically_transitioned_neuron_count"] = result["totals"][
+            "physically_transitioned_neuron_count"
+        ]
+        measured["complete_neuron_fractal_count"] = result["totals"][
+            "complete_neuron_fractal_count"
+        ]
+        measured["partial_cue_reassembly_count"] = result["totals"][
+            "partial_cue_reassembly_count"
+        ]
+        energy_moved = any(
+            measured[f"{key}_delta"] for key in _UNATTENDED_ENERGY_KEYS
+        )
+        settled = measured["physically_transitioned_neuron_count"] > 0
+        if energy_moved:
+            category = "self_maintenance_observed"
+        elif settled:
+            category = "retained_state_settling_observed"
+        else:
+            category = "no_internal_cause"
+        _last_unattended_evidence = {
+            "category": category,
+            "declared_dark_milliseconds": (
+                UNATTENDED_HOPS_PER_INTERVAL * INTAKE_HOP_MILLISECONDS
+            ),
+            "hop_count": result["hop_count"],
+            "intake": f"unattended-interval:{interval_id}",
+            "measured": measured,
+            "organism_tick": after["organism_tick"],
+            "state_sha256": after["state_sha256"],
+        }
+        _last_unattended_pause = None
+        _refresh_public_observation_cache()
+        return {"delivered": True, "outcome": category, **_last_unattended_evidence}
+    finally:
+        _transition_lock.release()
+
+
+def _unattended_time_loop() -> None:
+    """Grant unattended intervals at the transport cadence until stopped."""
+
+    global _last_unattended_pause
+
+    while not _unattended_stop.wait(_unattended_cadence_seconds()):
+        try:
+            _attempt_unattended_interval()
+        except BaseException as error:
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "interval_error",
+                "reason": f"{type(error).__name__}: {error}",
+            }
+
+
+def _start_unattended_time() -> None:
+    global _unattended_thread
+
+    if not _unattended_time_enabled():
+        return
+    if _unattended_thread is not None and _unattended_thread.is_alive():
+        return
+    _unattended_stop.clear()
+    _unattended_thread = threading.Thread(
+        target=_unattended_time_loop,
+        name="guala-unattended-time",
+        daemon=True,
+    )
+    _unattended_thread.start()
+
+
+def _stop_unattended_time() -> None:
+    global _unattended_thread
+
+    _unattended_stop.set()
+    thread = _unattended_thread
+    if thread is not None:
+        thread.join(timeout=10.0)
+    _unattended_thread = None
 
 
 def _card_surface_luminance(surface_path: Path) -> tuple[float, ...]:
@@ -1793,7 +2162,11 @@ def _startup() -> None:
 @asynccontextmanager
 async def _lifespan(_application: FastAPI):
     _startup()
-    yield
+    _start_unattended_time()
+    try:
+        yield
+    finally:
+        _stop_unattended_time()
 
 
 app = FastAPI(title="Guala native organism", version="1", lifespan=_lifespan)

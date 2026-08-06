@@ -67,8 +67,6 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/local_membrane_conductance_balance.rs",
     "native/guala_core/src/local_tip_link_extension.rs",
     "native/guala_core/src/materialized_fabric.rs",
-    # Minimal feeding metabolism (authorized 2026-08-05): nutrition intake,
-    # rest recovery of every lane, and the membrane return path.
     "native/guala_core/src/metabolic_feeding.rs",
     "native/guala_core/src/mounted_joint_fractal.rs",
     "native/guala_core/src/neuron_source_anchor.rs",
@@ -87,6 +85,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
     "native/guala_core/src/resident_d3_runtime.rs",
     "native/guala_core/src/resident_receptor_transition.rs",
+    "native/guala_core/src/scratch_auditory_probe.rs",
     "native/guala_core/src/sha256.rs",
     "native/guala_core/src/sparse_electrical_contact.rs",
     "native/guala_core/src/vestibular_joint_source_builder.rs",

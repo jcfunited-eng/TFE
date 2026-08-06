@@ -649,14 +649,26 @@ def validate_readiness(
     identity = _require_uuid(value.get("identity"), "live organism identity")
     native = value.get("native_resident")
     if native is not None:
-        if value.get("ready_scope") != "http_and_native_current_transport_only":
-            raise PreflightError("native readiness scope is not transport-only")
-        if (
-            native.get("complete_neuron_available") is not False
-            or native.get("genuine_neuronal_fractal_available") is not False
-            or native.get("cognition_available") is not False
-        ):
-            raise PreflightError("native readiness makes a false cognition claim")
+        # Under a declared genesis cutover the predecessor's scope and
+        # cognition claims are recorded historical facts, not inheritance
+        # requirements: the candidate inherits no state. Outside a genesis
+        # cutover the original strict pins apply.
+        if not genesis_cutover:
+            if (
+                value.get("ready_scope")
+                != "http_and_native_current_transport_only"
+            ):
+                raise PreflightError(
+                    "native readiness scope is not transport-only"
+                )
+            if (
+                native.get("complete_neuron_available") is not False
+                or native.get("genuine_neuronal_fractal_available") is not False
+                or native.get("cognition_available") is not False
+            ):
+                raise PreflightError(
+                    "native readiness makes a false cognition claim"
+                )
     else:
         native = value.get("native_joint_fractal")
     if not isinstance(native, dict) or native.get("available") is not True:

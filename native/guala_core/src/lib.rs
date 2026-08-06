@@ -74,6 +74,8 @@ mod recovery_fluid_contact;
 mod resident_cognitive_formation;
 mod resident_d3_runtime;
 mod resident_receptor_transition;
+#[cfg(test)]
+mod scratch_auditory_probe;
 mod sha256;
 mod sparse_electrical_contact;
 mod vestibular_joint_source_builder;
