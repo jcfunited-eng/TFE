@@ -257,3 +257,22 @@ pin: inconclusive. Sharper test queued: compare herd states at the
 specific entry events that vanish in the mirror vs those that
 survive. Until then "fear-fast/greed-slow is load-bearing" stays
 labeled SUPPORTED, not proven.
+
+Addendum 8 extension — Joe's template-referee challenge, tested on two
+axes (4,000-draw bootstraps, seed 0):
+1. Conviction-conditioned reliability (the "jars"): band 0.75-0.80
+   (5,226 trades) mean +0.586%/win 53.9%; band 0.80-0.90 (2,248)
+   +0.656%/55.6% (batch-50 confidence 73.2% vs 68.2%); band 0.90+
+   (102 trades) mean +0.201%/win 52.0% — the MOST emphatic patterns
+   are the weakest jar (small sample; likely degenerate rare species).
+   Verdict: conviction strength does NOT concentrate reliability;
+   modest gain in the 0.80-0.90 jar only. Axes not yet tried: herd
+   state at entry, species class, regime.
+2. Time-honest (month-block) bootstrap: batch-20 confidence falls
+   62.0% -> 53.8%; batch-200 82.2% -> 71.6%. Trades cluster on shared
+   market weather; the i.i.d. template number was OPTIMISTIC, not
+   pessimistic. The spec must quote the block-bootstrap numbers.
+Net: the urn verdict stands and hardens — CH4 direction calls are
+robust, but dollar-truth needs hundreds of clustered trades. The
+challenge was worth running: it moved the number, just in the honest
+direction rather than the hoped one.
