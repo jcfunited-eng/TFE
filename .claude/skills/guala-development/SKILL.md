@@ -535,14 +535,25 @@ card buttons."
 THE DELIVERABLE — ONE TEACHING PAGE where JOE teaches her, and all three
 senses reach her in the SAME experience, each PHYSICALLY REAL (its severing
 test must pass — remove it and her physics must change):
-  1. SIGHT   he clicks NEXT / PREVIOUS to show her a card; the raster reaches
+  Joe's role is to PRESENT the card (next/previous) and to SPEAK to her. The
+  senses are all HERS.
+  1. SIGHT   he clicks NEXT / PREVIOUS to present a card; its surface reaches
              her 27 light receptors (this already works)
   2. HEARING HIS OWN VOICE through the microphone teaches it — not a
              pre-recorded tutor WAV. Requires the cochlea authorized AND a
              live mic intake path.
-  3. TOUCH   his real contact on the card: a click carries position and
-             duration; an iPhone screen touch also carries real contact area.
-             Requires a touch receptor law, which does not exist yet.
+  3. TOUCH   *** SHE touches the card. *** Joe corrected this explicitly:
+             "I don't touch the card - the substrate does." Touch is HER
+             sense, not his input device. The card is an OBJECT that reaches
+             every sense she has at once — her eyes see its surface, her ears
+             hear him name it, her touch receptors feel it — the way a child
+             holds a card while someone says the word. That simultaneity is
+             what makes it ONE experience instead of three signals.
+             Requires: touch receptor anatomy she does not have, a contact
+             transduction law on the same quantum lattice as light and sound,
+             and the card's own tactile surface declared alongside its visual
+             one. This was already in the fix queue from 2026-08-05 ("card
+             TOUCH surface is not mounted") and never built.
 The agent PRE-TESTS the entire chain end to end. Joe is the live test. Do NOT
 ask him to verify partial work, single senses, or display fixes.
 
