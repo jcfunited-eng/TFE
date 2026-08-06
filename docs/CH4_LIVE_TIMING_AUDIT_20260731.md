@@ -313,3 +313,21 @@ margins thin; multi-signal combined baseline + magnitude regression
 remain open (queued as the full factor test). Scripts:
 head_to_head.py / roundtrip_driver3.py (scratchpad), raw JSON
 head_to_head_result.json.
+
+## Addendum 10 (2026-08-06, declared BEFORE measurement): birth-channel v1 construction
+
+Constants declared in advance, no sweeps, no retuning after results:
+- EVENT: daily close with gain >= +8.0%, volume >= 3.0x 20d average,
+  close >= $5 (identical event definition to the fade channel).
+- GATE: herd gband >= 1 at the event day (the herd IS backing it) —
+  the exact complement of the fade filter. Strict as-of-issue.
+- ENTRY: at the event close (same knowability as the fade).
+- EXIT: fixed 60 trading sessions later at that close (the "months of
+  drift" object measured in the fade thesis work), no stop, no target.
+- BOOK: $100k/calendar year, whole-share $2,000 slices, max 10 new
+  per day, one open position per symbol, longs only.
+- VERDICT OBJECTS: per-year dollars, win rate, mean/median return,
+  worst year — plus the same null (shuffle the gband labels across
+  events, seed 0) to prove the herd gate itself carries information.
+Run: full 2016-2026 replay on ch4_live_store.parquet tonight after
+the 21:10 pass and 21:33 report. Results file here, pass or fail.
