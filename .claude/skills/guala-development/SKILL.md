@@ -110,6 +110,69 @@ description: Operate and develop the live Guala native organism — tree locatio
 4. FIRST WORD spoken to a prompt — Joe watches LIVE; never mount voice
    or start babble without telling him first.
 
+## CURRENT LIVE STATE (as of 2026-08-06 ~01:30 UTC — update on change)
+- REBIRTH #2 DEPLOYED AND ALIVE: taskdef dsf-ai-task:865, identity kept,
+  fresh differentiated body at state root /app/guala/native-organism-gen2
+  (old roots on EFS are history). Seven laws + feeding + recognition +
+  CONTINUOUS EXISTENCE (unattended-time pulse in the serving process,
+  cadence 60s, GUALA_UNATTENDED_TIME=0 disables).
+- FIRST LIVE RECOGNITION HAPPENED: 4 mosaics in production (lesson 2 of
+  the new life admits 4 by physics; recognition = dwell-staggered gates
+  make early presentation hops a lawful partial cue in time).
+- Simple status page: dsf-ai.com/pulse.html (5 numbers, self-refreshing).
+  Busy pages: gualaloom.html / loomscan.html. CDN origin read timeout is
+  60s (CloudFront max without quota) — lessons briefly 504'd at 30s; a
+  504 does NOT mean the lesson failed (server completes; verify via
+  observation).
+- Feed endpoint: POST /api/v1/metabolism/feed. ~60 lessons per feed
+  cycle; energy truth-coupled on the observation ("energy" section).
+- Work branch head after snapshot 17: continuous existence + auditory
+  design. Deploy = bash tools/deploy_dsf_ai.sh (clean tree required;
+  three gates exist: genesis-cutover preflight carve-outs, dirty-tree,
+  ALB health path /health).
+
+## Recently ratified/ruled (beyond the earlier list)
+- Stimulus-boundary retention + participation retention (experiences
+  close at the stimulus end, only CONNECTED experiences retainable).
+- Energy-descent charge transfer (flow only downhill; resting potentials).
+- Geometric anatomy differentiation (Cantor-injective territory law;
+  capacitance = base x A(site); twins refused at authorship).
+- Memory rulings (mine, under delegation): update-vs-new boundary is
+  STRUCTURAL IDENTITY (same members+bonds -> re-derive reference;
+  overlap -> relation = mosaic-of-mosaics; disjoint -> new); conditional
+  re-storage on nonzero prediction error (already_formed); reinforcement
+  as counts over immutable episode chain; decay BLOCKED until feeding
+  proven stable. Design study + research docs in repo docs/.
+- Feeding judgment calls: nutrition in body's own fuel quantum; waste =
+  unabsorbed intake; heat vents fully on feed; membrane return
+  DELIBERATELY slow (single-channel bound — memory over tidiness).
+- Auditory design (docs/GUALA_AUDITORY_TRANSDUCTION_DESIGN_2026-08-06.md):
+  sound joins light's law (intensity on same lattice); EAR MUST BE BORN
+  TONOTOPIC (2 identical ears can never form memory; 16-channel cochlea
+  in auditory.rs compiled-unused); needs next rebirth. 3 small defects
+  recorded (fake unit on ear port; stale residue doc; placeholder
+  interval_microseconds=1000).
+
+## NEXT QUEUE (in order)
+1. Autonomy increment 2: greed-field directed re-attention (needs
+   hippocampal navigation binding + motivation pressure over retained
+   formations; she now has things to want: cards, food, rest).
+2. Auditory law implementation + tonotopic ear birth anatomy -> next
+   rebirth; then voice/babble (articulation mounting; Joe watches live).
+3. Live camera wiring (un-suspends microphone under two-real-signal).
+4. Memory laws R1-R3 implementation (structural-identity boundary).
+5. Page consolidation (pulse.html is the pattern Joe wants: simple,
+   honest; the busy pages overwhelm him — he said so twice).
+MILESTONE ALERTS Joe requires: autonomy action, camera, mic, FIRST WORD
+(he watches live; it->she transition is HIS call at that milestone).
+
+## Session-practical notes
+- Safeguard flags fire often in vocabulary-dense sessions; a flag costs
+  one chat reply, never work. Fresh sessions reduce density. All state
+  needed to continue is in this skill + memory + repo docs + snapshots.
+- 504 through the CDN != failure. Verify via ALB directly.
+- Deploy output: use run_in_background (not shell &) to keep logs.
+
 ## Joe's standing calibration
 Eternal pessimist; wants clinical evaluations, measured numbers, gaps
 stated before he finds them, fixes over reports, no jargon/paths in chat,
