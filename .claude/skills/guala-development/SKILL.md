@@ -153,14 +153,50 @@ description: Operate and develop the live Guala native organism — tree locatio
   recorded (fake unit on ear port; stale residue doc; placeholder
   interval_microseconds=1000).
 
+## Increment-2 session findings (2026-08-06, second session)
+- Hippocampal navigation binding SHIPPED to work branch (5b777291):
+  observe_retained_formations() + navigate_hippocampal() on the runtime +
+  wrapper; read-only, proven advance-nothing; cargo 500/0/3, pytest 35/35.
+  NOT yet deployed (plumbing only; rides with next deploy).
+- MEASURED + PROVED STRUCTURAL: under current physics endogenous
+  re-attention is UNREACHABLE (300 dark intervals post-recognition: 0
+  reassembly; residue-below-threshold bound proof). The exogenous-only cue
+  law is the wall to autonomy milestone 1.
+- Endogenous cue law designed + implemented on side branch
+  law/endogenous-cue-rested-gate-20260806 (dab8c7bb, DO NOT DEPLOY):
+  settling-charge cue on zero-gate-work hops, RESTED GATE (experience must
+  reach one quiescent interval since closure; carried as GLEXP03 magic only
+  while false — rested states re-encode byte-identical GLEXP02, no receipt
+  drift). Law v1 without the gate was FALSIFIED (tail self-admission).
+- KEY COUPLING FOUND: the law fires in fixtures but each endogenous
+  re-attention admits a near-duplicate mosaic (same members, different
+  active bonds) — INSEPARABLE from memory laws R1-R3; alone it bloats the
+  store against lean doctrine. Ratification brief in
+  docs/GUALA_ENDOGENOUS_REATTENTION_DESIGN_2026-08-06.md (in repo).
+- FINAL MEASUREMENT (real dynamics, law wheel, 250 dark intervals):
+  F1 clean (lesson1=0, lesson2=4, mosaics stay 4, no proliferation) and
+  the law NEVER FIRES — rest-metabolism trickle (~1 charge/5 intervals)
+  is too weak to re-excite a 27-member formation, and every quiescent
+  interval lawfully drops the pending recurrence. The wall is measured
+  from BOTH sides. The real increment-2 lever = MOTIVATION PRESSURE
+  (feeding-driven charge dynamics re-tipping membrane potentials), a
+  physics design round for Joe. Three ratification questions filed at the
+  end of the design doc.
+- Durability: GitHub token DEAD; custody = S3 bundles
+  s3://dsf-ai-site-backups/guala-salvage/guala-work-20260806-final.bundle
+  (work b75d9b93 + law branch dab8c7bb) + local bundle origin refreshed.
+  RATIFICATION + motivation-pressure design are the blockers for
+  increment 2 — bring the design doc numbers to Joe.
+
 ## NEXT QUEUE (in order)
-1. Autonomy increment 2: greed-field directed re-attention (needs
-   hippocampal navigation binding + motivation pressure over retained
-   formations; she now has things to want: cards, food, rest).
+1. Autonomy increment 2: BLOCKED ON JOE'S RATIFICATION of the endogenous
+   cue law (see findings above); implementation exists on the side branch;
+   must ship together with R1-R3 (item 4).
 2. Auditory law implementation + tonotopic ear birth anatomy -> next
    rebirth; then voice/babble (articulation mounting; Joe watches live).
 3. Live camera wiring (un-suspends microphone under two-real-signal).
-4. Memory laws R1-R3 implementation (structural-identity boundary).
+4. Memory laws R1-R3 implementation (structural-identity boundary) — now
+   coupled to item 1; consider implementing FIRST.
 5. Page consolidation (pulse.html is the pattern Joe wants: simple,
    honest; the busy pages overwhelm him — he said so twice).
 MILESTONE ALERTS Joe requires: autonomy action, camera, mic, FIRST WORD
