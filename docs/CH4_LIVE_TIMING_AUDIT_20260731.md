@@ -276,3 +276,19 @@ Net: the urn verdict stands and hardens — CH4 direction calls are
 robust, but dollar-truth needs hundreds of clustered trades. The
 challenge was worth running: it moved the number, just in the honest
 direction rather than the hoped one.
+
+Addendum 8 ext 2 — Winner's-curse fingerprint CONFIRMED (Joe's
+"inverts toward ~50%" made measurable): all entries promised ~78% by
+their as-of-issue records; realized win rate by record length:
+n 20-29: 4,339 trades 52.7% | n 30-59: 2,342 @ 55.7% |
+n 60-199: 755 @ 59.5% | n 200+: 140 @ 57.9% (mean collapses to
++0.18%). Threshold selection on short noisy records regresses
+hardest toward 50 — 57% of v1's trades come from the weakest bucket.
+Code review of the full reliability pipeline filed same day: every
+code default is conservative (ties/zeros count against; skips never
+fabricate); the fail-state is in the CONSTRUCTION (trusting young
+records), not the code.
+CONSEQUENCE: herd_kgate_v2 candidate declared IN ADVANCE — identical
+construction but n>=60 record requirement. Must be validated on
+splits it was not discovered on and run as its own paper book beside
+v1; never silently patched into the live engine.
