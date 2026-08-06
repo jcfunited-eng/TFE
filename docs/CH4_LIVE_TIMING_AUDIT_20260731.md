@@ -212,3 +212,23 @@ floor. Scripts: session scratchpad build_inverted_store.py /
 build_noise_store.py / mirror_driver{,2}.py; results
 mirror_results.json / real_results.json / rift_map.json /
 noise_floor.json (scratchpad; headline filed here).
+
+Noise-floor result (same pipeline, deterministic 1bp gaussian on every
+close, seed 0): 7,473 entries, only 49.1% shared with the real run —
+half the entry list churns under an imperceptible perturbation. Side
+agreement on shared entries: 3,734/3,734 (100%).
+
+Final reading of the probe pair:
+1. ENTRY MEMBERSHIP IS NOT A ROBUST OBJECT. The band>=0.75 threshold
+   is knife-edged and cascades through path-dependent records: 1bp of
+   noise rebuilds half the portfolio. CH4 must be evaluated on
+   ensembles (counts, side mix, band distribution, aggregate P&L),
+   never on individual picks. Two near-identical worlds pick different
+   stocks of the same character.
+2. DIRECTION IS THE ROBUST QUANTITY. 100% side agreement under noise,
+   100% side flip under mirror, zero anomalies anywhere. The sign of
+   conviction has no sensitivity at all.
+3. The mirror churns membership ~2x the noise floor (24.6% vs 49.1%
+   overlap), so a genuine asymmetry signal exists beyond sensitivity,
+   concentrated in the herd layer and slow-rally years (Addendum 7
+   rift map) — the fear/greed arrow markets actually have.
