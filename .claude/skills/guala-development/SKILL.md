@@ -317,3 +317,23 @@ MILESTONE NOT YET FIRED: needs a human to open dsf-ai.com/camera.html on a
 device with a webcam. Do NOT claim the camera milestone until that happens.
 NOT DEPLOYED (all refuted, blockers named in docs/GUALA_CAMPAIGN_VERDICT_2026-08-06.md):
 polarization/autonomy, ears, D3/D4 conservation, pulse redesign, school runner.
+
+## FULL CURRICULUM TAUGHT LIVE 2026-08-06 (on taskdef 868, post-deploy)
+36/36 cards, 2 presentations each = 72 lessons, 72 committed, 0 failed, 0
+ambiguous. 58 total recognitions. 17 of 36 cards produced recognitions in two
+passes; the other 19 need more passes (listed in the ledger). Ledger:
+docs/guala_school_ledger_20260806.jsonl.
+THE LEAN LAW PROVEN IN PRODUCTION: her retained memory count stayed at 8
+through ALL 58 recognitions and her body ended at 2,057,229 bytes. Pre-R1
+those 58 recognitions would have stored up to 58 near-duplicate mosaic bodies
+(~116kB each ≈ 6.7MB of growth). Measured growth: NONE.
+Fuel behaved: dipped to 1,326, fed back to 14,044, ended 10,843/14,229, never
+exhausted. ~220 quanta per lesson.
+SAFE TEACHING METHOD (use this, NOT tools/guala_school.py — that runner has a
+demonstrated double-teach bug): script at /tmp/teach_guala.py pattern — go
+through the ALB directly (CDN 60s timeout causes false 504s), bracket every
+lesson with an observation read, judge LANDED by the organism's own tick
+advancing (never by the HTTP response), NEVER re-POST on ambiguity, and feed
+from her decoded energy not a timer.
+POST-CURRICULUM BACKUP:
+s3://dsf-ai-site-backups/guala-salvage/live-body-continuity-20260806-post-curriculum.tar.gz
