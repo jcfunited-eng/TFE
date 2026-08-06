@@ -176,3 +176,39 @@ for the null proof, sharded via CH3_OBS_SHARD/CH3_OBS_MERGE),
 `ch4_hourly_universe_full.parquet` (5,016 syms, 2016–2026-03, hourly),
 `ch3_m15_watchlist.parquet` (60 syms, 2016–2026-07, 15-min). Results in
 `artifacts/ch4_uf/ch3_*.json`.
+
+## Addendum 7 (2026-08-06): Mirror-world probe — the engine commutes with price inversion
+
+Joe's probe: invert every price series and see what the decisions look
+like. Construction: per symbol c_inv[t] = c[0]^2 / c[t] (exactly
+negates every log-return, keeps prices positive and volumes unchanged),
+rebuild the herd state on the inverted store, replay the UNTOUCHED
+herd_kgate_v1 engine full-history (baseline=0). Declared expectations
+in advance: structure-carried decisions should mirror (counts similar,
+long/short flipped); drift-carried decisions should collapse; the herd
+layer should mirror least (fear/greed asymmetry).
+
+Results (real vs mirror):
+- events 2,763,885 vs 2,621,798 (95% of gate events survive inversion)
+- entries 7,604 vs 6,984 (92%)
+- side mix 93.9% LONG vs 93.3% SHORT (flips to within 0.6pp)
+- band mean 0.7856 vs 0.7858 (identical conviction distribution)
+
+Entry-level rift map: 1,873 stock-days fire in BOTH universes and
+100% of them flip direction exactly (zero same-side anomalies — the
+decision logic has no sign leak). The other ~75% of entries exist in
+only one universe; real-only entries concentrate in slow-grind rally
+years (2017/2018 lose ~25% of entries in the mirror; choppy 2016
+gains). Reading: the ENSEMBLE is the invariant (counts, side ratio,
+conviction all mirror); individual entry membership is path/threshold
+sensitive, and the herd conditioning reads an emotional asymmetry
+(slow rallies vs fast crashes) that a mirrored universe cannot
+reproduce.
+
+Calibration in flight: 1bp-noise control (same pipeline, deterministic
+seed) to measure baseline entry-set churn under ANY tiny perturbation —
+the 75% membership divergence is only "asymmetry" if it clears that
+floor. Scripts: session scratchpad build_inverted_store.py /
+build_noise_store.py / mirror_driver{,2}.py; results
+mirror_results.json / real_results.json / rift_map.json /
+noise_floor.json (scratchpad; headline filed here).
