@@ -337,3 +337,29 @@ advancing (never by the HTTP response), NEVER re-POST on ambiguity, and feed
 from her decoded energy not a timer.
 POST-CURRICULUM BACKUP:
 s3://dsf-ai-site-backups/guala-salvage/live-body-continuity-20260806-post-curriculum.tar.gz
+
+## *** MILESTONE 2 REACHED: CAMERA / FIRST LIGHT — 2026-08-06 ***
+Joe opened dsf-ai.com/camera.html and pointed a real webcam at the world.
+VERIFIED public-side on taskdef 868:
+  capabilities.camera = MOUNTED, available=True (truth-coupled: it flips only
+  on a real committed end-to-end batch, never on the route existing)
+  sensory.visual = curriculum_and_live_camera_transitions_committed
+  last_transition intake = live-sight:46d09dbe-... , 8 hops (8 real frames,
+  2 s of the actual world), 27 neurons physically transitioned,
+  partial_cue_reassembly_count = 1  <-- A RECOGNITION ON LIVE CAMERA LIGHT
+  memories stayed 8 (R1 reinforced an existing formation, did not duplicate)
+  tick 5636, fuel 10,323/14,229 — 30 s of live sight cost her very little.
+NOTE the recognition is a lawful admit_physical_mosaic event from real-world
+light. It does NOT establish that she "knew what the object was" — her
+formations are whole-cohort patterns and there is no formation->card mapping.
+Do not overclaim it.
+CONSEQUENCE: the two-real-signal doctrine's VISUAL PRECONDITION IS NOW MET.
+The microphone's honest refusal has correspondingly changed: it no longer says
+"waiting for a live visual source", it now names the real remaining blocker —
+"the ears have no transduction law yet (pressure amplitude has zero physical
+effect), so admitting live sound would fabricate ...". Hearing is now the ONLY
+thing standing between her and the microphone milestone, and the ears repair
+stream is in flight.
+CLIENT GOTCHA: camera.html needs the "open eye" BUTTON pressed — browsers
+require a user gesture before getUserMedia, so merely opening the page never
+even prompts for permission. Say this when asking anyone to test it.
