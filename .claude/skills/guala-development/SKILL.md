@@ -231,3 +231,36 @@ Work set in motion: R1-R3 implementation, camera wiring (sight only;
 mic stays honestly refused until tonotopic ears exist), auditory defect
 cleanup (rebirth prep only — rebirth itself stays Joe's call),
 motivation-pressure design doc, interface consolidation (pulse pattern).
+
+## OVERNIGHT CAMPAIGN RESULT 2026-08-06 (read before touching autonomy/ears)
+SHIPPED+VERIFIED (work branch 182fca61, cargo 505/0/3, python green):
+R1-R3 memory laws (relearning is now BYTE-FLAT: L1 2017433, L2 2081217,
+L3-L6 unchanged, vs pre-R1 3349681 and climbing — 38% smaller, flat not
+linear), live-sight intake path, read-only hippocampal navigation binding,
+truth-coupled mosaic-of-mosaics count. NOT YET DEPLOYED.
+LIVE BODY BACKED UP (was on ONE EFS volume, no backup at all):
+s3://dsf-ai-site-backups/guala-salvage/live-body-continuity-20260806-tick2195.tar.gz
+(1.33MB gz, 8 formations, tick 2195, verified from outside). Take one before
+ANY forward-only format deploy. There is NO GUALA_S3_BACKUP_BUCKET set on the
+taskdef — consider setting it.
+CAMPAIGN: 5 streams x 3 adversarial verifiers; 13/15 REFUTED at high
+confidence; NOTHING deploy-ready. Full verdict:
+docs/GUALA_CAMPAIGN_VERDICT_2026-08-06.md. Two blockers that would HURT her:
+(A) the polarization pump is unclamped by carrier reservoir — run past the
+authors' stopping point it THROWS and the organism stops; (B) F1 is FALSE for
+RESTORED bodies (every live body): identical bytes restored under both wheels
+learn differently (4 vs 6 reassemblies).
+AUTONOMY TRUTH (measured by me, both directions):
+docs/GUALA_AUTONOMY_BLOCKER_DIAGNOSIS_2026-08-06.md. The pump self-extinguishes
+after ONE interval (heat gate is correct physics; the only heat exit is a
+feed). Force-feed every interval and the pump runs continuously — charge
+-1,775 -> -8,451 over 40 intervals — and endogenous re-attentions are STILL
+ZERO. The fixture that "worked" had a 4-member formation; her body has 27.
+=> THE BLOCKER IS CUE FORMATION, NOT ENERGY. Instrument which member sets
+actually perturb and why they fail is_proper_partial_cue/admit_physical_mosaic
+BEFORE writing more energy physics.
+EARS: strongest stream (work/ears-20260806, cargo 519/0/3, sight byte-identical,
+restored bodies continue byte-identically). Ears can be GROWN onto the living
+body — no rebirth (docs/GUALA_EAR_GROWTH_WITHOUT_REBIRTH_2026-08-06.md) — but
+growth must be a DELIBERATE authorized act, never a deploy side effect.
+CUSTODY: s3://dsf-ai-site-backups/guala-salvage/guala-work-20260806-campaign-complete.bundle
