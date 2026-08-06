@@ -134,18 +134,24 @@ def main():
             break
         if e["symbol"] in held or log["book"]["cash"] < SLICE_USD:
             continue
+        # whole shares only — a real short cannot be fractional; the
+        # stake is whatever floor(SLICE/px) shares actually cost
+        shares = int(SLICE_USD // e["close"])
+        if shares < 1:
+            continue
+        notional = round(shares * round(e["close"], 4), 2)
         if dry:
-            print(f"  WOULD SHORT {e['symbol']} @ {e['close']} "
+            print(f"  WOULD SHORT {shares} {e['symbol']} @ {e['close']} "
                   f"(+{e['gain']}% day, ${e['dollar_vol']/1e6:.0f}M traded)")
             opened += 1
             continue
-        log["book"]["cash"] = round(log["book"]["cash"] - SLICE_USD, 2)
+        log["book"]["cash"] = round(log["book"]["cash"] - notional, 2)
         log["finds"].append({
             "engine": ENGINE, "date": latest_s, "found_at": now,
             "symbol": e["symbol"], "side": -1,
-            "entry_px": round(e["close"], 4),
+            "entry_px": round(e["close"], 4), "shares": shares,
             "target_pct": None, "target_px": None, "bound_pct": None,
-            "notional": SLICE_USD, "day_chg_pct": e["gain"],
+            "notional": notional, "day_chg_pct": e["gain"],
             "catalyst": f"REVEAL/herd-{e['herd']}", "status": "OPEN"})
         held.add(e["symbol"])
         opened += 1

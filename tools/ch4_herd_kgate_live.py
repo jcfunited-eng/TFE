@@ -234,16 +234,20 @@ def main():
                 continue
             equity = book["cash"] + sum(p["notional"]
                                         for p in book["positions"].values())
-            notional = min(equity * SLICE_PCT / 100.0, book["cash"])
-            if notional <= 0:
+            # whole shares only — the stake is what floor(slice/px)
+            # shares actually cost, never a fractional position
+            slice_usd = min(equity * SLICE_PCT / 100.0, book["cash"])
+            shares = int(slice_usd // d["px"])
+            if shares < 1:
                 continue
+            notional = round(shares * d["px"], 2)
             dstr = str(d.get("day", 0))
             entry_date = f"{dstr[:4]}-{dstr[4:6]}-{dstr[6:]}" if len(dstr) == 8 else bar_date
             book["positions"][d["sym"]] = {
-                "side": d["side"], "entry_px": d["px"],
-                "entry_date": entry_date, "notional": round(notional, 2),
+                "side": d["side"], "entry_px": d["px"], "shares": shares,
+                "entry_date": entry_date, "notional": notional,
                 "bound_pct": 0.0, "engine": ENGINE_VERSION}
-            book["cash"] -= notional
+            book["cash"] = round(book["cash"] - notional, 2)
     book["engine"] = ENGINE_VERSION
     book["last_processed"] = bar_date
     book["last_run_utc"] = datetime.now(timezone.utc).isoformat()

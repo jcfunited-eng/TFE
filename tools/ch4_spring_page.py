@@ -45,7 +45,8 @@ def main():
     def row_upl(sym, p):
         entry = p["entry_px"]
         cur = round(marks.get(sym, entry), 2)
-        shares = round(p["notional"] / entry, 2) if entry else 0.0
+        shares = p.get("shares") or (int(p["notional"] // entry)
+                                     if entry else 0)
         return shares, cur, round(shares * (cur - entry) * p.get("side", 1), 2)
     unreal = sum(row_upl(s, p)[2] for s, p in opens.items())
     realized = sum(t.get("pnl", 0.0) for t in closed)
@@ -70,7 +71,7 @@ def main():
         open_rows += (f'<tr><td class="tk">{sym}</td>'
                       f'<td><span class="chip">CH4</span>'
                       f'{"<span class=chip2>SHORT</span>" if side == -1 else ""}</td>'
-                      f'<td class="num">{shares:,.2f}</td>'
+                      f'<td class="num">{shares:,}</td>'
                       f'<td class="num">${p["entry_px"]:,.2f}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'

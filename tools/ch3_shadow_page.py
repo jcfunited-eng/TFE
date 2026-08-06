@@ -45,7 +45,8 @@ def main():
     def row_upl(f):
         entry = f["entry_px"]
         cur = round(marks.get(f["symbol"], entry), 2)
-        shares = round(f.get("notional", 0) / entry, 2) if entry else 0.0
+        shares = f.get("shares") or (int(f.get("notional", 0) // entry)
+                                     if entry else 0)
         return shares, cur, round(shares * (cur - entry) * f["side"], 2)
     unreal = sum(row_upl(f)[2] for f in opens)
     equity = book["cash"] + held + unreal
@@ -69,7 +70,7 @@ def main():
         open_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
                       f'<td><span class="chip">CH3</span>'
                       f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                      f'<td class="num">{shares:,.2f}</td>'
+                      f'<td class="num">{shares:,}</td>'
                       f'<td class="num">${f["entry_px"]:,.2f}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'
@@ -83,12 +84,13 @@ def main():
     for f in closed[:60]:
         pnl = f.get("pnl") or 0.0
         pct = f.get("ret_pct") or 0.0
-        shares = (f.get("notional", 0) / f["entry_px"]) if f["entry_px"] else 0.0
+        shares = f.get("shares") or (int(round(f.get("notional", 0)
+                                     / f["entry_px"])) if f["entry_px"] else 0)
         cls = "pos" if pnl >= 0 else "neg"
         closed_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
                         f'<td><span class="chip">CH3</span>'
                         f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                        f'<td class="num">{shares:,.2f}</td>'
+                        f'<td class="num">{shares:,}</td>'
                         f'<td class="num">${f["entry_px"]:,.2f}</td>'
                         f'<td class="num {cls}">{money(pnl, True)}</td>'
                         f'<td class="num {cls}">{pct:+.2f}%</td>'
