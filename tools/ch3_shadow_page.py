@@ -193,10 +193,13 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
       <th>Detected</th></tr></thead>
     <tbody>{closed_rows}</tbody></table></div>
 </section>
-<p class="foot">Shadow record — every row is a simulated fill at real
-market prices. HIT = target touched, MISS = stop hit, CUT = closed by
-review, EOD = flattened at the close. This record decides when the
-live channel re-arms.</p>
+<p class="foot"><b>Reading SHORT rows:</b> a short sale SELLS at the
+Entry price and buys back at Current — so Current BELOW Entry is a
+profit (green, positive) and Current above Entry is a loss. Longs
+read the normal way. Shadow record — every row is a simulated fill
+at real market prices. HIT = target touched, MISS = stop hit, CUT =
+closed by review, EOD = flattened at the close. This record decides
+when the live channel re-arms.</p>
 </main>
 """
     with open(out_path, "w", encoding="utf-8") as f:

@@ -202,10 +202,13 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
       <th>Entered</th><th>Exited</th></tr></thead>
     <tbody>{closed_rows}</tbody></table></div>
 </section>
-<p class="foot">Paper simulation — no real orders. Decisions use closed
-bars only; the daily pass runs after each market close. The engine
-enters only when a completed pattern's herd-conditioned record calls
-direction at 75%+ consistency over 20+ prior cases.</p>
+<p class="foot"><b>Reading SHORT rows:</b> a short sale SELLS at the
+Entry price and buys back at Current — Current below Entry is a
+profit, above Entry a loss; longs read the normal way. Paper
+simulation — no real orders. Decisions use closed bars only; the
+daily pass runs after each market close. The engine enters only when
+a completed pattern's herd-conditioned record calls direction at
+75%+ consistency over 20+ prior cases.</p>
 </main>
 """
     with open(out_path, "w", encoding="utf-8") as f:
