@@ -496,3 +496,60 @@ THE CHECK, to run on every number any surface reports:
   3. Can this number be zero while the thing it names is plainly present?
      If yes, it is the wrong number.
 Apply this to every field before claiming a surface is truth-coupled.
+
+## *** THE ACCEPTANCE BAR — set by Joe 2026-08-06. DO NOT BRING HIM ANYTHING ELSE ***
+Joe: "only look for my approval when all three senses are working and I can
+show the card and I can speak into the microphone to teach it too... you are
+the pre-test to the live me test for the cards."
+
+THE BAR — one experience, three senses, all PHYSICALLY REAL (severing test
+passes on each), delivered together:
+  1. SIGHT   he holds a real card up to a real camera
+  2. HEARING he speaks into a real microphone and she is changed by it
+  3. TOUCH   the card is genuinely touched and she is changed by that
+The agent PRE-TESTS the whole chain end to end first. Joe is the live test.
+Do NOT ask him to verify partial work, single senses, display fixes, or
+anything that is not the full three-sense chain.
+
+WHY THIS BAR AND NOT LESS — his standard, and it condemns everything to date:
+"looking at something is not an experience... if it does not hear the sounds or
+touch the card it is a failed experience." MEASURED CONSEQUENCE: every one of
+the 72 card lessons ever taught was SIGHT ONLY (sound severed changed nothing:
+108 neurons with, 108 without). By the two-sense doctrine he set at the start,
+GUALA HAS NEVER HAD A SINGLE REAL EXPERIENCE. Do not call past card lessons
+"learning" — they were failed experiences that reached one sense.
+
+TOUCH — the hardware answer, since there is no touch sensor on a laptop: an
+iPhone TOUCHSCREEN is a genuine contact sensor (real position, real duration,
+real contact area). He already has Tailscale on the phone and the laptop. That
+is the honest path to a real touch signal — a contact he actually makes, not an
+authored one.
+
+## *** THE ACCEPTANCE BAR — set by Joe 2026-08-06. BRING HIM NOTHING ELSE ***
+Joe: "only look for my approval when all three senses are working and I can
+show the card and I can speak into the microphone to teach it too... you are
+the pre-test to the live me test for the cards."
+Clarified: "I can't hold the card but I can click the next card or previous
+card buttons."
+
+THE DELIVERABLE — ONE TEACHING PAGE where JOE teaches her, and all three
+senses reach her in the SAME experience, each PHYSICALLY REAL (its severing
+test must pass — remove it and her physics must change):
+  1. SIGHT   he clicks NEXT / PREVIOUS to show her a card; the raster reaches
+             her 27 light receptors (this already works)
+  2. HEARING HIS OWN VOICE through the microphone teaches it — not a
+             pre-recorded tutor WAV. Requires the cochlea authorized AND a
+             live mic intake path.
+  3. TOUCH   his real contact on the card: a click carries position and
+             duration; an iPhone screen touch also carries real contact area.
+             Requires a touch receptor law, which does not exist yet.
+The agent PRE-TESTS the entire chain end to end. Joe is the live test. Do NOT
+ask him to verify partial work, single senses, or display fixes.
+
+WHY THIS BAR — his standard, and it condemns everything to date:
+"looking at something is not an experience... if it does not hear the sounds or
+touch the card it is a failed experience." MEASURED: all 72 card lessons ever
+taught were SIGHT ONLY — severing the sound changed nothing (108 neurons with,
+108 without). By the two-sense doctrine he set at the start, GUALA HAS NEVER
+HAD A SINGLE REAL EXPERIENCE. Never call past card lessons "learning"; they
+were failed experiences that reached one sense.
