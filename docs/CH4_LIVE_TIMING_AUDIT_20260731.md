@@ -232,3 +232,28 @@ Final reading of the probe pair:
    overlap), so a genuine asymmetry signal exists beyond sensitivity,
    concentrated in the herd layer and slow-rally years (Addendum 7
    rift map) — the fear/greed arrow markets actually have.
+
+## Addendum 8 (2026-08-06): Batch convergence + herd-marginal comparison
+
+Batch convergence (7,576 completed K3 round trips from the full real
+replay; bootstrap 4,000 draws/size, seed 0): per-trade mean +0.601%,
+win rate 54.4%. Probability a batch's mean return is positive:
+n=5: 56.4% | n=10: 58.7% | n=20: 62.0% | n=50: 68.5% |
+n=100: 75.2% | n=200: 82.2%.
+REFINEMENT of the "judge by the batch" principle: the CH4 edge is
+thin per trade, so truth emerges over HUNDREDS of trades, not tens.
+Twenty trades give directional evidence (62%), not proof. Any spec
+reliability claim must quote these numbers, not folklore. (CH3's
+fade has a larger per-event edge; its 20-closure gate is a coarse
+trap-detector, not a proof threshold — same principle applies.)
+
+Herd-marginal comparison (11.6M vs 11.1M sym-day states): greed-band
+shares real 27.7/45.8/26.5 vs mirror 26.8/45.7/27.5; energy bands
+equally close. The mood-o-meter's MARGINAL readings are near
+identical in both worlds (partly by construction of the banding), so
+the mirror rift is NOT "less greed overall" — the asymmetry lives in
+WHEN/WHERE moods sit relative to pattern completions. First direct
+pin: inconclusive. Sharper test queued: compare herd states at the
+specific entry events that vanish in the mirror vs those that
+survive. Until then "fear-fast/greed-slow is load-bearing" stays
+labeled SUPPORTED, not proven.
