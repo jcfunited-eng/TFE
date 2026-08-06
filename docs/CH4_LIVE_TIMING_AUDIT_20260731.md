@@ -292,3 +292,24 @@ CONSEQUENCE: herd_kgate_v2 candidate declared IN ADVANCE — identical
 construction but n>=60 record requirement. Must be validated on
 splits it was not discovered on and run as its own paper book beside
 v1; never silently patched into the live engine.
+
+## Addendum 9 (2026-08-06): Kernel vs pure-quant head-to-head, same events
+
+Joe's demand: no agents, no flattening — score the kernel against
+single-signal quant predictors on the identical entries. 5,040 of the
+7,576 decade round trips carry a full 252-day history at entry (rest
+excluded, stated). Signals computed as-of entry close only: momentum
+(12-1), 5d reversal, 50v200 trend. Raw hit rates on the K3 direction:
+  kernel 54.0% | momentum 52.3% | trend 52.2% | reversal 50.1%
+Disagreement battles (the only place repackaging can hide):
+  kernel vs momentum: 1,978 conflicts -> kernel wins 52.1% (~1.9 sd)
+  kernel vs reversal: 2,491 conflicts -> kernel wins 53.9% (~3.9 sd)
+  kernel vs trend:    2,028 conflicts -> kernel wins 52.2% (~2.0 sd)
+Reading: the kernel beats every template signal on its own entries and
+wins ALL disagreement categories — decisively against reversal,
+marginally against momentum/trend. NOT explained by any single tested
+template. Caveats stated: home-field events (kernel chose them);
+margins thin; multi-signal combined baseline + magnitude regression
+remain open (queued as the full factor test). Scripts:
+head_to_head.py / roundtrip_driver3.py (scratchpad), raw JSON
+head_to_head_result.json.
