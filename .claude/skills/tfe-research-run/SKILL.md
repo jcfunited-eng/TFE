@@ -5,6 +5,17 @@ description: Run the TFE research machinery — stores, law/ledger/harvest tools
 
 # Running the research machinery
 
+## The kernel is canon
+CH4 runs on the FULL UF kernel: uf_core/ (layer0-4, hardening,
+safemode; pinned tau_D=0.20, alphas=1.0) per the spec PDF
+"docs/UF_Spec_v1_4_0_skeleton 2026.pdf" and Joe's pasted L0-L4 canon
+in docs/UF_DSF_KERNEL_CANON_20260804.md. Gates = quiet intervals
+D(t)<=tau_D; kappa(t) needs bar t+1, so a boundary at tb is first
+computable at the close of tb+1 — fills there, never earlier.
+tools/ch4_canon_law.py runs the species law on uf_core gates
+(Addendum 6: band>=0.75 predictions confirmed 58.6-77.9% EVERY year
+2016-2026, 172,433 obs).
+
 ## Stores (parquet, repo root)
 - `quarantine_12k_universe_ext.parquet` — daily 2016..2026-03-24,
   ~12k symbols, Massive adjusted. FROZEN research base; never mutate.
@@ -44,6 +55,17 @@ JSON to artifacts/ch4_uf/ (gitignored) + an addendum in
 docs/CH4_LIVE_TIMING_AUDIT_20260731.md (or a new dated doc) committed
 AND pushed to origin. Misses filed as plainly as wins. Memory updated
 for spec-level findings.
+
+## Adversarial controls that exist
+- Null test: CH3_TRADE_DISP=1 (tradable displacement -> binomial null).
+- Mirror-world probe (Joe, 2026-08-06): invert every price series
+  (c_inv[t] = c0^2/c[t], exactly negated log-returns, volumes kept),
+  rebuild herd state on the inverted store, replay the untouched
+  engine — tests whether decisions come from structure (mirrored
+  decisions, long/short flipped) or from riding market drift
+  (decisions collapse). Scripts in session scratchpad
+  (build_inverted_store.py, mirror_driver.py); results filed in the
+  audit doc.
 
 ## Heavy-run hygiene
 Background long runs via the harness (they survive turn ends; nohup'd
