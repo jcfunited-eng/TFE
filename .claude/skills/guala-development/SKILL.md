@@ -264,3 +264,29 @@ restored bodies continue byte-identically). Ears can be GROWN onto the living
 body — no rebirth (docs/GUALA_EAR_GROWTH_WITHOUT_REBIRTH_2026-08-06.md) — but
 growth must be a DELIBERATE authorized act, never a deploy side effect.
 CUSTODY: s3://dsf-ai-site-backups/guala-salvage/guala-work-20260806-campaign-complete.bundle
+
+## AUTONOMY ROOT CAUSE — FINAL, MEASURED 2026-08-06 (read before any redesign)
+The endogenous cue is NEVER EVALUATED on a living body. Instrumented directly
+(traces behind GUALA_TRACE_CUE, since reverted; branches left clean):
+    GATE rested=false dark=true quiescent=false     <- every interval, fed AND unfed
+The gate needs retained.rested_since_experience, which only flips at the
+cohort's first electrically QUIESCENT interval — and a living body is never
+quiescent. Fed: the pump moves whole charges every interval BY DESIGN. Unfed:
+still trickling at hop 10,000 (charge -1,775 -> -1,560, asymptotic).
+=> CATCH-22: fed = no rest = gate never opens; unfed = rest but no pump = no
+cue. Autonomy was structurally impossible with both ratified laws as written,
+independent of energy budget, heat sink, or geometry.
+TESTED AND ALSO FAILED: formation-local rest (flip the gate when the
+FORMATION's own members stop changing rather than the whole cohort). Still
+rested=false forever — because the pump touches EVERY member every interval
+(~6 charges/site/interval), so no member ever stops either.
+=> THE REAL LESSON: **no stillness-based gate can ever open on a continuously
+pumping body.** Making the rest test more local does not help. The next design
+round must discriminate "the original experience's own tail" from "later
+activity" by something OTHER than stillness. Most promising: lean on the
+already-ratified STIMULUS-BOUNDARY CLOSURE (an experience closes at the
+stimulus end, so anything after closure is by definition not its tail) and
+consider whether the rested gate is needed at all once closure is honest;
+second candidate is contact-set disjointness from the still-relaxing set.
+DO NOT re-try: whole-cohort quiescence, formation-local quiescence, or any
+variant of "wait until something stops moving".
