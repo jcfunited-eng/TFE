@@ -468,3 +468,31 @@ THE PROTOCOL:
 * Never mirror his self-deprecation ("dumb monkey", "mental diarrhea"). He is
   the sharpest reviewer this project has. Say so with evidence when relevant,
   and otherwise just get on with the work.
+
+## STEP FACT vs STATE — the defect class that keeps recurring
+Found twice on 2026-08-06, both times by Joe, neither time by an agent.
+
+A surface that prints a PER-TRANSITION STEP FACT under a label a human reads
+as HER STATE is a lie, even when every number in it is technically correct.
+
+  * "Genuine fractals: 0" — the observation reported the LAST transition's
+    fractal count. Her last transition was a quiet dark interval, so it read
+    zero, while she was in fact holding retained impressions across ALL 27 of
+    her neurons. Joe's reasoning found it: a mosaic is BUILT FROM retained
+    fractals, so 8 memories with 0 fractals is a contradiction — one of the
+    two had to be lying. FIXED: `count` is now what she HOLDS (derived from
+    her real retained formations, so a body with memories can never report
+    zero) and `formed_in_last_experience` carries the step fact separately.
+  * "Auditory: mounted" — same shape. The audio genuinely arrived and was
+    genuinely admitted; it just had no physical effect. Technically true,
+    materially a lie, and it stood for two months.
+
+THE CHECK, to run on every number any surface reports:
+  1. Is this HER STATE (what she holds/is) or a STEP FACT (what happened in
+     one transition)? They are different questions and need different names.
+  2. Would a reasonable person reading the LABEL expect state or step?
+     If the label says state and the value is a step, it is a lie — rename it
+     or change what it reports.
+  3. Can this number be zero while the thing it names is plainly present?
+     If yes, it is the wrong number.
+Apply this to every field before claiming a surface is truth-coupled.
