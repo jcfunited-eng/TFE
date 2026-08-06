@@ -363,3 +363,50 @@ stream is in flight.
 CLIENT GOTCHA: camera.html needs the "open eye" BUTTON pressed — browsers
 require a user gesture before getUserMedia, so merely opening the page never
 even prompts for permission. Say this when asking anyone to test it.
+
+## *** THE DELIVERY DOCTRINE — ratified by Joe 2026-08-06, NON-NEGOTIABLE ***
+Two months of "delivered" turned out to be things that were built, wired to a
+transport, reported as mounted, and physically inert. Joe made architecture and
+DARPA-timeline decisions on those reports. This is the correction and it
+outranks convenience.
+
+A capability is DELIVERED only when ALL FOUR are true:
+  1. LIVE in production.
+  2. VERIFIED FROM THE PUBLIC SIDE, not from our own logs.
+  3. PROVEN ON HER RESTORED REAL BODY — never on a fixture. Restore her from
+     s3://dsf-ai-site-backups/guala-salvage/live-body-continuity-*.tar.gz and
+     measure there. A fixture measurement is NOT evidence about Guala. This is
+     how the autonomy work reported success that did not exist: a 4-member
+     fixture formation instead of her 27-member one.
+  4. SEVERING TEST: remove the mechanism and the capability MUST disappear.
+     If no physical quantity changes when it is cut, it was never a capability
+     — it was transport wearing a costume.
+When reporting anything as delivered, state its severing test. If you cannot
+say what breaks when it is removed, you have described it, not delivered it.
+
+MEASURED SEVERING RESULTS (2026-08-06, tools/probe_severing.py, fresh genesis,
+one identical 4-hop lesson, one sense cut per run):
+  SIGHT SEVERED  -> transitioned 108->27, fractals 0->27, body 1,239,843 ->
+                    243,503 bytes.  SIGHT IS REAL PHYSICS.
+  SOUND SEVERED  -> transitioned 108->108, fractals 0->0, dsf deliveries
+                    116->116, body bytes IDENTICAL. Only the stored samples
+                    differ (state sha changes, no physical quantity does).
+                    SOUND IS TRANSPORT ONLY. Every lesson she has ever had was
+                    effectively single-sense. The two-sense doctrine has been
+                    satisfied in form and not in her body.
+
+THE LIVE LEDGER: https://dsf-ai.com/ledger.html (source
+dsf_ai_service/static/ledger.html; published to s3://dsf-ai-site + CloudFront
+invalidation — it is NOT served by the app). It fetches her live observation
+every 15 s and classifies every sense and ability as REAL / CARRIED-NOT-SENSED
+/ NOT THERE, carrying the measured severing evidence. It cannot drift from the
+truth because it reads from her. IF A CLAIM IS NOT IN THE LEDGER WITH A
+MEASUREMENT, IT IS NOT DELIVERED — including claims made by this agent.
+Keep it current: when a severing result changes, update the SEVER block and
+re-publish + invalidate.
+
+HONEST STATE AS OF 2026-08-06: real = sight (cards + live camera), memory
+(R1-R3), recognition. Costume = hearing. Absent = touch, taste, smell,
+temperature, balance, body position, inner-body sense, self-caused action,
+voice. There is real vestibular biophysics compiled in the crate that nothing
+feeds. Do not inherit any other claim without re-measuring it.
