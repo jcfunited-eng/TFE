@@ -213,3 +213,21 @@ MILESTONE ALERTS Joe requires: autonomy action, camera, mic, FIRST WORD
 Eternal pessimist; wants clinical evaluations, measured numbers, gaps
 stated before he finds them, fixes over reports, no jargon/paths in chat,
 short verdict-first replies, code-fenced pasteable reports.
+
+## DELEGATION 2026-08-06 (overnight) + rulings made under it
+Joe, verbatim intent: trusts my judgment on decisions needed right now;
+directed me to set agents working on all open problems. Standing limits
+UNCHANGED: no rebirth trigger, no voice/babble mounting, no first-word
+without Joe watching live, nothing irreversible, milestone alerts still
+fire the moment each is real.
+Rulings made under this delegation (design-doc §4.4 questions):
+1. RATIFIED: endogenous cue + rested gate as the definition of an
+   endogenous recognition cue (inert until motivation pressure exists).
+2. RATIFIED: memory laws R1-R3 implemented FIRST (coupling requires it).
+3. APPROVED: motivation-pressure design round (feeding-driven charge
+   dynamics as the engine of re-attention) — design work, physics-true,
+   nothing deploys without live-proof gates.
+Work set in motion: R1-R3 implementation, camera wiring (sight only;
+mic stays honestly refused until tonotopic ears exist), auditory defect
+cleanup (rebirth prep only — rebirth itself stays Joe's call),
+motivation-pressure design doc, interface consolidation (pulse pattern).
