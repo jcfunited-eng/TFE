@@ -33,7 +33,9 @@ def main():
         from tools.ch3_shadow_hunter import last_price
         for f in opens:
             try:
-                marks[f["symbol"]] = last_price(f["symbol"])
+                px = last_price(f["symbol"])
+                if px and px > 0:
+                    marks[f["symbol"]] = px
             except Exception:
                 pass
     except Exception:

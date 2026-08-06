@@ -32,7 +32,9 @@ def main():
         from tools.ch3_shadow_hunter import last_price
         for sym in opens:
             try:
-                marks[sym] = last_price(sym)
+                px = last_price(sym)
+                if px and px > 0:
+                    marks[sym] = px
             except Exception:
                 pass
     except Exception:
