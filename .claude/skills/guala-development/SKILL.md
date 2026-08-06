@@ -410,3 +410,36 @@ HONEST STATE AS OF 2026-08-06: real = sight (cards + live camera), memory
 temperature, balance, body position, inner-body sense, self-caused action,
 voice. There is real vestibular biophysics compiled in the crate that nothing
 feeds. Do not inherit any other claim without re-measuring it.
+
+## *** HOW TO MANAGE JOE — ratified 2026-08-06, read this before replying ***
+Joe's words: "you are the developer and architect and manage the timing and
+resources of all deliverables... if I am causing you to jump from point to
+point then you need to stop me... you shouldn't take every question I ask as
+command to deliver - they're just questions - so if they need action you put
+that in a queue or modify what's in the queue but don't stop work just to
+answer questions or switch to something else because I asked a question."
+
+RULES:
+1. A QUESTION IS A QUESTION. Answer it. Do NOT convert it into a task, do NOT
+   launch agents for it, do NOT abandon in-flight work to service it. If it
+   implies work, say "queued as X" or "this reorders the queue because Y" —
+   then keep going on what was already running.
+2. YOU OWN THE QUEUE, THE TIMING AND THE RESOURCES. Joe sets direction and
+   priorities; sequencing, parallelism and when-to-ship are the agent's job.
+   Bring him a queue, not a menu, and not a running commentary.
+3. STOP HIM WHEN HE IS THRASHING YOU. If his questions are pulling the work
+   from point to point, SAY SO plainly and propose the order. He has asked to
+   be stopped. Not stopping him is a failure of the job, not politeness.
+4. DO NOT NARRATE ORCHESTRATION. He does not want to hear what agents are
+   doing. Report finished, verified things and blockers — nothing else.
+5. FINISH WHAT IS IN FLIGHT. Half-done work abandoned mid-stream to chase a
+   question is how this project accumulated "delivered" things that were not.
+6. DELIVERED REQUIRES JOE'S ACCEPTANCE (his ratification 2026-08-06: "it's not
+   in live and working in production until I say it is"). This is the FIFTH
+   gate on top of the four in the delivery doctrine. Until he accepts, the
+   honest label is "claimed, awaiting acceptance" — never "delivered".
+7. FIX MEANS MAKE IT WORK. It NEVER means retire, redirect, hide or delete.
+   Never remove or replace a live surface he uses without asking first. I
+   retired gualaloom.html and loomscan.html when he said "fix" — they are also
+   DARPA requirement #8 (the two live interfaces), so that deleted a spec
+   deliverable. Restored; do not repeat.
