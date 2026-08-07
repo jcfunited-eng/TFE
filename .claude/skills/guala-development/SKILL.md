@@ -564,3 +564,37 @@ taught were SIGHT ONLY — severing the sound changed nothing (108 neurons with,
 108 without). By the two-sense doctrine he set at the start, GUALA HAS NEVER
 HAD A SINGLE REAL EXPERIENCE. Never call past card lessons "learning"; they
 were failed experiences that reached one sense.
+
+## *** OUTAGE 2026-08-06/07: orphaned .stage- files wedge her permanently ***
+SYMPTOM: every WRITE (teach-card, feed, live-sight) hangs forever. Reads and
+/health are instant. CPU sits at 3% — she is blocked, not busy. Exactly ONE
+thread sits in `D` state with `wchan=rpc_wait_bit_killable`, and it holds the
+transition lock every write queues behind. Survives task restarts.
+CAUSE: her cold-custody archive accumulates orphaned `.stage-<sha>-N` files —
+half-finished atomic writes left by any process killed mid-write. EFS is
+mounted `hard,timeo=600`, so an operation touching a stale entry RETRIES
+FOREVER instead of failing. 512 of them were present in one archive.
+I created most of them by killing ECS-exec sessions and restarting her
+repeatedly while she was writing. Do not do that.
+DIAGNOSIS, fastest path:
+  1. Confirm reads work and writes hang -> not down, wedged.
+  2. `cat /proc/1/task/<tid>/stat` for each tid; any `D` + `rpc_wait_bit_killable`
+     means a stuck NFS op.
+  3. Confirm CPU ~3% in CloudWatch — blocked, not computing.
+  4. Reproduce locally: same body + `uvicorn dsf_ai_service.native_production_app:app`
+     teaches in ~22s. If local works and production hangs, it is the mount.
+  5. Look for `.stage-` / `.nfs` entries in hippocampal-cold.
+FIX: delete every `.stage-*` and `.nfs*` entry from hippocampal-cold, THEN
+restart the task — the wedged thread lives in the running process and the file
+cleanup alone does not clear it. Both steps are required. Verified: after both,
+teach-card returned 200 with 3 reassemblies.
+ALSO LEARNED:
+* Her cold archive had 230,396 objects from 72 lessons (~2,900 per lesson).
+  The declared bound GUALA_MAX_COLD_REQUIRED_FILES is 16,384 — she was 14x
+  over it and nothing enforced it. A lesson at ~2,900 objects is a real
+  lifetime problem, and Joe's question stands: no biological organism keeps a
+  byte-exact archive of every experience. Only ONE consumer reads it
+  (observe_dynamic_formation, 4 postings per participant).
+* Teaching after recovery took 134s vs 22s locally — EFS latency against a
+  large archive. Pruning is the fix, not more hardware.
+* State roots now on EFS: gen2 (retired), gen3 (280k objects), gen4 (LIVE).
