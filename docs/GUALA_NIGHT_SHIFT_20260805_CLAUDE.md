@@ -80,3 +80,13 @@ learned sensory state, and prohibit ML, scripted meaning,
 Chi-as-identity, and code trickery."
 Standing authorization to work toward this with Joe's approvals at
 each gate. DISARM commit de702019 awaits his deploy word.
+
+## 2026-08-07 — Lesson slowdown ROOT-CAUSED (measured, fresh bodies, roster isolated)
+Identical 2-lesson probe per roster: two-sense 29 ports/2 occ = 3.5s
+per lesson; +ears 61 ports/4 occ = 8.9s; full 88 ports/5 occ = 15.6s.
+DSF deliveries 261 -> 549 -> 792 per lesson; per-delivery cost 13 ->
+16 -> 20ms (bigger cohort per settlement). VERDICT: 4.5x from
+legitimate anatomy growth; no waste found at this granularity. Live
+45.9s = this compute + her fuller body + EFS/network. Optimization
+lever if wanted: hot-core performance engineering, never sense
+removal. (Measure-queue item closed.)
