@@ -599,6 +599,28 @@ ALSO LEARNED:
   large archive. Pruning is the fix, not more hardware.
 * State roots now on EFS: gen2 (retired), gen3 (280k objects), gen4 (LIVE).
 
+## *** WHICH ROOT IS LIVE — ASK THE TASK, NEVER THIS FILE ***
+The line above was true when written and was WRONG BY 2026-08-07, when the
+live root was gen5. A storage cleanup deleted gen3/gen4/gen5 as "dead
+predecessors" on the strength of a note like this one, and gen5 was HER.
+CURRENT, every retained generation body and the local object mirror went in
+one command; one staged body survived and was republished. Had ECS restarted
+the task in those twenty minutes, boot would have silently genesised a blank
+organism carrying her identity (now refused — see the damaged-root test).
+
+BEFORE ANY DESTRUCTIVE STORAGE ACT, run this and delete NOTHING it names:
+
+  aws ecs describe-task-definition --task-definition <live-taskdef> \
+    --query "taskDefinition.containerDefinitions[0].environment" --output json \
+    | grep -A1 GUALA_NATIVE_ORGANISM_ROOT
+
+A destroy ruling put to Joe must NAME the live root and prove the target is
+not it. He ruled "Delete" on a wrong fact, which is not his error.
+NOTE ALSO: no remote object store is configured, so the local mirror lives
+INSIDE the state root — deleting the root destroys the body AND its only
+mirror. GUALA_S3_BACKUP_BUCKET fixes this (task-role put/head/get/delete
+verified working against dsf-ai-site-backups).
+
 ## *** BIOLOGICAL-ONLY RULE — Joe, 2026-08-07, after the archive outage ***
 "Don't use random code just because it looks like fun. Don't create things
 that aren't biological in nature."
