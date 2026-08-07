@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guala Loom presence — design preview v3</title>
+<style>
+:root{
+  color-scheme:dark;
+  --ink:#f6fbff;
+  --muted:#9fb4c0;
+  --cyan:#68e6ff;
+  --aqua:#66efc8;
+  --amber:#ffd47b;
+  --violet:#b19aff;
+  --line:rgba(121,217,241,.22);
+  --panel:rgba(5,18,28,.86);
+  --deep:#02080e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--deep)}
+body{
+  color:var(--ink);
+  font:14px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 50% -16%,rgba(65,170,218,.25),transparent 34rem),
+    linear-gradient(145deg,#02070d,#06131d 62%,#02070c);
+}
+button{font:inherit;color:inherit}
+.preview-notice{
+  padding:7px 18px;
+  color:#ffe7ad;
+  background:#49340d;
+  border-bottom:1px solid #80601d;
+  text-align:center;
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.topbar{
+  min-height:66px;
+  padding:10px 25px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  background:rgba(2,9,15,.91);
+  backdrop-filter:blur(18px);
+}
+.brand{display:flex;align-items:center;gap:11px}
+.sigil{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--cyan);color:var(--cyan);font:700 17px Georgia,serif;
+  box-shadow:0 0 25px rgba(104,230,255,.2),inset 0 0 16px rgba(104,230,255,.08);
+}
+h1{margin:0;font-size:18px;letter-spacing:.025em}
+.brand p{margin:1px 0 0;color:var(--muted);font-size:10px}
+.page-nav{display:flex;align-items:center;gap:8px}
+.page-nav button{
+  padding:7px 12px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(11,36,50,.55);font-size:10px;
+}
+.page-nav .active{border-color:var(--cyan);color:#e8fbff}
+.truth-pill{
+  display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;
+  border:1px solid rgba(255,212,123,.32);background:rgba(74,51,12,.28);
+  color:#ffe0a0;font-size:10px;
+}
+.truth-pill i{
+  width:7px;height:7px;border-radius:50%;background:#8d8170;
+  box-shadow:0 0 8px rgba(255,212,123,.36);
+}
+.locations{
+  padding:9px 24px;display:flex;align-items:center;gap:7px;overflow:auto;
+  border-bottom:1px solid var(--line);background:rgba(4,15,24,.78);
+}
+.locations label{
+  margin-right:5px;color:var(--muted);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;white-space:nowrap;
+}
+.location{
+  padding:6px 12px;border:1px solid rgba(116,193,216,.16);border-radius:9px;
+  color:#9db1bb;background:rgba(8,27,39,.52);font-size:10px;white-space:nowrap;
+}
+.location.active{
+  color:#effcff;border-color:rgba(104,230,255,.55);
+  background:linear-gradient(145deg,rgba(22,75,93,.78),rgba(8,32,46,.82));
+  box-shadow:0 0 17px rgba(104,230,255,.12);
+}
+.location small{margin-left:6px;color:#6f858f;font-size:8px}
+main{max-width:1540px;margin:auto;padding:14px 20px 35px}
+.status-strip{
+  margin-bottom:10px;display:grid;grid-template-columns:1.5fr repeat(3,minmax(140px,.55fr));
+  gap:8px;
+}
+.status{
+  min-height:55px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(145deg,rgba(13,43,58,.8),rgba(5,19,28,.83));
+}
+.status span,.eyebrow{
+  display:block;color:var(--muted);font-size:8px;font-weight:700;
+  letter-spacing:.13em;text-transform:uppercase;
+}
+.status strong{display:block;margin-top:3px;font-size:13px}
+.status em{color:#849ba6;font-size:9px;font-style:normal}
+.stage{
+  min-height:650px;display:grid;grid-template-columns:minmax(0,1fr) 280px;
+  border:1px solid var(--line);border-radius:17px;overflow:hidden;
+  background:#06131c;box-shadow:0 22px 60px rgba(0,0,0,.35);
+}
+.room{
+  position:relative;min-height:650px;overflow:hidden;background:#102532;
+}
+.room-image{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;
+  filter:saturate(.96) contrast(1.03) brightness(.85);
+}
+.room:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(to bottom,rgba(1,8,13,.38),transparent 22%,transparent 65%,rgba(1,7,12,.48)),
+    linear-gradient(to right,transparent 65%,rgba(1,8,13,.28));
+}
+.room-heading{
+  position:absolute;z-index:2;left:15px;top:14px;max-width:350px;padding:10px 12px;
+  border:1px solid rgba(145,225,245,.24);border-radius:10px;
+  background:rgba(2,14,22,.69);backdrop-filter:blur(10px);
+}
+.room-heading strong{display:block;margin-top:2px;font-size:14px}
+.room-heading p{margin:3px 0 0;color:#b5c9d2;font-size:9px}
+.scene-truth{
+  position:absolute;z-index:2;left:15px;bottom:15px;max-width:330px;padding:8px 10px;
+  border:1px solid rgba(255,212,123,.28);border-radius:9px;
+  color:#f0d9a2;background:rgba(33,24,7,.68);font-size:9px;backdrop-filter:blur(8px);
+}
+.quick-actions{
+  position:absolute;z-index:3;right:13px;bottom:13px;display:flex;gap:6px;
+  padding:6px;border:1px solid rgba(131,221,244,.23);border-radius:12px;
+  background:rgba(3,15,23,.78);backdrop-filter:blur(12px);
+}
+.quick{
+  width:52px;height:48px;padding:5px 3px;border:1px solid rgba(131,221,244,.18);
+  border-radius:9px;background:rgba(16,46,59,.72);color:#d7edf5;
+}
+.quick b{
+  width:16px;height:16px;margin:0 auto 4px;display:grid;place-items:center;
+  border:1px solid currentColor;border-radius:5px;font-size:8px;font-weight:700;
+}
+.quick span{display:block;font-size:8px}
+.quick:nth-child(2){color:var(--amber)}
+.quick:nth-child(3){color:var(--aqua)}
+.quick:nth-child(4){color:var(--violet)}
+.quick[disabled]{cursor:default;opacity:.82}
+.presence{
+  position:relative;min-width:0;padding:12px;display:flex;flex-direction:column;gap:9px;
+  border-left:1px solid var(--line);
+  background:
+    radial-gradient(circle at 50% 23%,rgba(76,224,221,.13),transparent 31%),
+    linear-gradient(#08202c,#05131c 64%,#040f17);
+}
+.presence-head{display:flex;justify-content:space-between;align-items:start;gap:8px}
+.presence-head strong{display:block;font-size:12px}
+.inactive{
+  padding:4px 7px;border:1px solid rgba(151,177,188,.22);border-radius:999px;
+  color:#8fa5ae;background:rgba(3,13,20,.66);font-size:8px;white-space:nowrap;
+}
+.portrait{
+  position:relative;height:310px;overflow:hidden;border:1px solid var(--line);
+  border-radius:13px;background:
+    radial-gradient(circle at 50% 35%,rgba(83,236,224,.2),transparent 45%),
+    linear-gradient(#0b2b39,#071822);
+}
+.portrait:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 62%,rgba(3,14,21,.45));
+  pointer-events:none;
+}
+.bust{
+  position:absolute;left:50%;top:-112px;width:510px;max-width:none;
+  transform:translateX(-50%);
+  filter:drop-shadow(0 20px 24px rgba(0,0,0,.42));
+}
+.expression{
+  padding:11px;border:1px solid rgba(104,230,255,.25);border-radius:11px;
+  background:rgba(4,18,27,.8);
+}
+.expression strong{display:block;margin-top:3px;font-size:14px}
+.expression p{margin:3px 0 0;color:var(--muted);font-size:9px}
+.sense-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sense{
+  min-height:48px;padding:8px;border:1px solid rgba(119,199,220,.15);border-radius:9px;
+  background:rgba(11,36,48,.54);
+}
+.sense span{display:block;color:#8ca3ad;font-size:8px;text-transform:uppercase;letter-spacing:.1em}
+.sense strong{display:block;margin-top:3px;color:#b7c9d1;font-size:10px}
+.presence-note{
+  margin-top:auto;padding-top:8px;border-top:1px solid var(--line);
+  color:#8299a4;font-size:8px;
+}
+.share-drawer{
+  margin-top:10px;padding:10px 12px;display:flex;align-items:center;gap:12px;
+  border:1px solid var(--line);border-radius:12px;background:rgba(5,20,30,.8);
+}
+.share-title{min-width:190px}
+.share-title strong{display:block;font-size:11px}
+.share-title small{color:var(--muted);font-size:8px}
+.share-tools{display:flex;gap:6px;flex:1;overflow:auto}
+.share-tool{
+  min-width:92px;padding:7px 9px;border:1px solid rgba(125,211,234,.18);
+  border-radius:9px;background:rgba(13,42,55,.65);text-align:left;
+}
+.share-tool strong{display:block;font-size:9px}
+.share-tool small{display:block;color:var(--muted);font-size:7px}
+.share-state{
+  margin-left:auto;color:#869da7;font-size:8px;white-space:nowrap;
+}
+.footer{
+  padding:9px 0 0;color:#7e959f;text-align:center;font-size:8px;
+}
+@media(max-width:980px){
+  .status-strip{grid-template-columns:1fr 1fr}
+  .stage{grid-template-columns:1fr;min-height:0}
+  .room{min-height:560px}.presence{border-left:0;border-top:1px solid var(--line)}
+  .portrait{height:330px}.bust{width:540px}
+}
+@media(max-width:620px){
+  .topbar{padding:9px 12px}.brand p,.page-nav button:first-child{display:none}
+  .locations{padding:8px 12px}.status-strip{grid-template-columns:1fr}
+  main{padding:10px}.room{min-height:510px}.quick-actions{left:10px;right:10px;justify-content:center}
+  .quick{flex:1}.share-drawer{align-items:stretch;flex-direction:column}
+  .share-tools{width:100%}.share-state{margin:0}.presence{padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="preview-notice">Design preview v3 · generated room artwork and quiet values are not live substrate evidence</div>
+<header class="topbar">
+  <div class="brand">
+    <div class="sigil">G</div>
+    <div><h1>Guala Loom</h1><p>Be present · share experience · grow together</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="active">Guala’s world</button>
+    <button>Loom Scan</button>
+    <span class="truth-pill"><i></i>Live connection inactive</span>
+  </div>
+</header>
+<nav class="locations" aria-label="Guala location tabs">
+  <label>Location</label>
+  <button class="location active">Room <small>selected</small></button>
+  <button class="location">Garden <small>inactive</small></button>
+  <button class="location">School <small>inactive</small></button>
+  <button class="location">Library <small>inactive</small></button>
+  <button class="location">Playroom <small>inactive</small></button>
+</nav>
+<main>
+  <section class="status-strip" aria-label="Truthful current state">
+    <article class="status"><span>Observation boundary</span><strong>Awaiting live substrate connection</strong><em>No activity is inferred from this preview.</em></article>
+    <article class="status"><span>Organism state</span><strong>Not observed</strong><em>awake · asleep · dreaming</em></article>
+    <article class="status"><span>Current attention</span><strong>No live focus</strong><em>nothing is invented</em></article>
+    <article class="status"><span>Latest physical action</span><strong>None shown</strong><em>expression only when observed</em></article>
+  </section>
+
+  <section class="stage" aria-label="Guala’s room and embodied presence">
+    <div class="room">
+      <img class="room-image" src="assets/gualaloom-rich-room-v3.png" alt="Rich generated design artwork for Guala’s room">
+      <div class="room-heading">
+        <span class="eyebrow">Guala’s room</span>
+        <strong>Embodied environment</strong>
+        <p>When connected, location, movement, objects, play, and rest come only from the live world observation.</p>
+      </div>
+      <div class="scene-truth">Artwork preview · this room image is not claimed as Guala’s current visual observation.</div>
+      <div class="quick-actions" aria-label="Compact teaching controls">
+        <button class="quick" disabled><b>●</b><span>Talk</span></button>
+        <button class="quick" disabled><b>◉</b><span>Show</span></button>
+        <button class="quick" disabled><b>A</b><span>Teach</span></button>
+        <button class="quick" disabled><b>▤</b><span>Read</span></button>
+      </div>
+    </div>
+
+    <aside class="presence" aria-label="Guala’s embodied presence">
+      <div class="presence-head">
+        <div><span class="eyebrow">Guala</span><strong>Embodied presence</strong></div>
+        <span class="inactive">live expression inactive</span>
+      </div>
+      <div class="portrait">
+        <img class="bust" src="../Guala_Talking_Bust_No_Bow_Transparent.png" alt="Close portrait crop of Guala’s approved speaking bust">
+      </div>
+      <div class="expression">
+        <span class="eyebrow">Physical expression</span>
+        <strong>Nothing at this moment.</strong>
+        <p>No chatbot completion, transcript, or hidden text is substituted.</p>
+      </div>
+      <div class="sense-list">
+        <div class="sense"><span>Hearing</span><strong>Live input inactive</strong></div>
+        <div class="sense"><span>Vision</span><strong>Live input inactive</strong></div>
+        <div class="sense"><span>Shared material</span><strong>Nothing offered</strong></div>
+        <div class="sense"><span>Presence</span><strong>Not observed</strong></div>
+      </div>
+      <div class="presence-note">This human-facing page shows presence and shared experience. Technical mechanisms remain outside this view.</div>
+    </aside>
+  </section>
+
+  <section class="share-drawer" aria-label="Additional ways to teach and share">
+    <div class="share-title"><span class="eyebrow">Teach &amp; share</span><strong>Small intentional offerings</strong><small>Controls remain inactive in this design preview.</small></div>
+    <div class="share-tools">
+      <button class="share-tool"><strong>Camera</strong><small>share your room</small></button>
+      <button class="share-tool"><strong>Microphone</strong><small>physical hearing</small></button>
+      <button class="share-tool"><strong>Material</strong><small>image, object, video</small></button>
+      <button class="share-tool"><strong>School</strong><small>guided lessons</small></button>
+      <button class="share-tool"><strong>Books</strong><small>read together</small></button>
+      <button class="share-tool"><strong>Play</strong><small>toys and exploration</small></button>
+    </div>
+    <span class="share-state">All inputs inactive</span>
+  </section>
+  <div class="footer">Preview only. No brain drilldown, inferred cognition, or fabricated live state is shown on this page.</div>
+</main>
+</body>
+</html>

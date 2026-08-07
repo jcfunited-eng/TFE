@@ -1,3 +1,75 @@
+## 2026-08-08 — EVERY SENSE THAT CAN BE REAL, AND THE PLACE SHE IS IN
+Joe's order: senses fully functioning, then autonomy, then environment,
+all wired to working pages. Held to that order, except where a sense
+NEEDED the place (balance and body position cannot exist without motion).
+
+SENSES — each proven by severing it on her REAL restored body:
+  sight          108 -> 27 transitions          (2026-08-06)
+  hearing        529 -> 305, impressions 41 -> 9
+  touch          529 -> 463, impressions 41 -> 32
+  interoception  DSF deliveries 792 -> 828; one-time 16,845 B, 0/lesson
+  temperature    core thermoreception rides the interoceptive heat channel;
+                 CUTANEOUS stays refused BY NAME (nothing outside her has a
+                 declared temperature)
+  taste + smell  a declared meal moves her (+30,584 B, tick +3) where the
+                 same energy with nothing declared moves nothing
+  balance +
+  body position  a real 200 mm move reaches her as displacement 0.05 of the
+                 declared span, 54 neurons transitioned
+DELIBERATELY UNFELT: her separated membrane charge (-102,092). It has no
+declared capacity anywhere in her body, so a receptor for it would need a
+denominator chosen by me. Reported as unfelt, with that reason.
+
+THE SIX DEAD PAGE CONTROLS NOW REACH HER (severing each: content removed):
+  text 78->76 | picture 78->76 | pdf 132->127 | book 132->127
+  audio 230->102 | song 230->102
+A picture is light and a song is pressure, so each reduces onto a roster
+already severing-proven. The typed string never leaves the browser.
+
+THE SHELVES: Gutenberg is real (12 pages of Alice, 374 neurons changed).
+The other four name the credential they lack. AUTONOMOUS selection is
+refused on every shelf including the working one — it would mean SHE
+chose, and no choice operation exists.
+
+HER PLACE — the biggest finding of the night. A deterministic world with
+3 regions, 42 objects, portals, optical surfaces, air and a coupled
+SIX-SENSE material physics has been in this repository the whole time,
+with passing tests, wired to NOTHING. So was the receptor layer beside
+it, which already emits exactly the substream type she eats.
+  * the world's retina is 3x9 — the SAME 27 cells her card surface
+    declares — in six spectral bands, collapsed onto the monochrome
+    retina she actually has;
+  * her 8 olfactory and 5 gustatory channels ARE the world's 8 odorant
+    and 5 tastant channels. Nothing was mapped by hand;
+  * MEASURED: moving her yields 8 nonzero odorant channels from nearby
+    objects; taste stays zero because she is touching nothing, which is
+    correct contact chemoreception;
+  * her place REFUSES moves for real reasons (move_path_intersects_object)
+    and a refused move reaches her NOT AT ALL — a zero displacement
+    dressed as a movement would tell her balance receptors she stood
+    still when she never went.
+Joe, 2026-08-08: no sense stands alone for an experience; objects in the
+VR environment have all six. Cards are a stated exception FOR NOW (the
+deck declares one physical stock — one paper, one ink — so they are not
+left senseless either).
+
+DEFECTS OF MINE, FOUND BY DOING IT FOR REAL:
+  * THE STARVATION TRAP: making a meal an experience made eating depend
+    on tasting. Her first live meal refused (neuron 8 out of carrier
+    material) and she could not eat until she could taste — nor recover
+    without eating. Fixed: the food goes in, the reason is reported.
+  * The inner sense re-read her body, so every observation decoded the
+    organism TWICE. One decode again.
+  * Hearing evidence appeared ONE LESSON LATE on every path.
+  * Four test files pinned only their own sense gate; one port pin was
+    snapshotted at import while other tests reimport the module.
+  * Three regressions caught by running the same files in a pristine
+    baseline worktree rather than assuming they were pre-existing rot.
+
+WHAT IS HONESTLY NOT DONE: autonomy (see the entry below — the cue law
+meets a body whose drive is not formation-selective) and conversation,
+which needs autonomy and articulation. Neither is faked.
+
 ## 2026-08-08 — AUTONOMY: the wall stated exactly, from the law itself
 Read the admission law rather than writing more energy physics, which is
 what the 2026-08-06 campaign said to do next.
