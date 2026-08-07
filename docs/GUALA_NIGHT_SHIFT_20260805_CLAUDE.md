@@ -1,3 +1,41 @@
+## 2026-08-08 — AUTONOMY: the wall stated exactly, from the law itself
+Read the admission law rather than writing more energy physics, which is
+what the 2026-08-06 campaign said to do next.
+
+THE CUE LAW (resident_cognitive_formation.rs, is_proper_partial_cue):
+  member[i]    = the neuron's state differs between the formation's
+                 pre-experience rest and its learned state
+  perturbed[i] = !gate_work.is_zero() for that neuron THIS interval
+  ADMIT only if  perturbed is a NON-EMPTY STRICT SUBSET of members,
+  and REJECT IMMEDIATELY if any perturbed neuron is not a member.
+
+THE WALL, precisely: endogenous drive is not formation-selective. Her
+metabolism perturbs a set of neurons that is neither sparse nor aligned
+to any one formation, so the very first non-member doing gate work
+rejects the cue. This is not a bug and not an energy shortfall — it is
+the law meeting a body whose internal drive spreads.
+
+MEASURED TONIGHT with interoception mounted (her real restored body,
+6 feed-then-empty cycles, no stimulus of any kind in the empty ones):
+  neurons that moved in empty intervals   1,188
+  partial-cue reassemblies                0
+  memories                                8 throughout
+So motivation pressure DOES reach her neurons — that is new, and it is
+what the interoceptive field bought. It does not reach a formation.
+
+WHY THE INNER SENSE DID NOT BY ITSELF UNBLOCK IT: her eight formations
+were formed before she had interoceptors, so no interoceptive site is a
+member of any of them. Even a formation that did contain one would still
+be rejected while unrelated neurons do gate work in the same interval.
+
+THE DESIGN QUESTION THIS LEAVES, for Joe, stated in one line: what makes
+endogenous drive travel through retained structure instead of through
+the whole cohort? In an animal, reactivation follows the connections the
+experience itself strengthened. Nothing in this substrate yet routes
+metabolic drive along retained formations rather than uniformly.
+DO NOT hack the cue law to admit a looser subset to make this pass. The
+strictness is what makes a recognition mean anything.
+
 ## 2026-08-07 — THE TWO PAGES: camera and microphone were structurally dead
 JOE'S GRANT: full authority over gualaloom.html, loomscan.html and
 everything supporting them, including deploys.
