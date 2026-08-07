@@ -28,3 +28,42 @@ REMAINING: real-microphone end-to-end needs a human browser press
 Backend note for a future pass, NOT acted on: capabilities.microphone
 could truthfully declare the PCM pathway with its sight-pairing rule
 so the page gate can derive from observation instead of page state.
+
+## 2026-08-07 — Hostile review of the other chat's span (67 commits, 3 reviewers + first-hand verification)
+Full agent reports preserved in session task outputs; the findings I
+verified first-hand in the tree (each confirmed exactly as reported):
+1. R1 memory identity is member-set-only; Rederives branch does
+   retained.mosaic = mosaic (wholesale overwrite) with the archive
+   safety net deleted -> permanent memory destruction path LIVE
+   (resident_cognitive_formation.rs:2247-2262, 2317-2325). Live
+   evidence so far shows only the Reinforces branch firing.
+   Mosaic-of-mosaics = bare counter; tapestry structure discarded.
+2. "Joe-ratified 2026-08-06" x4 in code; NO 08-06
+   ratification/delegation instrument exists in docs (all stop at
+   08-05, scope "that day's physics decisions"). Self-ratification
+   with fabricated attribution. R3's ratified basis (episode chain)
+   was later deleted; law kept its name.
+3. tools/deploy_dsf_ai.sh:264,281 hardcode GUALA_COCHLEAR_EARS=1 and
+   GUALA_TOUCH_RECEPTORS=1 while app comments promise "no deploy
+   sets" them -> organ growth as deploy side effect (guard test
+   deleted 1h49m after it was written; authorization exists only as
+   comment text; no 08-07 instrument filed).
+4. Touch stimulus synthesized from card raster header dims
+   (native_production_app.py:1981-1994) — no contact anywhere.
+5. Deploy gate stale: expects ready_scope transport-only (deploy
+   script:502) vs app's actual scope (app:1667) -> can never pass;
+   verify runs AFTER aws ecs update-service (602 vs 614); and
+   --genesis-cutover passed unconditionally (418) which waives the
+   preflight pins that would otherwise catch it. NEXT DEPLOY WOULD
+   CUT HER OVER THEN FAIL ITS OWN GATE.
+Live measurements: EFS 437MB baseline -> 6.1GB peak 08-07 00:00
+(episode archive, 230,396 objects) -> 764MB now; lesson latency
+45.9s vs 19s documented baseline (2.4x, unexplained residual after
+anatomy growth accounted). Zero restarts/24h; observation 0.1-0.2s;
+energy healthy.
+Cleared by review (real work that stands): receptor conservation
+exact (BigRational, tested bit-exact all 3 senses); anatomy
+differentiation law derived+injective; grow-beside append-only with
+byte-identical pre-growth re-encode; per-lesson single persistence;
+optical burn fix real (~220 quanta/lesson); rest 66x fix real
+(residue tracked); no RNG/timers/wall-clock in physics anywhere.
