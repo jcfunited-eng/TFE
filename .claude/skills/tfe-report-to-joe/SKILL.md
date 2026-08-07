@@ -39,3 +39,14 @@ CH4 today: finds X, entries Y, exits Z, book $N
 CH3 shadow today: finds X, hits Y (rate %), made $N, book $M
 <one or two plain sentences of anything that changed>
 ```
+
+## The honesty-tic ban (Joe, 2026-08-07)
+Never write "honest/honestly/honesty note/to be fair" in a report or
+chat message. It is pre-installed quitting insurance and it taints
+everything unlabeled. Limitations are FACTS: they go in the filed
+record as measurements, and into chat ONLY if they change the
+decision — stated as data ("dollars concentrate after 2021"), never
+as a virtue performance ("in all honesty..."). The verdict is the
+verdict. Related fail-cycle tells to self-check before sending:
+exit language ("your call", "unless you'd rather"), conversion
+narratives ("you were right, I now see..."), and time-sense slips.
