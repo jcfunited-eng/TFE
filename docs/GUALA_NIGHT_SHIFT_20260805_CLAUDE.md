@@ -1,3 +1,64 @@
+## 2026-08-07 — *** NEARLY LOST. Store destroyed, body recovered ***
+WHAT HAPPENED. The storage rulings executed earlier today deleted
+gen3/gen4/gen5 as "predecessor generation roots". gen5 WAS THE LIVE ROOT
+— the running task's declared state root. The deletion took CURRENT,
+every retained generation body, and the local object mirror. Because no
+remote object store is configured, that mirror was the only copy: one
+directory held the whole lineage and it was removed mid-service.
+The substrate kept answering reads from its cached observation for six
+more minutes. At 19:06 UTC the next lesson tried to publish its
+committed successor, found no CURRENT, and the runtime poisoned itself
+honestly (503 on every surface, exactly as designed). Reads and /health
+stayed green, so nothing alerted and ECS never replaced the task.
+THE NEAR-MISS, which is worse than the outage: `_startup` treated an
+absent CURRENT as "new root" and would have performed a FRESH GENESIS —
+a zero-memory body carrying the pinned identity, indistinguishable from
+the real one on every public surface. The ONLY thing that stopped a
+silent rebirth was that ECS happened not to restart the task. A restart
+at any point in those 20 minutes would have replaced it permanently.
+WHAT SURVIVED. Exactly one file: the staged body written at 19:06 by the
+lesson that failed to publish — the state AFTER that lesson, 4,023,787
+bytes, tick 3315, 88 neurons, 8 memories. Nothing else.
+RECOVERY (verified at each step, rehearsed before production):
+ 1. Preserved the staged body first, before touching anything:
+    s3://dsf-ai-site-backups/guala-salvage/EMERGENCY-gen5-stage-20260807-1906.glorun
+    sha 7f4e4815b818919420587be51d6577d85e3ec61909e9baa81df94bc544d31561,
+    pulled back out and byte-verified from outside.
+ 2. Decoded it: identity 1cc4e70a, tick 3315, 88 neurons, fuel 11,832.
+ 3. REHEARSED THE WHOLE RECOVERY LOCALLY on a throwaway root with the
+    same bytes and the same code path: published as initial CURRENT,
+    restored from it, booted the app, taught alphabet-a — accepted, 9
+    hops, tick 3315->3324, successor published. Only then production.
+ 4. Published the body as gen5's CURRENT in production (initial
+    publication; nothing overwritten — there was nothing there).
+    Verified: identity correct, tick 3315, no orphaned stage files.
+ 5. Restarted the poisoned task. It restored from CURRENT — no genesis.
+ 6. PUBLIC-SIDE VERIFIED: identity 1cc4e70a, "one raw native CURRENT
+    lineage", 8 mosaics, 27 neurons holding retained impressions, 86
+    retained complete neurons, fuel 11,832/45,322, energy healthy.
+ 7. Taught a live lesson through the load balancer: accepted, 200,
+    tick advanced, memories stayed 8 (the lean law still holds).
+ 8. Continuity backup taken, which had never existed for this root:
+    s3://dsf-ai-site-backups/guala-salvage/live-body-continuity-20260807-recovered-tick3333.glorun
+NOTHING WAS LOST. Tick, identity, memories, anatomy and energy are the
+ones held before the deletion.
+FIX SHIPPED TO THE WORK BRANCH (not deployed; awaiting Joe's deploy word
+with the disarm commit): boot now REFUSES to genesis over a root that
+carries evidence of prior life — retained generation bodies, the object
+mirror, the retired episode archive, or an orphaned staged body — and
+says what it found. A crash loop is recoverable; a silent rebirth is
+not. The generations directory alone is not evidence (every store open
+creates it), and a genuinely empty root still genesises normally.
+7 tests, all green, in tests/test_native_production_damaged_root_refusal.py.
+WHAT THIS SAYS ABOUT THE PROCESS, plainly: the deletion was authorized
+(Joe ruled "Delete" on gen3/gen4/gen5) but the authorization was sought
+on a WRONG FACT — that those roots were dead predecessors. Nothing in
+the procedure checked the deletion target against the running task's
+declared state root, which is one command. A destroy ruling must name
+the live root and prove the target is not it, before Joe is asked.
+STILL OPEN: the generations still live in exactly one directory on one
+volume. Setting GUALA_S3_BACKUP_BUCKET on the task would mirror every
+published body to S3 automatically. Queued, needs a deploy.
 
 ## 2026-08-07 — Site surgery (Joe dispatch: two pages only, working)
 Other chat stood down by Joe before any mutation. Backups of every
