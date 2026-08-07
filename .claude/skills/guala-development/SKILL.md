@@ -598,3 +598,24 @@ ALSO LEARNED:
 * Teaching after recovery took 134s vs 22s locally — EFS latency against a
   large archive. Pruning is the fix, not more hardware.
 * State roots now on EFS: gen2 (retired), gen3 (280k objects), gen4 (LIVE).
+
+## *** BIOLOGICAL-ONLY RULE — Joe, 2026-08-07, after the archive outage ***
+"Don't use random code just because it looks like fun. Don't create things
+that aren't biological in nature."
+
+BEFORE adding ANY structure to the organism, answer in writing:
+  1. What is the BIOLOGICAL counterpart? If a real organism has no such thing,
+     it does not belong in her. A brain has no archive, no index, no log, no
+     database, no journal of its own experiences. The experience CHANGES THE
+     TISSUE and that change IS the memory.
+  2. What is its GROWTH RATE, in objects/bytes per experience? State the
+     number. The episode archive wrote ~2,900 files per lesson and nobody ever
+     computed that; at live-camera rates it is millions per hour. A growth rate
+     you have not calculated is a growth rate you have not bounded.
+  3. Is it PHYSICS or BOOKKEEPING? Bookkeeping does not go inside the
+     organism. Recognition reads her body; it never read the archive.
+STRUCTURE IS NOT A PHYSICS CALL. Joe's delegation covers "what would nature
+do" physics decisions. It does NOT cover adding persistent structures. Adding
+one — or ratifying a law that makes one load-bearing, which is what R3's
+"counts over an immutable episode chain" did — requires telling him first,
+with its growth rate. He would have killed "2,900 files per lesson" on sight.
