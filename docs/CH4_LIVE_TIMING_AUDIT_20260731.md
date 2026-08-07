@@ -331,3 +331,31 @@ Constants declared in advance, no sweeps, no retuning after results:
   events, seed 0) to prove the herd gate itself carries information.
 Run: full 2016-2026 replay on ch4_live_store.parquet tonight after
 the 21:10 pass and 21:33 report. Results file here, pass or fail.
+
+Addendum 10 RESULTS (2026-08-07, constants as declared):
+SLOW-RISE (herd-backed spikes, long, 60-session hold): 12,329 trades,
+win 47.6%, mean +2.50%/trade but MEDIAN -1.48% (few huge winners carry
+it). Total +$645.8k but 2020 alone is +$712k — without 2020 the decade
+is NEGATIVE; 5 of 10 years lose (worst 2021: -$134.7k).
+SHUFFLE NULL (seed 0): win 41.4%, mean -2.09%, total -$484.7k.
+VERDICT: the herd gate carries REAL information (real-vs-null spread
+is +6.2pp win, +4.6pp per trade, ~$1.13M in dollars — the gate turns a
+losing pool into a winning one), but the 60d-hold harvest is NOT a
+dependable channel: regime-concentrated, negative median, huge worst
+years. Gate survives for other constructions; channel v1 FAILS.
+
+FADE EXIT-RULE STUDY (same event scan, herd-NOT-backed complement,
+11,613 taken trades, close-based):
+  A hold-5-sessions: win 59.3%, +2.27%/trade, 0.454%/day-held,
+    total $510.7k, worst year -$3.7k
+  B take-profit 5%:  win 66.5%, +1.83%/trade, 0.560%/day-held,
+    total $410.7k, worst year -$2.0k
+  C take-profit 3%:  win 69.9%, +1.79%/trade, 0.615%/day-held,
+    total $401.4k, worst year -$0.6k
+Era honesty: fade dollars ~zero 2016-2020, large 2021-2026 (matches
+the "positive every year since 2021" prior). VERDICT: holding the
+full 5 sessions maximizes dollars PER TRADE; Joe's harvest rule
+maximizes dollars per DAY OF CAPITAL with higher win rates and far
+smoother worst-years. Which wins live depends on redeployment — the
+CH3-vs-CH6 race measures exactly that, with CH6 running the finer
+intraday version this close-based study cannot capture.
