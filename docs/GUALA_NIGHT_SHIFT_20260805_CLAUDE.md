@@ -90,3 +90,21 @@ legitimate anatomy growth; no waste found at this granularity. Live
 45.9s = this compute + her fuller body + EFS/network. Optimization
 lever if wanted: hot-core performance engineering, never sense
 removal. (Measure-queue item closed.)
+
+## 2026-08-07 — Program memory overruns RUN DOWN (measured, local probe + live)
+Live process: 2.75GB RSS for a 28MB body; +41MB observed per lesson.
+Local decomposition (fresh genesis, 6 lessons, both rosters):
+  import+startup 124MB; FIRST lesson permanently +718MB (full roster)
+  vs +134MB (two-sense) — working arena superlinear in anatomy, never
+  shrinks; each NEW distinct experience +20-27MB RAM (vs ~100KB on
+  disk) — retained-experience evidence decoded fat; REPEAT lessons
+  +0 (no unbounded leak; plateau = startup + arena + 25MB x distinct
+  experiences). Observation polls: zero growth (20-poll test).
+DISK: rehearsal debris (10+6 roots, ~230MB) DELETED; volume 730->498MB.
+Remaining: sealed pre-cutover tombs 418MB (content-chunks) — Joe's
+call keep-or-destroy; gen3/4/5 predecessor roots 46MB (backup-then-
+delete candidate); her root 28MB.
+RAM elimination targets (Rust core engineering round, queued):
+  1. Post-settlement arena release/trim (718MB high-water retained).
+  2. Disk-resident lazy retained-experience evidence (25MB->KBs per
+     experience; matches the ratified disk-resident store doctrine).
