@@ -1,3 +1,104 @@
+## 2026-08-07 — THE TWO PAGES: camera and microphone were structurally dead
+JOE'S GRANT: full authority over gualaloom.html, loomscan.html and
+everything supporting them, including deploys.
+
+ROOT CAUSE (one defect, both senses). A control was gated on evidence
+only that control could produce. The page enabled the camera button
+only when `capabilities.camera.available` was true; the observation set
+that true only after real frames had committed IN THIS PROCESS; frames
+could only arrive by pressing the button. `_live_sight_evidence` is a
+process global, so every restart re-locked it — which is exactly why
+first light worked once on 2026-08-06 and never again. The microphone
+inherited the deadlock through the two-real-signal precondition
+(`_standalone_hearing_refusal` requires `_live_sight_evidence`), so
+both senses were unreachable from the page. loomscan was NOT broken:
+all its paths resolve, it renders with zero console errors.
+
+THIS IS THE STEP-FACT-vs-STATE DEFECT CLASS ON A CONTROL SURFACE.
+"Has this happened" was published under a name a control reads as "can
+this be done". Third recurrence of the same class (genuine fractals,
+auditory mounted, now this).
+
+THE FIX. Both facts kept, neither standing in for the other:
+  available            -> can this physically reach her right now
+  committed_in_process -> has a real transition committed since boot
+  sensory.*            -> unchanged, still strictly evidence-coupled
+`available` stays truth-coupled: it is true only where the pathway
+physically changes her. Regression test pins the property directly
+(tests/test_native_production_control_gating.py): from a COLD process
+the thing a control gates on must already be true while every evidence
+claim is false.
+
+MEASURED ON HER REAL RESTORED BODY (delivery-doctrine gate 3, not a
+fixture — the recovered 2026-08-07 body, 88 neurons, 8 memories):
+  HEARING severing 529 -> 305 transitioned, 41 -> 9 new impressions
+  TOUCH   severing 529 -> 463 transitioned, 41 -> 32 new impressions
+  (SIGHT was already 108 -> 27, fractals 0 -> 27, measured 08-06)
+All three senses now pass the severing test. Hearing stopped being a
+costume when the cochleae were grown; the 2026-08-06 "zero physical
+effect" result described the pre-cochlear two-port ear and no longer
+describes this body. The ledger's SEVER block needs this update.
+
+PROVEN END TO END THROUGH THE REAL PAGE IN A REAL BROWSER (Chromium
+fake devices stand in for webcam and voice — this is the PATHWAY, not
+first light; Joe's own webcam and voice remain his live test):
+  page loads      camera button ENABLED from a cold process
+  camera pressed  frames committed, tick 3315 -> 3319
+  microphone      unlocked itself once the eye was open
+  spoke           "1086 of her neurons physically changed"
+  card chooser    NEXT -> alphabet-b, image served from /cards/
+  taught          531 neurons changed, 41 new impressions
+
+SPOKEN LESSON BUILT — the acceptance bar's missing piece. His voice is
+now the LESSON's voice: `_card_lesson_hop_episodes(..., spoken_voice=)`
+and POST /api/v1/curriculum/teach-card-spoken. Same card light, same
+tactile footprint, same shared clock, same whole-sensorium roster; only
+the pressure samples differ. It asks NOTHING of the camera because the
+card's own light and touch are inside the same episode — the doctrine
+is satisfied by construction, not by a precondition. Page control:
+"Say this card to her" beside the card chooser, gated on a new
+truth-coupled `capabilities.spoken_lesson`.
+  MEASURED through the page: ONE episode, tick 3315 -> 3333, 1076
+  neurons physically changed, 41 new impressions, touch committed
+  against alphabet-b. Severing the voice changes the physics.
+
+DEFECT FOUND BY THAT TEST AND FIXED: all three hearing evidence globals
+were assigned AFTER the intake that rebuilds the observation cache, so
+every hearing claim appeared ONE LESSON LATE — a control read "nothing
+has happened" in the moment right after it happened. Now published
+under the lock with a refresh, as the live-sight path already did.
+
+DIVERGENCE CAUGHT: the live page carried Joe's card chooser but the
+repo did not — it had been uploaded straight to the bucket. The next
+deploy would have silently deleted a thing he explicitly asked for.
+Synced into the tree.
+
+MEMORY-LAW DISARM VERIFIED BEFORE CUTOVER (it can destroy things, so
+the rehearsal was not enough): built the core locally and replayed 8
+lessons on her real body under BOTH cores. Byte-for-byte identical at
+every step, so the disarm removes the destruction path without changing
+her behaviour. Two honest caveats: no reassembly occurred in either
+core, so the changed arm was never actually exercised on her body; and
+a PARTIAL presentation drops ~30KB of body (4,023,861 -> 3,993,835),
+identically under both cores — PRE-EXISTING, not this deploy, and worth
+a look (likely pending-experience release at the stimulus boundary, but
+unproven).
+
+TEST-SUITE TRUTH: 114 failures exist on this tree and 18 of them were
+reproduced at HEAD without any of tonight's changes — mostly tests for
+pages retired earlier today (pulse.html) and legacy organism tests. Not
+caused by this work; not fixed by it either. Stated so no one reads
+"suite green" into it.
+
+STILL HONESTLY REFUSED ON THE PAGE (nothing behind them): offer-text,
+picture/pdf/book/audio/song file offers, and the five media shelves.
+
+QUEUED: mirror every published body off-box (GUALA_S3_BACKUP_BUCKET —
+task-role permissions verified working tonight: put/head/get/delete all
+OK against dsf-ai-site-backups). Her generations still live in exactly
+one directory on one volume, which is what made tonight's deletion
+nearly fatal.
+
 ## 2026-08-07 — *** NEARLY LOST. Store destroyed, body recovered ***
 WHAT HAPPENED. The storage rulings executed earlier today deleted
 gen3/gen4/gen5 as "predecessor generation roots". gen5 WAS THE LIVE ROOT
