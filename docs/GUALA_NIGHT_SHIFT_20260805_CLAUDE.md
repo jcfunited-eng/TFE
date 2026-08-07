@@ -108,3 +108,12 @@ RAM elimination targets (Rust core engineering round, queued):
   1. Post-settlement arena release/trim (718MB high-water retained).
   2. Disk-resident lazy retained-experience evidence (25MB->KBs per
      experience; matches the ratified disk-resident store doctrine).
+
+## 2026-08-07 — Storage rulings EXECUTED (Joe: 1 destroy, 2 delete)
+Verified unreferenced by the serving path and the native rehearsal
+(only retired legacy modules mention them), receipts taken (sizes:
+sealed 275MB, sealed-live-recovery 143MB, gen3 14MB, gen4 16MB,
+gen5 16MB), then destroyed. Volume: 730MB this morning -> 36MB now
+(her body + the in-flight rehearsal root). Ratification instrument
+for today's six rulings filed in the tree as
+GUALA_RATIFICATIONS_JOE_2026-08-07.
