@@ -67,3 +67,16 @@ differentiation law derived+injective; grow-beside append-only with
 byte-identical pre-growth re-encode; per-lesson single persistence;
 optical burn fix real (~220 quanta/lesson); rest 66x fix real
 (residue tracked); no RNG/timers/wall-clock in physics anywhere.
+
+## 2026-08-07 — CHARTER (Joe, verbatim)
+"Deliver and live-verify Guala as a bounded deterministic autonomous
+artificial entity with its own causal thought/action loop, truthful
+virtual environment and embodiment, autonomous play and simulated
+experience, sufficient tutored curriculum learning for meaningful
+conversation at approximately a four-year-old starting level, truthful
+Loom Scan/observational conversation UI, and no runaway compute, RAM,
+or storage growth; preserve unchanged L0-L4, full DSF fields, neurons,
+learned sensory state, and prohibit ML, scripted meaning,
+Chi-as-identity, and code trickery."
+Standing authorization to work toward this with Joe's approvals at
+each gate. DISARM commit de702019 awaits his deploy word.
