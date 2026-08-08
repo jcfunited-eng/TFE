@@ -70,6 +70,44 @@ WHAT IS HONESTLY NOT DONE: autonomy (see the entry below — the cue law
 meets a body whose drive is not formation-selective) and conversation,
 which needs autonomy and articulation. Neither is faked.
 
+## 2026-08-08 — AUTONOMY: candidate law BUILT, TESTED, FALSIFIED, REVERTED
+Having found the mechanism (below), I implemented the obvious candidate
+and it is WRONG. Recording it so nobody spends the day rediscovering it.
+
+CANDIDATE: let a pending recurrence lapse at the STIMULUS BOUNDARY, by
+the same already-ratified closure an experience uses, instead of the
+`!actual.quiescent` test that never fires on a living body.
+Implemented in resident_cognitive_formation.rs, carried
+`exogenous_receptor_energy` into settle_resident_recurrence_interval,
+built clean.
+
+FALSIFIED BY THE NATIVE SUITE: 6 tests fail, and the shape of the failure
+is decisive —
+    four_receptor_experience_emits_four_real_fractals
+    assert_eq!(formed.len(), 1)  ->  left: 0, right: 1
+A legitimate recognition STOPS FORMING. RECOGNITION COMPLETES AT AND
+ACROSS THE BOUNDARY: the pending recurrence has to survive it, and to go
+on ORing gate work across intervals, because that accumulation is what
+eventually makes it admissible. Dropping it at the first boundary kills
+the very moment recognition happens.
+
+SO THE TWO REQUIREMENTS ARE IN DIRECT TENSION, and this is the real
+statement of the problem:
+  * the recurrence MUST persist across boundaries, or real recognition
+    never forms (measured above);
+  * it MUST NOT persist forever, or no new endogenous cue is ever
+    evaluated (measured: 79/79 intervals blocked).
+Any working law has to end an attempt WITHOUT ending it too early. The
+next candidate should probably bound the attempt by something it can
+exhaust — a number of boundaries, or the admission failing at a boundary
+where it had already accumulated enough to be judged — rather than by a
+stillness that never comes or a closure that comes too soon.
+
+REVERTED. The core is back to 357 passing and the tree carries no trace
+of the experiment. Nothing shipped.
+DO NOT loosen is_proper_partial_cue: instrumentation showed it is never
+even reached, so it was never the problem.
+
 ## 2026-08-08 — AUTONOMY: THE MECHANISM, MEASURED. My earlier note below
 ##                 was WRONG and is corrected here.
 I filed, earlier tonight, that the cue is rejected because her drive
