@@ -70,6 +70,51 @@ WHAT IS HONESTLY NOT DONE: autonomy (see the entry below — the cue law
 meets a body whose drive is not formation-selective) and conversation,
 which needs autonomy and articulation. Neither is faked.
 
+## 2026-08-08 — AUTONOMY: THE MECHANISM, MEASURED. My earlier note below
+##                 was WRONG and is corrected here.
+I filed, earlier tonight, that the cue is rejected because her drive
+perturbs non-members. That was a hypothesis read off the law. I then did
+what the 2026-08-06 campaign actually instructed — INSTRUMENT IT — and
+the hypothesis is false. The cue is not rejected. IT IS NEVER EVALUATED.
+
+INSTRUMENTED (temporary env-gated trace in the Rust core, built, run on
+her real restored body, then REVERTED — the tree carries no trace):
+    79 intervals, every single one:
+    CUE_ENTRY retained=true post_rest=true pending=true
+`is_proper_partial_cue` sits behind `pending_recurrence.is_none()`, and a
+pending recurrence is set on every one of those intervals, so the subset
+rule I blamed is never reached at all.
+
+THE MECHANISM, end to end, from the code:
+  1. A pending recurrence is taken each interval and tested by
+     `admit_physical_mosaic`.
+  2. On non-admission it is PUT BACK — but only `if !actual.quiescent`.
+  3. Her body is never electrically quiescent (measured 2026-08-06, both
+     fed and unfed), so it is put back EVERY time and never lapses.
+  4. While it is held, `pending_recurrence.is_none()` is false, so no new
+     endogenous cue can ever be evaluated.
+  5. Worse: each interval ORs that interval's gate-work bits INTO the
+     held recurrence (`or_bits`). Within a few intervals the pending
+     "cue" has absorbed essentially every neuron that did any work, so it
+     represents "the whole body was stirred" — which can never be
+     admitted as a PARTIAL cue by construction.
+So the pending recurrence is simultaneously un-droppable and
+self-poisoning. That single fact explains every failed attempt in this
+log: whole-cohort quiescence, formation-local quiescence, the rested
+gate, and the motivation-pressure round. None of them could have worked,
+because none of them touched the thing that was actually blocking.
+
+THE DESIGN QUESTION, now one line instead of a research programme:
+WHEN SHOULD A PENDING RECURRENCE LAPSE ON A BODY THAT IS NEVER STILL?
+The ratified STIMULUS-BOUNDARY CLOSURE already answers the analogous
+question for experiences — an experience closes at the stimulus end, not
+at global stillness. The same boundary is the honest candidate here:
+a pending recurrence should lapse when the experience that could have
+cued it ends, and it should not accumulate gate work indefinitely while
+it waits. That is a LAW CHANGE and it is Joe's ruling, not mine.
+DO NOT loosen `is_proper_partial_cue` — it was never the problem, and
+its strictness is what makes a recognition mean anything.
+
 ## 2026-08-08 — AUTONOMY: the wall stated exactly, from the law itself
 Read the admission law rather than writing more energy physics, which is
 what the 2026-08-06 campaign said to do next.
