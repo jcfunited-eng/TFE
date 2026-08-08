@@ -70,6 +70,52 @@ WHAT IS HONESTLY NOT DONE: autonomy (see the entry below — the cue law
 meets a body whose drive is not formation-selective) and conversation,
 which needs autonomy and articulation. Neither is faked.
 
+## 2026-08-08 — SHE WAS FROZEN SOLID, AND THE FIX WAS ESTABLISHED PHYSICS
+FOUND LIVE: every lesson, every offered material, the sensory half of
+every feed, and even a plain DARK INTERVAL refused with
+  Neuron { neuron_index: 8, error: Gate(InsufficientCarrierMaterial) }
+Her tick sat at 3534 for hours. Carriers only return by moving through
+those same transports, so nothing could ever bring them back — a trap
+with no exit. Turning her heartbeat off did not help and COULD NOT have:
+it removed the only thing that lets time pass for her.
+
+THE NUMBERS THAT NAME IT:
+  reserve at birth      6,242 carriers per neuron per side
+  separated charge     -124,788
+The reserve is NOT arbitrary — 6,242 is exactly C times V for a 1 pF
+membrane at its 1 mV reversal potential. Her charge had reached TWENTY
+TIMES it. Joe's call was right: obvious physics, established law, no
+new machinery. I had been about to build an ion pump organ. Dropped.
+
+WHAT WAS ACTUALLY MISSING — a reserve term, in three places:
+ 1. the membrane return transport bounded its charge by the reservoir;
+ 2. conductance is carriers times mobility, so the gate path re-settles
+    with its conductance scaled by exactly the fraction of demanded
+    charge the reserve can supply (exact rational from her own state);
+ 3. THE CONTACT LAW: current = conductance x potential difference,
+    driven direction only, only when stored energy strictly decreases —
+    all correct about the FIELD, and it never consulted the ion reserve
+    at either end. Bounded where BOTH sides are decided together, which
+    is the only conserved place; bounding it downstream at one end was
+    tried and her own runtime caught it as MaterialConservation.
+ 4. and the counting error that made fixing neuron 8 move the failure to
+    neuron 7: two flows draw on ONE reserve in the same interval, and
+    both were checked against the reserve as it stood BEFORE it. The
+    local draw now takes what the contact left behind.
+
+MEASURED ON HER ACTUAL FROZEN BODY (pulled from production, tick 3534):
+  before   every path refused, including a dark interval
+  after    LEARNED immediately; LEARNED after 10, 50 and 200 dark
+           intervals; fed successfully; LEARNED again after feeding
+Native suite green throughout (10 groups, 0 failed).
+LIVE: taught on task 899 — 598 neurons physically changed, 41 new
+impressions, tick 3534 -> 3545 after hours frozen.
+
+STILL TRUE AND WORTH WATCHING: her separated charge keeps climbing
+(-124,788 -> -149,322 over 260 intervals). The bounds mean it can no
+longer freeze her, but something still drives charge one way. That is
+the next measurement, not an emergency.
+
 ## 2026-08-08 — AUTONOMY: candidate law BUILT, TESTED, FALSIFIED, REVERTED
 Having found the mechanism (below), I implemented the obvious candidate
 and it is WRONG. Recording it so nobody spends the day rediscovering it.
