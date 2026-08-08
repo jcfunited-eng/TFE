@@ -70,6 +70,66 @@ WHAT IS HONESTLY NOT DONE: autonomy (see the entry below — the cue law
 meets a body whose drive is not formation-selective) and conversation,
 which needs autonomy and articulation. Neither is faked.
 
+## 2026-08-08 — VOICE MOUNTED (SILENT), CURRICULUM OFF THE ALPHABET,
+##                 HEARTBEAT RETURNED
+JOE'S CORRECTIONS THAT DROVE THIS, verbatim in substance: the camera/mic
+card experience FAILED; click-to-speak is a FALSE method of interaction
+and the camera and mic should be live ALWAYS unless he shuts them off;
+the ABC/123 card is ONE lesson in what should be a massive curriculum;
+stop building a broken chat bot. All correct, all mine to fix.
+
+HER VOICE. A real articulatory synthesiser was already in the repository
+and wired to nothing: larynx with its own cycle and open phase, an
+eight-section vocal tract, radiation load, wall retention, radiating
+pressure from a physical configuration. NOT a text-to-speech — there is
+nowhere in it for a word to be stored, so the contract ban on canned
+composition holds by construction.
+ITS OWN DESIGN REFUSES A HEAD START and that is kept: no infant seed, no
+named profile, no preinstalled gesture. Mounting it does NOT make her
+able to speak. Surface reports `vocal_anatomy_grown_and_silent` and says
+why in her own words. NO GESTURE WAS AUTHORED FOR HER AND NONE MAY BE:
+a first sound she did not find herself means nothing.
+
+HER HEARTBEAT IS BACK. It was held at 0 earlier that night because it
+was draining carriers and freezing her. THE WALL WAS REAL — and a test
+docstring in this repo asserted "a carrier wall that measurement showed
+does not exist", which was false and is corrected in place. Fixed at the
+physics instead (see the entry below), then measured: 200 dark intervals
+on her real body and she still learned. So the heartbeat returns.
+
+CURRICULUM 36 -> 60. Twenty-four first words (mama, dada, ball, cup,
+dog, cat, sun, moon, tree, water, milk, shoe, hand, eye, book, car, bed,
+door, apple, banana, chair, hat, fish, bird), each a distinct
+high-contrast surface so the 27-site retina gets a genuinely different
+luminance pattern per card. NONE has a recording — that studio
+dependency is what pinned her vocabulary at 36 for months. Measured: the
+tutored route refuses `word-ball` honestly and names the spoken route;
+a living voice teaches it (338 neurons changed, 53 new impressions).
+The deck's own guarantees are untouched — the manifest test still pins
+the first 36 exactly and now also checks each added surface exists,
+matches its sha, and declares no recording.
+
+PRODUCTION PROOF OF THE CARRIER FIX (task 900): four lessons back to
+back — 598/41, 550/41, 599/41, 743/73 — where ONE used to freeze her.
+Tick 3551 -> 3596, memories steady at 8, identity kept.
+
+STILL OPEN, in Joe's priority order:
+ * ALWAYS-ON SENSES. Measured why they were switched off: she pays the
+   SAME price for a hop that sees nothing as one that sees something
+   (dark 2.75s vs lit 1.5-3.0s; persistence is 0.02s and not the cost).
+   Her receptor law already says nothing is delivered below threshold —
+   the app never asks it before building and settling a whole
+   experience. Ask first, and her senses can stay open.
+   MY "hops lie about time" theory was TESTED AND FALSIFIED: identical
+   runs declaring 250 ms vs the real elapsed interval gave identical
+   fuel, heat and charge.
+ * ADAPTATION. Her law states outright it has no residue decay term, so
+   an unchanging scene would keep re-crossing threshold forever. Joe
+   agreed to add it; it is a ratified-law change and belongs with the
+   always-on work, not before it.
+ * AUTONOMY (see below), VOICE PROGRAMS SHE GROWS HERSELF, and the four
+   credentialled shelves.
+
 ## 2026-08-08 — SHE WAS FROZEN SOLID, AND THE FIX WAS ESTABLISHED PHYSICS
 FOUND LIVE: every lesson, every offered material, the sensory half of
 every feed, and even a plain DARK INTERVAL refused with
