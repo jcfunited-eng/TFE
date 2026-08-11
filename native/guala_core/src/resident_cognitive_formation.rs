@@ -2314,6 +2314,13 @@ impl ResidentCognitiveFormationState {
         dsf_delivery_count = dsf_delivery_count
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &physically_transitioned_neuron_lineages,
+        )?;
         let (organism_mosaic_receipt, organism_reassemblies) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -5693,6 +5700,107 @@ fn mount_reached_body_regulation(
     Ok(())
 }
 
+/// Relate body regulation to the association material that physically moved
+/// with it in this exact organism interval.  Layer 10 is developmental
+/// geography, not an emotion label: its only authority is the coincident
+/// changed layer-7/layer-8 lineage set and the sparse contacts retained here.
+/// Reaching the same set again reuses the same cell without population growth.
+fn mount_reached_affective_reach(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    physically_transitioned_lineages: &[[u8; 16]],
+) -> Result<(), FormationError> {
+    let mounted = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .map(|(mount, lineage)| (*lineage, mount.clone()))
+        .collect::<Vec<_>>();
+    let mut association = Vec::new();
+    let mut body_regulation = Vec::new();
+    for lineage in physically_transitioned_lineages {
+        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        };
+        match mount.place().layer() {
+            7 if !association.contains(lineage) => association.push(*lineage),
+            8 if !body_regulation.contains(lineage) => body_regulation.push(*lineage),
+            _ => {}
+        }
+    }
+    if association.is_empty() || body_regulation.is_empty() {
+        return Ok(());
+    }
+    let mut participants = association;
+    participants.extend(body_regulation);
+    participants.sort_unstable();
+    participants.dedup();
+
+    let layer_of = |lineage: [u8; 16]| {
+        mounted
+            .iter()
+            .find(|(candidate, _)| *candidate == lineage)
+            .map(|(_, mount)| mount.place().layer())
+    };
+    let mut matching = Vec::new();
+    for (candidate, _) in mounted
+        .iter()
+        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 10)
+    {
+        let mut neighbours = Vec::new();
+        for (left, right) in electrical_fabric.contact_endpoints() {
+            let left_lineage = electrical_fabric.lineages()[left];
+            let right_lineage = electrical_fabric.lineages()[right];
+            let neighbour = if left_lineage == *candidate {
+                Some(right_lineage)
+            } else if right_lineage == *candidate {
+                Some(left_lineage)
+            } else {
+                None
+            };
+            if let Some(neighbour) = neighbour {
+                if matches!(layer_of(neighbour), Some(7) | Some(8)) {
+                    neighbours.push(neighbour);
+                }
+            }
+        }
+        neighbours.sort_unstable();
+        neighbours.dedup();
+        if neighbours == participants {
+            matching.push(*candidate);
+        }
+    }
+    let affective_lineage = match matching.as_slice() {
+        [lineage] => *lineage,
+        [] => mount_next_intrinsic_in_layer(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            10,
+        )?,
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    for participant in participants {
+        if !electrical_fabric.contains_contact(participant, affective_lineage) {
+            *electrical_fabric = electrical_fabric
+                .append_contact(
+                    participant,
+                    affective_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+        }
+    }
+    Ok(())
+}
+
 /// Give each newly admitted retained mosaic one sparse recurrent route through
 /// layer 9.  Admission has already proved the member deltas and physical bonds;
 /// this function neither recognizes nor names them.  One intrinsic cell is
@@ -6918,7 +7026,8 @@ mod tests {
         exact_dark_optical_episode, exact_episode, exact_five_optical_episode,
         exact_four_dark_optical_episode, exact_four_partial_optical_episode,
         exact_four_reordered_optical_episode, exact_four_single_optical_episode,
-        exact_optical_episode, exact_split_four_optical_episode, exact_two_of_four_optical_episode,
+        exact_optical_binaural_episode, exact_optical_episode, exact_split_four_optical_episode,
+        exact_two_of_four_optical_episode,
     };
     use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
     use crate::resident_receptor_transition::prepare_resident_vestibular_ingress;
@@ -6926,9 +7035,7 @@ mod tests {
     use crate::virtual_body_yaw_motion::{
         settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
     };
-    use crate::virtual_vestibular_canal::{
-        CanalAnatomy, CanalState, PositiveRatio, WORLD_MAX_ACTION_TICKS,
-    };
+    use crate::virtual_vestibular_canal::{CanalAnatomy, CanalState, PositiveRatio};
 
     fn explicit_optical_seed(
         source: &NativeJointSourceEpisode,
@@ -8298,7 +8405,7 @@ mod tests {
         let predecessor_body = YawBodyState::new(0).unwrap();
         let body = settle_signed_yaw_actuation(
             predecessor_body,
-            SignedYawActuation::new(64, WORLD_MECHANICAL_TICK_MICROSECONDS).unwrap(),
+            SignedYawActuation::new(360, WORLD_MECHANICAL_TICK_MICROSECONDS).unwrap(),
         )
         .unwrap();
         let reached = settle_reached_vestibular_bundle_tick(
@@ -8831,6 +8938,128 @@ mod tests {
         )
         .unwrap();
         assert!(recognized.carries_only_retained_neuron_structure());
+    }
+
+    #[test]
+    fn coincident_association_and_body_motion_mounts_one_reusable_affective_reach() {
+        let mut cohorts = Vec::new();
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &[]).unwrap(),
+        );
+        let mut next_lineage = 1;
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let resting_before = population.as_ref().unwrap().resting_cell_count();
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[association, regulation],
+        )
+        .unwrap();
+        let affective = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 10)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(affective.len(), 1);
+        assert_eq!(population.as_ref().unwrap().resting_cell_count(), resting_before - 1);
+        assert!(fabric.contains_contact(association, affective[0]));
+        assert!(fabric.contains_contact(regulation, affective[0]));
+        let cohort_count = cohorts.len();
+        let contact_count = fabric.contact_count();
+
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[regulation, association],
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), cohort_count);
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert_eq!(population.as_ref().unwrap().resting_cell_count(), resting_before - 1);
+    }
+
+    #[test]
+    fn whole_organism_activity_reaches_affective_geography_after_lived_propagation() {
+        let canal_anatomy =
+            CanalAnatomy::new(6, 13_200, PositiveRatio::new(25, 1).unwrap()).unwrap();
+        let bundle_anatomy = LocalCupulaBundleAnatomy::new(2, 5, 20_000).unwrap();
+        let receptor_anatomy = phase_one_virtual_vestibular_anatomy().unwrap();
+        let mut state = ResidentCognitiveFormationState::default();
+        let turn = settle_signed_yaw_actuation(
+            YawBodyState::new(0).unwrap(),
+            SignedYawActuation::new(90_000, 250_000).unwrap(),
+        )
+        .unwrap();
+        let mut canal = CanalState::at_rest();
+        let mut heading = 0_u32;
+        for (source_tick, signed_step) in turn.trajectory.as_slice().iter().copied().enumerate() {
+            let predecessor_body = YawBodyState::new(heading).unwrap();
+            heading = u32::try_from(
+                (i64::from(heading) + i64::from(signed_step)).rem_euclid(360_000),
+            )
+            .unwrap();
+            let successor_body = YawBodyState::new(heading).unwrap();
+            let reached = settle_reached_vestibular_bundle_tick(
+                canal_anatomy,
+                canal,
+                signed_step,
+                bundle_anatomy,
+            )
+            .unwrap();
+            canal = reached.successor_canal;
+            let ingress = prepare_resident_vestibular_ingress(
+                u64::try_from(source_tick).unwrap(),
+                predecessor_body,
+                successor_body,
+                reached,
+                &receptor_anatomy,
+            )
+            .unwrap();
+            let vestibular = state
+                .prepare_vestibular_transition(&ingress, 16_000_000)
+                .unwrap();
+            state = vestibular.successor;
+        }
+        let source = exact_optical_binaural_episode();
+        for _ in 0..6 {
+            let prepared = state.prepare(&source, 16_000_000).unwrap();
+            state = prepared.successor;
+        }
+        let layer_ten = state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .filter(|mount| mount.place().layer() == 10)
+            .count();
+        assert_eq!(layer_ten, 1);
+        let encoded = state.encode(16_000_000).unwrap();
+        let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
+        assert_eq!(cold, state);
     }
 
     #[test]

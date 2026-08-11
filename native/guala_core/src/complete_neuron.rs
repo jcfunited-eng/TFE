@@ -3170,6 +3170,10 @@ pub(crate) struct GateMembraneSettlement {
     pub(crate) successor_carriers: CarrierReservoirs,
     pub(crate) membrane: LocalMembraneConductanceTransition<1>,
     pub(crate) open_minus_closed_energy_zeptojoules: Exact,
+    /// Exact downhill work that could not remain in this gate's finite local
+    /// dissipation reservoir and therefore crossed the neuron's local control
+    /// volume as heat. It is transient flow, not retained neuronal state.
+    pub(crate) exported_heat_zeptojoules: Exact,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -3177,6 +3181,7 @@ struct GatePopulationSettlement {
     open_population: u128,
     released_quanta: u128,
     dissipation_residue_zeptojoules: PhysicalEnergyResidue,
+    exported_heat_zeptojoules: Exact,
 }
 
 fn quantize_gate_release(
@@ -3185,7 +3190,7 @@ fn quantize_gate_release(
     quantum: &Exact,
     maximum_released_quanta: Option<u128>,
     residue_denominator_lattice: Option<&BigInt>,
-) -> Result<Option<(u128, PhysicalEnergyResidue)>, GateSettlementError> {
+) -> Result<Option<(u128, PhysicalEnergyResidue, Exact)>, GateSettlementError> {
     if released_energy <= &Exact::zero() || quantum <= &Exact::zero() {
         return Ok(None);
     }
@@ -3194,12 +3199,20 @@ fn quantize_gate_release(
     let released_quanta = whole
         .to_u128()
         .ok_or(GateSettlementError::ArithmeticWidth)?;
-    let residue = accumulated - quantum * Exact::from_integer(whole);
-    if maximum_released_quanta.is_some_and(|maximum| {
-        released_quanta > maximum || (released_quanta == maximum && !residue.is_zero())
-    }) {
-        return Ok(None);
-    }
+    let residue = &accumulated - quantum * Exact::from_integer(whole);
+    let (released_quanta, residue, exported_heat) = match maximum_released_quanta {
+        Some(maximum)
+            if released_quanta > maximum || (released_quanta == maximum && !residue.is_zero()) =>
+        {
+            let local_capacity = quantum * Exact::from_integer(BigInt::from(maximum));
+            let exported = &accumulated - &local_capacity;
+            if exported <= Exact::zero() {
+                return Err(GateSettlementError::ArithmeticWidth);
+            }
+            (maximum, Exact::zero(), exported)
+        }
+        _ => (released_quanta, residue, Exact::zero()),
+    };
     if let Some(lattice) = residue_denominator_lattice {
         if !(lattice % residue.denom()).is_zero() {
             return Err(GateSettlementError::ArithmeticWidth);
@@ -3223,6 +3236,7 @@ fn quantize_gate_release(
         PhysicalEnergyResidue {
             energy_zeptojoules: residue,
         },
+        exported_heat,
     )))
 }
 
@@ -3332,6 +3346,7 @@ pub(crate) fn settle_gate_membrane_with_contact(
         Some(free_quanta),
     )?;
     let mut successor_gate = predecessor_gate.clone();
+    let mut exported_heat_zeptojoules = Exact::zero();
     if let Some(settlement) = population_settlement {
         successor_gate.dissipated_quanta = predecessor_gate
             .dissipated_quanta
@@ -3339,6 +3354,7 @@ pub(crate) fn settle_gate_membrane_with_contact(
             .ok_or(GateSettlementError::ArithmeticWidth)?;
         successor_gate.dissipation_residue_zeptojoules = settlement.dissipation_residue_zeptojoules;
         successor_gate.open_population = settlement.open_population;
+        exported_heat_zeptojoules = settlement.exported_heat_zeptojoules;
     }
 
     let open_i128 = i128::try_from(successor_gate.open_population)
@@ -3430,6 +3446,7 @@ pub(crate) fn settle_gate_membrane_with_contact(
         successor_carriers,
         membrane,
         open_minus_closed_energy_zeptojoules: open_minus_closed,
+        exported_heat_zeptojoules,
     })
 }
 
@@ -3482,13 +3499,14 @@ fn select_gate_population_settlement(
         let internal_required = &successor_energy - &predecessor_energy;
         let delivered = -gate_work.open_minus_closed_zeptojoules.clone();
         let released_energy = delivered - internal_required;
-        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
-            &predecessor_gate.dissipation_residue_zeptojoules,
-            &released_energy,
-            &anatomy.dissipation_quantum_zeptojoules,
-            maximum_released_quanta,
-            residue_denominator_lattice,
-        )?
+        let Some((released_quanta, dissipation_residue_zeptojoules, exported_heat_zeptojoules)) =
+            quantize_gate_release(
+                &predecessor_gate.dissipation_residue_zeptojoules,
+                &released_energy,
+                &anatomy.dissipation_quantum_zeptojoules,
+                maximum_released_quanta,
+                residue_denominator_lattice,
+            )?
         else {
             return Ok(None);
         };
@@ -3496,6 +3514,7 @@ fn select_gate_population_settlement(
             open_population: target_population,
             released_quanta,
             dissipation_residue_zeptojoules,
+            exported_heat_zeptojoules,
         }));
     }
     if anatomy.population == 1 {
@@ -3514,13 +3533,14 @@ fn select_gate_population_settlement(
             return Ok(None);
         }
         let released_energy = &predecessor_energy - &successor_energy;
-        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
-            &predecessor_gate.dissipation_residue_zeptojoules,
-            &released_energy,
-            &anatomy.dissipation_quantum_zeptojoules,
-            maximum_released_quanta,
-            residue_denominator_lattice,
-        )?
+        let Some((released_quanta, dissipation_residue_zeptojoules, exported_heat_zeptojoules)) =
+            quantize_gate_release(
+                &predecessor_gate.dissipation_residue_zeptojoules,
+                &released_energy,
+                &anatomy.dissipation_quantum_zeptojoules,
+                maximum_released_quanta,
+                residue_denominator_lattice,
+            )?
         else {
             return Ok(None);
         };
@@ -3528,6 +3548,7 @@ fn select_gate_population_settlement(
             open_population: successor_population,
             released_quanta,
             dissipation_residue_zeptojoules,
+            exported_heat_zeptojoules,
         }));
     }
     let mut lowest_energy: Option<Exact> = None;
@@ -3551,13 +3572,14 @@ fn select_gate_population_settlement(
             continue;
         }
         let released_energy = &predecessor_energy - &candidate_energy;
-        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
-            &predecessor_gate.dissipation_residue_zeptojoules,
-            &released_energy,
-            &anatomy.dissipation_quantum_zeptojoules,
-            maximum_released_quanta,
-            residue_denominator_lattice,
-        )?
+        let Some((released_quanta, dissipation_residue_zeptojoules, exported_heat_zeptojoules)) =
+            quantize_gate_release(
+                &predecessor_gate.dissipation_residue_zeptojoules,
+                &released_energy,
+                &anatomy.dissipation_quantum_zeptojoules,
+                maximum_released_quanta,
+                residue_denominator_lattice,
+            )?
         else {
             continue;
         };
@@ -3568,6 +3590,7 @@ fn select_gate_population_settlement(
                     open_population,
                     released_quanta,
                     dissipation_residue_zeptojoules,
+                    exported_heat_zeptojoules,
                 });
                 tied = false;
             }
@@ -3577,6 +3600,7 @@ fn select_gate_population_settlement(
                     open_population,
                     released_quanta,
                     dissipation_residue_zeptojoules,
+                    exported_heat_zeptojoules,
                 });
                 tied = false;
             }
@@ -4461,6 +4485,7 @@ pub(crate) struct PostExperienceSettlement {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ExtendedIntervalSettlement {
     pub(crate) successor: NeuronPhysicalState,
+    pub(crate) exported_heat_zeptojoules: Exact,
     pub(crate) quiescent: bool,
 }
 
@@ -4496,6 +4521,7 @@ pub(crate) fn settle_extended_interval_with_contact(
         .iter()
         .any(|current| current.parts().0 != 0)
         || physical.successor.membrane != predecessor.membrane;
+    let exported_heat_zeptojoules = physical.gate_membrane.exported_heat_zeptojoules.clone();
     let mut successor = physical.successor;
     // The retained sub-quantum residue is a receptor accumulator, not a
     // settled physical coordinate: it does not enter the quiescence
@@ -4518,6 +4544,7 @@ pub(crate) fn settle_extended_interval_with_contact(
     )?;
     Ok(ExtendedIntervalSettlement {
         successor,
+        exported_heat_zeptojoules,
         quiescent: !psi_changed
             && !gate_changed
             && !membrane_active
@@ -6143,6 +6170,26 @@ mod tests {
         assert_eq!(
             fractional.dissipation_residue_zeptojoules.energy(),
             &rational_to_exact(r(1, 2))
+        );
+    }
+
+    #[test]
+    fn downhill_gate_exports_exact_heat_beyond_its_finite_local_capacity() {
+        let predecessor_residue = PhysicalEnergyResidue {
+            energy_zeptojoules: q(1, 4),
+        };
+        let released = q(10, 1);
+        let quantum = q(1, 1);
+        let (retained_quanta, retained_residue, exported_heat) =
+            quantize_gate_release(&predecessor_residue, &released, &quantum, Some(2), None)
+                .unwrap()
+                .unwrap();
+        assert_eq!(retained_quanta, 2);
+        assert_eq!(retained_residue.energy(), &q(0, 1));
+        assert_eq!(exported_heat, q(33, 4));
+        assert_eq!(
+            quantum * Exact::from_integer(BigInt::from(retained_quanta)) + exported_heat,
+            predecessor_residue.energy() + &released,
         );
     }
 

@@ -498,6 +498,7 @@ pub(crate) struct FunctionalVestibularTransduction {
 pub(crate) struct FunctionalVestibularNeuronInterval {
     pub(crate) transduction: FunctionalVestibularTransduction,
     pub(crate) successor_neuron: NeuronPhysicalState,
+    pub(crate) exported_heat_zeptojoules: BigRational,
     pub(crate) quiescent: bool,
 }
 
@@ -550,9 +551,11 @@ pub(crate) fn settle_vestibular_neuron_compatibility_interval(
         },
         inter_neuron_outward_elementary_charges,
     )?;
+    let exported_heat_zeptojoules = settled.exported_heat_zeptojoules.clone();
     Ok(FunctionalVestibularNeuronInterval {
         transduction,
         successor_neuron: settled.successor,
+        exported_heat_zeptojoules,
         quiescent: settled.quiescent,
     })
 }
@@ -843,6 +846,42 @@ mod tests {
         assert_eq!(genesis.state().gate.open_population(), 0);
         assert_eq!(settled.successor_neuron.gate.open_population(), 1);
         assert_ne!(settled.successor_neuron, *genesis.state());
+    }
+
+    #[test]
+    fn phase_one_body_tick_opens_the_receptor_and_exports_exact_surplus_heat() {
+        let anatomy = phase_one_virtual_vestibular_anatomy().unwrap();
+        let (source, tick) = admitted_source(&anatomy, 360);
+        let admission = source.joint_uf_source_admission().unwrap();
+        let (episode, _) = source.joint_source_with_contacts();
+        let shared = prepare_complete_joint_field_with_admission(episode, 0, &admission).unwrap();
+        let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
+        let site = NeuronSourceSite::from_anchor(
+            bind_neuron_source_anchor(episode, perspective).unwrap(),
+        );
+        let genesis = anatomy.create_neuron(perspective, &site).unwrap();
+        let settled = settle_vestibular_neuron_compatibility_interval(
+            &anatomy,
+            tick,
+            genesis.anatomy(),
+            genesis.state(),
+            perspective,
+            genesis.zero_recovery_catalysts(),
+            0,
+        )
+        .unwrap();
+        assert_eq!(settled.successor_neuron.gate.open_population(), 1);
+        assert_ne!(
+            settled
+                .successor_neuron
+                .membrane_state()
+                .separated_elementary_charges(),
+            0
+        );
+        assert!(
+            settled.exported_heat_zeptojoules
+                > BigRational::from_integer(BigInt::from(0))
+        );
     }
 
     #[test]

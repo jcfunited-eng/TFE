@@ -569,6 +569,68 @@ pub(crate) mod tests {
         decode_native_joint_source_episode(&output, 4, 12, 1, 3).unwrap()
     }
 
+    pub(crate) fn exact_optical_binaural_episode() -> NativeJointSourceEpisode {
+        let mut output = b"GLJSRC02".to_vec();
+        u16_value(&mut output, 2);
+        text_value(&mut output, "typed-optical-binaural-occurrence");
+        output.extend_from_slice(&[0, 0, 1, 1, 1, 1]);
+        u32_value(&mut output, 3);
+        source_port(
+            &mut output,
+            0,
+            0,
+            "left-retina",
+            "foveal-receptor-0",
+            "retinal-spectral-irradiance",
+            "fraction-of-declared-retinal-reference-irradiance",
+            [0.0, 0.5, 1.0],
+            [(0, 1), (1, 1), (2, 1)],
+        );
+        source_port(
+            &mut output,
+            1,
+            0,
+            "left-cochlea",
+            "cochlea-0-band-00",
+            "cochlear-band-pressure",
+            "fraction-of-declared-cochlear-reference-pressure",
+            [0.0, 0.25, 0.5],
+            [(0, 1), (1, 1), (2, 1)],
+        );
+        source_port(
+            &mut output,
+            1,
+            1,
+            "right-cochlea",
+            "cochlea-1-band-00",
+            "cochlear-band-pressure",
+            "fraction-of-declared-cochlear-reference-pressure",
+            [0.0, 0.25, 0.5],
+            [(0, 1), (1, 1), (2, 1)],
+        );
+        u32_value(&mut output, 1);
+        u32_value(&mut output, 3);
+        for index in 0..3 {
+            u32_value(&mut output, index);
+        }
+        u32_value(&mut output, 3);
+        for time in 0..3 {
+            rational_value(&mut output, time, 1);
+        }
+        byte_value(&mut output, INTERSAMPLE);
+        u32_value(&mut output, 3);
+        for index in 0..3 {
+            u32_value(&mut output, 1);
+            u32_value(&mut output, index);
+        }
+        byte_value(&mut output, b"explicit-joint-relevance-v1");
+        u32_value(&mut output, 3);
+        for _ in 0..3 {
+            rational_value(&mut output, 1, 1);
+        }
+        decode_native_joint_source_episode(&output, 3, 9, 1, 3).unwrap()
+    }
+
     fn optical_episode(fields: [f64; 3]) -> NativeJointSourceEpisode {
         let mut output = b"GLJSRC02".to_vec();
         u16_value(&mut output, 2);
