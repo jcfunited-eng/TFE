@@ -3525,7 +3525,11 @@ mod tests {
         let fabric_generation = before.fabric_generation;
         let joint = before.joint_bytes.to_vec();
 
-        assert!(ResidentOrganismRuntime::restore_envelope(predecessor.clone(), budget).is_err());
+        // A pre-V18 body can remain structurally decodable while still
+        // lacking the membrane-territory carrier material. Decodability is
+        // therefore not migration authority; the explicit one-way boundary
+        // below must execute and prove its current-format successor.
+        ResidentOrganismRuntime::restore_envelope(predecessor.clone(), budget).unwrap();
         let migrated =
             migrate_resident_organism_exact_energy_envelope(predecessor, budget).unwrap();
         let after = parse_current_envelope(&migrated, budget).unwrap();

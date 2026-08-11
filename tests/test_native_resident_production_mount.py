@@ -309,12 +309,51 @@ def test_startup_accepts_genuine_restored_native_cognition(monkeypatch) -> None:
         production._public_observation_etag = None
 
 
+def test_authorized_startup_migrates_before_first_restore(monkeypatch) -> None:
+    calls: list[str] = []
+    learned = _Observation(
+        cognitive_mosaic_count=1,
+        complete_neuron_count=29,
+        joint_field_count=1,
+        joint_neuron_count=29,
+    )
+    monkeypatch.setenv("GUALA_CURRENT_FORMAT_MIGRATION", "1")
+    monkeypatch.setattr(
+        production,
+        "derive_native_resident_resource_admission",
+        lambda _root: _Admission(),
+    )
+    monkeypatch.setattr(
+        production,
+        "migrate_current_native_organism_current_format",
+        lambda *_args, **_kwargs: calls.append("migrate"),
+    )
+    monkeypatch.setattr(
+        production,
+        "restore_current_native_organism",
+        lambda *_args, **_kwargs: (
+            calls.append("restore") or _Restored(_Organism(learned))
+        ),
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+
+    production._startup()
+    try:
+        assert calls[:2] == ["migrate", "restore"]
+    finally:
+        production._restored = None
+        production._admission = None
+        production._public_observation_body = None
+        production._public_observation_etag = None
+
+
 def test_startup_performs_growth_dna_genesis_when_current_absent(
     monkeypatch, tmp_path
 ) -> None:
     """An empty state directory births one seeded growth-DNA genesis body."""
 
     monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setenv("GUALA_CURRENT_FORMAT_MIGRATION", "1")
     production._startup()
     try:
         assert (tmp_path / "CURRENT").is_file()
@@ -325,7 +364,8 @@ def test_startup_performs_growth_dna_genesis_when_current_absent(
         assert observed.complete_neuron_count == 0
         assert observed.cognitive_mosaic_count == 0
         assert observed.python_callback_count == 0
-        # Restart from the same directory restores the same newborn body.
+        # An explicitly authorized restart sees an already-current body as a
+        # physical no-op: no self-predecessor publication and no new receipt.
         first_sha = production._restored.pointer.state_sha256
         production._startup()
         assert production._restored.pointer.state_sha256 == first_sha

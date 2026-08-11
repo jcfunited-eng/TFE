@@ -32,12 +32,19 @@ fn real_production_body_migrates_losslessly() {
     );
     let decoded = ResidentCognitiveFormationState::decode_for_one_way_migration(&cognitive, budget)
         .expect("authenticated live image is admitted only at the migration boundary");
+    let expected = decoded
+        .clone()
+        .into_geometry_provisioned_carrier_material()
+        .expect("declared membrane territory provisions exact omitted material");
     let migrated = ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, budget)
         .expect("migration to current format");
     let redecoded =
         ResidentCognitiveFormationState::decode(&migrated, budget).expect("migrated image decodes");
     assert_eq!(redecoded.generation, decoded.generation);
-    assert_eq!(redecoded.cohorts, decoded.cohorts, "reached cells changed");
+    assert_eq!(
+        redecoded.cohorts, expected.cohorts,
+        "migration differs from the exact omitted-material law"
+    );
     assert_eq!(redecoded.mosaics, decoded.mosaics, "retained state changed");
     assert_eq!(redecoded.hippocampal, decoded.hippocampal);
     assert_eq!(
@@ -50,6 +57,29 @@ fn real_production_body_migrates_losslessly() {
             .expect("current image remains current"),
         migrated,
         "the one-way migration is idempotent",
+    );
+
+    // Task 975 exposed the deployment boundary this specifically guards:
+    // an ordinary transition wrote V17 before the V17 migration executed.
+    // Such a false V17 body must still receive the correction once, while
+    // the resulting V18 body remains byte-idempotent.
+    let false_v17 = decoded
+        .encode_with_format(super::CognitiveCodecFormat::V17, budget)
+        .expect("predecessor can reproduce the false V17 boundary body");
+    let repaired_false_v17 = ResidentCognitiveFormationState::migrate_to_current_format(
+        &false_v17,
+        budget,
+    )
+    .expect("false V17 body receives the V18 correction");
+    assert_eq!(
+        ResidentCognitiveFormationState::decode(&repaired_false_v17, budget)
+            .expect("repaired false V17 body decodes"),
+        expected,
+    );
+    assert_eq!(
+        ResidentCognitiveFormationState::migrate_to_current_format(&repaired_false_v17, budget)
+            .expect("V18 remains current"),
+        repaired_false_v17,
     );
     println!(
         "REAL_BODY_MIGRATION tick={} old_cognitive_bytes={} new_cognitive_bytes={} cohorts={} reached_neurons={} resting_neurons={} mosaics={}",

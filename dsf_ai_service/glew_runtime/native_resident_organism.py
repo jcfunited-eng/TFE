@@ -1171,7 +1171,12 @@ def migrate_native_resident_organism_exact_energy(
     max_fabric_bytes: int,
     max_logical_peak_bytes: int,
 ) -> bytes:
-    """Perform the explicit one-way retired-reservoir cutover."""
+    """Derive the explicit current-format body from one exact predecessor.
+
+    The native boundary is idempotent: an already-current body is returned
+    byte-identically. Publication decides whether that is a no-op; treating
+    equality as an error here made every explicitly authorized restart fail.
+    """
 
     if (
         not isinstance(current_envelope, bytes)
@@ -1194,12 +1199,8 @@ def migrate_native_resident_organism_exact_energy(
     if not callable(migrate):
         raise RuntimeError("guala_core does not expose exact-energy migration")
     migrated = bytes(migrate(current_envelope, envelope, fabric, logical))
-    if (
-        migrated == current_envelope
-        or not migrated.startswith(b"GLORUN01")
-        or len(migrated) > envelope
-    ):
-        raise RuntimeError("exact-energy migration did not produce one new body")
+    if not migrated.startswith(b"GLORUN01") or len(migrated) > envelope:
+        raise RuntimeError("current-format migration produced an invalid body")
     restore_native_resident_organism(
         current_envelope=migrated,
         max_envelope_bytes=envelope,

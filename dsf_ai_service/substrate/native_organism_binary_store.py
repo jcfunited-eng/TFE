@@ -1044,6 +1044,26 @@ def migrate_current_native_organism_current_format(
             "current-format migration carries no exact predecessor"
         )
     root = _store_root(store_root)
+    current = _read_current(root)
+    if current is None or current.state_sha256 != predecessor:
+        raise NativeOrganismBinaryStoreError(
+            "native organism CURRENT changed during current-format rehearsal"
+        )
+    if restored.pointer.state_sha256 == current.state_sha256:
+        # Already-current is a physical no-op. Publishing the same bytes over
+        # themselves would make CURRENT name itself as its predecessor and
+        # turn every restart with explicit migration authorization into a
+        # false state transition.
+        return PublishedNativeOrganism(
+            pointer=current,
+            accounting=_body_accounting(
+                root,
+                current,
+                current.state_bytes,
+                max_envelope_bytes=max_envelope_bytes,
+            ),
+            remote_key=_remote_key(current.state_sha256),
+        )
     staged = stage_active_native_organism(
         root,
         restored.organism,

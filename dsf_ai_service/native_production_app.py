@@ -5856,17 +5856,13 @@ def _startup() -> None:
                 "GUALA_CURRENT_FORMAT_MIGRATION must be exactly 0 or 1"
             )
         try:
-            restored = restore_current_native_organism(
-                STATE_ROOT,
-                max_envelope_bytes=admission.max_envelope_bytes,
-                max_fabric_bytes=admission.max_fabric_bytes,
-                max_logical_peak_bytes=admission.max_logical_peak_bytes,
-            )
-            if (
-                migration_authorized == "1"
-                and restored.organism.readiness().developmental_resting_neuron_count
-                == 0
-            ):
+            # Migration authorization is an instruction to make CURRENT
+            # current before any ordinary interval can encode it. The former
+            # readiness-count shortcut let a decodable V16 body run first;
+            # that interval then wrote V17 without applying V17's carrier
+            # correction. Native migration is idempotent, so execute it first
+            # whenever this explicit release switch is on.
+            if migration_authorized == "1":
                 migrate_current_native_organism_current_format(
                     STATE_ROOT,
                     object_store=_object_store(),
@@ -5874,12 +5870,12 @@ def _startup() -> None:
                     max_fabric_bytes=admission.max_fabric_bytes,
                     max_logical_peak_bytes=admission.max_logical_peak_bytes,
                 )
-                restored = restore_current_native_organism(
-                    STATE_ROOT,
-                    max_envelope_bytes=admission.max_envelope_bytes,
-                    max_fabric_bytes=admission.max_fabric_bytes,
-                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
-                )
+            restored = restore_current_native_organism(
+                STATE_ROOT,
+                max_envelope_bytes=admission.max_envelope_bytes,
+                max_fabric_bytes=admission.max_fabric_bytes,
+                max_logical_peak_bytes=admission.max_logical_peak_bytes,
+            )
         except NativeOrganismBinaryStoreError as error:
             if "CURRENT is absent" not in str(error):
                 if migration_authorized != "1":
