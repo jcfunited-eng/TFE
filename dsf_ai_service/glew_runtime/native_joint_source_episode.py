@@ -431,10 +431,62 @@ def settle_native_joint_source_episode(
     return result
 
 
+def settle_native_joint_source_episode_batch_from_anatomy(
+    *,
+    anatomy: object,
+    assembly_ids: tuple[str, ...],
+    source_times: tuple[tuple[Fraction, ...], ...],
+    signal_bodies: tuple[bytes, ...],
+) -> tuple[ImmutableJointSourceEpisode, ...]:
+    """Build exact episodes natively from one authored receptor anatomy."""
+
+    if not (
+        isinstance(assembly_ids, tuple)
+        and isinstance(source_times, tuple)
+        and isinstance(signal_bodies, tuple)
+        and len(assembly_ids) == len(source_times) == len(signal_bodies)
+        and assembly_ids
+    ):
+        raise ValueError("compact joint-source batch changed cardinality")
+    clocks: list[list[tuple[int, int]]] = []
+    for clock in source_times:
+        if not isinstance(clock, tuple) or not clock:
+            raise ValueError("compact joint-source clock is empty or mutable")
+        encoded_clock: list[tuple[int, int]] = []
+        for value in clock:
+            if not isinstance(value, Fraction):
+                raise TypeError("compact joint-source clock is not exact")
+            if not -(1 << 63) <= value.numerator < (1 << 63):
+                raise ValueError("compact joint-source clock numerator exceeds i64")
+            if not 0 < value.denominator < (1 << 63):
+                raise ValueError("compact joint-source clock denominator exceeds i64")
+            encoded_clock.append((value.numerator, value.denominator))
+        clocks.append(encoded_clock)
+    if any(not isinstance(value, bytes) or not value for value in signal_bodies):
+        raise ValueError("compact joint-source signal body is empty or untyped")
+    result = _native_core().settle_native_joint_source_episode_batch_from_anatomy(
+        anatomy,
+        list(assembly_ids),
+        clocks,
+        list(signal_bodies),
+    )
+    if not isinstance(result, list) or len(result) != len(assembly_ids):
+        raise RuntimeError("native compact joint-source batch changed cardinality")
+    if any(
+        not isinstance(episode, ImmutableJointSourceEpisode)
+        or episode.schema != "guala.native.exact_joint_source_episode.v2"
+        or episode.python_callback_count != 0
+        for episode in result
+    ):
+        raise RuntimeError("native compact joint-source batch lost authority")
+    return tuple(result)
+
+
 __all__ = (
     "ImmutableJointSourceEpisode",
     "NativeJointSourceOccurrenceInput",
     "UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR",
     "encode_native_joint_source_episode",
     "settle_native_joint_source_episode",
+    "settle_native_joint_source_episode_batch_from_anatomy",
 )

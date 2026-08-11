@@ -55,6 +55,7 @@ served under the same lock, so no surface ever reports unpersisted state.
 
 from __future__ import annotations
 
+from array import array
 import base64
 import binascii
 from contextlib import asynccontextmanager
@@ -69,6 +70,7 @@ import os
 from pathlib import Path
 import re
 import struct
+import sys
 import tempfile
 import time
 import urllib.request
@@ -87,6 +89,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
     NativeJointSourceOccurrenceInput,
     UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR,
     settle_native_joint_source_episode,
+    settle_native_joint_source_episode_batch_from_anatomy,
 )
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     ResidentPrepareEvidence,
@@ -136,6 +139,9 @@ EXPERIENCE_STAGE_ORDER = (
     "consequence",
 )
 PERSISTENCE_SCHEMA = "guala.native_organism_binary_store.v1"
+CARD_LESSON_RECEIPT_SCHEMA = "guala.card_lesson_observation_receipt.v1"
+CARD_LESSON_RECEIPT_FILE = "LATEST_CARD_LESSON_RECEIPT.json"
+CARD_LESSON_RECEIPT_MAX_BYTES = 32_768
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
@@ -1252,6 +1258,9 @@ _boot_error: str | None = None
 _public_observation_body: bytes | None = None
 _public_observation_etag: str | None = None
 _last_transition_evidence: dict[str, Any] | None = None
+_last_card_lesson_receipt: dict[str, Any] | None = None
+_last_card_lesson_receipt_error: str | None = None
+_mounted_lesson_anatomy: Any | None = None
 # RE-ENTRANT ON PURPOSE. Reading her body and transitioning her body are the
 # same borrow as far as the native core is concerned: while a transition holds
 # it mutably, any read raises "Already mutably borrowed" and the request 500s.
@@ -2689,6 +2698,7 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "curriculum": _curriculum_media_record(),
         "last_transition": last,
+        "last_card_lesson_receipt": _card_lesson_receipt_record(),
         "experience_stage_ledger": _experience_stage_ledger_record(),
         "full_dsf": _section(
             False,
@@ -3729,6 +3739,15 @@ def _declared_anatomy_episode() -> Any:
             ),
         ),
     )
+
+
+def _lesson_anatomy() -> Any:
+    """One immutable native receptor topology, mounted once per process."""
+
+    global _mounted_lesson_anatomy
+    if _mounted_lesson_anatomy is None:
+        _mounted_lesson_anatomy = _declared_anatomy_episode()
+    return _mounted_lesson_anatomy
 
 
 def _declared_retinal_neighbours() -> tuple[tuple[tuple[int, int], tuple[int, int]], ...]:
@@ -4970,6 +4989,77 @@ def _whole_roster_hop_episode(
     )
 
 
+def _compact_whole_roster_signal_body(
+    times: tuple[Fraction, ...],
+    surface_levels: tuple[float, ...],
+    ear_signal: tuple[float, ...],
+    cochlear: tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None,
+    contact: tuple[float, ...] | None,
+    tasted: tuple[Fraction, ...] | None,
+    smelled: tuple[Fraction, ...] | None,
+    moved: tuple[Fraction, ...] | None = None,
+) -> bytes:
+    """One port-major binary64 sensorium with no per-sample Python objects."""
+
+    frame_count = len(times)
+    if len(surface_levels) != CARD_SURFACE_PORT_COUNT or len(ear_signal) != frame_count:
+        raise ValueError("compact lesson sight or legacy-ear width changed")
+    signals = array("d")
+
+    def constant_ports(values: Iterable[object], width: int, label: str) -> None:
+        held = tuple(values)
+        if len(held) != width:
+            raise ValueError(f"compact lesson {label} width changed")
+        for value in held:
+            signals.extend([float(value)] * frame_count)
+
+    constant_ports(surface_levels, CARD_SURFACE_PORT_COUNT, "retina")
+    for _ in range(LEGACY_EAR_PORT_COUNT):
+        signals.extend(ear_signal)
+    if COCHLEAR_EARS_AUTHORIZED:
+        if cochlear is None or cochlear[0] != times:
+            raise ValueError("compact lesson cochlea changed its shared clock")
+        bands = cochlear[1]
+        if len(bands) != COCHLEAR_CHANNELS_PER_EAR:
+            raise ValueError("compact lesson cochlear width changed")
+        for _ in range(EAR_COUNT):
+            for band in bands:
+                if len(band) != frame_count:
+                    raise ValueError("compact lesson cochlear frame count changed")
+                signals.extend(band)
+    if TOUCH_RECEPTORS_AUTHORIZED:
+        constant_ports(
+            contact if contact is not None else (0.0,) * CONTACT_SHEET_SITE_COUNT,
+            CONTACT_SHEET_SITE_COUNT,
+            "contact sheet",
+        )
+    # SENSE_ORDER is sight, sound, touch, smell, taste, body.  The compact
+    # body follows that physical order exactly; it does not follow the order
+    # in which the card material helper happens to return taste and smell.
+    if CHEMORECEPTION_AUTHORIZED:
+        constant_ports(
+            smelled if smelled is not None else (Fraction(0),) * SMELL_SITE_COUNT,
+            SMELL_SITE_COUNT,
+            "olfactory epithelium",
+        )
+        constant_ports(
+            tasted if tasted is not None else (Fraction(0),) * TASTE_SITE_COUNT,
+            TASTE_SITE_COUNT,
+            "gustatory surface",
+        )
+    if VESTIBULAR_AUTHORIZED:
+        constant_ports(
+            moved if moved is not None else (Fraction(0),) * DISPLACEMENT_SITE_COUNT,
+            DISPLACEMENT_SITE_COUNT,
+            "body displacement",
+        )
+    if len(signals) != LESSON_PORT_COUNT * frame_count:
+        raise ValueError("compact lesson signals do not cover the authored anatomy")
+    if sys.byteorder != "little":
+        signals.byteswap()
+    return signals.tobytes()
+
+
 def _partial_presentation_levels(
     luminance: tuple[float, ...],
 ) -> tuple[float, ...]:
@@ -5184,59 +5274,29 @@ def _card_lesson_hop_episodes(
         ended_cochlear = list(
             cochlear_hops[len(hops) : len(hops) + LESSON_ENDED_HOP_COUNT]
         )
-    episodes: list[tuple[Any, list[tuple[int, int]]]] = []
+    assembly_ids: list[str] = []
+    clocks: list[tuple[Fraction, ...]] = []
+    signal_bodies: list[bytes] = []
+    admissions: list[list[tuple[int, int]]] = []
     for hop_index, (shared_times, audio_signal) in enumerate(hops):
-        frame_count = len(shared_times)
-        sight_ports = tuple(
-            _card_surface_substream(
-                row,
-                column,
-                shared_times,
-                (luminance[row * CARD_SURFACE_COLUMNS + column],)
-                * frame_count,
-            )
-            for row in range(CARD_SURFACE_ROWS)
-            for column in range(CARD_SURFACE_COLUMNS)
-        )
         cochlear = cochlear_hops[hop_index] if COCHLEAR_EARS_AUTHORIZED else None
-        observed = {
-            PhysicalSense.SIGHT: sight_ports,
-            PhysicalSense.SOUND: _sound_ports(shared_times, audio_signal, cochlear),
-        }
-        touch_ports = _touch_ports(shared_times, contact)
-        if touch_ports:
-            observed[PhysicalSense.TOUCH] = touch_ports
-        taste_ports = _taste_ports(shared_times, tasted)
-        if taste_ports:
-            observed[PhysicalSense.TASTE] = taste_ports
-        smell_ports = _smell_ports(shared_times, smelled)
-        if smell_ports:
-            observed[PhysicalSense.SMELL] = smell_ports
-        displacement_ports = _displacement_ports(shared_times, None)
-        if displacement_ports:
-            observed[PhysicalSense.BODY] = (
-                observed.get(PhysicalSense.BODY, ()) + displacement_ports
-            )
-        if cochlear is not None and cochlear[0] != shared_times:
-            raise ValueError("coexisting lesson senses do not share one source clock")
-        occurrences = (
-            _occurrence(
-                tuple(range(LESSON_PORT_COUNT)),
+        assembly_ids.append(f"curriculum-card-{card_id}-hop-{hop_index}")
+        clocks.append(shared_times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
                 shared_times,
-                frame_count,
-                _lesson_port_groups(),
-            ),
-        )
-        episode = settle_native_joint_source_episode(
-            assembly_id=f"curriculum-card-{card_id}-hop-{hop_index}",
-            observed_substreams=observed,
-            states=_sense_states(observed),
-            occurrences=occurrences,
+                luminance,
+                audio_signal,
+                cochlear,
+                contact,
+                tasted,
+                smelled,
+            )
         )
         # The maximum causal interval is the signed manifest's presentation
         # window: independent environment authority authored by the
         # curriculum, never derived from the occurrence.
-        episodes.append((episode, [(presentation_ms, 1000)] * len(occurrences)))
+        admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
     # The presentation genuinely ends: the surface is unlit and the tutor is
     # silent.  Each ended hop declares the dark surface as its own exact
     # optical occurrence with true dark samples — exactly as the lit hops and
@@ -5250,15 +5310,27 @@ def _card_lesson_hop_episodes(
     quiescent_signal = (0.0,) * len(quiescent_times)
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
     for ended_index in range(LESSON_ENDED_HOP_COUNT):
-        episode = _whole_roster_hop_episode(
-            f"curriculum-card-{card_id}-ended-{ended_index}",
-            quiescent_times,
-            dark,
-            quiescent_signal,
-            ended_cochlear[ended_index],
+        assembly_ids.append(f"curriculum-card-{card_id}-ended-{ended_index}")
+        clocks.append(quiescent_times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
+                quiescent_times,
+                dark,
+                quiescent_signal,
+                ended_cochlear[ended_index],
+                None,
+                None,
+                None,
+            )
         )
-        episodes.append((episode, [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT))
-    return episodes
+        admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
+    episodes = settle_native_joint_source_episode_batch_from_anatomy(
+        anatomy=_lesson_anatomy(),
+        assembly_ids=tuple(assembly_ids),
+        source_times=tuple(clocks),
+        signal_bodies=tuple(signal_bodies),
+    )
+    return list(zip(episodes, admissions, strict=True))
 
 
 def _mono_pcm_hop_episodes(
@@ -5470,6 +5542,82 @@ def _perform_live_sight_intake(
         return result
 
 
+def _card_lesson_receipt_bytes(record: dict[str, Any]) -> bytes:
+    return json.dumps(
+        record,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _card_lesson_receipt_digest(record: dict[str, Any]) -> str:
+    payload = {
+        key: value for key, value in record.items() if key != "receipt_sha256"
+    }
+    return hashlib.sha256(_card_lesson_receipt_bytes(payload)).hexdigest()
+
+
+def _persist_card_lesson_receipt(record: dict[str, Any]) -> None:
+    body = _card_lesson_receipt_bytes(record)
+    if len(body) > CARD_LESSON_RECEIPT_MAX_BYTES:
+        raise ValueError("card lesson receipt exceeds its fixed byte bound")
+    stage = STATE_ROOT / f".{CARD_LESSON_RECEIPT_FILE}.stage"
+    destination = STATE_ROOT / CARD_LESSON_RECEIPT_FILE
+    with stage.open("wb") as stream:
+        stream.write(body)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(stage, destination)
+    directory = os.open(STATE_ROOT, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+
+
+def _load_card_lesson_receipt() -> dict[str, Any] | None:
+    path = STATE_ROOT / CARD_LESSON_RECEIPT_FILE
+    if not path.is_file():
+        return None
+    if path.stat().st_size > CARD_LESSON_RECEIPT_MAX_BYTES:
+        raise ValueError("card lesson receipt exceeds its fixed byte bound")
+    record = json.loads(path.read_bytes())
+    if not isinstance(record, dict):
+        raise ValueError("card lesson receipt is not an object")
+    if record.get("schema") != CARD_LESSON_RECEIPT_SCHEMA:
+        raise ValueError("card lesson receipt schema changed")
+    digest = record.get("receipt_sha256")
+    if not isinstance(digest, str) or not hmac.compare_digest(
+        digest, _card_lesson_receipt_digest(record)
+    ):
+        raise ValueError("card lesson receipt digest changed")
+    return record
+
+
+def _card_lesson_receipt_record() -> dict[str, object]:
+    if _last_card_lesson_receipt is not None:
+        return _section(
+            True,
+            "durable_card_lesson_receipt",
+            "the latest committed card lesson transport receipt is stored as "
+            "one fixed bounded observation record outside organism cognition; "
+            "later sensory transitions do not overwrite it",
+            **_last_card_lesson_receipt,
+        )
+    if _last_card_lesson_receipt_error is not None:
+        return _section(
+            False,
+            "card_lesson_receipt_unavailable",
+            _last_card_lesson_receipt_error,
+        )
+    return _section(
+        False,
+        "no_durable_card_lesson_receipt",
+        "no card lesson has left a durable intake-specific receipt",
+    )
+
+
 def _perform_card_lesson_intake(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
@@ -5488,6 +5636,7 @@ def _perform_card_lesson_intake(
     records no contact, which is the truth about it.
     """
 
+    global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _touch_evidence
 
     with _transition_lock:
@@ -5502,7 +5651,46 @@ def _perform_card_lesson_intake(
                 "last_contact_object": card_id,
                 "last_contact_state_sha256": result["observation"]["state_sha256"],
             }
-            _refresh_public_observation_cache()
+        surface = experience.get("surface")
+        tutor_audio = experience.get("tutor_audio")
+        receipt: dict[str, Any] = {
+            "schema": CARD_LESSON_RECEIPT_SCHEMA,
+            "card_id": card_id,
+            "presentation": presentation,
+            "transport_metadata_only": True,
+            "surface_sha256": (
+                surface.get("sha256") if isinstance(surface, dict) else None
+            ),
+            "tutor_audio_sha256": (
+                tutor_audio.get("sha256")
+                if isinstance(tutor_audio, dict)
+                else None
+            ),
+            "predecessor_state_sha256": result["persisted"][
+                "predecessor_state_sha256"
+            ],
+            "successor_state_sha256": result["persisted"]["state_sha256"],
+            "successor_state_bytes": result["persisted"]["state_bytes"],
+            "successor_organism_tick": result["persisted"]["organism_tick"],
+            "hop_count": result["hop_count"],
+            "totals": dict(result["totals"]),
+        }
+        receipt["receipt_sha256"] = _card_lesson_receipt_digest(receipt)
+        try:
+            _persist_card_lesson_receipt(receipt)
+        except (OSError, TypeError, ValueError) as error:
+            _last_card_lesson_receipt = None
+            _last_card_lesson_receipt_error = (
+                "the organism successor committed, but its bounded card "
+                f"lesson receipt could not be persisted ({type(error).__name__}: "
+                f"{error}); do not repeat the lesson"
+            )
+            result["durable_receipt"] = _card_lesson_receipt_record()
+        else:
+            _last_card_lesson_receipt = receipt
+            _last_card_lesson_receipt_error = None
+            result["durable_receipt"] = _card_lesson_receipt_record()
+        _refresh_public_observation_cache()
         return result
 
 
@@ -5583,7 +5771,11 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
         lived.append(f"generations ({len(generations)} retained bodies)")
     lived.extend(
         name
-        for name in (LOCAL_OBJECT_MIRROR_DIRECTORY, "hippocampal-cold")
+        for name in (
+            LOCAL_OBJECT_MIRROR_DIRECTORY,
+            "hippocampal-cold",
+            CARD_LESSON_RECEIPT_FILE,
+        )
         if (root / name).exists()
     )
     lived.extend(sorted(path.name for path in root.glob(".stage-*")))
@@ -5592,6 +5784,7 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
 
 def _startup() -> None:
     global _restored, _admission, _boot_error
+    global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _public_observation_body, _public_observation_etag
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
@@ -5660,6 +5853,7 @@ def _startup() -> None:
                     max_logical_peak_bytes=admission.max_logical_peak_bytes,
                 )
         observation = restored.organism.readiness()
+        _lesson_anatomy()
         if observation.python_callback_count != 0:
             raise RuntimeError("native organism reports a Python cognition callback")
         step_claims = (
@@ -5674,6 +5868,15 @@ def _startup() -> None:
         _admission = admission
         _restored = restored
         _boot_error = None
+        try:
+            _last_card_lesson_receipt = _load_card_lesson_receipt()
+            _last_card_lesson_receipt_error = None
+        except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+            _last_card_lesson_receipt = None
+            _last_card_lesson_receipt_error = (
+                "the bounded card lesson receipt could not be restored "
+                f"({type(error).__name__}: {error})"
+            )
         _refresh_public_observation_cache()
     except BaseException as error:
         _restored = None

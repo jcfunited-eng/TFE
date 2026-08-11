@@ -172,6 +172,228 @@ fn settle_native_joint_source_episode(
     .map_err(PyValueError::new_err)
 }
 
+fn compact_u16(output: &mut Vec<u8>, value: usize, label: &str) -> Result<(), String> {
+    let value = u16::try_from(value).map_err(|_| format!("{label} exceeds u16"))?;
+    output.extend_from_slice(&value.to_le_bytes());
+    Ok(())
+}
+
+fn compact_u32(output: &mut Vec<u8>, value: usize, label: &str) -> Result<(), String> {
+    let value = u32::try_from(value).map_err(|_| format!("{label} exceeds u32"))?;
+    output.extend_from_slice(&value.to_le_bytes());
+    Ok(())
+}
+
+fn compact_text(output: &mut Vec<u8>, value: &str, label: &str) -> Result<(), String> {
+    compact_u16(output, value.len(), label)?;
+    output.extend_from_slice(value.as_bytes());
+    Ok(())
+}
+
+fn compact_bytes(output: &mut Vec<u8>, value: &[u8], label: &str) -> Result<(), String> {
+    if value.is_empty() {
+        return Err(format!("{label} is empty"));
+    }
+    compact_u32(output, value.len(), label)?;
+    output.extend_from_slice(value);
+    Ok(())
+}
+
+fn compact_rational(output: &mut Vec<u8>, value: &BigRational) -> Result<(), String> {
+    compact_text(output, &value.numer().to_string(), "rational numerator")?;
+    compact_text(output, &value.denom().to_string(), "rational denominator")
+}
+
+fn compact_lesson_episode_from_anatomy(
+    anatomy: &NativeJointSourceEpisode,
+    assembly_id: &str,
+    clock: &[(i64, i64)],
+    signal_bytes: &[u8],
+) -> Result<NativeJointSourceEpisode, String> {
+    let ports = anatomy.joint_source_ports();
+    let occurrences = anatomy.joint_source_occurrences();
+    if ports.is_empty() || occurrences.len() != 1 {
+        return Err("compact lesson anatomy must carry one nonempty joint occurrence".into());
+    }
+    let occurrence = &occurrences[0];
+    if occurrence.port_indices.iter().copied().ne(0..ports.len()) {
+        return Err("compact lesson anatomy occurrence does not cover every port once".into());
+    }
+    if clock.is_empty() {
+        return Err("compact lesson clock is empty".into());
+    }
+    let mut source_times = Vec::with_capacity(clock.len());
+    let mut prior: Option<BigRational> = None;
+    for &(numerator, denominator) in clock {
+        if denominator <= 0 {
+            return Err("compact lesson clock denominator is not positive".into());
+        }
+        let value = BigRational::new(BigInt::from(numerator), BigInt::from(denominator));
+        if prior.as_ref().is_some_and(|previous| value <= *previous) {
+            return Err("compact lesson clock does not increase strictly".into());
+        }
+        prior = Some(value.clone());
+        source_times.push(value);
+    }
+    let sample_count = ports
+        .len()
+        .checked_mul(source_times.len())
+        .ok_or_else(|| "compact lesson sample count overflow".to_string())?;
+    let expected_signal_bytes = sample_count
+        .checked_mul(std::mem::size_of::<f64>())
+        .ok_or_else(|| "compact lesson signal byte count overflow".to_string())?;
+    if signal_bytes.len() != expected_signal_bytes {
+        return Err("compact lesson signal bytes differ from anatomy and clock".into());
+    }
+
+    let mut output = MAGIC.to_vec();
+    output.extend_from_slice(&VERSION.to_le_bytes());
+    compact_text(&mut output, assembly_id, "assembly identity")?;
+    output.extend_from_slice(&anatomy.storage.sense_states);
+    compact_u32(&mut output, ports.len(), "port count")?;
+    let zero = BigRational::zero();
+    let one = BigRational::one();
+    let mut signal_offset = 0usize;
+    for port in ports {
+        if port
+            .reported_phase_turns
+            .iter()
+            .any(|value| !value.is_zero())
+            || port.source_relevances.iter().any(|value| value != &one)
+        {
+            return Err("compact lesson anatomy is not zero-phase unit-relevance".into());
+        }
+        output.push(port.sense);
+        output.extend_from_slice(&port.topology_index.to_le_bytes());
+        compact_text(&mut output, &port.sensor_id, "sensor identity")?;
+        compact_text(&mut output, &port.substream_id, "substream identity")?;
+        compact_u16(&mut output, port.coordinates.len(), "coordinate count")?;
+        for coordinate in &port.coordinates {
+            compact_text(&mut output, &coordinate.axis_id, "coordinate axis")?;
+            compact_text(
+                &mut output,
+                &coordinate.coordinate_id,
+                "coordinate identity",
+            )?;
+        }
+        compact_text(&mut output, &port.physical_quantity, "physical quantity")?;
+        compact_text(&mut output, &port.physical_unit, "physical unit")?;
+        compact_text(&mut output, &port.relevance_rule, "relevance rule")?;
+        compact_text(
+            &mut output,
+            port.relevance_origin.as_deref().unwrap_or(""),
+            "relevance origin",
+        )?;
+        compact_text(&mut output, &port.input_map_id, "input map identity")?;
+        compact_rational(&mut output, &port.source_min)?;
+        compact_rational(&mut output, &port.source_max)?;
+        compact_rational(&mut output, &port.field_offset)?;
+        compact_rational(&mut output, &port.field_scale)?;
+        compact_bytes(&mut output, &port.input_map_profile, "input map profile")?;
+        compact_u32(&mut output, source_times.len(), "port sample count")?;
+        for timestamp in &source_times {
+            compact_rational(&mut output, timestamp)?;
+            let end = signal_offset + std::mem::size_of::<f64>();
+            let encoded: [u8; 8] = signal_bytes[signal_offset..end]
+                .try_into()
+                .expect("compact signal width checked");
+            signal_offset = end;
+            let signal = f64::from_le_bytes(encoded);
+            if !signal.is_finite() || !(-1.0..=1.0).contains(&signal) {
+                return Err("compact lesson signal is outside normalized binary64".into());
+            }
+            let exact_signal = BigRational::from_float(signal)
+                .ok_or_else(|| "compact lesson signal is not exact binary64".to_string())?;
+            if exact_signal < port.source_min || exact_signal > port.source_max {
+                return Err("compact lesson signal is outside its authored input map".into());
+            }
+            output.extend_from_slice(&encoded);
+            compact_rational(&mut output, &zero)?;
+            compact_rational(&mut output, &one)?;
+            compact_rational(
+                &mut output,
+                &(&port.field_offset + &port.field_scale * exact_signal),
+            )?;
+        }
+    }
+
+    compact_u32(&mut output, 1, "occurrence count")?;
+    compact_u32(
+        &mut output,
+        occurrence.port_indices.len(),
+        "occurrence vertex count",
+    )?;
+    for &port_index in &occurrence.port_indices {
+        compact_u32(&mut output, port_index, "occurrence port index")?;
+    }
+    compact_u32(&mut output, source_times.len(), "occurrence frame count")?;
+    for timestamp in &source_times {
+        compact_rational(&mut output, timestamp)?;
+    }
+    compact_bytes(
+        &mut output,
+        &occurrence.joint_intersample_profile,
+        "joint intersample profile",
+    )?;
+    compact_u32(
+        &mut output,
+        occurrence.groups.len(),
+        "occurrence group count",
+    )?;
+    for group in &occurrence.groups {
+        compact_u32(&mut output, group.len(), "occurrence group size")?;
+        for &member in group {
+            compact_u32(&mut output, member, "occurrence group member")?;
+        }
+    }
+    compact_bytes(
+        &mut output,
+        &occurrence.joint_relevance_profile,
+        "joint relevance profile",
+    )?;
+    compact_u32(&mut output, source_times.len(), "joint relevance count")?;
+    for _ in &source_times {
+        compact_rational(&mut output, &one)?;
+    }
+    decode_native_joint_source_episode_owned(
+        output,
+        ports.len(),
+        sample_count,
+        1,
+        source_times.len(),
+    )
+}
+
+#[pyfunction]
+fn settle_native_joint_source_episode_batch_from_anatomy(
+    py: Python<'_>,
+    anatomy: PyRef<'_, NativeJointSourceEpisode>,
+    assembly_ids: Vec<String>,
+    clocks: Vec<Vec<(i64, i64)>>,
+    signal_bodies: Vec<Vec<u8>>,
+) -> PyResult<Vec<NativeJointSourceEpisode>> {
+    if assembly_ids.len() != clocks.len() || clocks.len() != signal_bodies.len() {
+        return Err(PyValueError::new_err(
+            "compact lesson batch fields changed cardinality",
+        ));
+    }
+    if assembly_ids.is_empty() {
+        return Err(PyValueError::new_err("compact lesson batch is empty"));
+    }
+    let anatomy = anatomy.clone();
+    py.allow_threads(move || {
+        assembly_ids
+            .iter()
+            .zip(&clocks)
+            .zip(&signal_bodies)
+            .map(|((assembly_id, clock), signals)| {
+                compact_lesson_episode_from_anatomy(&anatomy, assembly_id, clock, signals)
+            })
+            .collect::<Result<Vec<_>, _>>()
+    })
+    .map_err(PyValueError::new_err)
+}
+
 pub fn decode_native_joint_source_episode(
     candidate_payload: &[u8],
     admitted_port_count: usize,
@@ -220,6 +442,10 @@ pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeJointSourceEpisode>()?;
     module.add_function(wrap_pyfunction!(
         settle_native_joint_source_episode,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        settle_native_joint_source_episode_batch_from_anatomy,
         module
     )?)?;
     Ok(())

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import fields
 from fractions import Fraction
+import struct
 from types import SimpleNamespace
 
 import pytest
@@ -12,6 +13,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
     UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR,
     encode_native_joint_source_episode,
     settle_native_joint_source_episode,
+    settle_native_joint_source_episode_batch_from_anatomy,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
@@ -126,6 +128,27 @@ def test_gljsrc02_encodes_only_explicit_joint_occurrence_authority() -> None:
     assert "contact" not in " ".join(
         field.name for field in fields(NativeJointSourceOccurrenceInput)
     )
+
+
+def test_compact_native_batch_is_byte_exact_with_ordinary_source() -> None:
+    observed, states = _boundary()
+    occurrence = _occurrence(relevance=(Fraction(1),) * 4)
+    ordinary = settle_native_joint_source_episode(
+        assembly_id="joint-source-test",
+        observed_substreams=observed,
+        states=states,
+        occurrences=(occurrence,),
+    )
+    values = (0.0, 0.5, -0.25, 1.0)
+    compact = settle_native_joint_source_episode_batch_from_anatomy(
+        anatomy=ordinary,
+        assembly_ids=("joint-source-test",),
+        source_times=(TIMES,),
+        signal_bodies=(struct.pack("<12d", *(values * 3)),),
+    )
+
+    assert len(compact) == 1
+    assert compact[0].as_bytes() == ordinary.as_bytes()
 
 
 def test_joint_relevance_and_profile_change_exact_source_body() -> None:
