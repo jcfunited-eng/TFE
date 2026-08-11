@@ -33,7 +33,8 @@ use crate::complete_neuron::{
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::recovery_fluid_contact::{
-    settle_recovery_fluid_contact, whole_extents_carried, ReachedRecoveryFluidAnatomy,
+    recovery_exchange_extent_is_representable, settle_recovery_fluid_contact,
+    whole_extents_carried, whole_extents_carried_difference, ReachedRecoveryFluidAnatomy,
     RecoveryFluidError, RecoveryFluidReservoirAnatomy, RecoveryFluidReservoirState,
 };
 use num_bigint::BigInt;
@@ -450,18 +451,29 @@ fn settle_rest_lane(
             reservoir_available,
             energy_per_extent,
         )?)
-        .min(whole_extents_carried(
-            wide_sub(reservoir_spent_capacity, reservoir_spent)?,
+        .min(whole_extents_carried_difference(
+            reservoir_spent_capacity,
+            reservoir_spent,
             energy_per_extent,
         )?)
-        .min(whole_extents_carried(
-            wide_sub(reservoir_thermal_capacity, reservoir_thermal)?,
+        .min(whole_extents_carried_difference(
+            reservoir_thermal_capacity,
+            reservoir_thermal,
             energy_per_extent,
         )?)
         .min(contact_catalyst / catalyst_per_extent)
         .min(contact_fuel / fuel_per_extent)
         .min(contact_spent / spent_per_extent)
         .min(contact_heat / heat_per_extent);
+    let extent = if recovery_exchange_extent_is_representable(
+        predecessor_reservoir,
+        energy_per_extent,
+        extent,
+    ) {
+        extent
+    } else {
+        0
+    };
     if extent == 0 {
         return Ok((
             predecessor_neuron.clone(),

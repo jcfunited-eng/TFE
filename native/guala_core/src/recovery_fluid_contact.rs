@@ -130,12 +130,33 @@ pub(crate) fn settle_powered_environment_exchange(
     }
     let (available_capacity, _, _) = anatomy.capacities();
     let (available, spent, thermal) = predecessor.physical_parts();
-    let available_headroom = wide_sub(available_capacity, available)?;
-    let delivered = exact_minimum(
-        maximum_interval_energy_zeptojoules,
-        exact_minimum(spent, available_headroom)?,
-    )?;
-    let exported_heat = exact_minimum(maximum_interval_energy_zeptojoules, thermal)?;
+    let delivered_wide = wide_rational(maximum_interval_energy_zeptojoules)
+        .min(wide_rational(spent))
+        .min(wide_rational(available_capacity) - wide_rational(available));
+    let delivered = match narrow_rational(delivered_wide) {
+        Ok(value) => value,
+        Err(RecoveryFluidError::ArithmeticWidth) => zero,
+        Err(error) => return Err(error),
+    };
+    let delivered = if representable_reservoir_change(available, delivered, 1, false)
+        && representable_reservoir_change(spent, delivered, 1, true)
+    {
+        delivered
+    } else {
+        zero
+    };
+    let exported_heat_wide =
+        wide_rational(maximum_interval_energy_zeptojoules).min(wide_rational(thermal));
+    let exported_heat = match narrow_rational(exported_heat_wide) {
+        Ok(value) => value,
+        Err(RecoveryFluidError::ArithmeticWidth) => zero,
+        Err(error) => return Err(error),
+    };
+    let exported_heat = if representable_reservoir_change(thermal, exported_heat, 1, true) {
+        exported_heat
+    } else {
+        zero
+    };
     let successor = RecoveryFluidReservoirState::new(
         anatomy,
         wide_add(available, delivered)?,
@@ -146,17 +167,6 @@ pub(crate) fn settle_powered_environment_exchange(
         successor,
         delivered_energy_zeptojoules: delivered,
         exported_heat_zeptojoules: exported_heat,
-    })
-}
-
-fn exact_minimum(
-    left: ExactRational,
-    right: ExactRational,
-) -> Result<ExactRational, RecoveryFluidError> {
-    Ok(if wide_rational(left) > wide_rational(right) {
-        right
-    } else {
-        left
     })
 }
 
@@ -551,32 +561,50 @@ pub(crate) fn settle_recovery_fluid_contact(
         return Err(RecoveryFluidError::MaterialContinuity);
     }
     let (_, fuel_per_extent, spent_per_extent, heat_per_extent) = lane_anatomy.stoichiometry();
-    let inward_extent = (contact.fuel_inward_capacity_per_interval / fuel_per_extent)
+    let mut inward_extent = (contact.fuel_inward_capacity_per_interval / fuel_per_extent)
         .min((lane_fuel_capacity - lane_fuel) / fuel_per_extent)
         .min(whole_extents_carried(
             reservoir_available,
             energy_per_extent_zeptojoules,
         )?);
-    let spent_free = wide_sub(
-        reservoir_anatomy.spent_energy_capacity_zeptojoules,
-        reservoir_spent,
-    )?;
-    let outward_spent_extent = (contact.spent_outward_capacity_per_interval / spent_per_extent)
+    let mut outward_spent_extent = (contact.spent_outward_capacity_per_interval / spent_per_extent)
         .min(lane_spent / spent_per_extent)
-        .min(whole_extents_carried(
-            spent_free,
+        .min(whole_extents_carried_difference(
+            reservoir_anatomy.spent_energy_capacity_zeptojoules,
+            reservoir_spent,
             energy_per_extent_zeptojoules,
         )?);
-    let thermal_free = wide_sub(
-        reservoir_anatomy.thermal_energy_capacity_zeptojoules,
-        reservoir_thermal,
-    )?;
-    let outward_heat_extent = (contact.heat_outward_capacity_per_interval / heat_per_extent)
+    let mut outward_heat_extent = (contact.heat_outward_capacity_per_interval / heat_per_extent)
         .min(lane_heat / heat_per_extent)
-        .min(whole_extents_carried(
-            thermal_free,
+        .min(whole_extents_carried_difference(
+            reservoir_anatomy.thermal_energy_capacity_zeptojoules,
+            reservoir_thermal,
             energy_per_extent_zeptojoules,
         )?);
+    if !representable_reservoir_change(
+        reservoir_available,
+        energy_per_extent_zeptojoules,
+        inward_extent,
+        true,
+    ) {
+        inward_extent = 0;
+    }
+    if !representable_reservoir_change(
+        reservoir_spent,
+        energy_per_extent_zeptojoules,
+        outward_spent_extent,
+        false,
+    ) {
+        outward_spent_extent = 0;
+    }
+    if !representable_reservoir_change(
+        reservoir_thermal,
+        energy_per_extent_zeptojoules,
+        outward_heat_extent,
+        false,
+    ) {
+        outward_heat_extent = 0;
+    }
     let inward_fuel = inward_extent
         .checked_mul(fuel_per_extent)
         .ok_or(RecoveryFluidError::ArithmeticWidth)?;
@@ -616,15 +644,64 @@ pub(crate) fn whole_extents_carried(
     energy: ExactRational,
     energy_per_extent: ExactRational,
 ) -> Result<u128, RecoveryFluidError> {
-    if wide_rational(energy) < BigRational::from_integer(BigInt::from(0))
+    whole_extents_carried_wide(wide_rational(energy), energy_per_extent)
+}
+
+pub(crate) fn whole_extents_carried_difference(
+    capacity: ExactRational,
+    occupied: ExactRational,
+    energy_per_extent: ExactRational,
+) -> Result<u128, RecoveryFluidError> {
+    whole_extents_carried_wide(
+        wide_rational(capacity) - wide_rational(occupied),
+        energy_per_extent,
+    )
+}
+
+fn whole_extents_carried_wide(
+    energy: BigRational,
+    energy_per_extent: ExactRational,
+) -> Result<u128, RecoveryFluidError> {
+    if energy < BigRational::from_integer(BigInt::from(0))
         || wide_rational(energy_per_extent) <= BigRational::from_integer(BigInt::from(0))
     {
         return Err(RecoveryFluidError::MaterialContinuity);
     }
-    (wide_rational(energy) / wide_rational(energy_per_extent))
-        .to_integer()
-        .to_u128()
-        .ok_or(RecoveryFluidError::ArithmeticWidth)
+    let whole_extents = (energy / wide_rational(energy_per_extent)).to_integer();
+    // Reaction extent is represented by u128 everywhere downstream.  More
+    // carried energy than that is not an arithmetic failure: it means this
+    // reservoir is not the limiting material.  The lane and contact minima
+    // below still choose the exact, representable local extent.
+    Ok(match whole_extents.to_u128() {
+        Some(value) => value,
+        None => u128::MAX,
+    })
+}
+
+fn representable_reservoir_change(
+    predecessor: ExactRational,
+    energy_per_extent: ExactRational,
+    extent: u128,
+    subtract: bool,
+) -> bool {
+    let change = wide_rational(energy_per_extent) * BigRational::from_integer(BigInt::from(extent));
+    let successor = if subtract {
+        wide_rational(predecessor) - change
+    } else {
+        wide_rational(predecessor) + change
+    };
+    narrow_rational(successor).is_ok()
+}
+
+pub(crate) fn recovery_exchange_extent_is_representable(
+    reservoir: RecoveryFluidReservoirState,
+    energy_per_extent: ExactRational,
+    extent: u128,
+) -> bool {
+    let (available, spent, thermal) = reservoir.physical_parts();
+    representable_reservoir_change(available, energy_per_extent, extent, true)
+        && representable_reservoir_change(spent, energy_per_extent, extent, false)
+        && representable_reservoir_change(thermal, energy_per_extent, extent, false)
 }
 
 pub(crate) fn settle_resident_gate_recovery_before_interval(
@@ -699,18 +776,29 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
             reservoir_available,
             energy_per_extent,
         )?)
-        .min(whole_extents_carried(
-            wide_sub(reservoir_spent_capacity, reservoir_spent)?,
+        .min(whole_extents_carried_difference(
+            reservoir_spent_capacity,
+            reservoir_spent,
             energy_per_extent,
         )?)
-        .min(whole_extents_carried(
-            wide_sub(reservoir_thermal_capacity, reservoir_thermal)?,
+        .min(whole_extents_carried_difference(
+            reservoir_thermal_capacity,
+            reservoir_thermal,
             energy_per_extent,
         )?)
         .min(contact.catalyst_capacity_per_interval / catalyst_per_extent)
         .min(contact.fuel_inward_capacity_per_interval / fuel_per_extent)
         .min(contact.spent_outward_capacity_per_interval / spent_per_extent)
         .min(contact.heat_outward_capacity_per_interval / heat_per_extent);
+    let settled_extent = if recovery_exchange_extent_is_representable(
+        predecessor_reservoir,
+        energy_per_extent,
+        settled_extent,
+    ) {
+        settled_extent
+    } else {
+        0
+    };
     if settled_extent == 0 {
         return Ok(ResidentGateRecoverySettlement {
             successor_neuron: predecessor_neuron.clone(),
@@ -1152,6 +1240,71 @@ mod tests {
         let anatomy = RecoveryFluidReservoirAnatomy::new(capacity, capacity, capacity).unwrap();
         let state = RecoveryFluidReservoirState::new(anatomy, finite, finite, finite).unwrap();
         assert_eq!(state.physical_parts(), (finite, finite, finite));
+    }
+
+    #[test]
+    fn unrepresentable_spent_transfer_stalls_without_rejecting_or_losing_material() {
+        let lane_anatomy = lane_anatomy();
+        let lane = RecoveryLaneState::from_physical_parts(lane_anatomy, 0, 1, 1).unwrap();
+        let quantum = ExactRational::new(9, 2).unwrap();
+        let production_spent = ExactRational::new(
+            170136804081459245624562613934865220851,
+            2336099068760000000000000000000000,
+        )
+        .unwrap();
+        assert!(wide_add(production_spent, quantum).is_err());
+        let capacity = ExactRational::integer(i128::MAX);
+        let reservoir_anatomy =
+            RecoveryFluidReservoirAnatomy::new(capacity, capacity, capacity).unwrap();
+        let reservoir = RecoveryFluidReservoirState::new(
+            reservoir_anatomy,
+            ExactRational::integer(0),
+            production_spent,
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        let settled = settle_recovery_fluid_contact(
+            lane_anatomy,
+            quantum,
+            lane,
+            reservoir_anatomy,
+            reservoir,
+            RecoveryFluidContactAnatomy::new(1, 1, 1, 1).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(settled.outward_spent_quanta, 0);
+        assert_eq!(settled.outward_heat_quanta, 1);
+        assert_eq!(settled.successor_lane.physical_parts(), (0, 1, 0));
+        assert_eq!(
+            settled.successor_reservoir.physical_parts(),
+            (ExactRational::integer(0), production_spent, quantum)
+        );
+    }
+
+    #[test]
+    fn unrepresentable_powered_exchange_stalls_without_refusing_the_interval() {
+        let production_value = ExactRational::new(
+            170136804081459245624562613934865220851,
+            2336099068760000000000000000000000,
+        )
+        .unwrap();
+        let quantum = ExactRational::new(9, 2).unwrap();
+        let capacity = ExactRational::integer(i128::MAX);
+        let anatomy = RecoveryFluidReservoirAnatomy::new(capacity, capacity, capacity).unwrap();
+        let predecessor = RecoveryFluidReservoirState::new(
+            anatomy,
+            production_value,
+            quantum,
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        let settled = settle_powered_environment_exchange(anatomy, predecessor, quantum).unwrap();
+        assert_eq!(
+            settled.delivered_energy_zeptojoules,
+            ExactRational::integer(0)
+        );
+        assert_eq!(settled.exported_heat_zeptojoules, ExactRational::integer(0));
+        assert_eq!(settled.successor, predecessor);
     }
 
     #[test]
