@@ -18,6 +18,14 @@ layer-7 association path.  A live `alphabet-c` occurrence moved the body from
 world interval added no cells.  This is live physical specialization evidence,
 not a word-learning or cognition claim.
 
+Task `dsf-ai-task:958`, commit `54c4010c`, then mounted the strictly local
+body/balance route.  A live guided 90-degree turn advanced 250 vestibular ticks
+plus two whole-sensorium consequence hops, grew exactly one missing layer-8
+cell (175 -> 176 complete cells), consumed exactly one resting cell, added
+168,737 persisted bytes, delivered the full joint field 712 times, and used
+zero Python cognition callbacks.  This is body-regulation reach, not autonomous
+action.
+
 The requested architecture is one persistent organism whose specialized neural,
 body, fluid, sensory, and effector structures participate in one causal life.
 Live production has a compact fourteen-territory resting population and a
@@ -60,8 +68,8 @@ instantiate the whole potential population.
 | 5 | Body and balance receptor | Vestibular, proprioceptive, and localized interoceptive body quantities | Distinct body-owned afferent settlement | Sparse contact into layers 6 and 8 | Vestibular exists; localized interoception is absent |
 | 6 | Local sensory integration | Sparse contacts from topology-local receptors | Preserve local sensory perspectives while permitting causal convergence | Sparse contacts into layers 7 and locally back toward reached receptor/body frontiers | Mounted for reached receptor topologies |
 | 7 | Cross-sensory association | Concurrent/recurrent layer-6 activity on one organism clock | Permit learned relations among modalities without merging their state | Sparse contacts into layers 9, 10, and 11 | Mounted and live-exercised for one same-occurrence sensory assembly on task 957 |
-| 8 | Body and fluid regulation | Local body afferents plus non-neural fluid/metabolic compartments | Couple conserved body/fluid condition to neural reach, recovery, and action capacity | Sparse contacts into layers 5, 10, 11, and 12; local fluid passoff back to neurons | Local body/balance route implemented in the current candidate; fluid-contact coupling remains absent |
-| 9 | Recurrent retention | Post-quiescence neuronal fractals and recurrent sparse contact activity | Distributed durable reassembly; hippocampal structures navigate references but do not store answers | Sparse recurrence into layers 7, 10, and 11 | Mosaic/index code exists; whole-organism path is not live-proven |
+| 8 | Body and fluid regulation | Local body afferents plus non-neural fluid/metabolic compartments | Couple conserved body/fluid condition to neural reach, recovery, and action capacity | Sparse contacts into layers 5, 10, 11, and 12; local fluid passoff back to neurons | Local body/balance route live on task 958; fluid-contact coupling remains absent |
+| 9 | Recurrent retention | Post-quiescence neuronal fractals and recurrent sparse contact activity | Distributed durable reassembly; hippocampal structures navigate references but do not store answers | Sparse recurrence into layers 7, 10, and 11 | Current candidate mounts one sparse recurrent cell only when a real retained mosaic is newly admitted; production has no retained mosaic to exercise yet |
 | 10 | Affective reach | Coincident body/fluid, sensory, retained, and consequence activity | Let learned organism relevance alter reachable attention, recall, preparation, and recovery without named emotion labels | Sparse contacts into layers 6, 9, 11, and 12 | Declared, not mounted |
 | 11 | Prediction and ordering | Current association, recurrent retention, body/affective reach, and actual clock order | Maintain bounded alternatives and ordered continuations without a score selector or transcript | Prepared physical continuation into layers 12 or 13; recurrence back into 9 | Declared, not mounted |
 | 12 | Motor and effector | Settled continuation plus current body capacity | Drive gaze, pose, locomotion, manipulation, face, and other body actuators at most once | World/body transition whose visual, vestibular, proprioceptive, tactile, auditory, and interoceptive consequences re-enter layers 0-6 | Yaw actuator physics exists; no neural action closure is mounted |
@@ -164,11 +172,13 @@ following in one bounded transition:
 4. Base organism implementation — in progress: corrected unique layer-6
    geography, explicit resource-accounted DNA growth, bounded interval
    propagation, and first reusable layer-7 cross-sensory assembly are live on
-   task 957.  The current candidate adds the strictly local
-   layer-5 -> layer-6 -> layer-8 body/balance route; it does not feed aggregate
-   body accounting back as sensation. Layers 9-12 and causal action closure
-   remain unmounted.
+   task 957.  The strictly local layer-5 -> layer-6 -> layer-8 body/balance
+   route is live on task 958 and does not feed aggregate body accounting back
+   as sensation.  The current candidate adds reached-frontier layer-9 wiring
+   only at genuine retained-mosaic admission. Layers 10-12 and causal action
+   closure remain unmounted.
 5. Focused end-to-end causal and resource proof — layer-6/7 production proof
    complete; layer-8 vestibular proof pending candidate rehearsal.
 6. Official production deployment and live verification — task 957 complete
-   for layers 6/7; current layer-8 candidate not yet deployed.
+   for layers 6/7 and task 958 complete for localized layer 8; current layer-9
+   candidate is not deployed.

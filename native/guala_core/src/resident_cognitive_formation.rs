@@ -1162,6 +1162,7 @@ impl ResidentCognitiveFormationState {
             .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
             .cloned()
             .collect::<Vec<_>>();
+        let predecessor_retained_mosaic_count = mosaics.len();
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
@@ -2064,6 +2065,17 @@ impl ResidentCognitiveFormationState {
                 occurrence_lineages,
             )?;
         }
+        let newly_retained_mosaic_members = mosaics[predecessor_retained_mosaic_count..]
+            .iter()
+            .map(|retained| retained.mosaic.member_lineages().to_vec())
+            .collect::<Vec<_>>();
+        mount_new_recurrent_retention(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &newly_retained_mosaic_members,
+        )?;
         dsf_delivery_count = dsf_delivery_count
             .checked_add(settle_internal_contact_interval(
                 &mut cohorts,
@@ -5413,6 +5425,55 @@ fn mount_reached_body_regulation(
     Ok(())
 }
 
+/// Give each newly admitted retained mosaic one sparse recurrent route through
+/// layer 9.  Admission has already proved the member deltas and physical bonds;
+/// this function neither recognizes nor names them.  One intrinsic cell is
+/// reached once and connected to the mosaic's actual member lineages.  The
+/// retained mosaic remains the complete authority, so a later reassembly can
+/// reach distributed members without turning this cell into a stored answer.
+fn mount_new_recurrent_retention(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    newly_retained_mosaic_members: &[Vec<[u8; 16]>],
+) -> Result<(), FormationError> {
+    let resident_lineages = cohorts
+        .iter()
+        .flat_map(|cohort| cohort.anatomy.neuron_lineages().iter().copied())
+        .collect::<Vec<_>>();
+    for members in newly_retained_mosaic_members {
+        if members.len() < 3
+            || members
+                .iter()
+                .enumerate()
+                .any(|(index, lineage)| {
+                    !resident_lineages.contains(lineage) || members[..index].contains(lineage)
+                })
+        {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        let retention_lineage = mount_next_intrinsic_in_layer(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            9,
+        )?;
+        for member in members {
+            if !electrical_fabric.contains_contact(*member, retention_lineage) {
+                *electrical_fabric = electrical_fabric
+                    .append_contact(
+                        *member,
+                        retention_lineage,
+                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                    )
+                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+            }
+        }
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 enum ResidentContactOrigin {
     Local {
@@ -8398,6 +8459,65 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &receptor_lineages,
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), cohort_count);
+        assert_eq!(fabric.contact_count(), contact_count);
+    }
+
+    #[test]
+    fn one_new_retained_mosaic_mounts_one_sparse_recurrent_route() {
+        let mut cohorts = Vec::new();
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &[]).unwrap(),
+        );
+        let mut next_lineage = 1;
+        let members = (0..3)
+            .map(|topology| {
+                mount_intrinsic_neuron_at_place(
+                    &mut cohorts,
+                    &mut population,
+                    &mut next_lineage,
+                    DeclaredNeuronPlace::new(6, topology),
+                )
+                .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_new_recurrent_retention(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[members.clone()],
+        )
+        .unwrap();
+        let retention = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 9)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(retention.len(), 1);
+        assert_eq!(fabric.contact_count(), members.len());
+        assert!(members
+            .iter()
+            .all(|member| fabric.contains_contact(*member, retention[0])));
+
+        let cohort_count = cohorts.len();
+        let contact_count = fabric.contact_count();
+        mount_new_recurrent_retention(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[],
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
