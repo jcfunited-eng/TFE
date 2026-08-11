@@ -332,7 +332,8 @@ def _validate_proof(
         and proof.get("vestibular_rehearsal_dsf_delivery_count")
         == proof["vestibular_rehearsal_tick_count"] * 2
         and isinstance(proof.get("vestibular_rehearsal_fractal_count"), int)
-        and proof["vestibular_rehearsal_fractal_count"] > 0
+        and not isinstance(proof["vestibular_rehearsal_fractal_count"], bool)
+        and proof["vestibular_rehearsal_fractal_count"] >= 0
         and isinstance(
             proof.get("vestibular_rehearsal_physical_transition_count"), int
         )

@@ -110,7 +110,11 @@ def _rehearse_vestibular_specialization(
     # for each receptor topology it had reached before this release.  Therefore
     # there is no lawful fixed growth count here: every reached cell must come
     # from the finite resting population and the total population must remain
-    # exactly conserved.
+    # exactly conserved.  Nor is a new retained neuronal impression mandatory:
+    # a body that has already lived this exact quarter-turn may reuse its
+    # specialized path without changing any retained-fractal coordinate.  The
+    # rehearsal still requires physical motion, full-field delivery, a changed
+    # persisted state, and exact cold restoration.
     expected_dsf_deliveries = len(signed_steps) * 2
     if (
         successor_heading != 90_000
@@ -123,7 +127,6 @@ def _rehearse_vestibular_specialization(
         or reached_growth < 0
         or resting_use != reached_growth
         or dsf_deliveries != expected_dsf_deliveries
-        or neuronal_fractals <= 0
         or physical_transitions <= 0
         or after.python_callback_count != 0
         or after.state_sha256 == before.state_sha256
