@@ -1654,6 +1654,7 @@ def _chemoreceptive_record(
     modality: str,
     channels: tuple[str, ...],
     sensor_id: str,
+    native: dict[str, Any] | None = None,
 ) -> dict[str, object]:
     """Truth-coupled taste or smell."""
 
@@ -1666,27 +1667,32 @@ def _chemoreceptive_record(
             chemoreception_authorization_env=CHEMORECEPTION_ENV,
             chemoreception_authorized=False,
         )
+    layer = 3 if modality == "smell" else 4
+    reached = (
+        dict(native.get("reached_neuron_count_by_layer", ())).get(layer, 0)
+        if native
+        else 0
+    )
     return _section(
-        False,
-        f"{modality}_transported_not_neuronally_transduced",
-        f"{len(channels)} declared {modality} composition coordinates are "
-        "transported in the admitted joint occurrence, but the live resident "
-        "transition has no chemoreceptor work law and skips them before "
-        "neuron genesis and settlement. The composition is authored by "
-        "whoever feeds her and is never a chemical measurement of a real "
-        "substance. She cannot "
-        + (
-            "smell a room, because there is no room"
-            if modality == "smell"
-            else "taste anything she has not been given"
-        )
-        + " — that waits for the environment and is not claimed here",
+        True,
+        (
+            f"native_{modality}_receptor_neurons_persisted"
+            if reached
+            else f"native_{modality}_receptor_law_mounted_awaiting_occurrence"
+        ),
+        f"{len(channels)} declared {modality} receptor-saturation coordinates "
+        "enter the exact native chemical receptor-work law. World values are "
+        "derived from local material, geometry, and receptor-saturation "
+        "declarations; tutor material is an explicit simulated stock. The "
+        "law transduces local receptor activation only and does not identify "
+        "a substance, assign meaning, or claim recognition.",
         declared_channels=list(channels),
         declared_site_count=len(channels),
         chemoreception_authorization_env=CHEMORECEPTION_ENV,
         chemoreception_authorized=True,
-        composition_authority="external_declaration",
-        native_neuronal_participation=False,
+        composition_authority="local_world_material_physics_or_declared_tutor_stock",
+        native_neuronal_participation=bool(reached),
+        reached_neuron_count=reached,
         transported_by=sensor_id,
     )
 
@@ -1881,8 +1887,12 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
         "text": _unmounted("native rendered-light receptor transition is not mounted"),
         "touch": _touch_record(),
         "temperature": _temperature_record(native),
-        "smell": _chemoreceptive_record("smell", SMELL_CHANNELS, SMELL_SENSOR_ID),
-        "taste": _chemoreceptive_record("taste", TASTE_CHANNELS, TASTE_SENSOR_ID),
+        "smell": _chemoreceptive_record(
+            "smell", SMELL_CHANNELS, SMELL_SENSOR_ID, native
+        ),
+        "taste": _chemoreceptive_record(
+            "taste", TASTE_CHANNELS, TASTE_SENSOR_ID, native
+        ),
         "vestibular": _displacement_record("vestibular"),
         "proprioception": _displacement_record("proprioception"),
         "interoception": _interoception_record(native),
@@ -1890,10 +1900,9 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
     return _section(
         True,
         "partial_native_receptor_transitions",
-        "admitted visual card-surface, live-sight, and lesson-audio "
-        "transitions exist; the live camera claim is truth-coupled to "
-        "committed transitions; every other modality has no native "
-        "receptor transition",
+        "admitted visual, auditory, tactile when authorized, and chemical "
+        "receptor transitions use the same native resident organism; live "
+        "participation remains truth-coupled to persisted reached anatomy",
         **modalities,
     )
 

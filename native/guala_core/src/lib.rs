@@ -25,6 +25,7 @@ mod canonical_basin;
 #[cfg(test)]
 mod canonical_causal_evidence;
 mod canonical_l0_l4;
+mod chemical_receptor_work;
 mod complete_neuron;
 mod content_defined_chunker;
 mod declared_geometric_anatomy;

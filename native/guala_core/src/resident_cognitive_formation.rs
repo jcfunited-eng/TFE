@@ -20,6 +20,12 @@ use crate::auditory_receptor_work::{
     quantize_auditory_delivery, AuditoryReceptorAnatomy, AuditoryReceptorWorkError,
     COCHLEAR_BAND_PRESSURE_QUANTITY, COCHLEAR_REFERENCE_PRESSURE_UNIT,
 };
+use crate::chemical_receptor_work::{
+    derive_chemical_receptor_sample_range_work, quantize_chemical_delivery,
+    ChemicalReceptorAnatomy, ChemicalReceptorWorkError,
+    GUSTATORY_CONTACT_CONCENTRATION_QUANTITY, OLFACTORY_VOLATILE_CONCENTRATION_QUANTITY,
+    RECEPTOR_SATURATION_FRACTION_UNIT,
+};
 use crate::complete_neuron::{
     extend_neuron_positional_fabric,
     gate_opening_quantum_window_with_psi, gate_population_opening_schedule_with_psi,
@@ -1450,6 +1456,7 @@ impl ResidentCognitiveFormationState {
             .ok_or(FormationError::InvalidSourceGeneration)?;
         let auditory_anatomy = exact_auditory_receptor_anatomy()?;
         let tactile_anatomy = exact_tactile_receptor_anatomy()?;
+        let chemical_anatomy = exact_chemical_receptor_anatomy()?;
         let mut unexpressed_electrical_seeds = predecessor_unexpressed_electrical_seeds.into_vec();
         let mut dormant_lineage_seeds = predecessor_dormant_lineage_seeds.into_vec();
         let mut resting_population = predecessor_resting_population;
@@ -2038,9 +2045,7 @@ impl ResidentCognitiveFormationState {
                                         None,
                                     )
                                 } else {
-                                    // Quantized receptor transduction (light
-                                    // ratified 2026-08-05, sound by the
-                                    // 2026-08-06 auditory design): the receptor
+                                    // Quantized receptor transduction: the receptor
                                     // law of THIS occurrence's sense computes an
                                     // exact transduced energy, that energy is
                                     // integrated into the site's retained
@@ -2048,8 +2053,8 @@ impl ResidentCognitiveFormationState {
                                     // gate-lattice quanta are delivered as work
                                     // ONLY once the accumulation reaches the
                                     // receiving gate's own opening threshold; the
-                                    // remainder is retained per-site state.  Both
-                                    // senses take the SAME delivery law
+                                    // remainder is retained per-site state.  Every
+                                    // mounted receptor takes the SAME delivery law
                                     // (`receptor_quantum_delivery`), the same
                                     // accumulator field, the same gate window.
                                     // Reachable only under a governing receptor
@@ -2099,6 +2104,18 @@ impl ResidentCognitiveFormationState {
                                                     field_gate_interval.last_sev,
                                                 )
                                                 .map_err(FormationError::TactileWorkUnavailable)?;
+                                            settlement.transduced_energy_zeptojoules
+                                        }
+                                        ReceptorLaw::Chemical => {
+                                            let settlement =
+                                                derive_chemical_receptor_sample_range_work(
+                                                    source,
+                                                    perspective,
+                                                    &chemical_anatomy,
+                                                    field_gate_interval.first_sev,
+                                                    field_gate_interval.last_sev,
+                                                )
+                                                .map_err(FormationError::ChemicalWorkUnavailable)?;
                                             settlement.transduced_energy_zeptojoules
                                         }
                                     };
@@ -2190,6 +2207,16 @@ impl ResidentCognitiveFormationState {
                                             window.window_cap_quanta,
                                         )
                                         .map_err(FormationError::TactileWorkUnavailable)?,
+                                        ReceptorLaw::Chemical => quantize_chemical_delivery(
+                                            &transduced_energy_zeptojoules,
+                                            cohort.state.neurons()[resident_index]
+                                                .receptor_quantum_residue,
+                                            cohort.anatomy.neuron_anatomies()[resident_index]
+                                                .gate_dissipation_quantum_zeptojoules(),
+                                            window.opening_threshold_quanta,
+                                            window.window_cap_quanta,
+                                        )
+                                        .map_err(FormationError::ChemicalWorkUnavailable)?,
                                     };
                                     (
                                         delivery.gate_work,
@@ -7216,12 +7243,28 @@ fn exact_tactile_receptor_anatomy() -> Result<TactileReceptorAnatomy, FormationE
     .map_err(FormationError::TactileWorkUnavailable)
 }
 
+/// Chemical transduction consumes an already receptor-local fraction of the
+/// declared saturating concentration. Optical parity supplies the existing
+/// organism-scale receptor-energy declaration without inventing affinity or
+/// response coefficients; chemical identity remains in anatomy and source
+/// locality, not in the energy conversion.
+fn exact_chemical_receptor_anatomy() -> Result<ChemicalReceptorAnatomy, FormationError> {
+    ChemicalReceptorAnatomy::new(
+        BigRational::from_integer(BigInt::from(4)),
+        BigRational::from_integer(BigInt::from(1)),
+        BigRational::new(BigInt::from(1), BigInt::from(2)),
+        BigRational::from_integer(BigInt::from(1)),
+    )
+    .map_err(FormationError::ChemicalWorkUnavailable)
+}
+
 /// Which mounted receptor law governs one occurrence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ReceptorLaw {
     Sight,
     Sound,
     Touch,
+    Chemical,
 }
 
 fn receptor_law_for_reached_coordinates(
@@ -7286,6 +7329,17 @@ fn receptor_law_for_ports(
     }) {
         return Some(ReceptorLaw::Touch);
     }
+    if all_ports(|port| {
+        port.sense == PhysicalSourceSense::Smell.declared_layer()
+            && port.physical_quantity == OLFACTORY_VOLATILE_CONCENTRATION_QUANTITY
+            && port.physical_unit == RECEPTOR_SATURATION_FRACTION_UNIT
+    }) || all_ports(|port| {
+        port.sense == PhysicalSourceSense::Taste.declared_layer()
+            && port.physical_quantity == GUSTATORY_CONTACT_CONCENTRATION_QUANTITY
+            && port.physical_unit == RECEPTOR_SATURATION_FRACTION_UNIT
+    }) {
+        return Some(ReceptorLaw::Chemical);
+    }
     None
 }
 
@@ -7306,6 +7360,7 @@ pub(crate) enum FormationError {
     OpticalWorkUnavailable(OpticalReceptorWorkError),
     AuditoryWorkUnavailable(AuditoryReceptorWorkError),
     TactileWorkUnavailable(TactileReceptorWorkError),
+    ChemicalWorkUnavailable(ChemicalReceptorWorkError),
     PhysicalSettlementUnavailable(ReachedCohortError),
     ResidentElectricalUnavailable(SparseElectricalError),
     InternalMembraneUnavailable(MembraneChargeError),
@@ -7370,6 +7425,9 @@ impl fmt::Display for FormationError {
             }
             Self::TactileWorkUnavailable(error) => {
                 write!(output, "exact tactile receptor work is unavailable: {error:?}")
+            }
+            Self::ChemicalWorkUnavailable(error) => {
+                write!(output, "exact chemical receptor work is unavailable: {error:?}")
             }
             Self::PhysicalSettlementUnavailable(error) => {
                 write!(output, "resident physical neuron settlement is unavailable: {error:?}")

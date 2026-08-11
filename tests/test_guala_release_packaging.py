@@ -43,6 +43,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/canonical_causal_evidence.rs",
     "native/guala_core/src/canonical_l0_l4.rs",
     "native/guala_core/src/canonical_l0_l4_batch_api.rs",
+    "native/guala_core/src/chemical_receptor_work.rs",
     "native/guala_core/src/complete_neuron.rs",
     "native/guala_core/src/content_defined_chunker.rs",
     "native/guala_core/src/declared_geometric_anatomy.rs",
