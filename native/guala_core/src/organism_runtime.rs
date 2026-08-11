@@ -3461,8 +3461,12 @@ mod tests {
             prepared.observation.complete_neuron_count,
             before.complete_neuron_count + 2
         );
+        // The reached vestibular receptor claims one declared resting cell.
+        // Its corrected unique layer-6 partner lies beyond this deliberately
+        // tiny fixture population and therefore consumes one reserved DNA
+        // growth unit instead of pretending to be a second resting claim.
         assert_eq!(
-            prepared.observation.developmental_resting_neuron_count + 2,
+            prepared.observation.developmental_resting_neuron_count + 1,
             before.developmental_resting_neuron_count
         );
         assert_eq!(prepared.observation.dsf_delivery_count, 2);
@@ -3477,7 +3481,7 @@ mod tests {
         assert_eq!(
             restored.observation().complete_neuron_count
                 + restored.observation().developmental_resting_neuron_count,
-            before.complete_neuron_count + before.developmental_resting_neuron_count
+            before.complete_neuron_count + before.developmental_resting_neuron_count + 1
         );
     }
 
@@ -3508,12 +3512,12 @@ mod tests {
         assert_eq!(after.organism_tick - before.organism_tick, 250);
         assert_eq!(after.complete_neuron_count, before.complete_neuron_count + 2);
         assert_eq!(
-            after.developmental_resting_neuron_count + 2,
+            after.developmental_resting_neuron_count + 1,
             before.developmental_resting_neuron_count
         );
         assert_eq!(
             after.complete_neuron_count + after.developmental_resting_neuron_count,
-            before_total
+            before_total + 1
         );
         assert_eq!(
             runtime

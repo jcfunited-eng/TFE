@@ -25,7 +25,7 @@ use crate::complete_neuron::{
     sparse_physical_state_delta, sparse_retained_physical_state_delta, DnaExpressionContact,
     GateWorkOccurrence, NeuronIntervalInput, RecoveryContact, SparsePhysicalStateDelta,
 };
-use crate::declared_geometric_anatomy::DeclaredNeuronPlace;
+use crate::declared_geometric_anatomy::{declared_neuron_territory, DeclaredNeuronPlace};
 use crate::developmental_electrical_anatomy::{
     DevelopmentalElectricalError, DevelopmentalElectricalSeed,
 };
@@ -710,6 +710,150 @@ fn decode_retained_organism_mosaic(
 }
 
 impl ResidentCognitiveFormationState {
+    /// Retire the task-955 local-integration projection that equated
+    /// sense-local topology indices across unrelated sensory coordinate
+    /// systems.  The correction is identified from the persisted anatomy
+    /// itself: an intrinsic layer-6 lineage is retired only when a retained
+    /// fabric contact joins it to a receptor whose injective declared-place
+    /// projection names a different layer-6 place.
+    ///
+    /// Receptor neurons, their lineages, physical state, local fluids, and all
+    /// unrelated contacts remain exact.  The falsely reached intrinsic cells
+    /// and any formations containing them are not preserved as learning; their
+    /// claimed places return to the compact quiescent population.
+    fn retire_aliased_local_integrators(&self) -> Result<Self, FormationError> {
+        let receptors = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                mount
+                    .source_site()
+                    .map(|_| (*lineage, mount.place()))
+            })
+            .collect::<Vec<_>>();
+        let intrinsic = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                let place = mount.place();
+                (mount.source_site().is_none() && place.layer() == 6)
+                    .then_some((*lineage, place))
+            })
+            .collect::<Vec<_>>();
+
+        let mut retired = Vec::<[u8; 16]>::new();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left_lineage = self.electrical_fabric.lineages()[left];
+            let right_lineage = self.electrical_fabric.lineages()[right];
+            for (receptor_lineage, receptor_place) in &receptors {
+                let target_lineage = if left_lineage == *receptor_lineage {
+                    Some(right_lineage)
+                } else if right_lineage == *receptor_lineage {
+                    Some(left_lineage)
+                } else {
+                    None
+                };
+                let Some(target_lineage) = target_lineage else {
+                    continue;
+                };
+                let Some((_, target_place)) = intrinsic
+                    .iter()
+                    .find(|(lineage, _)| *lineage == target_lineage)
+                else {
+                    continue;
+                };
+                if *target_place != local_integration_place(*receptor_place)?
+                    && !retired.contains(&target_lineage)
+                {
+                    retired.push(target_lineage);
+                }
+            }
+        }
+        if retired.is_empty() {
+            return Ok(self.clone());
+        }
+
+        let mut retired_places = Vec::new();
+        let mut cohorts = Vec::with_capacity(self.cohorts.len());
+        for cohort in self.cohorts.iter() {
+            let retired_members = cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .filter(|lineage| retired.contains(lineage))
+                .count();
+            if retired_members == 0 {
+                cohorts.push(cohort.clone());
+                continue;
+            }
+            if retired_members != cohort.anatomy.neuron_count()
+                || cohort.anatomy.neuron_count() != 1
+                || cohort.anatomy.mounts()[0].source_site().is_some()
+                || cohort.anatomy.mounts()[0].place().layer() != 6
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            retired_places.push(cohort.anatomy.mounts()[0].place());
+        }
+
+        let mut resting_population = self.resting_population.clone();
+        for place in retired_places {
+            let Some(population) = resting_population.as_ref() else {
+                continue;
+            };
+            if population.materialized_lineage_ordinal(place).is_none() {
+                continue;
+            }
+            resting_population = Some(
+                population
+                    .release_claimed_place(place)
+                    .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?,
+            );
+        }
+        let mosaics = self
+            .mosaics
+            .iter()
+            .filter(|retained| {
+                !retained
+                    .mosaic
+                    .member_lineages()
+                    .iter()
+                    .any(|lineage| retired.contains(lineage))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        let successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: self
+                .electrical_fabric
+                .without_lineages(&retired)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            mosaics: mosaics.into_boxed_slice(),
+            hippocampal: self.hippocampal,
+        };
+        validate_lineage_state(&successor)?;
+        Ok(successor)
+    }
+
     /// Make the already-declared retinal territory explicit once for bodies
     /// written by the aggregate one-channel implementation. This is a
     /// representation correction, not neuronal growth: stable lineage,
@@ -988,7 +1132,9 @@ impl ResidentCognitiveFormationState {
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
-        let expanded = self.expand_legacy_sight_channel_populations()?;
+        let expanded = self
+            .retire_aliased_local_integrators()?
+            .expand_legacy_sight_channel_populations()?;
         let source = admitted_source.episode();
         if source.joint_source_occurrences().is_empty() {
             return Err(FormationError::SourceOccurrenceAbsent);
@@ -1021,6 +1167,8 @@ impl ResidentCognitiveFormationState {
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         let mut physically_transitioned_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut externally_reached_by_occurrence =
+            vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
         let mut emitted_neuron_fractals = Vec::new();
         let mut mosaic_formed = None;
         // The retired archive checkpoint is carried forward VERBATIM: never
@@ -1882,6 +2030,9 @@ impl ResidentCognitiveFormationState {
                     if !externally_reached_neuron_lineages.contains(&lineage) {
                         externally_reached_neuron_lineages.push(lineage);
                     }
+                    if !externally_reached_by_occurrence[occurrence_index].contains(&lineage) {
+                        externally_reached_by_occurrence[occurrence_index].push(lineage);
+                    }
                 }
                 if cohort_index < cohorts.len() {
                     cohorts[cohort_index] = cohort;
@@ -1897,6 +2048,15 @@ impl ResidentCognitiveFormationState {
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
         )?;
+        for occurrence_lineages in &externally_reached_by_occurrence {
+            mount_reached_cross_sensory_association(
+                &mut cohorts,
+                &mut resting_population,
+                &mut next_lineage_ordinal,
+                &mut electrical_fabric,
+                occurrence_lineages,
+            )?;
+        }
         dsf_delivery_count = dsf_delivery_count
             .checked_add(settle_internal_contact_interval(
                 &mut cohorts,
@@ -4853,13 +5013,88 @@ fn claim_resting_or_allocate_lineage(
     })
 }
 
-/// Materialize one source-independent local-integration neuron at the same
-/// declared topology as every reached receptor territory, then author one
-/// sparse physical contact from each receptor lineage to that shared local
-/// integration lineage.  Several senses at the same topology therefore
-/// converge on the same physical cell without merging their cohort-local
-/// recovery fluids.  Existing cells and contacts are reused exactly; this is
-/// append-only developmental specialization, not a per-occurrence generator.
+fn mount_intrinsic_neuron_at_place(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    place: DeclaredNeuronPlace,
+) -> Result<[u8; 16], FormationError> {
+    let existing = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter(|(mount, _)| mount.place() == place)
+        .map(|(_, lineage)| *lineage)
+        .collect::<Vec<_>>();
+    match existing.as_slice() {
+        [lineage] => return Ok(*lineage),
+        [] => {}
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    }
+
+    let (lineage, anatomy, state) = if let Some(population) = resting_population.as_ref() {
+        if let Some(offset) = population.population_offset(place) {
+            let (successor, materialized) = population
+                .claim(offset)
+                .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
+            let lineage = local_lineage_from_ordinal(materialized.lineage_ordinal)?;
+            *resting_population = Some(successor);
+            (lineage, materialized.anatomy, materialized.state)
+        } else {
+            *resting_population = Some(
+                population
+                    .admit_one_external_growth_unit()
+                    .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?,
+            );
+            let neuron = create_quiescent_virtual_material_neuron(place)
+                .map_err(FormationError::PhysicalGenesisUnavailable)?;
+            (
+                allocate_local_lineage(next_lineage_ordinal)?,
+                neuron.anatomy,
+                neuron.state,
+            )
+        }
+    } else {
+        let neuron = create_quiescent_virtual_material_neuron(place)
+            .map_err(FormationError::PhysicalGenesisUnavailable)?;
+        (
+            allocate_local_lineage(next_lineage_ordinal)?,
+            neuron.anatomy,
+            neuron.state,
+        )
+    };
+    let sparse = SparseElectricalAnatomy::new(1, Vec::new())
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let sparse_state = SparseElectricalState::genesis(&sparse);
+    let cohort_anatomy = ReachedCohortAnatomy::new_mounted(
+        vec![anatomy],
+        vec![lineage],
+        vec![ReachedNeuronMount::Intrinsic(place)],
+        sparse,
+    )
+    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let cohort_state = ReachedCohortState::new(&cohort_anatomy, vec![state], sparse_state)
+        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    cohorts.push(ResidentReachedCohort {
+        anatomy: cohort_anatomy,
+        state: cohort_state,
+        pending_experience: None,
+        retained_experience: None,
+        pending_recurrence: None,
+    });
+    Ok(lineage)
+}
+
+/// Materialize one source-independent local-integration neuron at a unique
+/// declared projection of each reached receptor place, then author one sparse
+/// physical contact from the receptor lineage to that local integration
+/// lineage. Existing cells and contacts are reused exactly; this is
+/// developmental specialization, not a per-occurrence generator.
 fn mount_reached_local_integration(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -4878,87 +5113,220 @@ fn mount_reached_local_integration(
         .filter_map(|(mount, lineage)| {
             mount
                 .source_site()
-                .map(|site| (*lineage, site.topology_index()))
+                .map(|_| (*lineage, mount.place()))
         })
         .collect::<Vec<_>>();
 
-    for (receptor_lineage, topology_index) in receptors {
-        let integration_place = DeclaredNeuronPlace::new(6, topology_index);
-        let existing = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .filter(|(mount, _)| mount.place() == integration_place)
-            .map(|(_, lineage)| *lineage)
-            .collect::<Vec<_>>();
-        let integration_lineage = match existing.as_slice() {
-            [lineage] => *lineage,
-            [] => {
-                let (lineage, anatomy, state) = if let Some(population) = resting_population.as_ref()
-                {
-                    if let Some(offset) = population.population_offset(integration_place) {
-                        let (successor, materialized) = population
-                            .claim(offset)
-                            .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
-                        let lineage = local_lineage_from_ordinal(materialized.lineage_ordinal)?;
-                        *resting_population = Some(successor);
-                        (lineage, materialized.anatomy, materialized.state)
-                    } else {
-                        let neuron = create_quiescent_virtual_material_neuron(integration_place)
-                            .map_err(FormationError::PhysicalGenesisUnavailable)?;
-                        (
-                            allocate_local_lineage(next_lineage_ordinal)?,
-                            neuron.anatomy,
-                            neuron.state,
-                        )
-                    }
-                } else {
-                    let neuron = create_quiescent_virtual_material_neuron(integration_place)
-                        .map_err(FormationError::PhysicalGenesisUnavailable)?;
-                    (
-                        allocate_local_lineage(next_lineage_ordinal)?,
-                        neuron.anatomy,
-                        neuron.state,
-                    )
-                };
-                let sparse = SparseElectricalAnatomy::new(1, Vec::new()).map_err(|error| {
-                    FormationError::ResidentElectricalUnavailable(error)
-                })?;
-                let sparse_state = SparseElectricalState::genesis(&sparse);
-                let cohort_anatomy = ReachedCohortAnatomy::new_mounted(
-                    vec![anatomy],
-                    vec![lineage],
-                    vec![ReachedNeuronMount::Intrinsic(integration_place)],
-                    sparse,
-                )
-                .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                let cohort_state = ReachedCohortState::new(
-                    &cohort_anatomy,
-                    vec![state],
-                    sparse_state,
-                )
-                .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                cohorts.push(ResidentReachedCohort {
-                    anatomy: cohort_anatomy,
-                    state: cohort_state,
-                    pending_experience: None,
-                    retained_experience: None,
-                    pending_recurrence: None,
-                });
-                lineage
-            }
-            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-        };
+    for (receptor_lineage, receptor_place) in receptors {
+        let integration_place = local_integration_place(receptor_place)?;
+        let integration_lineage = mount_intrinsic_neuron_at_place(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            integration_place,
+        )?;
         if !electrical_fabric.contains_contact(receptor_lineage, integration_lineage) {
             *electrical_fabric = electrical_fabric
                 .append_contact(
                     receptor_lineage,
                     integration_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+        }
+    }
+    Ok(())
+}
+
+/// Project one receptor's own two-dimensional declared place into a unique
+/// local-integration topology.  `declared_neuron_territory - 1` is the existing
+/// injective Cantor pairing of `(sense layer, topology index)`, so receptors
+/// from different sensory coordinate systems can never alias merely because
+/// both happen to call one local site `0`.
+fn local_integration_place(
+    receptor_place: DeclaredNeuronPlace,
+) -> Result<DeclaredNeuronPlace, FormationError> {
+    let paired = declared_neuron_territory(receptor_place)
+        .map_err(|_| FormationError::ArithmeticOverflow)?
+        .checked_sub(1)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let topology_index =
+        u32::try_from(paired).map_err(|_| FormationError::ArithmeticOverflow)?;
+    Ok(DeclaredNeuronPlace::new(6, topology_index))
+}
+
+/// Mount one new source-independent neuron at the first quiescent place in a
+/// projection layer.  This is reached-frontier growth: it claims one compactly
+/// declared cell and never scans or materializes the resting population.
+fn mount_next_intrinsic_in_layer(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    layer: u32,
+) -> Result<[u8; 16], FormationError> {
+    let (lineage, place, anatomy, state) = if let Some(population) = resting_population.as_ref() {
+        let (successor, materialized) = population
+            .claim_next_in_layer(layer)
+            .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
+        let lineage = local_lineage_from_ordinal(materialized.lineage_ordinal)?;
+        *resting_population = Some(successor);
+        (
+            lineage,
+            materialized.place,
+            materialized.anatomy,
+            materialized.state,
+        )
+    } else {
+        let next_topology = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .filter(|mount| mount.place().layer() == layer)
+            .map(|mount| mount.place().topology_index())
+            .max()
+            .map_or(Ok(0), |maximum| {
+                maximum
+                    .checked_add(1)
+                    .ok_or(FormationError::ArithmeticOverflow)
+            })?;
+        let place = DeclaredNeuronPlace::new(layer, next_topology);
+        let neuron = create_quiescent_virtual_material_neuron(place)
+            .map_err(FormationError::PhysicalGenesisUnavailable)?;
+        (
+            allocate_local_lineage(next_lineage_ordinal)?,
+            place,
+            neuron.anatomy,
+            neuron.state,
+        )
+    };
+    let sparse = SparseElectricalAnatomy::new(1, Vec::new())
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let sparse_state = SparseElectricalState::genesis(&sparse);
+    let cohort_anatomy = ReachedCohortAnatomy::new_mounted(
+        vec![anatomy],
+        vec![lineage],
+        vec![ReachedNeuronMount::Intrinsic(place)],
+        sparse,
+    )
+    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let cohort_state = ReachedCohortState::new(&cohort_anatomy, vec![state], sparse_state)
+        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    cohorts.push(ResidentReachedCohort {
+        anatomy: cohort_anatomy,
+        state: cohort_state,
+        pending_experience: None,
+        retained_experience: None,
+        pending_recurrence: None,
+    });
+    Ok(lineage)
+}
+
+/// Grow or reuse one physical cross-sensory association reached by this exact
+/// occurrence.  Membership comes only from distinct layer-6 cells whose own
+/// receptors were externally reached; matching indices, labels, and source
+/// order have no authority.  The retained sparse contacts are the assembly.
+fn mount_reached_cross_sensory_association(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    externally_reached_lineages: &[[u8; 16]],
+) -> Result<(), FormationError> {
+    let mounted = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .map(|(mount, lineage)| (*lineage, mount.clone()))
+        .collect::<Vec<_>>();
+    let mut sensory_layers = Vec::<u32>::new();
+    let mut integration_lineages = Vec::<[u8; 16]>::new();
+    for receptor_lineage in externally_reached_lineages {
+        let Some((_, receptor_mount)) = mounted
+            .iter()
+            .find(|(lineage, mount)| lineage == receptor_lineage && mount.source_site().is_some())
+        else {
+            continue;
+        };
+        let receptor_place = receptor_mount.place();
+        if !sensory_layers.contains(&receptor_place.layer()) {
+            sensory_layers.push(receptor_place.layer());
+        }
+        let integration_place = local_integration_place(receptor_place)?;
+        let integration = mounted
+            .iter()
+            .filter(|(_, mount)| mount.source_site().is_none() && mount.place() == integration_place)
+            .map(|(lineage, _)| *lineage)
+            .collect::<Vec<_>>();
+        let [integration_lineage] = integration.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        if !electrical_fabric.contains_contact(*receptor_lineage, *integration_lineage) {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        }
+        if !integration_lineages.contains(integration_lineage) {
+            integration_lineages.push(*integration_lineage);
+        }
+    }
+    integration_lineages.sort_unstable();
+    sensory_layers.sort_unstable();
+    if integration_lineages.len() < 3 || sensory_layers.len() < 2 {
+        return Ok(());
+    }
+
+    let layer_of = |lineage: [u8; 16]| {
+        mounted
+            .iter()
+            .find(|(candidate, _)| *candidate == lineage)
+            .map(|(_, mount)| mount.place().layer())
+    };
+    let mut matching_associations = Vec::new();
+    for (association_lineage, association_mount) in mounted.iter().filter(|(_, mount)| {
+        mount.source_site().is_none() && mount.place().layer() == 7
+    }) {
+        let mut layer_six_neighbours = Vec::new();
+        for (left, right) in electrical_fabric.contact_endpoints() {
+            let left_lineage = electrical_fabric.lineages()[left];
+            let right_lineage = electrical_fabric.lineages()[right];
+            let neighbour = if left_lineage == *association_lineage {
+                Some(right_lineage)
+            } else if right_lineage == *association_lineage {
+                Some(left_lineage)
+            } else {
+                None
+            };
+            if let Some(neighbour) = neighbour {
+                if layer_of(neighbour) == Some(6) {
+                    layer_six_neighbours.push(neighbour);
+                }
+            }
+        }
+        layer_six_neighbours.sort_unstable();
+        layer_six_neighbours.dedup();
+        if layer_six_neighbours == integration_lineages {
+            matching_associations.push(*association_lineage);
+        }
+        let _ = association_mount;
+    }
+    let association_lineage = match matching_associations.as_slice() {
+        [lineage] => *lineage,
+        [] => mount_next_intrinsic_in_layer(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            7,
+        )?,
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    for integration_lineage in integration_lineages {
+        if !electrical_fabric.contains_contact(integration_lineage, association_lineage) {
+            *electrical_fabric = electrical_fabric
+                .append_contact(
+                    integration_lineage,
+                    association_lineage,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 )
                 .map_err(FormationError::ResidentElectricalUnavailable)?;
@@ -4986,6 +5354,30 @@ struct ResidentContactEdge {
     conductance: ExactRational,
     state: ElectricalContactState,
     origin: ResidentContactOrigin,
+}
+
+/// Advance an already-identified physical seed frontier across exactly one
+/// contact boundary.  This is deliberately not a graph traversal: material
+/// that reaches the far side of one contact must persist there before it can
+/// become authority for another interval.
+fn one_interval_electrical_frontier(
+    seeds: &[bool],
+    contact_endpoints: &[(usize, usize)],
+) -> Result<Vec<bool>, FormationError> {
+    let mut reached = seeds.to_vec();
+    for (left, right) in contact_endpoints.iter().copied() {
+        let left_seed = *seeds
+            .get(left)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let right_seed = *seeds
+            .get(right)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        if left_seed || right_seed {
+            reached[left] = true;
+            reached[right] = true;
+        }
+    }
+    Ok(reached)
 }
 
 /// Settle the bounded contact-connected frontier reached by this external
@@ -5087,23 +5479,35 @@ fn settle_internal_contact_interval(
         });
     }
 
-    let mut reached = flat_locations
+    // One physical interval reaches only the externally driven or still
+    // charged material and its immediate electrical neighbours.  The former
+    // transitive graph closure treated a contact as instantaneous authority to
+    // poll every neuron in the connected component, even when no carrier had
+    // crossed the intervening contacts.  Charge retained in a newly reached
+    // neighbour becomes the seed of a later interval, so propagation advances
+    // through lived time rather than jumping across the whole brain.
+    let mut seeds = flat_locations
         .iter()
-        .map(|(_, _, lineage)| externally_reached_lineages.contains(lineage))
+        .map(|(cohort_index, neuron_index, lineage)| {
+            externally_reached_lineages.contains(lineage)
+                || cohorts[*cohort_index].state.neurons()[*neuron_index]
+                    .membrane_state()
+                    .separated_elementary_charges()
+                    != 0
+        })
         .collect::<Vec<_>>();
-    loop {
-        let mut changed = false;
-        for edge in &edges {
-            if reached[edge.left] != reached[edge.right] {
-                reached[edge.left] = true;
-                reached[edge.right] = true;
-                changed = true;
-            }
-        }
-        if !changed {
-            break;
+    for edge in &edges {
+        if edge.state.carrier_phase() != crate::elementary_charge_transfer::ChargeCarrierPhase::zero()
+        {
+            seeds[edge.left] = true;
+            seeds[edge.right] = true;
         }
     }
+    let contact_endpoints = edges
+        .iter()
+        .map(|edge| (edge.left, edge.right))
+        .collect::<Vec<_>>();
+    let reached = one_interval_electrical_frontier(&seeds, &contact_endpoints)?;
     let selected = reached
         .iter()
         .enumerate()
@@ -6204,7 +6608,7 @@ mod tests {
     }
 
     #[test]
-    fn subset_occurrence_advances_only_its_persistent_reached_neurons() {
+    fn subset_occurrence_advances_receptors_and_still_charged_internal_material() {
         let first = crate::neuron_source_anchor::tests::exact_four_optical_episode();
         let subset = exact_two_of_four_optical_episode();
         let mut state = ResidentCognitiveFormationState::default();
@@ -6219,8 +6623,12 @@ mod tests {
         assert_eq!(prepared.successor.summary().complete_neuron_count, 8);
         assert_eq!(prepared.successor.retained_neuron_lineages(), lineages);
         let successor = &prepared.successor.cohorts[0].state;
-        assert_eq!(successor.neurons()[2], predecessor.neurons()[2]);
-        assert_eq!(successor.neurons()[3], predecessor.neurons()[3]);
+        // Receptors 2 and 3 receive no new external gate work, but their
+        // retained physical charge from the preceding occurrence remains an
+        // authentic seed. Continuous neuronal settlement therefore advances
+        // them without relabelling that motion as new sensory input.
+        assert_ne!(successor.neurons()[2], predecessor.neurons()[2]);
+        assert_ne!(successor.neurons()[3], predecessor.neurons()[3]);
         assert_ne!(successor.neurons()[0], predecessor.neurons()[0]);
         assert_ne!(successor.neurons()[1], predecessor.neurons()[1]);
 
@@ -7789,6 +8197,124 @@ mod tests {
         let encoded = successor.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, successor);
+    }
+
+    #[test]
+    fn sense_local_topology_indices_project_to_distinct_integration_places() {
+        let sight = local_integration_place(DeclaredNeuronPlace::new(0, 0)).unwrap();
+        let sound = local_integration_place(DeclaredNeuronPlace::new(1, 0)).unwrap();
+        let body = local_integration_place(DeclaredNeuronPlace::new(5, 0)).unwrap();
+        assert_eq!(sight, DeclaredNeuronPlace::new(6, 0));
+        assert_eq!(sound, DeclaredNeuronPlace::new(6, 1));
+        assert_eq!(body, DeclaredNeuronPlace::new(6, 15));
+        assert_ne!(sight, sound);
+        assert_ne!(sound, body);
+        assert_ne!(sight, body);
+    }
+
+    #[test]
+    fn one_interval_frontier_does_not_jump_across_a_contact_chain() {
+        let reached = one_interval_electrical_frontier(
+            &[true, false, false, false],
+            &[(0, 1), (1, 2), (2, 3)],
+        )
+        .unwrap();
+        assert_eq!(reached, vec![true, true, false, false]);
+
+        let next = one_interval_electrical_frontier(&reached, &[(0, 1), (1, 2), (2, 3)])
+            .unwrap();
+        assert_eq!(next, vec![true, true, true, false]);
+    }
+
+    #[test]
+    fn one_multisensory_occurrence_mounts_one_reusable_physical_association() {
+        fn receptor_cohort(
+            sense: PhysicalSourceSense,
+            topology_index: u32,
+            lineage: [u8; 16],
+        ) -> ResidentReachedCohort {
+            let site = NeuronSourceSite::fixture_in_sense(sense, topology_index);
+            let place = DeclaredNeuronPlace::from_source_site(&site);
+            let neuron = create_quiescent_virtual_material_neuron(place).unwrap();
+            let sparse = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+            let anatomy = ReachedCohortAnatomy::new_mounted(
+                vec![neuron.anatomy],
+                vec![lineage],
+                vec![ReachedNeuronMount::Receptor(site)],
+                sparse.clone(),
+            )
+            .unwrap();
+            ResidentReachedCohort {
+                state: ReachedCohortState::new(
+                    &anatomy,
+                    vec![neuron.state],
+                    SparseElectricalState::genesis(&sparse),
+                )
+                .unwrap(),
+                anatomy,
+                pending_experience: None,
+                retained_experience: None,
+                pending_recurrence: None,
+            }
+        }
+
+        let receptor_lineages = [local_lineage(1), local_lineage(2), local_lineage(3)];
+        let mut cohorts = vec![
+            receptor_cohort(PhysicalSourceSense::Sight, 0, receptor_lineages[0]),
+            receptor_cohort(PhysicalSourceSense::Sight, 1, receptor_lineages[1]),
+            receptor_cohort(PhysicalSourceSense::Sound, 0, receptor_lineages[2]),
+        ];
+        let occupied = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts().iter().map(|mount| mount.place()))
+            .collect::<Vec<_>>();
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &occupied).unwrap(),
+        );
+        let mut next_lineage = 4;
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_reached_local_integration(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+        )
+        .unwrap();
+        mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &receptor_lineages,
+        )
+        .unwrap();
+        let association = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 7)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(association.len(), 1);
+        assert_eq!(fabric.contact_count(), 6);
+        let cohort_count = cohorts.len();
+        let contact_count = fabric.contact_count();
+
+        mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &receptor_lineages,
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), cohort_count);
+        assert_eq!(fabric.contact_count(), contact_count);
     }
 
     /// THE HEADLINE LAW, at the crate boundary: admitting a real physical

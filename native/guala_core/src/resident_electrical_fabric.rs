@@ -128,6 +128,74 @@ impl ResidentElectricalFabric {
         })
     }
 
+    /// Remove every cross-cohort contact incident to a physically retired
+    /// lineage while preserving every unrelated contact and its exact retained
+    /// carrier phase.  Endpoint indices are rebuilt from the surviving stable
+    /// lineages; no contact is redirected.
+    pub(crate) fn without_lineages(
+        &self,
+        retired: &[[u8; 16]],
+    ) -> Result<Self, SparseElectricalError> {
+        if retired.is_empty() {
+            return Ok(self.clone());
+        }
+        let mut kept = Vec::new();
+        for ((left, right), (contact, state)) in self.contact_endpoints().zip(
+            self.anatomy
+                .contact_anatomies()
+                .iter()
+                .copied()
+                .zip(self.state.contact_states().iter().cloned()),
+        ) {
+            let left_lineage = self.lineages[left];
+            let right_lineage = self.lineages[right];
+            if retired.contains(&left_lineage) || retired.contains(&right_lineage) {
+                continue;
+            }
+            kept.push((left_lineage, right_lineage, contact.conductance_picosiemens(), state));
+        }
+        if kept.is_empty() {
+            return Ok(Self::default());
+        }
+
+        let mut lineages = Vec::<[u8; 16]>::new();
+        for (left, right, _, _) in &kept {
+            if !lineages.contains(left) {
+                lineages.push(*left);
+            }
+            if !lineages.contains(right) {
+                lineages.push(*right);
+            }
+        }
+        let neuron_count = lineages.len();
+        let mut contacts = Vec::with_capacity(kept.len());
+        let mut states = Vec::with_capacity(kept.len());
+        for (left, right, conductance, state) in kept {
+            let left = lineages
+                .iter()
+                .position(|lineage| *lineage == left)
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            let right = lineages
+                .iter()
+                .position(|lineage| *lineage == right)
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            contacts.push(ElectricalContactAnatomy::new(
+                left,
+                right,
+                conductance,
+                neuron_count,
+            )?);
+            states.push(state);
+        }
+        let anatomy = SparseElectricalAnatomy::new(neuron_count, contacts)?;
+        let state = SparseElectricalState::from_contact_states(&anatomy, states)?;
+        Ok(Self {
+            lineages: lineages.into_boxed_slice(),
+            anatomy,
+            state,
+        })
+    }
+
     pub(crate) fn encode(&self) -> Result<Vec<u8>, SparseElectricalError> {
         if self.lineages.is_empty() {
             if self.contact_count() != 0 {
@@ -247,5 +315,19 @@ mod tests {
             .unwrap();
         let encoded = fabric.encode().unwrap();
         assert_eq!(ResidentElectricalFabric::decode(&encoded).unwrap(), fabric);
+    }
+
+    #[test]
+    fn retiring_one_lineage_preserves_unrelated_contact_state_exactly() {
+        let fabric = ResidentElectricalFabric::default()
+            .append_contact([1; 16], [2; 16], ExactRational::integer(500))
+            .unwrap()
+            .append_contact([3; 16], [4; 16], ExactRational::integer(700))
+            .unwrap();
+        let kept_state = fabric.state().contact_states()[1].clone();
+        let successor = fabric.without_lineages(&[[1; 16]]).unwrap();
+        assert_eq!(successor.lineages(), &[[3; 16], [4; 16]]);
+        assert_eq!(successor.contact_count(), 1);
+        assert_eq!(successor.state().contact_states(), &[kept_state]);
     }
 }

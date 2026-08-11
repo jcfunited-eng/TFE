@@ -186,6 +186,32 @@ impl DevelopmentalRestingPopulation {
         self.future_growth_reserve_bytes
     }
 
+    /// Admit one newly grown complete cell plus its first sparse contact from
+    /// the population's already-accounted future-growth material.  This does
+    /// not relabel a resting cell or expand the encoded-byte envelope: the
+    /// exact unit moves from future reserve to independently retained state.
+    pub(crate) fn admit_one_external_growth_unit(
+        &self,
+    ) -> Result<Self, DevelopmentalRestingPopulationError> {
+        let unit = self
+            .independently_diverged_cell_bytes
+            .checked_add(self.minimum_sparse_contact_bytes)
+            .ok_or(DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        let successor = Self {
+            predecessor_encoded_bytes: self
+                .predecessor_encoded_bytes
+                .checked_add(unit)
+                .ok_or(DevelopmentalRestingPopulationError::ArithmeticWidth)?,
+            future_growth_reserve_bytes: self
+                .future_growth_reserve_bytes
+                .checked_sub(unit)
+                .ok_or(DevelopmentalRestingPopulationError::AdmissionInsufficient)?,
+            ..self.clone()
+        };
+        successor.validate()?;
+        Ok(successor)
+    }
+
     pub(crate) fn projection_name(layer: u32) -> Option<&'static str> {
         PROJECTION_NAMES.get(usize::try_from(layer).ok()?).copied()
     }
@@ -234,6 +260,32 @@ impl DevelopmentalRestingPopulation {
         let offset = self.population_offset(place)?;
         self.materialized_offsets.binary_search(&offset).ok()?;
         self.lineage_start_ordinal.checked_add(offset)
+    }
+
+    /// Claim the first still-quiescent place in one declared projection layer.
+    /// The population is interleaved, so this walks only that layer's already
+    /// reached prefix and never scans or instantiates the resting population.
+    pub(crate) fn claim_next_in_layer(
+        &self,
+        layer: u32,
+    ) -> Result<(Self, MaterializedRestingNeuron), DevelopmentalRestingPopulationError> {
+        let layer = usize::try_from(layer)
+            .map_err(|_| DevelopmentalRestingPopulationError::InvalidPlace)?;
+        if layer >= DEVELOPMENTAL_PROJECTION_LAYER_COUNT {
+            return Err(DevelopmentalRestingPopulationError::InvalidPlace);
+        }
+        let stride = DEVELOPMENTAL_PROJECTION_LAYER_COUNT as u64;
+        let mut offset = u64::try_from(layer)
+            .map_err(|_| DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        while offset < self.declared_cell_count {
+            if self.materialized_offsets.binary_search(&offset).is_err() {
+                return self.claim(offset);
+            }
+            offset = offset
+                .checked_add(stride)
+                .ok_or(DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        }
+        Err(DevelopmentalRestingPopulationError::AdmissionInsufficient)
     }
 
     pub(crate) fn materialize(
@@ -295,6 +347,45 @@ impl DevelopmentalRestingPopulation {
         };
         successor.validate()?;
         Ok((successor, materialized))
+    }
+
+    /// Return one falsely reached cell to the exact shared quiescent
+    /// declaration.  This is the inverse of `claim`: it removes only the
+    /// named materialized offset and restores the bytes that had been released
+    /// for that cell's independent body and first sparse contact.  No other
+    /// cell, lineage range, or developmental geography changes.
+    pub(crate) fn release_claimed_place(
+        &self,
+        place: DeclaredNeuronPlace,
+    ) -> Result<Self, DevelopmentalRestingPopulationError> {
+        let population_offset = self
+            .population_offset(place)
+            .ok_or(DevelopmentalRestingPopulationError::InvalidPlace)?;
+        let mut offsets = self.materialized_offsets.to_vec();
+        let index = offsets
+            .binary_search(&population_offset)
+            .map_err(|_| DevelopmentalRestingPopulationError::InvalidPlace)?;
+        offsets.remove(index);
+
+        let descriptor_growth = u64::try_from(std::mem::size_of::<u64>())
+            .map_err(|_| DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        let unit = self
+            .independently_diverged_cell_bytes
+            .checked_add(self.minimum_sparse_contact_bytes)
+            .ok_or(DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        let released_reserve = unit
+            .checked_sub(descriptor_growth)
+            .ok_or(DevelopmentalRestingPopulationError::ArithmeticWidth)?;
+        let successor = Self {
+            future_growth_reserve_bytes: self
+                .future_growth_reserve_bytes
+                .checked_sub(released_reserve)
+                .ok_or(DevelopmentalRestingPopulationError::InvalidEncoding)?,
+            materialized_offsets: offsets.into_boxed_slice(),
+            ..self.clone()
+        };
+        successor.validate()?;
+        Ok(successor)
     }
 
     pub(crate) fn encode(&self) -> Result<Vec<u8>, DevelopmentalRestingPopulationError> {
@@ -431,7 +522,6 @@ impl DevelopmentalRestingPopulation {
             || self.predecessor_encoded_bytes >= self.admitted_encoded_bytes
             || self.independently_diverged_cell_bytes == 0
             || self.minimum_sparse_contact_bytes == 0
-            || self.future_growth_reserve_bytes < unit
             || self.lineage_start_ordinal == 0
             || self.declared_cell_count < DEVELOPMENTAL_PROJECTION_LAYER_COUNT as u64
             || usize::try_from(self.declared_cell_count).is_err()
@@ -631,5 +721,41 @@ mod tests {
             assert_eq!(place.layer(), layer);
             assert!(DevelopmentalRestingPopulation::projection_name(layer).is_some());
         }
+    }
+
+    #[test]
+    fn releasing_a_false_claim_is_the_exact_inverse_of_claiming_it() {
+        let population =
+            DevelopmentalRestingPopulation::admit(2_000_000, 100_000, 1, &[]).unwrap();
+        let place = population.declared_place(6).unwrap();
+        let offset = population.population_offset(place).unwrap();
+        let (claimed, _) = population.claim(offset).unwrap();
+        assert_ne!(claimed, population);
+        assert_eq!(claimed.release_claimed_place(place).unwrap(), population);
+    }
+
+    #[test]
+    fn next_layer_claim_walks_only_that_layers_reached_prefix() {
+        let population =
+            DevelopmentalRestingPopulation::admit(2_000_000, 100_000, 1, &[]).unwrap();
+        let (one, first) = population.claim_next_in_layer(7).unwrap();
+        let (two, second) = one.claim_next_in_layer(7).unwrap();
+        assert_eq!(first.place.layer(), 7);
+        assert_eq!(second.place.layer(), 7);
+        assert_eq!(second.place.topology_index(), first.place.topology_index() + 1);
+        assert_eq!(two.resting_cell_count(), population.resting_cell_count() - 2);
+    }
+
+    #[test]
+    fn external_growth_moves_one_exact_unit_out_of_future_reserve() {
+        let population =
+            DevelopmentalRestingPopulation::admit(2_000_000, 100_000, 1, &[]).unwrap();
+        let unit = population.independently_diverged_cell_bytes()
+            + population.minimum_sparse_contact_bytes();
+        let grown = population.admit_one_external_growth_unit().unwrap();
+        assert_eq!(grown.resting_cell_count(), population.resting_cell_count());
+        assert_eq!(grown.future_growth_reserve_bytes() + unit, population.future_growth_reserve_bytes());
+        assert_eq!(grown.predecessor_encoded_bytes, population.predecessor_encoded_bytes + unit);
+        assert_eq!(DevelopmentalRestingPopulation::decode(&grown.encode().unwrap()).unwrap(), grown);
     }
 }
