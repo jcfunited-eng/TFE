@@ -38,3 +38,12 @@ thought, utterance, or meaning is mounted by this change.
 | Translation-boundary review | The changed-lineage frontier is produced directly while complete native neuron predecessor/successor states settle; no Python classification supplies it. Layer resolution comes from persisted `ReachedNeuronMount` anatomy. S-018 reuses the transient mounted-anatomy view already built by the layer-12 function, then touches only changed lineages, existing layer-13 candidates, and their sparse contacts. It adds no Boolean/counter authority, serialized type, field, codec, receipt, owner, lock, database object, Python/native call, dense reserve operation, or new full-field evaluation. Generic reached-cohort and sparse-contact persistence already carries the successor. Energy/material/identity are unchanged except for the existing exact resting-cell claim and existing authored contact genesis law. |
 | Observed evidence | Focused native proof passes: without the motor participant, no cell or contact is created; with one acoustic, one layer-8 regulation, one layer-11 ordering, and one pre-existing layer-12 motor participant, exactly one layer-13 cell and four sparse contacts are retained; reordered repetition adds no cell or contact. The existing lived optical+binaural+vestibular integration path also reaches one layer-13 cell and survives exact encode/decode cold restoration. Full native verification passes 569 tests with zero failures and 11 explicitly retired tests ignored. Packaging, rehearsal, deployment, and live proof remain unproven. |
 | Rejected or falsified paths | The retired Python vocal-owner/receipt graph is not an input to neuronal development. A layer number, card ID, transcript, tutor label, or audio-file identity cannot trigger specialization. Repository-wide `cargo fmt --check` is currently blocked by inherited formatting differences across unrelated native files; S-018 does not rewrite those files. |
+
+## Deployment attempts
+
+1. At 2026-08-11T23:16:37Z the reviewed controller was invoked directly and
+   exited before packaging with shell status 126 because the tracked script is
+   not executable. No image build, task registration, rehearsal, cutover, or
+   production change occurred. The corrected invocation is `bash
+   tools/deploy_dsf_ai.sh`; no source or deployment mechanism changes are
+   required.
