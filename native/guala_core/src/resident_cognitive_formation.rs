@@ -21,6 +21,7 @@ use crate::auditory_receptor_work::{
     COCHLEAR_BAND_PRESSURE_QUANTITY, COCHLEAR_REFERENCE_PRESSURE_UNIT,
 };
 use crate::complete_neuron::{
+    extend_neuron_positional_fabric,
     gate_opening_quantum_window_with_psi, gate_population_opening_schedule_with_psi,
     sparse_physical_state_delta, sparse_retained_physical_state_delta, DnaExpressionContact,
     GateWorkOccurrence, NeuronIntervalInput, RecoveryContact, SparsePhysicalStateDelta,
@@ -79,6 +80,7 @@ use crate::reached_neuron_cohort::{
     legacy_sight_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     settle_reached_cohort_dark_rest, settle_reached_cohort_interval,
+    settle_reached_cohort_membrane_pumps,
     widen_reached_cohort_state_contacts, ReachedCohortAnatomy, ReachedCohortEnergyState,
     ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
     ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement, ReachedCohortState,
@@ -2387,7 +2389,7 @@ impl ResidentCognitiveFormationState {
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
-            &physically_transitioned_neuron_lineages,
+            &internal_contact.active_bonds,
         )?;
         let (organism_mosaic_receipt, organism_reassemblies) = settle_organism_mosaic_boundary(
             &cohorts,
@@ -2538,6 +2540,119 @@ impl ResidentCognitiveFormationState {
                 )
             })
             .collect()
+    }
+
+    /// Count the living reached neurons at each exact developmental layer.
+    ///
+    /// This is a bounded read-only projection of persisted anatomy. It does
+    /// not scan the compact resting population, assign functional meaning to
+    /// a layer, expose neuronal state, or advance the organism.
+    pub(crate) fn observe_reached_neuron_count_by_layer(
+        &self,
+    ) -> Vec<(u32, usize)> {
+        let mut counts = Vec::<(u32, usize)>::new();
+        for layer in self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .map(|mount| mount.place().layer())
+        {
+            if let Some((_, count)) = counts
+                .iter_mut()
+                .find(|(candidate, _)| *candidate == layer)
+            {
+                *count += 1;
+            } else {
+                counts.push((layer, 1));
+            }
+        }
+        counts.sort_unstable_by_key(|(layer, _)| *layer);
+        counts
+    }
+
+    /// Read-only electrical diagnostic for reached material, in persisted
+    /// cohort order: ``(developmental layer, separated elementary charge)``.
+    /// This is observer evidence only; cognition never calls it and it does
+    /// not inspect the compact resting population or advance state.
+    pub(crate) fn observe_reached_neuron_electrical_by_layer(
+        &self,
+    ) -> Vec<(u32, i128, i128, u128, u128, u128)> {
+        self.cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_anatomies())
+                    .zip(cohort.state.neurons())
+                    .map(|((mount, anatomy), neuron)| {
+                        let (capacitance_numerator, capacitance_denominator) =
+                            anatomy.capacitance().picofarads().parts();
+                        (
+                            mount.place().layer(),
+                            neuron.membrane_state().separated_elementary_charges(),
+                            capacitance_numerator,
+                            capacitance_denominator,
+                            neuron.carrier_reservoirs().intracellular(),
+                            neuron.carrier_reservoirs().extracellular(),
+                        )
+                    })
+            })
+            .collect()
+    }
+
+    /// Read-only sparse-contact anatomy summarized by canonical endpoint
+    /// layer pair. This is observer evidence only and advances no state.
+    pub(crate) fn observe_reached_contact_count_by_layer_pair(
+        &self,
+    ) -> Vec<(u32, u32, usize)> {
+        let layer_of = |lineage: [u8; 16]| {
+            self.cohorts.iter().find_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+                    .find_map(|(mount, candidate)| {
+                        (*candidate == lineage).then_some(mount.place().layer())
+                    })
+            })
+        };
+        let mut pairs = Vec::<(u32, u32, usize)>::new();
+        let mut admit_pair = |left: u32, right: u32| {
+            let (left, right) = if left <= right {
+                (left, right)
+            } else {
+                (right, left)
+            };
+            if let Some((_, _, count)) = pairs
+                .iter_mut()
+                .find(|(a, b, _)| *a == left && *b == right)
+            {
+                *count += 1;
+            } else {
+                pairs.push((left, right, 1));
+            }
+        };
+        for cohort in &self.cohorts {
+            for (left, right) in cohort.anatomy.electrical_anatomy().contact_endpoints() {
+                admit_pair(
+                    cohort.anatomy.mounts()[left].place().layer(),
+                    cohort.anatomy.mounts()[right].place().layer(),
+                );
+            }
+        }
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            if let (Some(left), Some(right)) = (
+                layer_of(self.electrical_fabric.lineages()[left]),
+                layer_of(self.electrical_fabric.lineages()[right]),
+            ) {
+                admit_pair(left, right);
+            }
+        }
+        pairs.sort_unstable();
+        pairs
     }
 
     /// Count reached neurons anchored to one exact declared physical source.
@@ -5922,19 +6037,23 @@ fn mount_reached_affective_reach(
     Ok(())
 }
 
-/// Retain one physically delayed ordering route from the association material
-/// that moved in this interval together with retained or affective material
-/// that also moved.  The participants have already settled before this cell is
-/// mounted, so the new layer-11 cell cannot participate until a later organism
-/// interval.  That lived interval boundary is the ordering law: no timestamp,
-/// sequence label, transcript, score, or authored prediction is stored here.
-/// Reaching the same exact participant set reuses the same sparse route.
+/// Retain one physically delayed ordering route for each active sparse bond
+/// that carried a transition directly between association material and
+/// retained or affective material.  A contact transition, rather than two
+/// coincident post-settlement state differences, is the causal authority:
+/// one-contact-per-interval propagation can lawfully change the far endpoint
+/// after the near endpoint has already settled.  The participants have already
+/// settled before this cell is mounted, so the new layer-11 cell cannot
+/// participate until a later organism interval.  That lived interval boundary
+/// is the ordering law: no timestamp, sequence label, transcript, score,
+/// authored prediction or transaction-spanning history is stored here.
+/// Reaching the same exact active bond reuses the same sparse route.
 fn mount_reached_ordering_reach(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
-    physically_transitioned_lineages: &[[u8; 16]],
+    active_bonds: &[StablePhysicalBondReference],
 ) -> Result<(), FormationError> {
     let mounted = cohorts
         .iter()
@@ -5947,76 +6066,78 @@ fn mount_reached_ordering_reach(
         })
         .map(|(mount, lineage)| (*lineage, mount.clone()))
         .collect::<Vec<_>>();
-    let mut association = Vec::new();
-    let mut retained_or_affective = Vec::new();
-    for lineage in physically_transitioned_lineages {
-        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
-        };
-        match mount.place().layer() {
-            7 if !association.contains(lineage) => association.push(*lineage),
-            9 | 10 if !retained_or_affective.contains(lineage) => {
-                retained_or_affective.push(*lineage)
-            }
-            _ => {}
-        }
-    }
-    if association.is_empty() || retained_or_affective.is_empty() {
-        return Ok(());
-    }
-    let mut participants = association;
-    participants.extend(retained_or_affective);
-    participants.sort_unstable();
-    participants.dedup();
-
     let layer_of = |lineage: [u8; 16]| {
         mounted
             .iter()
             .find(|(candidate, _)| *candidate == lineage)
             .map(|(_, mount)| mount.place().layer())
     };
-    let mut matching = Vec::new();
-    for (candidate, _) in mounted
-        .iter()
-        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 11)
-    {
-        let mut neighbours = Vec::new();
-        for (left, right) in electrical_fabric.contact_endpoints() {
-            let left_lineage = electrical_fabric.lineages()[left];
-            let right_lineage = electrical_fabric.lineages()[right];
-            let neighbour = if left_lineage == *candidate {
-                Some(right_lineage)
-            } else if right_lineage == *candidate {
-                Some(left_lineage)
-            } else {
-                None
-            };
-            if let Some(neighbour) = neighbour {
-                if matches!(layer_of(neighbour), Some(7) | Some(9) | Some(10)) {
-                    neighbours.push(neighbour);
-                }
+    let mut active_routes = Vec::<[[u8; 16]; 2]>::new();
+    for bond in active_bonds {
+        let (left, right) = bond.endpoints();
+        let route = match (layer_of(left), layer_of(right)) {
+            (Some(7), Some(9 | 10)) => Some([left, right]),
+            (Some(9 | 10), Some(7)) => Some([right, left]),
+            _ => None,
+        };
+        if let Some(mut route) = route {
+            route.sort_unstable();
+            if !active_routes.contains(&route) {
+                active_routes.push(route);
             }
         }
-        neighbours.sort_unstable();
-        neighbours.dedup();
-        if neighbours == participants {
-            matching.push(*candidate);
-        }
     }
-    let ordering_lineage = match matching.as_slice() {
-        [lineage] => *lineage,
-        [] => mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 11)?,
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-    };
-    for participant in participants {
-        if !electrical_fabric.contains_contact(participant, ordering_lineage) {
-            *electrical_fabric = electrical_fabric
-                .append_contact(
-                    participant,
-                    ordering_lineage,
-                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                )
-                .map_err(FormationError::ResidentElectricalUnavailable)?;
+    active_routes.sort_unstable();
+
+    for participants in active_routes {
+        let mut matching = Vec::new();
+        for (candidate, _) in mounted
+            .iter()
+            .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 11)
+        {
+            let mut neighbours = Vec::new();
+            for (left, right) in electrical_fabric.contact_endpoints() {
+                let left_lineage = electrical_fabric.lineages()[left];
+                let right_lineage = electrical_fabric.lineages()[right];
+                let neighbour = if left_lineage == *candidate {
+                    Some(right_lineage)
+                } else if right_lineage == *candidate {
+                    Some(left_lineage)
+                } else {
+                    None
+                };
+                if let Some(neighbour) = neighbour {
+                    if matches!(layer_of(neighbour), Some(7) | Some(9) | Some(10)) {
+                        neighbours.push(neighbour);
+                    }
+                }
+            }
+            neighbours.sort_unstable();
+            neighbours.dedup();
+            if neighbours.as_slice() == participants {
+                matching.push(*candidate);
+            }
+        }
+        let ordering_lineage = match matching.as_slice() {
+            [lineage] => *lineage,
+            [] => mount_next_intrinsic_in_layer(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                11,
+            )?,
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+        };
+        for participant in participants {
+            if !electrical_fabric.contains_contact(participant, ordering_lineage) {
+                *electrical_fabric = electrical_fabric
+                    .append_contact(
+                        participant,
+                        ordering_lineage,
+                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                    )
+                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+            }
         }
     }
     Ok(())
@@ -6321,6 +6442,44 @@ fn settle_internal_contact_interval(
         SparseElectricalState::from_contact_states(&compact_anatomy, compact_states)
             .map_err(FormationError::ResidentElectricalUnavailable)?;
 
+    // Membrane pumping is local cell metabolism, not a darkness detector. Run
+    // the existing exact pump only for this interval's already-derived causal
+    // frontier before contact current is evaluated. This lets an intrinsic
+    // neuron replenish its finite carrier gradient without polling or
+    // recovering any unrelated neuron or dissipation lane.
+    let selected_predecessor_neurons = cohorts
+        .iter()
+        .enumerate()
+        .map(|(cohort_index, cohort)| {
+            selected
+                .iter()
+                .filter_map(|flat| {
+                    let (resident_cohort, neuron_index, _) = flat_locations[*flat];
+                    (resident_cohort == cohort_index)
+                        .then(|| (neuron_index, cohort.state.neurons()[neuron_index].clone()))
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
+    for cohort_index in 0..cohorts.len() {
+        let reached_indices = selected_predecessor_neurons[cohort_index]
+            .iter()
+            .map(|(neuron_index, _)| *neuron_index)
+            .collect::<Vec<_>>();
+        if reached_indices.is_empty() {
+            continue;
+        }
+        let (successor, _) = settle_reached_cohort_membrane_pumps(
+            &cohorts[cohort_index].anatomy,
+            &cohorts[cohort_index].state,
+            &reached_indices,
+            interval_microseconds,
+        )
+        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        cohorts[cohort_index].state = successor;
+    }
+
     let mut capacitances = Vec::with_capacity(selected.len());
     let mut membranes = Vec::with_capacity(selected.len());
     let mut available_carriers = Vec::with_capacity(selected.len());
@@ -6339,7 +6498,6 @@ fn settle_internal_contact_interval(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         );
     }
-    let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     let settled = settle_sparse_electrical_transfers(
         &compact_anatomy,
         &compact_predecessor,
@@ -6549,7 +6707,29 @@ fn settle_internal_contact_interval(
                     .map_err(FormationError::JointFieldUnavailable)?,
             );
         }
+        let comparison_predecessors = selected_predecessor_neurons[cohort_index]
+            .iter()
+            .map(|(neuron_index, predecessor)| {
+                let (extended_anatomy, extended_predecessor) = extend_neuron_positional_fabric(
+                    &cohort.anatomy.neuron_anatomies()[*neuron_index],
+                    predecessor,
+                    required_positions[*neuron_index],
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index: *neuron_index,
+                        error,
+                    })
+                })?;
+                Ok((*neuron_index, extended_anatomy, extended_predecessor))
+            })
+            .collect::<Result<Vec<_>, FormationError>>()?;
         extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
+        for (neuron_index, extended_anatomy, _) in &comparison_predecessors {
+            if extended_anatomy != &cohort.anatomy.neuron_anatomies()[*neuron_index] {
+                return Err(FormationError::NoncanonicalState);
+            }
+        }
         let catalysts = cohort
             .anatomy
             .neuron_anatomies()
@@ -6599,7 +6779,7 @@ fn settle_internal_contact_interval(
             precomputed_local,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let predecessor_neurons = cohort.state.neurons().to_vec();
+        let predecessor_neurons = &comparison_predecessors;
         // This interval is a native cross-cohort electrical consequence, not
         // a second externally admitted experience.  The legacy cognitive
         // admission path can express only cohort-local contact structure; if
@@ -6617,24 +6797,21 @@ fn settle_internal_contact_interval(
         cohort.state = settlement.successor;
         let mut changed_lineages = Vec::new();
         let mut cohort_fractals = Vec::new();
-        for (neuron_index, (predecessor, successor)) in predecessor_neurons
-            .iter()
-            .zip(cohort.state.neurons())
-            .enumerate()
-        {
+        for (neuron_index, _, predecessor) in predecessor_neurons {
+            let successor = &cohort.state.neurons()[*neuron_index];
             if predecessor != successor {
-                changed_lineages.push(cohort.anatomy.neuron_lineages()[neuron_index]);
+                changed_lineages.push(cohort.anatomy.neuron_lineages()[*neuron_index]);
             }
             if let Some(delta) = sparse_retained_physical_state_delta(predecessor, successor)
                 .map_err(|error| {
                     FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                        neuron_index,
+                        neuron_index: *neuron_index,
                         error,
                     })
                 })?
             {
                 cohort_fractals.push(EmittedNeuronFractal {
-                    neuron_lineage: cohort.anatomy.neuron_lineages()[neuron_index],
+                    neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
                     delta,
                 });
             }
@@ -9259,7 +9436,7 @@ mod tests {
     }
 
     #[test]
-    fn reached_association_and_affective_material_mount_one_delayed_ordering_route() {
+    fn active_association_affective_bond_mounts_one_delayed_ordering_route() {
         let mut cohorts = Vec::new();
         let mut population =
             Some(DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &[]).unwrap());
@@ -9286,7 +9463,7 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[association],
+            &[],
         )
         .unwrap();
         assert_eq!(
@@ -9294,12 +9471,14 @@ mod tests {
             resting_before
         );
 
+        let active_bond =
+            StablePhysicalBondReference::new(association, affective, 0).unwrap();
         mount_reached_ordering_reach(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[association, affective],
+            &[active_bond],
         )
         .unwrap();
         let ordering = cohorts
@@ -9329,7 +9508,7 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[affective, association],
+            &[active_bond],
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -9400,6 +9579,18 @@ mod tests {
             .filter(|mount| mount.place().layer() == 11)
             .count();
         assert_eq!(layer_eleven, 1);
+        let layer_counts = state.observe_reached_neuron_count_by_layer();
+        assert_eq!(
+            layer_counts
+                .iter()
+                .find(|(layer, _)| *layer == 11)
+                .copied(),
+            Some((11, 1))
+        );
+        assert_eq!(
+            layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
+            state.summary().complete_neuron_count
+        );
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);

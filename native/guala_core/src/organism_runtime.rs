@@ -2162,6 +2162,32 @@ impl NativeResidentOrganismRuntime {
         self.runtime.cognitive_state().observe_cohort_contacts()
     }
 
+    /// Read-only bounded distribution of living reached neurons by their
+    /// persisted developmental layer. No neuronal state or reserve cells are
+    /// projected and reading advances nothing.
+    fn observe_reached_neuron_count_by_layer(&self) -> Vec<(u32, usize)> {
+        self.runtime
+            .cognitive_state()
+            .observe_reached_neuron_count_by_layer()
+    }
+
+    /// Read-only reached-neuron electrical evidence for translation-boundary
+    /// diagnosis. Cognition never consumes this observer projection.
+    fn observe_reached_neuron_electrical_by_layer(
+        &self,
+    ) -> Vec<(u32, i128, i128, u128, u128, u128)> {
+        self.runtime
+            .cognitive_state()
+            .observe_reached_neuron_electrical_by_layer()
+    }
+
+    /// Read-only sparse-contact counts by canonical developmental layer pair.
+    fn observe_reached_contact_count_by_layer_pair(&self) -> Vec<(u32, u32, usize)> {
+        self.runtime
+            .cognitive_state()
+            .observe_reached_contact_count_by_layer_pair()
+    }
+
     /// Read-only count of reached cells carrying one exact persisted source
     /// anchor. The caller names physical source identity, not cognition.
     fn observe_reached_source_site_count(

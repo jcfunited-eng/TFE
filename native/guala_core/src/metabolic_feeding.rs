@@ -32,6 +32,7 @@ use crate::complete_neuron::{
     NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError, RecoveryLaneAddress,
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
+use crate::elementary_charge_membrane::MembraneChargeError;
 use crate::recovery_fluid_contact::{
     recovery_exchange_extent_is_representable, settle_recovery_fluid_contact,
     whole_extents_carried, whole_extents_carried_difference, ReachedRecoveryFluidAnatomy,
@@ -48,6 +49,7 @@ pub(crate) enum MetabolicError {
     MaterialContinuity,
     ArithmeticWidth,
     AnatomyWidth,
+    Membrane(MembraneChargeError),
     Neuron(NeuronPhysicalError),
     RecoveryFluid(RecoveryFluidError),
 }
@@ -55,6 +57,12 @@ pub(crate) enum MetabolicError {
 impl From<NeuronPhysicalError> for MetabolicError {
     fn from(value: NeuronPhysicalError) -> Self {
         Self::Neuron(value)
+    }
+}
+
+impl From<MembraneChargeError> for MetabolicError {
+    fn from(value: MembraneChargeError) -> Self {
+        Self::Membrane(value)
     }
 }
 
@@ -180,14 +188,14 @@ pub(crate) fn settle_dark_rest_neuron(
         reservoir = settled.1;
         lane_recoveries.push(settled.2);
     }
-    let (successor_neuron, successor_reservoir, pumped, pump_work) = settle_membrane_gradient_pump(
-        neuron_anatomy,
-        &neuron,
-        recovery_anatomy.reservoir_anatomy(),
-        reservoir,
-        interval_microseconds,
-    )?;
-    let returned = 0;
+    let (successor_neuron, successor_reservoir, returned, pumped, pump_work) =
+        settle_membrane_gradient_transport(
+            neuron_anatomy,
+            &neuron,
+            recovery_anatomy.reservoir_anatomy(),
+            reservoir,
+            interval_microseconds,
+        )?;
     let membrane_fuel = 0;
     Ok(DarkRestNeuronSettlement {
         unreturned_elementary_charges: successor_neuron.separated_elementary_charges(),
@@ -201,7 +209,15 @@ pub(crate) fn settle_dark_rest_neuron(
     })
 }
 
-fn settle_membrane_gradient_pump(
+/// Settle the neuron's one retained carrier-gradient transport path.
+///
+/// The same local electrochemical difference has two exact regimes.  When the
+/// authored transport direction lowers membrane-plus-gradient work, material
+/// moves passively and the released work becomes local heat.  When it raises
+/// stored work, body energy pays that increase and becomes spent material.
+/// The path cannot cross its own reversal potential in one interval, and no
+/// desired voltage or extra gradient coordinate is introduced.
+pub(crate) fn settle_membrane_gradient_transport(
     neuron_anatomy: &NeuronPhysicalAnatomy,
     predecessor_neuron: &NeuronPhysicalState,
     reservoir_anatomy: RecoveryFluidReservoirAnatomy,
@@ -211,6 +227,7 @@ fn settle_membrane_gradient_pump(
     (
         NeuronPhysicalState,
         RecoveryFluidReservoirState,
+        i128,
         i128,
         ExactRational,
     ),
@@ -225,6 +242,7 @@ fn settle_membrane_gradient_pump(
         return Ok((
             predecessor_neuron.clone(),
             predecessor_reservoir,
+            0,
             0,
             ExactRational::integer(0),
         ));
@@ -243,6 +261,7 @@ fn settle_membrane_gradient_pump(
             predecessor_neuron.clone(),
             predecessor_reservoir,
             0,
+            0,
             ExactRational::integer(0),
         ));
     }
@@ -255,6 +274,7 @@ fn settle_membrane_gradient_pump(
     let mut accepted_state = predecessor_neuron.clone();
     let mut accepted_reservoir = predecessor_reservoir;
     let mut accepted_work = ExactRational::integer(0);
+    let mut passive = None;
     while lower < upper {
         let middle = lower
             .checked_add((upper - lower + 1) / 2)
@@ -270,7 +290,7 @@ fn settle_membrane_gradient_pump(
             interval_microseconds,
         )?;
         let successor_work = membrane_and_gradient_work_zeptojoules(neuron_anatomy, &candidate)?;
-        let required = match wide_sub(successor_work, predecessor_work) {
+        let signed_work = match wide_sub(successor_work, predecessor_work) {
             Ok(required) => required,
             Err(MetabolicError::ArithmeticWidth) => {
                 upper = middle - 1;
@@ -278,19 +298,43 @@ fn settle_membrane_gradient_pump(
             }
             Err(error) => return Err(error),
         };
-        if wide_rational(required) <= wide_rational(ExactRational::integer(0))
-            || wide_rational(required) > budget
+        let candidate_passive = wide_rational(signed_work)
+            < wide_rational(ExactRational::integer(0));
+        if passive.is_none() {
+            passive = Some(candidate_passive);
+        }
+        if passive != Some(candidate_passive)
+            || !transport_stays_on_reversal_side(neuron_anatomy, predecessor_neuron, &candidate)?
         {
             upper = middle - 1;
             continue;
         }
-        let candidate_reservoir = match pump_reservoir_successor(
-            reservoir_anatomy,
-            available,
-            spent,
-            thermal,
-            required,
-        )? {
+        let settled_work = if candidate_passive {
+            signed_work.checked_neg()?
+        } else {
+            signed_work
+        };
+        if !candidate_passive && wide_rational(settled_work) > budget {
+            upper = middle - 1;
+            continue;
+        }
+        let candidate_reservoir = match if candidate_passive {
+            passive_reservoir_successor(
+                reservoir_anatomy,
+                available,
+                spent,
+                thermal,
+                settled_work,
+            )
+        } else {
+            pump_reservoir_successor(
+                reservoir_anatomy,
+                available,
+                spent,
+                thermal,
+                settled_work,
+            )
+        }? {
             Some(candidate_reservoir) => candidate_reservoir,
             None => {
                 // Fixed-width exact state is part of the resident physical
@@ -305,12 +349,13 @@ fn settle_membrane_gradient_pump(
         lower = middle;
         accepted_state = candidate;
         accepted_reservoir = candidate_reservoir;
-        accepted_work = required;
+        accepted_work = settled_work;
     }
     if lower == 0 {
         return Ok((
             predecessor_neuron.clone(),
             predecessor_reservoir,
+            0,
             0,
             ExactRational::integer(0),
         ));
@@ -318,9 +363,60 @@ fn settle_membrane_gradient_pump(
     Ok((
         accepted_state,
         accepted_reservoir,
-        signed_magnitude(direction_negative, lower)?,
+        if passive == Some(true) {
+            signed_magnitude(direction_negative, lower)?
+        } else {
+            0
+        },
+        if passive == Some(false) {
+            signed_magnitude(direction_negative, lower)?
+        } else {
+            0
+        },
         accepted_work,
     ))
+}
+
+fn transport_stays_on_reversal_side(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    successor: &NeuronPhysicalState,
+) -> Result<bool, MetabolicError> {
+    let reversal = anatomy.gate_reversal_potential_millivolts();
+    let predecessor_drive = predecessor
+        .membrane_state()
+        .potential_millivolts(anatomy.capacitance())?
+        .checked_sub(reversal)?;
+    let successor_drive = successor
+        .membrane_state()
+        .potential_millivolts(anatomy.capacitance())?
+        .checked_sub(reversal)?;
+    let predecessor_sign = predecessor_drive.parts().0.signum();
+    let successor_sign = successor_drive.parts().0.signum();
+    Ok(successor_sign == 0 || predecessor_sign == successor_sign)
+}
+
+fn passive_reservoir_successor(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    available: ExactRational,
+    spent: ExactRational,
+    thermal: ExactRational,
+    released_work: ExactRational,
+) -> Result<Option<RecoveryFluidReservoirState>, MetabolicError> {
+    let (_, _, thermal_capacity) = anatomy.capacities();
+    let successor_thermal = match wide_add(thermal, released_work) {
+        Ok(value) => value,
+        Err(MetabolicError::ArithmeticWidth) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    if wide_rational(successor_thermal) > wide_rational(thermal_capacity) {
+        return Ok(None);
+    }
+    match RecoveryFluidReservoirState::new(anatomy, available, spent, successor_thermal) {
+        Ok(successor) => Ok(Some(successor)),
+        Err(RecoveryFluidError::ArithmeticWidth) => Ok(None),
+        Err(error) => Err(error.into()),
+    }
 }
 
 fn pump_reservoir_successor(

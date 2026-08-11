@@ -1360,6 +1360,12 @@ def _native_record() -> dict[str, Any]:
         "cognitive_ordinal": observed.cognitive_ordinal,
         "cognitive_trace_count": observed.cognitive_trace_count,
         "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
+        "reached_neuron_count_by_layer": [
+            [layer, count]
+            for layer, count in (
+                restored.organism.observe_reached_neuron_count_by_layer()
+            )
+        ],
         "developmental_resting_neuron_count": getattr(
             observed, "developmental_resting_neuron_count", 0
         ),
@@ -2563,6 +2569,9 @@ def _build_public_observation() -> dict[str, Any]:
             active_count=None,
             historical_reached_dsf_perspective_count=native[
                 "reached_dsf_perspective_count"
+            ],
+            reached_count_by_developmental_layer=native[
+                "reached_neuron_count_by_layer"
             ],
             retained_count=native["complete_neuron_count"],
         ),

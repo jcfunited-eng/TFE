@@ -964,6 +964,86 @@ class NativeResidentOrganism:
             for members, contacts in self.__runtime.observe_cohort_contacts()
         )
 
+    def observe_reached_neuron_count_by_layer(
+        self,
+    ) -> tuple[tuple[int, int], ...]:
+        """Decoded ``(layer, reached_count)`` from persisted neuron anatomy."""
+
+        observed = tuple(
+            (
+                _nonnegative_integer(layer, "developmental layer"),
+                _nonnegative_integer(count, "reached neuron layer count"),
+            )
+            for layer, count in (
+                self.__runtime.observe_reached_neuron_count_by_layer()
+            )
+        )
+        if any(
+            count == 0
+            or (index > 0 and observed[index - 1][0] >= layer)
+            for index, (layer, count) in enumerate(observed)
+        ):
+            raise RuntimeError(
+                "reached neuron layer distribution is not canonical"
+            )
+        return observed
+
+    def observe_reached_neuron_electrical_by_layer(
+        self,
+    ) -> tuple[tuple[int, int, int, int, int, int], ...]:
+        """Read-only layer, charge, capacitance and carrier material."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _nonnegative_integer(layer, "developmental layer"),
+                int(charge),
+                int(capacitance_numerator),
+                _positive_integer(
+                    capacitance_denominator, "capacitance denominator"
+                ),
+                _nonnegative_integer(intracellular, "intracellular carriers"),
+                _nonnegative_integer(extracellular, "extracellular carriers"),
+            )
+            for (
+                layer,
+                charge,
+                capacitance_numerator,
+                capacitance_denominator,
+                intracellular,
+                extracellular,
+            ) in (
+                self.__runtime.observe_reached_neuron_electrical_by_layer()
+            )
+        )
+        if len(observed) != before.complete_neuron_count:
+            raise RuntimeError("reached neuron electrical projection changed width")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached neuron electrical observation advanced the organism")
+        return observed
+
+    def observe_reached_contact_count_by_layer_pair(
+        self,
+    ) -> tuple[tuple[int, int, int], ...]:
+        """Read-only sparse-contact counts by endpoint layer pair."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _nonnegative_integer(left, "left developmental layer"),
+                _nonnegative_integer(right, "right developmental layer"),
+                _nonnegative_integer(count, "interlayer contact count"),
+            )
+            for left, right, count in (
+                self.__runtime.observe_reached_contact_count_by_layer_pair()
+            )
+        )
+        if any(left > right or count == 0 for left, right, count in observed):
+            raise RuntimeError("reached contact layer projection is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached contact observation advanced the organism")
+        return observed
+
     def observe_reached_source_site_count(
         self,
         sensor_id: str,

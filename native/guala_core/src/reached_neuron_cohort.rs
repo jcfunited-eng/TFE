@@ -24,7 +24,9 @@ use crate::elementary_charge_membrane::MembraneCapacitance;
 use crate::elementary_charge_transfer::ChargeCarrierPhase;
 use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::NativeJointSourceEpisode;
-use crate::metabolic_feeding::{settle_dark_rest_neuron, MetabolicError};
+use crate::metabolic_feeding::{
+    settle_dark_rest_neuron, settle_membrane_gradient_transport, MetabolicError,
+};
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, decode_neuron_source_site, encode_neuron_source_site,
     NeuronSourceAnchorError, NeuronSourceSite, PhysicalSourceSense,
@@ -2095,6 +2097,109 @@ impl ReachedCohortMetabolicObservation {
     pub(crate) fn changed(&self) -> bool {
         self.recovered_neuron_count != 0
     }
+}
+
+/// Run the already-authored membrane pump only for the exact neurons reached
+/// by the present causal frontier.  This is not dark-lane recovery: membrane
+/// pumps remain physical while a cell participates in an active interval.
+/// Unreached neurons and their state remain byte-identical, and no cohort or
+/// organism population is polled to decide participation.
+pub(crate) fn settle_reached_cohort_membrane_pumps(
+    anatomy: &ReachedCohortAnatomy,
+    predecessor: &ReachedCohortState,
+    reached_neuron_indices: &[usize],
+    interval_microseconds: u32,
+) -> Result<(ReachedCohortState, ReachedCohortMetabolicObservation), ReachedCohortError> {
+    if predecessor.neurons.len() != anatomy.neurons.len()
+        || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
+        || reached_neuron_indices
+            .iter()
+            .any(|index| *index >= anatomy.neurons.len())
+        || reached_neuron_indices
+            .windows(2)
+            .any(|pair| pair[0] >= pair[1])
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    if reached_neuron_indices.is_empty() {
+        return Ok((predecessor.clone(), ReachedCohortMetabolicObservation::default()));
+    }
+
+    let predecessor_material = total_carrier_material(&predecessor.neurons)?;
+    let mut maximum_power = ExactRational::integer(0);
+    for neuron_index in reached_neuron_indices.iter().copied() {
+        maximum_power = maximum_power
+            .checked_add(
+                anatomy.neurons[neuron_index]
+                    .pump_contact_power_zeptojoules_per_microsecond()
+                    .map_err(|error| ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })?,
+            )
+            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+    }
+    let maximum_interval_energy = maximum_power
+        .checked_mul_unsigned(u128::from(interval_microseconds))
+        .map_err(|_| ReachedCohortError::MaterialConservation)?;
+    let environment = settle_powered_environment_exchange(
+        anatomy.recovery_fluid.reservoir_anatomy(),
+        predecessor.recovery_fluid,
+        maximum_interval_energy,
+    )?;
+
+    let mut neurons = predecessor.neurons.to_vec();
+    let mut reservoir = environment.successor;
+    let mut observation = ReachedCohortMetabolicObservation {
+        environment_energy_delivered_zeptojoules: environment.delivered_energy_zeptojoules,
+        environment_heat_exported_zeptojoules: environment.exported_heat_zeptojoules,
+        ..ReachedCohortMetabolicObservation::default()
+    };
+    for neuron_index in reached_neuron_indices.iter().copied() {
+        let (successor, successor_reservoir, returned, pumped, pump_work) =
+            settle_membrane_gradient_transport(
+                &anatomy.neurons[neuron_index],
+                &neurons[neuron_index],
+                anatomy.recovery_fluid.reservoir_anatomy(),
+                reservoir,
+                interval_microseconds,
+            )?;
+        observation.returned_elementary_charges = observation
+            .returned_elementary_charges
+            .checked_add(returned)
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.pumped_elementary_charges = observation
+            .pumped_elementary_charges
+            .checked_add(pumped)
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        observation.pump_work_zeptojoules = observation
+            .pump_work_zeptojoules
+            .checked_add(pump_work)
+            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+        observation.unreturned_elementary_charges = observation
+            .unreturned_elementary_charges
+            .checked_add(successor.separated_elementary_charges())
+            .ok_or(ReachedCohortError::MaterialConservation)?;
+        if returned != 0 || pumped != 0 {
+            observation.recovered_neuron_count = observation
+                .recovered_neuron_count
+                .checked_add(1)
+                .ok_or(ReachedCohortError::MaterialConservation)?;
+        }
+        neurons[neuron_index] = successor;
+        reservoir = successor_reservoir;
+    }
+    if total_carrier_material(&neurons)? != predecessor_material {
+        return Err(ReachedCohortError::MaterialConservation);
+    }
+    Ok((
+        ReachedCohortState {
+            neurons: neurons.into_boxed_slice(),
+            electrical: predecessor.electrical.clone(),
+            recovery_fluid: reservoir,
+        },
+        observation,
+    ))
 }
 
 /// Settle one genuinely dark interval's metabolism for a whole cohort: every

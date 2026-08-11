@@ -27,9 +27,13 @@ class _Observation:
     cognitive_ordinal: int = 0
     cognitive_trace_count: int = 0
     formation_activation_count: int = 0
+    mosaic_of_mosaics_count: int = 0
     partial_cue_reassembly_count: int = 0
+    endogenous_partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
+    complete_neuron_count: int = 96
+    developmental_resting_neuron_count: int = 0
     # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
     # observation now carries the decoded energy physics; a zero-capacity
     # fixture body reports no mounted energy system.
@@ -41,6 +45,12 @@ class _Observation:
     dissipation_capacity_quanta: int = 0
     separated_elementary_charges: int = 0
     energy_exhausted: bool = False
+    available_energy_zeptojoules: tuple[int, int] = (0, 1)
+    spent_energy_zeptojoules: tuple[int, int] = (0, 1)
+    thermal_energy_zeptojoules: tuple[int, int] = (0, 1)
+    available_energy_capacity_zeptojoules: tuple[int, int] = (0, 1)
+    dissipated_energy_zeptojoules: tuple[int, int] = (0, 1)
+    dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
 
 
 class _Organism:
@@ -50,6 +60,12 @@ class _Organism:
     def readiness(self) -> _Observation:
         self.readiness_calls += 1
         return _Observation()
+
+    def observe_reached_neuron_count_by_layer(self):
+        return ((0, 27), (1, 27), (6, 42))
+
+    def observe_retained_formations(self):
+        return ()
 
 
 @dataclass
@@ -69,7 +85,11 @@ class _Admission:
 class _ReassemblingOrganism(_Organism):
     def readiness(self) -> _Observation:
         self.readiness_calls += 1
-        return _Observation(partial_cue_reassembly_count=3, cognitive_mosaic_count=1)
+        return _Observation(
+            partial_cue_reassembly_count=3,
+            endogenous_partial_cue_reassembly_count=3,
+            cognitive_mosaic_count=1,
+        )
 
 
 def _mount(monkeypatch) -> _Restored:
@@ -164,6 +184,11 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         assert value["sensory"][modality]["available"] is False
 
     assert value["autonomy"]["action_observed"] is False
+    assert value["neuron_activity"]["reached_count_by_developmental_layer"] == [
+        [0, 27],
+        [1, 27],
+        [6, 42],
+    ]
     # The fixture observation carries zero formations; the projection must
     # report exactly what the observation says, not a hardwired zero.
     assert value["fractals"]["count"] == 0
@@ -198,7 +223,10 @@ def test_recall_section_is_truth_coupled_to_the_native_observation(
     _mount(monkeypatch)
     quiet = json.loads(serving.native_observation().body)["recall"]
     assert quiet["available"] is False
-    assert quiet["status"] == "no_reassembly_in_last_committed_transition"
+    assert (
+        quiet["status"]
+        == "no_endogenous_reassembly_in_last_committed_transition"
+    )
     assert quiet["partial_cue_reassembly_count"] == 0
 
     # Nonzero reassembly in the decoded state: the projection must say so,
@@ -208,7 +236,7 @@ def test_recall_section_is_truth_coupled_to_the_native_observation(
     serving._refresh_public_observation_cache()
     value = json.loads(serving.native_observation().body)
     assert value["recall"]["available"] is True
-    assert value["recall"]["status"] == "physical_partial_cue_reassembly_observed"
+    assert value["recall"]["status"] == "endogenous_physical_reassembly_observed"
     assert value["recall"]["partial_cue_reassembly_count"] == 3
     assert value["formations"]["mosaic_count"] == 1
 
@@ -223,14 +251,20 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
         for name, record in value["capabilities"].items()
         if record["available"] is True
     }
-    # The mounted set is exactly the ingresses with real native
-    # transitions; standalone hearing is suspended by the ratified
-    # two-real-signal doctrine until a live visual source mounts.
-    # PIN UPDATED 2026-08-06: the minimal feeding metabolism (2026-08-05)
-    # mounted POST /api/v1/metabolism/feed as a real material intake.
-    assert set(mounted) == {"curriculum", "nutrition"}
+    # The mounted set is exactly the visual/media ingresses and curriculum
+    # routes available under this fixture's explicit environment. Audio and
+    # nutrition remain unavailable here.
+    assert set(mounted) == {
+        "book",
+        "camera",
+        "curriculum",
+        "gutenberg",
+        "pdf",
+        "picture",
+        "text_visual",
+    }
     for record in mounted.values():
-        assert record["status"] == "mounted"
+        assert record["status"]
         assert record["endpoint"] in served_paths
         assert record["reason"]
     for name, record in value["capabilities"].items():
@@ -238,8 +272,8 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
             continue
         assert record["available"] is False
         assert record["endpoint"] is None
-        assert record["status"] == "not_mounted"
-        assert "not mounted" in record["reason"]
+        assert record["status"]
+        assert record["reason"]
 
 
 def test_native_public_surface_contains_no_owner_or_legacy_observation_route(

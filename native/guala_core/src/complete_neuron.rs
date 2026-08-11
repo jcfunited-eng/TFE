@@ -5522,10 +5522,11 @@ pub(crate) fn membrane_gradient_pump_charge_bound(
         .potential_millivolts(anatomy.capacitance)
         .map_err(MembraneConductanceError::from)
         .map_err(GateSettlementError::from)?;
+    let electrochemical_drive = potential.checked_sub(reversal)?;
     let magnitude_current = anatomy
         .gate
         .single_channel_conductance_picosiemens
-        .checked_mul(potential.checked_abs()?)?
+        .checked_mul(electrochemical_drive.checked_abs()?)?
         .checked_div_unsigned(1_000)?;
     let pump_current = if reversal_sign < 0 {
         magnitude_current.checked_neg()?
@@ -5745,7 +5746,8 @@ mod tests {
         encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
         encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
         settle_reached_cohort_dark_rest, settle_reached_cohort_experience_to_quiescence,
-        settle_reached_cohort_interval, settle_reached_cohort_recurrence,
+        settle_reached_cohort_interval, settle_reached_cohort_membrane_pumps,
+        settle_reached_cohort_recurrence,
         settle_reached_cohort_to_quiescence, ReachedCohortAnatomy, ReachedCohortIntervalInput,
         ReachedCohortState,
     };
@@ -6093,6 +6095,57 @@ mod tests {
         );
         assert_eq!(observation.returned_elementary_charges, 0);
         assert_eq!(observation.fuel_quanta, 0);
+    }
+
+    #[test]
+    fn active_frontier_pumps_only_the_reached_neuron() {
+        let [first, second] = physical_fixtures::<2>();
+        let electrical = SparseElectricalAnatomy::new(2, Vec::new()).unwrap();
+        let mut first_state = first.state.clone();
+        first_state.membrane = LocalMembraneConductanceState::genesis(-1_000);
+        first_state.carriers = CarrierReservoirs::new(0, 12_484);
+        let mut second_state = second.state.clone();
+        second_state.membrane = LocalMembraneConductanceState::genesis(-1_000);
+        second_state.carriers = CarrierReservoirs::new(0, 12_484);
+        let anatomy = ReachedCohortAnatomy::new(
+            vec![first.anatomy, second.anatomy],
+            fixture_lineages(2),
+            fixture_source_sites(2),
+            electrical.clone(),
+        )
+        .unwrap();
+        let predecessor = ReachedCohortState::new(
+            &anatomy,
+            vec![first_state, second_state],
+            SparseElectricalState::genesis(&electrical),
+        )
+        .unwrap();
+        let predecessor_first = predecessor.neurons()[0].clone();
+        let predecessor_second = predecessor.neurons()[1].clone();
+        let predecessor_material = predecessor
+            .neurons()
+            .iter()
+            .map(|neuron| neuron.carrier_reservoirs().total().unwrap())
+            .sum::<u128>();
+
+        let (successor, observation) =
+            settle_reached_cohort_membrane_pumps(&anatomy, &predecessor, &[1], 250_000)
+                .unwrap();
+
+        assert_eq!(successor.neurons()[0], predecessor_first);
+        assert_ne!(successor.neurons()[1], predecessor_second);
+        assert!(successor.neurons()[1].carrier_reservoirs().intracellular() > 0);
+        assert!(observation.pumped_elementary_charges < 0);
+        assert_eq!(observation.recovered_neuron_count, 1);
+        assert_eq!(successor.electrical(), predecessor.electrical());
+        assert_eq!(
+            successor
+                .neurons()
+                .iter()
+                .map(|neuron| neuron.carrier_reservoirs().total().unwrap())
+                .sum::<u128>(),
+            predecessor_material
+        );
     }
 
     fn population_gate(
