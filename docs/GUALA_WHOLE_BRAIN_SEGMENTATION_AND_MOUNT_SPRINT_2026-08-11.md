@@ -10,6 +10,14 @@ mismatches.  The original temporary Git object was lost during the container
 restart; recovered commit `add551fd` is the durable local baseline.  That commit
 records recovered source, not a new production delivery.
 
+Task `dsf-ai-task:957`, commit `53f8dbe1`, subsequently mounted the corrected
+receptor-to-layer-6 geography, one-hop reached-frontier law, and first reusable
+layer-7 association path.  A live `alphabet-c` occurrence moved the body from
+121 to 175 complete neurons and from 196,608 to 196,554 resting cells: exactly
+53 corrected local integrators plus one association cell.  The following quiet
+world interval added no cells.  This is live physical specialization evidence,
+not a word-learning or cognition claim.
+
 The requested architecture is one persistent organism whose specialized neural,
 body, fluid, sensory, and effector structures participate in one causal life.
 Live production has a compact fourteen-territory resting population and a
@@ -51,8 +59,8 @@ instantiate the whole potential population.
 | 4 | Oral chemical receptor | Local contacted dissolved material | Distinct gustatory receptor settlement | Sparse contact into layer 6 | Not live-proven |
 | 5 | Body and balance receptor | Vestibular, proprioceptive, and localized interoceptive body quantities | Distinct body-owned afferent settlement | Sparse contact into layers 6 and 8 | Vestibular exists; localized interoception is absent |
 | 6 | Local sensory integration | Sparse contacts from topology-local receptors | Preserve local sensory perspectives while permitting causal convergence | Sparse contacts into layers 7 and locally back toward reached receptor/body frontiers | Mounted for reached receptor topologies |
-| 7 | Cross-sensory association | Concurrent/recurrent layer-6 activity on one organism clock | Permit learned relations among modalities without merging their state | Sparse contacts into layers 9, 10, and 11 | Declared, not mounted |
-| 8 | Body and fluid regulation | Local body afferents plus non-neural fluid/metabolic compartments | Couple conserved body/fluid condition to neural reach, recovery, and action capacity | Sparse contacts into layers 5, 10, 11, and 12; local fluid passoff back to neurons | Declared, not mounted; aggregate synthetic interoception is explicitly retired |
+| 7 | Cross-sensory association | Concurrent/recurrent layer-6 activity on one organism clock | Permit learned relations among modalities without merging their state | Sparse contacts into layers 9, 10, and 11 | Mounted and live-exercised for one same-occurrence sensory assembly on task 957 |
+| 8 | Body and fluid regulation | Local body afferents plus non-neural fluid/metabolic compartments | Couple conserved body/fluid condition to neural reach, recovery, and action capacity | Sparse contacts into layers 5, 10, 11, and 12; local fluid passoff back to neurons | Local body/balance route implemented in the current candidate; fluid-contact coupling remains absent |
 | 9 | Recurrent retention | Post-quiescence neuronal fractals and recurrent sparse contact activity | Distributed durable reassembly; hippocampal structures navigate references but do not store answers | Sparse recurrence into layers 7, 10, and 11 | Mosaic/index code exists; whole-organism path is not live-proven |
 | 10 | Affective reach | Coincident body/fluid, sensory, retained, and consequence activity | Let learned organism relevance alter reachable attention, recall, preparation, and recovery without named emotion labels | Sparse contacts into layers 6, 9, 11, and 12 | Declared, not mounted |
 | 11 | Prediction and ordering | Current association, recurrent retention, body/affective reach, and actual clock order | Maintain bounded alternatives and ordered continuations without a score selector or transcript | Prepared physical continuation into layers 12 or 13; recurrence back into 9 | Declared, not mounted |
@@ -149,13 +157,18 @@ following in one bounded transition:
 
 ## Delivery ledger
 
-1. Exact task-955 source recovery — complete locally; production unchanged.
+1. Exact task-955 source recovery — complete; task 957 is the current production successor.
 2. Whole-brain segmentation map — complete locally in this document.
 3. Sparse inter-segment wiring and physical transition contract — complete
    locally; direct one-hop and non-aliasing falsification proofs pass.
 4. Base organism implementation — in progress: corrected unique layer-6
    geography, explicit resource-accounted DNA growth, bounded interval
-   propagation, and first reusable layer-7 cross-sensory assembly complete
-   locally. Layers 8-12 and causal action closure remain unmounted.
-5. Focused end-to-end causal and resource proof — not started.
-6. Official production deployment and live verification — not started.
+   propagation, and first reusable layer-7 cross-sensory assembly are live on
+   task 957.  The current candidate adds the strictly local
+   layer-5 -> layer-6 -> layer-8 body/balance route; it does not feed aggregate
+   body accounting back as sensation. Layers 9-12 and causal action closure
+   remain unmounted.
+5. Focused end-to-end causal and resource proof — layer-6/7 production proof
+   complete; layer-8 vestibular proof pending candidate rehearsal.
+6. Official production deployment and live verification — task 957 complete
+   for layers 6/7; current layer-8 candidate not yet deployed.

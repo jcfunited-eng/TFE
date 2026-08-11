@@ -3459,12 +3459,13 @@ mod tests {
         let prepared = runtime.prepare_vestibular_tick(0, 64).unwrap();
         assert_eq!(
             prepared.observation.complete_neuron_count,
-            before.complete_neuron_count + 2
+            before.complete_neuron_count + 3
         );
         // The reached vestibular receptor claims one declared resting cell.
         // Its corrected unique layer-6 partner lies beyond this deliberately
-        // tiny fixture population and therefore consumes one reserved DNA
-        // growth unit instead of pretending to be a second resting claim.
+        // tiny fixture population and consumes one reserved DNA growth unit.
+        // Its topology-local layer-8 regulator is a second externally grown
+        // unit; neither is misreported as another resting-population claim.
         assert_eq!(
             prepared.observation.developmental_resting_neuron_count + 1,
             before.developmental_resting_neuron_count
@@ -3481,7 +3482,7 @@ mod tests {
         assert_eq!(
             restored.observation().complete_neuron_count
                 + restored.observation().developmental_resting_neuron_count,
-            before.complete_neuron_count + before.developmental_resting_neuron_count + 1
+            before.complete_neuron_count + before.developmental_resting_neuron_count + 2
         );
     }
 
@@ -3510,14 +3511,14 @@ mod tests {
         let after = runtime.observation();
         assert_eq!(heading, 90_000);
         assert_eq!(after.organism_tick - before.organism_tick, 250);
-        assert_eq!(after.complete_neuron_count, before.complete_neuron_count + 2);
+        assert_eq!(after.complete_neuron_count, before.complete_neuron_count + 3);
         assert_eq!(
             after.developmental_resting_neuron_count + 1,
             before.developmental_resting_neuron_count
         );
         assert_eq!(
             after.complete_neuron_count + after.developmental_resting_neuron_count,
-            before_total + 1
+            before_total + 2
         );
         assert_eq!(
             runtime

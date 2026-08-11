@@ -2056,6 +2056,13 @@ impl ResidentCognitiveFormationState {
                 &mut electrical_fabric,
                 occurrence_lineages,
             )?;
+            mount_reached_body_regulation(
+                &mut cohorts,
+                &mut resting_population,
+                &mut next_lineage_ordinal,
+                &mut electrical_fabric,
+                occurrence_lineages,
+            )?;
         }
         dsf_delivery_count = dsf_delivery_count
             .checked_add(settle_internal_contact_interval(
@@ -5335,6 +5342,77 @@ fn mount_reached_cross_sensory_association(
     Ok(())
 }
 
+/// Couple each genuinely reached body-or-balance receptor to its own local
+/// regulatory neuron.  The route is receptor layer 5 -> its already-mounted
+/// layer-6 integrator -> the topology-corresponding layer-8 cell.  No body-wide
+/// energy total, fuel fraction, readiness value, or other bookkeeping scalar
+/// is sensed here: locality and membership come only from the reached physical
+/// receptor lineage carried by this exact occurrence.
+fn mount_reached_body_regulation(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    externally_reached_lineages: &[[u8; 16]],
+) -> Result<(), FormationError> {
+    let mounted = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .map(|(mount, lineage)| (*lineage, mount.clone()))
+        .collect::<Vec<_>>();
+    let reached_body_receptors = externally_reached_lineages
+        .iter()
+        .filter_map(|lineage| {
+            mounted
+                .iter()
+                .find(|(candidate, mount)| {
+                    candidate == lineage
+                        && mount.source_site().is_some()
+                        && mount.place().layer() == 5
+                })
+                .map(|(_, mount)| (*lineage, mount.place()))
+        })
+        .collect::<Vec<_>>();
+
+    for (receptor_lineage, receptor_place) in reached_body_receptors {
+        let integration_place = local_integration_place(receptor_place)?;
+        let integration = mounted
+            .iter()
+            .filter(|(_, mount)| mount.source_site().is_none() && mount.place() == integration_place)
+            .map(|(lineage, _)| *lineage)
+            .collect::<Vec<_>>();
+        let [integration_lineage] = integration.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        if !electrical_fabric.contains_contact(receptor_lineage, *integration_lineage) {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        }
+        let regulation_place = DeclaredNeuronPlace::new(8, integration_place.topology_index());
+        let regulation_lineage = mount_intrinsic_neuron_at_place(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            regulation_place,
+        )?;
+        if !electrical_fabric.contains_contact(*integration_lineage, regulation_lineage) {
+            *electrical_fabric = electrical_fabric
+                .append_contact(
+                    *integration_lineage,
+                    regulation_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+        }
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 enum ResidentContactOrigin {
     Local {
@@ -7865,7 +7943,7 @@ mod tests {
         let stimulating = state
             .prepare_vestibular_transition(&ingress, 16_000_000)
             .unwrap();
-        assert_eq!(stimulating.observation.complete_neuron_count, 2);
+        assert_eq!(stimulating.observation.complete_neuron_count, 3);
         assert_eq!(
             stimulating.observation.physically_transitioned_neuron_count,
             2
@@ -7879,9 +7957,9 @@ mod tests {
                 .as_ref()
                 .unwrap()
                 .resting_cell_count(),
-            predecessor_resting_count - 2
+            predecessor_resting_count - 3
         );
-        assert_eq!(state.cohorts.len(), 2);
+        assert_eq!(state.cohorts.len(), 3);
         assert_eq!(state.cohorts[0].anatomy.neuron_count(), 1);
         assert_eq!(
             state.summary().complete_neuron_count
@@ -7904,6 +7982,15 @@ mod tests {
             state.cohorts[0].anatomy.neuron_anatomies()[0].gate_dissipation_capacity_quanta(),
             receptor_anatomy.gate_dissipation_capacity_quanta()
         );
+        let layers = state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .map(|mount| mount.place().layer())
+            .collect::<Vec<_>>();
+        assert!(layers.contains(&5));
+        assert!(layers.contains(&6));
+        assert!(layers.contains(&8));
 
         let encoded = state.encode(16_000_000).unwrap();
         state = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
