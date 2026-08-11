@@ -40,9 +40,11 @@ box remains unchecked until live acceptance passes.
   concurrent layer-7 and layer-8 physical change without emotion labels.
 - [x] **S-016** Layer-11 delayed-ordering specialization is reached from an
   active physical association-to-retention/affective bond.
-- [ ] **S-017 — IN PROGRESS** Deploy and live-prove layer-12 motor/effector
+- [x] **S-017** Deploy and live-prove layer-12 motor/effector
   specialization from exact concurrent layer-8 body-regulation and pre-existing
-  layer-11 ordering change; repetition must add no neuron/contact.
+  layer-11 ordering change; production task 976 reached exactly one layer-12
+  neuron with one layer-8 contact and four layer-11 contacts, and a repeated
+  250-tick turn added no neuron or contact.
 - [ ] **S-018** Implement and live-prove layer-13 articulatory specialization
   from genuine ordered vocal/body material, not from a speech label.
 - [ ] **S-019** Verify growth DNA adds or specializes neurons only from reached
