@@ -1877,9 +1877,6 @@ pub(crate) fn expand_legacy_receptor_channel_population(
             .checked_div_unsigned(target_population)?,
     )?;
 
-    if virgin_carriers_per_compartment == 0 {
-        return Err(NeuronPhysicalError::AnatomyMismatch);
-    }
     let added_channels = target_population - 1;
     let added_carriers = virgin_carriers_per_compartment
         .checked_mul(added_channels)
@@ -1938,6 +1935,33 @@ pub(crate) fn expand_legacy_receptor_channel_population(
     encode_neuron_physical_state(&successor_anatomy, &successor_state)
         .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
     Ok((successor_anatomy, successor_state))
+}
+
+/// Add an exact quantity of virgin carrier material omitted by an older birth
+/// law to both local compartments. This is neither a pump nor inference: the
+/// caller must prove the omitted amount and whole-organism idempotence before
+/// invoking it.
+pub(crate) fn add_omitted_virgin_carrier_material(
+    state: &NeuronPhysicalState,
+    per_compartment: u128,
+) -> Result<NeuronPhysicalState, NeuronPhysicalError> {
+    if per_compartment == 0 {
+        return Ok(state.clone());
+    }
+    let mut successor = state.clone();
+    successor.carriers = CarrierReservoirs::new(
+        state
+            .carriers
+            .intracellular
+            .checked_add(per_compartment)
+            .ok_or(GateSettlementError::ArithmeticWidth)?,
+        state
+            .carriers
+            .extracellular
+            .checked_add(per_compartment)
+            .ok_or(GateSettlementError::ArithmeticWidth)?,
+    );
+    Ok(successor)
 }
 
 /// Retire retinal physiology produced by the former cross-occurrence energy

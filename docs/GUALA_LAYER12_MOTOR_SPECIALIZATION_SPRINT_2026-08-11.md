@@ -4,7 +4,7 @@
 
 1. Requested architecture: complete the required starting neuron
    specializations before claiming the cognitive and autonomous mechanisms.
-2. Current production reality: task 972 has reached neurons in layers 0–11 and
+2. Current production reality: task 974 has reached neurons in layers 0–11 and
    no reached layer-12 motor/effector or layer-13 articulatory neuron. A declared
    resting territory is not a functioning specialization.
 3. Conflict: yes. Layer 12 exists only as developmental geography.
@@ -28,7 +28,7 @@
 | Expected output | One reached layer-12 neuron and its exact sparse contacts on first lawful convergence; repeated identical convergence produces no new neuron or contact. Missing either physical participant produces nothing. |
 | Explicit non-claim | This proves motor/effector specialization only. It does not prove action selection, actuation, autonomy, intent, or movement. |
 | Production acceptance | The exact living organism produces a lawful layer-8/layer-11 convergence, reaches layer 12 once, cold-restores exactly, retains identity, continues unattended processing, invokes zero Python cognition callbacks, and repeats without growth. |
-| Observed evidence | Focused direct proof passes: one missing participant creates nothing; exact layer-8/layer-11 convergence claims one layer-12 cell and exact contacts; repeat convergence adds nothing. The existing whole-organism multisensory-plus-vestibular progression now reaches layer 12 and cold-restores byte-exact. Full native verification passes 568 tests with zero failures and 11 explicitly retired/ignored tests. Exact-body rehearsal, production cutover, and live acceptance remain pending. |
+| Observed evidence | Focused direct proof passes: one missing participant creates nothing; exact layer-8/layer-11 convergence claims one layer-12 cell and exact contacts; repeat convergence adds nothing. Full native verification passes 568 tests with zero failures and 11 explicitly retired/ignored tests. The exact task-974 body (`80adec0792ad1ac5042246ac7e69609dc41668f20226a76b637a657c2dbfec0e`) migrates idempotently while preserving lived sensory snapshots, then a 250-interval physical vestibular trajectory reaches 211 → 212 neurons and layer 12 from 0 → 1; exact cold restore passes, and a repeat interval adds zero neurons and zero contacts. The candidate adds 170,175 state bytes, reports zero Python cognition callbacks, and completes that trajectory locally in 59.375 seconds. Production cutover and live acceptance remain pending. |
 
 ## Fixed continuation
 

@@ -10,8 +10,9 @@
 //! owner, lock, database, receipt, score, label, or inferred connection.
 
 use crate::complete_neuron::{
-    apply_sparse_physical_state_delta, decode_neuron_physical_anatomy, decode_neuron_physical_cell,
-    decode_neuron_physical_state, decode_sparse_physical_state_delta,
+    add_omitted_virgin_carrier_material, apply_sparse_physical_state_delta,
+    decode_neuron_physical_anatomy, decode_neuron_physical_cell, decode_neuron_physical_state,
+    decode_sparse_physical_state_delta,
     encode_neuron_physical_anatomy, encode_neuron_physical_cell, encode_neuron_physical_state,
     encode_sparse_physical_state_delta, expand_legacy_receptor_channel_population,
     extend_neuron_positional_fabric, settle_extended_interval_with_contact,
@@ -547,6 +548,40 @@ pub(crate) fn expand_legacy_sight_channel_populations(
         recovery_fluid,
     )?;
     Ok((successor_anatomy, successor_state))
+}
+
+/// Carry one proved set of omitted birth-material additions into a cohort
+/// without changing anatomy, contacts, recovery fluid, or any lived state.
+pub(crate) fn add_omitted_geometry_carrier_material(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+    additions_per_compartment: &[u128],
+) -> Result<ReachedCohortState, ReachedCohortError> {
+    if anatomy.neuron_count() != state.neurons.len()
+        || additions_per_compartment.len() != state.neurons.len()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let neurons = state
+        .neurons
+        .iter()
+        .zip(additions_per_compartment)
+        .enumerate()
+        .map(|(neuron_index, (neuron, addition))| {
+            add_omitted_virgin_carrier_material(neuron, *addition).map_err(|error| {
+                ReachedCohortError::Neuron {
+                    neuron_index,
+                    error,
+                }
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    ReachedCohortState::from_mounted_parts(
+        anatomy,
+        neurons,
+        state.electrical.clone(),
+        state.recovery_fluid,
+    )
 }
 
 /// Append authored contacts to a living cohort.

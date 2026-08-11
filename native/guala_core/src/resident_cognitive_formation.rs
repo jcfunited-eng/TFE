@@ -74,7 +74,8 @@ use crate::physical_mosaic::{
     StablePhysicalBondReference,
 };
 use crate::reached_neuron_cohort::{
-    decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
+    add_omitted_geometry_carrier_material, decode_reached_cohort_cell,
+    decode_reached_cohort_state, decode_reached_cohort_state_delta,
     encode_reached_cohort_cell, encode_reached_cohort_cell_v5,
     encode_reached_cohort_cell_v5_with_contact_plasticity, encode_reached_cohort_cell_v6,
     encode_reached_cohort_state, encode_reached_cohort_state_delta,
@@ -133,6 +134,8 @@ const MAGIC_V15: &[u8; 8] = b"GLCOG015";
 const VERSION_V15: u16 = 15;
 const MAGIC_V16: &[u8; 8] = b"GLCOG016";
 const VERSION_V16: u16 = 16;
+const MAGIC_V17: &[u8; 8] = b"GLCOG017";
+const VERSION_V17: u16 = 17;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
@@ -181,6 +184,7 @@ enum CognitiveCodecFormat {
     V14,
     V15,
     V16,
+    V17,
 }
 
 #[cfg(test)]
@@ -1201,6 +1205,85 @@ impl ResidentCognitiveFormationState {
             return Ok(self);
         }
         self.expand_legacy_sight_channel_populations()
+    }
+
+    /// Correct the historical birth-law omission carried by every pre-V17
+    /// body: non-retinal and intrinsic cells received one unit patch of mobile
+    /// material even though their authored membrane capacitance spans their
+    /// full declared territory. Current genesis supplies one femtocoulomb per
+    /// unit patch. The V17 codec marker is the one-way authority: pre-V17
+    /// bodies receive each cell's never-lived virgin difference once, while a
+    /// V17 body is never corrected again.
+    fn into_geometry_provisioned_carrier_material(self) -> Result<Self, FormationError> {
+        let base = definitive_virtual_carriers_per_compartment();
+        let mut changed = false;
+        let mut cohorts = Vec::with_capacity(self.cohorts.len());
+        for cohort in self.cohorts.iter() {
+            let additions = cohort
+                .anatomy
+                .neuron_anatomies()
+                .iter()
+                .zip(cohort.anatomy.mounts())
+                .map(|(anatomy, mount)| {
+                    declared_neuron_territory(mount.place())
+                        .map_err(|_| FormationError::ArithmeticOverflow)?
+                        .max(anatomy.gate_population())
+                        .checked_sub(anatomy.gate_population())
+                        .and_then(|units| units.checked_mul(base))
+                        .ok_or(FormationError::ArithmeticOverflow)
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let cohort_changed = additions.iter().any(|addition| *addition != 0);
+            changed |= cohort_changed;
+            if !cohort_changed {
+                cohorts.push(cohort.clone());
+                continue;
+            }
+            let correct_state = |state: &ReachedCohortState| {
+                add_omitted_geometry_carrier_material(
+                    &cohort.anatomy,
+                    state,
+                    &additions,
+                )
+                .map_err(FormationError::PhysicalSettlementUnavailable)
+            };
+            let correct_evidence = |evidence: &ResidentExperienceEvidence| {
+                let mut corrected = evidence.clone();
+                corrected.pre_experience_rest = correct_state(&evidence.pre_experience_rest)?;
+                corrected.post_experience_rest = evidence
+                    .post_experience_rest
+                    .as_ref()
+                    .map(&correct_state)
+                    .transpose()?;
+                Ok::<_, FormationError>(corrected)
+            };
+            cohorts.push(ResidentReachedCohort {
+                anatomy: cohort.anatomy.clone(),
+                state: correct_state(&cohort.state)?,
+                // Adding the same omitted virgin material to both endpoints
+                // preserves every lived physical delta and every causal flag.
+                pending_experience: cohort
+                    .pending_experience
+                    .as_ref()
+                    .map(&correct_evidence)
+                    .transpose()?,
+                retained_experience: cohort
+                    .retained_experience
+                    .as_ref()
+                    .map(&correct_evidence)
+                    .transpose()?,
+                pending_recurrence: cohort.pending_recurrence.clone(),
+            });
+        }
+        if !changed {
+            return Ok(self);
+        }
+        let successor = Self {
+            cohorts: cohorts.into_boxed_slice(),
+            ..self
+        };
+        validate_lineage_state(&successor)?;
+        Ok(successor)
     }
 
     pub(crate) fn from_developmental_electrical_seeds(
@@ -2914,7 +2997,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
-        self.encode_with_format(CognitiveCodecFormat::V16, max_encoded_bytes)
+        self.encode_with_format(CognitiveCodecFormat::V17, max_encoded_bytes)
     }
 
     fn encode_with_format(
@@ -2955,7 +3038,7 @@ impl ResidentCognitiveFormationState {
             dormant.push(encoded);
         }
         let resting_population = match format {
-            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16 => self
+            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17 => self
                 .resting_population
                 .as_ref()
                 .map(DevelopmentalRestingPopulation::encode)
@@ -2970,7 +3053,7 @@ impl ResidentCognitiveFormationState {
         };
         if matches!(
             format,
-            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16
+            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17
         ) {
             length = length
                 .checked_add(8)
@@ -3011,7 +3094,7 @@ impl ResidentCognitiveFormationState {
                     &cohort.anatomy,
                     &cohort.state,
                 ),
-                CognitiveCodecFormat::V16 => {
+                CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17 => {
                     encode_reached_cohort_cell_v6(&cohort.anatomy, &cohort.state)
                 }
             }
@@ -3030,6 +3113,7 @@ impl ResidentCognitiveFormationState {
                         CognitiveCodecFormat::V14
                             | CognitiveCodecFormat::V15
                             | CognitiveCodecFormat::V16
+                            | CognitiveCodecFormat::V17
                     ),
                 )
             };
@@ -3097,7 +3181,7 @@ impl ResidentCognitiveFormationState {
                 total.checked_add(8)?.checked_add(mosaic.len())
             })
             .ok_or(FormationError::ArithmeticOverflow)?;
-        let electrical_fabric = if format == CognitiveCodecFormat::V16 {
+        let electrical_fabric = if matches!(format, CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17) {
             let encoded = self
                 .electrical_fabric
                 .encode()
@@ -3141,6 +3225,10 @@ impl ResidentCognitiveFormationState {
                 output.extend_from_slice(MAGIC_V16);
                 output.extend_from_slice(&VERSION_V16.to_le_bytes());
             }
+            CognitiveCodecFormat::V17 => {
+                output.extend_from_slice(MAGIC_V17);
+                output.extend_from_slice(&VERSION_V17.to_le_bytes());
+            }
         }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -3168,14 +3256,14 @@ impl ResidentCognitiveFormationState {
         }
         if matches!(
             format,
-            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16
+            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17
         ) {
             push_length(&mut output, resting_population.as_ref().map_or(0, Vec::len))?;
             if let Some(population) = resting_population {
                 output.extend_from_slice(&population);
             }
         }
-        if format == CognitiveCodecFormat::V16 {
+        if matches!(format, CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17) {
             let electrical_fabric = electrical_fabric.ok_or(FormationError::NoncanonicalState)?;
             push_length(&mut output, electrical_fabric.len())?;
             output.extend_from_slice(&electrical_fabric);
@@ -3298,7 +3386,9 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let format = if bytes.len() >= MAGIC_V16.len() && &bytes[..MAGIC_V16.len()] == MAGIC_V16 {
+        let format = if bytes.len() >= MAGIC_V17.len() && &bytes[..MAGIC_V17.len()] == MAGIC_V17 {
+            CognitiveCodecFormat::V17
+        } else if bytes.len() >= MAGIC_V16.len() && &bytes[..MAGIC_V16.len()] == MAGIC_V16 {
             CognitiveCodecFormat::V16
         } else if bytes.len() >= MAGIC_V15.len() && &bytes[..MAGIC_V15.len()] == MAGIC_V15 {
             CognitiveCodecFormat::V15
@@ -3329,6 +3419,7 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V14 => VERSION_V14,
             CognitiveCodecFormat::V15 => VERSION_V15,
             CognitiveCodecFormat::V16 => VERSION_V16,
+            CognitiveCodecFormat::V17 => VERSION_V17,
         };
         if version != expected_version {
             return Err(FormationError::BadVersion);
@@ -3411,7 +3502,7 @@ impl ResidentCognitiveFormationState {
         }
         let resting_population = if matches!(
             format,
-            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16
+            CognitiveCodecFormat::V15 | CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17
         ) {
             let population_length = read_length(bytes, &mut cursor)?;
             if population_length == 0 {
@@ -3432,7 +3523,7 @@ impl ResidentCognitiveFormationState {
         } else {
             None
         };
-        let electrical_fabric = if format == CognitiveCodecFormat::V16 {
+        let electrical_fabric = if matches!(format, CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17) {
             let fabric_length = read_length(bytes, &mut cursor)?;
             let fabric_end = cursor
                 .checked_add(fabric_length)
@@ -3573,15 +3664,23 @@ impl ResidentCognitiveFormationState {
         Ok(state)
     }
 
-    /// Rewrite one already-admitted body into the current `GLCOG015` layout.
-    /// Existing reached cells and learned physical state remain exact.  The
-    /// migration adds the resource-derived source-independent resting
-    /// population once; repeating migration is byte-idempotent.
+    /// Rewrite one already-admitted body into the current layout. V17 marks
+    /// the one-way correction from gate-count carrier volume to declared
+    /// membrane-territory carrier volume. Existing V17 bodies are never
+    /// corrected twice. Older bodies also receive the compact developmental
+    /// resting population when it is absent.
     pub(crate) fn migrate_to_current_format(
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
+        let already_geometry_provisioned =
+            bytes.len() >= MAGIC_V17.len() && &bytes[..MAGIC_V17.len()] == MAGIC_V17;
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
+        let state = if already_geometry_provisioned {
+            state
+        } else {
+            state.into_geometry_provisioned_carrier_material()?
+        };
         if state.resting_population.is_some() {
             return state.encode(max_encoded_bytes);
         }

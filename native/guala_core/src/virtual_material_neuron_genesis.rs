@@ -20,8 +20,8 @@ use crate::complete_neuron::{
     RecoveryState, TwoStateGateAnatomy, TwoStateGateState,
 };
 use crate::declared_geometric_anatomy::{
-    declared_geometric_territory, membrane_capacitance_from_declared_place, DeclaredGeometryError,
-    DeclaredNeuronPlace,
+    declared_geometric_territory, declared_neuron_territory,
+    membrane_capacitance_from_declared_place, DeclaredGeometryError, DeclaredNeuronPlace,
 };
 use crate::elementary_charge_membrane::MembraneChargeError;
 use crate::exact_rational::{ExactRational, ExactRationalError};
@@ -69,6 +69,18 @@ const ONE_FEMTOCOULOMB_CARRIER_QUANTA: u128 = 6_242;
 /// virgin material from a lived channel whose carriers have already moved.
 pub(crate) fn definitive_virtual_carriers_per_compartment() -> u128 {
     ONE_FEMTOCOULOMB_CARRIER_QUANTA
+}
+
+/// Virgin mobile material for one declared membrane. The base quantity is one
+/// femtocoulomb per one-picofarad unit patch, so an `A`-patch membrane owns
+/// `A` such quantities in each local compartment. Gate population is not
+/// membrane volume.
+pub(crate) fn definitive_virtual_carriers_for_place(
+    place: DeclaredNeuronPlace,
+) -> Result<u128, DeclaredGeometryError> {
+    ONE_FEMTOCOULOMB_CARRIER_QUANTA
+        .checked_mul(declared_neuron_territory(place)?)
+        .ok_or(DeclaredGeometryError::ArithmeticWidth)
 }
 
 /// The authored base membrane capacitance: the picofarad capacitance of ONE
@@ -436,7 +448,7 @@ pub(crate) fn reach_quiescent_virtual_material_neuron(
         &anatomy,
         &state,
         receptor_population,
-        definitive_virtual_carriers_per_compartment(),
+        0,
     )
     .map_err(VirtualMaterialGenesisError::Neuron)?;
     let zero_recovery_catalysts = vec![0; anatomy.psi_ring_count()].into_boxed_slice();
@@ -631,17 +643,15 @@ fn build_quiescent_virtual_material_neuron(
         plastic,
     )
     .map_err(VirtualMaterialGenesisError::Neuron)?;
+    let carriers_per_compartment = definitive_virtual_carriers_for_place(place)
+        .map_err(VirtualMaterialGenesisError::DeclaredGeometry)?;
     let state = NeuronPhysicalState {
         psi: PsiKrimelackState::genesis(&psi),
         gate: TwoStateGateState::genesis(0),
         membrane: LocalMembraneConductanceState::genesis(0),
         carriers: CarrierReservoirs::new(
-            ONE_FEMTOCOULOMB_CARRIER_QUANTA
-                .checked_mul(receptor_population)
-                .ok_or(VirtualMaterialGenesisError::ArithmeticWidth)?,
-            ONE_FEMTOCOULOMB_CARRIER_QUANTA
-                .checked_mul(receptor_population)
-                .ok_or(VirtualMaterialGenesisError::ArithmeticWidth)?,
+            carriers_per_compartment,
+            carriers_per_compartment,
         ),
         recovery: RecoveryState::new(
             vec![RecoveryLaneState::new(1); ring_count],
@@ -736,6 +746,12 @@ mod tests {
                     "birth cannot emit a neuronal fractal"
                 );
                 assert!(capacitances.insert(genesis.anatomy().capacitance().picofarads().parts()));
+                let territory = declared_neuron_territory(place).unwrap();
+                assert_eq!(
+                    genesis.state().carrier_reservoirs().total(),
+                    Some(ONE_FEMTOCOULOMB_CARRIER_QUANTA * territory * 2),
+                    "virgin carrier material follows membrane territory"
+                );
 
                 let encoded =
                     encode_neuron_physical_cell(genesis.anatomy(), genesis.state()).unwrap();
@@ -816,6 +832,11 @@ mod tests {
             assert_eq!(specialized.anatomy().capacitance(), resting_capacitance);
             assert_eq!(specialized.anatomy(), direct.anatomy());
             assert_eq!(specialized.state(), direct.state());
+            assert_eq!(
+                specialized.state().carrier_reservoirs(),
+                resting.state().carrier_reservoirs(),
+                "first receptor specialization cannot create carrier material"
+            );
             assert_eq!(
                 specialized.anatomy().gate_population(),
                 declared_geometric_territory(&site).unwrap()
