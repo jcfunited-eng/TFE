@@ -50,6 +50,7 @@ use crate::sparse_electrical_contact::{
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
+use rayon::prelude::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum ReachedCohortError {
@@ -2324,19 +2325,43 @@ pub(crate) fn settle_reached_cohort_interval(
     let mut recovered_neurons = predecessor.neurons.to_vec();
     let mut recovered_reservoir = predecessor.recovery_fluid;
     let mut recovery_active = false;
-    for (input_index, neuron_input) in input.neurons.iter_mut().enumerate() {
+    // Psi settlement reads only each neuron's own predecessor and shared
+    // immutable field. Compute those independent preparations concurrently,
+    // then retain the existing mounted-order recovery-fluid exchange below.
+    let supplied_psi = input
+        .neurons
+        .iter_mut()
+        .map(|neuron_input| neuron_input.prepared_psi.take())
+        .collect::<Vec<_>>();
+    let prepared_psi = supplied_psi
+        .into_par_iter()
+        .enumerate()
+        .map(|(input_index, supplied)| {
+            let resident_index = resident_indices[input_index];
+            match supplied {
+                Some(prepared) => Ok(prepared),
+                None => anatomy.neurons[resident_index]
+                    .prepare_psi_settlement(
+                        &predecessor.neurons[resident_index],
+                        input.neurons[input_index].perspective,
+                    )
+                    .map_err(|error| ReachedCohortError::Neuron {
+                        neuron_index: resident_index,
+                        error,
+                    }),
+            }
+        })
+        .collect::<Vec<Result<_, ReachedCohortError>>>();
+    for (input_index, (neuron_input, prepared_psi)) in input
+        .neurons
+        .iter_mut()
+        .zip(prepared_psi)
+        .enumerate()
+    {
         let resident_index = resident_indices[input_index];
         let neuron_anatomy = &anatomy.neurons[resident_index];
         let neuron_predecessor = &predecessor.neurons[resident_index];
-        let prepared_psi = match neuron_input.prepared_psi.take() {
-            Some(prepared) => prepared,
-            None => neuron_anatomy
-                .prepare_psi_settlement(neuron_predecessor, neuron_input.perspective)
-                .map_err(|error| ReachedCohortError::Neuron {
-                    neuron_index: resident_index,
-                    error,
-                })?,
-        };
+        let prepared_psi = prepared_psi?;
         let recovered = settle_resident_gate_recovery_before_interval(
             &anatomy.recovery_fluid,
             resident_index,
@@ -2394,28 +2419,41 @@ pub(crate) fn settle_reached_cohort_interval(
     let predecessor_material = total_carrier_material(&predecessor.neurons)?;
     let mut successor_neurons = recovered_neurons.clone();
     let mut locally_quiescent = vec![true; anatomy.neurons.len()];
-    for (input_index, neuron_input) in input.neurons.into_vec().into_iter().enumerate() {
-        let resident_index = resident_indices[input_index];
-        let combined_contact_outward = if !precomputed_contact_input {
-            electrical.outward_elementary_charges_by_neuron[resident_index]
-                .checked_add(external_contact_outward[input_index])
-                .ok_or(ReachedCohortError::MaterialConservation)?
-        } else {
-            // The injected whole-fabric charge already includes this cohort's
-            // local contacts and every resident cross-cohort contact exactly
-            // once.  Adding the local term again would duplicate material.
-            external_contact_outward[input_index]
-        };
-        let settled = settle_extended_interval_with_contact(
-            &anatomy.neurons[resident_index],
-            &recovered_neurons[resident_index],
-            neuron_input,
-            combined_contact_outward,
-        )
-        .map_err(|error| ReachedCohortError::Neuron {
-            neuron_index: resident_index,
-            error,
-        })?;
+    // With contact transfer and ordered recovery already settled, each local
+    // neuron consequence is independent. Indexed collection preserves the
+    // original resident order before the successor is assembled.
+    let settled_neurons = input
+        .neurons
+        .into_vec()
+        .into_par_iter()
+        .enumerate()
+        .map(|(input_index, neuron_input)| {
+            let resident_index = resident_indices[input_index];
+            let combined_contact_outward = if !precomputed_contact_input {
+                electrical.outward_elementary_charges_by_neuron[resident_index]
+                    .checked_add(external_contact_outward[input_index])
+                    .ok_or(ReachedCohortError::MaterialConservation)?
+            } else {
+                // The injected whole-fabric charge already includes this cohort's
+                // local contacts and every resident cross-cohort contact exactly
+                // once.  Adding the local term again would duplicate material.
+                external_contact_outward[input_index]
+            };
+            let settled = settle_extended_interval_with_contact(
+                &anatomy.neurons[resident_index],
+                &recovered_neurons[resident_index],
+                neuron_input,
+                combined_contact_outward,
+            )
+            .map_err(|error| ReachedCohortError::Neuron {
+                neuron_index: resident_index,
+                error,
+            })?;
+            Ok((resident_index, settled))
+        })
+        .collect::<Vec<Result<_, ReachedCohortError>>>();
+    for settled in settled_neurons {
+        let (resident_index, settled) = settled?;
         successor_neurons[resident_index] = settled.successor;
         locally_quiescent[resident_index] = settled.quiescent;
     }

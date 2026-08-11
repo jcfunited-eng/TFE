@@ -1,7 +1,9 @@
 # Guala native continuous-interval latency sprint — 2026-08-11
 
-Release preflight began at `2026-08-11T11:53:14Z`. Cutover attempts and final
-live evidence are recorded below; no cutover has yet been attempted.
+Release preflight began at `2026-08-11T11:53:14Z`. The first cutover reached
+production as task definition `dsf-ai-task:964`, but live latency failed the
+acceptance threshold. The bounded correction and its second cutover are recorded
+below.
 
 ## Architecture honesty gate
 
@@ -31,7 +33,7 @@ live evidence are recorded below; no cutover has yet been attempted.
 | State transformation | The same ordered physical transitions and full DSF deliveries produce the same final native organism bytes; only redundant cloning, encoding, or Python/native boundary work between ticks may be removed. |
 | Expected output | Identical successor SHA-256, tick, neuron counts, retained fractals, contacts, energy, and observations for the reference path and corrected path. |
 | Production acceptance | One live quarter-turn returns before the public gateway timeout; its reverse reuses layer 10 without growth; unattended time publishes a later interval; identity and Python-callback count remain unchanged; state/storage remain bounded. |
-| Observed evidence | Exact production body `8b5c9de7…09a8`: deployed per-tick path required 99.913 s for the exact 250-tick quarter turn. The one-seal native trajectory required 24.442 s. Both produced byte-identical successor `24a8c6f2…a4b`, tick 33056, 25,159,319 bytes, 500 full DSF deliveries, 8,252 physical neuron transitions, and 466 retained neuronal fractals. Focused byte-equivalence test passes. Production deployment remains pending. |
+| Observed evidence | Exact production body `8b5c9de7…09a8`: deployed per-tick path required 99.913 s for the exact 250-tick quarter turn. The one-seal native trajectory required 24.442 s. Both produced byte-identical successor `24a8c6f2…a4b`, tick 33056, 25,159,319 bytes, 500 full DSF deliveries, 8,252 physical neuron transitions, and 466 retained neuronal fractals. Task `964` then returned a live 0→90° turn in 65.866 s and the exact reverse in 80.846 s, so that release failed latency acceptance while preserving physical behavior. Trace showed preparation—not final sealing—dominated: 24.476 s prepare, 0.004 s commit, 0.014 s encode/save locally. The bounded correction concurrently settles only physically independent cohorts and post-contact neurons, then merges evidence in original cohort/neuron order; shared contact transfer and shared-fluid recovery remain single, ordered authorities. It reproduces exact successor `24a8c6f2…a4b`, 500 DSF deliveries, 8,252 transitions, and 466 fractals in 12.064 s locally. The full native suite passes. Corrected production deployment remains pending. |
 
 ## Failed hypotheses
 
@@ -46,6 +48,13 @@ live evidence are recorded below; no cutover has yet been attempted.
 - **Fewer physical ticks were required:** rejected. The accepted correction
   retains all 250 ordered one-millisecond transitions and seals only the final
   externally publishable organism state.
+- **Persistence or final state sealing dominated the remaining 24.4 seconds:**
+  false. Direct measurement assigned 24.476 seconds to physical preparation and
+  only 0.018 seconds to commit plus final encoding/save.
+- **Inactive electrical frontier work could simply be skipped:** false. Across
+  the 250-tick specimen, 50,412 of 50,500 reached edges carried a gradient and
+  50,418 carried a phase difference. The correction therefore preserves every
+  reached edge and instead evaluates independent local consequences concurrently.
 - **Formatter check commands:** `python -m black --check` and `ruff format
   --check` were unavailable in the container. Python compilation and
   `git diff --check` pass; touched Python was manually kept in project style.

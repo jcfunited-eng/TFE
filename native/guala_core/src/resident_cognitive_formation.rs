@@ -111,6 +111,7 @@ use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
+use rayon::prelude::*;
 use std::fmt;
 use std::sync::Arc;
 
@@ -6404,7 +6405,18 @@ fn settle_internal_contact_interval(
         .with_contact_states(fabric_states)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
 
-    for cohort_index in 0..cohorts.len() {
+    // The shared contact field and carrier transfers above are settled once.
+    // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
+    // so those local consequences can settle concurrently without changing
+    // causal order or allowing one cohort to observe another's mutation.
+    // Indexed collection preserves cohort order for the evidence merge below.
+    let cohort_results = cohorts
+        .par_iter_mut()
+        .enumerate()
+        .map(|(cohort_index, cohort)| -> Result<
+            Option<(Vec<[u8; 16]>, Vec<EmittedNeuronFractal>)>,
+            FormationError,
+        > {
         let selected_members = selected
             .iter()
             .enumerate()
@@ -6414,9 +6426,9 @@ fn settle_internal_contact_interval(
             })
             .collect::<Vec<_>>();
         if selected_members.is_empty() {
-            continue;
+            return Ok(None);
         }
-        let mut required_positions = cohorts[cohort_index]
+        let mut required_positions = cohort
             .anatomy
             .neuron_anatomies()
             .iter()
@@ -6430,8 +6442,8 @@ fn settle_internal_contact_interval(
                     .map_err(FormationError::JointFieldUnavailable)?,
             );
         }
-        extend_resident_cohort_positional_fabrics(&mut cohorts[cohort_index], &required_positions)?;
-        let catalysts = cohorts[cohort_index]
+        extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
+        let catalysts = cohort
             .anatomy
             .neuron_anatomies()
             .iter()
@@ -6462,7 +6474,7 @@ fn settle_internal_contact_interval(
             .map(|(coordinate, _)| settled.outward_elementary_charges_by_neuron[*coordinate])
             .collect::<Vec<_>>();
         let local_successor = SparseElectricalState::from_contact_states(
-            cohorts[cohort_index].anatomy.electrical_anatomy(),
+            cohort.anatomy.electrical_anatomy(),
             local_successors[cohort_index].clone(),
         )
         .map_err(FormationError::ResidentElectricalUnavailable)?;
@@ -6480,7 +6492,7 @@ fn settle_internal_contact_interval(
             precomputed_local,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let predecessor_neurons = cohorts[cohort_index].state.neurons().to_vec();
+        let predecessor_neurons = cohort.state.neurons().to_vec();
         // This interval is a native cross-cohort electrical consequence, not
         // a second externally admitted experience.  The legacy cognitive
         // admission path can express only cohort-local contact structure; if
@@ -6490,22 +6502,21 @@ fn settle_internal_contact_interval(
         // later cross-cohort formation law may consume that evidence, but this
         // physical-specialization sprint does not invent one.
         let settlement = settle_reached_cohort_interval(
-            &cohorts[cohort_index].anatomy,
-            &cohorts[cohort_index].state,
+            &cohort.anatomy,
+            &cohort.state,
             input,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        cohorts[cohort_index].state = settlement.successor;
+        cohort.state = settlement.successor;
+        let mut changed_lineages = Vec::new();
+        let mut cohort_fractals = Vec::new();
         for (neuron_index, (predecessor, successor)) in predecessor_neurons
             .iter()
-            .zip(cohorts[cohort_index].state.neurons())
+            .zip(cohort.state.neurons())
             .enumerate()
         {
             if predecessor != successor {
-                let lineage = cohorts[cohort_index].anatomy.neuron_lineages()[neuron_index];
-                if !physically_transitioned_neuron_lineages.contains(&lineage) {
-                    physically_transitioned_neuron_lineages.push(lineage);
-                }
+                changed_lineages.push(cohort.anatomy.neuron_lineages()[neuron_index]);
             }
             if let Some(delta) = sparse_retained_physical_state_delta(predecessor, successor)
                 .map_err(|error| {
@@ -6515,11 +6526,23 @@ fn settle_internal_contact_interval(
                     })
                 })?
             {
-                emitted_neuron_fractals.push(EmittedNeuronFractal {
-                    neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[neuron_index],
+                cohort_fractals.push(EmittedNeuronFractal {
+                    neuron_lineage: cohort.anatomy.neuron_lineages()[neuron_index],
                     delta,
                 });
             }
+        }
+        Ok(Some((changed_lineages, cohort_fractals)))
+    })
+    .collect::<Vec<_>>();
+    for result in cohort_results {
+        if let Some((changed_lineages, cohort_fractals)) = result? {
+            for lineage in changed_lineages {
+                if !physically_transitioned_neuron_lineages.contains(&lineage) {
+                    physically_transitioned_neuron_lineages.push(lineage);
+                }
+            }
+            emitted_neuron_fractals.extend(cohort_fractals);
         }
     }
     let mut active_bonds = settled
