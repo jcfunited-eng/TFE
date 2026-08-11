@@ -16,6 +16,10 @@
  */
 
 import pg from "pg";
+// EXIT-BASIN-BREAK (2026-08-11, Joe's dispatch): the V3 coupled math that
+// justified the entry, re-measured while holding. Same module, same frozen
+// constants as the entry gate — no separate exit formula to drift.
+import { computeV3Basin } from "./v3_basin.mjs";
 // assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
 
 const pool = new pg.Pool({
@@ -141,6 +145,14 @@ const PHANTOM_GRACE_MS = 30 * 60 * 1000; // 30 minutes
 // Winning exits (EXIT-A, EXIT-H) always fire. -10% catastrophic always fires.
 // Only LOSING exits (EXIT-B D_k collapse, EXIT-C tau, SPY flip) are held.
 export const MIN_HOLD_DAYS = 7;
+// EXIT-BASIN-BREAK threshold — TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1
+// §0/§3: break_agreement >= 0.20 is the deterministic peak marker, the SAME
+// declared number the entry gate already uses ("already in exit territory").
+// Nothing new is invented here. The spec's companion 25-day calendar cap is
+// deliberately NOT implemented: Joe struck it 2026-08-11 as a day-counter
+// over physics — a position whose basin is intact is held because its
+// thesis is measurably alive, however old it is.
+export const BREAK_AGREEMENT_EXIT = 0.20;
 
 export function shouldPhantomCleanup(pos) {
   if (pos.entry_filled_at) return false; // filled = never phantom
@@ -1132,6 +1144,66 @@ export async function runSentinel() {
           await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
           continue;
         }
+      }
+
+      // ── EXIT-BASIN-BREAK: the physics exit (2026-08-11, Joe's dispatch) ──
+      // The design's primary exit, specified 2026-07-07 and never implemented
+      // until now: re-measure the SAME V3 basin coupled read that justified
+      // the entry, on the current daily tuple, and leave when the structure
+      // has actually broken (break_agreement >= 0.20 — the identical
+      // declared threshold the entry gate uses to refuse names "already in
+      // exit territory"). Positive-energy harvesting, not risk cosmetics:
+      // the position is held while its basin is intact — the thesis is
+      // measurably alive — and sold when the coupled math says the release
+      // has happened, whatever the calendar says.
+      //
+      // A missing or incomplete tuple is NOT an exit: absence of evidence
+      // never liquidates a position. It logs and holds.
+      try {
+        const snapRes = await pool.query(
+          `SELECT snapshot_row_json AS snap FROM runtime_decisions_latest
+           WHERE ticker = $1
+           ORDER BY generated_at_utc DESC LIMIT 1`,
+          [pos.ticker],
+        );
+        const snap = snapRes.rows[0]?.snap;
+        if (snap) {
+          const toF = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+          // Field mapping identical to ch2_strategist.parseSignal — one
+          // reader's contract, used at entry and exit alike.
+          const basin = computeV3Basin({
+            S_UF:     toF(snap.S_UF     ?? snap.s_uf),
+            R_UF:     toF(snap.R_UF     ?? snap.r_uf),
+            D_k:      toF(snap.D_k      ?? snap.d_k),
+            M_k:      toF(snap.M_k      ?? snap.m_k),
+            R_rev_k:  toF(snap.R_rev_k  ?? snap.r_rev_k),
+            U_star_k: toF(snap.U_star_k ?? snap.u_star_k),
+            C_k:      toF(snap.C_k      ?? snap.c_k),
+            P_k:      toF(snap.P_k      ?? snap.p_k),
+            B_k:      toF(snap.B_k      ?? snap.b_k),
+          });
+          if (basin && basin.break_agreement >= BREAK_AGREEMENT_EXIT) {
+            console.log(
+              `[SENTINEL] CH2 EXIT-BASIN-BREAK ${pos.ticker} | ` +
+              `break_agreement=${basin.break_agreement.toFixed(4)} >= ${BREAK_AGREEMENT_EXIT} | ` +
+              `age=${posAge}d P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% — ` +
+              `structure broken, harvesting`
+            );
+            await killPosition(pos, "ch2_exit_basin_break", ALPACA_BASE);
+            continue;
+          } else if (basin) {
+            console.log(
+              `[SENTINEL] CH2 ${pos.ticker} basin intact | ` +
+              `break=${basin.break_agreement.toFixed(4)} acc=${basin.accumulate_basin.toFixed(4)} | holding`
+            );
+          } else {
+            console.log(`[SENTINEL] CH2 ${pos.ticker} basin tuple incomplete — holding (no exit on missing data)`);
+          }
+        } else {
+          console.log(`[SENTINEL] CH2 ${pos.ticker} no snapshot row — holding (no exit on missing data)`);
+        }
+      } catch (basinErr) {
+        console.log(`[SENTINEL] CH2 ${pos.ticker} basin check error: ${basinErr.message} — holding`);
       }
 
       // ── Pre-fetch τ data from DB (used by EXIT-C τ exhaustion) ────────
