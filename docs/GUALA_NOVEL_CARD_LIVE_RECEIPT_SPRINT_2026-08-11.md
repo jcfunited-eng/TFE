@@ -78,4 +78,25 @@ its post-quiescence formation law.
 - `durable receipt`: one fixed, digest-bound JSON observation record replaces
   its predecessor atomically; it is outside cognition, never appended, and is
   not overwritten by later continuous sensory transitions.
-- `live`: pending.
+- `live deployment`: commit
+  `5c27fb206ad7ffcd8a6b10f95c8e55cc1fe12208`, task definition
+  `dsf-ai-task:970`, immutable image
+  `sha256:1110b54787061d0d8fe1f492710ee3447662791ac75b8af65427e0bfd0e6e5a4`.
+  The release rehearsal cold-restored the exact live body with the same
+  identity, zero Python cognition callbacks, one process, 179 reached complete
+  neurons, and 196,550 developmental resting neurons.
+- `live number-07`: HTTP 200 in 50 seconds.  Nine hops produced 954 complete
+  DSF deliveries, 1,136 physical neuron transitions, and 110 post-quiescence
+  neuronal fractals.  The successor was
+  `b22ca9621dcc249eb591feb3b93561aa78eea5fb9b637d3236b87d1525d1aa00`,
+  tick 39,529, 24,425,182 bytes.  The immediately observed pre-lesson body was
+  24,423,305 bytes, so observed retained growth was 1,877 bytes.  The body
+  still reported one mosaic, no reassembly, and no evidence of a learned word;
+  none is claimed.
+- `receipt continuity`: receipt
+  `47fc24c009d2221198f1581f930c14ecafb156d7735091e1ac20adbda27d70e8`
+  remained attributed to `number-07` after a later unattended interval.  A
+  same-image process replacement then cold-restored the body and the exact
+  receipt together.  After restart, unattended sensing advanced to tick
+  39,593 while the state remained 24,425,182 bytes; identity, image, commit,
+  and zero Python cognition callbacks remained exact.
