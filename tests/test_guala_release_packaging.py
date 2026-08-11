@@ -12,6 +12,7 @@ import pytest
 from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
     _APPROVED_ALPHABET_ASSET_NAMES,
     _APPROVED_NUMBER_ASSET_NAMES,
+    _APPROVED_WORD_ASSET_NAMES,
 )
 from tools.package_guala_release import (
     CANONICAL_FILE_MODE,
@@ -37,6 +38,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/auditory.rs",
     "native/guala_core/src/auditory_incremental.rs",
     "native/guala_core/src/auditory_reachability.rs",
+    "native/guala_core/src/auditory_receptor_work.rs",
     "native/guala_core/src/canonical_basin.rs",
     "native/guala_core/src/canonical_causal_evidence.rs",
     "native/guala_core/src/canonical_l0_l4.rs",
@@ -45,13 +47,13 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/content_defined_chunker.rs",
     "native/guala_core/src/declared_geometric_anatomy.rs",
     "native/guala_core/src/developmental_electrical_anatomy.rs",
+    "native/guala_core/src/developmental_resting_population.rs",
     "native/guala_core/src/elementary_charge_membrane.rs",
     "native/guala_core/src/elementary_charge_transfer.rs",
     "native/guala_core/src/embryonic_neuron_genesis_candidate.rs",
     "native/guala_core/src/exact_rational.rs",
     "native/guala_core/src/exact_time_grid_occurrence.rs",
     "native/guala_core/src/full_field_bank_final.rs",
-    "native/guala_core/src/hippocampal_directory_cold_store.rs",
     "native/guala_core/src/hippocampal_reference_page.rs",
     "native/guala_core/src/hippocampal_sparse_path.rs",
     "native/guala_core/src/joint_field_l0_l4.rs",
@@ -79,15 +81,19 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/positional_krimelack_boundary.rs",
     "native/guala_core/src/reached_neuron_cohort.rs",
     "native/guala_core/src/reached_vestibular_bundle_path.rs",
+    "native/guala_core/src/receptor_quantum_delivery.rs",
     "native/guala_core/src/recovery_fluid_contact.rs",
     "native/guala_core/src/resident_cognitive_formation.rs",
     "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
     "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
     "native/guala_core/src/resident_d3_runtime.rs",
+    "native/guala_core/src/resident_electrical_fabric.rs",
     "native/guala_core/src/resident_receptor_transition.rs",
+    "native/guala_core/src/scratch_auditory_ear_proofs.rs",
     "native/guala_core/src/scratch_auditory_probe.rs",
     "native/guala_core/src/sha256.rs",
     "native/guala_core/src/sparse_electrical_contact.rs",
+    "native/guala_core/src/tactile_receptor_work.rs",
     "native/guala_core/src/vestibular_joint_source_builder.rs",
     "native/guala_core/src/vestibular_neuron_path.rs",
     "native/guala_core/src/virtual_body_yaw_motion.rs",
@@ -258,6 +264,7 @@ def test_candidate_manifest_is_exact_current_runtime_import_closure() -> None:
         for name in (
             _APPROVED_ALPHABET_ASSET_NAMES
             + _APPROVED_NUMBER_ASSET_NAMES
+            + _APPROVED_WORD_ASSET_NAMES
         )
     }
     assert by_category["physical_curriculum_surfaces"] == expected_physical_surfaces

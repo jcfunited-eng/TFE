@@ -2382,6 +2382,13 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &physically_transitioned_neuron_lineages,
         )?;
+        mount_reached_ordering_reach(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &physically_transitioned_neuron_lineages,
+        )?;
         let (organism_mosaic_receipt, organism_reassemblies) = settle_organism_mosaic_boundary(
             &cohorts,
             &electrical_fabric,
@@ -5915,6 +5922,106 @@ fn mount_reached_affective_reach(
     Ok(())
 }
 
+/// Retain one physically delayed ordering route from the association material
+/// that moved in this interval together with retained or affective material
+/// that also moved.  The participants have already settled before this cell is
+/// mounted, so the new layer-11 cell cannot participate until a later organism
+/// interval.  That lived interval boundary is the ordering law: no timestamp,
+/// sequence label, transcript, score, or authored prediction is stored here.
+/// Reaching the same exact participant set reuses the same sparse route.
+fn mount_reached_ordering_reach(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    physically_transitioned_lineages: &[[u8; 16]],
+) -> Result<(), FormationError> {
+    let mounted = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .map(|(mount, lineage)| (*lineage, mount.clone()))
+        .collect::<Vec<_>>();
+    let mut association = Vec::new();
+    let mut retained_or_affective = Vec::new();
+    for lineage in physically_transitioned_lineages {
+        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        };
+        match mount.place().layer() {
+            7 if !association.contains(lineage) => association.push(*lineage),
+            9 | 10 if !retained_or_affective.contains(lineage) => {
+                retained_or_affective.push(*lineage)
+            }
+            _ => {}
+        }
+    }
+    if association.is_empty() || retained_or_affective.is_empty() {
+        return Ok(());
+    }
+    let mut participants = association;
+    participants.extend(retained_or_affective);
+    participants.sort_unstable();
+    participants.dedup();
+
+    let layer_of = |lineage: [u8; 16]| {
+        mounted
+            .iter()
+            .find(|(candidate, _)| *candidate == lineage)
+            .map(|(_, mount)| mount.place().layer())
+    };
+    let mut matching = Vec::new();
+    for (candidate, _) in mounted
+        .iter()
+        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 11)
+    {
+        let mut neighbours = Vec::new();
+        for (left, right) in electrical_fabric.contact_endpoints() {
+            let left_lineage = electrical_fabric.lineages()[left];
+            let right_lineage = electrical_fabric.lineages()[right];
+            let neighbour = if left_lineage == *candidate {
+                Some(right_lineage)
+            } else if right_lineage == *candidate {
+                Some(left_lineage)
+            } else {
+                None
+            };
+            if let Some(neighbour) = neighbour {
+                if matches!(layer_of(neighbour), Some(7) | Some(9) | Some(10)) {
+                    neighbours.push(neighbour);
+                }
+            }
+        }
+        neighbours.sort_unstable();
+        neighbours.dedup();
+        if neighbours == participants {
+            matching.push(*candidate);
+        }
+    }
+    let ordering_lineage = match matching.as_slice() {
+        [lineage] => *lineage,
+        [] => mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 11)?,
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    for participant in participants {
+        if !electrical_fabric.contains_contact(participant, ordering_lineage) {
+            *electrical_fabric = electrical_fabric
+                .append_contact(
+                    participant,
+                    ordering_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+        }
+    }
+    Ok(())
+}
+
 /// Give each newly admitted retained mosaic one sparse recurrent route through
 /// layer 9.  Admission has already proved the member deltas and physical bonds;
 /// this function neither recognizes nor names them.  One intrinsic cell is
@@ -9152,6 +9259,88 @@ mod tests {
     }
 
     #[test]
+    fn reached_association_and_affective_material_mount_one_delayed_ordering_route() {
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        let affective = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(10, 0),
+        )
+        .unwrap();
+        let resting_before = population.as_ref().unwrap().resting_cell_count();
+        let mut fabric = ResidentElectricalFabric::default();
+
+        mount_reached_ordering_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[association],
+        )
+        .unwrap();
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before
+        );
+
+        mount_reached_ordering_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[association, affective],
+        )
+        .unwrap();
+        let ordering = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 11)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(ordering.len(), 1);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+        assert!(fabric.contains_contact(association, ordering[0]));
+        assert!(fabric.contains_contact(affective, ordering[0]));
+        let cohort_count = cohorts.len();
+        let contact_count = fabric.contact_count();
+
+        mount_reached_ordering_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[affective, association],
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), cohort_count);
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+    }
+
+    #[test]
     fn whole_organism_activity_reaches_affective_geography_after_lived_propagation() {
         let canal_anatomy =
             CanalAnatomy::new(6, 13_200, PositiveRatio::new(25, 1).unwrap()).unwrap();
@@ -9204,6 +9393,13 @@ mod tests {
             .filter(|mount| mount.place().layer() == 10)
             .count();
         assert_eq!(layer_ten, 1);
+        let layer_eleven = state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .filter(|mount| mount.place().layer() == 11)
+            .count();
+        assert_eq!(layer_eleven, 1);
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);

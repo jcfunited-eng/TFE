@@ -16,12 +16,12 @@ def test_controller_is_one_bounded_reviewed_path() -> None:
     assert SCRIPT.count(
         "python3 tools/run_guala_candidate_rehearsal_task.py"
     ) == 1
-    # Genesis cutover: one throwaway-root genesis rehearsal replaces the
-    # inheritance rehearse/publish/cold-restore round-trip.
-    assert "--mode genesis-rehearse" in SCRIPT
+    # Ordinary releases preserve the living current organism and rehearse an
+    # exact discarded-state cold restore before the single cutover.
+    assert "--mode genesis-rehearse" not in SCRIPT
     assert "--mode rehearse" not in SCRIPT
     assert "--mode publish" not in SCRIPT
-    assert "--mode cold-restore" not in SCRIPT
+    assert "--mode cold-restore" in SCRIPT
     assert SCRIPT.count("aws ecs update-service") == 1
     assert "--repeat-cutover" not in SCRIPT
     assert "--rehearse-only" in SCRIPT
