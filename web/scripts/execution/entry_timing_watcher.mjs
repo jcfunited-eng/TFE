@@ -33,7 +33,8 @@ const POLYGON_KEY = process.env.MASSIVE_API_KEY ?? process.env.POLYGON_API_KEY ?
 const POLYGON_BASE = "https://api.polygon.io";
 
 // ── Configuration ───────────────────────────────────────────────────────
-const CH2_S_UF_MIN      = 0.50;   // minimum S_UF for CH2 entry
+// CH2_S_UF_MIN removed 2026-08-11 — the S_UF band is abolished
+// permanently (Joe; completes f379f0f1). Selection is the V3 basin's.
 const CH2_BAR_COUNT_MIN = 21;     // established stocks only
 const MAX_ENTRIES_PER_RUN = 3;    // don't flood — max new entries per 5-min check
 const VOLUME_RATIO_MIN  = 1.0;    // volume must be at/above average (not dry)
@@ -109,12 +110,11 @@ async function getPrimedTickers() {
       run_id
     FROM runtime_decisions_latest
     WHERE decision_label = 'Accumulate'
-      AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $1
-      AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
+      AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
       AND ticker != 'SPY'
     ORDER BY CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
     LIMIT 50
-  `, [CH2_S_UF_MIN, CH2_BAR_COUNT_MIN]);
+  `, [CH2_BAR_COUNT_MIN]);
 
   const primed = [];
   for (const row of candidateRes.rows) {
@@ -185,8 +185,9 @@ export async function runEntryTimingCheck() {
         ? (snapshot.todayVolume / (snapshot.prevDayVolume * expectedVolumeRatio))
         : 1.0;
 
-      // Route by S_UF band: CH2 = 0.50-0.74, CH3 = 0.75+
-      const signalClass = signal.s_uf >= 0.75 ? "CH3" : "CH2";
+      // S_UF band routing removed 2026-08-11 — the band is abolished and
+      // this watcher primes CH2 only (see file header).
+      const signalClass = "CH2";
 
       candidates.push({
         ...signal,

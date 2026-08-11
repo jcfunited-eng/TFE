@@ -707,7 +707,15 @@ function validateCh2Signal(signal) {
     check(typeof signal.ticker === "string" && signal.ticker.trim().length > 0,        "ticker_missing"),
     check(typeof signal.run_id === "string" && signal.run_id.trim().length > 0,        "run_id_missing"),
     check(signal.signal_class === "CH2",                                               `signal_class_not_ch2:${signal.signal_class}`),
-    check(typeof signal.s_uf === "number" && signal.s_uf >= 0.50 && signal.s_uf < 0.75, `s_uf_out_of_ch2_band:${signal.s_uf}`),
+    // S_UF BAND ABOLISHED PERMANENTLY (Joe, 2026-08-11). The [0.50, 0.75)
+    // scalar band was measured as the channel's primary drag (-8.65pp vs
+    // +2.73pp against SPY) and ordered removed by f379f0f1 on 2026-06-02:
+    // "it vetoed the joint-state read with a single-field override." This
+    // bridge-side copy survived that sweep and silently kept overruling the
+    // V3 basin's approvals — it is why every candidate since 08-06 was
+    // refused. Selection belongs to the coupled basin math alone. What
+    // remains here is a sanity check that the field is a real score.
+    check(typeof signal.s_uf === "number" && Number.isFinite(signal.s_uf) && signal.s_uf > 0 && signal.s_uf <= 1, `s_uf_not_a_valid_score:${signal.s_uf}`),
     // D_k gate REMOVED — kernel's Accumulate decision is the filter. D_k stays as EXIT-B.
     check(typeof signal.bar_count === "number" && signal.bar_count > 20,               `bar_count_not_established:${signal.bar_count}`),
     // Regime check REMOVED — validation finding: TRANSITIONAL-only was too restrictive
@@ -824,7 +832,10 @@ export async function executeCh2BracketOrder(signal) {
         s_uf:             signal.s_uf,
         d_k:              signal.d_k,
         bar_count:        signal.bar_count,
-        exit_trigger_a:   "s_uf >= 0.75",
+        // Recorded exits must be the REAL ones. "s_uf >= 0.75" sat here
+        // long after that trigger was deleted (EXIT-A, no derivation) —
+        // every ledger row was citing an exit that could never fire.
+        exit_trigger_a:   "basin_break >= 0.20",
         exit_trigger_b:   "d_k != 1",
         run_id:           signal.run_id,
         vault_equity:     vaultEquity,
