@@ -6471,11 +6471,14 @@ fn mount_reached_motor_effector(
     Ok(())
 }
 
-/// Materialize one articulatory route only when an acoustic receptor, body
+/// Materialize the base articulatory route only when an acoustic receptor, body
 /// regulation, delayed ordering, and an already-existing motor route all
 /// physically change in the same interval. The layer-13 cell is developmental
 /// articulatory anatomy, not speech or meaning. It is mounted after settlement
 /// and therefore cannot emit pressure during the interval that creates it.
+/// Later qualifying participants converge on the topologically first retained
+/// route; sensory variation grows sparse contacts, not one new cell per
+/// participant combination.
 fn mount_reached_articulatory_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -6517,49 +6520,19 @@ fn mount_reached_articulatory_effector(
     participants.sort_unstable();
     participants.dedup();
 
-    let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
-    };
-    let mut matching = Vec::new();
-    for (candidate, _) in mounted
+    let existing = mounted
         .iter()
         .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 13)
-    {
-        let mut neighbours = Vec::new();
-        for (left, right) in electrical_fabric.contact_endpoints() {
-            let left_lineage = electrical_fabric.lineages()[left];
-            let right_lineage = electrical_fabric.lineages()[right];
-            let neighbour = if left_lineage == *candidate {
-                Some(right_lineage)
-            } else if right_lineage == *candidate {
-                Some(left_lineage)
-            } else {
-                None
-            };
-            if let Some(neighbour) = neighbour {
-                if matches!(layer_of(neighbour), Some(1) | Some(8) | Some(11) | Some(12)) {
-                    neighbours.push(neighbour);
-                }
-            }
-        }
-        neighbours.sort_unstable();
-        neighbours.dedup();
-        if neighbours == participants {
-            matching.push(*candidate);
-        }
-    }
-    let articulatory_lineage = match matching.as_slice() {
-        [lineage] => *lineage,
-        [] => mount_next_intrinsic_in_layer(
+        .min_by_key(|(_, mount)| mount.place().topology_index())
+        .map(|(lineage, _)| *lineage);
+    let articulatory_lineage = match existing {
+        Some(lineage) => lineage,
+        None => mount_next_intrinsic_in_layer(
             cohorts,
             resting_population,
             next_lineage_ordinal,
             13,
         )?,
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
     };
     for participant in participants {
         if !electrical_fabric.contains_contact(participant, articulatory_lineage) {
@@ -10195,6 +10168,13 @@ mod tests {
             DeclaredNeuronPlace::new(12, 0),
         )
         .unwrap();
+        let second_acoustic = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(1, 1),
+        )
+        .unwrap();
         let mounted = cohorts
             .iter()
             .flat_map(|cohort| {
@@ -10277,6 +10257,41 @@ mod tests {
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
         assert_eq!(fabric.contact_count(), contact_count);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+        let distinct_participant_count = fabric.contact_count();
+        let distinct_remounted = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount.clone()))
+            .collect::<Vec<_>>();
+        mount_reached_articulatory_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[second_acoustic, regulation, ordering, motor],
+            &distinct_remounted,
+        )
+        .unwrap();
+        assert_eq!(
+            cohorts
+                .iter()
+                .flat_map(|cohort| cohort.anatomy.mounts())
+                .filter(|mount| mount.place().layer() == 13)
+                .count(),
+            1
+        );
+        assert_eq!(fabric.contact_count(), distinct_participant_count + 1);
+        assert!(fabric.contains_contact(second_acoustic, articulatory[0]));
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
             resting_before - 1

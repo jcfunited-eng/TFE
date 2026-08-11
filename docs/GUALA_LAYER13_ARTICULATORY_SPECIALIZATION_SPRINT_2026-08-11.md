@@ -47,3 +47,21 @@ thought, utterance, or meaning is mounted by this change.
    production change occurred. The corrected invocation is `bash
    tools/deploy_dsf_ai.sh`; no source or deployment mechanism changes are
    required.
+2. Commit `8d42effa3683190b95bc412ac77dbf52de72177c` deployed successfully as
+   `dsf-ai-task:977`, image
+   `sha256:e1b952460971aab764ee6b8730c11c5c295cad741053af6c334f62a5166f223f`,
+   at 2026-08-11T23:39:56Z. The pre-cutover discarded-state rehearsal passed
+   exact current cold restore with 212 reached and 196,517 resting cells, zero
+   Python cognition callbacks or workers, 500 DSF deliveries, and 447 retained
+   neuronal fractals.
+3. Live production first reached layer 13 as one cell, 213 reached cells total,
+   and 196,516 resting cells. A discarded post-growth task then cold-restored
+   that 213-cell state exactly with zero Python cognition callbacks or workers.
+4. Live continuation falsified the first reuse boundary: exact participant-set
+   identity caused distinct acoustic combinations to consume additional
+   layer-13 cells. By tick 45,328 production had four layer-13 cells, 216
+   reached cells total, 196,513 resting cells, and 29,718,354 encoded bytes.
+   This is deployed evidence of an unbounded combination-to-cell path, so the
+   sprint remains incomplete. The correction mounts the base layer-13 route
+   once and lets later participant variation add only missing sparse contacts
+   to the topologically first retained route.
