@@ -33,6 +33,7 @@ pub(crate) enum JointNeuronBoundaryError {
     NeuronCoordinateAbsent,
     GateAbsent,
     FrameOutsideGate,
+    SourceIntervalOutsideGate,
     NonFiniteDsf,
     EmptyMathLoomAnatomy,
     MathLoomAnatomyTooSmall {
@@ -152,7 +153,7 @@ pub(crate) fn prepare_isolated_single_neuron_field_with_admission(
     require_isolated_single_vertex(shared)
 }
 
-fn prepare_complete_joint_field_from_evaluated(
+pub(crate) fn prepare_complete_joint_field_from_evaluated(
     source_body: Arc<[u8]>,
     source_authority: [u8; 32],
     occurrence_index: usize,
@@ -301,6 +302,35 @@ pub(crate) fn bind_neuron_perspective(
     })
 }
 
+/// Bind one receptor coordinate to the single completed DSF gate that owns
+/// the causal interval between source samples `i` and `i + 1`. Gate intervals
+/// may share a boundary sample, but no positive source interval belongs to
+/// more than one gate.
+pub(crate) fn bind_neuron_perspective_for_source_interval(
+    shared: &SharedCompleteJointField,
+    coordinate_index: usize,
+    source_interval_index: usize,
+) -> Result<JointNeuronPerspective<'_>, JointNeuronBoundaryError> {
+    let interval_end = source_interval_index
+        .checked_add(1)
+        .ok_or(JointNeuronBoundaryError::SourceIntervalOutsideGate)?;
+    let mut matching_gate = None;
+    for (gate_index, gate) in shared.result().gates.iter().enumerate() {
+        if gate.interval.first_sev <= source_interval_index
+            && interval_end <= gate.interval.last_sev
+        {
+            if matching_gate.replace(gate_index).is_some() {
+                return Err(JointNeuronBoundaryError::SourceIntervalOutsideGate);
+            }
+        }
+    }
+    bind_neuron_perspective(
+        shared,
+        coordinate_index,
+        matching_gate.ok_or(JointNeuronBoundaryError::SourceIntervalOutsideGate)?,
+    )
+}
+
 pub(crate) fn bind_isolated_neuron_perspective(
     shared: &SharedCompleteJointField,
     gate_index: usize,
@@ -353,7 +383,7 @@ impl LocalSevComponent<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[repr(i8)]
 pub(crate) enum BalancedTrit {
     Negative = -1,
@@ -522,6 +552,29 @@ pub(crate) fn required_mathloom_positions(
         .try_fold(1_usize, |maximum, required| {
             required.map(|required| maximum.max(required))
         })
+}
+
+/// Derive the mounted width required by every completed gate in the one
+/// causal field that is giving birth to this neuron. A neuron is not born
+/// from gate zero and then surprised by later gates from the same occurrence.
+pub(crate) fn required_mathloom_positions_for_birth_field(
+    perspective: JointNeuronPerspective<'_>,
+) -> Result<usize, JointNeuronBoundaryError> {
+    (0..perspective.shared().result().gates.len()).try_fold(1_usize, |maximum, gate_index| {
+        let gate_perspective = bind_neuron_perspective(
+            perspective.shared(),
+            perspective.coordinate_index(),
+            gate_index,
+        )?;
+        Ok(maximum.max(required_mathloom_positions(gate_perspective)?))
+    })
+}
+
+/// The positional width the substrate's own declared field arithmetic needs.
+/// This is a floor, never a cap; an encountered exact field may require local
+/// anatomy growth beyond it.
+pub(crate) fn declared_field_arithmetic_positions() -> usize {
+    required_positions(&BigRational::new(BigInt::from(1_u8), BigInt::from(3_u8)))
 }
 
 fn required_positions(value: &BigRational) -> usize {
@@ -751,6 +804,20 @@ mod tests {
                 value.to_bits()
             );
         }
+    }
+
+    #[test]
+    fn declared_one_third_uses_exact_folding_division_not_binary_approximation() {
+        let exact_one_third = BigRational::new(BigInt::from(1_u8), BigInt::from(3_u8));
+        let host_binary_approximation = BigRational::from_float(1.0 / 3.0).unwrap();
+        assert_eq!(declared_field_arithmetic_positions(), 2);
+        assert_eq!(
+            declared_field_arithmetic_positions(),
+            required_positions(&exact_one_third)
+        );
+        assert!(
+            required_positions(&host_binary_approximation) > declared_field_arithmetic_positions()
+        );
     }
 
     #[test]

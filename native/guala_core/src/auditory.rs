@@ -98,7 +98,7 @@ fn validate_stream_state(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn auditory_gammatone_stream_impl(
+pub(crate) fn auditory_gammatone_stream_impl(
     signal: &[f64],
     pole_real: &[f64],
     pole_imag: &[f64],
@@ -202,7 +202,7 @@ fn auditory_gammatone_stream_impl(
     ))
 }
 
-fn zero_stream_state() -> (
+pub(crate) fn zero_stream_state() -> (
     Vec<f64>,
     Vec<f64>,
     Vec<f64>,

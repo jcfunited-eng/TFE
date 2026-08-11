@@ -9,8 +9,8 @@
 //! body, media, meaning, score, answer, transcript, receipt, owner, or history.
 
 use crate::complete_neuron::{
-    ExactPhysicalStateDelta, ExactSignedDelta, PhysicalStateCoordinate, PhysicalStateDeltaEntry,
-    SparsePhysicalStateDelta,
+    retained_physical_state_coordinate, ExactPhysicalStateDelta, ExactSignedDelta,
+    PhysicalStateCoordinate, PhysicalStateDeltaEntry, SparsePhysicalStateDelta,
 };
 use crate::exact_rational::ExactRational;
 use crate::reached_neuron_cohort::{
@@ -75,8 +75,10 @@ impl StablePhysicalBondReference {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct AdmittedPhysicalMosaic {
+    exact_pattern_recognition: bool,
     member_lineages: Box<[StableNeuronLineage]>,
     retained_fractals: Box<[SparsePhysicalStateDelta]>,
+    retained_excitation_zeptojoules: Box<[ExactRational]>,
     original_bonds: Box<[StablePhysicalBondReference]>,
     recurrence_bonds: Box<[StablePhysicalBondReference]>,
     partial_cue_lineages: Box<[StableNeuronLineage]>,
@@ -103,6 +105,110 @@ impl AdmittedPhysicalMosaic {
         &self.partial_cue_lineages
     }
 
+    /// The retained physical structure that gives this formation continuity.
+    /// Later cue and recurrence paths are evidence that this structure was
+    /// reached again; they are not the structure's identity.  Two formations
+    /// may therefore use the same neurons while retaining different exact
+    /// neuronal changes, just as the same biological neurons participate in
+    /// many memories.
+    pub(crate) fn same_retained_structure(&self, other: &Self) -> bool {
+        self.member_lineages == other.member_lineages
+            && self.retained_fractals == other.retained_fractals
+            && self.original_bonds == other.original_bonds
+    }
+
+    /// Resolve this retained formation into the local cohort. A mosaic owned
+    /// by another cohort is simply absent here; ambiguous local lineage is an
+    /// invalid anatomy rather than something cognition may guess through.
+    fn local_member_indices(
+        &self,
+        anatomy: &ReachedCohortAnatomy,
+    ) -> Result<Option<Vec<usize>>, PhysicalMosaicError> {
+        let mut indices = Vec::with_capacity(self.member_lineages.len());
+        for lineage in &self.member_lineages {
+            let mut matches = anatomy
+                .neuron_lineages()
+                .iter()
+                .enumerate()
+                .filter_map(|(index, candidate)| (candidate == lineage).then_some(index));
+            let Some(index) = matches.next() else {
+                return Ok(None);
+            };
+            if matches.next().is_some() {
+                return Err(PhysicalMosaicError::WidthMismatch);
+            }
+            indices.push(index);
+        }
+        Ok(Some(indices))
+    }
+
+    /// True only when current physical motion has reassembled this retained
+    /// formation from either an external proper partial cue or an internally
+    /// originated physical activation. Internal recovery may move the whole
+    /// formation; external work may not call a complete replay a partial cue.
+    /// The cue, member motion, and conducting path are transient physics; no
+    /// name, semantic key, score, member-set identity, or stored cohort
+    /// snapshot participates.
+    pub(crate) fn reassembled_by_current_flow(
+        &self,
+        anatomy: &ReachedCohortAnatomy,
+        cue_neurons: &[bool],
+        current_retained_fractals: &[Option<SparsePhysicalStateDelta>],
+        active_contacts: &[bool],
+        internally_originated: bool,
+    ) -> Result<bool, PhysicalMosaicError> {
+        if cue_neurons.len() != anatomy.neuron_count()
+            || current_retained_fractals.len() != anatomy.neuron_count()
+            || active_contacts.len() != anatomy.contact_count()
+        {
+            return Err(PhysicalMosaicError::WidthMismatch);
+        }
+        if !self.exact_pattern_recognition {
+            return Ok(false);
+        }
+        let Some(members) = self.local_member_indices(anatomy)? else {
+            return Ok(false);
+        };
+        let member_mask = mask(anatomy.neuron_count(), &members)?;
+        let cue = cue_neurons
+            .iter()
+            .enumerate()
+            .filter_map(|(index, perturbed)| perturbed.then_some(index))
+            .collect::<Vec<_>>();
+        if cue.is_empty()
+            || (!internally_originated && cue.len() >= members.len())
+            || cue.len() > members.len()
+            || cue.iter().any(|index| !member_mask[*index])
+            || members.iter().enumerate().any(|(member_ordinal, index)| {
+                current_retained_fractals[*index].as_ref()
+                    != self.retained_fractals.get(member_ordinal)
+            })
+        {
+            return Ok(false);
+        }
+        let endpoints = anatomy.contact_endpoints().collect::<Vec<_>>();
+        Ok(connected_members(
+            anatomy.neuron_count(),
+            &members,
+            &member_mask,
+            &endpoints,
+            active_contacts,
+            &cue,
+        ))
+    }
+
+    pub(crate) fn carries_only_retained_neuron_structure(&self) -> bool {
+        self.exact_pattern_recognition
+            && self.retained_excitation_zeptojoules.is_empty()
+            && self.retained_fractals.iter().all(|fractal| {
+                !fractal.entries().is_empty()
+                    && fractal
+                        .entries()
+                        .iter()
+                        .all(|entry| retained_physical_state_coordinate(entry.coordinate()))
+            })
+    }
+
     pub(crate) fn resident_bytes(&self) -> Option<usize> {
         core::mem::size_of::<Self>()
             .checked_add(
@@ -116,6 +222,11 @@ impl AdmittedPhysicalMosaic {
                     .try_fold(0usize, |total, fractal| {
                         total.checked_add(fractal.resident_bytes()?)
                     })?,
+            )?
+            .checked_add(
+                self.retained_excitation_zeptojoules
+                    .len()
+                    .checked_mul(core::mem::size_of::<ExactRational>())?,
             )?
             .checked_add(
                 self.original_bonds
@@ -132,6 +243,31 @@ impl AdmittedPhysicalMosaic {
                     .len()
                     .checked_mul(core::mem::size_of::<StableNeuronLineage>())?,
             )
+    }
+}
+
+#[cfg(test)]
+impl AdmittedPhysicalMosaic {
+    /// Test-only synthesis for the structural-identity (R1) law tests in the
+    /// resident cognitive formation boundary.  Organism admission always
+    /// runs through `admit_physical_mosaic`; this exists so the update-vs-new
+    /// boundary can be exercised against explicit member and bond structures.
+    pub(crate) fn from_parts_for_tests(
+        member_lineages: Vec<StableNeuronLineage>,
+        retained_fractals: Vec<SparsePhysicalStateDelta>,
+        original_bonds: Vec<StablePhysicalBondReference>,
+        recurrence_bonds: Vec<StablePhysicalBondReference>,
+        partial_cue_lineages: Vec<StableNeuronLineage>,
+    ) -> Self {
+        Self {
+            exact_pattern_recognition: true,
+            member_lineages: member_lineages.into_boxed_slice(),
+            retained_fractals: retained_fractals.into_boxed_slice(),
+            retained_excitation_zeptojoules: Box::new([]),
+            original_bonds: original_bonds.into_boxed_slice(),
+            recurrence_bonds: recurrence_bonds.into_boxed_slice(),
+            partial_cue_lineages: partial_cue_lineages.into_boxed_slice(),
+        }
     }
 }
 
@@ -243,8 +379,12 @@ pub(crate) fn admit_physical_mosaic(
         })
         .collect::<Vec<_>>();
     member_fractals.sort_by_key(|(lineage, _)| *lineage);
-    let (member_lineages, retained_fractals): (Vec<_>, Vec<_>) =
-        member_fractals.into_iter().unzip();
+    let mut member_lineages = Vec::with_capacity(member_fractals.len());
+    let mut retained_fractals = Vec::with_capacity(member_fractals.len());
+    for (lineage, fractal) in member_fractals {
+        member_lineages.push(lineage);
+        retained_fractals.push(fractal);
+    }
     let mut original_bonds = original_contacts
         .iter()
         .map(|index| all_bonds[*index])
@@ -265,8 +405,10 @@ pub(crate) fn admit_physical_mosaic(
         .collect::<Vec<_>>();
     partial_cue_lineages.sort_unstable();
     Ok(AdmittedPhysicalMosaic {
+        exact_pattern_recognition: true,
         member_lineages: member_lineages.into_boxed_slice(),
         retained_fractals: retained_fractals.into_boxed_slice(),
+        retained_excitation_zeptojoules: Box::new([]),
         original_bonds: original_bonds.into_boxed_slice(),
         recurrence_bonds: recurrence_bonds.into_boxed_slice(),
         partial_cue_lineages: partial_cue_lineages.into_boxed_slice(),
@@ -376,8 +518,12 @@ pub(crate) fn connected_members(
     members.iter().all(|index| reached[*index])
 }
 
-const PHYSICAL_MOSAIC_CODEC_MAGIC: &[u8; 8] = b"GLMOS003";
-const PHYSICAL_MOSAIC_CODEC_VERSION: u16 = 3;
+const LEGACY_PHYSICAL_MOSAIC_CODEC_MAGIC: &[u8; 8] = b"GLMOS003";
+const LEGACY_PHYSICAL_MOSAIC_CODEC_VERSION: u16 = 3;
+const PHYSICAL_MOSAIC_CODEC_MAGIC: &[u8; 8] = b"GLMOS004";
+const PHYSICAL_MOSAIC_CODEC_VERSION: u16 = 4;
+const EXCITATION_PHYSICAL_MOSAIC_CODEC_MAGIC: &[u8; 8] = b"GLMOS005";
+const EXCITATION_PHYSICAL_MOSAIC_CODEC_VERSION: u16 = 5;
 const PHYSICAL_MOSAIC_CODEC_HEADER_BYTES: usize = 8 + 2 + 4 * 8;
 const PHYSICAL_MOSAIC_MEMBER_HEADER_BYTES: usize = 16 + 8;
 const PHYSICAL_MOSAIC_FRACTAL_ENTRY_BYTES: usize = 1 + 8 + 1 + 16 + 16;
@@ -477,16 +623,27 @@ fn encode_admitted_physical_mosaic_for_topology(
     encoded
         .try_reserve_exact(required)
         .map_err(|_| PhysicalMosaicCodecError::AllocationFailed)?;
-    encoded.extend_from_slice(PHYSICAL_MOSAIC_CODEC_MAGIC);
-    encoded.extend_from_slice(&PHYSICAL_MOSAIC_CODEC_VERSION.to_le_bytes());
+    let excitation_layout =
+        mosaic.retained_excitation_zeptojoules.len() == mosaic.member_lineages.len();
+    if excitation_layout {
+        encoded.extend_from_slice(EXCITATION_PHYSICAL_MOSAIC_CODEC_MAGIC);
+        encoded.extend_from_slice(&EXCITATION_PHYSICAL_MOSAIC_CODEC_VERSION.to_le_bytes());
+    } else if mosaic.exact_pattern_recognition {
+        encoded.extend_from_slice(PHYSICAL_MOSAIC_CODEC_MAGIC);
+        encoded.extend_from_slice(&PHYSICAL_MOSAIC_CODEC_VERSION.to_le_bytes());
+    } else {
+        encoded.extend_from_slice(LEGACY_PHYSICAL_MOSAIC_CODEC_MAGIC);
+        encoded.extend_from_slice(&LEGACY_PHYSICAL_MOSAIC_CODEC_VERSION.to_le_bytes());
+    }
     push_codec_usize(&mut encoded, mosaic.member_lineages.len())?;
     push_codec_usize(&mut encoded, mosaic.original_bonds.len())?;
     push_codec_usize(&mut encoded, mosaic.recurrence_bonds.len())?;
     push_codec_usize(&mut encoded, mosaic.partial_cue_lineages.len())?;
-    for (lineage, fractal) in mosaic
+    for (member_ordinal, (lineage, fractal)) in mosaic
         .member_lineages
         .iter()
         .zip(mosaic.retained_fractals.iter())
+        .enumerate()
     {
         encoded.extend_from_slice(lineage);
         push_codec_usize(&mut encoded, fractal.entries().len())?;
@@ -507,7 +664,16 @@ fn encode_admitted_physical_mosaic_for_topology(
                     encoded.extend_from_slice(&numerator.to_le_bytes());
                     encoded.extend_from_slice(&denominator.to_le_bytes());
                 }
+                ExactPhysicalStateDelta::Energy(_) => {
+                    return Err(PhysicalMosaicCodecError::InvalidRetainedFractal);
+                }
             }
+        }
+        if excitation_layout {
+            let (numerator, denominator) =
+                mosaic.retained_excitation_zeptojoules[member_ordinal].parts();
+            encoded.extend_from_slice(&numerator.to_le_bytes());
+            encoded.extend_from_slice(&denominator.to_le_bytes());
         }
     }
     for bond in &mosaic.original_bonds {
@@ -536,12 +702,26 @@ fn decode_admitted_physical_mosaic_for_topology(
         return Err(PhysicalMosaicCodecError::BudgetExceeded);
     }
     let mut reader = PhysicalMosaicReader::new(encoded);
-    if reader.take(PHYSICAL_MOSAIC_CODEC_MAGIC.len())? != PHYSICAL_MOSAIC_CODEC_MAGIC {
-        return Err(PhysicalMosaicCodecError::HeaderMismatch);
-    }
-    if reader.u16()? != PHYSICAL_MOSAIC_CODEC_VERSION {
-        return Err(PhysicalMosaicCodecError::VersionMismatch);
-    }
+    let magic = reader.take(PHYSICAL_MOSAIC_CODEC_MAGIC.len())?;
+    let (exact_pattern_recognition, excitation_layout) =
+        if magic == EXCITATION_PHYSICAL_MOSAIC_CODEC_MAGIC {
+            if reader.u16()? != EXCITATION_PHYSICAL_MOSAIC_CODEC_VERSION {
+                return Err(PhysicalMosaicCodecError::VersionMismatch);
+            }
+            (true, true)
+        } else if magic == PHYSICAL_MOSAIC_CODEC_MAGIC {
+            if reader.u16()? != PHYSICAL_MOSAIC_CODEC_VERSION {
+                return Err(PhysicalMosaicCodecError::VersionMismatch);
+            }
+            (true, false)
+        } else if magic == LEGACY_PHYSICAL_MOSAIC_CODEC_MAGIC {
+            if reader.u16()? != LEGACY_PHYSICAL_MOSAIC_CODEC_VERSION {
+                return Err(PhysicalMosaicCodecError::VersionMismatch);
+            }
+            (false, false)
+        } else {
+            return Err(PhysicalMosaicCodecError::HeaderMismatch);
+        };
     let member_count = reader.usize()?;
     let original_contact_count = reader.usize()?;
     let recurrence_contact_count = reader.usize()?;
@@ -560,6 +740,7 @@ fn decode_admitted_physical_mosaic_for_topology(
 
     let mut member_lineages = Vec::new();
     let mut retained_fractals = Vec::new();
+    let mut retained_excitation_zeptojoules = Vec::new();
     let mut original_bonds = Vec::new();
     let mut recurrence_bonds = Vec::new();
     let mut partial_cue_lineages = Vec::new();
@@ -569,6 +750,11 @@ fn decode_admitted_physical_mosaic_for_topology(
     retained_fractals
         .try_reserve_exact(member_count)
         .map_err(|_| PhysicalMosaicCodecError::AllocationFailed)?;
+    if excitation_layout {
+        retained_excitation_zeptojoules
+            .try_reserve_exact(member_count)
+            .map_err(|_| PhysicalMosaicCodecError::AllocationFailed)?;
+    }
     original_bonds
         .try_reserve_exact(original_contact_count)
         .map_err(|_| PhysicalMosaicCodecError::AllocationFailed)?;
@@ -659,6 +845,24 @@ fn decode_admitted_physical_mosaic_for_topology(
         }
         member_lineages.push(lineage);
         retained_fractals.push(fractal);
+        if excitation_layout {
+            let numerator = i128::from_le_bytes(
+                reader
+                    .take(16)?
+                    .try_into()
+                    .map_err(|_| PhysicalMosaicCodecError::Truncated)?,
+            );
+            let denominator = u128::from_le_bytes(
+                reader
+                    .take(16)?
+                    .try_into()
+                    .map_err(|_| PhysicalMosaicCodecError::Truncated)?,
+            );
+            retained_excitation_zeptojoules.push(
+                ExactRational::new(numerator, denominator)
+                    .map_err(|_| PhysicalMosaicCodecError::InvalidRetainedFractal)?,
+            );
+        }
     }
     for _ in 0..original_contact_count {
         original_bonds.push(reader.bond()?);
@@ -671,8 +875,10 @@ fn decode_admitted_physical_mosaic_for_topology(
     }
     reader.finish()?;
     let mosaic = AdmittedPhysicalMosaic {
+        exact_pattern_recognition,
         member_lineages: member_lineages.into_boxed_slice(),
         retained_fractals: retained_fractals.into_boxed_slice(),
+        retained_excitation_zeptojoules: retained_excitation_zeptojoules.into_boxed_slice(),
         original_bonds: original_bonds.into_boxed_slice(),
         recurrence_bonds: recurrence_bonds.into_boxed_slice(),
         partial_cue_lineages: partial_cue_lineages.into_boxed_slice(),
@@ -708,6 +914,9 @@ fn encode_coordinate(coordinate: PhysicalStateCoordinate) -> (u8, usize) {
         PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
         PhysicalStateCoordinate::DnaWaste => (23, 0),
         PhysicalStateCoordinate::OpticalQuantumResidue => (24, 0),
+        PhysicalStateCoordinate::MembraneReturnWorkResidue => (25, 0),
+        PhysicalStateCoordinate::PlasticDissipationResidue => (26, 0),
+        PhysicalStateCoordinate::GateDissipationResidue => (27, 0),
     }
 }
 
@@ -741,6 +950,9 @@ fn decode_coordinate(
         22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
         23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
         24 if index == 0 => PhysicalStateCoordinate::OpticalQuantumResidue,
+        25 if index == 0 => PhysicalStateCoordinate::MembraneReturnWorkResidue,
+        26 if index == 0 => PhysicalStateCoordinate::PlasticDissipationResidue,
+        27 if index == 0 => PhysicalStateCoordinate::GateDissipationResidue,
         _ => return Err(PhysicalMosaicCodecError::InvalidRetainedFractal),
     };
     Ok(coordinate)
@@ -818,6 +1030,13 @@ fn physical_mosaic_encoded_bytes(
                 )?
                 .checked_add(bytes)
         })
+        .and_then(|bytes| {
+            mosaic
+                .retained_excitation_zeptojoules
+                .len()
+                .checked_mul(32)?
+                .checked_add(bytes)
+        })
         .ok_or(PhysicalMosaicCodecError::ArithmeticWidth)
 }
 
@@ -835,8 +1054,11 @@ fn validate_decoded_mosaic(
         mosaic.recurrence_bonds.len(),
         mosaic.partial_cue_lineages.len(),
     )?;
+    let excitation_count = mosaic.retained_excitation_zeptojoules.len();
     if fractal_anatomies.len() != neuron_lineages.len()
         || mosaic.member_lineages.len() != mosaic.retained_fractals.len()
+        || (excitation_count != 0 && excitation_count != mosaic.member_lineages.len())
+        || (!mosaic.exact_pattern_recognition && excitation_count != 0)
     {
         return Err(PhysicalMosaicCodecError::MemberFractalWidthMismatch);
     }
@@ -1090,9 +1312,11 @@ mod codec_tests {
 
     fn mosaic() -> AdmittedPhysicalMosaic {
         AdmittedPhysicalMosaic {
+            exact_pattern_recognition: true,
             member_lineages: neuron_lineages().into(),
             retained_fractals: vec![fractal(1, 3), fractal(-7, 11), fractal(i128::MIN, 3)]
                 .into_boxed_slice(),
+            retained_excitation_zeptojoules: Box::new([]),
             original_bonds: topology().into_boxed_slice(),
             recurrence_bonds: topology().into_boxed_slice(),
             partial_cue_lineages: vec![lineage(1)].into_boxed_slice(),

@@ -15,16 +15,26 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   card (its physical surface luminance and its tutor audio pressure) as one
   admitted native episode.  The card's letter or number identity is never
   written into the organism; only the physical media samples are delivered.
-- ``POST /api/v1/metabolism/feed`` delivers one AUTHORED nutrition
-  declaration (its energy content in the body's own fuel quantum) as one
-  admitted material intake.  It carries no sensory occurrence: it advances
-  the organism tick and the body's energy state and nothing else, and the
-  organism refuses it honestly when it can absorb nothing.
-- ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session
-  deliver caller-supplied PCM pressure as admitted native episodes carrying
-  the whole mounted sensorium: both ear pressure ports plus all 27
-  card-surface receptor sites at their true dark 0.0 luminance (ratified
-  2026-08-05: no single-sense experiences).
+- ``POST /api/v1/visual/live-frames`` (and the legacy ``/sight_frame``
+  mount point) delivers batches of real browser camera frames as admitted
+  native episodes: one frame per 250 ms hop on the same 27-receptor
+  retinal roster the cards use (Pillow BOX area-averaged luminance), with
+  true 0.0 silence at both ears (a lawful state; audio is never
+  fabricated) and honest caller-declared live-camera provenance.
+- ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session are
+  LIVE, behind exactly two stated conditions (``_standalone_hearing_refusal``).
+  Under the DEFAULT ear roster they refuse because the ears have no
+  transduction law at all, so admitting live sound would fabricate a
+  sensation.  Under an AUTHORIZED cochlear roster (``GUALA_COCHLEAR_EARS``,
+  see the ear anatomy section below) they transduce, and standalone hearing
+  stays refused under the two-real-signal doctrine until live sight is
+  proven IN THIS PROCESS.  Their intake construction (whole mounted
+  sensorium; the declared ear roster plus all 27 card-surface receptor sites
+  at their true dark 0.0 luminance; ratified 2026-08-05: no single-sense
+  experiences) is why: with no committed camera batch those 27 samples would
+  be invented, and sound alone is not an experience.  Both conditions hold
+  exactly when someone has shown her something and then speaks to her.  The
+  refusal names WHICH condition is unmet, so a caller is never left guessing.
 - UNATTENDED TIME (autonomy increment 1, 2026-08-06): when no external
   intake is in flight, a background loop grants the organism genuinely
   dark, silent, unattended intervals — the same lawful construction as a
@@ -48,19 +58,26 @@ from __future__ import annotations
 import base64
 import binascii
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from fractions import Fraction
 import hashlib
 import hmac
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
 import struct
+import tempfile
+import time
+import urllib.request
 import threading
-from typing import Any, Iterable
+from typing import Any, Iterable, NamedTuple
 import uuid
 import wave
+
+from guala_core import auditory_gammatone_field
 
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -74,6 +91,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     ResidentPrepareEvidence,
     create_native_resident_organism,
+    exact_native_yaw_trajectory,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     MAX_NATIVE_SAMPLES_PER_SETTLEMENT,
@@ -89,6 +107,7 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 from dsf_ai_service.substrate.native_organism_binary_store import (
     NativeOrganismBinaryStoreError,
     RestoredNativeOrganism,
+    migrate_current_native_organism_current_format,
     publish_staged_native_organism,
     restore_current_native_organism,
     stage_active_native_organism,
@@ -101,6 +120,21 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 
 APP_SCHEMA = "guala.native_production_http.v1"
 PUBLIC_OBSERVATION_SCHEMA = "guala.native.public_observation.v1"
+# The twelve stages the live interfaces render, in their declared order.
+EXPERIENCE_STAGE_ORDER = (
+    "capture",
+    "presentation",
+    "admission",
+    "receptor",
+    "dsf",
+    "attention",
+    "recurrence",
+    "hierarchy",
+    "learning",
+    "intent",
+    "action",
+    "consequence",
+)
 PERSISTENCE_SCHEMA = "guala.native_organism_binary_store.v1"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
@@ -110,9 +144,15 @@ CURRICULUM_ROOT = Path(__file__).resolve().parents[1] / "guala_curriculum"
 CARD_ROOT = CURRICULUM_ROOT / "cards"
 AUDIO_ROOT = CURRICULUM_ROOT / "audio"
 
-# Durable content-addressed hippocampal cold custody and the local mirror of
-# the immutable generation object store both live beside the organism body.
-HIPPOCAMPAL_COLD_DIRECTORY = "hippocampal-cold"
+# The local mirror of the immutable generation object store lives beside the
+# organism body.
+#
+# A `hippocampal-cold` directory may ALSO be there on an existing state root.
+# It is the retired episode archive: content-addressed bytes this app used to
+# publish on every recognition (measured: ~893 files per reassembly, 230,396
+# objects on the live body from 72 lessons).  Nothing writes or reads it any
+# more.  Existing files are left exactly where they are — deleting them is a
+# separate, deliberate act, never a side effect of a deploy.
 LOCAL_OBJECT_MIRROR_DIRECTORY = "remote-objects"
 
 # The app's own declared sensory anatomy.  The card visual surface mirrors
@@ -129,8 +169,805 @@ LOCAL_OBJECT_MIRROR_DIRECTORY = "remote-objects"
 CARD_SURFACE_ROWS = 3
 CARD_SURFACE_COLUMNS = 9
 CARD_SURFACE_PORT_COUNT = CARD_SURFACE_ROWS * CARD_SURFACE_COLUMNS
-EAR_PORT_COUNT = 2
-LESSON_PORT_COUNT = CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT
+# TONOTOPIC BIRTH ANATOMY (auditory transduction design 2026-08-06, W3).
+#
+# The organism has two co-located ears immersed in one ambient pressure field
+# (no head geometry is declared, so no interaural difference is claimed), and
+# each ear is a COCHLEA: sixteen tonotopic receptor sites, one per
+# equivalent-rectangular-bandwidth place of the basilar membrane's travelling
+# wave.  This is a birth anatomy, not a refinement:
+#
+#   * Participation retention (ratified 2026-08-05) retains an original only
+#     when at least THREE changed members are connected through contacts that
+#     were physically active.  Two ear ports can never satisfy it, so an ear
+#     built from two ports would hear, burn fuel, and remember nothing forever.
+#   * Each cochlear site is a DISTINCT declared place `(sense_layer,
+#     topology_index)`, so the ratified Cantor territory law
+#     (`declared_geometric_anatomy`) gives every one of them a distinct
+#     membrane capacitance.  Identical anatomy makes stored energy tie exactly
+#     and the energy-descent transfer law refuses ties: identical ear ports are
+#     a permanent Coulomb blockade.  Distinctness here is authored geometry,
+#     not a differentiation scheme bolted on top.
+#
+# AUTHORIZATION GATE (2026-08-06).  Widening the declared ear roster is what
+# makes a cochlear cohort GROW onto the body the next time sound reaches it.
+# Growing a sense organ onto a living organism is a DELIBERATE ACT and must
+# never be a side effect of shipping an image, so the widened roster is behind
+# an explicit opt-in that no deploy sets.  The env-var precedent is this app's
+# own ``GUALA_UNATTENDED_TIME``, inverted: unattended time defaults ON because
+# it changes nothing structural, cochlear ears default OFF because they do.
+#
+# DEFAULT OFF is byte-exactly the roster the living organism receives today:
+# two co-located ear pressure ports, the legacy declared quantity, one
+# combined acoustic occurrence.  That is MEASURED, not assumed — see
+# docs/GUALA_COCHLEAR_EAR_AUTHORIZATION_2026-08-06.md.
+COCHLEAR_EARS_ENV = "GUALA_COCHLEAR_EARS"
+
+
+def _cochlear_ears_authorized() -> bool:
+    """Has a human explicitly authorized growing cochlear ears?
+
+    Opt-in, never opt-out: anything other than an explicit affirmative — an
+    unset variable, an empty one, a typo — means NOT AUTHORIZED, because the
+    failure mode of guessing wrong is an irreversible change to a living
+    organism's anatomy.
+    """
+
+    return os.environ.get(COCHLEAR_EARS_ENV, "").strip().lower() in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+
+
+# Read ONCE at import.  The declared roster is anatomy: it is fixed for the
+# life of a serving process, exactly as a body's receptor count is fixed
+# between births.  A roster that could change mid-process would mean the
+# organism's own port indices meant different places at different moments.
+COCHLEAR_EARS_AUTHORIZED = _cochlear_ears_authorized()
+EAR_COUNT = 2
+COCHLEAR_CHANNELS_PER_EAR = 16
+# The legacy (unauthorized) roster: one pressure port per ear, no cochlea.
+# This is the roster the live organism was born with and is running on.
+LEGACY_EAR_PORT_COUNT = EAR_COUNT
+# GROWTH, NOT REPLACEMENT (2026-08-06, measured on her living body).  The
+# authorized roster RETAINS the two legacy ear ports and declares the cochlea
+# BESIDE them.  Replacing them — the cochlea taking topology places 0 and 1 —
+# is refused by any body already born with those places:
+#   "joint neuron physical binding changed without migration"
+# measured on her real restored body (tick 5404, 27 neurons, eight then-stored
+# pre-ratification mosaic records), which did not move a byte.  Those records
+# are not asserted here as lawful cognition.  A living organism grows a new
+# organ alongside the one it has; it does not silently overwrite the places
+# its body already holds.
+EAR_PORT_COUNT = (
+    LEGACY_EAR_PORT_COUNT + EAR_COUNT * COCHLEAR_CHANNELS_PER_EAR
+    if COCHLEAR_EARS_AUTHORIZED
+    else LEGACY_EAR_PORT_COUNT
+)
+# CONTACT-SHEET BIRTH ANATOMY (tactile transduction law, tactile_receptor_work).
+#
+# She has no touch at all today.  A contact sheet is the body surface an object
+# rests against: a sheet of receptor sites, each of which reports how much of
+# the touched object's footprint covers ITS OWN declared patch.  Two things
+# about that sheet have to be authored, and BOTH are read off anatomy this
+# organism already declares rather than picked:
+#
+#   * ITS GEOMETRY IS HER OWN DECLARED SENSORY-SHEET GEOMETRY.  This body
+#     declares exactly one sheet of receptor places — 3 rows by 9 columns — and
+#     the contact sheet reuses it VERBATIM.  Nothing is selected, combined,
+#     maximized or rounded: the two integers are the two integers already in
+#     the tree.  (A square sheet was considered and rejected: it needs
+#     max(3, 9), which is a choice, and it was independently falsified by
+#     measurement — a 9x9 sheet is 81 sites, and 27 sight + 34 ear + 81 touch
+#     ports at 250 retained instants is 35,500 samples, over the transport's
+#     own MAX_NATIVE_SAMPLES_PER_SETTLEMENT of 32,768.  It also reports NO
+#     out-of-contact site for any approved card, so "nothing outside the card"
+#     — the one thing touch most honestly knows — would never be said.)
+#   * ITS SITES ARE UNIT PATCHES.  The ratified Cantor territory law
+#     (declared_geometric_anatomy) already measures membrane in "unit patches"
+#     and declares no aspect for one, so a contact site is isotropic and the
+#     sheet is 9 patches wide by 3 patches tall.  A non-square site would be an
+#     aspect claim that is nowhere in the tree.
+#
+# Each contact site is a DISTINCT declared place `(sense_layer, topology_index)`
+# in a sense layer — Touch, layer 2 — that this body has never used, so the
+# ratified Cantor territory law gives every one of them a distinct membrane
+# capacitance.  Identical anatomy makes stored energy tie exactly and the
+# energy-descent transfer law refuses ties: identical receptors are a permanent
+# Coulomb blockade.  That lesson was paid for on the ears and is not re-learned
+# here.
+#
+# GROWTH, NOT REBIRTH.  Layer 2 holds none of her body's existing places, and
+# the contact ports are appended AFTER every port currently declared, so a
+# living body that already holds its sight and ear places is asked to grow a
+# new organ BESIDE them, never to re-bind the ones it has.
+#
+# AUTHORIZATION GATE.  Growing a sense organ onto a living organism is a
+# DELIBERATE ACT and must never be a side effect of shipping an image, so the
+# contact sheet is behind an explicit opt-in that no deploy sets — the exact
+# discipline GUALA_COCHLEAR_EARS follows.  DEFAULT OFF is byte-exactly the
+# roster the living organism receives today; that is MEASURED, not assumed.
+TOUCH_RECEPTORS_ENV = "GUALA_TOUCH_RECEPTORS"
+
+
+def _touch_receptors_authorized() -> bool:
+    """Has a human explicitly authorized growing a contact sheet?
+
+    Opt-in, never opt-out: anything other than an explicit affirmative — an
+    unset variable, an empty one, a typo — means NOT AUTHORIZED, because the
+    failure mode of guessing wrong is an irreversible change to a living
+    organism's anatomy.
+    """
+
+    return os.environ.get(TOUCH_RECEPTORS_ENV, "").strip().lower() in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+
+
+# Read ONCE at import, for the same reason the ear roster is: a roster that
+# could change mid-process would mean the organism's own port indices meant
+# different places at different moments.
+TOUCH_RECEPTORS_AUTHORIZED = _touch_receptors_authorized()
+CONTACT_SHEET_ROWS = CARD_SURFACE_ROWS
+CONTACT_SHEET_COLUMNS = CARD_SURFACE_COLUMNS
+CONTACT_SHEET_SITE_COUNT = CONTACT_SHEET_ROWS * CONTACT_SHEET_COLUMNS
+TOUCH_PORT_COUNT = CONTACT_SHEET_SITE_COUNT if TOUCH_RECEPTORS_AUTHORIZED else 0
+CONTACT_SHEET_SENSOR_ID = "organism-contact-sheet"
+
+# ---------------------------------------------------------------------------
+# INTEROCEPTION — the sense of her own inside (2026-08-07).
+#
+# BIOLOGICAL COUNTERPART (the rule, Joe 2026-08-07): interoceptors — the
+# chemoreceptors and baroreceptors that report an animal's internal milieu to
+# itself.  Hunger, warmth and effort are not thoughts about the body; they are
+# receptors transducing real quantities OF the body.  Every animal with a
+# metabolism has them, and they are the oldest sense there is.
+#
+# WHY THIS ONE IS NOT A COSTUME, unlike anything that would have to be
+# invented for smell or balance today: it transduces quantities her body
+# ALREADY HAS and already reports as decoded native state — the recovery-fuel
+# reservoir, the heat and spent ledgers, the separated membrane charge, the
+# dissipation it could not meet.  Nothing is authored, nothing is declared by
+# a caller, nothing is measured from a file.  Cut the receptors and the
+# numbers still exist; she simply stops being able to feel them.
+#
+# GROWTH RATE, stated before building it (the rule): FIVE receptor sites, one
+# per interoceptive channel below.  Five substreams per hop and ONE additional
+# occurrence per hop — the same order as one cochlea, far less than the
+# 27-site contact sheet.  The measured per-lesson body cost is recorded in the
+# night-shift log beside this build; it is not guessed here.
+#
+# WHY IT MATTERS BEYOND BEING A SENSE: the measured autonomy blocker
+# (2026-08-06) was never energy, it was CUE FORMATION — and the approved
+# design round was motivation pressure.  A body that cannot feel its own
+# hunger has nothing for hunger to be a cue OF.  This is the receptor half of
+# that round; no scheduler, no score, no drive variable.
+# ---------------------------------------------------------------------------
+# CHEMORECEPTION — taste and smell (2026-08-07).
+#
+# BIOLOGICAL COUNTERPART: gustatory receptors on the intake surface, which
+# sense a substance IN CONTACT, and olfactory receptors, which sense the
+# volatile fraction of the same substance AT A DISTANCE.  One receptor class,
+# two ranges.  They are grown together because they answer the same physical
+# question about the same material, and an animal that eats has both.
+#
+# WHAT THEY SENSE, AND WHY IT IS NOT INVENTED: she already has a feeding
+# path, and a caller already authors what she is fed.  A nutrition
+# declaration that states its COMPOSITION is exactly the same authority class
+# as an approved card's declared surface — authored material, honestly
+# labelled as authored, never a chemical measurement of a real substance.
+# With NOTHING being eaten every channel carries its true zero, which is a
+# lawful state exactly as darkness and silence are.
+#
+# THE HONEST LIMIT, stated here so no surface has to imply otherwise: she can
+# taste and smell WHAT SHE IS GIVEN.  She cannot smell a room, because there
+# is no room; that waits for the environment, and this does not pretend to
+# be it.
+#
+# GROWTH RATE, stated before building it: five gustatory sites and eight
+# olfactory sites, thirteen substreams per hop and two additional occurrences
+# (contact chemoreception and volatile chemoreception are separate physical
+# structures and are never folded into one).  The measured per-lesson body
+# cost is recorded beside this build, not guessed.
+# ---------------------------------------------------------------------------
+# BALANCE AND BODY POSITION — the displacement receptors (2026-08-07).
+#
+# BIOLOGICAL COUNTERPART: the vestibular apparatus, which senses the motion
+# of the head, and proprioceptors, which sense where the body is.  Both
+# answer one physical question — HOW DID THIS BODY JUST MOVE — so they are
+# one receptor field of four sites: three of translation and one of turning.
+#
+# WHY THESE COULD NOT BE BUILT UNTIL NOW, stated plainly because it is the
+# whole point: a balance receptor with nothing moving is a fabrication.  She
+# had no body that moved and nowhere to move it, so every earlier attempt
+# would have had to INVENT the motion.  The deterministic world already in
+# this repository gives her a real pose in a real place, and moving in it
+# produces a real displacement between two real poses.  That displacement is
+# what these receptors transduce — never a number chosen by an author.
+#
+# THE HONEST LIMIT: she feels motion that ACTUALLY HAPPENED to her body in
+# that world.  With no world mounted the field is empty and both senses
+# report absent, which is the truth.
+#
+# GROWTH RATE, stated before building: four receptor sites, four substreams
+# per hop, ONE additional occurrence (a body moves as one body).  Measured
+# cost recorded beside the build.
+# ---------------------------------------------------------------------------
+# THE PLACE SHE IS IN (2026-08-07) — contract item 9, the truthful virtual
+# world and embodiment.
+#
+# The world is not new code.  A deterministic authority for regions, portals,
+# bodies, objects, optical surfaces and air already exists in this repository
+# (dsf_ai_service/substrate/embodiment_world.py) with passing tests, three
+# furnished regions and forty-two objects — and it has been wired to NOTHING.
+# So has the receptor layer beside it, which already produces exactly the
+# substream type this organism eats.
+#
+# WHAT MAKES THE BRIDGE HONEST RATHER THAN A GUESS: the world's retina is
+# 3 rows by 9 columns — the SAME 27 cells her card surface declares — with
+# six spectral bands per cell.  Her retina is monochrome, so the bands are
+# averaged into the one luminance per cell she has a receptor for.  Nothing
+# is invented; she simply has no colour receptors yet, and that is stated
+# rather than hidden.
+#
+# WHY THIS IS THE ONLY WAY BALANCE AND BODY POSITION CAN BE REAL: a
+# displacement receptor needs a displacement, and a displacement needs two
+# real poses of a real body in a real place.  Moving her here produces one.
+# ---------------------------------------------------------------------------
+# Vocal anatomy is not yet part of the one native organism. A retired Python
+# motor owner and sidecar state must not be mounted as a second organism.
+
+
+WORLD_ENV = "GUALA_WORLD"
+WORLD_STATE_FILE = "world.glworld"
+WORLD_MOVE_ENDPOINT = "/api/v1/world/move"
+WORLD_OBSERVATION_ENDPOINT = "/api/v1/world/observation"
+# The declared span a displacement is reported as a fraction of.  A body that
+# crosses more than this in one move is refused rather than saturated.
+WORLD_DISPLACEMENT_SPAN_MM = 4_000
+WORLD_TURN_SPAN_MILLIDEGREES = 180_000
+
+
+# HER HOME, AUTHORED AS FOUR REAL ROOMS WITH REAL THINGS IN THEM
+# (2026-08-08, after Joe: "sleep is in the bed, study is at the desk, watch
+# tv is in the living room, eating is at the table").
+#
+# The world shipped with three identical empty boxes and forty-two identical
+# spheres called W1-object-1..42. Drawing that honestly produces exactly what
+# Joe saw and called what it was. The answer is not to paint furniture over
+# it — it is to PUT THE FURNITURE IN, in the world's own terms, so that a
+# truthful drawing shows a bed because there IS a bed.
+#
+# Every object below carries its real physical declaration: size, mass,
+# six-band reflectance, and where the world models it, its material — which
+# is what her eyes, her nose and her contact sheet actually receive. A place
+# is where an activity can happen because the thing that activity needs is
+# standing there.
+HOME_ROOM_SPAN_MM = 4_000
+HOME_CEILING_MM = 2_600
+
+
+def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
+    """Her four rooms, their doorways, and the things standing in them."""
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        AirVolumeState,
+        EmbodiedObject,
+        ObjectMaterialState,
+        PhysicalPortal,
+        PhysicalRegion,
+        PositionMM,
+        RoomBoundsMM,
+    )
+
+    span = HOME_ROOM_SPAN_MM
+    # A FLOOR PLAN, not a corridor: two rooms across and two deep, so the
+    # place reads as a home and every doorway is a real opening in a wall
+    # two rooms actually share.
+    #   bedroom | study
+    #   living  | kitchen
+    plan = (
+        ("bedroom", 0, 0, 700_000),
+        ("study", 1, 0, 850_000),
+        ("living-room", 0, 1, 780_000),
+        ("kitchen", 1, 1, 900_000),
+    )
+    regions = [
+        PhysicalRegion(
+            region_id=name,
+            bounds=RoomBoundsMM(
+                minimum=PositionMM(col * span, row * span, 0),
+                maximum=PositionMM((col + 1) * span, (row + 1) * span, HOME_CEILING_MM),
+            ),
+            ceiling_height_mm=HOME_CEILING_MM,
+            reflectance_ppm=(620_000,) * 6,
+            illumination_ppm=(light,) * 6,
+        )
+        for name, col, row, light in plan
+    ]
+    portals = [
+        PhysicalPortal(
+            portal_id=f"door-{index}",
+            region_ids=tuple(sorted(pair)),
+            axis=axis,
+            plane_mm=span,
+            # An opening only exists along the wall the two rooms ACTUALLY
+            # share, so each doorway's span is offset to that wall.
+            aperture_min_mm=offset + 1_400,
+            aperture_max_mm=offset + 2_600,
+            height_mm=2_050,
+        )
+        for index, (pair, axis, offset) in enumerate((
+            (("bedroom", "study"), "x", 0),
+            (("kitchen", "living-room"), "x", span),
+            (("bedroom", "living-room"), "y", 0),
+            (("kitchen", "study"), "y", span),
+        ))
+    ]
+    room_origin = {name: (col * span, row * span) for name, col, row, _ in plan}
+    order = [name for name, _, _, _ in plan]
+    # (id, room index, x within room, y, radius, mass, reflectance)
+    # NOTHING OVERLAPS: her world refuses a layout where a body or a thing
+    # intersects another thing, which is correct — two objects cannot occupy
+    # the same space. The spacing below is checked against every radius.
+    furniture = (
+        ("bed",           0,  1_200, 1_200, 900, 40_000, (760_000, 720_000, 690_000, 640_000, 600_000, 560_000)),
+        ("pillow",        0,  1_200, 2_600, 260,  1_200, (900_000, 890_000, 880_000, 860_000, 840_000, 820_000)),
+        ("toy-bear",      0,  3_200, 3_200, 180,    400, (520_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
+        ("desk",          1,  1_600, 1_200, 800, 32_000, (430_000, 330_000, 260_000, 220_000, 200_000, 190_000)),
+        ("desk-chair",    1,  1_600, 2_600, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
+        ("book",          1,  3_200, 1_000, 140,    900, (640_000, 520_000, 420_000, 360_000, 330_000, 310_000)),
+        ("lamp",          1,  3_200, 2_000, 180,  2_200, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
+        ("television",    2,  1_200,   800, 700, 12_000, (140_000, 140_000, 150_000, 160_000, 170_000, 180_000)),
+        ("sofa",          2,  1_600, 3_000, 950, 45_000, (360_000, 330_000, 380_000, 420_000, 430_000, 420_000)),
+        ("rug",           2,  3_400, 2_000, 600,  5_000, (540_000, 420_000, 360_000, 330_000, 320_000, 310_000)),
+        ("table",         3,  1_600, 1_600, 850, 28_000, (700_000, 620_000, 520_000, 450_000, 410_000, 390_000)),
+        ("table-chair",   3,  1_600, 3_000, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
+        ("bowl",          3,  3_200, 1_200, 160,    700, (920_000, 910_000, 900_000, 880_000, 860_000, 840_000)),
+        ("apple",         3,  3_200, 1_800,  90,    180, (820_000, 260_000, 190_000, 170_000, 160_000, 150_000)),
+        ("cup",           3,  3_200, 2_400, 110,    300, (880_000, 870_000, 860_000, 840_000, 820_000, 800_000)),
+    )
+    # WHAT EACH THING IS MADE OF (Joe, 2026-08-08: "objects as presented in
+    # the VR environment have all 6").  Her world already carried the physics
+    # for odour, taste, temperature and the three touch qualities, and every
+    # object here was declared with light and nothing else — so a thing she
+    # could SEE reached none of her other senses.  These are declarations of
+    # what each thing IS, in the world's own units, exactly like reflectance.
+    #
+    # Odour is eight channels because her olfactory receptors are eight; the
+    # world does not name them, so they are used as eight volatile classes:
+    #   0 fruit ester · 1 cooked savoury · 2 dairy fat · 3 wood
+    #   4 fabric dust · 5 paper ink · 6 warm electronics · 7 soap
+    # Taste is her five: sweet, salt, sour, bitter, umami.
+    #
+    # THE SIXTH SENSE IS NOT HERE AND IS NOT FAKED: her world has no acoustic
+    # emission law, so nothing in a room can make a noise yet. Sight, touch,
+    # taste, smell and body are real from this point on; sound needs an
+    # emission-and-propagation law written the way odour transport already is.
+    #
+    # (release ng/s per odour channel, tastants µg, surface mK, compliance
+    #  ppm, roughness µm, moisture ppm)
+    material_of = {
+        "bed":         ((0, 0, 0, 0, 900, 0, 0, 120),   (0, 300, 0, 800, 0),        294_000, 600_000, 200, 55_000),
+        "pillow":      ((0, 0, 0, 0, 600, 0, 0, 300),   (0, 300, 0, 800, 0),        294_000, 900_000, 120, 48_000),
+        "toy-bear":    ((0, 0, 0, 0, 1_200, 0, 0, 60),  (0, 300, 0, 900, 0),        294_000, 800_000, 300, 42_000),
+        "desk":        ((0, 0, 0, 700, 60, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
+        "desk-chair":  ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "book":        ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
+        "lamp":        ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
+        "television":  ((0, 0, 0, 0, 40, 0, 700, 0),    (0, 0, 0, 400, 0),          306_000, 20_000, 5, 1_000),
+        "sofa":        ((0, 0, 0, 120, 1_500, 0, 0, 90), (0, 300, 0, 800, 0),       294_000, 700_000, 400, 52_000),
+        "rug":         ((0, 0, 0, 0, 2_200, 0, 0, 40),  (0, 300, 0, 900, 0),        294_000, 500_000, 800, 46_000),
+        "table":       ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
+        "table-chair": ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "bowl":        ((0, 300, 120, 0, 0, 0, 0, 200), (400, 900, 100, 200, 1_200), 294_000, 30_000, 8, 90_000),
+        "apple":       ((4_200, 0, 0, 0, 0, 0, 0, 0),   (140_000, 200, 26_000, 900, 300), 292_000, 120_000, 15, 850_000),
+        "cup":         ((0, 60, 40, 0, 0, 0, 0, 400),   (0, 0, 0, 0, 0),            291_000, 25_000, 6, 900_000),
+    }
+    # A reservoir is a real finite stock: what it off-gasses runs out. Ten
+    # days of its own declared rate — an apple in a bowl stops smelling.
+    reservoir_seconds = 864_000
+    objects = [
+        EmbodiedObject(
+            name,
+            radius,
+            mass,
+            PositionMM(
+                room_origin[order[room]][0] + x,
+                room_origin[order[room]][1] + y,
+                # Her world records a thing's position as where it stands on
+                # the floor, and refuses any other height, so this is zero by
+                # the world's own rule rather than by choice.
+                0,
+            ),
+            reflectance_ppm=reflectance,
+            material=ObjectMaterialState(
+                odorant_reservoir_nanograms=tuple(
+                    rate * reservoir_seconds for rate in material_of[name][0]
+                ),
+                odorant_release_nanograms_per_second=material_of[name][0],
+                tastant_mass_micrograms=material_of[name][1],
+                surface_temperature_millikelvin=material_of[name][2],
+                compliance_ppm=material_of[name][3],
+                roughness_micrometers=material_of[name][4],
+                moisture_ppm=material_of[name][5],
+            ),
+        )
+        for name, room, x, y, radius, mass, reflectance in furniture
+    ]
+    # THE AIR IN EACH ROOM IS NOT INVENTED, IT IS DERIVED: a room that has
+    # existed holds what the things standing in it have been giving off. Each
+    # room starts with one hour of its OWN objects' declared release rates, so
+    # the kitchen smells of the apple in it and the bedroom does not. Doorways
+    # then carry air between rooms at their declared flow, which is what makes
+    # a gradient she could follow rather than a set of sealed boxes.
+    settled_seconds = 3_600
+    room_air = {name: [0] * len(material_of["apple"][0]) for name in order}
+    for name, room, *_rest in furniture:
+        for channel, rate in enumerate(material_of[name][0]):
+            room_air[order[room]][channel] += rate * settled_seconds
+    regions = [
+        replace(
+            region,
+            air=AirVolumeState(
+                volume_cubic_mm=span * span * HOME_CEILING_MM,
+                odorant_mass_nanograms=tuple(room_air[region.region_id]),
+            ),
+        )
+        for region in regions
+    ]
+    portals = [
+        replace(portal, air_flow_cubic_mm_per_second=2_000_000)
+        for portal in portals
+    ]
+    return regions, portals, objects
+
+
+def _world_authorized() -> bool:
+    """Has a human explicitly authorized giving her a place to be?"""
+
+    return os.environ.get(WORLD_ENV, "").strip().lower() in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+
+
+WORLD_AUTHORIZED = _world_authorized()
+_world_authority: Any = None
+_world_rebuild_reason: str | None = None
+
+
+def _world_key() -> str:
+    """The world's authentication key, derived from her identity.
+
+    Deterministic and stable for one organism: the world authenticates its
+    own observations, and a key that changed between processes would make
+    every earlier receipt unverifiable.
+    """
+
+    return hashlib.sha256(
+        f"guala.embodiment.world.v1:{_genesis_identity()}".encode("utf-8")
+    ).hexdigest()
+
+
+def _world() -> Any:
+    """Her place, restored from disk or built once and persisted."""
+
+    global _world_authority
+    if not WORLD_AUTHORIZED:
+        raise RuntimeError("no world is mounted")
+    if _world_authority is not None:
+        return _world_authority
+    from dsf_ai_service.substrate.embodiment_world import EmbodimentWorldAuthority
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        BodyReceptorGeometry,
+        EmbodiedBody,
+        EmbodimentPort,
+        PORT_ID,
+        SECOND_BODY_PORT_ID,
+        PoseMM,
+        PositionMM,
+    )
+
+    # WHERE HER SENSES ARE ON HER BODY. Without this her world-body is a
+    # sphere with no face: no nose, no tongue, no skin, no eye or ear
+    # position — which is exactly why every object in her home reached her
+    # sight and NOTHING else. A saturation is the concentration at which a
+    # receptor reads full; hers are set from what her own home actually
+    # holds, so a kitchen with an apple in it reads part-way up her fruit
+    # channel rather than pinned at nothing or pinned at everything.
+    her_receptors = BodyReceptorGeometry(
+        # HER WORLD'S CONVENTION IS THAT X IS FORWARD AND Y IS SIDEWAYS: it
+        # rotates a receptor offset by quarter turns, and facing north sends
+        # +x to +y. Her face therefore sits on +x and her ears either side on
+        # y — declared the other way round, her eyes and hands pointed off to
+        # her left, which is measurably why she could face a thing and still
+        # not be touching it.
+        retinal_offset_mm=PositionMM(200, 0, 1_100),
+        left_ear_offset_mm=PositionMM(0, 0, 1_050),
+        right_ear_offset_mm=PositionMM(0, 180, 1_050),
+        # HER HANDS ARE IN FRONT OF HER AND LOW, where a small child's are.
+        # At chest height her touch patch never overlapped anything standing
+        # on the floor of her world — measured, she could walk right up to
+        # her toy bear and still not be touching it. Low and in front, she
+        # touches what she has walked up to and faced, and not what is beside
+        # her, which is how hands work.
+        touch_offset_mm=PositionMM(200, 0, 150),
+        touch_radius_mm=300,
+        oral_offset_mm=PositionMM(200, 0, 1_020),
+        oral_radius_mm=60,
+        olfactory_offset_mm=PositionMM(210, 0, 1_060),
+        odorant_saturation_nanograms_per_cubic_meter=(1_000_000,) * 8,
+        tastant_saturation_micrograms=(200_000,) * 5,
+        touch_mass_span_grams=45_000,
+        touch_temperature_min_millikelvin=273_000,
+        touch_temperature_max_millikelvin=323_000,
+        touch_roughness_span_micrometers=1_000,
+    )
+
+    regions, portals, objects = _home_rooms_and_things()
+    authority = EmbodimentWorldAuthority(
+        authority_key=_world_key(),
+        self_body_id="guala-body-1",
+        bodies=(
+            EmbodiedBody(
+                "guala-body-1",
+                # She starts in the bedroom, beside the bed.
+                PoseMM(PositionMM(3_200, 1_200, 0), 0),
+                radius_mm=250,
+                reach_mm=800,
+                receptor_geometry=her_receptors,
+            ),
+            # Her world requires a second body and always did: it was built
+            # for her AND someone with her. This is the body a person
+            # occupies when they are in the room. It does nothing on its own.
+            EmbodiedBody(
+                "person-body-1",
+                PoseMM(PositionMM(3_500, HOME_ROOM_SPAN_MM + 3_600, 0), 180_000),
+                radius_mm=250,
+                reach_mm=800,
+            ),
+        ),
+        actor_ports=(
+            EmbodimentPort(PORT_ID, "guala-body-1"),
+            EmbodimentPort(SECOND_BODY_PORT_ID, "person-body-1"),
+        ),
+        regions=regions,
+        portals=portals,
+        initial_objects=objects,
+        max_regions=4,
+    )
+    path = STATE_ROOT / WORLD_STATE_FILE
+    if path.is_file():
+        try:
+            authority.restore_encoded(path.read_bytes())
+        except (ValueError, TypeError, RuntimeError) as error:
+            # A PLACE THAT NO LONGER MATCHES THE HOME IS REBUILT, NOT MOURNED
+            # (2026-08-08). Her rooms changed from three empty boxes to four
+            # furnished ones, and the stored place refused to restore against
+            # them ("embodiment actor port topology changed") -- correctly.
+            #
+            # A world is a PLACE, not her body. Nothing of hers lives in it:
+            # she cannot yet move or pick anything up, so a stored place holds
+            # no history that is hers to lose. It is rebuilt from the authored
+            # home and the reason is reported rather than swallowed.
+            # HER BODY IS NEVER TREATED THIS WAY -- a body that will not
+            # restore is an emergency and stays one.
+            global _world_rebuild_reason
+            _world_rebuild_reason = (
+                "the stored place did not match her authored home and was "
+                f"rebuilt from it ({type(error).__name__}: {str(error)[:90]}). "
+                "Nothing of hers was in it: she cannot yet move or hold "
+                "anything, so a place holds no history she owns"
+            )
+            path.unlink()
+            _persist_world(authority)
+    _world_authority = authority
+    return authority
+
+
+def _persist_world(authority: Any) -> None:
+    """Write the world beside her body, atomically."""
+
+    path = STATE_ROOT / WORLD_STATE_FILE
+    stage = STATE_ROOT / f".world-{uuid.uuid4()}.stage"
+    stage.write_bytes(authority.encoded_snapshot())
+    os.replace(stage, path)
+
+
+def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
+    """Collapse the world's six-band retina onto the one she actually has.
+
+    Her card surface declares 27 monochrome sites and the world declares the
+    same 27 cells in six spectral bands, so each cell's bands are averaged
+    into its luminance.  She has no colour receptors, and averaging is the
+    honest reduction rather than discarding five bands or inventing a site.
+    """
+
+    totals = [0.0] * CARD_SURFACE_PORT_COUNT
+    counts = [0] * CARD_SURFACE_PORT_COUNT
+    for stream in substreams:
+        cell = stream.topology_index // 6
+        if cell >= CARD_SURFACE_PORT_COUNT:
+            continue
+        # The world reports each band as (before, after); what reaches her
+        # retina now is where the light ended up.
+        totals[cell] += float(stream.normalized_signal[-1])
+        counts[cell] += 1
+    return tuple(
+        min(1.0, max(0.0, totals[index] / counts[index])) if counts[index] else 0.0
+        for index in range(CARD_SURFACE_PORT_COUNT)
+    )
+
+
+def _world_chemistry(
+    before: Any,
+    after: Any,
+) -> tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None]:
+    """What the objects around her taste and smell of, from the world itself.
+
+    The world declares every object's odorant reservoir, release rate and
+    tastant mass; her eight olfactory and five gustatory channels ARE that
+    world's eight odorant and five tastant channels.  Nothing is mapped by
+    hand and nothing is invented — where the world says a sense is
+    unavailable in this interval, she smells and tastes nothing, which is a
+    lawful state and not an absent sense.
+    """
+
+    if not CHEMORECEPTION_AUTHORIZED:
+        return None, None
+    from dsf_ai_service.substrate.w1_coupled_material_sensory_physics import (
+        material_receptor_substreams,
+    )
+
+    streams = material_receptor_substreams(
+        world_authority=_world(),
+        before=before,
+        after=after,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+    )
+
+    def collapse(sense: Any, count: int) -> tuple[Fraction, ...] | None:
+        ports = streams.get(sense, ())
+        if not ports:
+            return None
+        held = [Fraction(0)] * count
+        for port in ports:
+            if port.topology_index < count:
+                value = Fraction(port.normalized_signal[-1]).limit_denominator(1_000_000)
+                held[port.topology_index] = min(Fraction(1), max(Fraction(0), value))
+        return tuple(held)
+
+    return (
+        collapse(PhysicalSense.TASTE, TASTE_SITE_COUNT),
+        collapse(PhysicalSense.SMELL, SMELL_SITE_COUNT),
+    )
+
+
+def _world_displacement(before: Any, after: Any) -> tuple[Fraction, ...]:
+    """How her body actually moved, as exact fractions of the declared span."""
+
+    def pose(snapshot: Any) -> Any:
+        return next(
+            body for body in snapshot.bodies if body.body_id == snapshot.self_body_id
+        ).pose
+
+    start, end = pose(before), pose(after)
+    turn = end.heading_millidegrees - start.heading_millidegrees
+    while turn > WORLD_TURN_SPAN_MILLIDEGREES:
+        turn -= 2 * WORLD_TURN_SPAN_MILLIDEGREES
+    while turn < -WORLD_TURN_SPAN_MILLIDEGREES:
+        turn += 2 * WORLD_TURN_SPAN_MILLIDEGREES
+    moved = (
+        Fraction(end.position.x - start.position.x, WORLD_DISPLACEMENT_SPAN_MM),
+        Fraction(end.position.y - start.position.y, WORLD_DISPLACEMENT_SPAN_MM),
+        Fraction(end.position.z - start.position.z, WORLD_DISPLACEMENT_SPAN_MM),
+        Fraction(turn, WORLD_TURN_SPAN_MILLIDEGREES),
+    )
+    for channel, value in zip(DISPLACEMENT_CHANNELS, moved):
+        if not Fraction(-1) <= value <= Fraction(1):
+            raise ValueError(
+                f"a move of {float(value)} spans on {channel!r} is larger than "
+                "the declared displacement span a receptor can transduce"
+            )
+    return moved
+
+
+VESTIBULAR_ENV = "GUALA_VESTIBULAR"
+
+
+def _vestibular_authorized() -> bool:
+    """Has a human explicitly authorized growing displacement receptors?"""
+
+    return os.environ.get(VESTIBULAR_ENV, "").strip().lower() in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+
+
+VESTIBULAR_AUTHORIZED = _vestibular_authorized()
+DISPLACEMENT_CHANNELS = (
+    "translation-x",
+    "translation-y",
+    "translation-z",
+    "rotation-yaw",
+)
+DISPLACEMENT_SITE_COUNT = len(DISPLACEMENT_CHANNELS)
+DISPLACEMENT_PORT_COUNT = (
+    DISPLACEMENT_SITE_COUNT if VESTIBULAR_AUTHORIZED else 0
+)
+DISPLACEMENT_SENSOR_ID = "organism-displacement-receptors"
+NATIVE_VESTIBULAR_SENSOR_ID = "mounted-yaw-canal"
+NATIVE_VESTIBULAR_SUBSTREAM_ID = "local-hair-bundle-0"
+DISPLACEMENT_QUANTITY = "body-displacement-fraction"
+DISPLACEMENT_UNIT = "fraction-of-declared-displacement-span"
+
+
+CHEMORECEPTION_ENV = "GUALA_CHEMORECEPTION"
+
+
+def _chemoreception_authorized() -> bool:
+    """Has a human explicitly authorized growing taste and smell?"""
+
+    return os.environ.get(CHEMORECEPTION_ENV, "").strip().lower() in (
+        "1",
+        "true",
+        "on",
+        "yes",
+    )
+
+
+CHEMORECEPTION_AUTHORIZED = _chemoreception_authorized()
+# The five gustatory modalities a mammal actually has.  Not a menu of
+# flavours: these are receptor classes.
+TASTE_CHANNELS = ("sweet", "salt", "sour", "bitter", "umami")
+# Eight olfactory receptor classes.  A real epithelium has hundreds; eight is
+# what this body declares, and the surface says so rather than implying a
+# nose.
+SMELL_CHANNELS = (
+    "aldehyde", "ester", "terpene", "amine",
+    "sulphur", "phenol", "lactone", "acid",
+)
+TASTE_SITE_COUNT = len(TASTE_CHANNELS)
+SMELL_SITE_COUNT = len(SMELL_CHANNELS)
+TASTE_PORT_COUNT = TASTE_SITE_COUNT if CHEMORECEPTION_AUTHORIZED else 0
+SMELL_PORT_COUNT = SMELL_SITE_COUNT if CHEMORECEPTION_AUTHORIZED else 0
+TASTE_SENSOR_ID = "organism-gustatory-surface"
+SMELL_SENSOR_ID = "organism-olfactory-epithelium"
+TASTE_QUANTITY = "gustatory-contact-concentration"
+SMELL_QUANTITY = "olfactory-volatile-concentration"
+CHEMICAL_UNIT = "fraction-of-declared-saturating-concentration"
+
+
+# Localized interoceptive afferents are not mounted. The former four-channel
+# body-wide bookkeeping projection was not biology and has been retired.
+INTEROCEPTION_PORT_COUNT = 0
+LESSON_PORT_COUNT = (
+    CARD_SURFACE_PORT_COUNT
+    + EAR_PORT_COUNT
+    + TOUCH_PORT_COUNT
+    + INTEROCEPTION_PORT_COUNT
+    + TASTE_PORT_COUNT
+    + SMELL_PORT_COUNT
+    + DISPLACEMENT_PORT_COUNT
+)
+# One physical instant has one complete joint sensorium and therefore one
+# unchanged L0-L4 evaluation.  Its declared groups preserve the distinct
+# receptor structures (retina, each cochlea, contact sheet, internal milieu,
+# gustatory surface, olfactory epithelium, and body displacement) without
+# splitting the simultaneous field into repeated evaluations.
+LESSON_OCCURRENCE_COUNT = 1
 # Four declaration frames mirror the ratified four-frame sight anatomy
 # episode and the browser visual capture contract's minimum frame count.
 CARD_SURFACE_FRAME_COUNT = 4
@@ -141,6 +978,25 @@ EAR_SENSOR_ID = "organism-ear-pressure"
 # fraction of the declared retinal reference irradiance, in [0, 1].
 RETINAL_QUANTITY = "retinal-spectral-irradiance"
 RETINAL_UNIT = "fraction-of-declared-retinal-reference-irradiance"
+# The mounted auditory receptor law (auditory_receptor_work.rs) admits only
+# sound ports carrying one tonotopic band's normalized root-mean-square
+# pressure.  DEFECT FIXED 2026-08-06: these ports used to declare
+# `normalized_physical_excitation` / `normalized_binary64`, which is not a
+# physical quantity — it is a statement that a number was normalized.  A
+# receptor law cannot key on that, and it was one of the three recorded
+# reasons the ears carried transport instead of sensation.
+COCHLEAR_QUANTITY = "cochlear-band-pressure"
+COCHLEAR_UNIT = "fraction-of-declared-cochlear-reference-pressure"
+# The mounted tactile receptor law (tactile_receptor_work.rs) admits only touch
+# ports carrying the fraction of ONE declared contact site's own area that the
+# touched object's footprint covers, in [0, 1].
+CONTACT_QUANTITY = "contact-site-occupancy"
+CONTACT_UNIT = "fraction-of-declared-contact-site-area"
+# The legacy ear port declaration, kept VERBATIM for the unauthorized roster.
+# It is not a physical quantity and no receptor law can key on it — which is
+# exactly why the live ears carry transport instead of sensation.  It stays
+# because the living organism's episodes must not change until growing ears is
+# authorized; it is replaced, not edited, when they are.
 PHYSICAL_QUANTITY = "normalized_physical_excitation"
 PHYSICAL_UNIT = "normalized_binary64"
 JOINT_RELEVANCE_PROFILE = b"guala.production.curriculum_unit_joint_relevance.v1"
@@ -165,7 +1021,138 @@ assert (
 ), "declared lesson hop exceeds the ratified settlement sample bound"
 # Frame count of one quiescent (dark, silent) hop; the same timebase carries
 # the partial-presentation glimpse hop below.
-QUIESCENT_HOP_FRAME_COUNT = INTAKE_HOP_MAX_FRAMES // 2
+# The ended sensorium retains the same one-millisecond source clock as a
+# 16-kHz lesson hop.  Transport ending does not replace the physical clock
+# with a different grid.
+QUIESCENT_HOP_FRAME_COUNT = INTAKE_HOP_MILLISECONDS
+
+# ---------------------------------------------------------------------------
+# The cochlea (transport layer, not physics)
+#
+# The basilar membrane's travelling wave assigns frequency to place BEFORE any
+# hair cell transduces anything (von Bekesy), so the place decomposition
+# belongs to the sensor, in the same layer where the camera's `/255.0`
+# luminance extraction already lives.  What crosses into the organism is one
+# normalized root-mean-square pressure per tonotopic place per retained
+# instant; the receptor law downstream is exact-rational and knows nothing
+# about filters.
+#
+# The filterbank is the fourth-order gammatone already compiled into the wheel
+# (native/guala_core/src/auditory.rs), with Glasberg-Moore ERB channel spacing.
+# NAMED CONCESSION (auditory design 2026-08-06 section 8.3): a gammatone is a
+# fitted MODEL of basilar-membrane mechanics, not a derivation from one.  It is
+# a sensor characteristic, exactly like the camera's sensor response curve, and
+# it is declared as such rather than discovered later.
+COCHLEAR_SAMPLE_RATE_HZ = 16_000
+COCHLEAR_OBSERVATION_HOP_SAMPLES = 160
+COCHLEAR_LOWEST_CENTRE_HZ = 80.0
+COCHLEAR_HIGHEST_CENTRE_HZ = 7_500.0
+# The cochlear observation's own declared amplitude lattice: 24 bits.
+#
+# Every sensor reports on a lattice — the card surface reports luminance on its
+# 8-bit sensor's k/255 lattice — and the ear is no different.  Two facts set
+# this one:
+#
+#  * The capture is 16-bit PCM, but a band envelope is a weighted average over
+#    160 samples of a fourth-order filter, so it genuinely resolves BETWEEN the
+#    capture's own steps; 24 bits is the standard studio capture depth and does
+#    not over-claim what the filterbank can distinguish.
+#  * The bound is DERIVED, not chosen: the receptor law squares the transported
+#    value, so a lattice of 2^-m gives integrals whose denominators divide
+#    2^(2m+3)·25, and the ratified exact-rational residue is i128/u128.  That
+#    admits m <= 59; a full binary64 envelope (denominators past 2^60 before
+#    squaring) does NOT, and the organism refuses it honestly with ResidueWidth
+#    rather than rounding it away.  m = 24 sits far inside that ceiling.
+COCHLEAR_PRESSURE_LATTICE = 1 << 24
+
+
+class CochlearChannel(NamedTuple):
+    centre_hz: float
+    erb_width_hz: float
+
+
+def _erb_width_hz(frequency_hz: float) -> float:
+    """Glasberg--Moore equivalent rectangular bandwidth in hertz."""
+
+    return 24.7 * (1.0 + 4.37e-3 * frequency_hz)
+
+
+def _erb_rate(frequency_hz: float) -> float:
+    return 21.4 * math.log10(1.0 + 4.37e-3 * frequency_hz)
+
+
+def _frequency_from_erb_rate(rate: float) -> float:
+    return (10.0 ** (rate / 21.4) - 1.0) / 4.37e-3
+
+
+def _cochlear_channels() -> tuple[CochlearChannel, ...]:
+    lower = _erb_rate(COCHLEAR_LOWEST_CENTRE_HZ)
+    upper = _erb_rate(COCHLEAR_HIGHEST_CENTRE_HZ)
+    span = COCHLEAR_CHANNELS_PER_EAR - 1
+    channels = []
+    for index in range(COCHLEAR_CHANNELS_PER_EAR):
+        rate = lower + (upper - lower) * index / span
+        centre = _frequency_from_erb_rate(rate)
+        channels.append(CochlearChannel(centre, _erb_width_hz(centre)))
+    return tuple(channels)
+
+
+COCHLEAR_CHANNELS = _cochlear_channels()
+
+
+def _cochlear_coefficients() -> tuple[list[float], list[float], list[float]]:
+    """Fourth-order gammatone poles: a cascade of four identical complex poles.
+
+    The 1.019 multiplier is the standard fourth-order ERB correction.
+    """
+
+    pole_real: list[float] = []
+    pole_imag: list[float] = []
+    injection: list[float] = []
+    for channel in COCHLEAR_CHANNELS:
+        radius = math.exp(
+            -2.0 * math.pi * 1.019 * channel.erb_width_hz / COCHLEAR_SAMPLE_RATE_HZ
+        )
+        angle = 2.0 * math.pi * channel.centre_hz / COCHLEAR_SAMPLE_RATE_HZ
+        pole_real.append(radius * math.cos(angle))
+        pole_imag.append(radius * math.sin(angle))
+        injection.append(1.0 - radius)
+    return pole_real, pole_imag, injection
+
+
+def _cochlear_envelopes(signal: list[float]) -> list[tuple[float, ...]]:
+    """Per-channel RMS envelopes of one continuous acoustic capture.
+
+    One causal pass over the whole capture, so cochlear ringing decays across
+    hop boundaries exactly as a real basilar membrane's does instead of being
+    reset every 250 ms.  Returns one frame per
+    ``COCHLEAR_OBSERVATION_HOP_SAMPLES`` samples; each frame carries one
+    non-negative envelope in [0, 1] per tonotopic place.
+    """
+
+    pole_real, pole_imag, injection = _cochlear_coefficients()
+    envelopes, _phases, _advances = auditory_gammatone_field(
+        signal, pole_real, pole_imag, injection
+    )
+    lattice = float(COCHLEAR_PRESSURE_LATTICE)
+    quantized: list[tuple[float, ...]] = []
+    for frame in envelopes:
+        row: list[float] = []
+        for value in frame:
+            level = round(value * lattice)
+            # 2026-08-07 truth repair: this used to CLAMP resonance
+            # overshoot to full scale — a clamp in the layer feeding a
+            # law whose discipline is refusal, never a clamp.  An
+            # envelope outside the declared lattice is now refused with
+            # its value, and the whole intake aborts untouched.
+            if level < 0 or level > COCHLEAR_PRESSURE_LATTICE:
+                raise ValueError(
+                    "cochlear envelope outside the declared pressure "
+                    f"lattice ({value!r}); refusing rather than clamping"
+                )
+            row.append(level / lattice)
+        quantized.append(tuple(row))
+    return quantized
 
 # Lesson presentation modes.  "full" is the ordinary lesson: the whole card
 # surface is lit and the tutor speaks.  "partial" is a glimpse of part of a
@@ -210,39 +1197,50 @@ PARTIAL_PRESENTATION_ENDED_HOP_COUNT = 8
 # never physics.
 LESSON_ENDED_HOP_COUNT = 2
 
-# ----- Unattended time (autonomy increment 1, 2026-08-06) -----
-# Under the ratified boundary (docs/GUALA_DARPA_FIRST_PROOF_BOUNDARY_
-# 2026-08-04.md: no schedulers-as-cause, no scores; quiescence when no
-# cause) the PASSAGE OF TIME is the medium, not a cause.  The loop below is
-# TRANSPORT: at a low duty cycle it declares the genuinely dark, silent
-# environment the unattended organism is actually in — the exact lawful
-# construction the lesson ended hops already deliver (whole mounted
-# sensorium with TRUE samples, the dark surface as its own exact optical
-# occurrence, true 0.0 silence at both ears, authored admission).  It never
-# injects a stimulus, a score, or scheduled activity; what happens inside
-# the interval is entirely the organism's own retained state, and the
-# public observation reports only what was measured.
+# ----- Live sight (browser camera intake, 2026-08-06) -----
+# Transport contract only (not sensory physics, not cognition): a browser
+# samples its real camera at this app's declared 250 ms hop interval (the
+# capture contract below) and posts batches of whole frames.  Every bound is
+# an existing declared constant, never a new magic number:
+# - one posted frame becomes exactly one 250 ms hop on the same timebase and
+#   the same 27-receptor retinal roster every card lesson uses;
+# - the minimum batch mirrors the ratified four-frame sight anatomy episode
+#   (CARD_SURFACE_FRAME_COUNT), which the capture contract has always
+#   declared as its minimum frame count;
+# - the maximum batch is the same per-request hop count unattended time
+#   delivers per interval (PARTIAL_PRESENTATION_ENDED_HOP_COUNT = 8 hops =
+#   2 s of declared capture per request), which the capture contract has
+#   always declared as its maximum frame count;
+# - the client-declared capture span of one batch is bounded by the same
+#   declared ambient intake window the auditory transport uses
+#   (AMBIENT_INTAKE_MAX_SECONDS).
+# Provenance is honest and caller-declared: the batch names its source as
+# the live camera and carries the client's own capture timestamps; they are
+# recorded as transport evidence, never injected into physics.  The ears
+# carry TRUE 0.0 silence on every live-sight hop — silence is a lawful state
+# of the mounted sensorium (ratified 2026-08-05: no single-sense
+# experiences), and no audio is ever fabricated: the ears have no
+# transduction law until the tonotopic rebirth.
+LIVE_SIGHT_MIN_FRAMES = CARD_SURFACE_FRAME_COUNT
+LIVE_SIGHT_MAX_FRAMES = PARTIAL_PRESENTATION_ENDED_HOP_COUNT
+LIVE_SIGHT_SOURCE = "live-camera"
+LIVE_SIGHT_SCHEMA = "guala.live_sight_capture.v1"
+LIVE_SIGHT_INTAKE_ENDPOINT = "/api/v1/visual/live-frames"
+
+# ----- Continuous lived time (2026-08-08) -----
+# This loop is transport, never cognitive cause. It continuously samples the
+# actual persistent world and presents successive exact 250 ms intervals to
+# the native organism. Eight intervals commit in memory and the current body
+# is published once, keeping persistence current-only and bounded.
 #
-# Cadence and batch are transport contracts, not physics: the hop is the
-# same 250 ms hop every lesson uses; one interval batches the ratified
-# ended-hop count of the partial-presentation admission sequence (8 dark
-# hops = 2 s of declared dark time) and persists exactly ONCE per interval
-# (the write-volume lesson: never one durable body per hop).  At the
-# default 60 s cadence the loop holds the transition lock ~2-3 s/min, so an
-# external intake practically always finds the lock free; the lock is
-# taken non-blocking, so unattended time itself NEVER waits on, delays, or
-# contends with a lesson or feed.
-#
-# Config: unattended time is ON by default; set GUALA_UNATTENDED_TIME=0 to
-# disable it, GUALA_UNATTENDED_CADENCE_SECONDS to change the cadence.  The
-# loop pauses itself while any external request holds the intake lock and
-# while the body is energy-exhausted (rest reactions pay fuel; a starving
-# body must not burn residual fuel on idle time — it refuses honestly and
-# the observation says so).
+# There is no artificial one-minute gap and no fabricated dark room. If the
+# world is unavailable, continuous experience is unavailable. Python does not
+# choose a need, direction, object, thought, or action here.
 UNATTENDED_TIME_ENV = "GUALA_UNATTENDED_TIME"
-UNATTENDED_CADENCE_ENV = "GUALA_UNATTENDED_CADENCE_SECONDS"
-UNATTENDED_CADENCE_SECONDS = 60
 UNATTENDED_HOPS_PER_INTERVAL = PARTIAL_PRESENTATION_ENDED_HOP_COUNT
+CONTINUOUS_INTERVAL_MILLISECONDS = (
+    UNATTENDED_HOPS_PER_INTERVAL * INTAKE_HOP_MILLISECONDS
+)
 
 _ORGANISM_IDENTITY_PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -254,12 +1252,69 @@ _boot_error: str | None = None
 _public_observation_body: bytes | None = None
 _public_observation_etag: str | None = None
 _last_transition_evidence: dict[str, Any] | None = None
-_transition_lock = threading.Lock()
+# RE-ENTRANT ON PURPOSE. Reading her body and transitioning her body are the
+# same borrow as far as the native core is concerned: while a transition holds
+# it mutably, any read raises "Already mutably borrowed" and the request 500s.
+# That was invisible while unattended time was a motionless dark interval and
+# became reachable the moment she started taking steps, because a step holds
+# her body for the whole of a world move and its intake. A reader on another
+# thread now waits for the transition to finish rather than tearing; a reader
+# on the SAME thread — every read inside a transition — passes straight
+# through, which a plain lock could not do.
+_transition_lock = threading.RLock()
 _pcm_sessions: dict[str, dict[str, Any]] = {}
+PCM_SESSION_CONCURRENT_BOUND = 4
+_live_sight_evidence: dict[str, Any] | None = None
+# Truth-coupling for standalone hearing: written ONLY after a standalone
+# sound intake (pcm session or sound-frame) has really committed and
+# persisted, under the same lock, exactly as live sight is (2026-08-07).
+_live_hearing_evidence: dict[str, Any] | None = None
+# The last displacement her body actually committed, or None while she
+# has not moved in this process.  A step fact under its own name, never
+# reported as her state.
+_last_displacement: tuple[Fraction, ...] | None = None
+# Truth-coupling for touch: written ONLY after a contact transition has really
+# committed and persisted, under the same lock, exactly as live sight is.
+_touch_evidence: dict[str, Any] | None = None
 _last_unattended_evidence: dict[str, Any] | None = None
 _last_unattended_pause: dict[str, Any] | None = None
 _unattended_stop = threading.Event()
 _unattended_thread: threading.Thread | None = None
+# Set before an external admitted experience waits for the organism borrow.
+# The unattended loop observes this physical ingress pressure and yields its
+# next interval, preventing a fast background reacquire from starving senses.
+_external_intake_waiting = threading.Event()
+_external_intake_signal_lock = threading.Lock()
+_external_intake_waiter_count = 0
+
+
+def _begin_external_intake() -> None:
+    global _external_intake_waiter_count
+
+    with _external_intake_signal_lock:
+        _external_intake_waiter_count += 1
+        _external_intake_waiting.set()
+
+
+def _end_external_intake() -> None:
+    global _external_intake_waiter_count
+
+    with _external_intake_signal_lock:
+        if _external_intake_waiter_count <= 0:
+            raise RuntimeError("external intake admission counter underflow")
+        _external_intake_waiter_count -= 1
+        if _external_intake_waiter_count == 0:
+            _external_intake_waiting.clear()
+
+
+def _external_intake_admission():
+    """Keep unattended time behind one admitted external HTTP request."""
+
+    _begin_external_intake()
+    try:
+        yield
+    finally:
+        _end_external_intake()
 
 
 def _canonical(value: object) -> bytes:
@@ -295,12 +1350,19 @@ def _runtime() -> tuple[RestoredNativeOrganism, NativeResidentResourceAdmission]
 
 def _native_record() -> dict[str, Any]:
     restored, admission = _runtime()
-    observed = restored.organism.readiness()
+    # Same borrow discipline as everywhere else: a read waits for a
+    # transition in flight and re-enters freely inside one.
+    with _transition_lock:
+        observed = restored.organism.readiness()
     return {
         "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+        "mosaic_of_mosaics_count": observed.mosaic_of_mosaics_count,
         "cognitive_ordinal": observed.cognitive_ordinal,
         "cognitive_trace_count": observed.cognitive_trace_count,
         "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
+        "developmental_resting_neuron_count": getattr(
+            observed, "developmental_resting_neuron_count", 0
+        ),
         "fabric_bytes": observed.fabric_bytes,
         "fabric_generation": observed.fabric_generation,
         "fabric_sha256": observed.fabric_sha256,
@@ -310,6 +1372,9 @@ def _native_record() -> dict[str, Any]:
         "mounted_generation": observed.mounted_generation,
         "organism_tick": observed.organism_tick,
         "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
+        "endogenous_partial_cue_reassembly_count": (
+            observed.endogenous_partial_cue_reassembly_count
+        ),
         "physical_transition_claimed": observed.physical_transition_claimed,
         "python_callback_count": observed.python_callback_count,
         "reached_dsf_perspective_count": observed.joint_neuron_count,
@@ -322,14 +1387,19 @@ def _native_record() -> dict[str, Any]:
         },
         "state_bytes": observed.state_bytes,
         "state_sha256": observed.state_sha256,
-        # Energy state (minimal feeding metabolism, 2026-08-05): decoded from
-        # the persisted body, never from the mounted surface.
-        "recovery_fuel_quanta": observed.recovery_fuel_quanta,
-        "recovery_spent_quanta": observed.recovery_spent_quanta,
-        "recovery_heat_quanta": observed.recovery_heat_quanta,
-        "recovery_fuel_capacity_quanta": observed.recovery_fuel_capacity_quanta,
-        "dissipated_quanta": observed.dissipated_quanta,
-        "dissipation_capacity_quanta": observed.dissipation_capacity_quanta,
+        # Exact body energy crosses Python only as canonical
+        # (numerator, denominator) zeptojoule coordinates. Local neuronal
+        # reaction counts never become organism-wide units here.
+        "available_energy_zeptojoules": observed.available_energy_zeptojoules,
+        "spent_energy_zeptojoules": observed.spent_energy_zeptojoules,
+        "thermal_energy_zeptojoules": observed.thermal_energy_zeptojoules,
+        "available_energy_capacity_zeptojoules": (
+            observed.available_energy_capacity_zeptojoules
+        ),
+        "dissipated_energy_zeptojoules": observed.dissipated_energy_zeptojoules,
+        "dissipation_capacity_energy_zeptojoules": (
+            observed.dissipation_capacity_energy_zeptojoules
+        ),
         "separated_elementary_charges": observed.separated_elementary_charges,
         "energy_exhausted": observed.energy_exhausted,
     }
@@ -373,6 +1443,257 @@ def _section(
     }
 
 
+def _cochlear_authorization_record() -> dict[str, object]:
+    """What ear anatomy this process actually declares, and by whose act.
+
+    Reported so that an operator can SEE, from the outside, whether the
+    organism is running the legacy two-port ears or the authorized cochleae —
+    growing a sense organ must never be something anyone has to infer from a
+    deploy log.  Every field is read from the process's own declared roster.
+    """
+
+    return {
+        "cochlear_ears_authorized": COCHLEAR_EARS_AUTHORIZED,
+        "cochlear_ears_authorization_env": COCHLEAR_EARS_ENV,
+        "declared_ear_port_count": EAR_PORT_COUNT,
+        # 2026-08-07 truth repair: a single quantity hid the 2 retained
+        # legacy pressure ports that still carry the non-physical
+        # normalized excitation.  Both kinds are declared.
+        "declared_ear_port_quantity": (
+            COCHLEAR_QUANTITY if COCHLEAR_EARS_AUTHORIZED else PHYSICAL_QUANTITY
+        ),
+        "retained_legacy_ear_port_count": 2 if COCHLEAR_EARS_AUTHORIZED else 0,
+        "retained_legacy_ear_port_quantity": (
+            PHYSICAL_QUANTITY if COCHLEAR_EARS_AUTHORIZED else None
+        ),
+    }
+
+
+def _touch_authorization_record() -> dict[str, object]:
+    """What contact anatomy this process actually declares, and by whose act.
+
+    Reported so that an operator can SEE, from the outside, whether the
+    organism declares a contact sheet at all — growing a sense organ must never
+    be something anyone has to infer from a deploy log.  Every field is read
+    from the process's own declared roster.
+    """
+
+    return {
+        "touch_receptors_authorized": TOUCH_RECEPTORS_AUTHORIZED,
+        "touch_receptors_authorization_env": TOUCH_RECEPTORS_ENV,
+        "declared_contact_port_count": TOUCH_PORT_COUNT,
+        "declared_contact_port_quantity": (
+            CONTACT_QUANTITY if TOUCH_RECEPTORS_AUTHORIZED else None
+        ),
+    }
+
+
+def _touch_record() -> dict[str, object]:
+    """Truth-coupled tactile observation.
+
+    Three honestly distinguished states, and mounted is the last of them:
+
+      * NO ANATOMY — the contact sheet is not authorized, so this body has no
+        touch receptors at all.  That is the truth today and it names the
+        missing piece.
+      * ANATOMY, NO TRANSITION — the sheet is declared but nothing has been
+        touched in this process, so no contact transition has committed.  The
+        capability is claimed only from a real committed transition, never from
+        the mounted surface.
+      * MOUNTED — a real contact occurrence transduced under the tactile
+        receptor law and the committed successor body was persisted.
+
+    ``contacted_site_count`` is HER STATE for the last committed contact — how
+    many of her declared sites the object actually reached — not a count of
+    ports declared, which would be true and meaningless.
+    """
+
+    if not TOUCH_RECEPTORS_AUTHORIZED:
+        return _unmounted(
+            "native touch receptor transition is not mounted: this body "
+            "declares no contact sheet at all, so nothing can be touched; "
+            f"the contact-sheet anatomy is authorized by {TOUCH_RECEPTORS_ENV}",
+            **_touch_authorization_record(),
+        )
+    if _touch_evidence is None:
+        return _section(
+            False,
+            "no_contact_transition_this_process",
+            "the contact sheet is declared on "
+            f"{CONTACT_SHEET_ROWS}x{CONTACT_SHEET_COLUMNS} contact sites and "
+            "the tactile receptor law is mounted, but nothing has been touched "
+            "in this process, so no contact transition has committed; mounted "
+            "is claimed only from a real committed transition",
+            **_touch_authorization_record(),
+        )
+    return _section(
+        True,
+        "contact_transition_committed",
+        "the taught card's DECLARED FOOTPRINT (authored from its raster "
+        "geometry — no physical object and no contact sensor exists yet) "
+        "rested against the declared contact sheet and its per-site "
+        "occupancy TRANSDUCED under the mounted tactile receptor law "
+        "(contact-site-occupancy on the same quantum lattice as light and "
+        "sound); the committed successor body was persisted",
+        **_touch_authorization_record(),
+        **_touch_evidence,
+    )
+
+
+def _displacement_record(modality: str) -> dict[str, object]:
+    """Truth-coupled balance and body position.
+
+    Both read the SAME four displacement sites, because both answer one
+    physical question: how did this body just move.  Vestibular is the
+    motion; proprioception is where that motion left her.
+
+    Two honest cases and no third.  Without the receptors she has no sense of
+    motion at all.  WITH them the field is declared on every experience and
+    carries the displacement that actually happened — zero whenever she did
+    not move, because standing still is a lawful state, not an absent sense.
+    """
+
+    if not VESTIBULAR_AUTHORIZED:
+        return _unmounted(
+            f"native {modality} receptor transition is not mounted: this "
+            "body declares no displacement receptors, so motion would have "
+            "to be invented rather than transduced; the displacement "
+            f"anatomy is authorized by {VESTIBULAR_ENV}",
+            displacement_authorization_env=VESTIBULAR_ENV,
+            displacement_authorized=False,
+        )
+    moved = _last_displacement
+    vestibular_evidence = (
+        _last_transition_evidence
+        if modality == "vestibular"
+        and _last_transition_evidence is not None
+        and _last_transition_evidence.get("intake") == "world-move"
+        and int(_last_transition_evidence.get("vestibular_tick_count", 0)) > 0
+        else None
+    )
+    if vestibular_evidence is not None:
+        return _section(
+            True,
+            "native_vestibular_transition_committed",
+            "the world body's exact signed yaw path settled through the native "
+            "canal, cupula, hair bundle, tip link, gating spring, full joint "
+            "seven-field occurrence, and one predeclared body-and-balance "
+            "neuron; the committed successor body was persisted",
+            native_neuronal_participation=True,
+            vestibular_tick_count=vestibular_evidence["vestibular_tick_count"],
+            totals=dict(vestibular_evidence["totals"]),
+            last_displacement=(
+                {c: float(v) for c, v in zip(DISPLACEMENT_CHANNELS, moved)}
+                if moved is not None
+                else None
+            ),
+        )
+    native_vestibular_neuron_count = (
+        _runtime()[0].organism.observe_reached_source_site_count(
+            NATIVE_VESTIBULAR_SENSOR_ID,
+            NATIVE_VESTIBULAR_SUBSTREAM_ID,
+        )
+        if modality == "vestibular"
+        else 0
+    )
+    if native_vestibular_neuron_count > 0:
+        return _section(
+            True,
+            "native_vestibular_neuron_persisted",
+            "the current native body retains a reached neuron anchored to "
+            "the exact mounted yaw-canal and local hair-bundle source; this "
+            "is persisted receptor anatomy, not a transient event label",
+            native_neuronal_participation=True,
+            native_vestibular_neuron_count=native_vestibular_neuron_count,
+            last_displacement=(
+                {c: float(v) for c, v in zip(DISPLACEMENT_CHANNELS, moved)}
+                if moved is not None
+                else None
+            ),
+        )
+    return _section(
+        False,
+        "displacement_transported_not_neuronally_transduced",
+        f"{DISPLACEMENT_SITE_COUNT} body-displacement coordinates are "
+        "transported in the admitted joint occurrence, but the live resident "
+        "transition has no displacement receptor law and skips them before "
+        "neuron genesis and settlement. The separate typed vestibular proof "
+        "path is not mounted by prepare_admitted. The last transported "
+        "movement is reported below when present, but it is not evidence "
+        f"that {modality} reached Guala's neurons.",
+        declared_channels=list(DISPLACEMENT_CHANNELS),
+        declared_site_count=DISPLACEMENT_SITE_COUNT,
+        displacement_authorization_env=VESTIBULAR_ENV,
+        displacement_authorized=True,
+        last_displacement=(
+            {c: float(v) for c, v in zip(DISPLACEMENT_CHANNELS, moved)}
+            if moved is not None
+            else None
+        ),
+        native_neuronal_participation=False,
+        transported_by=DISPLACEMENT_SENSOR_ID,
+    )
+
+
+def _chemoreceptive_record(
+    modality: str,
+    channels: tuple[str, ...],
+    sensor_id: str,
+) -> dict[str, object]:
+    """Truth-coupled taste or smell."""
+
+    if not CHEMORECEPTION_AUTHORIZED:
+        return _unmounted(
+            f"native {modality} receptor transition is not mounted: this "
+            "body declares no chemoreceptors, so a material's composition "
+            "would reach nothing; the chemoreceptive anatomy is authorized "
+            f"by {CHEMORECEPTION_ENV}",
+            chemoreception_authorization_env=CHEMORECEPTION_ENV,
+            chemoreception_authorized=False,
+        )
+    return _section(
+        False,
+        f"{modality}_transported_not_neuronally_transduced",
+        f"{len(channels)} declared {modality} composition coordinates are "
+        "transported in the admitted joint occurrence, but the live resident "
+        "transition has no chemoreceptor work law and skips them before "
+        "neuron genesis and settlement. The composition is authored by "
+        "whoever feeds her and is never a chemical measurement of a real "
+        "substance. She cannot "
+        + (
+            "smell a room, because there is no room"
+            if modality == "smell"
+            else "taste anything she has not been given"
+        )
+        + " — that waits for the environment and is not claimed here",
+        declared_channels=list(channels),
+        declared_site_count=len(channels),
+        chemoreception_authorization_env=CHEMORECEPTION_ENV,
+        chemoreception_authorized=True,
+        composition_authority="external_declaration",
+        native_neuronal_participation=False,
+        transported_by=sensor_id,
+    )
+
+
+def _temperature_record(native: dict[str, Any] | None = None) -> dict[str, object]:
+    del native
+    return _unmounted(
+        "core and cutaneous thermoreceptors are not mounted; exact thermal "
+        "energy is observable body state, not a fabricated sensation"
+    )
+
+
+def _interoception_record(native: dict[str, Any] | None = None) -> dict[str, object]:
+    del native
+    return _unmounted(
+        "localized specialized afferents are not mounted; exact body-energy "
+        "coordinates remain observation only and are not fed back as one "
+        "synthetic organism interoceptor",
+        native_neuronal_participation=False,
+    )
+
+
 def _unmounted(reason: str, **facts: object) -> dict[str, object]:
     return _section(False, "not_mounted", reason, **facts)
 
@@ -395,6 +1716,13 @@ def _mounted_capability(endpoint: str, reason: str) -> dict[str, object]:
     }
 
 
+def _manifest_document(path: Path, schema: str) -> dict[str, object]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict) or value.get("schema") != schema:
+        raise ValueError(f"{path.name} structure changed")
+    return value
+
+
 def _manifest_experiences(path: Path, schema: str) -> list[dict[str, object]]:
     value = json.loads(path.read_text(encoding="utf-8"))
     experiences = value.get("experiences")
@@ -408,10 +1736,21 @@ def _manifest_experiences(path: Path, schema: str) -> list[dict[str, object]]:
 def _require_manifest_media(
     experiences: list[dict[str, object]],
     media_keys: tuple[str, ...],
+    optional_keys: tuple[str, ...] = (),
 ) -> None:
+    """Every declared medium must exist on disk.
+
+    ``optional_keys`` may be absent from an experience entirely — but an
+    experience that DECLARES one still has to have it.  A missing recording
+    is a lawful kind of card (taught in a person's own voice); a declared
+    recording that is not there is a broken manifest.
+    """
+
     for experience in experiences:
-        for key in media_keys:
+        for key in media_keys + optional_keys:
             item = experience.get(key)
+            if item is None and key in optional_keys:
+                continue
             media_path = item.get("path") if isinstance(item, dict) else None
             if not isinstance(media_path, str):
                 raise ValueError(f"curriculum {key} path changed")
@@ -430,18 +1769,34 @@ def _curriculum_media_record() -> dict[str, object]:
             CURRICULUM_ROOT / "songs" / "song_experience_manifest-v1.json",
             "guala.external_tutor_song_experience_manifest.v1",
         )
-        _require_manifest_media(cards, ("surface", "tutor_audio"))
+        _require_manifest_media(cards, ("surface",), ("tutor_audio",))
         _require_manifest_media(songs, ("audio",))
-        if len(cards) != 36 or len(songs) != 3:
+        # THE EXTENT PIN IS THE MANIFEST'S OWN DECLARATION, not a constant
+        # in this file (2026-08-07).  A hardcoded 36 made every added word a
+        # code change and reported "approved curriculum extent changed" for
+        # deliberate growth.  The manifest declares how many experiences it
+        # approves; the code refuses any drift from that declaration, so a
+        # card still cannot appear without a deliberate edit.
+        declared = _manifest_document(
+            CURRICULUM_ROOT / "card_experience_manifest-v1.json",
+            "guala.external_tutor_card_experience_manifest.v1",
+        ).get("approved_experience_count")
+        if not isinstance(declared, int) or isinstance(declared, bool):
+            raise ValueError("card manifest declares no approved extent")
+        if len(cards) != declared or len(songs) != 3:
             raise ValueError("approved curriculum extent changed")
+        spoken_only = sum(1 for card in cards if card.get("tutor_audio") is None)
         return _section(
             True,
             "external_media_ready_native_tutoring_mounted",
-            "36 card/audio pairs and three songs are present; one approved "
-            "card and its tutor audio reach the resident organism as one "
-            "admitted native episode via POST /api/v1/curriculum/teach-card; "
-            "no label, identity, or meaning enters the organism",
-            approved_card_experience_count=36,
+            f"{declared} approved card experiences ({declared - spoken_only} "
+            f"with a recorded tutor voice, {spoken_only} taught in the voice "
+            "of whoever is present) and three songs are present; one "
+            "approved card reaches the resident organism as one admitted "
+            "native episode; no label, identity, or meaning enters the "
+            "organism",
+            approved_card_experience_count=declared,
+            spoken_only_card_experience_count=spoken_only,
             approved_song_experience_count=3,
             internal_identity_authority=False,
             internal_meaning_authority=False,
@@ -460,69 +1815,97 @@ def _curriculum_media_record() -> dict[str, object]:
         )
 
 
-def _sensory_record() -> dict[str, object]:
+def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
+    live_sight = _live_sight_record()
     modalities = {
         "visual": _section(
             True,
-            "curriculum_card_surface_transition_mounted",
+            (
+                "curriculum_and_live_camera_transitions_committed"
+                if live_sight["available"]
+                else "curriculum_card_surface_transition_mounted"
+            ),
             "approved curriculum card surfaces reach the resident organism "
             "as admitted 27-receptor luminance occurrences via "
-            "/api/v1/curriculum/teach-card; no live camera transition is "
-            "mounted",
+            "/api/v1/curriculum/teach-card; the live camera transition is "
+            "reported mounted only from a real committed live-sight "
+            "transition (see live_camera)",
+            live_camera=live_sight,
         ),
         "auditory": _section(
             True,
-            "lesson_audio_only_standalone_hearing_suspended",
-            "tutor audio inside card lessons reaches the resident organism "
-            "as admitted pressure occurrences; standalone hearing is "
-            "suspended by the ratified two-real-signal doctrine until a "
-            "live visual source mounts; the binaural transition is not "
-            "mounted",
+            (
+                "standalone_hearing_committed_this_process"
+                if _live_hearing_evidence is not None
+                else "lesson_audio_only_standalone_hearing_refused"
+            ),
+            (
+                "standalone sound has COMMITTED as admitted whole-"
+                "sensorium episodes in this process "
+                f"({_live_hearing_evidence['intake']}); tutor audio inside "
+                "card lessons also transduces under the mounted auditory "
+                "receptor law; the binaural transition is not mounted"
+                if COCHLEAR_EARS_AUTHORIZED and _live_hearing_evidence is not None
+                else "tutor audio inside card lessons reaches the resident "
+                "organism as admitted cochlear band-pressure occurrences "
+                "and TRANSDUCES under the mounted auditory receptor law; "
+                "standalone hearing stays refused under the two-real-signal "
+                "doctrine until live sight is proven; the binaural "
+                "transition is not mounted"
+                if COCHLEAR_EARS_AUTHORIZED
+                else "tutor audio inside card lessons reaches the resident "
+                "organism as admitted pressure occurrences; standalone "
+                "hearing is refused honestly because the ears have no "
+                "transduction law yet — pressure amplitude has zero "
+                "physical effect — and hearing returns when the tonotopic "
+                "ear anatomy is authorized; the binaural transition is not "
+                "mounted"
+            ),
+            **_cochlear_authorization_record(),
         ),
         "text": _unmounted("native rendered-light receptor transition is not mounted"),
-        "touch": _unmounted("native touch receptor transition is not mounted"),
-        "temperature": _unmounted("native temperature receptor transition is not mounted"),
-        "smell": _unmounted("native smell receptor transition is not mounted"),
-        "taste": _unmounted("native taste receptor transition is not mounted"),
-        "vestibular": _unmounted("native vestibular receptor transition is not mounted"),
-        "proprioception": _unmounted("native proprioceptive transition is not mounted"),
-        "interoception": _unmounted("native interoceptive transition is not mounted"),
+        "touch": _touch_record(),
+        "temperature": _temperature_record(native),
+        "smell": _chemoreceptive_record("smell", SMELL_CHANNELS, SMELL_SENSOR_ID),
+        "taste": _chemoreceptive_record("taste", TASTE_CHANNELS, TASTE_SENSOR_ID),
+        "vestibular": _displacement_record("vestibular"),
+        "proprioception": _displacement_record("proprioception"),
+        "interoception": _interoception_record(native),
     }
     return _section(
         True,
         "partial_native_receptor_transitions",
-        "admitted visual card-surface and mono auditory transitions are "
-        "mounted; every other modality has no native receptor transition",
+        "admitted visual card-surface, live-sight, and lesson-audio "
+        "transitions exist; the live camera claim is truth-coupled to "
+        "committed transitions; every other modality has no native "
+        "receptor transition",
         **modalities,
     )
 
 
 def _autonomy_record() -> dict[str, object]:
-    """Truth-coupled autonomy observation (increment 1: unattended time).
+    """Truth-coupled observation of continuous native settlement.
 
-    The section flips available ONLY on measured change during a genuinely
-    dark unattended interval, read from the committed transition evidence
-    and the decoded energy state — never from the mounted surface.  This
-    increment is self-maintenance and genuine rest only: autonomous thought,
-    action, attention, and choice are not mounted, ``action_observed`` stays
-    False, and no claim of action, attention, or choice is ever made here.
+    Continuous lived time is not autonomy. This section reports measured
+    physical settlement in the persistent world. Autonomous thought, action,
+    attention, and choice remain unavailable until native evidence proves
+    them.
     """
 
     unattended_time: dict[str, object] = {
-        "cadence_seconds": _unattended_cadence_seconds(),
+        "declared_interval_milliseconds": CONTINUOUS_INTERVAL_MILLISECONDS,
         "disable_env": UNATTENDED_TIME_ENV,
         "enabled": _unattended_time_enabled(),
         "hop_milliseconds": INTAKE_HOP_MILLISECONDS,
         "hops_per_interval": UNATTENDED_HOPS_PER_INTERVAL,
         "last_pause": _last_unattended_pause,
         "medium": (
-            "the passage of time is transport, never a cause: unattended "
-            "time only declares the genuinely dark, silent environment the "
-            "unattended organism is actually in; whatever happens in it is "
-            "entirely the organism's own retained state"
+            "transport continuously samples the actual persistent world and "
+            "delivers contiguous physical intervals; time does not select "
+            "thought or action"
         ),
         "pauses_for_external_intake": True,
-        "pauses_when_energy_exhausted": True,
+        "pauses_when_energy_exhausted": False,
     }
     not_mounted = {
         "action": _unmounted("no native action actuator is mounted"),
@@ -535,7 +1918,7 @@ def _autonomy_record() -> dict[str, object]:
         return _section(
             False,
             "no_unattended_interval_this_process",
-            "no unattended interval has completed in this process; "
+            "no continuous world interval has completed in this process; "
             "autonomous thought, action, attention, and choice are not "
             "mounted",
             action_observed=False,
@@ -546,20 +1929,34 @@ def _autonomy_record() -> dict[str, object]:
     last_interval = {
         key: _last_unattended_evidence[key]
         for key in (
-            "declared_dark_milliseconds",
+            "declared_interval_milliseconds",
             "hop_count",
             "intake",
             "organism_tick",
             "state_sha256",
+            "world_revision",
         )
     }
     measured = dict(_last_unattended_evidence["measured"])
+    if category == "continuous_environment_observed":
+        return _section(
+            True,
+            category,
+            "the actual persistent world reached the native organism and "
+            "changed its physical settlement; this proves continuous sensory "
+            "processing, not autonomous thought or action",
+            action_observed=False,
+            last_interval=last_interval,
+            self_maintenance=measured,
+            unattended_time=unattended_time,
+            **not_mounted,
+        )
     if category == "self_maintenance_observed":
         return _section(
             True,
             "self_maintenance_observed",
             "measured recovery, ledger, or membrane change during a "
-            "genuinely dark unattended interval; the body genuinely tended "
+            "continuous world interval; the body genuinely tended "
             "itself, and that is self-maintenance only: autonomous thought, "
             "action, attention, and choice are not mounted",
             action_observed=False,
@@ -573,8 +1970,8 @@ def _autonomy_record() -> dict[str, object]:
             True,
             "retained_state_settling_observed",
             "the organism's own retained electrical state kept settling "
-            "through its retained contacts during a genuinely dark "
-            "unattended interval, with zero energy-ledger movement; that is "
+            "through its retained contacts during a continuous world "
+            "interval, with zero energy-ledger movement; that is "
             "the retained state's own physics, not action: autonomous "
             "thought, action, attention, and choice are not mounted",
             action_observed=False,
@@ -598,6 +1995,248 @@ def _autonomy_record() -> dict[str, object]:
     )
 
 
+# ---------------------------------------------------------------------------
+# The experience stage ledger (DARPA first-proof requirement 8: the live
+# interfaces must show what she sensed, attended to, reassembled, intended,
+# emitted, experienced as consequence, and initiated herself).
+#
+# The two live interfaces have always asked for these twelve stages and the
+# observation has never supplied ANY of them, so every stage rendered
+# "unavailable / record not supplied" — the pages were telling the truth about
+# a substrate that did not report its own stages.
+#
+# Every stage below is filled ONLY from the committed transition evidence.
+# A stage whose mechanism is not mounted keeps refusing honestly and names what
+# is missing; it is never inferred, never defaulted, and never dressed up.
+# ---------------------------------------------------------------------------
+
+
+def _stage(available: bool, status: str, reason: str, summary: str) -> dict[str, object]:
+    return {
+        "available": available,
+        "status": status,
+        "reason": reason,
+        "summary": summary,
+    }
+
+
+def _unmounted_stage(status: str, reason: str) -> dict[str, object]:
+    return _stage(False, status, reason, reason)
+
+
+def _describe_intake(intake: str) -> tuple[str, str]:
+    """What this experience actually was, in words, and what it carried.
+
+    The stage ledger exists so a person can see what SHE experienced. An
+    internal counter is evidence, not meaning, so the meaning is stated first
+    and the counters support it.
+    """
+
+    if intake.startswith("curriculum-card:"):
+        parts = intake.split(":")
+        card_id = parts[1] if len(parts) > 1 else "a card"
+        mode = parts[2] if len(parts) > 2 else "full"
+        try:
+            experience = _read_manifest_card(card_id)
+            surface = str(experience.get("surface", {}).get("path", ""))
+            name = surface.rsplit("/", 1)[-1].removesuffix(".png")
+            name = name.replace("-v1", "").replace("-", " ")
+        except (KeyError, OSError, ValueError):
+            name = card_id
+        glimpse = " a partial glimpse of" if mode == "partial" else ""
+        return (
+            f"She was shown{glimpse} the {name} card",
+            "its picture fell on her light receptors while the tutor's voice "
+            "reached both ears",
+        )
+    if intake.startswith("live-sight:"):
+        return (
+            "She saw the real world through a live camera",
+            "real light off real objects, through the same eye her cards use",
+        )
+    if intake.startswith("continuous-environment:"):
+        return (
+            "Her persistent world continued to reach her senses",
+            "the current room, body, chemistry, and quiet acoustic field were "
+            "sampled as physical experience; transport selected no thought "
+            "or action",
+        )
+    if intake.startswith("nutrition:"):
+        return ("She was fed", "material intake, not a sensory experience")
+    if intake.startswith("sound-frame") or intake.startswith("pcm-session:"):
+        return ("She was played a sound", "pressure at both ears")
+    return (f"An experience arrived ({intake})", "declared by the caller")
+
+
+def _experience_stage_ledger_record() -> dict[str, object]:
+    """The twelve stages of the most recent committed experience."""
+
+    absent = {
+        "attention": _unmounted_stage(
+            "not_mounted",
+            "She cannot attend to anything. Nothing in her chooses what to "
+            "focus on, so there is no attention to report.",
+        ),
+        "intent": _unmounted_stage(
+            "not_mounted",
+            "She cannot intend anything. Nothing in her forms an intention, "
+            "so there is nothing here to report.",
+        ),
+        "action": _unmounted_stage(
+            "not_mounted",
+            "She has never done anything. She has no way to act on the world, "
+            "so no action can ever appear here yet.",
+        ),
+        "consequence": _unmounted_stage(
+            "not_mounted",
+            "Nothing came back to her, because she has never acted. When she "
+            "can act, what her action causes will appear here.",
+        ),
+    }
+    if _last_transition_evidence is None:
+        pending = _unmounted_stage(
+            "no_transition_this_process",
+            "no admitted native transition has been committed by this process",
+        )
+        return _section(
+            False,
+            "no_transition_this_process",
+            "no admitted native transition has been committed by this process, "
+            "so no experience has stages to report",
+            stages={
+                key: (absent[key] if key in absent else pending)
+                for key in EXPERIENCE_STAGE_ORDER
+            },
+        )
+
+    evidence = _last_transition_evidence
+    # WHOLE-EXPERIENCE, NOT LAST HOP.  The transition evidence carries the
+    # final hop's own numbers at the top level and the sums for the whole
+    # committed experience under "totals".  An experience is the whole
+    # presentation, so the ledger reports the sums; reporting the last hop
+    # would say "0 fractals" for the very lesson that grew 27 of them.
+    totals = evidence.get("totals") or {}
+
+    def summed(key: str) -> int:
+        value = totals.get(key)
+        return value if isinstance(value, int) else evidence.get(key, 0)
+
+    intake = str(evidence.get("intake", "unknown"))
+    hops = evidence.get("hop_count", 0)
+    deliveries = summed("dsf_delivery_count")
+    transitioned = summed("physically_transitioned_neuron_count")
+    fractals = summed("complete_neuron_fractal_count")
+    recurrent = summed("recurrent_complete_neuron_fractal_count")
+    reassemblies = summed("partial_cue_reassembly_count")
+    mosaics = evidence.get("cognitive_mosaic_count", 0)
+    cohorts = summed("current_cohort_evaluation_count")
+
+    what, carried = _describe_intake(intake)
+    seconds = (hops * INTAKE_HOP_MILLISECONDS) / 1000 if hops else 0
+
+    stages: dict[str, object] = {
+        "capture": _stage(
+            True,
+            "committed_intake",
+            "what arrived is declared by whoever presented it; the organism "
+            "never invents what it was shown",
+            f"{what} — {carried}.",
+        ),
+        "presentation": _stage(
+            True,
+            "committed_hops",
+            "an experience is delivered as successive 250 ms moments on one "
+            "shared clock, each carrying every sense she has",
+            f"It lasted {seconds:.2f} seconds, delivered as {hops} moments of "
+            f"a quarter-second each.",
+        ),
+        "admission": _stage(
+            True,
+            "admitted_and_committed",
+            "nothing reaches her unless her own body admits it, and the "
+            "result is written to disk before anyone is told about it",
+            "Her body accepted it as one real experience, and the result is "
+            "safely stored.",
+        ),
+        "receptor": _stage(
+            transitioned > 0,
+            "receptor_settlement_committed" if transitioned else "no_receptor_change",
+            "these are neurons whose physical state genuinely changed, "
+            "decoded from her body — not a count of messages sent to her",
+            (
+                f"{transitioned} of her neurons were physically changed by it."
+                if transitioned
+                else "Nothing in her physically changed."
+            ),
+        ),
+        "dsf": _stage(
+            deliveries > 0,
+            "local_field_delivered" if deliveries else "no_delivery",
+            "every neuron that is reached receives the complete local field, "
+            "never a score or a summary of it",
+            (
+                f"The full physical field reached her neurons {deliveries} "
+                f"times over {cohorts} settlement(s)."
+                if deliveries
+                else "No field reached any neuron."
+            ),
+        ),
+        "recurrence": _stage(
+            reassemblies > 0 or recurrent > 0,
+            "recurrence_observed" if (reassemblies or recurrent) else "no_recurrence",
+            "recognition is a PART of something bringing back the WHOLE of "
+            "it; a first showing has nothing to bring back",
+            (
+                f"She recognised something — {reassemblies} time(s) a piece of "
+                f"this brought back a whole memory she already had."
+                if reassemblies
+                else "She did not recognise anything in this — either it was "
+                     "new to her, or nothing was there to bring back."
+            ),
+        ),
+        "hierarchy": _stage(
+            mosaics > 0,
+            "retained_formations" if mosaics else "no_formation",
+            "these are whole retained memories; nothing above a memory (a "
+            "memory made of memories) is built yet",
+            (
+                f"She is holding {mosaics} memory/memories in total."
+                if mosaics
+                else "She is holding no memories yet."
+            ),
+        ),
+        "learning": _stage(
+            fractals > 0 or reassemblies > 0,
+            "structure_changed" if (fractals or reassemblies) else "no_structural_change",
+            "learning is a real change in retained structure — new impressions "
+            "the first time, recognition afterwards",
+            (
+                (
+                    f"She was changed by it: {fractals} new impression(s) formed"
+                    if fractals
+                    else "She was changed by it"
+                )
+                + (
+                    f" and {reassemblies} recognition(s) happened."
+                    if reassemblies
+                    else "."
+                )
+                if (fractals or reassemblies)
+                else "Nothing was learned — this left no lasting change in her."
+            ),
+        ),
+        **absent,
+    }
+    return _section(
+        True,
+        "committed_experience_stages",
+        "the stages of the most recent committed experience, each read from "
+        "its own record; stages whose mechanism is not mounted refuse and say "
+        "what is missing",
+        stages={key: stages[key] for key in EXPERIENCE_STAGE_ORDER},
+    )
+
+
 def _last_transition_record() -> dict[str, object]:
     if _last_transition_evidence is None:
         return _section(
@@ -613,6 +2252,35 @@ def _last_transition_record() -> dict[str, object]:
     )
 
 
+def _retained_impression_neuron_count() -> int | None:
+    """How many of her neurons hold a retained impression RIGHT NOW.
+
+    A retained formation's members ARE the neurons that hold a retained
+    fractal, so the union of every formation's members is the honest answer to
+    "how much of her is holding an impression".  This is her STATE.  The
+    per-transition fractal count is a STEP FACT about the last thing that
+    happened to her, and reporting only that under a label like "genuine
+    fractals" makes a fully-formed organism read as empty whenever her most
+    recent moment was a quiet one.
+    """
+
+    restored = _restored
+    if restored is None:
+        return None
+    try:
+        formations = restored.organism.observe_retained_formations()
+    except (AttributeError, RuntimeError, TypeError, ValueError):
+        # 2026-08-07 truth repair: a swallowed error used to read as 0 —
+        # "she reads as empty while holding 27" reborn in the degraded
+        # path.  None means THE OBSERVATION FAILED, and callers must say
+        # that instead of printing an empty body.
+        return None
+    members: set[str] = set()
+    for lineages, _bonds in formations:
+        members.update(lineages)
+    return len(members)
+
+
 def _build_public_observation() -> dict[str, Any]:
     native = _native_record()
     last = _last_transition_record()
@@ -621,6 +2289,7 @@ def _build_public_observation() -> dict[str, Any]:
         if _last_transition_evidence is not None
         else 0
     )
+    retained_impressions = _retained_impression_neuron_count()
     record: dict[str, Any] = {
         "schema": PUBLIC_OBSERVATION_SCHEMA,
         "generation": native["organism_tick"],
@@ -648,36 +2317,244 @@ def _build_public_observation() -> dict[str, Any]:
             tick=native["organism_tick"],
         ),
         "capabilities": {
-            "camera": _capability("native visual sensory transition is not mounted"),
-            "microphone": _capability(
-                "standalone hearing is not mounted: the two-real-signal "
-                "doctrine requires a concurrent live visual source, which "
-                "does not exist yet; tutor audio inside card lessons remains"
-            ),
+            # STEP FACT vs STATE, applied to a control surface (2026-08-07).
+            #
+            # This section answers "what CAN reach her right now" — it is the
+            # thing an interaction control may gate on.  It used to answer
+            # "what HAS reached her in this process", which deadlocked the
+            # camera permanently: the page disabled the button until frames
+            # had committed, and frames could only commit through the button.
+            # A restart re-locked it, which is why first light worked once on
+            # 2026-08-06 and never again.
+            #
+            # `available` is still truth-coupled — it is false wherever the
+            # pathway is absent or physically inert.  Live sight is neither:
+            # severing it is measured to change her physics (transitioned
+            # 108->27, fractals 0->27, body 1,239,843->243,503 bytes), so
+            # "this intake will physically change her" is a fact about her
+            # body, not about the transport.
+            #
+            # What HAS happened stays reported separately and never softens:
+            # `committed_in_process` here, and `sensory.visual.live_camera`,
+            # which remains strictly evidence-coupled for the ledger.
+            "camera": {
+                "available": True,
+                "committed_in_process": _live_sight_evidence is not None,
+                "endpoint": LIVE_SIGHT_INTAKE_ENDPOINT,
+                "reason": (
+                    "real live camera frames have committed end-to-end as "
+                    "admitted 27-receptor luminance episodes in this "
+                    "process; provenance is the client's declared "
+                    "live-camera capture contract"
+                    if _live_sight_evidence is not None
+                    else "the live-sight intake is mounted and will admit "
+                    "real camera frames as 27-receptor luminance episodes "
+                    "that physically transition her neurons; no batch has "
+                    "committed in THIS process yet, which is why "
+                    "committed_in_process is false — open the eye and it "
+                    "becomes true from the transition itself"
+                ),
+                "status": (
+                    "live_frames_committed"
+                    if _live_sight_evidence is not None
+                    else "intake_mounted_awaiting_frames"
+                ),
+            },
+            # 2026-08-07 truth repair: this used to be hardcoded
+            # not-mounted even while the PCM routes were open and
+            # admitting real sound — a surface that lied in both
+            # directions.  It now derives from the SAME gate the routes
+            # themselves consult.
+            # Same split as the camera.  `available` is whether the ears
+            # physically transduce — MEASURED on her real restored body
+            # 2026-08-07: severing the sound from one identical card lesson
+            # drops physically transitioned neurons 529->305 and new
+            # impressions 41->9.  Sound is no longer transport wearing a
+            # costume, so the capability may honestly say so.
+            #
+            # The two-real-signal precondition is NOT dropped — it is
+            # enforced where it belongs, at the intake route, and reported
+            # here as its own field so the page can show the real reason
+            # instead of inventing one.  Gating `available` on it is what
+            # chained the microphone to the deadlocked camera.
+            "microphone": {
+                "available": COCHLEAR_EARS_AUTHORIZED,
+                "committed_in_process": _live_hearing_evidence is not None,
+                "endpoint": (
+                    "/api/v1/auditory/pcm/open" if COCHLEAR_EARS_AUTHORIZED else None
+                ),
+                "live_sight_committed": _live_sight_evidence is not None,
+                "reason": (
+                    (
+                        "the cochlear roster physically transduces pressure "
+                        "(measured by severing: 529->305 transitioned "
+                        "neurons, 41->9 new impressions on one identical "
+                        "lesson), so a PCM session admits real sound as "
+                        "whole-sensorium episodes"
+                        + (
+                            "; live sight has committed, so the two-real-"
+                            "signal precondition is met"
+                            if _live_sight_evidence is not None
+                            else "; the two-real-signal doctrine still "
+                            "requires a real visual signal first — open her "
+                            "eye, then speak, so sound never reaches her "
+                            "while she sees nothing"
+                        )
+                        + (
+                            "; standalone sound has committed in this process "
+                            f"({_live_hearing_evidence['intake']})"
+                            if _live_hearing_evidence is not None
+                            else ""
+                        )
+                    )
+                    if COCHLEAR_EARS_AUTHORIZED
+                    else "standalone hearing is not mounted: the cochlear ear "
+                    "anatomy is not authorized in this process, so pressure "
+                    "amplitude has no physical effect and admitting live "
+                    "sound would fabricate a sensation; tutor audio inside "
+                    "card lessons remains"
+                ),
+                "status": (
+                    "not_mounted"
+                    if not COCHLEAR_EARS_AUTHORIZED
+                    else "mounted"
+                    if _live_sight_evidence is not None
+                    else "mounted_awaiting_live_sight"
+                ),
+            },
             "curriculum": _mounted_capability(
                 "/api/v1/curriculum/teach-card",
                 "one approved card surface and its tutor audio reach the "
                 "resident organism as one admitted native episode",
             ),
-            "nutrition": _mounted_capability(
-                "/api/v1/metabolism/feed",
-                "one authored nutrition declaration reaches the resident "
-                "organism as one admitted material intake and regenerates "
-                "recovery fuel from spent material",
+            # A card taught in the voice of whoever is present.  Unlike the
+            # standalone microphone this asks NOTHING of the camera: the
+            # card's own light and its tactile footprint are in the SAME
+            # episode as the voice, so the experience is whole-sensorium by
+            # construction rather than by a precondition.
+            "spoken_lesson": {
+                "available": COCHLEAR_EARS_AUTHORIZED,
+                "committed_in_process": (
+                    _live_hearing_evidence is not None
+                    and str(_live_hearing_evidence.get("intake", "")).startswith(
+                        "spoken-card:"
+                    )
+                ),
+                "endpoint": (
+                    SPOKEN_LESSON_ENDPOINT if COCHLEAR_EARS_AUTHORIZED else None
+                ),
+                "reason": (
+                    "a person's own voice becomes the lesson's voice: the "
+                    "card's light, its declared tactile footprint and the "
+                    "spoken utterance reach the organism as ONE admitted "
+                    "episode on one shared clock, and the cochleae "
+                    "physically transduce that pressure"
+                    if COCHLEAR_EARS_AUTHORIZED
+                    else "a spoken lesson is not mounted: the cochlear ear "
+                    "anatomy is not authorized in this process, so a human "
+                    "voice would reach her and move nothing"
+                ),
+                "status": (
+                    "mounted" if COCHLEAR_EARS_AUTHORIZED else "not_mounted"
+                ),
+            },
+            "nutrition": _unmounted(
+                "nutrition is not mounted: no truthful material-to-energy "
+                "intake law exists; the "
+                "retired integer feed endpoint cannot supply body energy",
+                endpoint=None,
             ),
-            "text_visual": _capability("native rendered-light transition is not mounted"),
-            "picture": _capability("native visual material presentation is not mounted"),
-            "pdf": _capability("native paged visual presentation is not mounted"),
-            "book": _capability("native paged visual presentation is not mounted"),
-            "audio": _capability("native auditory material presentation is not mounted"),
-            "song": _capability("native auditory material presentation is not mounted"),
-            "gutenberg": _capability("bounded Gutenberg presentation is not mounted"),
-            "youtube": _capability("bounded YouTube presentation is not mounted"),
-            "khan_academy": _capability("bounded Khan Academy presentation is not mounted"),
-            "pbs_kids": _capability("bounded PBS Kids presentation is not mounted"),
-            "spotify": _capability("bounded Spotify presentation is not mounted"),
+            "text_visual": {
+                "available": True,
+                "endpoint": RENDERED_LIGHT_ENDPOINT,
+                "max_bytes": OFFERED_MATERIAL_MAX_BYTES,
+                "reason": (
+                    "pixels a person renders in their own browser reach the "
+                    "same 27 retinal receptor sites an approved card and the "
+                    "live camera reach; the typed string is never submitted "
+                    "and no meaning enters — to an organism that has not "
+                    "learned to read, text is light"
+                ),
+                "status": "mounted",
+            },
+            "picture": _offered_material_capability(
+                "picture",
+                True,
+                "one offered picture is area-averaged onto the same 27 "
+                "retinal receptor sites the approved cards reach, presented "
+                "for its own hop and then genuinely ended",
+            ),
+            "pdf": _offered_material_capability(
+                "pdf",
+                True,
+                f"up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
+                "and presented in their own order on the retinal roster; a "
+                "page is a picture, never words",
+            ),
+            "book": _offered_material_capability(
+                "book",
+                True,
+                f"up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
+                "and presented in their own order on the retinal roster; a "
+                "page is a picture, never words",
+            ),
+            "audio": _offered_material_capability(
+                "audio",
+                COCHLEAR_EARS_AUTHORIZED,
+                "offered sound is decoded to the exact pcm_s16le mono 16 kHz "
+                "her cochleae are declared for and transduces on the same "
+                "band decomposition her tutor's voice does"
+                if COCHLEAR_EARS_AUTHORIZED
+                else "offered sound is not mounted: without the cochlear ear "
+                "anatomy pressure amplitude has no physical effect",
+            ),
+            "song": _offered_material_capability(
+                "song",
+                COCHLEAR_EARS_AUTHORIZED,
+                "an offered song is pressure like any other: decoded to the "
+                "exact format her cochleae are declared for, with no "
+                "transcript, title, or meaning entering cognition"
+                if COCHLEAR_EARS_AUTHORIZED
+                else "offered song is not mounted: without the cochlear ear "
+                "anatomy pressure amplitude has no physical effect",
+            ),
+            "world": {
+                "available": WORLD_AUTHORIZED and VESTIBULAR_AUTHORIZED,
+                "endpoint": (
+                    WORLD_MOVE_ENDPOINT
+                    if WORLD_AUTHORIZED and VESTIBULAR_AUTHORIZED
+                    else None
+                ),
+                "observation_endpoint": (
+                    WORLD_OBSERVATION_ENDPOINT if WORLD_AUTHORIZED else None
+                ),
+                "she_chooses_where_to_go": False,
+                "reason": (
+                    "a deterministic place with its own physics: what she "
+                    "sees there reaches the same 27 retinal sites a card "
+                    "reaches, and moving her produces the real displacement "
+                    "her balance and body-position receptors transduce. A "
+                    "person moves her, exactly as a person presents a card — "
+                    "she does not yet choose to go anywhere"
+                    if WORLD_AUTHORIZED and VESTIBULAR_AUTHORIZED
+                    else "a place is not mounted: she has nowhere to be, or "
+                    "nothing to feel a move with, and a displacement "
+                    "receptor with nothing moving would be a fabrication "
+                    f"({WORLD_ENV}, {VESTIBULAR_ENV})"
+                ),
+                "status": (
+                    "mounted_guided_only"
+                    if WORLD_AUTHORIZED and VESTIBULAR_AUTHORIZED
+                    else "not_mounted"
+                ),
+            },
+            "gutenberg": _shelf_capability("gutenberg"),
+            "youtube": _shelf_capability("youtube"),
+            "khan_academy": _shelf_capability("khan_academy"),
+            "pbs_kids": _shelf_capability("pbs_kids"),
+            "spotify": _shelf_capability("spotify"),
         },
-        "sensory": _sensory_record(),
+        "sensory": _sensory_record(native),
         "neuron_activity": _section(
             True,
             "retained_complete_neuron_state",
@@ -690,67 +2567,99 @@ def _build_public_observation() -> dict[str, Any]:
             retained_count=native["complete_neuron_count"],
         ),
         "fractals": _section(
-            _last_transition_evidence is not None,
+            (retained_impressions or 0) > 0 or last_fractal_count > 0,
             (
-                "last_committed_transition_fractals"
-                if _last_transition_evidence is not None
-                else "no_transition_this_process"
+                # 2026-08-07 truth repair: a failed observation used to
+                # read as 0 — an empty body printed over a full one.  A
+                # failure now SAYS it failed.
+                "retained_impression_observation_failed"
+                if retained_impressions is None
+                else "retained_impressions_held"
+                if retained_impressions > 0
+                else "no_retained_impression"
             ),
-            "complete-neuron fractal counts are per-transition step facts; "
-            "the value reports the most recent committed transition in this "
-            "process",
-            count=last_fractal_count,
+            "the count is how many of her neurons are HOLDING a retained "
+            "impression right now — her state, decoded from her retained "
+            "formations. A retained formation's members are exactly the "
+            "neurons that hold one, so a body with memories can never "
+            "honestly report zero. `formed_in_last_experience` is the "
+            "separate step fact: how many NEW impressions the most recent "
+            "experience created, which is legitimately zero for a quiet "
+            "moment or for something she has already learned.",
+            count=retained_impressions,
+            formed_in_last_experience=last_fractal_count,
         ),
+        # `mosaic_count` and `mosaic_of_mosaics_count` are decoded from her
+        # retained formations — physical facts in her body.  The three higher
+        # formations are NOT reported as zero, because zero would read as a
+        # measurement.  Nothing measures them: the classifier that once
+        # produced tapestry counts read the retired episode archive, and it
+        # cannot be rebuilt from a deduplicated set of retained formations
+        # without redefining its own law.  It also measured zero on this body
+        # every time it ran.
         "formations": _section(
             True,
             "physical_mosaic_state_only",
-            "mosaic count is decoded native cognitive state; no higher "
-            "formation is mounted",
+            "mosaic count and mosaic-of-mosaics count are decoded native "
+            "cognitive state. Tapestry, tapestry-of-tapestries and weave are "
+            "reported as unavailable, not as zero: no mechanism measures "
+            "them. The classifier that used to count them read a durable "
+            "episode archive that is now retired, and her retained "
+            "formations carry no per-neuron episode ordering to rebuild it "
+            "from.",
             mosaic_count=native["cognitive_mosaic_count"],
-            mosaic_of_mosaics_count=0,
-            tapestry_count=0,
-            tapestry_of_tapestries_count=0,
-            weave_count=0,
+            mosaic_of_mosaics_count=native["mosaic_of_mosaics_count"],
+            tapestry_count=None,
+            tapestry_of_tapestries_count=None,
+            weave_count=None,
+            higher_formation_measurement="absent_no_mechanism",
         ),
-        # Truth-coupled to the decoded native observation: the count is the
-        # last committed transition's step fact, never a hardwired zero.
+        # Truth-coupled to the decoded native observation.  The endogenous
+        # count is kept distinct from any externally supplied partial cue.
         "recall": _section(
-            native["partial_cue_reassembly_count"] > 0,
+            native["endogenous_partial_cue_reassembly_count"] > 0,
             (
-                "physical_partial_cue_reassembly_observed"
-                if native["partial_cue_reassembly_count"] > 0
-                else "no_reassembly_in_last_committed_transition"
+                "endogenous_physical_reassembly_observed"
+                if native["endogenous_partial_cue_reassembly_count"] > 0
+                else "no_endogenous_reassembly_in_last_committed_transition"
             ),
-            "partial-cue reassembly count is the decoded native observation "
-            "of the last committed transition; no separate recall query "
-            "surface is mounted",
+            "the endogenous count is native formation reassembly caused by "
+            "internal physical charge motion after formation-local relaxation; "
+            "the total also includes any externally supplied partial cue",
             partial_cue_reassembly_count=native["partial_cue_reassembly_count"],
+            endogenous_partial_cue_reassembly_count=native[
+                "endogenous_partial_cue_reassembly_count"
+            ],
         ),
         # Truth-coupled to the decoded native body: an exhausted ledger or an
         # empty reservoir reports itself here.  A body that cannot pay for its
         # own recovery is NOT reported as available.
         "energy": _section(
-            native["recovery_fuel_capacity_quanta"] > 0
+            native["available_energy_capacity_zeptojoules"][0] > 0
             and not native["energy_exhausted"],
             (
                 "no_mounted_energy_system"
-                if native["recovery_fuel_capacity_quanta"] == 0
+                if native["available_energy_capacity_zeptojoules"][0] == 0
                 else "energy_exhausted"
                 if native["energy_exhausted"]
-                else "recovery_reservoir_and_ledgers_available"
+                else "exact_body_energy_available"
             ),
-            "recovery-fluid reservoir, dissipation ledgers and separated "
-            "membrane charge are decoded native physical state; the rest "
-            "metabolism runs on genuinely dark settlements and an authored "
-            "nutrition intake regenerates fuel via "
-            "POST /api/v1/metabolism/feed",
-            dissipated_quanta=native["dissipated_quanta"],
-            dissipation_capacity_quanta=native["dissipation_capacity_quanta"],
+            "the recovery-fluid reservoir and dissipation state are decoded "
+            "as exact rational zeptojoules; no nutrition/power source is "
+            "mounted by this unit-only correction",
+            available_energy_zeptojoules=native["available_energy_zeptojoules"],
+            spent_energy_zeptojoules=native["spent_energy_zeptojoules"],
+            thermal_energy_zeptojoules=native["thermal_energy_zeptojoules"],
+            available_energy_capacity_zeptojoules=native[
+                "available_energy_capacity_zeptojoules"
+            ],
+            dissipated_energy_zeptojoules=native[
+                "dissipated_energy_zeptojoules"
+            ],
+            dissipation_capacity_energy_zeptojoules=native[
+                "dissipation_capacity_energy_zeptojoules"
+            ],
             exhausted=native["energy_exhausted"],
-            recovery_fuel_capacity_quanta=native["recovery_fuel_capacity_quanta"],
-            recovery_fuel_quanta=native["recovery_fuel_quanta"],
-            recovery_heat_quanta=native["recovery_heat_quanta"],
-            recovery_spent_quanta=native["recovery_spent_quanta"],
             separated_elementary_charges=native["separated_elementary_charges"],
         ),
         "cognitive_capital": _section(
@@ -771,6 +2680,7 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "curriculum": _curriculum_media_record(),
         "last_transition": last,
+        "experience_stage_ledger": _experience_stage_ledger_record(),
         "full_dsf": _section(
             False,
             "not_observed",
@@ -854,9 +2764,12 @@ def _readiness() -> dict[str, Any]:
             "available": True,
             **native,
             "complete_neuron_available": native["complete_neuron_count"] > 0,
+            # 2026-08-07 truth repair: this was a last-transition step
+            # fact (false for a body full of memories after any quiet
+            # interval — the exact defect b2ac863b fixed elsewhere).  It
+            # now reports BODY state: neurons holding retained impressions.
             "genuine_neuronal_fractal_available": bool(
-                _last_transition_evidence is not None
-                and _last_transition_evidence["complete_neuron_fractal_count"] > 0
+                (_retained_impression_neuron_count() or 0) > 0
             ),
             "cognition_available": cognition_present,
             "energy_available": not native["energy_exhausted"],
@@ -948,13 +2861,27 @@ class _LocalDirectoryObjectStore:
             yield body[offset : offset + 1024 * 1024]
 
     def delete_if_exact(self, key: str, *, byte_count: int, sha256: str) -> None:
+        # Retiring an object that is ALREADY absent is the desired end state,
+        # not a failure: there is nothing to delete and nothing to protect.
+        # Hard-failing here made every restored body unable to continue —
+        # a restored mirror does not carry the predecessor its pointer retired,
+        # so the first commit after a restore raised FileNotFoundError and
+        # poisoned the runtime.  Measured 2026-08-06 on her own backups: the
+        # body restored and reported correctly, then could never learn again.
+        # A backup that cannot continue is not a backup.
         path = self._path(key)
-        body = path.read_bytes()
+        try:
+            body = path.read_bytes()
+        except FileNotFoundError:
+            return
         if len(body) != byte_count or hashlib.sha256(body).hexdigest() != sha256:
             raise NativeOrganismBinaryStoreError(
                 "native object mirror retirement changed"
             )
-        path.unlink()
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            return
 
 
 class _S3ObjectStore:
@@ -1005,7 +2932,21 @@ class _S3ObjectStore:
         yield from response["Body"].iter_chunks(chunk_size=1024 * 1024)
 
     def delete_if_exact(self, key: str, *, byte_count: int, sha256: str) -> None:
-        existing = self.client.head_object(Bucket=self.bucket, Key=key)
+        # Same law as the local mirror: an already-absent predecessor is
+        # retired, not an error.
+        try:
+            existing = self.client.head_object(Bucket=self.bucket, Key=key)
+        except Exception as error:  # noqa: BLE001 - botocore error shape varies
+            response = getattr(error, "response", None)
+            status = None
+            if isinstance(response, dict):
+                status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+                code = response.get("Error", {}).get("Code")
+                if code in ("404", "NoSuchKey", "NotFound"):
+                    return
+            if status == 404:
+                return
+            raise
         if (
             existing.get("ContentLength") != byte_count
             or existing.get("Metadata", {}).get("sha256") != sha256
@@ -1013,7 +2954,17 @@ class _S3ObjectStore:
             raise NativeOrganismBinaryStoreError(
                 "native remote predecessor changed"
             )
-        self.client.delete_object(Bucket=self.bucket, Key=key)
+        # This bucket is versioned. A key-only DELETE would create a delete
+        # marker and retain the full body as a noncurrent version, turning a
+        # continuous organism into unbounded remote storage. Permanently
+        # retire the exact version that was just read and verified. On an
+        # unversioned bucket there is no version identifier, so the ordinary
+        # exact-key deletion remains correct.
+        version_id = existing.get("VersionId")
+        request = {"Bucket": self.bucket, "Key": key}
+        if version_id is not None:
+            request["VersionId"] = version_id
+        self.client.delete_object(**request)
 
 
 def _object_store() -> Any:
@@ -1023,10 +2974,6 @@ def _object_store() -> Any:
 
         return _S3ObjectStore(bucket=bucket, client=boto3.client("s3"))
     return _LocalDirectoryObjectStore(STATE_ROOT / LOCAL_OBJECT_MIRROR_DIRECTORY)
-
-
-def _hippocampal_cold_root() -> Path:
-    return STATE_ROOT / HIPPOCAMPAL_COLD_DIRECTORY
 
 
 def _card_surface_substream(
@@ -1052,6 +2999,529 @@ def _card_surface_substream(
     )
 
 
+def _contact_topology_index(row: int, column: int) -> int:
+    """This contact site's own place in the declared tactile topology.
+
+    Row-major over the contact sheet, exactly as the retina indexes its own
+    sheet.  Distinct for every (row, column) pair, which is all the ratified
+    Cantor territory law needs to give each site its own membrane capacitance.
+    The touch sense layer holds NONE of this body's existing places, so these
+    indices can start at zero and still be new ground.
+    """
+
+    return row * CONTACT_SHEET_COLUMNS + column
+
+
+def _contact_site_substream(
+    row: int,
+    column: int,
+    source_times: tuple[Fraction, ...],
+    occupancy: tuple[float, ...],
+) -> NativeSensorySubstreamInput:
+    """One contact site of the sheet.
+
+    The transported number is the fraction of THIS site's own declared patch
+    that the touched object's footprint covers over the retained instant.  It
+    is derived exactly (Fraction arithmetic over the object's declared integer
+    geometry) and handed to the transport as binary64 at the same boundary the
+    retina's luminance crosses; the receptor law downstream is exact-rational.
+    """
+
+    return NativeSensorySubstreamInput(
+        sense=PhysicalSense.TOUCH,
+        sensor_id=CONTACT_SHEET_SENSOR_ID,
+        substream_id=f"contact-row{row}-col{column}",
+        topology_index=_contact_topology_index(row, column),
+        coordinates=(
+            NativeAxisCoordinate("row", str(row)),
+            NativeAxisCoordinate("column", str(column)),
+        ),
+        physical_quantity=CONTACT_QUANTITY,
+        physical_unit=CONTACT_UNIT,
+        source_times=source_times,
+        normalized_signal=occupancy,
+        phase_turns=(Fraction(0),) * len(occupancy),
+    )
+
+
+def _segment_overlap(low: Fraction, high: Fraction, index: int) -> Fraction:
+    """Exact length of ``[low, high]`` inside the unit patch ``[index, index+1]``."""
+
+    left = max(low, Fraction(index))
+    right = min(high, Fraction(index + 1))
+    return right - left if right > left else Fraction(0)
+
+
+def _declared_footprint_occupancy(
+    raster_width: int,
+    raster_height: int,
+) -> tuple[Fraction, ...]:
+    """Exact per-site contact occupancy of one flat object on the sheet.
+
+    THE ONLY THING READ FROM THE OBJECT IS ITS OWN DECLARED GEOMETRY: the two
+    integers its raster header declares.  Not one pixel of its picture is
+    consulted, and no texture map is invented.  Ink is flat; what touch
+    honestly reports about a flat rectangle is its OUTLINE.
+
+    The placement is forced, not chosen:
+
+      * SCALE.  Neither the object nor the sheet declares a physical size
+        anywhere in the manifest, so any particular scale would be an invented
+        number.  The unique scale-free canonical placement is the MAXIMAL
+        aspect-preserving inscription — the object grown until it meets the
+        sheet's boundary.  Only the object's ASPECT survives, which is exactly
+        the part of its geometry that IS declared.
+      * POSITION.  The sheet declares no origin, no handedness and no
+        preferred direction, so the only placement invariant under its own
+        reflection symmetries is CENTRED.  Any offset would be an invented
+        number.
+
+    Occupancy is then the exact area of (footprint ∩ site patch) divided by the
+    patch area, which is 1.  This is the same area-averaging reduction the
+    retina applies to luminance, done in exact rationals because a rectangle's
+    edges are rational and nothing here needs resampling.
+
+    Returned row-major, one value per declared contact site, every one in
+    [0, 1].  Sites the object does not reach return exactly zero — "nothing
+    outside the card" is a physical report, not a missing port.
+    """
+
+    if raster_width <= 0 or raster_height <= 0:
+        raise ValueError("a tactile footprint requires positive declared geometry")
+    aspect = Fraction(raster_width, raster_height)
+    sheet_width = Fraction(CONTACT_SHEET_COLUMNS)
+    sheet_height = Fraction(CONTACT_SHEET_ROWS)
+    # Maximal aspect-preserving inscription: grow until the first boundary is
+    # met, whichever it is.
+    height = min(sheet_height, sheet_width / aspect)
+    width = height * aspect
+    left = (sheet_width - width) / 2
+    right = left + width
+    bottom = (sheet_height - height) / 2
+    top = bottom + height
+    return tuple(
+        _segment_overlap(left, right, column) * _segment_overlap(bottom, top, row)
+        for row in range(CONTACT_SHEET_ROWS)
+        for column in range(CONTACT_SHEET_COLUMNS)
+    )
+
+
+def _card_material() -> tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None]:
+    """The approved deck's own declared physical stock, as the card's chemistry.
+
+    Returns ``(None, None)`` where the manifest declares no stock or this body
+    has no chemoreceptors — a card that cannot be smelled is not a card with
+    no smell, it is a body with no nose, and the two must not look alike.
+    """
+
+    if not CHEMORECEPTION_AUTHORIZED:
+        return None, None
+    document = _manifest_document(
+        CURRICULUM_ROOT / "card_experience_manifest-v1.json",
+        "guala.external_tutor_card_experience_manifest.v1",
+    )
+    stock = document.get("physical_stock")
+    if not isinstance(stock, dict):
+        return None, None
+    return (
+        _declared_composition(stock.get("taste"), TASTE_CHANNELS, "card stock taste"),
+        _declared_composition(stock.get("smell"), SMELL_CHANNELS, "card stock smell"),
+    )
+
+
+def _card_tactile_occupancy(surface_path: Path) -> tuple[float, ...]:
+    """Per-site contact occupancy of one approved card, from its raster header.
+
+    The card's declared geometry is the two integers in its own raster header,
+    which the manifest pins by sha256.  Pillow reads the header only; no pixel
+    of the picture reaches this path, which is the point — a card's feel is its
+    outline, not its ink.
+    """
+
+    from PIL import Image
+
+    with Image.open(surface_path) as image:
+        width, height = image.size
+    return tuple(float(value) for value in _declared_footprint_occupancy(width, height))
+
+
+def _released_contact(frame_count: int) -> tuple[tuple[float, ...], ...]:
+    """No object against the sheet, at every declared contact site.
+
+    NO CONTACT is a lawful tactile state, not an absent sense: a zero occupancy
+    transduces exactly zero energy, delivers nothing, and erases nothing.  This
+    is the tactile twin of a genuinely dark card surface and of true silence.
+    """
+
+    return ((0.0,) * frame_count,) * CONTACT_SHEET_SITE_COUNT
+
+
+def _touch_ports(
+    source_times: tuple[Fraction, ...],
+    occupancy: tuple[float, ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """The mounted tactile roster for one hop, under the declared anatomy.
+
+    ``occupancy`` is that hop's per-site contact fraction, or ``None`` for a
+    released sheet (nothing is being touched).  UNAUTHORIZED the roster is
+    empty and this body declares no touch at all — which is the truth today.
+    """
+
+    if not TOUCH_RECEPTORS_AUTHORIZED:
+        return ()
+    held = occupancy if occupancy is not None else (0.0,) * CONTACT_SHEET_SITE_COUNT
+    if len(held) != CONTACT_SHEET_SITE_COUNT:
+        raise ValueError("contact occupancy count differs from the declared anatomy")
+    frame_count = len(source_times)
+    return tuple(
+        _contact_site_substream(
+            row,
+            column,
+            source_times,
+            (held[_contact_topology_index(row, column)],) * frame_count,
+        )
+        for row in range(CONTACT_SHEET_ROWS)
+        for column in range(CONTACT_SHEET_COLUMNS)
+    )
+
+
+def _touch_occurrence_port_indices() -> tuple[int, ...]:
+    """The lesson-roster port indices of the whole contact sheet.
+
+    Appended AFTER every port currently declared — the sight sites, then the
+    retained legacy ear places and any cochlea — so a living body grows the
+    sheet BESIDE the places it already holds instead of re-binding them.
+    """
+
+    start = CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT
+    return tuple(range(start, start + CONTACT_SHEET_SITE_COUNT))
+
+
+def _displacement_ports(
+    source_times: tuple[Fraction, ...],
+    displacement: tuple[Fraction, ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """The mounted displacement roster for one hop.
+
+    ``displacement`` is how her body ACTUALLY moved over this hop, as exact
+    fractions of the declared span, or ``None`` for a body that did not move
+    — which is a lawful state (standing still is not the absence of balance)
+    and never an invented motion.
+    """
+
+    if not VESTIBULAR_AUTHORIZED:
+        return ()
+    held = (
+        displacement
+        if displacement is not None
+        else (Fraction(0),) * DISPLACEMENT_SITE_COUNT
+    )
+    if len(held) != DISPLACEMENT_SITE_COUNT:
+        raise ValueError("displacement count differs from the declared anatomy")
+    for channel, value in zip(DISPLACEMENT_CHANNELS, held):
+        if not Fraction(-1) <= value <= Fraction(1):
+            raise ValueError(
+                f"displacement channel {channel!r} is {float(value)} of its "
+                "declared span, which is outside what a receptor can "
+                "honestly transduce"
+            )
+    frame_count = len(source_times)
+    return tuple(
+        NativeSensorySubstreamInput(
+            sense=PhysicalSense.BODY,
+            sensor_id=DISPLACEMENT_SENSOR_ID,
+            substream_id=f"displacement-{channel}",
+            # Appended AFTER the interoceptive sites so a living body grows
+            # this field BESIDE the places it already holds.
+            topology_index=INTEROCEPTION_PORT_COUNT + index,
+            coordinates=(
+                NativeAxisCoordinate("somatic-axis", channel),
+                NativeAxisCoordinate("somatic-frame", "egocentric-before-after"),
+            ),
+            physical_quantity=DISPLACEMENT_QUANTITY,
+            physical_unit=DISPLACEMENT_UNIT,
+            source_times=source_times,
+            normalized_signal=(float(value),) * frame_count,
+            phase_turns=(Fraction(0),) * frame_count,
+        )
+        for index, (channel, value) in enumerate(zip(DISPLACEMENT_CHANNELS, held))
+    )
+
+
+def _displacement_occurrences(
+    source_times: tuple[Fraction, ...],
+    frame_count: int,
+) -> tuple[Any, ...]:
+    """The displacement occurrence of one hop: a body moves as one body."""
+
+    if not VESTIBULAR_AUTHORIZED:
+        return ()
+    start = (
+        CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT + TOUCH_PORT_COUNT
+        + INTEROCEPTION_PORT_COUNT + TASTE_PORT_COUNT + SMELL_PORT_COUNT
+    )
+    return (
+        _occurrence(
+            tuple(range(start, start + DISPLACEMENT_SITE_COUNT)),
+            source_times,
+            frame_count,
+        ),
+    )
+
+
+def _declared_composition(
+    value: object,
+    channels: tuple[str, ...],
+    label: str,
+) -> tuple[Fraction, ...]:
+    """One authored material composition, as exact fractions of saturation.
+
+    Authored by whoever offers the material, exactly as an approved card's
+    surface is authored — and refused rather than clamped when it states a
+    concentration a receptor cannot honestly transduce.
+    """
+
+    if value is None:
+        return (Fraction(0),) * len(channels)
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} composition must be a mapping of channels")
+    unknown = set(value) - set(channels)
+    if unknown:
+        raise ValueError(
+            f"{label} composition declares channels this body has no "
+            f"receptor for: {', '.join(sorted(unknown))}"
+        )
+    held = []
+    for channel in channels:
+        raw = value.get(channel, 0)
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise ValueError(f"{label} channel {channel!r} is not a number")
+        concentration = Fraction(raw).limit_denominator(1_000_000)
+        if not Fraction(0) <= concentration <= Fraction(1):
+            raise ValueError(
+                f"{label} channel {channel!r} is {float(concentration)}, "
+                "outside the saturating range a receptor can transduce"
+            )
+        held.append(concentration)
+    return tuple(held)
+
+
+def _chemoreceptive_ports(
+    sense: Any,
+    sensor_id: str,
+    quantity: str,
+    channels: tuple[str, ...],
+    source_times: tuple[Fraction, ...],
+    composition: tuple[Fraction, ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """One chemoreceptive roster for one hop.
+
+    ``composition`` is that hop's per-channel concentration, or ``None`` for
+    nothing present — which is a lawful state, not an absent sense, exactly
+    as darkness and silence are.
+    """
+
+    if not CHEMORECEPTION_AUTHORIZED:
+        return ()
+    held = composition if composition is not None else (Fraction(0),) * len(channels)
+    if len(held) != len(channels):
+        raise ValueError("declared composition differs from the declared anatomy")
+    frame_count = len(source_times)
+    return tuple(
+        NativeSensorySubstreamInput(
+            sense=sense,
+            sensor_id=sensor_id,
+            substream_id=f"{sensor_id}-{channel}",
+            topology_index=index,
+            coordinates=(
+                NativeAxisCoordinate("chemical-channel", channel),
+                NativeAxisCoordinate("chemoreceptive-range", sensor_id),
+            ),
+            physical_quantity=quantity,
+            physical_unit=CHEMICAL_UNIT,
+            source_times=source_times,
+            normalized_signal=(float(value),) * frame_count,
+            phase_turns=(Fraction(0),) * frame_count,
+        )
+        for index, (channel, value) in enumerate(zip(channels, held))
+    )
+
+
+def _taste_ports(
+    source_times: tuple[Fraction, ...],
+    composition: tuple[Fraction, ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    return _chemoreceptive_ports(
+        PhysicalSense.TASTE, TASTE_SENSOR_ID, TASTE_QUANTITY,
+        TASTE_CHANNELS, source_times, composition,
+    )
+
+
+def _smell_ports(
+    source_times: tuple[Fraction, ...],
+    composition: tuple[Fraction, ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    return _chemoreceptive_ports(
+        PhysicalSense.SMELL, SMELL_SENSOR_ID, SMELL_QUANTITY,
+        SMELL_CHANNELS, source_times, composition,
+    )
+
+
+def _chemoreceptive_occurrences(
+    source_times: tuple[Fraction, ...],
+    frame_count: int,
+) -> tuple[Any, ...]:
+    """The two chemoreceptive occurrences of one hop, under the declared anatomy."""
+
+    if not CHEMORECEPTION_AUTHORIZED:
+        return ()
+    start = (
+        CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT + TOUCH_PORT_COUNT
+        + INTEROCEPTION_PORT_COUNT
+    )
+    taste = tuple(range(start, start + TASTE_SITE_COUNT))
+    smell = tuple(range(start + TASTE_SITE_COUNT,
+                        start + TASTE_SITE_COUNT + SMELL_SITE_COUNT))
+    return (
+        _occurrence(taste, source_times, frame_count),
+        _occurrence(smell, source_times, frame_count),
+    )
+
+
+def _touch_occurrences(
+    source_times: tuple[Fraction, ...],
+    frame_count: int,
+) -> tuple[Any, ...]:
+    """The tactile occurrence of one hop, under the declared anatomy.
+
+    One occurrence for the whole sheet: it is one continuous body surface, and
+    a retained original must be connected through contacts that were physically
+    active, which one chained sheet is.
+    """
+
+    if not TOUCH_RECEPTORS_AUTHORIZED:
+        return ()
+    return (
+        _occurrence(_touch_occurrence_port_indices(), source_times, frame_count),
+    )
+
+
+def _cochlear_topology_index(ear_index: int, channel_index: int) -> int:
+    """This cochlear site's own place in the declared auditory topology.
+
+    Distinct for every (ear, band) pair, which is all the ratified Cantor
+    territory law needs to give each site its own membrane capacitance.
+    """
+
+    return (
+        LEGACY_EAR_PORT_COUNT
+        + ear_index * COCHLEAR_CHANNELS_PER_EAR
+        + channel_index
+    )
+
+
+def _cochlear_band_substream(
+    ear_index: int,
+    channel_index: int,
+    source_times: tuple[Fraction, ...],
+    band_signal: tuple[float, ...],
+) -> NativeSensorySubstreamInput:
+    """One tonotopic receptor site of one cochlea.
+
+    The transported number is that band's normalized root-mean-square pressure
+    over the retained instant.  Squaring it (which the auditory receptor law
+    does) gives the band's mean-square pressure, which is exactly the quantity
+    acoustic intensity `I = <p^2>/Z` is built from, so the place decomposition
+    lives here in the sensor layer — where the camera's luminance extraction
+    already lives — and the receptor law downstream stays exact-rational.
+    """
+
+    channel = COCHLEAR_CHANNELS[channel_index]
+    return NativeSensorySubstreamInput(
+        sense=PhysicalSense.SOUND,
+        sensor_id=EAR_SENSOR_ID,
+        substream_id=f"cochlea-{ear_index}-band-{channel_index:02d}",
+        topology_index=_cochlear_topology_index(ear_index, channel_index),
+        coordinates=(
+            NativeAxisCoordinate("ear", str(ear_index)),
+            NativeAxisCoordinate("cochlear-band", str(channel_index)),
+            NativeAxisCoordinate(
+                "centre-frequency-millihertz",
+                str(int(round(channel.centre_hz * 1000.0))),
+            ),
+        ),
+        physical_quantity=COCHLEAR_QUANTITY,
+        physical_unit=COCHLEAR_UNIT,
+        source_times=source_times,
+        normalized_signal=band_signal,
+        phase_turns=(Fraction(0),) * len(band_signal),
+    )
+
+
+def _cochlear_ports(
+    source_times: tuple[Fraction, ...],
+    bands: tuple[tuple[float, ...], ...],
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """Both cochleae, tonotopic site by tonotopic site, in topology order.
+
+    ``bands`` carries one signal per cochlear channel of one ear; both ears are
+    immersed in the SAME ambient pressure field (no head geometry is declared,
+    so no interaural difference is claimed) and therefore receive the same band
+    signals.  Their sites are still physically distinct because their declared
+    places are.
+    """
+
+    if len(bands) != COCHLEAR_CHANNELS_PER_EAR:
+        raise ValueError("cochlear band count differs from the declared anatomy")
+    return tuple(
+        _cochlear_band_substream(
+            ear_index, channel_index, source_times, bands[channel_index]
+        )
+        for ear_index in range(EAR_COUNT)
+        for channel_index in range(COCHLEAR_CHANNELS_PER_EAR)
+    )
+
+
+def _silent_cochlear_bands(frame_count: int) -> tuple[tuple[float, ...], ...]:
+    """True silence at every tonotopic place.
+
+    Silence is a lawful acoustic state, not an absent sense: a zero band RMS
+    squares to exactly zero transduced energy, delivers nothing, and erases
+    nothing.  This is the acoustic twin of a genuinely dark card surface.
+    """
+
+    return ((0.0,) * frame_count,) * COCHLEAR_CHANNELS_PER_EAR
+
+
+def _cochlear_occurrence_port_indices(ear_index: int) -> tuple[int, ...]:
+    """The lesson-roster port indices of one whole cochlea.
+
+    Each cochlea is its own occurrence and therefore its own reached cohort:
+    two ears are two separate mechanical structures with no declared coupling
+    between them, and a retained original must be connected through contacts
+    that were physically active, which a single tonotopic chain per ear is and
+    a union of two unconnected chains is not.
+    """
+
+    start = (
+        CARD_SURFACE_PORT_COUNT
+        + LEGACY_EAR_PORT_COUNT
+        + ear_index * COCHLEAR_CHANNELS_PER_EAR
+    )
+    return tuple(range(start, start + COCHLEAR_CHANNELS_PER_EAR))
+
+
+# ---------------------------------------------------------------------------
+# The UNAUTHORIZED (legacy) ear roster
+#
+# Verbatim, byte for byte, the ear declaration the living organism receives
+# today: two co-located pressure ports immersed in one ambient field, carrying
+# the decimated pressure waveform under a declared quantity no receptor law
+# recognizes.  It is kept whole rather than approximated, because the whole
+# point of the gate is that a deploy changes NOTHING about her episodes until
+# growing ears is explicitly authorized.
+
+
 def _ear_pressure_substream(
     ear_index: int,
     source_times: tuple[Fraction, ...],
@@ -1071,7 +3541,7 @@ def _ear_pressure_substream(
     )
 
 
-def _ear_ports(
+def _legacy_ear_ports(
     source_times: tuple[Fraction, ...],
     signal: tuple[float, ...],
 ) -> tuple[NativeSensorySubstreamInput, ...]:
@@ -1079,7 +3549,66 @@ def _ear_ports(
 
     return tuple(
         _ear_pressure_substream(ear_index, source_times, signal)
-        for ear_index in range(EAR_PORT_COUNT)
+        for ear_index in range(LEGACY_EAR_PORT_COUNT)
+    )
+
+
+def _sound_ports(
+    legacy_times: tuple[Fraction, ...],
+    legacy_signal: tuple[float, ...],
+    cochlear: tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """The mounted acoustic roster for one hop, under the declared anatomy.
+
+    ``legacy_*`` is the decimated ambient pressure the two legacy ear ports
+    carry; ``cochlear`` is that hop's tonotopic observation, or ``None`` for
+    true silence on the surface's own clock.  Exactly one of the two rosters is
+    real for a given process, decided once at import by the authorization gate.
+    """
+
+    legacy = _legacy_ear_ports(legacy_times, legacy_signal)
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return legacy
+    cochlear_times, cochlear_bands = (
+        cochlear
+        if cochlear is not None
+        else (legacy_times, _silent_cochlear_bands(len(legacy_times)))
+    )
+    # The retained legacy places come first, exactly where her body already
+    # holds them; the cochlea is appended beside them.
+    return legacy + _cochlear_ports(cochlear_times, cochlear_bands)
+
+
+def _sound_occurrences(
+    legacy_times: tuple[Fraction, ...],
+    legacy_frame_count: int,
+    cochlear_times: tuple[Fraction, ...] | None,
+) -> tuple[Any, ...]:
+    """The acoustic occurrences of one hop, under the declared anatomy.
+
+    Authorized: one exact acoustic occurrence per cochlea, because two ears are
+    two separate mechanical structures.  Unauthorized: the single combined
+    legacy ear occurrence, exactly as declared today.
+    """
+
+    legacy_occurrence = _occurrence(
+        tuple(
+            range(
+                CARD_SURFACE_PORT_COUNT,
+                CARD_SURFACE_PORT_COUNT + LEGACY_EAR_PORT_COUNT,
+            )
+        ),
+        legacy_times,
+        legacy_frame_count,
+    )
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return (legacy_occurrence,)
+    times = cochlear_times if cochlear_times is not None else legacy_times
+    return (legacy_occurrence,) + tuple(
+        _occurrence(
+            _cochlear_occurrence_port_indices(ear_index), times, len(times)
+        )
+        for ear_index in range(EAR_COUNT)
     )
 
 
@@ -1100,6 +3629,7 @@ def _occurrence(
     port_indices: tuple[int, ...],
     source_times: tuple[Fraction, ...],
     relevance_count: int,
+    groups: tuple[tuple[int, ...], ...] | None = None,
 ) -> NativeJointSourceOccurrenceInput:
     return NativeJointSourceOccurrenceInput(
         port_indices=port_indices,
@@ -1107,10 +3637,37 @@ def _occurrence(
         joint_intersample_profile_payload=(
             UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
         ),
-        groups=(tuple(range(len(port_indices))),),
+        groups=groups or (tuple(range(len(port_indices))),),
         joint_relevance_profile_payload=JOINT_RELEVANCE_PROFILE,
         joint_relevance=(Fraction(1),) * relevance_count,
     )
+
+
+def _lesson_port_groups() -> tuple[tuple[int, ...], ...]:
+    """The mounted anatomical structures inside one simultaneous sensorium."""
+
+    groups: list[tuple[int, ...]] = []
+    cursor = 0
+
+    def append_group(width: int) -> None:
+        nonlocal cursor
+        if width:
+            groups.append(tuple(range(cursor, cursor + width)))
+            cursor += width
+
+    append_group(CARD_SURFACE_PORT_COUNT)
+    append_group(LEGACY_EAR_PORT_COUNT)
+    if COCHLEAR_EARS_AUTHORIZED:
+        for _ in range(EAR_COUNT):
+            append_group(COCHLEAR_CHANNELS_PER_EAR)
+    append_group(TOUCH_PORT_COUNT)
+    append_group(INTEROCEPTION_PORT_COUNT)
+    append_group(TASTE_PORT_COUNT)
+    append_group(SMELL_PORT_COUNT)
+    append_group(DISPLACEMENT_PORT_COUNT)
+    if cursor != LESSON_PORT_COUNT:
+        raise ValueError("mounted lesson groups do not partition the sensorium")
+    return tuple(groups)
 
 
 def _declared_anatomy_episode() -> Any:
@@ -1134,36 +3691,193 @@ def _declared_anatomy_episode() -> Any:
     )
     observed = {
         PhysicalSense.SIGHT: sight_ports,
-        PhysicalSense.SOUND: _ear_ports(times, quiescent),
+        PhysicalSense.SOUND: _sound_ports(times, quiescent, None),
     }
+    touch_ports = _touch_ports(times, None)
+    if touch_ports:
+        observed[PhysicalSense.TOUCH] = touch_ports
+    taste_ports = _taste_ports(times, None)
+    if taste_ports:
+        observed[PhysicalSense.TASTE] = taste_ports
+    smell_ports = _smell_ports(times, None)
+    if smell_ports:
+        observed[PhysicalSense.SMELL] = smell_ports
+    displacement_ports = _displacement_ports(times, None)
+    if displacement_ports:
+        observed[PhysicalSense.BODY] = (
+            observed.get(PhysicalSense.BODY, ()) + displacement_ports
+        )
     return settle_native_joint_source_episode(
         assembly_id="guala-production-declared-anatomy",
         observed_substreams=observed,
         states=_sense_states(observed),
         occurrences=(
-            _occurrence(tuple(range(LESSON_PORT_COUNT)), times, len(times)),
+            _occurrence(
+                tuple(range(LESSON_PORT_COUNT)),
+                times,
+                len(times),
+                _lesson_port_groups(),
+            ),
         ),
     )
+
+
+def _declared_retinal_neighbours() -> tuple[tuple[tuple[int, int], tuple[int, int]], ...]:
+    """Every neighbouring pair of the app's OWN declared card surface.
+
+    The surface is declared as ``CARD_SURFACE_ROWS`` by
+    ``CARD_SURFACE_COLUMNS`` receptor sites, each carrying its own declared
+    ``row``/``column`` coordinates.  Two sites neighbour each other when they
+    share a row and sit in adjacent columns, or share a column and sit in
+    adjacent rows.  That is read straight off the declaration; nothing here is
+    chosen, tuned, or inferred, and the pair set changes only if the declared
+    layout does.
+
+    Horizontal pairs come first and vertical pairs second so that a body born
+    before the vertical pairs existed grows into this same set by APPENDING
+    them, in this order, with its existing contacts untouched.
+    """
+
+    horizontal = tuple(
+        ((row, column), (row, column + 1))
+        for row in range(CARD_SURFACE_ROWS)
+        for column in range(CARD_SURFACE_COLUMNS - 1)
+    )
+    vertical = tuple(
+        ((row, column), (row + 1, column))
+        for row in range(CARD_SURFACE_ROWS - 1)
+        for column in range(CARD_SURFACE_COLUMNS)
+    )
+    return horizontal + vertical
+
+
+def _declared_retinal_vertical_neighbours() -> (
+    tuple[tuple[tuple[int, int], tuple[int, int]], ...]
+):
+    """The column-wise half of the declared neighbourhood."""
+
+    return tuple(
+        pair
+        for pair in _declared_retinal_neighbours()
+        if pair[0][1] == pair[1][1]
+    )
+
+
+def _card_surface_substream_id(row: int, column: int) -> str:
+    """The declared receptor name of one card-surface site."""
+
+    return f"card-row{row}-col{column}"
 
 
 def _authored_growth_dna() -> tuple[Any, list[tuple[list[int], list[tuple[int, int, int]]]]]:
     """Authored growth DNA over the app's declared roster.
 
-    One seed group chains the 27 retinal card-surface receptor sites; under
-    the ratified retinal receptor law only an exact optical occurrence can
-    genesis a cohort, so the seed's sites are exactly that first reached
-    cohort.  The ear sites carry no authored contacts; they join the grown
-    cohort later by reached extension.  Every authored contact is the
-    ratified authored 500 pS conductance, mirroring the ratified chain-seed
-    growth fixtures.
+    One seed group per declared receptor structure, because a receptor law can
+    genesis a cohort only from an occurrence it wholly governs.  With cochlear
+    ears AUTHORIZED this app declares three structures: the card surface, and
+    one cochlea per ear.  UNAUTHORIZED it declares one — the card surface —
+    exactly as the living organism was seeded: the two legacy ear sites carry
+    no authored contacts and no receptor law governs them, so they can never
+    genesis a cohort of their own.
+
+    * THE RETINAL GROUP IS A SHEET, NOT A CHAIN.  Its contacts are the
+      declared surface's OWN four-neighbourhood (``_declared_retinal_neighbours``):
+      24 within-row pairs and 18 within-column pairs, 42 in total.  The retired
+      authorship chained the 27 sites by storage index alone, which authored
+      the 24 true within-row contacts plus TWO contacts between sites at
+      opposite ends of the surface — the row wraps ``(0,8)-(1,0)`` and
+      ``(1,8)-(2,0)`` — and no within-column contact at all.  An eye whose
+      only adjacency runs along rows cannot tell up from down; a body born
+      from this authorship has no false adjacency and does have both.  Bodies
+      born under the retired authorship keep their two row-wrap contacts,
+      because contacts are appended and never removed (see
+      ``_retinal_lattice_growth_contacts``).
+    * Each cochlear group chains its 16 tonotopic sites in TONOTOPIC order.
+      The chain is anatomy, not convenience: the basilar membrane is one
+      continuous mechanical structure, so neighbouring places are coupled, and
+      distant places are not.  The two cochleae are NOT chained to each other —
+      two ears are two separate structures and no coupling between them is
+      declared (no head geometry exists to declare one).
+    * The chain is also what makes a structure able to REMEMBER: participation
+      retention requires at least three changed members connected through
+      contacts that were physically active, and an unchained cohort would
+      satisfy the count and fail the connectivity forever.
+
+    Every authored contact is the ratified authored 500 pS conductance,
+    mirroring the ratified chain-seed growth fixtures.
     """
 
     episode = _declared_anatomy_episode()
-    contacts = [
-        (index - 1, index, AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS)
-        for index in range(1, CARD_SURFACE_PORT_COUNT)
+    retinal_contacts = [
+        (
+            left_row * CARD_SURFACE_COLUMNS + left_column,
+            right_row * CARD_SURFACE_COLUMNS + right_column,
+            AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS,
+        )
+        for (left_row, left_column), (right_row, right_column) in (
+            _declared_retinal_neighbours()
+        )
     ]
-    return (episode, [(list(range(CARD_SURFACE_PORT_COUNT)), contacts)])
+    cochlear_contacts = [
+        (index - 1, index, AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS)
+        for index in range(1, COCHLEAR_CHANNELS_PER_EAR)
+    ]
+    seed_groups: list[tuple[list[int], list[tuple[int, int, int]]]] = [
+        (list(range(CARD_SURFACE_PORT_COUNT)), retinal_contacts)
+    ]
+    if COCHLEAR_EARS_AUTHORIZED:
+        for ear_index in range(EAR_COUNT):
+            seed_groups.append(
+                (
+                    list(_cochlear_occurrence_port_indices(ear_index)),
+                    list(cochlear_contacts),
+                )
+            )
+    if TOUCH_RECEPTORS_AUTHORIZED:
+        # The contact sheet chains its sites in the SAME row-major order the
+        # retina chains its own sheet.  The chain is anatomy, not convenience:
+        # a body surface is one continuous mechanical structure, so neighbouring
+        # places are coupled.  It is also what lets the sheet REMEMBER —
+        # participation retention requires at least three changed members
+        # connected through contacts that were physically active, and an
+        # unchained sheet would satisfy the count and fail the connectivity
+        # forever.  Every authored contact is the ratified authored 500 pS
+        # conductance, exactly as the retinal and cochlear chains are.
+        seed_groups.append(
+            (
+                list(_touch_occurrence_port_indices()),
+                [
+                    (index - 1, index, AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS)
+                    for index in range(1, CONTACT_SHEET_SITE_COUNT)
+                ],
+            )
+        )
+    return (episode, seed_groups)
+
+
+def _retinal_lattice_growth_contacts() -> list[tuple[str, str, str, str, int]]:
+    """The within-column contacts, authored for growth onto a living body.
+
+    A body born under the retired chain authorship carries every within-row
+    contact already and no within-column contact at all.  Growth therefore
+    authors exactly the vertical half of the declared neighbourhood, at the
+    same ratified 500 pS every existing contact carries, addressed by the
+    declared receptor names rather than by storage index so that no living
+    contact can be reordered or renumbered.
+    """
+
+    return [
+        (
+            CARD_SURFACE_SENSOR_ID,
+            _card_surface_substream_id(left_row, left_column),
+            CARD_SURFACE_SENSOR_ID,
+            _card_surface_substream_id(right_row, right_column),
+            AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS,
+        )
+        for (left_row, left_column), (right_row, right_column) in (
+            _declared_retinal_vertical_neighbours()
+        )
+    ]
 
 
 def _genesis_identity() -> str:
@@ -1218,7 +3932,6 @@ def _commit_admitted_hop(
     evidence: ResidentPrepareEvidence = organism.prepare_admitted(
         episode,
         maximum_causal_intervals,
-        _hippocampal_cold_root(),
     )
     observed = organism.commit(evidence.token)
     return {
@@ -1226,6 +3939,9 @@ def _commit_admitted_hop(
         "cognitive_trace_count": observed.cognitive_trace_count,
         "complete_neuron_count": getattr(
             observed, "complete_neuron_count", 0
+        ),
+        "developmental_resting_neuron_count": getattr(
+            observed, "developmental_resting_neuron_count", 0
         ),
         "complete_neuron_fractal_count": (
             evidence.complete_neuron_fractal_count
@@ -1238,6 +3954,49 @@ def _commit_admitted_hop(
         "organism_tick": observed.organism_tick,
         "partial_cue_reassembly_count": (
             observed.partial_cue_reassembly_count
+        ),
+        "endogenous_partial_cue_reassembly_count": (
+            observed.endogenous_partial_cue_reassembly_count
+        ),
+        "physically_transitioned_neuron_count": (
+            evidence.physically_transitioned_neuron_count
+        ),
+        "recurrent_complete_neuron_fractal_count": (
+            evidence.recurrent_complete_neuron_fractal_count
+        ),
+        "state_sha256": observed.state_sha256,
+    }
+
+
+def _commit_vestibular_tick(
+    organism: Any,
+    predecessor_heading_millidegrees: int,
+    signed_body_motion_millidegrees: int,
+) -> dict[str, Any]:
+    """Commit one exact native 1 ms body-and-balance interval in memory."""
+
+    evidence: ResidentPrepareEvidence = organism.prepare_vestibular_tick(
+        predecessor_heading_millidegrees,
+        signed_body_motion_millidegrees,
+    )
+    observed = organism.commit(evidence.token)
+    return {
+        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+        "cognitive_trace_count": observed.cognitive_trace_count,
+        "complete_neuron_count": observed.complete_neuron_count,
+        "developmental_resting_neuron_count": (
+            observed.developmental_resting_neuron_count
+        ),
+        "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
+        "current_cohort_evaluation_count": (
+            evidence.current_cohort_evaluation_count
+        ),
+        "dsf_delivery_count": evidence.dsf_delivery_count,
+        "formation_activation_count": observed.formation_activation_count,
+        "organism_tick": observed.organism_tick,
+        "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
+        "endogenous_partial_cue_reassembly_count": (
+            observed.endogenous_partial_cue_reassembly_count
         ),
         "physically_transitioned_neuron_count": (
             evidence.physically_transitioned_neuron_count
@@ -1292,6 +4051,8 @@ def _publish_committed_organism(
 def _perform_admitted_intake(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
+    *,
+    vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
 ) -> dict[str, Any]:
     """Commit every hop in-memory, then persist and publish ONCE.
 
@@ -1313,13 +4074,23 @@ def _perform_admitted_intake(
     the in-process organism identical.
     """
 
-    with _transition_lock:
-        return _perform_admitted_intake_locked(episodes, intake)
+    _begin_external_intake()
+    try:
+        with _transition_lock:
+            return _perform_admitted_intake_locked(
+                episodes,
+                intake,
+                vestibular_yaw=vestibular_yaw,
+            )
+    finally:
+        _end_external_intake()
 
 
 def _perform_admitted_intake_locked(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
+    *,
+    vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
@@ -1329,6 +4100,7 @@ def _perform_admitted_intake_locked(
         "complete_neuron_fractal_count": 0,
         "current_cohort_evaluation_count": 0,
         "dsf_delivery_count": 0,
+        "endogenous_partial_cue_reassembly_count": 0,
         "partial_cue_reassembly_count": 0,
         "physically_transitioned_neuron_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
@@ -1338,8 +4110,21 @@ def _perform_admitted_intake_locked(
     predecessor = restored.pointer
     last_hop: dict[str, Any] | None = None
     committed_hop_count = 0
+    committed_vestibular_tick_count = 0
     intake_error: Exception | None = None
     try:
+        if vestibular_yaw is not None:
+            heading, signed_steps = vestibular_yaw
+            for signed_step in signed_steps:
+                last_hop = _commit_vestibular_tick(
+                    organism,
+                    heading,
+                    signed_step,
+                )
+                heading = (heading + signed_step) % 360_000
+                committed_vestibular_tick_count += 1
+                for key in totals:
+                    totals[key] += last_hop[key]
         for episode, admissions in episodes:
             last_hop = _commit_admitted_hop(
                 organism, episode, admissions
@@ -1362,17 +4147,26 @@ def _perform_admitted_intake_locked(
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
+        "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
         "predecessor_state_sha256": predecessor.state_sha256,
         "totals": dict(totals),
     }
     _refresh_public_observation_cache()
     if intake_error is not None:
-        raise intake_error
+        # 2026-08-07 truth repair: this refusal follows hops that already
+        # COMMITTED and PERSISTED.  A reason silent about that invites the
+        # double-teach hazard (client re-sends, she experiences it twice).
+        raise type(intake_error)(
+            f"{intake_error} [{committed_hop_count} hop(s) of this "
+            "experience already committed and persisted before the "
+            "refusal — do not re-send]"
+        )
     return {
         "accepted": True,
         "ok": True,
         "hop_count": committed_hop_count,
+        "vestibular_tick_count": committed_vestibular_tick_count,
         "observation": dict(_last_transition_evidence),
         "persisted": {
             "organism_tick": published.pointer.organism_tick,
@@ -1386,13 +4180,28 @@ def _perform_admitted_intake_locked(
     }
 
 
-def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
-    """Commit one authored nutrition intake, then persist and publish ONCE.
+RETINAL_LATTICE_AUTHORIZATION_ENV = "GUALA_AUTHORIZE_RETINAL_LATTICE_GROWTH"
 
-    Same durability contract as an admitted lesson: the intake advances only
-    the in-process organism until the single persist, the public observation
+
+def _retinal_lattice_authorized() -> bool:
+    """Growth is a DELIBERATE authorized act, never a deploy side effect."""
+
+    value = os.environ.get(RETINAL_LATTICE_AUTHORIZATION_ENV, "").strip().lower()
+    return value in ("1", "true", "on", "yes")
+
+
+def _perform_retinal_lattice_growth() -> dict[str, Any]:
+    """Author the declared within-column contacts onto the living body.
+
+    Same durability contract as a feed: the growth advances only the
+    in-process organism until the single persist, the public observation
     cache is refreshed only after the persist succeeds, and a persist failure
     poisons the runtime (503) so no surface ever reports unpersisted state.
+
+    The body itself enforces the physics: contacts are appended at the end,
+    every existing contact keeps its index, endpoints, conductance and
+    retained carrier phase, and a pair that is already contacted is refused
+    rather than authored twice.
     """
 
     global _restored, _last_transition_evidence
@@ -1401,8 +4210,12 @@ def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
         restored, admission = _runtime()
         organism = restored.organism
         predecessor = restored.pointer
-        evidence = organism.prepare_nutrition(energy_quanta)
+        contacts_before = organism.observe_cohort_contacts()
+        evidence = organism.prepare_authored_contacts(
+            _retinal_lattice_growth_contacts()
+        )
         observed = organism.commit(evidence.token)
+        contacts_after = organism.observe_cohort_contacts()
         published = _publish_committed_organism(
             organism, admission, predecessor.state_sha256
         )
@@ -1413,12 +4226,18 @@ def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
             "cognitive_mosaic_count": observed.cognitive_mosaic_count,
             "cognitive_trace_count": observed.cognitive_trace_count,
             "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
+            "developmental_resting_neuron_count": getattr(
+                observed, "developmental_resting_neuron_count", 0
+            ),
             "complete_neuron_fractal_count": 0,
             "current_cohort_evaluation_count": 0,
             "dsf_delivery_count": 0,
             "formation_activation_count": observed.formation_activation_count,
             "hop_count": 1,
-            "intake": f"nutrition:{energy_quanta}",
+            "intake": (
+                "authored-contact-growth:"
+                f"{evidence.authored_contact_count}"
+            ),
             "organism_tick": observed.organism_tick,
             "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
             "physically_transitioned_neuron_count": 0,
@@ -1431,21 +4250,14 @@ def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
         return {
             "accepted": True,
             "ok": True,
-            "declared_energy_quanta": energy_quanta,
-            "nutrition": {
-                "regenerated_fuel_quanta": evidence.regenerated_fuel_quanta,
-                "unabsorbed_waste_quanta": evidence.unabsorbed_waste_quanta,
-                "vented_heat_quanta": evidence.vented_heat_quanta,
+            "authored_contact_count": evidence.authored_contact_count,
+            "cohorts_before": [list(entry) for entry in contacts_before],
+            "cohorts_after": [list(entry) for entry in contacts_after],
+            "declared_surface": {
+                "columns": CARD_SURFACE_COLUMNS,
+                "rows": CARD_SURFACE_ROWS,
             },
-            "energy": {
-                "dissipated_quanta": evidence.dissipated_quanta,
-                "dissipation_capacity_quanta": evidence.dissipation_capacity_quanta,
-                "recovery_fuel_capacity_quanta": evidence.recovery_fuel_capacity_quanta,
-                "recovery_fuel_quanta": evidence.recovery_fuel_quanta,
-                "recovery_heat_quanta": evidence.recovery_heat_quanta,
-                "recovery_spent_quanta": evidence.recovery_spent_quanta,
-                "separated_elementary_charges": evidence.separated_elementary_charges,
-            },
+            "organism_tick": observed.organism_tick,
             "persisted": {
                 "organism_tick": published.pointer.organism_tick,
                 "predecessor_state_sha256": predecessor.state_sha256,
@@ -1453,7 +4265,7 @@ def _perform_nutrition_intake(energy_quanta: int) -> dict[str, Any]:
                 "state_bytes": published.pointer.state_bytes,
                 "state_sha256": published.pointer.state_sha256,
             },
-            "schema": "guala.native_nutrition_intake_result.v1",
+            "schema": "guala.native_authored_contact_growth_result.v1",
         }
 
 
@@ -1462,67 +4274,202 @@ def _unattended_time_enabled() -> bool:
     return value not in ("0", "false", "off", "no")
 
 
-def _unattended_cadence_seconds() -> float:
-    raw = os.environ.get(UNATTENDED_CADENCE_ENV, "")
-    try:
-        value = float(raw)
-    except ValueError:
-        return float(UNATTENDED_CADENCE_SECONDS)
-    if value <= 0:
-        return float(UNATTENDED_CADENCE_SECONDS)
-    return value
-
-
 def _unattended_interval_episodes(
     interval_id: str,
-) -> list[tuple[Any, list[tuple[int, int]]]]:
-    """One genuinely dark, silent unattended interval as lawful hop episodes.
+) -> tuple[list[tuple[Any, list[tuple[int, int]]]], dict[str, Any]]:
+    """Sample one contiguous interval from the actual persistent world.
 
-    The exact construction of a lesson's ended hops: the whole mounted
-    sensorium with TRUE samples on the shared 250 ms hop timebase, the dark
-    card surface declared as its own exact optical occurrence (so the retinal
-    cohort physically settles) and both ears as theirs with true 0.0 silence.
-    The authored maximum causal interval is the hop's own declared transport
-    duration.  Nothing here is a stimulus: every sample is the true dark,
-    silent environment the unattended organism is actually in.
+    Python performs physical transport only. It neither fabricates darkness
+    nor chooses what the organism attends to or does. The world is observed
+    once for this batch; each exact 250 ms hop carries that scene, the body's
+    current chemical surroundings, the virtual world's true quiet acoustic
+    field, standing-still body state, and current interoception.
     """
 
+    if not WORLD_AUTHORIZED:
+        raise RuntimeError("continuous experience requires the persistent world")
+    snapshot = _world().observation_snapshot()
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        physical_receptor_substreams,
+    )
+
+    world_streams = physical_receptor_substreams(
+        snapshot,
+        snapshot,
+        causal_transition=False,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+    )
+    luminance = _world_retinal_luminance(
+        world_streams.get(PhysicalSense.SIGHT, ())
+    )
+    tasted, smelled = _world_chemistry(snapshot, snapshot)
     times = _quiescent_hop_times()
     silence = (0.0,) * len(times)
-    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
-    return [
+    episodes = [
         (
             _whole_roster_hop_episode(
-                f"unattended-interval-{interval_id}-hop-{hop_index}",
+                f"continuous-environment-{interval_id}-hop-{hop_index}",
                 times,
-                dark,
+                luminance,
                 silence,
-                separate_optical_occurrence=True,
+                tasted=tasted,
+                smelled=smelled,
             ),
-            [(INTAKE_HOP_MILLISECONDS, 1000)] * 2,
+            [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
         for hop_index in range(UNATTENDED_HOPS_PER_INTERVAL)
     ]
+    return episodes, {
+        "external_luminance_present": any(level > 0.0 for level in luminance),
+        "external_smell_present": bool(smelled and any(value > 0 for value in smelled)),
+        "world_revision": snapshot.revision,
+    }
 
 
-_UNATTENDED_ENERGY_KEYS = (
-    "recovery_fuel_quanta",
-    "recovery_spent_quanta",
-    "recovery_heat_quanta",
-    "dissipated_quanta",
-    "separated_elementary_charges",
+# HER GAIT, carried between steps: the way she is facing, how strong the air
+# smelled on the last step, and whether her place refused the last one. This
+# is the whole of what a run-and-tumble organism needs to remember, and it is
+# deliberately not stored in her body — it is the state of a walk in progress,
+# not a memory, and when the process restarts she simply probes again.
+_taxis_heading_millidegrees = 0
+# The last two strengths the air carried, most recent last. Two is all a
+# run-and-tumble organism needs: it compares where it just got to against
+# where it just was, and nothing older than that ever matters.
+_taxis_intensity_history: list[Fraction] = []
+_taxis_previous_refused = False
+_taxis_last_room: str | None = None
+# The things she has actually had her hands on. Not a memory in her body —
+# her body's memory is her own business — but the walk's own record of what
+# has already been handled, so a room she has been round is not re-explored
+# hand-first forever.
+_things_she_has_touched: set[str] = set()
+# WHAT WALKING COSTS HER, MEASURED RATHER THAN ASSUMED: fuel quanta per metre,
+# taken from what her last step actually spent out of her own ledger. Until
+# she has taken one there is no price, and her stride is bounded by what she
+# can feel and what is in front of her instead.
+_taxis_fuel_per_metre: Fraction | None = None
+_last_self_moved: dict[str, Any] | None = None
+
+
+def _wall_clearance_ahead(
+    snapshot: Any, her: Any, heading_millidegrees: int
+) -> int | None:
+    """How far her CENTRE may travel along her heading before a wall stops it.
+
+    Her body is not a point: its centre may come no closer to a wall than her
+    own radius. A doorway is the exception — where an opening spans the line
+    she is walking, and it is wide enough for her width, her centre may carry
+    on through it into the next room, and the wall that then bounds her is
+    that room's far side.
+    """
+
+    quarter = (heading_millidegrees // 90_000) % 4
+    step_x, step_y = ((1, 0), (0, 1), (-1, 0), (0, -1))[quarter]
+    room = next(
+        (
+            region
+            for region in snapshot.regions
+            if region.bounds.minimum.x <= her.pose.position.x <= region.bounds.maximum.x
+            and region.bounds.minimum.y <= her.pose.position.y <= region.bounds.maximum.y
+        ),
+        None,
+    )
+    if room is None:
+        return None
+    seen: set[str] = set()
+    position = (her.pose.position.x, her.pose.position.y)
+    travelled = 0
+    while room is not None and room.region_id not in seen:
+        seen.add(room.region_id)
+        if step_x:
+            wall = (
+                room.bounds.maximum.x if step_x > 0 else room.bounds.minimum.x
+            )
+            distance = abs(wall - position[0])
+            across, axis = position[1], "x"
+        else:
+            wall = (
+                room.bounds.maximum.y if step_y > 0 else room.bounds.minimum.y
+            )
+            distance = abs(wall - position[1])
+            across, axis = position[0], "y"
+        doorway = next(
+            (
+                portal
+                for portal in snapshot.portals
+                if portal.axis == axis
+                and portal.plane_mm == wall
+                and room.region_id in portal.region_ids
+                and portal.aperture_min_mm + her.radius_mm
+                <= across
+                <= portal.aperture_max_mm - her.radius_mm
+            ),
+            None,
+        )
+        if doorway is None:
+            return max(0, travelled + distance - her.radius_mm)
+        # She fits through: her centre may cross the plane, and the next room
+        # is what bounds her after that.
+        travelled += distance
+        position = (
+            position[0] + step_x * distance,
+            position[1] + step_y * distance,
+        )
+        next_id = next(
+            (rid for rid in doorway.region_ids if rid != room.region_id), None
+        )
+        room = next(
+            (r for r in snapshot.regions if r.region_id == next_id), None
+        )
+    return travelled or None
+
+
+def _room_containing(snapshot: Any, position: Any) -> str | None:
+    """Which of her rooms a point is in, by her world's own bounds."""
+
+    for region in snapshot.regions:
+        if (
+            region.bounds.minimum.x <= position.x <= region.bounds.maximum.x
+            and region.bounds.minimum.y <= position.y <= region.bounds.maximum.y
+        ):
+            return region.region_id
+    return None
+
+
+def _her_own_step(
+    interval_id: str,
+) -> tuple[list[tuple[Any, list[tuple[int, int]]]] | None, dict[str, Any]]:
+    """Report that no native causal action mechanism is mounted."""
+
+    del interval_id
+    return None, {
+        "moved": False,
+        "why": (
+            "autonomous movement is unavailable: the retired Python fuel "
+            "deficit and stride controller was not organism cognition, and "
+            "no native causal action mechanism is mounted"
+        ),
+    }
+
+
+_UNATTENDED_EXACT_ENERGY_KEYS = (
+    "available_energy_zeptojoules",
+    "spent_energy_zeptojoules",
+    "thermal_energy_zeptojoules",
+    "dissipated_energy_zeptojoules",
 )
 
 
 def _attempt_unattended_interval() -> dict[str, Any]:
-    """Deliver one unattended interval if, and only if, the organism is free.
+    """Deliver one continuous world interval when the organism is free.
 
     The transition lock is taken NON-blocking: when any external intake (a
-    lesson, a feed) holds it, unattended time simply steps aside — it never
-    waits on, delays, or contends with an external cause.  An exhausted body
-    pauses unattended time honestly (rest reactions pay fuel).  Every
-    delivered interval commits its hops and persists exactly once, exactly
-    like a lesson, and the truth-coupled evidence records only measured
+    lesson) is waiting for or holds it, unattended time simply steps
+    aside — it never waits on, delays, or contends with an external cause. An
+    exhausted body pauses unattended time honestly (rest reactions pay fuel).
+    Every delivered interval commits its hops and persists exactly once,
+    exactly like a lesson, and the truth-coupled evidence records only measured
     change: energy-ledger movement, retained-state settling, or genuinely
     nothing.
     """
@@ -1536,6 +4483,16 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "reason": f"unattended time is disabled by {UNATTENDED_TIME_ENV}",
         }
         return _last_unattended_pause
+    if _external_intake_waiting.is_set():
+        _last_unattended_pause = {
+            "delivered": False,
+            "outcome": "deferred_external_intake_waiting",
+            "reason": (
+                "an external sensory experience is waiting for the organism; "
+                "unattended time yields the next atomic transition"
+            ),
+        }
+        return _last_unattended_pause
     if not _transition_lock.acquire(blocking=False):
         _last_unattended_pause = {
             "delivered": False,
@@ -1547,6 +4504,16 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         }
         return _last_unattended_pause
     try:
+        if _external_intake_waiting.is_set():
+            _last_unattended_pause = {
+                "delivered": False,
+                "outcome": "deferred_external_intake_waiting",
+                "reason": (
+                    "an external sensory experience began waiting while the "
+                    "organism borrow was acquired; unattended time yields"
+                ),
+            }
+            return _last_unattended_pause
         if _restored is None or _admission is None:
             _last_unattended_pause = {
                 "delivered": False,
@@ -1555,26 +4522,15 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             }
             return _last_unattended_pause
         before = _native_record()
-        if before["energy_exhausted"]:
-            _last_unattended_pause = {
-                "delivered": False,
-                "outcome": "paused_energy_exhausted",
-                "reason": (
-                    "the body is energy-exhausted; rest recovery reactions "
-                    "pay fuel, and a starving body must not burn residual "
-                    "fuel on unattended time — paused honestly until it is "
-                    "fed"
-                ),
-                "recovery_fuel_quanta": before["recovery_fuel_quanta"],
-            }
-            _refresh_public_observation_cache()
-            return _last_unattended_pause
+        # Energy exhaustion is native physical state, not a transport veto.
+        # The mounted powered-environment contact can settle only when an
+        # interval reaches native cohort physics; refusing here would prevent
+        # the exact recovery law from ever observing the exhausted body.
         interval_id = str(uuid.uuid4())
         try:
-            result = _perform_admitted_intake_locked(
-                _unattended_interval_episodes(interval_id),
-                f"unattended-interval:{interval_id}",
-            )
+            episodes, environment = _unattended_interval_episodes(interval_id)
+            intake_reason = f"continuous-environment:{interval_id}"
+            result = _perform_admitted_intake_locked(episodes, intake_reason)
             after = _native_record()
         except HTTPException as error:
             _last_unattended_pause = {
@@ -1591,8 +4547,8 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             }
             return _last_unattended_pause
         measured = {
-            f"{key}_delta": after[key] - before[key]
-            for key in _UNATTENDED_ENERGY_KEYS
+            key: {"before": before[key], "after": after[key]}
+            for key in _UNATTENDED_EXACT_ENERGY_KEYS
         }
         measured["physically_transitioned_neuron_count"] = result["totals"][
             "physically_transitioned_neuron_count"
@@ -1604,10 +4560,15 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "partial_cue_reassembly_count"
         ]
         energy_moved = any(
-            measured[f"{key}_delta"] for key in _UNATTENDED_ENERGY_KEYS
+            after[key] != before[key] for key in _UNATTENDED_EXACT_ENERGY_KEYS
         )
         settled = measured["physically_transitioned_neuron_count"] > 0
-        if energy_moved:
+        if settled and (
+            environment["external_luminance_present"]
+            or environment["external_smell_present"]
+        ):
+            category = "continuous_environment_observed"
+        elif energy_moved:
             category = "self_maintenance_observed"
         elif settled:
             category = "retained_state_settling_observed"
@@ -1615,14 +4576,13 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             category = "no_internal_cause"
         _last_unattended_evidence = {
             "category": category,
-            "declared_dark_milliseconds": (
-                UNATTENDED_HOPS_PER_INTERVAL * INTAKE_HOP_MILLISECONDS
-            ),
+            "declared_interval_milliseconds": CONTINUOUS_INTERVAL_MILLISECONDS,
             "hop_count": result["hop_count"],
-            "intake": f"unattended-interval:{interval_id}",
+            "intake": intake_reason,
             "measured": measured,
             "organism_tick": after["organism_tick"],
             "state_sha256": after["state_sha256"],
+            "world_revision": environment["world_revision"],
         }
         _last_unattended_pause = None
         _refresh_public_observation_cache()
@@ -1632,11 +4592,11 @@ def _attempt_unattended_interval() -> dict[str, Any]:
 
 
 def _unattended_time_loop() -> None:
-    """Grant unattended intervals at the transport cadence until stopped."""
+    """Continuously advance contiguous physical world intervals."""
 
     global _last_unattended_pause
 
-    while not _unattended_stop.wait(_unattended_cadence_seconds()):
+    while not _unattended_stop.is_set():
         try:
             _attempt_unattended_interval()
         except BaseException as error:
@@ -1645,6 +4605,14 @@ def _unattended_time_loop() -> None:
                 "outcome": "interval_error",
                 "reason": f"{type(error).__name__}: {error}",
             }
+        # Native settlement may take longer than the represented world
+        # interval.  Never treat that wall-clock overrun as a debt to replay:
+        # doing so starts the next expensive settlement immediately and turns
+        # either slow or refused physics into an unbounded catch-up loop.  One
+        # declared interval is the existing transport cadence and is also the
+        # minimum yield before another attempt.  This changes no organism time
+        # or physical state; it only bounds the Python transport loop.
+        _unattended_stop.wait(CONTINUOUS_INTERVAL_MILLISECONDS / 1000)
 
 
 def _start_unattended_time() -> None:
@@ -1669,26 +4637,49 @@ def _stop_unattended_time() -> None:
     _unattended_stop.set()
     thread = _unattended_thread
     if thread is not None:
-        thread.join(timeout=10.0)
+        # One interval is one atomic native intake. Do not discard the thread
+        # handle while that intake is still committing: doing so can leave an
+        # unseen second writer alive across test isolation or process
+        # shutdown. The stop event prevents another interval from beginning;
+        # this join waits only for the already-entered bounded intake.
+        thread.join()
     _unattended_thread = None
 
 
-def _card_surface_luminance(surface_path: Path) -> tuple[float, ...]:
-    """Row-major area-averaged luminance of one approved card raster.
+def _raster_luminance(image: Any) -> tuple[float, ...]:
+    """Row-major area-averaged luminance of one raster in [0, 1].
 
     Pillow BOX resampling integrates the true pixel field over each receptor
-    site's area; the result is the physical mean luminance in [0, 1].
+    site's area; the result is the physical mean luminance in [0, 1].  One
+    reduction law for every visual raster that reaches the retina: approved
+    card surfaces and live camera frames go through this exact path.
     """
 
     from PIL import Image
 
+    reduced = image.convert("L").resize(
+        (CARD_SURFACE_COLUMNS, CARD_SURFACE_ROWS),
+        Image.Resampling.BOX,
+    )
+    return tuple(value / 255.0 for value in reduced.tobytes())
+
+
+def _card_surface_luminance(surface_path: Path) -> tuple[float, ...]:
+    """Row-major area-averaged luminance of one approved card raster."""
+
+    from PIL import Image
+
     with Image.open(surface_path) as image:
-        reduced = image.convert("L").resize(
-            (CARD_SURFACE_COLUMNS, CARD_SURFACE_ROWS),
-            Image.Resampling.BOX,
-        )
-        values = tuple(reduced.tobytes())
-    return tuple(value / 255.0 for value in values)
+        return _raster_luminance(image)
+
+
+def _live_frame_luminance(frame_bytes: bytes) -> tuple[float, ...]:
+    """Row-major area-averaged luminance of one posted live camera frame."""
+
+    from PIL import Image
+
+    with Image.open(io.BytesIO(frame_bytes)) as image:
+        return _raster_luminance(image)
 
 
 def _pcm_hops(
@@ -1701,24 +4692,102 @@ def _pcm_hops(
     Decimation inside a hop keeps every stride-th physical sample with its
     exact within-hop source time; retained frames respect the ratified
     transport limits (``MAX_NATIVE_SAMPLES_PER_SUBSTREAM`` and the hop frame
-    bound).  A trailing remainder with fewer than two retained samples cannot
-    declare an occurrence and is dropped.
+    bound). Adjacent hops share their exact boundary sample. The shared point
+    contributes no duplicate elapsed time and prevents a transport boundary
+    from deleting the interval between two samples. After a finite capture
+    ends, the remainder of its final hop is physical silence.
     """
 
     hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
     frame_budget = min(
         MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES
     )
+    signal_samples = list(samples)
+    remainder = len(signal_samples) % hop_samples
+    if remainder:
+        signal_samples.extend([0] * (hop_samples - remainder))
+    signal_samples.append(0)
     hops: list[tuple[tuple[Fraction, ...], tuple[float, ...]]] = []
-    for start in range(0, len(samples), hop_samples):
-        window = samples[start : start + hop_samples]
-        stride = max(1, -(-len(window) // frame_budget))
-        indices = range(0, len(window), stride)
-        if len(indices) < 2:
-            continue
+    for start in range(0, len(signal_samples) - 1, hop_samples):
+        window = signal_samples[start : start + hop_samples + 1]
+        stride = max(1, -(-(hop_samples + 1) // frame_budget))
+        indices = list(range(0, hop_samples + 1, stride))
+        if indices[-1] != hop_samples:
+            indices.append(hop_samples)
         times = tuple(Fraction(index, sample_rate_hz) for index in indices)
         signal = tuple(window[index] / 32768.0 for index in indices)
         hops.append((times, signal))
+    return hops
+
+
+def _cochlear_hops(
+    samples: tuple[int, ...],
+    sample_rate_hz: int,
+    trailing_silent_hops: int = 0,
+) -> list[tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]]:
+    """Slice one continuous capture into per-hop tonotopic band signals.
+
+    ONE causal pass of the cochlea runs over the whole capture — plus
+    ``trailing_silent_hops`` hops of true silence, so that cochlear ringing
+    decays across the end of the utterance exactly as a real basilar membrane's
+    does instead of being cut off at a transport boundary.  Each returned hop
+    carries its own retained instants (one per
+    ``COCHLEAR_OBSERVATION_HOP_SAMPLES`` samples of the capture) and one
+    non-negative band RMS per tonotopic place.
+
+    Hop boundaries are the SAME transport hop windows ``_pcm_hops`` uses, so a
+    lesson's optical hop and its acoustic hops cover the same physical instant
+    of the world; they carry different retained-instant grids because a band
+    envelope and a decimated waveform are different observations of it.
+    """
+
+    if sample_rate_hz != COCHLEAR_SAMPLE_RATE_HZ:
+        raise ValueError(
+            "the declared cochlea observes only 16 kHz captures; a capture at "
+            "another rate cannot be transduced without resampling it, and no "
+            "resampler is declared"
+        )
+    hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
+    frame_budget = min(MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES)
+    signal = [value / 32768.0 for value in samples]
+    # The capture ends mid-hop; what physically follows it is silence, so the
+    # final partial hop is completed with true silence rather than truncated.
+    # Nothing is fabricated: a capture that has stopped IS silence at the ear.
+    remainder = len(signal) % hop_samples
+    if remainder:
+        signal.extend([0.0] * (hop_samples - remainder))
+    signal.extend([0.0] * (trailing_silent_hops * hop_samples))
+    physical_sample_count = len(signal)
+    envelopes = _cochlear_envelopes(
+        signal + [0.0] * COCHLEAR_OBSERVATION_HOP_SAMPLES
+    )
+    hops: list[tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]] = []
+    for start in range(0, physical_sample_count, hop_samples):
+        stride = max(1, -(-(hop_samples + 1) // frame_budget))
+        indices = list(range(0, hop_samples + 1, stride))
+        if indices[-1] != hop_samples:
+            indices.append(hop_samples)
+        if (start + hop_samples) // COCHLEAR_OBSERVATION_HOP_SAMPLES >= len(envelopes):
+            break
+        times = tuple(Fraction(index, sample_rate_hz) for index in indices)
+        # A band RMS is constant over the observation window it averages, so
+        # the value at a retained instant is the envelope of the window that
+        # instant falls in.  Nothing is interpolated or invented; the hop's own
+        # retained instants are the same instants its optical occurrence keeps,
+        # so sight and sound observe the same moments of the same world.
+        frame_of = [
+            envelopes[(start + index) // COCHLEAR_OBSERVATION_HOP_SAMPLES]
+            for index in indices
+        ]
+        hops.append(
+            (
+                times,
+                tuple(
+                    tuple(frame[channel] for frame in frame_of)
+                    for channel in range(COCHLEAR_CHANNELS_PER_EAR)
+                ),
+            )
+        )
     return hops
 
 
@@ -1768,7 +4837,7 @@ def _quiescent_hop_times() -> tuple[Fraction, ...]:
     return tuple(
         Fraction(index, QUIESCENT_HOP_FRAME_COUNT)
         * Fraction(INTAKE_HOP_MILLISECONDS, 1000)
-        for index in range(QUIESCENT_HOP_FRAME_COUNT)
+        for index in range(QUIESCENT_HOP_FRAME_COUNT + 1)
     )
 
 
@@ -1777,8 +4846,12 @@ def _whole_roster_hop_episode(
     times: tuple[Fraction, ...],
     surface_levels: tuple[float, ...],
     ear_signal: tuple[float, ...],
+    cochlear: tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None = None,
+    contact: tuple[float, ...] | None = None,
     *,
-    separate_optical_occurrence: bool = False,
+    tasted: tuple[Fraction, ...] | None = None,
+    smelled: tuple[Fraction, ...] | None = None,
+    moved: tuple[Fraction, ...] | None = None,
 ) -> Any:
     """One hop over the whole declared roster on one shared clock.
 
@@ -1786,15 +4859,16 @@ def _whole_roster_hop_episode(
     for the hop; dark sites carry their true 0.0 quiescent samples exactly as
     the ordinary ended hops do.
 
-    ``separate_optical_occurrence`` declares the card surface and the ears as
-    two co-clocked occurrences instead of one combined occurrence.  This
-    matters physically, not cosmetically: the ratified retinal receptor law
-    settles a reached cohort only for an EXACT optical occurrence (every port
-    of the occurrence a retinal sight port), so a combined sight+sound
-    occurrence delivers its samples without settling the cohort's receptor
-    physics.  A presentation that must reach the retinal cohort — the first
-    hop of a lesson and every partial-cue hop — declares the surface as its
-    own exact optical occurrence.
+    ``ear_signal`` is the decimated ambient pressure the legacy (unauthorized)
+    ear ports carry on the surface's own clock.  ``cochlear`` is that hop's own
+    (times, per-band signals) for one cochlea when cochlear ears are
+    AUTHORIZED; both ears receive it.  ``None`` declares true silence — a
+    lawful acoustic state, never an absent sense.  Exactly one of the two is
+    real for a given process.
+
+    The sensorium is one occurrence because these fields coexist. Declared
+    groups retain the separate receptor anatomies without evaluating the full
+    joint field once per organ.
     """
 
     frame_count = len(times)
@@ -1810,23 +4884,35 @@ def _whole_roster_hop_episode(
             for row in range(CARD_SURFACE_ROWS)
             for column in range(CARD_SURFACE_COLUMNS)
         ),
-        PhysicalSense.SOUND: _ear_ports(times, ear_signal),
+        PhysicalSense.SOUND: _sound_ports(times, ear_signal, cochlear),
     }
-    if separate_optical_occurrence:
-        occurrences = (
-            _occurrence(
-                tuple(range(CARD_SURFACE_PORT_COUNT)), times, frame_count
-            ),
-            _occurrence(
-                tuple(range(CARD_SURFACE_PORT_COUNT, LESSON_PORT_COUNT)),
-                times,
-                frame_count,
-            ),
+    touch_ports = _touch_ports(times, contact)
+    if touch_ports:
+        observed[PhysicalSense.TOUCH] = touch_ports
+    # NOTHING IS BEING EATEN unless something is: every channel carries its
+    # true zero, which is a lawful state and not an absent sense.
+    taste_ports = _taste_ports(times, tasted)
+    if taste_ports:
+        observed[PhysicalSense.TASTE] = taste_ports
+    smell_ports = _smell_ports(times, smelled)
+    if smell_ports:
+        observed[PhysicalSense.SMELL] = smell_ports
+    # STANDING STILL IS A LAWFUL STATE, not an absent sense.
+    displacement_ports = _displacement_ports(times, moved)
+    if displacement_ports:
+        observed[PhysicalSense.BODY] = (
+            observed.get(PhysicalSense.BODY, ()) + displacement_ports
         )
-    else:
-        occurrences = (
-            _occurrence(tuple(range(LESSON_PORT_COUNT)), times, frame_count),
-        )
+    if cochlear is not None and cochlear[0] != times:
+        raise ValueError("coexisting sensor structures do not share one source clock")
+    occurrences = (
+        _occurrence(
+            tuple(range(LESSON_PORT_COUNT)),
+            times,
+            frame_count,
+            _lesson_port_groups(),
+        ),
+    )
     return settle_native_joint_source_episode(
         assembly_id=assembly_id,
         observed_substreams=observed,
@@ -1916,9 +5002,8 @@ def _partial_card_lesson_hop_episodes(
                 times,
                 _partial_presentation_levels(luminance),
                 silence,
-                separate_optical_occurrence=True,
             ),
-            [(presentation_ms, 1000)] * 2,
+            [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
     ]
     for ended_index in range(PARTIAL_PRESENTATION_ENDED_HOP_COUNT):
@@ -1929,9 +5014,8 @@ def _partial_card_lesson_hop_episodes(
                     times,
                     dark,
                     silence,
-                    separate_optical_occurrence=True,
                 ),
-                [(presentation_ms, 1000)] * 2,
+                [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT,
             )
         )
     return episodes
@@ -1941,7 +5025,19 @@ def _card_lesson_hop_episodes(
     card_id: str,
     experience: dict[str, Any],
     presentation: str = "full",
+    *,
+    spoken_voice: tuple[int, tuple[int, ...]] | None = None,
 ) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """Build one card lesson.
+
+    ``spoken_voice`` replaces the signed tutor recording with a live human
+    voice for THIS lesson — same card light, same tactile footprint, same
+    shared clock, same everything else.  It exists because a recorded tutor
+    is not the person teaching: the acceptance bar (Joe, 2026-08-06) is that
+    HE names the card while she sees and feels it, all in ONE experience,
+    and a separate microphone intake is three signals rather than one.
+    """
+
     presentation_ms = experience.get("presentation_milliseconds")
     if (
         isinstance(presentation_ms, bool)
@@ -1950,30 +5046,95 @@ def _card_lesson_hop_episodes(
     ):
         raise ValueError("curriculum presentation window changed")
     surface_path = _verified_media_path(experience.get("surface"), "surface")
-    audio_path = _verified_media_path(experience.get("tutor_audio"), "tutor_audio")
+    # A RECORDED TUTOR IS NO LONGER REQUIRED TO EXIST (2026-08-07).
+    #
+    # Every card used to carry a signed WAV, which made a recording studio
+    # the bottleneck on her whole vocabulary: no recording, no card, no
+    # word.  A card taught in a living person's voice needs no recording at
+    # all, so the audio is resolved only where it is actually going to be
+    # used.  A card WITHOUT one is teachable by voice and honestly refuses
+    # the tutored route; a card WITH one is unchanged in every respect.
+    audio_path = (
+        _verified_media_path(experience.get("tutor_audio"), "tutor_audio")
+        if spoken_voice is None and experience.get("tutor_audio") is not None
+        else None
+    )
     if presentation == "partial":
+        if spoken_voice is not None:
+            raise ValueError(
+                "a spoken lesson cannot be a partial presentation: a partial "
+                "cue is a strict subset of the card's own light with no "
+                "utterance at all, so there is nothing for a voice to "
+                "accompany"
+            )
         return _partial_card_lesson_hop_episodes(
             card_id,
             presentation_ms,
             _card_surface_luminance(surface_path),
         )
-    tutor_audio = experience.get("tutor_audio")
-    expected_samples = (
-        tutor_audio.get("sample_count") if isinstance(tutor_audio, dict) else None
-    )
-    sample_rate, samples = _read_tutor_wav(audio_path, expected_samples)
+    if spoken_voice is None:
+        if audio_path is None:
+            raise ValueError(
+                f"card {card_id!r} has no recorded tutor voice, so there is "
+                "no utterance to present: teach it by speaking to her "
+                f"({SPOKEN_LESSON_ENDPOINT})"
+            )
+        tutor_audio = experience.get("tutor_audio")
+        expected_samples = (
+            tutor_audio.get("sample_count") if isinstance(tutor_audio, dict) else None
+        )
+        sample_rate, samples = _read_tutor_wav(audio_path, expected_samples)
+    else:
+        sample_rate, samples = spoken_voice
     audio_seconds = Fraction(len(samples), sample_rate)
     presentation_seconds = Fraction(presentation_ms, 1000)
     if audio_seconds > presentation_seconds:
         raise ValueError("tutor audio exceeds the signed presentation window")
 
     luminance = _card_surface_luminance(surface_path)
+    # THE CARD IS AN OBJECT, not a picture: while it is presented, it rests
+    # against the contact sheet for exactly as long as it is lit and the tutor
+    # speaks.  Its tactile surface is derived from its OWN declared raster
+    # geometry — the outline, never the ink — so the same object reaches every
+    # mounted sense of this body on one shared clock.  UNAUTHORIZED, no contact
+    # sheet is declared and this is the empty tuple.
+    contact = (
+        _card_tactile_occupancy(surface_path) if TOUCH_RECEPTORS_AUTHORIZED else None
+    )
+    # NO SENSE STANDS ALONE FOR AN EXPERIENCE, and an object reaches every
+    # sense a body has (Joe, 2026-08-08).  A printed card is not a picture
+    # with a sound attached: it is a thing, and a thing has a look, a feel,
+    # a smell and a taste at the same time.  The deck declares ONE physical
+    # stock — one paper, one ink — for every card in it, because inventing a
+    # different chemistry per letter would be inventing a fact about a real
+    # object.  Present while the card is, gone when it is gone.
+    tasted, smelled = _card_material()
     # One shared clock per hop: the tutor speaks while the static card
     # surface is lit, so every declared receptor site is co-observed on the
     # tutor audio's exact retained instants of that hop.
     hops = _pcm_hops(samples, sample_rate)
     if not hops:
         raise ValueError("tutor audio does not span one intake hop")
+    # The cochlea runs once over the utterance AND over the lesson's ended
+    # hops, so the ringing of the last syllable decays into the silence that
+    # follows it rather than being truncated at a transport boundary.
+    # UNAUTHORIZED, no cochlea is declared and none is run: the legacy ear
+    # ports carry the same decimated pressure waveform they carry today.
+    cochlear_hops: list[
+        tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]
+    ] = []
+    ended_cochlear: list[
+        tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None
+    ] = [None] * LESSON_ENDED_HOP_COUNT
+    if COCHLEAR_EARS_AUTHORIZED:
+        cochlear_hops = _cochlear_hops(samples, sample_rate, LESSON_ENDED_HOP_COUNT)
+        if len(cochlear_hops) < len(hops) + LESSON_ENDED_HOP_COUNT:
+            raise ValueError(
+                "tutor audio does not span its declared cochlear observation hops"
+            )
+        ended_cochlear = list(
+            cochlear_hops[len(hops) : len(hops) + LESSON_ENDED_HOP_COUNT]
+        )
     episodes: list[tuple[Any, list[tuple[int, int]]]] = []
     for hop_index, (shared_times, audio_signal) in enumerate(hops):
         frame_count = len(shared_times)
@@ -1988,32 +5149,33 @@ def _card_lesson_hop_episodes(
             for row in range(CARD_SURFACE_ROWS)
             for column in range(CARD_SURFACE_COLUMNS)
         )
+        cochlear = cochlear_hops[hop_index] if COCHLEAR_EARS_AUTHORIZED else None
         observed = {
             PhysicalSense.SIGHT: sight_ports,
-            PhysicalSense.SOUND: _ear_ports(shared_times, audio_signal),
+            PhysicalSense.SOUND: _sound_ports(shared_times, audio_signal, cochlear),
         }
-        # The card is physically lit for the WHOLE presentation, so every hop
-        # of it declares the lit surface and the tutor pressure as two
-        # co-clocked occurrences.  Under the ratified retinal receptor law
-        # only an exact optical occurrence (every port of the occurrence a
-        # retinal sight port) settles the retinal cohort's receptor physics,
-        # so a hop that folded the surface into a combined sight+sound
-        # occurrence delivered no light at all — the organism was told the
-        # card went dark for 14 of the 15 seconds it was actually lit.  With
-        # every lit hop declaring its optical occurrence, the receptor's
-        # threshold-integrated accumulator integrates the light that really
-        # falls on it for the whole presentation.  The ears still join the
-        # grown cohort through their own co-clocked occurrence on every hop.
+        touch_ports = _touch_ports(shared_times, contact)
+        if touch_ports:
+            observed[PhysicalSense.TOUCH] = touch_ports
+        taste_ports = _taste_ports(shared_times, tasted)
+        if taste_ports:
+            observed[PhysicalSense.TASTE] = taste_ports
+        smell_ports = _smell_ports(shared_times, smelled)
+        if smell_ports:
+            observed[PhysicalSense.SMELL] = smell_ports
+        displacement_ports = _displacement_ports(shared_times, None)
+        if displacement_ports:
+            observed[PhysicalSense.BODY] = (
+                observed.get(PhysicalSense.BODY, ()) + displacement_ports
+            )
+        if cochlear is not None and cochlear[0] != shared_times:
+            raise ValueError("coexisting lesson senses do not share one source clock")
         occurrences = (
             _occurrence(
-                tuple(range(CARD_SURFACE_PORT_COUNT)),
+                tuple(range(LESSON_PORT_COUNT)),
                 shared_times,
                 frame_count,
-            ),
-            _occurrence(
-                tuple(range(CARD_SURFACE_PORT_COUNT, LESSON_PORT_COUNT)),
-                shared_times,
-                frame_count,
+                _lesson_port_groups(),
             ),
         )
         episode = settle_native_joint_source_episode(
@@ -2044,9 +5206,9 @@ def _card_lesson_hop_episodes(
             quiescent_times,
             dark,
             quiescent_signal,
-            separate_optical_occurrence=True,
+            ended_cochlear[ended_index],
         )
-        episodes.append((episode, [(presentation_ms, 1000)] * 2))
+        episodes.append((episode, [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT))
     return episodes
 
 
@@ -2077,7 +5239,10 @@ def _mono_pcm_hop_episodes(
             "mono PCM intake exceeds the declared ambient intake window"
         )
     hops = _pcm_hops(samples, sample_rate_hz)
-    if not hops:
+    cochlear_hops = (
+        _cochlear_hops(samples, sample_rate_hz) if COCHLEAR_EARS_AUTHORIZED else []
+    )
+    if not hops or (COCHLEAR_EARS_AUTHORIZED and len(cochlear_hops) < len(hops)):
         raise ValueError("mono PCM intake does not span one intake hop")
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
     episodes: list[tuple[Any, list[tuple[int, int]]]] = []
@@ -2087,12 +5252,12 @@ def _mono_pcm_hop_episodes(
             times,
             dark,
             signal,
-            separate_optical_occurrence=True,
+            cochlear_hops[hop_index] if COCHLEAR_EARS_AUTHORIZED else None,
         )
         # The maximum causal interval is this app's declared ambient intake
         # window: transport contract authority, never derived from the
         # occurrence; one interval per declared occurrence.
-        episodes.append((episode, [(AMBIENT_INTAKE_MAX_SECONDS, 1)] * 2))
+        episodes.append((episode, [(AMBIENT_INTAKE_MAX_SECONDS, 1)] * LESSON_OCCURRENCE_COUNT))
     return episodes
 
 
@@ -2112,11 +5277,282 @@ def _parse_wav_body(body: bytes) -> tuple[int, tuple[int, ...]]:
     return sample_rate, struct.unpack(f"<{frame_count}h", frames)
 
 
+def _parse_live_sight_batch(
+    payload: object,
+) -> tuple[list[tuple[float, ...]], dict[str, Any]]:
+    """Validate one posted live-sight batch; return rosters and provenance.
+
+    Refusal (ValueError) on anything malformed: undeclared or wrong source
+    provenance, a frame count outside the capture contract, timestamps that
+    are not strictly increasing integers, a capture span beyond the declared
+    ambient intake window, or bytes Pillow cannot decode as an image.  The
+    client's capture timestamps are transport provenance recorded as
+    evidence; they never enter the physics.
+    """
+
+    if not isinstance(payload, dict):
+        raise ValueError("live sight intake requires a JSON object body")
+    if payload.get("source") != LIVE_SIGHT_SOURCE:
+        raise ValueError(
+            "live sight intake requires declared provenance: "
+            f'source must be "{LIVE_SIGHT_SOURCE}"'
+        )
+    frames = payload.get("frames")
+    if not isinstance(frames, list) or not (
+        LIVE_SIGHT_MIN_FRAMES <= len(frames) <= LIVE_SIGHT_MAX_FRAMES
+    ):
+        raise ValueError(
+            "live sight intake requires between "
+            f"{LIVE_SIGHT_MIN_FRAMES} and {LIVE_SIGHT_MAX_FRAMES} frames "
+            "per batch (the declared visual capture contract)"
+        )
+    captured_at: list[int] = []
+    rosters: list[tuple[float, ...]] = []
+    for frame in frames:
+        if not isinstance(frame, dict):
+            raise ValueError("live sight frame is not a JSON object")
+        stamp = frame.get("captured_at_ms")
+        if isinstance(stamp, bool) or not isinstance(stamp, int) or stamp <= 0:
+            raise ValueError(
+                "live sight frame requires a positive integer captured_at_ms"
+            )
+        if captured_at and stamp <= captured_at[-1]:
+            raise ValueError(
+                "live sight capture timestamps must be strictly increasing"
+            )
+        captured_at.append(stamp)
+        encoded = frame.get("png_base64")
+        if not isinstance(encoded, str) or not encoded:
+            raise ValueError("live sight frame requires png_base64 image bytes")
+        try:
+            body = base64.b64decode(encoded, validate=True)
+        except (binascii.Error, ValueError) as error:
+            raise ValueError(
+                "live sight frame is not canonical base64"
+            ) from error
+        try:
+            rosters.append(_live_frame_luminance(body))
+        except Exception as error:
+            raise ValueError(
+                f"live sight frame bytes are not a decodable image: "
+                f"{type(error).__name__}"
+            ) from error
+    if captured_at[-1] - captured_at[0] > AMBIENT_INTAKE_MAX_SECONDS * 1000:
+        raise ValueError(
+            "live sight batch capture span exceeds the declared ambient "
+            "intake window"
+        )
+    provenance = {
+        "captured_at_ms_first": captured_at[0],
+        "captured_at_ms_last": captured_at[-1],
+        "frame_count": len(rosters),
+        "sampling_interval_ms": INTAKE_HOP_MILLISECONDS,
+        "source": LIVE_SIGHT_SOURCE,
+    }
+    return rosters, provenance
+
+
+def _live_sight_hop_episodes(
+    batch_id: str,
+    rosters: list[tuple[float, ...]],
+) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """One posted live camera frame per 250 ms hop on the whole sensorium.
+
+    The exact construction every other hop uses: the whole mounted sensorium
+    with TRUE samples on the shared 250 ms hop timebase, the real camera
+    luminance on the 27 retinal receptor sites declared as its own exact
+    optical occurrence (so the retinal cohort's receptor physics settles),
+    and both ears as theirs with true 0.0 silence — silence is a lawful
+    state; audio is never fabricated.  The authored maximum causal interval
+    is the hop's own declared transport duration, exactly as unattended time
+    authors its dark hops.
+    """
+
+    times = _quiescent_hop_times()
+    silence = (0.0,) * len(times)
+    return [
+        (
+            _whole_roster_hop_episode(
+                f"live-sight-{batch_id}-hop-{hop_index}",
+                times,
+                roster,
+                silence,
+            ),
+            [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
+        )
+        for hop_index, roster in enumerate(rosters)
+    ]
+
+
+def _perform_live_sight_intake(
+    episodes: list[tuple[Any, list[tuple[int, int]]]],
+    intake: str,
+    provenance: dict[str, Any],
+) -> dict[str, Any]:
+    """One live-sight batch: admitted intake plus truth-coupled evidence.
+
+    Same transaction discipline as every admitted intake (commit hops
+    in-memory under the transition lock, persist and publish ONCE, refresh
+    the observation cache only after the persist succeeds), plus the live
+    sight evidence record that lets the public observation report the live
+    transition as mounted ONLY from a genuinely committed transition.  The
+    evidence is written under the same lock, so no observation ever claims
+    a live camera commit that did not fully happen.
+    """
+
+    global _live_sight_evidence
+
+    with _transition_lock:
+        result = _perform_admitted_intake_locked(episodes, intake)
+        previous = _live_sight_evidence or {
+            "committed_batch_count": 0,
+            "committed_frame_count": 0,
+        }
+        _live_sight_evidence = {
+            "committed_batch_count": previous["committed_batch_count"] + 1,
+            "committed_frame_count": (
+                previous["committed_frame_count"] + result["hop_count"]
+            ),
+            "last_capture": dict(provenance),
+            "last_intake": intake,
+            "last_state_sha256": result["observation"]["state_sha256"],
+        }
+        _refresh_public_observation_cache()
+        return result
+
+
+def _perform_card_lesson_intake(
+    episodes: list[tuple[Any, list[tuple[int, int]]]],
+    intake: str,
+    card_id: str,
+    experience: dict[str, Any],
+    presentation: str,
+) -> dict[str, Any]:
+    """One card lesson: admitted intake plus truth-coupled tactile evidence.
+
+    Same transaction discipline as every admitted intake, plus the contact
+    evidence that lets the public observation report touch as mounted ONLY from
+    a genuinely committed contact transition.  The evidence is written under
+    the same lock, so no observation ever claims a contact that did not fully
+    happen — and it is written ONLY when the sheet was really occupied: a
+    presentation mode that touches nothing (a glimpse) commits a lesson and
+    records no contact, which is the truth about it.
+    """
+
+    global _touch_evidence
+
+    with _transition_lock:
+        result = _perform_admitted_intake_locked(episodes, intake)
+        occupancy = _committed_card_occupancy(experience, presentation)
+        if occupancy is not None:
+            previous = _touch_evidence or {"committed_contact_count": 0}
+            _touch_evidence = {
+                "committed_contact_count": previous["committed_contact_count"] + 1,
+                "contacted_site_count": sum(1 for value in occupancy if value > 0.0),
+                "declared_contact_site_count": CONTACT_SHEET_SITE_COUNT,
+                "last_contact_object": card_id,
+                "last_contact_state_sha256": result["observation"]["state_sha256"],
+            }
+            _refresh_public_observation_cache()
+        return result
+
+
+def _committed_card_occupancy(
+    experience: dict[str, Any],
+    presentation: str,
+) -> tuple[float, ...] | None:
+    """The occupancy a committed lesson really put on the sheet, or ``None``.
+
+    ``None`` — nothing was touched — for an unauthorized body (it has no sheet)
+    and for a glimpse.  A glimpse is a partial VISUAL cue; the manifest
+    declares nothing about a partial CONTACT, and restricting the footprint by
+    the retina's own row-major index would be a cross-modal inference, not a
+    declared geometry.  So a glimpsed card is seen and not held, which is a
+    lawful state, and no contact is claimed for it.
+    """
+
+    if not TOUCH_RECEPTORS_AUTHORIZED or presentation != "full":
+        return None
+    surface = experience.get("surface")
+    surface_path = surface.get("path") if isinstance(surface, dict) else None
+    if not isinstance(surface_path, str):
+        return None
+    return _card_tactile_occupancy(
+        CURRICULUM_ROOT / surface_path.removeprefix("guala_curriculum/")
+    )
+
+
+def _live_sight_record() -> dict[str, object]:
+    """Truth-coupled live-sight observation.
+
+    Available flips ONLY on a real committed live camera transition in this
+    process — never from the mounted transport surface.  Before the first
+    committed batch the record says honestly that the intake endpoint is
+    open but unproven.
+    """
+
+    if _live_sight_evidence is None:
+        return _section(
+            False,
+            "no_live_sight_transition_this_process",
+            "the live-sight intake endpoint is open on the declared "
+            "27-receptor retinal roster, but no live camera batch has "
+            "committed end-to-end in this process; mounted is claimed only "
+            "from a real committed transition",
+            intake_endpoint=LIVE_SIGHT_INTAKE_ENDPOINT,
+        )
+    return _section(
+        True,
+        "live_sight_transition_committed",
+        "real live camera frames were delivered to the resident organism "
+        "as admitted 27-receptor luminance occurrences and the committed "
+        "successor body was persisted; capture provenance is the client's "
+        "own declared live-camera contract",
+        intake_endpoint=LIVE_SIGHT_INTAKE_ENDPOINT,
+        **_live_sight_evidence,
+    )
+
+
+def _prior_life_evidence(root: Path) -> tuple[str, ...]:
+    """Name what proves this state root has already carried a life.
+
+    A root with any of these and NO CURRENT is a DAMAGED root, never a new
+    one: something removed the pointer out from under a living organism.
+    Measured 2026-08-07 — the live root was deleted mid-service, and the
+    only thing standing between that and a silent rebirth carrying the
+    pinned identity was that ECS happened not to restart the task.
+    """
+
+    if not root.exists():
+        return ()
+    lived: list[str] = []
+    # The generations directory itself is created by every store open, so only
+    # its CONTENTS are evidence; the mirror and the retired episode archive are
+    # written on publication alone, so their existence is evidence by itself.
+    generations = sorted(path.name for path in (root / "generations").glob("*.glorun"))
+    if generations:
+        lived.append(f"generations ({len(generations)} retained bodies)")
+    lived.extend(
+        name
+        for name in (LOCAL_OBJECT_MIRROR_DIRECTORY, "hippocampal-cold")
+        if (root / name).exists()
+    )
+    lived.extend(sorted(path.name for path in root.glob(".stage-*")))
+    return tuple(lived)
+
+
 def _startup() -> None:
     global _restored, _admission, _boot_error
     global _public_observation_body, _public_observation_etag
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
+        migration_authorized = os.environ.get(
+            "GUALA_CURRENT_FORMAT_MIGRATION", "0"
+        )
+        if migration_authorized not in {"0", "1"}:
+            raise RuntimeError(
+                "GUALA_CURRENT_FORMAT_MIGRATION must be exactly 0 or 1"
+            )
         try:
             restored = restore_current_native_organism(
                 STATE_ROOT,
@@ -2124,16 +5560,56 @@ def _startup() -> None:
                 max_fabric_bytes=admission.max_fabric_bytes,
                 max_logical_peak_bytes=admission.max_logical_peak_bytes,
             )
+            if (
+                migration_authorized == "1"
+                and restored.organism.readiness().developmental_resting_neuron_count
+                == 0
+            ):
+                migrate_current_native_organism_current_format(
+                    STATE_ROOT,
+                    object_store=_object_store(),
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
+                restored = restore_current_native_organism(
+                    STATE_ROOT,
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
         except NativeOrganismBinaryStoreError as error:
             if "CURRENT is absent" not in str(error):
-                raise
-            _perform_genesis(admission)
-            restored = restore_current_native_organism(
-                STATE_ROOT,
-                max_envelope_bytes=admission.max_envelope_bytes,
-                max_fabric_bytes=admission.max_fabric_bytes,
-                max_logical_peak_bytes=admission.max_logical_peak_bytes,
-            )
+                if migration_authorized != "1":
+                    raise
+                migrate_current_native_organism_current_format(
+                    STATE_ROOT,
+                    object_store=_object_store(),
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
+                restored = restore_current_native_organism(
+                    STATE_ROOT,
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
+            else:
+                lived = _prior_life_evidence(STATE_ROOT)
+                if lived:
+                    raise RuntimeError(
+                        "native state root carries prior life but has no CURRENT "
+                        f"({', '.join(lived)}); refusing to genesis over a damaged "
+                        "root — restore the body and republish CURRENT instead"
+                    ) from error
+                _perform_genesis(admission)
+                restored = restore_current_native_organism(
+                    STATE_ROOT,
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
         observation = restored.organism.readiness()
         if observation.python_callback_count != 0:
             raise RuntimeError("native organism reports a Python cognition callback")
@@ -2221,17 +5697,25 @@ def native_observation(
 
 @app.get("/api/v1/visual/capture-contract")
 def visual_capture_contract() -> dict[str, Any]:
+    # ``sensory_transition_available`` is truth-coupled: it reports whether a
+    # live camera batch has genuinely committed end-to-end in this process,
+    # never whether the transport endpoint merely exists.
     return {
-        "maximum_frames": 8,
-        "minimum_frames": 4,
+        "intake_endpoint": LIVE_SIGHT_INTAKE_ENDPOINT,
+        "maximum_frames": LIVE_SIGHT_MAX_FRAMES,
+        "minimum_frames": LIVE_SIGHT_MIN_FRAMES,
         "ok": True,
-        "sampling_interval_ms": 250,
+        "sampling_interval_ms": INTAKE_HOP_MILLISECONDS,
         "schema": "guala.visual_capture_transport.v1",
-        "sensory_transition_available": False,
+        "sensory_transition_available": _live_sight_evidence is not None,
+        "source": LIVE_SIGHT_SOURCE,
     }
 
 
-@app.post("/api/v1/curriculum/teach-card")
+@app.post(
+    "/api/v1/curriculum/teach-card",
+    dependencies=[Depends(_external_intake_admission)],
+)
 def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     card_id = payload.get("card_id") if isinstance(payload, dict) else None
     if not isinstance(card_id, str) or not card_id:
@@ -2261,8 +5745,12 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     except (OSError, ValueError) as error:
         return _refusal(503, f"approved curriculum media refused: {error}")
     try:
-        result = _perform_admitted_intake(
-            episodes, f"curriculum-card:{card_id}:{presentation}"
+        result = _perform_card_lesson_intake(
+            episodes,
+            f"curriculum-card:{card_id}:{presentation}",
+            card_id,
+            experience,
+            presentation,
         )
     except HTTPException:
         raise
@@ -2274,54 +5762,984 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     )
 
 
-@app.post("/api/v1/metabolism/feed")
-def metabolism_feed(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Deliver one AUTHORED nutrition declaration to the resident organism.
+# ---------------------------------------------------------------------------
+# OFFERED MATERIAL — the media-giving controls the page has always shown
+# (delivery contract items 11 and 13, 2026-08-04: "Every displayed function
+# must be live rather than decorative").
+#
+# Six controls on the interaction page — offer text, picture, PDF, book,
+# audio, song — have been rendered, disabled, and backed by nothing.  They
+# are not new senses and they are not a new pathway: a picture is light and a
+# song is pressure, so every one of them reduces to a route this organism
+# already runs and that is already severing-proven.
+#
+#   any raster  -> _raster_luminance -> the same 27 retinal sites the
+#                  approved cards and the live camera reach
+#   any audio   -> pcm_s16le mono 16 kHz -> the same cochlear decomposition
+#                  the tutor voice and the microphone reach
+#   any page    -> one raster per page, presented in order
+#
+# NOTHING SEMANTIC ENTERS.  The text a person types is rendered to pixels in
+# their own browser and only the PIXELS are offered; the string is never
+# submitted.  A PDF is light, not words.  This is the contract's own rule
+# (item 11: external-world experiences "may not insert meanings, memories,
+# answers, or semantic labels into cognition").
+# ---------------------------------------------------------------------------
+# THE SHELVES — bounded external-world material (contract items 11 and 13).
+#
+# Five shelves have been rendered on the page with ten dead buttons.  Only
+# ONE of them can be honest today, and the other four say exactly why not
+# rather than hiding behind "not mounted":
+#
+#   Project Gutenberg  PUBLIC DOMAIN, no credential, reachable from this
+#                      container (verified).  A book becomes PAGES OF LIGHT
+#                      through the same retinal reduction a PDF uses.  No
+#                      text, title, author or meaning enters cognition —
+#                      contract item 11 — because to an organism that has
+#                      not learned to read, a page is a picture.
+#   YouTube, Khan Academy, PBS Kids, Spotify
+#                      require credentials this deployment does not hold.
+#                      There is nothing to fetch, so there is nothing to
+#                      mount, and the refusal names the missing credential.
+#
+# AUTONOMOUS SELECTION is refused on every shelf, including Gutenberg: it
+# would mean SHE chose, and no native choice operation exists.  A server
+# picking on her behalf and calling it autonomous is exactly the kind of
+# claim this project keeps having to undo.
+SHELF_SELECTION_SCHEMA = "guala.native.external_material_selection.v1"
+GUTENBERG_ENDPOINT = "/api/v1/material/gutenberg"
+GUTENBERG_MAX_BYTES = 2 * 1024 * 1024
+GUTENBERG_PAGE_LINES = 28
+GUTENBERG_LINE_CHARS = 52
+# A DECLARED catalogue, not a search: five public-domain texts, in order.
+# Presenting the next one is an ordered presentation, exactly as the card
+# button walks the approved deck — never a choice about meaning.
+GUTENBERG_CATALOGUE = (
+    ("11", "https://www.gutenberg.org/files/11/11-0.txt"),
+    ("1342", "https://www.gutenberg.org/files/1342/1342-0.txt"),
+    ("74", "https://www.gutenberg.org/files/74/74-0.txt"),
+    ("16", "https://www.gutenberg.org/files/16/16-0.txt"),
+    ("55", "https://www.gutenberg.org/files/55/55-0.txt"),
+)
+CREDENTIAL_BLOCKED_SHELVES = {
+    "youtube": "YOUTUBE_API_KEY",
+    "khan_academy": "KHAN_ACADEMY_API_KEY",
+    "pbs_kids": "PBS_KIDS_API_KEY",
+    "spotify": "SPOTIFY_CLIENT_ID",
+}
+_gutenberg_presented = 0
 
-    ``energy_quanta`` is the declaration's energy content in the body's own
-    fuel quantum — caller-authored intake declaration authority, exactly like
-    the curriculum card media, never a physics constant.
+
+def _shelf_capability(name: str) -> dict[str, object]:
+    """What each shelf can honestly do right now."""
+
+    if name == "gutenberg":
+        return {
+            "available": True,
+            "autonomous_selection": False,
+            "endpoint": GUTENBERG_ENDPOINT,
+            "reason": (
+                "public-domain pages are fetched, rendered to light, and "
+                "presented on the same 27 retinal receptor sites a card "
+                "reaches; no text, title, author or meaning enters "
+                "cognition. AUTONOMOUS selection is refused: that would "
+                "mean she chose, and no native choice operation exists"
+            ),
+            "status": "mounted_guided_only",
+        }
+    credential = CREDENTIAL_BLOCKED_SHELVES[name]
+    return {
+        "available": False,
+        "autonomous_selection": False,
+        "endpoint": None,
+        "missing_credential": credential,
+        "reason": (
+            f"this shelf is not mounted because {credential} is not held by "
+            "this deployment, so there is nothing to fetch and nothing to "
+            "present; the refusal names the missing credential rather than "
+            "implying the pathway is unbuilt"
+        ),
+        "status": "not_mounted_missing_credential",
+    }
+
+
+def _gutenberg_pages(text: str) -> list[bytes]:
+    """Render a bounded run of a public-domain text to pages of light."""
+
+    from PIL import Image, ImageDraw
+
+    words = text.split()
+    lines: list[str] = []
+    line = ""
+    for word in words:
+        candidate = f"{line} {word}".strip()
+        if len(candidate) > GUTENBERG_LINE_CHARS and line:
+            lines.append(line)
+            line = word
+        else:
+            line = candidate
+        if len(lines) >= GUTENBERG_PAGE_LINES * OFFERED_PAGE_MAX_COUNT:
+            break
+    if line and len(lines) < GUTENBERG_PAGE_LINES * OFFERED_PAGE_MAX_COUNT:
+        lines.append(line)
+    if not lines:
+        raise ValueError("the fetched text carried no presentable lines")
+    pages = []
+    for start in range(0, len(lines), GUTENBERG_PAGE_LINES):
+        image = Image.new("RGB", (768, 432), (253, 250, 244))
+        draw = ImageDraw.Draw(image)
+        for index, row in enumerate(lines[start : start + GUTENBERG_PAGE_LINES]):
+            draw.text((28, 14 + index * 14), row, fill=(16, 24, 32))
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        pages.append(buffer.getvalue())
+    return pages[:OFFERED_PAGE_MAX_COUNT]
+
+
+OFFERED_MATERIAL_ENDPOINT = "/api/v1/material/offered"
+RENDERED_LIGHT_ENDPOINT = "/api/v1/material/rendered-light"
+RENDERED_LIGHT_SCHEMA = "guala.native.browser_visual_material.v1"
+OFFERED_MATERIAL_SCHEMA = "guala.native.browser_material.v1"
+# Bounds are declared, not discovered (lean-substrate doctrine): the page
+# reads max_bytes off the capability and refuses oversized material before it
+# ever leaves the browser.
+OFFERED_MATERIAL_MAX_BYTES = 24 * 1024 * 1024
+OFFERED_VISUAL_MAX_HOPS = 24
+OFFERED_PAGE_MAX_COUNT = 12
+VISUAL_MATERIAL_KINDS = ("picture", "pdf", "book")
+AUDIBLE_MATERIAL_KINDS = ("audio", "song")
+
+
+def _offered_visual_episodes(
+    assembly_prefix: str,
+    rosters: list[tuple[float, ...]],
+) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """Present offered light for one hop per raster, then let it end.
+
+    The exact construction the live camera uses, plus the ended dark hops a
+    card lesson uses so the presentation genuinely finishes and the retinal
+    cohort can settle at the stimulus boundary.
     """
 
-    energy_quanta = payload.get("energy_quanta") if isinstance(payload, dict) else None
-    if (
-        isinstance(energy_quanta, bool)
-        or not isinstance(energy_quanta, int)
-        or energy_quanta <= 0
-    ):
-        return _refusal(
-            422,
-            "feed requires a positive integer energy_quanta (the authored "
-            "nutrition declaration's energy content in the body's own fuel "
-            "quantum)",
+    times = _quiescent_hop_times()
+    silence = (0.0,) * len(times)
+    dark = (0.0,) * CARD_SURFACE_PORT_COUNT
+    presented = list(rosters[:OFFERED_VISUAL_MAX_HOPS])
+    if not presented:
+        raise ValueError("offered material carried no presentable raster")
+    frames = presented + [dark] * LESSON_ENDED_HOP_COUNT
+    return [
+        (
+            _whole_roster_hop_episode(
+                f"{assembly_prefix}-hop-{hop_index}",
+                times,
+                roster,
+                silence,
+            ),
+            [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
+        for hop_index, roster in enumerate(frames)
+    ]
+
+
+def _decode_offered_rasters(
+    material_kind: str,
+    raw: bytes,
+) -> list[tuple[float, ...]]:
+    """Reduce offered visual material to retinal rosters, one per presented page.
+
+    A picture is one raster.  A PDF or a book is a bounded ordered sequence of
+    them — pages are presented in their own order, which is the only thing a
+    page order physically is.
+    """
+
+    from PIL import Image
+
+    if material_kind == "picture":
+        with Image.open(io.BytesIO(raw)) as image:
+            return [_raster_luminance(image)]
+    import fitz
+
+    with fitz.open(stream=raw, filetype="pdf") as document:
+        page_count = min(document.page_count, OFFERED_PAGE_MAX_COUNT)
+        if page_count <= 0:
+            raise ValueError("offered paged material declares no pages")
+        rosters = []
+        for index in range(page_count):
+            pixmap = document.load_page(index).get_pixmap()
+            with Image.frombytes(
+                "RGB" if pixmap.n >= 3 else "L",
+                (pixmap.width, pixmap.height),
+                pixmap.samples,
+            ) as image:
+                rosters.append(_raster_luminance(image))
+    return rosters
+
+
+def _decode_offered_audio(raw: bytes) -> tuple[int, tuple[int, ...]]:
+    """Decode offered audio to the exact format her cochlea is declared for.
+
+    ffmpeg is the decoder (it is in the production image); the OUTPUT is the
+    same pcm_s16le mono 16 kHz her tutor audio and her microphone already
+    deliver, so nothing new reaches her — only more of what already does.
+    """
+
+    import subprocess
+
+    with tempfile.NamedTemporaryFile(suffix=".bin") as source:
+        source.write(raw)
+        source.flush()
+        completed = subprocess.run(
+            [
+                "ffmpeg", "-v", "error", "-i", source.name,
+                "-f", "s16le", "-ac", "1", "-ar", str(COCHLEAR_SAMPLE_RATE_HZ),
+                "-t", str(AMBIENT_INTAKE_MAX_SECONDS), "-",
+            ],
+            capture_output=True,
+            timeout=120,
+            check=False,
+        )
+    if completed.returncode != 0 or len(completed.stdout) < 4:
+        detail = completed.stderr.decode("utf-8", "replace").strip()[:200]
+        raise ValueError(f"offered audio could not be decoded: {detail or 'no samples'}")
+    payload = completed.stdout[: len(completed.stdout) // 2 * 2]
+    return COCHLEAR_SAMPLE_RATE_HZ, struct.unpack(f"<{len(payload) // 2}h", payload)
+
+
+def _offered_material_capability(kind: str, available: bool, reason: str) -> dict[str, object]:
+    return {
+        "available": available,
+        "endpoint": OFFERED_MATERIAL_ENDPOINT if available else None,
+        "material_kind": kind,
+        "max_bytes": OFFERED_MATERIAL_MAX_BYTES,
+        "reason": reason,
+        "status": "mounted" if available else "not_mounted",
+    }
+
+
+SPOKEN_LESSON_ENDPOINT = "/api/v1/curriculum/teach-card-spoken"
+
+
+def _spoken_voice_refusal() -> JSONResponse | None:
+    """Why a human voice may not carry a lesson yet, or None when it may.
+
+    Only ONE condition, and it is about her body, not about transport: the
+    cochleae must physically transduce.  Unlike the standalone microphone
+    there is no two-real-signal question to answer — the card's own light
+    and its tactile footprint reach her in the SAME episode as the voice, so
+    a spoken lesson is a whole-sensorium experience by construction.  That
+    is the entire reason this route exists rather than reusing the PCM
+    session: a lesson taught in a person's own voice is one experience, and
+    three separate intakes are three.
+    """
+
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return _refusal(503, _SOUND_SUSPENSION_REASON)
+    return None
+
+
+def _decode_material_body(payload: dict[str, Any], field: str) -> bytes:
+    encoded = payload.get(field)
+    if not isinstance(encoded, str) or not encoded:
+        raise ValueError(f"offered material requires {field}")
     try:
-        result = _perform_nutrition_intake(energy_quanta)
+        raw = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise ValueError("offered material is not canonical base64") from error
+    if not raw:
+        raise ValueError("offered material is empty")
+    if len(raw) > OFFERED_MATERIAL_MAX_BYTES:
+        raise ValueError(
+            f"offered material is {len(raw)} bytes, over the declared "
+            f"{OFFERED_MATERIAL_MAX_BYTES}-byte bound"
+        )
+    return raw
+
+
+@app.post(RENDERED_LIGHT_ENDPOINT)
+def rendered_light_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Pixels a person rendered in their own browser, reaching her retina.
+
+    The string they typed is NEVER submitted and never reaches this process:
+    the page rasterises it locally and offers the light.  What she receives is
+    a picture, exactly like any other picture, which is the only honest thing
+    text can be to an organism that has not learned to read.
+    """
+
+    if not isinstance(payload, dict) or payload.get("schema") != RENDERED_LIGHT_SCHEMA:
+        return _refusal(422, f"rendered light requires schema {RENDERED_LIGHT_SCHEMA}")
+    try:
+        raw = _decode_material_body(payload, "frame_b64")
+        rosters = _decode_offered_rasters("picture", raw)
+        episodes = _offered_visual_episodes(f"rendered-light-{uuid.uuid4()}", rosters)
+    except (OSError, ValueError) as error:
+        return _refusal(422, f"rendered light refused: {error}")
+    try:
+        result = _perform_admitted_intake(episodes, "rendered-light")
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"nutrition intake refused: {error}")
+        return _refusal(422, f"admitted visual transition refused: {error}")
+    return JSONResponse(
+        status_code=200,
+        content={"material_kind": "text_visual", "presented_raster_count": len(rosters), **result},
+    )
+
+
+@app.get("/api/v1/curriculum/manifest")
+def curriculum_manifest_api() -> JSONResponse:
+    """Her approved curriculum, on a path that actually reaches her.
+
+    The page used to fetch /curriculum/card_experience_manifest-v1.json,
+    which the app does serve — but ONLY /api/* is routed to the app from the
+    public side, so the browser got the CDN's 404 HTML and the card chooser
+    died with "Unexpected token '<'". Shipped by me and caught by Joe on the
+    live site.
+    """
+
+    try:
+        document = _manifest_document(
+            CURRICULUM_ROOT / "card_experience_manifest-v1.json",
+            "guala.external_tutor_card_experience_manifest.v1",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    return JSONResponse(status_code=200, content=document)
+
+
+@app.get(WORLD_OBSERVATION_ENDPOINT)
+def world_observation() -> JSONResponse:
+    """What her place currently is, read-only and bounded."""
+
+    if not WORLD_AUTHORIZED:
+        return _refusal(
+            503,
+            "no world is mounted: she has nowhere to be, so there is nothing "
+            f"to observe; a place is authorized by {WORLD_ENV}",
+        )
+    try:
+        snapshot = _world().observation_snapshot()
+    except (OSError, RuntimeError, ValueError) as error:
+        return _refusal(503, f"her place could not be read: {error}")
+    body = next(
+        item for item in snapshot.bodies if item.body_id == snapshot.self_body_id
+    )
+    # THE REAL GEOMETRY, NOT A COUNT (2026-08-08).
+    #
+    # This used to answer "3 rooms, 42 things" and nothing else, which from
+    # outside is indistinguishable from a claim with nothing behind it. Joe
+    # said so plainly: if he cannot see it, it does not exist. Every number
+    # below is read straight off the world's own authenticated snapshot, so a
+    # drawing made from it is a picture OF HER PLACE rather than an artist's
+    # impression of one.
+    return JSONResponse(
+        status_code=200,
+        content={
+            "schema": "guala.native.world_observation.v1",
+            "revision": snapshot.revision,
+            "region_count": len(getattr(snapshot, "regions", ()) or ()),
+            "object_count": len(snapshot.objects),
+            "body_count": len(snapshot.bodies),
+            "regions": [
+                {
+                    "region_id": region.region_id,
+                    "min_x_mm": region.bounds.minimum.x,
+                    "min_y_mm": region.bounds.minimum.y,
+                    "max_x_mm": region.bounds.maximum.x,
+                    "max_y_mm": region.bounds.maximum.y,
+                    "illumination_ppm": region.illumination_ppm,
+                }
+                for region in (getattr(snapshot, "regions", ()) or ())
+            ],
+            "portals": [
+                {
+                    "portal_id": portal.portal_id,
+                    "axis": str(portal.axis),
+                    "plane_mm": portal.plane_mm,
+                    "aperture_min_mm": portal.aperture_min_mm,
+                    "aperture_max_mm": portal.aperture_max_mm,
+                }
+                for portal in (getattr(snapshot, "portals", ()) or ())
+            ],
+            "objects": [
+                {
+                    "object_id": item.object_id,
+                    "x_mm": item.position.x,
+                    "y_mm": item.position.y,
+                    "radius_mm": item.radius_mm,
+                    "held": item.held_by_body_id is not None,
+                    # Drawn colour comes from the thing's OWN declared
+                    # reflectance across her six optical bands, so what is on
+                    # the screen is what her eyes are given rather than a
+                    # palette somebody picked to make the picture look nice.
+                    "reflectance_ppm": list(item.reflectance_ppm),
+                    "warmth_millikelvin": (
+                        item.material.surface_temperature_millikelvin
+                        if item.material is not None
+                        else None
+                    ),
+                }
+                for item in snapshot.objects
+                if item.position is not None
+            ],
+            "bodies": [
+                {
+                    "body_id": item.body_id,
+                    "is_her": item.body_id == snapshot.self_body_id,
+                    "x_mm": item.pose.position.x,
+                    "y_mm": item.pose.position.y,
+                    "heading_millidegrees": item.pose.heading_millidegrees,
+                    "radius_mm": item.radius_mm,
+                }
+                for item in snapshot.bodies
+            ],
+            "her_pose": {
+                "x_mm": body.pose.position.x,
+                "y_mm": body.pose.position.y,
+                "z_mm": body.pose.position.z,
+                "heading_millidegrees": body.pose.heading_millidegrees,
+            },
+            # TRUTH-COUPLED, NOT DECLARED: this is true only once a step she
+            # took herself has actually been applied by her place and carried
+            # to her balance receptors. Before that it stays false, and the
+            # reason says which part is missing.
+            "she_moves_herself": bool(
+                _last_self_moved and _last_self_moved.get("moved")
+            ),
+            "her_last_step": _last_self_moved,
+            "place_rebuilt_reason": _world_rebuild_reason,
+            "why_she_is_not_moving": (
+                None
+                if (_last_self_moved and _last_self_moved.get("moved"))
+                else (_last_self_moved or {}).get("why")
+                or "she has not had an interval to herself yet: she only "
+                "moves on her own during unattended time, when nobody is "
+                "doing anything to her"
+            ),
+            "reason": (
+                "a deterministic place with its own physics; what she sees "
+                "here reaches the same 27 retinal sites a card reaches, and "
+                "moving in it produces the displacement her balance and "
+                "body-position receptors transduce"
+            ),
+        },
+    )
+
+
+@app.post(WORLD_MOVE_ENDPOINT)
+def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Move her body in her place, and let her sense that it happened.
+
+    A person moves her, exactly as a person presents a card: authored
+    presentation, never a claim that she chose to go. When she can choose,
+    the same pathway carries it — that is what makes this the road to
+    autonomy rather than a detour around it.
+    """
+
+    if not WORLD_AUTHORIZED:
+        return _refusal(
+            503,
+            "no world is mounted: she has nowhere to move, and a displacement "
+            f"receptor with nothing moving would be a fabrication ({WORLD_ENV})",
+        )
+    if not VESTIBULAR_AUTHORIZED:
+        return _refusal(
+            503,
+            "her displacement receptors are not mounted, so a move would "
+            f"reach nothing she can feel ({VESTIBULAR_ENV})",
+        )
+    if not isinstance(payload, dict):
+        return _refusal(422, "a move requires a JSON body")
+    try:
+        x = int(payload["x_mm"])
+        y = int(payload["y_mm"])
+        heading = int(payload.get("heading_millidegrees", 0))
+    except (KeyError, TypeError, ValueError):
+        return _refusal(422, "a move requires integer x_mm, y_mm and heading_millidegrees")
+    from dsf_ai_service.substrate.embodiment_world import (
+        PORT_ID,
+        MoveCommand,
+        PoseMM,
+        PositionMM,
+        encode_command,
+    )
+
+    try:
+        authority = _world()
+        before = authority.observation_snapshot()
+        before_body = next(
+            body for body in before.bodies if body.body_id == before.self_body_id
+        )
+        signed_yaw_value = payload.get("signed_yaw_millidegrees")
+        if signed_yaw_value is None:
+            if heading != before_body.pose.heading_millidegrees:
+                return _refusal(
+                    422,
+                    "a changed heading requires signed_yaw_millidegrees; "
+                    "start and end headings cannot reveal turn direction or revolutions",
+                )
+            signed_yaw = 0
+        else:
+            if isinstance(signed_yaw_value, bool):
+                return _refusal(422, "signed_yaw_millidegrees must be an integer")
+            signed_yaw = int(signed_yaw_value)
+            if not -(1 << 31) <= signed_yaw < (1 << 31):
+                return _refusal(
+                    422,
+                    "signed_yaw_millidegrees exceeds the native signed 32-bit body range",
+                )
+        predecessor_heading = before_body.pose.heading_millidegrees
+        successor_heading, yaw_trajectory = exact_native_yaw_trajectory(
+            predecessor_heading_millidegrees=predecessor_heading,
+            signed_displacement_millidegrees=signed_yaw,
+            duration_microseconds=INTAKE_HOP_MILLISECONDS * 1000,
+        )
+        if successor_heading != heading:
+            return _refusal(
+                422,
+                "signed_yaw_millidegrees does not settle at the requested heading",
+            )
+        execution = authority.execute_port_command(
+            port_id=PORT_ID,
+            command_payload=encode_command(
+                MoveCommand(
+                    target_pose=PoseMM(PositionMM(x, y, 0), heading),
+                    duration_microseconds=INTAKE_HOP_MILLISECONDS * 1000,
+                )
+            ),
+            causal_intent_receipt_sha256=hashlib.sha256(
+                f"{before.revision}:{x}:{y}:{heading}".encode("utf-8")
+            ).hexdigest(),
+            expected_revision=before.revision,
+        )
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"her place refused that move: {error}")
+
+    # HER PLACE HAS ITS OWN PHYSICS AND IT SAYS NO FOR REAL REASONS: a wall,
+    # a doorway missed, another body or an object in the path.  A refused
+    # move must NOT reach her as a zero displacement dressed as a movement —
+    # that would tell her balance receptors she stood still when in truth
+    # she never went.  The world's own reason is returned verbatim.
+    if execution.reason != "applied":
+        return _refusal(
+            409,
+            f"her place refused that move: {execution.reason}. Nothing "
+            "reached her, because nothing happened to her body",
+        )
+
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        physical_receptor_substreams,
+    )
+
+    try:
+        world_streams = physical_receptor_substreams(
+            execution.before,
+            execution.after,
+            causal_transition=True,
+            source_time_start=Fraction(0),
+            source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+        )
+        luminance = _world_retinal_luminance(
+            world_streams.get(PhysicalSense.SIGHT, ())
+        )
+        moved = _world_displacement(execution.before, execution.after)
+        # AN OBJECT IN HER PLACE REACHES EVERY SENSE SHE HAS (Joe, 2026-08-08:
+        # objects as presented in the VR environment have all six).  The world
+        # already declares each object's odorants, tastants, surface
+        # temperature, compliance, roughness and moisture — that physics was
+        # written and never connected.  The bridge carries it rather than
+        # dropping it, and her eight olfactory and five gustatory channels are
+        # exactly the world's eight odorant and five tastant channels.
+        tasted, smelled = _world_chemistry(execution.before, execution.after)
+        times = _quiescent_hop_times()
+        silence = (0.0,) * len(times)
+        episodes = [
+            (
+                _whole_roster_hop_episode(
+                    f"world-move-{execution.after.revision}-hop-{hop}",
+                    times,
+                    luminance,
+                    silence,
+                    moved=moved if hop == 0 else None,
+                    tasted=tasted,
+                    smelled=smelled,
+                ),
+                [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
+            )
+            for hop in range(2)
+        ]
+    except (OSError, RuntimeError, ValueError) as error:
+        return _refusal(422, f"that move could not reach her: {error}")
+    try:
+        result = _perform_admitted_intake(
+            episodes,
+            "world-move",
+            vestibular_yaw=(predecessor_heading, yaw_trajectory),
+        )
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted world transition refused: {error}")
+    global _last_displacement
+    with _transition_lock:
+        _last_displacement = moved
+        _persist_world(authority)
+        _refresh_public_observation_cache()
+    return JSONResponse(
+        status_code=200,
+        content={
+            "moved": {c: float(v) for c, v in zip(DISPLACEMENT_CHANNELS, moved)},
+            "signed_yaw_millidegrees": signed_yaw,
+            "revision": execution.after.revision,
+            "chose_to_go": False,
+            **result,
+        },
+    )
+
+
+@app.post(GUTENBERG_ENDPOINT)
+def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """One bounded run of a public-domain book, as pages of light."""
+
+    global _gutenberg_presented
+    if not isinstance(payload, dict) or payload.get("schema") != SHELF_SELECTION_SCHEMA:
+        return _refusal(422, f"shelf selection requires schema {SHELF_SELECTION_SCHEMA}")
+    mode = payload.get("mode")
+    if mode not in ("guided", "autonomous"):
+        return _refusal(422, "shelf selection mode must be 'guided' or 'autonomous'")
+    if mode == "autonomous":
+        return _refusal(
+            503,
+            "autonomous selection is refused: it would mean SHE chose, and "
+            "no native choice operation is mounted. A server picking on her "
+            "behalf and calling it autonomous would be a false claim about "
+            "the substrate",
+        )
+    index = _gutenberg_presented % len(GUTENBERG_CATALOGUE)
+    book_id, url = GUTENBERG_CATALOGUE[index]
+    try:
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "guala-native-organism/1"}
+        )
+        with urllib.request.urlopen(request, timeout=25) as response:
+            raw = response.read(GUTENBERG_MAX_BYTES)
+    except Exception as error:  # noqa: BLE001 - any transport failure is one refusal
+        return _refusal(
+            503,
+            f"the public-domain text could not be fetched: "
+            f"{type(error).__name__}: {str(error)[:120]}",
+        )
+    try:
+        text = raw.decode("utf-8", "replace")
+        pages = _gutenberg_pages(text)
+        rosters = [_live_frame_luminance(page) for page in pages]
+        episodes = _offered_visual_episodes(f"gutenberg-{book_id}-{uuid.uuid4()}", rosters)
+    except (OSError, ValueError) as error:
+        return _refusal(422, f"gutenberg presentation refused: {error}")
+    try:
+        result = _perform_admitted_intake(episodes, f"gutenberg:{book_id}")
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted visual transition refused: {error}")
+    _gutenberg_presented += 1
+    return JSONResponse(
+        status_code=200,
+        content={
+            "shelf": "gutenberg",
+            "mode": "guided",
+            "gutenberg_id": book_id,
+            "presented_page_count": len(rosters),
+            "meaning_entered": False,
+            **result,
+        },
+    )
+
+
+@app.post(OFFERED_MATERIAL_ENDPOINT)
+def offered_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """One offered picture, page set, or sound, as one admitted experience."""
+
+    if not isinstance(payload, dict) or payload.get("schema") != OFFERED_MATERIAL_SCHEMA:
+        return _refusal(422, f"offered material requires schema {OFFERED_MATERIAL_SCHEMA}")
+    kind = payload.get("material_kind")
+    if kind not in VISUAL_MATERIAL_KINDS + AUDIBLE_MATERIAL_KINDS:
+        return _refusal(
+            422,
+            "offered material_kind must be one of "
+            + ", ".join(VISUAL_MATERIAL_KINDS + AUDIBLE_MATERIAL_KINDS),
+        )
+    if kind in AUDIBLE_MATERIAL_KINDS and not COCHLEAR_EARS_AUTHORIZED:
+        return _refusal(503, _SOUND_SUSPENSION_REASON)
+    try:
+        raw = _decode_material_body(payload, "bytes_b64")
+        if kind in VISUAL_MATERIAL_KINDS:
+            rosters = _decode_offered_rasters(kind, raw)
+            episodes = _offered_visual_episodes(f"offered-{kind}-{uuid.uuid4()}", rosters)
+            presented = {"presented_raster_count": len(rosters)}
+        else:
+            sample_rate, samples = _decode_offered_audio(raw)
+            episodes = _mono_pcm_hop_episodes(
+                assembly_prefix=f"offered-{kind}-{uuid.uuid4()}",
+                samples=samples,
+                sample_rate_hz=sample_rate,
+            )
+            presented = {"presented_sample_count": len(samples)}
+    except (OSError, ValueError) as error:
+        return _refusal(422, f"offered {kind} refused: {error}")
+    try:
+        result = _perform_admitted_intake(episodes, f"offered-{kind}")
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted material transition refused: {error}")
+    if kind in AUDIBLE_MATERIAL_KINDS:
+        global _live_hearing_evidence
+        with _transition_lock:
+            _live_hearing_evidence = {
+                "intake": f"offered-{kind}",
+                "generation": result.get("generation"),
+            }
+            _refresh_public_observation_cache()
+    return JSONResponse(
+        status_code=200,
+        content={"material_kind": kind, **presented, **result},
+    )
+
+
+@app.post(
+    SPOKEN_LESSON_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def teach_card_spoken(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Teach one card in a living person's own voice.
+
+    The card is shown, felt and NAMED BY THE PERSON PRESENT, on one shared
+    clock, as a single admitted episode.  Everything except the source of
+    the pressure samples is identical to the tutor-recorded lesson.
+    """
+
+    refusal = _spoken_voice_refusal()
+    if refusal is not None:
+        return refusal
+    if not isinstance(payload, dict):
+        return _refusal(422, "spoken lesson requires a JSON body")
+    card_id = payload.get("card_id")
+    if not isinstance(card_id, str) or not card_id:
+        return _refusal(422, "spoken lesson requires an approved card_id")
+    sample_rate = payload.get("sample_rate_hz")
+    if sample_rate != COCHLEAR_SAMPLE_RATE_HZ:
+        return _refusal(
+            422,
+            "spoken lesson requires pcm_s16le mono at "
+            f"{COCHLEAR_SAMPLE_RATE_HZ} Hz, exactly the format the cochlear "
+            "band decomposition is declared for",
+        )
+    encoded = payload.get("pcm_s16le_base64")
+    if not isinstance(encoded, str) or not encoded:
+        return _refusal(422, "spoken lesson requires pcm_s16le_base64")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        return _refusal(422, "spoken lesson voice is not canonical base64")
+    if len(raw) % 2 != 0 or len(raw) < 4:
+        return _refusal(
+            422, "spoken lesson voice is not at least two whole pcm_s16le samples"
+        )
+    samples = struct.unpack(f"<{len(raw) // 2}h", raw)
+    try:
+        experience = _read_manifest_card(card_id)
+    except KeyError:
+        return _refusal(
+            404, f"card {card_id!r} is not in the approved curriculum manifest"
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    try:
+        episodes = _card_lesson_hop_episodes(
+            card_id,
+            experience,
+            "full",
+            spoken_voice=(sample_rate, samples),
+        )
+    except HTTPException:
+        raise
+    except (OSError, ValueError) as error:
+        return _refusal(422, f"spoken lesson refused: {error}")
+    try:
+        result = _perform_card_lesson_intake(
+            episodes,
+            f"spoken-card:{card_id}",
+            card_id,
+            experience,
+            "full",
+        )
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted lesson transition refused: {error}")
+    # Publish the evidence the way the live-sight route does: under the
+    # lock, WITH a cache refresh.  The public observation is served from a
+    # cache that is rebuilt during an intake, so an evidence global assigned
+    # after the intake would not appear until the NEXT one — a control would
+    # read "nothing has happened" immediately after it happened.
+    global _live_hearing_evidence
+    with _transition_lock:
+        _live_hearing_evidence = {
+            "intake": f"spoken-card:{card_id}",
+            "generation": result.get("generation"),
+        }
+        _refresh_public_observation_cache()
+    return JSONResponse(
+        status_code=200,
+        content={
+            "card_id": card_id,
+            "presentation": "full",
+            "voice": "live_human_speaker",
+            "spoken_sample_count": len(samples),
+            **result,
+        },
+    )
+
+
+@app.post(
+    "/api/v1/development/retinal-lattice",
+    dependencies=[Depends(_require_secret)],
+)
+def development_retinal_lattice() -> JSONResponse:
+    """Author the declared within-column retinal contacts onto the body.
+
+    Growth of a living body is a deliberate authorized act: this endpoint
+    refuses honestly unless the environment explicitly authorizes it, and it
+    is never reached by a deploy on its own.
+    """
+
+    if not _retinal_lattice_authorized():
+        return _refusal(
+            403,
+            "authored contact growth is refused: growing a living body is a "
+            "deliberate authorized act and "
+            f"{RETINAL_LATTICE_AUTHORIZATION_ENV} is not set",
+        )
+    try:
+        result = _perform_retinal_lattice_growth()
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"authored contact growth refused: {error}")
     return JSONResponse(status_code=200, content=result)
 
 
+@app.post(LIVE_SIGHT_INTAKE_ENDPOINT)
+def live_sight_frames(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Deliver one batch of real live camera frames as admitted episodes.
+
+    One posted frame becomes exactly one 250 ms hop on the same timebase and
+    the same 27-receptor retinal roster the cards use (Pillow BOX
+    area-averaged luminance in [0, 1]).  The ears carry true 0.0 silence —
+    a lawful state of the mounted sensorium; audio is never fabricated.
+    """
+
+    try:
+        rosters, provenance = _parse_live_sight_batch(payload)
+    except ValueError as error:
+        return _refusal(422, f"live sight intake refused: {error}")
+    batch_id = str(uuid.uuid4())
+    episodes = _live_sight_hop_episodes(batch_id, rosters)
+    try:
+        result = _perform_live_sight_intake(
+            episodes, f"live-sight:{batch_id}", provenance
+        )
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted live sight transition refused: {error}")
+    return JSONResponse(
+        status_code=200,
+        content={"capture": provenance, **result},
+    )
+
+
 @app.post("/sight_frame")
-async def sight_frame(_request: Request) -> JSONResponse:
-    return _unavailable("native visual sensory transition")
+def sight_frame(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Legacy mount point; the same live-sight contract and intake path."""
+
+    return live_sight_frames(payload)
 
 
 @app.post("/sound_frame")
 async def sound_frame(request: Request) -> JSONResponse:
-    # Ratified two-real-signal doctrine: refuse before reading the body —
-    # no standalone-hearing experience may reach the organism at all.
-    return _refusal(503, _SOUND_SUSPENSION_REASON)
+    # Honest refusal BEFORE reading the body: no standalone-hearing
+    # experience may reach the organism while either condition is unmet.
+    refusal = _standalone_hearing_refusal()
+    if refusal is not None:
+        return refusal
+    return await _live_sound_frame(request)
 
 
 _SOUND_SUSPENSION_REASON = (
-    "standalone hearing is suspended by ratified doctrine (Joe, 2026-08-05): an experience requires at least two senses delivering real signal, and no live visual source is mounted yet; sound returns when the camera mounts, and tutor audio inside card lessons remains"
+    "standalone hearing is refused honestly: the cochlear ear anatomy is not "
+    "authorized in this process, so pressure amplitude has no physical effect "
+    "on the organism and admitting live sound would fabricate a sensation. "
+    "With the cochleae authorized the ears DO transduce — measured on the "
+    "real body 2026-08-07 by severing the sound from one identical card "
+    "lesson: physically transitioned neurons 529->305, new impressions 41->9 "
+    "(the 2026-08-06 'zero physical effect' result was the pre-cochlear "
+    "two-port ear and no longer describes this body). Tutor audio inside "
+    "card lessons remains either way"
+)
+
+_SOUND_WITHOUT_SIGHT_REASON = (
+    "standalone hearing is refused under the two-real-signal doctrine "
+    "(ratified 2026-08-05: no single-sense experiences): the ears now "
+    "transduce, but no live camera batch has committed in this process, so "
+    "this would be sound reaching her while she sees nothing — one real "
+    "signal and 27 lawfully dark receptor sites, which is a single-sense "
+    "experience wearing two names; show her something first, then speak"
 )
 
 
-async def _suspended_sound_frame(request: Request) -> JSONResponse:
+def _standalone_hearing_refusal() -> JSONResponse | None:
+    """Why live sound may not reach her yet, or None when it may.
+
+    TWO conditions, and the refusal says WHICH one is unmet rather than a
+    flat 503 that a reader has to guess at:
+
+      1. The ears must physically transduce.  Without the authorized cochlear
+         roster, pressure amplitude has zero measured effect on her body, so
+         admitting sound would fabricate a sensation.
+      2. Live sight must already be proven IN THIS PROCESS.  An auditory
+         intake carries her whole mounted sensorium, so it must declare all
+         27 card-surface receptor sites too.  With no committed camera batch
+         those samples would be invented.  Sound alone is not an experience.
+
+    What is actually enforced: sight must have committed at least once in
+    THIS process.  True simultaneity (eye open while speaking) is enforced
+    by the interaction page, not here; a sound admitted without a
+    concurrent camera declares her 27 optical sites as true darkness.
+    Tightening this to a physical concurrency check is queued design work,
+    and this text refuses to claim it early.
+    """
+
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return _refusal(503, _SOUND_SUSPENSION_REASON)
+    if _live_sight_evidence is None:
+        return _refusal(503, _SOUND_WITHOUT_SIGHT_REASON)
+    if len(_pcm_sessions) >= PCM_SESSION_CONCURRENT_BOUND:
+        # 2026-08-07 leanness repair: abandoned sessions accumulated
+        # without bound.  One speaker at a time is the physical reality
+        # of the interaction surface; a small fixed bound refuses the
+        # runaway class without inventing an expiry clock.
+        return _refusal(
+            429,
+            f"{len(_pcm_sessions)} pcm sessions are already open "
+            f"(bound {PCM_SESSION_CONCURRENT_BOUND}); close one before "
+            "opening another",
+        )
+    return None
+
+
+async def _live_sound_frame(request: Request) -> JSONResponse:
     try:
         body = await request.body()
     except BaseException:
@@ -2343,15 +6761,25 @@ async def _suspended_sound_frame(request: Request) -> JSONResponse:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"admitted auditory transition refused: {error}")
+    global _live_hearing_evidence
+    with _transition_lock:
+        _live_hearing_evidence = {
+            "intake": "sound-frame",
+            "generation": result.get("generation"),
+        }
+        _refresh_public_observation_cache()
     return JSONResponse(status_code=200, content=result)
 
 
 @app.post("/api/v1/auditory/pcm/open")
 def pcm_open(payload: dict[str, Any] | None = Body(default=None)) -> JSONResponse:
-    return _refusal(503, _SOUND_SUSPENSION_REASON)
+    refusal = _standalone_hearing_refusal()
+    if refusal is not None:
+        return refusal
+    return _live_pcm_open(payload)
 
 
-def _suspended_pcm_open(payload: dict[str, Any] | None = None) -> JSONResponse:
+def _live_pcm_open(payload: dict[str, Any] | None = None) -> JSONResponse:
     sample_rate = 16_000
     if isinstance(payload, dict) and "sample_rate_hz" in payload:
         candidate = payload["sample_rate_hz"]
@@ -2417,10 +6845,17 @@ def pcm_chunk(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
 @app.post("/api/v1/auditory/pcm/close")
 def pcm_close(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    return _refusal(503, _SOUND_SUSPENSION_REASON)
+    # A session can only exist if open() passed the same gate, but re-check:
+    # the roster is fixed for the process, and sight cannot un-prove itself,
+    # so this can only ever agree with open() -- it is here so no route
+    # reaches the organism without stating its conditions.
+    refusal = _standalone_hearing_refusal()
+    if refusal is not None:
+        return refusal
+    return _live_pcm_close(payload)
 
 
-def _suspended_pcm_close(payload: dict[str, Any]) -> JSONResponse:
+def _live_pcm_close(payload: dict[str, Any]) -> JSONResponse:
     session_id = payload.get("session_id") if isinstance(payload, dict) else None
     if not isinstance(session_id, str):
         return _refusal(422, "pcm close requires session_id")
@@ -2448,6 +6883,13 @@ def _suspended_pcm_close(payload: dict[str, Any]) -> JSONResponse:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"admitted auditory transition refused: {error}")
+    global _live_hearing_evidence
+    with _transition_lock:
+        _live_hearing_evidence = {
+            "intake": f"pcm-session:{session_id}",
+            "generation": result.get("generation"),
+        }
+        _refresh_public_observation_cache()
     return JSONResponse(
         status_code=200, content={"session_id": session_id, **result}
     )
@@ -2473,6 +6915,11 @@ def binaural_close() -> JSONResponse:
     return _unavailable("native binaural PCM stream")
 
 
+# The site is two surfaces (Joe, 2026-08-07): gualaloom.html is the one
+# interaction surface, loomscan.html the one report.  ledger/pulse/teach/
+# camera are retired; their last deployed bytes are archived at
+# s3://dsf-ai-site/retired/backup-20260807-1630/ and they are deliberately
+# NOT in the release manifest, so they are never published again by accident.
 @app.get("/gualaloom.html")
 def gualaloom() -> FileResponse:
     return FileResponse(STATIC_ROOT / "gualaloom.html")

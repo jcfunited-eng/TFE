@@ -2,9 +2,10 @@
 //!
 //! The cognitive adapter supplies one simultaneous, dimensionless vector field
 //! and one joint relevance field over a strictly ordered source clock.  This
-//! module performs one complete causal UF evaluation. Its bounded continuation
-//! state is kernel history, not neuronal state: twenty source frames, one
-//! curvature lookahead, one open gate, and the exact L2--L4 predecessors.
+//! module performs one complete causal UF evaluation.  Its rolling operands
+//! are transient calculation work, never persistent L0--L4, neuronal, or
+//! cognitive state.  The kernel boundary remains one complete temporal input
+//! and one complete joint-field output.
 //!
 //! Every L2 normalizer is derived before evaluation from explicit physical
 //! coordinate bounds and the maximum admitted gate interval. No observed gate
@@ -1264,7 +1265,7 @@ mod tests {
     }
 
     #[test]
-    fn exact_continuation_state_is_invariant_to_window_split() {
+    fn exact_transient_calculation_is_invariant_to_window_split() {
         let input = millisecond_input(73);
         let mut uninterrupted = ContinuousJointUf::new(
             bounds(2, 1),

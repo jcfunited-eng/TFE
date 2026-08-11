@@ -9,7 +9,7 @@
 
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::{One, Signed, ToPrimitive, Zero};
+use num_traits::{One, Zero};
 
 use crate::complete_neuron::GateWorkOccurrence;
 use crate::exact_rational::ExactRational;
@@ -17,6 +17,11 @@ use crate::joint_source_episode::{JointSourcePortView, NativeJointSourceEpisode}
 use crate::joint_uf_neuron_boundary::JointNeuronPerspective;
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, NeuronSourceAnchorError, PhysicalSourceSense,
+};
+#[allow(unused_imports)]
+pub(crate) use crate::receptor_quantum_delivery::exact_rational_to_big;
+use crate::receptor_quantum_delivery::{
+    quantize_population_receptor_delivery, quantize_receptor_delivery, ReceptorDeliveryError,
 };
 
 pub(crate) const RETINAL_SPECTRAL_IRRADIANCE_QUANTITY: &str = "retinal-spectral-irradiance";
@@ -77,6 +82,7 @@ pub(crate) enum OpticalReceptorWorkError {
     SampleCardinalityChanged,
     SourceOutsideReferenceInterval,
     SourceClockDidNotAdvance,
+    SourceIntervalAbsent,
     LatticeQuantumUnavailable,
     ResidueOutsideLattice,
     ResidueWidth,
@@ -101,36 +107,29 @@ pub(crate) enum OpticalReceptorWorkError {
 /// (`gate_opening_quantum_window`) — no new constant. A dark interval adds
 /// nothing, delivers nothing, and erases nothing: the law has no residue
 /// decay term and none was added.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct QuantizedOpticalDelivery {
-    pub(crate) delivered_quanta: u128,
-    pub(crate) delivered_energy_zeptojoules: BigRational,
-    pub(crate) successor_residue: ExactRational,
-    pub(crate) gate_work: GateWorkOccurrence,
+pub(crate) type QuantizedOpticalDelivery = crate::receptor_quantum_delivery::QuantizedReceptorDelivery;
+
+impl From<ReceptorDeliveryError> for OpticalReceptorWorkError {
+    /// The shared delivery law's refusals, restated on the optical law's own
+    /// refusal surface.  Same refusals, same names as before the law moved to
+    /// `receptor_quantum_delivery`; nothing about the optical path changed.
+    fn from(value: ReceptorDeliveryError) -> Self {
+        match value {
+            ReceptorDeliveryError::TransducedEnergyNegative => {
+                Self::SourceOutsideReferenceInterval
+            }
+            ReceptorDeliveryError::LatticeQuantumUnavailable => Self::LatticeQuantumUnavailable,
+            ReceptorDeliveryError::ResidueOutsideLattice => Self::ResidueOutsideLattice,
+            ReceptorDeliveryError::ResidueWidth => Self::ResidueWidth,
+            ReceptorDeliveryError::OpeningWindowUnavailable => Self::OpeningWindowUnavailable,
+        }
+    }
 }
 
-pub(crate) fn exact_rational_to_big(value: ExactRational) -> BigRational {
-    let (numerator, denominator) = value.parts();
-    BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
-}
-
-fn big_to_exact_rational(value: &BigRational) -> Result<ExactRational, OpticalReceptorWorkError> {
-    let numerator = value
-        .numer()
-        .to_i128()
-        .ok_or(OpticalReceptorWorkError::ResidueWidth)?;
-    let denominator = value
-        .denom()
-        .to_u128()
-        .ok_or(OpticalReceptorWorkError::ResidueWidth)?;
-    ExactRational::new(numerator, denominator)
-        .map_err(|_| OpticalReceptorWorkError::ResidueWidth)
-}
-
-/// Integrate one interval's exact transduced energy into the per-site
-/// accumulator and deliver whole lattice quanta only once the accumulated
-/// count reaches the receiving gate's opening threshold. The predecessor
-/// residue must be non-negative; the successor residue always is.
+/// The optical entry point into the shared, modality-blind delivery law
+/// (`receptor_quantum_delivery::quantize_receptor_delivery`).  It adds no
+/// arithmetic: it forwards the call and restates refusals on this law's own
+/// error surface.
 pub(crate) fn quantize_optical_delivery(
     transduced_energy_zeptojoules: &BigRational,
     predecessor_residue: ExactRational,
@@ -138,44 +137,31 @@ pub(crate) fn quantize_optical_delivery(
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
 ) -> Result<QuantizedOpticalDelivery, OpticalReceptorWorkError> {
-    if lattice_quantum_zeptojoules <= &BigRational::zero() {
-        return Err(OpticalReceptorWorkError::LatticeQuantumUnavailable);
-    }
-    if opening_threshold_quanta == 0 {
-        return Err(OpticalReceptorWorkError::OpeningWindowUnavailable);
-    }
-    if transduced_energy_zeptojoules.is_negative() {
-        return Err(OpticalReceptorWorkError::SourceOutsideReferenceInterval);
-    }
-    let residue = exact_rational_to_big(predecessor_residue);
-    if residue.is_negative() {
-        return Err(OpticalReceptorWorkError::ResidueOutsideLattice);
-    }
-    let accumulated = residue + transduced_energy_zeptojoules;
-    let accumulated_quanta = (&accumulated / lattice_quantum_zeptojoules)
-        .floor()
-        .to_integer()
-        .to_u128()
-        .ok_or(OpticalReceptorWorkError::ResidueWidth)?;
-    // Threshold-integrated delivery: below the receiving gate's own opening
-    // threshold NOTHING is delivered and everything is retained; at or above
-    // it, at most the gate's own window cap is passed.
-    let delivered_quanta = if accumulated_quanta < opening_threshold_quanta {
-        0
-    } else {
-        accumulated_quanta.min(window_cap_quanta)
-    };
-    let delivered_energy_zeptojoules =
-        lattice_quantum_zeptojoules * BigRational::from_integer(BigInt::from(delivered_quanta));
-    let successor_residue_big = accumulated - &delivered_energy_zeptojoules;
-    debug_assert!(!successor_residue_big.is_negative());
-    let successor_residue = big_to_exact_rational(&successor_residue_big)?;
-    Ok(QuantizedOpticalDelivery {
-        delivered_quanta,
-        gate_work: GateWorkOccurrence::new(-delivered_energy_zeptojoules.clone()),
-        delivered_energy_zeptojoules,
-        successor_residue,
-    })
+    quantize_receptor_delivery(
+        transduced_energy_zeptojoules,
+        predecessor_residue,
+        lattice_quantum_zeptojoules,
+        opening_threshold_quanta,
+        window_cap_quanta,
+    )
+    .map_err(OpticalReceptorWorkError::from)
+}
+
+pub(crate) fn quantize_optical_population_delivery(
+    transduced_energy_zeptojoules: &BigRational,
+    predecessor_residue: ExactRational,
+    lattice_quantum_zeptojoules: &BigRational,
+    predecessor_open_population: u128,
+    activation_quanta: &[u128],
+) -> Result<QuantizedOpticalDelivery, OpticalReceptorWorkError> {
+    quantize_population_receptor_delivery(
+        transduced_energy_zeptojoules,
+        predecessor_residue,
+        lattice_quantum_zeptojoules,
+        predecessor_open_population,
+        activation_quanta,
+    )
+    .map_err(OpticalReceptorWorkError::from)
 }
 
 impl From<NeuronSourceAnchorError> for OpticalReceptorWorkError {
@@ -184,9 +170,11 @@ impl From<NeuronSourceAnchorError> for OpticalReceptorWorkError {
     }
 }
 
-fn settle_port(
+fn settle_port_range(
     port: &JointSourcePortView,
     anatomy: &OpticalReceptorAnatomy,
+    first_sample: usize,
+    last_sample: usize,
 ) -> Result<OpticalReceptorWorkSettlement, OpticalReceptorWorkError> {
     if port.sense != 0 {
         return Err(OpticalReceptorWorkError::NotSight);
@@ -203,8 +191,10 @@ fn settle_port(
     if port.source_times.len() != port.exact_normalized_sources.len() {
         return Err(OpticalReceptorWorkError::SampleCardinalityChanged);
     }
-    if port
-        .exact_normalized_sources
+    if first_sample >= last_sample || last_sample >= port.source_times.len() {
+        return Err(OpticalReceptorWorkError::SourceIntervalAbsent);
+    }
+    if port.exact_normalized_sources[first_sample..=last_sample]
         .iter()
         .any(|value| value < &BigRational::zero() || value > &BigRational::one())
     {
@@ -212,7 +202,7 @@ fn settle_port(
     }
 
     let mut integrated = BigRational::zero();
-    for index in 0..port.source_times.len() - 1 {
+    for index in first_sample..last_sample {
         let duration = &port.source_times[index + 1] - &port.source_times[index];
         if duration <= BigRational::zero() {
             return Err(OpticalReceptorWorkError::SourceClockDidNotAdvance);
@@ -223,7 +213,7 @@ fn settle_port(
         integrated += mean * duration;
     }
     let observed_duration_seconds =
-        port.source_times.last().unwrap() - port.source_times.first().unwrap();
+        &port.source_times[last_sample] - &port.source_times[first_sample];
     let incident_energy_zeptojoules = &integrated
         * &anatomy.reference_irradiance_zeptojoules_per_square_nanometre_second
         * &anatomy.aperture_square_nanometres;
@@ -239,6 +229,13 @@ fn settle_port(
         gate_work: GateWorkOccurrence::new(-transduced_energy_zeptojoules.clone()),
         transduced_energy_zeptojoules,
     })
+}
+
+fn settle_port(
+    port: &JointSourcePortView,
+    anatomy: &OpticalReceptorAnatomy,
+) -> Result<OpticalReceptorWorkSettlement, OpticalReceptorWorkError> {
+    settle_port_range(port, anatomy, 0, port.source_times.len().saturating_sub(1))
 }
 
 pub(crate) fn derive_optical_receptor_work(
@@ -257,6 +254,26 @@ pub(crate) fn derive_optical_receptor_work(
             NeuronSourceAnchorError::SourcePortAbsent,
         ))?;
     settle_port(port, anatomy)
+}
+
+pub(crate) fn derive_optical_receptor_sample_range_work(
+    episode: &NativeJointSourceEpisode,
+    perspective: JointNeuronPerspective<'_>,
+    anatomy: &OpticalReceptorAnatomy,
+    first_sample: usize,
+    last_sample: usize,
+) -> Result<OpticalReceptorWorkSettlement, OpticalReceptorWorkError> {
+    let anchor = bind_neuron_source_anchor(episode, perspective)?;
+    if anchor.sense() != PhysicalSourceSense::Sight {
+        return Err(OpticalReceptorWorkError::NotSight);
+    }
+    let port = episode
+        .joint_source_ports()
+        .get(anchor.source_port_index())
+        .ok_or(OpticalReceptorWorkError::Source(
+            NeuronSourceAnchorError::SourcePortAbsent,
+        ))?;
+    settle_port_range(port, anatomy, first_sample, last_sample)
 }
 
 #[cfg(test)]

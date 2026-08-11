@@ -12,6 +12,9 @@
 use core::mem::size_of;
 
 use crate::exact_rational::ExactRational;
+use num_bigint::BigInt;
+use num_rational::BigRational;
+use num_traits::ToPrimitive;
 
 const ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR: u128 = 801_088_317;
 const ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR: u128 = 5_000_000_000_000;
@@ -81,29 +84,114 @@ pub(crate) fn settle_elementary_charge_transfer(
     if interval_microseconds == 0 {
         return Err(ChargeTransferError::InvalidDuration);
     }
-    let current = SignedRatio::from_external(outward_current_picoamperes)?;
-    let ideal_carrier_transfer = current
-        .checked_mul_unsigned(u128::from(interval_microseconds))?
-        .checked_mul_unsigned(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR)?
-        .checked_div_unsigned(MICROSECONDS_PER_MILLISECOND)?
-        .checked_div_unsigned(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR)?;
-    let accumulated = predecessor_phase
-        .ratio()
-        .checked_add(ideal_carrier_transfer)?;
-    let outward_elementary_charges = accumulated.numerator
-        / i128::try_from(accumulated.denominator)
-            .map_err(|_| ChargeTransferError::ArithmeticWidth)?;
-    let unresolved_numerator = accumulated.numerator
-        % i128::try_from(accumulated.denominator)
-            .map_err(|_| ChargeTransferError::ArithmeticWidth)?;
-    let successor = SignedRatio::canonical(unresolved_numerator, accumulated.denominator)?;
-    let successor_phase = ChargeCarrierPhase::new(successor.numerator, successor.denominator)?;
+    let (current_numerator, current_denominator) = outward_current_picoamperes.parts();
+    let (phase_numerator, phase_denominator) = predecessor_phase.parts();
+    let ideal_carrier_transfer = BigRational::new(
+        BigInt::from(current_numerator)
+            * BigInt::from(interval_microseconds)
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR),
+        BigInt::from(current_denominator)
+            * BigInt::from(MICROSECONDS_PER_MILLISECOND)
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR),
+    );
+    let accumulated = ideal_carrier_transfer
+        + BigRational::new(
+            BigInt::from(phase_numerator),
+            BigInt::from(phase_denominator),
+        );
+    let outward_elementary_charges = (accumulated.numer() / accumulated.denom())
+        .to_i128()
+        .ok_or(ChargeTransferError::ArithmeticWidth)?;
+    let unresolved = accumulated
+        - BigRational::from_integer(BigInt::from(outward_elementary_charges));
+    let successor_phase = ChargeCarrierPhase::new(
+        unresolved
+            .numer()
+            .to_i128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+        unresolved
+            .denom()
+            .to_u128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+    )?;
     Ok(ElementaryChargeTransition {
         successor_phase,
         outward_elementary_charges,
         interval_microseconds,
         resident_state_bytes: ChargeCarrierPhase::resident_bytes(),
     })
+}
+
+/// The exact current that moves no more than the locally available whole
+/// carriers over this interval. If the requested current is reachable it is
+/// unchanged. If material limits it, the returned current transports exactly
+/// the available whole carriers and preserves the predecessor's unresolved
+/// sub-carrier phase. This is carrier-limited conductivity, not a clamp chosen
+/// by code: zero material yields zero current and finite material yields the
+/// current that the SI charge quantum permits over the elapsed physical time.
+pub(crate) fn current_limited_by_available_carriers(
+    predecessor_phase: ChargeCarrierPhase,
+    requested_current_picoamperes: ExactRational,
+    interval_microseconds: u32,
+    available_carriers: u128,
+) -> Result<ExactRational, ChargeTransferError> {
+    let requested = settle_elementary_charge_transfer(
+        predecessor_phase,
+        requested_current_picoamperes,
+        interval_microseconds,
+    )?;
+    if requested.outward_elementary_charges.unsigned_abs() <= available_carriers {
+        return Ok(requested_current_picoamperes);
+    }
+    if available_carriers == 0 {
+        return Ok(ExactRational::integer(0));
+    }
+    let signed_carriers = if requested.outward_elementary_charges < 0 {
+        -BigInt::from(available_carriers)
+    } else {
+        BigInt::from(available_carriers)
+    };
+    exact_current_for_big_whole_carrier_transfer(signed_carriers, interval_microseconds)
+}
+
+/// Exact ensemble current corresponding to a reached whole-carrier transfer.
+/// This is the inverse of the SI elementary-charge integration used above;
+/// it introduces no fractional carrier state.
+pub(crate) fn exact_current_for_whole_carrier_transfer(
+    outward_elementary_charges: i128,
+    interval_microseconds: u32,
+) -> Result<ExactRational, ChargeTransferError> {
+    if interval_microseconds == 0 {
+        return Err(ChargeTransferError::InvalidDuration);
+    }
+    exact_current_for_big_whole_carrier_transfer(
+        BigInt::from(outward_elementary_charges),
+        interval_microseconds,
+    )
+}
+
+fn exact_current_for_big_whole_carrier_transfer(
+    outward_elementary_charges: BigInt,
+    interval_microseconds: u32,
+) -> Result<ExactRational, ChargeTransferError> {
+    let current = BigRational::new(
+        outward_elementary_charges
+            * BigInt::from(MICROSECONDS_PER_MILLISECOND)
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR),
+        BigInt::from(interval_microseconds)
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR),
+    );
+    ExactRational::new(
+        current
+            .numer()
+            .to_i128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+        current
+            .denom()
+            .to_u128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+    )
+    .map_err(|_| ChargeTransferError::ArithmeticWidth)
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

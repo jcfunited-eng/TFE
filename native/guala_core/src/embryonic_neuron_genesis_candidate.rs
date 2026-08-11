@@ -20,8 +20,7 @@ use crate::neuron_source_anchor::{bind_neuron_source_anchor, NeuronSourceSite};
 use crate::optical_receptor_work::{derive_optical_receptor_work, OpticalReceptorAnatomy};
 use crate::reached_neuron_cohort::{
     settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
-    RestReachedCohortState, ReachedCohortAnatomy, ReachedCohortIntervalInput,
-    ReachedCohortState,
+    ReachedCohortAnatomy, ReachedCohortIntervalInput, ReachedCohortState, RestReachedCohortState,
 };
 use crate::recovery_fluid_contact::{
     settle_recovery_fluid_contact, RecoveryFluidContactAnatomy, RecoveryFluidReservoirAnatomy,
@@ -87,7 +86,8 @@ fn interval<'a>(
         interval_microseconds: 1_000,
         recovery: RecoveryContact::new(catalysts, 0, 0),
         dna_expression: DnaExpressionContact::new(0),
-        optical_successor_residue: None,
+        receptor_successor_residue: None,
+        prepared_psi: None,
     }
 }
 
@@ -105,7 +105,8 @@ fn optical_interval<'a>(
         interval_microseconds: 1_000,
         recovery: RecoveryContact::new(catalysts, 0, 0),
         dna_expression: DnaExpressionContact::new(0),
-        optical_successor_residue: None,
+        receptor_successor_residue: None,
+        prepared_psi: None,
     }
 }
 
@@ -148,6 +149,10 @@ fn exchange_one_lane(
 ) {
     let settled = settle_recovery_fluid_contact(
         candidate.anatomy.recovery_anatomy().lane(address).unwrap(),
+        candidate
+            .anatomy
+            .recovery_energy_per_extent_zeptojoules(address)
+            .unwrap(),
         state.recovery.lane(address).unwrap(),
         reservoir_anatomy,
         *reservoir,
@@ -229,10 +234,17 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
 
     let recovery_material =
         u128::try_from(candidate.anatomy.recovery_anatomy().psi_lane_count()).unwrap() + 20;
+    let recovery_energy = ExactRational::integer(i128::try_from(recovery_material).unwrap());
     let reservoir_anatomy =
-        RecoveryFluidReservoirAnatomy::new(recovery_material, recovery_material, recovery_material);
-    let mut reservoir =
-        RecoveryFluidReservoirState::new(reservoir_anatomy, recovery_material, 0, 0).unwrap();
+        RecoveryFluidReservoirAnatomy::new(recovery_energy, recovery_energy, recovery_energy)
+            .unwrap();
+    let mut reservoir = RecoveryFluidReservoirState::new(
+        reservoir_anatomy,
+        recovery_energy,
+        ExactRational::integer(0),
+        ExactRational::integer(0),
+    )
+    .unwrap();
     let recovery_catalysts = vec![1; candidate.zero_recovery_catalysts.len()];
     let mut recovered = first.quiescent.state().clone();
     for _ in 0..19 {
@@ -245,7 +257,8 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
                 interval_microseconds: 1_000,
                 recovery: RecoveryContact::new(&recovery_catalysts, 1, 1),
                 dna_expression: DnaExpressionContact::new(0),
-                optical_successor_residue: None,
+                receptor_successor_residue: None,
+                prepared_psi: None,
             },
             0,
         )
@@ -286,7 +299,12 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     let episode = exact_episode();
     let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
     let candidates = (0..4)
-        .map(|index| candidate_neuron(&episode, bind_neuron_perspective(&shared, index, 0).unwrap()))
+        .map(|index| {
+            candidate_neuron(
+                &episode,
+                bind_neuron_perspective(&shared, index, 0).unwrap(),
+            )
+        })
         .collect::<Vec<_>>();
     let source_sites = (0..4)
         .map(|index| {
@@ -373,4 +391,3 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
         .iter()
         .all(|active| *active));
 }
-

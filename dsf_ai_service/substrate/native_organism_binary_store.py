@@ -19,6 +19,7 @@ import uuid
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     NativeResidentOrganism,
+    migrate_native_resident_organism_exact_energy,
     restore_native_resident_organism,
 )
 
@@ -419,12 +420,17 @@ def _prove_restored_body(
         raise NativeOrganismBinaryStoreError(
             "native organism restore input is not the exact binary body"
         )
-    organism = restore_native_resident_organism(
-        current_envelope=body,
-        max_envelope_bytes=maximum,
-        max_fabric_bytes=max_fabric_bytes,
-        max_logical_peak_bytes=max_logical_peak_bytes,
-    )
+    try:
+        organism = restore_native_resident_organism(
+            current_envelope=body,
+            max_envelope_bytes=maximum,
+            max_fabric_bytes=max_fabric_bytes,
+            max_logical_peak_bytes=max_logical_peak_bytes,
+        )
+    except (TypeError, ValueError, RuntimeError) as error:
+        raise NativeOrganismBinaryStoreError(
+            "native organism exact binary restore was refused"
+        ) from error
     before = _observe(organism)
     saved = organism.save()
     after = _observe(organism)
@@ -893,6 +899,166 @@ def publish_staged_native_organism(
         raise
 
 
+def rehearse_current_native_organism_exact_energy(
+    store_root: str | os.PathLike[str],
+    *,
+    expected_predecessor_sha256: str,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> RestoredNativeOrganism:
+    """Migrate one exact CURRENT body in memory without publishing it."""
+
+    root = _store_root(store_root)
+    expected = _canonical_digest(
+        expected_predecessor_sha256, "exact-energy predecessor receipt"
+    )
+    current = _read_current(root)
+    if current is None or current.state_sha256 != expected:
+        raise NativeOrganismBinaryStoreError(
+            "exact-energy migration CURRENT differs from expected predecessor"
+        )
+    body = _read_exact_state(
+        _generation_path(root, current.state_sha256),
+        expected_bytes=current.state_bytes,
+        expected_sha256=current.state_sha256,
+        max_envelope_bytes=max_envelope_bytes,
+    )
+    migrated = migrate_native_resident_organism_exact_energy(
+        current_envelope=body,
+        expected_predecessor_sha256=expected,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+    organism = restore_native_resident_organism(
+        current_envelope=migrated,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+    facts = _observe(organism)
+    if facts.identity != current.identity or facts.organism_tick != current.organism_tick:
+        raise NativeOrganismBinaryStoreError(
+            "exact-energy migration changed identity or organism time"
+        )
+    pointer = NativeOrganismPointer(
+        identity=facts.identity,
+        organism_tick=facts.organism_tick,
+        state_bytes=facts.state_bytes,
+        state_sha256=facts.state_sha256,
+        predecessor_state_sha256=current.state_sha256,
+    )
+    return RestoredNativeOrganism(organism=organism, pointer=pointer)
+
+
+def migrate_current_native_organism_exact_energy(
+    store_root: str | os.PathLike[str],
+    *,
+    expected_predecessor_sha256: str,
+    object_store: StreamingObjectStore,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> PublishedNativeOrganism:
+    """Replace exactly one authenticated retired-energy CURRENT body."""
+
+    restored = rehearse_current_native_organism_exact_energy(
+        store_root,
+        expected_predecessor_sha256=expected_predecessor_sha256,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+    root = _store_root(store_root)
+    staged = stage_active_native_organism(
+        root,
+        restored.organism,
+        max_envelope_bytes=max_envelope_bytes,
+    )
+    return publish_staged_native_organism(
+        staged,
+        expected_predecessor_sha256=expected_predecessor_sha256,
+        object_store=object_store,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+
+
+def rehearse_current_native_organism_current_format(
+    store_root: str | os.PathLike[str],
+    *,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> RestoredNativeOrganism:
+    """Migrate the exact CURRENT body observed at migration time in memory.
+
+    Continuous life may advance ``CURRENT`` while a release image is built.
+    The migration therefore obtains its predecessor from the body itself at
+    the instant the migration begins, rather than from deployment metadata.
+    The existing exact-predecessor rehearsal remains the sole transition law.
+    """
+
+    root = _store_root(store_root)
+    current = _read_current(root)
+    if current is None:
+        raise NativeOrganismBinaryStoreError(
+            "native organism CURRENT is absent"
+        )
+    return rehearse_current_native_organism_exact_energy(
+        root,
+        expected_predecessor_sha256=current.state_sha256,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+
+
+def migrate_current_native_organism_current_format(
+    store_root: str | os.PathLike[str],
+    *,
+    object_store: StreamingObjectStore,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> PublishedNativeOrganism:
+    """Publish one current-format successor of the exact body now CURRENT.
+
+    Publication still compares ``CURRENT`` with the exact predecessor read by
+    the rehearsal. If the living organism advances before publication, the
+    existing publication law refuses this successor instead of overwriting
+    newer life.
+    """
+
+    restored = rehearse_current_native_organism_current_format(
+        store_root,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+    predecessor = restored.pointer.predecessor_state_sha256
+    if predecessor is None:
+        raise NativeOrganismBinaryStoreError(
+            "current-format migration carries no exact predecessor"
+        )
+    root = _store_root(store_root)
+    staged = stage_active_native_organism(
+        root,
+        restored.organism,
+        max_envelope_bytes=max_envelope_bytes,
+    )
+    return publish_staged_native_organism(
+        staged,
+        expected_predecessor_sha256=predecessor,
+        object_store=object_store,
+        max_envelope_bytes=max_envelope_bytes,
+        max_fabric_bytes=max_fabric_bytes,
+        max_logical_peak_bytes=max_logical_peak_bytes,
+    )
+
+
 def rollback_to_verified_predecessor(
     store_root: str | os.PathLike[str],
     *,
@@ -978,7 +1144,11 @@ __all__ = (
     "StagedNativeOrganism",
     "StreamingObjectStore",
     "discard_staged_native_organism",
+    "migrate_current_native_organism_exact_energy",
+    "migrate_current_native_organism_current_format",
     "publish_staged_native_organism",
+    "rehearse_current_native_organism_exact_energy",
+    "rehearse_current_native_organism_current_format",
     "restore_current_native_organism",
     "rollback_to_verified_predecessor",
     "stage_active_native_organism",

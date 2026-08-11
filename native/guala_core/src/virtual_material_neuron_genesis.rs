@@ -12,26 +12,28 @@ use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
 
 use crate::complete_neuron::{
-    CarrierReservoirs, DnaExpressionAnatomy, DnaExpressionError, DnaExpressionState,
-    GateSettlementError, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
-    PlasticSupportAnatomy, PlasticSupportState, PlasticityError, PsiKrimelackAnatomy,
-    PsiKrimelackState, PsiRingAnatomy, PsiSettlementError, RecoveryAnatomy, RecoveryError,
-    RecoveryLaneAnatomy, RecoveryLaneState, RecoveryState, TwoStateGateAnatomy, TwoStateGateState,
+    expand_legacy_receptor_channel_population, extend_neuron_positional_fabric, CarrierReservoirs,
+    DnaExpressionAnatomy, DnaExpressionError, DnaExpressionState, GateSettlementError,
+    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, PlasticSupportAnatomy,
+    PlasticSupportState, PlasticityError, PsiKrimelackAnatomy, PsiKrimelackState, PsiRingAnatomy,
+    PsiSettlementError, RecoveryAnatomy, RecoveryError, RecoveryLaneAnatomy, RecoveryLaneState,
+    RecoveryState, TwoStateGateAnatomy, TwoStateGateState,
 };
 use crate::declared_geometric_anatomy::{
-    membrane_capacitance_from_declared_geometry, DeclaredGeometryError,
+    declared_geometric_territory, membrane_capacitance_from_declared_place, DeclaredGeometryError,
+    DeclaredNeuronPlace,
 };
 use crate::elementary_charge_membrane::MembraneChargeError;
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_source_episode::NativeJointSourceEpisode;
 use crate::joint_uf_neuron_boundary::{
-    bind_neuron_perspective, prepare_complete_joint_field, required_mathloom_positions,
-    BalancedTrit, JointNeuronBoundaryError, JointNeuronPerspective, MathLoomAnatomy,
-    SharedCompleteJointField,
+    bind_neuron_perspective, declared_field_arithmetic_positions, prepare_complete_joint_field,
+    required_mathloom_positions_for_birth_field, BalancedTrit, JointNeuronBoundaryError,
+    JointNeuronPerspective, MathLoomAnatomy, SharedCompleteJointField,
 };
 use crate::local_membrane_conductance_balance::LocalMembraneConductanceState;
 use crate::neuron_source_anchor::{
-    bind_neuron_source_anchor, NeuronSourceAnchorError, NeuronSourceSite,
+    bind_neuron_source_anchor, NeuronSourceAnchorError, NeuronSourceSite, PhysicalSourceSense,
 };
 use crate::reached_neuron_cohort::{
     extend_reached_cohort_cells, ReachedCohortAnatomy, ReachedCohortError, ReachedCohortState,
@@ -61,6 +63,14 @@ const PLASTIC_GENESIS_REST_LENGTH_DENOMINATOR: i64 = 1;
 /// `ceil(1 fC / e)`, where the SI elementary charge is exact.
 const ONE_FEMTOCOULOMB_CARRIER_QUANTA: u128 = 6_242;
 
+/// Virgin carrier material assigned to each explicitly represented receptor
+/// channel at this virtual organism's genesis. A one-way anatomy correction
+/// uses the same physical quantity for omitted channels; it must not derive
+/// virgin material from a lived channel whose carriers have already moved.
+pub(crate) fn definitive_virtual_carriers_per_compartment() -> u128 {
+    ONE_FEMTOCOULOMB_CARRIER_QUANTA
+}
+
 /// The authored base membrane capacitance: the picofarad capacitance of ONE
 /// unit patch of this virtual membrane.  It is unchanged from the original
 /// authored anatomy; the geometric-differentiation ratification (2026-08-05)
@@ -85,6 +95,8 @@ pub(crate) enum VirtualMaterialGenesisError {
     Cohort(ReachedCohortError),
     Electrical(SparseElectricalError),
     GateEnergyLatticeUnavailable,
+    DeclaredPlaceMismatch,
+    RestingSpecializationMismatch,
     ArithmeticWidth,
 }
 
@@ -128,24 +140,57 @@ pub(crate) fn create_virtual_material_reached_cohort_from_shared(
     neuron_lineages: Vec<[u8; 16]>,
     electrical: SparseElectricalAnatomy,
 ) -> Result<VirtualMaterialReachedCohortGenesis, VirtualMaterialGenesisError> {
+    create_virtual_material_reached_cohort_subset_from_shared(
+        episode,
+        shared,
+        &(0..shared.vertex_count()).collect::<Vec<_>>(),
+        neuron_lineages,
+        electrical,
+    )
+}
+
+/// Construct one receptor/anatomical cohort from a declared physical group
+/// inside a larger simultaneous joint occurrence.  The complete joint field
+/// is still evaluated once and every selected neuron retains its perspective
+/// into that same field; this function only prevents unrelated receptor
+/// structures from being fused into one resident fluid compartment.
+pub(crate) fn create_virtual_material_reached_cohort_subset_from_shared(
+    episode: &NativeJointSourceEpisode,
+    shared: &SharedCompleteJointField,
+    coordinate_indices: &[usize],
+    neuron_lineages: Vec<[u8; 16]>,
+    electrical: SparseElectricalAnatomy,
+) -> Result<VirtualMaterialReachedCohortGenesis, VirtualMaterialGenesisError> {
+    if coordinate_indices.is_empty()
+        || coordinate_indices.len() != neuron_lineages.len()
+        || coordinate_indices
+            .iter()
+            .enumerate()
+            .any(|(index, coordinate)| {
+                *coordinate >= shared.vertex_count()
+                    || coordinate_indices[..index].contains(coordinate)
+            })
+    {
+        return Err(VirtualMaterialGenesisError::ArithmeticWidth);
+    }
     let mut neurons = Vec::new();
     let mut states = Vec::new();
     let mut source_sites = Vec::new();
     let mut catalysts = Vec::new();
     neurons
-        .try_reserve_exact(shared.vertex_count())
+        .try_reserve_exact(coordinate_indices.len())
         .map_err(|_| VirtualMaterialGenesisError::ArithmeticWidth)?;
     states
-        .try_reserve_exact(shared.vertex_count())
+        .try_reserve_exact(coordinate_indices.len())
         .map_err(|_| VirtualMaterialGenesisError::ArithmeticWidth)?;
     source_sites
-        .try_reserve_exact(shared.vertex_count())
+        .try_reserve_exact(coordinate_indices.len())
         .map_err(|_| VirtualMaterialGenesisError::ArithmeticWidth)?;
     catalysts
-        .try_reserve_exact(shared.vertex_count())
+        .try_reserve_exact(coordinate_indices.len())
         .map_err(|_| VirtualMaterialGenesisError::ArithmeticWidth)?;
-    for coordinate_index in 0..shared.vertex_count() {
-        let perspective = bind_neuron_perspective(&shared, coordinate_index, 0)
+    for coordinate_index in coordinate_indices {
+        let perspective = bind_neuron_perspective(shared, *coordinate_index, 0)
             .map_err(VirtualMaterialGenesisError::JointField)?;
         let source = bind_neuron_source_anchor(episode, perspective)
             .map_err(VirtualMaterialGenesisError::Source)?;
@@ -189,7 +234,7 @@ pub(crate) fn extend_virtual_material_reached_cohort_from_shared(
         cells.push(ReachedNeuronGenesisCell {
             anatomy: genesis.anatomy,
             lineage: *lineage,
-            source_site: site,
+            mount: crate::reached_neuron_cohort::ReachedNeuronMount::Receptor(site),
             state: genesis.state,
         });
     }
@@ -320,10 +365,140 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
     site: &NeuronSourceSite,
     gate_dissipation_quantum_zeptojoules: BigRational,
 ) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
-    if gate_dissipation_quantum_zeptojoules <= BigRational::zero() {
+    let receptor_population = if site.sense() == PhysicalSourceSense::Sight {
+        declared_geometric_territory(site).map_err(VirtualMaterialGenesisError::DeclaredGeometry)?
+    } else {
+        1
+    };
+    // Every gate in this already-arrived occurrence belongs to the neuron's
+    // one current birth field.  Mount the smallest exact positional fabric
+    // that can carry that whole field; this is not future capacity and does
+    // not pre-grow for any later occurrence.
+    let positions = required_mathloom_positions_for_birth_field(perspective)
+        .map_err(VirtualMaterialGenesisError::JointField)?
+        .max(declared_field_arithmetic_positions());
+    build_quiescent_virtual_material_neuron(
+        positions,
+        DeclaredNeuronPlace::from_source_site(site),
+        receptor_population,
+        site.sense() == PhysicalSourceSense::Sight && receptor_population > 1,
+        gate_dissipation_quantum_zeptojoules,
+    )
+}
+
+/// Construct one neuron at its organism-relative resting place before any
+/// receptor, joint field, or sensory episode reaches it.  Birth mounts only
+/// the minimum exact positional fabric required by the unchanged seven-field
+/// arithmetic.  A later real occurrence may extend that fabric before it
+/// settles; birth itself performs no field evaluation and emits no fractal.
+pub(crate) fn create_quiescent_virtual_material_neuron(
+    place: DeclaredNeuronPlace,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    build_quiescent_virtual_material_neuron(
+        declared_field_arithmetic_positions(),
+        place,
+        1,
+        false,
+        exact(
+            ORDINARY_GATE_DISSIPATION_QUANTUM_NUMERATOR,
+            ORDINARY_GATE_DISSIPATION_QUANTUM_DENOMINATOR,
+        ),
+    )
+}
+
+/// Let one already-declared quiescent cell reach its first ordinary receptor.
+/// The cell's place, capacitance, lived coordinates, and state remain its own.
+/// Only virgin receptor-channel material omitted from its source-independent
+/// resting anatomy and any newly required high MathLoom/Psi positions are
+/// mounted before the first occurrence settles. No experience is evaluated
+/// here and this transition cannot itself emit a neuronal fractal.
+pub(crate) fn reach_quiescent_virtual_material_neuron(
+    perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
+    declared_place: DeclaredNeuronPlace,
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    if DeclaredNeuronPlace::from_source_site(site) != declared_place {
+        return Err(VirtualMaterialGenesisError::DeclaredPlaceMismatch);
+    }
+    let positions = required_mathloom_positions_for_birth_field(perspective)
+        .map_err(VirtualMaterialGenesisError::JointField)?
+        .max(declared_field_arithmetic_positions());
+    let (anatomy, state) = extend_neuron_positional_fabric(anatomy, state, positions)
+        .map_err(VirtualMaterialGenesisError::Neuron)?;
+    let receptor_population = if site.sense() == PhysicalSourceSense::Sight {
+        declared_geometric_territory(site).map_err(VirtualMaterialGenesisError::DeclaredGeometry)?
+    } else {
+        1
+    };
+    let (anatomy, state) = expand_legacy_receptor_channel_population(
+        &anatomy,
+        &state,
+        receptor_population,
+        definitive_virtual_carriers_per_compartment(),
+    )
+    .map_err(VirtualMaterialGenesisError::Neuron)?;
+    let zero_recovery_catalysts = vec![0; anatomy.psi_ring_count()].into_boxed_slice();
+    Ok(VirtualMaterialNeuronGenesis {
+        anatomy,
+        state,
+        zero_recovery_catalysts,
+    })
+}
+
+/// Express one receptor-specific gate-energy lattice in an already-declared
+/// virgin cell.  This is the specialization-DNA boundary: it is legal only
+/// while the cell is still byte-for-byte its source-independent quiescent
+/// genesis.  Its lineage is owned by the caller; its place, capacitance and
+/// total physical gate capacity remain unchanged.  A lived cell can never be
+/// rebuilt or retyped through this function.
+pub(crate) fn specialize_quiescent_virtual_material_neuron_with_gate_energy_quantum(
+    perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
+    declared_place: DeclaredNeuronPlace,
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+    gate_dissipation_quantum_zeptojoules: BigRational,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    if DeclaredNeuronPlace::from_source_site(site) != declared_place {
+        return Err(VirtualMaterialGenesisError::DeclaredPlaceMismatch);
+    }
+    let virgin = create_quiescent_virtual_material_neuron(declared_place)?;
+    if virgin.anatomy() != anatomy || virgin.state() != state {
+        return Err(VirtualMaterialGenesisError::RestingSpecializationMismatch);
+    }
+    let positions = required_mathloom_positions_for_birth_field(perspective)
+        .map_err(VirtualMaterialGenesisError::JointField)?
+        .max(declared_field_arithmetic_positions());
+    let specialized = build_quiescent_virtual_material_neuron(
+        positions,
+        declared_place,
+        1,
+        false,
+        gate_dissipation_quantum_zeptojoules,
+    )?;
+    if specialized.anatomy().capacitance() != anatomy.capacitance()
+        || specialized.state().carrier_reservoirs().total()
+            != state.carrier_reservoirs().total()
+    {
+        return Err(VirtualMaterialGenesisError::RestingSpecializationMismatch);
+    }
+    Ok(specialized)
+}
+
+fn build_quiescent_virtual_material_neuron(
+    positions: usize,
+    place: DeclaredNeuronPlace,
+    receptor_population: u128,
+    independent_gate_channels: bool,
+    gate_dissipation_quantum_zeptojoules: BigRational,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    if gate_dissipation_quantum_zeptojoules <= BigRational::zero() || receptor_population == 0 {
         return Err(VirtualMaterialGenesisError::GateEnergyLatticeUnavailable);
     }
-    let physical_gate_capacity_zeptojoules = definitive_virtual_gate_capacity_zeptojoules();
+    let physical_gate_capacity_zeptojoules = definitive_virtual_gate_capacity_zeptojoules()
+        * BigRational::from_integer(BigInt::from(receptor_population));
     let derived_capacity =
         physical_gate_capacity_zeptojoules / &gate_dissipation_quantum_zeptojoules;
     if !derived_capacity.is_integer() {
@@ -334,8 +509,6 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
         .to_u128()
         .filter(|value| *value != 0)
         .ok_or(VirtualMaterialGenesisError::GateEnergyLatticeUnavailable)?;
-    let positions = required_mathloom_positions(perspective)
-        .map_err(VirtualMaterialGenesisError::JointField)?;
     let ring_count = positions
         .checked_mul(DSF_CONSTRAINTS)
         .and_then(|value| value.checked_mul(2))
@@ -354,17 +527,31 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
     let psi = PsiKrimelackAnatomy::new(positions, DSF_CONSTRAINTS, vec![ring; ring_count])
         .map_err(VirtualMaterialGenesisError::Psi)?;
 
-    let gate = TwoStateGateAnatomy::new(
-        1,
-        0,
-        exact(0, 1),
-        gate_dissipation_quantum_zeptojoules,
-        gate_dissipation_capacity_quanta,
-        ratio(1, 1)?,
-        ratio(-1, 1)?,
-        Vec::new(),
-        ring_count,
-    )
+    let gate = if independent_gate_channels {
+        TwoStateGateAnatomy::new_independent_channels(
+            receptor_population,
+            0,
+            exact(0, 1),
+            gate_dissipation_quantum_zeptojoules,
+            gate_dissipation_capacity_quanta,
+            ratio(1, 1)?,
+            ratio(-1, 1)?,
+            Vec::new(),
+            ring_count,
+        )
+    } else {
+        TwoStateGateAnatomy::new(
+            receptor_population,
+            0,
+            exact(0, 1),
+            gate_dissipation_quantum_zeptojoules,
+            gate_dissipation_capacity_quanta,
+            ratio(1, 1)?,
+            ratio(-1, 1)?,
+            Vec::new(),
+            ring_count,
+        )
+    }
     .map_err(VirtualMaterialGenesisError::Gate)?;
 
     let recovery_lane = RecoveryLaneAnatomy::new(1, 1, 1, 1, 1, 1, 1)
@@ -382,7 +569,16 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
     let recovery = RecoveryAnatomy::new(
         vec![recovery_lane; ring_count],
         gate_recovery_lane,
-        recovery_lane,
+        RecoveryLaneAnatomy::new(
+            1,
+            1,
+            1,
+            1,
+            receptor_population,
+            receptor_population,
+            receptor_population,
+        )
+        .map_err(VirtualMaterialGenesisError::Recovery)?,
         ring_count,
     )
     .map_err(VirtualMaterialGenesisError::Recovery)?;
@@ -409,18 +605,18 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
             PLASTIC_DISSIPATION_QUANTUM_NUMERATOR.into(),
             PLASTIC_DISSIPATION_QUANTUM_DENOMINATOR as u128,
         )?,
-        1,
+        receptor_population,
     )
     .map_err(VirtualMaterialGenesisError::Plasticity)?;
     // Ratified 2026-08-05: the membrane is as large as the territory this
     // receptor's own declared place closes off in the organism's sensory
     // lattice, so no two authored neurons can be physically identical.
-    let capacitance = membrane_capacitance_from_declared_geometry(
+    let capacitance = membrane_capacitance_from_declared_place(
         ratio(
             BASE_MEMBRANE_CAPACITANCE_PICOFARADS_NUMERATOR,
             BASE_MEMBRANE_CAPACITANCE_PICOFARADS_DENOMINATOR,
         )?,
-        site,
+        place,
     )
     .map_err(VirtualMaterialGenesisError::DeclaredGeometry)?;
     let mathloom =
@@ -440,13 +636,17 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
         gate: TwoStateGateState::genesis(0),
         membrane: LocalMembraneConductanceState::genesis(0),
         carriers: CarrierReservoirs::new(
-            ONE_FEMTOCOULOMB_CARRIER_QUANTA,
-            ONE_FEMTOCOULOMB_CARRIER_QUANTA,
+            ONE_FEMTOCOULOMB_CARRIER_QUANTA
+                .checked_mul(receptor_population)
+                .ok_or(VirtualMaterialGenesisError::ArithmeticWidth)?,
+            ONE_FEMTOCOULOMB_CARRIER_QUANTA
+                .checked_mul(receptor_population)
+                .ok_or(VirtualMaterialGenesisError::ArithmeticWidth)?,
         ),
         recovery: RecoveryState::new(
             vec![RecoveryLaneState::new(1); ring_count],
             RecoveryLaneState::new(gate_dissipation_capacity_quanta),
-            RecoveryLaneState::new(1),
+            RecoveryLaneState::new(receptor_population),
         ),
         dna_expression: DnaExpressionState::new(1, 1),
         plastic: PlasticSupportState::new(ratio(
@@ -456,7 +656,10 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
         .map_err(VirtualMaterialGenesisError::Plasticity)?,
         // Quantized-light law (ratified 2026-08-05): a newborn receptor has
         // integrated no light, so its retained sub-quantum residue is zero.
-        optical_quantum_residue: ratio(0, 1)?,
+        receptor_quantum_residue: ratio(0, 1)?,
+        // Exact rest-cost law (2026-08-06): a newborn neuron has done no
+        // membrane-return work, so it owes no sub-quantum remainder.
+        membrane_return_work_residue: ratio(0, 1)?,
     };
     Ok(VirtualMaterialNeuronGenesis {
         anatomy,
@@ -468,11 +671,17 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::complete_neuron::{decode_neuron_physical_cell, encode_neuron_physical_cell};
+    use crate::complete_neuron::{
+        decode_neuron_physical_cell, encode_neuron_physical_cell,
+        gate_population_opening_schedule_with_psi, settle_extended_interval_with_contact,
+        sparse_physical_state_delta, DnaExpressionContact, GateWorkOccurrence, NeuronIntervalInput,
+        PhysicalStateCoordinate, RecoveryContact,
+    };
     use crate::joint_uf_neuron_boundary::{
         bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture,
     };
-    use crate::neuron_source_anchor::tests::exact_episode;
+    use crate::neuron_source_anchor::tests::{exact_episode, exact_four_optical_episode};
+    use crate::optical_receptor_work::quantize_optical_population_delivery;
     use crate::reached_neuron_cohort::{decode_reached_cohort_cell, encode_reached_cohort_cell};
     use crate::sparse_electrical_contact::SparseElectricalAnatomy;
 
@@ -481,8 +690,9 @@ mod tests {
         let episode = exact_episode();
         let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
         let perspective = bind_neuron_perspective(&shared, 0, 0).unwrap();
-        let site =
-            NeuronSourceSite::from_anchor(bind_neuron_source_anchor(&episode, perspective).unwrap());
+        let site = NeuronSourceSite::from_anchor(
+            bind_neuron_source_anchor(&episode, perspective).unwrap(),
+        );
         let genesis = create_virtual_material_neuron(perspective, &site).unwrap();
         assert_eq!(
             genesis.zero_recovery_catalysts().len(),
@@ -501,6 +711,58 @@ mod tests {
             encoded
         );
         assert!(restored_state.resident_bytes().unwrap() < encoded.len());
+    }
+
+    #[test]
+    fn one_three_and_four_neurons_are_born_quiescent_before_sensation() {
+        let mut single_cell_bytes = None;
+        for count in [1_usize, 3, 4] {
+            let mut capacitances = std::collections::BTreeSet::new();
+            let mut total_encoded_bytes = 0_usize;
+            for topology_index in 0..count {
+                let place = DeclaredNeuronPlace::new(
+                    7,
+                    u32::try_from(topology_index).expect("small fixture index"),
+                );
+                let genesis = create_quiescent_virtual_material_neuron(place).unwrap();
+                assert_eq!(
+                    genesis.anatomy().mathloom_positions(),
+                    declared_field_arithmetic_positions()
+                );
+                assert!(
+                    sparse_physical_state_delta(genesis.state(), genesis.state())
+                        .unwrap()
+                        .is_none(),
+                    "birth cannot emit a neuronal fractal"
+                );
+                assert!(capacitances.insert(genesis.anatomy().capacitance().picofarads().parts()));
+
+                let encoded =
+                    encode_neuron_physical_cell(genesis.anatomy(), genesis.state()).unwrap();
+                if count == 1 {
+                    println!(
+                        "MEASURE source-independent resting neuron: encoded={} B resident={} B",
+                        encoded.len(),
+                        genesis.state().resident_bytes().unwrap()
+                    );
+                }
+                let (restored_anatomy, restored_state) =
+                    decode_neuron_physical_cell(&encoded).unwrap();
+                assert_eq!(&restored_anatomy, genesis.anatomy());
+                assert_eq!(&restored_state, genesis.state());
+                assert_eq!(
+                    encode_neuron_physical_cell(&restored_anatomy, &restored_state).unwrap(),
+                    encoded
+                );
+                total_encoded_bytes += encoded.len();
+                match single_cell_bytes {
+                    Some(bytes) => assert_eq!(encoded.len(), bytes),
+                    None => single_cell_bytes = Some(encoded.len()),
+                }
+            }
+            assert_eq!(capacitances.len(), count);
+            assert_eq!(total_encoded_bytes, single_cell_bytes.unwrap() * count);
+        }
     }
 
     #[test]
@@ -526,5 +788,242 @@ mod tests {
             encode_reached_cohort_cell(&restored_anatomy, &restored_state).unwrap(),
             encoded
         );
+    }
+
+    #[test]
+    fn resting_cells_keep_their_place_while_first_receptor_contact_specializes_them() {
+        let episode = exact_four_optical_episode();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
+        let mut reached = Vec::new();
+        let mut retained = Vec::new();
+        for coordinate_index in [1_usize, 2] {
+            let perspective = bind_neuron_perspective(&shared, coordinate_index, 0).unwrap();
+            let site = NeuronSourceSite::from_anchor(
+                bind_neuron_source_anchor(&episode, perspective).unwrap(),
+            );
+            let place = DeclaredNeuronPlace::from_source_site(&site);
+            let resting = create_quiescent_virtual_material_neuron(place).unwrap();
+            let resting_capacitance = resting.anatomy().capacitance();
+            let specialized = reach_quiescent_virtual_material_neuron(
+                perspective,
+                &site,
+                place,
+                resting.anatomy(),
+                resting.state(),
+            )
+            .unwrap();
+            let direct = create_virtual_material_neuron(perspective, &site).unwrap();
+            assert_eq!(specialized.anatomy().capacitance(), resting_capacitance);
+            assert_eq!(specialized.anatomy(), direct.anatomy());
+            assert_eq!(specialized.state(), direct.state());
+            assert_eq!(
+                specialized.anatomy().gate_population(),
+                declared_geometric_territory(&site).unwrap()
+            );
+            let encoded =
+                encode_neuron_physical_cell(specialized.anatomy(), specialized.state()).unwrap();
+            let (cold_anatomy, cold_state) = decode_neuron_physical_cell(&encoded).unwrap();
+            assert_eq!(&cold_anatomy, specialized.anatomy());
+            assert_eq!(&cold_state, specialized.state());
+
+            let prepared_psi = specialized
+                .anatomy()
+                .prepare_psi_settlement(specialized.state(), perspective)
+                .unwrap();
+            let schedule = gate_population_opening_schedule_with_psi(
+                specialized.anatomy(),
+                specialized.state(),
+                &prepared_psi,
+            )
+            .unwrap();
+            let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
+            let energy = &quantum * BigRational::from_integer(BigInt::from(10));
+            let delivery = quantize_optical_population_delivery(
+                &energy,
+                specialized.state().receptor_quantum_residue,
+                &quantum,
+                schedule.predecessor_open_population(),
+                schedule.activation_quanta(),
+            )
+            .unwrap();
+            let lit = settle_extended_interval_with_contact(
+                specialized.anatomy(),
+                specialized.state(),
+                NeuronIntervalInput {
+                    perspective,
+                    gate_work: delivery.gate_work,
+                    interval_microseconds: 1_000,
+                    recovery: RecoveryContact::new(specialized.zero_recovery_catalysts(), 0, 0),
+                    dna_expression: DnaExpressionContact::new(0),
+                    receptor_successor_residue: Some(delivery.successor_residue),
+                    prepared_psi: Some(prepared_psi),
+                },
+                0,
+            )
+            .unwrap();
+            let dark_psi = specialized
+                .anatomy()
+                .prepare_psi_settlement(&lit.successor, perspective)
+                .unwrap();
+            let dark = settle_extended_interval_with_contact(
+                specialized.anatomy(),
+                &lit.successor,
+                NeuronIntervalInput {
+                    perspective,
+                    gate_work: GateWorkOccurrence::new(BigRational::zero()),
+                    interval_microseconds: 1_000,
+                    recovery: RecoveryContact::new(specialized.zero_recovery_catalysts(), 0, 0),
+                    dna_expression: DnaExpressionContact::new(0),
+                    receptor_successor_residue: None,
+                    prepared_psi: Some(dark_psi),
+                },
+                0,
+            )
+            .unwrap();
+            retained.push(
+                sparse_physical_state_delta(specialized.state(), &dark.successor)
+                    .unwrap()
+                    .unwrap(),
+            );
+            reached.push(specialized);
+        }
+        assert_ne!(reached[0].anatomy(), reached[1].anatomy());
+        assert_ne!(retained[0], retained[1]);
+    }
+
+    #[test]
+    fn sight_territory_yields_graded_retained_states_and_cold_restores_exactly() {
+        let episode = exact_four_optical_episode();
+        let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();
+        let perspective = bind_neuron_perspective(&shared, 2, 0).unwrap();
+        let site = NeuronSourceSite::from_anchor(
+            bind_neuron_source_anchor(&episode, perspective).unwrap(),
+        );
+        let genesis = create_virtual_material_neuron(perspective, &site).unwrap();
+        let population = declared_geometric_territory(&site).unwrap();
+        assert_eq!(population, 6);
+        assert_eq!(genesis.anatomy().gate_population(), population);
+        assert_eq!(
+            genesis.state().carrier_reservoirs().total(),
+            Some(ONE_FEMTOCOULOMB_CARRIER_QUANTA * population * 2)
+        );
+
+        let settle_light_then_dark = |energy_quanta: u128| {
+            let prepared_psi = genesis
+                .anatomy()
+                .prepare_psi_settlement(genesis.state(), perspective)
+                .unwrap();
+            let schedule = gate_population_opening_schedule_with_psi(
+                genesis.anatomy(),
+                genesis.state(),
+                &prepared_psi,
+            )
+            .unwrap();
+            // Collective receptor geometry x(n) makes each next channel's
+            // exact barrier depend on the currently open population. The
+            // former constant 17-quantum schedule belonged to the rejected
+            // independent irreversible-prefix model.
+            assert_eq!(schedule.activation_quanta(), &[1, 2, 3, 4, 5, 5]);
+            let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
+            let energy = &quantum * BigRational::from_integer(BigInt::from(energy_quanta));
+            let delivery = quantize_optical_population_delivery(
+                &energy,
+                genesis.state().receptor_quantum_residue,
+                &quantum,
+                schedule.predecessor_open_population(),
+                schedule.activation_quanta(),
+            )
+            .unwrap();
+            let lit = settle_extended_interval_with_contact(
+                genesis.anatomy(),
+                genesis.state(),
+                NeuronIntervalInput {
+                    perspective,
+                    gate_work: delivery.gate_work,
+                    interval_microseconds: 1_000,
+                    recovery: RecoveryContact::new(genesis.zero_recovery_catalysts(), 0, 0),
+                    dna_expression: DnaExpressionContact::new(0),
+                    receptor_successor_residue: Some(delivery.successor_residue),
+                    prepared_psi: Some(prepared_psi),
+                },
+                0,
+            )
+            .unwrap();
+            let lit_delta = sparse_physical_state_delta(genesis.state(), &lit.successor)
+                .unwrap()
+                .unwrap();
+
+            let dark_psi = genesis
+                .anatomy()
+                .prepare_psi_settlement(&lit.successor, perspective)
+                .unwrap();
+            let dark = settle_extended_interval_with_contact(
+                genesis.anatomy(),
+                &lit.successor,
+                NeuronIntervalInput {
+                    perspective,
+                    gate_work: GateWorkOccurrence::new(BigRational::zero()),
+                    interval_microseconds: 1_000,
+                    recovery: RecoveryContact::new(genesis.zero_recovery_catalysts(), 0, 0),
+                    dna_expression: DnaExpressionContact::new(0),
+                    receptor_successor_residue: None,
+                    prepared_psi: Some(dark_psi),
+                },
+                0,
+            )
+            .unwrap();
+            let retained = sparse_physical_state_delta(genesis.state(), &dark.successor)
+                .unwrap()
+                .unwrap();
+            (lit_delta, dark.successor, retained)
+        };
+
+        let (lower_lit, lower_state, lower_retained) = settle_light_then_dark(10);
+        assert_eq!(
+            lower_lit
+                .exact_delta(PhysicalStateCoordinate::GateOpenPopulation)
+                .unwrap(),
+            crate::complete_neuron::ExactPhysicalStateDelta::Integral(
+                crate::complete_neuron::ExactSignedDelta::from_parts(false, 4).unwrap()
+            )
+        );
+        assert_eq!(
+            lower_retained
+                .exact_delta(PhysicalStateCoordinate::GateOpenPopulation)
+                .unwrap(),
+            crate::complete_neuron::ExactPhysicalStateDelta::Integral(
+                crate::complete_neuron::ExactSignedDelta::from_parts(false, 1).unwrap()
+            )
+        );
+        assert_eq!(
+            lower_retained
+                .exact_delta(PhysicalStateCoordinate::PlasticRestLength)
+                .unwrap(),
+            crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                ExactRational::new(1, 9).unwrap()
+            )
+        );
+
+        let (_, higher_state, higher_retained) = settle_light_then_dark(15);
+        assert_eq!(
+            higher_retained
+                .exact_delta(PhysicalStateCoordinate::PlasticRestLength)
+                .unwrap(),
+            crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                ExactRational::new(2, 9).unwrap()
+            )
+        );
+        assert_ne!(lower_state, higher_state);
+
+        for state in [lower_state, higher_state] {
+            let encoded = encode_neuron_physical_cell(genesis.anatomy(), &state).unwrap();
+            let (restored_anatomy, restored_state) = decode_neuron_physical_cell(&encoded).unwrap();
+            assert_eq!(&restored_anatomy, genesis.anatomy());
+            assert_eq!(restored_state, state);
+            assert_eq!(
+                encode_neuron_physical_cell(&restored_anatomy, &restored_state).unwrap(),
+                encoded
+            );
+        }
     }
 }

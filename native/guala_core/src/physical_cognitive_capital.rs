@@ -193,10 +193,6 @@ pub enum CognitiveCapitalEvidenceKind {
     RecognizedPhysicalMosaic,
     HippocampalEpisodeAdmission,
     PartialCuePhysicalReassembly,
-    DynamicFormationRelation,
-    TapestryPhysicalReassembly,
-    DeeperTapestryPhysicalReassembly,
-    GenerativeRecombinationPrecursor,
 }
 
 impl CognitiveCapitalEvidenceKind {
@@ -208,10 +204,6 @@ impl CognitiveCapitalEvidenceKind {
             Self::RecognizedPhysicalMosaic => "recognized_physical_mosaic",
             Self::HippocampalEpisodeAdmission => "hippocampal_episode_admission",
             Self::PartialCuePhysicalReassembly => "partial_cue_physical_reassembly",
-            Self::DynamicFormationRelation => "dynamic_formation_relation",
-            Self::TapestryPhysicalReassembly => "tapestry_physical_reassembly",
-            Self::DeeperTapestryPhysicalReassembly => "deeper_tapestry_physical_reassembly",
-            Self::GenerativeRecombinationPrecursor => "generative_recombination_precursor",
         }
     }
 }
@@ -418,81 +410,15 @@ pub(crate) fn observe_transition_cognitive_capital(
         );
     }
 
-    for capability in [
-        Capability::RelationalThought,
-        Capability::LearningAndDevelopmentalGrowth,
-    ] {
-        add(
-            &mut evidence,
-            capability,
-            Dimension::Availability,
-            Kind::DynamicFormationRelation,
-            cognitive.dynamic_formation_relation_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::Participation,
-            Kind::DynamicFormationRelation,
-            cognitive.dynamic_formation_relation_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::IntegrationDepth,
-            Kind::DynamicFormationRelation,
-            cognitive.dynamic_formation_relation_count,
-        );
-    }
-
-    for capability in [
-        Capability::OrderedThinking,
-        Capability::LearningAndDevelopmentalGrowth,
-    ] {
-        add(
-            &mut evidence,
-            capability,
-            Dimension::Availability,
-            Kind::TapestryPhysicalReassembly,
-            cognitive.tapestry_activity_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::Participation,
-            Kind::TapestryPhysicalReassembly,
-            cognitive.tapestry_activity_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::Recognition,
-            Kind::TapestryPhysicalReassembly,
-            cognitive.tapestry_activity_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::IntegrationDepth,
-            Kind::TapestryPhysicalReassembly,
-            cognitive.tapestry_activity_count,
-        );
-        add(
-            &mut evidence,
-            capability,
-            Dimension::IntegrationDepth,
-            Kind::DeeperTapestryPhysicalReassembly,
-            cognitive.deeper_tapestry_activity_count,
-        );
-    }
-
-    add(
-        &mut evidence,
-        Capability::LearningAndDevelopmentalGrowth,
-        Dimension::IntegrationDepth,
-        Kind::GenerativeRecombinationPrecursor,
-        cognitive.generative_recombination_count,
-    );
+    // RelationalThought, OrderedThinking and the generative-recombination
+    // precursor USED TO draw their evidence from the dynamic-formation
+    // classifier, which read the retired hippocampal archive.  That classifier
+    // is deleted (see resident_cognitive_formation.rs) because it cannot be
+    // rebuilt from her body without redefining its law.  No evidence of these
+    // kinds is emitted now, and by this module's own rule — "Absence means
+    // `not yet proven`" — that is the honest report: nothing measures them.
+    // They were also measured at ZERO on her live body before removal, so no
+    // capability that was ever proven has become unproven.
 
     CognitiveCapitalObservation {
         predecessor_state_receipt,
@@ -518,18 +444,13 @@ mod tests {
             mosaic_count: 1,
             dsf_delivery_count: 4,
             complete_neuron_count: 4,
+            resting_neuron_count: 0,
             physically_transitioned_neuron_count: 4,
             complete_neuron_fractal_count: 4,
             emitted_neuron_fractals: Vec::new(),
             partial_cue_reassembly_count: 1,
-            dynamic_formation_relation_count: 1,
-            dynamic_linear_formation_count: 1,
-            dynamic_web_formation_count: 0,
-            dynamic_formation_prior_count: 2,
-            dynamic_formation_active_bond_count: 3,
-            tapestry_activity_count: 1,
-            deeper_tapestry_activity_count: 1,
-            generative_recombination_count: 1,
+            endogenous_partial_cue_reassembly_count: 0,
+            mosaic_of_mosaics_count: 0,
             rest_recovered_neuron_count: 0,
             rest_drained_dissipation_quanta: 0,
             unmet_dissipation_quanta: 0,
@@ -582,13 +503,20 @@ mod tests {
             .any(
                 |entry| entry.kind() == CognitiveCapitalEvidenceKind::PartialCuePhysicalReassembly
             ));
-        assert!(capital
-            .evidence_for(
-                CognitiveCapability::LearningAndDevelopmentalGrowth,
-                CognitiveCapitalDimension::IntegrationDepth
-            )
-            .any(|entry| entry.kind()
-                == CognitiveCapitalEvidenceKind::GenerativeRecombinationPrecursor));
+        // The generative-recombination-precursor assertion that stood here
+        // is retired with the archive classifier that produced it (which
+        // MEASURED zero on Guala's live body).  Its capability now carries no
+        // evidence at all, which by this module's rule reads as
+        // "not yet proven" — the honest state.
+        assert_eq!(
+            capital
+                .evidence_for(
+                    CognitiveCapability::LearningAndDevelopmentalGrowth,
+                    CognitiveCapitalDimension::IntegrationDepth
+                )
+                .count(),
+            0
+        );
         for capability in CognitiveCapability::ALL {
             assert_eq!(
                 capital
@@ -634,10 +562,6 @@ mod tests {
         cognitive.physically_transitioned_neuron_count = 0;
         cognitive.complete_neuron_fractal_count = 0;
         cognitive.partial_cue_reassembly_count = 0;
-        cognitive.dynamic_formation_relation_count = 0;
-        cognitive.tapestry_activity_count = 0;
-        cognitive.deeper_tapestry_activity_count = 0;
-        cognitive.generative_recombination_count = 0;
         let capital =
             observe_transition_cognitive_capital([1; 32], [2; 32], [3; 32], 8, &cognitive);
         assert!(capital.evidence().is_empty());

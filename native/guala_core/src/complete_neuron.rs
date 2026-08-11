@@ -15,7 +15,9 @@
 use crate::elementary_charge_membrane::{
     settle_membrane_elementary_charges, ElementaryChargeMembraneState, MembraneCapacitance,
 };
-use crate::elementary_charge_transfer::{settle_elementary_charge_transfer, ChargeCarrierPhase};
+use crate::elementary_charge_transfer::{
+    current_limited_by_available_carriers, settle_elementary_charge_transfer, ChargeCarrierPhase,
+};
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_uf_neuron_boundary::{
     settle_shared_dsf_mathloom, BalancedTrit, BorrowedMathLoomDelivery, JointNeuronBoundaryError,
@@ -28,6 +30,7 @@ use crate::local_membrane_conductance_balance::{
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{One, Signed, ToPrimitive, Zero};
+use std::collections::HashMap;
 
 type Exact = BigRational;
 
@@ -111,7 +114,7 @@ impl PsiKrimelackAnatomy {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) struct PsiRingState {
     amplitude_quanta: [u128; 3],
     phase_thirds: [i8; 3],
@@ -193,16 +196,21 @@ pub(crate) fn settle_psi_krimelack(
 ) -> Result<PsiSettlement, PsiSettlementError> {
     if delivery.constraints().len() != anatomy.constraint_count
         || predecessor.rings.len() != anatomy.rings.len()
-        || delivery
-            .constraints()
-            .iter()
-            .any(|constraint| constraint.word().numerator().len() != anatomy.positions)
+        || delivery.constraints().iter().any(|constraint| {
+            constraint.word().numerator().len() != anatomy.positions
+                || constraint.word().denominator().len() != anatomy.positions
+        })
     {
         return Err(PsiSettlementError::DeliveryShapeChanged);
     }
     let mut successor = predecessor.clone();
     let mut changed_rings = 0_usize;
     let mut dissipated_quanta = 0_u128;
+    let uniform_ring_anatomy = anatomy
+        .rings
+        .first()
+        .filter(|first| anatomy.rings.iter().all(|ring| ring == *first));
+    let mut uniform_settlements = HashMap::<(PsiRingState, BalancedTrit), PsiRingState>::new();
     for constraint_index in 0..anatomy.constraint_count {
         let word = delivery.constraints()[constraint_index].word();
         for (part_index, part) in [word.numerator(), word.denominator()].iter().enumerate() {
@@ -210,7 +218,17 @@ pub(crate) fn settle_psi_krimelack(
                 let ring_index = (constraint_index * 2 + part_index) * anatomy.positions + position;
                 let ring_anatomy = &anatomy.rings[ring_index];
                 let prior = predecessor.rings[ring_index];
-                let settled = settle_one_ring(ring_anatomy, prior, *target)?;
+                let settled = if let Some(uniform) = uniform_ring_anatomy {
+                    if let Some(settled) = uniform_settlements.get(&(prior, *target)) {
+                        *settled
+                    } else {
+                        let settled = settle_one_ring(uniform, prior, *target)?;
+                        uniform_settlements.insert((prior, *target), settled);
+                        settled
+                    }
+                } else {
+                    settle_one_ring(ring_anatomy, prior, *target)?
+                };
                 if settled.winding != prior.winding {
                     changed_rings += 1;
                     let used = settled
@@ -361,6 +379,8 @@ impl GatePsiContact {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct TwoStateGateAnatomy {
     population: u128,
+    independent_channel_supports: bool,
+    occurrence_bounded_population_work: bool,
     gating_charge_elementary: i128,
     chemical_open_minus_closed_zeptojoules: Exact,
     dissipation_quantum_zeptojoules: Exact,
@@ -368,12 +388,69 @@ pub(crate) struct TwoStateGateAnatomy {
     single_channel_conductance_picosiemens: ExactRational,
     reversal_potential_millivolts: ExactRational,
     psi_contacts: Box<[GatePsiContact]>,
+    residue_denominator_lattice: Option<BigInt>,
 }
 
 impl TwoStateGateAnatomy {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         population: u128,
+        gating_charge_elementary: i128,
+        chemical_open_minus_closed_zeptojoules: Exact,
+        dissipation_quantum_zeptojoules: Exact,
+        dissipation_capacity_quanta: u128,
+        single_channel_conductance_picosiemens: ExactRational,
+        reversal_potential_millivolts: ExactRational,
+        psi_contacts: Vec<GatePsiContact>,
+        psi_ring_count: usize,
+    ) -> Result<Self, GateSettlementError> {
+        Self::new_with_support_mode(
+            population,
+            false,
+            false,
+            gating_charge_elementary,
+            chemical_open_minus_closed_zeptojoules,
+            dissipation_quantum_zeptojoules,
+            dissipation_capacity_quanta,
+            single_channel_conductance_picosiemens,
+            reversal_potential_millivolts,
+            psi_contacts,
+            psi_ring_count,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn new_independent_channels(
+        population: u128,
+        gating_charge_elementary: i128,
+        chemical_open_minus_closed_zeptojoules: Exact,
+        dissipation_quantum_zeptojoules: Exact,
+        dissipation_capacity_quanta: u128,
+        single_channel_conductance_picosiemens: ExactRational,
+        reversal_potential_millivolts: ExactRational,
+        psi_contacts: Vec<GatePsiContact>,
+        psi_ring_count: usize,
+    ) -> Result<Self, GateSettlementError> {
+        Self::new_with_support_mode(
+            population,
+            true,
+            true,
+            gating_charge_elementary,
+            chemical_open_minus_closed_zeptojoules,
+            dissipation_quantum_zeptojoules,
+            dissipation_capacity_quanta,
+            single_channel_conductance_picosiemens,
+            reversal_potential_millivolts,
+            psi_contacts,
+            psi_ring_count,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn new_with_support_mode(
+        population: u128,
+        independent_channel_supports: bool,
+        occurrence_bounded_population_work: bool,
         gating_charge_elementary: i128,
         chemical_open_minus_closed_zeptojoules: Exact,
         dissipation_quantum_zeptojoules: Exact,
@@ -397,6 +474,8 @@ impl TwoStateGateAnatomy {
         }
         Ok(Self {
             population,
+            independent_channel_supports,
+            occurrence_bounded_population_work,
             gating_charge_elementary,
             chemical_open_minus_closed_zeptojoules,
             dissipation_quantum_zeptojoules,
@@ -404,18 +483,186 @@ impl TwoStateGateAnatomy {
             single_channel_conductance_picosiemens,
             reversal_potential_millivolts,
             psi_contacts: psi_contacts.into_boxed_slice(),
+            residue_denominator_lattice: None,
         })
     }
 
     pub(crate) fn dissipation_capacity_quanta(&self) -> u128 {
         self.dissipation_capacity_quanta
     }
+
+    pub(crate) fn population(&self) -> u128 {
+        self.population
+    }
+
+    fn has_independent_channel_supports(&self) -> bool {
+        self.independent_channel_supports
+    }
+
+    fn has_occurrence_bounded_population_work(&self) -> bool {
+        self.occurrence_bounded_population_work
+    }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct PhysicalEnergyResidue {
+    energy_zeptojoules: Exact,
+}
+
+impl PhysicalEnergyResidue {
+    fn zero() -> Self {
+        Self {
+            energy_zeptojoules: Exact::zero(),
+        }
+    }
+
+    fn from_exact_rational(value: ExactRational) -> Self {
+        Self {
+            energy_zeptojoules: rational_to_exact(value),
+        }
+    }
+
+    fn energy(&self) -> &Exact {
+        &self.energy_zeptojoules
+    }
+
+    fn is_zero(&self) -> bool {
+        self.energy_zeptojoules.is_zero()
+    }
+
+    fn fixed_width(&self) -> Option<ExactRational> {
+        ExactRational::new(
+            self.energy_zeptojoules.numer().to_i128()?,
+            self.energy_zeptojoules.denom().to_u128()?,
+        )
+        .ok()
+    }
+
+    fn heap_bytes(&self) -> Option<usize> {
+        self.energy_zeptojoules
+            .numer()
+            .to_signed_bytes_le()
+            .len()
+            .checked_add(self.energy_zeptojoules.denom().to_signed_bytes_le().len())
+    }
+}
+
+fn positive_gcd(mut left: BigInt, mut right: BigInt) -> BigInt {
+    left = left.abs();
+    right = right.abs();
+    while !right.is_zero() {
+        let remainder = &left % &right;
+        left = right;
+        right = remainder;
+    }
+    left
+}
+
+fn positive_lcm(left: BigInt, right: BigInt) -> Result<BigInt, GateSettlementError> {
+    if left <= BigInt::zero() || right <= BigInt::zero() {
+        return Err(GateSettlementError::InvalidAnatomy);
+    }
+    let divisor = positive_gcd(left.clone(), right.clone());
+    Ok((left / divisor) * right)
+}
+
+/// The population receptor's exact gate-energy lattice is finite because its
+/// physical anatomy is finite.  Sight receptors have no authored chemical,
+/// voltage, or Psi preference: their gate energy is only the collective
+/// channel coordinate on the plastic support plus whole multiples of their
+/// own dissipation quantum.  For x=a/b and rest r=c/d, support strain is
+/// (ad-bc)/(bc), so every support-energy denominator divides
+/// `2 * E_den * lcm(b)^2 * lcm(c)^2`.  The possible coordinates and return-map
+/// rests are derived below from N, the two anatomical endpoints, E, and Y.
+/// This is a conservative exact common lattice, not a byte cap or tolerance.
+fn derive_population_gate_residue_denominator_lattice(
+    gate: &TwoStateGateAnatomy,
+    plastic: &PlasticSupportAnatomy,
+) -> Result<Option<BigInt>, GateSettlementError> {
+    if !gate.has_independent_channel_supports() {
+        return Ok(None);
+    }
+    if gate.gating_charge_elementary != 0
+        || !gate.chemical_open_minus_closed_zeptojoules.is_zero()
+        || !gate.psi_contacts.is_empty()
+    {
+        return Err(GateSettlementError::InvalidAnatomy);
+    }
+
+    let population = BigInt::from(gate.population);
+    let closed = rational_to_exact(plastic.closed_coordinate_nanometres);
+    let open = rational_to_exact(plastic.open_coordinate_nanometres);
+    let elastic = rational_to_exact(plastic.elastic_energy_scale_zeptojoules);
+    let yield_stress = rational_to_exact(plastic.yield_stress_zeptojoules);
+    let positive_return_denominator = &elastic + &yield_stress;
+    let negative_return_denominator = &elastic - &yield_stress;
+    if negative_return_denominator <= Exact::zero() {
+        return Err(GateSettlementError::InvalidAnatomy);
+    }
+
+    let yielded_rest = rational_to_exact(
+        single_channel_yielded_rest_length(plastic)
+            .map_err(|_| GateSettlementError::InvalidAnatomy)?,
+    );
+    let yielded_delta = &yielded_rest - &closed;
+    let mut coordinate_denominator_lcm = BigInt::one();
+    let mut rest_numerator_lcm = closed.numer().abs();
+    if rest_numerator_lcm.is_zero() {
+        return Err(GateSettlementError::InvalidAnatomy);
+    }
+
+    for open_population in 0..=gate.population {
+        let open_count = BigInt::from(open_population);
+        let closed_count = &population - &open_count;
+        let coordinate = (&closed * Exact::from_integer(closed_count)
+            + &open * Exact::from_integer(open_count.clone()))
+            / Exact::from_integer(population.clone());
+        coordinate_denominator_lcm =
+            positive_lcm(coordinate_denominator_lcm, coordinate.denom().clone())?;
+
+        let positive_return = &coordinate * &elastic / &positive_return_denominator;
+        let negative_return = &coordinate * &elastic / &negative_return_denominator;
+        let legacy_weighted_rest = &closed
+            + &yielded_delta * Exact::from_integer(open_count)
+                / Exact::from_integer(population.clone());
+        for rest in [positive_return, negative_return, legacy_weighted_rest] {
+            let numerator = rest.numer().abs();
+            if numerator.is_zero() {
+                return Err(GateSettlementError::InvalidAnatomy);
+            }
+            rest_numerator_lcm = positive_lcm(rest_numerator_lcm, numerator)?;
+        }
+    }
+
+    let support_lattice = BigInt::from(2_u8)
+        * elastic.denom()
+        * coordinate_denominator_lcm.pow(2)
+        * rest_numerator_lcm.pow(2);
+    Ok(Some(positive_lcm(
+        positive_lcm(
+            support_lattice,
+            gate.dissipation_quantum_zeptojoules.denom().clone(),
+        )?,
+        BigInt::from(plastic.dissipation_quantum_zeptojoules.parts().1),
+    )?))
+}
+
+fn gate_residue_fits_physical_lattice(
+    gate: &TwoStateGateAnatomy,
+    _plastic: &PlasticSupportAnatomy,
+    residue: &PhysicalEnergyResidue,
+) -> Result<bool, GateSettlementError> {
+    let Some(lattice) = gate.residue_denominator_lattice.as_ref() else {
+        return Ok(residue.fixed_width().is_some());
+    };
+    Ok((lattice % residue.energy().denom()).is_zero())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct TwoStateGateState {
     open_population: u128,
     dissipated_quanta: u128,
+    dissipation_residue_zeptojoules: PhysicalEnergyResidue,
 }
 
 impl TwoStateGateState {
@@ -423,14 +670,15 @@ impl TwoStateGateState {
         Self {
             open_population,
             dissipated_quanta: 0,
+            dissipation_residue_zeptojoules: PhysicalEnergyResidue::zero(),
         }
     }
 
-    pub(crate) fn open_population(self) -> u128 {
+    pub(crate) fn open_population(&self) -> u128 {
         self.open_population
     }
 
-    pub(crate) fn dissipated_quanta(self) -> u128 {
+    pub(crate) fn dissipated_quanta(&self) -> u128 {
         self.dissipated_quanta
     }
 }
@@ -770,12 +1018,24 @@ impl PlasticSupportAnatomy {
             dissipation_capacity_quanta,
         })
     }
+
+    pub(crate) fn definitive_virtual_material() -> Result<Self, PlasticityError> {
+        Self::new(
+            ExactRational::integer(2),
+            ExactRational::integer(1),
+            ExactRational::integer(1),
+            ExactRational::integer(2),
+            ExactRational::new(3, 4)?,
+            1,
+        )
+    }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PlasticSupportState {
     rest_length_nanometres: ExactRational,
     dissipated_quanta: u128,
+    dissipation_residue_zeptojoules: PhysicalEnergyResidue,
 }
 
 impl PlasticSupportState {
@@ -788,6 +1048,48 @@ impl PlasticSupportState {
         Ok(Self {
             rest_length_nanometres,
             dissipated_quanta: 0,
+            dissipation_residue_zeptojoules: PhysicalEnergyResidue::zero(),
+        })
+    }
+    pub(crate) fn definitive_virtual_genesis() -> Self {
+        Self {
+            rest_length_nanometres: ExactRational::integer(1),
+            dissipated_quanta: 0,
+            dissipation_residue_zeptojoules: PhysicalEnergyResidue::zero(),
+        }
+    }
+
+    pub(crate) fn rest_length_nanometres(&self) -> ExactRational {
+        self.rest_length_nanometres
+    }
+
+    pub(crate) fn physical_parts(&self) -> (ExactRational, u128, ExactRational) {
+        (
+            self.rest_length_nanometres,
+            self.dissipated_quanta,
+            self.dissipation_residue_zeptojoules
+                .fixed_width()
+                .expect("contact plasticity retains the fixed-width codec"),
+        )
+    }
+
+    pub(crate) fn from_physical_parts(
+        rest_length_nanometres: ExactRational,
+        dissipated_quanta: u128,
+        dissipation_residue_zeptojoules: ExactRational,
+    ) -> Result<Self, PlasticityError> {
+        if rest_length_nanometres.checked_cmp(ExactRational::integer(0))?
+            != core::cmp::Ordering::Greater
+            || dissipation_residue_zeptojoules.parts().0 < 0
+        {
+            return Err(PlasticityError::InvalidState);
+        }
+        Ok(Self {
+            rest_length_nanometres,
+            dissipated_quanta,
+            dissipation_residue_zeptojoules: PhysicalEnergyResidue::from_exact_rational(
+                dissipation_residue_zeptojoules,
+            ),
         })
     }
 }
@@ -796,7 +1098,6 @@ impl PlasticSupportState {
 pub(crate) enum PlasticityError {
     InvalidAnatomy,
     InvalidState,
-    DissipationNotQuantized,
     DissipationCapacityUnavailable,
     ArithmeticWidth,
 }
@@ -818,9 +1119,9 @@ pub(crate) enum PlasticityAvailability {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct PlasticSettlement {
-    successor: PlasticSupportState,
-    changed: bool,
+pub(crate) struct PlasticSettlement {
+    pub(crate) successor: PlasticSupportState,
+    pub(crate) changed: bool,
 }
 
 /// Settle a one-dimensional elastic support against an exact material yield
@@ -829,6 +1130,15 @@ struct PlasticSettlement {
 /// exactly `+Y` or `-Y`; the released elastic work enters the mounted finite
 /// dissipation reservoir.
 fn settle_plastic_support(
+    anatomy: &PlasticSupportAnatomy,
+    predecessor: &PlasticSupportState,
+    gate_population: u128,
+    open_population: u128,
+) -> Result<PlasticSettlement, PlasticityError> {
+    settle_collective_plastic_support(anatomy, predecessor, gate_population, open_population)
+}
+
+fn settle_collective_plastic_support(
     anatomy: &PlasticSupportAnatomy,
     predecessor: &PlasticSupportState,
     gate_population: u128,
@@ -847,71 +1157,89 @@ fn settle_plastic_support(
                 .checked_mul_unsigned(open_population)?,
         )?
         .checked_div_unsigned(gate_population)?;
-    let trial_strain = observed_coordinate
-        .checked_sub(predecessor.rest_length_nanometres)?
-        .checked_div(predecessor.rest_length_nanometres)?;
-    let trial_stress = anatomy
-        .elastic_energy_scale_zeptojoules
-        .checked_mul(trial_strain)?;
-    if trial_stress
-        .checked_abs()?
-        .checked_cmp(anatomy.yield_stress_zeptojoules)?
-        != core::cmp::Ordering::Greater
-    {
+    settle_plastic_support_at_coordinate(anatomy, predecessor, observed_coordinate)
+}
+
+pub(crate) fn settle_plastic_support_at_coordinate(
+    anatomy: &PlasticSupportAnatomy,
+    predecessor: &PlasticSupportState,
+    observed_coordinate: ExactRational,
+) -> Result<PlasticSettlement, PlasticityError> {
+    let big = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    };
+    settle_plastic_support_at_big_coordinate(anatomy, predecessor, big(observed_coordinate))
+}
+
+pub(crate) fn settle_plastic_support_at_big_coordinate(
+    anatomy: &PlasticSupportAnatomy,
+    predecessor: &PlasticSupportState,
+    observed_coordinate: BigRational,
+) -> Result<PlasticSettlement, PlasticityError> {
+    let big = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    };
+    let exact = |value: BigRational| -> Result<ExactRational, PlasticityError> {
+        ExactRational::new(
+            value
+                .numer()
+                .to_i128()
+                .ok_or(PlasticityError::ArithmeticWidth)?,
+            value
+                .denom()
+                .to_u128()
+                .ok_or(PlasticityError::ArithmeticWidth)?,
+        )
+        .map_err(PlasticityError::from)
+    };
+    let predecessor_rest = big(predecessor.rest_length_nanometres);
+    let elastic_scale = big(anatomy.elastic_energy_scale_zeptojoules);
+    let yield_stress = big(anatomy.yield_stress_zeptojoules);
+    let trial_strain = (&observed_coordinate - &predecessor_rest) / &predecessor_rest;
+    let trial_stress = &elastic_scale * &trial_strain;
+    if trial_stress.abs() <= yield_stress {
         return Ok(PlasticSettlement {
             successor: predecessor.clone(),
             changed: false,
         });
     }
-
-    let return_denominator = if trial_stress.parts().0 > 0 {
-        anatomy
-            .elastic_energy_scale_zeptojoules
-            .checked_add(anatomy.yield_stress_zeptojoules)?
+    let return_denominator = if trial_stress > BigRational::zero() {
+        &elastic_scale + &yield_stress
     } else {
-        anatomy
-            .elastic_energy_scale_zeptojoules
-            .checked_sub(anatomy.yield_stress_zeptojoules)?
+        &elastic_scale - &yield_stress
     };
-    let next_rest_length = observed_coordinate
-        .checked_mul(anatomy.elastic_energy_scale_zeptojoules)?
-        .checked_div(return_denominator)?;
-    if next_rest_length.checked_cmp(ExactRational::integer(0))? != core::cmp::Ordering::Greater {
+    let next_rest_length = &observed_coordinate * &elastic_scale / return_denominator;
+    if next_rest_length <= BigRational::zero() {
         return Err(PlasticityError::InvalidState);
     }
-    let returned_strain = observed_coordinate
-        .checked_sub(next_rest_length)?
-        .checked_div(next_rest_length)?;
-    let returned_stress = anatomy
-        .elastic_energy_scale_zeptojoules
-        .checked_mul(returned_strain)?;
-    let expected_stress = if trial_stress.parts().0 > 0 {
-        anatomy.yield_stress_zeptojoules
+    let returned_strain = (&observed_coordinate - &next_rest_length) / &next_rest_length;
+    let returned_stress = &elastic_scale * &returned_strain;
+    let expected_stress = if trial_stress > BigRational::zero() {
+        yield_stress.clone()
     } else {
-        anatomy.yield_stress_zeptojoules.checked_neg()?
+        -yield_stress.clone()
     };
     if returned_stress != expected_stress {
         return Err(PlasticityError::ArithmeticWidth);
     }
-
-    let trial_energy = anatomy
-        .elastic_energy_scale_zeptojoules
-        .checked_mul(trial_strain)?
-        .checked_mul(trial_strain)?
-        .checked_div_unsigned(2)?;
-    let returned_energy = anatomy
-        .elastic_energy_scale_zeptojoules
-        .checked_mul(returned_strain)?
-        .checked_mul(returned_strain)?
-        .checked_div_unsigned(2)?;
-    let released_energy = trial_energy.checked_sub(returned_energy)?;
-    let released_ratio = released_energy.checked_div(anatomy.dissipation_quantum_zeptojoules)?;
-    let (released_numerator, released_denominator) = released_ratio.parts();
-    if released_numerator <= 0 || released_denominator != 1 {
-        return Err(PlasticityError::DissipationNotQuantized);
+    let two = BigRational::from_integer(BigInt::from(2));
+    let trial_energy = &elastic_scale * &trial_strain * &trial_strain / &two;
+    let returned_energy = &elastic_scale * &returned_strain * &returned_strain / two;
+    let released_energy = trial_energy - returned_energy;
+    let accumulated_release =
+        predecessor.dissipation_residue_zeptojoules.energy() + released_energy;
+    let released_ratio = &accumulated_release / big(anatomy.dissipation_quantum_zeptojoules);
+    if released_ratio < BigRational::zero() {
+        return Err(PlasticityError::InvalidState);
     }
-    let released_quanta =
-        u128::try_from(released_numerator).map_err(|_| PlasticityError::ArithmeticWidth)?;
+    let released_quanta = (released_ratio.numer() / released_ratio.denom())
+        .to_u128()
+        .ok_or(PlasticityError::ArithmeticWidth)?;
+    let successor_residue = accumulated_release
+        - big(anatomy.dissipation_quantum_zeptojoules)
+            * BigRational::from_integer(BigInt::from(released_quanta));
     let next_dissipated = predecessor
         .dissipated_quanta
         .checked_add(released_quanta)
@@ -919,13 +1247,94 @@ fn settle_plastic_support(
     if next_dissipated > anatomy.dissipation_capacity_quanta {
         return Err(PlasticityError::DissipationCapacityUnavailable);
     }
+    if next_dissipated == anatomy.dissipation_capacity_quanta
+        && successor_residue != BigRational::zero()
+    {
+        return Err(PlasticityError::DissipationCapacityUnavailable);
+    }
     Ok(PlasticSettlement {
         successor: PlasticSupportState {
-            rest_length_nanometres: next_rest_length,
+            rest_length_nanometres: exact(next_rest_length)?,
             dissipated_quanta: next_dissipated,
+            dissipation_residue_zeptojoules: PhysicalEnergyResidue {
+                energy_zeptojoules: successor_residue,
+            },
         },
         changed: true,
     })
+}
+
+fn support_energy_at(
+    anatomy: &PlasticSupportAnatomy,
+    coordinate: ExactRational,
+    rest_length: ExactRational,
+) -> Result<ExactRational, PlasticityError> {
+    let strain = coordinate
+        .checked_sub(rest_length)?
+        .checked_div(rest_length)?;
+    anatomy
+        .elastic_energy_scale_zeptojoules
+        .checked_mul(strain)?
+        .checked_mul(strain)?
+        .checked_div_unsigned(2)
+        .map_err(PlasticityError::from)
+}
+
+fn single_channel_yielded_rest_length(
+    anatomy: &PlasticSupportAnatomy,
+) -> Result<ExactRational, PlasticityError> {
+    let trial_strain = anatomy
+        .open_coordinate_nanometres
+        .checked_sub(anatomy.closed_coordinate_nanometres)?
+        .checked_div(anatomy.closed_coordinate_nanometres)?;
+    let trial_stress = anatomy
+        .elastic_energy_scale_zeptojoules
+        .checked_mul(trial_strain)?;
+    if trial_stress.checked_cmp(anatomy.yield_stress_zeptojoules)? != core::cmp::Ordering::Greater {
+        return Err(PlasticityError::InvalidAnatomy);
+    }
+    anatomy
+        .open_coordinate_nanometres
+        .checked_mul(anatomy.elastic_energy_scale_zeptojoules)?
+        .checked_div(
+            anatomy
+                .elastic_energy_scale_zeptojoules
+                .checked_add(anatomy.yield_stress_zeptojoules)?,
+        )
+        .map_err(PlasticityError::from)
+}
+
+// Diagnostic decoder for bodies written by the rejected irreversible-prefix
+// model.  It is test-only and does not participate in live settlement.
+#[cfg(test)]
+fn legacy_independent_yielded_population(
+    anatomy: &PlasticSupportAnatomy,
+    state: &PlasticSupportState,
+    gate_population: u128,
+) -> Result<u128, PlasticityError> {
+    if gate_population == 0 {
+        return Err(PlasticityError::InvalidState);
+    }
+    let yielded_rest = single_channel_yielded_rest_length(anatomy)?;
+    let yielded_delta = yielded_rest.checked_sub(anatomy.closed_coordinate_nanometres)?;
+    let retained_delta = state
+        .rest_length_nanometres
+        .checked_sub(anatomy.closed_coordinate_nanometres)?;
+    if yielded_delta.parts().0 <= 0 || retained_delta.parts().0 < 0 {
+        return Err(PlasticityError::InvalidState);
+    }
+    let population = retained_delta
+        .checked_mul_unsigned(gate_population)?
+        .checked_div(yielded_delta)?;
+    let (numerator, denominator) = population.parts();
+    if denominator != 1 || numerator < 0 {
+        return Err(PlasticityError::InvalidState);
+    }
+    let population = u128::try_from(numerator).map_err(|_| PlasticityError::ArithmeticWidth)?;
+    if population > gate_population {
+        return Err(PlasticityError::InvalidState);
+    }
+    Ok(population)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -937,12 +1346,33 @@ pub(crate) struct NeuronPhysicalState {
     pub(crate) recovery: RecoveryState,
     pub(crate) dna_expression: DnaExpressionState,
     pub(crate) plastic: PlasticSupportState,
-    /// Retained sub-quantum optical transduction residue (2026-08-05 ratified
-    /// quantized-light law): the exact-rational remainder of the continuous
-    /// `2·L·T` integral not yet deliverable as a whole gate-lattice quantum.
-    /// Always inside `[0, gate dissipation quantum)`. Same retained-residue
+    /// Retained receptor transduction residue (2026-08-05 ratified quantized
+    /// delivery law, extended to sound by the 2026-08-06 auditory design):
+    /// the exact-rational remainder of the continuous transduced-energy
+    /// integral — `2·L·T` for light, `K·∫s²dt` for sound — not yet delivered
+    /// on the receiving gate's own dissipation lattice.  ONE field per site,
+    /// because a site belongs to exactly one sense.  Same retained-residue
     /// discipline as the charge-carrier phases.
-    pub(crate) optical_quantum_residue: ExactRational,
+    ///
+    /// BOUND (re-measured 2026-08-06; the previous comment here claimed
+    /// `[0, gate dissipation quantum)` and was STALE — it described the law
+    /// before threshold-integrated delivery was ratified): the residue is
+    /// non-negative, and under threshold-integrated delivery it lawfully
+    /// holds up to `opening_threshold_quanta − 1` whole quanta plus a
+    /// sub-quantum remainder, because nothing is delivered at all until the
+    /// accumulation reaches the receiving gate's own opening threshold.  For
+    /// a genesis receptor site (quantum 1/16 zJ, threshold 17 quanta) that
+    /// bound is strictly under 17/16 zJ.  Non-negativity is enforced at the
+    /// codec boundary; the upper bound is a consequence of the delivery law,
+    /// not a clamp.
+    pub(crate) receptor_quantum_residue: ExactRational,
+    /// Inert legacy membrane-return residue retained only so GLNPS01-04 bodies
+    /// cold-restore byte-exactly.  The fabricated zero-voltage return and its
+    /// quantized billing law are deleted; current pump settlement neither
+    /// reads nor writes this value.  New states keep it at zero.  A later
+    /// authenticated state-format migration may remove the bytes, but runtime
+    /// physics must never resurrect them as energy or gradient authority.
+    pub(crate) membrane_return_work_residue: ExactRational,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -960,7 +1390,7 @@ impl NeuronPhysicalAnatomy {
     pub(crate) fn new(
         mathloom: MathLoomAnatomy,
         psi: PsiKrimelackAnatomy,
-        gate: TwoStateGateAnatomy,
+        mut gate: TwoStateGateAnatomy,
         capacitance: MembraneCapacitance,
         recovery: RecoveryAnatomy,
         dna_expression: DnaExpressionAnatomy,
@@ -972,6 +1402,8 @@ impl NeuronPhysicalAnatomy {
         if recovery.psi_lanes.len() != psi.ring_count() {
             return Err(NeuronPhysicalError::AnatomyMismatch);
         }
+        gate.residue_denominator_lattice =
+            derive_population_gate_residue_denominator_lattice(&gate, &plastic)?;
         Ok(Self {
             mathloom,
             psi,
@@ -985,6 +1417,34 @@ impl NeuronPhysicalAnatomy {
 
     pub(crate) fn capacitance(&self) -> MembraneCapacitance {
         self.capacitance
+    }
+
+    pub(crate) fn prepare_psi_settlement(
+        &self,
+        predecessor: &NeuronPhysicalState,
+        perspective: JointNeuronPerspective<'_>,
+    ) -> Result<PsiSettlement, NeuronPhysicalError> {
+        let mathloom = settle_shared_dsf_mathloom(perspective, self.mathloom)?;
+        settle_psi_krimelack(&self.psi, &predecessor.psi, &mathloom).map_err(Into::into)
+    }
+
+    pub(crate) fn mathloom_positions(&self) -> usize {
+        self.mathloom.positions()
+    }
+
+    pub(crate) fn prepare_mathloom_delivery<'a>(
+        &self,
+        perspective: JointNeuronPerspective<'a>,
+    ) -> Result<BorrowedMathLoomDelivery<'a>, NeuronPhysicalError> {
+        settle_shared_dsf_mathloom(perspective, self.mathloom).map_err(Into::into)
+    }
+
+    pub(crate) fn prepare_psi_settlement_from_delivery(
+        &self,
+        predecessor: &NeuronPhysicalState,
+        delivery: &BorrowedMathLoomDelivery<'_>,
+    ) -> Result<PsiSettlement, NeuronPhysicalError> {
+        settle_psi_krimelack(&self.psi, &predecessor.psi, delivery).map_err(Into::into)
     }
 
     /// The same anatomy carrying a different membrane capacitance.
@@ -1012,11 +1472,63 @@ impl NeuronPhysicalAnatomy {
         self.gate.dissipation_capacity_quanta()
     }
 
+    pub(crate) fn gate_population(&self) -> u128 {
+        self.gate.population()
+    }
+
+    pub(crate) fn gate_support_coordinate_nanometres(
+        &self,
+        state: &NeuronPhysicalState,
+    ) -> Result<ExactRational, NeuronPhysicalError> {
+        if self.gate.population == 0 || state.gate.open_population > self.gate.population {
+            return Err(NeuronPhysicalError::AnatomyMismatch);
+        }
+        self.plastic
+            .closed_coordinate_nanometres
+            .checked_mul_unsigned(self.gate.population - state.gate.open_population)?
+            .checked_add(
+                self.plastic
+                    .open_coordinate_nanometres
+                    .checked_mul_unsigned(state.gate.open_population)?,
+            )?
+            .checked_div_unsigned(self.gate.population)
+            .map_err(Into::into)
+    }
+
     /// The receiving gate's exact dissipation-lattice step. Quantized optical
     /// delivery derives its whole-quantum count from THIS anatomy value; no
     /// new constant is introduced anywhere.
     pub(crate) fn gate_dissipation_quantum_zeptojoules(&self) -> &Exact {
         &self.gate.dissipation_quantum_zeptojoules
+    }
+
+    pub(crate) fn gate_dissipation_quantum_exact_zeptojoules(
+        &self,
+    ) -> Result<ExactRational, NeuronPhysicalError> {
+        exact_to_rational(&self.gate.dissipation_quantum_zeptojoules)
+    }
+
+    pub(crate) fn gate_single_channel_conductance_picosiemens(&self) -> ExactRational {
+        self.gate.single_channel_conductance_picosiemens
+    }
+
+    pub(crate) fn gate_reversal_potential_millivolts(&self) -> ExactRational {
+        self.gate.reversal_potential_millivolts
+    }
+
+    /// Maximum phase-one powered-contact rate for this mounted pump, in exact
+    /// zeptojoules per microsecond.  It is the existing one-channel electrical
+    /// power g*E_rev^2 with the exact pS/mV/us unit conversion; no demand,
+    /// scheduler cadence, host power, or refill target enters the value.
+    pub(crate) fn pump_contact_power_zeptojoules_per_microsecond(
+        &self,
+    ) -> Result<ExactRational, NeuronPhysicalError> {
+        self.gate
+            .single_channel_conductance_picosiemens
+            .checked_mul(self.gate.reversal_potential_millivolts)?
+            .checked_mul(self.gate.reversal_potential_millivolts)?
+            .checked_div_unsigned(1_000)
+            .map_err(Into::into)
     }
 
     pub(crate) fn recovery_full_saturation_requirement(
@@ -1060,6 +1572,44 @@ impl NeuronPhysicalAnatomy {
         })
     }
 
+    /// Exact body-energy carried by one complete recovery-reaction extent at
+    /// this neuron's named local lane. Local lane state remains integer
+    /// material counts; only a mounted body reservoir translates those counts
+    /// into their common zeptojoule dimension.
+    pub(crate) fn recovery_energy_per_extent_zeptojoules(
+        &self,
+        address: RecoveryLaneAddress,
+    ) -> Result<ExactRational, NeuronPhysicalError> {
+        let lane = self
+            .recovery
+            .lane(address)
+            .ok_or(RecoveryError::AnatomyWidth)?;
+        let heat_per_extent = lane.stoichiometry().3;
+        self.lane_dissipation_quantum_zeptojoules(address)?
+            .checked_mul_unsigned(heat_per_extent)
+            .map_err(Into::into)
+    }
+
+    pub(crate) fn lane_dissipation_quantum_zeptojoules(
+        &self,
+        address: RecoveryLaneAddress,
+    ) -> Result<ExactRational, NeuronPhysicalError> {
+        Ok(match address {
+            RecoveryLaneAddress::Psi(index) => exact_to_rational(
+                &self
+                    .psi
+                    .rings
+                    .get(index)
+                    .ok_or(RecoveryError::AnatomyWidth)?
+                    .dissipation_quantum_zeptojoules,
+            )?,
+            RecoveryLaneAddress::Gate => {
+                exact_to_rational(&self.gate.dissipation_quantum_zeptojoules)?
+            }
+            RecoveryLaneAddress::Plastic => self.plastic.dissipation_quantum_zeptojoules,
+        })
+    }
+
     pub(crate) fn psi_ring_count(&self) -> usize {
         self.psi.ring_count()
     }
@@ -1078,6 +1628,15 @@ pub(crate) struct RecoverySaturationRequirement {
 }
 
 impl NeuronPhysicalState {
+    pub(crate) fn psi_state(&self) -> &PsiKrimelackState {
+        &self.psi
+    }
+
+    #[cfg(test)]
+    pub(crate) fn probe_gate_open_population(&self) -> u128 {
+        self.gate.open_population
+    }
+
     pub(crate) fn membrane_state(
         &self,
     ) -> crate::elementary_charge_membrane::ElementaryChargeMembraneState {
@@ -1101,11 +1660,332 @@ impl NeuronPhysicalState {
                     .psi_lanes
                     .len()
                     .checked_mul(core::mem::size_of::<RecoveryLaneState>())?,
-            )
+            )?
+            .checked_add(self.gate.dissipation_residue_zeptojoules.heap_bytes()?)?
+            .checked_add(self.plastic.dissipation_residue_zeptojoules.heap_bytes()?)
     }
 }
 
+#[cfg(test)]
+impl NeuronPhysicalState {
+    pub(crate) fn probe_retention_material(
+        &self,
+    ) -> ((u128, u128, u128), (u128, u128, u128, u128)) {
+        (
+            self.recovery.plastic_lane.physical_parts(),
+            self.dna_expression.probe_parts(),
+        )
+    }
+}
+
+/// Extend only the positional MathLoom/Psi fabric reached by a field whose
+/// exact balanced-ternary word is wider than this neuron's present anatomy.
+/// Existing rings keep their exact block-relative positions. New high
+/// positions repeat the same local ring and recovery anatomy and begin in that
+/// anatomy's rest state; every other neuronal coordinate is unchanged.
+pub(crate) fn extend_neuron_positional_fabric(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+    required_positions: usize,
+) -> Result<(NeuronPhysicalAnatomy, NeuronPhysicalState), NeuronPhysicalError> {
+    let mounted_positions = anatomy.mathloom.positions();
+    if required_positions <= mounted_positions {
+        return Ok((anatomy.clone(), state.clone()));
+    }
+    if state.psi.rings.len() != anatomy.psi.rings.len()
+        || state.recovery.psi_lanes.len() != anatomy.recovery.psi_lanes.len()
+    {
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+    let block_count = anatomy
+        .psi
+        .constraint_count
+        .checked_mul(2)
+        .ok_or(PsiSettlementError::AnatomyWidth)?;
+    let added_positions = required_positions
+        .checked_sub(mounted_positions)
+        .ok_or(PsiSettlementError::AnatomyWidth)?;
+    let successor_ring_count = block_count
+        .checked_mul(required_positions)
+        .ok_or(PsiSettlementError::AnatomyWidth)?;
+    let mut rings = Vec::with_capacity(successor_ring_count);
+    let mut ring_states = Vec::with_capacity(successor_ring_count);
+    let mut recovery_lanes = Vec::with_capacity(successor_ring_count);
+    let mut recovery_states = Vec::with_capacity(successor_ring_count);
+    for block in 0..block_count {
+        let start = block
+            .checked_mul(mounted_positions)
+            .ok_or(PsiSettlementError::AnatomyWidth)?;
+        let end = start
+            .checked_add(mounted_positions)
+            .ok_or(PsiSettlementError::AnatomyWidth)?;
+        rings.extend_from_slice(&anatomy.psi.rings[start..end]);
+        ring_states.extend_from_slice(&state.psi.rings[start..end]);
+        recovery_lanes.extend_from_slice(&anatomy.recovery.psi_lanes[start..end]);
+        recovery_states.extend_from_slice(&state.recovery.psi_lanes[start..end]);
+        let ring_template = anatomy.psi.rings[end - 1].clone();
+        let recovery_template = anatomy.recovery.psi_lanes[end - 1];
+        for _ in 0..added_positions {
+            rings.push(ring_template.clone());
+            ring_states.push(PsiRingState {
+                amplitude_quanta: ring_template.node_amplitude_quanta,
+                phase_thirds: canonical_phase_thirds(ring_template.genesis_winding),
+                winding: ring_template.genesis_winding,
+                dissipated_quanta: 0,
+            });
+            recovery_lanes.push(recovery_template);
+            recovery_states.push(RecoveryLaneState::new(recovery_template.fuel_capacity));
+        }
+    }
+    let psi = PsiKrimelackAnatomy::new(required_positions, anatomy.psi.constraint_count, rings)?;
+    let recovery = RecoveryAnatomy::new(
+        recovery_lanes,
+        anatomy.recovery.gate_lane,
+        anatomy.recovery.plastic_lane,
+        successor_ring_count,
+    )?;
+    let successor_anatomy = NeuronPhysicalAnatomy::new(
+        MathLoomAnatomy::new(required_positions)?,
+        psi,
+        anatomy.gate.clone(),
+        anatomy.capacitance,
+        recovery,
+        anatomy.dna_expression,
+        anatomy.plastic.clone(),
+    )?;
+    let mut successor_state = state.clone();
+    successor_state.psi = PsiKrimelackState {
+        rings: ring_states.into_boxed_slice(),
+    };
+    successor_state.recovery = RecoveryState {
+        psi_lanes: recovery_states.into_boxed_slice(),
+        gate_lane: state.recovery.gate_lane,
+        plastic_lane: state.recovery.plastic_lane,
+    };
+    Ok((successor_anatomy, successor_state))
+}
+
+/// One-way correction for retinal population anatomy. A one-channel legacy
+/// cell keeps its exact lived state while omitted territory is added as virgin
+/// material. An already-expanded cell authored by the retired unbounded-work
+/// law instead passes through the narrower false-physiology retirement below.
+pub(crate) fn expand_legacy_receptor_channel_population(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+    target_population: u128,
+    virgin_carriers_per_compartment: u128,
+) -> Result<(NeuronPhysicalAnatomy, NeuronPhysicalState), NeuronPhysicalError> {
+    if target_population == anatomy.gate.population {
+        if target_population == 1
+            || (anatomy.gate.has_independent_channel_supports()
+                && anatomy.gate.has_occurrence_bounded_population_work())
+        {
+            return Ok((anatomy.clone(), state.clone()));
+        }
+        if anatomy.gate.has_independent_channel_supports() {
+            return retire_unbounded_receptor_population_state(
+                anatomy,
+                state,
+                virgin_carriers_per_compartment,
+            );
+        }
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+    if anatomy.gate.population != 1
+        || anatomy.gate.has_independent_channel_supports()
+        || target_population <= 1
+        || state.gate.open_population > 1
+    {
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+
+    let scale = target_population;
+    let scaled = |value: u128| {
+        value.checked_mul(scale).ok_or(NeuronPhysicalError::Gate(
+            GateSettlementError::ArithmeticWidth,
+        ))
+    };
+    let gate = TwoStateGateAnatomy::new_independent_channels(
+        target_population,
+        anatomy.gate.gating_charge_elementary,
+        anatomy.gate.chemical_open_minus_closed_zeptojoules.clone(),
+        anatomy.gate.dissipation_quantum_zeptojoules.clone(),
+        scaled(anatomy.gate.dissipation_capacity_quanta)?,
+        anatomy.gate.single_channel_conductance_picosiemens,
+        anatomy.gate.reversal_potential_millivolts,
+        anatomy.gate.psi_contacts.to_vec(),
+        anatomy.psi.ring_count(),
+    )?;
+
+    let scale_lane =
+        |lane: RecoveryLaneAnatomy| -> Result<RecoveryLaneAnatomy, NeuronPhysicalError> {
+            let (catalyst, fuel, spent, heat) = lane.stoichiometry();
+            let (fuel_capacity, spent_capacity, heat_capacity) = lane.capacities();
+            RecoveryLaneAnatomy::new(
+                catalyst,
+                fuel,
+                spent,
+                heat,
+                scaled(fuel_capacity)?,
+                scaled(spent_capacity)?,
+                scaled(heat_capacity)?,
+            )
+            .map_err(Into::into)
+        };
+    let gate_lane = scale_lane(anatomy.recovery.gate_lane)?;
+    let plastic_lane = scale_lane(anatomy.recovery.plastic_lane)?;
+    let recovery = RecoveryAnatomy::new(
+        anatomy.recovery.psi_lanes.to_vec(),
+        gate_lane,
+        plastic_lane,
+        anatomy.psi.ring_count(),
+    )?;
+    let plastic = PlasticSupportAnatomy::new(
+        anatomy.plastic.elastic_energy_scale_zeptojoules,
+        anatomy.plastic.yield_stress_zeptojoules,
+        anatomy.plastic.closed_coordinate_nanometres,
+        anatomy.plastic.open_coordinate_nanometres,
+        anatomy.plastic.dissipation_quantum_zeptojoules,
+        scaled(anatomy.plastic.dissipation_capacity_quanta)?,
+    )?;
+
+    let successor_anatomy = NeuronPhysicalAnatomy::new(
+        anatomy.mathloom,
+        anatomy.psi.clone(),
+        gate,
+        anatomy.capacitance,
+        recovery,
+        anatomy.dna_expression,
+        plastic,
+    )?;
+
+    let yielded_rest = single_channel_yielded_rest_length(&anatomy.plastic)?;
+    let yielded_population =
+        if state.plastic.rest_length_nanometres == anatomy.plastic.closed_coordinate_nanometres {
+            0
+        } else if state.plastic.rest_length_nanometres == yielded_rest {
+            1
+        } else {
+            return Err(NeuronPhysicalError::Plasticity(
+                PlasticityError::InvalidState,
+            ));
+        };
+    let retained_delta = yielded_rest.checked_sub(anatomy.plastic.closed_coordinate_nanometres)?;
+    let successor_rest = anatomy.plastic.closed_coordinate_nanometres.checked_add(
+        retained_delta
+            .checked_mul_unsigned(yielded_population)?
+            .checked_div_unsigned(target_population)?,
+    )?;
+
+    if virgin_carriers_per_compartment == 0 {
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+    let added_channels = target_population - 1;
+    let added_carriers = virgin_carriers_per_compartment
+        .checked_mul(added_channels)
+        .ok_or(NeuronPhysicalError::Gate(
+            GateSettlementError::ArithmeticWidth,
+        ))?;
+
+    let expand_lane_state = |predecessor: RecoveryLaneState,
+                             predecessor_anatomy: RecoveryLaneAnatomy,
+                             successor_anatomy: RecoveryLaneAnatomy|
+     -> Result<RecoveryLaneState, NeuronPhysicalError> {
+        let (fuel, spent, heat) = predecessor.physical_parts();
+        let (old_fuel_capacity, _, _) = predecessor_anatomy.capacities();
+        let (new_fuel_capacity, _, _) = successor_anatomy.capacities();
+        RecoveryLaneState::from_physical_parts(
+            successor_anatomy,
+            fuel.checked_add(new_fuel_capacity - old_fuel_capacity)
+                .ok_or(RecoveryError::ArithmeticWidth)?,
+            spent,
+            heat,
+        )
+        .map_err(Into::into)
+    };
+    let mut successor_state = state.clone();
+    successor_state.carriers = CarrierReservoirs::new(
+        state
+            .carriers
+            .intracellular
+            .checked_add(added_carriers)
+            .ok_or(NeuronPhysicalError::Gate(
+                GateSettlementError::ArithmeticWidth,
+            ))?,
+        state
+            .carriers
+            .extracellular
+            .checked_add(added_carriers)
+            .ok_or(NeuronPhysicalError::Gate(
+                GateSettlementError::ArithmeticWidth,
+            ))?,
+    );
+    successor_state.recovery.gate_lane = expand_lane_state(
+        state.recovery.gate_lane,
+        anatomy.recovery.gate_lane,
+        successor_anatomy.recovery.gate_lane,
+    )?;
+    successor_state.recovery.plastic_lane = expand_lane_state(
+        state.recovery.plastic_lane,
+        anatomy.recovery.plastic_lane,
+        successor_anatomy.recovery.plastic_lane,
+    )?;
+    successor_state.plastic = PlasticSupportState {
+        rest_length_nanometres: successor_rest,
+        dissipated_quanta: state.plastic.dissipated_quanta,
+        dissipation_residue_zeptojoules: state.plastic.dissipation_residue_zeptojoules.clone(),
+    };
+    encode_neuron_physical_state(&successor_anatomy, &successor_state)
+        .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
+    Ok((successor_anatomy, successor_state))
+}
+
+/// Retire retinal physiology produced by the former cross-occurrence energy
+/// accumulator.  That law could progressively yield every support even when
+/// no single occurrence paid for that state, so its gate, membrane, carrier,
+/// plastic, recovery and optical-residue coordinates are not lived evidence.
+/// Stable Psi/Krimelack state, its recovery lanes, DNA state, topology and
+/// lineage remain exact.  The anatomy marker makes this correction one-way.
+fn retire_unbounded_receptor_population_state(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+    virgin_carriers_per_compartment: u128,
+) -> Result<(NeuronPhysicalAnatomy, NeuronPhysicalState), NeuronPhysicalError> {
+    if !anatomy.gate.has_independent_channel_supports()
+        || anatomy.gate.has_occurrence_bounded_population_work()
+        || anatomy.gate.population <= 1
+        || virgin_carriers_per_compartment == 0
+    {
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+    let mut successor_anatomy = anatomy.clone();
+    successor_anatomy.gate.occurrence_bounded_population_work = true;
+    let carriers_per_compartment = virgin_carriers_per_compartment
+        .checked_mul(anatomy.gate.population)
+        .ok_or(NeuronPhysicalError::Gate(
+            GateSettlementError::ArithmeticWidth,
+        ))?;
+    let (gate_fuel_capacity, _, _) = anatomy.recovery.gate_lane.capacities();
+    let (plastic_fuel_capacity, _, _) = anatomy.recovery.plastic_lane.capacities();
+    let mut successor_state = state.clone();
+    successor_state.gate = TwoStateGateState::genesis(0);
+    successor_state.membrane = LocalMembraneConductanceState::genesis(0);
+    successor_state.carriers =
+        CarrierReservoirs::new(carriers_per_compartment, carriers_per_compartment);
+    successor_state.recovery.gate_lane = RecoveryLaneState::new(gate_fuel_capacity);
+    successor_state.recovery.plastic_lane = RecoveryLaneState::new(plastic_fuel_capacity);
+    successor_state.plastic =
+        PlasticSupportState::new(anatomy.plastic.closed_coordinate_nanometres)?;
+    successor_state.receptor_quantum_residue = ExactRational::integer(0);
+    successor_state.membrane_return_work_residue = ExactRational::integer(0);
+    encode_neuron_physical_state(&successor_anatomy, &successor_state)
+        .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
+    Ok((successor_anatomy, successor_state))
+}
+
 const NEURON_ANATOMY_CODEC_MAGIC: &[u8; 8] = b"GLNPA02\0";
+const NEURON_INDEPENDENT_CHANNEL_ANATOMY_CODEC_MAGIC: &[u8; 8] = b"GLNPA03\0";
+const NEURON_OCCURRENCE_BOUNDED_CHANNEL_ANATOMY_CODEC_MAGIC: &[u8; 8] = b"GLNPA04\0";
 const NEURON_CELL_CODEC_MAGIC: &[u8; 8] = b"GLNPC02\0";
 const MIN_PSI_RING_ANATOMY_BYTES: usize = 164;
 const MIN_GATE_PSI_CONTACT_BYTES: usize = 35;
@@ -1132,7 +2012,13 @@ pub(crate) fn encode_neuron_physical_anatomy(
     anatomy: &NeuronPhysicalAnatomy,
 ) -> Result<Vec<u8>, NeuronAnatomyCodecError> {
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(NEURON_ANATOMY_CODEC_MAGIC);
+    encoded.extend_from_slice(if anatomy.gate.has_occurrence_bounded_population_work() {
+        NEURON_OCCURRENCE_BOUNDED_CHANNEL_ANATOMY_CODEC_MAGIC
+    } else if anatomy.gate.has_independent_channel_supports() {
+        NEURON_INDEPENDENT_CHANNEL_ANATOMY_CODEC_MAGIC
+    } else {
+        NEURON_ANATOMY_CODEC_MAGIC
+    });
     push_anatomy_usize(&mut encoded, anatomy.mathloom.positions())?;
     push_anatomy_usize(&mut encoded, anatomy.psi.constraint_count)?;
     push_anatomy_usize(&mut encoded, anatomy.psi.rings.len())?;
@@ -1214,9 +2100,13 @@ pub(crate) fn decode_neuron_physical_anatomy(
     encoded: &[u8],
 ) -> Result<NeuronPhysicalAnatomy, NeuronAnatomyCodecError> {
     let mut reader = NeuronAnatomyReader::new(encoded);
-    if reader.take(NEURON_ANATOMY_CODEC_MAGIC.len())? != NEURON_ANATOMY_CODEC_MAGIC {
-        return Err(NeuronAnatomyCodecError::InvalidEncoding);
-    }
+    let (independent_channel_supports, occurrence_bounded_population_work) =
+        match reader.take(NEURON_ANATOMY_CODEC_MAGIC.len())? {
+            magic if magic == NEURON_ANATOMY_CODEC_MAGIC => (false, false),
+            magic if magic == NEURON_INDEPENDENT_CHANNEL_ANATOMY_CODEC_MAGIC => (true, false),
+            magic if magic == NEURON_OCCURRENCE_BOUNDED_CHANNEL_ANATOMY_CODEC_MAGIC => (true, true),
+            _ => return Err(NeuronAnatomyCodecError::InvalidEncoding),
+        };
     let positions = reader.usize()?;
     let constraint_count = reader.usize()?;
     let ring_count = reader.usize()?;
@@ -1292,8 +2182,10 @@ pub(crate) fn decode_neuron_physical_anatomy(
             .map_err(|_| NeuronAnatomyCodecError::InvalidAnatomy)?,
         );
     }
-    let gate = TwoStateGateAnatomy::new(
+    let gate = TwoStateGateAnatomy::new_with_support_mode(
         population,
+        independent_channel_supports,
+        occurrence_bounded_population_work,
         gating_charge_elementary,
         chemical_open_minus_closed_zeptojoules,
         gate_dissipation_quantum,
@@ -1562,6 +2454,23 @@ impl<'a> NeuronAnatomyReader<'a> {
 }
 
 const NEURON_STATE_CODEC_MAGIC: &[u8; 8] = b"GLNPS01\0";
+/// Neuron-state layout carrying a nonzero retained membrane-return work
+/// residue (the exact rest-cost law, 2026-08-06).  Codec precedent
+/// GLEXP02→GLEXP03 and GLMRC01: the new magic appears ONLY when the new field
+/// differs from the historical default (a zero residue), so every body whose
+/// residue is zero — every body written before this law, including the live
+/// organism's — encodes byte-identically to before and its receipts do not
+/// drift.  The residue's two words follow the magic; the rest of the layout is
+/// unchanged, byte for byte, from `GLNPS01`.
+const NEURON_STATE_RETURN_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS02\0";
+/// Neuron-state layout carrying a nonzero exact gate- or
+/// plastic-dissipation residue. It carries the membrane-return residue first,
+/// then the gate residue and plastic residue, followed by the unchanged
+/// `GLNPS01` body. `GLNPS01` and `GLNPS02` remain byte-identical for every
+/// historical body; this magic is canonical only when either new residue is
+/// nonzero.
+const NEURON_STATE_PLASTIC_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS03\0";
+const NEURON_STATE_WIDE_DISSIPATION_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS04\0";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum NeuronStateCodecError {
@@ -1574,6 +2483,18 @@ pub(crate) fn encode_neuron_physical_state(
     anatomy: &NeuronPhysicalAnatomy,
     state: &NeuronPhysicalState,
 ) -> Result<Vec<u8>, NeuronStateCodecError> {
+    let gate_residue_fits = gate_residue_fits_physical_lattice(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &state.gate.dissipation_residue_zeptojoules,
+    )
+    .map_err(|_| NeuronStateCodecError::AnatomyMismatch)?;
+    let plastic_residue_fits = gate_residue_fits_physical_lattice(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &state.plastic.dissipation_residue_zeptojoules,
+    )
+    .map_err(|_| NeuronStateCodecError::AnatomyMismatch)?;
     if state.psi.rings.len() != anatomy.psi.rings.len()
         || state.recovery.psi_lanes.len() != anatomy.recovery.psi_lanes.len()
         || state.gate.open_population > anatomy.gate.population
@@ -1587,12 +2508,80 @@ pub(crate) fn encode_neuron_physical_state(
         // residue is routinely several whole quanta.  Its only canonical
         // bound is non-negativity; no anatomy number bounds it from above,
         // and inventing one would silently destroy retained energy.
-        || rational_to_exact(state.optical_quantum_residue) < Exact::zero()
+        || rational_to_exact(state.receptor_quantum_residue) < Exact::zero()
+        // The retained membrane-return work residue is what the body still
+        // owes for return work already done.  Its canonical bound is
+        // `[0, gate dissipation quantum)`: the billing law takes every whole
+        // quantum the accumulation covers, so anything at or beyond one
+        // quantum is a state the law cannot produce.
+        || rational_to_exact(state.membrane_return_work_residue) < Exact::zero()
+        || rational_to_exact(state.membrane_return_work_residue)
+            >= anatomy.gate.dissipation_quantum_zeptojoules
+        // Plastic return work is billed in the plastic support's own exact
+        // dissipation quantum. Any remaining sub-quantum work is conserved
+        // here rather than rejected or rounded away.
+        || state.plastic.dissipation_residue_zeptojoules.energy() < &Exact::zero()
+        || state.plastic.dissipation_residue_zeptojoules.energy()
+            >= &rational_to_exact(anatomy.plastic.dissipation_quantum_zeptojoules)
+        || (state.plastic.dissipated_quanta
+            == anatomy.plastic.dissipation_capacity_quanta
+            && !state.plastic.dissipation_residue_zeptojoules.is_zero())
+        || state.gate.dissipation_residue_zeptojoules.energy() < &Exact::zero()
+        || state.gate.dissipation_residue_zeptojoules.energy()
+            >= &anatomy.gate.dissipation_quantum_zeptojoules
+        || (state.gate.dissipated_quanta == anatomy.gate.dissipation_capacity_quanta
+            && !state.gate.dissipation_residue_zeptojoules.is_zero())
+        || !gate_residue_fits
+        || !plastic_residue_fits
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(NEURON_STATE_CODEC_MAGIC);
+    // Versioned head magic: a zero residue keeps the pre-law `GLNPS01`
+    // layout byte for byte (see the magic's doc); a nonzero residue names
+    // itself with `GLNPS02` and carries its two exact-rational words next.
+    let (return_residue_numerator, return_residue_denominator) =
+        state.membrane_return_work_residue.parts();
+    let fixed_gate_residue = state.gate.dissipation_residue_zeptojoules.fixed_width();
+    let fixed_plastic_residue = state.plastic.dissipation_residue_zeptojoules.fixed_width();
+    if (!state.gate.dissipation_residue_zeptojoules.is_zero() && fixed_gate_residue.is_none())
+        || (!state.plastic.dissipation_residue_zeptojoules.is_zero()
+            && fixed_plastic_residue.is_none())
+    {
+        encoded.extend_from_slice(NEURON_STATE_WIDE_DISSIPATION_RESIDUE_MAGIC);
+        push_i128(&mut encoded, return_residue_numerator);
+        push_u128(&mut encoded, return_residue_denominator);
+        push_state_big_rational(
+            &mut encoded,
+            state.gate.dissipation_residue_zeptojoules.energy(),
+        )?;
+        push_state_big_rational(
+            &mut encoded,
+            state.plastic.dissipation_residue_zeptojoules.energy(),
+        )?;
+    } else if !state.plastic.dissipation_residue_zeptojoules.is_zero()
+        || !state.gate.dissipation_residue_zeptojoules.is_zero()
+    {
+        let (gate_residue_numerator, gate_residue_denominator) = fixed_gate_residue
+            .expect("zero or fixed-width gate residue must fit GLNPS03")
+            .parts();
+        let (plastic_residue_numerator, plastic_residue_denominator) = fixed_plastic_residue
+            .expect("zero or fixed-width plastic residue must fit GLNPS03")
+            .parts();
+        encoded.extend_from_slice(NEURON_STATE_PLASTIC_RESIDUE_MAGIC);
+        push_i128(&mut encoded, return_residue_numerator);
+        push_u128(&mut encoded, return_residue_denominator);
+        push_i128(&mut encoded, gate_residue_numerator);
+        push_u128(&mut encoded, gate_residue_denominator);
+        push_i128(&mut encoded, plastic_residue_numerator);
+        push_u128(&mut encoded, plastic_residue_denominator);
+    } else if return_residue_numerator == 0 {
+        encoded.extend_from_slice(NEURON_STATE_CODEC_MAGIC);
+    } else {
+        encoded.extend_from_slice(NEURON_STATE_RETURN_RESIDUE_MAGIC);
+        push_i128(&mut encoded, return_residue_numerator);
+        push_u128(&mut encoded, return_residue_denominator);
+    }
     push_usize(&mut encoded, state.psi.rings.len())?;
     for (ring, ring_anatomy) in state.psi.rings.iter().zip(anatomy.psi.rings.iter()) {
         if ring.amplitude_quanta != ring_anatomy.node_amplitude_quanta
@@ -1644,7 +2633,7 @@ pub(crate) fn encode_neuron_physical_state(
     // Retained quantized-optical sub-quantum residue (ratified 2026-08-05):
     // encoded with the same exact-rational fixed-width discipline as the
     // retained charge-carrier phases above.
-    let (residue_numerator, residue_denominator) = state.optical_quantum_residue.parts();
+    let (residue_numerator, residue_denominator) = state.receptor_quantum_residue.parts();
     push_i128(&mut encoded, residue_numerator);
     push_u128(&mut encoded, residue_denominator);
     Ok(encoded)
@@ -1655,9 +2644,65 @@ pub(crate) fn decode_neuron_physical_state(
     encoded: &[u8],
 ) -> Result<NeuronPhysicalState, NeuronStateCodecError> {
     let mut reader = NeuronStateReader::new(encoded);
-    if reader.take(NEURON_STATE_CODEC_MAGIC.len())? != NEURON_STATE_CODEC_MAGIC {
-        return Err(NeuronStateCodecError::InvalidEncoding);
-    }
+    // Whichever layout the leading bytes name: the pre-law body (residue
+    // zero) or the `GLNPS02` body that carries a nonzero retained
+    // membrane-return work residue.  A `GLNPS02` body carrying zero is
+    // refused — its canonical form is the bare `GLNPS01` body, and accepting
+    // both would let one physical state admit two encodings.
+    let (membrane_return_work_residue, gate_dissipation_residue, plastic_dissipation_residue) =
+        match reader.take(NEURON_STATE_CODEC_MAGIC.len())? {
+            magic if magic == NEURON_STATE_CODEC_MAGIC => (
+                ExactRational::integer(0),
+                PhysicalEnergyResidue::zero(),
+                PhysicalEnergyResidue::zero(),
+            ),
+            magic if magic == NEURON_STATE_RETURN_RESIDUE_MAGIC => {
+                let residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                if residue.parts().0 == 0 {
+                    return Err(NeuronStateCodecError::InvalidEncoding);
+                }
+                (
+                    residue,
+                    PhysicalEnergyResidue::zero(),
+                    PhysicalEnergyResidue::zero(),
+                )
+            }
+            magic if magic == NEURON_STATE_PLASTIC_RESIDUE_MAGIC => {
+                let membrane_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                let gate_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                let plastic_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                if gate_residue.parts().0 == 0 && plastic_residue.parts().0 == 0 {
+                    return Err(NeuronStateCodecError::InvalidEncoding);
+                }
+                (
+                    membrane_residue,
+                    PhysicalEnergyResidue::from_exact_rational(gate_residue),
+                    PhysicalEnergyResidue::from_exact_rational(plastic_residue),
+                )
+            }
+            magic if magic == NEURON_STATE_WIDE_DISSIPATION_RESIDUE_MAGIC => {
+                let membrane_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                let gate_residue = PhysicalEnergyResidue {
+                    energy_zeptojoules: reader.big_rational()?,
+                };
+                let plastic_residue = PhysicalEnergyResidue {
+                    energy_zeptojoules: reader.big_rational()?,
+                };
+                if (gate_residue.is_zero() && plastic_residue.is_zero())
+                    || (gate_residue.fixed_width().is_some()
+                        && plastic_residue.fixed_width().is_some())
+                {
+                    return Err(NeuronStateCodecError::InvalidEncoding);
+                }
+                (membrane_residue, gate_residue, plastic_residue)
+            }
+            _ => return Err(NeuronStateCodecError::InvalidEncoding),
+        };
     let psi_count = reader.usize()?;
     if psi_count != anatomy.psi.rings.len() {
         return Err(NeuronStateCodecError::AnatomyMismatch);
@@ -1679,9 +2724,15 @@ pub(crate) fn decode_neuron_physical_state(
     let gate = TwoStateGateState {
         open_population: reader.u128()?,
         dissipated_quanta: reader.u128()?,
+        dissipation_residue_zeptojoules: gate_dissipation_residue,
     };
     if gate.open_population > anatomy.gate.population
         || gate.dissipated_quanta > anatomy.gate.dissipation_capacity_quanta
+        || gate.dissipation_residue_zeptojoules.energy() < &Exact::zero()
+        || gate.dissipation_residue_zeptojoules.energy()
+            >= &anatomy.gate.dissipation_quantum_zeptojoules
+        || (gate.dissipated_quanta == anatomy.gate.dissipation_capacity_quanta
+            && !gate.dissipation_residue_zeptojoules.is_zero())
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
@@ -1727,14 +2778,37 @@ pub(crate) fn decode_neuron_physical_state(
         rest_length_nanometres: ExactRational::new(reader.i128()?, reader.u128()?)
             .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
         dissipated_quanta: reader.u128()?,
+        dissipation_residue_zeptojoules: plastic_dissipation_residue,
     };
-    let optical_quantum_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+    let receptor_quantum_residue = ExactRational::new(reader.i128()?, reader.u128()?)
         .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
     if plastic.rest_length_nanometres.parts().0 <= 0
         || plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
         // Law 1: a retained receptor accumulator is bounded only by
         // non-negativity (see the encoder).
-        || rational_to_exact(optical_quantum_residue) < Exact::zero()
+        || rational_to_exact(receptor_quantum_residue) < Exact::zero()
+        // The retained membrane-return work residue is bounded by
+        // `[0, gate dissipation quantum)` (see the encoder).
+        || rational_to_exact(membrane_return_work_residue) < Exact::zero()
+        || rational_to_exact(membrane_return_work_residue)
+            >= anatomy.gate.dissipation_quantum_zeptojoules
+        || plastic.dissipation_residue_zeptojoules.energy() < &Exact::zero()
+        || plastic.dissipation_residue_zeptojoules.energy()
+            >= &rational_to_exact(anatomy.plastic.dissipation_quantum_zeptojoules)
+        || (plastic.dissipated_quanta == anatomy.plastic.dissipation_capacity_quanta
+            && !plastic.dissipation_residue_zeptojoules.is_zero())
+        || !gate_residue_fits_physical_lattice(
+            &anatomy.gate,
+            &anatomy.plastic,
+            &gate.dissipation_residue_zeptojoules,
+        )
+        .map_err(|_| NeuronStateCodecError::AnatomyMismatch)?
+        || !gate_residue_fits_physical_lattice(
+            &anatomy.gate,
+            &anatomy.plastic,
+            &plastic.dissipation_residue_zeptojoules,
+        )
+        .map_err(|_| NeuronStateCodecError::AnatomyMismatch)?
         || !reader.finished()
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
@@ -1749,7 +2823,8 @@ pub(crate) fn decode_neuron_physical_state(
         recovery,
         dna_expression,
         plastic,
-        optical_quantum_residue,
+        receptor_quantum_residue,
+        membrane_return_work_residue,
     })
 }
 
@@ -1811,6 +2886,18 @@ fn push_i128(encoded: &mut Vec<u8>, value: i128) {
     encoded.extend_from_slice(&value.to_le_bytes());
 }
 
+fn push_state_big_rational(
+    encoded: &mut Vec<u8>,
+    value: &Exact,
+) -> Result<(), NeuronStateCodecError> {
+    for integer in [value.numer(), value.denom()] {
+        let bytes = integer.to_signed_bytes_le();
+        push_usize(encoded, bytes.len())?;
+        encoded.extend_from_slice(&bytes);
+    }
+    Ok(())
+}
+
 fn decode_winding(value: i8) -> Result<BalancedTrit, NeuronStateCodecError> {
     match value {
         -1 => Ok(BalancedTrit::Negative),
@@ -1870,6 +2957,32 @@ impl<'a> NeuronStateReader<'a> {
                 .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
         ))
         .map_err(|_| NeuronStateCodecError::ArithmeticWidth)
+    }
+
+    fn big_integer(&mut self) -> Result<BigInt, NeuronStateCodecError> {
+        let length = self.usize()?;
+        if length == 0 {
+            return Err(NeuronStateCodecError::InvalidEncoding);
+        }
+        let bytes = self.take(length)?;
+        let value = BigInt::from_signed_bytes_le(bytes);
+        if value.to_signed_bytes_le() != bytes {
+            return Err(NeuronStateCodecError::InvalidEncoding);
+        }
+        Ok(value)
+    }
+
+    fn big_rational(&mut self) -> Result<Exact, NeuronStateCodecError> {
+        let numerator = self.big_integer()?;
+        let denominator = self.big_integer()?;
+        if denominator <= BigInt::zero() {
+            return Err(NeuronStateCodecError::InvalidEncoding);
+        }
+        let value = Exact::new(numerator.clone(), denominator.clone());
+        if value.numer() != &numerator || value.denom() != &denominator {
+            return Err(NeuronStateCodecError::InvalidEncoding);
+        }
+        Ok(value)
     }
 
     fn phase(&mut self) -> Result<ChargeCarrierPhase, NeuronStateCodecError> {
@@ -1938,8 +3051,7 @@ impl From<ExactRationalError> for NeuronPhysicalError {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct NeuronPhysicalInterval<'a> {
-    pub(crate) mathloom: BorrowedMathLoomDelivery<'a>,
+pub(crate) struct NeuronPhysicalInterval {
     pub(crate) psi: PsiSettlement,
     pub(crate) gate_membrane: GateMembraneSettlement,
     pub(crate) successor: NeuronPhysicalState,
@@ -1948,13 +3060,13 @@ pub(crate) struct NeuronPhysicalInterval<'a> {
 /// Execute one exact reached physical interval. This produces current physical
 /// successor state only. It does not emit a neuronal fractal because a single
 /// membrane interval is not, by itself, proof of post-experience quiescence.
-pub(crate) fn settle_neuron_physical_interval<'a>(
+pub(crate) fn settle_neuron_physical_interval(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
-    perspective: JointNeuronPerspective<'a>,
+    perspective: JointNeuronPerspective<'_>,
     gate_work: GateWorkOccurrence,
     interval_microseconds: u32,
-) -> Result<NeuronPhysicalInterval<'a>, NeuronPhysicalError> {
+) -> Result<NeuronPhysicalInterval, NeuronPhysicalError> {
     settle_neuron_physical_interval_with_contact(
         anatomy,
         predecessor,
@@ -1962,24 +3074,31 @@ pub(crate) fn settle_neuron_physical_interval<'a>(
         gate_work,
         interval_microseconds,
         0,
+        None,
     )
 }
 
-pub(crate) fn settle_neuron_physical_interval_with_contact<'a>(
+pub(crate) fn settle_neuron_physical_interval_with_contact(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
-    perspective: JointNeuronPerspective<'a>,
+    perspective: JointNeuronPerspective<'_>,
     gate_work: GateWorkOccurrence,
     interval_microseconds: u32,
     inter_neuron_outward_elementary_charges: i128,
-) -> Result<NeuronPhysicalInterval<'a>, NeuronPhysicalError> {
-    let mathloom = settle_shared_dsf_mathloom(perspective, anatomy.mathloom)?;
-    let psi = settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?;
+    prepared_psi: Option<PsiSettlement>,
+) -> Result<NeuronPhysicalInterval, NeuronPhysicalError> {
+    let psi = match prepared_psi {
+        Some(psi) => psi,
+        None => {
+            let mathloom = settle_shared_dsf_mathloom(perspective, anatomy.mathloom)?;
+            settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?
+        }
+    };
     let gate_membrane = settle_gate_membrane_with_contact(
         &anatomy.gate,
         &anatomy.plastic,
         &predecessor.plastic,
-        predecessor.gate,
+        predecessor.gate.clone(),
         &psi.successor,
         gate_work,
         anatomy.capacitance,
@@ -1990,16 +3109,20 @@ pub(crate) fn settle_neuron_physical_interval_with_contact<'a>(
     )?;
     let successor = NeuronPhysicalState {
         psi: psi.successor.clone(),
-        gate: gate_membrane.successor_gate,
+        gate: gate_membrane.successor_gate.clone(),
         membrane: gate_membrane.membrane.successor,
         carriers: gate_membrane.successor_carriers,
         recovery: predecessor.recovery.clone(),
         dna_expression: predecessor.dna_expression,
         plastic: predecessor.plastic.clone(),
-        optical_quantum_residue: predecessor.optical_quantum_residue,
+        receptor_quantum_residue: predecessor.receptor_quantum_residue,
+        // A stimulus interval does no membrane-RETURN work — the return path
+        // is the rest metabolism's — so it neither adds to nor erases the
+        // retained sub-quantum remainder, exactly as a dark interval leaves
+        // the receptor accumulator alone.
+        membrane_return_work_residue: predecessor.membrane_return_work_residue,
     };
     Ok(NeuronPhysicalInterval {
-        mathloom,
         psi,
         gate_membrane,
         successor,
@@ -2012,7 +3135,6 @@ pub(crate) enum GateSettlementError {
     InvalidPsiContact,
     ContactOutsidePsiAnatomy,
     GatePopulationExceeded,
-    DissipationNotQuantized,
     ArithmeticWidth,
     InsufficientCarrierMaterial,
     Membrane(MembraneConductanceError),
@@ -2031,6 +3153,17 @@ impl From<PlasticityError> for GateSettlementError {
     }
 }
 
+impl From<ExactRationalError> for GateSettlementError {
+    fn from(value: ExactRationalError) -> Self {
+        match value {
+            ExactRationalError::ArithmeticWidth => Self::ArithmeticWidth,
+            ExactRationalError::ZeroDenominator | ExactRationalError::NonCanonicalRatio => {
+                Self::InvalidAnatomy
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct GateMembraneSettlement {
     pub(crate) successor_gate: TwoStateGateState,
@@ -2040,15 +3173,84 @@ pub(crate) struct GateMembraneSettlement {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+struct GatePopulationSettlement {
+    open_population: u128,
+    released_quanta: u128,
+    dissipation_residue_zeptojoules: PhysicalEnergyResidue,
+}
+
+fn quantize_gate_release(
+    predecessor_residue: &PhysicalEnergyResidue,
+    released_energy: &Exact,
+    quantum: &Exact,
+    maximum_released_quanta: Option<u128>,
+    residue_denominator_lattice: Option<&BigInt>,
+) -> Result<Option<(u128, PhysicalEnergyResidue)>, GateSettlementError> {
+    if released_energy <= &Exact::zero() || quantum <= &Exact::zero() {
+        return Ok(None);
+    }
+    let accumulated = predecessor_residue.energy() + released_energy;
+    let whole = (&accumulated / quantum).floor().to_integer();
+    let released_quanta = whole
+        .to_u128()
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let residue = accumulated - quantum * Exact::from_integer(whole);
+    if maximum_released_quanta.is_some_and(|maximum| {
+        released_quanta > maximum || (released_quanta == maximum && !residue.is_zero())
+    }) {
+        return Ok(None);
+    }
+    if let Some(lattice) = residue_denominator_lattice {
+        if !(lattice % residue.denom()).is_zero() {
+            return Err(GateSettlementError::ArithmeticWidth);
+        }
+    } else if ExactRational::new(
+        residue
+            .numer()
+            .to_i128()
+            .ok_or(GateSettlementError::ArithmeticWidth)?,
+        residue
+            .denom()
+            .to_u128()
+            .ok_or(GateSettlementError::ArithmeticWidth)?,
+    )
+    .is_err()
+    {
+        return Err(GateSettlementError::ArithmeticWidth);
+    }
+    Ok(Some((
+        released_quanta,
+        PhysicalEnergyResidue {
+            energy_zeptojoules: residue,
+        },
+    )))
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct GateWorkOccurrence {
     open_minus_closed_zeptojoules: Exact,
+    receptor_target_open_population: Option<u128>,
 }
 
 impl GateWorkOccurrence {
     pub(crate) fn new(open_minus_closed_zeptojoules: Exact) -> Self {
         Self {
             open_minus_closed_zeptojoules,
+            receptor_target_open_population: None,
         }
+    }
+
+    pub(crate) fn receptor_activation(
+        delivered_work_zeptojoules: Exact,
+        target_open_population: u128,
+    ) -> Result<Self, GateSettlementError> {
+        if delivered_work_zeptojoules.is_positive() || target_open_population == 0 {
+            return Err(GateSettlementError::InvalidAnatomy);
+        }
+        Ok(Self {
+            open_minus_closed_zeptojoules: delivered_work_zeptojoules,
+            receptor_target_open_population: Some(target_open_population),
+        })
     }
 
     pub(crate) fn is_zero(&self) -> bool {
@@ -2105,7 +3307,7 @@ pub(crate) fn settle_gate_membrane_with_contact(
     if predecessor_gate.open_population > anatomy.population {
         return Err(GateSettlementError::GatePopulationExceeded);
     }
-    let delta_g = gate_open_minus_closed_free_energy(
+    let open_minus_closed = gate_open_minus_closed_free_energy(
         anatomy,
         plastic_anatomy,
         plastic_state,
@@ -2114,42 +3316,29 @@ pub(crate) fn settle_gate_membrane_with_contact(
         psi,
         &gate_work,
     )?;
-
-    let available_population = if delta_g.is_negative() {
-        anatomy.population - predecessor_gate.open_population
-    } else if delta_g.is_positive() {
-        predecessor_gate.open_population
-    } else {
-        0
-    };
-    let mut successor_gate = predecessor_gate;
-    if available_population > 0 {
-        let per_channel =
-            exact_unsigned_quanta(&delta_g.abs(), &anatomy.dissipation_quantum_zeptojoules)
-                .ok_or(GateSettlementError::DissipationNotQuantized)?;
-        if per_channel == 0 {
-            return Err(GateSettlementError::DissipationNotQuantized);
-        }
-        let free_quanta = anatomy
-            .dissipation_capacity_quanta
-            .checked_sub(predecessor_gate.dissipated_quanta)
-            .ok_or(GateSettlementError::GatePopulationExceeded)?;
-        let settled_population = available_population.min(free_quanta / per_channel);
-        let released = settled_population
-            .checked_mul(per_channel)
-            .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let free_quanta = anatomy
+        .dissipation_capacity_quanta
+        .checked_sub(predecessor_gate.dissipated_quanta)
+        .ok_or(GateSettlementError::GatePopulationExceeded)?;
+    let population_settlement = select_gate_population_settlement(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        &predecessor_gate,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        &gate_work,
+        Some(free_quanta),
+    )?;
+    let mut successor_gate = predecessor_gate.clone();
+    if let Some(settlement) = population_settlement {
         successor_gate.dissipated_quanta = predecessor_gate
             .dissipated_quanta
-            .checked_add(released)
+            .checked_add(settlement.released_quanta)
             .ok_or(GateSettlementError::ArithmeticWidth)?;
-        successor_gate.open_population = if delta_g.is_negative() {
-            predecessor_gate
-                .open_population
-                .checked_add(settled_population)
-                .ok_or(GateSettlementError::ArithmeticWidth)?
-        } else {
-            predecessor_gate.open_population - settled_population
-        };
+        successor_gate.dissipation_residue_zeptojoules = settlement.dissipation_residue_zeptojoules;
+        successor_gate.open_population = settlement.open_population;
     }
 
     let open_i128 = i128::try_from(successor_gate.open_population)
@@ -2159,13 +3348,75 @@ pub(crate) fn settle_gate_membrane_with_contact(
         .checked_mul(ExactRational::integer(open_i128))
         .map_err(|_| GateSettlementError::ArithmeticWidth)?;
     let path = LocalConductancePath::new(conductance, anatomy.reversal_potential_millivolts)?;
-    let membrane = settle_local_membrane_conductances_with_inter_neuron_contact(
+    let mut membrane = settle_local_membrane_conductances_with_inter_neuron_contact(
         capacitance,
         predecessor_membrane,
         &[path],
         interval_microseconds,
         inter_neuron_outward_elementary_charges,
     )?;
+    // CONDUCTANCE IS CARRIERS TIMES MOBILITY, so a site with no carriers
+    // conducts nothing (2026-08-08).  This is a definition, not a tuning.
+    //
+    // MEASURED ON THE LIVE ORGANISM: neuron 8 pushed its intracellular
+    // carriers to zero and every transport afterwards refused with
+    // InsufficientCarrierMaterial — every lesson, every offered material and
+    // even a plain dark interval.  Carriers only come back by moving through
+    // this same transport, so nothing could ever return them: she was frozen
+    // permanently and could not have any experience at all.  Treating an
+    // empty reservoir as an ERROR is what turned depletion into a deadlock.
+    //
+    // The path is re-settled with its conductance scaled by exactly the
+    // fraction of the demanded charge the reservoir can actually supply, so
+    // the membrane and the carriers move the SAME bounded charge and
+    // conservation is untouched.  The scale is an exact rational read from
+    // her own state — no constant, no threshold, no tuned coefficient.
+    // TWO FLOWS DRAW ON ONE RESERVE IN THE SAME INTERVAL (2026-08-08).
+    //
+    // The inter-neuron transfer is decided FIRST, atomically for the whole
+    // cohort, and it is already bounded by what the sender holds. The local
+    // flow then draws on what is LEFT. Checking both against the same
+    // pre-interval reserve let the second one overdraw — which is why neuron
+    // 8 was fixed and neuron 7 immediately refused in its place.
+    let demanded = membrane.outward_elementary_charges_by_path[0];
+    let committed_outward: u128 = if inter_neuron_outward_elementary_charges > 0 {
+        inter_neuron_outward_elementary_charges.unsigned_abs()
+    } else {
+        0
+    };
+    let available: u128 = if demanded >= 0 {
+        predecessor_carriers
+            .intracellular
+            .saturating_sub(committed_outward)
+    } else {
+        predecessor_carriers.extracellular
+    };
+    if demanded.unsigned_abs() > available {
+        let requested_current = membrane.path_currents_picoamperes[0];
+        let bounded_current = current_limited_by_available_carriers(
+            predecessor_membrane.path_carrier_phases()[0],
+            requested_current,
+            interval_microseconds,
+            available,
+        )
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+        let limited = bounded_current
+            .checked_div(requested_current)
+            .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+        let scaled = conductance
+            .checked_mul(limited)
+            .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+        let bounded_path =
+            LocalConductancePath::new(scaled, anatomy.reversal_potential_millivolts)?;
+        membrane = settle_local_membrane_conductances_with_inter_neuron_contact(
+            capacitance,
+            predecessor_membrane,
+            &[bounded_path],
+            interval_microseconds,
+            inter_neuron_outward_elementary_charges,
+        )?;
+    }
     let locally_settled_carriers = move_carriers(
         predecessor_carriers,
         membrane.outward_elementary_charges_by_path[0],
@@ -2178,8 +3429,228 @@ pub(crate) fn settle_gate_membrane_with_contact(
         successor_gate,
         successor_carriers,
         membrane,
-        open_minus_closed_energy_zeptojoules: delta_g,
+        open_minus_closed_energy_zeptojoules: open_minus_closed,
     })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn select_gate_population_settlement(
+    anatomy: &TwoStateGateAnatomy,
+    plastic_anatomy: &PlasticSupportAnatomy,
+    plastic_state: &PlasticSupportState,
+    predecessor_gate: &TwoStateGateState,
+    predecessor_membrane: LocalMembraneConductanceState<1>,
+    capacitance: MembraneCapacitance,
+    psi: &PsiKrimelackState,
+    gate_work: &GateWorkOccurrence,
+    maximum_released_quanta: Option<u128>,
+) -> Result<Option<GatePopulationSettlement>, GateSettlementError> {
+    let residue_denominator_lattice = anatomy.residue_denominator_lattice.as_ref();
+    let internal_only_work = GateWorkOccurrence::new(Exact::zero());
+    let predecessor_work = if gate_work.receptor_target_open_population.is_some() {
+        &internal_only_work
+    } else {
+        gate_work
+    };
+    let predecessor_energy = gate_population_free_energy(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        predecessor_work,
+        predecessor_gate.open_population,
+    )?;
+    if let Some(target_population) = gate_work.receptor_target_open_population {
+        if !anatomy.has_independent_channel_supports()
+            || target_population <= predecessor_gate.open_population
+            || target_population > anatomy.population
+        {
+            return Err(GateSettlementError::GatePopulationExceeded);
+        }
+        let successor_energy = gate_population_free_energy(
+            anatomy,
+            plastic_anatomy,
+            plastic_state,
+            predecessor_membrane,
+            capacitance,
+            psi,
+            &internal_only_work,
+            target_population,
+        )?;
+        let internal_required = &successor_energy - &predecessor_energy;
+        let delivered = -gate_work.open_minus_closed_zeptojoules.clone();
+        let released_energy = delivered - internal_required;
+        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
+            &predecessor_gate.dissipation_residue_zeptojoules,
+            &released_energy,
+            &anatomy.dissipation_quantum_zeptojoules,
+            maximum_released_quanta,
+            residue_denominator_lattice,
+        )?
+        else {
+            return Ok(None);
+        };
+        return Ok(Some(GatePopulationSettlement {
+            open_population: target_population,
+            released_quanta,
+            dissipation_residue_zeptojoules,
+        }));
+    }
+    if anatomy.population == 1 {
+        let successor_population = 1 - predecessor_gate.open_population;
+        let successor_energy = gate_population_free_energy(
+            anatomy,
+            plastic_anatomy,
+            plastic_state,
+            predecessor_membrane,
+            capacitance,
+            psi,
+            gate_work,
+            successor_population,
+        )?;
+        if successor_energy >= predecessor_energy {
+            return Ok(None);
+        }
+        let released_energy = &predecessor_energy - &successor_energy;
+        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
+            &predecessor_gate.dissipation_residue_zeptojoules,
+            &released_energy,
+            &anatomy.dissipation_quantum_zeptojoules,
+            maximum_released_quanta,
+            residue_denominator_lattice,
+        )?
+        else {
+            return Ok(None);
+        };
+        return Ok(Some(GatePopulationSettlement {
+            open_population: successor_population,
+            released_quanta,
+            dissipation_residue_zeptojoules,
+        }));
+    }
+    let mut lowest_energy: Option<Exact> = None;
+    let mut selected: Option<GatePopulationSettlement> = None;
+    let mut tied = false;
+    for open_population in 0..=anatomy.population {
+        if open_population == predecessor_gate.open_population {
+            continue;
+        }
+        let candidate_energy = gate_population_free_energy(
+            anatomy,
+            plastic_anatomy,
+            plastic_state,
+            predecessor_membrane,
+            capacitance,
+            psi,
+            gate_work,
+            open_population,
+        )?;
+        if candidate_energy >= predecessor_energy {
+            continue;
+        }
+        let released_energy = &predecessor_energy - &candidate_energy;
+        let Some((released_quanta, dissipation_residue_zeptojoules)) = quantize_gate_release(
+            &predecessor_gate.dissipation_residue_zeptojoules,
+            &released_energy,
+            &anatomy.dissipation_quantum_zeptojoules,
+            maximum_released_quanta,
+            residue_denominator_lattice,
+        )?
+        else {
+            continue;
+        };
+        match lowest_energy.as_ref() {
+            None => {
+                lowest_energy = Some(candidate_energy.clone());
+                selected = Some(GatePopulationSettlement {
+                    open_population,
+                    released_quanta,
+                    dissipation_residue_zeptojoules,
+                });
+                tied = false;
+            }
+            Some(lowest) if candidate_energy < *lowest => {
+                lowest_energy = Some(candidate_energy.clone());
+                selected = Some(GatePopulationSettlement {
+                    open_population,
+                    released_quanta,
+                    dissipation_residue_zeptojoules,
+                });
+                tied = false;
+            }
+            Some(lowest) if candidate_energy == *lowest => tied = true,
+            Some(_) => {}
+        }
+    }
+    if tied {
+        return Ok(None);
+    }
+    Ok(selected)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn gate_population_free_energy(
+    anatomy: &TwoStateGateAnatomy,
+    plastic_anatomy: &PlasticSupportAnatomy,
+    plastic_state: &PlasticSupportState,
+    predecessor_membrane: LocalMembraneConductanceState<1>,
+    capacitance: MembraneCapacitance,
+    psi: &PsiKrimelackState,
+    gate_work: &GateWorkOccurrence,
+    open_population: u128,
+) -> Result<Exact, GateSettlementError> {
+    if anatomy.population == 0 || open_population > anatomy.population {
+        return Err(GateSettlementError::GatePopulationExceeded);
+    }
+    // A finite receptor ensemble has one exact mechanical coordinate
+    // x(n)=((N-n)x_closed+n x_open)/N.  Gate energy and plastic return mapping
+    // must read that same coordinate.  Treating already-yielded channels as
+    // an irreversible prefix made occupancy a one-way maximum and erased
+    // later lower/differently distributed sensory patterns.
+    let closed_population = anatomy.population - open_population;
+    let coordinate = plastic_anatomy
+        .closed_coordinate_nanometres
+        .checked_mul_unsigned(closed_population)?
+        .checked_add(
+            plastic_anatomy
+                .open_coordinate_nanometres
+                .checked_mul_unsigned(open_population)?,
+        )?
+        .checked_div_unsigned(anatomy.population)?;
+    let support_energy = rational_to_exact(support_energy_at(
+        plastic_anatomy,
+        coordinate,
+        plastic_state.rest_length_nanometres,
+    )?);
+
+    let potential = predecessor_membrane
+        .membrane()
+        .potential_millivolts(capacitance)
+        .map_err(MembraneConductanceError::from)?;
+    let electrical = rational_to_exact(potential)
+        * Exact::from_integer(BigInt::from(anatomy.gating_charge_elementary))
+        * Exact::new(
+            BigInt::from(801_088_317_u64),
+            BigInt::from(5_000_000_000_u64),
+        );
+    let mut per_open_channel = anatomy.chemical_open_minus_closed_zeptojoules.clone();
+    per_open_channel -= electrical;
+    for contact in &anatomy.psi_contacts {
+        let phase = psi.rings[contact.ring_index].phase_thirds[contact.node_index];
+        let cosine = if phase == contact.preferred_phase_third {
+            Exact::one()
+        } else {
+            Exact::new(BigInt::from(-1_i8), BigInt::from(2_u8))
+        };
+        per_open_channel -= &contact.open_minus_closed_coupling_zeptojoules * cosine;
+    }
+    let open = Exact::from_integer(BigInt::from(open_population));
+    let population = Exact::from_integer(BigInt::from(anatomy.population));
+    Ok(support_energy
+        + &open * per_open_channel
+        + (&open / population) * &gate_work.open_minus_closed_zeptojoules)
 }
 
 fn gate_open_minus_closed_free_energy(
@@ -2191,33 +3662,27 @@ fn gate_open_minus_closed_free_energy(
     psi: &PsiKrimelackState,
     gate_work: &GateWorkOccurrence,
 ) -> Result<Exact, GateSettlementError> {
-    let potential = predecessor_membrane
-        .membrane()
-        .potential_millivolts(capacitance)
-        .map_err(MembraneConductanceError::from)?;
-    let mut delta_g = gate_work.open_minus_closed_zeptojoules.clone();
-    delta_g += &anatomy.chemical_open_minus_closed_zeptojoules;
-    delta_g += rational_to_exact(open_minus_closed_support_energy(
+    let closed = gate_population_free_energy(
+        anatomy,
         plastic_anatomy,
         plastic_state,
-    )?);
-    let electrical = rational_to_exact(potential)
-        * Exact::from_integer(BigInt::from(anatomy.gating_charge_elementary))
-        * Exact::new(
-            BigInt::from(801_088_317_u64),
-            BigInt::from(5_000_000_000_u64),
-        );
-    delta_g -= electrical;
-    for contact in &anatomy.psi_contacts {
-        let phase = psi.rings[contact.ring_index].phase_thirds[contact.node_index];
-        let cosine = if phase == contact.preferred_phase_third {
-            Exact::one()
-        } else {
-            Exact::new(BigInt::from(-1_i8), BigInt::from(2_u8))
-        };
-        delta_g -= &contact.open_minus_closed_coupling_zeptojoules * cosine;
-    }
-    Ok(delta_g)
+        predecessor_membrane,
+        capacitance,
+        psi,
+        gate_work,
+        0,
+    )?;
+    let open = gate_population_free_energy(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        gate_work,
+        anatomy.population,
+    )?;
+    Ok(open - closed)
 }
 
 /// The receiving gate's own opening window, in whole dissipation-lattice
@@ -2242,6 +3707,100 @@ pub(crate) struct GateOpeningQuantumWindow {
     pub(crate) window_cap_quanta: u128,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct GatePopulationOpeningSchedule {
+    predecessor_open_population: u128,
+    activation_quanta: Box<[u128]>,
+}
+
+impl GatePopulationOpeningSchedule {
+    pub(crate) fn predecessor_open_population(&self) -> u128 {
+        self.predecessor_open_population
+    }
+
+    pub(crate) fn activation_quanta(&self) -> &[u128] {
+        &self.activation_quanta
+    }
+}
+
+/// Derive the exact sequential activation cost of every still-closed channel
+/// from this neuron's current material state.  The schedule is an energy
+/// boundary, not an authored response: the receptor occurrence may open only
+/// the prefix whose complete barriers it can physically pay.
+pub(crate) fn gate_population_opening_schedule_with_psi(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    psi: &PsiSettlement,
+) -> Result<GatePopulationOpeningSchedule, NeuronPhysicalError> {
+    if !anatomy.gate.has_independent_channel_supports()
+        || predecessor.gate.open_population > anatomy.gate.population
+    {
+        return Err(GateSettlementError::GatePopulationExceeded.into());
+    }
+    let free_dissipation = anatomy
+        .gate
+        .dissipation_capacity_quanta
+        .checked_sub(predecessor.gate.dissipated_quanta)
+        .ok_or(GateSettlementError::GatePopulationExceeded)?;
+    let closed_population = anatomy.gate.population - predecessor.gate.open_population;
+    let schedule_len = closed_population.min(free_dissipation);
+    let mut activation_quanta = Vec::new();
+    activation_quanta
+        .try_reserve_exact(
+            usize::try_from(schedule_len).map_err(|_| GateSettlementError::ArithmeticWidth)?,
+        )
+        .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+    let zero_work = GateWorkOccurrence::new(Exact::zero());
+    let mut prior_energy = gate_population_free_energy(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &predecessor.plastic,
+        predecessor.membrane,
+        anatomy.capacitance,
+        &psi.successor,
+        &zero_work,
+        predecessor.gate.open_population,
+    )?;
+    for offset in 1..=schedule_len {
+        let population = predecessor
+            .gate
+            .open_population
+            .checked_add(offset)
+            .ok_or(GateSettlementError::ArithmeticWidth)?;
+        let energy = gate_population_free_energy(
+            &anatomy.gate,
+            &anatomy.plastic,
+            &predecessor.plastic,
+            predecessor.membrane,
+            anatomy.capacitance,
+            &psi.successor,
+            &zero_work,
+            population,
+        )?;
+        let barrier = &energy - &prior_energy;
+        let required = if barrier.is_positive() {
+            (&barrier / &anatomy.gate.dissipation_quantum_zeptojoules)
+                .floor()
+                .to_integer()
+                .to_u128()
+                .ok_or(GateSettlementError::ArithmeticWidth)?
+                .checked_add(1)
+                .ok_or(GateSettlementError::ArithmeticWidth)?
+        } else {
+            // This step is already downhill under the retained material
+            // geometry. It consumes no receptor energy; the exact negative
+            // internal work is released by gate settlement itself.
+            0
+        };
+        activation_quanta.push(required);
+        prior_energy = energy;
+    }
+    Ok(GatePopulationOpeningSchedule {
+        predecessor_open_population: predecessor.gate.open_population,
+        activation_quanta: activation_quanta.into_boxed_slice(),
+    })
+}
+
 pub(crate) fn gate_opening_quantum_window(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
@@ -2249,6 +3808,14 @@ pub(crate) fn gate_opening_quantum_window(
 ) -> Result<GateOpeningQuantumWindow, NeuronPhysicalError> {
     let mathloom = settle_shared_dsf_mathloom(perspective, anatomy.mathloom)?;
     let psi = settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?;
+    gate_opening_quantum_window_with_psi(anatomy, predecessor, &psi)
+}
+
+pub(crate) fn gate_opening_quantum_window_with_psi(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    psi: &PsiSettlement,
+) -> Result<GateOpeningQuantumWindow, NeuronPhysicalError> {
     let barrier = gate_open_minus_closed_free_energy(
         &anatomy.gate,
         &anatomy.plastic,
@@ -2294,33 +3861,30 @@ pub(crate) fn required_gate_recovery_extent_for_interval(
     }
     let mathloom = settle_shared_dsf_mathloom(perspective, anatomy.mathloom)?;
     let psi = settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?;
-    let delta_g = gate_open_minus_closed_free_energy(
+    required_gate_recovery_extent_for_interval_with_psi(anatomy, predecessor, gate_work, &psi)
+}
+
+pub(crate) fn required_gate_recovery_extent_for_interval_with_psi(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    gate_work: &GateWorkOccurrence,
+    psi: &PsiSettlement,
+) -> Result<u128, NeuronPhysicalError> {
+    let settlement = select_gate_population_settlement(
         &anatomy.gate,
         &anatomy.plastic,
         &predecessor.plastic,
+        &predecessor.gate,
         predecessor.membrane,
         anatomy.capacitance,
         &psi.successor,
         gate_work,
+        None,
     )?;
-    let available_population = if delta_g.is_negative() {
-        anatomy.gate.population - predecessor.gate.open_population
-    } else if delta_g.is_positive() {
-        predecessor.gate.open_population
-    } else {
+    let Some(settlement) = settlement else {
         return Ok(0);
     };
-    if available_population == 0 {
-        return Ok(0);
-    }
-    let per_channel = exact_unsigned_quanta(
-        &delta_g.abs(),
-        &anatomy.gate.dissipation_quantum_zeptojoules,
-    )
-    .ok_or(GateSettlementError::DissipationNotQuantized)?;
-    let required_quanta = available_population
-        .checked_mul(per_channel)
-        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let required_quanta = settlement.released_quanta;
     let free_quanta = anatomy
         .gate
         .dissipation_capacity_quanta
@@ -2366,6 +3930,15 @@ fn move_inter_neuron_carriers(
     predecessor: CarrierReservoirs,
     outward: i128,
 ) -> Result<CarrierReservoirs, GateSettlementError> {
+    // NOT BOUNDED HERE, AND THAT IS DELIBERATE (2026-08-08).
+    //
+    // An inter-neuron flow is EQUAL AND OPPOSITE between two neurons. Bounding
+    // it at this end alone was tried and her own runtime caught it
+    // immediately: MaterialConservation. A depleted sender must be bounded
+    // where the contact charge is computed FOR BOTH SIDES, so the receiver
+    // takes exactly what the sender could give. Until that is done, this path
+    // still refuses when a neuron is empty — which is honest, and far better
+    // than silently unbalancing her.
     let amount = outward.unsigned_abs();
     let intracellular = if outward >= 0 {
         predecessor
@@ -2412,6 +3985,21 @@ fn open_minus_closed_support_energy(
 fn rational_to_exact(value: ExactRational) -> Exact {
     let (numerator, denominator) = value.parts();
     Exact::new(BigInt::from(numerator), BigInt::from(denominator))
+}
+
+/// Narrow an exact residue back to the resident fixed-width rational the
+/// neuron persists.  A value that will not fit is REFUSED, never rounded —
+/// same discipline as `receptor_quantum_delivery::big_to_exact_rational`,
+/// which refuses `ResidueWidth` rather than approximate a retained residue.
+fn exact_to_rational(value: &Exact) -> Result<ExactRational, NeuronPhysicalError> {
+    let numerator = value.numer().to_i128().ok_or(NeuronPhysicalError::Gate(
+        GateSettlementError::ArithmeticWidth,
+    ))?;
+    let denominator = value.denom().to_u128().ok_or(NeuronPhysicalError::Gate(
+        GateSettlementError::ArithmeticWidth,
+    ))?;
+    ExactRational::new(numerator, denominator)
+        .map_err(|_| NeuronPhysicalError::Gate(GateSettlementError::ArithmeticWidth))
 }
 
 fn move_carriers(
@@ -2634,7 +4222,12 @@ pub(crate) struct NeuronIntervalInput<'a> {
     /// retain in the successor state after the whole-quantum delivery carried
     /// by `gate_work`. `None` for every non-optical delivery: the predecessor
     /// residue is carried through unchanged.
-    pub(crate) optical_successor_residue: Option<ExactRational>,
+    pub(crate) receptor_successor_residue: Option<ExactRational>,
+    /// The one local Psi/Krimelack settlement already derived from this
+    /// interval's complete field and predecessor. Gate-window, recovery and
+    /// membrane consequences consume the same physical result rather than
+    /// re-settling it three times.
+    pub(crate) prepared_psi: Option<PsiSettlement>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2679,6 +4272,21 @@ pub(crate) enum PhysicalStateCoordinate {
     DnaExpressedProduct,
     DnaWaste,
     OpticalQuantumResidue,
+    /// The retained sub-quantum membrane-return work residue (exact rest-cost
+    /// law, 2026-08-06).  It is part of the neuron's persisted physical state,
+    /// so a fractal — the sparse difference between the pre-experience and
+    /// post-experience quiescent states — must be able to carry it, or a
+    /// restored state would silently differ from the settled one.  Appended
+    /// LAST so every pre-existing coordinate keeps its wire tag and its sort
+    /// position; a body whose residue never moved encodes exactly as before.
+    MembraneReturnWorkResidue,
+    /// Exact sub-quantum plastic return work retained across intervals.
+    /// Appended last so every existing sparse-coordinate wire tag remains
+    /// unchanged.
+    PlasticDissipationResidue,
+    /// Exact sub-quantum gate dissipation retained across intervals.
+    /// Appended last so all prior sparse-coordinate wire tags remain stable.
+    GateDissipationResidue,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -2700,22 +4308,24 @@ impl ExactSignedDelta {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum ExactPhysicalStateDelta {
     Integral(ExactSignedDelta),
     Rational(ExactRational),
+    Energy(Exact),
 }
 
 impl ExactPhysicalStateDelta {
-    fn is_zero(self) -> bool {
+    fn is_zero(&self) -> bool {
         match self {
             Self::Integral(delta) => delta.magnitude == 0,
             Self::Rational(delta) => delta.parts().0 == 0,
+            Self::Energy(delta) => delta.is_zero(),
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PhysicalStateDeltaEntry {
     coordinate: PhysicalStateCoordinate,
     delta: ExactPhysicalStateDelta,
@@ -2726,16 +4336,16 @@ impl PhysicalStateDeltaEntry {
         coordinate: PhysicalStateCoordinate,
         delta: ExactPhysicalStateDelta,
     ) -> Option<Self> {
-        (!delta.is_zero() && coordinate_accepts_delta(coordinate, delta))
+        (!delta.is_zero() && coordinate_accepts_delta(coordinate, &delta))
             .then_some(Self { coordinate, delta })
     }
 
-    pub(crate) fn coordinate(self) -> PhysicalStateCoordinate {
+    pub(crate) fn coordinate(&self) -> PhysicalStateCoordinate {
         self.coordinate
     }
 
-    pub(crate) fn delta(self) -> ExactPhysicalStateDelta {
-        self.delta
+    pub(crate) fn delta(&self) -> ExactPhysicalStateDelta {
+        self.delta.clone()
     }
 }
 
@@ -2748,7 +4358,7 @@ impl SparsePhysicalStateDelta {
     pub(crate) fn from_canonical_entries(entries: Vec<PhysicalStateDeltaEntry>) -> Option<Self> {
         if entries.is_empty()
             || entries.iter().any(|entry| {
-                entry.delta.is_zero() || !coordinate_accepts_delta(entry.coordinate, entry.delta)
+                entry.delta.is_zero() || !coordinate_accepts_delta(entry.coordinate, &entry.delta)
             })
             || entries
                 .windows(2)
@@ -2772,21 +4382,32 @@ impl SparsePhysicalStateDelta {
         self.entries
             .binary_search_by_key(&coordinate, |entry| entry.coordinate)
             .ok()
-            .map(|index| self.entries[index].delta)
+            .map(|index| self.entries[index].delta.clone())
     }
 
     pub(crate) fn resident_bytes(&self) -> Option<usize> {
-        core::mem::size_of::<Self>().checked_add(
+        let fixed = core::mem::size_of::<Self>().checked_add(
             self.entries
                 .len()
                 .checked_mul(core::mem::size_of::<PhysicalStateDeltaEntry>())?,
-        )
+        )?;
+        self.entries.iter().try_fold(fixed, |total, entry| {
+            let extra = match &entry.delta {
+                ExactPhysicalStateDelta::Energy(value) => value
+                    .numer()
+                    .to_signed_bytes_le()
+                    .len()
+                    .checked_add(value.denom().to_signed_bytes_le().len())?,
+                ExactPhysicalStateDelta::Integral(_) | ExactPhysicalStateDelta::Rational(_) => 0,
+            };
+            total.checked_add(extra)
+        })
     }
 }
 
 fn coordinate_accepts_delta(
     coordinate: PhysicalStateCoordinate,
-    delta: ExactPhysicalStateDelta,
+    delta: &ExactPhysicalStateDelta,
 ) -> bool {
     matches!(
         (coordinate, delta),
@@ -2794,8 +4415,15 @@ fn coordinate_accepts_delta(
             PhysicalStateCoordinate::MembraneCarrierPhase
                 | PhysicalStateCoordinate::ConductancePathCarrierPhase(_)
                 | PhysicalStateCoordinate::PlasticRestLength
-                | PhysicalStateCoordinate::OpticalQuantumResidue,
-            ExactPhysicalStateDelta::Rational(_)
+                | PhysicalStateCoordinate::OpticalQuantumResidue
+                | PhysicalStateCoordinate::MembraneReturnWorkResidue
+                | PhysicalStateCoordinate::PlasticDissipationResidue
+                | PhysicalStateCoordinate::GateDissipationResidue,
+            &ExactPhysicalStateDelta::Rational(_)
+        ) | (
+            PhysicalStateCoordinate::GateDissipationResidue
+                | PhysicalStateCoordinate::PlasticDissipationResidue,
+            &ExactPhysicalStateDelta::Energy(_)
         ) | (
             PhysicalStateCoordinate::PsiWinding(_)
                 | PhysicalStateCoordinate::PsiDissipatedEnergy(_)
@@ -2818,7 +4446,7 @@ fn coordinate_accepts_delta(
                 | PhysicalStateCoordinate::DnaFuel
                 | PhysicalStateCoordinate::DnaExpressedProduct
                 | PhysicalStateCoordinate::DnaWaste,
-            ExactPhysicalStateDelta::Integral(_)
+            &ExactPhysicalStateDelta::Integral(_)
         )
     )
 }
@@ -2857,6 +4485,7 @@ pub(crate) fn settle_extended_interval_with_contact(
         input.gate_work,
         input.interval_microseconds,
         inter_neuron_outward_elementary_charges,
+        input.prepared_psi,
     )?;
     let psi_changed = physical.psi.changed_rings != 0;
     let gate_changed = physical.successor.gate != predecessor.gate;
@@ -2871,8 +4500,8 @@ pub(crate) fn settle_extended_interval_with_contact(
     // The retained sub-quantum residue is a receptor accumulator, not a
     // settled physical coordinate: it does not enter the quiescence
     // predicate.  The ratified law changes WHAT energy arrives, nothing else.
-    if let Some(residue) = input.optical_successor_residue {
-        successor.optical_quantum_residue = residue;
+    if let Some(residue) = input.receptor_successor_residue {
+        successor.receptor_quantum_residue = residue;
     }
     let plastic = settle_plastic_support(
         &anatomy.plastic,
@@ -2953,7 +4582,7 @@ pub(crate) fn sparse_physical_state_delta(
         .rings
         .len()
         .checked_mul(5)
-        .and_then(|count| count.checked_add(20))
+        .and_then(|count| count.checked_add(23))
         .ok_or(NeuronPhysicalError::AnatomyMismatch)?;
     let mut entries = Vec::new();
     entries
@@ -3004,6 +4633,12 @@ pub(crate) fn sparse_physical_state_delta(
         PhysicalStateCoordinate::GateDissipatedEnergy,
         predecessor.gate.dissipated_quanta,
         successor.gate.dissipated_quanta,
+    );
+    push_energy_delta(
+        &mut entries,
+        PhysicalStateCoordinate::GateDissipationResidue,
+        predecessor.gate.dissipation_residue_zeptojoules.energy(),
+        successor.gate.dissipation_residue_zeptojoules.energy(),
     );
     push_i128_delta(
         &mut entries,
@@ -3065,9 +4700,21 @@ pub(crate) fn sparse_physical_state_delta(
     push_rational_delta(
         &mut entries,
         PhysicalStateCoordinate::OpticalQuantumResidue,
-        predecessor.optical_quantum_residue,
-        successor.optical_quantum_residue,
+        predecessor.receptor_quantum_residue,
+        successor.receptor_quantum_residue,
     )?;
+    push_rational_delta(
+        &mut entries,
+        PhysicalStateCoordinate::MembraneReturnWorkResidue,
+        predecessor.membrane_return_work_residue,
+        successor.membrane_return_work_residue,
+    )?;
+    push_energy_delta(
+        &mut entries,
+        PhysicalStateCoordinate::PlasticDissipationResidue,
+        predecessor.plastic.dissipation_residue_zeptojoules.energy(),
+        successor.plastic.dissipation_residue_zeptojoules.energy(),
+    );
     push_u128_delta(
         &mut entries,
         PhysicalStateCoordinate::PlasticDissipatedEnergy,
@@ -3077,6 +4724,47 @@ pub(crate) fn sparse_physical_state_delta(
     push_recovery_plastic_delta(&mut entries, predecessor, successor);
     entries.sort_unstable_by_key(|entry| entry.coordinate);
     Ok(SparsePhysicalStateDelta::from_canonical_entries(entries))
+}
+
+/// Project one exact whole-neuron change onto the retained structure that can
+/// lawfully become a neuronal fractal.
+///
+/// The complete state also contains transient working physics and metabolic
+/// ledgers. Those values persist for exact continuation after restart, but
+/// persistence does not make membrane charge, carrier phase, receptor
+/// residue, dissipation, or fuel/spent/heat into memory. A receptor's exact
+/// finite post-quiescence channel population is retained physical anatomy
+/// state: discarding it would collapse the graded collective-coordinate
+/// settlement back to Boolean experience before formation. The structural
+/// coordinates currently present in the definitive neuron are its
+/// Psi/Krimelack winding, settled channel population, plastic rest geometry,
+/// and expressed DNA product.
+/// Future synaptic/coupling structure belongs here when such a coordinate
+/// actually exists; contact carrier phase does not.
+pub(crate) fn sparse_retained_physical_state_delta(
+    predecessor: &NeuronPhysicalState,
+    successor: &NeuronPhysicalState,
+) -> Result<Option<SparsePhysicalStateDelta>, NeuronPhysicalError> {
+    let Some(delta) = sparse_physical_state_delta(predecessor, successor)? else {
+        return Ok(None);
+    };
+    let retained = delta
+        .entries()
+        .iter()
+        .cloned()
+        .filter(|entry| retained_physical_state_coordinate(entry.coordinate()))
+        .collect::<Vec<_>>();
+    Ok(SparsePhysicalStateDelta::from_canonical_entries(retained))
+}
+
+pub(crate) fn retained_physical_state_coordinate(coordinate: PhysicalStateCoordinate) -> bool {
+    matches!(
+        coordinate,
+        PhysicalStateCoordinate::PsiWinding(_)
+            | PhysicalStateCoordinate::GateOpenPopulation
+            | PhysicalStateCoordinate::PlasticRestLength
+            | PhysicalStateCoordinate::DnaExpressedProduct
+    )
 }
 
 fn push_recovery_gate_delta(
@@ -3198,6 +4886,28 @@ fn push_rational_delta(
     Ok(())
 }
 
+fn push_energy_delta(
+    entries: &mut Vec<PhysicalStateDeltaEntry>,
+    coordinate: PhysicalStateCoordinate,
+    predecessor: &Exact,
+    successor: &Exact,
+) {
+    let delta = successor - predecessor;
+    if !delta.is_zero() {
+        let fixed = delta
+            .numer()
+            .to_i128()
+            .zip(delta.denom().to_u128())
+            .and_then(|(numerator, denominator)| ExactRational::new(numerator, denominator).ok());
+        entries.push(PhysicalStateDeltaEntry {
+            coordinate,
+            delta: fixed
+                .map(ExactPhysicalStateDelta::Rational)
+                .unwrap_or(ExactPhysicalStateDelta::Energy(delta)),
+        });
+    }
+}
+
 fn push_i128_delta(
     entries: &mut Vec<PhysicalStateDeltaEntry>,
     coordinate: PhysicalStateCoordinate,
@@ -3221,7 +4931,7 @@ fn push_i128_delta(
     });
 }
 
-const SPARSE_DELTA_ENTRY_BYTES: usize = 1 + 8 + 1 + 16 + 16;
+const SPARSE_DELTA_MINIMUM_ENTRY_BYTES: usize = 1 + 8 + 1 + 2 * (8 + 1);
 
 fn sparse_delta_coordinate_parts(coordinate: PhysicalStateCoordinate) -> (u8, usize) {
     match coordinate {
@@ -3250,6 +4960,9 @@ fn sparse_delta_coordinate_parts(coordinate: PhysicalStateCoordinate) -> (u8, us
         PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
         PhysicalStateCoordinate::DnaWaste => (23, 0),
         PhysicalStateCoordinate::OpticalQuantumResidue => (24, 0),
+        PhysicalStateCoordinate::MembraneReturnWorkResidue => (25, 0),
+        PhysicalStateCoordinate::PlasticDissipationResidue => (26, 0),
+        PhysicalStateCoordinate::GateDissipationResidue => (27, 0),
     }
 }
 
@@ -3283,6 +4996,9 @@ fn sparse_delta_coordinate_from_parts(
         22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
         23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
         24 if index == 0 => PhysicalStateCoordinate::OpticalQuantumResidue,
+        25 if index == 0 => PhysicalStateCoordinate::MembraneReturnWorkResidue,
+        26 if index == 0 => PhysicalStateCoordinate::PlasticDissipationResidue,
+        27 if index == 0 => PhysicalStateCoordinate::GateDissipationResidue,
         _ => return Err(NeuronStateCodecError::InvalidEncoding),
     };
     Ok(coordinate)
@@ -3300,7 +5016,7 @@ pub(crate) fn encode_sparse_physical_state_delta(
         let (tag, index) = sparse_delta_coordinate_parts(entry.coordinate);
         encoded.push(tag);
         push_usize(&mut encoded, index)?;
-        match entry.delta {
+        match &entry.delta {
             ExactPhysicalStateDelta::Integral(signed) => {
                 let (negative, magnitude) = signed.parts();
                 encoded.push(0);
@@ -3313,6 +5029,10 @@ pub(crate) fn encode_sparse_physical_state_delta(
                 push_i128(&mut encoded, numerator);
                 push_u128(&mut encoded, denominator);
             }
+            ExactPhysicalStateDelta::Energy(rational) => {
+                encoded.push(2);
+                push_state_big_rational(&mut encoded, rational)?;
+            }
         }
     }
     Ok(encoded)
@@ -3323,11 +5043,12 @@ pub(crate) fn decode_sparse_physical_state_delta(
 ) -> Result<SparsePhysicalStateDelta, NeuronStateCodecError> {
     let mut reader = NeuronStateReader::new(encoded);
     let entry_count = reader.usize()?;
-    let expected_length = entry_count
-        .checked_mul(SPARSE_DELTA_ENTRY_BYTES)
-        .and_then(|value| value.checked_add(8))
-        .ok_or(NeuronStateCodecError::ArithmeticWidth)?;
-    if encoded.len() != expected_length {
+    let maximum_entries_in_body = encoded
+        .len()
+        .checked_sub(8)
+        .ok_or(NeuronStateCodecError::InvalidEncoding)?
+        / SPARSE_DELTA_MINIMUM_ENTRY_BYTES;
+    if entry_count > maximum_entries_in_body {
         return Err(NeuronStateCodecError::InvalidEncoding);
     }
     let mut entries = Vec::new();
@@ -3360,6 +5081,7 @@ pub(crate) fn decode_sparse_physical_state_delta(
                         .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
                 )
             }
+            2 => ExactPhysicalStateDelta::Energy(reader.big_rational()?),
             _ => return Err(NeuronStateCodecError::InvalidEncoding),
         };
         entries.push(
@@ -3427,7 +5149,9 @@ fn integral_member_delta(
 ) -> Result<ExactSignedDelta, NeuronStateCodecError> {
     match delta {
         ExactPhysicalStateDelta::Integral(signed) => Ok(signed),
-        ExactPhysicalStateDelta::Rational(_) => Err(NeuronStateCodecError::InvalidEncoding),
+        ExactPhysicalStateDelta::Rational(_) | ExactPhysicalStateDelta::Energy(_) => {
+            Err(NeuronStateCodecError::InvalidEncoding)
+        }
     }
 }
 
@@ -3436,6 +5160,16 @@ fn rational_member_delta(
 ) -> Result<ExactRational, NeuronStateCodecError> {
     match delta {
         ExactPhysicalStateDelta::Rational(rational) => Ok(rational),
+        ExactPhysicalStateDelta::Integral(_) | ExactPhysicalStateDelta::Energy(_) => {
+            Err(NeuronStateCodecError::InvalidEncoding)
+        }
+    }
+}
+
+fn energy_member_delta(delta: ExactPhysicalStateDelta) -> Result<Exact, NeuronStateCodecError> {
+    match delta {
+        ExactPhysicalStateDelta::Energy(rational) => Ok(rational),
+        ExactPhysicalStateDelta::Rational(rational) => Ok(rational_to_exact(rational)),
         ExactPhysicalStateDelta::Integral(_) => Err(NeuronStateCodecError::InvalidEncoding),
     }
 }
@@ -3496,6 +5230,13 @@ pub(crate) fn apply_sparse_physical_state_delta(
                     applied.gate.dissipated_quanta,
                     integral_member_delta(entry.delta())?,
                 )?;
+            }
+            PhysicalStateCoordinate::GateDissipationResidue => {
+                let energy = applied.gate.dissipation_residue_zeptojoules.energy()
+                    + energy_member_delta(entry.delta())?;
+                applied.gate.dissipation_residue_zeptojoules = PhysicalEnergyResidue {
+                    energy_zeptojoules: energy,
+                };
             }
             PhysicalStateCoordinate::MembraneSeparatedCharge => {
                 separated_elementary_charges = apply_signed_member_delta(
@@ -3633,10 +5374,23 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 )?;
             }
             PhysicalStateCoordinate::OpticalQuantumResidue => {
-                applied.optical_quantum_residue = apply_rational_member_delta(
-                    applied.optical_quantum_residue,
+                applied.receptor_quantum_residue = apply_rational_member_delta(
+                    applied.receptor_quantum_residue,
                     rational_member_delta(entry.delta())?,
                 )?;
+            }
+            PhysicalStateCoordinate::MembraneReturnWorkResidue => {
+                applied.membrane_return_work_residue = apply_rational_member_delta(
+                    applied.membrane_return_work_residue,
+                    rational_member_delta(entry.delta())?,
+                )?;
+            }
+            PhysicalStateCoordinate::PlasticDissipationResidue => {
+                let energy = applied.plastic.dissipation_residue_zeptojoules.energy()
+                    + energy_member_delta(entry.delta())?;
+                applied.plastic.dissipation_residue_zeptojoules = PhysicalEnergyResidue {
+                    energy_zeptojoules: energy,
+                };
             }
         }
     }
@@ -3663,17 +5417,6 @@ pub(crate) fn apply_sparse_physical_state_delta(
 // the exact bounds the reservoir-side settlement needs to stay conservative.
 // ---------------------------------------------------------------------------
 
-/// The exact zeptojoules of electrical work carried by one elementary charge
-/// moved across one millivolt.  This is the same conversion the gate's own
-/// free-energy expression already uses; it is named here so the membrane
-/// return path can reuse it instead of restating it.
-fn elementary_charge_millivolt_zeptojoules() -> Exact {
-    Exact::new(
-        BigInt::from(801_088_317_u64),
-        BigInt::from(5_000_000_000_u64),
-    )
-}
-
 impl NeuronPhysicalAnatomy {
     /// The declared dissipation capacity of one recovery lane's ledger.
     pub(crate) fn lane_dissipation_capacity_quanta(
@@ -3697,11 +5440,9 @@ impl NeuronPhysicalState {
     /// — the dissipation the lane's recovery reaction can still undo.
     pub(crate) fn lane_dissipated_quanta(&self, address: RecoveryLaneAddress) -> Option<u128> {
         match address {
-            RecoveryLaneAddress::Psi(index) => self
-                .psi
-                .rings
-                .get(index)
-                .map(|ring| ring.dissipated_quanta),
+            RecoveryLaneAddress::Psi(index) => {
+                self.psi.rings.get(index).map(|ring| ring.dissipated_quanta)
+            }
             RecoveryLaneAddress::Gate => Some(self.gate.dissipated_quanta),
             RecoveryLaneAddress::Plastic => Some(self.plastic.dissipated_quanta),
         }
@@ -3724,32 +5465,26 @@ impl NeuronPhysicalState {
 /// (an interval the body cannot pay for keeps the predecessor phase, so no
 /// fraction of a charge is ever lost or invented).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct MembraneReturnBound {
+pub(crate) struct MembranePumpBound {
     pub(crate) charges: i128,
     pub(crate) successor_phase: Option<ChargeCarrierPhase>,
 }
 
-/// The elementary-charge return this neuron's own conductive anatomy would
-/// carry toward its authored resting membrane state in one interval.
-///
-/// The bound is the existing `I = g·(V − E)` path law read with the gate's
-/// authored single-channel conductance (one channel's worth of transport) and
-/// the authored rest, zero millivolts, as its reversal potential, integrated
-/// by the existing elementary-charge transfer law over this interval.  The
-/// transport is a real membrane current, so its unresolved fraction is
-/// retained in the membrane's OWN carrier phase — the retained-residue
-/// discipline every other transport in this substrate already keeps, and the
-/// only phase on the membrane state that no other reached law writes.  The
-/// whole-charge result is clamped so a return can never overshoot rest or
-/// reverse sign.
-pub(crate) fn membrane_return_charge_bound(
+/// One exact interval of the phase-one AE carrier pump.  The pump has no
+/// desired voltage.  Its direction is the direction that increases the
+/// existing finite carrier-gradient work declared by the sign of E_rev; its
+/// throughput is the already-authored one-channel conductance integrated over
+/// exact elapsed time.  The caller still has to prove that local recovery
+/// energy can pay the resulting increase in stored physical work.
+pub(crate) fn membrane_gradient_pump_charge_bound(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
     interval_microseconds: u32,
-) -> Result<MembraneReturnBound, NeuronPhysicalError> {
-    let separated = predecessor.separated_elementary_charges();
-    if separated == 0 {
-        return Ok(MembraneReturnBound {
+) -> Result<MembranePumpBound, NeuronPhysicalError> {
+    let reversal = anatomy.gate.reversal_potential_millivolts;
+    let reversal_sign = reversal.parts().0.signum();
+    if reversal_sign == 0 {
+        return Ok(MembranePumpBound {
             charges: 0,
             successor_phase: None,
         });
@@ -3760,108 +5495,128 @@ pub(crate) fn membrane_return_charge_bound(
         .potential_millivolts(anatomy.capacitance)
         .map_err(MembraneConductanceError::from)
         .map_err(GateSettlementError::from)?;
-    let path = LocalConductancePath::new(
-        anatomy.gate.single_channel_conductance_picosiemens,
-        ExactRational::integer(0),
-    )
-    .map_err(GateSettlementError::from)?;
-    let current = path
-        .current_picoamperes(potential)
-        .map_err(GateSettlementError::from)?;
+    let magnitude_current = anatomy
+        .gate
+        .single_channel_conductance_picosiemens
+        .checked_mul(potential.checked_abs()?)?
+        .checked_div_unsigned(1_000)?;
+    let pump_current = if reversal_sign < 0 {
+        magnitude_current.checked_neg()?
+    } else {
+        magnitude_current
+    };
     let transfer = settle_elementary_charge_transfer(
         predecessor.membrane.membrane().carrier_phase(),
-        current,
+        pump_current,
         interval_microseconds,
     )
     .map_err(MembraneConductanceError::from)
     .map_err(GateSettlementError::from)?;
-    let charges = clamped_return_charges(separated, transfer.outward_elementary_charges);
-    Ok(MembraneReturnBound {
+    let available = if transfer.outward_elementary_charges >= 0 {
+        predecessor.carriers.intracellular
+    } else {
+        predecessor.carriers.extracellular
+    };
+    let magnitude = transfer
+        .outward_elementary_charges
+        .unsigned_abs()
+        .min(available);
+    let charges = if transfer.outward_elementary_charges < 0 {
+        -i128::try_from(magnitude).map_err(|_| GateSettlementError::ArithmeticWidth)?
+    } else {
+        i128::try_from(magnitude).map_err(|_| GateSettlementError::ArithmeticWidth)?
+    };
+    Ok(MembranePumpBound {
         charges,
         successor_phase: (charges == transfer.outward_elementary_charges)
             .then_some(transfer.successor_phase),
     })
 }
 
-fn clamped_return_charges(separated: i128, bound: i128) -> i128 {
-    if separated > 0 {
-        bound.clamp(0, separated)
-    } else {
-        bound.clamp(separated, 0)
-    }
-}
-
-fn membrane_potential_magnitude_zeptojoules_per_charge(
+/// Exact retained electrical plus generic carrier-gradient work.
+///
+/// The electrical term is 1/2 C V^2, with the exact unit conversion
+/// 1 pF*mV^2 = 1000 zJ.  The gradient term uses the already-authored fixed
+/// chemical potential E_rev and the finite carrier compartment on its uphill
+/// side.  This is a derived observation of existing state, not another stored
+/// gradient authority.
+pub(crate) fn membrane_and_gradient_work_zeptojoules(
     anatomy: &NeuronPhysicalAnatomy,
-    predecessor: &NeuronPhysicalState,
-) -> Result<Exact, NeuronPhysicalError> {
-    let potential = predecessor
+    state: &NeuronPhysicalState,
+) -> Result<ExactRational, NeuronPhysicalError> {
+    let potential = state
         .membrane
         .membrane()
         .potential_millivolts(anatomy.capacitance)
         .map_err(MembraneConductanceError::from)
         .map_err(GateSettlementError::from)?;
-    Ok(rational_to_exact(potential).abs() * elementary_charge_millivolt_zeptojoules())
+    let capacitor = anatomy
+        .capacitance
+        .picofarads()
+        .checked_mul(potential)?
+        .checked_mul(potential)?
+        .checked_mul_unsigned(500)?;
+    let reversal = anatomy.gate.reversal_potential_millivolts;
+    let uphill_carriers = if reversal.parts().0 < 0 {
+        state.carriers.intracellular
+    } else if reversal.parts().0 > 0 {
+        state.carriers.extracellular
+    } else {
+        0
+    };
+    let gradient = ExactRational::new(801_088_317, 5_000_000_000)?
+        .checked_mul(reversal.checked_abs()?)?
+        .checked_mul_unsigned(uphill_carriers)?;
+    capacitor.checked_add(gradient).map_err(Into::into)
 }
 
-/// The whole quanta of energy the return of `charges` costs, on the gate's own
-/// dissipation lattice.  Rounded UP: the organism pays at least the work it
-/// actually does, never less.
-pub(crate) fn membrane_return_quanta_cost(
-    anatomy: &NeuronPhysicalAnatomy,
-    predecessor: &NeuronPhysicalState,
-    charges: i128,
-) -> Result<u128, NeuronPhysicalError> {
-    if charges == 0 {
-        return Ok(0);
-    }
-    let per_charge = membrane_potential_magnitude_zeptojoules_per_charge(anatomy, predecessor)?;
-    let work = per_charge * Exact::from_integer(BigInt::from(charges.unsigned_abs()));
-    (work / &anatomy.gate.dissipation_quantum_zeptojoules)
-        .ceil()
-        .to_integer()
-        .to_u128()
-        .ok_or(NeuronPhysicalError::Gate(
-            GateSettlementError::ArithmeticWidth,
-        ))
-}
-
-/// The greatest whole elementary-charge return `available_quanta` of energy can
-/// pay for, at this neuron's present membrane potential.  Rounded DOWN.
-pub(crate) fn membrane_return_affordable_charges(
-    anatomy: &NeuronPhysicalAnatomy,
-    predecessor: &NeuronPhysicalState,
-    available_quanta: u128,
-) -> Result<u128, NeuronPhysicalError> {
-    let per_charge = membrane_potential_magnitude_zeptojoules_per_charge(anatomy, predecessor)?;
-    if per_charge.is_zero() {
-        return Ok(0);
-    }
-    let budget = Exact::from_integer(BigInt::from(available_quanta))
-        * &anatomy.gate.dissipation_quantum_zeptojoules;
-    (budget / per_charge)
-        .floor()
-        .to_integer()
-        .to_u128()
-        .ok_or(NeuronPhysicalError::Gate(
-            GateSettlementError::ArithmeticWidth,
-        ))
-}
-
-/// Move `outward_elementary_charges` back across this neuron's membrane.
+/// Move an exact whole-carrier pump extent across this neuron's membrane.
 ///
 /// Charge is conserved, never destroyed: the membrane's separated charge and
 /// the intracellular/extracellular carrier partition move equal and opposite,
 /// exactly as every other transport in this module does.  The retained carrier
 /// phases are untouched — this is a whole-charge transport, not an ensemble
 /// current, so it leaves no sub-charge residue behind.
-pub(crate) fn settle_membrane_return_transport(
+pub(crate) fn settle_membrane_pump_transport(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
     outward_elementary_charges: i128,
     successor_phase: Option<ChargeCarrierPhase>,
     interval_microseconds: u32,
 ) -> Result<NeuronPhysicalState, NeuronPhysicalError> {
+    // A DEPLETED RESERVOIR LIMITS THE CURRENT; IT DOES NOT HALT THE BODY
+    // (2026-08-08).
+    //
+    // MEASURED ON THE LIVE ORGANISM: neuron 8 pushed its intracellular
+    // carriers to zero, and from then on EVERY transport refused with
+    // InsufficientCarrierMaterial — every lesson, every offered material,
+    // and even a plain dark interval. Since carriers only return by moving
+    // through this same transport, nothing could ever bring them back: she
+    // was frozen, permanently, and could not have any experience at all.
+    //
+    // Treating an empty reservoir as an ERROR is what made that a deadlock.
+    // The physical fact is that you cannot move more charge carriers than
+    // you have, so the flow SATURATES at what is available — a real neuron
+    // low on ions passes less current, it does not stop the universe. The
+    // demand that could not be met is not silently dropped either: it stays
+    // as the unmet flow it always was, exactly as the dissipation ledger
+    // already records demand it could not meet.
+    //
+    // Charge conservation is preserved because the membrane is settled with
+    // the SAME bounded charge that the carriers move — they cannot disagree.
+    let available: i128 = if outward_elementary_charges >= 0 {
+        i128::try_from(predecessor.carriers.intracellular).unwrap_or(i128::MAX)
+    } else {
+        i128::try_from(predecessor.carriers.extracellular).unwrap_or(i128::MAX)
+    };
+    let magnitude = outward_elementary_charges
+        .unsigned_abs()
+        .min(u128::try_from(available).unwrap_or(0));
+    let outward_elementary_charges = if outward_elementary_charges >= 0 {
+        i128::try_from(magnitude).unwrap_or(0)
+    } else {
+        -i128::try_from(magnitude).unwrap_or(0)
+    };
     let phase = successor_phase.unwrap_or_else(|| predecessor.membrane.membrane().carrier_phase());
     if outward_elementary_charges == 0 && phase == predecessor.membrane.membrane().carrier_phase() {
         return Ok(predecessor.clone());
@@ -3903,8 +5658,12 @@ impl DnaExpressionState {
 
 #[cfg(test)]
 impl PlasticSupportState {
-    pub(crate) fn probe_dissipated_quanta(self) -> u128 {
+    pub(crate) fn probe_dissipated_quanta(&self) -> u128 {
         self.dissipated_quanta
+    }
+
+    pub(crate) fn probe_rest_length_nanometres(&self) -> ExactRational {
+        self.rest_length_nanometres
     }
 }
 
@@ -3920,6 +5679,17 @@ impl NeuronPhysicalAnatomy {
             .get(index)
             .map(|ring| ring.dissipation_capacity_quanta)
     }
+
+    pub(crate) fn probe_plastic_closed_coordinate_nanometres(&self) -> ExactRational {
+        self.plastic.closed_coordinate_nanometres
+    }
+
+    pub(crate) fn probe_legacy_independent_yielded_population(
+        &self,
+        state: &PlasticSupportState,
+    ) -> Result<u128, PlasticityError> {
+        legacy_independent_yielded_population(&self.plastic, state, self.gate.population)
+    }
 }
 
 #[cfg(test)]
@@ -3927,12 +5697,12 @@ mod tests {
     use std::sync::Arc;
 
     use super::*;
+    use crate::declared_geometric_anatomy::membrane_capacitance_from_declared_geometry;
     use crate::joint_uf_neuron_boundary::{
         bind_isolated_neuron_perspective, bind_neuron_perspective,
         prepare_complete_joint_field_admitted_fixture, prepare_complete_joint_field_fixture,
         prepare_isolated_single_neuron_field_fixture, DsfFactFamily, SharedCompleteJointField,
     };
-    use crate::declared_geometric_anatomy::membrane_capacitance_from_declared_geometry;
     use crate::joint_uf_source_adapter::EvaluatedJointSourceOccurrence;
     use crate::joint_uf_v1_4::{
         evaluate_with_physical_bounds, JointIntersampleLaw, JointUfCoordinateBounds, JointUfInput,
@@ -3947,10 +5717,12 @@ mod tests {
         decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
         encode_reached_cohort_cell, encode_reached_cohort_cell_v5, encode_reached_cohort_state,
         encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
-        settle_reached_cohort_experience_to_quiescence, settle_reached_cohort_interval,
-        settle_reached_cohort_recurrence, settle_reached_cohort_to_quiescence,
-        ReachedCohortAnatomy, ReachedCohortIntervalInput, ReachedCohortState,
+        settle_reached_cohort_dark_rest, settle_reached_cohort_experience_to_quiescence,
+        settle_reached_cohort_interval, settle_reached_cohort_recurrence,
+        settle_reached_cohort_to_quiescence, ReachedCohortAnatomy, ReachedCohortIntervalInput,
+        ReachedCohortState,
     };
+    use crate::recovery_fluid_contact::RecoveryFluidReservoirState;
     use crate::sparse_electrical_contact::{
         ElectricalContactAnatomy, SparseElectricalAnatomy, SparseElectricalState,
     };
@@ -3971,22 +5743,24 @@ mod tests {
 
         assert!(PhysicalStateDeltaEntry::new(
             PhysicalStateCoordinate::GateOpenPopulation,
-            integral,
+            integral.clone(),
         )
         .is_some());
-        assert!(
-            PhysicalStateDeltaEntry::new(PhysicalStateCoordinate::PlasticRestLength, rational,)
-                .is_some()
-        );
+        assert!(PhysicalStateDeltaEntry::new(
+            PhysicalStateCoordinate::PlasticRestLength,
+            rational.clone(),
+        )
+        .is_some());
         assert!(PhysicalStateDeltaEntry::new(
             PhysicalStateCoordinate::GateOpenPopulation,
-            rational,
+            rational.clone(),
         )
         .is_none());
-        assert!(
-            PhysicalStateDeltaEntry::new(PhysicalStateCoordinate::PlasticRestLength, integral,)
-                .is_none()
-        );
+        assert!(PhysicalStateDeltaEntry::new(
+            PhysicalStateCoordinate::PlasticRestLength,
+            integral.clone(),
+        )
+        .is_none());
         assert!(
             SparsePhysicalStateDelta::from_canonical_entries(vec![PhysicalStateDeltaEntry {
                 coordinate: PhysicalStateCoordinate::MembraneCarrierPhase,
@@ -4145,6 +5919,301 @@ mod tests {
         std::array::from_fn(|index| physical_fixture_at(index as u32))
     }
 
+    #[test]
+    fn powered_dark_interval_pumps_existing_gradient_without_a_voltage_target() {
+        let fixture = physical_fixture();
+        let electrical = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+        let mut neuron = fixture.state.clone();
+        neuron.membrane = LocalMembraneConductanceState::genesis(-1_000);
+        neuron.carriers = CarrierReservoirs::new(6_241, 6_243);
+        let anatomy = ReachedCohortAnatomy::new(
+            vec![fixture.anatomy],
+            fixture_lineages(1),
+            fixture_source_sites(1),
+            electrical.clone(),
+        )
+        .unwrap();
+        let predecessor = ReachedCohortState::new(
+            &anatomy,
+            vec![neuron],
+            SparseElectricalState::genesis(&electrical),
+        )
+        .unwrap();
+        let predecessor_neuron = &predecessor.neurons()[0];
+        let predecessor_work = membrane_and_gradient_work_zeptojoules(
+            &anatomy.neuron_anatomies()[0],
+            predecessor_neuron,
+        )
+        .unwrap();
+        let predecessor_carriers = predecessor_neuron.carrier_reservoirs();
+        let predecessor_charge = predecessor_neuron.separated_elementary_charges();
+        let predecessor_energy = predecessor.recovery_fluid().physical_parts();
+
+        let (successor, observation) =
+            settle_reached_cohort_dark_rest(&anatomy, &predecessor, 250_000).unwrap();
+
+        assert_eq!(observation.returned_elementary_charges, 0);
+        assert_eq!(observation.fuel_quanta, 0);
+        assert!(observation.pumped_elementary_charges < 0);
+        assert_eq!(
+            observation
+                .pump_work_zeptojoules
+                .checked_cmp(ExactRational::integer(0))
+                .unwrap(),
+            core::cmp::Ordering::Greater
+        );
+        let successor_neuron = &successor.neurons()[0];
+        let successor_carriers = successor_neuron.carrier_reservoirs();
+        assert_eq!(successor_carriers.total(), predecessor_carriers.total());
+        assert_eq!(
+            successor_carriers.intracellular() - predecessor_carriers.intracellular(),
+            observation.pumped_elementary_charges.unsigned_abs()
+        );
+        assert_eq!(
+            successor_neuron.separated_elementary_charges(),
+            predecessor_charge - observation.pumped_elementary_charges
+        );
+        let successor_work = membrane_and_gradient_work_zeptojoules(
+            &anatomy.neuron_anatomies()[0],
+            successor_neuron,
+        )
+        .unwrap();
+        assert_eq!(
+            successor_work.checked_sub(predecessor_work).unwrap(),
+            observation.pump_work_zeptojoules
+        );
+        let successor_energy = successor.recovery_fluid().physical_parts();
+        assert_eq!(
+            predecessor_energy
+                .0
+                .checked_sub(successor_energy.0)
+                .unwrap(),
+            observation.pump_work_zeptojoules
+        );
+        assert_eq!(
+            successor_energy
+                .1
+                .checked_sub(predecessor_energy.1)
+                .unwrap(),
+            observation.pump_work_zeptojoules
+        );
+        assert_eq!(successor_energy.2, predecessor_energy.2);
+        let encoded_successor = encode_reached_cohort_state(&anatomy, &successor).unwrap();
+        assert_eq!(
+            decode_reached_cohort_state(&anatomy, &encoded_successor).unwrap(),
+            successor
+        );
+    }
+
+    #[test]
+    fn powered_environment_recharges_exhausted_body_before_local_pump() {
+        let fixture = physical_fixture();
+        let electrical = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+        let mut neuron = fixture.state.clone();
+        neuron.membrane = LocalMembraneConductanceState::genesis(-1_000);
+        neuron.carriers = CarrierReservoirs::new(6_241, 6_243);
+        let anatomy = ReachedCohortAnatomy::new(
+            vec![fixture.anatomy],
+            fixture_lineages(1),
+            fixture_source_sites(1),
+            electrical.clone(),
+        )
+        .unwrap();
+        let powered = ReachedCohortState::new(
+            &anatomy,
+            vec![neuron],
+            SparseElectricalState::genesis(&electrical),
+        )
+        .unwrap();
+        let reservoir_anatomy = ReachedCohortState::recovery_fluid_anatomy_for_test(&anatomy);
+        let (_, spent_capacity, thermal_capacity) = reservoir_anatomy.capacities();
+        let exhausted_reservoir = RecoveryFluidReservoirState::new(
+            reservoir_anatomy,
+            ExactRational::integer(0),
+            spent_capacity,
+            thermal_capacity,
+        )
+        .unwrap();
+        let predecessor = powered
+            .with_recovery_fluid_for_test(&anatomy, exhausted_reservoir)
+            .unwrap();
+
+        let (successor, observation) =
+            settle_reached_cohort_dark_rest(&anatomy, &predecessor, 250_000).unwrap();
+
+        assert_ne!(successor, predecessor);
+        assert!(observation.pumped_elementary_charges < 0);
+        assert_eq!(
+            observation
+                .pump_work_zeptojoules
+                .checked_cmp(ExactRational::integer(0))
+                .unwrap(),
+            core::cmp::Ordering::Greater
+        );
+        assert_eq!(
+            observation
+                .environment_energy_delivered_zeptojoules
+                .checked_cmp(ExactRational::integer(0))
+                .unwrap(),
+            core::cmp::Ordering::Greater
+        );
+        assert_eq!(
+            observation
+                .environment_heat_exported_zeptojoules
+                .checked_cmp(ExactRational::integer(0))
+                .unwrap(),
+            core::cmp::Ordering::Greater
+        );
+        assert_eq!(observation.returned_elementary_charges, 0);
+        assert_eq!(observation.fuel_quanta, 0);
+    }
+
+    fn population_gate(
+        fixture: &Fixture,
+        population: u128,
+        dissipation_quantum_zeptojoules: Exact,
+    ) -> TwoStateGateAnatomy {
+        TwoStateGateAnatomy::new(
+            population,
+            0,
+            q(0, 1),
+            dissipation_quantum_zeptojoules,
+            100_000,
+            r(1, 1),
+            r(-1, 1),
+            Vec::new(),
+            fixture.ring_count,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn one_channel_population_is_the_original_two_state_energy_law() {
+        let fixture = physical_fixture();
+        let gate = population_gate(&fixture, 1, q(1, 1));
+        let work = GateWorkOccurrence::new(q(-9, 1));
+        let original_delta = rational_to_exact(
+            open_minus_closed_support_energy(&fixture.anatomy.plastic, &fixture.state.plastic)
+                .unwrap(),
+        ) + q(-9, 1);
+        let graded_delta = gate_open_minus_closed_free_energy(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &work,
+        )
+        .unwrap();
+        assert_eq!(graded_delta, original_delta);
+        assert_eq!(graded_delta, q(-1, 1));
+
+        let settlement = select_gate_population_settlement(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            &fixture.state.gate,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &work,
+            None,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(settlement.open_population, 1);
+        assert_eq!(settlement.released_quanta, 1);
+
+        let fractional = select_gate_population_settlement(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            &fixture.state.gate,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::new(q(-17, 2)),
+            None,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(fractional.open_population, 1);
+        assert_eq!(fractional.released_quanta, 0);
+        assert_eq!(
+            fractional.dissipation_residue_zeptojoules.energy(),
+            &rational_to_exact(r(1, 2))
+        );
+    }
+
+    #[test]
+    fn channel_population_retains_distinct_exact_magnitudes_without_duplicating_work() {
+        let fixture = physical_fixture();
+        let gate = population_gate(&fixture, 4, q(1, 2));
+        let settle = |work| {
+            select_gate_population_settlement(
+                &gate,
+                &fixture.anatomy.plastic,
+                &fixture.state.plastic,
+                &fixture.state.gate,
+                fixture.state.membrane,
+                fixture.anatomy.capacitance,
+                &fixture.state.psi,
+                &GateWorkOccurrence::new(q(work, 1)),
+                None,
+            )
+            .unwrap()
+            .unwrap()
+        };
+        let lower = settle(-4);
+        let higher = settle(-8);
+        assert_eq!(lower.open_population, 1);
+        assert_eq!(higher.open_population, 2);
+
+        let zero_work = gate_population_free_energy(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::new(q(0, 1)),
+            4,
+        )
+        .unwrap();
+        let full_work = gate_population_free_energy(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::new(q(-8, 1)),
+            4,
+        )
+        .unwrap();
+        assert_eq!(full_work - zero_work, q(-8, 1));
+    }
+
+    #[test]
+    fn tied_lowest_population_retains_the_predecessor() {
+        let fixture = physical_fixture();
+        let gate = population_gate(&fixture, 3, q(1, 9));
+        let settlement = select_gate_population_settlement(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            &fixture.state.gate,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::new(q(-8, 1)),
+            None,
+        )
+        .unwrap();
+        assert_eq!(settlement, None);
+    }
+
     fn scaled_physical_fixture(positions: usize, constraint_count: usize) -> Fixture {
         scaled_physical_fixture_at(positions, constraint_count, 0)
     }
@@ -4212,7 +6281,8 @@ mod tests {
             ),
             dna_expression: DnaExpressionState::new(100_000, 100_000),
             plastic: PlasticSupportState::new(r(1, 1)).unwrap(),
-            optical_quantum_residue: r(0, 1),
+            receptor_quantum_residue: r(0, 1),
+            membrane_return_work_residue: r(0, 1),
         };
         Fixture {
             anatomy,
@@ -4220,6 +6290,68 @@ mod tests {
             zero_catalysts: vec![0; ring_count],
             ring_count,
         }
+    }
+
+    /// PERSISTED-STATE QUARANTINE: a body whose retired membrane-return residue
+    /// is zero must encode byte-identically, while a historical nonzero value
+    /// remains readable without becoming runtime energy or pump authority.
+    #[test]
+    fn a_zero_return_residue_encodes_byte_identically_to_the_pre_law_body() {
+        let fixture = physical_fixture();
+        let zero = encode_neuron_physical_state(&fixture.anatomy, &fixture.state).unwrap();
+        assert_eq!(&zero[..8], NEURON_STATE_CODEC_MAGIC);
+        assert_eq!(
+            decode_neuron_physical_state(&fixture.anatomy, &zero).unwrap(),
+            fixture.state
+        );
+
+        let mut owing = fixture.state.clone();
+        owing.membrane_return_work_residue = ExactRational::new(3, 88).unwrap();
+        let nonzero = encode_neuron_physical_state(&fixture.anatomy, &owing).unwrap();
+        assert_eq!(&nonzero[..8], NEURON_STATE_RETURN_RESIDUE_MAGIC);
+        // Same layout, one magic and two exact-rational words wider; every
+        // pre-existing byte is where it was.
+        assert_eq!(nonzero.len(), zero.len() + 32);
+        assert_eq!(&nonzero[40..], &zero[8..]);
+        assert_eq!(&nonzero[8..24], &3_i128.to_le_bytes());
+        assert_eq!(&nonzero[24..40], &88_u128.to_le_bytes());
+        let restored = decode_neuron_physical_state(&fixture.anatomy, &nonzero).unwrap();
+        assert_eq!(restored, owing);
+        assert_eq!(
+            encode_neuron_physical_state(&fixture.anatomy, &restored).unwrap(),
+            nonzero
+        );
+
+        // One physical state, one encoding: the residue-carrying layout may
+        // not restate a zero residue.  The retired layout remains restricted
+        // to the historical sub-quantum range it originally authenticated.
+        let mut zero_in_the_wide_layout = Vec::new();
+        zero_in_the_wide_layout.extend_from_slice(NEURON_STATE_RETURN_RESIDUE_MAGIC);
+        push_i128(&mut zero_in_the_wide_layout, 0);
+        push_u128(&mut zero_in_the_wide_layout, 1);
+        zero_in_the_wide_layout.extend_from_slice(&zero[8..]);
+        assert_eq!(
+            decode_neuron_physical_state(&fixture.anatomy, &zero_in_the_wide_layout),
+            Err(NeuronStateCodecError::InvalidEncoding)
+        );
+
+        let mut whole_quantum_owed = fixture.state.clone();
+        whole_quantum_owed.membrane_return_work_residue = ExactRational::new(1, 9).unwrap();
+        assert_eq!(
+            rational_to_exact(whole_quantum_owed.membrane_return_work_residue),
+            fixture.anatomy.gate.dissipation_quantum_zeptojoules
+        );
+        assert_eq!(
+            encode_neuron_physical_state(&fixture.anatomy, &whole_quantum_owed),
+            Err(NeuronStateCodecError::AnatomyMismatch)
+        );
+
+        let mut negative_debt = fixture.state.clone();
+        negative_debt.membrane_return_work_residue = ExactRational::new(-1, 2).unwrap();
+        assert_eq!(
+            encode_neuron_physical_state(&fixture.anatomy, &negative_debt),
+            Err(NeuronStateCodecError::AnatomyMismatch)
+        );
     }
 
     #[test]
@@ -4285,7 +6417,8 @@ mod tests {
             interval_microseconds: 1_000,
             recovery: RecoveryContact::new(catalysts, 0, 0),
             dna_expression: DnaExpressionContact::new(0),
-            optical_successor_residue: None,
+            receptor_successor_residue: None,
+            prepared_psi: None,
         }
     }
 
@@ -4305,7 +6438,8 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
-                    optical_successor_residue: None,
+                    receptor_successor_residue: None,
+                    prepared_psi: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),
@@ -4327,7 +6461,8 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
-                    optical_successor_residue: None,
+                    receptor_successor_residue: None,
+                    prepared_psi: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),
@@ -4351,7 +6486,8 @@ mod tests {
                     interval_microseconds: 1_000,
                     recovery: RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
                     dna_expression: DnaExpressionContact::new(0),
-                    optical_successor_residue: None,
+                    receptor_successor_residue: None,
+                    prepared_psi: None,
                 })
                 .collect(),
             fixture_source_sites(fixtures.len()),
@@ -4378,6 +6514,8 @@ mod tests {
         )
         .unwrap();
 
+        let delivered = settle_shared_dsf_mathloom(perturbation, fixture.anatomy.mathloom).unwrap();
+        let displacement = &delivered.constraints()[0];
         let causal_interval = settle_neuron_physical_interval(
             &fixture.anatomy,
             predecessor.state(),
@@ -4386,7 +6524,6 @@ mod tests {
             1_000,
         )
         .unwrap();
-        let displacement = &causal_interval.mathloom.constraints()[0];
         assert_eq!(displacement.family(), DsfFactFamily::Displacement);
         assert_eq!(displacement.binary64_bits(), 1.0_f64.to_bits());
         assert_eq!(
@@ -4743,7 +6880,9 @@ mod tests {
         // not move at all: every one-charge move tied exactly.)
         assert_ne!(crossed, 0);
         assert_eq!(
-            settled.contact_outward_elementary_charges_by_neuron.as_ref(),
+            settled
+                .contact_outward_elementary_charges_by_neuron
+                .as_ref(),
             [crossed, -crossed, 0]
         );
         // The contact's own ledger is equal and opposite: charge is conserved
@@ -4854,7 +6993,7 @@ mod tests {
         let input = ReachedCohortIntervalInput::from_episode(&episode, inputs).unwrap();
         let settled = settle_reached_cohort_interval(&anatomy, &predecessor, input).unwrap();
         assert_eq!(settled.successor.neurons().len(), 4);
-        assert_eq!(anatomy.source_sites().len(), 4);
+        assert_eq!(anatomy.source_sites().count(), 4);
     }
 
     #[test]
@@ -4929,7 +7068,16 @@ mod tests {
                     .exact_delta(PhysicalStateCoordinate::PlasticRestLength),
                 Some(ExactPhysicalStateDelta::Rational(r(1, 3)))
             );
-            assert!(fractal.as_ref().unwrap().entries().len() > 1);
+            assert_eq!(
+                fractal
+                    .as_ref()
+                    .unwrap()
+                    .entries()
+                    .iter()
+                    .map(|entry| entry.coordinate())
+                    .collect::<Vec<_>>(),
+                vec![PhysicalStateCoordinate::PlasticRestLength]
+            );
         }
         assert_eq!(
             settled
@@ -5049,6 +7197,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "retired: fixture requires Boolean/member-set mosaic admission"]
     fn four_neuron_learned_assembly_admits_only_after_partial_cue_and_exact_restart() {
         let shared = shared_four_neuron_field();
         let mut fixtures = physical_fixtures::<4>();
@@ -5397,6 +7546,7 @@ mod tests {
         target.gate.open_population = 1;
         target.carriers = CarrierReservoirs::new(999_000, 1_001_000);
         target.plastic.rest_length_nanometres = r(3, 2);
+        target.dna_expression.expressed_product_quanta = 7;
         target.dna_expression.waste_quanta = 7;
         target.recovery.psi_lanes[3] = RecoveryLaneState {
             fuel_quanta: 99_998,
@@ -5421,13 +7571,42 @@ mod tests {
         let applied = apply_sparse_physical_state_delta(&fixture.anatomy, &base, &decoded).unwrap();
         assert_eq!(applied, target);
         assert_eq!(
-            sparse_physical_state_delta(&base, &applied).unwrap().unwrap(),
+            sparse_physical_state_delta(&base, &applied)
+                .unwrap()
+                .unwrap(),
             delta
         );
+        let retained = sparse_retained_physical_state_delta(&base, &target)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            retained
+                .entries()
+                .iter()
+                .map(|entry| entry.coordinate())
+                .collect::<Vec<_>>(),
+            vec![
+                PhysicalStateCoordinate::PsiWinding(0),
+                PhysicalStateCoordinate::GateOpenPopulation,
+                PhysicalStateCoordinate::PlasticRestLength,
+                PhysicalStateCoordinate::DnaExpressedProduct,
+            ]
+        );
+        let mut transient_only = base.clone();
+        transient_only.carriers = CarrierReservoirs::new(999_999, 1_000_001);
+        transient_only.dna_expression.waste_quanta = 1;
+        transient_only.membrane_return_work_residue = r(1, 144);
+        assert!(sparse_physical_state_delta(&base, &transient_only)
+            .unwrap()
+            .is_some());
+        assert!(sparse_retained_physical_state_delta(&base, &transient_only)
+            .unwrap()
+            .is_none());
         assert!(decode_sparse_physical_state_delta(&wire[..wire.len() - 1]).is_err());
         let mut unordered = wire.clone();
         unordered[0] = 2;
         assert!(decode_sparse_physical_state_delta(&unordered).is_err());
+        assert!(decode_sparse_physical_state_delta(&u64::MAX.to_le_bytes()).is_err());
     }
 
     #[test]
@@ -5441,11 +7620,18 @@ mod tests {
         let encoded = encode_reached_cohort_state_delta(&anatomy, &base, &target).unwrap();
         let reconstructed = decode_reached_cohort_state_delta(&anatomy, &base, &encoded).unwrap();
         assert_eq!(reconstructed, target);
-        assert!(encoded.len() * 20 < encode_reached_cohort_state_v4(&anatomy, &target).unwrap().len());
+        assert!(
+            encoded.len() * 20
+                < encode_reached_cohort_state_v4(&anatomy, &target)
+                    .unwrap()
+                    .len()
+        );
         eprintln!(
             "MEASURE cohort-state delta 4 neurons/1 changed: {} B (full GLRCS04 = {} B)",
             encoded.len(),
-            encode_reached_cohort_state_v4(&anatomy, &target).unwrap().len()
+            encode_reached_cohort_state_v4(&anatomy, &target)
+                .unwrap()
+                .len()
         );
 
         let mut lying_digest = encoded.clone();

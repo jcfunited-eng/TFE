@@ -1,5 +1,5 @@
 {
-  "schema": "guala.external_tutor_card_experience_manifest.v1",
+  "approved_experience_count": 60,
   "authority_boundary": {
     "external_tutor_pairing": true,
     "internal_identity_authority": false,
@@ -7,12 +7,24 @@
     "internal_pronunciation_authority": false,
     "internal_recognition_authority": false
   },
+  "physical_stock": {
+    "declaration": "the approved deck's own physical stock: printed card, one paper and one ink for every card in it. Authored, exactly as each card's visual surface is authored, and never a chemical measurement",
+    "smell": {
+      "aldehyde": 0.08,
+      "phenol": 0.05,
+      "lactone": 0.03
+    },
+    "taste": {
+      "bitter": 0.06,
+      "sour": 0.02
+    }
+  },
   "sample_format": {
     "channels": 1,
     "encoding": "pcm_s16le",
     "sample_rate_hz": 16000
   },
-  "approved_experience_count": 36,
+  "schema": "guala.external_tutor_card_experience_manifest.v1",
   "experiences": [
     {
       "experience_id": "alphabet-a",
@@ -515,6 +527,222 @@
         "path": "guala_curriculum/audio/number-10-ten-tutor-v1.wav",
         "sample_count": 21345,
         "sha256": "0dacbdd8bf7c91d307248e97d7f2a665e9e945f783fc01d7fc314b0dbdc855e7"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-mama",
+      "surface": {
+        "object_id": "W1-optical-surface-37",
+        "path": "guala_curriculum/cards/word-mama-v1.png",
+        "sha256": "1dfc64111531dcf2d9f4045167f3afa68ed194974e8cc64f55c85001cd014a55"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-dada",
+      "surface": {
+        "object_id": "W1-optical-surface-38",
+        "path": "guala_curriculum/cards/word-dada-v1.png",
+        "sha256": "1472a371016faaae1c408ce02a07e15e0ef316a768edd5b2cd67ce22d2b15142"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-ball",
+      "surface": {
+        "object_id": "W1-optical-surface-39",
+        "path": "guala_curriculum/cards/word-ball-v1.png",
+        "sha256": "33829bc720c3a808c674e92860d6ef9a120b651cbed1ffa8fcb72d8dba597636"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-cup",
+      "surface": {
+        "object_id": "W1-optical-surface-40",
+        "path": "guala_curriculum/cards/word-cup-v1.png",
+        "sha256": "3dd86e969565e2758f7f61159d827eb1741e33c436bbe30fcc19ce557e644ee1"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-dog",
+      "surface": {
+        "object_id": "W1-optical-surface-41",
+        "path": "guala_curriculum/cards/word-dog-v1.png",
+        "sha256": "68b1923838a1c2f1da84b9db0a18036d71958b9a4e61e3dfad27b21e65a7d676"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-cat",
+      "surface": {
+        "object_id": "W1-optical-surface-42",
+        "path": "guala_curriculum/cards/word-cat-v1.png",
+        "sha256": "587ec759836016b3829ba91a01bfb931c14976fefd4248954774da04ccac6d9d"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-sun",
+      "surface": {
+        "object_id": "W1-optical-surface-43",
+        "path": "guala_curriculum/cards/word-sun-v1.png",
+        "sha256": "46a3a18f37267416f8c1c2779f003fac0886c21425b41df5bd9ca740124d538a"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-moon",
+      "surface": {
+        "object_id": "W1-optical-surface-44",
+        "path": "guala_curriculum/cards/word-moon-v1.png",
+        "sha256": "3407dbed8a37dea91904c76f39dcc2f7fc1d6cb3ba9d7c7f46067cbce149fd26"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-tree",
+      "surface": {
+        "object_id": "W1-optical-surface-45",
+        "path": "guala_curriculum/cards/word-tree-v1.png",
+        "sha256": "370a6e6481abdd7ae76a8ddb53a40cc373ebd47db839bdcc8045f1a22f3054fa"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-water",
+      "surface": {
+        "object_id": "W1-optical-surface-46",
+        "path": "guala_curriculum/cards/word-water-v1.png",
+        "sha256": "f67123493d10239c863aab82e564afb5fa276edc542ab1f98cdc93c13ccffe42"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-milk",
+      "surface": {
+        "object_id": "W1-optical-surface-47",
+        "path": "guala_curriculum/cards/word-milk-v1.png",
+        "sha256": "f30a381d48ff809669f7ee1513c8965253bba481406a8c1ee049478328e558f0"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-shoe",
+      "surface": {
+        "object_id": "W1-optical-surface-48",
+        "path": "guala_curriculum/cards/word-shoe-v1.png",
+        "sha256": "e087787fee41de1505570934ef45a66379549380e351f27111da9f10c7f93136"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-hand",
+      "surface": {
+        "object_id": "W1-optical-surface-49",
+        "path": "guala_curriculum/cards/word-hand-v1.png",
+        "sha256": "e8bf31e2a078be3cbf883863c94956d344179361cb36dac6a35f7c746d94a677"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-eye",
+      "surface": {
+        "object_id": "W1-optical-surface-50",
+        "path": "guala_curriculum/cards/word-eye-v1.png",
+        "sha256": "6e78e6ac52324f7b719c3bc5a0fb6c7ed9022ce859209f7aa2ce9d693c3e05e2"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-book",
+      "surface": {
+        "object_id": "W1-optical-surface-51",
+        "path": "guala_curriculum/cards/word-book-v1.png",
+        "sha256": "d0024b5af906ffcba1c77ee05b8d66adefe84a02da81d50dd71010bc89441945"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-car",
+      "surface": {
+        "object_id": "W1-optical-surface-52",
+        "path": "guala_curriculum/cards/word-car-v1.png",
+        "sha256": "57e59c65a3e28373d73820677ca7604fdc9fc93fb1d1ec0e0a659d535816df32"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-bed",
+      "surface": {
+        "object_id": "W1-optical-surface-53",
+        "path": "guala_curriculum/cards/word-bed-v1.png",
+        "sha256": "7e61a0330a96c2c753e5054f7b949347a3c859defec7c1dbc9fc6d8a24f0357d"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-door",
+      "surface": {
+        "object_id": "W1-optical-surface-54",
+        "path": "guala_curriculum/cards/word-door-v1.png",
+        "sha256": "7f15995212eb521d3d5f68859e577ec1fe1456c802522bba72c59941d9f39fa2"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-apple",
+      "surface": {
+        "object_id": "W1-optical-surface-55",
+        "path": "guala_curriculum/cards/word-apple-v1.png",
+        "sha256": "e5fb513d19e61216894cdbbe0480de8cbc7db8331f500fb9d742a90da04ce7f5"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-banana",
+      "surface": {
+        "object_id": "W1-optical-surface-56",
+        "path": "guala_curriculum/cards/word-banana-v1.png",
+        "sha256": "d7ee87732421021afa00e9cb8f174147f5a1be8a0e1a70b51230f390e7045eac"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-chair",
+      "surface": {
+        "object_id": "W1-optical-surface-57",
+        "path": "guala_curriculum/cards/word-chair-v1.png",
+        "sha256": "789fad0cd94285a733b8e37bb73448ab57e06153e217c19dd1112ef1f9d8584f"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-hat",
+      "surface": {
+        "object_id": "W1-optical-surface-58",
+        "path": "guala_curriculum/cards/word-hat-v1.png",
+        "sha256": "8495daf0972b7c87b4a6b8931163d1a1f77ecdf5bb1ef212a33894c4436152bd"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-fish",
+      "surface": {
+        "object_id": "W1-optical-surface-59",
+        "path": "guala_curriculum/cards/word-fish-v1.png",
+        "sha256": "6ff64398cf9b89018bb79521d9d9d9474787cfc51e12265af9a85c44bb17e43f"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "word-bird",
+      "surface": {
+        "object_id": "W1-optical-surface-60",
+        "path": "guala_curriculum/cards/word-bird-v1.png",
+        "sha256": "228ebc5dd213bb8ea09e9e04100ff2608113a5cbcb026e5f51572aef434f1167"
       },
       "presentation_milliseconds": 15000
     }

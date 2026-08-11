@@ -39,6 +39,9 @@ ALB_DNS = "dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
 CONTROL_SECRET_ID = "gualaloom/api-key/prod"
 RELEASE_MANIFEST = "deploy/guala_release_manifest.json"
 DEPLOY_CONTROLLER = "tools/deploy_dsf_ai.sh"
+# How long the read-only readiness capture may WAIT behind a lesson in flight.
+# It bounds patience, never correctness: see ``_read_live_readiness``.
+READINESS_MAX_SECONDS = 900
 REHEARSAL_CONTROLLER = "tools/run_guala_candidate_rehearsal_task.py"
 
 SHA256_RE = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -654,20 +657,33 @@ def validate_readiness(
         # requirements: the candidate inherits no state. Outside a genesis
         # cutover the original strict pins apply.
         if not genesis_cutover:
+            # 2026-08-07 correction: these pins asserted the retired
+            # transport-only readiness shape and a body with NO neurons
+            # and NO cognition.  They could never pass against any living
+            # (or newborn) predecessor, and were only ever "passing"
+            # because the deploy controller waived them by declaring a
+            # genesis cutover unconditionally.  Continuity is now the
+            # default, so the pins assert the TRUE served shape: the
+            # sensory-transitions scope and a living cognitive body.
+            # genuine_neuronal_fractal_available is deliberately not
+            # asserted (a step fact, not body state, before the truth
+            # repair; body state after it — either way not a continuity
+            # requirement).
             if (
                 value.get("ready_scope")
-                != "http_and_native_current_transport_only"
+                != "http_native_current_and_admitted_sensory_transitions"
             ):
                 raise PreflightError(
-                    "native readiness scope is not transport-only"
+                    "native readiness scope is not the reviewed "
+                    "sensory-transitions scope"
                 )
             if (
-                native.get("complete_neuron_available") is not False
-                or native.get("genuine_neuronal_fractal_available") is not False
-                or native.get("cognition_available") is not False
+                native.get("complete_neuron_available") is not True
+                or native.get("cognition_available") is not True
             ):
                 raise PreflightError(
-                    "native readiness makes a false cognition claim"
+                    "live predecessor does not present a living "
+                    "cognitive body"
                 )
     else:
         native = value.get("native_joint_fractal")
@@ -740,6 +756,11 @@ def _read_live_readiness(commands: Commands, api_key: str) -> object:
     nonce = hashlib.sha256(
         f"{api_key}\0guala-read-only-preflight".encode("utf-8")
     ).hexdigest()
+    # ``/ready/guala`` acquires the transition lock deliberately, so that it
+    # can only ever report PERSISTED state -- and that lock is held for a whole
+    # lesson.  Capping the wait at a network round trip fails a healthy body
+    # that merely happens to be mid-lesson.  Only the patience changes here;
+    # every readiness assertion downstream is unchanged and still must pass.
     body = commands.run(
         [
             "curl",
@@ -751,7 +772,7 @@ def _read_live_readiness(commands: Commands, api_key: str) -> object:
             "--connect-timeout",
             "10",
             "--max-time",
-            "30",
+            str(READINESS_MAX_SECONDS),
             "-H",
             f"X-API-Key: {api_key}",
             "-H",
@@ -759,6 +780,9 @@ def _read_live_readiness(commands: Commands, api_key: str) -> object:
             f"{CONTROL_ORIGIN}/ready/guala",
         ],
         redactions=(api_key, nonce),
+        # The runner's own default would kill curl before curl's deadline,
+        # so the two budgets have to agree or the longer one is a fiction.
+        timeout=READINESS_MAX_SECONDS + 30,
     ).stdout
     try:
         return json.loads(body)

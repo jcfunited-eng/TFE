@@ -8,18 +8,18 @@
 //! each must be contiguous within its own mechanism and none is numerically
 //! equated with another.
 //!
-//! This module makes no membrane, channel, fluid, physical-body, hippocampal,
-//! motivation, action, or language claim. It performs no Python callback and
-//! owns no persistence, owner, lock, or global clock.
+//! This module makes no membrane, channel, fluid, physical-body,
+//! motivation, action, or language claim. Retained hippocampal state is
+//! exposed only as a read-only navigation surface (addresses and typed
+//! participation; never recognition, recall, or meaning), and reading it
+//! advances nothing. It performs no Python callback and owns no
+//! persistence, owner, lock, or global clock.
 
 use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
-use crate::hippocampal_sparse_path::HippocampalColdPort;
-#[cfg(test)]
-use crate::hippocampal_sparse_path::HippocampalColdStore;
+use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::NativeJointSourceEpisode;
 #[cfg(test)]
 use crate::joint_uf_source_adapter::admitted_fixture_episode;
-use crate::hippocampal_directory_cold_store::DirectoryHippocampalColdStore;
 use crate::joint_uf_source_adapter::{
     admitted_episode_with_authored_intervals, AdmittedJointSourceEpisode,
 };
@@ -32,16 +32,31 @@ use crate::mounted_joint_fractal::{
     MountedJointDsfTransition, MountedTransitionPhaseCounts, ResidentMountedRestoreWork,
     ResidentMountedState,
 };
-use crate::metabolic_feeding::AuthoredNutritionDeclaration;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
+use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
-    CognitiveFormationObservation, CognitiveFormationSummary, PreparedCognitiveFormationTransition,
-    ResidentCognitiveFormationState,
+    AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
+    PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
-    prepare_resident_receptor_ingress, ResidentReceptorIngressObservation,
+    observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
+    ResidentReceptorIngressObservation, ResidentVestibularIngress,
 };
 use crate::sha256::sha256;
+use crate::vestibular_neuron_path::{
+    decode_functional_vestibular_anatomy, encode_functional_vestibular_anatomy,
+    phase_one_virtual_vestibular_anatomy, FunctionalVestibularAnatomy,
+    FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
+};
+use crate::virtual_body_yaw_motion::{
+    settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
+};
+use crate::virtual_vestibular_canal::{
+    decode_canal_state, encode_canal_state, CanalState,
+};
+use num_bigint::BigInt;
+use num_rational::BigRational;
+use num_traits::Zero;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -52,8 +67,17 @@ const MAGIC: &[u8; 8] = b"GLORUN01";
 const VERSION: u16 = 1;
 const LEGACY_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB04";
 const LEGACY_FABRIC_VERSION: u16 = 4;
-const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
-const FABRIC_VERSION: u16 = 7;
+const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
+const PRE_VESTIBULAR_FABRIC_VERSION: u16 = 7;
+const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
+const FABRIC_VERSION: u16 = 8;
+const CANAL_STATE_BYTES: usize = 32;
+const VESTIBULAR_BODY_BYTES: usize =
+    FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES + CANAL_STATE_BYTES + std::mem::size_of::<u64>();
+
+fn exact_energy_parts(value: &BigRational) -> (BigInt, BigInt) {
+    (value.numer().clone(), value.denom().clone())
+}
 const IDENTITY_BYTES: usize = 36;
 const FIXED_BYTES: usize = MAGIC.len()
     + std::mem::size_of::<u16>()
@@ -64,7 +88,8 @@ const FABRIC_FIXED_BYTES: usize = FABRIC_MAGIC.len()
     + std::mem::size_of::<u16>()
     + std::mem::size_of::<u64>()
     + std::mem::size_of::<u32>()
-    + std::mem::size_of::<u32>();
+    + std::mem::size_of::<u32>()
+    + VESTIBULAR_BODY_BYTES;
 const LEGACY_FABRIC_FIXED_BYTES: usize = LEGACY_FABRIC_MAGIC.len()
     + std::mem::size_of::<u16>()
     + std::mem::size_of::<u64>()
@@ -77,8 +102,10 @@ const RESIDENT_OBSERVATION_SCHEMA: &str = "guala.native.resident_organism_observ
 const RESIDENT_PREPARE_SCHEMA: &str = "guala.native.resident_organism_prepare.v3";
 const PREPARE_TOKEN_MAGIC: &[u8; 8] = b"GLRTPN01";
 const RESTORED_SCOPE: &str = "current_native_state_restored";
-const MOUNTED_STEP_SCOPE: &str = "mounted_joint_field_delivery_without_neuronal_cognition";
-const NUTRITION_INTAKE_SCOPE: &str = "authored_nutrition_intake_without_sensory_occurrence";
+const MOUNTED_STEP_SCOPE: &str = "canonical_uf_v1_4_neuronal_settlement";
+/// Scope name of one authored developmental contact growth.  A transaction
+/// label, exactly like the two scopes above; it carries no physics.
+const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sensory_occurrence";
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -170,7 +197,12 @@ pub(crate) enum RuntimeError {
     PrepareTokenOrdinalOverflow,
     ResidentMountedInvariantChanged,
     CognitiveFormation(String),
-    HippocampalColdCustodyMissing,
+    Vestibular(String),
+    /// The bare (unadmitted) source path stays severed by the
+    /// mandatory-admission law.  It used to be refused for want of a cold
+    /// custody port; cold custody is gone, so it is refused for the reason it
+    /// was always really refused for.
+    AdmittedSourceRequired,
     SealedStateChanged,
 }
 
@@ -264,9 +296,12 @@ impl fmt::Display for RuntimeError {
             Self::CognitiveFormation(reason) => {
                 write!(output, "resident cognitive formation failed: {reason}")
             }
-            Self::HippocampalColdCustodyMissing => write!(
+            Self::Vestibular(reason) => {
+                write!(output, "resident body-and-balance transition failed: {reason}")
+            }
+            Self::AdmittedSourceRequired => write!(
                 output,
-                "resident cognition requires an external hippocampal cold-custody port"
+                "resident cognition requires an explicit admitted joint source episode"
             ),
             Self::SealedStateChanged => write!(
                 output,
@@ -278,7 +313,7 @@ impl fmt::Display for RuntimeError {
 
 impl std::error::Error for RuntimeError {}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct RuntimeObservation {
     pub(crate) schema: &'static str,
     pub(crate) scope: &'static str,
@@ -298,6 +333,9 @@ pub(crate) struct RuntimeObservation {
     pub(crate) joint_neuron_count: usize,
     pub(crate) dsf_delivery_count: usize,
     pub(crate) complete_neuron_count: usize,
+    /// Source-independent declared cells still held at exact quiescent rest.
+    /// This is deliberately separate from reached complete neurons.
+    pub(crate) developmental_resting_neuron_count: usize,
     pub(crate) physically_transitioned_neuron_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
@@ -312,8 +350,12 @@ pub(crate) struct RuntimeObservation {
     pub(crate) cognitive_ordinal: u64,
     pub(crate) cognitive_trace_count: usize,
     pub(crate) cognitive_mosaic_count: usize,
+    /// Total retained mosaic-of-mosaics relation events (memory law R1
+    /// overlap branch) — retained state, present on restored observations.
+    pub(crate) mosaic_of_mosaics_count: usize,
     pub(crate) formation_activation_count: usize,
     pub(crate) partial_cue_reassembly_count: usize,
+    pub(crate) endogenous_partial_cue_reassembly_count: usize,
     pub(crate) python_callback_count: u64,
     pub(crate) derived_budget: DerivedRuntimeBudget,
     /// The body's energy state and this transition's metabolic facts (minimal
@@ -322,13 +364,7 @@ pub(crate) struct RuntimeObservation {
     /// as a healthy one.
     pub(crate) energy: ReachedCohortEnergyState,
     pub(crate) rest_recovered_neuron_count: usize,
-    pub(crate) rest_drained_dissipation_quanta: u128,
-    pub(crate) unmet_dissipation_quanta: u128,
     pub(crate) membrane_returned_elementary_charges: i128,
-    pub(crate) metabolic_fuel_quanta: u128,
-    pub(crate) nutrition_regenerated_fuel_quanta: u128,
-    pub(crate) nutrition_unabsorbed_waste_quanta: u128,
-    pub(crate) nutrition_vented_heat_quanta: u128,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -352,6 +388,7 @@ pub struct NativeResidentD3Transition {
     complete_neuron_fractal_count: usize,
     cognitive_mosaic_count: usize,
     partial_cue_reassembly_count: usize,
+    endogenous_partial_cue_reassembly_count: usize,
 }
 
 impl NativeResidentD3Transition {
@@ -383,6 +420,10 @@ impl NativeResidentD3Transition {
         self.partial_cue_reassembly_count
     }
 
+    pub fn endogenous_partial_cue_reassembly_count(&self) -> usize {
+        self.endogenous_partial_cue_reassembly_count
+    }
+
     pub fn python_callback_count(&self) -> u64 {
         0
     }
@@ -410,11 +451,30 @@ struct LegacyMigrationAuthority {
     mounted_generation: u64,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ResidentVestibularBody {
+    anatomy: FunctionalVestibularAnatomy,
+    canal: CanalState,
+    source_tick: u64,
+}
+
+impl ResidentVestibularBody {
+    fn phase_one_genesis() -> Result<Self, RuntimeError> {
+        Ok(Self {
+            anatomy: phase_one_virtual_vestibular_anatomy()
+                .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?,
+            canal: CanalState::at_rest(),
+            source_tick: 0,
+        })
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 struct ActiveResidentOrganismState {
     envelope: Vec<u8>,
     mounted: ResidentMountedState,
     cognitive: ResidentCognitiveFormationState,
+    vestibular: ResidentVestibularBody,
     observation: RuntimeObservation,
 }
 
@@ -424,10 +484,11 @@ struct PendingResidentOrganismState {
     envelope: Vec<u8>,
     mounted: ResidentMountedState,
     cognitive: PreparedCognitiveFormationTransition,
+    vestibular: ResidentVestibularBody,
     observation: RuntimeObservation,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct ResidentPrepareReceipt {
     token: [u8; 32],
     observation: RuntimeObservation,
@@ -439,10 +500,10 @@ struct ResidentPrepareReceipt {
 struct ResidentOrganismRuntime {
     active: ActiveResidentOrganismState,
     pending: Option<PendingResidentOrganismState>,
-    /// One prepared nutrition intake.  A feed advances the cognitive body and
-    /// nothing else — it carries no sensory occurrence, so the mounted joint
-    /// state and its generation are unchanged and travel through verbatim.
-    pending_nutrition: Option<PendingNutritionState>,
+    /// One prepared authored contact growth.  Like a feed it carries no
+    /// sensory occurrence, so the mounted joint state and its generation
+    /// travel through verbatim and only the cognitive body advances.
+    pending_contact_growth: Option<PendingNutritionState>,
     budget: RuntimeBudget,
     next_prepare_ordinal: u64,
 }
@@ -561,6 +622,11 @@ impl NativeAuthenticatedTask853RuntimeMigration {
     }
 
     #[getter]
+    fn developmental_resting_neuron_count(&self) -> usize {
+        self.observation.developmental_resting_neuron_count
+    }
+
+    #[getter]
     fn physically_transitioned_neuron_count(&self) -> usize {
         self.observation.physically_transitioned_neuron_count
     }
@@ -655,6 +721,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn developmental_resting_neuron_count(&self) -> usize {
+        self.observation.developmental_resting_neuron_count
+    }
+
+    #[getter]
     fn physically_transitioned_neuron_count(&self) -> usize {
         self.observation.physically_transitioned_neuron_count
     }
@@ -705,6 +776,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn mosaic_of_mosaics_count(&self) -> usize {
+        self.observation.mosaic_of_mosaics_count
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -715,46 +791,47 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn endogenous_partial_cue_reassembly_count(&self) -> usize {
+        self.observation.endogenous_partial_cue_reassembly_count
+    }
+
+    #[getter]
     fn python_callback_count(&self) -> u64 {
         self.observation.python_callback_count
     }
 
-    // Energy state and metabolic facts (minimal feeding metabolism,
-    // 2026-08-05).  Every value is the body's own settled physics; an
-    // exhausted ledger reports itself here instead of succeeding silently.
     #[getter]
-    fn recovery_fuel_quanta(&self) -> u128 {
-        self.observation.energy.fuel_quanta
+    fn available_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.available_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_spent_quanta(&self) -> u128 {
-        self.observation.energy.spent_quanta
+    fn spent_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.spent_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_heat_quanta(&self) -> u128 {
-        self.observation.energy.heat_quanta
+    fn thermal_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.thermal_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_fuel_capacity_quanta(&self) -> u128 {
-        self.observation.energy.fuel_capacity_quanta
+    fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(
+            &self.observation.energy.available_energy_capacity_zeptojoules,
+        )
     }
 
     #[getter]
-    fn recovery_heat_capacity_quanta(&self) -> u128 {
-        self.observation.energy.heat_capacity_quanta
+    fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(
+            &self.observation.energy.dissipation_capacity_energy_zeptojoules,
+        )
     }
 
     #[getter]
-    fn dissipated_quanta(&self) -> u128 {
-        self.observation.energy.dissipated_quanta
-    }
-
-    #[getter]
-    fn dissipation_capacity_quanta(&self) -> u128 {
-        self.observation.energy.dissipation_capacity_quanta
+    fn dissipated_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.dissipated_energy_zeptojoules)
     }
 
     #[getter]
@@ -766,11 +843,26 @@ impl NativeResidentOrganismObservation {
     fn energy_exhausted(&self) -> bool {
         // A body with no mounted cohort has no energy system at all; that is
         // "no body", not exhaustion, and it is never reported as exhaustion.
-        (self.observation.energy.fuel_capacity_quanta != 0
-            && self.observation.energy.fuel_quanta == 0)
-            || (self.observation.energy.dissipation_capacity_quanta != 0
-                && self.observation.energy.dissipated_quanta
-                    >= self.observation.energy.dissipation_capacity_quanta)
+        let zero = BigRational::zero();
+        (self
+            .observation
+            .energy
+            .available_energy_capacity_zeptojoules
+            != zero
+            && self.observation.energy.available_energy_zeptojoules == zero)
+            || (self
+                .observation
+                .energy
+                .dissipation_capacity_energy_zeptojoules
+                != zero
+                && self
+                    .observation
+                    .energy
+                    .dissipated_energy_zeptojoules
+                    >= self
+                        .observation
+                        .energy
+                        .dissipation_capacity_energy_zeptojoules)
     }
 
     #[getter]
@@ -779,38 +871,8 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
-    fn rest_drained_dissipation_quanta(&self) -> u128 {
-        self.observation.rest_drained_dissipation_quanta
-    }
-
-    #[getter]
-    fn unmet_dissipation_quanta(&self) -> u128 {
-        self.observation.unmet_dissipation_quanta
-    }
-
-    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
-    }
-
-    #[getter]
-    fn metabolic_fuel_quanta(&self) -> u128 {
-        self.observation.metabolic_fuel_quanta
-    }
-
-    #[getter]
-    fn nutrition_regenerated_fuel_quanta(&self) -> u128 {
-        self.observation.nutrition_regenerated_fuel_quanta
-    }
-
-    #[getter]
-    fn nutrition_unabsorbed_waste_quanta(&self) -> u128 {
-        self.observation.nutrition_unabsorbed_waste_quanta
-    }
-
-    #[getter]
-    fn nutrition_vented_heat_quanta(&self) -> u128 {
-        self.observation.nutrition_vented_heat_quanta
     }
 }
 
@@ -953,6 +1015,11 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn developmental_resting_neuron_count(&self) -> usize {
+        self.observation.developmental_resting_neuron_count
+    }
+
+    #[getter]
     fn physically_transitioned_neuron_count(&self) -> usize {
         self.observation.physically_transitioned_neuron_count
     }
@@ -988,6 +1055,11 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn mosaic_of_mosaics_count(&self) -> usize {
+        self.observation.mosaic_of_mosaics_count
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -998,40 +1070,47 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn endogenous_partial_cue_reassembly_count(&self) -> usize {
+        self.observation.endogenous_partial_cue_reassembly_count
+    }
+
+    #[getter]
     fn python_callback_count(&self) -> u64 {
         0
     }
 
-    // Energy state and metabolic facts of the PREPARED body (minimal feeding
-    // metabolism, 2026-08-05).
     #[getter]
-    fn recovery_fuel_quanta(&self) -> u128 {
-        self.observation.energy.fuel_quanta
+    fn available_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.available_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_spent_quanta(&self) -> u128 {
-        self.observation.energy.spent_quanta
+    fn spent_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.spent_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_heat_quanta(&self) -> u128 {
-        self.observation.energy.heat_quanta
+    fn thermal_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.thermal_energy_zeptojoules)
     }
 
     #[getter]
-    fn recovery_fuel_capacity_quanta(&self) -> u128 {
-        self.observation.energy.fuel_capacity_quanta
+    fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(
+            &self.observation.energy.available_energy_capacity_zeptojoules,
+        )
     }
 
     #[getter]
-    fn dissipated_quanta(&self) -> u128 {
-        self.observation.energy.dissipated_quanta
+    fn dissipated_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(&self.observation.energy.dissipated_energy_zeptojoules)
     }
 
     #[getter]
-    fn dissipation_capacity_quanta(&self) -> u128 {
-        self.observation.energy.dissipation_capacity_quanta
+    fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
+        exact_energy_parts(
+            &self.observation.energy.dissipation_capacity_energy_zeptojoules,
+        )
     }
 
     #[getter]
@@ -1045,38 +1124,8 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
-    fn rest_drained_dissipation_quanta(&self) -> u128 {
-        self.observation.rest_drained_dissipation_quanta
-    }
-
-    #[getter]
-    fn unmet_dissipation_quanta(&self) -> u128 {
-        self.observation.unmet_dissipation_quanta
-    }
-
-    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
-    }
-
-    #[getter]
-    fn metabolic_fuel_quanta(&self) -> u128 {
-        self.observation.metabolic_fuel_quanta
-    }
-
-    #[getter]
-    fn nutrition_regenerated_fuel_quanta(&self) -> u128 {
-        self.observation.nutrition_regenerated_fuel_quanta
-    }
-
-    #[getter]
-    fn nutrition_unabsorbed_waste_quanta(&self) -> u128 {
-        self.observation.nutrition_unabsorbed_waste_quanta
-    }
-
-    #[getter]
-    fn nutrition_vented_heat_quanta(&self) -> u128 {
-        self.observation.nutrition_vented_heat_quanta
     }
 }
 
@@ -1183,6 +1232,11 @@ impl NativeOrganismRuntimeTransition {
     }
 
     #[getter]
+    fn developmental_resting_neuron_count(&self) -> usize {
+        self.observation.developmental_resting_neuron_count
+    }
+
+    #[getter]
     fn physically_transitioned_neuron_count(&self) -> usize {
         self.observation.physically_transitioned_neuron_count
     }
@@ -1254,6 +1308,11 @@ impl NativeOrganismRuntimeTransition {
     }
 
     #[getter]
+    fn mosaic_of_mosaics_count(&self) -> usize {
+        self.observation.mosaic_of_mosaics_count
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1261,6 +1320,11 @@ impl NativeOrganismRuntimeTransition {
     #[getter]
     fn partial_cue_reassembly_count(&self) -> usize {
         self.observation.partial_cue_reassembly_count
+    }
+
+    #[getter]
+    fn endogenous_partial_cue_reassembly_count(&self) -> usize {
+        self.observation.endogenous_partial_cue_reassembly_count
     }
 
     #[getter]
@@ -1288,8 +1352,14 @@ impl NativeOrganismRuntimeTransition {
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
-        let (mounted, cognitive, observation) = {
+        let (mounted, cognitive, vestibular, observation) = {
             let parsed = parse_current_envelope(&envelope, budget)?;
+            let vestibular = parsed
+                .vestibular
+                .clone()
+                .ok_or(RuntimeError::UnsupportedFabricVersion(
+                    PRE_VESTIBULAR_FABRIC_VERSION,
+                ))?;
             let (mounted, summary) = restore_resident_mounted_state(
                 parsed.joint_bytes,
                 derived_budget.max_joint_state_bytes,
@@ -1302,46 +1372,82 @@ impl ResidentOrganismRuntime {
                 parsed,
                 summary,
                 cognitive.summary(),
+                cognitive
+                    .mosaic_of_mosaics_count()
+                    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?,
                 derived_budget,
             );
-            (mounted, cognitive, observation)
+            (mounted, cognitive, vestibular, observation)
         };
         Ok(Self {
             active: ActiveResidentOrganismState {
                 envelope,
                 mounted,
                 cognitive,
+                vestibular,
                 observation,
             },
             pending: None,
-            pending_nutrition: None,
+            pending_contact_growth: None,
             budget,
             next_prepare_ordinal: 1,
         })
     }
 
-    fn prepare_with_cold(
+    fn prepare_source(
         &mut self,
         source: &NativeJointSourceEpisode,
-        cold: Option<&mut dyn HippocampalColdPort>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         // The mandatory-admission law: a bare source episode carries no
         // occurrence admissions, so the cognitive boundary refuses it below.
-        self.prepare_typed_with_cold(source, None, cold)
+        self.prepare_typed(source, None, None)
     }
 
-    fn prepare_typed_with_cold(
+    fn prepare_vestibular_tick(
+        &mut self,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: i32,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        let predecessor_body = YawBodyState::new(predecessor_heading_millidegrees)
+            .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        let successor_heading = (i64::from(predecessor_heading_millidegrees)
+            + i64::from(signed_body_motion_millidegrees))
+        .rem_euclid(360_000);
+        let successor_body = YawBodyState::new(
+            u32::try_from(successor_heading)
+                .map_err(|_| RuntimeError::Vestibular("yaw width changed".into()))?,
+        )
+        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        let reached = settle_reached_vestibular_bundle_tick(
+            self.active.vestibular.anatomy.canal_anatomy(),
+            self.active.vestibular.canal,
+            signed_body_motion_millidegrees,
+            self.active.vestibular.anatomy.bundle_anatomy(),
+        )
+            .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        let ingress = prepare_resident_vestibular_ingress(
+            self.active.vestibular.source_tick,
+            predecessor_body,
+            successor_body,
+            reached,
+            &self.active.vestibular.anatomy,
+        )
+        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        let (source, _) = ingress.source().joint_source_with_contacts();
+        self.prepare_typed(source, None, Some(&ingress))
+    }
+
+    fn prepare_typed(
         &mut self,
         source: &NativeJointSourceEpisode,
         admitted_source: Option<&AdmittedJointSourceEpisode>,
-        cold: Option<&mut dyn HippocampalColdPort>,
+        vestibular: Option<&ResidentVestibularIngress>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some() || self.pending_nutrition.is_some() {
+        if self.pending.is_some() || self.pending_contact_growth.is_some() {
             return Err(RuntimeError::PendingCandidateExists);
         }
-        let cold = cold.ok_or(RuntimeError::HippocampalColdCustodyMissing)?;
         let derived_budget = self.budget.derive()?;
-        let predecessor = self.active.observation;
+        let predecessor = self.active.observation.clone();
         let organism_tick = predecessor
             .organism_tick
             .checked_add(1)
@@ -1352,69 +1458,77 @@ impl ResidentOrganismRuntime {
             .ok_or(RuntimeError::FabricGenerationOverflow)?;
         let admitted_source_authority = source.joint_source_authority_receipt();
         let admitted_source_body = source.joint_source_body();
-        let prepared = prepare_resident_mounted_generation(
-            &self.active.mounted,
-            source,
+        let receptor_ingress = observe_canonical_receptor_ingress(source);
+        let joint_state =
+            encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+        let (mounted, _) = restore_resident_mounted_state(
+            &joint_state,
             derived_budget.max_joint_state_bytes,
             derived_budget.max_joint_working_bytes,
         )
         .map_err(RuntimeError::MountedTransition)?;
-        let receptor_ingress = prepare_resident_receptor_ingress(&prepared);
-        let phase_counts = prepared.phase_counts();
-        let dsf_delivery_count = prepared
-            .fields()
-            .iter()
-            .try_fold(0usize, |count, field| {
-                count.checked_add(field.neurons().len())
-            })
-            .ok_or(RuntimeError::BudgetArithmeticOverflow)?;
-        if prepared.predecessor_generation() != predecessor.mounted_generation
-            || prepared.predecessor_generation().checked_add(1)
-                != Some(prepared.successor_generation())
-            || prepared.source_authority() != admitted_source_authority
-            || prepared.source_body() != admitted_source_body.as_ref()
-            || phase_counts.predecessor_authentication_count != 0
-            || phase_counts.predecessor_decode_count != 0
-            || phase_counts.predecessor_rebuilt_field_count != 0
-            || phase_counts.current_cohort_evaluation_count != prepared.fields().len()
-            || phase_counts.current_cohort_evaluation_count
-                != prepared.transition().l0_l4_evaluation_count
-            || dsf_delivery_count != prepared.transition().dsf_delivery_count
-            || prepared.successor_resident_state().summary().generation
-                != prepared.successor_generation()
-        {
-            return Err(RuntimeError::ResidentMountedInvariantChanged);
-        }
-        let successor_mounted_generation = prepared.successor_generation();
-        let cognitive_budget =
-            cognitive_budget_after_joint(prepared.state_bytes().len(), self.budget)?;
-        let mut cognitive = match admitted_source {
-            Some(admitted_source) => self
+        let phase_counts = MountedTransitionPhaseCounts {
+            predecessor_authentication_count: 0,
+            predecessor_decode_count: 0,
+            predecessor_rebuilt_field_count: 0,
+            retained_neuron_index_entry_count: predecessor.complete_neuron_count,
+            reached_neuron_lookup_count: source.joint_source_ports().len(),
+            current_cohort_evaluation_count: source.joint_source_occurrences().len(),
+            successor_seal_count: 1,
+        };
+        let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+        let cognitive = match (vestibular, admitted_source) {
+            (Some(vestibular), None) => self
                 .active
                 .cognitive
-                .prepare_admitted_with_hippocampal_cold(admitted_source, &*cold, cognitive_budget),
-            None => self.active.cognitive.prepare_with_hippocampal_cold(
-                source,
-                &*cold,
-                cognitive_budget,
+                .prepare_vestibular_transition(vestibular, cognitive_budget),
+            (None, Some(admitted_source)) => self
+                .active
+                .cognitive
+                .prepare_admitted_transition(admitted_source, cognitive_budget),
+            (None, None) => self
+                .active
+                .cognitive
+                .prepare_bare_source(source, cognitive_budget),
+            (Some(_), Some(_)) => Err(
+                crate::resident_cognitive_formation::FormationError::NoncanonicalState,
             ),
         }
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-        self.active
-            .cognitive
-            .publish_prepared_hippocampal(&mut cognitive, cold)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_state = self
             .active
             .cognitive
             .encode_successor(&cognitive, cognitive_budget)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
-        let (mounted, joint_state, transition) = prepared.into_resident_parts();
+        let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
+        let transition = MountedJointDsfTransition {
+            joint_field_count: source.joint_source_occurrences().len(),
+            joint_neuron_count: 0,
+            l0_l4_evaluation_count: source.joint_source_occurrences().len(),
+            dsf_delivery_count: cognitive_observation.dsf_delivery_count,
+            recurrent_dsf_delivery_count: 0,
+            transition_receipt: None,
+            episode_relation_candidate_receipt: None,
+        };
+        let successor_vestibular = match vestibular {
+            Some(ingress) => ResidentVestibularBody {
+                anatomy: self.active.vestibular.anatomy.clone(),
+                canal: ingress.transduction().reached_tick.successor_canal,
+                source_tick: self
+                    .active
+                    .vestibular
+                    .source_tick
+                    .checked_add(1)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?,
+            },
+            None => self.active.vestibular.clone(),
+        };
         let fabric = encode_fabric(
             fabric_generation,
             &joint_state,
             &cognitive_state,
+            &successor_vestibular,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -1450,7 +1564,8 @@ impl ResidentOrganismRuntime {
             envelope,
             mounted,
             cognitive,
-            observation,
+            vestibular: successor_vestibular,
+            observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
         Ok(ResidentPrepareReceipt {
@@ -1466,29 +1581,27 @@ impl ResidentOrganismRuntime {
         &mut self,
         source: &NativeJointSourceEpisode,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        let mut cold = HippocampalColdStore::default();
-        self.prepare_with_store(source, &mut cold)
+        self.prepare_with_store(source)
     }
 
     #[cfg(test)]
     fn prepare_with_store(
         &mut self,
         source: &NativeJointSourceEpisode,
-        cold: &mut HippocampalColdStore,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let admitted_source = admitted_fixture_episode(source);
-        self.prepare_typed_with_cold(source, Some(&admitted_source), Some(cold))
+        self.prepare_typed(source, Some(&admitted_source), None)
     }
 
     fn commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
-        if let Some(pending) = self.pending_nutrition.as_ref() {
+        if let Some(pending) = self.pending_contact_growth.as_ref() {
             if pending.token != token {
                 return Err(RuntimeError::PendingTokenMismatch);
             }
             let pending = self
-                .pending_nutrition
+                .pending_contact_growth
                 .take()
-                .expect("validated pending nutrition intake");
+                .expect("validated pending authored contact growth");
             self.active
                 .cognitive
                 .commit(pending.cognitive)
@@ -1514,16 +1627,17 @@ impl ResidentOrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         self.active.envelope = pending.envelope;
         self.active.mounted = pending.mounted;
+        self.active.vestibular = pending.vestibular;
         self.active.observation = pending.observation;
         Ok(())
     }
 
     fn discard(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
-        if let Some(pending) = self.pending_nutrition.as_ref() {
+        if let Some(pending) = self.pending_contact_growth.as_ref() {
             if pending.token != token {
                 return Err(RuntimeError::PendingTokenMismatch);
             }
-            self.pending_nutrition = None;
+            self.pending_contact_growth = None;
             return Ok(());
         }
         let pending = self
@@ -1537,22 +1651,23 @@ impl ResidentOrganismRuntime {
         Ok(())
     }
 
-    /// Prepare one AUTHORED nutrition intake.
+    /// Prepare one AUTHORED contact growth.
     ///
-    /// A feed is material intake, not a sensory occurrence: the mounted joint
-    /// state and its generation travel through byte-for-byte, and only the
+    /// Developmental authorship, not a sensory occurrence: the mounted joint
+    /// state and its generation travel through byte-for-byte, existing
+    /// contacts and their retained carrier phases are untouched, and only the
     /// cognitive body, the organism tick and the fabric generation advance.
-    /// The body refuses honestly (through `CognitiveFormation`) when it can
-    /// absorb nothing.
-    fn prepare_nutrition(
+    /// The body refuses honestly when an authored contact does not name two
+    /// members of one living cohort, or is already authored.
+    fn prepare_authored_contacts(
         &mut self,
-        declaration: AuthoredNutritionDeclaration,
+        authored: &[AuthoredDeclaredContact],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some() || self.pending_nutrition.is_some() {
+        if self.pending.is_some() || self.pending_contact_growth.is_some() {
             return Err(RuntimeError::PendingCandidateExists);
         }
         let derived_budget = self.budget.derive()?;
-        let predecessor = self.active.observation;
+        let predecessor = self.active.observation.clone();
         let organism_tick = predecessor
             .organism_tick
             .checked_add(1)
@@ -1569,7 +1684,7 @@ impl ResidentOrganismRuntime {
         let cognitive = self
             .active
             .cognitive
-            .prepare_nutrition(declaration, cognitive_budget)
+            .prepare_authored_contacts(authored, cognitive_budget)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_state = self
             .active
@@ -1581,10 +1696,11 @@ impl ResidentOrganismRuntime {
             fabric_generation,
             &joint_bytes,
             &cognitive_state,
+            &self.active.vestibular,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
-        let observation = make_nutrition_observation(
+        let observation = make_authored_contact_observation(
             &envelope,
             &predecessor,
             organism_tick,
@@ -1600,14 +1716,14 @@ impl ResidentOrganismRuntime {
         let token = prepare_token(
             predecessor.state_receipt,
             observation.state_receipt,
-            sha256(NUTRITION_INTAKE_SCOPE.as_bytes()),
+            sha256(AUTHORED_CONTACT_GROWTH_SCOPE.as_bytes()),
             self.next_prepare_ordinal,
         );
-        self.pending_nutrition = Some(PendingNutritionState {
+        self.pending_contact_growth = Some(PendingNutritionState {
             token,
             envelope,
             cognitive,
-            observation,
+            observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
         Ok(ResidentPrepareReceipt {
@@ -1619,7 +1735,11 @@ impl ResidentOrganismRuntime {
     }
 
     fn observation(&self) -> RuntimeObservation {
-        self.active.observation
+        self.active.observation.clone()
+    }
+
+    fn cognitive_state(&self) -> &ResidentCognitiveFormationState {
+        &self.active.cognitive
     }
 
     fn cold_restore_work(&self) -> ResidentMountedRestoreWork {
@@ -1675,7 +1795,7 @@ impl NativeResidentOrganismRuntime {
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let source = source.clone();
         let prepared = py
-            .allow_threads(|| self.runtime.prepare_with_cold(&source, None))
+            .allow_threads(|| self.runtime.prepare_source(&source))
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
@@ -1691,26 +1811,23 @@ impl NativeResidentOrganismRuntime {
     /// interval `(numerator, denominator)` in source-time units per source
     /// occurrence, in exact occurrence order; it is independent
     /// environment/anatomy authority, never derived from the occurrence.
-    /// `hippocampal_cold_root` names the durable content-addressed external
-    /// cold-custody directory required by resident cognition.
+    ///
+    /// An admitted transition requires NO durable cold-custody directory and
+    /// creates no file of its own: what a lesson changes is her body, and the
+    /// caller persists that body once per lesson.
     fn prepare_admitted(
         &mut self,
         py: Python<'_>,
         source: PyRef<'_, NativeJointSourceEpisode>,
         maximum_causal_intervals: Vec<(i64, i64)>,
-        hippocampal_cold_root: std::path::PathBuf,
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let source = source.clone();
         let prepared = py
             .allow_threads(|| -> Result<ResidentPrepareReceipt, String> {
-                let admitted = admitted_episode_with_authored_intervals(
-                    &source,
-                    &maximum_causal_intervals,
-                )?;
-                let mut cold =
-                    DirectoryHippocampalColdStore::open(&hippocampal_cold_root)?;
+                let admitted =
+                    admitted_episode_with_authored_intervals(&source, &maximum_causal_intervals)?;
                 self.runtime
-                    .prepare_typed_with_cold(&source, Some(&admitted), Some(&mut cold))
+                    .prepare_typed(&source, Some(&admitted), None)
                     .map_err(|error| error.to_string())
             })
             .map_err(PyValueError::new_err)?;
@@ -1722,32 +1839,105 @@ impl NativeResidentOrganismRuntime {
         })
     }
 
-    /// Deliver one AUTHORED nutrition declaration to the organism.
+    /// Prepare one exact one-millisecond body-and-balance successor.
     ///
-    /// `energy_quanta` is the declaration's energy content in the body's own
-    /// fuel quantum — an intake declaration, exactly like a curriculum card's
-    /// media, never a physics constant.  The body refuses honestly when it can
-    /// absorb nothing.
-    fn prepare_nutrition(
+    /// The caller supplies the body's already-applied predecessor heading and
+    /// this tick's signed yaw displacement.  Native canal, cupula, bundle,
+    /// tip-link, spring, complete-neuron, and full-field state advance as one
+    /// pending organism successor; commit or discard retains the ordinary
+    /// organism transaction semantics.
+    fn prepare_vestibular_tick(
         &mut self,
         py: Python<'_>,
-        energy_quanta: u128,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: i32,
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let prepared = py
-            .allow_threads(|| -> Result<ResidentPrepareReceipt, String> {
-                let declaration = AuthoredNutritionDeclaration::new(energy_quanta)
-                    .map_err(|error| format!("{error:?}"))?;
-                self.runtime
-                    .prepare_nutrition(declaration)
-                    .map_err(|error| error.to_string())
+            .allow_threads(|| {
+                self.runtime.prepare_vestibular_tick(
+                    predecessor_heading_millidegrees,
+                    signed_body_motion_millidegrees,
+                )
             })
-            .map_err(PyValueError::new_err)?;
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
         })
+    }
+
+    /// Append AUTHORED contacts to the living cohort.
+    ///
+    /// Each entry is `(left_sensor_id, left_substream_id, right_sensor_id,
+    /// right_substream_id, conductance_picosiemens)`: the caller names two of
+    /// its own declared receptors and the conductance of the contact between
+    /// them, exactly as growth DNA authors a contact at genesis.  Nothing is
+    /// derived here — no adjacency, no conductance, no ordering.
+    ///
+    /// Append-only: every already-authored contact keeps its index, endpoints,
+    /// conductance and retained carrier phase; each new contact starts from
+    /// the authored rest state.  A pair that is already contacted is refused
+    /// rather than authored twice.
+    fn prepare_authored_contacts(
+        &mut self,
+        py: Python<'_>,
+        contacts: Vec<(String, String, String, String, i64)>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let mut authored = Vec::with_capacity(contacts.len());
+        for (
+            left_sensor_id,
+            left_substream_id,
+            right_sensor_id,
+            right_substream_id,
+            conductance_picosiemens,
+        ) in contacts
+        {
+            authored.push(AuthoredDeclaredContact {
+                left_sensor_id,
+                left_substream_id,
+                right_sensor_id,
+                right_substream_id,
+                conductance_picosiemens: ExactRational::integer(i128::from(
+                    conductance_picosiemens,
+                )),
+            });
+        }
+        let prepared = py
+            .allow_threads(|| self.runtime.prepare_authored_contacts(&authored))
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+        })
+    }
+
+    /// Read-only observation of the living cohorts' authored contact sets:
+    /// one entry per cohort as ``(member_count, contact_count)``.  Structure
+    /// only; reading advances nothing.
+    fn observe_cohort_contacts(&self) -> Vec<(usize, usize)> {
+        self.runtime.cognitive_state().observe_cohort_contacts()
+    }
+
+    /// Read-only count of reached cells carrying one exact persisted source
+    /// anchor. The caller names physical source identity, not cognition.
+    fn observe_reached_source_site_count(
+        &self,
+        sensor_id: String,
+        substream_id: String,
+    ) -> PyResult<usize> {
+        if sensor_id.is_empty() || substream_id.is_empty() {
+            return Err(PyValueError::new_err(
+                "reached source observation requires nonempty source identity",
+            ));
+        }
+        Ok(self
+            .runtime
+            .cognitive_state()
+            .observe_reached_source_site_count(&sensor_id, &substream_id))
     }
 
     fn commit(&mut self, token: Vec<u8>) -> PyResult<()> {
@@ -1773,6 +1963,66 @@ impl NativeResidentOrganismRuntime {
     fn save<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         PyBytes::new(py, self.runtime.active_envelope())
     }
+
+    /// Read-only observation of the retained distributed formations: one
+    /// entry per admitted mosaic as ``(member_lineage_hexes,
+    /// recurrence_bond_count)``.  Structure only — no recognition, recall,
+    /// meaning, or capital is emitted — and reading advances nothing.
+    fn observe_retained_formations(&self) -> Vec<(Vec<String>, usize)> {
+        self.runtime
+            .cognitive_state()
+            .observe_retained_formation_members()
+            .into_iter()
+            .map(|(lineages, recurrence_bond_count)| {
+                (
+                    lineages.iter().map(|lineage| hex_bytes(lineage)).collect(),
+                    recurrence_bond_count,
+                )
+            })
+            .collect()
+    }
+
+    /// The retired archive navigator.
+    ///
+    /// This used to walk a neuron's archived posting chain and return episode
+    /// addresses.  It read the cold archive that is now retired, it was
+    /// reachable from no endpoint and called by nothing, and the doctrine it
+    /// lived under (docs/GUALA_DARPA_FIRST_PROOF_BOUNDARY_2026-08-04.md §4)
+    /// names "database retrieval presented as recall" among the mechanisms
+    /// that must not be extended.  It is refused rather than silently absent,
+    /// so a caller learns what is gone and why.
+    ///
+    /// What replaces it for anyone asking what she holds is
+    /// `observe_retained_formations`, which reads her BODY.
+    fn navigate_hippocampal(&self, _lineage_hex: String) -> PyResult<()> {
+        Err(PyValueError::new_err(
+            "hippocampal archive navigation is retired: the cold episode \
+             archive is no longer written or read, because it never carried \
+             recognition, recall or meaning — her memories are the retained \
+             formations in her body. Use observe_retained_formations().",
+        ))
+    }
+}
+
+#[pyfunction]
+fn exact_virtual_yaw_trajectory(
+    predecessor_heading_millidegrees: u32,
+    signed_displacement_millidegrees: i32,
+    duration_microseconds: u32,
+) -> PyResult<(u32, Vec<i32>)> {
+    let predecessor = YawBodyState::new(predecessor_heading_millidegrees)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    let actuation = SignedYawActuation::new(
+        signed_displacement_millidegrees,
+        duration_microseconds,
+    )
+    .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    let settled = settle_signed_yaw_actuation(predecessor, actuation)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    Ok((
+        settled.successor.heading_millidegrees(),
+        settled.trajectory.as_slice().to_vec(),
+    ))
 }
 
 #[pyfunction]
@@ -1797,6 +2047,70 @@ fn restore_native_resident_organism_runtime(
         })
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
     Ok(NativeResidentOrganismRuntime { runtime })
+}
+
+fn migrate_resident_organism_exact_energy_envelope(
+    current_envelope: Vec<u8>,
+    budget: RuntimeBudget,
+) -> Result<Vec<u8>, RuntimeError> {
+    let (identity, organism_tick, fabric_generation, joint, migrated_cognitive, vestibular) = {
+        let parsed = parse_current_envelope(&current_envelope, budget)?;
+        let cognitive = parsed
+            .cognitive_bytes
+            .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
+        let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
+        let migrated =
+            ResidentCognitiveFormationState::migrate_to_current_format(cognitive, cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        (
+            parsed.identity,
+            parsed.organism_tick,
+            parsed.fabric_generation,
+            parsed.joint_bytes.to_vec(),
+            migrated,
+            parsed
+                .vestibular
+                .unwrap_or(ResidentVestibularBody::phase_one_genesis()?),
+        )
+    };
+    let fabric = encode_fabric(
+        fabric_generation,
+        &joint,
+        &migrated_cognitive,
+        &vestibular,
+        budget,
+    )?;
+    let migrated_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
+    let restored = ResidentOrganismRuntime::restore_envelope(migrated_envelope.clone(), budget)?;
+    if restored.observation().identity != identity
+        || restored.observation().organism_tick != organism_tick
+        || restored.observation().fabric_generation != fabric_generation
+    {
+        return Err(RuntimeError::MigrationInvariantChanged);
+    }
+    Ok(migrated_envelope)
+}
+
+#[pyfunction]
+#[pyo3(signature = (
+    current_envelope,
+    max_envelope_bytes=67_108_864,
+    max_fabric_bytes=67_108_000,
+    max_logical_peak_bytes=536_870_912
+))]
+fn migrate_native_resident_organism_exact_energy(
+    py: Python<'_>,
+    current_envelope: Vec<u8>,
+    max_envelope_bytes: usize,
+    max_fabric_bytes: usize,
+    max_logical_peak_bytes: usize,
+) -> PyResult<Vec<u8>> {
+    py.allow_threads(move || {
+        let budget =
+            RuntimeBudget::new(max_envelope_bytes, max_fabric_bytes, max_logical_peak_bytes)?;
+        migrate_resident_organism_exact_energy_envelope(current_envelope, budget)
+    })
+    .map_err(|error| PyValueError::new_err(error.to_string()))
 }
 
 #[pyfunction]
@@ -1905,10 +2219,17 @@ fn create_resident_genesis_from_state(
 ) -> Result<ResidentOrganismRuntime, RuntimeError> {
     let identity = canonical_identity(organism_identity)?;
     let joint = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
-    let cognitive = cognitive
-        .encode(cognitive_budget_after_joint(joint.len(), budget)?)
+    let cognitive_budget = cognitive_budget_after_joint(joint.len(), budget)?;
+    let prepopulation = cognitive
+        .encode(cognitive_budget)
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-    let fabric = encode_fabric(0, &joint, &cognitive, budget)?;
+    let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+        &prepopulation,
+        cognitive_budget,
+    )
+    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    let vestibular = ResidentVestibularBody::phase_one_genesis()?;
+    let fabric = encode_fabric(0, &joint, &cognitive, &vestibular, budget)?;
     let envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
     ResidentOrganismRuntime::restore_envelope(envelope, budget)
 }
@@ -1930,7 +2251,6 @@ pub fn create_native_resident_d3_genesis(
 pub fn transition_native_resident_d3(
     current_envelope: Vec<u8>,
     source: &NativeJointSourceEpisode,
-    cold: Option<&mut dyn HippocampalColdPort>,
     max_envelope_bytes: usize,
     max_fabric_bytes: usize,
     max_logical_peak_bytes: usize,
@@ -1940,7 +2260,7 @@ pub fn transition_native_resident_d3(
     let mut runtime = ResidentOrganismRuntime::restore_envelope(current_envelope, budget)
         .map_err(|error| error.to_string())?;
     let prepared = runtime
-        .prepare_with_cold(source, cold)
+        .prepare_source(source)
         .map_err(|error| error.to_string())?;
     runtime
         .commit(prepared.token)
@@ -1961,6 +2281,8 @@ pub fn transition_native_resident_d3(
         complete_neuron_fractal_count: observation.complete_neuron_fractal_count,
         cognitive_mosaic_count: observation.cognitive_mosaic_count,
         partial_cue_reassembly_count: observation.partial_cue_reassembly_count,
+        endogenous_partial_cue_reassembly_count: observation
+            .endogenous_partial_cue_reassembly_count,
     })
 }
 
@@ -2019,7 +2341,7 @@ fn restore_native_organism_runtime(
             let budget =
                 RuntimeBudget::new(max_envelope_bytes, max_fabric_bytes, max_logical_peak_bytes)?;
             let runtime = OrganismRuntime::restore_envelope(current_envelope, budget)?;
-            let observation = *runtime.observe();
+            let observation = runtime.observe().clone();
             let sealed = runtime.seal(max_envelope_bytes)?;
             Ok::<_, RuntimeError>((sealed, observation))
         })
@@ -2160,6 +2482,9 @@ fn migrate_authenticated_legacy_predecessor(
         parsed,
         migration.summary,
         cognitive.summary(),
+        cognitive
+            .mosaic_of_mosaics_count()
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?,
         derived_budget,
     );
     if observation.mounted_step_completed
@@ -2191,8 +2516,13 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
         module
     )?)?;
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
+    module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
     module.add_function(wrap_pyfunction!(
         restore_native_resident_organism_runtime,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        migrate_native_resident_organism_exact_energy,
         module
     )?)?;
     module.add_function(wrap_pyfunction!(
@@ -2247,6 +2577,9 @@ impl OrganismRuntime {
             parsed,
             joint,
             cognitive.summary(),
+            cognitive
+                .mosaic_of_mosaics_count()
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?,
             derived_budget,
         );
         Ok(Self {
@@ -2265,7 +2598,7 @@ impl OrganismRuntime {
         _source: &NativeJointSourceEpisode,
         _budget: RuntimeBudget,
     ) -> Result<RuntimeStepResult, RuntimeError> {
-        Err(RuntimeError::HippocampalColdCustodyMissing)
+        Err(RuntimeError::AdmittedSourceRequired)
     }
 
     #[cfg(test)]
@@ -2334,10 +2667,17 @@ impl OrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let (joint_state, transition) = prepared.into_serialized_parts();
+        let vestibular = parsed
+            .vestibular
+            .as_ref()
+            .ok_or(RuntimeError::UnsupportedFabricVersion(
+                PRE_VESTIBULAR_FABRIC_VERSION,
+            ))?;
         let fabric = encode_fabric(
             successor_fabric_generation,
             &joint_state,
             &cognitive_bytes,
+            vestibular,
             budget,
         )?;
         let envelope = encode_envelope(parsed.identity, successor_organism_tick, &fabric, budget)?;
@@ -2385,7 +2725,7 @@ impl OrganismRuntime {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct ParsedEnvelope<'a> {
     identity: [u8; IDENTITY_BYTES],
     organism_tick: u64,
@@ -2393,6 +2733,7 @@ struct ParsedEnvelope<'a> {
     fabric_generation: u64,
     joint_bytes: &'a [u8],
     cognitive_bytes: Option<&'a [u8]>,
+    vestibular: Option<ResidentVestibularBody>,
 }
 
 fn parse_current_envelope<'a>(
@@ -2436,7 +2777,7 @@ fn parse_current_envelope<'a>(
         return Err(RuntimeError::FabricLengthMismatch);
     }
     let fabric_bytes = &envelope[offset..fabric_end];
-    let (fabric_generation, joint_bytes, cognitive_bytes) =
+    let (fabric_generation, joint_bytes, cognitive_bytes, vestibular) =
         parse_current_fabric(fabric_bytes, budget)?;
     Ok(ParsedEnvelope {
         identity,
@@ -2445,13 +2786,22 @@ fn parse_current_envelope<'a>(
         fabric_generation,
         joint_bytes,
         cognitive_bytes,
+        vestibular,
     })
 }
 
 fn parse_current_fabric(
     fabric: &[u8],
     budget: RuntimeBudget,
-) -> Result<(u64, &[u8], Option<&[u8]>), RuntimeError> {
+) -> Result<
+    (
+        u64,
+        &[u8],
+        Option<&[u8]>,
+        Option<ResidentVestibularBody>,
+    ),
+    RuntimeError,
+> {
     if fabric.len() > budget.max_fabric_bytes {
         return Err(RuntimeError::FabricBudgetExceeded);
     }
@@ -2459,22 +2809,58 @@ fn parse_current_fabric(
         return Err(RuntimeError::BadFabricMagic);
     }
     let magic = &fabric[..FABRIC_MAGIC.len()];
-    if magic != FABRIC_MAGIC && magic != LEGACY_FABRIC_MAGIC {
+    if magic != FABRIC_MAGIC
+        && magic != PRE_VESTIBULAR_FABRIC_MAGIC
+        && magic != LEGACY_FABRIC_MAGIC
+    {
         return Err(RuntimeError::BadFabricMagic);
     }
     let mut offset = FABRIC_MAGIC.len();
     let version = take_u16(fabric, &mut offset)?;
     let legacy = magic == LEGACY_FABRIC_MAGIC && version == LEGACY_FABRIC_VERSION;
+    let pre_vestibular = magic == PRE_VESTIBULAR_FABRIC_MAGIC
+        && version == PRE_VESTIBULAR_FABRIC_VERSION;
     let current = magic == FABRIC_MAGIC && version == FABRIC_VERSION;
-    if !legacy && !current {
+    if !legacy && !pre_vestibular && !current {
         return Err(RuntimeError::UnsupportedFabricVersion(version));
     }
     let generation = take_u64(fabric, &mut offset)?;
     let joint_len = take_u32(fabric, &mut offset)? as usize;
-    let cognitive_len = if current {
+    let cognitive_len = if current || pre_vestibular {
         take_u32(fabric, &mut offset)? as usize
     } else {
         0
+    };
+    let vestibular = if current {
+        let anatomy_end = offset
+            .checked_add(FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES)
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        let anatomy = decode_functional_vestibular_anatomy(
+            fabric
+                .get(offset..anatomy_end)
+                .ok_or(RuntimeError::EnvelopeEndedEarly)?,
+        )
+        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        offset = anatomy_end;
+        let canal_end = offset
+            .checked_add(CANAL_STATE_BYTES)
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        let canal = decode_canal_state(
+            anatomy.canal_anatomy(),
+            fabric
+                .get(offset..canal_end)
+                .ok_or(RuntimeError::EnvelopeEndedEarly)?,
+        )
+        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        offset = canal_end;
+        let source_tick = take_u64(fabric, &mut offset)?;
+        Some(ResidentVestibularBody {
+            anatomy,
+            canal,
+            source_tick,
+        })
+    } else {
+        None
     };
     let joint_end = offset
         .checked_add(joint_len)
@@ -2488,7 +2874,8 @@ fn parse_current_fabric(
     Ok((
         generation,
         &fabric[offset..joint_end],
-        current.then_some(&fabric[joint_end..cognitive_end]),
+        (current || pre_vestibular).then_some(&fabric[joint_end..cognitive_end]),
+        vestibular,
     ))
 }
 
@@ -2496,6 +2883,7 @@ fn encode_fabric(
     generation: u64,
     joint: &[u8],
     cognitive: &[u8],
+    vestibular: &ResidentVestibularBody,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
     let length = FABRIC_FIXED_BYTES
@@ -2519,6 +2907,11 @@ fn encode_fabric(
             .map_err(|_| RuntimeError::FabricLengthOverflow)?
             .to_le_bytes(),
     );
+    output.extend_from_slice(&encode_functional_vestibular_anatomy(
+        &vestibular.anatomy,
+    ));
+    output.extend_from_slice(&encode_canal_state(vestibular.canal));
+    output.extend_from_slice(&vestibular.source_tick.to_le_bytes());
     output.extend_from_slice(joint);
     output.extend_from_slice(cognitive);
     Ok(output)
@@ -2580,8 +2973,9 @@ fn encode_envelope(
 fn make_restored_observation(
     envelope: &[u8],
     parsed: ParsedEnvelope<'_>,
-    joint: MountedJointDsfSummary,
+    _joint: MountedJointDsfSummary,
     cognitive: CognitiveFormationSummary,
+    mosaic_of_mosaics_count: usize,
     derived_budget: DerivedRuntimeBudget,
 ) -> RuntimeObservation {
     RuntimeObservation {
@@ -2594,22 +2988,23 @@ fn make_restored_observation(
         predecessor_fabric_generation: None,
         fabric_generation: parsed.fabric_generation,
         predecessor_mounted_generation: None,
-        mounted_generation: joint.generation,
+        mounted_generation: cognitive.cognitive_ordinal,
         state_bytes: envelope.len(),
         state_receipt: sha256(envelope),
         fabric_bytes: parsed.fabric_bytes.len(),
         fabric_receipt: sha256(parsed.fabric_bytes),
-        joint_field_count: joint.joint_field_count,
-        joint_neuron_count: joint.joint_neuron_count,
+        joint_field_count: 0,
+        joint_neuron_count: 0,
         dsf_delivery_count: 0,
         complete_neuron_count: cognitive.complete_neuron_count,
+        developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
         complete_neuron_fractal_count: 0,
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
-        joint_transition_receipt: joint.transition_receipt,
-        episode_relation_candidate_receipt: joint.episode_relation_candidate_receipt,
+        joint_transition_receipt: None,
+        episode_relation_candidate_receipt: None,
         source_authority: None,
         mounted_step_completed: false,
         physical_transition_claimed: false,
@@ -2617,19 +3012,15 @@ fn make_restored_observation(
         cognitive_ordinal: cognitive.cognitive_ordinal,
         cognitive_trace_count: cognitive.trace_count,
         cognitive_mosaic_count: cognitive.mosaic_count,
+        mosaic_of_mosaics_count,
         formation_activation_count: 0,
         partial_cue_reassembly_count: 0,
+        endogenous_partial_cue_reassembly_count: 0,
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy,
+        energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: 0,
-        rest_drained_dissipation_quanta: 0,
-        unmet_dissipation_quanta: cognitive.energy.dissipated_quanta,
         membrane_returned_elementary_charges: 0,
-        metabolic_fuel_quanta: 0,
-        nutrition_regenerated_fuel_quanta: 0,
-        nutrition_unabsorbed_waste_quanta: 0,
-        nutrition_vented_heat_quanta: 0,
     }
 }
 
@@ -2670,6 +3061,7 @@ fn make_step_observation(
         joint_neuron_count: transition.joint_neuron_count,
         dsf_delivery_count: transition.dsf_delivery_count,
         complete_neuron_count: cognitive.complete_neuron_count,
+        developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: cognitive.physically_transitioned_neuron_count,
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         recurrent_complete_neuron_fractal_count: 0,
@@ -2686,26 +3078,22 @@ fn make_step_observation(
         cognitive_ordinal: cognitive.cognitive_ordinal,
         cognitive_trace_count: cognitive.trace_count,
         cognitive_mosaic_count: cognitive.mosaic_count,
+        mosaic_of_mosaics_count: cognitive.mosaic_of_mosaics_count,
         formation_activation_count: cognitive.activations.len(),
         partial_cue_reassembly_count: cognitive.partial_cue_reassembly_count(),
+        endogenous_partial_cue_reassembly_count: cognitive
+            .endogenous_partial_cue_reassembly_count(),
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy,
+        energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: cognitive.rest_recovered_neuron_count,
-        rest_drained_dissipation_quanta: cognitive.rest_drained_dissipation_quanta,
-        unmet_dissipation_quanta: cognitive.unmet_dissipation_quanta,
         membrane_returned_elementary_charges: cognitive.membrane_returned_elementary_charges,
-        metabolic_fuel_quanta: cognitive.metabolic_fuel_quanta,
-        nutrition_regenerated_fuel_quanta: cognitive.nutrition_regenerated_fuel_quanta,
-        nutrition_unabsorbed_waste_quanta: cognitive.nutrition_unabsorbed_waste_quanta,
-        nutrition_vented_heat_quanta: cognitive.nutrition_vented_heat_quanta,
     }
 }
 
-/// One nutrition intake's observation.  It reports honestly what a feed is:
-/// no joint field was reached, no neuron transitioned, and the mounted
-/// generation did not move — only the body's energy state changed.
-fn make_nutrition_observation(
+/// One authored contact-growth observation. No joint field was reached and no
+/// neuron transitioned; only the explicitly authored sparse anatomy changed.
+fn make_authored_contact_observation(
     envelope: &[u8],
     predecessor: &RuntimeObservation,
     organism_tick: u64,
@@ -2716,7 +3104,7 @@ fn make_nutrition_observation(
 ) -> RuntimeObservation {
     RuntimeObservation {
         schema: OBSERVATION_SCHEMA,
-        scope: NUTRITION_INTAKE_SCOPE,
+        scope: AUTHORED_CONTACT_GROWTH_SCOPE,
         identity: predecessor.identity,
         predecessor_state_receipt: Some(predecessor.state_receipt),
         predecessor_organism_tick: Some(predecessor.organism_tick),
@@ -2724,7 +3112,7 @@ fn make_nutrition_observation(
         predecessor_fabric_generation: Some(predecessor.fabric_generation),
         fabric_generation,
         predecessor_mounted_generation: Some(predecessor.mounted_generation),
-        mounted_generation: predecessor.mounted_generation,
+        mounted_generation: cognitive.cognitive_ordinal,
         state_bytes: envelope.len(),
         state_receipt: sha256(envelope),
         fabric_bytes: fabric.len(),
@@ -2733,6 +3121,7 @@ fn make_nutrition_observation(
         joint_neuron_count: predecessor.joint_neuron_count,
         dsf_delivery_count: 0,
         complete_neuron_count: cognitive.complete_neuron_count,
+        developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
         complete_neuron_fractal_count: 0,
         recurrent_complete_neuron_fractal_count: 0,
@@ -2747,19 +3136,15 @@ fn make_nutrition_observation(
         cognitive_ordinal: cognitive.cognitive_ordinal,
         cognitive_trace_count: cognitive.trace_count,
         cognitive_mosaic_count: cognitive.mosaic_count,
+        mosaic_of_mosaics_count: cognitive.mosaic_of_mosaics_count,
         formation_activation_count: 0,
         partial_cue_reassembly_count: 0,
+        endogenous_partial_cue_reassembly_count: 0,
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy,
+        energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: 0,
-        rest_drained_dissipation_quanta: 0,
-        unmet_dissipation_quanta: cognitive.energy.dissipated_quanta,
         membrane_returned_elementary_charges: 0,
-        metabolic_fuel_quanta: 0,
-        nutrition_regenerated_fuel_quanta: cognitive.nutrition_regenerated_fuel_quanta,
-        nutrition_unabsorbed_waste_quanta: cognitive.nutrition_unabsorbed_waste_quanta,
-        nutrition_vented_heat_quanta: cognitive.nutrition_vented_heat_quanta,
     }
 }
 
@@ -2784,6 +3169,16 @@ fn canonical_identity(value: &str) -> Result<[u8; IDENTITY_BYTES], RuntimeError>
 fn hex_digest(value: &[u8; 32]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let mut output = String::with_capacity(64);
+    for byte in value {
+        output.push(HEX[(byte >> 4) as usize] as char);
+        output.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    output
+}
+
+fn hex_bytes(value: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut output = String::with_capacity(value.len() * 2);
     for byte in value {
         output.push(HEX[(byte >> 4) as usize] as char);
         output.push(HEX[(byte & 0x0f) as usize] as char);
@@ -2827,6 +3222,36 @@ fn take_u64(bytes: &[u8], offset: &mut usize) -> Result<u64, RuntimeError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    #[test]
+    fn authenticated_production_envelope_migrates_exact_energy_once() {
+        let Some(path) = std::env::var_os("GUALA_REAL_BODY") else {
+            return;
+        };
+        let budget = RuntimeBudget::new(67_108_864, 67_108_000, 536_870_912).unwrap();
+        let predecessor = fs::read(PathBuf::from(path)).expect("production envelope is readable");
+        let before = parse_current_envelope(&predecessor, budget).unwrap();
+        let identity = before.identity;
+        let organism_tick = before.organism_tick;
+        let fabric_generation = before.fabric_generation;
+        let joint = before.joint_bytes.to_vec();
+
+        assert!(ResidentOrganismRuntime::restore_envelope(predecessor.clone(), budget).is_err());
+        let migrated =
+            migrate_resident_organism_exact_energy_envelope(predecessor, budget).unwrap();
+        let after = parse_current_envelope(&migrated, budget).unwrap();
+        assert_eq!(after.identity, identity);
+        assert_eq!(after.organism_tick, organism_tick);
+        assert_eq!(after.fabric_generation, fabric_generation);
+        assert_eq!(after.joint_bytes, joint);
+        ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget).unwrap();
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget).unwrap(),
+            migrated,
+        );
+    }
 
     /// Quiet (dark, silent) episodes appended after a presentation so the
     /// cohort can descend all the way to electrical rest.  Since the
@@ -2966,6 +3391,10 @@ mod tests {
             .unwrap()
     }
 
+    fn genesis_vestibular() -> ResidentVestibularBody {
+        ResidentVestibularBody::phase_one_genesis().unwrap()
+    }
+
     fn legacy_joint() -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(b"GLJNFT02");
@@ -3008,6 +3437,7 @@ mod tests {
             fabric_generation,
             &genesis_joint(),
             &genesis_cognitive(),
+            &genesis_vestibular(),
             budget(),
         )
         .unwrap();
@@ -3020,6 +3450,93 @@ mod tests {
             .unwrap()
             .bytes;
         ResidentOrganismRuntime::restore_envelope(envelope, budget()).unwrap()
+    }
+
+    #[test]
+    fn body_balance_tick_claims_receptor_and_integration_cells_and_cold_restores() {
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let before = runtime.observation();
+        let prepared = runtime.prepare_vestibular_tick(0, 64).unwrap();
+        assert_eq!(
+            prepared.observation.complete_neuron_count,
+            before.complete_neuron_count + 2
+        );
+        assert_eq!(
+            prepared.observation.developmental_resting_neuron_count + 2,
+            before.developmental_resting_neuron_count
+        );
+        assert_eq!(prepared.observation.dsf_delivery_count, 2);
+        assert_eq!(prepared.observation.python_callback_count, 0);
+        runtime.commit(prepared.token).unwrap();
+        assert_eq!(runtime.active.vestibular.source_tick, 1);
+        assert_ne!(runtime.active.vestibular.canal, CanalState::at_rest());
+        let body = runtime.active_envelope().to_vec();
+        let restored = ResidentOrganismRuntime::restore_envelope(body.clone(), budget()).unwrap();
+        assert_eq!(restored.active_envelope(), body);
+        assert_eq!(restored.active.vestibular, runtime.active.vestibular);
+        assert_eq!(
+            restored.observation().complete_neuron_count
+                + restored.observation().developmental_resting_neuron_count,
+            before.complete_neuron_count + before.developmental_resting_neuron_count
+        );
+    }
+
+    #[test]
+    fn exact_quarter_turn_reuses_the_specialized_pair_across_every_millisecond() {
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let before = runtime.observation();
+        let before_total = before.complete_neuron_count
+            + before.developmental_resting_neuron_count;
+        let turn = settle_signed_yaw_actuation(
+            YawBodyState::new(0).unwrap(),
+            SignedYawActuation::new(90_000, 250_000).unwrap(),
+        )
+        .unwrap();
+        let mut heading = 0_u32;
+        for signed_step in turn.trajectory.as_slice() {
+            let prepared = runtime
+                .prepare_vestibular_tick(heading, *signed_step)
+                .unwrap();
+            heading = u32::try_from(
+                (i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000),
+            )
+            .unwrap();
+            runtime.commit(prepared.token).unwrap();
+        }
+        let after = runtime.observation();
+        assert_eq!(heading, 90_000);
+        assert_eq!(after.organism_tick - before.organism_tick, 250);
+        assert_eq!(after.complete_neuron_count, before.complete_neuron_count + 2);
+        assert_eq!(
+            after.developmental_resting_neuron_count + 2,
+            before.developmental_resting_neuron_count
+        );
+        assert_eq!(
+            after.complete_neuron_count + after.developmental_resting_neuron_count,
+            before_total
+        );
+        assert_eq!(
+            runtime
+                .cognitive_state()
+                .observe_reached_source_site_count(
+                    "mounted-yaw-canal",
+                    "local-hair-bundle-0",
+                ),
+            1
+        );
+        let body = runtime.active_envelope().to_vec();
+        let restored = ResidentOrganismRuntime::restore_envelope(body.clone(), budget()).unwrap();
+        assert_eq!(restored.active_envelope(), body);
+        assert_eq!(restored.active.vestibular, runtime.active.vestibular);
+        assert_eq!(
+            restored
+                .cognitive_state()
+                .observe_reached_source_site_count(
+                    "mounted-yaw-canal",
+                    "local-hair-bundle-0",
+                ),
+            1
+        );
     }
 
     #[test]
@@ -3130,14 +3647,14 @@ mod tests {
     #[test]
     fn organism_tick_overflow_refuses_before_mounted_transition() {
         let predecessor = restored(u64::MAX, 17);
-        let before = *predecessor.observe();
+        let before = predecessor.observe().clone();
         assert_eq!(
             predecessor
                 .advance_mounted(&source("tick-overflow"), budget())
                 .unwrap_err(),
             RuntimeError::OrganismTickOverflow
         );
-        assert_eq!(*predecessor.observe(), before);
+        assert_eq!(predecessor.observe(), &before);
     }
 
     #[test]
@@ -3176,7 +3693,7 @@ mod tests {
         let original = restored(91, 17).seal(budget().max_envelope_bytes).unwrap();
         let expected_bytes = original.bytes.clone();
         let runtime = OrganismRuntime::restore_envelope(original.bytes, budget()).unwrap();
-        let observation = *runtime.observe();
+        let observation = runtime.observe().clone();
         let restored = runtime.seal(budget().max_envelope_bytes).unwrap();
         assert_eq!(restored.bytes, expected_bytes);
         assert_eq!(restored.receipt, observation.state_receipt);
@@ -3191,7 +3708,7 @@ mod tests {
     }
 
     #[test]
-    fn native_genesis_is_empty_current_state_and_not_synthetic_experience() {
+    fn native_genesis_has_resting_anatomy_and_no_synthetic_experience() {
         let runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let observation = runtime.observation();
         assert_eq!(observation.identity.as_slice(), IDENTITY.as_bytes());
@@ -3201,6 +3718,7 @@ mod tests {
         assert_eq!(observation.joint_field_count, 0);
         assert_eq!(observation.joint_neuron_count, 0);
         assert_eq!(observation.complete_neuron_count, 0);
+        assert!(observation.developmental_resting_neuron_count > 0);
         assert_eq!(observation.cognitive_ordinal, 0);
         assert_eq!(observation.cognitive_trace_count, 0);
         assert_eq!(observation.cognitive_mosaic_count, 0);
@@ -3221,6 +3739,7 @@ mod tests {
         assert_eq!(observation.identity.as_slice(), IDENTITY.as_bytes());
         assert_eq!(observation.organism_tick, 0);
         assert_eq!(observation.complete_neuron_count, 0);
+        assert!(observation.developmental_resting_neuron_count > 0);
         assert_eq!(observation.cognitive_ordinal, 0);
         assert_eq!(observation.cognitive_trace_count, 0);
         assert_eq!(observation.cognitive_mosaic_count, 0);
@@ -3254,6 +3773,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "retired: fixture requires Boolean/member-set mosaic admission"]
     fn resident_growth_dna_genesis_expresses_contacts_and_admits_a_real_mosaic() {
         use crate::neuron_source_anchor::tests::{
             exact_four_dark_optical_episode, exact_four_partial_optical_episode,
@@ -3276,11 +3796,10 @@ mod tests {
             1
         );
 
-        let mut cold = HippocampalColdStore::default();
         let dark = exact_four_dark_optical_episode();
         for receptor in 0..4 {
             let source = exact_four_single_optical_episode(receptor);
-            let prepared = runtime.prepare_with_store(&source, &mut cold).unwrap();
+            let prepared = runtime.prepare_with_store(&source).unwrap();
             if receptor == 0 {
                 assert_eq!(prepared.observation.complete_neuron_count, 4);
                 assert!(prepared.observation.physical_transition_claimed);
@@ -3302,7 +3821,7 @@ mod tests {
         );
 
         for _ in 0..DARK_TAIL_EPISODES {
-            let prepared = runtime.prepare_with_store(&dark, &mut cold).unwrap();
+            let prepared = runtime.prepare_with_store(&dark).unwrap();
             runtime.commit(prepared.token).unwrap();
         }
         assert_eq!(runtime.observation().cognitive_mosaic_count, 0);
@@ -3312,7 +3831,7 @@ mod tests {
         for source in
             std::iter::once(&partial).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
         {
-            let prepared = runtime.prepare_with_store(source, &mut cold).unwrap();
+            let prepared = runtime.prepare_with_store(source).unwrap();
             runtime.commit(prepared.token).unwrap();
             if runtime.observation().cognitive_mosaic_count == 1 {
                 admitted_mosaic = true;
@@ -3343,32 +3862,42 @@ mod tests {
     #[test]
     fn resident_optical_step_reports_only_the_physical_cells_that_changed() {
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let resting_before = runtime.observation().developmental_resting_neuron_count;
         let prepared = runtime.prepare(&exact_optical_episode()).unwrap();
-        assert_eq!(prepared.observation.complete_neuron_count, 1);
-        assert_eq!(prepared.observation.physically_transitioned_neuron_count, 1);
+        assert_eq!(prepared.observation.complete_neuron_count, 2);
+        assert_eq!(
+            prepared.observation.developmental_resting_neuron_count,
+            resting_before - 2
+        );
+        assert_eq!(prepared.observation.physically_transitioned_neuron_count, 2);
         assert!(prepared.observation.physical_transition_claimed);
-        assert_eq!(prepared.observation.complete_neuron_fractal_count, 0);
+        assert_eq!(prepared.observation.complete_neuron_fractal_count, 3);
         assert!(!prepared.observation.cognitive_formation_claimed);
     }
 
     #[test]
-    fn resident_runtime_reports_fractal_only_after_real_stimulus_boundary_inputs() {
-        // Stimulus-boundary closure (ratified 2026-08-05): the runtime
-        // reports the experience fractal on the FIRST genuinely dark episode
-        // after the light — the settlement whose interval carried zero
-        // exogenous optical energy — never during the lit episode itself.
+    fn resident_runtime_reports_fractal_at_local_occurrence_settlement() {
+        // The authenticated occurrence boundary reports the exact sparse
+        // retained successor without requiring later environmental silence.
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let light = runtime.prepare(&exact_optical_episode()).unwrap();
-        assert_eq!(light.observation.complete_neuron_fractal_count, 0);
+        assert_eq!(light.observation.complete_neuron_fractal_count, 3);
         runtime.commit(light.token).unwrap();
 
         let mut runtime =
             ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget())
                 .unwrap();
-        let first_dark = runtime.prepare(&exact_dark_optical_episode()).unwrap();
-        assert_eq!(first_dark.observation.complete_neuron_fractal_count, 1);
-        assert!(!first_dark.observation.cognitive_formation_claimed);
-        runtime.commit(first_dark.token).unwrap();
+        let mut emitted = 0usize;
+        for _ in 0..DARK_TAIL_EPISODES {
+            let settled = runtime.prepare(&exact_dark_optical_episode()).unwrap();
+            emitted += settled.observation.complete_neuron_fractal_count;
+            assert!(!settled.observation.cognitive_formation_claimed);
+            runtime.commit(settled.token).unwrap();
+            if emitted > 0 {
+                break;
+            }
+        }
+        assert_eq!(emitted, 0);
 
         let mut runtime =
             ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget())
@@ -3412,15 +3941,15 @@ mod tests {
                 predecessor_rebuilt_field_count: 0,
                 retained_neuron_index_entry_count: 0,
                 reached_neuron_lookup_count: 2,
-                current_cohort_evaluation_count: 1,
+                current_cohort_evaluation_count: 2,
                 successor_seal_count: 1,
             }
         );
-        assert_eq!(prepared.receptor_ingress.field_count(), 1);
+        assert_eq!(prepared.receptor_ingress.field_count(), 2);
         assert_eq!(prepared.receptor_ingress.witness_count(), 2);
         assert_eq!(prepared.receptor_ingress.sense_counts(), [2, 0, 0, 0, 0, 0]);
         assert_eq!(prepared.receptor_ingress.reached_neuron_visit_count(), 2);
-        assert_eq!(prepared.receptor_ingress.witness_construction_count(), 2);
+        assert_eq!(prepared.receptor_ingress.witness_construction_count(), 0);
         assert!(!prepared.observation.physical_transition_claimed);
         assert!(!prepared.observation.cognitive_formation_claimed);
         assert_eq!(
@@ -3489,11 +4018,14 @@ mod tests {
     #[test]
     fn resident_ingress_preserves_independent_clocks_and_exact_successor_bytes() {
         let episode = source("resident-ingress-independent-clocks");
-        let expected = restored(8_003, 401)
-            .advance_mounted(&episode, budget())
-            .unwrap()
-            .successor
-            .bytes;
+        let mut duplicate = resident(8_003, 401);
+        let duplicate_prepared = duplicate.prepare(&episode).unwrap();
+        let expected = duplicate
+            .pending
+            .as_ref()
+            .expect("one independently prepared resident successor")
+            .envelope
+            .clone();
         let mut runtime = resident(8_003, 401);
         let prepared = runtime.prepare(&episode).unwrap();
         assert_eq!(
@@ -3504,6 +4036,7 @@ mod tests {
             ),
             (8_004, 402, 1)
         );
+        assert_eq!(prepared.observation, duplicate_prepared.observation);
         assert_eq!(prepared.receptor_ingress.witness_count(), 2);
         assert_eq!(
             runtime
@@ -3585,8 +4118,14 @@ mod tests {
 
     #[test]
     fn resident_restore_is_current_envelope_only() {
-        let raw_fabric =
-            encode_fabric(17, &genesis_joint(), &genesis_cognitive(), budget()).unwrap();
+        let raw_fabric = encode_fabric(
+            17,
+            &genesis_joint(),
+            &genesis_cognitive(),
+            &genesis_vestibular(),
+            budget(),
+        )
+        .unwrap();
         assert_eq!(
             ResidentOrganismRuntime::restore_envelope(raw_fabric, budget()).unwrap_err(),
             RuntimeError::BadEnvelopeMagic
@@ -3611,14 +4150,14 @@ mod tests {
             assert_eq!(prepared.phase_counts.predecessor_authentication_count, 0);
             assert_eq!(prepared.phase_counts.predecessor_decode_count, 0);
             assert_eq!(prepared.phase_counts.predecessor_rebuilt_field_count, 0);
-            assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 1);
+            assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 2);
             assert_eq!(prepared.receptor_ingress.witness_count(), 2);
             assert_eq!(prepared.receptor_ingress.reached_neuron_visit_count(), 2);
-            assert_eq!(prepared.receptor_ingress.witness_construction_count(), 2);
+            assert_eq!(prepared.receptor_ingress.witness_construction_count(), 0);
             evaluations += prepared.phase_counts.current_cohort_evaluation_count;
             runtime.commit(prepared.token).unwrap();
         }
-        assert_eq!(evaluations, COMMIT_COUNT);
+        assert_eq!(evaluations, COMMIT_COUNT * 2);
         assert_eq!(runtime.observation().organism_tick, 10_091);
         assert_eq!(runtime.observation().fabric_generation, 10_017);
         assert_eq!(runtime.observation().mounted_generation, 10_000);
@@ -3634,8 +4173,14 @@ mod tests {
 
     #[test]
     fn envelope_identity_and_current_schema_are_fail_closed() {
-        let raw_fabric =
-            encode_fabric(17, &genesis_joint(), &genesis_cognitive(), budget()).unwrap();
+        let raw_fabric = encode_fabric(
+            17,
+            &genesis_joint(),
+            &genesis_cognitive(),
+            &genesis_vestibular(),
+            budget(),
+        )
+        .unwrap();
         assert_eq!(
             OrganismRuntime::restore_envelope(raw_fabric, budget()).unwrap_err(),
             RuntimeError::BadEnvelopeMagic
@@ -3673,7 +4218,9 @@ mod tests {
         assert_eq!(&result.observation.identity, IDENTITY.as_bytes());
         assert_eq!(result.observation.organism_tick, 91);
         assert_eq!(result.observation.fabric_generation, 17);
-        assert_eq!(result.observation.mounted_generation, 13);
+        // The legacy mounted generation is authenticated import provenance,
+        // not the causal coordinate of the new resident cognitive path.
+        assert_eq!(result.observation.mounted_generation, 0);
         assert!(!result.observation.mounted_step_completed);
         assert!(!result.observation.physical_transition_claimed);
         assert!(!result.observation.cognitive_formation_claimed);
@@ -3711,7 +4258,14 @@ mod tests {
             )
         );
 
-        let current = encode_fabric(17, &legacy_joint(), &genesis_cognitive(), budget()).unwrap();
+        let current = encode_fabric(
+            17,
+            &legacy_joint(),
+            &genesis_cognitive(),
+            &genesis_vestibular(),
+            budget(),
+        )
+        .unwrap();
         let current_authority = LegacyMigrationAuthority {
             fabric_receipt: sha256(&current),
             ..authority
@@ -3823,7 +4377,7 @@ mod tests {
         assert_eq!(&parsed.joint_bytes[..8], b"GLJDSF03");
         assert_eq!(migrated.observation.organism_tick, TASK853_ORGANISM_TICK);
         assert_eq!(migrated.observation.fabric_generation, 13);
-        assert_eq!(migrated.observation.mounted_generation, 2);
+        assert_eq!(migrated.observation.mounted_generation, 0);
         assert_eq!(migrated.observation.joint_field_count, 2);
         assert_eq!(migrated.observation.joint_neuron_count, 96);
         assert!(!migrated.observation.mounted_step_completed);

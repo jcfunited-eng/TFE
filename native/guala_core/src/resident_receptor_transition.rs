@@ -307,6 +307,39 @@ pub(crate) fn prepare_resident_receptor_ingress(
     }
 }
 
+/// Observe the typed receptors that reached the canonical UF-v1.4 cognition
+/// path directly from the immutable source.  This does not construct or visit
+/// the retired near-v1.3 mounted-delivery witnesses.
+pub(crate) fn observe_canonical_receptor_ingress(
+    source: &crate::joint_source_episode::NativeJointSourceEpisode,
+) -> ResidentReceptorIngressObservation {
+    let mut sense_counts = [0usize; TYPED_SENSE_COUNT];
+    let mut changing_count = 0usize;
+    let mut quiescent_count = 0usize;
+    for port in source.joint_source_ports() {
+        sense_counts[usize::from(port.sense)] += 1;
+        if port
+            .dimensionless_fields
+            .windows(2)
+            .all(|pair| pair[0] == pair[1])
+        {
+            quiescent_count += 1;
+        } else {
+            changing_count += 1;
+        }
+    }
+    let reached = source.joint_source_ports().len();
+    ResidentReceptorIngressObservation {
+        field_count: source.joint_source_occurrences().len(),
+        witness_count: reached,
+        sense_counts,
+        changing_count,
+        quiescent_count,
+        reached_neuron_visit_count: reached,
+        witness_construction_count: 0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

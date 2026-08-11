@@ -21,6 +21,7 @@ use crate::complete_neuron::{
     NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
     RecoveryContact,
 };
+use crate::developmental_resting_population::MaterializedRestingNeuron;
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_uf_neuron_boundary::{
     bind_neuron_perspective, JointNeuronPerspective, SharedCompleteJointField,
@@ -44,6 +45,7 @@ use crate::virtual_material_neuron_genesis::{
     create_virtual_material_neuron_with_gate_energy_quantum,
     definitive_virtual_gate_capacity_zeptojoules,
     definitive_virtual_reachable_support_energies_zeptojoules, VirtualMaterialGenesisError,
+    specialize_quiescent_virtual_material_neuron_with_gate_energy_quantum,
     VirtualMaterialNeuronGenesis, VirtualMaterialReachedCohortGenesis,
 };
 use crate::virtual_vestibular_canal::{
@@ -150,6 +152,14 @@ impl FunctionalVestibularAnatomy {
         self.gate_dissipation_capacity_quanta
     }
 
+    pub(crate) fn canal_anatomy(&self) -> CanalAnatomy {
+        self.canal
+    }
+
+    pub(crate) fn bundle_anatomy(&self) -> LocalCupulaBundleAnatomy {
+        self.bundle
+    }
+
     pub(crate) fn create_neuron(
         &self,
         perspective: JointNeuronPerspective<'_>,
@@ -162,6 +172,40 @@ impl FunctionalVestibularAnatomy {
         )
         .map_err(Into::into)
     }
+}
+
+/// Phase-one virtual body-and-balance anatomy.
+///
+/// This is deliberately a virtual-organism constitution, not a claim that one
+/// biological preparation supplies every dimension below.  Its canal and
+/// cupula geometry use the already documented biological-reference anatomy.
+/// Its tip-link assembly uses the 5 pN/nm stiffness and 25 pN resting tension
+/// reported by Nam et al., which derive an exact 5 nm resting extension.  The
+/// 2 nm gate swing is the smaller explicitly evaluated swing in that same
+/// model.  The intrinsic term is not fitted: 40 zJ is exactly
+/// `kappa * d * (x_rest - d/2)`, so an unmoved body has zero externally
+/// delivered gate work and opposite motion remains signed about that rest.
+pub(crate) fn phase_one_virtual_vestibular_anatomy(
+) -> Result<FunctionalVestibularAnatomy, FunctionalVestibularError> {
+    FunctionalVestibularAnatomy::new(
+        CanalAnatomy::new(
+            6,
+            13_200,
+            PositiveRatio::new(25, 1)
+                .map_err(|_| FunctionalVestibularError::EnergyLatticeUnavailable)?,
+        )
+        .map_err(|_| FunctionalVestibularError::EnergyLatticeUnavailable)?,
+        LocalCupulaBundleAnatomy::new(2, 5, 20_000)
+            .map_err(|_| FunctionalVestibularError::EnergyLatticeUnavailable)?,
+        TipLinkInsertionGeometry::new(500)
+            .map_err(FunctionalVestibularError::TipLink)?,
+        GatingSpringEnergyAnatomy::new(
+            ExactRational::integer(5),
+            ExactRational::integer(2),
+            ExactRational::integer(5),
+            ExactRational::integer(40),
+        )?,
+    )
 }
 
 /// Encode only independently authored vestibular anatomy. The receptor's gate
@@ -358,6 +402,40 @@ pub(crate) fn create_single_vertex_vestibular_reached_cohort(
     shared: &SharedCompleteJointField,
     neuron_lineage: [u8; 16],
 ) -> Result<VirtualMaterialReachedCohortGenesis, FunctionalVestibularError> {
+    create_single_vertex_vestibular_reached_cohort_inner(
+        vestibular,
+        source,
+        shared,
+        neuron_lineage,
+        None,
+    )
+}
+
+/// Specialize one already-declared virgin body-and-balance cell without
+/// replacing its lineage, place, membrane, carriers, or lived state.
+pub(crate) fn specialize_single_vertex_vestibular_reached_cohort(
+    vestibular: &FunctionalVestibularAnatomy,
+    source: &VestibularJointSourceAdmission,
+    shared: &SharedCompleteJointField,
+    neuron_lineage: [u8; 16],
+    resting: &MaterializedRestingNeuron,
+) -> Result<VirtualMaterialReachedCohortGenesis, FunctionalVestibularError> {
+    create_single_vertex_vestibular_reached_cohort_inner(
+        vestibular,
+        source,
+        shared,
+        neuron_lineage,
+        Some(resting),
+    )
+}
+
+fn create_single_vertex_vestibular_reached_cohort_inner(
+    vestibular: &FunctionalVestibularAnatomy,
+    source: &VestibularJointSourceAdmission,
+    shared: &SharedCompleteJointField,
+    neuron_lineage: [u8; 16],
+    resting: Option<&MaterializedRestingNeuron>,
+) -> Result<VirtualMaterialReachedCohortGenesis, FunctionalVestibularError> {
     if shared.vertex_count() != 1
         || shared.groups().len() != 1
         || shared.groups()[0].as_slice() != [0]
@@ -373,7 +451,18 @@ pub(crate) fn create_single_vertex_vestibular_reached_cohort(
         FunctionalVestibularError::Genesis(VirtualMaterialGenesisError::Source(error))
     })?;
     let site = NeuronSourceSite::from_anchor(source_anchor);
-    let neuron = vestibular.create_neuron(perspective, &site)?;
+    let neuron = match resting {
+        Some(resting) => specialize_quiescent_virtual_material_neuron_with_gate_energy_quantum(
+            perspective,
+            &site,
+            resting.place,
+            &resting.anatomy,
+            &resting.state,
+            vestibular.gate_energy_quantum_zeptojoules.clone(),
+        )
+        .map_err(FunctionalVestibularError::Genesis)?,
+        None => vestibular.create_neuron(perspective, &site)?,
+    };
     let electrical = SparseElectricalAnatomy::new(1, Vec::new()).map_err(|error| {
         FunctionalVestibularError::Genesis(VirtualMaterialGenesisError::Electrical(error))
     })?;
@@ -456,7 +545,8 @@ pub(crate) fn settle_vestibular_neuron_compatibility_interval(
             interval_microseconds: transduction.reached_tick.interval_microseconds,
             recovery: RecoveryContact::new(zero_recovery_catalysts, 0, 0),
             dna_expression: DnaExpressionContact::new(0),
-            optical_successor_residue: None,
+            receptor_successor_residue: None,
+            prepared_psi: None,
         },
         inter_neuron_outward_elementary_charges,
     )?;
@@ -533,7 +623,6 @@ fn gcd(mut left: u128, mut right: u128) -> u128 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::complete_neuron::GateSettlementError;
     use crate::joint_uf_neuron_boundary::prepare_complete_joint_field_with_admission;
     use crate::reached_neuron_cohort::{decode_reached_cohort_cell, encode_reached_cohort_cell};
     use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick as externally_settle_tick;
@@ -773,7 +862,10 @@ mod tests {
         assert_eq!(genesis.anatomy.neuron_count(), 1);
         assert_eq!(genesis.anatomy.contact_count(), 0);
         assert_eq!(genesis.anatomy.neuron_lineages(), &[lineage]);
-        assert_eq!(genesis.anatomy.source_sites(), &[expected_source_site]);
+        assert_eq!(
+            genesis.anatomy.source_sites().collect::<Vec<_>>(),
+            vec![&expected_source_site]
+        );
         assert_eq!(
             genesis.anatomy.neuron_anatomies()[0].gate_dissipation_capacity_quanta(),
             4_500
@@ -788,7 +880,7 @@ mod tests {
     }
 
     #[test]
-    fn ordinary_gate_lattice_is_visible_and_refuses_exact_vestibular_work() {
+    fn ordinary_gate_lattice_conserves_exact_fractional_vestibular_work() {
         let anatomy = candidate_anatomy();
         let (source, tick) = admitted_source(&anatomy, 64);
         let admission = source.joint_uf_source_admission().unwrap();
@@ -803,20 +895,17 @@ mod tests {
             ordinary.anatomy().gate_dissipation_capacity_quanta(),
             anatomy.gate_dissipation_capacity_quanta()
         );
-        assert_eq!(
-            settle_vestibular_neuron_compatibility_interval(
-                &anatomy,
-                tick,
-                ordinary.anatomy(),
-                ordinary.state(),
-                perspective,
-                ordinary.zero_recovery_catalysts(),
-                0,
-            ),
-            Err(FunctionalVestibularError::Neuron(
-                NeuronPhysicalError::Gate(GateSettlementError::DissipationNotQuantized)
-            ))
-        );
+        let settled = settle_vestibular_neuron_compatibility_interval(
+            &anatomy,
+            tick,
+            ordinary.anatomy(),
+            ordinary.state(),
+            perspective,
+            ordinary.zero_recovery_catalysts(),
+            0,
+        )
+        .unwrap();
+        assert_ne!(&settled.successor_neuron, ordinary.state());
     }
 
     #[test]

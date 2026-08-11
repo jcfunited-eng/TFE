@@ -9,65 +9,193 @@
 //! work, or whole-brain scan is present here.
 
 use crate::complete_neuron::{
-    required_gate_recovery_extent_for_interval, settle_recovery_only, GateWorkOccurrence,
-    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, RecoveryContact,
-    RecoveryError, RecoveryLaneAddress, RecoveryLaneAnatomy, RecoveryLaneState,
+    required_gate_recovery_extent_for_interval_with_psi, settle_recovery_only, GateWorkOccurrence,
+    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, PsiSettlement,
+    RecoveryContact, RecoveryError, RecoveryLaneAddress, RecoveryLaneAnatomy, RecoveryLaneState,
 };
-use crate::joint_uf_neuron_boundary::JointNeuronPerspective;
+use crate::exact_rational::{ExactRational, ExactRationalError};
+use core::cmp::Ordering;
+use num_bigint::BigInt;
+use num_rational::BigRational;
+use num_traits::ToPrimitive;
 
-const ANATOMY_MAGIC: &[u8; 8] = b"GLRFA01\0";
-const STATE_MAGIC: &[u8; 8] = b"GLRFS01\0";
+const ANATOMY_MAGIC: &[u8; 8] = b"GLRFA02\0";
+const LEGACY_ANATOMY_MAGIC: &[u8; 8] = b"GLRFA01\0";
+const STATE_MAGIC: &[u8; 8] = b"GLRFS02\0";
+const LEGACY_STATE_MAGIC: &[u8; 8] = b"GLRFS01\0";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct RecoveryFluidReservoirAnatomy {
-    fuel_capacity: u128,
-    spent_capacity: u128,
-    heat_capacity: u128,
+    available_energy_capacity_zeptojoules: ExactRational,
+    spent_energy_capacity_zeptojoules: ExactRational,
+    thermal_energy_capacity_zeptojoules: ExactRational,
 }
 
 impl RecoveryFluidReservoirAnatomy {
-    pub(crate) fn new(fuel_capacity: u128, spent_capacity: u128, heat_capacity: u128) -> Self {
-        Self {
-            fuel_capacity,
-            spent_capacity,
-            heat_capacity,
+    pub(crate) fn new(
+        available_energy_capacity_zeptojoules: ExactRational,
+        spent_energy_capacity_zeptojoules: ExactRational,
+        thermal_energy_capacity_zeptojoules: ExactRational,
+    ) -> Result<Self, RecoveryFluidError> {
+        for value in [
+            available_energy_capacity_zeptojoules,
+            spent_energy_capacity_zeptojoules,
+            thermal_energy_capacity_zeptojoules,
+        ] {
+            if wide_rational(value) < wide_rational(ExactRational::integer(0)) {
+                return Err(RecoveryFluidError::StateOutsideAnatomy);
+            }
         }
+        Ok(Self {
+            available_energy_capacity_zeptojoules,
+            spent_energy_capacity_zeptojoules,
+            thermal_energy_capacity_zeptojoules,
+        })
     }
 
-    pub(crate) fn capacities(self) -> (u128, u128, u128) {
-        (self.fuel_capacity, self.spent_capacity, self.heat_capacity)
+    pub(crate) fn capacities(self) -> (ExactRational, ExactRational, ExactRational) {
+        (
+            self.available_energy_capacity_zeptojoules,
+            self.spent_energy_capacity_zeptojoules,
+            self.thermal_energy_capacity_zeptojoules,
+        )
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct RecoveryFluidReservoirState {
-    fuel_quanta: u128,
-    spent_quanta: u128,
-    heat_quanta: u128,
+    available_energy_zeptojoules: ExactRational,
+    spent_energy_zeptojoules: ExactRational,
+    thermal_energy_zeptojoules: ExactRational,
 }
 
 impl RecoveryFluidReservoirState {
     pub(crate) fn new(
         anatomy: RecoveryFluidReservoirAnatomy,
-        fuel_quanta: u128,
-        spent_quanta: u128,
-        heat_quanta: u128,
+        available_energy_zeptojoules: ExactRational,
+        spent_energy_zeptojoules: ExactRational,
+        thermal_energy_zeptojoules: ExactRational,
     ) -> Result<Self, RecoveryFluidError> {
-        if fuel_quanta > anatomy.fuel_capacity
-            || spent_quanta > anatomy.spent_capacity
-            || heat_quanta > anatomy.heat_capacity
+        let zero = wide_rational(ExactRational::integer(0));
+        if wide_rational(available_energy_zeptojoules) < zero
+            || wide_rational(spent_energy_zeptojoules) < zero
+            || wide_rational(thermal_energy_zeptojoules) < zero
+            || wide_rational(available_energy_zeptojoules)
+                > wide_rational(anatomy.available_energy_capacity_zeptojoules)
+            || wide_rational(spent_energy_zeptojoules)
+                > wide_rational(anatomy.spent_energy_capacity_zeptojoules)
+            || wide_rational(thermal_energy_zeptojoules)
+                > wide_rational(anatomy.thermal_energy_capacity_zeptojoules)
         {
             return Err(RecoveryFluidError::StateOutsideAnatomy);
         }
         Ok(Self {
-            fuel_quanta,
-            spent_quanta,
-            heat_quanta,
+            available_energy_zeptojoules,
+            spent_energy_zeptojoules,
+            thermal_energy_zeptojoules,
         })
     }
 
-    pub(crate) fn physical_parts(self) -> (u128, u128, u128) {
-        (self.fuel_quanta, self.spent_quanta, self.heat_quanta)
+    pub(crate) fn physical_parts(self) -> (ExactRational, ExactRational, ExactRational) {
+        (
+            self.available_energy_zeptojoules,
+            self.spent_energy_zeptojoules,
+            self.thermal_energy_zeptojoules,
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct PoweredEnvironmentExchange {
+    pub(crate) successor: RecoveryFluidReservoirState,
+    pub(crate) delivered_energy_zeptojoules: ExactRational,
+    pub(crate) exported_heat_zeptojoules: ExactRational,
+}
+
+/// Settle one always-available phase-one incubator contact.
+///
+/// External power converts already-retained spent energy-equivalent material
+/// back into available body energy; it does not create extra body material or
+/// refill to a target.  The independent heat path removes only heat that is
+/// physically present.  Both transfers are bounded by the contact's exact
+/// energy for this elapsed interval and the finite destination/source state.
+pub(crate) fn settle_powered_environment_exchange(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    predecessor: RecoveryFluidReservoirState,
+    maximum_interval_energy_zeptojoules: ExactRational,
+) -> Result<PoweredEnvironmentExchange, RecoveryFluidError> {
+    let zero = ExactRational::integer(0);
+    if wide_rational(maximum_interval_energy_zeptojoules) < wide_rational(zero) {
+        return Err(RecoveryFluidError::StateOutsideAnatomy);
+    }
+    let (available_capacity, _, _) = anatomy.capacities();
+    let (available, spent, thermal) = predecessor.physical_parts();
+    let available_headroom = wide_sub(available_capacity, available)?;
+    let delivered = exact_minimum(
+        maximum_interval_energy_zeptojoules,
+        exact_minimum(spent, available_headroom)?,
+    )?;
+    let exported_heat = exact_minimum(maximum_interval_energy_zeptojoules, thermal)?;
+    let successor = RecoveryFluidReservoirState::new(
+        anatomy,
+        wide_add(available, delivered)?,
+        wide_sub(spent, delivered)?,
+        wide_sub(thermal, exported_heat)?,
+    )?;
+    Ok(PoweredEnvironmentExchange {
+        successor,
+        delivered_energy_zeptojoules: delivered,
+        exported_heat_zeptojoules: exported_heat,
+    })
+}
+
+fn exact_minimum(
+    left: ExactRational,
+    right: ExactRational,
+) -> Result<ExactRational, RecoveryFluidError> {
+    Ok(if wide_rational(left) > wide_rational(right) {
+        right
+    } else {
+        left
+    })
+}
+
+fn wide_rational(value: ExactRational) -> BigRational {
+    let (numerator, denominator) = value.parts();
+    BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+}
+
+fn narrow_rational(value: BigRational) -> Result<ExactRational, RecoveryFluidError> {
+    ExactRational::new(
+        value
+            .numer()
+            .to_i128()
+            .ok_or(RecoveryFluidError::ArithmeticWidth)?,
+        value
+            .denom()
+            .to_u128()
+            .ok_or(RecoveryFluidError::ArithmeticWidth)?,
+    )
+    .map_err(Into::into)
+}
+
+fn wide_add(
+    left: ExactRational,
+    right: ExactRational,
+) -> Result<ExactRational, RecoveryFluidError> {
+    narrow_rational(wide_rational(left) + wide_rational(right))
+}
+
+fn wide_sub(
+    left: ExactRational,
+    right: ExactRational,
+) -> Result<ExactRational, RecoveryFluidError> {
+    narrow_rational(wide_rational(left) - wide_rational(right))
+}
+
+impl From<ExactRationalError> for RecoveryFluidError {
+    fn from(_: ExactRationalError) -> Self {
+        Self::ArithmeticWidth
     }
 }
 
@@ -133,9 +261,7 @@ impl ReachedRecoveryFluidAnatomy {
         mounted
             .try_reserve_exact(neurons.len())
             .map_err(|_| RecoveryFluidError::ArithmeticWidth)?;
-        let mut fuel_capacity = 0_u128;
-        let mut spent_capacity = 0_u128;
-        let mut heat_capacity = 0_u128;
+        let mut energy_capacity = ExactRational::integer(0);
         for neuron in neurons {
             let mut psi_contacts = Vec::new();
             psi_contacts
@@ -143,27 +269,27 @@ impl ReachedRecoveryFluidAnatomy {
                 .map_err(|_| RecoveryFluidError::ArithmeticWidth)?;
             for index in 0..neuron.psi_ring_count() {
                 let contact = derive_contact(neuron, RecoveryLaneAddress::Psi(index))?;
-                accumulate_contact(
+                accumulate_contact_energy(
+                    neuron,
+                    RecoveryLaneAddress::Psi(index),
                     contact,
-                    &mut fuel_capacity,
-                    &mut spent_capacity,
-                    &mut heat_capacity,
+                    &mut energy_capacity,
                 )?;
                 psi_contacts.push(contact);
             }
             let gate_contact = derive_contact(neuron, RecoveryLaneAddress::Gate)?;
-            accumulate_contact(
+            accumulate_contact_energy(
+                neuron,
+                RecoveryLaneAddress::Gate,
                 gate_contact,
-                &mut fuel_capacity,
-                &mut spent_capacity,
-                &mut heat_capacity,
+                &mut energy_capacity,
             )?;
             let plastic_contact = derive_contact(neuron, RecoveryLaneAddress::Plastic)?;
-            accumulate_contact(
+            accumulate_contact_energy(
+                neuron,
+                RecoveryLaneAddress::Plastic,
                 plastic_contact,
-                &mut fuel_capacity,
-                &mut spent_capacity,
-                &mut heat_capacity,
+                &mut energy_capacity,
             )?;
             mounted.push(RecoveryFluidNeuronAnatomy {
                 psi_contacts: psi_contacts.into_boxed_slice(),
@@ -173,19 +299,19 @@ impl ReachedRecoveryFluidAnatomy {
         }
         Ok(Self {
             reservoir: RecoveryFluidReservoirAnatomy::new(
-                fuel_capacity,
-                spent_capacity,
-                heat_capacity,
-            ),
+                energy_capacity,
+                energy_capacity,
+                energy_capacity,
+            )?,
             neurons: mounted.into_boxed_slice(),
         })
     }
 
     pub(crate) fn genesis_state(&self) -> RecoveryFluidReservoirState {
         RecoveryFluidReservoirState {
-            fuel_quanta: self.reservoir.fuel_capacity,
-            spent_quanta: 0,
-            heat_quanta: 0,
+            available_energy_zeptojoules: self.reservoir.available_energy_capacity_zeptojoules,
+            spent_energy_zeptojoules: ExactRational::integer(0),
+            thermal_energy_zeptojoules: ExactRational::integer(0),
         }
     }
 
@@ -224,32 +350,101 @@ pub(crate) fn extend_reached_recovery_fluid_state(
     predecessor: RecoveryFluidReservoirState,
 ) -> Result<RecoveryFluidReservoirState, RecoveryFluidError> {
     if successor_anatomy.neurons.len() < predecessor_anatomy.neurons.len()
-        || successor_anatomy.neurons[..predecessor_anatomy.neurons.len()]
-            != predecessor_anatomy.neurons[..]
+        || predecessor_anatomy
+            .neurons
+            .iter()
+            .zip(&successor_anatomy.neurons)
+            .any(|(predecessor_neuron, successor_neuron)| {
+                successor_neuron.psi_contacts.len() < predecessor_neuron.psi_contacts.len()
+                    || successor_neuron.psi_contacts[..predecessor_neuron.psi_contacts.len()]
+                        != predecessor_neuron.psi_contacts[..]
+                    || successor_neuron.gate_contact != predecessor_neuron.gate_contact
+                    || successor_neuron.plastic_contact != predecessor_neuron.plastic_contact
+            })
     {
         return Err(RecoveryFluidError::AnatomyWidth);
     }
     let predecessor_capacity = predecessor_anatomy.reservoir.capacities();
     let successor_capacity = successor_anatomy.reservoir.capacities();
     let predecessor_state = predecessor.physical_parts();
-    let added_fuel_capacity = successor_capacity
-        .0
-        .checked_sub(predecessor_capacity.0)
-        .ok_or(RecoveryFluidError::AnatomyWidth)?;
-    if successor_capacity.1 < predecessor_capacity.1
-        || successor_capacity.2 < predecessor_capacity.2
+    if successor_capacity.0.checked_cmp(predecessor_capacity.0)? == Ordering::Less
+        || successor_capacity.1.checked_cmp(predecessor_capacity.1)? == Ordering::Less
+        || successor_capacity.2.checked_cmp(predecessor_capacity.2)? == Ordering::Less
     {
         return Err(RecoveryFluidError::AnatomyWidth);
     }
+    // Growing anatomy creates empty capacity, never energy.
     RecoveryFluidReservoirState::new(
         successor_anatomy.reservoir,
-        predecessor_state
-            .0
-            .checked_add(added_fuel_capacity)
-            .ok_or(RecoveryFluidError::ArithmeticWidth)?,
+        predecessor_state.0,
         predecessor_state.1,
         predecessor_state.2,
     )
+}
+
+/// Carry one reservoir across a one-way expansion of already-mounted recovery
+/// contacts. Existing fuel, spent material, and heat remain exact; only the
+/// newly represented contact capacity contributes virgin fuel. No history or
+/// occurrence is copied.
+pub(crate) fn expand_reached_recovery_fluid_state(
+    predecessor_anatomy: &ReachedRecoveryFluidAnatomy,
+    successor_anatomy: &ReachedRecoveryFluidAnatomy,
+    predecessor: RecoveryFluidReservoirState,
+) -> Result<RecoveryFluidReservoirState, RecoveryFluidError> {
+    if predecessor_anatomy.neurons.len() != successor_anatomy.neurons.len() {
+        return Err(RecoveryFluidError::AnatomyWidth);
+    }
+    for (predecessor_neuron, successor_neuron) in predecessor_anatomy
+        .neurons
+        .iter()
+        .zip(&successor_anatomy.neurons)
+    {
+        if predecessor_neuron.psi_contacts != successor_neuron.psi_contacts
+            || !contact_is_componentwise_extension(
+                predecessor_neuron.gate_contact,
+                successor_neuron.gate_contact,
+            )
+            || !contact_is_componentwise_extension(
+                predecessor_neuron.plastic_contact,
+                successor_neuron.plastic_contact,
+            )
+        {
+            return Err(RecoveryFluidError::AnatomyWidth);
+        }
+    }
+    let predecessor_capacity = predecessor_anatomy.reservoir.capacities();
+    let successor_capacity = successor_anatomy.reservoir.capacities();
+    if successor_capacity.0.checked_cmp(predecessor_capacity.0)? == Ordering::Less
+        || successor_capacity.1.checked_cmp(predecessor_capacity.1)? == Ordering::Less
+        || successor_capacity.2.checked_cmp(predecessor_capacity.2)? == Ordering::Less
+    {
+        return Err(RecoveryFluidError::AnatomyWidth);
+    }
+    let (available, spent, thermal) = predecessor.physical_parts();
+    RecoveryFluidReservoirState::new(successor_anatomy.reservoir, available, spent, thermal)
+}
+
+fn contact_is_componentwise_extension(
+    predecessor: RecoveryFluidContactAnatomy,
+    successor: RecoveryFluidContactAnatomy,
+) -> bool {
+    let predecessor = predecessor.parts();
+    let successor = successor.parts();
+    if predecessor.0 == 0 || predecessor.1 == 0 || predecessor.2 == 0 || predecessor.3 == 0 {
+        return false;
+    }
+    if successor.0 % predecessor.0 != 0
+        || successor.1 % predecessor.1 != 0
+        || successor.2 % predecessor.2 != 0
+        || successor.3 % predecessor.3 != 0
+    {
+        return false;
+    }
+    let scale = successor.0 / predecessor.0;
+    scale != 0
+        && successor.1 / predecessor.1 == scale
+        && successor.2 / predecessor.2 == scale
+        && successor.3 / predecessor.3 == scale
 }
 
 fn derive_contact(
@@ -265,22 +460,31 @@ fn derive_contact(
     )
 }
 
-fn accumulate_contact(
+fn accumulate_contact_energy(
+    neuron: &NeuronPhysicalAnatomy,
+    address: RecoveryLaneAddress,
     contact: RecoveryFluidContactAnatomy,
-    fuel: &mut u128,
-    spent: &mut u128,
-    heat: &mut u128,
+    energy: &mut ExactRational,
 ) -> Result<(), RecoveryFluidError> {
+    let lane = neuron
+        .recovery_anatomy()
+        .lane(address)
+        .ok_or(RecoveryFluidError::AnatomyWidth)?;
+    let (_, fuel_per_extent, spent_per_extent, heat_per_extent) = lane.stoichiometry();
     let (_, contact_fuel, contact_spent, contact_heat) = contact.parts();
-    *fuel = fuel
-        .checked_add(contact_fuel)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
-    *spent = spent
-        .checked_add(contact_spent)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
-    *heat = heat
-        .checked_add(contact_heat)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+    let extents = contact_fuel / fuel_per_extent;
+    if contact_fuel % fuel_per_extent != 0
+        || contact_spent / spent_per_extent != extents
+        || contact_spent % spent_per_extent != 0
+        || contact_heat / heat_per_extent != extents
+        || contact_heat % heat_per_extent != 0
+    {
+        return Err(RecoveryFluidError::MaterialContinuity);
+    }
+    let contact_energy = neuron
+        .recovery_energy_per_extent_zeptojoules(address)?
+        .checked_mul_unsigned(extents)?;
+    *energy = energy.checked_add(contact_energy)?;
     Ok(())
 }
 
@@ -327,6 +531,7 @@ impl From<NeuronPhysicalError> for RecoveryFluidError {
 
 pub(crate) fn settle_recovery_fluid_contact(
     lane_anatomy: RecoveryLaneAnatomy,
+    energy_per_extent_zeptojoules: ExactRational,
     predecessor_lane: RecoveryLaneState,
     reservoir_anatomy: RecoveryFluidReservoirAnatomy,
     predecessor_reservoir: RecoveryFluidReservoirState,
@@ -334,39 +539,56 @@ pub(crate) fn settle_recovery_fluid_contact(
 ) -> Result<RecoveryFluidSettlement, RecoveryFluidError> {
     let (lane_fuel, lane_spent, lane_heat) = predecessor_lane.physical_parts();
     let (lane_fuel_capacity, _, _) = lane_anatomy.capacities();
-    let (reservoir_fuel, reservoir_spent, reservoir_heat) = predecessor_reservoir.physical_parts();
-    if reservoir_fuel > reservoir_anatomy.fuel_capacity
-        || reservoir_spent > reservoir_anatomy.spent_capacity
-        || reservoir_heat > reservoir_anatomy.heat_capacity
-    {
-        return Err(RecoveryFluidError::StateOutsideAnatomy);
+    let (reservoir_available, reservoir_spent, reservoir_thermal) =
+        predecessor_reservoir.physical_parts();
+    RecoveryFluidReservoirState::new(
+        reservoir_anatomy,
+        reservoir_available,
+        reservoir_spent,
+        reservoir_thermal,
+    )?;
+    if energy_per_extent_zeptojoules.checked_cmp(ExactRational::integer(0))? != Ordering::Greater {
+        return Err(RecoveryFluidError::MaterialContinuity);
     }
-    let inward_fuel = contact
-        .fuel_inward_capacity_per_interval
-        .min(reservoir_fuel)
-        .min(
-            lane_fuel_capacity
-                .checked_sub(lane_fuel)
-                .ok_or(RecoveryFluidError::StateOutsideAnatomy)?,
-        );
-    let outward_spent = contact
-        .spent_outward_capacity_per_interval
-        .min(lane_spent)
-        .min(
-            reservoir_anatomy
-                .spent_capacity
-                .checked_sub(reservoir_spent)
-                .ok_or(RecoveryFluidError::StateOutsideAnatomy)?,
-        );
-    let outward_heat = contact
-        .heat_outward_capacity_per_interval
-        .min(lane_heat)
-        .min(
-            reservoir_anatomy
-                .heat_capacity
-                .checked_sub(reservoir_heat)
-                .ok_or(RecoveryFluidError::StateOutsideAnatomy)?,
-        );
+    let (_, fuel_per_extent, spent_per_extent, heat_per_extent) = lane_anatomy.stoichiometry();
+    let inward_extent = (contact.fuel_inward_capacity_per_interval / fuel_per_extent)
+        .min((lane_fuel_capacity - lane_fuel) / fuel_per_extent)
+        .min(whole_extents_carried(
+            reservoir_available,
+            energy_per_extent_zeptojoules,
+        )?);
+    let spent_free = wide_sub(
+        reservoir_anatomy.spent_energy_capacity_zeptojoules,
+        reservoir_spent,
+    )?;
+    let outward_spent_extent = (contact.spent_outward_capacity_per_interval / spent_per_extent)
+        .min(lane_spent / spent_per_extent)
+        .min(whole_extents_carried(
+            spent_free,
+            energy_per_extent_zeptojoules,
+        )?);
+    let thermal_free = wide_sub(
+        reservoir_anatomy.thermal_energy_capacity_zeptojoules,
+        reservoir_thermal,
+    )?;
+    let outward_heat_extent = (contact.heat_outward_capacity_per_interval / heat_per_extent)
+        .min(lane_heat / heat_per_extent)
+        .min(whole_extents_carried(
+            thermal_free,
+            energy_per_extent_zeptojoules,
+        )?);
+    let inward_fuel = inward_extent
+        .checked_mul(fuel_per_extent)
+        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+    let outward_spent = outward_spent_extent
+        .checked_mul(spent_per_extent)
+        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+    let outward_heat = outward_heat_extent
+        .checked_mul(heat_per_extent)
+        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+    let inward_energy = energy_per_extent_zeptojoules.checked_mul_unsigned(inward_extent)?;
+    let spent_energy = energy_per_extent_zeptojoules.checked_mul_unsigned(outward_spent_extent)?;
+    let thermal_energy = energy_per_extent_zeptojoules.checked_mul_unsigned(outward_heat_extent)?;
     let successor_lane = RecoveryLaneState::from_physical_parts(
         lane_anatomy,
         lane_fuel
@@ -377,13 +599,9 @@ pub(crate) fn settle_recovery_fluid_contact(
     )?;
     let successor_reservoir = RecoveryFluidReservoirState::new(
         reservoir_anatomy,
-        reservoir_fuel - inward_fuel,
-        reservoir_spent
-            .checked_add(outward_spent)
-            .ok_or(RecoveryFluidError::ArithmeticWidth)?,
-        reservoir_heat
-            .checked_add(outward_heat)
-            .ok_or(RecoveryFluidError::ArithmeticWidth)?,
+        wide_sub(reservoir_available, inward_energy)?,
+        wide_add(reservoir_spent, spent_energy)?,
+        wide_add(reservoir_thermal, thermal_energy)?,
     )?;
     Ok(RecoveryFluidSettlement {
         successor_lane,
@@ -394,13 +612,28 @@ pub(crate) fn settle_recovery_fluid_contact(
     })
 }
 
+pub(crate) fn whole_extents_carried(
+    energy: ExactRational,
+    energy_per_extent: ExactRational,
+) -> Result<u128, RecoveryFluidError> {
+    if wide_rational(energy) < BigRational::from_integer(BigInt::from(0))
+        || wide_rational(energy_per_extent) <= BigRational::from_integer(BigInt::from(0))
+    {
+        return Err(RecoveryFluidError::MaterialContinuity);
+    }
+    (wide_rational(energy) / wide_rational(energy_per_extent))
+        .to_integer()
+        .to_u128()
+        .ok_or(RecoveryFluidError::ArithmeticWidth)
+}
+
 pub(crate) fn settle_resident_gate_recovery_before_interval(
     recovery_anatomy: &ReachedRecoveryFluidAnatomy,
     neuron_index: usize,
     neuron_anatomy: &NeuronPhysicalAnatomy,
     predecessor_neuron: &NeuronPhysicalState,
-    perspective: JointNeuronPerspective<'_>,
     gate_work: &GateWorkOccurrence,
+    prepared_psi: &PsiSettlement,
     predecessor_reservoir: RecoveryFluidReservoirState,
 ) -> Result<ResidentGateRecoverySettlement, RecoveryFluidError> {
     let mounted = recovery_anatomy
@@ -409,11 +642,11 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
     if mounted.psi_contacts.len() != neuron_anatomy.psi_ring_count() {
         return Err(RecoveryFluidError::AnatomyWidth);
     }
-    let required_extent = required_gate_recovery_extent_for_interval(
+    let required_extent = required_gate_recovery_extent_for_interval_with_psi(
         neuron_anatomy,
         predecessor_neuron,
-        perspective,
         gate_work,
+        prepared_psi,
     )?;
     if required_extent == 0 {
         return Ok(ResidentGateRecoverySettlement {
@@ -435,19 +668,22 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
         lane_anatomy.stoichiometry();
     let (lane_fuel_capacity, lane_spent_capacity, lane_heat_capacity) = lane_anatomy.capacities();
     let (lane_fuel, lane_spent, lane_heat) = predecessor_lane.physical_parts();
-    let (reservoir_fuel_capacity, reservoir_spent_capacity, reservoir_heat_capacity) =
+    let (reservoir_available_capacity, reservoir_spent_capacity, reservoir_thermal_capacity) =
         recovery_anatomy.reservoir.capacities();
-    let (reservoir_fuel, reservoir_spent, reservoir_heat) = predecessor_reservoir.physical_parts();
+    let (reservoir_available, reservoir_spent, reservoir_thermal) =
+        predecessor_reservoir.physical_parts();
     if lane_fuel > lane_fuel_capacity
         || lane_spent > lane_spent_capacity
         || lane_heat > lane_heat_capacity
-        || reservoir_fuel > reservoir_fuel_capacity
-        || reservoir_spent > reservoir_spent_capacity
-        || reservoir_heat > reservoir_heat_capacity
+        || wide_rational(reservoir_available) > wide_rational(reservoir_available_capacity)
+        || wide_rational(reservoir_spent) > wide_rational(reservoir_spent_capacity)
+        || wide_rational(reservoir_thermal) > wide_rational(reservoir_thermal_capacity)
     {
         return Err(RecoveryFluidError::StateOutsideAnatomy);
     }
     let contact = mounted.gate_contact;
+    let energy_per_extent =
+        neuron_anatomy.recovery_energy_per_extent_zeptojoules(RecoveryLaneAddress::Gate)?;
     let settled_extent = required_extent
         // Conservation: the recovery reaction undoes dissipation, so it can
         // never run further than the dissipation that actually exists. The
@@ -459,9 +695,18 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
         .min(lane_fuel / fuel_per_extent)
         .min((lane_spent_capacity - lane_spent) / spent_per_extent)
         .min((lane_heat_capacity - lane_heat) / heat_per_extent)
-        .min(reservoir_fuel / fuel_per_extent)
-        .min((reservoir_spent_capacity - reservoir_spent) / spent_per_extent)
-        .min((reservoir_heat_capacity - reservoir_heat) / heat_per_extent)
+        .min(whole_extents_carried(
+            reservoir_available,
+            energy_per_extent,
+        )?)
+        .min(whole_extents_carried(
+            wide_sub(reservoir_spent_capacity, reservoir_spent)?,
+            energy_per_extent,
+        )?)
+        .min(whole_extents_carried(
+            wide_sub(reservoir_thermal_capacity, reservoir_thermal)?,
+            energy_per_extent,
+        )?)
         .min(contact.catalyst_capacity_per_interval / catalyst_per_extent)
         .min(contact.fuel_inward_capacity_per_interval / fuel_per_extent)
         .min(contact.spent_outward_capacity_per_interval / spent_per_extent)
@@ -502,6 +747,7 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
         .ok_or(RecoveryError::AnatomyWidth)?;
     let exchanged = settle_recovery_fluid_contact(
         lane_anatomy,
+        energy_per_extent,
         recovered_lane,
         recovery_anatomy.reservoir,
         predecessor_reservoir,
@@ -530,7 +776,7 @@ pub(crate) fn encode_reached_recovery_fluid_anatomy(
 ) -> Result<Vec<u8>, RecoveryFluidError> {
     let mut out = Vec::new();
     out.extend_from_slice(ANATOMY_MAGIC);
-    push_three(&mut out, anatomy.reservoir.capacities());
+    push_exact_three(&mut out, anatomy.reservoir.capacities());
     push_usize(&mut out, anatomy.neurons.len())?;
     for neuron in &anatomy.neurons {
         push_usize(&mut out, neuron.psi_contacts.len())?;
@@ -550,11 +796,24 @@ pub(crate) fn decode_reached_recovery_fluid_anatomy(
     neurons: &[NeuronPhysicalAnatomy],
 ) -> Result<ReachedRecoveryFluidAnatomy, RecoveryFluidError> {
     let mut reader = Reader::new(encoded);
-    if reader.take(ANATOMY_MAGIC.len())? != ANATOMY_MAGIC {
+    let magic = reader.take(ANATOMY_MAGIC.len())?;
+    if magic != ANATOMY_MAGIC && magic != LEGACY_ANATOMY_MAGIC {
         return Err(RecoveryFluidError::InvalidEncoding);
     }
-    let reservoir =
-        RecoveryFluidReservoirAnatomy::new(reader.u128()?, reader.u128()?, reader.u128()?);
+    let legacy_capacities = if magic == LEGACY_ANATOMY_MAGIC {
+        Some((reader.u128()?, reader.u128()?, reader.u128()?))
+    } else {
+        None
+    };
+    let declared_reservoir = if legacy_capacities.is_none() {
+        Some(RecoveryFluidReservoirAnatomy::new(
+            reader.exact_rational()?,
+            reader.exact_rational()?,
+            reader.exact_rational()?,
+        )?)
+    } else {
+        None
+    };
     let count = reader.usize()?;
     if count != neurons.len() {
         return Err(RecoveryFluidError::AnatomyWidth);
@@ -584,14 +843,26 @@ pub(crate) fn decode_reached_recovery_fluid_anatomy(
     if !reader.finished() {
         return Err(RecoveryFluidError::InvalidEncoding);
     }
-    let decoded = ReachedRecoveryFluidAnatomy {
-        reservoir,
+    let contacts = ReachedRecoveryFluidAnatomy {
+        reservoir: RecoveryFluidReservoirAnatomy::new(
+            ExactRational::integer(0),
+            ExactRational::integer(0),
+            ExactRational::integer(0),
+        )?,
         neurons: mounted.into_boxed_slice(),
     };
-    if decoded != ReachedRecoveryFluidAnatomy::derive(neurons)? {
+    let derived = ReachedRecoveryFluidAnatomy::derive(neurons)?;
+    if contacts.neurons != derived.neurons {
         return Err(RecoveryFluidError::InvalidEncoding);
     }
-    Ok(decoded)
+    if let Some(declared) = declared_reservoir {
+        if declared != derived.reservoir {
+            return Err(RecoveryFluidError::InvalidEncoding);
+        }
+    } else if legacy_capacities != Some(legacy_raw_capacities(&derived)?) {
+        return Err(RecoveryFluidError::InvalidEncoding);
+    }
+    Ok(derived)
 }
 
 pub(crate) fn encode_reached_recovery_fluid_state(
@@ -600,13 +871,13 @@ pub(crate) fn encode_reached_recovery_fluid_state(
 ) -> Result<Vec<u8>, RecoveryFluidError> {
     RecoveryFluidReservoirState::new(
         anatomy.reservoir,
-        state.fuel_quanta,
-        state.spent_quanta,
-        state.heat_quanta,
+        state.available_energy_zeptojoules,
+        state.spent_energy_zeptojoules,
+        state.thermal_energy_zeptojoules,
     )?;
     let mut out = Vec::new();
     out.extend_from_slice(STATE_MAGIC);
-    push_three(&mut out, state.physical_parts());
+    push_exact_three(&mut out, state.physical_parts());
     Ok(out)
 }
 
@@ -615,25 +886,125 @@ pub(crate) fn decode_reached_recovery_fluid_state(
     anatomy: &ReachedRecoveryFluidAnatomy,
 ) -> Result<RecoveryFluidReservoirState, RecoveryFluidError> {
     let mut reader = Reader::new(encoded);
-    if reader.take(STATE_MAGIC.len())? != STATE_MAGIC {
+    let magic = reader.take(STATE_MAGIC.len())?;
+    if magic != STATE_MAGIC && magic != LEGACY_STATE_MAGIC {
         return Err(RecoveryFluidError::InvalidEncoding);
     }
-    let state = RecoveryFluidReservoirState::new(
-        anatomy.reservoir,
-        reader.u128()?,
-        reader.u128()?,
-        reader.u128()?,
-    )?;
+    let state = if magic == STATE_MAGIC {
+        RecoveryFluidReservoirState::new(
+            anatomy.reservoir,
+            reader.exact_rational()?,
+            reader.exact_rational()?,
+            reader.exact_rational()?,
+        )?
+    } else {
+        let legacy = (reader.u128()?, reader.u128()?, reader.u128()?);
+        let legacy_capacity = legacy_raw_capacities(anatomy)?;
+        if legacy != (0, legacy_capacity.1, legacy_capacity.2) {
+            return Err(RecoveryFluidError::InvalidEncoding);
+        }
+        let capacity = anatomy.reservoir.capacities();
+        RecoveryFluidReservoirState::new(
+            anatomy.reservoir,
+            ExactRational::integer(0),
+            capacity.1,
+            capacity.2,
+        )?
+    };
     if !reader.finished() {
         return Err(RecoveryFluidError::InvalidEncoding);
     }
     Ok(state)
 }
 
-fn push_three(out: &mut Vec<u8>, values: (u128, u128, u128)) {
-    out.extend_from_slice(&values.0.to_le_bytes());
-    out.extend_from_slice(&values.1.to_le_bytes());
-    out.extend_from_slice(&values.2.to_le_bytes());
+fn push_exact_three(out: &mut Vec<u8>, values: (ExactRational, ExactRational, ExactRational)) {
+    for value in [values.0, values.1, values.2] {
+        let (numerator, denominator) = value.parts();
+        out.extend_from_slice(&numerator.to_le_bytes());
+        out.extend_from_slice(&denominator.to_le_bytes());
+    }
+}
+
+fn legacy_raw_capacities(
+    anatomy: &ReachedRecoveryFluidAnatomy,
+) -> Result<(u128, u128, u128), RecoveryFluidError> {
+    anatomy
+        .neurons
+        .iter()
+        .try_fold((0_u128, 0_u128, 0_u128), |mut total, neuron| {
+            for contact in neuron
+                .psi_contacts
+                .iter()
+                .chain([&neuron.gate_contact, &neuron.plastic_contact])
+            {
+                let parts = contact.parts();
+                total.0 = total
+                    .0
+                    .checked_add(parts.1)
+                    .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+                total.1 = total
+                    .1
+                    .checked_add(parts.2)
+                    .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+                total.2 = total
+                    .2
+                    .checked_add(parts.3)
+                    .ok_or(RecoveryFluidError::ArithmeticWidth)?;
+            }
+            Ok(total)
+        })
+}
+
+pub(crate) fn encode_legacy_reached_recovery_fluid_anatomy(
+    anatomy: &ReachedRecoveryFluidAnatomy,
+) -> Result<Vec<u8>, RecoveryFluidError> {
+    let mut out = Vec::new();
+    out.extend_from_slice(LEGACY_ANATOMY_MAGIC);
+    let capacities = legacy_raw_capacities(anatomy)?;
+    for value in [capacities.0, capacities.1, capacities.2] {
+        out.extend_from_slice(&value.to_le_bytes());
+    }
+    push_usize(&mut out, anatomy.neurons.len())?;
+    for neuron in &anatomy.neurons {
+        push_usize(&mut out, neuron.psi_contacts.len())?;
+        for contact in neuron
+            .psi_contacts
+            .iter()
+            .chain([&neuron.gate_contact, &neuron.plastic_contact])
+        {
+            push_four(&mut out, contact.parts());
+        }
+    }
+    Ok(out)
+}
+
+pub(crate) fn is_legacy_recovery_fluid_state(encoded: &[u8]) -> bool {
+    encoded.get(..LEGACY_STATE_MAGIC.len()) == Some(LEGACY_STATE_MAGIC)
+}
+
+/// Reconstruct the single retired reservoir endpoint that the production body
+/// may carry during the one-way exact-energy cutover.  No partial or energized
+/// legacy state can be authored through this boundary.
+pub(crate) fn encode_legacy_exhausted_recovery_fluid_state(
+    anatomy: &ReachedRecoveryFluidAnatomy,
+    state: RecoveryFluidReservoirState,
+) -> Result<Vec<u8>, RecoveryFluidError> {
+    let raw_capacity = legacy_raw_capacities(anatomy)?;
+    let exact_capacity = anatomy.reservoir.capacities();
+    if state.physical_parts()
+        != (
+            ExactRational::integer(0),
+            exact_capacity.1,
+            exact_capacity.2,
+        )
+    {
+        return Err(RecoveryFluidError::InvalidEncoding);
+    }
+    let mut out = Vec::from(LEGACY_STATE_MAGIC.as_slice());
+    for value in [0_u128, raw_capacity.1, raw_capacity.2] {
+        out.extend_from_slice(&value.to_le_bytes());
+    }
+    Ok(out)
 }
 
 fn push_four(out: &mut Vec<u8>, values: (u128, u128, u128, u128)) {
@@ -692,6 +1063,16 @@ impl<'a> Reader<'a> {
         ))
     }
 
+    fn exact_rational(&mut self) -> Result<ExactRational, RecoveryFluidError> {
+        let numerator = i128::from_le_bytes(
+            self.take(16)?
+                .try_into()
+                .map_err(|_| RecoveryFluidError::InvalidEncoding)?,
+        );
+        let denominator = self.u128()?;
+        Ok(ExactRational::new(numerator, denominator)?)
+    }
+
     fn contact(&mut self) -> Result<RecoveryFluidContactAnatomy, RecoveryFluidError> {
         RecoveryFluidContactAnatomy::new(self.u128()?, self.u128()?, self.u128()?, self.u128()?)
     }
@@ -709,14 +1090,37 @@ mod tests {
         RecoveryLaneAnatomy::new(1, 1, 1, 1, 1, 1, 1).unwrap()
     }
 
+    fn one_contact_fluid_anatomy() -> ReachedRecoveryFluidAnatomy {
+        let quantum = ExactRational::new(1, 8).unwrap();
+        let contact = RecoveryFluidContactAnatomy::new(1, 1, 1, 1).unwrap();
+        ReachedRecoveryFluidAnatomy {
+            reservoir: RecoveryFluidReservoirAnatomy::new(quantum, quantum, quantum).unwrap(),
+            neurons: vec![RecoveryFluidNeuronAnatomy {
+                psi_contacts: Box::new([]),
+                gate_contact: contact,
+                plastic_contact: contact,
+            }]
+            .into_boxed_slice(),
+        }
+    }
+
     #[test]
     fn reached_fluid_contact_conserves_fuel_spent_and_heat_exactly() {
         let lane_anatomy = lane_anatomy();
         let lane = RecoveryLaneState::from_physical_parts(lane_anatomy, 0, 1, 1).unwrap();
-        let reservoir_anatomy = RecoveryFluidReservoirAnatomy::new(1, 1, 1);
-        let reservoir = RecoveryFluidReservoirState::new(reservoir_anatomy, 1, 0, 0).unwrap();
+        let quantum = ExactRational::new(1, 16).unwrap();
+        let reservoir_anatomy =
+            RecoveryFluidReservoirAnatomy::new(quantum, quantum, quantum).unwrap();
+        let reservoir = RecoveryFluidReservoirState::new(
+            reservoir_anatomy,
+            quantum,
+            ExactRational::integer(0),
+            ExactRational::integer(0),
+        )
+        .unwrap();
         let settled = settle_recovery_fluid_contact(
             lane_anatomy,
+            quantum,
             lane,
             reservoir_anatomy,
             reservoir,
@@ -724,23 +1128,63 @@ mod tests {
         )
         .unwrap();
         assert_eq!(settled.successor_lane.physical_parts(), (1, 0, 0));
-        assert_eq!(settled.successor_reservoir.physical_parts(), (0, 1, 1));
+        assert_eq!(
+            settled.successor_reservoir.physical_parts(),
+            (ExactRational::integer(0), quantum, quantum)
+        );
         assert_eq!(settled.inward_fuel_quanta, 1);
         assert_eq!(settled.outward_spent_quanta, 1);
         assert_eq!(settled.outward_heat_quanta, 1);
-        let predecessor_total = (
-            lane.physical_parts().0 + reservoir.physical_parts().0,
-            lane.physical_parts().1 + reservoir.physical_parts().1,
-            lane.physical_parts().2 + reservoir.physical_parts().2,
+        assert_eq!(reservoir.physical_parts().0, quantum);
+        assert_eq!(settled.successor_reservoir.physical_parts().1, quantum);
+        assert_eq!(settled.successor_reservoir.physical_parts().2, quantum);
+    }
+
+    #[test]
+    fn reservoir_validation_does_not_refuse_a_finite_mixed_denominator() {
+        let capacity = ExactRational::integer(i128::MAX);
+        let finite = ExactRational::new(i128::MAX - 2, 3).unwrap();
+        assert_eq!(
+            finite.checked_cmp(capacity),
+            Err(ExactRationalError::ArithmeticWidth)
         );
-        let successor_total = (
-            settled.successor_lane.physical_parts().0
-                + settled.successor_reservoir.physical_parts().0,
-            settled.successor_lane.physical_parts().1
-                + settled.successor_reservoir.physical_parts().1,
-            settled.successor_lane.physical_parts().2
-                + settled.successor_reservoir.physical_parts().2,
+
+        let anatomy = RecoveryFluidReservoirAnatomy::new(capacity, capacity, capacity).unwrap();
+        let state = RecoveryFluidReservoirState::new(anatomy, finite, finite, finite).unwrap();
+        assert_eq!(state.physical_parts(), (finite, finite, finite));
+    }
+
+    #[test]
+    fn legacy_exhausted_endpoint_repairs_to_exact_energy_once() {
+        let anatomy = one_contact_fluid_anatomy();
+        let mut encoded = Vec::from(LEGACY_STATE_MAGIC.as_slice());
+        for value in [0_u128, 2, 2] {
+            encoded.extend_from_slice(&value.to_le_bytes());
+        }
+        let repaired = decode_reached_recovery_fluid_state(&encoded, &anatomy).unwrap();
+        assert_eq!(
+            repaired.physical_parts(),
+            (
+                ExactRational::integer(0),
+                ExactRational::new(1, 8).unwrap(),
+                ExactRational::new(1, 8).unwrap(),
+            )
         );
-        assert_eq!(successor_total, predecessor_total);
+        assert!(encode_reached_recovery_fluid_state(&anatomy, repaired)
+            .unwrap()
+            .starts_with(STATE_MAGIC));
+    }
+
+    #[test]
+    fn partial_legacy_mixed_unit_reservoir_is_refused() {
+        let anatomy = one_contact_fluid_anatomy();
+        let mut encoded = Vec::from(LEGACY_STATE_MAGIC.as_slice());
+        for value in [1_u128, 1, 1] {
+            encoded.extend_from_slice(&value.to_le_bytes());
+        }
+        assert_eq!(
+            decode_reached_recovery_fluid_state(&encoded, &anatomy),
+            Err(RecoveryFluidError::InvalidEncoding)
+        );
     }
 }

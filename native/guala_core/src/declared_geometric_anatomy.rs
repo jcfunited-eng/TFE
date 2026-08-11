@@ -99,15 +99,53 @@ pub(crate) enum DeclaredGeometryError {
     Membrane(MembraneChargeError),
 }
 
+/// One organism-relative neuronal place.  Sensory receptor sites are one way
+/// to name such a place, but a neuron's place exists before a receptor reaches
+/// it and therefore carries no source or semantic meaning.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct DeclaredNeuronPlace {
+    layer: u32,
+    topology_index: u32,
+}
+
+impl DeclaredNeuronPlace {
+    pub(crate) fn new(layer: u32, topology_index: u32) -> Self {
+        Self {
+            layer,
+            topology_index,
+        }
+    }
+
+    pub(crate) fn from_source_site(site: &NeuronSourceSite) -> Self {
+        Self::new(site.sense().declared_layer().into(), site.topology_index())
+    }
+
+    pub(crate) fn layer(self) -> u32 {
+        self.layer
+    }
+
+    pub(crate) fn topology_index(self) -> u32 {
+        self.topology_index
+    }
+}
+
 /// The exact count of declared receptor places the site's own place closes off
 /// in its organism's sensory lattice — its declared membrane territory, in
 /// unit patches.  Always at least one.
 pub(crate) fn declared_geometric_territory(
     site: &NeuronSourceSite,
 ) -> Result<u128, DeclaredGeometryError> {
+    declared_neuron_territory(DeclaredNeuronPlace::from_source_site(site))
+}
+
+/// The same exact territory law applied to a neuron whose organism-relative
+/// place was declared before any sensory source reached it.
+pub(crate) fn declared_neuron_territory(
+    place: DeclaredNeuronPlace,
+) -> Result<u128, DeclaredGeometryError> {
     place_territory(
-        u128::from(site.sense().declared_layer()),
-        u128::from(site.topology_index()),
+        u128::from(place.layer()),
+        u128::from(place.topology_index()),
     )
 }
 
@@ -135,8 +173,20 @@ pub(crate) fn membrane_capacitance_from_declared_geometry(
     base_picofarads: ExactRational,
     site: &NeuronSourceSite,
 ) -> Result<MembraneCapacitance, DeclaredGeometryError> {
-    let territory = declared_geometric_territory(site)?;
-    let territory = i128::try_from(territory).map_err(|_| DeclaredGeometryError::ArithmeticWidth)?;
+    membrane_capacitance_from_declared_place(
+        base_picofarads,
+        DeclaredNeuronPlace::from_source_site(site),
+    )
+}
+
+/// `C(place) = base * A(place)` for a source-independent neuronal place.
+pub(crate) fn membrane_capacitance_from_declared_place(
+    base_picofarads: ExactRational,
+    place: DeclaredNeuronPlace,
+) -> Result<MembraneCapacitance, DeclaredGeometryError> {
+    let territory = declared_neuron_territory(place)?;
+    let territory =
+        i128::try_from(territory).map_err(|_| DeclaredGeometryError::ArithmeticWidth)?;
     let picofarads = base_picofarads
         .checked_mul(ExactRational::integer(territory))
         .map_err(DeclaredGeometryError::ExactRational)?;
@@ -170,7 +220,33 @@ mod tests {
                         }
                     }
                 }
-                assert_eq!(place_territory(sense_layer, topology_index).unwrap(), counted);
+                assert_eq!(
+                    place_territory(sense_layer, topology_index).unwrap(),
+                    counted
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn source_independent_places_use_the_same_exact_geometry_law() {
+        for layer in 0..6_u32 {
+            for topology_index in 0..40_u32 {
+                let place = DeclaredNeuronPlace::new(layer, topology_index);
+                assert_eq!(
+                    declared_neuron_territory(place).unwrap(),
+                    place_territory(u128::from(layer), u128::from(topology_index)).unwrap()
+                );
+                assert_eq!(
+                    membrane_capacitance_from_declared_place(base(), place)
+                        .unwrap()
+                        .picofarads()
+                        .parts(),
+                    (
+                        i128::try_from(declared_neuron_territory(place).unwrap()).unwrap(),
+                        1
+                    )
+                );
             }
         }
     }
@@ -183,7 +259,8 @@ mod tests {
                 let territory = place_territory(sense_layer, topology_index).unwrap();
                 assert!(territory >= 1);
                 assert!(
-                    seen.insert(territory, (sense_layer, topology_index)).is_none(),
+                    seen.insert(territory, (sense_layer, topology_index))
+                        .is_none(),
                     "territory {territory} repeated at ({sense_layer}, {topology_index})"
                 );
             }
@@ -205,8 +282,7 @@ mod tests {
         // (t + 1)(t + 2)/2 — 1, 3, 6, 10, ... unit patches.
         for topology_index in 0..8_u32 {
             let site = NeuronSourceSite::fixture(topology_index);
-            let expected =
-                u128::from(topology_index + 1) * u128::from(topology_index + 2) / 2;
+            let expected = u128::from(topology_index + 1) * u128::from(topology_index + 2) / 2;
             assert_eq!(declared_geometric_territory(&site).unwrap(), expected);
             assert_eq!(
                 membrane_capacitance_from_declared_geometry(base(), &site)
@@ -216,6 +292,55 @@ mod tests {
                 (i128::try_from(expected).unwrap(), 1)
             );
         }
+    }
+
+    /// T2 (touch, 2026-08-06): every declared CONTACT SHEET site is its own
+    /// place, so no two of them can tie — and none of them can tie with a
+    /// retinal or a cochlear site either.  This is the whole reason the sheet
+    /// is authored as 27 distinct places rather than 27 copies of one receptor:
+    /// identical authored capacitance makes stored energy `q²e²/2C` tie
+    /// exactly, the energy-descent law refuses ties, and the cohort is a
+    /// permanent Coulomb blockade that can never form a memory.
+    ///
+    /// The roster measured here is the served one: sight layer 0 places
+    /// 0..26 (3x9 retina), sound layer 1 places 0..33 (two retained legacy ear
+    /// places plus two 16-place cochleae), touch layer 2 places 0..26 (the 3x9
+    /// contact sheet).  Printed with `--nocapture` this is the T2 dump.
+    #[test]
+    fn every_declared_contact_site_has_its_own_territory_and_capacitance() {
+        let mut seen: std::collections::BTreeMap<u128, (u8, u32)> =
+            std::collections::BTreeMap::new();
+        let roster = [
+            (PhysicalSourceSense::Sight, 27_u32),
+            (PhysicalSourceSense::Sound, 34_u32),
+            (PhysicalSourceSense::Touch, 27_u32),
+        ];
+        for (sense, count) in roster {
+            for topology_index in 0..count {
+                let site = NeuronSourceSite::fixture_in_sense(sense, topology_index);
+                let territory = declared_geometric_territory(&site).unwrap();
+                let capacitance = membrane_capacitance_from_declared_geometry(base(), &site)
+                    .unwrap()
+                    .picofarads()
+                    .parts();
+                assert_eq!(capacitance, (i128::try_from(territory).unwrap(), 1));
+                println!(
+                    "sense_layer={} topology_index={topology_index} territory={territory} \
+                     capacitance_pf={}/{}",
+                    sense.declared_layer(),
+                    capacitance.0,
+                    capacitance.1
+                );
+                assert!(
+                    seen.insert(territory, (sense.declared_layer(), topology_index))
+                        .is_none(),
+                    "territory {territory} repeated at layer {} index {topology_index}",
+                    sense.declared_layer()
+                );
+            }
+        }
+        // 27 sight + 34 sound + 27 touch declared places, no two alike.
+        assert_eq!(seen.len(), 88);
     }
 
     #[test]

@@ -6,13 +6,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from pathlib import PurePosixPath
 import re
 import time
 
 
 PROBE_FAMILY = "dsf-ai-native-candidate"
 SOURCE_MOUNT = "/source/guala"
-NATIVE_STORE = SOURCE_MOUNT + "/native-organism"
 # The genesis rehearsal runs against the real production mount path (its
 # throwaway state root lives beside, never inside, the real native-organism
 # directory) so the candidate exercises the exact serving filesystem layout.
@@ -23,9 +23,39 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v1",
+    "cold-restore": "guala.production_native_current_cold_restore.v3",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
+
+
+def mounted_native_store(environment: list[dict[str, object]]) -> str:
+    """Map the inherited live body root onto the read-only probe mount.
+
+    The body generation is deliberately not named here.  The candidate task
+    inherits the exact live ``GUALA_NATIVE_ORGANISM_ROOT`` and the probe sees
+    the same EFS volume at ``/source/guala`` instead of ``/app/guala``.
+    """
+
+    values = [
+        item.get("value")
+        for item in environment
+        if item.get("name") == "GUALA_NATIVE_ORGANISM_ROOT"
+    ]
+    if len(values) != 1 or not isinstance(values[0], str):
+        raise RuntimeError("candidate declares no single live organism root")
+    declared = PurePosixPath(values[0])
+    production_mount = PurePosixPath(PRODUCTION_MOUNT)
+    if not declared.is_absolute() or ".." in declared.parts:
+        raise RuntimeError("candidate organism root escapes the production mount")
+    try:
+        relative = declared.relative_to(production_mount)
+    except ValueError as error:
+        raise RuntimeError(
+            "candidate organism root is outside the production mount"
+        ) from error
+    if not relative.parts:
+        raise RuntimeError("candidate organism root names the whole production mount")
+    return str(PurePosixPath(SOURCE_MOUNT).joinpath(relative))
 
 
 def _arguments() -> argparse.Namespace:
@@ -93,6 +123,11 @@ def probe_task_definition(
             "STATE_DIR",
         }
     ]
+    native_store = (
+        mounted_native_store(environment)
+        if mode in {"publish", "cold-restore"}
+        else None
+    )
     if mode == "genesis-rehearse":
         if (
             not genesis_state_root
@@ -138,7 +173,7 @@ def probe_task_definition(
             "-m",
             "dsf_ai_service.cold_restore_probe",
             "--native-store-root",
-            NATIVE_STORE,
+            native_store,
             "--expected-identity",
             expected_identity,
             "--expected-tick",
@@ -175,7 +210,7 @@ def probe_task_definition(
             candidate_image_digest,
         ]
         if mode == "publish":
-            command.extend(("--native-store-root", NATIVE_STORE))
+            command.extend(("--native-store-root", native_store))
     log_configuration = original.get("logConfiguration")
     if not isinstance(log_configuration, dict):
         raise RuntimeError("candidate log transport is absent")
@@ -227,6 +262,7 @@ def _validate_proof(
     expected_tick: int | None,
     expected_state_sha256: str | None,
     expected_state_root: str | None = None,
+    expected_vestibular_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -271,25 +307,90 @@ def _validate_proof(
         ):
             raise RuntimeError("native candidate proof changed")
         return proof
+    actual_tick = proof.get("tick")
+    actual_state_sha256 = proof.get("resident_state_sha256")
+    source_advanced = (
+        isinstance(actual_tick, int)
+        and not isinstance(actual_tick, bool)
+        and expected_tick is not None
+        and actual_tick > expected_tick
+    )
+    migration_predecessor = proof.get("migration_predecessor_state_sha256")
+    current_format_migration = (
+        mode == "cold-restore"
+        and proof.get("current_format_migration_rehearsed") is True
+        and isinstance(migration_predecessor, str)
+        and _SHA.fullmatch(migration_predecessor) is not None
+        and (
+            source_advanced
+            or migration_predecessor == expected_state_sha256
+        )
+    )
+    vestibular_rehearsal = (
+        proof.get("vestibular_specialization_rehearsed") is True
+        and proof.get("vestibular_rehearsal_tick_count") == 250
+        and proof.get("vestibular_rehearsal_dsf_delivery_count")
+        == proof["vestibular_rehearsal_tick_count"] * 2
+        and isinstance(proof.get("vestibular_rehearsal_fractal_count"), int)
+        and proof["vestibular_rehearsal_fractal_count"] > 0
+        and isinstance(
+            proof.get("vestibular_rehearsal_physical_transition_count"), int
+        )
+        and proof["vestibular_rehearsal_physical_transition_count"] > 0
+        and isinstance(
+            proof.get("vestibular_rehearsal_reached_neuron_growth"), int
+        )
+        and not isinstance(
+            proof["vestibular_rehearsal_reached_neuron_growth"], bool
+        )
+        and proof["vestibular_rehearsal_reached_neuron_growth"] >= 0
+        and isinstance(proof.get("vestibular_rehearsal_state_byte_delta"), int)
+        and isinstance(
+            proof.get("vestibular_rehearsal_successor_state_sha256"), str
+        )
+        and _SHA.fullmatch(
+            proof["vestibular_rehearsal_successor_state_sha256"]
+        )
+        is not None
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
         or proof.get("candidate_git_sha") != candidate_git_sha
         or proof.get("candidate_image_digest") != candidate_image_digest
         or proof.get("source_identity") != expected_identity
-        or proof.get("tick") != expected_tick
+        or not isinstance(actual_tick, int)
+        or isinstance(actual_tick, bool)
+        or expected_tick is None
+        or (mode != "cold-restore" and actual_tick != expected_tick)
+        or (
+            mode == "cold-restore"
+            and (
+                actual_tick < expected_tick
+                or proof.get("baseline_observed_tick") != expected_tick
+                or proof.get("baseline_observed_state_sha256")
+                != expected_state_sha256
+                or proof.get("source_advanced_after_baseline")
+                is not source_advanced
+            )
+        )
         or proof.get("cold_restore_exact") is not True
         or proof.get("raw_glorun_current_only") is not True
         or proof.get("python_callback_count") != 0
         or proof.get("python_cognition_workers_started") != 0
+        or (expected_vestibular_rehearsal and not vestibular_rehearsal)
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
         or proof["resident_state_bytes"] <= 0
-        or not isinstance(proof.get("resident_state_sha256"), str)
-        or _SHA.fullmatch(proof["resident_state_sha256"]) is None
+        or not isinstance(actual_state_sha256, str)
+        or _SHA.fullmatch(actual_state_sha256) is None
         or (
+            mode == "cold-restore"
+            and
             expected_state_sha256 is not None
-            and proof["resident_state_sha256"] != expected_state_sha256
+            and actual_tick == expected_tick
+            and actual_state_sha256 != expected_state_sha256
+            and not current_format_migration
         )
         or receipt != hashlib.sha256(_canonical(record)).hexdigest()
     ):
@@ -354,6 +455,21 @@ def main() -> int:
     source = ecs.describe_task_definition(
         taskDefinition=values.candidate_task_definition
     )["taskDefinition"]
+    source_containers = source.get("containerDefinitions", [])
+    source_environment = {
+        item.get("name"): item.get("value")
+        for item in (
+            source_containers[0].get("environment", [])
+            if len(source_containers) == 1
+            and isinstance(source_containers[0], dict)
+            else []
+        )
+        if isinstance(item, dict)
+    }
+    expected_vestibular_rehearsal = (
+        values.mode == "cold-restore"
+        and source_environment.get("GUALA_VESTIBULAR") == "1"
+    )
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -434,6 +550,7 @@ def main() -> int:
             expected_tick=values.expected_tick,
             expected_state_sha256=values.expected_state_sha256,
             expected_state_root=genesis_state_root,
+            expected_vestibular_rehearsal=expected_vestibular_rehearsal,
         )
         print(_canonical(validated).decode("ascii"))
         return 0

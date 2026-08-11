@@ -26,11 +26,26 @@
   <nav class="controls" aria-label="Native sensory controls">
     <button id="camera-toggle" class="toggle" type="button" aria-pressed="false" disabled><b>◉</b><span>Camera</span><small>Unavailable until native visual ingress is mounted</small></button>
     <button id="microphone-toggle" class="toggle" type="button" aria-pressed="false" disabled><b>◖</b><span>Microphone</span><small>Unavailable until native auditory ingress is mounted</small></button>
-    <button id="curriculum-toggle" class="toggle" type="button" aria-pressed="false" disabled><b>A</b><span>ABC / 123 lessons</span><small>Unavailable until native curriculum actuation is mounted</small></button>
+    <button id="curriculum-toggle" class="toggle" type="button" aria-pressed="false" disabled><b>A</b><span>Teach the shown lesson</span><small>One lesson of many · shows her the selected surface</small></button>
+  <div class="card-strip" id="card-strip" style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:10px;border:1px solid rgba(128,128,128,.35);border-radius:10px;max-width:190px">
+    <small style="font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:#7f9aa6">Lesson surface · 1 of many</small>
+    <img id="card-image" alt="selected lesson surface" style="width:96px;height:auto;border-radius:6px;background:#fff" src="">
+    <div style="display:flex;gap:10px;align-items:center">
+      <button id="card-prev" type="button" class="plain-button">&#9664; previous</button>
+      <span id="card-name" style="font-size:.85rem;min-width:9ch;text-align:center"></span>
+      <button id="card-next" type="button" class="plain-button">next &#9654;</button>
+    </div>
+    <button id="speak-card-toggle" class="toggle" type="button" aria-pressed="false" disabled style="min-width:240px"><b>◖</b><span>Say this card to her</span><small>Unavailable until her ears are mounted</small></button>
+  </div>
+  <div class="place-strip" id="place-strip" style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:10px;border:1px solid rgba(128,128,128,.35);border-radius:10px;min-width:420px;flex:1 1 420px">
+    <strong style="font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:#91aab4">Her place</strong>
+    <canvas id="place-view" width="920" height="620" style="width:100%;max-width:920px;aspect-ratio:920/620;border:1px solid #24434f;border-radius:10px;background:#0a0705;cursor:grab;touch-action:none"></canvas>
+    <small style="font-size:.66rem;color:#7f98a3;text-align:center">Drag to walk the camera round her · wheel or pinch to come closer</small>
+    <div id="place-summary" style="font-size:.75rem;color:#91aab4;text-align:center">No place is mounted</div>
+    <small id="place-note" style="font-size:.68rem;color:#91aab4;text-align:center;max-width:380px"></small>
+  </div>
     <div class="control-note" id="control-note">A local device and an organism-accepted sensory transition are different states. “Accepted” appears only after the native endpoint confirms it.</div>
   </nav>
-
-  <figure class="room-art"><img src="/gualaloom-rich-room-v3.png" alt="Approved illustrated warm wooden room"><figcaption><strong>Approved room artwork · illustrative only</strong><span>This image is not Guala’s current camera view, attended world, memory, or embodiment location. Live body and world evidence appears below.</span></figcaption></figure>
 
   <section class="exchange" aria-label="Sensory conversation boundary">
     <div class="compose"><h2>Show text or a picture as physical light</h2><p>The browser renders glyph pixels. The raw string is retained only in the human-side display and is never submitted as meaning, a command, or a chatbot message.</p><textarea id="glyph-text" maxlength="280" placeholder="Type what you want to render" aria-label="Text to render as physical glyphs"></textarea><canvas class="surface-preview" id="offered-surface" width="768" height="432" data-empty="true" aria-label="Human-offered physical surface"></canvas><div class="compose-actions"><button class="plain-button" id="offer-text" type="button" disabled>Offer rendered glyphs</button><button class="plain-button" id="clear-text" type="button">Turn offered surface Off</button></div><div class="capability-reason" id="text-reason">Off · no human surface is currently offered.</div></div>
@@ -77,6 +92,11 @@ const EXPERIENCE_STAGES=[["capture","Capture"],["presentation","Presentation"],[
 const ENCOUNTER_CHANNELS=[["camera","Camera"],["microphone","Microphone"],["surface","Offered surface"]];
 let snapshot=null,etag=null,lastGeneration=null,pollTimer=null,pollBusy=false,pollAbort=null,pollRefreshQueued=false;
 let cameraStream=null,cameraTimer=null,cameraInFlightEpoch=null,cameraAccepted=false,cameraStarting=false,cameraEpoch=0,cameraAbort=null;
+// The live-sight capture contract: a batch of PNG frames carrying the
+// caller's declared provenance. One JPEG on the retired single-frame
+// schema is refused, correctly, as intake without declared provenance.
+const CAMERA_MIN_FRAMES=4,CAMERA_MAX_FRAMES=8,CAMERA_SAMPLE_MS=250,CAMERA_COLUMNS=9,CAMERA_ROWS=3,CAMERA_PIXELS_PER_SITE=16;
+let cameraFrames=[];
 let microphoneStream=null,microphoneRecorder=null,microphoneInFlightEpoch=null,microphoneAccepted=false,microphoneStarting=false,microphoneEpoch=0,microphoneAbort=null;
 let surfaceEpoch=0,surfaceKind="none",surfaceActive=false,surfaceStarting=false,surfaceAbort=null,curriculumActive=false;
 const encounterLedgers=Object.fromEntries(ENCOUNTER_CHANNELS.map(([id])=>[id,{subject:"Off",stages:Object.fromEntries(EXPERIENCE_STAGES.map(([stage])=>[stage,{available:false,status:"unavailable",detail:"no active encounter",evidence:"none"}]))}]));
@@ -119,9 +139,14 @@ function renderRecords(){for(const name of SECTION_NAMES){const value=snapshot?.
 function renderCapabilities(){
   const camera=capability("camera"),microphone=capability("microphone"),curriculum=capability("curriculum"),text=capability("text_visual");
   if(!camera.available&&(cameraStream!==null||cameraStarting)){stopCamera("Camera stopped · native capability withdrawn");return}
-  if(!microphone.available&&(microphoneStream!==null||microphoneStarting)){stopMicrophone("Microphone stopped · native capability withdrawn");return}
+  
   updateToggle("camera-toggle",cameraStream!==null||cameraStarting,camera.available,cameraStarting?"Requesting browser camera access":cameraStream?cameraAccepted?"Local active · organism accepted":"Local active · awaiting acceptance":camera.state.reason);
-  updateToggle("microphone-toggle",microphoneStream!==null||microphoneStarting,microphone.available,microphoneStarting?"Requesting browser microphone access":microphoneStream?microphoneAccepted?"Local active · organism accepted":"Local active · awaiting acceptance":microphone.state.reason);
+  updateToggle("microphone-toggle",microphoneStream!==null||microphoneStarting,micGate().ok,microphoneStarting?"Requesting browser microphone access":microphoneStream?"Listening \u00b7 toggle again to send":micGate().reason);
+  updateToggle("speak-card-toggle",speakStream!==null,speakGate().ok,speakGate().reason);
+  // HER PLACE IS DRAWN OVER AND OVER, NOT ONCE. She walks on her own during
+  // her unattended intervals, so a picture taken once is a picture of a
+  // person who never moves. It is redrawn on a timer from here on.
+  if(typeof placeSeen!=="undefined"&&!placeSeen&&capability("world").record){placeSeen=true;refreshPlace();setInterval(refreshPlace,10000)}
   updateToggle("curriculum-toggle",curriculumActive,curriculum.available,curriculumActive?"Native lesson actuation active":curriculum.state.reason);
   document.getElementById("offer-text").disabled=!text.available;if(surfaceKind!=="text_visual")setText("text-reason",text.available?"Off · rendered pixels may be offered through the native visual-material endpoint.":text.state.reason);
   const kinds=[["picture","picture"],["pdf","pdf"],["book","book"],["audio","audio"],["song","song"]],reasons=[];for(const [id,name] of kinds){const cap=capability(name),input=document.getElementById(id+"-file"),label=document.getElementById(id+"-label");input.disabled=!cap.available;label.setAttribute("aria-disabled",cap.available?"false":"true");label.style.opacity=cap.available?"1":".48";if(!cap.available)reasons.push(name+": "+cap.state.reason)}if(surfaceKind==="none")setText("material-reason",reasons.length?reasons.join(" · "):"Off · native physical material-presentation capabilities are available.");
@@ -137,18 +162,72 @@ async function refreshObservation(manual=true){if(document.hidden&&!manual)retur
 function bytesToBase64(bytes){let binary="";for(let offset=0;offset<bytes.length;offset+=32768)binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+32768,bytes.length)));return btoa(binary)}
 async function postCapability(name,body,signal){const cap=capability(name);if(!cap.available)throw new Error(cap.state.reason||"capability unavailable");const response=await fetch(cap.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(body),signal}),result=await response.json().catch(()=>({}));if(!response.ok||result.accepted!==true)throw new Error(result.reason||result.error||`HTTP ${response.status}`);return result}
 function cameraOwns(epoch,stream){return epoch===cameraEpoch&&cameraStream===stream}
-function stopCamera(reason="Camera Off · no browser capture or organism ingress is active"){cameraEpoch+=1;cameraStarting=false;if(cameraAbort)cameraAbort.abort();cameraAbort=null;clearInterval(cameraTimer);cameraTimer=null;const stream=cameraStream;cameraStream=null;cameraInFlightEpoch=null;if(stream)stream.getTracks().forEach(track=>track.stop());cameraAccepted=false;const preview=document.getElementById("camera-preview");preview.srcObject=null;preview.classList.remove("active-media");setText("camera-status",reason);resetEncounter("camera",reason);renderCapabilities()}
-async function sendCameraFrame(epoch=cameraEpoch,stream=cameraStream){if(!stream||!cameraOwns(epoch,stream)||cameraInFlightEpoch===epoch)return;cameraInFlightEpoch=epoch;const controller=new AbortController();cameraAbort=controller;beginEncounter("camera",`epoch ${epoch}`);try{const preview=document.getElementById("camera-preview"),canvas=document.createElement("canvas");canvas.width=160;canvas.height=160;const context=canvas.getContext("2d",{alpha:false});if(!context)throw new Error("camera canvas is unavailable");context.drawImage(preview,0,0,canvas.width,canvas.height);if(!cameraOwns(epoch,stream))return;setEncounterStage("camera","capture","captured","One bounded browser frame was captured");const frame=canvas.toDataURL("image/jpeg",.82).split(",",2)[1];setEncounterStage("camera","presentation","offered","Frame was offered to the mounted native ingress");const result=await postCapability("camera",{schema:"guala.native.browser_visual_frame.v1",captured_at_ms:Date.now(),encoding:"jpeg",frame_b64:frame},controller.signal);if(!cameraOwns(epoch,stream))return;cameraAccepted=true;applyEncounterAdmission("camera",result);setText("camera-status",`Local camera active · organism accepted generation ${result.generation??"not supplied"}`);renderCapabilities()}catch(error){if(cameraOwns(epoch,stream)&&error.name!=="AbortError")stopCamera("Camera stopped · native acceptance failed: "+error.message)}finally{if(cameraInFlightEpoch===epoch)cameraInFlightEpoch=null;if(cameraAbort===controller)cameraAbort=null}}
-async function startCamera(){const cap=capability("camera");if(!cap.available||cameraStarting||cameraStream)return;const epoch=++cameraEpoch;cameraStarting=true;beginEncounter("camera",`epoch ${epoch}`);setText("camera-status","Requesting browser camera access");renderCapabilities();let acquired=null;try{acquired=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:320},height:{ideal:320}}});if(epoch!==cameraEpoch){acquired.getTracks().forEach(track=>track.stop());return}if(document.hidden){acquired.getTracks().forEach(track=>track.stop());stopCamera("Camera stopped while page is hidden");return}if(!capability("camera").available){acquired.getTracks().forEach(track=>track.stop());stopCamera("Camera stopped · native capability withdrawn");return}cameraStarting=false;cameraStream=acquired;const preview=document.getElementById("camera-preview");preview.srcObject=acquired;await preview.play();if(!cameraOwns(epoch,acquired)){acquired.getTracks().forEach(track=>track.stop());return}preview.classList.add("active-media");acquired.getTracks().forEach(track=>track.addEventListener("ended",()=>{if(cameraOwns(epoch,acquired))stopCamera("Camera stopped by browser")},{once:true}));setText("camera-status","Local camera active · no organism acceptance yet");renderCapabilities();await sendCameraFrame(epoch,acquired);if(cameraOwns(epoch,acquired))cameraTimer=setInterval(()=>void sendCameraFrame(epoch,acquired),Math.max(1000,Math.min(15000,Number(cap.record.capture_interval_ms)||2000)))}catch(error){if(acquired)acquired.getTracks().forEach(track=>track.stop());if(epoch===cameraEpoch&&error.name!=="AbortError")stopCamera("Camera unavailable: "+error.message)}}
+function stopCamera(reason="Camera Off · no browser capture or organism ingress is active"){cameraEpoch+=1;cameraFrames=[];cameraStarting=false;if(cameraAbort)cameraAbort.abort();cameraAbort=null;clearInterval(cameraTimer);cameraTimer=null;const stream=cameraStream;cameraStream=null;cameraInFlightEpoch=null;if(stream)stream.getTracks().forEach(track=>track.stop());cameraAccepted=false;const preview=document.getElementById("camera-preview");preview.srcObject=null;preview.classList.remove("active-media");setText("camera-status",reason);resetEncounter("camera",reason);renderCapabilities()}
+async function sendCameraFrame(epoch=cameraEpoch,stream=cameraStream){if(!stream||!cameraOwns(epoch,stream)||cameraInFlightEpoch===epoch)return;cameraInFlightEpoch=epoch;const controller=new AbortController();cameraAbort=controller;beginEncounter("camera",`epoch ${epoch}`);try{const preview=document.getElementById("camera-preview"),canvas=document.createElement("canvas");canvas.width=CAMERA_COLUMNS*CAMERA_PIXELS_PER_SITE;canvas.height=CAMERA_ROWS*CAMERA_PIXELS_PER_SITE;const context=canvas.getContext("2d",{alpha:false});if(!context)throw new Error("camera canvas is unavailable");context.drawImage(preview,0,0,canvas.width,canvas.height);if(!cameraOwns(epoch,stream))return;setEncounterStage("camera","capture","captured","One bounded browser frame was captured");cameraFrames.push({captured_at_ms:Date.now(),png_base64:canvas.toDataURL("image/png").split(",",2)[1]});if(cameraFrames.length>CAMERA_MAX_FRAMES)cameraFrames.shift();if(cameraFrames.length<CAMERA_MIN_FRAMES){setText("camera-status",`Local camera active · gathering ${cameraFrames.length}/${CAMERA_MIN_FRAMES} frames for one offering`);return}const frames=cameraFrames.splice(0,CAMERA_MAX_FRAMES);setEncounterStage("camera","presentation","offered","Frames were offered to the mounted native ingress");const result=await postCapability("camera",{schema:"guala.live_sight_capture.v1",source:"live-camera",frames},controller.signal);if(!cameraOwns(epoch,stream))return;cameraAccepted=true;applyEncounterAdmission("camera",result);clearInterval(cameraTimer);cameraTimer=null;cameraFrames=[];setText("camera-status","She saw that · press Camera again to let her look again");renderCapabilities()}catch(error){if(cameraOwns(epoch,stream)&&error.name!=="AbortError")stopCamera("Camera stopped · native acceptance failed: "+error.message)}finally{if(cameraInFlightEpoch===epoch)cameraInFlightEpoch=null;if(cameraAbort===controller)cameraAbort=null}}
+async function startCamera(){const cap=capability("camera");if(!cap.available||cameraStarting||cameraStream)return;const epoch=++cameraEpoch;cameraStarting=true;beginEncounter("camera",`epoch ${epoch}`);setText("camera-status","Requesting browser camera access");renderCapabilities();let acquired=null;try{acquired=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:320},height:{ideal:320}}});if(epoch!==cameraEpoch){acquired.getTracks().forEach(track=>track.stop());return}if(document.hidden){acquired.getTracks().forEach(track=>track.stop());stopCamera("Camera stopped while page is hidden");return}if(!capability("camera").available){acquired.getTracks().forEach(track=>track.stop());stopCamera("Camera stopped · native capability withdrawn");return}cameraStarting=false;cameraStream=acquired;const preview=document.getElementById("camera-preview");preview.srcObject=acquired;await preview.play();if(!cameraOwns(epoch,acquired)){acquired.getTracks().forEach(track=>track.stop());return}preview.classList.add("active-media");acquired.getTracks().forEach(track=>track.addEventListener("ended",()=>{if(cameraOwns(epoch,acquired))stopCamera("Camera stopped by browser")},{once:true}));setText("camera-status","Local camera active · no organism acceptance yet");renderCapabilities();await sendCameraFrame(epoch,acquired);if(cameraOwns(epoch,acquired))void cameraStreamLoop(epoch,acquired)}catch(error){if(acquired)acquired.getTracks().forEach(track=>track.stop());if(epoch===cameraEpoch&&error.name!=="AbortError")stopCamera("Camera unavailable: "+error.message)}}
+async function cameraStreamLoop(epoch,stream){
+ // HER EYE STAYS OPEN. Each look begins only when the last one has actually
+ // reached her, so she is never asked to see faster than she can.
+ while(cameraOwns(epoch,stream)){await sendCameraFrame(epoch,stream);
+  if(!cameraOwns(epoch,stream))break;await new Promise(r=>setTimeout(r,CAMERA_SAMPLE_MS))}}
 async function toggleCamera(){if(cameraStream||cameraStarting)stopCamera();else await startCamera()}
-function microphoneOwns(epoch,stream){return epoch===microphoneEpoch&&microphoneStream===stream}
-function stopMicrophone(reason="Microphone Off · no browser capture or organism ingress is active"){microphoneEpoch+=1;microphoneStarting=false;if(microphoneAbort)microphoneAbort.abort();microphoneAbort=null;const recorder=microphoneRecorder,stream=microphoneStream;microphoneRecorder=null;microphoneStream=null;microphoneInFlightEpoch=null;if(recorder&&recorder.state!=="inactive")try{recorder.stop()}catch(_error){}if(stream)stream.getTracks().forEach(track=>track.stop());microphoneAccepted=false;setText("control-note",reason);resetEncounter("microphone",reason);renderCapabilities()}
-async function startMicrophone(){const cap=capability("microphone");if(!cap.available||microphoneStarting||microphoneStream)return;const epoch=++microphoneEpoch;microphoneStarting=true;beginEncounter("microphone",`epoch ${epoch}`);setText("control-note","Requesting browser microphone access");renderCapabilities();let acquired=null;try{acquired=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});if(epoch!==microphoneEpoch){acquired.getTracks().forEach(track=>track.stop());return}if(document.hidden){acquired.getTracks().forEach(track=>track.stop());stopMicrophone("Microphone stopped while page is hidden");return}if(!capability("microphone").available){acquired.getTracks().forEach(track=>track.stop());stopMicrophone("Microphone stopped · native capability withdrawn");return}microphoneStarting=false;microphoneStream=acquired;const mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm",recorder=new MediaRecorder(acquired,{mimeType:mime});microphoneRecorder=recorder;recorder.onerror=event=>{if(microphoneOwns(epoch,acquired)&&microphoneRecorder===recorder)stopMicrophone("Microphone stopped: "+(event.error?.message||"recorder error"))};recorder.ondataavailable=async event=>{if(!microphoneOwns(epoch,acquired)||!event.data.size)return;if(microphoneInFlightEpoch===epoch){stopMicrophone("Microphone stopped · native processing fell behind the bounded stream");return}microphoneInFlightEpoch=epoch;const controller=new AbortController();microphoneAbort=controller;beginEncounter("microphone",`epoch ${epoch}`);try{const bytes=new Uint8Array(await event.data.arrayBuffer());if(!microphoneOwns(epoch,acquired))return;setEncounterStage("microphone","capture","captured",`${bytes.length} browser audio bytes captured`);setEncounterStage("microphone","presentation","offered","Bounded audio chunk was offered to the mounted native ingress");const result=await postCapability("microphone",{schema:"guala.native.browser_audio_chunk.v1",captured_at_ms:Date.now(),encoding:mime,audio_b64:bytesToBase64(bytes)},controller.signal);if(!microphoneOwns(epoch,acquired))return;microphoneAccepted=true;applyEncounterAdmission("microphone",result);setText("control-note",`Local microphone active · organism accepted generation ${result.generation??"not supplied"}`);renderCapabilities()}catch(error){if(microphoneOwns(epoch,acquired)&&error.name!=="AbortError")stopMicrophone("Microphone stopped · native acceptance failed: "+error.message)}finally{if(microphoneInFlightEpoch===epoch)microphoneInFlightEpoch=null;if(microphoneAbort===controller)microphoneAbort=null}};acquired.getTracks().forEach(track=>track.addEventListener("ended",()=>{if(microphoneOwns(epoch,acquired))stopMicrophone("Microphone stopped by browser")},{once:true}));recorder.start(Math.max(500,Math.min(5000,Number(cap.record.chunk_interval_ms)||2000)));setText("control-note","Local microphone active · no organism acceptance yet");renderCapabilities()}catch(error){if(acquired)acquired.getTracks().forEach(track=>track.stop());if(epoch===microphoneEpoch&&error.name!=="AbortError")stopMicrophone("Microphone unavailable: "+error.message)}}
-async function toggleMicrophone(){if(microphoneStream||microphoneStarting)stopMicrophone();else await startMicrophone()}
+let micAttending=false,micChunks=[],micSamples=0,micCtx=null,micNode=null,micSrc=null,micSending=false;
+const MIC_RATE=16000,MIC_MAX_SECONDS=30,MIC_SAMPLES_PER_POST=16000,MIC_STREAM_SECONDS=4;
+let micContinuous=false;
+function micGate(){if(micSending)return{ok:false,reason:"Sending her what you said"};const cap=capability("microphone");if(!cap.available)return{ok:false,reason:cap.state.reason||"Her ears are not mounted"};return{ok:true,reason:"Press, speak, press again \u2014 she decides if it is lawful, not this page"}}
+function micPcmInt16(){const out=new Int16Array(micSamples);let at=0;for(const c of micChunks)for(let k=0;k<c.length;k+=1){const s=Math.max(-1,Math.min(1,c[k]));out[at]=s<0?s*0x8000:s*0x7fff;at+=1}return out}
+function micStopNodes(){try{if(micNode)micNode.disconnect()}catch(_e){}try{if(micSrc)micSrc.disconnect()}catch(_e){}if(microphoneStream)microphoneStream.getTracks().forEach(t=>t.stop());microphoneStream=null;micNode=null;micSrc=null}
+function stopMicrophone(reason="Microphone Off \u00b7 nothing is being heard"){micStopNodes();if(micCtx){micCtx.close().catch(()=>{});micCtx=null}micChunks=[];micSamples=0;micAttending=false;microphoneStarting=false;if(reason){setText("control-note",reason);resetEncounter("microphone",reason)}renderCapabilities()}
+async function startMicrophone(){const gate=micGate();if(!gate.ok||microphoneStream||microphoneStarting)return;microphoneStarting=true;renderCapabilities();try{const acquired=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true},video:false});micCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:MIC_RATE});micSrc=micCtx.createMediaStreamSource(acquired);micNode=micCtx.createScriptProcessor(4096,1,1);micChunks=[];micSamples=0;micNode.onaudioprocess=e=>{if(micSamples>=MIC_RATE*MIC_MAX_SECONDS)return;const d=e.inputBuffer.getChannelData(0);micChunks.push(new Float32Array(d));micSamples+=d.length};micSrc.connect(micNode);micNode.connect(micCtx.destination);microphoneStream=acquired;microphoneStarting=false;micAttending=true;beginEncounter("microphone","listening while her eye is open");setEncounterStage("microphone","capture","listening","Browser microphone is capturing bounded PCM");setText("control-note","Listening \u00b7 toggle again to send her what you said");renderCapabilities()}catch(error){microphoneStarting=false;stopMicrophone("Microphone unavailable: "+error.message)}}
+async function sendMicrophone(){const rate=micCtx?Math.round(micCtx.sampleRate):MIC_RATE;micStopNodes();if(micCtx){await micCtx.close().catch(()=>{});micCtx=null}if(micSamples<2){stopMicrophone("Nothing was recorded");return}micSending=true;renderCapabilities();setText("control-note","Sending your voice to her \u2026");setEncounterStage("microphone","presentation","offered","Bounded PCM is being offered to the native auditory ingress");try{const open=await fetch("/api/v1/auditory/pcm/open",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({sample_rate_hz:rate})});const opened=await open.json().catch(()=>null);if(!open.ok||!opened||!opened.session_id)throw new Error((opened&&opened.reason)||("HTTP "+open.status));const pcm=micPcmInt16();for(let at=0;at<pcm.length;at+=MIC_SAMPLES_PER_POST){const slice=pcm.subarray(at,Math.min(at+MIC_SAMPLES_PER_POST,pcm.length));const bytes=new Uint8Array(slice.buffer,slice.byteOffset,slice.byteLength);let bin="";for(let b=0;b<bytes.length;b+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(b,b+0x8000));const r=await fetch("/api/v1/auditory/pcm/chunk",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:opened.session_id,pcm_s16le_base64:btoa(bin)})});if(!r.ok){const rb=await r.json().catch(()=>null);throw new Error((rb&&rb.reason)||("HTTP "+r.status))}}const close=await fetch("/api/v1/auditory/pcm/close",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:opened.session_id})});const done=await close.json().catch(()=>null);if(!close.ok||!done||done.accepted!==true)throw new Error((done&&done.reason)||("HTTP "+close.status));applyEncounterAdmission("microphone",done);const t=done.totals||{};setText("control-note","She heard you \u00b7 "+(t.physically_transitioned_neuron_count??"?")+" of her neurons physically changed"+(t.complete_neuron_fractal_count?" \u00b7 "+t.complete_neuron_fractal_count+" new impressions":""));await refreshObservation(true)}catch(error){setText("control-note","She refused or could not be reached: "+error.message);resetEncounter("microphone","refused: "+error.message)}finally{micSending=false;micChunks=[];micSamples=0;micAttending=false;renderCapabilities()}}
+// ALWAYS ON, NOT A TURN (2026-08-08). Press once to open her ear -- the
+// browser requires a gesture before it will grant a microphone at all -- and
+// from then on it STAYS open and streams. Nothing is "sent"; she simply
+// hears continuously. Pressing again closes it, which is the only control a
+// person should need over someone else's ear.
+async function toggleMicrophone(){if(microphoneStream||microphoneStarting){micContinuous=false;stopMicrophone("Microphone Off \u00b7 nothing is being heard")}else{micContinuous=true;await startMicrophone();void micStreamLoop()}}
+async function micStreamLoop(){while(micContinuous&&microphoneStream){
+  // one bounded stretch of hearing at a time: the next only begins when the
+  // last has actually reached her, so her ear never runs ahead of her body.
+  await new Promise(r=>setTimeout(r,MIC_STREAM_SECONDS*1000));
+  if(!micContinuous||!microphoneStream)break;
+  if(micSamples>=MIC_RATE)await sendMicrophoneChunk()}}
+async function sendMicrophoneChunk(){if(micSending)return;const rate=micCtx?Math.round(micCtx.sampleRate):MIC_RATE;
+ const pcm=micPcmInt16();micChunks=[];micSamples=0;if(pcm.length<2)return;micSending=true;renderCapabilities();
+ let openedSession=null;
+ try{const open=await fetch("/api/v1/auditory/pcm/open",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({sample_rate_hz:rate})});
+  const opened=await open.json().catch(()=>null);
+  if(!open.ok||!opened||!opened.session_id)throw new Error((opened&&opened.reason)||("HTTP "+open.status));
+  openedSession=opened.session_id;
+  for(let at=0;at<pcm.length;at+=MIC_SAMPLES_PER_POST){const slice=pcm.subarray(at,Math.min(at+MIC_SAMPLES_PER_POST,pcm.length));
+   const bytes=new Uint8Array(slice.buffer,slice.byteOffset,slice.byteLength);let bin="";
+   for(let b2=0;b2<bytes.length;b2+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(b2,b2+0x8000));
+   const r=await fetch("/api/v1/auditory/pcm/chunk",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:opened.session_id,pcm_s16le_base64:btoa(bin)})});
+   if(!r.ok){const rb=await r.json().catch(()=>null);throw new Error((rb&&rb.reason)||("HTTP "+r.status))}}
+  const close=await fetch("/api/v1/auditory/pcm/close",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:opened.session_id})});
+  const done=await close.json().catch(()=>null);
+  openedSession=null;
+  if(!close.ok)throw new Error((done&&done.reason)||("HTTP "+close.status));
+  const t=(done&&done.totals)||{};setText("control-note",`She heard that \u00b7 ${t.physically_transitioned_neuron_count||0} of her neurons physically changed`);
+  await refreshObservation(true)}
+ catch(error){
+  // A stretch of hearing that fails PART WAY leaves its session open, and
+  // four of those exhaust the bound and deafen her ("4 pcm sessions are
+  // already open"). Whatever went wrong, the session is closed.
+  if(openedSession){try{await fetch("/api/v1/auditory/pcm/close",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:openedSession})})}catch(_e){}}
+  setText("control-note","She could not hear that: "+error.message)}
+ finally{micSending=false;renderCapabilities()}}
 function surfaceOwns(epoch,kind=surfaceKind){return epoch===surfaceEpoch&&surfaceActive&&surfaceKind===kind}
 function clearOfferedSurface(reason="Off · no human surface is currently offered"){surfaceEpoch+=1;if(surfaceAbort)surfaceAbort.abort();surfaceAbort=null;surfaceKind="none";surfaceActive=false;surfaceStarting=false;const canvas=document.getElementById("offered-surface"),context=canvas.getContext("2d");context.clearRect(0,0,canvas.width,canvas.height);canvas.dataset.empty="true";for(const kind of ["picture","pdf","book","audio","song"])document.getElementById(kind+"-file").value="";setText("text-reason",reason);setText("material-reason",reason);resetEncounter("surface",reason);renderCapabilities()}
 function beginSurface(kind){surfaceEpoch+=1;if(surfaceAbort)surfaceAbort.abort();surfaceAbort=null;surfaceKind=kind;surfaceActive=true;surfaceStarting=true;const canvas=document.getElementById("offered-surface"),context=canvas.getContext("2d");context.clearRect(0,0,canvas.width,canvas.height);canvas.dataset.empty="true";beginEncounter("surface",`${kind} · epoch ${surfaceEpoch}`);return surfaceEpoch}
-async function toggleCurriculum(){const cap=capability("curriculum");if(!cap.available)return;try{const operation=curriculumActive?"stop":"start",result=await postCapability("curriculum",{schema:"guala.native.curriculum_control.v1",operation});curriculumActive=operation==="start"&&result.active!==false;setText("control-note",`Curriculum ${operation} accepted at generation ${result.generation??"not supplied"}`);renderCapabilities();await refreshObservation(true)}catch(error){curriculumActive=false;setText("control-note","Curriculum control failed: "+error.message);renderCapabilities()}}
+// Showing her a card is ONE approved card reaching her as one experience --
+// there is no lesson loop to start or stop. Repeated presses walk the
+// approved alphabet in order, so the button teaches rather than toggles.
+let CARD_FILES={"alphabet-a":"alphabet-a-apple-v1.png","alphabet-b":"alphabet-b-bee-v1.png","alphabet-c":"C-is-for-Cat.png","alphabet-d":"D-is-for-Dolphin.png","alphabet-e":"E-is-for-Elephant.png","alphabet-f":"F-is-for-Fox.png","alphabet-g":"G-is-for-Giraffe.png","alphabet-h":"H-is-for-House.png","alphabet-i":"I-is-for-Ice-Cream.png","alphabet-j":"J-is-for-Jellyfish.png","alphabet-k":"K-is-for-Kite.png","alphabet-l":"L-is-for-Lion.png","alphabet-m":"M-is-for-Mushroom.png","alphabet-n":"N-is-for-Nest.png","alphabet-o":"O-is-for-Owl.png","alphabet-p":"P-is-for-Penguin.png","alphabet-q":"Q-is-for-Queen.png","alphabet-r":"R-is-for-Rabbit.png","alphabet-s":"S-is-for-Snail.png","alphabet-t":"T-is-for-Turtle.png","alphabet-u":"U-is-for-Umbrella.png","alphabet-v":"V-is-for-Violin.png","alphabet-w":"W-is-for-Whale.png","alphabet-x":"X-is-for-Xylophone.png","alphabet-y":"Y-is-for-Yak.png","alphabet-z":"Z-is-for-Zebra.png","number-01":"number-01-one-v1.png","number-02":"number-02-two-v1.png","number-03":"number-03-three-v1.png","number-04":"number-04-four-v1.png","number-05":"number-05-five-v1.png","number-06":"number-06-six-v1.png","number-07":"number-07-seven-v1.png","number-08":"number-08-eight-v1.png","number-09":"number-09-nine-v1.png","number-10":"number-10-ten-v1.png","word-mama":"word-mama-v1.png","word-dada":"word-dada-v1.png","word-ball":"word-ball-v1.png","word-cup":"word-cup-v1.png","word-dog":"word-dog-v1.png","word-cat":"word-cat-v1.png","word-sun":"word-sun-v1.png","word-moon":"word-moon-v1.png","word-tree":"word-tree-v1.png","word-water":"word-water-v1.png","word-milk":"word-milk-v1.png","word-shoe":"word-shoe-v1.png","word-hand":"word-hand-v1.png","word-eye":"word-eye-v1.png","word-book":"word-book-v1.png","word-car":"word-car-v1.png","word-bed":"word-bed-v1.png","word-door":"word-door-v1.png","word-apple":"word-apple-v1.png","word-banana":"word-banana-v1.png","word-chair":"word-chair-v1.png","word-hat":"word-hat-v1.png","word-fish":"word-fish-v1.png","word-bird":"word-bird-v1.png"};
+let CURRICULUM_CARDS=["alphabet-a","alphabet-b","alphabet-c","alphabet-d","alphabet-e","alphabet-f","alphabet-g","alphabet-h","alphabet-i","alphabet-j","alphabet-k","alphabet-l","alphabet-m","alphabet-n","alphabet-o","alphabet-p","alphabet-q","alphabet-r","alphabet-s","alphabet-t","alphabet-u","alphabet-v","alphabet-w","alphabet-x","alphabet-y","alphabet-z","number-01","number-02","number-03","number-04","number-05","number-06","number-07","number-08","number-09","number-10","word-mama","word-dada","word-ball","word-cup","word-dog","word-cat","word-sun","word-moon","word-tree","word-water","word-milk","word-shoe","word-hand","word-eye","word-book","word-car","word-bed","word-door","word-apple","word-banana","word-chair","word-hat","word-fish","word-bird"];
+let curriculumIndex=0;
+function paintCardStrip(){const card=CURRICULUM_CARDS[curriculumIndex%CURRICULUM_CARDS.length];const img=document.getElementById("card-image");if(!img)return;img.src="/cards/"+CARD_FILES[card];img.alt=card;setText("card-name",card+"  ("+((curriculumIndex%CURRICULUM_CARDS.length)+1)+"/"+CURRICULUM_CARDS.length+")")}
+async function toggleCurriculum(){const cap=capability("curriculum");if(!cap.available)return;const card=CURRICULUM_CARDS[curriculumIndex%CURRICULUM_CARDS.length];curriculumActive=true;renderCapabilities();setText("control-note",`Showing her ${card} …`);try{const result=await postCapability("curriculum",{card_id:card});curriculumIndex+=1;paintCardStrip();const totals=result.totals||{},changed=totals.physically_transitioned_neuron_count,learned=totals.complete_neuron_fractal_count,knew=totals.partial_cue_reassembly_count;setText("control-note",`${card}: ${changed} of her neurons physically changed · ${learned?learned+" new impressions":"no new impressions"} · ${knew?"she recognised it ("+knew+")":"she did not recognise it"}`);renderCapabilities();await refreshObservation(true)}catch(error){setText("control-note","Curriculum control failed: "+error.message)}finally{curriculumActive=false;renderCapabilities()}}
 async function renderGlyphs(){const text=document.getElementById("glyph-text").value.trim();if(!text)return;const epoch=beginSurface("text_visual"),canvas=document.getElementById("offered-surface"),context=canvas.getContext("2d",{alpha:false}),controller=new AbortController();surfaceAbort=controller;canvas.width=768;canvas.height=432;context.fillStyle="#fffdf4";context.fillRect(0,0,canvas.width,canvas.height);context.fillStyle="#101820";context.textAlign="center";context.textBaseline="middle";context.font="600 50px system-ui,sans-serif";const words=text.split(/\s+/),lines=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(context.measureText(next).width<680||!line)line=next;else{lines.push(line);line=word}}if(line)lines.push(line);lines.slice(0,6).forEach((value,index)=>context.fillText(value,384,216-(Math.min(lines.length,6)-1)*32+index*64));if(!surfaceOwns(epoch,"text_visual"))return;canvas.dataset.empty="false";surfaceStarting=false;setEncounterStage("surface","capture","captured","Human text was rendered locally; its string is not submitted");setEncounterStage("surface","presentation","presented","Glyph pixels are visibly presented on the browser surface");setText("human-transcript",text);try{const pixels=canvas.toDataURL("image/jpeg",.9).split(",",2)[1],result=await postCapability("text_visual",{schema:"guala.native.browser_visual_material.v1",encoding:"jpeg",frame_b64:pixels},controller.signal);if(!surfaceOwns(epoch,"text_visual"))return;applyEncounterAdmission("surface",result);setText("text-reason",`Rendered glyph pixels accepted at generation ${result.generation??"not supplied"}`)}catch(error){if(surfaceOwns(epoch,"text_visual")&&error.name!=="AbortError")setText("text-reason","Rendered glyphs not accepted: "+error.message)}finally{if(surfaceAbort===controller)surfaceAbort=null}}
 async function offerFile(kind,file){if(!file)return;const cap=capability(kind),max=Number(cap.record?.max_bytes);if(Number.isSafeInteger(max)&&file.size>max){setText("material-reason",`${kind} refused: ${file.size} bytes exceeds native limit ${max}`);return}const epoch=beginSurface(kind),controller=new AbortController();surfaceAbort=controller;let bitmap=null;try{setEncounterStage("surface","capture","selected",`${kind} selected in the browser`);if(kind==="picture"){bitmap=await createImageBitmap(file);if(!surfaceOwns(epoch,kind))return;const canvas=document.getElementById("offered-surface"),context=canvas.getContext("2d",{alpha:false});canvas.width=bitmap.width;canvas.height=bitmap.height;context.drawImage(bitmap,0,0);canvas.dataset.empty="false";setEncounterStage("surface","presentation","presented","Picture pixels are visibly presented on the browser surface")}const bytes=new Uint8Array(await file.arrayBuffer());if(!surfaceOwns(epoch,kind))return;const result=await postCapability(kind,{schema:"guala.native.browser_material.v1",material_kind:kind,media_type:file.type||"application/octet-stream",bytes_b64:bytesToBase64(bytes)},controller.signal);if(!surfaceOwns(epoch,kind))return;surfaceStarting=false;applyEncounterAdmission("surface",result);setText("material-reason",`${kind} accepted at generation ${result.generation??"not supplied"}`)}catch(error){if(surfaceOwns(epoch,kind)&&error.name!=="AbortError")setText("material-reason",`${kind} not accepted: ${error.message}`)}finally{if(bitmap&&typeof bitmap.close==="function")bitmap.close();if(surfaceAbort===controller)surfaceAbort=null;document.getElementById(kind+"-file").value=""}}
 async function requestShelf(id,mode){const epoch=beginSurface(id),controller=new AbortController();surfaceAbort=controller;try{setEncounterStage("surface","capture","selected",`${mode} ${id} request selected`);const result=await postCapability(id,{schema:"guala.native.external_material_selection.v1",mode},controller.signal);if(!surfaceOwns(epoch,id))return;surfaceStarting=false;applyEncounterAdmission("surface",result);setText("shelf-"+id+"-status",`${mode} request accepted at generation ${result.generation??"not supplied"}`)}catch(error){if(surfaceOwns(epoch,id)&&error.name!=="AbortError")setText("shelf-"+id+"-status","Not accepted: "+error.message)}finally{if(surfaceAbort===controller)surfaceAbort=null}}
@@ -159,6 +238,264 @@ document.getElementById("manual-refresh").addEventListener("click",()=>refreshOb
 document.getElementById("camera-toggle").addEventListener("click",toggleCamera);
 document.getElementById("microphone-toggle").addEventListener("click",toggleMicrophone);
 document.getElementById("curriculum-toggle").addEventListener("click",toggleCurriculum);
+// ---- A CARD TAUGHT IN THE VOICE OF WHOEVER IS PRESENT (2026-08-07).
+// The acceptance bar is one experience, not three signals: the card's light,
+// its tactile footprint and a living voice reach her in the SAME episode.
+// This asks nothing of the camera -- the card IS the paired real signal --
+// which is why it is a separate control from the standalone microphone.
+let speakStream=null,speakCtx=null,speakSrc=null,speakNode=null,speakChunks=[],speakSamples=0,speakSending=false;
+const SPEAK_RATE=16000,SPEAK_MAX_SECONDS=15;
+function speakGate(){const cap=capability("spoken_lesson");if(speakSending)return{ok:false,reason:"Sending her the card and your voice"};if(!cap.available)return{ok:false,reason:cap.state.reason||"Not mounted"};return{ok:true,reason:speakStream?"Speaking \u00b7 press again to teach her":"Press, say the card's name, press again"}}
+function speakStopNodes(){try{if(speakNode)speakNode.disconnect()}catch(_e){}try{if(speakSrc)speakSrc.disconnect()}catch(_e){}if(speakStream)speakStream.getTracks().forEach(t=>t.stop());speakStream=null;speakNode=null;speakSrc=null}
+function speakPcmInt16(){const out=new Int16Array(speakSamples);let at=0;for(const c of speakChunks)for(let k=0;k<c.length;k+=1){const s=Math.max(-1,Math.min(1,c[k]));out[at]=s<0?s*0x8000:s*0x7fff;at+=1}return out}
+async function startSpeaking(){const gate=speakGate();if(!gate.ok||speakStream)return;try{const acquired=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true},video:false});speakCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:SPEAK_RATE});speakSrc=speakCtx.createMediaStreamSource(acquired);speakNode=speakCtx.createScriptProcessor(4096,1,1);speakChunks=[];speakSamples=0;speakNode.onaudioprocess=e=>{if(speakSamples>=SPEAK_RATE*SPEAK_MAX_SECONDS)return;const d=e.inputBuffer.getChannelData(0);speakChunks.push(new Float32Array(d));speakSamples+=d.length};speakSrc.connect(speakNode);speakNode.connect(speakCtx.destination);speakStream=acquired;setText("control-note","Listening \u00b7 say the card's name, then press again");renderCapabilities()}catch(error){speakStopNodes();setText("control-note","Microphone unavailable: "+error.message);renderCapabilities()}}
+async function sendSpokenCard(){const card=CURRICULUM_CARDS[curriculumIndex%CURRICULUM_CARDS.length];speakStopNodes();if(speakCtx){await speakCtx.close().catch(()=>{});speakCtx=null}if(speakSamples<2){setText("control-note","Nothing was recorded");renderCapabilities();return}speakSending=true;renderCapabilities();setText("control-note",`Teaching her ${card} in your voice \u2026`);try{const pcm=speakPcmInt16();const bytes=new Uint8Array(pcm.buffer,pcm.byteOffset,pcm.byteLength);let bin="";for(let b=0;b<bytes.length;b+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(b,b+0x8000));const cap=capability("spoken_lesson");const response=await fetch(cap.endpoint,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({card_id:card,sample_rate_hz:SPEAK_RATE,pcm_s16le_base64:btoa(bin)})});const result=await response.json().catch(()=>null);if(!response.ok||!result||result.accepted!==true)throw new Error((result&&result.reason)||("HTTP "+response.status));const totals=result.totals||{},changed=totals.physically_transitioned_neuron_count,learned=totals.complete_neuron_fractal_count,knew=totals.partial_cue_reassembly_count;setText("control-note",`${card} in your own voice: ${changed} of her neurons physically changed \u00b7 ${learned?learned+" new impressions":"no new impressions"} \u00b7 ${knew?"she recognised it ("+knew+")":"she did not recognise it"}`);await refreshObservation(true)}catch(error){setText("control-note","She refused that: "+error.message)}finally{speakSending=false;speakChunks=[];speakSamples=0;renderCapabilities()}}
+async function toggleSpeakCard(){if(speakStream)await sendSpokenCard();else await startSpeaking()}
+document.getElementById("speak-card-toggle").addEventListener("click",toggleSpeakCard);
+// ---- HER PLACE, DRAWN FROM HER OWN WORLD STATE (2026-08-08).
+// Every room, doorway, object and body below is read from the world's own
+// authenticated snapshot and drawn to scale. This is not an impression of a
+// place; it IS her place, or the panel says it could not be read.
+// There are NO movement controls, deliberately. She is meant to move
+// herself, and a joystick would hide the fact that she cannot yet.
+let placeSeen=false;
+// HER PLACE IN THREE DIMENSIONS, BUILT FROM HER PLACE (2026-08-08).
+//
+// Joe: it should be a room you can walk the camera around, with her standing
+// in it, the way you would in a game — not a floor plan. A flat overhead
+// diagram is a map OF a room, and he is right that it is not a room.
+//
+// Every wall, doorway, thing and body below is read from her world's own
+// authenticated observation. Nothing is placed by hand and nothing is drawn
+// that she does not actually have. Two drawing conventions are stated rather
+// than hidden, because her world does not declare them:
+//   * a thing's HEIGHT is drawn at its own radius, because her world declares
+//     radius and mass and no height at all;
+//   * a thing's COLOUR is its own declared reflectance across her six optical
+//     bands, collapsed to screen colour — so what you see is what her eyes
+//     are given, not a palette chosen to look nice.
+let GL=null,PROG=null,BUF=null,CYL=null,CYLN=0,CAM={yaw:-2.3,pitch:0.38,dist:4200,tx:0,ty:0},DRAG=null,LASTWORLD=null;
+
+const VERT=`attribute vec3 p;attribute vec3 n;uniform mat4 mvp;uniform mat4 model;
+varying vec3 vn;varying vec3 vp;
+void main(){vn=mat3(model)*n;vp=(model*vec4(p,1.0)).xyz;gl_Position=mvp*vec4(p,1.0);}`;
+const FRAG=`precision mediump float;varying vec3 vn;varying vec3 vp;
+uniform vec3 col;uniform vec3 lamp;uniform float emit;
+void main(){
+ vec3 N=normalize(vn);
+ vec3 L=normalize(lamp-vp);
+ float d=length(lamp-vp);
+ float lam=max(dot(N,L),0.0)*(1.0/(1.0+d*d*0.000000045));
+ // A warm interior: a low lamp, a soft fill, and a cool rim so edges read.
+ vec3 warm=vec3(1.0,0.82,0.55);
+ vec3 fill=vec3(0.42,0.38,0.36)*0.62;
+ vec3 c=col*(fill+warm*lam*1.05)+col*emit;
+ c=c/(c+vec3(1.0));               // tone map so lamps do not blow out
+ c=pow(c,vec3(1.0/2.2));          // gamma
+ gl_FragColor=vec4(c,1.0);}`;
+
+function sh(gl,type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+
+function initGL(c){
+ const gl=c.getContext("webgl",{antialias:true,alpha:false,preserveDrawingBuffer:true});if(!gl)return null;
+ const pr=gl.createProgram();
+ gl.attachShader(pr,sh(gl,gl.VERTEX_SHADER,VERT));gl.attachShader(pr,sh(gl,gl.FRAGMENT_SHADER,FRAG));
+ gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(pr));
+ gl.useProgram(pr);gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);
+ // One unit cube, reused for every wall, thing and limb.
+ const V=[],F=[[0,0,1],[0,0,-1],[1,0,0],[-1,0,0],[0,1,0],[0,-1,0]];
+ const Q=[[[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],[[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]],
+          [[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]],[[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]],
+          [[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]],[[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]]];
+ for(let f=0;f<6;f++){const q=Q[f],n=F[f];
+  for(const i of [0,1,2,0,2,3]){V.push(q[i][0],q[i][1],q[i][2],n[0],n[1],n[2])}}
+ const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(V),gl.STATIC_DRAW);
+ // A CYLINDER, because her world models a thing as a disc standing on the
+ // floor with a radius — not as a cube. Drawing discs is the faithful shape,
+ // not a decoration.
+ const C=[],SEG=22;
+ for(let i=0;i<SEG;i++){
+  const a0=i/SEG*Math.PI*2,a1=(i+1)/SEG*Math.PI*2;
+  const x0=Math.cos(a0),y0=Math.sin(a0),x1=Math.cos(a1),y1=Math.sin(a1);
+  C.push(x0,y0,-1,x0,y0,0, x1,y1,-1,x1,y1,0, x1,y1,1,x1,y1,0);
+  C.push(x0,y0,-1,x0,y0,0, x1,y1,1,x1,y1,0, x0,y0,1,x0,y0,0);
+  C.push(0,0,1,0,0,1, x0,y0,1,0,0,1, x1,y1,1,0,0,1);
+  C.push(0,0,-1,0,0,-1, x1,y1,-1,0,0,-1, x0,y0,-1,0,0,-1)}
+ CYL=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,CYL);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(C),gl.STATIC_DRAW);
+ CYLN=C.length/6;
+ gl.bindBuffer(gl.ARRAY_BUFFER,b);
+ const ap=gl.getAttribLocation(pr,"p"),an=gl.getAttribLocation(pr,"n");
+ gl.enableVertexAttribArray(ap);gl.vertexAttribPointer(ap,3,gl.FLOAT,false,24,0);
+ gl.enableVertexAttribArray(an);gl.vertexAttribPointer(an,3,gl.FLOAT,false,24,12);
+ GL=gl;PROG=pr;BUF=b;return gl}
+
+function mul(a,b){const o=new Float32Array(16);
+ for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s}return o}
+function persp(f,asp,n,fa){const t=1/Math.tan(f/2);return new Float32Array(
+ [t/asp,0,0,0, 0,t,0,0, 0,0,(fa+n)/(n-fa),-1, 0,0,2*fa*n/(n-fa),0])}
+function look(e,c,u){
+ const z=nrm([e[0]-c[0],e[1]-c[1],e[2]-c[2]]),x=nrm(cr(u,z)),y=cr(z,x);
+ return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+  -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1])}
+function cr(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+function nrm(v){const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l]}
+function box(cx,cy,cz,sx,sy,sz){return new Float32Array(
+ [sx,0,0,0, 0,sy,0,0, 0,0,sz,0, cx,cy,cz,1])}
+
+// Her six declared optical bands, collapsed onto screen colour. The bands run
+// long-wave to short-wave, so the low bands weigh red and the high ones blue.
+// Illumination and reflectance are SIX BAND VALUES, not one number. Treating
+// the list as a scalar produced NaN and a floor lit like a hazard light.
+function bandMean(v){
+ if(v===undefined||v===null)return 0;
+ if(typeof v==="number")return Math.max(0,Math.min(1,v/1000000));
+ if(!v.length)return 0;
+ let t=0;for(const x of v)t+=x;
+ return Math.max(0,Math.min(1,t/(v.length*1000000)))}
+
+function bandColour(r){
+ if(!r||!r.length)return [0.55,0.5,0.45];
+ const f=r.map(v=>Math.max(0,Math.min(1,v/1000000)));
+ const n=f.length,red=(f[0]+f[1])/2,grn=(f[Math.floor(n/2)-1]+f[Math.floor(n/2)])/2,blu=(f[n-2]+f[n-1])/2;
+ return [0.18+red*0.82,0.16+grn*0.78,0.15+blu*0.76]}
+
+function drawPlace(w){
+ const c=document.getElementById("place-view");if(!c)return;
+ LASTWORLD=w;
+ let gl=GL;if(!gl){try{gl=initGL(c)}catch(e){gl=null}
+  if(!gl){const g=c.getContext("2d");g.fillStyle="#0a0705";g.fillRect(0,0,c.width,c.height);
+   g.fillStyle="#c9b89a";g.font="13px system-ui";
+   g.fillText("This browser cannot draw her room in three dimensions.",20,30);return}
+  bindCamera(c)}
+ render()}
+
+function render(){
+ const w=LASTWORLD,gl=GL,c=gl.canvas;if(!w)return;
+ const rooms=w.regions||[];if(!rooms.length)return;
+ gl.viewport(0,0,c.width,c.height);
+ gl.clearColor(0.035,0.028,0.022,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ const her=(w.bodies||[]).find(b=>b.is_her)||{x_mm:0,y_mm:0,heading_millidegrees:0,radius_mm:250};
+ const CEIL=2600;
+ // The camera orbits HER, the way a third-person camera follows a character.
+ const cx=her.x_mm+CAM.tx,cy=her.y_mm+CAM.ty,cz=900;
+ const eye=[cx+Math.cos(CAM.yaw)*Math.cos(CAM.pitch)*CAM.dist,
+            cy+Math.sin(CAM.yaw)*Math.cos(CAM.pitch)*CAM.dist,
+            cz+Math.sin(CAM.pitch)*CAM.dist];
+ const view=look(eye,[cx,cy,cz],[0,0,1]);
+ const proj=persp(0.85,c.width/c.height,60,40000);
+ const vp=mul(proj,view);
+ const uMVP=gl.getUniformLocation(PROG,"mvp"),uM=gl.getUniformLocation(PROG,"model"),
+       uC=gl.getUniformLocation(PROG,"col"),uL=gl.getUniformLocation(PROG,"lamp"),
+       uE=gl.getUniformLocation(PROG,"emit");
+ // The lamp sits where her world says the brightest room is.
+ let lamp=[her.x_mm,her.y_mm,2200],best=-1;
+ for(const r of rooms){const lit=bandMean(r.illumination_ppm);
+  if(lit>best){best=lit;lamp=[(r.min_x_mm+r.max_x_mm)/2,(r.min_y_mm+r.max_y_mm)/2,2150]}}
+ gl.uniform3fv(uL,new Float32Array(lamp));
+ const ap=gl.getAttribLocation(PROG,"p"),an=gl.getAttribLocation(PROG,"n");
+ const useMesh=(round)=>{gl.bindBuffer(gl.ARRAY_BUFFER,round?CYL:BUF);
+  gl.vertexAttribPointer(ap,3,gl.FLOAT,false,24,0);gl.vertexAttribPointer(an,3,gl.FLOAT,false,24,12)};
+ const piece=(m,col,emit,round)=>{useMesh(round);
+  gl.uniformMatrix4fv(uM,false,m);gl.uniformMatrix4fv(uMVP,false,mul(vp,m));
+  gl.uniform3fv(uC,new Float32Array(col));gl.uniform1f(uE,emit||0);
+  gl.drawArrays(gl.TRIANGLES,0,round?CYLN:36)};
+
+ const T=60; // wall thickness
+ for(const r of rooms){
+  const w0=r.min_x_mm,w1=r.max_x_mm,h0=r.min_y_mm,h1=r.max_y_mm;
+  const lit=bandMean(r.illumination_ppm);
+  // floorboards
+  piece(box((w0+w1)/2,(h0+h1)/2,-25,(w1-w0)/2,(h1-h0)/2,25),[0.26+lit*0.06,0.155,0.085],0);
+  // NO CEILING IS DRAWN. A lid over the room would hide the room, and the
+  // point of this view is to be inside it.
+  // four walls, each split around any doorway on that wall so the openings
+  // are real holes rather than painted-on rectangles
+  const walls=[["y",h1,w0,w1,"x"],["y",h0,w0,w1,"x"],["x",w1,h0,h1,"y"],["x",w0,h0,h1,"y"]];
+  for(const [axis,plane,a0,a1,span] of walls){
+   const gaps=(w.portals||[]).filter(p=>p.axis===axis&&Math.abs(p.plane_mm-plane)<1)
+     .map(p=>[Math.max(a0,p.aperture_min_mm),Math.min(a1,p.aperture_max_mm)])
+     .filter(g=>g[1]>g[0]).sort((u,v)=>u[0]-v[0]);
+   let cur=a0;const segs=[];
+   for(const g of gaps){if(g[0]>cur)segs.push([cur,g[0]]);cur=Math.max(cur,g[1])}
+   if(cur<a1)segs.push([cur,a1]);
+   // A WALL BETWEEN YOU AND HER IS NOT DRAWN. Whichever side of a wall the
+   // camera is standing on, that wall would be the back of the room from
+   // here — so it is skipped, and the room opens up as you swing round it.
+   const rcx=(w0+w1)/2,rcy=(h0+h1)/2;
+   const outward=axis==="y"?[0,Math.sign(plane-rcy)]:[Math.sign(plane-rcx),0];
+   const toEye=axis==="y"?[0,eye[1]-plane]:[eye[0]-plane,0];
+   const outside=(outward[0]*toEye[0]+outward[1]*toEye[1])>0;
+   for(const [s0,s1] of segs){
+    if(outside)continue;
+    const mid=(s0+s1)/2,half=(s1-s0)/2;
+    if(half<=0)continue;
+    const m=axis==="y"?box(mid,plane,CEIL/2,half,T,CEIL/2):box(plane,mid,CEIL/2,T,half,CEIL/2);
+    piece(m,[0.60,0.53,0.42],0)}
+   // a lintel over each doorway, so an opening reads as a doorway
+   for(const g of gaps){if(outside)continue;const mid=(g[0]+g[1])/2,half=(g[1]-g[0])/2;
+    const m=axis==="y"?box(mid,plane,2250,half,T,350):box(plane,mid,2250,T,half,350);
+    piece(m,[0.44,0.36,0.28],0)}}}
+
+ // THE THINGS IN HER ROOMS. Height is drawn at each thing's own radius,
+ // because her world declares radius and mass and no height.
+ for(const o of (w.objects||[])){
+  const rr=o.radius_mm,col=bandColour(o.reflectance_ppm);
+  const hot=(o.warmth_millikelvin||294000)>300000; // a lamp or a screen glows
+  piece(box(o.x_mm,o.y_mm,rr/2,rr,rr,rr/2),col,hot?0.5:0,true);
+  if(hot)piece(box(o.x_mm,o.y_mm,rr+70,rr*0.42,rr*0.42,70),[1.0,0.86,0.55],1.2,true)}
+
+ // THE BODIES. Hers is drawn facing the way her world says she is facing.
+ for(const b of (w.bodies||[])){
+  const R=b.radius_mm,a=(b.heading_millidegrees/1000)*Math.PI/180;
+  const skin=b.is_her?[0.68,0.60,0.86]:[0.55,0.56,0.62];
+  const cloth=b.is_her?[0.36,0.30,0.72]:[0.34,0.35,0.40];
+  piece(box(b.x_mm,b.y_mm,300,R*0.60,R*0.60,300),cloth,0,true);        // legs
+  piece(box(b.x_mm,b.y_mm,760,R*0.95,R*0.95,220),cloth,0,true);        // skirt
+  piece(box(b.x_mm,b.y_mm,1010,R*0.66,R*0.66,240),cloth,0,true);       // body
+  piece(box(b.x_mm,b.y_mm,1290,R*0.56,R*0.56,140),skin,0,true);        // head
+  if(b.is_her){piece(box(b.x_mm,b.y_mm,1400,R*0.62,R*0.62,60),[0.72,0.62,0.98],0.30,true);
+   piece(box(b.x_mm,b.y_mm,1470,R*0.30,R*0.30,55),[0.62,0.5,0.95],0.35,true)}  // her bow
+  // which way she is facing
+  piece(box(b.x_mm+Math.cos(a)*R*1.6,b.y_mm+Math.sin(a)*R*1.6,60,R*0.30,R*0.30,30),
+        b.is_her?[0.40,0.90,0.72]:[0.72,0.65,1.0],0.6,true)}}
+
+function bindCamera(c){
+ const pos=e=>{const t=e.touches?e.touches[0]:e;return [t.clientX,t.clientY]};
+ c.addEventListener("pointerdown",e=>{DRAG=pos(e);c.style.cursor="grabbing";c.setPointerCapture(e.pointerId)});
+ c.addEventListener("pointerup",e=>{DRAG=null;c.style.cursor="grab"});
+ c.addEventListener("pointermove",e=>{if(!DRAG)return;const p=pos(e);
+  CAM.yaw-=(p[0]-DRAG[0])*0.008;
+  CAM.pitch=Math.max(0.06,Math.min(1.45,CAM.pitch+(p[1]-DRAG[1])*0.006));
+  DRAG=p;render()});
+ c.addEventListener("wheel",e=>{e.preventDefault();
+  CAM.dist=Math.max(1400,Math.min(16000,CAM.dist*(1+Math.sign(e.deltaY)*0.12)));render()},{passive:false});
+}
+
+async function refreshPlace(){const cap=capability("world");const ep=cap.record&&cap.record.observation_endpoint;
+ if(!ep){setText("place-summary",cap.state.reason||"No place is mounted");setText("place-note","");return}
+ try{const r=await fetch(ep,{cache:"no-store",credentials:"same-origin"});const w=await r.json();
+  if(!r.ok)throw new Error(w.reason||("HTTP "+r.status));drawPlace(w);
+  setText("place-summary",w.region_count+" rooms \u00b7 "+w.object_count+" things \u00b7 she is at "+w.her_pose.x_mm+", "+w.her_pose.y_mm+" facing "+Math.round(w.her_pose.heading_millidegrees/1000)+"\u00b0 \u00b7 revision "+w.revision);
+  // WHAT SHE IS DOING, IN HER OWN TERMS. She only walks during her own
+  // unattended intervals, so this is where you watch her decide: the room
+  // she went to, the need that started her, and why she went that way.
+  const s=w.her_last_step;
+  setText("place-note",w.she_moves_herself&&s
+   ?("She is moving herself \u00b7 "+(s.room||"?")+" \u00b7 "+s.why+" \u00b7 because "+(s.need_because||s.need))
+   :(w.why_she_is_not_moving||""))}
+ catch(e){setText("place-summary","Her place could not be read: "+e.message);setText("place-note","")}}
+
+// HER CURRICULUM, READ FROM HER OWN MANIFEST (2026-08-08).  The page used to
+// carry a copy of the 36-card deck and its filenames, which went stale the
+// moment the curriculum grew past the alphabet — and it has (60 and rising).
+async function loadCurriculum(){try{let m=null;for(const path of ["/api/v1/curriculum/manifest","/curriculum/card_experience_manifest-v1.json"]){try{const r=await fetch(path,{cache:"no-store"});if(!r.ok)continue;const t=await r.text();if(t.trim().startsWith("<"))continue;m=JSON.parse(t);break}catch(_e){}}if(!m)return;if(!Array.isArray(m.experiences))throw new Error("manifest has no experiences");CURRICULUM_CARDS=m.experiences.map(e=>e.experience_id);CARD_FILES=Object.fromEntries(m.experiences.map(e=>[e.experience_id,e.surface.path.split("/").pop()]));paintCardStrip()}catch(e){setText("card-name","curriculum unavailable: "+e.message)}}
+loadCurriculum();
+document.getElementById("card-prev").addEventListener("click",()=>{curriculumIndex=(curriculumIndex+CURRICULUM_CARDS.length-1)%CURRICULUM_CARDS.length;paintCardStrip()});
+document.getElementById("card-next").addEventListener("click",()=>{curriculumIndex=(curriculumIndex+1)%CURRICULUM_CARDS.length;paintCardStrip()});
+paintCardStrip();
 document.getElementById("offer-text").addEventListener("click",renderGlyphs);
 document.getElementById("glyph-text").addEventListener("input",event=>setText("human-transcript",event.target.value||"Nothing typed"));
 document.getElementById("clear-text").addEventListener("click",()=>{document.getElementById("glyph-text").value="";setText("human-transcript","Nothing typed");clearOfferedSurface()});

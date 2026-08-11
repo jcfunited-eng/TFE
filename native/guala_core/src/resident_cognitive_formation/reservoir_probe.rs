@@ -13,6 +13,7 @@
 
 use super::ResidentCognitiveFormationState;
 use crate::complete_neuron::RecoveryLaneAddress;
+use crate::exact_rational::ExactRational;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use serde_json::{json, Value};
 use std::fs;
@@ -44,7 +45,11 @@ fn take_u64(bytes: &[u8], cursor: &mut usize) -> u64 {
 /// does (same magics, same layout) and returns (organism_tick, cognitive bytes).
 pub(super) fn parse_envelope(bytes: &[u8]) -> (u64, Vec<u8>) {
     let mut cursor = 0usize;
-    assert_eq!(take(bytes, &mut cursor, 8), ENVELOPE_MAGIC, "envelope magic");
+    assert_eq!(
+        take(bytes, &mut cursor, 8),
+        ENVELOPE_MAGIC,
+        "envelope magic"
+    );
     assert_eq!(take_u16(bytes, &mut cursor), 1, "envelope version");
     let _identity = take(bytes, &mut cursor, IDENTITY_BYTES);
     let organism_tick = take_u64(bytes, &mut cursor);
@@ -122,16 +127,23 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
     let mut neurons_with_open_gates = 0usize;
     let mut neurons_with_nonzero_residue = 0usize;
     let mut residues: Vec<String> = Vec::new();
+    let mut neurons_owing_return_work = 0usize;
+    let mut return_work_residues: Vec<String> = Vec::new();
     for (anatomy, state) in anatomies.iter().zip(cohort.state.neurons().iter()) {
         gate_open_population += state.gate.open_population();
         if state.gate.open_population() != 0 {
             neurons_with_open_gates += 1;
         }
-        let (residue_numerator, residue_denominator) = state.optical_quantum_residue.parts();
+        let (residue_numerator, residue_denominator) = state.receptor_quantum_residue.parts();
         if residue_numerator != 0 {
             neurons_with_nonzero_residue += 1;
         }
         residues.push(format!("{residue_numerator}/{residue_denominator}"));
+        let (owed_numerator, owed_denominator) = state.membrane_return_work_residue.parts();
+        if owed_numerator != 0 {
+            neurons_owing_return_work += 1;
+        }
+        return_work_residues.push(format!("{owed_numerator}/{owed_denominator}"));
         let _ = anatomy;
     }
     for (anatomy, state) in anatomies.iter().zip(cohort.state.neurons().iter()) {
@@ -144,7 +156,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 .expect("psi lane anatomy");
             let (lane_fuel, lane_spent, lane_heat) = lane_state.physical_parts();
             // Aggregate psi lanes per neuron; min/max here is per-lane.
-            psi.add(lane_fuel, lane_spent, lane_heat, lane_anatomy.capacities().0);
+            psi.add(
+                lane_fuel,
+                lane_spent,
+                lane_heat,
+                lane_anatomy.capacities().0,
+            );
             psi_dissipation_capacity += anatomy
                 .probe_psi_ring_dissipation_capacity_quanta(index)
                 .expect("psi ring capacity");
@@ -162,7 +179,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 .lane(RecoveryLaneAddress::Gate)
                 .expect("gate lane anatomy");
             let (lane_fuel, lane_spent, lane_heat) = lane_state.physical_parts();
-            gate.add(lane_fuel, lane_spent, lane_heat, lane_anatomy.capacities().0);
+            gate.add(
+                lane_fuel,
+                lane_spent,
+                lane_heat,
+                lane_anatomy.capacities().0,
+            );
             gate_dissipated += state.gate.dissipated_quanta();
             gate_dissipation_capacity += anatomy.gate_dissipation_capacity_quanta();
         }
@@ -176,7 +198,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 .lane(RecoveryLaneAddress::Plastic)
                 .expect("plastic lane anatomy");
             let (lane_fuel, lane_spent, lane_heat) = lane_state.physical_parts();
-            plastic.add(lane_fuel, lane_spent, lane_heat, lane_anatomy.capacities().0);
+            plastic.add(
+                lane_fuel,
+                lane_spent,
+                lane_heat,
+                lane_anatomy.capacities().0,
+            );
             plastic_dissipated += state.plastic.probe_dissipated_quanta();
             plastic_dissipation_capacity += anatomy.probe_plastic_dissipation_capacity_quanta();
         }
@@ -268,6 +295,11 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         }),
     };
 
+    let dark_rest_fuel_split = json!({
+        "available": false,
+        "reason": "retired mixed-unit authored feed; powered exact-energy contact not yet mounted"
+    });
+
     // Recognition verdict (measurement only): replay EXACTLY the admission
     // decision `settle_resident_recurrence_interval` makes — same retained
     // experience, same learned state, same current cohort state, same
@@ -288,6 +320,10 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 &cohort.anatomy,
                 learned,
                 cohort.state.clone(),
+                recurrence.map_or_else(
+                    || vec![None; cohort.anatomy.neuron_count()].into_boxed_slice(),
+                    |evidence| evidence.receptor_excitation_zeptojoules.clone(),
+                ),
                 recurrence.map_or_else(
                     || vec![false; cohort.anatomy.neuron_count()].into_boxed_slice(),
                     |evidence| evidence.gate_work_perturbed_neurons.clone(),
@@ -333,18 +369,26 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
             "total_open_population": gate_open_population.to_string(),
             "neurons_with_open_gates": neurons_with_open_gates,
         },
-        "optical_quantum_residues": {
+        "receptor_quantum_residues": {
             "neurons_with_nonzero_residue": neurons_with_nonzero_residue,
             "residues_zeptojoules": residues,
         },
-        "reservoir": {
-            "fuel_quanta": fuel.to_string(),
-            "spent_quanta": spent.to_string(),
-            "heat_quanta": heat.to_string(),
-            "fuel_capacity": fuel_capacity.to_string(),
-            "spent_capacity": spent_capacity.to_string(),
-            "heat_capacity": heat_capacity.to_string(),
+        // The sub-quantum membrane-return work each neuron has done and not
+        // yet been billed a whole dissipation quantum for (exact rest-cost
+        // law, 2026-08-06).  Bounded by the gate's own dissipation quantum.
+        "membrane_return_work_residues": {
+            "neurons_owing_return_work": neurons_owing_return_work,
+            "owed_zeptojoules": return_work_residues,
         },
+        "reservoir": {
+            "available_energy_zeptojoules": exact_json(fuel),
+            "spent_energy_zeptojoules": exact_json(spent),
+            "thermal_energy_zeptojoules": exact_json(heat),
+            "available_energy_capacity_zeptojoules": exact_json(fuel_capacity),
+            "spent_energy_capacity_zeptojoules": exact_json(spent_capacity),
+            "thermal_energy_capacity_zeptojoules": exact_json(heat_capacity),
+        },
+        "measured_fed_dark_rest_fuel_split": dark_rest_fuel_split,
         "lanes": {
             "psi": psi.to_json(),
             "gate": gate.to_json(),
@@ -364,6 +408,14 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
             "expressed_product_quanta": dna_product.to_string(),
             "waste_quanta": dna_waste.to_string(),
         },
+    })
+}
+
+fn exact_json(value: ExactRational) -> Value {
+    let (numerator, denominator) = value.parts();
+    json!({
+        "numerator": numerator.to_string(),
+        "denominator": denominator.to_string(),
     })
 }
 

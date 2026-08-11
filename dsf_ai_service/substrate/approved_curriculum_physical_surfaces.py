@@ -69,6 +69,40 @@ _APPROVED_NUMBER_ASSET_NAMES = (
     "number-10-ten-v1.png",
 )
 
+# THE FIRST WORDS SHE IS TAUGHT. Each reviewed surface carries one word
+# in plain letters on cream, and its picture, exactly as the alphabet and
+# number surfaces do. They were added to her curriculum and NEVER added
+# here, so they were never approved and never shipped — every one of these
+# lessons refused in production with a missing file. Approval is the gate
+# on what may physically reach her eyes; a surface that is not on this
+# list must not reach her, and a surface she is offered must be on it.
+_APPROVED_WORD_ASSET_NAMES = (
+    "word-mama-v1.png",
+    "word-dada-v1.png",
+    "word-ball-v1.png",
+    "word-cup-v1.png",
+    "word-dog-v1.png",
+    "word-cat-v1.png",
+    "word-sun-v1.png",
+    "word-moon-v1.png",
+    "word-tree-v1.png",
+    "word-water-v1.png",
+    "word-milk-v1.png",
+    "word-shoe-v1.png",
+    "word-hand-v1.png",
+    "word-eye-v1.png",
+    "word-book-v1.png",
+    "word-car-v1.png",
+    "word-bed-v1.png",
+    "word-door-v1.png",
+    "word-apple-v1.png",
+    "word-banana-v1.png",
+    "word-chair-v1.png",
+    "word-hat-v1.png",
+    "word-fish-v1.png",
+    "word-bird-v1.png",
+)
+
 _APPROVED_SURFACE_PLACEMENTS = tuple(
     (
         f"W1-optical-surface-{index:02d}",
@@ -90,7 +124,9 @@ _APPROVED_SURFACE_PLACEMENTS = tuple(
         ),
     )
     for index, asset_name in enumerate(
-        _APPROVED_ALPHABET_ASSET_NAMES + _APPROVED_NUMBER_ASSET_NAMES,
+        _APPROVED_ALPHABET_ASSET_NAMES
+        + _APPROVED_NUMBER_ASSET_NAMES
+        + _APPROVED_WORD_ASSET_NAMES,
         1,
     )
 )

@@ -128,6 +128,17 @@ impl NeuronSourceSite {
         self.topology_index
     }
 
+    /// The declared receptor this site was mounted from, as the caller's own
+    /// roster names it.  This pair — and not a storage index — is the stable
+    /// identity of a declared receptor for the organism's life.
+    pub(crate) fn sensor_id(&self) -> &str {
+        &self.sensor_id
+    }
+
+    pub(crate) fn substream_id(&self) -> &str {
+        &self.substream_id
+    }
+
     fn valid(&self) -> bool {
         !self.sensor_id.is_empty()
             && !self.substream_id.is_empty()

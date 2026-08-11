@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import importlib
-import os
 import sys
 from dataclasses import dataclass
 from typing import Protocol
@@ -67,6 +66,9 @@ class NativeResidentObservationView(Protocol):
     def complete_neuron_count(self) -> int: ...
 
     @property
+    def developmental_resting_neuron_count(self) -> int: ...
+
+    @property
     def physically_transitioned_neuron_count(self) -> int: ...
 
     @property
@@ -97,33 +99,40 @@ class NativeResidentObservationView(Protocol):
     def cognitive_mosaic_count(self) -> int: ...
 
     @property
+    def mosaic_of_mosaics_count(self) -> int: ...
+
+    @property
     def formation_activation_count(self) -> int: ...
 
     @property
     def partial_cue_reassembly_count(self) -> int: ...
 
     @property
+    def endogenous_partial_cue_reassembly_count(self) -> int: ...
+
+    @property
     def python_callback_count(self) -> int: ...
 
-    # Energy state (minimal feeding metabolism, 2026-08-05).  Every value is
-    # the body's own settled physics, decoded from the persisted body.
+    # Exact shared body-energy state. Local neuronal lanes keep their own
+    # discrete reaction extents; only exact rational zeptojoules cross this
+    # organism boundary.
     @property
-    def recovery_fuel_quanta(self) -> int: ...
+    def available_energy_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
-    def recovery_spent_quanta(self) -> int: ...
+    def spent_energy_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
-    def recovery_heat_quanta(self) -> int: ...
+    def thermal_energy_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
-    def recovery_fuel_capacity_quanta(self) -> int: ...
+    def available_energy_capacity_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
-    def dissipated_quanta(self) -> int: ...
+    def dissipated_energy_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
-    def dissipation_capacity_quanta(self) -> int: ...
+    def dissipation_capacity_energy_zeptojoules(self) -> tuple[int, int]: ...
 
     @property
     def separated_elementary_charges(self) -> int: ...
@@ -133,10 +142,10 @@ class NativeResidentObservationView(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
-class ResidentNutritionEvidence:
-    """Receipts for one prepared AUTHORED nutrition intake.
+class ResidentContactGrowthEvidence:
+    """Receipts for one prepared AUTHORED contact growth.
 
-    A feed is material intake, not a sensory occurrence: it advances the
+    Developmental authorship, not a sensory occurrence: it advances the
     organism tick and the fabric generation and nothing else.  The mounted
     joint generation is unchanged, and this boundary refuses any candidate
     that claims otherwise.
@@ -151,16 +160,7 @@ class ResidentNutritionEvidence:
     predecessor_fabric_generation: int
     fabric_generation: int
     mounted_generation: int
-    regenerated_fuel_quanta: int
-    unabsorbed_waste_quanta: int
-    vented_heat_quanta: int
-    recovery_fuel_quanta: int
-    recovery_spent_quanta: int
-    recovery_heat_quanta: int
-    recovery_fuel_capacity_quanta: int
-    dissipated_quanta: int
-    dissipation_capacity_quanta: int
-    separated_elementary_charges: int
+    authored_contact_count: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,8 +192,10 @@ class ResidentPrepareEvidence:
     cognitive_mosaic_count: int
     formation_activation_count: int
     partial_cue_reassembly_count: int
+    endogenous_partial_cue_reassembly_count: int
     python_callback_count: int
     complete_neuron_count: int = 0
+    developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
 
 
@@ -318,9 +320,13 @@ def _observation_signature(
         observation.fabric_sha256,
         observation.joint_field_count,
         observation.joint_neuron_count,
+        observation.complete_neuron_count,
+        observation.developmental_resting_neuron_count,
         observation.cognitive_ordinal,
         observation.cognitive_trace_count,
         observation.cognitive_mosaic_count,
+        observation.partial_cue_reassembly_count,
+        observation.endogenous_partial_cue_reassembly_count,
     )
 
 
@@ -386,14 +392,12 @@ class NativeResidentOrganism:
             raise RuntimeError("resident organism fabric does not fit its envelope")
         _canonical_sha256(candidate.state_sha256, "state receipt")
         _canonical_sha256(candidate.fabric_sha256, "fabric receipt")
-        field_count = _nonnegative_integer(
+        _nonnegative_integer(
             candidate.joint_field_count, "joint field count"
         )
-        neuron_count = _nonnegative_integer(
+        _nonnegative_integer(
             candidate.joint_neuron_count, "joint neuron count"
         )
-        if neuron_count < field_count:
-            raise RuntimeError("resident organism neuron count lost its fields")
         if (
             _nonnegative_integer(
                 candidate.cold_restore_authentication_count,
@@ -419,6 +423,10 @@ class NativeResidentOrganism:
         cognitive_mosaic_count = _nonnegative_integer(
             candidate.cognitive_mosaic_count, "cognitive mosaic count"
         )
+        mosaic_of_mosaics_count = _nonnegative_integer(
+            candidate.mosaic_of_mosaics_count, "mosaic of mosaics count"
+        )
+        del mosaic_of_mosaics_count
         activation_count = _nonnegative_integer(
             candidate.formation_activation_count,
             "formation activation count",
@@ -427,14 +435,22 @@ class NativeResidentOrganism:
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
         )
+        endogenous_partial_count = _nonnegative_integer(
+            candidate.endogenous_partial_cue_reassembly_count,
+            "endogenous partial cue reassembly count",
+        )
         complete_count = _nonnegative_integer(
             candidate.complete_neuron_count, "complete neuron count"
+        )
+        resting_count = _nonnegative_integer(
+            candidate.developmental_resting_neuron_count,
+            "developmental resting neuron count",
         )
         transitioned_count = _nonnegative_integer(
             candidate.physically_transitioned_neuron_count,
             "physically transitioned neuron count",
         )
-        del cognitive_ordinal, cognitive_trace_count, complete_count
+        del cognitive_ordinal, cognitive_trace_count, complete_count, resting_count
         if (
             not isinstance(candidate.mounted_step_completed, bool)
             or not isinstance(candidate.physical_transition_claimed, bool)
@@ -442,6 +458,7 @@ class NativeResidentOrganism:
             or candidate.physical_transition_claimed
             != (transitioned_count > 0)
             or candidate.python_callback_count != 0
+            or endogenous_partial_count > partial_count
         ):
             raise RuntimeError("resident organism observation made a false claim")
         if not candidate.mounted_step_completed and (
@@ -478,12 +495,51 @@ class NativeResidentOrganism:
             raise RuntimeError("resident organism save changed active custody")
         return state
 
+    def observe_retained_formations(self) -> tuple[tuple[tuple[str, ...], int], ...]:
+        """Read-only structure of the retained distributed formations.
+
+        One entry per admitted mosaic as ``(member_lineage_hexes,
+        recurrence_bond_count)``.  Structure only — no recognition, recall,
+        meaning, or capital — and reading advances nothing (verified against
+        the active state receipt).
+        """
+
+        before = self.readiness()
+        formations = self.__runtime.observe_retained_formations()
+        validated = []
+        for members, bond_count in formations:
+            lineages = tuple(str(lineage) for lineage in members)
+            if len(lineages) < 3 or any(
+                len(lineage) != 32 for lineage in lineages
+            ):
+                raise RuntimeError(
+                    "retained formation observation is structurally invalid"
+                )
+            validated.append((lineages, _nonnegative_integer(
+                bond_count, "recurrence bond count"
+            )))
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation observation advanced the organism")
+        return tuple(validated)
+
+    def navigate_hippocampal(self, lineage_hex: str) -> None:
+        """Refused: the hippocampal episode archive is retired.
+
+        This walked an archived posting chain and returned episode addresses.
+        The archive is no longer written or read: it never carried
+        recognition, recall or meaning, and it grew by roughly 893 files per
+        recognition.  Her memories are the retained formations in her body —
+        read those with :meth:`observe_retained_formations`.
+        """
+
+        return self.__runtime.navigate_hippocampal(lineage_hex)
+
     def prepare(self, source: NativeJointSourceView) -> ResidentPrepareEvidence:
         """Prepare one native candidate and return receipts, never state bytes.
 
         The bare source path remains severed by the mandatory-admission law:
-        the native runtime refuses it because no occurrence admission and no
-        hippocampal cold custody are supplied.  Use :meth:`prepare_admitted`.
+        the native runtime refuses it because no occurrence admission is
+        supplied.  Use :meth:`prepare_admitted`.
         """
 
         source_port_count = _nonnegative_integer(
@@ -499,7 +555,6 @@ class NativeResidentOrganism:
         self,
         source: NativeJointSourceView,
         maximum_causal_intervals: object,
-        hippocampal_cold_root: object,
     ) -> ResidentPrepareEvidence:
         """Prepare one admitted native candidate and return receipts.
 
@@ -507,31 +562,50 @@ class NativeResidentOrganism:
         causal interval ``(numerator, denominator)`` in source-time units per
         source occurrence, in exact occurrence order.  It is independent
         environment/anatomy authority; this boundary never derives it from the
-        occurrence.  ``hippocampal_cold_root`` names the durable external
-        content-addressed cold-custody directory required by resident
-        cognition.
+        occurrence.
+
+        An admitted transition requires NO durable cold-custody directory and
+        writes no file of its own: what a lesson changes is her body, and the
+        caller persists that body once per lesson.
         """
 
         source_port_count = _nonnegative_integer(
             getattr(source, "port_count", None), "source port count"
         )
         intervals = _validated_causal_intervals(maximum_causal_intervals)
-        if not isinstance(hippocampal_cold_root, (str, bytes)) and not hasattr(
-            hippocampal_cold_root, "__fspath__"
-        ):
-            raise TypeError(
-                "resident organism hippocampal cold root must be a filesystem path"
-            )
-        cold_root = os.fspath(hippocampal_cold_root)
-        if isinstance(cold_root, bytes):
-            cold_root = os.fsdecode(cold_root)
         active_before = self.readiness()
-        candidate = self.__runtime.prepare_admitted(
-            source, intervals, cold_root
-        )
+        candidate = self.__runtime.prepare_admitted(source, intervals)
         return self._validated_prepare_evidence(
             candidate, source_port_count, active_before
         )
+
+    def prepare_vestibular_tick(
+        self,
+        predecessor_heading_millidegrees: int,
+        signed_body_motion_millidegrees: int,
+    ) -> ResidentPrepareEvidence:
+        """Prepare one native one-millisecond body-and-balance successor."""
+
+        predecessor_heading = _nonnegative_integer(
+            predecessor_heading_millidegrees,
+            "vestibular predecessor heading",
+        )
+        if predecessor_heading >= 360_000:
+            raise ValueError("vestibular predecessor heading must be below 360000")
+        if (
+            not isinstance(signed_body_motion_millidegrees, int)
+            or isinstance(signed_body_motion_millidegrees, bool)
+            or not -(1 << 31)
+            <= signed_body_motion_millidegrees
+            < (1 << 31)
+        ):
+            raise TypeError("vestibular signed yaw step must be a signed 32-bit integer")
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_vestibular_tick(
+            predecessor_heading,
+            signed_body_motion_millidegrees,
+        )
+        return self._validated_prepare_evidence(candidate, 1, active_before)
 
     def _validated_prepare_evidence(
         self,
@@ -624,8 +698,16 @@ class NativeResidentOrganism:
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
         )
+        endogenous_partial_cue_reassembly_count = _nonnegative_integer(
+            candidate.endogenous_partial_cue_reassembly_count,
+            "endogenous partial cue reassembly count",
+        )
         complete_neuron_count = _nonnegative_integer(
             candidate.complete_neuron_count, "complete neuron count"
+        )
+        developmental_resting_neuron_count = _nonnegative_integer(
+            candidate.developmental_resting_neuron_count,
+            "developmental resting neuron count",
         )
         physically_transitioned_neuron_count = _nonnegative_integer(
             candidate.physically_transitioned_neuron_count,
@@ -636,6 +718,13 @@ class NativeResidentOrganism:
         # mounted cohorts (cognition still receives its occurrences).
         cohort_count_changed = (
             current_cohort_evaluation_count > source_port_count
+        )
+        reached_neuron_growth = (
+            complete_neuron_count - active_before.complete_neuron_count
+        )
+        claimed_resting_neurons = (
+            active_before.developmental_resting_neuron_count
+            - developmental_resting_neuron_count
         )
         if (
             predecessor_state_sha256 != active_before.state_sha256
@@ -652,9 +741,13 @@ class NativeResidentOrganism:
             or predecessor_rebuilt_field_count != 0
             or cohort_count_changed
             or successor_seal_count != 1
-            or complete_neuron_fractal_count > dsf_delivery_count
             or recurrent_complete_neuron_fractal_count
             > complete_neuron_fractal_count
+            or reached_neuron_growth < 0
+            or claimed_resting_neurons < 0
+            or claimed_resting_neurons > reached_neuron_growth
+            or endogenous_partial_cue_reassembly_count
+            > partial_cue_reassembly_count
             or not isinstance(candidate.physical_transition_claimed, bool)
             or not isinstance(candidate.cognitive_formation_claimed, bool)
             or candidate.physical_transition_claimed
@@ -707,28 +800,67 @@ class NativeResidentOrganism:
             cognitive_mosaic_count=cognitive_mosaic_count,
             formation_activation_count=formation_activation_count,
             partial_cue_reassembly_count=partial_cue_reassembly_count,
+            endogenous_partial_cue_reassembly_count=(
+                endogenous_partial_cue_reassembly_count
+            ),
             physical_transition_claimed=candidate.physical_transition_claimed,
             cognitive_formation_claimed=candidate.cognitive_formation_claimed,
             python_callback_count=0,
             complete_neuron_count=complete_neuron_count,
+            developmental_resting_neuron_count=(
+                developmental_resting_neuron_count
+            ),
             physically_transitioned_neuron_count=(
                 physically_transitioned_neuron_count
             ),
         )
 
-    def prepare_nutrition(self, energy_quanta: object) -> ResidentNutritionEvidence:
-        """Prepare one AUTHORED nutrition intake and return its receipts.
+    def prepare_authored_contacts(
+        self, contacts: object
+    ) -> ResidentContactGrowthEvidence:
+        """Prepare one AUTHORED contact growth and return its receipts.
 
-        ``energy_quanta`` is the intake declaration's energy content in the
-        body's own fuel quantum.  It is caller-authored declaration authority,
-        exactly like curriculum card media; this boundary never derives it
-        from the organism.  The native body refuses the intake outright when
-        it can absorb nothing.
+        ``contacts`` is a sequence of ``(left_sensor_id, left_substream_id,
+        right_sensor_id, right_substream_id, conductance_picosiemens)``: the
+        caller names two of its OWN declared receptors and the conductance of
+        the contact between them, exactly the authorship growth DNA carries at
+        genesis.  This boundary derives no adjacency and no conductance.
+
+        Growth is append-only in the body: existing contacts keep their index,
+        endpoints, conductance and retained carrier phase. A growth carries
+        no sensory occurrence, so no fractal may be claimed. The resident
+        cognitive generation advances once because the body itself changed.
         """
 
-        quanta = _positive_integer(energy_quanta, "nutrition energy quanta")
+        authored: list[tuple[str, str, str, str, int]] = []
+        for entry in contacts:
+            left_sensor, left_substream, right_sensor, right_substream, conductance = (
+                entry
+            )
+            if (
+                not isinstance(left_sensor, str)
+                or not isinstance(left_substream, str)
+                or not isinstance(right_sensor, str)
+                or not isinstance(right_substream, str)
+                or not left_sensor
+                or not left_substream
+                or not right_sensor
+                or not right_substream
+            ):
+                raise TypeError("authored contact endpoints must be declared receptor names")
+            authored.append(
+                (
+                    left_sensor,
+                    left_substream,
+                    right_sensor,
+                    right_substream,
+                    _positive_integer(conductance, "authored contact conductance"),
+                )
+            )
+        if not authored:
+            raise ValueError("authored contact growth requires at least one contact")
         active_before = self.readiness()
-        candidate = self.__runtime.prepare_nutrition(quanta)
+        candidate = self.__runtime.prepare_authored_contacts(authored)
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
         if candidate.schema != PREPARE_SCHEMA:
@@ -746,17 +878,6 @@ class NativeResidentOrganism:
         prepared_state_sha256 = _canonical_sha256(
             candidate.prepared_state_sha256, "prepared state receipt"
         )
-        regenerated = _nonnegative_integer(
-            candidate.nutrition_regenerated_fuel_quanta,
-            "nutrition regenerated fuel quanta",
-        )
-        waste = _nonnegative_integer(
-            candidate.nutrition_unabsorbed_waste_quanta,
-            "nutrition unabsorbed waste quanta",
-        )
-        vented = _nonnegative_integer(
-            candidate.nutrition_vented_heat_quanta, "nutrition vented heat quanta"
-        )
         if (
             predecessor_state_sha256 != active_before.state_sha256
             or candidate.predecessor_organism_tick != active_before.organism_tick
@@ -764,25 +885,22 @@ class NativeResidentOrganism:
             or candidate.predecessor_fabric_generation
             != active_before.fabric_generation
             or candidate.fabric_generation != active_before.fabric_generation + 1
-            # A feed carries no sensory occurrence, so the mounted joint
-            # generation must NOT move.
-            or candidate.mounted_generation != active_before.mounted_generation
+            or candidate.mounted_generation
+            != active_before.mounted_generation + 1
             or candidate.dsf_delivery_count != 0
             or candidate.complete_neuron_fractal_count != 0
             or candidate.physical_transition_claimed
             or candidate.cognitive_formation_claimed
-            # Conservation, re-checked at this boundary: every declared
-            # quantum was either absorbed or exported as waste.
-            or regenerated + waste != quanta
-            or regenerated == 0
         ):
-            raise RuntimeError("resident organism nutrition intake changed causal physics")
+            raise RuntimeError(
+                "resident organism contact growth changed causal physics"
+            )
         active_after = self.readiness()
         if _observation_signature(active_after) != _observation_signature(
             active_before
         ):
             raise RuntimeError("resident organism prepare published pending state")
-        return ResidentNutritionEvidence(
+        return ResidentContactGrowthEvidence(
             token=token,
             token_hex=candidate.token_hex,
             predecessor_state_sha256=predecessor_state_sha256,
@@ -792,29 +910,34 @@ class NativeResidentOrganism:
             predecessor_fabric_generation=candidate.predecessor_fabric_generation,
             fabric_generation=candidate.fabric_generation,
             mounted_generation=candidate.mounted_generation,
-            regenerated_fuel_quanta=regenerated,
-            unabsorbed_waste_quanta=waste,
-            vented_heat_quanta=vented,
-            recovery_fuel_quanta=_nonnegative_integer(
-                candidate.recovery_fuel_quanta, "recovery fuel quanta"
+            authored_contact_count=len(authored),
+        )
+
+    def observe_cohort_contacts(self) -> tuple[tuple[int, int], ...]:
+        """Decoded ``(member_count, contact_count)`` per living cohort."""
+
+        return tuple(
+            (int(members), int(contacts))
+            for members, contacts in self.__runtime.observe_cohort_contacts()
+        )
+
+    def observe_reached_source_site_count(
+        self,
+        sensor_id: str,
+        substream_id: str,
+    ) -> int:
+        """Count reached cells with one exact persisted physical source."""
+
+        if not isinstance(sensor_id, str) or not sensor_id:
+            raise TypeError("reached source sensor identity must be nonempty text")
+        if not isinstance(substream_id, str) or not substream_id:
+            raise TypeError("reached source substream identity must be nonempty text")
+        return _nonnegative_integer(
+            self.__runtime.observe_reached_source_site_count(
+                sensor_id,
+                substream_id,
             ),
-            recovery_spent_quanta=_nonnegative_integer(
-                candidate.recovery_spent_quanta, "recovery spent quanta"
-            ),
-            recovery_heat_quanta=_nonnegative_integer(
-                candidate.recovery_heat_quanta, "recovery heat quanta"
-            ),
-            recovery_fuel_capacity_quanta=_nonnegative_integer(
-                candidate.recovery_fuel_capacity_quanta,
-                "recovery fuel capacity quanta",
-            ),
-            dissipated_quanta=_nonnegative_integer(
-                candidate.dissipated_quanta, "dissipated quanta"
-            ),
-            dissipation_capacity_quanta=_nonnegative_integer(
-                candidate.dissipation_capacity_quanta, "dissipation capacity quanta"
-            ),
-            separated_elementary_charges=int(candidate.separated_elementary_charges),
+            "reached source site count",
         )
 
     def commit(self, token: bytes) -> NativeResidentObservationView:
@@ -878,6 +1001,71 @@ def restore_native_resident_organism(
     )
     organism.save()
     return organism
+
+
+def exact_native_yaw_trajectory(
+    *,
+    predecessor_heading_millidegrees: int,
+    signed_displacement_millidegrees: int,
+    duration_microseconds: int,
+) -> tuple[int, tuple[int, ...]]:
+    """Return the native minimum-jerk yaw path on the 1 ms body clock."""
+
+    trajectory = getattr(_native_core(), "exact_virtual_yaw_trajectory", None)
+    if not callable(trajectory):
+        raise RuntimeError("guala_core does not expose exact virtual yaw physics")
+    successor, steps = trajectory(
+        predecessor_heading_millidegrees,
+        signed_displacement_millidegrees,
+        duration_microseconds,
+    )
+    return int(successor), tuple(int(step) for step in steps)
+
+
+def migrate_native_resident_organism_exact_energy(
+    *,
+    current_envelope: bytes,
+    expected_predecessor_sha256: str,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> bytes:
+    """Perform the explicit one-way retired-reservoir cutover."""
+
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("exact-energy migration requires GLORUN bytes")
+    predecessor = _canonical_sha256(
+        expected_predecessor_sha256, "exact-energy predecessor receipt"
+    )
+    if hashlib.sha256(current_envelope).hexdigest() != predecessor:
+        raise RuntimeError("exact-energy migration predecessor changed")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    migrate = getattr(
+        _native_core(), "migrate_native_resident_organism_exact_energy", None
+    )
+    if not callable(migrate):
+        raise RuntimeError("guala_core does not expose exact-energy migration")
+    migrated = bytes(migrate(current_envelope, envelope, fabric, logical))
+    if (
+        migrated == current_envelope
+        or not migrated.startswith(b"GLORUN01")
+        or len(migrated) > envelope
+    ):
+        raise RuntimeError("exact-energy migration did not produce one new body")
+    restore_native_resident_organism(
+        current_envelope=migrated,
+        max_envelope_bytes=envelope,
+        max_fabric_bytes=fabric,
+        max_logical_peak_bytes=logical,
+    )
+    return migrated
 
 
 def _validated_growth_dna(
@@ -1044,5 +1232,7 @@ __all__ = (
     "RUNTIME_SCHEMA",
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
+    "exact_native_yaw_trajectory",
     "restore_native_resident_organism",
+    "migrate_native_resident_organism_exact_energy",
 )

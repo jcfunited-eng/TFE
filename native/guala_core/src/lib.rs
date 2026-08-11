@@ -7,7 +7,6 @@
 
 use pyo3::prelude::*;
 
-pub use hippocampal_sparse_path::{HippocampalColdObject, HippocampalColdPort};
 pub use joint_source_episode::{decode_native_joint_source_episode, NativeJointSourceEpisode};
 pub use physical_cognitive_capital::{
     CognitiveCapability, CognitiveCapitalDimension, CognitiveCapitalEvidence,
@@ -21,6 +20,7 @@ pub use resident_d3_runtime::{
 
 mod auditory;
 mod auditory_reachability;
+mod auditory_receptor_work;
 mod canonical_basin;
 #[cfg(test)]
 mod canonical_causal_evidence;
@@ -29,6 +29,7 @@ mod complete_neuron;
 mod content_defined_chunker;
 mod declared_geometric_anatomy;
 mod developmental_electrical_anatomy;
+mod developmental_resting_population;
 mod elementary_charge_membrane;
 mod elementary_charge_transfer;
 #[cfg(test)]
@@ -40,7 +41,6 @@ mod exact_time_grid_occurrence;
 mod full_field_bank;
 #[cfg(test)]
 mod hippocampal_reference_page;
-mod hippocampal_directory_cold_store;
 mod hippocampal_sparse_path;
 pub mod joint_field_l0_l4;
 mod joint_source_episode;
@@ -70,14 +70,19 @@ mod physical_mosaic;
 mod positional_krimelack_boundary;
 mod reached_neuron_cohort;
 mod reached_vestibular_bundle_path;
+mod receptor_quantum_delivery;
 mod recovery_fluid_contact;
 mod resident_cognitive_formation;
+mod resident_electrical_fabric;
 mod resident_d3_runtime;
 mod resident_receptor_transition;
+#[cfg(test)]
+mod scratch_auditory_ear_proofs;
 #[cfg(test)]
 mod scratch_auditory_probe;
 mod sha256;
 mod sparse_electrical_contact;
+mod tactile_receptor_work;
 mod vestibular_joint_source_builder;
 mod vestibular_neuron_path;
 mod virtual_body_yaw_motion;

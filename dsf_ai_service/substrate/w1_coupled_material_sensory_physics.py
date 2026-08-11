@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
+from math import isqrt
 
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     BuiltSixSenseFullField,
@@ -244,17 +245,71 @@ def _smell_values(
     )
     if region is None or region.air is None:
         raise ValueError("signed olfactory air volume is unavailable")
-    return tuple(
-        _bounded_fraction(
-            Fraction(
-                mass * 1_000_000_000,
-                region.air.volume_cubic_mm * saturation,
-            )
-        )
-        for mass, saturation in zip(
+    # THE AIR IN A ROOM IS NOT ONE NUMBER. Dividing the room's whole odorant
+    # mass by the room's whole volume says every corner of a kitchen smells
+    # exactly as much of the apple as the spot the apple is sitting in, which
+    # is false and — measured — leaves an organism with nothing whatever to
+    # follow: a perfectly flat field cannot be walked up.
+    #
+    # What is missing is the near field. Mass released by a thing has not
+    # finished mixing: it is denser close to its source and tends to the
+    # room's average far away. So each source's share of the room's mass
+    # (its share of the channel's release into that room) is taken as
+    # occupying the sphere of air between it and her nose, and the room's
+    # well-mixed value is the floor beneath that rather than the whole story.
+    #
+    # Nothing here is a new constant. Masses, release rates, volumes and
+    # distances are all already declared by her world; this only stops
+    # pretending the mixing is instantaneous and perfect.
+    sources = tuple(
+        item
+        for item in observation.objects
+        if item.material is not None
+        and item.position is not None
+        and _region_at_point(observation, item.position) is region
+    )
+    values: list[Fraction] = []
+    for channel, (mass, saturation) in enumerate(
+        zip(
             region.air.odorant_mass_nanograms,
             geometry.odorant_saturation_nanograms_per_cubic_meter,
         )
+    ):
+        well_mixed = Fraction(
+            mass * 1_000_000_000, region.air.volume_cubic_mm * saturation
+        )
+        released = sum(
+            item.material.odorant_release_nanograms_per_second[channel]
+            for item in sources
+        )
+        strongest = well_mixed
+        if released > 0 and mass > 0:
+            for item in sources:
+                rate = item.material.odorant_release_nanograms_per_second[
+                    channel
+                ]
+                if rate <= 0:
+                    continue
+                distance = _distance_mm(position, item.position)
+                # Her nose cannot be closer to a thing than its own surface,
+                # and a source is never denser than undiluted.
+                span = max(distance, item.radius_mm)
+                near_volume = 4 * span * span * span
+                if near_volume <= 0:
+                    continue
+                share = Fraction(mass * rate, released)
+                near = Fraction(share * 1_000_000_000, near_volume * saturation)
+                if near > strongest:
+                    strongest = near
+        values.append(_bounded_fraction(strongest))
+    return tuple(values)
+
+
+def _distance_mm(left: object, right: object) -> int:
+    return isqrt(
+        (left.x - right.x) ** 2
+        + (left.y - right.y) ** 2
+        + (left.z - right.z) ** 2
     )
 
 

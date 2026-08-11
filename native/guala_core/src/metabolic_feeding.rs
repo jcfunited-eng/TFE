@@ -1,4 +1,4 @@
-//! Minimal feeding metabolism for one reached neuron cohort.
+//! Exact dark recovery for one reached neuron cohort.
 //!
 //! Authorized by Joe on 2026-08-05 ("the current energy supply depletes too
 //! soon and your design rectifies that"), with the expectation that it is
@@ -6,56 +6,42 @@
 //! set that closes the body's one-way ratchets, and every one of them is built
 //! out of reactions and quantities that already exist.
 //!
-//! Three loops live here.  None of them invents a rate, a stoichiometry, a
-//! schedule, a threshold, or a constant:
+//! Two local loops live here. Neither invents a rate, schedule, threshold, or
+//! unit conversion:
 //!
-//! 1. NUTRITION INTAKE.  An AUTHORED nutrition declaration (an intake
-//!    declaration, like curriculum card media — never a physics constant)
-//!    carries whole quanta of energy content denominated in the body's own
-//!    fuel quantum.  The reaction is `spent + intake energy -> fuel`, one
-//!    quantum each way: the recovery lane law already fixes
-//!    `fuel_per_extent == spent_per_extent`, so one spent quantum is exactly
-//!    the residue of one burnt fuel quantum and exactly one quantum of intake
-//!    energy restores it.  Intake energy that finds no spent quantum to
-//!    restore is not absorbed and leaves as waste; the reservoir's heat is
-//!    vented to the environment by the same exchange.
-//!
-//! 2. REST RECOVERY OF EVERY LANE.  The mounted fluid anatomy already carries
+//! 1. REST RECOVERY OF EVERY LANE.  The mounted fluid anatomy already carries
 //!    a contact for every Psi, gate and plastic recovery lane of every neuron;
 //!    only the gate lane was ever addressed, and only on demand from a pending
 //!    gate transition.  During a genuinely dark settlement every lane's
 //!    existing recovery reaction runs at the rate its own mounted contact
 //!    permits, paying fuel at the lane's own stoichiometry.
 //!
-//! 3. MEMBRANE RETURN.  Gate work pumps separated charge into the cohort with
-//!    no reverse path once the gates close (conductance is zero, so the
-//!    existing conductive path carries nothing).  The return is an
-//!    energy-paid whole-charge transport toward the authored rest — zero
-//!    separated charge, the state every neuron is born at — bounded by what
-//!    the gate's own single-channel conductance would carry in this interval
-//!    and paid for in fuel on the gate's own dissipation lattice.
+//! 2. CARRIER-GRADIENT PUMP.  The existing intracellular/extracellular carrier
+//!    partition is the finite gradient material.  A local pump moves whole
+//!    carriers only uphill according to the authored E_rev sign, at the
+//!    existing one-channel conductance/time bound, and only when exact body
+//!    energy pays the increase in membrane-plus-gradient work.  There is no
+//!    desired voltage, automatic refill target, or fabricated ion species.
 //!
 //! Conservation is exact and stated on every settlement.  Nothing here holds
 //! an owner, a lock, a timer, a schedule, a database, or a whole-brain scan.
 
 use crate::complete_neuron::{
-    membrane_return_affordable_charges, membrane_return_charge_bound, membrane_return_quanta_cost,
-    settle_membrane_return_transport, settle_recovery_only, NeuronPhysicalAnatomy,
+    membrane_and_gradient_work_zeptojoules, membrane_gradient_pump_charge_bound,
+    settle_membrane_pump_transport, settle_recovery_only, NeuronPhysicalAnatomy,
     NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError, RecoveryLaneAddress,
 };
+use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::recovery_fluid_contact::{
-    settle_recovery_fluid_contact, ReachedRecoveryFluidAnatomy, RecoveryFluidError,
-    RecoveryFluidReservoirAnatomy, RecoveryFluidReservoirState,
+    settle_recovery_fluid_contact, whole_extents_carried, ReachedRecoveryFluidAnatomy,
+    RecoveryFluidError, RecoveryFluidReservoirAnatomy, RecoveryFluidReservoirState,
 };
+use num_bigint::BigInt;
+use num_rational::BigRational;
+use num_traits::ToPrimitive;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum MetabolicError {
-    /// The authored nutrition declaration carries no energy at all.
-    EmptyNutritionDeclaration,
-    /// The body has no spent material left to restore: it is already carrying
-    /// every fuel quantum its reservoir can hold.  Over-feeding is refused
-    /// here rather than silently discarded.
-    NothingToRegenerate,
     /// A settled reaction did not move exactly the material its own
     /// stoichiometry requires.
     MaterialContinuity,
@@ -83,143 +69,10 @@ impl From<RecoveryFluidError> for MetabolicError {
     }
 }
 
-/// One authored nutrition declaration.
-///
-/// This is an INTAKE DECLARATION, in exactly the sense a curriculum card's
-/// media is: the caller declares what is being delivered to the organism, and
-/// the physics settles the consequence.  Its energy content is denominated in
-/// the body's own fuel quantum — the unit the recovery lanes already burn — so
-/// the reaction below needs no conversion factor and this declaration adds no
-/// constant to the physics.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct AuthoredNutritionDeclaration {
-    energy_quanta: u128,
-}
-
-impl AuthoredNutritionDeclaration {
-    pub(crate) fn new(energy_quanta: u128) -> Result<Self, MetabolicError> {
-        if energy_quanta == 0 {
-            return Err(MetabolicError::EmptyNutritionDeclaration);
-        }
-        Ok(Self { energy_quanta })
+impl From<ExactRationalError> for MetabolicError {
+    fn from(_: ExactRationalError) -> Self {
+        Self::ArithmeticWidth
     }
-
-    pub(crate) fn energy_quanta(self) -> u128 {
-        self.energy_quanta
-    }
-}
-
-/// The exact consequence of one nutrition intake on one cohort reservoir.
-///
-/// Conservation (all exact, all checked by `nutrition_feed_conserves`):
-///   * material: `fuel + spent` is unchanged — regeneration moves quanta back,
-///     it never creates or destroys them;
-///   * intake: `declaration.energy_quanta == regenerated_fuel_quanta +
-///     unabsorbed_waste_quanta` — every delivered quantum is either absorbed
-///     or leaves as waste;
-///   * heat: `predecessor heat == successor heat + vented_heat_quanta` — the
-///     reservoir's heat leaves the body ledger to the environment, exactly.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct NutritionFeedSettlement {
-    pub(crate) successor_reservoir: RecoveryFluidReservoirState,
-    pub(crate) regenerated_fuel_quanta: u128,
-    pub(crate) unabsorbed_waste_quanta: u128,
-    pub(crate) vented_heat_quanta: u128,
-}
-
-pub(crate) fn settle_nutrition_feed(
-    reservoir_anatomy: RecoveryFluidReservoirAnatomy,
-    predecessor: RecoveryFluidReservoirState,
-    declaration: AuthoredNutritionDeclaration,
-) -> Result<NutritionFeedSettlement, MetabolicError> {
-    let (fuel_capacity, spent_capacity, heat_capacity) = reservoir_anatomy.capacities();
-    let (fuel, spent, heat) = predecessor.physical_parts();
-    if fuel > fuel_capacity || spent > spent_capacity || heat > heat_capacity {
-        return Err(MetabolicError::RecoveryFluid(
-            RecoveryFluidError::StateOutsideAnatomy,
-        ));
-    }
-    let free_fuel_capacity = fuel_capacity
-        .checked_sub(fuel)
-        .ok_or(MetabolicError::ArithmeticWidth)?;
-    // One quantum of intake energy restores one spent quantum to fuel; the
-    // reservoir can never hold more fuel than its derived capacity.
-    let regenerated = declaration
-        .energy_quanta()
-        .min(spent)
-        .min(free_fuel_capacity);
-    if regenerated == 0 {
-        // Honest refusal: the body is carrying every fuel quantum it can hold,
-        // so this intake would be pure waste.  It is not silently accepted.
-        return Err(MetabolicError::NothingToRegenerate);
-    }
-    let unabsorbed = declaration
-        .energy_quanta()
-        .checked_sub(regenerated)
-        .ok_or(MetabolicError::ArithmeticWidth)?;
-    let successor = RecoveryFluidReservoirState::new(
-        reservoir_anatomy,
-        fuel.checked_add(regenerated)
-            .ok_or(MetabolicError::ArithmeticWidth)?,
-        spent - regenerated,
-        0,
-    )?;
-    let settlement = NutritionFeedSettlement {
-        successor_reservoir: successor,
-        regenerated_fuel_quanta: regenerated,
-        unabsorbed_waste_quanta: unabsorbed,
-        vented_heat_quanta: heat,
-    };
-    debug_assert_eq!(
-        settle_reservoir_heat_vent(reservoir_anatomy, predecessor).map(|vent| vent.1),
-        Ok(heat)
-    );
-    if !nutrition_feed_conserves(predecessor, declaration, &settlement) {
-        return Err(MetabolicError::MaterialContinuity);
-    }
-    Ok(settlement)
-}
-
-/// Vent the reservoir's accumulated heat to the environment.
-///
-/// The same exchange that carries nutrition in carries heat out; a body whose
-/// heat ledger is full can run no further recovery reaction, because the
-/// existing fluid contact refuses to export heat it has nowhere to put.  The
-/// vented quanta leave the body ledger and are reported exactly.
-pub(crate) fn settle_reservoir_heat_vent(
-    reservoir_anatomy: RecoveryFluidReservoirAnatomy,
-    predecessor: RecoveryFluidReservoirState,
-) -> Result<(RecoveryFluidReservoirState, u128), MetabolicError> {
-    let (fuel, spent, heat) = predecessor.physical_parts();
-    if heat == 0 {
-        return Ok((predecessor, 0));
-    }
-    Ok((
-        RecoveryFluidReservoirState::new(reservoir_anatomy, fuel, spent, 0)?,
-        heat,
-    ))
-}
-
-/// The stated conservation of one nutrition intake, recomputed from the
-/// predecessor and the settlement alone.
-pub(crate) fn nutrition_feed_conserves(
-    predecessor: RecoveryFluidReservoirState,
-    declaration: AuthoredNutritionDeclaration,
-    settlement: &NutritionFeedSettlement,
-) -> bool {
-    let (fuel, spent, heat) = predecessor.physical_parts();
-    let (successor_fuel, successor_spent, successor_heat) =
-        settlement.successor_reservoir.physical_parts();
-    let material = fuel.checked_add(spent);
-    let successor_material = successor_fuel.checked_add(successor_spent);
-    let intake = settlement
-        .regenerated_fuel_quanta
-        .checked_add(settlement.unabsorbed_waste_quanta);
-    let vented = successor_heat.checked_add(settlement.vented_heat_quanta);
-    material.is_some()
-        && material == successor_material
-        && intake == Some(declaration.energy_quanta())
-        && vented == Some(heat)
 }
 
 /// One lane's settled rest recovery.
@@ -242,8 +95,7 @@ pub(crate) struct RestLaneRecovery {
 ///     quantum, in the lanes or back in the reservoir — `fuel + spent` over
 ///     reservoir and lanes together is unchanged;
 ///   * heat: every quantum drained from a dissipation ledger appears in the
-///     reservoir's heat ledger, plus one heat quantum for every fuel quantum
-///     burnt by the membrane return;
+///     reservoir's heat ledger;
 ///   * charge: the membrane's separated charge and the carrier partition move
 ///     equal and opposite, so total carrier material is unchanged.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -253,6 +105,8 @@ pub(crate) struct DarkRestNeuronSettlement {
     pub(crate) lane_recoveries: Vec<RestLaneRecovery>,
     pub(crate) returned_elementary_charges: i128,
     pub(crate) membrane_return_fuel_quanta: u128,
+    pub(crate) pumped_elementary_charges: i128,
+    pub(crate) pump_work_zeptojoules: ExactRational,
     /// Separated charge still standing away from rest after the interval.
     pub(crate) unreturned_elementary_charges: i128,
 }
@@ -281,15 +135,15 @@ impl DarkRestNeuronSettlement {
     }
 
     pub(crate) fn changed(&self) -> bool {
-        self.returned_elementary_charges != 0
+        self.pumped_elementary_charges != 0
             || self.lane_recoveries.iter().any(|lane| lane.extent != 0)
     }
 }
 
-/// Settle one dark interval for one resident neuron: every recovery lane, then
-/// the membrane return.  A dark interval is the stimulus-boundary law's own
-/// truth signal (an interval carrying zero exogenous energy); this function
-/// never decides when it is dark.
+/// Settle one dark interval for one resident neuron by recovering every
+/// physically depleted recovery lane.  A dark interval is the
+/// stimulus-boundary law's own truth signal (an interval carrying zero
+/// exogenous energy); it is not itself a membrane path or pump.
 pub(crate) fn settle_dark_rest_neuron(
     recovery_anatomy: &ReachedRecoveryFluidAnatomy,
     neuron_index: usize,
@@ -325,13 +179,15 @@ pub(crate) fn settle_dark_rest_neuron(
         reservoir = settled.1;
         lane_recoveries.push(settled.2);
     }
-    let (successor_neuron, successor_reservoir, returned, membrane_fuel) = settle_membrane_return(
+    let (successor_neuron, successor_reservoir, pumped, pump_work) = settle_membrane_gradient_pump(
         neuron_anatomy,
         &neuron,
         recovery_anatomy.reservoir_anatomy(),
         reservoir,
         interval_microseconds,
     )?;
+    let returned = 0;
+    let membrane_fuel = 0;
     Ok(DarkRestNeuronSettlement {
         unreturned_elementary_charges: successor_neuron.separated_elementary_charges(),
         successor_neuron,
@@ -339,7 +195,198 @@ pub(crate) fn settle_dark_rest_neuron(
         lane_recoveries,
         returned_elementary_charges: returned,
         membrane_return_fuel_quanta: membrane_fuel,
+        pumped_elementary_charges: pumped,
+        pump_work_zeptojoules: pump_work,
     })
+}
+
+fn settle_membrane_gradient_pump(
+    neuron_anatomy: &NeuronPhysicalAnatomy,
+    predecessor_neuron: &NeuronPhysicalState,
+    reservoir_anatomy: RecoveryFluidReservoirAnatomy,
+    predecessor_reservoir: RecoveryFluidReservoirState,
+    interval_microseconds: u32,
+) -> Result<
+    (
+        NeuronPhysicalState,
+        RecoveryFluidReservoirState,
+        i128,
+        ExactRational,
+    ),
+    MetabolicError,
+> {
+    let bound = membrane_gradient_pump_charge_bound(
+        neuron_anatomy,
+        predecessor_neuron,
+        interval_microseconds,
+    )?;
+    if bound.charges == 0 {
+        return Ok((
+            predecessor_neuron.clone(),
+            predecessor_reservoir,
+            0,
+            ExactRational::integer(0),
+        ));
+    }
+    let (_, spent_capacity, _) = reservoir_anatomy.capacities();
+    let (available, spent, thermal) = predecessor_reservoir.physical_parts();
+    // Compare the two exact sources of pump work in widened arithmetic.  A
+    // reservoir's remaining spent capacity may be a perfectly finite positive
+    // rational whose reduced numerator is wider than the resident i128 format;
+    // narrowing that headroom before taking the smaller available-energy
+    // budget falsely refused an otherwise representable local transition.
+    let budget = wide_rational(available)
+        .min(wide_rational(spent_capacity) - wide_rational(spent));
+    if budget <= wide_rational(ExactRational::integer(0)) {
+        return Ok((
+            predecessor_neuron.clone(),
+            predecessor_reservoir,
+            0,
+            ExactRational::integer(0),
+        ));
+    }
+    let predecessor_work =
+        membrane_and_gradient_work_zeptojoules(neuron_anatomy, predecessor_neuron)?;
+    let direction_negative = bound.charges.is_negative();
+    let full_magnitude = bound.charges.unsigned_abs();
+    let mut lower = 0_u128;
+    let mut upper = full_magnitude;
+    let mut accepted_state = predecessor_neuron.clone();
+    let mut accepted_reservoir = predecessor_reservoir;
+    let mut accepted_work = ExactRational::integer(0);
+    while lower < upper {
+        let middle = lower
+            .checked_add((upper - lower + 1) / 2)
+            .ok_or(MetabolicError::ArithmeticWidth)?;
+        let signed = signed_magnitude(direction_negative, middle)?;
+        let candidate = settle_membrane_pump_transport(
+            neuron_anatomy,
+            predecessor_neuron,
+            signed,
+            (middle == full_magnitude)
+                .then_some(bound.successor_phase)
+                .flatten(),
+            interval_microseconds,
+        )?;
+        let successor_work = membrane_and_gradient_work_zeptojoules(neuron_anatomy, &candidate)?;
+        let required = match wide_sub(successor_work, predecessor_work) {
+            Ok(required) => required,
+            Err(MetabolicError::ArithmeticWidth) => {
+                upper = middle - 1;
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        if wide_rational(required) <= wide_rational(ExactRational::integer(0))
+            || wide_rational(required) > budget
+        {
+            upper = middle - 1;
+            continue;
+        }
+        let candidate_reservoir = match pump_reservoir_successor(
+            reservoir_anatomy,
+            available,
+            spent,
+            thermal,
+            required,
+        )? {
+            Some(candidate_reservoir) => candidate_reservoir,
+            None => {
+                // Fixed-width exact state is part of the resident physical
+                // boundary.  If this whole-carrier extent has no exact
+                // representable successor, the local pump stalls before that
+                // extent; no value is rounded and the organism's other local
+                // settlements remain free to proceed.
+                upper = middle - 1;
+                continue;
+            }
+        };
+        lower = middle;
+        accepted_state = candidate;
+        accepted_reservoir = candidate_reservoir;
+        accepted_work = required;
+    }
+    if lower == 0 {
+        return Ok((
+            predecessor_neuron.clone(),
+            predecessor_reservoir,
+            0,
+            ExactRational::integer(0),
+        ));
+    }
+    Ok((
+        accepted_state,
+        accepted_reservoir,
+        signed_magnitude(direction_negative, lower)?,
+        accepted_work,
+    ))
+}
+
+fn pump_reservoir_successor(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    available: ExactRational,
+    spent: ExactRational,
+    thermal: ExactRational,
+    work: ExactRational,
+) -> Result<Option<RecoveryFluidReservoirState>, MetabolicError> {
+    let successor_available = match wide_sub(available, work) {
+        Ok(value) => value,
+        Err(MetabolicError::ArithmeticWidth) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    let successor_spent = match wide_add(spent, work) {
+        Ok(value) => value,
+        Err(MetabolicError::ArithmeticWidth) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    match RecoveryFluidReservoirState::new(
+        anatomy,
+        successor_available,
+        successor_spent,
+        thermal,
+    ) {
+        Ok(successor) => Ok(Some(successor)),
+        Err(RecoveryFluidError::ArithmeticWidth) => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+fn wide_rational(value: ExactRational) -> BigRational {
+    let (numerator, denominator) = value.parts();
+    BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+}
+
+fn narrow_rational(value: BigRational) -> Result<ExactRational, MetabolicError> {
+    ExactRational::new(
+        value
+            .numer()
+            .to_i128()
+            .ok_or(MetabolicError::ArithmeticWidth)?,
+        value
+            .denom()
+            .to_u128()
+            .ok_or(MetabolicError::ArithmeticWidth)?,
+    )
+    .map_err(Into::into)
+}
+
+fn wide_add(
+    left: ExactRational,
+    right: ExactRational,
+) -> Result<ExactRational, MetabolicError> {
+    narrow_rational(wide_rational(left) + wide_rational(right))
+}
+
+fn wide_sub(
+    left: ExactRational,
+    right: ExactRational,
+) -> Result<ExactRational, MetabolicError> {
+    narrow_rational(wide_rational(left) - wide_rational(right))
+}
+
+fn signed_magnitude(negative: bool, magnitude: u128) -> Result<i128, MetabolicError> {
+    let magnitude = i128::try_from(magnitude).map_err(|_| MetabolicError::ArithmeticWidth)?;
+    Ok(if negative { -magnitude } else { magnitude })
 }
 
 fn settle_rest_lane(
@@ -376,30 +423,41 @@ fn settle_rest_lane(
     let (lane_fuel_capacity, lane_spent_capacity, lane_heat_capacity) = lane_anatomy.capacities();
     let (lane_fuel, lane_spent, lane_heat) = lane_state.physical_parts();
     let reservoir_anatomy = recovery_anatomy.reservoir_anatomy();
-    let (reservoir_fuel_capacity, reservoir_spent_capacity, reservoir_heat_capacity) =
+    let (reservoir_available_capacity, reservoir_spent_capacity, reservoir_thermal_capacity) =
         reservoir_anatomy.capacities();
-    let (reservoir_fuel, reservoir_spent, reservoir_heat) = predecessor_reservoir.physical_parts();
+    let (reservoir_available, reservoir_spent, reservoir_thermal) =
+        predecessor_reservoir.physical_parts();
     if lane_fuel > lane_fuel_capacity
         || lane_spent > lane_spent_capacity
         || lane_heat > lane_heat_capacity
-        || reservoir_fuel > reservoir_fuel_capacity
-        || reservoir_spent > reservoir_spent_capacity
-        || reservoir_heat > reservoir_heat_capacity
+        || wide_rational(reservoir_available) > wide_rational(reservoir_available_capacity)
+        || wide_rational(reservoir_spent) > wide_rational(reservoir_spent_capacity)
+        || wide_rational(reservoir_thermal) > wide_rational(reservoir_thermal_capacity)
     {
         return Err(MetabolicError::RecoveryFluid(
             RecoveryFluidError::StateOutsideAnatomy,
         ));
     }
     let (contact_catalyst, contact_fuel, contact_spent, contact_heat) = contact.parts();
+    let energy_per_extent = neuron_anatomy.recovery_energy_per_extent_zeptojoules(address)?;
     // The rest demand is the dissipation that actually stands in the ledger.
     // Every other term is a capacity the mounted anatomy already declares.
     let extent = (dissipated / heat_per_extent)
         .min(lane_fuel / fuel_per_extent)
         .min((lane_spent_capacity - lane_spent) / spent_per_extent)
         .min((lane_heat_capacity - lane_heat) / heat_per_extent)
-        .min(reservoir_fuel / fuel_per_extent)
-        .min((reservoir_spent_capacity - reservoir_spent) / spent_per_extent)
-        .min((reservoir_heat_capacity - reservoir_heat) / heat_per_extent)
+        .min(whole_extents_carried(
+            reservoir_available,
+            energy_per_extent,
+        )?)
+        .min(whole_extents_carried(
+            wide_sub(reservoir_spent_capacity, reservoir_spent)?,
+            energy_per_extent,
+        )?)
+        .min(whole_extents_carried(
+            wide_sub(reservoir_thermal_capacity, reservoir_thermal)?,
+            energy_per_extent,
+        )?)
         .min(contact_catalyst / catalyst_per_extent)
         .min(contact_fuel / fuel_per_extent)
         .min(contact_spent / spent_per_extent)
@@ -455,6 +513,7 @@ fn settle_rest_lane(
         .ok_or(RecoveryError::AnatomyWidth)?;
     let exchanged = settle_recovery_fluid_contact(
         lane_anatomy,
+        energy_per_extent,
         recovered_lane,
         reservoir_anatomy,
         predecessor_reservoir,
@@ -493,152 +552,47 @@ fn settle_rest_lane(
     ))
 }
 
-/// Return separated membrane charge toward the authored rest, paid in fuel.
-///
-/// The transport bound is the neuron's own conductive anatomy; the price is
-/// the exact electrical work, quantized on the gate's own dissipation lattice.
-/// If the reservoir cannot pay the whole bound, the transport is reduced to
-/// exactly what it can pay — never silently completed for free.
-fn settle_membrane_return(
-    neuron_anatomy: &NeuronPhysicalAnatomy,
-    predecessor_neuron: &NeuronPhysicalState,
-    reservoir_anatomy: RecoveryFluidReservoirAnatomy,
-    predecessor_reservoir: RecoveryFluidReservoirState,
-    interval_microseconds: u32,
-) -> Result<
-    (
-        NeuronPhysicalState,
-        RecoveryFluidReservoirState,
-        i128,
-        u128,
-    ),
-    MetabolicError,
-> {
-    let bound = membrane_return_charge_bound(
-        neuron_anatomy,
-        predecessor_neuron,
-        interval_microseconds,
-    )?;
-    let (_, spent_capacity, heat_capacity) = reservoir_anatomy.capacities();
-    let (fuel, spent, heat) = predecessor_reservoir.physical_parts();
-    let affordable_quanta = fuel
-        .min(
-            spent_capacity
-                .checked_sub(spent)
-                .ok_or(MetabolicError::ArithmeticWidth)?,
-        )
-        .min(
-            heat_capacity
-                .checked_sub(heat)
-                .ok_or(MetabolicError::ArithmeticWidth)?,
-        );
-    let mut charges = bound.charges;
-    let mut successor_phase = bound.successor_phase;
-    let mut cost = membrane_return_quanta_cost(neuron_anatomy, predecessor_neuron, charges)?;
-    if cost > affordable_quanta {
-        let affordable_charges = membrane_return_affordable_charges(
-            neuron_anatomy,
-            predecessor_neuron,
-            affordable_quanta,
-        )?;
-        let magnitude = charges.unsigned_abs().min(affordable_charges);
-        charges = if bound.charges.is_negative() {
-            -i128::try_from(magnitude).map_err(|_| MetabolicError::ArithmeticWidth)?
-        } else {
-            i128::try_from(magnitude).map_err(|_| MetabolicError::ArithmeticWidth)?
-        };
-        // The body could not pay the whole transport, so the unresolved
-        // fraction is NOT carried forward: the displacement itself remains.
-        successor_phase = None;
-        cost = membrane_return_quanta_cost(neuron_anatomy, predecessor_neuron, charges)?;
-        if cost > affordable_quanta {
-            return Err(MetabolicError::MaterialContinuity);
-        }
-    }
-    let successor_neuron = settle_membrane_return_transport(
-        neuron_anatomy,
-        predecessor_neuron,
-        charges,
-        successor_phase,
-        interval_microseconds,
-    )?;
-    if cost == 0 {
-        return Ok((successor_neuron, predecessor_reservoir, charges, 0));
-    }
-    // The burnt fuel leaves one spent quantum behind (the lanes' own
-    // fuel/spent identity) and vents its energy into the heat ledger.
-    let successor_reservoir = RecoveryFluidReservoirState::new(
-        reservoir_anatomy,
-        fuel - cost,
-        spent
-            .checked_add(cost)
-            .ok_or(MetabolicError::ArithmeticWidth)?,
-        heat.checked_add(cost)
-            .ok_or(MetabolicError::ArithmeticWidth)?,
-    )?;
-    Ok((successor_neuron, successor_reservoir, charges, cost))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn reservoir_anatomy() -> RecoveryFluidReservoirAnatomy {
-        RecoveryFluidReservoirAnatomy::new(100, 100, 100)
-    }
-
     #[test]
-    fn nutrition_intake_restores_spent_material_exactly() {
-        let anatomy = reservoir_anatomy();
-        let predecessor = RecoveryFluidReservoirState::new(anatomy, 40, 60, 25).unwrap();
-        let settled = settle_nutrition_feed(
-            anatomy,
-            predecessor,
-            AuthoredNutritionDeclaration::new(50).unwrap(),
+    fn pump_stalls_before_an_unrepresentable_exact_reservoir_successor() {
+        let maximum = ExactRational::integer(i128::MAX);
+        let anatomy = RecoveryFluidReservoirAnatomy::new(
+            ExactRational::integer(1),
+            maximum,
+            ExactRational::integer(0),
         )
         .unwrap();
-        assert_eq!(settled.regenerated_fuel_quanta, 50);
-        assert_eq!(settled.unabsorbed_waste_quanta, 0);
-        assert_eq!(settled.vented_heat_quanta, 25);
-        assert_eq!(settled.successor_reservoir.physical_parts(), (90, 10, 0));
-        assert!(nutrition_feed_conserves(
-            predecessor,
-            AuthoredNutritionDeclaration::new(50).unwrap(),
-            &settled
-        ));
-    }
+        let spent = ExactRational::new(i128::MAX - 2, 2).unwrap();
 
-    #[test]
-    fn intake_beyond_what_the_body_can_absorb_leaves_as_waste() {
-        let anatomy = reservoir_anatomy();
-        let predecessor = RecoveryFluidReservoirState::new(anatomy, 95, 5, 3).unwrap();
-        let declaration = AuthoredNutritionDeclaration::new(40).unwrap();
-        let settled = settle_nutrition_feed(anatomy, predecessor, declaration).unwrap();
-        assert_eq!(settled.regenerated_fuel_quanta, 5);
-        assert_eq!(settled.unabsorbed_waste_quanta, 35);
-        assert_eq!(settled.successor_reservoir.physical_parts(), (100, 0, 0));
-        assert!(nutrition_feed_conserves(predecessor, declaration, &settled));
-    }
+        assert!(pump_reservoir_successor(
+            anatomy,
+            ExactRational::integer(1),
+            spent,
+            ExactRational::integer(0),
+            ExactRational::new(1, 3).unwrap(),
+        )
+        .unwrap()
+        .is_none());
 
-    #[test]
-    fn feeding_a_full_body_is_refused_not_silently_discarded() {
-        let anatomy = reservoir_anatomy();
-        let predecessor = RecoveryFluidReservoirState::new(anatomy, 100, 0, 0).unwrap();
+        let representable = pump_reservoir_successor(
+            anatomy,
+            ExactRational::integer(1),
+            spent,
+            ExactRational::integer(0),
+            ExactRational::new(1, 2).unwrap(),
+        )
+        .unwrap()
+        .unwrap();
         assert_eq!(
-            settle_nutrition_feed(
-                anatomy,
-                predecessor,
-                AuthoredNutritionDeclaration::new(10).unwrap()
-            ),
-            Err(MetabolicError::NothingToRegenerate)
-        );
-    }
-
-    #[test]
-    fn an_empty_nutrition_declaration_is_refused() {
-        assert_eq!(
-            AuthoredNutritionDeclaration::new(0),
-            Err(MetabolicError::EmptyNutritionDeclaration)
+            representable.physical_parts(),
+            (
+                ExactRational::new(1, 2).unwrap(),
+                ExactRational::integer((i128::MAX - 1) / 2),
+                ExactRational::integer(0),
+            )
         );
     }
 }

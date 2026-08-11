@@ -13,7 +13,7 @@ python-extension = ["pyo3/extension-module"]
 diagnostic-api = []
 
 [dependencies]
-pyo3 = "0.23"
+pyo3 = { version = "0.23", features = ["num-bigint"] }
 num-bigint = "0.4"
 num-rational = "0.4"
 num-traits = "0.2"
