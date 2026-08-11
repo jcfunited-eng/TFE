@@ -143,5 +143,27 @@ Production acceptance requires one live material occurrence to show:
    one-time body-state completion, ten identical repeats changed the current
    body by only -42 to +294 bytes per occurrence, with no neuron growth and no
    mosaics.
-6. Candidate build and production rehearsal — not started.
-7. Production cutover and live acceptance — not started.
+6. Candidate build and production rehearsal — complete. Commit
+   `34153f925974f829a636a04c91fdd45061a86dd3` produced immutable image
+   `sha256:2f7975eee15edb453f2540ba89ed3cbff4bd9f63dfe690bd1a1a5f949af99833`.
+   Candidate task 971 cold-restored live identity
+   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, 179 reached neurons and 196,550
+   resting neurons with zero Python cognition callbacks before cutover.
+7. Production cutover and live acceptance — complete. The canonical
+   controller deployed task `dsf-ai-task:971` at 2026-08-11T18:38:49Z after
+   one verified cutover and no rollback. Continuous world chemistry then
+   specialized exactly eight layer-3 olfactory and five layer-4 gustatory
+   neurons plus their reached local integration anatomy. Reached complete
+   neurons became 209 and resting cells became 196,520. The first observed
+   current body was 28,092,219 bytes: 3,667,205 bytes above the 24,425,014-byte
+   rehearsal body. This is a material one-time cost and is reported rather
+   than normalized away.
+8. Post-specialization continuity — complete. A same-image task replacement
+   cold-restored the same identity and all 13 chemical receptors. Unattended
+   processing resumed. Two unrelated already-mounted internal layers each
+   specialized one further cell during the restart interval, producing 211
+   total reached cells and a 28,430,097-byte body. Across the next eight exact
+   unattended ticks the body stayed exactly 28,430,097 bytes, retained the
+   same reached population and one mosaic, and reported zero Python cognition
+   callbacks. No chemical meaning, recognition, word learning, or new mosaic
+   is claimed.
