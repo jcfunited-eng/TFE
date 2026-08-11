@@ -4008,6 +4008,46 @@ def _commit_vestibular_tick(
     }
 
 
+def _commit_vestibular_trajectory(
+    organism: Any,
+    predecessor_heading_millidegrees: int,
+    signed_body_motion_millidegrees: tuple[int, ...],
+) -> dict[str, Any]:
+    """Commit every ordered 1 ms vestibular interval and seal only the end."""
+
+    evidence: ResidentPrepareEvidence = organism.prepare_vestibular_trajectory(
+        predecessor_heading_millidegrees,
+        signed_body_motion_millidegrees,
+    )
+    observed = organism.commit(evidence.token)
+    return {
+        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
+        "cognitive_trace_count": observed.cognitive_trace_count,
+        "complete_neuron_count": observed.complete_neuron_count,
+        "developmental_resting_neuron_count": (
+            observed.developmental_resting_neuron_count
+        ),
+        "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
+        "current_cohort_evaluation_count": (
+            evidence.current_cohort_evaluation_count
+        ),
+        "dsf_delivery_count": evidence.dsf_delivery_count,
+        "formation_activation_count": observed.formation_activation_count,
+        "organism_tick": observed.organism_tick,
+        "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
+        "endogenous_partial_cue_reassembly_count": (
+            observed.endogenous_partial_cue_reassembly_count
+        ),
+        "physically_transitioned_neuron_count": (
+            evidence.physically_transitioned_neuron_count
+        ),
+        "recurrent_complete_neuron_fractal_count": (
+            evidence.recurrent_complete_neuron_fractal_count
+        ),
+        "state_sha256": observed.state_sha256,
+    }
+
+
 def _publish_committed_organism(
     organism: Any,
     admission: NativeResidentResourceAdmission,
@@ -4115,16 +4155,14 @@ def _perform_admitted_intake_locked(
     try:
         if vestibular_yaw is not None:
             heading, signed_steps = vestibular_yaw
-            for signed_step in signed_steps:
-                last_hop = _commit_vestibular_tick(
-                    organism,
-                    heading,
-                    signed_step,
-                )
-                heading = (heading + signed_step) % 360_000
-                committed_vestibular_tick_count += 1
-                for key in totals:
-                    totals[key] += last_hop[key]
+            last_hop = _commit_vestibular_trajectory(
+                organism,
+                heading,
+                signed_steps,
+            )
+            committed_vestibular_tick_count = len(signed_steps)
+            for key in totals:
+                totals[key] += last_hop[key]
         for episode, admissions in episodes:
             last_hop = _commit_admitted_hop(
                 organism, episode, admissions
@@ -4134,7 +4172,9 @@ def _perform_admitted_intake_locked(
                 totals[key] += last_hop[key]
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
-    if last_hop is None or committed_hop_count == 0:
+    if last_hop is None or (
+        committed_hop_count == 0 and committed_vestibular_tick_count == 0
+    ):
         if intake_error is not None:
             raise intake_error
         raise RuntimeError("admitted intake carried no hop episodes")

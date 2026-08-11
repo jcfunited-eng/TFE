@@ -607,11 +607,52 @@ class NativeResidentOrganism:
         )
         return self._validated_prepare_evidence(candidate, 1, active_before)
 
+    def prepare_vestibular_trajectory(
+        self,
+        predecessor_heading_millidegrees: int,
+        signed_body_motion_millidegrees: tuple[int, ...],
+    ) -> ResidentPrepareEvidence:
+        """Prepare ordered one-millisecond balance intervals and seal once."""
+
+        predecessor_heading = _nonnegative_integer(
+            predecessor_heading_millidegrees,
+            "vestibular predecessor heading",
+        )
+        if predecessor_heading >= 360_000:
+            raise ValueError("vestibular predecessor heading must be below 360000")
+        if (
+            not isinstance(signed_body_motion_millidegrees, tuple)
+            or not signed_body_motion_millidegrees
+        ):
+            raise TypeError("vestibular trajectory must be a nonempty tuple")
+        if any(
+            not isinstance(step, int)
+            or isinstance(step, bool)
+            or not -(1 << 31) <= step < (1 << 31)
+            for step in signed_body_motion_millidegrees
+        ):
+            raise TypeError(
+                "vestibular trajectory steps must be signed 32-bit integers"
+            )
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_vestibular_trajectory(
+            predecessor_heading,
+            list(signed_body_motion_millidegrees),
+        )
+        return self._validated_prepare_evidence(
+            candidate,
+            1,
+            active_before,
+            causal_interval_count=len(signed_body_motion_millidegrees),
+        )
+
     def _validated_prepare_evidence(
         self,
         candidate: object,
         source_port_count: int,
         active_before: NativeResidentObservationView,
+        *,
+        causal_interval_count: int = 1,
     ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
@@ -716,8 +757,8 @@ class NativeResidentOrganism:
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero
         # mounted cohorts (cognition still receives its occurrences).
-        cohort_count_changed = (
-            current_cohort_evaluation_count > source_port_count
+        cohort_count_changed = current_cohort_evaluation_count > (
+            source_port_count * causal_interval_count
         )
         reached_neuron_growth = (
             complete_neuron_count - active_before.complete_neuron_count
@@ -729,13 +770,15 @@ class NativeResidentOrganism:
         if (
             predecessor_state_sha256 != active_before.state_sha256
             or predecessor_organism_tick != active_before.organism_tick
-            or organism_tick != predecessor_organism_tick + 1
+            or organism_tick != predecessor_organism_tick + causal_interval_count
             or predecessor_fabric_generation
             != active_before.fabric_generation
-            or fabric_generation != predecessor_fabric_generation + 1
+            or fabric_generation
+            != predecessor_fabric_generation + causal_interval_count
             or predecessor_mounted_generation
             != active_before.mounted_generation
-            or mounted_generation != predecessor_mounted_generation + 1
+            or mounted_generation
+            != predecessor_mounted_generation + causal_interval_count
             or predecessor_authentication_count != 0
             or predecessor_decode_count != 0
             or predecessor_rebuilt_field_count != 0

@@ -483,7 +483,7 @@ struct PendingResidentOrganismState {
     token: [u8; 32],
     envelope: Vec<u8>,
     mounted: ResidentMountedState,
-    cognitive: PreparedCognitiveFormationTransition,
+    cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     observation: RuntimeObservation,
 }
@@ -1408,33 +1408,202 @@ impl ResidentOrganismRuntime {
         predecessor_heading_millidegrees: u32,
         signed_body_motion_millidegrees: i32,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        let predecessor_body = YawBodyState::new(predecessor_heading_millidegrees)
-            .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
-        let successor_heading = (i64::from(predecessor_heading_millidegrees)
-            + i64::from(signed_body_motion_millidegrees))
-        .rem_euclid(360_000);
-        let successor_body = YawBodyState::new(
-            u32::try_from(successor_heading)
-                .map_err(|_| RuntimeError::Vestibular("yaw width changed".into()))?,
-        )
-        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
-        let reached = settle_reached_vestibular_bundle_tick(
-            self.active.vestibular.anatomy.canal_anatomy(),
-            self.active.vestibular.canal,
+        let ingress = resident_vestibular_tick_ingress(
+            &self.active.vestibular,
+            predecessor_heading_millidegrees,
             signed_body_motion_millidegrees,
-            self.active.vestibular.anatomy.bundle_anatomy(),
-        )
-            .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
-        let ingress = prepare_resident_vestibular_ingress(
-            self.active.vestibular.source_tick,
-            predecessor_body,
-            successor_body,
-            reached,
-            &self.active.vestibular.anatomy,
-        )
-        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+        )?;
         let (source, _) = ingress.source().joint_source_with_contacts();
         self.prepare_typed(source, None, Some(&ingress))
+    }
+
+    fn prepare_vestibular_trajectory(
+        &mut self,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: &[i32],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if signed_body_motion_millidegrees.is_empty() {
+            return Err(RuntimeError::Vestibular(
+                "vestibular trajectory must contain at least one interval".into(),
+            ));
+        }
+        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let derived_budget = self.budget.derive()?;
+        let predecessor = self.active.observation.clone();
+        let interval_count = u64::try_from(signed_body_motion_millidegrees.len())
+            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+        let organism_tick = predecessor
+            .organism_tick
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::OrganismTickOverflow)?;
+        let fabric_generation = predecessor
+            .fabric_generation
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::FabricGenerationOverflow)?;
+        let cognitive_budget = cognitive_budget_after_joint(
+            encode_empty_mounted_joint_state()
+                .map_err(RuntimeError::MountedTransition)?
+                .len(),
+            self.budget,
+        )?;
+        let mut cognitive = self.active.cognitive.clone();
+        let mut vestibular = self.active.vestibular.clone();
+        let mut heading = predecessor_heading_millidegrees;
+        let mut aggregate: Option<CognitiveFormationObservation> = None;
+        let mut receptor_ingress = None;
+        for signed_step in signed_body_motion_millidegrees.iter().copied() {
+            let ingress = resident_vestibular_tick_ingress(&vestibular, heading, signed_step)?;
+            let (source, _) = ingress.source().joint_source_with_contacts();
+            receptor_ingress = Some(observe_canonical_receptor_ingress(source));
+            let (successor, observation) = cognitive
+                .advance_vestibular_transition(&ingress, cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            cognitive = successor;
+            vestibular = ResidentVestibularBody {
+                anatomy: vestibular.anatomy.clone(),
+                canal: ingress.transduction().reached_tick.successor_canal,
+                source_tick: vestibular
+                    .source_tick
+                    .checked_add(1)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?,
+            };
+            heading = (i64::from(heading) + i64::from(signed_step)).rem_euclid(360_000) as u32;
+            if let Some(total) = aggregate.as_mut() {
+                total.trace_formed |= observation.trace_formed;
+                if observation.mosaic_formed.is_some() {
+                    total.mosaic_formed = observation.mosaic_formed;
+                }
+                total.activations.extend(observation.activations.iter().cloned());
+                total.dsf_delivery_count = total
+                    .dsf_delivery_count
+                    .checked_add(observation.dsf_delivery_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.physically_transitioned_neuron_count = total
+                    .physically_transitioned_neuron_count
+                    .checked_add(observation.physically_transitioned_neuron_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.complete_neuron_fractal_count = total
+                    .complete_neuron_fractal_count
+                    .checked_add(observation.complete_neuron_fractal_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total
+                    .emitted_neuron_fractals
+                    .extend(observation.emitted_neuron_fractals.iter().cloned());
+                total.partial_cue_reassembly_count = total
+                    .partial_cue_reassembly_count
+                    .checked_add(observation.partial_cue_reassembly_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.endogenous_partial_cue_reassembly_count = total
+                    .endogenous_partial_cue_reassembly_count
+                    .checked_add(observation.endogenous_partial_cue_reassembly_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.rest_recovered_neuron_count = total
+                    .rest_recovered_neuron_count
+                    .checked_add(observation.rest_recovered_neuron_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.cognitive_ordinal = observation.cognitive_ordinal;
+                total.trace_count = observation.trace_count;
+                total.mosaic_count = observation.mosaic_count;
+                total.complete_neuron_count = observation.complete_neuron_count;
+                total.resting_neuron_count = observation.resting_neuron_count;
+                total.mosaic_of_mosaics_count = observation.mosaic_of_mosaics_count;
+                total.energy = observation.energy;
+                total.membrane_returned_elementary_charges = observation
+                    .membrane_returned_elementary_charges;
+                total.membrane_unreturned_elementary_charges = observation
+                    .membrane_unreturned_elementary_charges;
+            } else {
+                aggregate = Some(observation);
+            }
+        }
+        let cognitive_observation = aggregate.ok_or_else(|| {
+            RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
+        })?;
+        let joint_state = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+        let (mounted, _) = restore_resident_mounted_state(
+            &joint_state,
+            derived_budget.max_joint_state_bytes,
+            derived_budget.max_joint_working_bytes,
+        )
+        .map_err(RuntimeError::MountedTransition)?;
+        let cognitive_state = cognitive
+            .encode(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let fabric = encode_fabric(
+            fabric_generation,
+            &joint_state,
+            &cognitive_state,
+            &vestibular,
+            self.budget,
+        )?;
+        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+        let trajectory_authority = vestibular_trajectory_authority(
+            predecessor_heading_millidegrees,
+            signed_body_motion_millidegrees,
+        );
+        let transition = MountedJointDsfTransition {
+            joint_field_count: signed_body_motion_millidegrees.len(),
+            joint_neuron_count: 0,
+            l0_l4_evaluation_count: signed_body_motion_millidegrees.len(),
+            dsf_delivery_count: cognitive_observation.dsf_delivery_count,
+            recurrent_dsf_delivery_count: 0,
+            transition_receipt: None,
+            episode_relation_candidate_receipt: None,
+        };
+        let observation = make_step_observation(
+            &envelope,
+            predecessor.identity,
+            predecessor.organism_tick,
+            organism_tick,
+            predecessor.fabric_generation,
+            fabric_generation,
+            predecessor.mounted_generation,
+            cognitive_observation.cognitive_ordinal,
+            &fabric,
+            trajectory_authority,
+            transition,
+            signed_body_motion_millidegrees.len(),
+            derived_budget,
+            predecessor.state_receipt,
+            &cognitive_observation,
+        );
+        let next_prepare_ordinal = self
+            .next_prepare_ordinal
+            .checked_add(1)
+            .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
+        let token = prepare_token(
+            predecessor.state_receipt,
+            observation.state_receipt,
+            trajectory_authority,
+            self.next_prepare_ordinal,
+        );
+        self.pending = Some(PendingResidentOrganismState {
+            token,
+            envelope,
+            mounted,
+            cognitive,
+            vestibular,
+            observation: observation.clone(),
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(ResidentPrepareReceipt {
+            token,
+            observation,
+            phase_counts: MountedTransitionPhaseCounts {
+                predecessor_authentication_count: 0,
+                predecessor_decode_count: 0,
+                predecessor_rebuilt_field_count: 0,
+                retained_neuron_index_entry_count: predecessor.complete_neuron_count,
+                reached_neuron_lookup_count: signed_body_motion_millidegrees.len(),
+                current_cohort_evaluation_count: signed_body_motion_millidegrees.len(),
+                successor_seal_count: 1,
+            },
+            receptor_ingress: receptor_ingress.ok_or_else(|| {
+                RuntimeError::Vestibular("vestibular trajectory carried no ingress".into())
+            })?,
+        })
     }
 
     fn prepare_typed(
@@ -1559,6 +1728,9 @@ impl ResidentOrganismRuntime {
             admitted_source_authority,
             self.next_prepare_ordinal,
         );
+        let (cognitive, _) = cognitive
+            .try_into_successor(&self.active.cognitive)
+            .map_err(|(error, _)| RuntimeError::CognitiveFormation(error.to_string()))?;
         self.pending = Some(PendingResidentOrganismState {
             token,
             envelope,
@@ -1621,10 +1793,7 @@ impl ResidentOrganismRuntime {
             .pending
             .take()
             .expect("validated resident pending candidate");
-        self.active
-            .cognitive
-            .commit(pending.cognitive)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        self.active.cognitive = pending.cognitive;
         self.active.envelope = pending.envelope;
         self.active.mounted = pending.mounted;
         self.active.vestibular = pending.vestibular;
@@ -1766,6 +1935,20 @@ fn prepare_token(
     sha256(&body)
 }
 
+fn vestibular_trajectory_authority(
+    predecessor_heading_millidegrees: u32,
+    signed_body_motion_millidegrees: &[i32],
+) -> [u8; 32] {
+    let mut body = Vec::with_capacity(16 + signed_body_motion_millidegrees.len() * 4);
+    body.extend_from_slice(b"GLVESTR1");
+    body.extend_from_slice(&predecessor_heading_millidegrees.to_le_bytes());
+    body.extend_from_slice(&(signed_body_motion_millidegrees.len() as u32).to_le_bytes());
+    for signed_step in signed_body_motion_millidegrees {
+        body.extend_from_slice(&signed_step.to_le_bytes());
+    }
+    sha256(&body)
+}
+
 fn exact_token(value: Vec<u8>) -> Result<[u8; 32], PyErr> {
     value
         .try_into()
@@ -1779,6 +1962,38 @@ fn native_resident_observation(
         observation: runtime.observation(),
         cold_restore_work: runtime.cold_restore_work(),
     }
+}
+
+fn resident_vestibular_tick_ingress(
+    vestibular: &ResidentVestibularBody,
+    predecessor_heading_millidegrees: u32,
+    signed_body_motion_millidegrees: i32,
+) -> Result<ResidentVestibularIngress, RuntimeError> {
+    let predecessor_body = YawBodyState::new(predecessor_heading_millidegrees)
+        .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+    let successor_heading = (i64::from(predecessor_heading_millidegrees)
+        + i64::from(signed_body_motion_millidegrees))
+    .rem_euclid(360_000);
+    let successor_body = YawBodyState::new(
+        u32::try_from(successor_heading)
+            .map_err(|_| RuntimeError::Vestibular("yaw width changed".into()))?,
+    )
+    .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+    let reached = settle_reached_vestibular_bundle_tick(
+        vestibular.anatomy.canal_anatomy(),
+        vestibular.canal,
+        signed_body_motion_millidegrees,
+        vestibular.anatomy.bundle_anatomy(),
+    )
+    .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))?;
+    prepare_resident_vestibular_ingress(
+        vestibular.source_tick,
+        predecessor_body,
+        successor_body,
+        reached,
+        &vestibular.anatomy,
+    )
+    .map_err(|error| RuntimeError::Vestibular(format!("{error:?}")))
 }
 
 #[pymethods]
@@ -1796,6 +2011,31 @@ impl NativeResidentOrganismRuntime {
         let source = source.clone();
         let prepared = py
             .allow_threads(|| self.runtime.prepare_source(&source))
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+        })
+    }
+
+    /// Prepare an ordered native body-and-balance trajectory as one external
+    /// transaction. Every one-millisecond interval settles in causal order;
+    /// only the final organism successor is sealed.
+    fn prepare_vestibular_trajectory(
+        &mut self,
+        py: Python<'_>,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: Vec<i32>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime.prepare_vestibular_trajectory(
+                    predecessor_heading_millidegrees,
+                    &signed_body_motion_millidegrees,
+                )
+            })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
@@ -3542,6 +3782,39 @@ mod tests {
                 ),
             1
         );
+    }
+
+    #[test]
+    fn one_seal_trajectory_is_byte_exact_with_per_interval_sealing() {
+        let turn = settle_signed_yaw_actuation(
+            YawBodyState::new(0).unwrap(),
+            SignedYawActuation::new(90_000, 250_000).unwrap(),
+        )
+        .unwrap();
+        let steps = turn.trajectory.as_slice();
+
+        let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let mut heading = 0_u32;
+        for signed_step in steps {
+            let prepared = reference
+                .prepare_vestibular_tick(heading, *signed_step)
+                .unwrap();
+            reference.commit(prepared.token).unwrap();
+            heading = (i64::from(heading) + i64::from(*signed_step))
+                .rem_euclid(360_000) as u32;
+        }
+
+        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let prepared = candidate.prepare_vestibular_trajectory(0, steps).unwrap();
+        assert_eq!(prepared.phase_counts.successor_seal_count, 1);
+        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 250);
+        assert_eq!(prepared.observation.dsf_delivery_count, 500);
+        candidate.commit(prepared.token).unwrap();
+
+        assert_eq!(heading, 90_000);
+        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
+        assert_eq!(candidate.active.vestibular, reference.active.vestibular);
     }
 
     #[test]

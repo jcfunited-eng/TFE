@@ -233,11 +233,15 @@ impl ReachedCohortAnatomy {
     }
 
     pub(crate) fn source_sites(&self) -> impl Iterator<Item = &NeuronSourceSite> {
-        self.mounts.iter().filter_map(ReachedNeuronMount::source_site)
+        self.mounts
+            .iter()
+            .filter_map(ReachedNeuronMount::source_site)
     }
 
     pub(crate) fn source_site_member(&self, site: &NeuronSourceSite) -> Option<usize> {
-        self.mounts.iter().position(|mount| mount.source_site() == Some(site))
+        self.mounts
+            .iter()
+            .position(|mount| mount.source_site() == Some(site))
     }
 
     pub(crate) fn neuron_anatomies(&self) -> &[NeuronPhysicalAnatomy] {
@@ -370,7 +374,9 @@ pub(crate) fn extend_reached_cohort_cells(
     let mut neuron_states = state.neurons.to_vec();
     for addition in additions {
         if lineages.contains(&addition.lineage)
-            || mounts.iter().any(|mount| mount.place() == addition.mount.place())
+            || mounts
+                .iter()
+                .any(|mount| mount.place() == addition.mount.place())
         {
             return Err(ReachedCohortError::InvalidNeuronLineage);
         }
@@ -455,6 +461,29 @@ pub(crate) fn extend_reached_cohort_positional_fabrics(
 /// Lineage, source place, contacts, every existing physical coordinate, and
 /// reservoir history remain attached to the same neuron. Only omitted virgin
 /// receptor material for that already-declared territory is added.
+pub(crate) fn legacy_sight_channel_populations_require_expansion(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<bool, ReachedCohortError> {
+    if anatomy.neuron_count() != state.neurons.len() {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    for (neuron_anatomy, mount) in anatomy.neurons.iter().zip(anatomy.mounts.iter()) {
+        let Some(source_site) = mount.source_site() else {
+            continue;
+        };
+        if source_site.sense() != PhysicalSourceSense::Sight {
+            continue;
+        }
+        let target_population = declared_geometric_territory(source_site)
+            .map_err(|_| ReachedCohortError::SourceAnatomyMismatch)?;
+        if neuron_anatomy.gate_population() != target_population {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 pub(crate) fn expand_legacy_sight_channel_populations(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
@@ -1207,9 +1236,7 @@ fn decode_reached_cohort_cell_content_addressed(
             }
         } else {
             let source_length = reader.usize()?;
-            ReachedNeuronMount::Receptor(decode_neuron_source_site(
-                reader.take(source_length)?,
-            )?)
+            ReachedNeuronMount::Receptor(decode_neuron_source_site(reader.take(source_length)?)?)
         };
         mounts.push(mount);
         let anatomy_reference = take_content_digest(&mut reader)?;
@@ -2392,11 +2419,14 @@ pub(crate) fn settle_reached_cohort_interval(
         successor_neurons[resident_index] = settled.successor;
         locally_quiescent[resident_index] = settled.quiescent;
     }
-    let external_net_outward = external_contact_outward.iter().try_fold(0_i128, |total, value| {
-        total
-            .checked_add(*value)
-            .ok_or(ReachedCohortError::MaterialConservation)
-    })?;
+    let external_net_outward =
+        external_contact_outward
+            .iter()
+            .try_fold(0_i128, |total, value| {
+                total
+                    .checked_add(*value)
+                    .ok_or(ReachedCohortError::MaterialConservation)
+            })?;
     let expected_successor_material = if external_net_outward >= 0 {
         predecessor_material
             .checked_sub(external_net_outward.unsigned_abs())
