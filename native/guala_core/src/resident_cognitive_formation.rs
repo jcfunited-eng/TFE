@@ -59,9 +59,11 @@ use crate::optical_receptor_work::{
     RETINAL_REFERENCE_IRRADIANCE_UNIT, RETINAL_SPECTRAL_IRRADIANCE_QUANTITY,
 };
 use crate::physical_mosaic::{
-    admit_physical_mosaic, connected_members, decode_admitted_physical_mosaic,
-    encode_admitted_physical_mosaic, AdmittedPhysicalMosaic, PhysicalMosaicCodecError,
-    PhysicalMosaicError,
+    admit_physical_mosaic, admit_physical_mosaic_original, connected_members,
+    decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic,
+    encode_admitted_physical_mosaic_for_topology, prove_physical_mosaic_recurrence,
+    AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
+    StablePhysicalBondReference,
 };
 use crate::reached_neuron_cohort::{
     decode_reached_cohort_cell, decode_reached_cohort_state, decode_reached_cohort_state_delta,
@@ -608,40 +610,265 @@ impl PreparedCognitiveFormationTransition {
 
 fn encode_organism_mosaic(
     cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
     mosaic: &AdmittedPhysicalMosaic,
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, FormationError> {
-    let mut encoded = None;
-    for cohort in cohorts {
-        if let Ok(candidate) =
-            encode_admitted_physical_mosaic(&cohort.anatomy, mosaic, max_encoded_bytes)
-        {
-            if encoded.is_some() {
-                return Err(FormationError::NoncanonicalState);
-            }
-            encoded = Some(candidate);
-        }
-    }
-    encoded.ok_or(FormationError::NoncanonicalState)
+    let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    encode_admitted_physical_mosaic_for_topology(
+        &topology.lineages,
+        &topology.bonds,
+        &topology.fractal_anatomies,
+        mosaic,
+        max_encoded_bytes,
+    )
+    .map_err(FormationError::PhysicalMosaicCodecUnavailable)
 }
 
 fn decode_organism_mosaic(
     cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
     encoded: &[u8],
     max_encoded_bytes: usize,
 ) -> Result<AdmittedPhysicalMosaic, FormationError> {
-    let mut decoded = None;
+    let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    decode_admitted_physical_mosaic_for_topology(
+        &topology.lineages,
+        &topology.bonds,
+        &topology.fractal_anatomies,
+        encoded,
+        max_encoded_bytes,
+    )
+    .map_err(FormationError::PhysicalMosaicCodecUnavailable)
+}
+
+struct OrganismMosaicTopology {
+    lineages: Vec<[u8; 16]>,
+    fractal_anatomies: Vec<(usize, usize)>,
+    bonds: Vec<StablePhysicalBondReference>,
+}
+
+fn organism_mosaic_topology(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+) -> Result<OrganismMosaicTopology, FormationError> {
+    let mut lineages = Vec::new();
+    let mut fractal_anatomies = Vec::new();
     for cohort in cohorts {
-        if let Ok(candidate) =
-            decode_admitted_physical_mosaic(&cohort.anatomy, encoded, max_encoded_bytes)
+        for (lineage, anatomy) in cohort
+            .anatomy
+            .neuron_lineages()
+            .iter()
+            .copied()
+            .zip(cohort.anatomy.neuron_anatomies())
         {
-            if decoded.is_some() {
-                return Err(FormationError::NoncanonicalState);
+            if lineages.contains(&lineage) {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
             }
-            decoded = Some(candidate);
+            lineages.push(lineage);
+            fractal_anatomies.push((
+                anatomy.psi_ring_count(),
+                anatomy
+                    .sparse_delta_coordinate_count()
+                    .ok_or(FormationError::ArithmeticOverflow)?,
+            ));
         }
     }
-    decoded.ok_or(FormationError::NoncanonicalState)
+    let mut endpoint_pairs = Vec::<([u8; 16], [u8; 16])>::new();
+    for cohort in cohorts {
+        for (left, right) in cohort.anatomy.contact_endpoints() {
+            endpoint_pairs.push((
+                cohort.anatomy.neuron_lineages()[left],
+                cohort.anatomy.neuron_lineages()[right],
+            ));
+        }
+    }
+    for (left, right) in electrical_fabric.contact_endpoints() {
+        endpoint_pairs.push((
+            electrical_fabric.lineages()[left],
+            electrical_fabric.lineages()[right],
+        ));
+    }
+    let mut bonds = Vec::<StablePhysicalBondReference>::with_capacity(endpoint_pairs.len());
+    for (first, second) in endpoint_pairs {
+        let canonical = if first < second { (first, second) } else { (second, first) };
+        let parallel_ordinal = u32::try_from(
+            bonds
+                .iter()
+                .filter(|bond| bond.endpoints() == canonical)
+                .count(),
+        )
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+        bonds.push(
+            StablePhysicalBondReference::new(first, second, parallel_ordinal)
+                .ok_or(FormationError::NoncanonicalState)?,
+        );
+    }
+    bonds.sort_unstable();
+    Ok(OrganismMosaicTopology { lineages, fractal_anatomies, bonds })
+}
+
+fn settle_organism_mosaic_boundary(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    emitted_neuron_fractals: &[EmittedNeuronFractal],
+    externally_reached_lineages: &[[u8; 16]],
+    active_bonds: &[StablePhysicalBondReference],
+    mosaics: &mut Vec<RetainedOrganismMosaic>,
+    max_encoded_bytes: usize,
+) -> Result<(Option<[u8; 32]>, usize), FormationError> {
+    if active_bonds.is_empty() {
+        return Ok((None, 0));
+    }
+    let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    let current_fractals = topology
+        .lineages
+        .iter()
+        .map(|lineage| {
+            emitted_neuron_fractals
+                .iter()
+                .rev()
+                .find(|fractal| &fractal.neuron_lineage == lineage)
+                .map(|fractal| fractal.delta.clone())
+        })
+        .collect::<Vec<_>>();
+    let changed_lineages = topology
+        .lineages
+        .iter()
+        .copied()
+        .zip(current_fractals.iter())
+        .filter_map(|(lineage, fractal)| fractal.as_ref().map(|_| lineage))
+        .collect::<Vec<_>>();
+    let mut receipt = None;
+    let mut reassemblies = 0usize;
+    for retained in mosaics.iter_mut().filter(|retained| retained.mosaic.is_original_only()) {
+        let cue = externally_reached_lineages
+            .iter()
+            .copied()
+            .filter(|lineage| retained.mosaic.member_lineages().binary_search(lineage).is_ok())
+            .collect::<Vec<_>>();
+        let recognized = match prove_physical_mosaic_recurrence(
+            &retained.mosaic,
+            &changed_lineages,
+            active_bonds,
+            &cue,
+        ) {
+            Ok(recognized) => recognized,
+            Err(error) if physical_mosaic_non_admission(error) => continue,
+            Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
+        };
+        let encoded = encode_admitted_physical_mosaic_for_topology(
+            &topology.lineages,
+            &topology.bonds,
+            &topology.fractal_anatomies,
+            &recognized,
+            max_encoded_bytes,
+        )
+        .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
+        receipt = Some(sha256(&encoded));
+        retained.mosaic = recognized;
+        reassemblies = reassemblies
+            .checked_add(1)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+    }
+    let mut reached_sensory_layers = Vec::new();
+    for lineage in externally_reached_lineages {
+        for cohort in cohorts {
+            for (mount, candidate) in cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+            {
+                if candidate == lineage && mount.source_site().is_some() {
+                    let layer = mount.place().layer();
+                    if !reached_sensory_layers.contains(&layer) {
+                        reached_sensory_layers.push(layer);
+                    }
+                }
+            }
+        }
+    }
+    if reached_sensory_layers.len() < 2 {
+        return Ok((receipt, reassemblies));
+    }
+    let changed = changed_lineages.clone();
+    let mut unvisited = changed.clone();
+    while let Some(start) = unvisited.pop() {
+        let mut component = vec![start];
+        let mut cursor = 0usize;
+        while cursor < component.len() {
+            let current = component[cursor];
+            for bond in active_bonds {
+                let (left, right) = bond.endpoints();
+                let neighbour = if left == current {
+                    Some(right)
+                } else if right == current {
+                    Some(left)
+                } else {
+                    None
+                };
+                if let Some(neighbour) = neighbour {
+                    if changed.contains(&neighbour) && !component.contains(&neighbour) {
+                        component.push(neighbour);
+                        if let Some(index) = unvisited.iter().position(|value| value == &neighbour) {
+                            unvisited.swap_remove(index);
+                        }
+                    }
+                }
+            }
+            cursor += 1;
+        }
+        let carries_association = component.iter().any(|lineage| {
+            cohorts.iter().any(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+                    .any(|(mount, candidate)| {
+                        candidate == lineage
+                            && mount.source_site().is_none()
+                            && mount.place().layer() == 7
+                    })
+            })
+        });
+        if component.len() < 3 || !carries_association {
+            continue;
+        }
+        let component_fractals = topology
+            .lineages
+            .iter()
+            .zip(current_fractals.iter())
+            .map(|(lineage, fractal)| {
+                component
+                    .contains(lineage)
+                    .then(|| fractal.clone())
+                    .flatten()
+            })
+            .collect::<Vec<_>>();
+        let original = match admit_physical_mosaic_original(
+            &topology.lineages,
+            &topology.fractal_anatomies,
+            &component_fractals,
+            active_bonds,
+        ) {
+            Ok(original) => original,
+            Err(error) if physical_mosaic_non_admission(error) => continue,
+            Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
+        };
+        if mosaics
+            .iter()
+            .any(|prior| prior.mosaic.same_retained_structure(&original))
+        {
+            continue;
+        }
+        mosaics
+            .try_reserve(1)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        mosaics.push(RetainedOrganismMosaic::newly_admitted(original));
+    }
+    Ok((receipt, reassemblies))
 }
 
 /// Encode one retained mosaic reference for the organism state body.  Zero
@@ -650,10 +877,16 @@ fn decode_organism_mosaic(
 /// magic's doc for the versioned-magic precedent).
 fn encode_retained_organism_mosaic(
     cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
     retained: &RetainedOrganismMosaic,
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, FormationError> {
-    let body = encode_organism_mosaic(cohorts, &retained.mosaic, max_encoded_bytes)?;
+    let body = encode_organism_mosaic(
+        cohorts,
+        electrical_fabric,
+        &retained.mosaic,
+        max_encoded_bytes,
+    )?;
     if retained.reinforcement_count == 0 && retained.mosaic_of_mosaics_relation_count == 0 {
         return Ok(body);
     }
@@ -681,12 +914,13 @@ fn encode_retained_organism_mosaic(
 /// two encodings.
 fn decode_retained_organism_mosaic(
     cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
     encoded: &[u8],
     max_encoded_bytes: usize,
 ) -> Result<RetainedOrganismMosaic, FormationError> {
     if encoded.get(..RETAINED_MOSAIC_COUNTS_MAGIC.len()) != Some(RETAINED_MOSAIC_COUNTS_MAGIC) {
         return Ok(RetainedOrganismMosaic::newly_admitted(
-            decode_organism_mosaic(cohorts, encoded, max_encoded_bytes)?,
+            decode_organism_mosaic(cohorts, electrical_fabric, encoded, max_encoded_bytes)?,
         ));
     }
     let mut cursor = RETAINED_MOSAIC_COUNTS_MAGIC.len();
@@ -697,6 +931,7 @@ fn decode_retained_organism_mosaic(
     }
     let mosaic = decode_organism_mosaic(
         cohorts,
+        electrical_fabric,
         encoded
             .get(cursor..)
             .ok_or(FormationError::NoncanonicalState)?,
@@ -1159,10 +1394,14 @@ impl ResidentCognitiveFormationState {
         let mut mosaics = expanded
             .mosaics
             .iter()
-            .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
+            .filter(|retained| retained.mosaic.carries_retained_original_structure())
             .cloned()
             .collect::<Vec<_>>();
-        let predecessor_retained_mosaic_count = mosaics.len();
+        let predecessor_recognized_mosaics = mosaics
+            .iter()
+            .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
+            .map(|retained| retained.mosaic.clone())
+            .collect::<Vec<_>>();
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
@@ -2065,8 +2304,40 @@ impl ResidentCognitiveFormationState {
                 occurrence_lineages,
             )?;
         }
-        let newly_retained_mosaic_members = mosaics[predecessor_retained_mosaic_count..]
+        let internal_contact = settle_internal_contact_interval(
+            &mut cohorts,
+            &mut electrical_fabric,
+            &externally_reached_neuron_lineages,
+            &mut physically_transitioned_neuron_lineages,
+            &mut emitted_neuron_fractals,
+        )?;
+        dsf_delivery_count = dsf_delivery_count
+            .checked_add(internal_contact.dsf_delivery_count)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        let (organism_mosaic_receipt, organism_reassemblies) =
+            settle_organism_mosaic_boundary(
+                &cohorts,
+                &electrical_fabric,
+                &emitted_neuron_fractals,
+                &externally_reached_neuron_lineages,
+                &internal_contact.active_bonds,
+                &mut mosaics,
+                max_encoded_bytes,
+            )?;
+        if organism_mosaic_receipt.is_some() {
+            mosaic_formed = organism_mosaic_receipt;
+        }
+        partial_cue_reassembly_count = partial_cue_reassembly_count
+            .checked_add(organism_reassemblies)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        let newly_retained_mosaic_members = mosaics
             .iter()
+            .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
+            .filter(|retained| {
+                !predecessor_recognized_mosaics
+                    .iter()
+                    .any(|prior| prior.same_retained_structure(&retained.mosaic))
+            })
             .map(|retained| retained.mosaic.member_lineages().to_vec())
             .collect::<Vec<_>>();
         mount_new_recurrent_retention(
@@ -2076,15 +2347,6 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &newly_retained_mosaic_members,
         )?;
-        dsf_delivery_count = dsf_delivery_count
-            .checked_add(settle_internal_contact_interval(
-                &mut cohorts,
-                &mut electrical_fabric,
-                &externally_reached_neuron_lineages,
-                &mut physically_transitioned_neuron_lineages,
-                &mut emitted_neuron_fractals,
-            )?)
-            .ok_or(FormationError::ArithmeticOverflow)?;
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -2508,7 +2770,12 @@ impl ResidentCognitiveFormationState {
             .mosaics
             .iter()
             .map(|retained| {
-                encode_retained_organism_mosaic(&self.cohorts, retained, max_encoded_bytes)
+                encode_retained_organism_mosaic(
+                    &self.cohorts,
+                    &self.electrical_fabric,
+                    retained,
+                    max_encoded_bytes,
+                )
             })
             .collect::<Result<Vec<_>, _>>()?;
         length = mosaics
@@ -2924,6 +3191,7 @@ impl ResidentCognitiveFormationState {
                 .ok_or(FormationError::ArithmeticOverflow)?;
             let retained = decode_retained_organism_mosaic(
                 &cohorts,
+                &electrical_fabric,
                 bytes
                     .get(cursor..mosaic_end)
                     .ok_or(FormationError::NoncanonicalState)?,
@@ -5492,7 +5760,30 @@ struct ResidentContactEdge {
     right: usize,
     conductance: ExactRational,
     state: ElectricalContactState,
+    stable_bond: StablePhysicalBondReference,
     origin: ResidentContactOrigin,
+}
+
+struct InternalContactSettlementObservation {
+    dsf_delivery_count: usize,
+    active_bonds: Vec<StablePhysicalBondReference>,
+}
+
+fn stable_bond_for_next_edge(
+    edges: &[ResidentContactEdge],
+    first: [u8; 16],
+    second: [u8; 16],
+) -> Result<StablePhysicalBondReference, FormationError> {
+    let canonical = if first < second { (first, second) } else { (second, first) };
+    let parallel_ordinal = u32::try_from(
+        edges
+            .iter()
+            .filter(|edge| edge.stable_bond.endpoints() == canonical)
+            .count(),
+    )
+    .map_err(|_| FormationError::ArithmeticOverflow)?;
+    StablePhysicalBondReference::new(first, second, parallel_ordinal)
+        .ok_or(FormationError::NoncanonicalState)
 }
 
 /// Advance an already-identified physical seed frontier across exactly one
@@ -5532,9 +5823,12 @@ fn settle_internal_contact_interval(
     externally_reached_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut Vec<[u8; 16]>,
     emitted_neuron_fractals: &mut Vec<EmittedNeuronFractal>,
-) -> Result<usize, FormationError> {
+) -> Result<InternalContactSettlementObservation, FormationError> {
     if externally_reached_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
-        return Ok(0);
+        return Ok(InternalContactSettlementObservation {
+            dsf_delivery_count: 0,
+            active_bonds: Vec::new(),
+        });
     }
 
     let mut flat_locations = Vec::<(usize, usize, [u8; 16])>::new();
@@ -5568,6 +5862,11 @@ fn settle_internal_contact_interval(
             .enumerate()
         {
             let (left_member, right_member) = contact.endpoints();
+            let stable_bond = stable_bond_for_next_edge(
+                &edges,
+                cohort.anatomy.neuron_lineages()[left_member],
+                cohort.anatomy.neuron_lineages()[right_member],
+            )?;
             edges.push(ResidentContactEdge {
                 left: offset
                     .checked_add(left_member)
@@ -5577,6 +5876,7 @@ fn settle_internal_contact_interval(
                     .ok_or(FormationError::ArithmeticOverflow)?,
                 conductance: contact.conductance_picosiemens(),
                 state,
+                stable_bond,
                 origin: ResidentContactOrigin::Local {
                     cohort_index,
                     contact_index,
@@ -5609,11 +5909,13 @@ fn settle_internal_contact_interval(
             .lineages()
             .get(right)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let stable_bond = stable_bond_for_next_edge(&edges, left_lineage, right_lineage)?;
         edges.push(ResidentContactEdge {
             left: lineage_member(left_lineage)?,
             right: lineage_member(right_lineage)?,
             conductance: contact.conductance_picosiemens(),
             state,
+            stable_bond,
             origin: ResidentContactOrigin::Fabric { contact_index },
         });
     }
@@ -5653,7 +5955,10 @@ fn settle_internal_contact_interval(
         .filter_map(|(index, reached)| reached.then_some(index))
         .collect::<Vec<_>>();
     if selected.is_empty() {
-        return Ok(0);
+        return Ok(InternalContactSettlementObservation {
+            dsf_delivery_count: 0,
+            active_bonds: Vec::new(),
+        });
     }
     let mut compact_index = vec![None; flat_locations.len()];
     for (index, flat) in selected.iter().copied().enumerate() {
@@ -5663,6 +5968,7 @@ fn settle_internal_contact_interval(
     let mut compact_contacts = Vec::new();
     let mut compact_states = Vec::new();
     let mut compact_origins = Vec::new();
+    let mut compact_bonds = Vec::new();
     for edge in &edges {
         let (Some(left), Some(right)) = (compact_index[edge.left], compact_index[edge.right]) else {
             continue;
@@ -5678,9 +5984,13 @@ fn settle_internal_contact_interval(
         );
         compact_states.push(edge.state.clone());
         compact_origins.push(edge.origin);
+        compact_bonds.push(edge.stable_bond);
     }
     if compact_contacts.is_empty() {
-        return Ok(0);
+        return Ok(InternalContactSettlementObservation {
+            dsf_delivery_count: 0,
+            active_bonds: Vec::new(),
+        });
     }
     let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
@@ -5993,10 +6303,26 @@ fn settle_internal_contact_interval(
             }
         }
     }
+    let mut active_bonds = settled
+        .transitions
+        .iter()
+        .zip(compact_bonds)
+        .filter_map(|(transition, bond)| {
+            (transition.outward_current_from_left_picoamperes.parts().0 != 0
+                || transition.outward_elementary_charges_from_left != 0
+                || transition.plastic_changed)
+                .then_some(bond)
+        })
+        .collect::<Vec<_>>();
+    active_bonds.sort_unstable();
+    active_bonds.dedup();
     // One shared full-field occurrence was evaluated for the entire reached
     // contact frontier, irrespective of how many neurons received their
     // coordinate-local perspectives.
-    Ok(1)
+    Ok(InternalContactSettlementObservation {
+        dsf_delivery_count: 1,
+        active_bonds,
+    })
 }
 
 fn exact_rational_binary64(value: ExactRational) -> Result<f64, FormationError> {
@@ -7302,6 +7628,7 @@ mod tests {
                     sha256(
                         &encode_organism_mosaic(
                             &prepared.successor.cohorts,
+                            &prepared.successor.electrical_fabric,
                             &prepared.successor.mosaics[0].mosaic,
                             16_000_000,
                         )
@@ -7816,15 +8143,25 @@ mod tests {
 
         // A wrapper claiming zero counts is refused: its canonical form is
         // the bare body, and one retained state never admits two encodings.
-        let body =
-            encode_organism_mosaic(&state.cohorts, &state.mosaics[0].mosaic, 16_000_000).unwrap();
+        let body = encode_organism_mosaic(
+            &state.cohorts,
+            &state.electrical_fabric,
+            &state.mosaics[0].mosaic,
+            16_000_000,
+        )
+        .unwrap();
         let mut zero_wrapped = Vec::new();
         zero_wrapped.extend_from_slice(RETAINED_MOSAIC_COUNTS_MAGIC);
         zero_wrapped.extend_from_slice(&0u64.to_le_bytes());
         zero_wrapped.extend_from_slice(&0u64.to_le_bytes());
         zero_wrapped.extend_from_slice(&body);
         assert!(matches!(
-            decode_retained_organism_mosaic(&state.cohorts, &zero_wrapped, 16_000_000),
+            decode_retained_organism_mosaic(
+                &state.cohorts,
+                &state.electrical_fabric,
+                &zero_wrapped,
+                16_000_000,
+            ),
             Err(FormationError::NoncanonicalState)
         ));
     }
@@ -8463,6 +8800,37 @@ mod tests {
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
         assert_eq!(fabric.contact_count(), contact_count);
+
+        let topology = organism_mosaic_topology(&cohorts, &fabric).unwrap();
+        let fractal =
+            crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
+                crate::complete_neuron::PhysicalStateDeltaEntry::new(
+                    crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                    crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                        ExactRational::new(1, 3).unwrap(),
+                    ),
+                )
+                .unwrap(),
+            ])
+            .unwrap();
+        let original = admit_physical_mosaic_original(
+            &topology.lineages,
+            &topology.fractal_anatomies,
+            &vec![Some(fractal); topology.lineages.len()],
+            &topology.bonds,
+        )
+        .unwrap();
+        let encoded = encode_organism_mosaic(&cohorts, &fabric, &original, 16_000_000).unwrap();
+        let cold = decode_organism_mosaic(&cohorts, &fabric, &encoded, 16_000_000).unwrap();
+        assert_eq!(cold, original);
+        let recognized = prove_physical_mosaic_recurrence(
+            &cold,
+            &topology.lineages,
+            &topology.bonds,
+            &receptor_lineages,
+        )
+        .unwrap();
+        assert!(recognized.carries_only_retained_neuron_structure());
     }
 
     #[test]
