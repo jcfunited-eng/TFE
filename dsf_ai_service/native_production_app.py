@@ -1706,11 +1706,52 @@ def _temperature_record(native: dict[str, Any] | None = None) -> dict[str, objec
 
 
 def _interoception_record(native: dict[str, Any] | None = None) -> dict[str, object]:
-    del native
+    layers = dict((native or {}).get("reached_neuron_count_by_layer", ()))
+    totals = (
+        (_last_transition_evidence or {}).get("totals")
+        if _last_transition_evidence is not None
+        else None
+    ) or {}
+    local_body_count = totals.get(
+        "metabolically_perturbed_body_receptor_count", 0
+    )
+    if not isinstance(local_body_count, int) or isinstance(local_body_count, bool):
+        local_body_count = 0
+    reached_body_receptors = layers.get(5, 0)
+    reached_body_regulators = layers.get(8, 0)
+    if local_body_count > 0:
+        return _section(
+            True,
+            "local_cellular_metabolic_afference_observed",
+            "a mounted recovery-fluid contact changed the membrane charge of "
+            "a reached layer-5 body receptor, and that exact lineage entered "
+            "the existing one-interval sparse frontier; no body-wide fuel, "
+            "heat, spent, charge, or readiness total was fed back as a signal",
+            dedicated_visceral_organ_afferents_mounted=False,
+            local_body_receptor_transition_count=local_body_count,
+            native_neuronal_participation=True,
+            reached_body_receptor_count=reached_body_receptors,
+            reached_body_regulation_neuron_count=reached_body_regulators,
+        )
+    if reached_body_receptors and reached_body_regulators:
+        return _section(
+            False,
+            "local_metabolic_path_mounted_awaiting_observed_transition",
+            "local recovery-fluid membrane consequences now enter the sparse "
+            "frontier, and reached body receptor and regulation anatomy are "
+            "present; this process has not yet observed a layer-5 metabolic "
+            "membrane transition, so participation is not claimed",
+            dedicated_visceral_organ_afferents_mounted=False,
+            local_body_receptor_transition_count=0,
+            native_neuronal_participation=False,
+            reached_body_receptor_count=reached_body_receptors,
+            reached_body_regulation_neuron_count=reached_body_regulators,
+        )
     return _unmounted(
-        "localized specialized afferents are not mounted; exact body-energy "
-        "coordinates remain observation only and are not fed back as one "
-        "synthetic organism interoceptor",
+        "no reached local body receptor and regulation route is available; "
+        "exact body-energy coordinates remain observation only and are not "
+        "fed back as one synthetic organism interoceptor",
+        dedicated_visceral_organ_afferents_mounted=False,
         native_neuronal_participation=False,
     )
 
@@ -3998,6 +4039,9 @@ def _commit_admitted_hop(
         "physically_transitioned_neuron_count": (
             evidence.physically_transitioned_neuron_count
         ),
+        "metabolically_perturbed_body_receptor_count": (
+            evidence.metabolically_perturbed_body_receptor_count
+        ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
@@ -4038,6 +4082,9 @@ def _commit_vestibular_tick(
         "physically_transitioned_neuron_count": (
             evidence.physically_transitioned_neuron_count
         ),
+        "metabolically_perturbed_body_receptor_count": (
+            evidence.metabolically_perturbed_body_receptor_count
+        ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
@@ -4077,6 +4124,9 @@ def _commit_vestibular_trajectory(
         ),
         "physically_transitioned_neuron_count": (
             evidence.physically_transitioned_neuron_count
+        ),
+        "metabolically_perturbed_body_receptor_count": (
+            evidence.metabolically_perturbed_body_receptor_count
         ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
@@ -4180,6 +4230,7 @@ def _perform_admitted_intake_locked(
         "endogenous_partial_cue_reassembly_count": 0,
         "partial_cue_reassembly_count": 0,
         "physically_transitioned_neuron_count": 0,
+        "metabolically_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
     restored, admission = _runtime()

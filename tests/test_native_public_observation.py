@@ -34,6 +34,7 @@ class _Observation:
     python_callback_count: int = 0
     complete_neuron_count: int = 96
     developmental_resting_neuron_count: int = 0
+    metabolically_perturbed_body_receptor_count: int = 0
     # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
     # observation now carries the decoded energy physics; a zero-capacity
     # fixture body reports no mounted energy system.
@@ -95,6 +96,7 @@ class _ReassemblingOrganism(_Organism):
 def _mount(monkeypatch) -> _Restored:
     restored = _Restored()
     monkeypatch.setattr(serving, "_restored", restored)
+    monkeypatch.setattr(serving, "_last_transition_evidence", None)
     monkeypatch.setattr(serving, "_admission", _Admission())
     monkeypatch.setattr(
         serving,
@@ -107,6 +109,51 @@ def _mount(monkeypatch) -> _Restored:
     )
     serving._refresh_public_observation_cache()
     return restored
+
+
+def test_interoception_requires_exact_local_body_receptor_evidence(
+    monkeypatch,
+) -> None:
+    restored = _Restored()
+    restored.organism.observe_reached_neuron_count_by_layer = lambda: (
+        (0, 27),
+        (1, 27),
+        (5, 1),
+        (6, 43),
+        (8, 1),
+    )
+    monkeypatch.setattr(serving, "_restored", restored)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "complete_neuron_fractal_count": 0,
+            "totals": {"metabolically_perturbed_body_receptor_count": 1},
+        },
+    )
+    monkeypatch.setattr(
+        serving,
+        "_admission",
+        _Admission(),
+    )
+    monkeypatch.setattr(
+        serving,
+        "_build_identity",
+        lambda: {
+            "git_sha": "b" * 40,
+            "image_digest": "sha256:" + "c" * 64,
+            "task_definition": "dsf-ai-task:900",
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    interoception = json.loads(serving.native_observation().body)["sensory"][
+        "interoception"
+    ]
+    assert interoception["available"] is True
+    assert interoception["status"] == "local_cellular_metabolic_afference_observed"
+    assert interoception["local_body_receptor_transition_count"] == 1
+    assert interoception["dedicated_visceral_organ_afferents_mounted"] is False
 
 
 def test_public_observation_is_cached_and_conditional(monkeypatch) -> None:

@@ -337,6 +337,7 @@ pub(crate) struct RuntimeObservation {
     /// This is deliberately separate from reached complete neurons.
     pub(crate) developmental_resting_neuron_count: usize,
     pub(crate) physically_transitioned_neuron_count: usize,
+    pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -871,6 +872,12 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn metabolically_perturbed_body_receptor_count(&self) -> usize {
+        self.observation
+            .metabolically_perturbed_body_receptor_count
+    }
+
+    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
     }
@@ -1121,6 +1128,12 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn rest_recovered_neuron_count(&self) -> usize {
         self.observation.rest_recovered_neuron_count
+    }
+
+    #[getter]
+    fn metabolically_perturbed_body_receptor_count(&self) -> usize {
+        self.observation
+            .metabolically_perturbed_body_receptor_count
     }
 
     #[getter]
@@ -1483,6 +1496,10 @@ impl ResidentOrganismRuntime {
                 total.physically_transitioned_neuron_count = total
                     .physically_transitioned_neuron_count
                     .checked_add(observation.physically_transitioned_neuron_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.metabolically_perturbed_body_receptor_count = total
+                    .metabolically_perturbed_body_receptor_count
+                    .checked_add(observation.metabolically_perturbed_body_receptor_count)
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
                 total.complete_neuron_fractal_count = total
                     .complete_neuron_fractal_count
@@ -3265,6 +3282,7 @@ fn make_restored_observation(
         complete_neuron_count: cognitive.complete_neuron_count,
         developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
+        metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3329,6 +3347,8 @@ fn make_step_observation(
         complete_neuron_count: cognitive.complete_neuron_count,
         developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: cognitive.physically_transitioned_neuron_count,
+        metabolically_perturbed_body_receptor_count: cognitive
+            .metabolically_perturbed_body_receptor_count,
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -3389,6 +3409,7 @@ fn make_authored_contact_observation(
         complete_neuron_count: cognitive.complete_neuron_count,
         developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
+        metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,

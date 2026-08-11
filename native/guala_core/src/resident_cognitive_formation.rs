@@ -218,6 +218,10 @@ pub(crate) struct CognitiveFormationObservation {
     /// `complete_neuron_count`.
     pub(crate) resting_neuron_count: usize,
     pub(crate) physically_transitioned_neuron_count: usize,
+    /// Reached layer-5 body receptors whose separated membrane charge changed
+    /// during this transition's exact local recovery-fluid settlement. This
+    /// is local causal evidence, never a projection of body-wide ledgers.
+    pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) partial_cue_reassembly_count: usize,
@@ -1482,6 +1486,7 @@ impl ResidentCognitiveFormationState {
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         let mut physically_transitioned_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_reached_by_occurrence =
             vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
@@ -2272,6 +2277,29 @@ impl ResidentCognitiveFormationState {
                             max_encoded_bytes,
                             source_generation,
                         )?;
+                        if outcome.metabolic.changed() {
+                            for (neuron_index, ((predecessor, successor), lineage)) in
+                                interval_predecessor_neurons
+                                    .iter()
+                                    .zip(cohort.state.neurons())
+                                    .zip(cohort.anatomy.neuron_lineages())
+                                    .enumerate()
+                            {
+                                if predecessor.separated_elementary_charges()
+                                    == successor.separated_elementary_charges()
+                                {
+                                    continue;
+                                }
+                                let mount = &cohort.anatomy.mounts()[neuron_index];
+                                if mount.source_site().is_some()
+                                    && mount.place().layer() == 5
+                                    && !metabolically_perturbed_body_receptor_lineages
+                                        .contains(lineage)
+                                {
+                                    metabolically_perturbed_body_receptor_lineages.push(*lineage);
+                                }
+                            }
+                        }
                         for ((predecessor, successor), lineage) in interval_predecessor_neurons
                             .iter()
                             .zip(cohort.state.neurons())
@@ -2394,13 +2422,29 @@ impl ResidentCognitiveFormationState {
                 occurrence_lineages,
             )?;
         }
+        // A local metabolic membrane perturbation is an intrinsic reached
+        // cause. Carry its lineage into the same one-interval sparse frontier
+        // as an external receptor without manufacturing gate work or reading
+        // an organism-wide reservoir projection. Zero membrane difference
+        // contributes no seed and therefore no invented signal.
+        let mut internal_frontier_lineages = externally_reached_neuron_lineages.clone();
+        for lineage in &metabolically_perturbed_body_receptor_lineages {
+            if !internal_frontier_lineages.contains(lineage) {
+                internal_frontier_lineages.push(*lineage);
+            }
+        }
         let internal_contact = settle_internal_contact_interval(
             &mut cohorts,
             &mut electrical_fabric,
-            &externally_reached_neuron_lineages,
+            &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
             &mut emitted_neuron_fractals,
         )?;
+        for lineage in &internal_contact.metabolically_perturbed_body_receptor_lineages {
+            if !metabolically_perturbed_body_receptor_lineages.contains(lineage) {
+                metabolically_perturbed_body_receptor_lineages.push(*lineage);
+            }
+        }
         dsf_delivery_count = dsf_delivery_count
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
@@ -2488,6 +2532,8 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_count,
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count,
+                metabolically_perturbed_body_receptor_count:
+                    metabolically_perturbed_body_receptor_lineages.len(),
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
                 partial_cue_reassembly_count,
@@ -2829,6 +2875,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_count: summary.complete_neuron_count,
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count: 0,
+                metabolically_perturbed_body_receptor_count: 0,
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
                 partial_cue_reassembly_count: 0,
@@ -6237,6 +6284,7 @@ struct ResidentContactEdge {
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
+    metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
 }
 
 fn stable_bond_for_next_edge(
@@ -6302,6 +6350,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            metabolically_perturbed_body_receptor_lineages: Vec::new(),
         });
     }
 
@@ -6433,6 +6482,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            metabolically_perturbed_body_receptor_lineages: Vec::new(),
         });
     }
     let mut compact_index = vec![None; flat_locations.len()];
@@ -6461,6 +6511,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            metabolically_perturbed_body_receptor_lineages: Vec::new(),
         });
     }
     let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
@@ -6489,6 +6540,7 @@ fn settle_internal_contact_interval(
         })
         .collect::<Vec<_>>();
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
+    let mut metabolically_perturbed_body_receptor_lineages = Vec::new();
     for cohort_index in 0..cohorts.len() {
         let reached_indices = selected_predecessor_neurons[cohort_index]
             .iter()
@@ -6504,6 +6556,19 @@ fn settle_internal_contact_interval(
             interval_microseconds,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        for (neuron_index, predecessor) in &selected_predecessor_neurons[cohort_index] {
+            let mount = &cohorts[cohort_index].anatomy.mounts()[*neuron_index];
+            if mount.source_site().is_some()
+                && mount.place().layer() == 5
+                && predecessor.separated_elementary_charges()
+                    != successor.neurons()[*neuron_index].separated_elementary_charges()
+            {
+                let lineage = cohorts[cohort_index].anatomy.neuron_lineages()[*neuron_index];
+                if !metabolically_perturbed_body_receptor_lineages.contains(&lineage) {
+                    metabolically_perturbed_body_receptor_lineages.push(lineage);
+                }
+            }
+        }
         cohorts[cohort_index].state = successor;
     }
 
@@ -6875,6 +6940,7 @@ fn settle_internal_contact_interval(
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
+        metabolically_perturbed_body_receptor_lineages,
     })
 }
 
@@ -9275,6 +9341,84 @@ mod tests {
         let encoded = successor.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, successor);
+    }
+
+    #[test]
+    fn local_body_receptor_metabolism_enters_only_the_bounded_sparse_frontier() {
+        let canal_anatomy =
+            CanalAnatomy::new(6, 13_200, PositiveRatio::new(25, 1).unwrap()).unwrap();
+        let bundle_anatomy = LocalCupulaBundleAnatomy::new(2, 5, 20_000).unwrap();
+        let receptor_anatomy = phase_one_virtual_vestibular_anatomy().unwrap();
+        let turn = settle_signed_yaw_actuation(
+            YawBodyState::new(0).unwrap(),
+            SignedYawActuation::new(90_000, 250_000).unwrap(),
+        )
+        .unwrap();
+        let mut state = ResidentCognitiveFormationState::default();
+        let mut canal = CanalState::at_rest();
+        let mut heading = 0_u32;
+        let mut observed = None;
+        for (source_tick, signed_step) in turn.trajectory.as_slice().iter().copied().enumerate() {
+            let predecessor_body = YawBodyState::new(heading).unwrap();
+            heading =
+                u32::try_from((i64::from(heading) + i64::from(signed_step)).rem_euclid(360_000))
+                    .unwrap();
+            let successor_body = YawBodyState::new(heading).unwrap();
+            let reached = settle_reached_vestibular_bundle_tick(
+                canal_anatomy,
+                canal,
+                signed_step,
+                bundle_anatomy,
+            )
+            .unwrap();
+            canal = reached.successor_canal;
+            let ingress = prepare_resident_vestibular_ingress(
+                u64::try_from(source_tick).unwrap(),
+                predecessor_body,
+                successor_body,
+                reached,
+                &receptor_anatomy,
+            )
+            .unwrap();
+            let prepared = state
+                .prepare_vestibular_transition(&ingress, 16_000_000)
+                .unwrap();
+            if prepared
+                .observation
+                .metabolically_perturbed_body_receptor_count
+                > 0
+            {
+                observed = Some(prepared.observation.clone());
+            }
+            state = prepared.successor;
+        }
+        assert_eq!(
+            state
+                .observe_reached_neuron_count_by_layer()
+                .iter()
+                .find(|(layer, _)| *layer == 5)
+                .copied(),
+            Some((5, 1))
+        );
+        assert_eq!(
+            state
+                .observe_reached_neuron_count_by_layer()
+                .iter()
+                .find(|(layer, _)| *layer == 8)
+                .copied(),
+            Some((8, 1))
+        );
+        let observation = observed.expect("body receptor recovery must be physically observed");
+        assert_eq!(observation.metabolically_perturbed_body_receptor_count, 1);
+        assert!(observation.physically_transitioned_neuron_count >= 1);
+        assert!(observation.metabolically_perturbed_body_receptor_count
+            <= observation.physically_transitioned_neuron_count);
+
+        let encoded = state.encode(16_000_000).unwrap();
+        assert_eq!(
+            ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap(),
+            state
+        );
     }
 
     #[test]

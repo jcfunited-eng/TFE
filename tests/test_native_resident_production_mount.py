@@ -17,6 +17,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 )
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     create_native_resident_organism,
+    exact_native_yaw_trajectory,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
@@ -195,7 +196,30 @@ def test_native_genesis_is_empty_physical_state_not_synthetic_cognition() -> Non
     assert observed.cognitive_mosaic_count == 0
     assert observed.formation_activation_count == 0
     assert observed.partial_cue_reassembly_count == 0
+    assert observed.metabolically_perturbed_body_receptor_count == 0
     assert observed.python_callback_count == 0
+
+
+def test_native_body_trajectory_exports_local_metabolic_afference() -> None:
+    organism = create_native_resident_organism(
+        organism_identity=IDENTITY,
+        organism_tick=0,
+        growth_dna=_growth_dna_fixture(),
+        max_envelope_bytes=67_108_864,
+        max_fabric_bytes=67_108_000,
+        max_logical_peak_bytes=536_870_912,
+    )
+    _successor_heading, trajectory = exact_native_yaw_trajectory(
+        predecessor_heading_millidegrees=0,
+        signed_displacement_millidegrees=90_000,
+        duration_microseconds=250_000,
+    )
+    result = production._commit_vestibular_trajectory(organism, 0, trajectory)
+    assert result["metabolically_perturbed_body_receptor_count"] > 0
+    assert result["metabolically_perturbed_body_receptor_count"] <= len(trajectory)
+    committed = organism.readiness()
+    assert committed.metabolically_perturbed_body_receptor_count > 0
+    assert committed.python_callback_count == 0
 
 
 @pytest.mark.asyncio

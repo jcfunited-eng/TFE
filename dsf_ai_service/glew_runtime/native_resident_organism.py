@@ -72,6 +72,9 @@ class NativeResidentObservationView(Protocol):
     def physically_transitioned_neuron_count(self) -> int: ...
 
     @property
+    def metabolically_perturbed_body_receptor_count(self) -> int: ...
+
+    @property
     def cold_restore_authentication_count(self) -> int: ...
 
     @property
@@ -197,6 +200,7 @@ class ResidentPrepareEvidence:
     complete_neuron_count: int = 0
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
+    metabolically_perturbed_body_receptor_count: int = 0
 
 
 def _native_core():
@@ -450,6 +454,10 @@ class NativeResidentOrganism:
             candidate.physically_transitioned_neuron_count,
             "physically transitioned neuron count",
         )
+        metabolic_body_count = _nonnegative_integer(
+            candidate.metabolically_perturbed_body_receptor_count,
+            "metabolically perturbed body receptor count",
+        )
         del cognitive_ordinal, cognitive_trace_count, complete_count, resting_count
         if (
             not isinstance(candidate.mounted_step_completed, bool)
@@ -457,6 +465,7 @@ class NativeResidentOrganism:
             or not isinstance(candidate.cognitive_formation_claimed, bool)
             or candidate.physical_transition_claimed
             != (transitioned_count > 0)
+            or metabolic_body_count > transitioned_count
             or candidate.python_callback_count != 0
             or endogenous_partial_count > partial_count
         ):
@@ -754,6 +763,10 @@ class NativeResidentOrganism:
             candidate.physically_transitioned_neuron_count,
             "physically transitioned neuron count",
         )
+        metabolically_perturbed_body_receptor_count = _nonnegative_integer(
+            candidate.metabolically_perturbed_body_receptor_count,
+            "metabolically perturbed body receptor count",
+        )
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero
         # mounted cohorts (cognition still receives its occurrences).
@@ -791,6 +804,8 @@ class NativeResidentOrganism:
             or claimed_resting_neurons > reached_neuron_growth
             or endogenous_partial_cue_reassembly_count
             > partial_cue_reassembly_count
+            or metabolically_perturbed_body_receptor_count
+            > physically_transitioned_neuron_count
             or not isinstance(candidate.physical_transition_claimed, bool)
             or not isinstance(candidate.cognitive_formation_claimed, bool)
             or candidate.physical_transition_claimed
@@ -855,6 +870,9 @@ class NativeResidentOrganism:
             ),
             physically_transitioned_neuron_count=(
                 physically_transitioned_neuron_count
+            ),
+            metabolically_perturbed_body_receptor_count=(
+                metabolically_perturbed_body_receptor_count
             ),
         )
 
