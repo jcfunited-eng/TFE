@@ -84,6 +84,11 @@ def _rehearse_native_distributed_recall(
     if len(body_cued) != 1:
         raise RuntimeError("CURRENT has no single exact body-cued formation")
     formation_receipt, formation_members, cue = body_cued[0]
+    trajectory_projection = _rehearse_ordered_trajectory_projection(
+        current_envelope,
+        formation_members,
+        budget,
+    )
     recalled = None
     episodic_relation = None
     ordered_path_cold_reassembly = False
@@ -190,6 +195,7 @@ def _rehearse_native_distributed_recall(
     return {
         **recalled,
         **episodic_relation,
+        **trajectory_projection,
         "ordered_physical_cold_reassembly": ordered_path_cold_reassembly,
         "distributed_recognition_episode_ordinal": (
             recalled["distributed_recall_interval_ordinal"] - 1
@@ -215,6 +221,47 @@ def _rehearse_native_distributed_recall(
         "episodic_complete_source_replayed": False,
         "episodic_memory_rehearsed": True,
         "motor_action_rehearsed": False,
+    }
+
+
+def _rehearse_ordered_trajectory_projection(
+    current_envelope: bytes,
+    formation_members: tuple[str, ...],
+    budget: dict[str, int],
+) -> dict[str, int | bool | str]:
+    """Prove a multi-interval native transaction does not lose later order."""
+
+    def settle() -> tuple[object, object, dict[str, object] | None]:
+        candidate = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        prepared = candidate.prepare_vestibular_trajectory(0, (64, -64, 0))
+        relation = _commit_and_observe_episodic_relation(
+            candidate,
+            prepared,
+            formation_members,
+        )
+        return candidate, prepared, relation
+
+    candidate, prepared, relation = settle()
+    replay, replay_prepared, replay_relation = settle()
+    if (
+        prepared.partial_cue_reassembly_count <= 0
+        or relation is None
+        or relation["ordered_physical_path_count"] <= 0
+        or replay_prepared.partial_cue_reassembly_count <= 0
+        or replay_relation != relation
+        or replay.save() != candidate.save()
+    ):
+        raise RuntimeError("native trajectory projection lost ordered relation")
+    return {
+        "ordered_trajectory_projection_rehearsed": True,
+        "ordered_trajectory_path_count": relation["ordered_physical_path_count"],
+        "ordered_trajectory_paths_sha256": relation[
+            "ordered_physical_paths_sha256"
+        ],
+        "ordered_trajectory_successor_state_sha256": candidate.readiness().state_sha256,
     }
 
 

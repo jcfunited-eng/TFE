@@ -398,8 +398,23 @@ def _validate_proof(
         ).hexdigest()
         == proof["distributed_recognition_formation_receipts_sha256"]
     )
-    episodic_memory_rehearsal = (
+    ordered_trajectory_projection_rehearsal = (
         distributed_recall_rehearsal
+        and proof.get("ordered_trajectory_projection_rehearsed") is True
+        and isinstance(proof.get("ordered_trajectory_path_count"), int)
+        and not isinstance(proof["ordered_trajectory_path_count"], bool)
+        and proof["ordered_trajectory_path_count"] > 0
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "ordered_trajectory_paths_sha256",
+                "ordered_trajectory_successor_state_sha256",
+            )
+        )
+    )
+    episodic_memory_rehearsal = (
+        ordered_trajectory_projection_rehearsal
         and proof.get("episodic_memory_rehearsed") is True
         and proof.get("episodic_cold_reassembly_exact") is True
         and proof.get("episodic_complete_source_replayed") is False

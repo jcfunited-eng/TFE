@@ -1505,6 +1505,27 @@ impl NativeOrganismRuntimeTransition {
     }
 }
 
+fn retain_trajectory_relation_witnesses(
+    retained: &mut Vec<OrganicMosaicRelationObservation>,
+    observed: &[OrganicMosaicRelationObservation],
+) {
+    for relation in observed {
+        if let Some(prior) = retained.iter_mut().find(|prior| {
+            prior.structural_relation_receipt == relation.structural_relation_receipt
+        }) {
+            let earliest_ordered_witness = if prior.ordered_physical_paths.is_empty() {
+                relation.ordered_physical_paths.clone()
+            } else {
+                prior.ordered_physical_paths.clone()
+            };
+            *prior = relation.clone();
+            prior.ordered_physical_paths = earliest_ordered_witness;
+        } else {
+            retained.push(relation.clone());
+        }
+    }
+}
+
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
@@ -1657,6 +1678,19 @@ impl ResidentOrganismRuntime {
                 total
                     .motor_unit_recruitments
                     .extend(observation.motor_unit_recruitments.iter().copied());
+                // A trajectory is one bounded transaction over ordered
+                // one-millisecond intervals. Keep the latest relation state
+                // and one earliest exact ordered witness for each stable
+                // structural relation. The first
+                // interval commonly observes the relation before a two-edge
+                // continuation exists; leaving that empty projection in
+                // place would discard the later physical path at this
+                // aggregation boundary. Later witnesses are not accumulated
+                // into an event history.
+                retain_trajectory_relation_witnesses(
+                    &mut total.organic_mosaic_relations,
+                    &observation.organic_mosaic_relations,
+                );
                 total.partial_cue_reassembly_count = total
                     .partial_cue_reassembly_count
                     .checked_add(observation.partial_cue_reassembly_count)

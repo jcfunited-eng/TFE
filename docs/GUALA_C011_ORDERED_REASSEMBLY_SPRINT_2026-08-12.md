@@ -156,6 +156,7 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
 | RF-025 | A timed-out live write is successor-checked before any retry. |
 | RF-026 | Every formatter is followed immediately by changed-file and diff-stat containment; apparent file arguments are not trusted. |
 | RF-027 | Acceptance retains the first qualifying interval and cold-replays its exact predecessor/input; later quiet intervals cannot overwrite it. |
+| RF-028 | Ordinary multi-interval production aggregation must preserve decisive evidence created after interval one; every changed observation field is censused through all transaction aggregators before build. |
 
 ## Rejected paths and falsified hypotheses
 
@@ -242,6 +243,22 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
   defects unrelated to C-011: one test awaits a synchronous FastAPI response,
   and one stale observation double lacks `mosaic_of_mosaics_count`. They do not
   touch the changed path and are not being folded into this sprint.
+- The second immutable candidate deployed successfully as task 1000. Its
+  rehearsal proved 34 exact ordered paths and exact cold replay, but an ordinary
+  live 250-interval world trajectory exposed zero paths. Source tracing proved
+  the intervals formed the evidence while `prepare_vestibular_trajectory`
+  omitted `organic_mosaic_relations` from its aggregate. RF-028 now requires the
+  ordinary multi-interval route in immutable rehearsal; C-011 remains open until
+  that same route returns a nonempty exact ordered witness in production.
+- The RF-028 correction keeps the latest structural-relation projection while
+  carrying at most the earliest nonempty ordered-path witness for that stable
+  relation. It adds no persisted state or history. The 409 active native tests
+  pass (13 retired fixtures ignored); the exact rebuilt release wheel passes all
+  45 affected Python boundary and rehearsal tests from an isolated install.
+- One initial Python collection omitted the isolated worktree and was refused
+  before collection. RF-001 was then applied explicitly: the worktree and exact
+  candidate wheel paths were printed before the passing run. This was a
+  preflight invocation miss, not a candidate-code failure.
 
 ## Completion boundary
 
