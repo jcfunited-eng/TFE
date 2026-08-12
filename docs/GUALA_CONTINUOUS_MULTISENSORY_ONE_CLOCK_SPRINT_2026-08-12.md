@@ -77,6 +77,40 @@ no browser or lesson request. Require:
 6. zero Python cognition callbacks and stable bounded resources; and
 7. current-only cold restore followed by another ordinary unattended interval.
 
+## Production result
+
+C-001 is live-proven on 2026-08-12.
+
+- Commit: `c5468c045c9c65568ad5781d8b9ebe53cb5f1df2`.
+- ECS task definition: `dsf-ai-task:986`.
+- Running task: `ee8275385001475ea4fc4a651ae6d366`, healthy, with one
+  desired and one running task and no pending task.
+- Image: `sha256:114b01c2aac279a7cb34d3c0062895cbdbe394f54d6cc5152b71cb94b1c9a0c7`.
+- The release controller rehearsed the exact production predecessor before
+  cutover. The candidate cold-restored the same organism and then completed
+  eight source hops plus one vestibular consequence with zero Python cognition
+  callbacks, no reached-neuron growth, and no state-byte growth.
+- Public observations without a browser, lesson, or mouse action advanced
+  distinct organism ticks `48,349 -> 48,358 -> 48,367`. Each interval reported
+  eight ordered source hops and the same exact receptor ingress:
+  `sight=216`, `sound=272`, `touch=216`, `smell=64`, `taste=40`, `body=32`,
+  `total=840`. All 840 ports were truthfully quiescent within their individual
+  hop; quiescent means an unchanged physical condition, not an absent sense.
+- Every observed interval reported nine local metabolic body-receptor
+  consequences, full DSF delivery, zero Python cognition callbacks, and an
+  ordinary motor-yaw/vestibular consequence.
+- Authenticated state size remained exactly `30,591,023` bytes across the
+  distinct observations. Reached/resting identity and current-only restore
+  remained intact.
+- Post-cutover CloudWatch maxima were 27.72% CPU of the four-vCPU service
+  reservation and 6.68% memory of 16 GiB. The new task logged one server start
+  and no traceback, error, exception, current-mismatch, or restore-failure
+  signature.
+
+This proves continuous one-clock participation of the senses already mounted
+in production. It does not claim autonomous attention, thought, language,
+learning, active object contact, or neuronally transduced proprioception.
+
 ## Falsified or rejected paths
 
 - **Rejected:** add a second interoception port. Local fluid afference already

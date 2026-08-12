@@ -67,8 +67,13 @@ box remains unchecked until live acceptance passes.
 
 ## Cognitive-chain mechanisms
 
-- [ ] **C-001** Prove all mounted external, body, and fluid senses continuously
-  feed one organism clock while unattended; no mouse click is required.
+- [x] **C-001** Prove all mounted external, body, and fluid senses continuously
+  feed one organism clock while unattended; no mouse click is required. Live
+  task 986 advanced ticks `48,349 -> 48,358 -> 48,367` without interaction;
+  each interval carried eight source hops and exact ingress from sight, sound,
+  touch, smell, taste, and body (`840` ports total), plus nine local metabolic
+  body-receptor consequences, while state bytes stayed fixed and Python
+  cognition callbacks remained zero.
 - [ ] **C-002** Prove each participating neuron retains its own exact sparse
   post-quiescence physical fractal at the expected settlement rate.
 - [ ] **C-003** Prove multisensory/body neuronal fractals from one causal moment
