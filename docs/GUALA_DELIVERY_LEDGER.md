@@ -163,8 +163,21 @@ box remains unchecked until live acceptance passes.
   bounded distributed recall, not sparse attention. Release commit
   `a893cd22`, image
   `sha256:cb0b48f7e259fece44fe26dc9aaa30d199aa5d4b27851869030470c65dec5162`.
-- [ ] **C-009** Prove episodic memory preserves causal moments and relationships
-  without becoming a recording of full source media.
+- [x] **C-009** Prove episodic memory preserves causal moments and relationships
+  without becoming a recording of full source media. Live task 997 retained
+  one organism identity and zero Python cognition callbacks. A post-cutover
+  discarded-state proof from exact live tick 56,809 used only body-cue lineage
+  `474c4e4c494e4531000000000000005c`; causal interval 3 reassembled its
+  retained 27-member formation and physically related it to a distinct
+  retained 16-member formation through one exact active sparse bond. The two
+  related member sets and bond re-formed identically after byte-exact cold
+  restore. No episode archive was queried and no complete source occurrence
+  was replayed. The 180-byte successor was discarded; proof receipt
+  `f137475c50623ad4e254489452c22cd8ee51f31dd6818832fd169afb80716f08`.
+  This proves one bounded episodic relationship reassembly, not generalization,
+  a tapestry, narrative recall, language, or autonomy. Release commit
+  `f8d63184`, image
+  `sha256:c64000ab674cfc21d4d69016e9e2505ba87ec507a52c37f66c39400b2855202b`.
 - [ ] **C-010** Prove repeated cross-context relations become generalized
   learned structure without scripted concepts or word meanings.
 - [ ] **C-011** Prove ordered recurrent formations can produce tapestry-level

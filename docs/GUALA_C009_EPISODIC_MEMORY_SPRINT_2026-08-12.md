@@ -125,6 +125,38 @@ callbacks.
   and active-bond digests after cold reassembly.
 - No Rust or organism-physics source changed in this sprint.
 
+## Production closure
+
+- One deployment attempt began `2026-08-12T17:20:19Z` and completed
+  `2026-08-12T17:38:14Z`: `17m55s`, including immutable image build,
+  production-predecessor rehearsal, one cutover, and live verification.
+- Live task definition: `dsf-ai-task:997`.
+- Release commit: `f8d6318452eb3a3a0988bfb0487e6e8d3b8399a5`.
+- Immutable image:
+  `sha256:c64000ab674cfc21d4d69016e9e2505ba87ec507a52c37f66c39400b2855202b`.
+- ECS settled at desired/running/pending `1/1/0`, one completed PRIMARY
+  rollout, with no automatic legacy rollback.
+- Post-cutover discarded-state proof observed source tick `56,809`, 224
+  reached neurons, 196,505 resting neurons, and zero Python cognition
+  callbacks. The exact body cue reassembled the retained 27-member formation
+  on causal interval 3, with 519 total physical transition instances and six
+  complete DSF deliveries over the bounded three-interval path.
+- The recalled formation and one distinct retained 16-member formation were
+  joined by one exact active bond. Their member-set digest was
+  `cb5180ba78e42d2c10f1b40bb5ed1c2217634e8d5566cc3641202f393ceedf96`;
+  their active-bond digest was
+  `f8781cfb3892e231843d438c658ec313ec5a6e88b1cd00306454c104e8dee685`.
+  Both re-formed identically after byte-exact cold restore.
+- No archive lookup and no complete-source replay occurred. The disposable
+  successor added 180 bytes and was not published. Its SHA-256 was
+  `e4daa4ac70fb44704b4e76d7e1719307f521472341110f1e76ffeea05a65f0d9`.
+- Final proof receipt:
+  `f137475c50623ad4e254489452c22cd8ee51f31dd6818832fd169afb80716f08`.
+- Both public pages returned HTTP 200 after cutover. Their functionality was
+  not part of C-009 and is not claimed by this result.
+
+C-009 is closed in live production. C-010 is the next carried-forward item.
+
 ## Failed hypotheses retained against rediscovery
 
 - The first live read-only probe passed the native store root twice to
