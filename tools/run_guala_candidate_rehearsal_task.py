@@ -404,6 +404,10 @@ def _validate_proof(
         and proof.get("episodic_cold_reassembly_exact") is True
         and proof.get("episodic_complete_source_replayed") is False
         and proof.get("episodic_archive_lookup_count") == 0
+        and proof.get("ordered_physical_cold_reassembly") is True
+        and isinstance(proof.get("ordered_physical_path_count"), int)
+        and not isinstance(proof["ordered_physical_path_count"], bool)
+        and proof["ordered_physical_path_count"] > 0
         and isinstance(proof.get("episodic_relation_interval_ordinal"), int)
         and not isinstance(proof["episodic_relation_interval_ordinal"], bool)
         and 1 <= proof["episodic_relation_interval_ordinal"] <= 3
@@ -432,6 +436,7 @@ def _validate_proof(
                 "episodic_related_formation_receipts_sha256",
                 "episodic_related_member_sets_sha256",
                 "episodic_relation_active_bonds_sha256",
+                "ordered_physical_paths_sha256",
                 "structural_relation_sha256",
             )
         )

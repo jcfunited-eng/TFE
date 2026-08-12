@@ -154,6 +154,7 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
 | RF-023 | AWS environment is retrieved raw and string-filtered with `jq`. |
 | RF-024 | Every test path is resolved with `rg --files` before pytest. |
 | RF-025 | A timed-out live write is successor-checked before any retry. |
+| RF-026 | Every formatter is followed immediately by changed-file and diff-stat containment; apparent file arguments are not trusted. |
 
 ## Rejected paths and falsified hypotheses
 
@@ -184,6 +185,54 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
   translation to `InternalContactSettlementObservation` currently emits only
   canonical `active_bonds` and recipient-only `next_active_frontier`, proving
   the declared direction/source loss before any code change.
+- The first compile command incorrectly treated `native/` as a Cargo workspace;
+  it failed before compilation because the only manifest is
+  `native/guala_core/Cargo.toml`. The resolved compile boundary is that exact
+  manifest, and the failed command is not to be retried.
+- The first test-build exposed the expected translation census misses: two
+  native test call sites still used the predecessor relation signature, and
+  the FFI projection closure required an explicit fixed-array transfer type.
+  Both were corrected at their boundaries; no physics or scope changed.
+- One attempted `cargo test` command supplied two name filters even though
+  Cargo accepts one. The two focused tests are now separate commands; that
+  invalid command is not to be repeated.
+
+## Current local evidence
+
+- The exact Cargo manifest compiles in both library and test configurations.
+- Exact adjacent directed transfers produce one ordered path; reversed,
+  discontinuous, and recipient-only legacy evidence produce none.
+- A V19 recipient-only predecessor migrates to V20 without inventing a sender,
+  and the V20 successor cold-restores and re-encodes byte-exact.
+- The native-to-Python relation projection and all three served observation
+  builders carry the exact two directed transfers and whole-carrier counts.
+- All four changed Python boundaries compile, and the current diff has no
+  whitespace errors.
+- A nominally targeted `cargo fmt` invocation formatted the whole native crate.
+  Preflight containment caught 18 unrelated changed files before commit; all
+  formatting-only drift was removed and the two C-011 semantic Rust diffs were
+  reapplied. This exact failure is now durable recurrence rule RF-026: future
+  sprints must inspect the complete changed-file list and `git diff --stat`
+  immediately after any formatter rather than trusting its apparent file
+  arguments.
+- Frontier codec validation now resolves only stable physical bond identities;
+  it does not reconstruct neuron fractal anatomy or retained formations.
+- Cold-reassembly proof requires the exact ordered-path digest to match before
+  and after restart, not merely a nonzero path count.
+- The strengthened V19 test rejected two unsuitable fixtures before accepting
+  evidence: the first generated no transfer, and the second depended on an
+  obsolete retained-experience timing assertion. The final specimen is a
+  minimal valid current organism with two materialized neurons and one real
+  mounted contact; V19 removes its direction and V20 does not invent it.
+- The 409 active native library tests pass (13 retired fixtures ignored), and
+  the 45 affected Python boundary/rehearsal tests pass.
+- The release native wheel was rebuilt from the final source, loaded from an
+  isolated candidate directory, and the same 45 Python tests passed against
+  that exact compiled artifact.
+- A broader production-mount fixture run exposed two inherited test-double
+  defects unrelated to C-011: one test awaits a synchronous FastAPI response,
+  and one stale observation double lacks `mosaic_of_mosaics_count`. They do not
+  touch the changed path and are not being folded into this sprint.
 
 ## Completion boundary
 

@@ -4114,8 +4114,9 @@ def _commit_admitted_hop(
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
+                "ordered_physical_paths": ordered_paths,
             }
-            for receipts, lineages, bonds, structure_receipt in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
                 evidence.organic_mosaic_relations
             )
         ),
@@ -4179,8 +4180,9 @@ def _commit_vestibular_tick(
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
+                "ordered_physical_paths": ordered_paths,
             }
-            for receipts, lineages, bonds, structure_receipt in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
                 evidence.organic_mosaic_relations
             )
         ),
@@ -4244,8 +4246,9 @@ def _commit_vestibular_trajectory(
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
+                "ordered_physical_paths": ordered_paths,
             }
-            for receipts, lineages, bonds, structure_receipt in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
                 evidence.organic_mosaic_relations
             )
         ),

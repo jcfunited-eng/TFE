@@ -108,7 +108,13 @@ class NativeResidentObservationView(Protocol):
     def organic_mosaic_relations(
         self,
     ) -> list[
-        tuple[list[str], list[str], list[tuple[str, str, int]], str]
+        tuple[
+            list[str],
+            list[str],
+            list[tuple[str, str, int]],
+            str,
+            list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]],
+        ]
     ]: ...
 
     @property
@@ -229,6 +235,13 @@ class ResidentPrepareEvidence:
             tuple[str, ...],
             tuple[tuple[str, str, int], ...],
             str,
+            tuple[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ],
+                ...,
+            ],
         ],
         ...,
     ] = ()
@@ -387,8 +400,9 @@ def _observation_signature(
                 tuple(lineages),
                 tuple(bonds),
                 structure_receipt,
+                tuple(ordered_paths),
             )
-            for receipts, lineages, bonds, structure_receipt in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
                 observation.organic_mosaic_relations
             )
         ),
@@ -962,16 +976,30 @@ class NativeResidentOrganism:
                 tuple[str, ...],
                 tuple[tuple[str, str, int], ...],
                 str,
+                tuple[
+                    tuple[
+                        tuple[str, str, int, int],
+                        tuple[str, str, int, int],
+                    ],
+                    ...,
+                ],
             ]
         ] = []
         for raw_relation in raw_organic_mosaic_relations:
-            if not isinstance(raw_relation, tuple) or len(raw_relation) != 4:
+            if not isinstance(raw_relation, tuple) or len(raw_relation) != 5:
                 raise RuntimeError("organic mosaic relation changed format")
-            raw_receipts, raw_lineages, raw_bonds, raw_structure_receipt = raw_relation
+            (
+                raw_receipts,
+                raw_lineages,
+                raw_bonds,
+                raw_structure_receipt,
+                raw_ordered_paths,
+            ) = raw_relation
             if (
                 not isinstance(raw_receipts, list)
                 or not isinstance(raw_lineages, list)
                 or not isinstance(raw_bonds, list)
+                or not isinstance(raw_ordered_paths, list)
             ):
                 raise RuntimeError("organic mosaic relation changed format")
             receipts = tuple(
@@ -995,6 +1023,39 @@ class NativeResidentOrganism:
                 raw_structure_receipt,
                 "organic relation structural receipt",
             )
+            ordered_paths: list[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ]
+            ] = []
+            for raw_path in raw_ordered_paths:
+                if not isinstance(raw_path, tuple) or len(raw_path) != 2:
+                    raise RuntimeError("ordered physical path changed format")
+                transfers: list[tuple[str, str, int, int]] = []
+                for raw_transfer in raw_path:
+                    if not isinstance(raw_transfer, tuple) or len(raw_transfer) != 4:
+                        raise RuntimeError("directed physical transfer changed format")
+                    carriers_text = raw_transfer[3]
+                    if (
+                        not isinstance(carriers_text, str)
+                        or not carriers_text.isdecimal()
+                    ):
+                        raise RuntimeError("directed physical transfer lost exact carriers")
+                    carriers = int(carriers_text)
+                    if carriers <= 0:
+                        raise RuntimeError("directed physical transfer carried no material")
+                    transfers.append(
+                        (
+                            _canonical_lineage_hex(raw_transfer[0], "transfer sender"),
+                            _canonical_lineage_hex(raw_transfer[1], "transfer receiver"),
+                            _nonnegative_integer(raw_transfer[2], "transfer bond ordinal"),
+                            carriers,
+                        )
+                    )
+                if transfers[0][1] != transfers[1][0]:
+                    raise RuntimeError("ordered physical path is not causally continuous")
+                ordered_paths.append((transfers[0], transfers[1]))
             if (
                 len(relation_bonds) != len(raw_bonds)
                 or len(receipts) < 2
@@ -1005,7 +1066,13 @@ class NativeResidentOrganism:
             ):
                 raise RuntimeError("organic mosaic relation is not canonical physical evidence")
             organic_mosaic_relations.append(
-                (receipts, shared_lineages, relation_bonds, structure_receipt)
+                (
+                    receipts,
+                    shared_lineages,
+                    relation_bonds,
+                    structure_receipt,
+                    tuple(ordered_paths),
+                )
             )
         recurrent_complete_neuron_fractal_count = _nonnegative_integer(
             candidate.recurrent_complete_neuron_fractal_count,

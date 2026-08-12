@@ -142,6 +142,8 @@ const MAGIC_V18: &[u8; 8] = b"GLCOG018";
 const VERSION_V18: u16 = 18;
 const MAGIC_V19: &[u8; 8] = b"GLCOG019";
 const VERSION_V19: u16 = 19;
+const MAGIC_V20: &[u8; 8] = b"GLCOG020";
+const VERSION_V20: u16 = 20;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
@@ -181,8 +183,10 @@ const EVIDENCE_DIGEST_BYTES: usize = 32;
 
 /// Which persisted cognitive-image layout a body carries. Historical layouts
 /// remain readable at the explicit one-way migration boundary. Every ordinary
-/// encode emits the current format; V19 adds only the compact causal
-/// electrical frontier needed to continue sparse propagation after restart.
+/// encode emits the current format; V19 added the compact recipient-only
+/// electrical frontier. V20 retains the exact one-interval bond and whole-
+/// carrier cause of each recipient so later propagation can preserve physical
+/// order without an episode history.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum CognitiveCodecFormat {
     V12,
@@ -193,6 +197,7 @@ enum CognitiveCodecFormat {
     V17,
     V18,
     V19,
+    V20,
 }
 
 #[cfg(test)]
@@ -227,6 +232,207 @@ pub(crate) struct OrganicMosaicRelationObservation {
     /// lineages, and active bonds. Unlike formation receipts, this does not
     /// include the changing latest-recurrence witness.
     pub(crate) structural_relation_receipt: [u8; 32],
+    /// Exact two-contact continuations completed across adjacent physical
+    /// intervals and spanning at least two formations in this relation. These
+    /// are transient observer evidence; they are neither retained formations
+    /// nor transition authority.
+    pub(crate) ordered_physical_paths: Vec<OrderedPhysicalPathObservation>,
+}
+
+/// The exact cause retained across one electrical propagation boundary.
+/// Historical V19 bodies know only the receiver and therefore carry `None`;
+/// such an entry may continue ordinary propagation but can never prove order.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct ActiveElectricalFrontierEntry {
+    receiver: [u8; 16],
+    cause: Option<DirectedElectricalFrontierCause>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct DirectedElectricalFrontierCause {
+    bond: StablePhysicalBondReference,
+    transferred_whole_carriers: u128,
+}
+
+impl ActiveElectricalFrontierEntry {
+    fn legacy_receiver(receiver: [u8; 16]) -> Self {
+        Self {
+            receiver,
+            cause: None,
+        }
+    }
+
+    fn caused(
+        sender: [u8; 16],
+        receiver: [u8; 16],
+        bond: StablePhysicalBondReference,
+        transferred_whole_carriers: u128,
+    ) -> Result<Self, FormationError> {
+        let (left, right) = bond.endpoints();
+        if transferred_whole_carriers == 0
+            || !((sender == left && receiver == right) || (sender == right && receiver == left))
+        {
+            return Err(FormationError::NoncanonicalState);
+        }
+        Ok(Self {
+            receiver,
+            cause: Some(DirectedElectricalFrontierCause {
+                bond,
+                transferred_whole_carriers,
+            }),
+        })
+    }
+
+    fn receiver(self) -> [u8; 16] {
+        self.receiver
+    }
+
+    fn sender(self) -> Option<[u8; 16]> {
+        let cause = self.cause?;
+        let (left, right) = cause.bond.endpoints();
+        if self.receiver == left {
+            Some(right)
+        } else if self.receiver == right {
+            Some(left)
+        } else {
+            None
+        }
+    }
+
+    fn directed_transfer(self) -> Option<DirectedPhysicalTransferObservation> {
+        let cause = self.cause?;
+        Some(DirectedPhysicalTransferObservation {
+            sender: self.sender()?,
+            receiver: self.receiver,
+            bond: cause.bond,
+            transferred_whole_carriers: cause.transferred_whole_carriers,
+        })
+    }
+
+    fn encoded_v20_len(self) -> usize {
+        1 + 16
+            + if self.cause.is_some() {
+                16 + 16 + 4 + 16
+            } else {
+                0
+            }
+    }
+
+    fn encode_v20(self, output: &mut Vec<u8>) {
+        output.push(u8::from(self.cause.is_some()));
+        output.extend_from_slice(&self.receiver);
+        if let Some(cause) = self.cause {
+            let (left, right) = cause.bond.endpoints();
+            output.extend_from_slice(&left);
+            output.extend_from_slice(&right);
+            output.extend_from_slice(&cause.bond.parallel_ordinal().to_le_bytes());
+            output.extend_from_slice(&cause.transferred_whole_carriers.to_le_bytes());
+        }
+    }
+
+    fn decode_v20(bytes: &[u8], cursor: &mut usize) -> Result<Self, FormationError> {
+        let tag = *bytes
+            .get(*cursor)
+            .ok_or(FormationError::NoncanonicalState)?;
+        *cursor = cursor
+            .checked_add(1)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        let receiver_end = cursor
+            .checked_add(16)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        let receiver = bytes
+            .get(*cursor..receiver_end)
+            .ok_or(FormationError::NoncanonicalState)?
+            .try_into()
+            .map_err(|_| FormationError::NoncanonicalState)?;
+        *cursor = receiver_end;
+        match tag {
+            0 => Ok(Self::legacy_receiver(receiver)),
+            1 => {
+                let left_end = cursor
+                    .checked_add(16)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let left = bytes
+                    .get(*cursor..left_end)
+                    .ok_or(FormationError::NoncanonicalState)?
+                    .try_into()
+                    .map_err(|_| FormationError::NoncanonicalState)?;
+                *cursor = left_end;
+                let right_end = cursor
+                    .checked_add(16)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let right = bytes
+                    .get(*cursor..right_end)
+                    .ok_or(FormationError::NoncanonicalState)?
+                    .try_into()
+                    .map_err(|_| FormationError::NoncanonicalState)?;
+                *cursor = right_end;
+                let ordinal_end = cursor
+                    .checked_add(4)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let parallel_ordinal = u32::from_le_bytes(
+                    bytes
+                        .get(*cursor..ordinal_end)
+                        .ok_or(FormationError::NoncanonicalState)?
+                        .try_into()
+                        .map_err(|_| FormationError::NoncanonicalState)?,
+                );
+                *cursor = ordinal_end;
+                let carrier_end = cursor
+                    .checked_add(16)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let transferred_whole_carriers = u128::from_le_bytes(
+                    bytes
+                        .get(*cursor..carrier_end)
+                        .ok_or(FormationError::NoncanonicalState)?
+                        .try_into()
+                        .map_err(|_| FormationError::NoncanonicalState)?,
+                );
+                *cursor = carrier_end;
+                let bond = StablePhysicalBondReference::new(left, right, parallel_ordinal)
+                    .ok_or(FormationError::NoncanonicalState)?;
+                let sender = if receiver == left {
+                    right
+                } else if receiver == right {
+                    left
+                } else {
+                    return Err(FormationError::NoncanonicalState);
+                };
+                Self::caused(sender, receiver, bond, transferred_whole_carriers)
+            }
+            _ => Err(FormationError::NoncanonicalState),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct OrderedPhysicalPathObservation {
+    first: DirectedPhysicalTransferObservation,
+    second: DirectedPhysicalTransferObservation,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct DirectedPhysicalTransferObservation {
+    pub(crate) sender: [u8; 16],
+    pub(crate) receiver: [u8; 16],
+    pub(crate) bond: StablePhysicalBondReference,
+    pub(crate) transferred_whole_carriers: u128,
+}
+
+impl OrderedPhysicalPathObservation {
+    pub(crate) fn directed_transfers(
+        &self,
+    ) -> [([u8; 16], [u8; 16], StablePhysicalBondReference, u128); 2] {
+        let project = |transfer: DirectedPhysicalTransferObservation| {
+            (
+                transfer.sender,
+                transfer.receiver,
+                transfer.bond,
+                transfer.transferred_whole_carriers,
+            )
+        };
+        [project(self.first), project(self.second)]
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -620,7 +826,7 @@ pub(crate) struct ResidentCognitiveFormationState {
     /// electrical propagation state, not stored memory or a returned answer.
     /// Absolute membrane charge is deliberately not authority here: a living
     /// neuron's resting potential may be nonzero.
-    active_electrical_frontier: Box<[[u8; 16]]>,
+    active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
 }
@@ -815,6 +1021,20 @@ fn organism_mosaic_topology(
             ));
         }
     }
+    Ok(OrganismMosaicTopology {
+        lineages,
+        fractal_anatomies,
+        bonds: organism_physical_bonds(cohorts, electrical_fabric)?,
+    })
+}
+
+/// Resolve only stable contact identities. Codec validation uses this narrow
+/// boundary so authenticating a one-interval electrical frontier does not
+/// rebuild neuron fractal anatomy or any retained cognitive formation.
+fn organism_physical_bonds(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+) -> Result<Vec<StablePhysicalBondReference>, FormationError> {
     let mut endpoint_pairs = Vec::<([u8; 16], [u8; 16])>::new();
     for cohort in cohorts {
         for (left, right) in cohort.anatomy.contact_endpoints() {
@@ -850,11 +1070,7 @@ fn organism_mosaic_topology(
         );
     }
     bonds.sort_unstable();
-    Ok(OrganismMosaicTopology {
-        lineages,
-        fractal_anatomies,
-        bonds,
-    })
+    Ok(bonds)
 }
 
 /// A retained organism mosaic must cross at least one cohort boundary. A
@@ -949,6 +1165,102 @@ fn structural_relation_receipt(
     digest.finalize().into()
 }
 
+fn ordered_physical_paths_for_relation(
+    incidence: &[([u8; 16], usize)],
+    relation_members: &[usize],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+) -> Vec<OrderedPhysicalPathObservation> {
+    let mut lineage_members = Vec::<([u8; 16], Vec<usize>)>::new();
+    let mut cursor = 0usize;
+    while cursor < incidence.len() {
+        let lineage = incidence[cursor].0;
+        let start = cursor;
+        while cursor < incidence.len() && incidence[cursor].0 == lineage {
+            cursor += 1;
+        }
+        let members = incidence[start..cursor]
+            .iter()
+            .filter_map(|(_, participant)| {
+                relation_members
+                    .binary_search(participant)
+                    .is_ok()
+                    .then_some(*participant)
+            })
+            .collect::<Vec<_>>();
+        if !members.is_empty() {
+            lineage_members.push((lineage, members));
+        }
+    }
+    let formation_members_for = |lineage: [u8; 16]| -> Option<&[usize]> {
+        lineage_members
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| lineage_members[index].1.as_slice())
+    };
+
+    let mut preceding = predecessor_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .collect::<Vec<_>>();
+    preceding.sort_unstable_by_key(|transfer| (transfer.receiver, transfer.sender, transfer.bond));
+    let mut current = current_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .collect::<Vec<_>>();
+    current.sort_unstable_by_key(|transfer| (transfer.sender, transfer.receiver, transfer.bond));
+
+    let mut paths = Vec::new();
+    let mut preceding_cursor = 0usize;
+    let mut current_cursor = 0usize;
+    while preceding_cursor < preceding.len() && current_cursor < current.len() {
+        let preceding_via = preceding[preceding_cursor].receiver;
+        let current_via = current[current_cursor].sender;
+        if preceding_via < current_via {
+            preceding_cursor += 1;
+            continue;
+        }
+        if current_via < preceding_via {
+            current_cursor += 1;
+            continue;
+        }
+        let preceding_start = preceding_cursor;
+        while preceding_cursor < preceding.len()
+            && preceding[preceding_cursor].receiver == preceding_via
+        {
+            preceding_cursor += 1;
+        }
+        let current_start = current_cursor;
+        while current_cursor < current.len() && current[current_cursor].sender == current_via {
+            current_cursor += 1;
+        }
+        for first in &preceding[preceding_start..preceding_cursor] {
+            let Some(first_formations) = formation_members_for(first.sender) else {
+                continue;
+            };
+            for second in &current[current_start..current_cursor] {
+                let Some(second_formations) = formation_members_for(second.receiver) else {
+                    continue;
+                };
+                if first_formations.iter().all(|first_index| {
+                    second_formations
+                        .iter()
+                        .all(|second_index| first_index == second_index)
+                }) {
+                    continue;
+                }
+                paths.push(OrderedPhysicalPathObservation {
+                    first: *first,
+                    second: *second,
+                });
+            }
+        }
+    }
+    paths.sort_unstable();
+    paths.dedup();
+    paths
+}
+
 /// Observe only the connected physical frontier among currently reached
 /// recurrent mosaics, requiring at least one mosaic to have reassembled in
 /// this transition. The temporary component indices organize this calculation
@@ -959,6 +1271,8 @@ fn observe_organic_mosaic_relations(
     frontier_indices: &[usize],
     reassembled_indices: &[usize],
     active_bonds: &[StablePhysicalBondReference],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
     max_encoded_bytes: usize,
 ) -> Result<Vec<OrganicMosaicRelationObservation>, FormationError> {
     if frontier_indices.len() < 2 || reassembled_indices.is_empty() {
@@ -1088,11 +1402,18 @@ fn observe_organic_mosaic_relations(
             &shared_lineages,
             &bridging_bonds,
         );
+        let ordered_physical_paths = ordered_physical_paths_for_relation(
+            &incidence,
+            &members,
+            predecessor_frontier,
+            current_frontier,
+        );
         relations.push(OrganicMosaicRelationObservation {
             formation_receipts,
             shared_lineages,
             active_bonds: bridging_bonds,
             structural_relation_receipt,
+            ordered_physical_paths,
         });
     }
     relations.sort_by(|left, right| left.formation_receipts.cmp(&right.formation_receipts));
@@ -1107,6 +1428,8 @@ fn settle_organism_mosaic_boundary(
     externally_reached_lineages: &[[u8; 16]],
     externally_perturbed_lineages: &[[u8; 16]],
     active_bonds: &[StablePhysicalBondReference],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
     mosaics: &mut Vec<RetainedOrganismMosaic>,
     max_encoded_bytes: usize,
 ) -> Result<
@@ -1233,6 +1556,8 @@ fn settle_organism_mosaic_boundary(
         &current_frontier_indices,
         &reassembled_indices,
         active_bonds,
+        predecessor_frontier,
+        current_frontier,
         max_encoded_bytes,
     )?;
     let changed = changed_lineages.clone();
@@ -1519,7 +1844,7 @@ impl ResidentCognitiveFormationState {
                 .active_electrical_frontier
                 .iter()
                 .copied()
-                .filter(|lineage| !retired.contains(lineage))
+                .filter(|entry| !retired.contains(&entry.receiver()))
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
@@ -2978,7 +3303,9 @@ impl ResidentCognitiveFormationState {
             }
         }
         let mut electrical_fabric = predecessor_electrical_fabric;
-        let mut active_electrical_frontier = predecessor_active_electrical_frontier.into_vec();
+        let predecessor_active_electrical_frontier =
+            predecessor_active_electrical_frontier.into_vec();
+        let mut active_electrical_frontier = predecessor_active_electrical_frontier.clone();
         mount_reached_local_integration(
             &mut cohorts,
             &mut resting_population,
@@ -3018,9 +3345,10 @@ impl ResidentCognitiveFormationState {
         // an organism-wide reservoir projection. Zero membrane difference
         // contributes no seed and therefore no invented signal.
         let mut internal_frontier_lineages = externally_reached_neuron_lineages.clone();
-        for lineage in &active_electrical_frontier {
-            if !internal_frontier_lineages.contains(lineage) {
-                internal_frontier_lineages.push(*lineage);
+        for entry in &active_electrical_frontier {
+            let lineage = entry.receiver();
+            if !internal_frontier_lineages.contains(&lineage) {
+                internal_frontier_lineages.push(lineage);
             }
         }
         for lineage in reached_association_lineages
@@ -3087,6 +3415,8 @@ impl ResidentCognitiveFormationState {
                 &externally_reached_neuron_lineages,
                 &externally_perturbed_neuron_lineages,
                 &internal_contact.active_bonds,
+                &predecessor_active_electrical_frontier,
+                &active_electrical_frontier,
                 &mut mosaics,
                 max_encoded_bytes,
             )?;
@@ -3552,7 +3882,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
-        self.encode_with_format(CognitiveCodecFormat::V19, max_encoded_bytes)
+        self.encode_with_format(CognitiveCodecFormat::V20, max_encoded_bytes)
     }
 
     fn encode_with_format(
@@ -3597,7 +3927,8 @@ impl ResidentCognitiveFormationState {
             | CognitiveCodecFormat::V16
             | CognitiveCodecFormat::V17
             | CognitiveCodecFormat::V18
-            | CognitiveCodecFormat::V19 => self
+            | CognitiveCodecFormat::V19
+            | CognitiveCodecFormat::V20 => self
                 .resting_population
                 .as_ref()
                 .map(DevelopmentalRestingPopulation::encode)
@@ -3617,6 +3948,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             length = length
                 .checked_add(8)
@@ -3659,7 +3991,8 @@ impl ResidentCognitiveFormationState {
                 CognitiveCodecFormat::V16
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
-                | CognitiveCodecFormat::V19 => {
+                | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20 => {
                     encode_reached_cohort_cell_v6(&cohort.anatomy, &cohort.state)
                 }
             }
@@ -3681,6 +4014,7 @@ impl ResidentCognitiveFormationState {
                             | CognitiveCodecFormat::V17
                             | CognitiveCodecFormat::V18
                             | CognitiveCodecFormat::V19
+                            | CognitiveCodecFormat::V20
                     ),
                 )
             };
@@ -3754,6 +4088,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             let encoded = self
                 .electrical_fabric
@@ -3770,15 +4105,30 @@ impl ResidentCognitiveFormationState {
             }
             None
         };
-        if format == CognitiveCodecFormat::V19 {
+        if matches!(
+            format,
+            CognitiveCodecFormat::V19 | CognitiveCodecFormat::V20
+        ) {
             length = length
                 .checked_add(8)
                 .and_then(|value| {
-                    value.checked_add(
+                    let frontier_bytes = if format == CognitiveCodecFormat::V19 {
+                        if self
+                            .active_electrical_frontier
+                            .iter()
+                            .any(|entry| entry.cause.is_some())
+                        {
+                            return None;
+                        }
+                        self.active_electrical_frontier.len().checked_mul(16)?
+                    } else {
                         self.active_electrical_frontier
-                            .len()
-                            .checked_mul(16)?,
-                    )
+                            .iter()
+                            .try_fold(0usize, |total, entry| {
+                                total.checked_add(entry.encoded_v20_len())
+                            })?
+                    };
+                    value.checked_add(frontier_bytes)
                 })
                 .ok_or(FormationError::ArithmeticOverflow)?;
         } else if !self.active_electrical_frontier.is_empty() {
@@ -3824,6 +4174,10 @@ impl ResidentCognitiveFormationState {
                 output.extend_from_slice(MAGIC_V19);
                 output.extend_from_slice(&VERSION_V19.to_le_bytes());
             }
+            CognitiveCodecFormat::V20 => {
+                output.extend_from_slice(MAGIC_V20);
+                output.extend_from_slice(&VERSION_V20.to_le_bytes());
+            }
         }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -3856,6 +4210,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             push_length(&mut output, resting_population.as_ref().map_or(0, Vec::len))?;
             if let Some(population) = resting_population {
@@ -3868,15 +4223,23 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             let electrical_fabric = electrical_fabric.ok_or(FormationError::NoncanonicalState)?;
             push_length(&mut output, electrical_fabric.len())?;
             output.extend_from_slice(&electrical_fabric);
         }
-        if format == CognitiveCodecFormat::V19 {
+        if matches!(
+            format,
+            CognitiveCodecFormat::V19 | CognitiveCodecFormat::V20
+        ) {
             push_length(&mut output, self.active_electrical_frontier.len())?;
-            for lineage in &self.active_electrical_frontier {
-                output.extend_from_slice(lineage);
+            for entry in &self.active_electrical_frontier {
+                if format == CognitiveCodecFormat::V19 {
+                    output.extend_from_slice(&entry.receiver());
+                } else {
+                    entry.encode_v20(&mut output);
+                }
             }
         }
         output.extend_from_slice(
@@ -3997,7 +4360,9 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let format = if bytes.len() >= MAGIC_V19.len() && &bytes[..MAGIC_V19.len()] == MAGIC_V19 {
+        let format = if bytes.len() >= MAGIC_V20.len() && &bytes[..MAGIC_V20.len()] == MAGIC_V20 {
+            CognitiveCodecFormat::V20
+        } else if bytes.len() >= MAGIC_V19.len() && &bytes[..MAGIC_V19.len()] == MAGIC_V19 {
             CognitiveCodecFormat::V19
         } else if bytes.len() >= MAGIC_V18.len() && &bytes[..MAGIC_V18.len()] == MAGIC_V18 {
             CognitiveCodecFormat::V18
@@ -4037,6 +4402,7 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V17 => VERSION_V17,
             CognitiveCodecFormat::V18 => VERSION_V18,
             CognitiveCodecFormat::V19 => VERSION_V19,
+            CognitiveCodecFormat::V20 => VERSION_V20,
         };
         if version != expected_version {
             return Err(FormationError::BadVersion);
@@ -4124,6 +4490,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             let population_length = read_length(bytes, &mut cursor)?;
             if population_length == 0 {
@@ -4150,6 +4517,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
+                | CognitiveCodecFormat::V20
         ) {
             let fabric_length = read_length(bytes, &mut cursor)?;
             let fabric_end = cursor
@@ -4184,11 +4552,27 @@ impl ResidentCognitiveFormationState {
                 .try_reserve_exact(count)
                 .map_err(|_| FormationError::ArithmeticOverflow)?;
             for lineage in encoded.chunks_exact(16) {
-                frontier.push(
+                frontier.push(ActiveElectricalFrontierEntry::legacy_receiver(
                     lineage
                         .try_into()
                         .map_err(|_| FormationError::NoncanonicalState)?,
-                );
+                ));
+            }
+            frontier
+        } else if format == CognitiveCodecFormat::V20 {
+            let count = read_length(bytes, &mut cursor)?;
+            if count > bytes.len().saturating_sub(cursor) / 17 {
+                return Err(FormationError::NoncanonicalState);
+            }
+            let mut frontier = Vec::new();
+            frontier
+                .try_reserve_exact(count)
+                .map_err(|_| FormationError::ArithmeticOverflow)?;
+            for _ in 0..count {
+                frontier.push(ActiveElectricalFrontierEntry::decode_v20(
+                    bytes,
+                    &mut cursor,
+                )?);
             }
             frontier
         } else {
@@ -4330,7 +4714,8 @@ impl ResidentCognitiveFormationState {
     ) -> Result<Vec<u8>, FormationError> {
         let already_geometry_provisioned = bytes.len() >= MAGIC_V18.len()
             && (&bytes[..MAGIC_V18.len()] == MAGIC_V18
-                || &bytes[..MAGIC_V19.len()] == MAGIC_V19);
+                || &bytes[..MAGIC_V19.len()] == MAGIC_V19
+                || &bytes[..MAGIC_V20.len()] == MAGIC_V20);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         let state = if already_geometry_provisioned {
             state
@@ -7334,7 +7719,7 @@ struct ResidentContactEdge {
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
-    next_active_frontier: Vec<[u8; 16]>,
+    next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
@@ -8137,9 +8522,18 @@ fn settle_internal_contact_interval(
             continue;
         }
         let (left, right) = bond.endpoints();
-        let receiving_lineage = if signed_transfer > 0 { right } else { left };
+        let (sending_lineage, receiving_lineage) = if signed_transfer > 0 {
+            (left, right)
+        } else {
+            (right, left)
+        };
         if !externally_reached_lineages.contains(&receiving_lineage) {
-            next_active_frontier.push(receiving_lineage);
+            next_active_frontier.push(ActiveElectricalFrontierEntry::caused(
+                sending_lineage,
+                receiving_lineage,
+                *bond,
+                signed_transfer.unsigned_abs(),
+            )?);
         }
     }
     next_active_frontier.sort_unstable();
@@ -8346,17 +8740,25 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
     {
         return Err(FormationError::NoncanonicalState);
     }
+    let physical_bonds = organism_physical_bonds(&state.cohorts, &state.electrical_fabric)?;
     if state
         .active_electrical_frontier
         .iter()
         .enumerate()
-        .any(|(index, lineage)| {
+        .any(|(index, entry)| {
+            let lineage = entry.receiver();
+            let invalid_cause = entry.cause.is_some_and(|cause| {
+                cause.transferred_whole_carriers == 0
+                    || physical_bonds.binary_search(&cause.bond).is_err()
+                    || entry.sender().is_none()
+            });
             reached_lineages
                 .iter()
-                .position(|candidate| candidate == lineage)
+                .position(|candidate| *candidate == lineage)
                 .and_then(|position| reached_places.get(position))
                 .is_none()
-                || (index > 0 && state.active_electrical_frontier[index - 1] >= *lineage)
+                || invalid_cause
+                || (index > 0 && state.active_electrical_frontier[index - 1] >= *entry)
         })
     {
         return Err(FormationError::NoncanonicalState);
@@ -10952,6 +11354,8 @@ mod tests {
             &changed_cue,
             &changed_cue,
             &topology.bonds,
+            &[],
+            &[],
             &mut mosaics,
             16_000_000,
         )
@@ -11016,6 +11420,8 @@ mod tests {
             &[0, 1],
             &[0],
             &topology.bonds,
+            &[],
+            &[],
             16_000_000,
         )
         .unwrap();
@@ -11038,6 +11444,8 @@ mod tests {
             &[0, 1],
             &[0],
             &topology.bonds,
+            &[],
+            &[],
             16_000_000,
         )
         .unwrap();
@@ -11058,6 +11466,8 @@ mod tests {
             &changed_cue,
             &changed_cue,
             &topology.bonds,
+            &[],
+            &[],
             &mut mosaics,
             16_000_000,
         )
@@ -11080,6 +11490,8 @@ mod tests {
                 &changed_cue,
                 &changed_cue,
                 &topology.bonds,
+                &[],
+                &[],
                 &mut mosaics,
                 16_000_000,
             )
@@ -11703,6 +12115,111 @@ mod tests {
                 Err(FormationError::RetiredCognitiveState)
             );
         }
+    }
+
+    #[test]
+    fn adjacent_exact_contact_transfers_are_the_only_ordered_path_evidence() {
+        let first = [1_u8; 16];
+        let via = [2_u8; 16];
+        let last = [3_u8; 16];
+        let first_bond = StablePhysicalBondReference::new(first, via, 0).unwrap();
+        let second_bond = StablePhysicalBondReference::new(via, last, 0).unwrap();
+        let predecessor =
+            [ActiveElectricalFrontierEntry::caused(first, via, first_bond, 7).unwrap()];
+        let current = [ActiveElectricalFrontierEntry::caused(via, last, second_bond, 5).unwrap()];
+        let incidence = [(first, 0), (via, 0), (via, 1), (last, 1)];
+        let paths =
+            ordered_physical_paths_for_relation(&incidence, &[0, 1], &predecessor, &current);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(
+            paths[0].directed_transfers(),
+            [(first, via, first_bond, 7), (via, last, second_bond, 5),]
+        );
+
+        assert_eq!(
+            ActiveElectricalFrontierEntry::caused(first, last, second_bond, 5),
+            Err(FormationError::NoncanonicalState)
+        );
+        assert!(ordered_physical_paths_for_relation(
+            &incidence,
+            &[0, 1],
+            &[ActiveElectricalFrontierEntry::legacy_receiver(via)],
+            &current,
+        )
+        .is_empty());
+        assert!(ordered_physical_paths_for_relation(
+            &incidence,
+            &[0, 1],
+            &predecessor,
+            &[ActiveElectricalFrontierEntry::caused(last, via, second_bond, 5).unwrap()],
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn v19_recipient_only_frontier_migrates_without_inventing_direction() {
+        let retired = ResidentCognitiveFormationState::default()
+            .encode_with_format(CognitiveCodecFormat::V12, 16_000_000)
+            .unwrap();
+        let current =
+            ResidentCognitiveFormationState::migrate_to_current_format(&retired, 16_000_000)
+                .unwrap();
+        let mut state = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
+        let mut cohorts = state.cohorts.to_vec();
+        let mut population = state.resting_population.take();
+        let mut next_lineage_ordinal = state.next_lineage_ordinal;
+        let sender = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage_ordinal,
+            DeclaredNeuronPlace::new(6, 0),
+        )
+        .unwrap();
+        let receiver = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage_ordinal,
+            DeclaredNeuronPlace::new(6, 1),
+        )
+        .unwrap();
+        let electrical_fabric = ResidentElectricalFabric::default()
+            .append_contact(
+                sender,
+                receiver,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        state.generation = 1;
+        state.next_lineage_ordinal = next_lineage_ordinal;
+        state.resting_population = population;
+        state.cohorts = cohorts.into_boxed_slice();
+        state.electrical_fabric = electrical_fabric;
+        let bond = organism_mosaic_topology(&state.cohorts, &state.electrical_fabric)
+            .unwrap()
+            .bonds[0];
+        state.active_electrical_frontier =
+            vec![ActiveElectricalFrontierEntry::caused(sender, receiver, bond, 1).unwrap()]
+                .into_boxed_slice();
+        state.active_electrical_frontier = state
+            .active_electrical_frontier
+            .iter()
+            .map(|entry| ActiveElectricalFrontierEntry::legacy_receiver(entry.receiver()))
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
+        let legacy = state
+            .encode_with_format(CognitiveCodecFormat::V19, 16_000_000)
+            .unwrap();
+        let current =
+            ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
+                .unwrap();
+        assert_eq!(&current[..MAGIC_V20.len()], MAGIC_V20);
+        let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
+        assert_eq!(cold.encode(16_000_000).unwrap(), current);
+        assert!(!cold.active_electrical_frontier.is_empty());
+        assert!(cold
+            .active_electrical_frontier
+            .iter()
+            .all(|entry| entry.cause.is_none()));
     }
 }
 #[cfg(test)]

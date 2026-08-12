@@ -162,11 +162,16 @@ def _rehearse_native_distributed_recall(
         != episodic_relation["episodic_relation_active_bonds_sha256"]
         or cold_relation["structural_relation_sha256"]
         != episodic_relation["structural_relation_sha256"]
+        or episodic_relation["ordered_physical_path_count"] <= 0
+        or cold_relation["ordered_physical_path_count"] <= 0
+        or cold_relation["ordered_physical_paths_sha256"]
+        != episodic_relation["ordered_physical_paths_sha256"]
     ):
         raise RuntimeError("cold successor did not re-form the episodic relation")
     return {
         **recalled,
         **episodic_relation,
+        "ordered_physical_cold_reassembly": True,
         "distributed_recognition_episode_ordinal": (
             recalled["distributed_recall_interval_ordinal"] - 1
         ),
@@ -219,7 +224,13 @@ def _commit_and_observe_episodic_relation(
         return None
     recalled_receipt = recalled_receipts[0]
     candidates = []
-    for receipts, shared_lineages, active_bonds, structure_receipt in relations:
+    for (
+        receipts,
+        shared_lineages,
+        active_bonds,
+        structure_receipt,
+        ordered_physical_paths,
+    ) in relations:
         if (
             recalled_receipt not in receipts
             or len(receipts) < 2
@@ -237,13 +248,19 @@ def _commit_and_observe_episodic_relation(
                 active_bonds,
                 member_sets,
                 structure_receipt,
+                ordered_physical_paths,
             )
         )
     if len(candidates) != 1:
         return None
-    receipts, shared_lineages, active_bonds, member_sets, structure_receipt = (
-        candidates[0]
-    )
+    (
+        receipts,
+        shared_lineages,
+        active_bonds,
+        member_sets,
+        structure_receipt,
+        ordered_physical_paths,
+    ) = candidates[0]
     return {
         "episodic_recalled_formation_receipt": recalled_receipt,
         "episodic_related_formation_count": len(receipts),
@@ -259,6 +276,10 @@ def _commit_and_observe_episodic_relation(
             _canonical(active_bonds)
         ).hexdigest(),
         "episodic_relation_shared_lineage_count": len(shared_lineages),
+        "ordered_physical_path_count": len(ordered_physical_paths),
+        "ordered_physical_paths_sha256": hashlib.sha256(
+            _canonical(ordered_physical_paths)
+        ).hexdigest(),
         "structural_relation_sha256": structure_receipt,
     }
 

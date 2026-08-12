@@ -38,6 +38,13 @@ class _NativeResidentOrganismObservation:
             tuple[str, ...],
             tuple[tuple[str, str, int], ...],
             str,
+            tuple[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ],
+                ...,
+            ],
         ],
         ...,
     ] = ()
@@ -101,7 +108,13 @@ class _NativeResidentOrganismPrepare:
     motor_unit_recruitments: list[tuple[str, int, int]] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
     organic_mosaic_relations: list[
-        tuple[list[str], list[str], list[tuple[str, str, int]], str]
+        tuple[
+            list[str],
+            list[str],
+            list[tuple[str, str, int]],
+            str,
+            list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]],
+        ]
     ] | None = None
     python_callback_count: int = 0
 

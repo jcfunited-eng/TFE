@@ -48,6 +48,7 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
         "shared_neuron_lineages": (),
         "active_physical_bonds": (("01" * 16, "02" * 16, 0),),
         "structural_relation_sha256": "33" * 32,
+        "ordered_physical_paths": (),
     }
     organism = object()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
@@ -109,7 +110,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         receptor_ingress_changing_count=0,
         receptor_ingress_quiescent_count=0,
         motor_unit_recruitments=(),
-        organic_mosaic_relations=((receipts, (), (bond,), "33" * 32),),
+        organic_mosaic_relations=((receipts, (), (bond,), "33" * 32, ()),),
         recurrent_complete_neuron_fractal_count=2,
     )
     observed = SimpleNamespace(
