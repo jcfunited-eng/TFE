@@ -120,7 +120,7 @@ def _rehearse_native_distributed_recall(
             if (
                 episodic_relation is None
                 and relation is not None
-                and relation["ordered_physical_path_count"] > 0
+                and relation["ordered_path_relation_count"] > 0
             ):
                 replay = restore_native_resident_organism(
                     current_envelope=interval_predecessor,
@@ -135,7 +135,7 @@ def _rehearse_native_distributed_recall(
                 if (
                     replay_prepared.partial_cue_reassembly_count <= 0
                     or replay_relation is None
-                    or replay_relation["ordered_physical_path_count"] <= 0
+                    or replay_relation["ordered_path_relation_count"] <= 0
                     or replay_relation["episodic_related_formation_receipts_sha256"]
                     != relation["episodic_related_formation_receipts_sha256"]
                     or replay_relation["episodic_related_member_sets_sha256"]
@@ -146,6 +146,8 @@ def _rehearse_native_distributed_recall(
                     != relation["structural_relation_sha256"]
                     or replay_relation["ordered_physical_paths_sha256"]
                     != relation["ordered_physical_paths_sha256"]
+                    or replay_relation["ordered_path_relations_sha256"]
+                    != relation["ordered_path_relations_sha256"]
                     or replay.save() != organism.save()
                 ):
                     raise RuntimeError(
@@ -249,7 +251,7 @@ def _rehearse_ordered_trajectory_projection(
     if (
         prepared.partial_cue_reassembly_count <= 0
         or relation is None
-        or relation["ordered_physical_path_count"] <= 0
+        or relation["ordered_path_relation_count"] <= 0
         or replay_prepared.partial_cue_reassembly_count <= 0
         or replay_relation != relation
         or replay.save() != candidate.save()
@@ -260,6 +262,12 @@ def _rehearse_ordered_trajectory_projection(
         "ordered_trajectory_path_count": relation["ordered_physical_path_count"],
         "ordered_trajectory_paths_sha256": relation[
             "ordered_physical_paths_sha256"
+        ],
+        "ordered_trajectory_path_relation_count": relation[
+            "ordered_path_relation_count"
+        ],
+        "ordered_trajectory_path_relations_sha256": relation[
+            "ordered_path_relations_sha256"
         ],
         "ordered_trajectory_successor_state_sha256": candidate.readiness().state_sha256,
     }
@@ -296,6 +304,7 @@ def _commit_and_observe_episodic_relation(
         active_bonds,
         structure_receipt,
         ordered_physical_paths,
+        ordered_path_relations,
     ) in relations:
         if (
             recalled_receipt not in receipts
@@ -315,6 +324,7 @@ def _commit_and_observe_episodic_relation(
                 member_sets,
                 structure_receipt,
                 ordered_physical_paths,
+                ordered_path_relations,
             )
         )
     if len(candidates) != 1:
@@ -326,6 +336,7 @@ def _commit_and_observe_episodic_relation(
         member_sets,
         structure_receipt,
         ordered_physical_paths,
+        ordered_path_relations,
     ) = candidates[0]
     return {
         "episodic_recalled_formation_receipt": recalled_receipt,
@@ -345,6 +356,10 @@ def _commit_and_observe_episodic_relation(
         "ordered_physical_path_count": len(ordered_physical_paths),
         "ordered_physical_paths_sha256": hashlib.sha256(
             _canonical(ordered_physical_paths)
+        ).hexdigest(),
+        "ordered_path_relation_count": len(ordered_path_relations),
+        "ordered_path_relations_sha256": hashlib.sha256(
+            _canonical(ordered_path_relations)
         ).hexdigest(),
         "structural_relation_sha256": structure_receipt,
     }

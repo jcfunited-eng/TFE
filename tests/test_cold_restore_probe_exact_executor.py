@@ -222,6 +222,13 @@ def test_episodic_relation_resolves_only_against_retained_successor() -> None:
                 (bond,),
                 "55" * 32,
                 (((recalled[0], related[0], 0, 7), (related[0], related[1], 0, 5)),),
+                (
+                    (
+                        (recalled[0], related[0], 0, 7),
+                        (related[0], related[1], 0, 5),
+                        (related[1], related[2], 0, 3),
+                    ),
+                ),
             ),
         ),
     )
@@ -235,4 +242,5 @@ def test_episodic_relation_resolves_only_against_retained_successor() -> None:
     assert observed["episodic_related_formation_count"] == 2
     assert observed["episodic_relation_active_bond_count"] == 1
     assert observed["ordered_physical_path_count"] == 1
+    assert observed["ordered_path_relation_count"] == 1
     assert observed["structural_relation_sha256"] == "55" * 32

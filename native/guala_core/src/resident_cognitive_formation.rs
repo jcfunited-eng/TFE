@@ -144,6 +144,8 @@ const MAGIC_V19: &[u8; 8] = b"GLCOG019";
 const VERSION_V19: u16 = 19;
 const MAGIC_V20: &[u8; 8] = b"GLCOG020";
 const VERSION_V20: u16 = 20;
+const MAGIC_V21: &[u8; 8] = b"GLCOG021";
+const VERSION_V21: u16 = 21;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
@@ -160,7 +162,7 @@ const FIXED_BYTES: usize = MAGIC.len()
     + 8
     + 8
     + HIPPOCAMPAL_CHECKPOINT_BYTES;
-const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (3 * std::mem::size_of::<u64>());
+const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (4 * std::mem::size_of::<u64>());
 const EXPERIENCE_MAGIC: &[u8; 8] = b"GLEXP01\0";
 const EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
 const EXPERIENCE_V3_MAGIC: &[u8; 8] = b"GLEXP03\0";
@@ -186,7 +188,9 @@ const EVIDENCE_DIGEST_BYTES: usize = 32;
 /// encode emits the current format; V19 added the compact recipient-only
 /// electrical frontier. V20 retains the exact one-interval bond and whole-
 /// carrier cause of each recipient so later propagation can preserve physical
-/// order without an episode history.
+/// order without an episode history. V21 retains the immediately preceding
+/// sparse frontier as well, so two overlapping ordered paths can be observed
+/// from three consecutive physical transfers without retaining a sequence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum CognitiveCodecFormat {
     V12,
@@ -198,6 +202,7 @@ enum CognitiveCodecFormat {
     V18,
     V19,
     V20,
+    V21,
 }
 
 #[cfg(test)]
@@ -237,6 +242,10 @@ pub(crate) struct OrganicMosaicRelationObservation {
     /// are transient observer evidence; they are neither retained formations
     /// nor transition authority.
     pub(crate) ordered_physical_paths: Vec<OrderedPhysicalPathObservation>,
+    /// Exact three-contact continuations whose two overlapping two-contact
+    /// paths both span this recurrent relation. This is bounded immediate
+    /// propagation evidence, never a retained thought or sequence object.
+    pub(crate) ordered_path_relations: Vec<OrderedPathRelationObservation>,
 }
 
 /// The exact cause retained across one electrical propagation boundary.
@@ -405,10 +414,52 @@ impl ActiveElectricalFrontierEntry {
     }
 }
 
+fn encoded_directed_frontier_len(frontier: &[ActiveElectricalFrontierEntry]) -> Option<usize> {
+    frontier.iter().try_fold(8usize, |total, entry| {
+        total.checked_add(entry.encoded_v20_len())
+    })
+}
+
+fn encode_directed_frontier(
+    frontier: &[ActiveElectricalFrontierEntry],
+    output: &mut Vec<u8>,
+) -> Result<(), FormationError> {
+    push_length(output, frontier.len())?;
+    for entry in frontier {
+        entry.encode_v20(output);
+    }
+    Ok(())
+}
+
+fn decode_directed_frontier(
+    bytes: &[u8],
+    cursor: &mut usize,
+) -> Result<Vec<ActiveElectricalFrontierEntry>, FormationError> {
+    let count = read_length(bytes, cursor)?;
+    if count > bytes.len().saturating_sub(*cursor) / 17 {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let mut frontier = Vec::new();
+    frontier
+        .try_reserve_exact(count)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    for _ in 0..count {
+        frontier.push(ActiveElectricalFrontierEntry::decode_v20(bytes, cursor)?);
+    }
+    Ok(frontier)
+}
+
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(crate) struct OrderedPhysicalPathObservation {
     first: DirectedPhysicalTransferObservation,
     second: DirectedPhysicalTransferObservation,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct OrderedPathRelationObservation {
+    first: DirectedPhysicalTransferObservation,
+    shared: DirectedPhysicalTransferObservation,
+    last: DirectedPhysicalTransferObservation,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -432,6 +483,26 @@ impl OrderedPhysicalPathObservation {
             )
         };
         [project(self.first), project(self.second)]
+    }
+}
+
+impl OrderedPathRelationObservation {
+    pub(crate) fn directed_transfers(
+        &self,
+    ) -> [([u8; 16], [u8; 16], StablePhysicalBondReference, u128); 3] {
+        let project = |transfer: DirectedPhysicalTransferObservation| {
+            (
+                transfer.sender,
+                transfer.receiver,
+                transfer.bond,
+                transfer.transferred_whole_carriers,
+            )
+        };
+        [
+            project(self.first),
+            project(self.shared),
+            project(self.last),
+        ]
     }
 }
 
@@ -827,6 +898,11 @@ pub(crate) struct ResidentCognitiveFormationState {
     /// Absolute membrane charge is deliberately not authority here: a living
     /// neuron's resting potential may be nonzero.
     active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
+    /// The sparse directed frontier immediately before
+    /// `active_electrical_frontier`. Together these two physical propagation
+    /// boundaries are the minimum state needed to observe two overlapping
+    /// ordered paths. Anything older has already expired.
+    preceding_active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
 }
@@ -842,6 +918,7 @@ impl Default for ResidentCognitiveFormationState {
             cohorts: Box::new([]),
             electrical_fabric: ResidentElectricalFabric::default(),
             active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         }
@@ -1261,6 +1338,43 @@ fn ordered_physical_paths_for_relation(
     paths
 }
 
+fn ordered_path_relations_for_relation(
+    incidence: &[([u8; 16], usize)],
+    relation_members: &[usize],
+    older_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+) -> Vec<OrderedPathRelationObservation> {
+    let first_paths = ordered_physical_paths_for_relation(
+        incidence,
+        relation_members,
+        older_frontier,
+        preceding_frontier,
+    );
+    let second_paths = ordered_physical_paths_for_relation(
+        incidence,
+        relation_members,
+        preceding_frontier,
+        current_frontier,
+    );
+    let mut relations = Vec::new();
+    for first_path in &first_paths {
+        for second_path in &second_paths {
+            if first_path.second != second_path.first {
+                continue;
+            }
+            relations.push(OrderedPathRelationObservation {
+                first: first_path.first,
+                shared: first_path.second,
+                last: second_path.second,
+            });
+        }
+    }
+    relations.sort_unstable();
+    relations.dedup();
+    relations
+}
+
 /// Observe only the connected physical frontier among currently reached
 /// recurrent mosaics, requiring at least one mosaic to have reassembled in
 /// this transition. The temporary component indices organize this calculation
@@ -1271,6 +1385,7 @@ fn observe_organic_mosaic_relations(
     frontier_indices: &[usize],
     reassembled_indices: &[usize],
     active_bonds: &[StablePhysicalBondReference],
+    older_frontier: &[ActiveElectricalFrontierEntry],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     current_frontier: &[ActiveElectricalFrontierEntry],
     max_encoded_bytes: usize,
@@ -1408,12 +1523,20 @@ fn observe_organic_mosaic_relations(
             predecessor_frontier,
             current_frontier,
         );
+        let ordered_path_relations = ordered_path_relations_for_relation(
+            &incidence,
+            &members,
+            older_frontier,
+            predecessor_frontier,
+            current_frontier,
+        );
         relations.push(OrganicMosaicRelationObservation {
             formation_receipts,
             shared_lineages,
             active_bonds: bridging_bonds,
             structural_relation_receipt,
             ordered_physical_paths,
+            ordered_path_relations,
         });
     }
     relations.sort_by(|left, right| left.formation_receipts.cmp(&right.formation_receipts));
@@ -1428,6 +1551,7 @@ fn settle_organism_mosaic_boundary(
     externally_reached_lineages: &[[u8; 16]],
     externally_perturbed_lineages: &[[u8; 16]],
     active_bonds: &[StablePhysicalBondReference],
+    older_frontier: &[ActiveElectricalFrontierEntry],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     current_frontier: &[ActiveElectricalFrontierEntry],
     mosaics: &mut Vec<RetainedOrganismMosaic>,
@@ -1556,6 +1680,7 @@ fn settle_organism_mosaic_boundary(
         &current_frontier_indices,
         &reassembled_indices,
         active_bonds,
+        older_frontier,
         predecessor_frontier,
         current_frontier,
         max_encoded_bytes,
@@ -1847,6 +1972,13 @@ impl ResidentCognitiveFormationState {
                 .filter(|entry| !retired.contains(&entry.receiver()))
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(|entry| !retired.contains(&entry.receiver()))
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
         };
@@ -1915,6 +2047,7 @@ impl ResidentCognitiveFormationState {
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric: self.electrical_fabric.clone(),
             active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -2058,6 +2191,7 @@ impl ResidentCognitiveFormationState {
             cohorts: Box::new([]),
             electrical_fabric: ResidentElectricalFabric::default(),
             active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -2328,6 +2462,7 @@ impl ResidentCognitiveFormationState {
             cohorts: predecessor_cohorts,
             electrical_fabric: predecessor_electrical_fabric,
             active_electrical_frontier: predecessor_active_electrical_frontier,
+            preceding_active_electrical_frontier: predecessor_preceding_active_electrical_frontier,
             mosaics: predecessor_mosaics,
             hippocampal: predecessor_hippocampal,
         } = expanded;
@@ -3415,6 +3550,7 @@ impl ResidentCognitiveFormationState {
                 &externally_reached_neuron_lineages,
                 &externally_perturbed_neuron_lineages,
                 &internal_contact.active_bonds,
+                &predecessor_preceding_active_electrical_frontier,
                 &predecessor_active_electrical_frontier,
                 &active_electrical_frontier,
                 &mut mosaics,
@@ -3451,6 +3587,8 @@ impl ResidentCognitiveFormationState {
             resting_population,
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric,
+            preceding_active_electrical_frontier: predecessor_active_electrical_frontier
+                .into_boxed_slice(),
             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
@@ -3823,6 +3961,7 @@ impl ResidentCognitiveFormationState {
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric: self.electrical_fabric.clone(),
             active_electrical_frontier: self.active_electrical_frontier.clone(),
+            preceding_active_electrical_frontier: self.preceding_active_electrical_frontier.clone(),
             mosaics: self.mosaics.clone(),
             hippocampal: self.hippocampal,
         };
@@ -3882,7 +4021,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
-        self.encode_with_format(CognitiveCodecFormat::V20, max_encoded_bytes)
+        self.encode_with_format(CognitiveCodecFormat::V21, max_encoded_bytes)
     }
 
     fn encode_with_format(
@@ -3928,7 +4067,8 @@ impl ResidentCognitiveFormationState {
             | CognitiveCodecFormat::V17
             | CognitiveCodecFormat::V18
             | CognitiveCodecFormat::V19
-            | CognitiveCodecFormat::V20 => self
+            | CognitiveCodecFormat::V20
+            | CognitiveCodecFormat::V21 => self
                 .resting_population
                 .as_ref()
                 .map(DevelopmentalRestingPopulation::encode)
@@ -3949,6 +4089,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             length = length
                 .checked_add(8)
@@ -3992,7 +4133,8 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
-                | CognitiveCodecFormat::V20 => {
+                | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21 => {
                     encode_reached_cohort_cell_v6(&cohort.anatomy, &cohort.state)
                 }
             }
@@ -4015,6 +4157,7 @@ impl ResidentCognitiveFormationState {
                             | CognitiveCodecFormat::V18
                             | CognitiveCodecFormat::V19
                             | CognitiveCodecFormat::V20
+                            | CognitiveCodecFormat::V21
                     ),
                 )
             };
@@ -4089,6 +4232,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             let encoded = self
                 .electrical_fabric
@@ -4105,33 +4249,46 @@ impl ResidentCognitiveFormationState {
             }
             None
         };
-        if matches!(
-            format,
-            CognitiveCodecFormat::V19 | CognitiveCodecFormat::V20
-        ) {
+        if format == CognitiveCodecFormat::V19 {
+            if self
+                .active_electrical_frontier
+                .iter()
+                .any(|entry| entry.cause.is_some())
+                || !self.preceding_active_electrical_frontier.is_empty()
+            {
+                return Err(FormationError::NoncanonicalState);
+            }
             length = length
                 .checked_add(8)
                 .and_then(|value| {
-                    let frontier_bytes = if format == CognitiveCodecFormat::V19 {
-                        if self
-                            .active_electrical_frontier
-                            .iter()
-                            .any(|entry| entry.cause.is_some())
-                        {
-                            return None;
-                        }
-                        self.active_electrical_frontier.len().checked_mul(16)?
-                    } else {
-                        self.active_electrical_frontier
-                            .iter()
-                            .try_fold(0usize, |total, entry| {
-                                total.checked_add(entry.encoded_v20_len())
-                            })?
-                    };
-                    value.checked_add(frontier_bytes)
+                    value.checked_add(self.active_electrical_frontier.len().checked_mul(16)?)
                 })
                 .ok_or(FormationError::ArithmeticOverflow)?;
-        } else if !self.active_electrical_frontier.is_empty() {
+        } else if format == CognitiveCodecFormat::V20 {
+            if !self.preceding_active_electrical_frontier.is_empty() {
+                return Err(FormationError::NoncanonicalState);
+            }
+            length = length
+                .checked_add(
+                    encoded_directed_frontier_len(&self.active_electrical_frontier)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                )
+                .ok_or(FormationError::ArithmeticOverflow)?;
+        } else if format == CognitiveCodecFormat::V21 {
+            length = length
+                .checked_add(
+                    encoded_directed_frontier_len(&self.preceding_active_electrical_frontier)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                )
+                .and_then(|value| {
+                    value.checked_add(encoded_directed_frontier_len(
+                        &self.active_electrical_frontier,
+                    )?)
+                })
+                .ok_or(FormationError::ArithmeticOverflow)?;
+        } else if !self.active_electrical_frontier.is_empty()
+            || !self.preceding_active_electrical_frontier.is_empty()
+        {
             return Err(FormationError::NoncanonicalState);
         }
         if length > max_encoded_bytes {
@@ -4178,6 +4335,10 @@ impl ResidentCognitiveFormationState {
                 output.extend_from_slice(MAGIC_V20);
                 output.extend_from_slice(&VERSION_V20.to_le_bytes());
             }
+            CognitiveCodecFormat::V21 => {
+                output.extend_from_slice(MAGIC_V21);
+                output.extend_from_slice(&VERSION_V21.to_le_bytes());
+            }
         }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -4211,6 +4372,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             push_length(&mut output, resting_population.as_ref().map_or(0, Vec::len))?;
             if let Some(population) = resting_population {
@@ -4224,23 +4386,22 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             let electrical_fabric = electrical_fabric.ok_or(FormationError::NoncanonicalState)?;
             push_length(&mut output, electrical_fabric.len())?;
             output.extend_from_slice(&electrical_fabric);
         }
-        if matches!(
-            format,
-            CognitiveCodecFormat::V19 | CognitiveCodecFormat::V20
-        ) {
+        if format == CognitiveCodecFormat::V19 {
             push_length(&mut output, self.active_electrical_frontier.len())?;
             for entry in &self.active_electrical_frontier {
-                if format == CognitiveCodecFormat::V19 {
-                    output.extend_from_slice(&entry.receiver());
-                } else {
-                    entry.encode_v20(&mut output);
-                }
+                output.extend_from_slice(&entry.receiver());
             }
+        } else if format == CognitiveCodecFormat::V20 {
+            encode_directed_frontier(&self.active_electrical_frontier, &mut output)?;
+        } else if format == CognitiveCodecFormat::V21 {
+            encode_directed_frontier(&self.preceding_active_electrical_frontier, &mut output)?;
+            encode_directed_frontier(&self.active_electrical_frontier, &mut output)?;
         }
         output.extend_from_slice(
             &u64::try_from(cells.len())
@@ -4360,7 +4521,9 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let format = if bytes.len() >= MAGIC_V20.len() && &bytes[..MAGIC_V20.len()] == MAGIC_V20 {
+        let format = if bytes.len() >= MAGIC_V21.len() && &bytes[..MAGIC_V21.len()] == MAGIC_V21 {
+            CognitiveCodecFormat::V21
+        } else if bytes.len() >= MAGIC_V20.len() && &bytes[..MAGIC_V20.len()] == MAGIC_V20 {
             CognitiveCodecFormat::V20
         } else if bytes.len() >= MAGIC_V19.len() && &bytes[..MAGIC_V19.len()] == MAGIC_V19 {
             CognitiveCodecFormat::V19
@@ -4403,6 +4566,7 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V18 => VERSION_V18,
             CognitiveCodecFormat::V19 => VERSION_V19,
             CognitiveCodecFormat::V20 => VERSION_V20,
+            CognitiveCodecFormat::V21 => VERSION_V21,
         };
         if version != expected_version {
             return Err(FormationError::BadVersion);
@@ -4491,6 +4655,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             let population_length = read_length(bytes, &mut cursor)?;
             if population_length == 0 {
@@ -4518,6 +4683,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V18
                 | CognitiveCodecFormat::V19
                 | CognitiveCodecFormat::V20
+                | CognitiveCodecFormat::V21
         ) {
             let fabric_length = read_length(bytes, &mut cursor)?;
             let fabric_end = cursor
@@ -4534,10 +4700,11 @@ impl ResidentCognitiveFormationState {
         } else {
             ResidentElectricalFabric::default()
         };
-        let active_electrical_frontier = if format == CognitiveCodecFormat::V19 {
-            let count = read_length(bytes, &mut cursor)?;
-            let frontier_end = cursor
-                .checked_add(
+        let (preceding_active_electrical_frontier, active_electrical_frontier) =
+            if format == CognitiveCodecFormat::V19 {
+                let count = read_length(bytes, &mut cursor)?;
+                let frontier_end = cursor
+                    .checked_add(
                     count
                         .checked_mul(16)
                         .ok_or(FormationError::ArithmeticOverflow)?,
@@ -4555,29 +4722,19 @@ impl ResidentCognitiveFormationState {
                 frontier.push(ActiveElectricalFrontierEntry::legacy_receiver(
                     lineage
                         .try_into()
-                        .map_err(|_| FormationError::NoncanonicalState)?,
-                ));
-            }
-            frontier
-        } else if format == CognitiveCodecFormat::V20 {
-            let count = read_length(bytes, &mut cursor)?;
-            if count > bytes.len().saturating_sub(cursor) / 17 {
-                return Err(FormationError::NoncanonicalState);
-            }
-            let mut frontier = Vec::new();
-            frontier
-                .try_reserve_exact(count)
-                .map_err(|_| FormationError::ArithmeticOverflow)?;
-            for _ in 0..count {
-                frontier.push(ActiveElectricalFrontierEntry::decode_v20(
-                    bytes,
-                    &mut cursor,
-                )?);
-            }
-            frontier
-        } else {
-            Vec::new()
-        };
+                            .map_err(|_| FormationError::NoncanonicalState)?,
+                    ));
+                }
+                (Vec::new(), frontier)
+            } else if format == CognitiveCodecFormat::V20 {
+                (Vec::new(), decode_directed_frontier(bytes, &mut cursor)?)
+            } else if format == CognitiveCodecFormat::V21 {
+                let preceding = decode_directed_frontier(bytes, &mut cursor)?;
+                let active = decode_directed_frontier(bytes, &mut cursor)?;
+                (preceding, active)
+            } else {
+                (Vec::new(), Vec::new())
+            };
         let cohort_count_end = cursor
             .checked_add(8)
             .ok_or(FormationError::ArithmeticOverflow)?;
@@ -4690,6 +4847,8 @@ impl ResidentCognitiveFormationState {
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric,
             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
+            preceding_active_electrical_frontier: preceding_active_electrical_frontier
+                .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
         };
@@ -4715,7 +4874,8 @@ impl ResidentCognitiveFormationState {
         let already_geometry_provisioned = bytes.len() >= MAGIC_V18.len()
             && (&bytes[..MAGIC_V18.len()] == MAGIC_V18
                 || &bytes[..MAGIC_V19.len()] == MAGIC_V19
-                || &bytes[..MAGIC_V20.len()] == MAGIC_V20);
+                || &bytes[..MAGIC_V20.len()] == MAGIC_V20
+                || &bytes[..MAGIC_V21.len()] == MAGIC_V21);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         let state = if already_geometry_provisioned {
             state
@@ -8741,11 +8901,8 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
         return Err(FormationError::NoncanonicalState);
     }
     let physical_bonds = organism_physical_bonds(&state.cohorts, &state.electrical_fabric)?;
-    if state
-        .active_electrical_frontier
-        .iter()
-        .enumerate()
-        .any(|(index, entry)| {
+    let invalid_frontier = |frontier: &[ActiveElectricalFrontierEntry]| {
+        frontier.iter().enumerate().any(|(index, entry)| {
             let lineage = entry.receiver();
             let invalid_cause = entry.cause.is_some_and(|cause| {
                 cause.transferred_whole_carriers == 0
@@ -8758,8 +8915,11 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
                 .and_then(|position| reached_places.get(position))
                 .is_none()
                 || invalid_cause
-                || (index > 0 && state.active_electrical_frontier[index - 1] >= *entry)
+                || (index > 0 && frontier[index - 1] >= *entry)
         })
+    };
+    if invalid_frontier(&state.preceding_active_electrical_frontier)
+        || invalid_frontier(&state.active_electrical_frontier)
     {
         return Err(FormationError::NoncanonicalState);
     }
@@ -10164,6 +10324,7 @@ mod tests {
             .into_boxed_slice(),
             electrical_fabric: ResidentElectricalFabric::default(),
             active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -11356,6 +11517,7 @@ mod tests {
             &topology.bonds,
             &[],
             &[],
+            &[],
             &mut mosaics,
             16_000_000,
         )
@@ -11422,6 +11584,7 @@ mod tests {
             &topology.bonds,
             &[],
             &[],
+            &[],
             16_000_000,
         )
         .unwrap();
@@ -11446,6 +11609,7 @@ mod tests {
             &topology.bonds,
             &[],
             &[],
+            &[],
             16_000_000,
         )
         .unwrap();
@@ -11466,6 +11630,7 @@ mod tests {
             &changed_cue,
             &changed_cue,
             &topology.bonds,
+            &[],
             &[],
             &[],
             &mut mosaics,
@@ -11490,6 +11655,7 @@ mod tests {
                 &changed_cue,
                 &changed_cue,
                 &topology.bonds,
+                &[],
                 &[],
                 &[],
                 &mut mosaics,
@@ -12157,6 +12323,57 @@ mod tests {
     }
 
     #[test]
+    fn two_overlapping_ordered_paths_require_three_continuous_physical_transfers() {
+        let first = [1_u8; 16];
+        let second = [2_u8; 16];
+        let third = [3_u8; 16];
+        let last = [4_u8; 16];
+        let first_bond = StablePhysicalBondReference::new(first, second, 0).unwrap();
+        let shared_bond = StablePhysicalBondReference::new(second, third, 0).unwrap();
+        let last_bond = StablePhysicalBondReference::new(third, last, 0).unwrap();
+        let older =
+            [
+                ActiveElectricalFrontierEntry::caused(
+                    first,
+                    first_bond.endpoints().1,
+                    first_bond,
+                    7,
+                )
+                .unwrap(),
+            ];
+        let preceding =
+            [ActiveElectricalFrontierEntry::caused(second, third, shared_bond, 5).unwrap()];
+        let current = [ActiveElectricalFrontierEntry::caused(third, last, last_bond, 3).unwrap()];
+        let incidence = [
+            (first, 0),
+            (second, 0),
+            (second, 1),
+            (third, 0),
+            (third, 1),
+            (last, 1),
+        ];
+        let relations =
+            ordered_path_relations_for_relation(&incidence, &[0, 1], &older, &preceding, &current);
+        assert_eq!(relations.len(), 1);
+        assert_eq!(
+            relations[0].directed_transfers(),
+            [
+                (first, second, first_bond, 7),
+                (second, third, shared_bond, 5),
+                (third, last, last_bond, 3),
+            ]
+        );
+        assert!(ordered_path_relations_for_relation(
+            &incidence,
+            &[0, 1],
+            &[],
+            &preceding,
+            &current,
+        )
+        .is_empty());
+    }
+
+    #[test]
     fn v19_recipient_only_frontier_migrates_without_inventing_direction() {
         let retired = ResidentCognitiveFormationState::default()
             .encode_with_format(CognitiveCodecFormat::V12, 16_000_000)
@@ -12212,7 +12429,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V20.len()], MAGIC_V20);
+        assert_eq!(&current[..MAGIC_V21.len()], MAGIC_V21);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(!cold.active_electrical_frontier.is_empty());

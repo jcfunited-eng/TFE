@@ -45,6 +45,14 @@ class _NativeResidentOrganismObservation:
                 ],
                 ...,
             ],
+            tuple[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ],
+                ...,
+            ],
         ],
         ...,
     ] = ()
@@ -114,6 +122,13 @@ class _NativeResidentOrganismPrepare:
             list[tuple[str, str, int]],
             str,
             list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]],
+            list[
+                tuple[
+                    tuple[str, str, int, str],
+                    tuple[str, str, int, str],
+                    tuple[str, str, int, str],
+                ]
+            ],
         ]
     ] | None = None
     python_callback_count: int = 0

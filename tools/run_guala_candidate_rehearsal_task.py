@@ -404,11 +404,15 @@ def _validate_proof(
         and isinstance(proof.get("ordered_trajectory_path_count"), int)
         and not isinstance(proof["ordered_trajectory_path_count"], bool)
         and proof["ordered_trajectory_path_count"] > 0
+        and isinstance(proof.get("ordered_trajectory_path_relation_count"), int)
+        and not isinstance(proof["ordered_trajectory_path_relation_count"], bool)
+        and proof["ordered_trajectory_path_relation_count"] > 0
         and all(
             isinstance(proof.get(name), str)
             and _SHA.fullmatch(proof[name]) is not None
             for name in (
                 "ordered_trajectory_paths_sha256",
+                "ordered_trajectory_path_relations_sha256",
                 "ordered_trajectory_successor_state_sha256",
             )
         )
@@ -423,6 +427,9 @@ def _validate_proof(
         and isinstance(proof.get("ordered_physical_path_count"), int)
         and not isinstance(proof["ordered_physical_path_count"], bool)
         and proof["ordered_physical_path_count"] > 0
+        and isinstance(proof.get("ordered_path_relation_count"), int)
+        and not isinstance(proof["ordered_path_relation_count"], bool)
+        and proof["ordered_path_relation_count"] > 0
         and isinstance(proof.get("episodic_relation_interval_ordinal"), int)
         and not isinstance(proof["episodic_relation_interval_ordinal"], bool)
         and 1 <= proof["episodic_relation_interval_ordinal"] <= 3
@@ -452,6 +459,7 @@ def _validate_proof(
                 "episodic_related_member_sets_sha256",
                 "episodic_relation_active_bonds_sha256",
                 "ordered_physical_paths_sha256",
+                "ordered_path_relations_sha256",
                 "structural_relation_sha256",
             )
         )

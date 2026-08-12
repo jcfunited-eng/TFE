@@ -4115,8 +4115,9 @@ def _commit_admitted_hop(
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
                 "ordered_physical_paths": ordered_paths,
+                "ordered_path_relations": ordered_path_relations,
             }
-            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths, ordered_path_relations in (
                 evidence.organic_mosaic_relations
             )
         ),
@@ -4181,8 +4182,9 @@ def _commit_vestibular_tick(
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
                 "ordered_physical_paths": ordered_paths,
+                "ordered_path_relations": ordered_path_relations,
             }
-            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths, ordered_path_relations in (
                 evidence.organic_mosaic_relations
             )
         ),
@@ -4247,8 +4249,9 @@ def _commit_vestibular_trajectory(
                 "active_physical_bonds": bonds,
                 "structural_relation_sha256": structure_receipt,
                 "ordered_physical_paths": ordered_paths,
+                "ordered_path_relations": ordered_path_relations,
             }
-            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
+            for receipts, lineages, bonds, structure_receipt, ordered_paths, ordered_path_relations in (
                 evidence.organic_mosaic_relations
             )
         ),

@@ -112,12 +112,18 @@ type OrderedPhysicalPathProjection = (
     DirectedPhysicalTransferProjection,
     DirectedPhysicalTransferProjection,
 );
+type OrderedPathRelationProjection = (
+    DirectedPhysicalTransferProjection,
+    DirectedPhysicalTransferProjection,
+    DirectedPhysicalTransferProjection,
+);
 type OrganicMosaicRelationProjection = (
     Vec<String>,
     Vec<String>,
     Vec<(String, String, u32)>,
     String,
     Vec<OrderedPhysicalPathProjection>,
+    Vec<OrderedPathRelationProjection>,
 );
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
@@ -1518,8 +1524,14 @@ fn retain_trajectory_relation_witnesses(
             } else {
                 prior.ordered_physical_paths.clone()
             };
+            let earliest_deep_ordered_witness = if prior.ordered_path_relations.is_empty() {
+                relation.ordered_path_relations.clone()
+            } else {
+                prior.ordered_path_relations.clone()
+            };
             *prior = relation.clone();
             prior.ordered_physical_paths = earliest_ordered_witness;
+            prior.ordered_path_relations = earliest_deep_ordered_witness;
         } else {
             retained.push(relation.clone());
         }
@@ -3794,12 +3806,34 @@ fn project_organic_mosaic_relations(
                     (project(first), project(second))
                 })
                 .collect();
+            let ordered_path_relations = relation
+                .ordered_path_relations
+                .iter()
+                .map(|path| {
+                    let [first, shared, last] = path.directed_transfers();
+                    let project = |(sender, receiver, bond, carriers): (
+                        [u8; 16],
+                        [u8; 16],
+                        StablePhysicalBondReference,
+                        u128,
+                    )| {
+                        (
+                            hex_bytes(&sender),
+                            hex_bytes(&receiver),
+                            bond.parallel_ordinal(),
+                            carriers.to_string(),
+                        )
+                    };
+                    (project(first), project(shared), project(last))
+                })
+                .collect();
             (
                 receipts,
                 lineages,
                 bonds,
                 hex_digest(&relation.structural_relation_receipt),
                 ordered_paths,
+                ordered_path_relations,
             )
         })
         .collect()
