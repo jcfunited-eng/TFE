@@ -4510,6 +4510,11 @@ pub(crate) struct PostExperienceSettlement {
 pub(crate) struct ExtendedIntervalSettlement {
     pub(crate) successor: NeuronPhysicalState,
     pub(crate) exported_heat_zeptojoules: Exact,
+    /// Exact transient electrical emission from this interval: the number of
+    /// physical gate channels that changed from closed to open. The gate
+    /// population remains the sole authority; this value is never persisted
+    /// and is never a neuronal fractal.
+    pub(crate) newly_opened_gate_channels: u128,
     pub(crate) quiescent: bool,
 }
 
@@ -4536,6 +4541,15 @@ pub(crate) fn settle_extended_interval_with_contact(
         inter_neuron_outward_elementary_charges,
         input.prepared_psi,
     )?;
+    let predecessor_open_population = predecessor.gate.open_population();
+    let successor_open_population = physical.successor.gate.open_population();
+    let newly_opened_gate_channels = if successor_open_population > predecessor_open_population {
+        successor_open_population
+            .checked_sub(predecessor_open_population)
+            .ok_or(GateSettlementError::ArithmeticWidth)?
+    } else {
+        0
+    };
     let psi_changed = physical.psi.changed_rings != 0;
     let gate_changed = physical.successor.gate != predecessor.gate;
     let membrane_active = physical
@@ -4569,6 +4583,7 @@ pub(crate) fn settle_extended_interval_with_contact(
     Ok(ExtendedIntervalSettlement {
         successor,
         exported_heat_zeptojoules,
+        newly_opened_gate_channels,
         quiescent: !psi_changed
             && !gate_changed
             && !membrane_active
@@ -6718,6 +6733,41 @@ mod tests {
         )
         .unwrap();
         assert!(control_only.fractal.is_none());
+    }
+
+    #[test]
+    fn newly_opened_channels_are_one_transient_emission_not_retained_state() {
+        let shared = shared_field();
+        let control = bind_isolated_neuron_perspective(&shared, 0).unwrap();
+        let perturbation = bind_isolated_neuron_perspective(&shared, 1).unwrap();
+        let fixture = physical_fixture();
+        let predecessor = settle_to_quiescence(
+            &fixture.anatomy,
+            &fixture.state,
+            &[
+                interval(control, &fixture.zero_catalysts),
+                interval(control, &fixture.zero_catalysts),
+            ],
+        )
+        .unwrap();
+
+        let opened = settle_extended_interval(
+            &fixture.anatomy,
+            predecessor.state(),
+            interval(perturbation, &fixture.zero_catalysts),
+        )
+        .unwrap();
+        assert_eq!(opened.newly_opened_gate_channels, 2);
+        assert_eq!(opened.successor.gate.open_population(), 2);
+
+        let recovery = settle_extended_interval(
+            &fixture.anatomy,
+            &opened.successor,
+            interval(control, &fixture.zero_catalysts),
+        )
+        .unwrap();
+        assert_eq!(recovery.newly_opened_gate_channels, 0);
+        assert!(recovery.successor.gate.open_population() <= 2);
     }
 
     #[test]

@@ -2048,6 +2048,9 @@ pub(crate) struct ReachedCohortIntervalSettlement {
     pub(crate) successor: ReachedCohortState,
     pub(crate) contact_transitions: Box<[ElectricalContactTransition]>,
     pub(crate) contact_outward_elementary_charges_by_neuron: Box<[i128]>,
+    /// Sparse transient `(resident neuron index, newly-opened channels)`.
+    /// Quiescent neurons allocate no entry and it adds no resident state.
+    pub(crate) newly_opened_gate_channels: Box<[(usize, u128)]>,
     pub(crate) locally_quiescent: Box<[bool]>,
     pub(crate) electrically_active: bool,
     pub(crate) quiescent: bool,
@@ -2558,6 +2561,7 @@ pub(crate) fn settle_reached_cohort_interval(
 
     let predecessor_material = total_carrier_material(&predecessor.neurons)?;
     let mut successor_neurons = recovered_neurons.clone();
+    let mut newly_opened_gate_channels = Vec::new();
     let mut locally_quiescent = vec![true; anatomy.neurons.len()];
     // With contact transfer and ordered recovery already settled, each local
     // neuron consequence is independent. Indexed collection preserves the
@@ -2594,6 +2598,9 @@ pub(crate) fn settle_reached_cohort_interval(
         .collect::<Vec<Result<_, ReachedCohortError>>>();
     for settled in settled_neurons {
         let (resident_index, settled) = settled?;
+        if settled.newly_opened_gate_channels != 0 {
+            newly_opened_gate_channels.push((resident_index, settled.newly_opened_gate_channels));
+        }
         successor_neurons[resident_index] = settled.successor;
         locally_quiescent[resident_index] = settled.quiescent;
     }
@@ -2634,6 +2641,7 @@ pub(crate) fn settle_reached_cohort_interval(
         contact_transitions: electrical.transitions,
         contact_outward_elementary_charges_by_neuron: electrical
             .outward_elementary_charges_by_neuron,
+        newly_opened_gate_channels: newly_opened_gate_channels.into_boxed_slice(),
         locally_quiescent: locally_quiescent.into_boxed_slice(),
         electrically_active,
         quiescent,

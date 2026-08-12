@@ -36,7 +36,7 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
+    MotorUnitRecruitment, PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
     observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
@@ -49,7 +49,8 @@ use crate::vestibular_neuron_path::{
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
 };
 use crate::virtual_body_yaw_motion::{
-    settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
+    settle_motor_unit_yaw_actuation, settle_signed_yaw_actuation, SignedYawActuation,
+    YawBodyState,
 };
 use crate::virtual_vestibular_canal::{
     decode_canal_state, encode_canal_state, CanalState,
@@ -495,6 +496,7 @@ struct ResidentPrepareReceipt {
     observation: RuntimeObservation,
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
+    motor_unit_recruitments: Vec<MotorUnitRecruitment>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -534,6 +536,7 @@ pub struct NativeResidentOrganismPrepare {
     observation: RuntimeObservation,
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
+    motor_unit_recruitments: Vec<MotorUnitRecruitment>,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -966,6 +969,23 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn successor_seal_count(&self) -> usize {
         self.phase_counts.successor_seal_count
+    }
+
+    /// Transient native efferent events derived during this candidate. The
+    /// retained gate populations remain the sole authority; reading this
+    /// projection stores and advances nothing.
+    #[getter]
+    fn motor_unit_recruitments(&self) -> Vec<(String, u32, u128)> {
+        self.motor_unit_recruitments
+            .iter()
+            .map(|event| {
+                (
+                    hex_bytes(&event.neuron_lineage),
+                    event.topology_index,
+                    event.newly_opened_gate_channels,
+                )
+            })
+            .collect()
     }
 
     #[getter]
@@ -1508,6 +1528,9 @@ impl ResidentOrganismRuntime {
                 total
                     .emitted_neuron_fractals
                     .extend(observation.emitted_neuron_fractals.iter().cloned());
+                total
+                    .motor_unit_recruitments
+                    .extend(observation.motor_unit_recruitments.iter().copied());
                 total.partial_cue_reassembly_count = total
                     .partial_cue_reassembly_count
                     .checked_add(observation.partial_cue_reassembly_count)
@@ -1620,6 +1643,7 @@ impl ResidentOrganismRuntime {
             receptor_ingress: receptor_ingress.ok_or_else(|| {
                 RuntimeError::Vestibular("vestibular trajectory carried no ingress".into())
             })?,
+            motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
         })
     }
 
@@ -1687,6 +1711,7 @@ impl ResidentOrganismRuntime {
             .encode_successor(&cognitive, cognitive_budget)
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
+        let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
         let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
         let transition = MountedJointDsfTransition {
             joint_field_count: source.joint_source_occurrences().len(),
@@ -1762,6 +1787,7 @@ impl ResidentOrganismRuntime {
             observation,
             phase_counts,
             receptor_ingress,
+            motor_unit_recruitments,
         })
     }
 
@@ -1917,6 +1943,7 @@ impl ResidentOrganismRuntime {
             observation,
             phase_counts: MountedTransitionPhaseCounts::default(),
             receptor_ingress: ResidentReceptorIngressObservation::default(),
+            motor_unit_recruitments: Vec::new(),
         })
     }
 
@@ -2034,6 +2061,7 @@ impl NativeResidentOrganismRuntime {
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
         })
     }
 
@@ -2059,6 +2087,7 @@ impl NativeResidentOrganismRuntime {
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
         })
     }
 
@@ -2093,6 +2122,7 @@ impl NativeResidentOrganismRuntime {
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
         })
     }
 
@@ -2122,6 +2152,7 @@ impl NativeResidentOrganismRuntime {
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
         })
     }
 
@@ -2169,6 +2200,7 @@ impl NativeResidentOrganismRuntime {
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
         })
     }
 
@@ -2301,6 +2333,26 @@ fn exact_virtual_yaw_trajectory(
     )
     .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let settled = settle_signed_yaw_actuation(predecessor, actuation)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    Ok((
+        settled.successor.heading_millidegrees(),
+        settled.trajectory.as_slice().to_vec(),
+    ))
+}
+
+#[pyfunction]
+fn exact_motor_unit_yaw_trajectory(
+    predecessor_heading_millidegrees: u32,
+    recruitments: Vec<(u32, u128)>,
+) -> PyResult<(u32, Vec<i32>)> {
+    if recruitments.is_empty() {
+        return Err(PyValueError::new_err(
+            "motor-unit yaw requires at least one recruitment",
+        ));
+    }
+    let predecessor = YawBodyState::new(predecessor_heading_millidegrees)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    let settled = settle_motor_unit_yaw_actuation(predecessor, &recruitments)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     Ok((
         settled.successor.heading_millidegrees(),
@@ -2800,6 +2852,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
+    module.add_function(wrap_pyfunction!(exact_motor_unit_yaw_trajectory, module)?)?;
     module.add_function(wrap_pyfunction!(
         restore_native_resident_organism_runtime,
         module

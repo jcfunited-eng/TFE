@@ -201,6 +201,7 @@ class ResidentPrepareEvidence:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    motor_unit_recruitments: tuple[tuple[str, int, int], ...] = ()
 
 
 def _native_core():
@@ -231,6 +232,16 @@ def _canonical_sha256(value: object, label: str) -> str:
         or any(character not in "0123456789abcdef" for character in value)
     ):
         raise RuntimeError(f"resident organism {label} is not canonical SHA-256")
+    return value
+
+
+def _canonical_lineage_hex(value: object, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 32
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise RuntimeError(f"resident organism {label} is not canonical")
     return value
 
 
@@ -767,6 +778,23 @@ class NativeResidentOrganism:
             candidate.metabolically_perturbed_body_receptor_count,
             "metabolically perturbed body receptor count",
         )
+        raw_motor_recruitments = candidate.motor_unit_recruitments
+        if not isinstance(raw_motor_recruitments, list):
+            raise RuntimeError("motor-unit recruitments changed format")
+        motor_unit_recruitments: list[tuple[str, int, int]] = []
+        for raw in raw_motor_recruitments:
+            if not isinstance(raw, tuple) or len(raw) != 3:
+                raise RuntimeError("motor-unit recruitment changed format")
+            lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
+            topology_index = _nonnegative_integer(
+                raw[1], "motor-unit topology index"
+            )
+            newly_opened_channels = _positive_integer(
+                raw[2], "newly opened motor-unit channels"
+            )
+            motor_unit_recruitments.append(
+                (lineage, topology_index, newly_opened_channels)
+            )
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero
         # mounted cohorts (cognition still receives its occurrences).
@@ -874,6 +902,7 @@ class NativeResidentOrganism:
             metabolically_perturbed_body_receptor_count=(
                 metabolically_perturbed_body_receptor_count
             ),
+            motor_unit_recruitments=tuple(motor_unit_recruitments),
         )
 
     def prepare_authored_contacts(
@@ -1163,6 +1192,23 @@ def exact_native_yaw_trajectory(
     return int(successor), tuple(int(step) for step in steps)
 
 
+def exact_motor_unit_yaw_trajectory(
+    *,
+    predecessor_heading_millidegrees: int,
+    recruitments: tuple[tuple[int, int], ...],
+) -> tuple[int, tuple[int, ...]]:
+    """Settle transient native motor recruitment on the body yaw lattice."""
+
+    trajectory = getattr(_native_core(), "exact_motor_unit_yaw_trajectory", None)
+    if not callable(trajectory):
+        raise RuntimeError("guala_core does not expose motor-unit yaw physics")
+    successor, steps = trajectory(
+        predecessor_heading_millidegrees,
+        list(recruitments),
+    )
+    return int(successor), tuple(int(step) for step in steps)
+
+
 def migrate_native_resident_organism_exact_energy(
     *,
     current_envelope: bytes,
@@ -1374,6 +1420,7 @@ __all__ = (
     "RUNTIME_SCHEMA",
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
+    "exact_motor_unit_yaw_trajectory",
     "exact_native_yaw_trajectory",
     "restore_native_resident_organism",
     "migrate_native_resident_organism_exact_energy",

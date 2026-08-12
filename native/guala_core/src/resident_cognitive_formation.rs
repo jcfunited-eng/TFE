@@ -231,6 +231,7 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
+    pub(crate) motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
     /// Total mosaic-of-mosaics relation events recorded against the retained
@@ -308,6 +309,16 @@ pub(crate) struct FormationActivation;
 pub(crate) struct EmittedNeuronFractal {
     pub(crate) neuron_lineage: [u8; 16],
     pub(crate) delta: SparsePhysicalStateDelta,
+}
+
+/// One transient efferent event produced by an already-mounted layer-12
+/// motor neuron. The complete gate state remains the authority; this value is
+/// neither persisted nor counted as a fractal, memory, intent, or action.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct MotorUnitRecruitment {
+    pub(crate) neuron_lineage: [u8; 16],
+    pub(crate) topology_index: u32,
+    pub(crate) newly_opened_gate_channels: u128,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2629,6 +2640,7 @@ impl ResidentCognitiveFormationState {
                     metabolically_perturbed_body_receptor_lineages.len(),
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
+                motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
                 endogenous_partial_cue_reassembly_count,
                 mosaic_of_mosaics_count,
@@ -2971,6 +2983,7 @@ impl ResidentCognitiveFormationState {
                 metabolically_perturbed_body_receptor_count: 0,
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
+                motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
                 endogenous_partial_cue_reassembly_count: 0,
                 mosaic_of_mosaics_count,
@@ -6616,6 +6629,7 @@ struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
+    motor_unit_recruitments: Vec<MotorUnitRecruitment>,
 }
 
 fn stable_bond_for_next_edge(
@@ -6682,6 +6696,7 @@ fn settle_internal_contact_interval(
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
         });
     }
 
@@ -6814,6 +6829,7 @@ fn settle_internal_contact_interval(
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
         });
     }
     let mut compact_index = vec![None; flat_locations.len()];
@@ -6843,6 +6859,7 @@ fn settle_internal_contact_interval(
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
         });
     }
     let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
@@ -7102,7 +7119,11 @@ fn settle_internal_contact_interval(
         .par_iter_mut()
         .enumerate()
         .map(|(cohort_index, cohort)| -> Result<
-            Option<(Vec<[u8; 16]>, Vec<EmittedNeuronFractal>)>,
+            Option<(
+                Vec<[u8; 16]>,
+                Vec<EmittedNeuronFractal>,
+                Vec<MotorUnitRecruitment>,
+            )>,
             FormationError,
         > {
         let selected_members = selected
@@ -7217,6 +7238,20 @@ fn settle_internal_contact_interval(
             input,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let motor_unit_recruitments = settlement
+            .newly_opened_gate_channels
+            .iter()
+            .filter_map(|(neuron_index, newly_opened_gate_channels)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 12)
+                    .then_some(MotorUnitRecruitment {
+                        neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
+                        topology_index: mount.place().topology_index(),
+                        newly_opened_gate_channels: *newly_opened_gate_channels,
+                    })
+            })
+            .collect::<Vec<_>>();
         cohort.state = settlement.successor;
         let mut changed_lineages = Vec::new();
         let mut cohort_fractals = Vec::new();
@@ -7239,17 +7274,23 @@ fn settle_internal_contact_interval(
                 });
             }
         }
-        Ok(Some((changed_lineages, cohort_fractals)))
+        Ok(Some((
+            changed_lineages,
+            cohort_fractals,
+            motor_unit_recruitments,
+        )))
     })
     .collect::<Vec<_>>();
+    let mut motor_unit_recruitments = Vec::new();
     for result in cohort_results {
-        if let Some((changed_lineages, cohort_fractals)) = result? {
+        if let Some((changed_lineages, cohort_fractals, cohort_motor_recruitments)) = result? {
             for lineage in changed_lineages {
                 if !physically_transitioned_neuron_lineages.contains(&lineage) {
                     physically_transitioned_neuron_lineages.push(lineage);
                 }
             }
             emitted_neuron_fractals.extend(cohort_fractals);
+            motor_unit_recruitments.extend(cohort_motor_recruitments);
         }
     }
     let mut active_bonds = settled
@@ -7272,6 +7313,7 @@ fn settle_internal_contact_interval(
         dsf_delivery_count: 1,
         active_bonds,
         metabolically_perturbed_body_receptor_lineages,
+        motor_unit_recruitments,
     })
 }
 

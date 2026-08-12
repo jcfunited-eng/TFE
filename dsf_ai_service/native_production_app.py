@@ -94,6 +94,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     ResidentPrepareEvidence,
     create_native_resident_organism,
+    exact_motor_unit_yaw_trajectory,
     exact_native_yaw_trajectory,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
@@ -4042,6 +4043,7 @@ def _commit_admitted_hop(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
@@ -4175,6 +4177,54 @@ def _publish_committed_organism(
         raise HTTPException(status_code=503, detail=_boot_error) from error
 
 
+def _prepare_motor_yaw_action(
+    predecessor_state_sha256: str,
+    recruitments: tuple[tuple[str, int, int], ...],
+) -> tuple[Any, Any, int, tuple[int, ...]] | None:
+    """Prepare one native motor consequence without changing live world state."""
+
+    if not recruitments:
+        return None
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
+        MoveCommand,
+        PORT_ID,
+        PoseMM,
+        encode_command,
+    )
+
+    authority = _world()
+    before = authority.observation_snapshot()
+    body = next(item for item in before.bodies if item.body_id == before.self_body_id)
+    successor_heading, trajectory = exact_motor_unit_yaw_trajectory(
+        predecessor_heading_millidegrees=body.pose.heading_millidegrees,
+        recruitments=tuple((topology, channels) for _, topology, channels in recruitments),
+    )
+    if not any(trajectory):
+        return None
+    intent_material = bytearray(b"guala.native-motor-yaw.v1\0")
+    intent_material.extend(bytes.fromhex(predecessor_state_sha256))
+    for lineage, topology, channels in recruitments:
+        intent_material.extend(bytes.fromhex(lineage))
+        intent_material.extend(topology.to_bytes(4, "little"))
+        intent_material.extend(channels.to_bytes(16, "little"))
+    prepared = authority.prepare_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(
+            MoveCommand(
+                target_pose=PoseMM(body.pose.position, successor_heading),
+                duration_microseconds=1_000,
+            )
+        ),
+        causal_intent_receipt_sha256=hashlib.sha256(intent_material).hexdigest(),
+        expected_revision=before.revision,
+    )
+    if isinstance(prepared, ActionExecutionReceipt):
+        authority.verify_execution_receipt(prepared)
+        raise RuntimeError(f"native motor yaw was refused: {prepared.reason}")
+    return authority, prepared, body.pose.heading_millidegrees, trajectory
+
+
 def _perform_admitted_intake(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
@@ -4221,7 +4271,7 @@ def _perform_admitted_intake_locked(
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
-    global _restored, _last_transition_evidence
+    global _restored, _last_transition_evidence, _last_self_moved
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -4239,6 +4289,7 @@ def _perform_admitted_intake_locked(
     last_hop: dict[str, Any] | None = None
     committed_hop_count = 0
     committed_vestibular_tick_count = 0
+    motor_unit_recruitments: list[tuple[str, int, int]] = []
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4256,6 +4307,7 @@ def _perform_admitted_intake_locked(
                 organism, episode, admissions
             )
             committed_hop_count += 1
+            motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             for key in totals:
                 totals[key] += last_hop[key]
     except (RuntimeError, TypeError, ValueError) as error:
@@ -4266,9 +4318,50 @@ def _perform_admitted_intake_locked(
         if intake_error is not None:
             raise intake_error
         raise RuntimeError("admitted intake carried no hop episodes")
-    published = _publish_committed_organism(
-        organism, admission, predecessor.state_sha256
+    prepared_motor = _prepare_motor_yaw_action(
+        predecessor.state_sha256,
+        tuple(motor_unit_recruitments),
     )
+    motor_action: dict[str, Any] | None = None
+    if prepared_motor is None:
+        published = _publish_committed_organism(
+            organism, admission, predecessor.state_sha256
+        )
+    else:
+        authority, prepared_world, predecessor_heading, trajectory = prepared_motor
+        world_committed = False
+        try:
+            with authority.prepared_action_visibility_transaction(prepared_world):
+                execution = authority.commit_prepared_action(prepared_world)
+                world_committed = True
+                last_hop = _commit_vestibular_trajectory(
+                    organism,
+                    predecessor_heading,
+                    trajectory,
+                )
+                committed_vestibular_tick_count += len(trajectory)
+                for key in totals:
+                    totals[key] += last_hop[key]
+                published = _publish_committed_organism(
+                    organism, admission, predecessor.state_sha256
+                )
+                _persist_world(authority)
+            motor_action = {
+                "moved": True,
+                "signed_yaw_millidegrees": sum(trajectory),
+                "motor_unit_recruitment_count": len(motor_unit_recruitments),
+                "world_revision": execution.after.revision,
+            }
+            _last_self_moved = dict(motor_action)
+        except BaseException:
+            if world_committed:
+                with authority.committed_prepared_action_rollback_transaction(
+                    prepared_world
+                ) as rollback_world:
+                    rollback_world()
+            else:
+                authority.discard_prepared_action(prepared_world)
+            raise
     _restored = RestoredNativeOrganism(
         organism=organism, pointer=published.pointer
     )
@@ -4277,6 +4370,7 @@ def _perform_admitted_intake_locked(
         "hop_count": committed_hop_count,
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
+        "motor_action": motor_action,
         "predecessor_state_sha256": predecessor.state_sha256,
         "totals": dict(totals),
     }
@@ -4691,7 +4785,10 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             after[key] != before[key] for key in _UNATTENDED_EXACT_ENERGY_KEYS
         )
         settled = measured["physically_transitioned_neuron_count"] > 0
-        if settled and (
+        motor_action = result["observation"].get("motor_action")
+        if motor_action is not None:
+            category = "native_causal_action_observed"
+        elif settled and (
             environment["external_luminance_present"]
             or environment["external_smell_present"]
         ):
@@ -4708,6 +4805,7 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "hop_count": result["hop_count"],
             "intake": intake_reason,
             "measured": measured,
+            "motor_action": motor_action,
             "organism_tick": after["organism_tick"],
             "state_sha256": after["state_sha256"],
             "world_revision": environment["world_revision"],

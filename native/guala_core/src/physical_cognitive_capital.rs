@@ -449,6 +449,7 @@ mod tests {
             metabolically_perturbed_body_receptor_count: 0,
             complete_neuron_fractal_count: 4,
             emitted_neuron_fractals: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,
             endogenous_partial_cue_reassembly_count: 0,
             mosaic_of_mosaics_count: 0,
