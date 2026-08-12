@@ -65,3 +65,18 @@ thought, utterance, or meaning is mounted by this change.
    sprint remains incomplete. The correction mounts the base layer-13 route
    once and lets later participant variation add only missing sparse contacts
    to the topologically first retained route.
+5. The bounded-reuse correction is commit
+   `a57ea5a7abfa6022c64739079f31f0b83dfe2d2a`, deployed as
+   `dsf-ai-task:978`, image
+   `sha256:1cc5240873602e4e4503d267061fc9d2e48c1966cec75beda7be462698c3a943`,
+   at 2026-08-12T00:17:31Z. Its discarded-current rehearsal restored the
+   inherited 220-cell body exactly, retained zero Python cognition callbacks
+   or workers, delivered 500 exact DSF transitions, and produced zero neuron
+   growth and zero encoded-byte growth across 250 in-memory transitions.
+   Direct production observation then remained exactly 221 reached cells,
+   nine inherited layer-13 cells, 196,508 resting cells, and 30,590,729
+   encoded bytes across ticks 45,640 through 45,664. Python cognition callbacks
+   remained zero. The eight extra layer-13 cells produced before containment
+   remain historical reached anatomy; this release neither deletes nor
+   misreports them, and current code cannot create another layer-13 cell while
+   any retained layer-13 route exists.
