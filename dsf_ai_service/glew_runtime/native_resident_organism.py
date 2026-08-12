@@ -616,6 +616,28 @@ class NativeResidentOrganism:
             raise RuntimeError("formation structure observation advanced the organism")
         return tuple(validated)
 
+    def observe_retained_formation_recurrence_cues(
+        self,
+    ) -> tuple[tuple[str, tuple[str, ...]], ...]:
+        """Read the latest proper physical cue for each retained formation."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_retained_formation_recurrence_cues()
+        validated = []
+        for receipt, cue in observed:
+            receipt = str(receipt)
+            cue_lineages = tuple(str(lineage) for lineage in cue)
+            if (
+                len(receipt) != 64
+                or not cue_lineages
+                or any(len(lineage) != 32 for lineage in cue_lineages)
+            ):
+                raise RuntimeError("retained formation recurrence cue is invalid")
+            validated.append((receipt, cue_lineages))
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation cue observation advanced the organism")
+        return tuple(validated)
+
     def navigate_hippocampal(self, lineage_hex: str) -> None:
         """Refused: the hippocampal episode archive is retired.
 

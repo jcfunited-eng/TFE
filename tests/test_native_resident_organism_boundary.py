@@ -159,6 +159,11 @@ class _NativeResidentOrganismRuntime:
     def save(self) -> bytes:
         return self.active.state
 
+    def observe_retained_formation_recurrence_cues(
+        self,
+    ) -> list[tuple[str, list[str]]]:
+        return [("b" * 64, ["01" * 16])]
+
     def prepare(self, source: _Source) -> object:
         if self.prepare_result_override is not None:
             return self.prepare_result_override
@@ -247,6 +252,18 @@ def test_factory_cold_restores_one_concrete_runtime_with_coherent_budgets(
     ]
     assert organism.readiness() is runtime.active
     assert organism.save() == runtime.active.state
+
+
+def test_recurrence_cue_observation_is_exact_and_read_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    before = runtime.active.state_sha256
+
+    assert organism.observe_retained_formation_recurrence_cues() == (
+        ("b" * 64, ("01" * 16,)),
+    )
+    assert runtime.active.state_sha256 == before
 
 
 def test_prepare_accepts_96_ports_as_two_cohorts_without_publishing_state(

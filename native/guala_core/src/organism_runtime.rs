@@ -2453,6 +2453,28 @@ impl NativeResidentOrganismRuntime {
             })
     }
 
+    /// Exact read-only latest proper-cue evidence as
+    /// ``(formation_receipt, cue_member_lineage_hexes)``. The receipt
+    /// correlates this witness with `observe_retained_formation_structures`;
+    /// neither value drives cognition or advances the organism.
+    fn observe_retained_formation_recurrence_cues(&self) -> PyResult<Vec<(String, Vec<String>)>> {
+        self.runtime
+            .cognitive_state()
+            .observe_retained_formation_recurrence_cues(self.runtime.budget.max_fabric_bytes)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+            .map(|formations| {
+                formations
+                    .into_iter()
+                    .map(|(receipt, cue)| {
+                        (
+                            hex_bytes(&receipt),
+                            cue.iter().map(|lineage| hex_bytes(lineage)).collect(),
+                        )
+                    })
+                    .collect()
+            })
+    }
+
     /// The retired archive navigator.
     ///
     /// This used to walk a neuron's archived posting chain and return episode

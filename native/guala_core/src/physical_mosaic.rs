@@ -28,6 +28,7 @@ pub(crate) enum PhysicalMosaicError {
     CueOutsideFormation,
     RecurrenceDidNotReachFormation,
     RecurrenceDidNotChangeEveryMember,
+    RecurrenceDidNotAlterFormation,
     InvalidRetainedFractal,
 }
 
@@ -352,21 +353,16 @@ pub(crate) fn admit_physical_mosaic_original(
     })
 }
 
-/// Promote an organism-wide retained original only when a later proper
-/// partial cue and actual sparse contact flow reassemble every member.
-pub(crate) fn prove_physical_mosaic_recurrence(
-    original: &AdmittedPhysicalMosaic,
+fn current_recurrence_witness(
+    retained: &AdmittedPhysicalMosaic,
     physically_changed_lineages: &[StableNeuronLineage],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
-) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
-    if !original.original_only {
-        return Err(PhysicalMosaicError::WidthMismatch);
-    }
+) -> Result<(Vec<StablePhysicalBondReference>, Vec<StableNeuronLineage>), PhysicalMosaicError> {
     let mut changed = physically_changed_lineages.to_vec();
     changed.sort_unstable();
     changed.dedup();
-    if original
+    if retained
         .member_lineages
         .iter()
         .any(|lineage| changed.binary_search(lineage).is_err())
@@ -379,32 +375,83 @@ pub(crate) fn prove_physical_mosaic_recurrence(
     if cue.is_empty() {
         return Err(PhysicalMosaicError::CueIsEmpty);
     }
-    if cue.len() >= original.member_lineages.len() {
+    if cue.len() >= retained.member_lineages.len() {
         return Err(PhysicalMosaicError::CueIsNotPartial);
     }
     if cue
         .iter()
-        .any(|lineage| original.member_lineages.binary_search(lineage).is_err())
+        .any(|lineage| retained.member_lineages.binary_search(lineage).is_err())
     {
         return Err(PhysicalMosaicError::CueOutsideFormation);
     }
-    let mut available_lineages = original.member_lineages.to_vec();
+    let mut available_lineages = retained.member_lineages.to_vec();
     for bond in active_bonds {
-            let (left, right) = bond.endpoints();
+        let (left, right) = bond.endpoints();
         available_lineages.push(left);
         available_lineages.push(right);
     }
     available_lineages.sort_unstable();
     available_lineages.dedup();
     let recurrence_bonds =
-        connecting_bond_witness(&available_lineages, &original.member_lineages, active_bonds)
+        connecting_bond_witness(&available_lineages, &retained.member_lineages, active_bonds)
             .ok_or(PhysicalMosaicError::RecurrenceDidNotReachFormation)?;
+    Ok((recurrence_bonds, cue))
+}
+
+/// Promote an organism-wide retained original only when a later proper
+/// partial cue and actual sparse contact flow reassemble every member.
+pub(crate) fn prove_physical_mosaic_recurrence(
+    original: &AdmittedPhysicalMosaic,
+    physically_changed_lineages: &[StableNeuronLineage],
+    active_bonds: &[StablePhysicalBondReference],
+    partial_cue_lineages: &[StableNeuronLineage],
+) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
+    if !original.original_only {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+    let (recurrence_bonds, cue) = current_recurrence_witness(
+        original,
+        physically_changed_lineages,
+        active_bonds,
+        partial_cue_lineages,
+    )?;
     let mut recognized = original.clone();
     recognized.original_only = false;
     recognized.exact_pattern_recognition = true;
     recognized.recurrence_bonds = recurrence_bonds.into_boxed_slice();
     recognized.partial_cue_lineages = cue.into_boxed_slice();
     Ok(recognized)
+}
+
+/// Replace only the bounded latest recurrence witness when a recognized
+/// organism-wide formation is physically reassembled through a different
+/// current sparse route or proper partial cue. The original neuronal deltas
+/// and original bonds remain unchanged. A repeated identical witness is
+/// quiescent at this formation boundary and does not mint a counter or write.
+pub(crate) fn alter_physical_mosaic_recurrence(
+    retained: &AdmittedPhysicalMosaic,
+    physically_changed_lineages: &[StableNeuronLineage],
+    active_bonds: &[StablePhysicalBondReference],
+    partial_cue_lineages: &[StableNeuronLineage],
+) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
+    if retained.original_only || !retained.exact_pattern_recognition {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+    let (recurrence_bonds, cue) = current_recurrence_witness(
+        retained,
+        physically_changed_lineages,
+        active_bonds,
+        partial_cue_lineages,
+    )?;
+    if recurrence_bonds.as_slice() == retained.recurrence_bonds.as_ref()
+        && cue.as_slice() == retained.partial_cue_lineages.as_ref()
+    {
+        return Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation);
+    }
+    let mut altered = retained.clone();
+    altered.recurrence_bonds = recurrence_bonds.into_boxed_slice();
+    altered.partial_cue_lineages = cue.into_boxed_slice();
+    Ok(altered)
 }
 
 /// Admit the smallest physical collective unit only after later recurrence.
@@ -1640,6 +1687,56 @@ mod codec_tests {
         assert_eq!(recognized.original_bonds(), topology());
         assert_eq!(recognized.recurrence_bonds(), topology());
         assert_eq!(recognized.partial_cue_lineages(), &[lineage(1)]);
+    }
+
+    #[test]
+    fn recognized_organism_formation_replaces_only_a_changed_recurrence_witness() {
+        let original = admit_physical_mosaic_original(
+            &neuron_lineages(),
+            &fractal_anatomies(),
+            &[
+                Some(fractal(1, 3)),
+                Some(fractal(-7, 11)),
+                Some(fractal(5, 13)),
+            ],
+            &topology(),
+        )
+        .unwrap();
+        let recognized = prove_physical_mosaic_recurrence(
+            &original,
+            &neuron_lineages(),
+            &topology(),
+            &[lineage(1)],
+        )
+        .unwrap();
+        let mut alternate = vec![
+            StablePhysicalBondReference::new(lineage(1), lineage(4), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(4), lineage(2), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(2), lineage(3), 0).unwrap(),
+        ];
+        alternate.sort_unstable();
+        let altered = alter_physical_mosaic_recurrence(
+            &recognized,
+            &neuron_lineages(),
+            &alternate,
+            &[lineage(3)],
+        )
+        .unwrap();
+
+        assert_eq!(altered.member_lineages(), recognized.member_lineages());
+        assert_eq!(altered.retained_fractals(), recognized.retained_fractals());
+        assert_eq!(altered.original_bonds(), recognized.original_bonds());
+        assert_eq!(altered.recurrence_bonds(), alternate);
+        assert_eq!(altered.partial_cue_lineages(), &[lineage(3)]);
+        assert_eq!(
+            alter_physical_mosaic_recurrence(
+                &altered,
+                &neuron_lineages(),
+                &alternate,
+                &[lineage(3)],
+            ),
+            Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation)
+        );
     }
 
     #[test]

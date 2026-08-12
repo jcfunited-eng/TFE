@@ -67,7 +67,8 @@ use crate::optical_receptor_work::{
     RETINAL_SPECTRAL_IRRADIANCE_QUANTITY,
 };
 use crate::physical_mosaic::{
-    admit_physical_mosaic, admit_physical_mosaic_original, connected_members,
+    admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
+    connected_members,
     decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
     prove_physical_mosaic_recurrence, AdmittedPhysicalMosaic, PhysicalMosaicCodecError,
     PhysicalMosaicError, StablePhysicalBondReference,
@@ -554,12 +555,13 @@ impl DormantLineageSeed {
 
 /// One compact retained physical formation. Identity is its exact original
 /// neuronal deltas and bonds, not its member set: the same neurons may belong
-/// to many formations. A later physical reassembly may increment the
-/// observational reinforcement count but never overwrites the original.
+/// to many formations. Later physical reassembly updates only the bounded
+/// recurrence witness and never overwrites the original.
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct RetainedOrganismMosaic {
     mosaic: AdmittedPhysicalMosaic,
-    /// How many later physical recurrences reassembled this exact formation.
+    /// Retired historical codec field. A count is not physical strengthening,
+    /// so current physics never reads or increments it.
     reinforcement_count: u64,
     /// Retired historical codec field. Overlap alone is not a relation, so
     /// current physics never increments it; it remains only to cold-restore
@@ -890,10 +892,7 @@ fn settle_organism_mosaic_boundary(
         .collect::<Vec<_>>();
     let mut receipt = None;
     let mut reassemblies = 0usize;
-    for retained in mosaics
-        .iter_mut()
-        .filter(|retained| retained.mosaic.is_original_only())
-    {
+    for retained in mosaics.iter_mut() {
         let cue = externally_reached_lineages
             .iter()
             .copied()
@@ -906,13 +905,22 @@ fn settle_organism_mosaic_boundary(
                     .is_ok()
             })
             .collect::<Vec<_>>();
-        let recognized = match prove_physical_mosaic_recurrence(
-            &retained.mosaic,
-            &changed_lineages,
-            active_bonds,
-            &cue,
-        ) {
-            Ok(recognized) => recognized,
+        let reassembled = match if retained.mosaic.is_original_only() {
+            prove_physical_mosaic_recurrence(
+                &retained.mosaic,
+                &changed_lineages,
+                active_bonds,
+                &cue,
+            )
+        } else {
+            alter_physical_mosaic_recurrence(
+                &retained.mosaic,
+                &changed_lineages,
+                active_bonds,
+                &cue,
+            )
+        } {
+            Ok(reassembled) => reassembled,
             Err(error) if physical_mosaic_non_admission(error) => continue,
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
@@ -920,12 +928,12 @@ fn settle_organism_mosaic_boundary(
             &topology.lineages,
             &topology.bonds,
             &topology.fractal_anatomies,
-            &recognized,
+            &reassembled,
             max_encoded_bytes,
         )
         .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
         receipt = Some(sha256(&encoded));
-        retained.mosaic = recognized;
+        retained.mosaic = reassembled;
         reassemblies = reassemblies
             .checked_add(1)
             .ok_or(FormationError::ArithmeticOverflow)?;
@@ -1500,6 +1508,32 @@ impl ResidentCognitiveFormationState {
                     retained.mosaic.original_bonds().to_vec(),
                     retained.mosaic.recurrence_bonds().to_vec(),
                     retained.reinforcement_count,
+                ))
+            })
+            .collect()
+    }
+
+    /// Read-only proper partial-cue witness for each retained formation,
+    /// correlated by the same canonical structure receipt used by the exact
+    /// structure observer. The cue is evidence of the latest physical
+    /// reassembly; it is not a semantic key and reading advances nothing.
+    pub(crate) fn observe_retained_formation_recurrence_cues(
+        &self,
+        max_encoded_bytes: usize,
+    ) -> Result<Vec<([u8; 32], Vec<[u8; 16]>)>, FormationError> {
+        self.mosaics
+            .iter()
+            .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
+            .map(|retained| {
+                let encoded = encode_organism_mosaic(
+                    &self.cohorts,
+                    &self.electrical_fabric,
+                    &retained.mosaic,
+                    max_encoded_bytes,
+                )?;
+                Ok((
+                    sha256(&encoded),
+                    retained.mosaic.partial_cue_lineages().to_vec(),
                 ))
             })
             .collect()
@@ -4004,13 +4038,9 @@ fn apply_mosaic_structural_resolution(
             mosaics.push(RetainedOrganismMosaic::newly_admitted(mosaic));
         }
         MosaicStructuralResolution::Reinforces { mosaic_index } => {
-            let retained = mosaics
-                .get_mut(mosaic_index)
+            mosaics
+                .get(mosaic_index)
                 .ok_or(FormationError::NoncanonicalState)?;
-            retained.reinforcement_count = retained
-                .reinforcement_count
-                .checked_add(1)
-                .ok_or(FormationError::ArithmeticOverflow)?;
         }
     }
     Ok(())
@@ -5034,6 +5064,7 @@ fn physical_mosaic_non_admission(error: PhysicalMosaicError) -> bool {
             | PhysicalMosaicError::CueOutsideFormation
             | PhysicalMosaicError::RecurrenceDidNotReachFormation
             | PhysicalMosaicError::RecurrenceDidNotChangeEveryMember
+            | PhysicalMosaicError::RecurrenceDidNotAlterFormation
     )
 }
 
@@ -9410,11 +9441,8 @@ mod tests {
         assert_eq!(state.mosaic_of_mosaics_count().unwrap(), 0);
     }
 
-    /// R1 reinforce branch: same member set and no active bond outside the
-    /// retained reference's structure — zero structural difference (R2), so
-    /// the reference body stays byte-identical and only the R3 count moves.
-    /// The byte-identical reassembly (the former `already_formed` equality
-    /// dedup) is the degenerate case of the same branch.
+    /// An equality resolution is observational only. It cannot alter retained
+    /// physical state or increment a lifetime counter.
     #[test]
     fn same_members_without_new_active_bonds_reinforce_the_retained_reference() {
         let reference = synthetic_admitted_mosaic(&[1, 2, 3], &[(1, 2), (2, 3)], 1);
@@ -9436,7 +9464,7 @@ mod tests {
         apply_mosaic_structural_resolution(&mut mosaics, identical).unwrap();
         assert_eq!(mosaics.len(), 1);
         assert_eq!(mosaics[0].mosaic, reference);
-        assert_eq!(mosaics[0].reinforcement_count, 2);
+        assert_eq!(mosaics[0].reinforcement_count, 0);
         assert_eq!(mosaics[0].mosaic_of_mosaics_relation_count, 0);
     }
 
@@ -10465,7 +10493,7 @@ mod tests {
         let original = admit_physical_mosaic_original(
             &topology.lineages,
             &topology.fractal_anatomies,
-            &vec![Some(fractal); topology.lineages.len()],
+            &vec![Some(fractal.clone()); topology.lineages.len()],
             &topology.bonds,
         )
         .unwrap();
@@ -10480,6 +10508,56 @@ mod tests {
         )
         .unwrap();
         assert!(recognized.carries_only_retained_neuron_structure());
+
+        let original_members = recognized.member_lineages().to_vec();
+        let original_fractals = recognized.retained_fractals().to_vec();
+        let original_bonds = recognized.original_bonds().to_vec();
+        let prior_cue = recognized.partial_cue_lineages().to_vec();
+        let mut mosaics = vec![RetainedOrganismMosaic::newly_admitted(recognized)];
+        let mut current_deltas = topology
+            .lineages
+            .iter()
+            .map(|lineage| (*lineage, fractal.clone()))
+            .collect::<Vec<_>>();
+        current_deltas.sort_unstable_by_key(|(lineage, _)| *lineage);
+        let changed_cue = [receptor_lineages[0]];
+        let (altered_receipt, reassemblies) = settle_organism_mosaic_boundary(
+            &cohorts,
+            &fabric,
+            &[],
+            &current_deltas,
+            &changed_cue,
+            &changed_cue,
+            &topology.bonds,
+            &mut mosaics,
+            16_000_000,
+        )
+        .unwrap();
+        assert!(altered_receipt.is_some());
+        assert_eq!(reassemblies, 1);
+        assert_eq!(mosaics.len(), 1);
+        assert_eq!(mosaics[0].reinforcement_count, 0);
+        assert_eq!(mosaics[0].mosaic.member_lineages(), original_members);
+        assert_eq!(mosaics[0].mosaic.retained_fractals(), original_fractals);
+        assert_eq!(mosaics[0].mosaic.original_bonds(), original_bonds);
+        assert_ne!(mosaics[0].mosaic.partial_cue_lineages(), prior_cue);
+        assert_eq!(mosaics[0].mosaic.partial_cue_lineages(), changed_cue);
+
+        let altered_bytes = encode_retained_organism_mosaic(
+            &cohorts,
+            &fabric,
+            &mosaics[0],
+            16_000_000,
+        )
+        .unwrap();
+        let altered_cold = decode_retained_organism_mosaic(
+            &cohorts,
+            &fabric,
+            &altered_bytes,
+            16_000_000,
+        )
+        .unwrap();
+        assert_eq!(altered_cold, mosaics[0]);
     }
 
     #[test]
