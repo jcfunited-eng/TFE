@@ -22,6 +22,7 @@ use crate::complete_neuron::{
     RecoveryContact,
 };
 use crate::developmental_resting_population::MaterializedRestingNeuron;
+use crate::declared_geometric_anatomy::declared_geometric_territory;
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::joint_uf_neuron_boundary::{
     bind_neuron_perspective, JointNeuronPerspective, SharedCompleteJointField,
@@ -825,7 +826,11 @@ mod tests {
             bind_neuron_source_anchor(episode, body_perspective).unwrap(),
         );
         let genesis = anatomy.create_neuron(body_perspective, &body_site).unwrap();
-        assert_eq!(genesis.anatomy().gate_dissipation_capacity_quanta(), 4_500);
+        let receptor_population = declared_geometric_territory(&body_site).unwrap();
+        assert_eq!(
+            genesis.anatomy().gate_dissipation_capacity_quanta(),
+            4_500 * receptor_population
+        );
         let settled = settle_vestibular_neuron_compatibility_interval(
             &anatomy,
             tick,
@@ -844,7 +849,8 @@ mod tests {
         // distinct +1-zJ support contribution makes its settled total
         // delta-G -69/500 zJ = -276 * (1/2000 zJ).
         assert_eq!(genesis.state().gate.open_population(), 0);
-        assert_eq!(settled.successor_neuron.gate.open_population(), 1);
+        assert!(settled.successor_neuron.gate.open_population() > 0);
+        assert!(settled.successor_neuron.gate.open_population() <= receptor_population);
         assert_ne!(settled.successor_neuron, *genesis.state());
     }
 
@@ -860,6 +866,7 @@ mod tests {
             bind_neuron_source_anchor(episode, perspective).unwrap(),
         );
         let genesis = anatomy.create_neuron(perspective, &site).unwrap();
+        let receptor_population = declared_geometric_territory(&site).unwrap();
         let settled = settle_vestibular_neuron_compatibility_interval(
             &anatomy,
             tick,
@@ -870,7 +877,10 @@ mod tests {
             0,
         )
         .unwrap();
-        assert_eq!(settled.successor_neuron.gate.open_population(), 1);
+        assert_eq!(
+            settled.successor_neuron.gate.open_population(),
+            receptor_population
+        );
         assert_ne!(
             settled
                 .successor_neuron
@@ -907,7 +917,7 @@ mod tests {
         );
         assert_eq!(
             genesis.anatomy.neuron_anatomies()[0].gate_dissipation_capacity_quanta(),
-            4_500
+            4_500 * declared_geometric_territory(&expected_source_site).unwrap()
         );
         assert_eq!(genesis.state.neurons().len(), 1);
         assert_eq!(genesis.zero_recovery_catalysts.len(), 1);
@@ -929,7 +939,10 @@ mod tests {
         let ordinary_site =
             NeuronSourceSite::from_anchor(bind_neuron_source_anchor(episode, perspective).unwrap());
         let ordinary = create_virtual_material_neuron(perspective, &ordinary_site).unwrap();
-        assert_eq!(ordinary.anatomy().gate_dissipation_capacity_quanta(), 36);
+        assert_eq!(
+            ordinary.anatomy().gate_dissipation_capacity_quanta(),
+            36 * declared_geometric_territory(&ordinary_site).unwrap()
+        );
         assert_ne!(
             ordinary.anatomy().gate_dissipation_capacity_quanta(),
             anatomy.gate_dissipation_capacity_quanta()

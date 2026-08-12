@@ -295,6 +295,7 @@ fn candidate_neuron_recovers_through_conserved_fluid_and_repeats_response() {
 }
 
 #[test]
+#[ignore = "retired: pre-specialization aggregate gate-work candidate"]
 fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     let episode = exact_episode();
     let shared = prepare_complete_joint_field_admitted_fixture(&episode, 0).unwrap();

@@ -33,7 +33,7 @@ use crate::joint_uf_neuron_boundary::{
 };
 use crate::local_membrane_conductance_balance::LocalMembraneConductanceState;
 use crate::neuron_source_anchor::{
-    bind_neuron_source_anchor, NeuronSourceAnchorError, NeuronSourceSite, PhysicalSourceSense,
+    bind_neuron_source_anchor, NeuronSourceAnchorError, NeuronSourceSite,
 };
 use crate::reached_neuron_cohort::{
     extend_reached_cohort_cells, ReachedCohortAnatomy, ReachedCohortError, ReachedCohortState,
@@ -377,11 +377,8 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
     site: &NeuronSourceSite,
     gate_dissipation_quantum_zeptojoules: BigRational,
 ) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
-    let receptor_population = if site.sense() == PhysicalSourceSense::Sight {
-        declared_geometric_territory(site).map_err(VirtualMaterialGenesisError::DeclaredGeometry)?
-    } else {
-        1
-    };
+    let receptor_population = declared_geometric_territory(site)
+        .map_err(VirtualMaterialGenesisError::DeclaredGeometry)?;
     // Every gate in this already-arrived occurrence belongs to the neuron's
     // one current birth field.  Mount the smallest exact positional fabric
     // that can carry that whole field; this is not future capacity and does
@@ -393,7 +390,7 @@ pub(crate) fn create_virtual_material_neuron_with_gate_energy_quantum(
         positions,
         DeclaredNeuronPlace::from_source_site(site),
         receptor_population,
-        site.sense() == PhysicalSourceSense::Sight && receptor_population > 1,
+        receptor_population > 1,
         gate_dissipation_quantum_zeptojoules,
     )
 }
@@ -439,17 +436,10 @@ pub(crate) fn reach_quiescent_virtual_material_neuron(
         .max(declared_field_arithmetic_positions());
     let (anatomy, state) = extend_neuron_positional_fabric(anatomy, state, positions)
         .map_err(VirtualMaterialGenesisError::Neuron)?;
-    let receptor_population = if site.sense() == PhysicalSourceSense::Sight {
-        declared_geometric_territory(site).map_err(VirtualMaterialGenesisError::DeclaredGeometry)?
-    } else {
-        1
-    };
-    let (anatomy, state) = expand_legacy_receptor_channel_population(
-        &anatomy,
-        &state,
-        receptor_population,
-        0,
-    )
+    let receptor_population = declared_geometric_territory(site)
+        .map_err(VirtualMaterialGenesisError::DeclaredGeometry)?;
+    let (anatomy, state) =
+        expand_legacy_receptor_channel_population(&anatomy, &state, receptor_population, 0)
     .map_err(VirtualMaterialGenesisError::Neuron)?;
     let zero_recovery_catalysts = vec![0; anatomy.psi_ring_count()].into_boxed_slice();
     Ok(VirtualMaterialNeuronGenesis {
@@ -491,8 +481,7 @@ pub(crate) fn specialize_quiescent_virtual_material_neuron_with_gate_energy_quan
         gate_dissipation_quantum_zeptojoules,
     )?;
     if specialized.anatomy().capacitance() != anatomy.capacitance()
-        || specialized.state().carrier_reservoirs().total()
-            != state.carrier_reservoirs().total()
+        || specialized.state().carrier_reservoirs().total() != state.carrier_reservoirs().total()
     {
         return Err(VirtualMaterialGenesisError::RestingSpecializationMismatch);
     }
@@ -649,10 +638,7 @@ fn build_quiescent_virtual_material_neuron(
         psi: PsiKrimelackState::genesis(&psi),
         gate: TwoStateGateState::genesis(0),
         membrane: LocalMembraneConductanceState::genesis(0),
-        carriers: CarrierReservoirs::new(
-            carriers_per_compartment,
-            carriers_per_compartment,
-        ),
+        carriers: CarrierReservoirs::new(carriers_per_compartment, carriers_per_compartment),
         recovery: RecoveryState::new(
             vec![RecoveryLaneState::new(1); ring_count],
             RecoveryLaneState::new(gate_dissipation_capacity_quanta),

@@ -215,6 +215,7 @@ class ResidentPrepareEvidence:
     emitted_neuron_fractals: tuple[
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
+    active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
 
 
 def _native_core():
@@ -566,6 +567,55 @@ class NativeResidentOrganism:
             raise RuntimeError("formation observation advanced the organism")
         return tuple(validated)
 
+    def observe_retained_formation_structures(
+        self,
+    ) -> tuple[
+        tuple[
+            str,
+            tuple[str, ...],
+            tuple[tuple[str, str, int], ...],
+            tuple[tuple[str, str, int], ...],
+            int,
+        ],
+        ...,
+    ]:
+        """Read exact retained structure without assigning meaning."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_retained_formation_structures()
+        validated = []
+        for receipt, members, original_bonds, recurrence_bonds, reinforcements in observed:
+            receipt = str(receipt)
+            member_lineages = tuple(str(lineage) for lineage in members)
+            if len(receipt) != 64 or len(member_lineages) < 3 or any(
+                len(lineage) != 32 for lineage in member_lineages
+            ):
+                raise RuntimeError("retained formation structure is invalid")
+
+            def bonds(values: object) -> tuple[tuple[str, str, int], ...]:
+                canonical = []
+                for left, right, ordinal in values:
+                    left = str(left)
+                    right = str(right)
+                    ordinal = _nonnegative_integer(ordinal, "parallel bond ordinal")
+                    if len(left) != 32 or len(right) != 32 or left >= right:
+                        raise RuntimeError("retained formation bond is invalid")
+                    canonical.append((left, right, ordinal))
+                return tuple(canonical)
+
+            validated.append(
+                (
+                    receipt,
+                    member_lineages,
+                    bonds(original_bonds),
+                    bonds(recurrence_bonds),
+                    _nonnegative_integer(reinforcements, "reinforcement count"),
+                )
+            )
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation structure observation advanced the organism")
+        return tuple(validated)
+
     def navigate_hippocampal(self, lineage_hex: str) -> None:
         """Refused: the hippocampal episode archive is retired.
 
@@ -816,6 +866,20 @@ class NativeResidentOrganism:
             emitted_neuron_fractals.append((lineage, tuple(entries)))
         if len(emitted_neuron_fractals) != complete_neuron_fractal_count:
             raise RuntimeError("neuronal fractal count lost its exact evidence")
+        raw_active_physical_bonds = candidate.active_physical_bonds
+        if not isinstance(raw_active_physical_bonds, list):
+            raise RuntimeError("active physical-bond evidence changed format")
+        active_physical_bonds: list[tuple[str, str, int]] = []
+        for raw_bond in raw_active_physical_bonds:
+            if not isinstance(raw_bond, tuple) or len(raw_bond) != 3:
+                raise RuntimeError("active physical-bond evidence changed format")
+            active_physical_bonds.append(
+                (
+                    _canonical_lineage_hex(raw_bond[0], "active bond left lineage"),
+                    _canonical_lineage_hex(raw_bond[1], "active bond right lineage"),
+                    _nonnegative_integer(raw_bond[2], "active bond parallel ordinal"),
+                )
+            )
         recurrent_complete_neuron_fractal_count = _nonnegative_integer(
             candidate.recurrent_complete_neuron_fractal_count,
             "recurrent complete-neuron fractal count",
@@ -1010,6 +1074,7 @@ class NativeResidentOrganism:
             receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
             emitted_neuron_fractals=tuple(emitted_neuron_fractals),
+            active_physical_bonds=tuple(active_physical_bonds),
         )
 
     def prepare_authored_contacts(

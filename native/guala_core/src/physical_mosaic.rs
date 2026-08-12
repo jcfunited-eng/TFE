@@ -338,20 +338,8 @@ pub(crate) fn admit_physical_mosaic_original(
         .into_iter()
         .map(|(_, fractal, _)| fractal)
         .collect::<Vec<_>>();
-    let mut original_bonds = active_bonds
-        .iter()
-        .copied()
-        .filter(|bond| {
-            let (left, right) = bond.endpoints();
-            member_lineages.binary_search(&left).is_ok()
-                && member_lineages.binary_search(&right).is_ok()
-        })
-        .collect::<Vec<_>>();
-    original_bonds.sort_unstable();
-    original_bonds.dedup();
-    if !mosaic_lineages_connect(&member_lineages, &original_bonds, &member_lineages[..1]) {
-        return Err(PhysicalMosaicError::OriginalRelationNotConnected);
-    }
+    let original_bonds = connecting_bond_witness(neuron_lineages, &member_lineages, active_bonds)
+        .ok_or(PhysicalMosaicError::OriginalRelationNotConnected)?;
     Ok(AdmittedPhysicalMosaic {
         original_only: true,
         exact_pattern_recognition: false,
@@ -400,20 +388,17 @@ pub(crate) fn prove_physical_mosaic_recurrence(
     {
         return Err(PhysicalMosaicError::CueOutsideFormation);
     }
-    let mut recurrence_bonds = active_bonds
-        .iter()
-        .copied()
-        .filter(|bond| {
+    let mut available_lineages = original.member_lineages.to_vec();
+    for bond in active_bonds {
             let (left, right) = bond.endpoints();
-            original.member_lineages.binary_search(&left).is_ok()
-                && original.member_lineages.binary_search(&right).is_ok()
-        })
-        .collect::<Vec<_>>();
-    recurrence_bonds.sort_unstable();
-    recurrence_bonds.dedup();
-    if !mosaic_lineages_connect(&original.member_lineages, &recurrence_bonds, &cue) {
-        return Err(PhysicalMosaicError::RecurrenceDidNotReachFormation);
+        available_lineages.push(left);
+        available_lineages.push(right);
     }
+    available_lineages.sort_unstable();
+    available_lineages.dedup();
+    let recurrence_bonds =
+        connecting_bond_witness(&available_lineages, &original.member_lineages, active_bonds)
+            .ok_or(PhysicalMosaicError::RecurrenceDidNotReachFormation)?;
     let mut recognized = original.clone();
     recognized.original_only = false;
     recognized.exact_pattern_recognition = true;
@@ -1259,8 +1244,8 @@ fn validate_decoded_mosaic(
     {
         let (left, right) = bond.endpoints();
         if available_bonds.binary_search(bond).is_err()
-            || mosaic.member_lineages.binary_search(&left).is_err()
-            || mosaic.member_lineages.binary_search(&right).is_err()
+            || !neuron_lineages.contains(&left)
+            || !neuron_lineages.contains(&right)
         {
             return Err(PhysicalMosaicCodecError::ContactLeavesFormation);
         }
@@ -1291,6 +1276,74 @@ fn validate_canonical_values<T: Ord>(values: &[T]) -> Result<(), PhysicalMosaicC
     Ok(())
 }
 
+/// Return one canonical, bounded physical witness that connects every
+/// fractal-owning member through the contacts that actually carried current.
+/// Intermediate reached neurons need not themselves retain a fractal: an
+/// integration cell can physically bind two sensory impressions while its
+/// own working state remains transient. The witness is the union of the
+/// breadth-first predecessor paths from the first canonical member, so it
+/// stores no unused branch and never invents an edge.
+fn connecting_bond_witness(
+    available_lineages: &[StableNeuronLineage],
+    members: &[StableNeuronLineage],
+    active_bonds: &[StablePhysicalBondReference],
+) -> Option<Vec<StablePhysicalBondReference>> {
+    let root = *members.first()?;
+    let root_index = available_lineages
+        .iter()
+        .position(|lineage| *lineage == root)?;
+    let mut predecessor =
+        vec![None::<(usize, StablePhysicalBondReference)>; available_lineages.len()];
+    let mut reached = vec![false; available_lineages.len()];
+    let mut queue = VecDeque::new();
+    reached[root_index] = true;
+    queue.push_back(root_index);
+    while let Some(current_index) = queue.pop_front() {
+        let current = available_lineages[current_index];
+        for bond in active_bonds {
+            let (left, right) = bond.endpoints();
+            let neighbour = if left == current {
+                Some(right)
+            } else if right == current {
+                Some(left)
+            } else {
+                None
+            };
+            let Some(neighbour) = neighbour else {
+                continue;
+            };
+            let Some(neighbour_index) = available_lineages
+                .iter()
+                .position(|lineage| *lineage == neighbour)
+            else {
+                continue;
+            };
+            if !reached[neighbour_index] {
+                reached[neighbour_index] = true;
+                predecessor[neighbour_index] = Some((current_index, *bond));
+                queue.push_back(neighbour_index);
+            }
+        }
+    }
+    let mut witness = Vec::new();
+    for member in members {
+        let mut current = available_lineages
+            .iter()
+            .position(|lineage| lineage == member)?;
+        if !reached[current] {
+            return None;
+        }
+        while current != root_index {
+            let (prior, bond) = predecessor[current]?;
+            witness.push(bond);
+            current = prior;
+        }
+    }
+    witness.sort_unstable();
+    witness.dedup();
+    Some(witness)
+}
+
 fn mosaic_lineages_connect(
     members: &[StableNeuronLineage],
     bonds: &[StablePhysicalBondReference],
@@ -1309,7 +1362,7 @@ fn mosaic_lineages_connect(
                 None
             };
             if let Some(neighbour) = neighbour {
-                if members.binary_search(&neighbour).is_ok() && !reached.contains(&neighbour) {
+                if !reached.contains(&neighbour) {
                     reached.push(neighbour);
                     queue.push_back(neighbour);
                 }
@@ -1587,6 +1640,60 @@ mod codec_tests {
         assert_eq!(recognized.original_bonds(), topology());
         assert_eq!(recognized.recurrence_bonds(), topology());
         assert_eq!(recognized.partial_cue_lineages(), &[lineage(1)]);
+    }
+
+    #[test]
+    fn transient_integration_cells_can_physically_connect_retained_sensory_fractals() {
+        let lineages = [lineage(1), lineage(2), lineage(3), lineage(4), lineage(5)];
+        let bonds = vec![
+            StablePhysicalBondReference::new(lineage(1), lineage(2), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(2), lineage(3), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(3), lineage(4), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(4), lineage(5), 0).unwrap(),
+        ];
+        let original = admit_physical_mosaic_original(
+            &lineages,
+            &[(1, 24); 5],
+            &[
+                Some(fractal(1, 3)),
+                None,
+                Some(fractal(2, 3)),
+                None,
+                Some(fractal(4, 3)),
+            ],
+            &bonds,
+        )
+        .unwrap();
+        assert_eq!(
+            original.member_lineages(),
+            &[lineage(1), lineage(3), lineage(5)]
+        );
+        assert_eq!(original.original_bonds(), bonds);
+
+        let encoded = encode_admitted_physical_mosaic_for_topology(
+            &lineages,
+            &bonds,
+            &[(1, 24); 5],
+            &original,
+            2_048,
+        )
+        .unwrap();
+        let cold = decode_admitted_physical_mosaic_for_topology(
+            &lineages,
+            &bonds,
+            &[(1, 24); 5],
+            &encoded,
+            encoded.len(),
+        )
+        .unwrap();
+        let recognized = prove_physical_mosaic_recurrence(
+            &cold,
+            &[lineage(1), lineage(3), lineage(5)],
+            &bonds,
+            &[lineage(1)],
+        )
+        .unwrap();
+        assert_eq!(recognized.recurrence_bonds(), bonds);
     }
 
     #[test]

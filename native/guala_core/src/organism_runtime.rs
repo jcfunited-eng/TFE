@@ -15,8 +15,8 @@
 //! advances nothing. It performs no Python callback and owns no
 //! persistence, owner, lock, or global clock.
 
-use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
 use crate::complete_neuron::{ExactPhysicalStateDelta, PhysicalStateCoordinate};
+use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
 use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::NativeJointSourceEpisode;
 #[cfg(test)]
@@ -33,6 +33,7 @@ use crate::mounted_joint_fractal::{
     MountedJointDsfTransition, MountedTransitionPhaseCounts, ResidentMountedRestoreWork,
     ResidentMountedState,
 };
+use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
@@ -51,12 +52,9 @@ use crate::vestibular_neuron_path::{
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
 };
 use crate::virtual_body_yaw_motion::{
-    settle_motor_unit_yaw_actuation, settle_signed_yaw_actuation, SignedYawActuation,
-    YawBodyState,
+    settle_motor_unit_yaw_actuation, settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
 };
-use crate::virtual_vestibular_canal::{
-    decode_canal_state, encode_canal_state, CanalState,
-};
+use crate::virtual_vestibular_canal::{decode_canal_state, encode_canal_state, CanalState};
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
@@ -300,7 +298,10 @@ impl fmt::Display for RuntimeError {
                 write!(output, "resident cognitive formation failed: {reason}")
             }
             Self::Vestibular(reason) => {
-                write!(output, "resident body-and-balance transition failed: {reason}")
+                write!(
+                    output,
+                    "resident body-and-balance transition failed: {reason}"
+                )
             }
             Self::AdmittedSourceRequired => write!(
                 output,
@@ -343,6 +344,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
+    pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
     pub(crate) successor_l0_l4_replay_count: usize,
@@ -825,14 +827,20 @@ impl NativeResidentOrganismObservation {
     #[getter]
     fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
         exact_energy_parts(
-            &self.observation.energy.available_energy_capacity_zeptojoules,
+            &self
+                .observation
+                .energy
+                .available_energy_capacity_zeptojoules,
         )
     }
 
     #[getter]
     fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
         exact_energy_parts(
-            &self.observation.energy.dissipation_capacity_energy_zeptojoules,
+            &self
+                .observation
+                .energy
+                .dissipation_capacity_energy_zeptojoules,
         )
     }
 
@@ -862,10 +870,7 @@ impl NativeResidentOrganismObservation {
                 .energy
                 .dissipation_capacity_energy_zeptojoules
                 != zero
-                && self
-                    .observation
-                    .energy
-                    .dissipated_energy_zeptojoules
+                && self.observation.energy.dissipated_energy_zeptojoules
                     >= self
                         .observation
                         .energy
@@ -879,8 +884,7 @@ impl NativeResidentOrganismObservation {
 
     #[getter]
     fn metabolically_perturbed_body_receptor_count(&self) -> usize {
-        self.observation
-            .metabolically_perturbed_body_receptor_count
+        self.observation.metabolically_perturbed_body_receptor_count
     }
 
     #[getter]
@@ -1094,10 +1098,30 @@ impl NativeResidentOrganismPrepare {
                                 ));
                             }
                         };
-                        Ok((coordinate.to_owned(), index, negative, magnitude, denominator))
+                        Ok((
+                            coordinate.to_owned(),
+                            index,
+                            negative,
+                            magnitude,
+                            denominator,
+                        ))
                     })
                     .collect::<PyResult<Vec<_>>>()?;
                 Ok((hex_bytes(&fractal.neuron_lineage), entries))
+            })
+            .collect()
+    }
+
+    /// Exact sparse contacts that carried current in this prepared native
+    /// transition. Reading the transient witness stores and advances nothing.
+    #[getter]
+    fn active_physical_bonds(&self) -> Vec<(String, String, u32)> {
+        self.observation
+            .active_physical_bonds
+            .iter()
+            .map(|bond| {
+                let (left, right) = bond.endpoints();
+                (hex_bytes(&left), hex_bytes(&right), bond.parallel_ordinal())
             })
             .collect()
     }
@@ -1190,7 +1214,10 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
         exact_energy_parts(
-            &self.observation.energy.available_energy_capacity_zeptojoules,
+            &self
+                .observation
+                .energy
+                .available_energy_capacity_zeptojoules,
         )
     }
 
@@ -1202,7 +1229,10 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
         exact_energy_parts(
-            &self.observation.energy.dissipation_capacity_energy_zeptojoules,
+            &self
+                .observation
+                .energy
+                .dissipation_capacity_energy_zeptojoules,
         )
     }
 
@@ -1218,8 +1248,7 @@ impl NativeResidentOrganismPrepare {
 
     #[getter]
     fn metabolically_perturbed_body_receptor_count(&self) -> usize {
-        self.observation
-            .metabolically_perturbed_body_receptor_count
+        self.observation.metabolically_perturbed_body_receptor_count
     }
 
     #[getter]
@@ -1453,7 +1482,8 @@ impl ResidentOrganismRuntime {
         let derived_budget = budget.derive()?;
         let (mounted, cognitive, vestibular, observation) = {
             let parsed = parse_current_envelope(&envelope, budget)?;
-            let vestibular = parsed
+            let vestibular =
+                parsed
                 .vestibular
                 .clone()
                 .ok_or(RuntimeError::UnsupportedFabricVersion(
@@ -1574,7 +1604,9 @@ impl ResidentOrganismRuntime {
                 if observation.mosaic_formed.is_some() {
                     total.mosaic_formed = observation.mosaic_formed;
                 }
-                total.activations.extend(observation.activations.iter().cloned());
+                total
+                    .activations
+                    .extend(observation.activations.iter().cloned());
                 total.dsf_delivery_count = total
                     .dsf_delivery_count
                     .checked_add(observation.dsf_delivery_count)
@@ -1616,10 +1648,10 @@ impl ResidentOrganismRuntime {
                 total.resting_neuron_count = observation.resting_neuron_count;
                 total.mosaic_of_mosaics_count = observation.mosaic_of_mosaics_count;
                 total.energy = observation.energy;
-                total.membrane_returned_elementary_charges = observation
-                    .membrane_returned_elementary_charges;
-                total.membrane_unreturned_elementary_charges = observation
-                    .membrane_unreturned_elementary_charges;
+                total.membrane_returned_elementary_charges =
+                    observation.membrane_returned_elementary_charges;
+                total.membrane_unreturned_elementary_charges =
+                    observation.membrane_unreturned_elementary_charges;
             } else {
                 aggregate = Some(observation);
             }
@@ -1627,7 +1659,8 @@ impl ResidentOrganismRuntime {
         let cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
         })?;
-        let joint_state = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+        let joint_state =
+            encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let (mounted, _) = restore_resident_mounted_state(
             &joint_state,
             derived_budget.max_joint_state_bytes,
@@ -1766,9 +1799,9 @@ impl ResidentOrganismRuntime {
                 .active
                 .cognitive
                 .prepare_bare_source(source, cognitive_budget),
-            (Some(_), Some(_)) => Err(
-                crate::resident_cognitive_formation::FormationError::NoncanonicalState,
-            ),
+            (Some(_), Some(_)) => {
+                Err(crate::resident_cognitive_formation::FormationError::NoncanonicalState)
+            }
         }
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_state = self
@@ -2286,6 +2319,17 @@ impl NativeResidentOrganismRuntime {
             .observe_reached_neuron_count_by_layer()
     }
 
+    /// Read-only exact lineage-to-developmental-layer projection for reached
+    /// material. It is observer evidence only and advances no organism state.
+    fn observe_reached_neuron_lineage_layers(&self) -> Vec<(String, u32, bool)> {
+        self.runtime
+            .cognitive_state()
+            .observe_reached_neuron_lineage_layers()
+            .into_iter()
+            .map(|(lineage, layer, receptor)| (hex_bytes(&lineage), layer, receptor))
+            .collect()
+    }
+
     /// Read-only reached-neuron electrical evidence for translation-boundary
     /// diagnosis. Cognition never consumes this observer projection.
     fn observe_reached_neuron_electrical_by_layer(
@@ -2363,6 +2407,52 @@ impl NativeResidentOrganismRuntime {
             .collect()
     }
 
+    /// Exact read-only retained-formation evidence as
+    /// ``(receipt, members, original_bonds, recurrence_bonds,
+    /// reinforcement_count)``.  Each bond is its two stable lineage hexes
+    /// and parallel-contact ordinal.  No semantic identity is introduced.
+    #[allow(clippy::type_complexity)]
+    fn observe_retained_formation_structures(
+        &self,
+    ) -> PyResult<
+        Vec<(
+            String,
+            Vec<String>,
+            Vec<(String, String, u32)>,
+            Vec<(String, String, u32)>,
+            u64,
+        )>,
+    > {
+        let bond = |reference: &StablePhysicalBondReference| {
+            let (left, right) = reference.endpoints();
+            (
+                hex_bytes(&left),
+                hex_bytes(&right),
+                reference.parallel_ordinal(),
+            )
+        };
+        self.runtime
+            .cognitive_state()
+            .observe_retained_formation_structures(self.runtime.budget.max_fabric_bytes)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+            .map(|formations| {
+                formations
+                    .into_iter()
+                    .map(
+                        |(receipt, members, original, recurrence, reinforcements)| {
+                            (
+                                hex_bytes(&receipt),
+                                members.iter().map(|lineage| hex_bytes(lineage)).collect(),
+                                original.iter().map(&bond).collect(),
+                                recurrence.iter().map(&bond).collect(),
+                                reinforcements,
+                            )
+                        },
+                    )
+                    .collect()
+            })
+    }
+
     /// The retired archive navigator.
     ///
     /// This used to walk a neuron's archived posting chain and return episode
@@ -2393,10 +2483,8 @@ fn exact_virtual_yaw_trajectory(
 ) -> PyResult<(u32, Vec<i32>)> {
     let predecessor = YawBodyState::new(predecessor_heading_millidegrees)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-    let actuation = SignedYawActuation::new(
-        signed_displacement_millidegrees,
-        duration_microseconds,
-    )
+    let actuation =
+        SignedYawActuation::new(signed_displacement_millidegrees, duration_microseconds)
     .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let settled = settle_signed_yaw_actuation(predecessor, actuation)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
@@ -3069,7 +3157,8 @@ impl OrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let (joint_state, transition) = prepared.into_serialized_parts();
-        let vestibular = parsed
+        let vestibular =
+            parsed
             .vestibular
             .as_ref()
             .ok_or(RuntimeError::UnsupportedFabricVersion(
@@ -3195,15 +3284,7 @@ fn parse_current_envelope<'a>(
 fn parse_current_fabric(
     fabric: &[u8],
     budget: RuntimeBudget,
-) -> Result<
-    (
-        u64,
-        &[u8],
-        Option<&[u8]>,
-        Option<ResidentVestibularBody>,
-    ),
-    RuntimeError,
-> {
+) -> Result<(u64, &[u8], Option<&[u8]>, Option<ResidentVestibularBody>), RuntimeError> {
     if fabric.len() > budget.max_fabric_bytes {
         return Err(RuntimeError::FabricBudgetExceeded);
     }
@@ -3211,17 +3292,15 @@ fn parse_current_fabric(
         return Err(RuntimeError::BadFabricMagic);
     }
     let magic = &fabric[..FABRIC_MAGIC.len()];
-    if magic != FABRIC_MAGIC
-        && magic != PRE_VESTIBULAR_FABRIC_MAGIC
-        && magic != LEGACY_FABRIC_MAGIC
+    if magic != FABRIC_MAGIC && magic != PRE_VESTIBULAR_FABRIC_MAGIC && magic != LEGACY_FABRIC_MAGIC
     {
         return Err(RuntimeError::BadFabricMagic);
     }
     let mut offset = FABRIC_MAGIC.len();
     let version = take_u16(fabric, &mut offset)?;
     let legacy = magic == LEGACY_FABRIC_MAGIC && version == LEGACY_FABRIC_VERSION;
-    let pre_vestibular = magic == PRE_VESTIBULAR_FABRIC_MAGIC
-        && version == PRE_VESTIBULAR_FABRIC_VERSION;
+    let pre_vestibular =
+        magic == PRE_VESTIBULAR_FABRIC_MAGIC && version == PRE_VESTIBULAR_FABRIC_VERSION;
     let current = magic == FABRIC_MAGIC && version == FABRIC_VERSION;
     if !legacy && !pre_vestibular && !current {
         return Err(RuntimeError::UnsupportedFabricVersion(version));
@@ -3309,9 +3388,7 @@ fn encode_fabric(
             .map_err(|_| RuntimeError::FabricLengthOverflow)?
             .to_le_bytes(),
     );
-    output.extend_from_slice(&encode_functional_vestibular_anatomy(
-        &vestibular.anatomy,
-    ));
+    output.extend_from_slice(&encode_functional_vestibular_anatomy(&vestibular.anatomy));
     output.extend_from_slice(&encode_canal_state(vestibular.canal));
     output.extend_from_slice(&vestibular.source_tick.to_le_bytes());
     output.extend_from_slice(joint);
@@ -3404,6 +3481,7 @@ fn make_restored_observation(
         metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
+        active_physical_bonds: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -3471,6 +3549,7 @@ fn make_step_observation(
             .metabolically_perturbed_body_receptor_count,
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
+        active_physical_bonds: cognitive.active_physical_bonds.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
         successor_l0_l4_replay_count: 0,
@@ -3533,6 +3612,7 @@ fn make_authored_contact_observation(
         metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
+        active_physical_bonds: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -3903,8 +3983,7 @@ mod tests {
     fn exact_quarter_turn_reuses_the_specialized_pair_across_every_millisecond() {
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let before = runtime.observation();
-        let before_total = before.complete_neuron_count
-            + before.developmental_resting_neuron_count;
+        let before_total = before.complete_neuron_count + before.developmental_resting_neuron_count;
         let turn = settle_signed_yaw_actuation(
             YawBodyState::new(0).unwrap(),
             SignedYawActuation::new(90_000, 250_000).unwrap(),
@@ -3915,16 +3994,18 @@ mod tests {
             let prepared = runtime
                 .prepare_vestibular_tick(heading, *signed_step)
                 .unwrap();
-            heading = u32::try_from(
-                (i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000),
-            )
+            heading =
+                u32::try_from((i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000))
             .unwrap();
             runtime.commit(prepared.token).unwrap();
         }
         let after = runtime.observation();
         assert_eq!(heading, 90_000);
         assert_eq!(after.organism_tick - before.organism_tick, 250);
-        assert_eq!(after.complete_neuron_count, before.complete_neuron_count + 3);
+        assert_eq!(
+            after.complete_neuron_count,
+            before.complete_neuron_count + 3
+        );
         assert_eq!(
             after.developmental_resting_neuron_count + 1,
             before.developmental_resting_neuron_count
@@ -3936,10 +4017,7 @@ mod tests {
         assert_eq!(
             runtime
                 .cognitive_state()
-                .observe_reached_source_site_count(
-                    "mounted-yaw-canal",
-                    "local-hair-bundle-0",
-                ),
+                .observe_reached_source_site_count("mounted-yaw-canal", "local-hair-bundle-0",),
             1
         );
         let body = runtime.active_envelope().to_vec();
@@ -3949,10 +4027,7 @@ mod tests {
         assert_eq!(
             restored
                 .cognitive_state()
-                .observe_reached_source_site_count(
-                    "mounted-yaw-canal",
-                    "local-hair-bundle-0",
-                ),
+                .observe_reached_source_site_count("mounted-yaw-canal", "local-hair-bundle-0",),
             1
         );
     }
@@ -3973,8 +4048,7 @@ mod tests {
                 .prepare_vestibular_tick(heading, *signed_step)
                 .unwrap();
             reference.commit(prepared.token).unwrap();
-            heading = (i64::from(heading) + i64::from(*signed_step))
-                .rem_euclid(360_000) as u32;
+            heading = (i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000) as u32;
         }
 
         let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();

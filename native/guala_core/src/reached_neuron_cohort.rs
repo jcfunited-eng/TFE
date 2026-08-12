@@ -12,13 +12,13 @@
 use crate::complete_neuron::{
     add_omitted_virgin_carrier_material, apply_sparse_physical_state_delta,
     decode_neuron_physical_anatomy, decode_neuron_physical_cell, decode_neuron_physical_state,
-    decode_sparse_physical_state_delta,
-    encode_neuron_physical_anatomy, encode_neuron_physical_cell, encode_neuron_physical_state,
-    encode_sparse_physical_state_delta, expand_legacy_receptor_channel_population,
-    extend_neuron_positional_fabric, settle_extended_interval_with_contact,
-    sparse_physical_state_delta, sparse_retained_physical_state_delta, NeuronAnatomyCodecError,
-    NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
-    NeuronStateCodecError, PlasticSupportState, RecoveryLaneAddress, SparsePhysicalStateDelta,
+    decode_sparse_physical_state_delta, encode_neuron_physical_anatomy,
+    encode_neuron_physical_cell, encode_neuron_physical_state, encode_sparse_physical_state_delta,
+    expand_legacy_receptor_channel_population, extend_neuron_positional_fabric,
+    settle_extended_interval_with_contact, sparse_physical_state_delta,
+    sparse_retained_physical_state_delta, NeuronAnatomyCodecError, NeuronIntervalInput,
+    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, NeuronStateCodecError,
+    PlasticSupportState, RecoveryLaneAddress, SparsePhysicalStateDelta,
 };
 use crate::declared_geometric_anatomy::{declared_geometric_territory, DeclaredNeuronPlace};
 use crate::elementary_charge_membrane::MembraneCapacitance;
@@ -30,7 +30,7 @@ use crate::metabolic_feeding::{
 };
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, decode_neuron_source_site, encode_neuron_source_site,
-    NeuronSourceAnchorError, NeuronSourceSite, PhysicalSourceSense,
+    NeuronSourceAnchorError, NeuronSourceSite,
 };
 #[cfg(test)]
 use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
@@ -62,7 +62,13 @@ pub(crate) enum ReachedCohortError {
     IntervalDurationMismatch,
     PerspectiveMismatch,
     SourceAnatomyMismatch,
-    MaterialConservation,
+    MaterialArithmetic(&'static str),
+    MaterialMismatch {
+        predecessor: u128,
+        external_net_outward: i128,
+        expected_successor: u128,
+        actual_successor: u128,
+    },
     SequenceEndedBeforeQuiescence,
     StateCodec(NeuronStateCodecError),
     NeuronCellCodec(NeuronAnatomyCodecError),
@@ -461,11 +467,11 @@ pub(crate) fn extend_reached_cohort_positional_fabrics(
     Ok((successor_anatomy, successor_state))
 }
 
-/// One-way, locality-derived correction of legacy one-channel sight members.
+/// One-way, locality-derived correction of legacy one-channel receptors.
 /// Lineage, source place, contacts, every existing physical coordinate, and
 /// reservoir history remain attached to the same neuron. Only omitted virgin
 /// receptor material for that already-declared territory is added.
-pub(crate) fn legacy_sight_channel_populations_require_expansion(
+pub(crate) fn legacy_receptor_channel_populations_require_expansion(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<bool, ReachedCohortError> {
@@ -476,9 +482,6 @@ pub(crate) fn legacy_sight_channel_populations_require_expansion(
         let Some(source_site) = mount.source_site() else {
             continue;
         };
-        if source_site.sense() != PhysicalSourceSense::Sight {
-            continue;
-        }
         let target_population = declared_geometric_territory(source_site)
             .map_err(|_| ReachedCohortError::SourceAnatomyMismatch)?;
         if neuron_anatomy.gate_population() != target_population {
@@ -488,7 +491,7 @@ pub(crate) fn legacy_sight_channel_populations_require_expansion(
     Ok(false)
 }
 
-pub(crate) fn expand_legacy_sight_channel_populations(
+pub(crate) fn expand_legacy_receptor_channel_populations(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
     virgin_carriers_per_compartment: u128,
@@ -507,10 +510,8 @@ pub(crate) fn expand_legacy_sight_channel_populations(
         .enumerate()
     {
         let target_population = match mount.source_site() {
-            Some(source_site) if source_site.sense() == PhysicalSourceSense::Sight => {
-                declared_geometric_territory(source_site)
-                    .map_err(|_| ReachedCohortError::SourceAnatomyMismatch)?
-            }
+            Some(source_site) => declared_geometric_territory(source_site)
+                .map_err(|_| ReachedCohortError::SourceAnatomyMismatch)?,
             _ => 1,
         };
         let (successor_anatomy, successor_state) = expand_legacy_receptor_channel_population(
@@ -2109,7 +2110,6 @@ pub(crate) struct ReachedCohortMetabolicObservation {
     pub(crate) unreturned_elementary_charges: i128,
     pub(crate) fuel_quanta: u128,
     pub(crate) pumped_elementary_charges: i128,
-    pub(crate) pump_work_zeptojoules: ExactRational,
     pub(crate) environment_energy_delivered_zeptojoules: ExactRational,
     pub(crate) environment_heat_exported_zeptojoules: ExactRational,
 }
@@ -2124,7 +2124,6 @@ impl Default for ReachedCohortMetabolicObservation {
             unreturned_elementary_charges: 0,
             fuel_quanta: 0,
             pumped_elementary_charges: 0,
-            pump_work_zeptojoules: ExactRational::integer(0),
             environment_energy_delivered_zeptojoules: ExactRational::integer(0),
             environment_heat_exported_zeptojoules: ExactRational::integer(0),
         }
@@ -2160,7 +2159,10 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
     if reached_neuron_indices.is_empty() {
-        return Ok((predecessor.clone(), ReachedCohortMetabolicObservation::default()));
+        return Ok((
+            predecessor.clone(),
+            ReachedCohortMetabolicObservation::default(),
+        ));
     }
 
     let predecessor_material = total_carrier_material(&predecessor.neurons)?;
@@ -2175,11 +2177,15 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
                         error,
                     })?,
             )
-            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "reached pump power sum overflow",
+            ))?;
     }
     let maximum_interval_energy = maximum_power
         .checked_mul_unsigned(u128::from(interval_microseconds))
-        .map_err(|_| ReachedCohortError::MaterialConservation)?;
+        .map_err(|_| ReachedCohortError::MaterialArithmetic(
+            "reached pump interval energy overflow",
+        ))?;
     let environment = settle_powered_environment_exchange(
         anatomy.recovery_fluid.reservoir_anatomy(),
         predecessor.recovery_fluid,
@@ -2194,7 +2200,7 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         ..ReachedCohortMetabolicObservation::default()
     };
     for neuron_index in reached_neuron_indices.iter().copied() {
-        let (successor, successor_reservoir, returned, pumped, pump_work) =
+        let (successor, successor_reservoir, returned, pumped, _pump_work) =
             settle_membrane_gradient_transport(
                 &anatomy.neurons[neuron_index],
                 &neurons[neuron_index],
@@ -2205,30 +2211,40 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         observation.returned_elementary_charges = observation
             .returned_elementary_charges
             .checked_add(returned)
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "reached pump returned-carrier sum overflow",
+            ))?;
         observation.pumped_elementary_charges = observation
             .pumped_elementary_charges
             .checked_add(pumped)
-            .ok_or(ReachedCohortError::MaterialConservation)?;
-        observation.pump_work_zeptojoules = observation
-            .pump_work_zeptojoules
-            .checked_add(pump_work)
-            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "reached pump transported-carrier sum overflow",
+            ))?;
         observation.unreturned_elementary_charges = observation
             .unreturned_elementary_charges
             .checked_add(successor.separated_elementary_charges())
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "reached pump separated-carrier sum overflow",
+            ))?;
         if returned != 0 || pumped != 0 {
             observation.recovered_neuron_count = observation
                 .recovered_neuron_count
                 .checked_add(1)
-                .ok_or(ReachedCohortError::MaterialConservation)?;
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached pump changed-neuron count overflow",
+                ))?;
         }
         neurons[neuron_index] = successor;
         reservoir = successor_reservoir;
     }
-    if total_carrier_material(&neurons)? != predecessor_material {
-        return Err(ReachedCohortError::MaterialConservation);
+    let actual_successor_material = total_carrier_material(&neurons)?;
+    if actual_successor_material != predecessor_material {
+        return Err(ReachedCohortError::MaterialMismatch {
+            predecessor: predecessor_material,
+            external_net_outward: 0,
+            expected_successor: predecessor_material,
+            actual_successor: actual_successor_material,
+        });
     }
     Ok((
         ReachedCohortState {
@@ -2272,11 +2288,15 @@ pub(crate) fn settle_reached_cohort_dark_rest(
             })?;
         contact_rate = contact_rate
             .checked_add(local_rate)
-            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "dark-rest pump power sum overflow",
+            ))?;
     }
     let maximum_interval_energy = contact_rate
         .checked_mul_unsigned(u128::from(interval_microseconds))
-        .map_err(|_| ReachedCohortError::MaterialConservation)?;
+        .map_err(|_| ReachedCohortError::MaterialArithmetic(
+            "dark-rest interval energy overflow",
+        ))?;
     let environment = settle_powered_environment_exchange(
         anatomy.recovery_fluid.reservoir_anatomy(),
         predecessor.recovery_fluid,
@@ -2297,42 +2317,58 @@ pub(crate) fn settle_reached_cohort_dark_rest(
         observation.drained_dissipation_quanta = observation
             .drained_dissipation_quanta
             .checked_add(settled.drained_dissipation_quanta())
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest drained-dissipation sum overflow",
+            ))?;
         observation.unmet_dissipation_quanta = observation
             .unmet_dissipation_quanta
             .checked_add(settled.unmet_dissipation_quanta())
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest unmet-dissipation sum overflow",
+            ))?;
         observation.returned_elementary_charges = observation
             .returned_elementary_charges
             .checked_add(settled.returned_elementary_charges)
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest returned-carrier sum overflow",
+            ))?;
         observation.unreturned_elementary_charges = observation
             .unreturned_elementary_charges
             .checked_add(settled.unreturned_elementary_charges)
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest separated-carrier sum overflow",
+            ))?;
         observation.fuel_quanta = observation
             .fuel_quanta
             .checked_add(settled.fuel_quanta())
-            .ok_or(ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest fuel sum overflow",
+            ))?;
         observation.pumped_elementary_charges = observation
             .pumped_elementary_charges
             .checked_add(settled.pumped_elementary_charges)
-            .ok_or(ReachedCohortError::MaterialConservation)?;
-        observation.pump_work_zeptojoules = observation
-            .pump_work_zeptojoules
-            .checked_add(settled.pump_work_zeptojoules)
-            .map_err(|_| ReachedCohortError::MaterialConservation)?;
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "dark-rest transported-carrier sum overflow",
+            ))?;
         if settled.changed() {
             observation.recovered_neuron_count = observation
                 .recovered_neuron_count
                 .checked_add(1)
-                .ok_or(ReachedCohortError::MaterialConservation)?;
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "dark-rest changed-neuron count overflow",
+                ))?;
         }
         reservoir = settled.successor_reservoir;
         neurons[neuron_index] = settled.successor_neuron;
     }
-    if total_carrier_material(&neurons)? != predecessor_material {
-        return Err(ReachedCohortError::MaterialConservation);
+    let actual_successor_material = total_carrier_material(&neurons)?;
+    if actual_successor_material != predecessor_material {
+        return Err(ReachedCohortError::MaterialMismatch {
+            predecessor: predecessor_material,
+            external_net_outward: 0,
+            expected_successor: predecessor_material,
+            actual_successor: actual_successor_material,
+        });
     }
     Ok((
         ReachedCohortState {
@@ -2495,11 +2531,8 @@ pub(crate) fn settle_reached_cohort_interval(
             }
         })
         .collect::<Vec<Result<_, ReachedCohortError>>>();
-    for (input_index, (neuron_input, prepared_psi)) in input
-        .neurons
-        .iter_mut()
-        .zip(prepared_psi)
-        .enumerate()
+    for (input_index, (neuron_input, prepared_psi)) in
+        input.neurons.iter_mut().zip(prepared_psi).enumerate()
     {
         let resident_index = resident_indices[input_index];
         let neuron_anatomy = &anatomy.neurons[resident_index];
@@ -2576,7 +2609,9 @@ pub(crate) fn settle_reached_cohort_interval(
             let combined_contact_outward = if !precomputed_contact_input {
                 electrical.outward_elementary_charges_by_neuron[resident_index]
                     .checked_add(external_contact_outward[input_index])
-                    .ok_or(ReachedCohortError::MaterialConservation)?
+                    .ok_or(ReachedCohortError::MaterialArithmetic(
+                        "local plus external contact carrier sum overflow",
+                    ))?
             } else {
                 // The injected whole-fabric charge already includes this cohort's
                 // local contacts and every resident cross-cohort contact exactly
@@ -2610,19 +2645,31 @@ pub(crate) fn settle_reached_cohort_interval(
             .try_fold(0_i128, |total, value| {
                 total
                     .checked_add(*value)
-                    .ok_or(ReachedCohortError::MaterialConservation)
+                    .ok_or(ReachedCohortError::MaterialArithmetic(
+                        "external contact carrier sum overflow",
+                    ))
             })?;
     let expected_successor_material = if external_net_outward >= 0 {
         predecessor_material
             .checked_sub(external_net_outward.unsigned_abs())
-            .ok_or(ReachedCohortError::MaterialConservation)?
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "external outward carriers exceed predecessor material",
+            ))?
     } else {
         predecessor_material
             .checked_add(external_net_outward.unsigned_abs())
-            .ok_or(ReachedCohortError::MaterialConservation)?
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "external inward carriers overflow successor material",
+            ))?
     };
-    if total_carrier_material(&successor_neurons)? != expected_successor_material {
-        return Err(ReachedCohortError::MaterialConservation);
+    let actual_successor_material = total_carrier_material(&successor_neurons)?;
+    if actual_successor_material != expected_successor_material {
+        return Err(ReachedCohortError::MaterialMismatch {
+            predecessor: predecessor_material,
+            external_net_outward,
+            expected_successor: expected_successor_material,
+            actual_successor: actual_successor_material,
+        });
     }
 
     let electrically_active = electrical.successor_contacts != predecessor.electrical
@@ -2778,8 +2825,12 @@ fn total_carrier_material(neurons: &[NeuronPhysicalState]) -> Result<u128, Reach
                 neuron
                     .carrier_reservoirs()
                     .total()
-                    .ok_or(ReachedCohortError::MaterialConservation)?,
+                    .ok_or(ReachedCohortError::MaterialArithmetic(
+                        "one neuron's carrier compartments overflow",
+                    ))?,
             )
-            .ok_or(ReachedCohortError::MaterialConservation)
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "cohort carrier-material sum overflow",
+            ))
     })
 }

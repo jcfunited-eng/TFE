@@ -66,10 +66,8 @@ fn real_production_body_migrates_losslessly() {
     let false_v17 = decoded
         .encode_with_format(super::CognitiveCodecFormat::V17, budget)
         .expect("predecessor can reproduce the false V17 boundary body");
-    let repaired_false_v17 = ResidentCognitiveFormationState::migrate_to_current_format(
-        &false_v17,
-        budget,
-    )
+    let repaired_false_v17 =
+        ResidentCognitiveFormationState::migrate_to_current_format(&false_v17, budget)
     .expect("false V17 body receives the V18 correction");
     assert_eq!(
         ResidentCognitiveFormationState::decode(&repaired_false_v17, budget)
@@ -104,7 +102,7 @@ fn real_production_body_expands_retinal_channels_once_and_retires_false_cognitio
     let decoded = ResidentCognitiveFormationState::decode(&cognitive, budget)
         .expect("live cognitive image decodes");
     let expanded = decoded
-        .expand_legacy_sight_channel_populations()
+        .expand_legacy_receptor_channel_populations()
         .expect("live retinal channel population expands");
 
     assert_eq!(expanded.generation, decoded.generation);
@@ -146,7 +144,7 @@ fn real_production_body_expands_retinal_channels_once_and_retires_false_cognitio
         .expect("expanded live body cold restores");
     assert_eq!(cold, expanded);
     assert_eq!(
-        cold.expand_legacy_sight_channel_populations()
+        cold.expand_legacy_receptor_channel_populations()
             .expect("retinal expansion is idempotent"),
         cold,
     );
@@ -327,7 +325,7 @@ fn real_a_and_k_lessons_leave_distinct_retained_retinal_states() {
             .expect("lesson cognitive image decodes")
     };
     let baseline = decode(PathBuf::from(baseline_path))
-        .expand_legacy_sight_channel_populations()
+        .expand_legacy_receptor_channel_populations()
         .expect("baseline retinal population expands");
     let a = decode(PathBuf::from(a_path));
     let k = decode(PathBuf::from(k_path));
