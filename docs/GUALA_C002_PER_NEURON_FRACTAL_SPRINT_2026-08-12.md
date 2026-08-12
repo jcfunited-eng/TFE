@@ -165,3 +165,22 @@ its subsequent settlement without a browser or lesson request. Require:
   disposable production-path experience emitted 54 exact causal lineage
   records; its aggregate count, response evidence, and public observation
   were identical. This is local candidate proof, not live-production proof.
+
+## First production increment and remaining defect
+
+The evidence-boundary increment is live on 2026-08-12 as commit
+`74888b559d734cbb24102fad4169a23d7aa2c0f5`, task `dsf-ai-task:987`, image
+`sha256:4d7ff9c09e37f1a0b5eb6bd502e8a3abd4cf95d3e8bd1a8d5f94605eebd2cabe`.
+The service has one healthy running task, zero pending tasks, exact identity
+continuity, zero Python cognition callbacks, and the live public observation
+now carries `formed_evidence_in_last_experience` rather than only a count.
+
+One previously unused Q-card presentation committed 11 hops and 2,618
+physical neuron-events at tick 49,288. It emitted zero neuronal fractals both
+during the presentation and in the following continuous interval. That is a
+failed positive C-002 acceptance, not evidence that Q was learned. The exact
+remaining defect is that a cohort holding an older `retained_experience` is
+excluded from opening a new pending physical experience, so its neurons cannot
+emit a later post-quiescence fractal. C-002 remains open until recurrent lived
+experience can retain new per-neuron physical deltas without replacing the
+older retained formation or inventing a second formation law.
