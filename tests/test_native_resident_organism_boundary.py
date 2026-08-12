@@ -24,10 +24,14 @@ class _NativeResidentOrganismObservation:
     cognitive_ordinal: int = 0
     cognitive_trace_count: int = 0
     cognitive_mosaic_count: int = 0
+    mosaic_of_mosaics_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
+    endogenous_partial_cue_reassembly_count: int = 0
     complete_neuron_count: int = 0
+    developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
+    metabolically_perturbed_body_receptor_count: int = 0
     python_callback_count: int = 0
     schema: str = boundary.OBSERVATION_SCHEMA
     identity: str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
@@ -61,6 +65,7 @@ class _NativeResidentOrganismPrepare:
     successor_seal_count: int = 1
     dsf_delivery_count: int = 6
     complete_neuron_fractal_count: int = 0
+    emitted_neuron_fractals: list[tuple[str, list[tuple[str, int, bool, str, str]]]] | None = None
     recurrent_complete_neuron_fractal_count: int = 0
     physical_transition_claimed: bool = False
     cognitive_formation_claimed: bool = False
@@ -69,9 +74,29 @@ class _NativeResidentOrganismPrepare:
     cognitive_mosaic_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
+    endogenous_partial_cue_reassembly_count: int = 0
     complete_neuron_count: int = 0
+    developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
+    metabolically_perturbed_body_receptor_count: int = 0
+    receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
+        96,
+        0,
+        0,
+        0,
+        0,
+        0,
+    )
+    receptor_ingress_changing_count: int = 0
+    receptor_ingress_quiescent_count: int = 96
+    motor_unit_recruitments: list[tuple[str, int, int]] | None = None
     python_callback_count: int = 0
+
+    def __post_init__(self) -> None:
+        if self.emitted_neuron_fractals is None:
+            self.emitted_neuron_fractals = []
+        if self.motor_unit_recruitments is None:
+            self.motor_unit_recruitments = []
 
     @property
     def token_hex(self) -> str:
@@ -425,6 +450,55 @@ def test_prepare_refuses_dsfs_presented_as_native_cognitive_formation(
     )
 
     with pytest.raises(RuntimeError, match="changed causal physics"):
+        organism.prepare(_Source())
+
+
+def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    runtime.prepare_result_override = replace(
+        genuine,
+        complete_neuron_fractal_count=1,
+        emitted_neuron_fractals=[
+            (
+                "01" * 16,
+                [
+                    ("psi-winding", 2, True, "3", "1"),
+                    ("plastic-rest-length", 0, False, "5", "7"),
+                ],
+            )
+        ],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.emitted_neuron_fractals == (
+        (
+            "01" * 16,
+            (
+                ("psi-winding", 2, True, 3, 1),
+                ("plastic-rest-length", 0, False, 5, 7),
+            ),
+        ),
+    )
+
+
+def test_prepare_refuses_fractal_count_without_per_neuron_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    runtime.prepare_result_override = replace(
+        genuine,
+        complete_neuron_fractal_count=1,
+        emitted_neuron_fractals=[],
+    )
+
+    with pytest.raises(RuntimeError, match="count lost its exact evidence"):
         organism.prepare(_Source())
 
 

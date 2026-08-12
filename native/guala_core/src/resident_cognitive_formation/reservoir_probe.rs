@@ -497,15 +497,20 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         })
         .collect::<Vec<_>>();
     let mut changed = Vec::new();
-    let mut fractals = Vec::new();
     let observation = super::settle_internal_contact_interval(
         &mut successor.cohorts,
         &mut successor.electrical_fabric,
         &externally_reached,
         &mut changed,
-        &mut fractals,
     )
     .expect("maximal external frontier settles");
+    let pending_post_quiescence_candidates = successor
+        .cohorts
+        .iter()
+        .filter_map(|cohort| cohort.pending_experience.as_ref())
+        .flat_map(|experience| experience.retained_change_neurons.iter())
+        .filter(|changed| **changed)
+        .count();
     let motor_after = successor
         .cohorts
         .iter()
@@ -535,7 +540,8 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         "external_receptor_count": externally_reached.len(),
         "dsf_delivery_count": observation.dsf_delivery_count,
         "physically_changed_neuron_count": changed.len(),
-        "fractal_count": fractals.len(),
+        "emitted_fractal_count": 0,
+        "pending_post_quiescence_candidate_count": pending_post_quiescence_candidates,
         "motor_before": motor_before.into_iter().map(|(lineage, gate, charge)| json!({
             "lineage": lineage_hex(lineage),
             "open_gate_population": gate.to_string(),

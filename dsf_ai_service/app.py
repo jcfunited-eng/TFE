@@ -5364,6 +5364,9 @@ def _native_neuron_readiness():
         "complete_neuron_fractal_count": latest.get(
             "complete_neuron_fractal_count", 0
         ),
+        "emitted_neuron_fractals": latest.get(
+            "emitted_neuron_fractals", ()
+        ),
         "recurrent_complete_neuron_fractal_count": latest.get(
             "recurrent_complete_neuron_fractal_count", 0
         ),

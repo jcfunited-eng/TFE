@@ -2386,6 +2386,11 @@ def _build_public_observation() -> dict[str, Any]:
         if _last_transition_evidence is not None
         else 0
     )
+    last_fractal_evidence = (
+        _last_transition_evidence.get("emitted_neuron_fractals", ())
+        if _last_transition_evidence is not None
+        else ()
+    )
     retained_impressions = _retained_impression_neuron_count()
     record: dict[str, Any] = {
         "schema": PUBLIC_OBSERVATION_SCHEMA,
@@ -2685,9 +2690,13 @@ def _build_public_observation() -> dict[str, Any]:
             "honestly report zero. `formed_in_last_experience` is the "
             "separate step fact: how many NEW impressions the most recent "
             "experience created, which is legitimately zero for a quiet "
-            "moment or for something she has already learned.",
+            "moment or for something she has already learned. "
+            "`formed_evidence_in_last_experience` carries each emitted "
+            "neuron's exact lineage, causal tick span, and sparse retained "
+            "post-quiescence physical delta; it is evidence, not a label.",
             count=retained_impressions,
             formed_in_last_experience=last_fractal_count,
+            formed_evidence_in_last_experience=last_fractal_evidence,
         ),
         # `mosaic_count` and `mosaic_of_mosaics_count` are decoded from her
         # retained formations — physical facts in her body.  The three higher
@@ -4062,6 +4071,15 @@ def _commit_admitted_hop(
         "complete_neuron_fractal_count": (
             evidence.complete_neuron_fractal_count
         ),
+        "emitted_neuron_fractals": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "neuron_lineage": lineage,
+                "sparse_retained_delta": entries,
+            }
+            for lineage, entries in evidence.emitted_neuron_fractals
+        ),
         "current_cohort_evaluation_count": (
             evidence.current_cohort_evaluation_count
         ),
@@ -4115,6 +4133,15 @@ def _commit_vestibular_tick(
             observed.developmental_resting_neuron_count
         ),
         "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
+        "emitted_neuron_fractals": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "neuron_lineage": lineage,
+                "sparse_retained_delta": entries,
+            }
+            for lineage, entries in evidence.emitted_neuron_fractals
+        ),
         "current_cohort_evaluation_count": (
             evidence.current_cohort_evaluation_count
         ),
@@ -4158,6 +4185,15 @@ def _commit_vestibular_trajectory(
             observed.developmental_resting_neuron_count
         ),
         "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
+        "emitted_neuron_fractals": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "neuron_lineage": lineage,
+                "sparse_retained_delta": entries,
+            }
+            for lineage, entries in evidence.emitted_neuron_fractals
+        ),
         "current_cohort_evaluation_count": (
             evidence.current_cohort_evaluation_count
         ),
@@ -4337,6 +4373,7 @@ def _perform_admitted_intake_locked(
     committed_hop_count = 0
     committed_vestibular_tick_count = 0
     motor_unit_recruitments: list[tuple[str, int, int]] = []
+    emitted_neuron_fractals: list[dict[str, Any]] = []
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4347,6 +4384,7 @@ def _perform_admitted_intake_locked(
                 signed_steps,
             )
             committed_vestibular_tick_count = len(signed_steps)
+            emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             for key in totals:
                 totals[key] += last_hop[key]
         for episode, admissions in episodes:
@@ -4355,6 +4393,7 @@ def _perform_admitted_intake_locked(
             )
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
+            emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             for key in totals:
                 totals[key] += last_hop[key]
             for sense, count in last_hop[
@@ -4399,6 +4438,7 @@ def _perform_admitted_intake_locked(
                     trajectory,
                 )
                 committed_vestibular_tick_count += len(trajectory)
+                emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 for key in totals:
                     totals[key] += last_hop[key]
                 successor_world_body = (
@@ -4442,6 +4482,7 @@ def _perform_admitted_intake_locked(
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
         "motor_action": motor_action,
+        "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),

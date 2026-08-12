@@ -16,6 +16,7 @@
 //! persistence, owner, lock, or global clock.
 
 use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
+use crate::complete_neuron::{ExactPhysicalStateDelta, PhysicalStateCoordinate};
 use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::NativeJointSourceEpisode;
 #[cfg(test)]
@@ -36,7 +37,8 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    MotorUnitRecruitment, PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
+    EmittedNeuronFractal, MotorUnitRecruitment, PreparedCognitiveFormationTransition,
+    ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
     observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
@@ -340,6 +342,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) physically_transitioned_neuron_count: usize,
     pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
+    pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
     pub(crate) successor_l0_l4_replay_count: usize,
@@ -1034,6 +1037,66 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn complete_neuron_fractal_count(&self) -> usize {
         self.observation.complete_neuron_fractal_count
+    }
+
+    /// Exact sparse post-quiescence neuronal deltas emitted by this prepared
+    /// transition. Reading this transient evidence stores and advances
+    /// nothing; each lineage and coordinate remains independently visible.
+    #[getter]
+    fn emitted_neuron_fractals(
+        &self,
+    ) -> PyResult<Vec<(String, Vec<(String, usize, bool, String, String)>)>> {
+        self.observation
+            .emitted_neuron_fractals
+            .iter()
+            .map(|fractal| {
+                let entries = fractal
+                    .delta
+                    .entries()
+                    .iter()
+                    .map(|entry| {
+                        let (coordinate, index) = match entry.coordinate() {
+                            PhysicalStateCoordinate::PsiWinding(index) => ("psi-winding", index),
+                            PhysicalStateCoordinate::GateOpenPopulation => {
+                                ("gate-open-population", 0)
+                            }
+                            PhysicalStateCoordinate::PlasticRestLength => {
+                                ("plastic-rest-length", 0)
+                            }
+                            PhysicalStateCoordinate::DnaExpressedProduct => {
+                                ("dna-expressed-product", 0)
+                            }
+                            _ => {
+                                return Err(PyValueError::new_err(
+                                    "neuronal fractal carried a transient coordinate",
+                                ));
+                            }
+                        };
+                        let (negative, magnitude, denominator) = match entry.delta() {
+                            ExactPhysicalStateDelta::Integral(delta) => {
+                                let (negative, magnitude) = delta.parts();
+                                (negative, magnitude.to_string(), "1".to_owned())
+                            }
+                            ExactPhysicalStateDelta::Rational(delta) => {
+                                let (numerator, denominator) = delta.parts();
+                                (
+                                    numerator.is_negative(),
+                                    numerator.unsigned_abs().to_string(),
+                                    denominator.to_string(),
+                                )
+                            }
+                            ExactPhysicalStateDelta::Energy(_) => {
+                                return Err(PyValueError::new_err(
+                                    "neuronal fractal carried retained energy",
+                                ));
+                            }
+                        };
+                        Ok((coordinate.to_owned(), index, negative, magnitude, denominator))
+                    })
+                    .collect::<PyResult<Vec<_>>>()?;
+                Ok((hex_bytes(&fractal.neuron_lineage), entries))
+            })
+            .collect()
     }
 
     #[getter]
@@ -3337,6 +3400,7 @@ fn make_restored_observation(
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
+        emitted_neuron_fractals: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -3403,6 +3467,7 @@ fn make_step_observation(
         metabolically_perturbed_body_receptor_count: cognitive
             .metabolically_perturbed_body_receptor_count,
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
+        emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
         successor_l0_l4_replay_count: 0,
@@ -3464,6 +3529,7 @@ fn make_authored_contact_observation(
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
+        emitted_neuron_fractals: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -4253,17 +4319,17 @@ mod tests {
         );
         assert_eq!(prepared.observation.physically_transitioned_neuron_count, 2);
         assert!(prepared.observation.physical_transition_claimed);
-        assert_eq!(prepared.observation.complete_neuron_fractal_count, 3);
+        assert_eq!(prepared.observation.complete_neuron_fractal_count, 0);
         assert!(!prepared.observation.cognitive_formation_claimed);
     }
 
     #[test]
-    fn resident_runtime_reports_fractal_at_local_occurrence_settlement() {
-        // The authenticated occurrence boundary reports the exact sparse
-        // retained successor without requiring later environmental silence.
+    fn resident_runtime_reports_fractal_after_retained_state_settlement() {
+        // The occurrence creates physical change but does not certify its own
+        // post-experience retained-state settlement.
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let light = runtime.prepare(&exact_optical_episode()).unwrap();
-        assert_eq!(light.observation.complete_neuron_fractal_count, 3);
+        assert_eq!(light.observation.complete_neuron_fractal_count, 0);
         runtime.commit(light.token).unwrap();
 
         let mut runtime =
@@ -4275,11 +4341,8 @@ mod tests {
             emitted += settled.observation.complete_neuron_fractal_count;
             assert!(!settled.observation.cognitive_formation_claimed);
             runtime.commit(settled.token).unwrap();
-            if emitted > 0 {
-                break;
-            }
         }
-        assert_eq!(emitted, 0);
+        assert_eq!(emitted, 2);
 
         let mut runtime =
             ResidentOrganismRuntime::restore_envelope(runtime.active_envelope().to_vec(), budget())
