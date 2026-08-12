@@ -15,12 +15,15 @@ use super::ResidentCognitiveFormationState;
 use crate::complete_neuron::RecoveryLaneAddress;
 use crate::exact_rational::ExactRational;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
+use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
 use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
 
 const ENVELOPE_MAGIC: &[u8; 8] = b"GLORUN01";
-const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
+const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
+const CURRENT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
+const CANAL_STATE_BYTES: usize = 32;
 const IDENTITY_BYTES: usize = 36;
 
 fn take<'a>(bytes: &'a [u8], cursor: &mut usize, count: usize) -> &'a [u8] {
@@ -58,11 +61,30 @@ pub(super) fn parse_envelope(bytes: &[u8]) -> (u64, Vec<u8>) {
     assert_eq!(cursor, bytes.len(), "envelope trailing bytes");
 
     let mut fc = 0usize;
-    assert_eq!(take(fabric, &mut fc, 8), FABRIC_MAGIC, "fabric magic");
-    assert_eq!(take_u16(fabric, &mut fc), 7, "fabric version");
+    let fabric_magic = take(fabric, &mut fc, 8);
+    assert!(
+        fabric_magic == PRE_VESTIBULAR_FABRIC_MAGIC
+            || fabric_magic == CURRENT_FABRIC_MAGIC,
+        "fabric magic"
+    );
+    let fabric_version = take_u16(fabric, &mut fc);
+    assert_eq!(
+        fabric_version,
+        if fabric_magic == CURRENT_FABRIC_MAGIC { 8 } else { 7 },
+        "fabric version"
+    );
     let _generation = take_u64(fabric, &mut fc);
     let joint_len = take_u32(fabric, &mut fc) as usize;
     let cognitive_len = take_u32(fabric, &mut fc) as usize;
+    if fabric_magic == CURRENT_FABRIC_MAGIC {
+        let _vestibular_anatomy = take(
+            fabric,
+            &mut fc,
+            FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
+        );
+        let _canal_state = take(fabric, &mut fc, CANAL_STATE_BYTES);
+        let _vestibular_source_tick = take_u64(fabric, &mut fc);
+    }
     let _joint = take(fabric, &mut fc, joint_len);
     let cognitive = take(fabric, &mut fc, cognitive_len).to_vec();
     assert_eq!(fc, fabric.len(), "fabric trailing bytes");
@@ -103,6 +125,27 @@ impl LaneTotals {
 
 fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
     let anatomies = cohort.anatomy.neuron_anatomies();
+    let mounts = cohort
+        .anatomy
+        .mounts()
+        .iter()
+        .zip(cohort.anatomy.neuron_lineages())
+        .zip(anatomies)
+        .zip(cohort.state.neurons())
+        .map(|(((mount, lineage), anatomy), state)| {
+            json!({
+                "lineage": lineage
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect::<String>(),
+                "layer": mount.place().layer(),
+                "topology_index": mount.place().topology_index(),
+                "source_site": mount.source_site().map(|site| format!("{:?}", site)),
+                "gate_population": anatomy.gate_population().to_string(),
+                "open_gate_population": state.gate.open_population().to_string(),
+            })
+        })
+        .collect::<Vec<_>>();
     let fluid_anatomy =
         ReachedRecoveryFluidAnatomy::derive(anatomies).expect("derive fluid anatomy");
     let (fuel_capacity, spent_capacity, heat_capacity) =
@@ -359,6 +402,7 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
 
     json!({
         "neuron_count": cohort.anatomy.neuron_count(),
+        "mounts": mounts,
         "recognition": recognition,
         "pending_experience_detail": pending_experience_detail,
         "retained_experience_detail": retained_experience_detail,
@@ -419,6 +463,97 @@ fn exact_json(value: ExactRational) -> Value {
     })
 }
 
+fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
+    let mut successor = state.clone();
+    let externally_reached = successor
+        .cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+                .filter_map(|(mount, lineage)| mount.source_site().is_some().then_some(*lineage))
+        })
+        .collect::<Vec<_>>();
+    let motor_before = successor
+        .cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+                .zip(cohort.state.neurons())
+                .filter_map(|((mount, lineage), neuron)| {
+                    (mount.place().layer() == 12).then_some((
+                        *lineage,
+                        neuron.gate.open_population(),
+                        neuron.membrane_state().separated_elementary_charges(),
+                    ))
+                })
+        })
+        .collect::<Vec<_>>();
+    let mut changed = Vec::new();
+    let mut fractals = Vec::new();
+    let observation = super::settle_internal_contact_interval(
+        &mut successor.cohorts,
+        &mut successor.electrical_fabric,
+        &externally_reached,
+        &mut changed,
+        &mut fractals,
+    )
+    .expect("maximal external frontier settles");
+    let motor_after = successor
+        .cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+                .zip(cohort.state.neurons())
+                .filter_map(|((mount, lineage), neuron)| {
+                    (mount.place().layer() == 12).then_some((
+                        *lineage,
+                        neuron.gate.open_population(),
+                        neuron.membrane_state().separated_elementary_charges(),
+                    ))
+                })
+        })
+        .collect::<Vec<_>>();
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    json!({
+        "external_receptor_count": externally_reached.len(),
+        "dsf_delivery_count": observation.dsf_delivery_count,
+        "physically_changed_neuron_count": changed.len(),
+        "fractal_count": fractals.len(),
+        "motor_before": motor_before.into_iter().map(|(lineage, gate, charge)| json!({
+            "lineage": lineage_hex(lineage),
+            "open_gate_population": gate.to_string(),
+            "membrane_charge": charge.to_string(),
+        })).collect::<Vec<_>>(),
+        "motor_after": motor_after.into_iter().map(|(lineage, gate, charge)| json!({
+            "lineage": lineage_hex(lineage),
+            "open_gate_population": gate.to_string(),
+            "membrane_charge": charge.to_string(),
+        })).collect::<Vec<_>>(),
+        "motor_unit_recruitments": observation.motor_unit_recruitments.into_iter().map(|event| json!({
+            "lineage": lineage_hex(event.neuron_lineage),
+            "topology_index": event.topology_index,
+            "outward_elementary_carriers": event.outward_elementary_carriers.to_string(),
+        })).collect::<Vec<_>>(),
+    })
+}
+
 #[test]
 fn reservoir_probe_dump() {
     let Ok(input) = std::env::var("GUALA_PROBE_IN") else {
@@ -446,12 +581,64 @@ fn reservoir_probe_dump() {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state");
             let cohorts: Vec<Value> = state.cohorts.iter().map(cohort_json).collect();
+            let motor_reachability = motor_reachability_json(&state);
+            let mounted = state
+                .cohorts
+                .iter()
+                .flat_map(|cohort| {
+                    cohort
+                        .anatomy
+                        .mounts()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                        .map(|(mount, lineage)| (*lineage, mount.place().layer()))
+                })
+                .collect::<Vec<_>>();
+            let electrical_fabric = state
+                .electrical_fabric
+                .contact_endpoints()
+                .zip(
+                    state
+                        .electrical_fabric
+                        .anatomy()
+                        .contact_anatomies()
+                        .iter()
+                        .zip(state.electrical_fabric.state().contact_states()),
+                )
+                .map(|((left, right), (anatomy, contact_state))| {
+                    let left_lineage = state.electrical_fabric.lineages()[left];
+                    let right_lineage = state.electrical_fabric.lineages()[right];
+                    let layer = |lineage| {
+                        mounted
+                            .iter()
+                            .find_map(|(candidate, layer)| (*candidate == lineage).then_some(*layer))
+                    };
+                    let lineage_hex = |lineage: [u8; 16]| {
+                        lineage
+                            .iter()
+                            .map(|byte| format!("{byte:02x}"))
+                            .collect::<String>()
+                    };
+                    let (phase_numerator, phase_denominator) =
+                        contact_state.carrier_phase().parts();
+                    json!({
+                        "left_lineage": lineage_hex(left_lineage),
+                        "left_layer": layer(left_lineage),
+                        "right_lineage": lineage_hex(right_lineage),
+                        "right_layer": layer(right_lineage),
+                        "conductance_picosiemens": exact_json(anatomy.conductance_picosiemens()),
+                        "carrier_phase": format!("{phase_numerator}/{phase_denominator}"),
+                    })
+                })
+                .collect::<Vec<_>>();
             json!({
                 "file": path.file_name().unwrap().to_string_lossy(),
                 "organism_tick": organism_tick,
                 "generation": state.generation,
                 "unexpressed_electrical_seed_count": state.unexpressed_electrical_seeds.len(),
                 "dormant_lineage_seed_count": state.dormant_lineage_seeds.len(),
+                "electrical_fabric": electrical_fabric,
+                "motor_reachability": motor_reachability,
                 "cohorts": cohorts,
             })
         };

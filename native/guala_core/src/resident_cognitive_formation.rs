@@ -312,13 +312,14 @@ pub(crate) struct EmittedNeuronFractal {
 }
 
 /// One transient efferent event produced by an already-mounted layer-12
-/// motor neuron. The complete gate state remains the authority; this value is
-/// neither persisted nor counted as a fractal, memory, intent, or action.
+/// motor neuron. The exact outward whole-carrier membrane discharge is the
+/// authority; this value is neither persisted nor counted as a fractal,
+/// memory, intent, or action.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct MotorUnitRecruitment {
     pub(crate) neuron_lineage: [u8; 16],
     pub(crate) topology_index: u32,
-    pub(crate) newly_opened_gate_channels: u128,
+    pub(crate) outward_elementary_carriers: u128,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -7204,6 +7205,28 @@ fn settle_internal_contact_interval(
             .iter()
             .map(|(coordinate, _)| settled.outward_elementary_charges_by_neuron[*coordinate])
             .collect::<Vec<_>>();
+        // A layer-12 motor cell emits through its exact outward membrane
+        // carrier discharge. Gate conformation is upstream channel anatomy;
+        // requiring a newly opened local gate made an already-conducting
+        // motor cell physically move charge while emitting no efferent event.
+        // Only positive whole-carrier discharge reaches the actuator. Reverse
+        // flow is membrane recovery, and sub-carrier phase remains retained in
+        // the contact rather than being promoted into a body command.
+        let motor_unit_recruitments = selected_members
+            .iter()
+            .zip(combined_outward.iter().copied())
+            .filter_map(|((_, neuron_index), outward)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 12
+                    && outward > 0)
+                    .then_some(MotorUnitRecruitment {
+                        neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers: outward.unsigned_abs(),
+                    })
+            })
+            .collect::<Vec<_>>();
         let local_successor = SparseElectricalState::from_contact_states(
             cohort.anatomy.electrical_anatomy(),
             local_successors[cohort_index].clone(),
@@ -7238,20 +7261,6 @@ fn settle_internal_contact_interval(
             input,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let motor_unit_recruitments = settlement
-            .newly_opened_gate_channels
-            .iter()
-            .filter_map(|(neuron_index, newly_opened_gate_channels)| {
-                let mount = &cohort.anatomy.mounts()[*neuron_index];
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 12)
-                    .then_some(MotorUnitRecruitment {
-                        neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
-                        topology_index: mount.place().topology_index(),
-                        newly_opened_gate_channels: *newly_opened_gate_channels,
-                    })
-            })
-            .collect::<Vec<_>>();
         cohort.state = settlement.successor;
         let mut changed_lineages = Vec::new();
         let mut cohort_fractals = Vec::new();

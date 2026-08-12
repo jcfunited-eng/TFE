@@ -972,8 +972,8 @@ impl NativeResidentOrganismPrepare {
     }
 
     /// Transient native efferent events derived during this candidate. The
-    /// retained gate populations remain the sole authority; reading this
-    /// projection stores and advances nothing.
+    /// exact outward whole-carrier discharge remains the authority; reading
+    /// this projection stores and advances nothing.
     #[getter]
     fn motor_unit_recruitments(&self) -> Vec<(String, u32, u128)> {
         self.motor_unit_recruitments
@@ -982,7 +982,7 @@ impl NativeResidentOrganismPrepare {
                 (
                     hex_bytes(&event.neuron_lineage),
                     event.topology_index,
-                    event.newly_opened_gate_channels,
+                    event.outward_elementary_carriers,
                 )
             })
             .collect()

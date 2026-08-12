@@ -163,18 +163,18 @@ pub(crate) fn settle_signed_yaw_actuation(
     })
 }
 
-/// Convert transient opposed motor-unit recruitment into the body's smallest
+/// Convert transient opposed motor-unit discharge into the body's smallest
 /// exact yaw actuation. Even topology is the positive member of an antagonist
-/// pair and odd topology is the negative member. One newly opened physical
-/// channel contributes one millidegree, the body's existing integer lattice;
+/// pair and odd topology is the negative member. One outward whole elementary
+/// carrier contributes one millidegree, the body's existing integer lattice;
 /// no gain, target, or retained command exists.
 pub(crate) fn settle_motor_unit_yaw_actuation(
     predecessor: YawBodyState,
     recruitments: &[(u32, u128)],
 ) -> Result<YawBodyTransition, YawMotionError> {
     let mut signed_displacement = 0_i128;
-    for (topology_index, newly_opened_channels) in recruitments.iter().copied() {
-        let magnitude = i128::try_from(newly_opened_channels)
+    for (topology_index, outward_elementary_carriers) in recruitments.iter().copied() {
+        let magnitude = i128::try_from(outward_elementary_carriers)
             .map_err(|_| YawMotionError::ArithmeticWidth)?;
         signed_displacement = if topology_index % 2 == 0 {
             signed_displacement.checked_add(magnitude)

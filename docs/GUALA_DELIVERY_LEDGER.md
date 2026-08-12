@@ -45,8 +45,11 @@ box remains unchecked until live acceptance passes.
   layer-11 ordering change; production task 976 reached exactly one layer-12
   neuron with one layer-8 contact and four layer-11 contacts, and a repeated
   250-tick turn added no neuron or contact.
-- [ ] **S-018** Implement and live-prove layer-13 articulatory specialization
-  from genuine ordered vocal/body material, not from a speech label.
+- [x] **S-018** Implement and live-prove layer-13 articulatory specialization
+  from genuine ordered vocal/body material, not from a speech label; production
+  task 978 retained the one reusable route without further layer-13 growth
+  across continued live settlement, while preserving exact cold restore and
+  zero Python cognition callbacks.
 - [ ] **S-019** Verify growth DNA adds or specializes neurons only from reached
   physical developmental demand and never scans/instantiates the compact reserve.
 - [ ] **S-020** Cold-restore and resource-prove the complete starting
