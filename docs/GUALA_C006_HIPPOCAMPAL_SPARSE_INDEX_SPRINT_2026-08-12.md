@@ -212,3 +212,21 @@ alone cannot close C-006.
   formation's exact 27 members on the next interval, unchanged layer-9 count,
   a 28-byte reduction, distinct successor SHA-256, exact successor cold
   restore, and zero Python callbacks. It does not claim motor action.
+- Deployment attempt 2 ran from 13:47:01 through 14:05:33 UTC (18 minutes 32
+  seconds) and completed one verified cutover to task definition 993, commit
+  `b803f1a000d262b9ab4789e90e0e1582410ea803`, and image
+  `sha256:666c19d27b3948e0b5a561b88dc754ff8c296ebb8ee9b0eb0798c832ebca37b4`.
+  ECS reached steady state with one running process and zero pending tasks.
+- Direct authenticated readiness after cutover showed the same organism
+  identity, production tick 54,695, 224 reached neurons, four layer-9 neurons,
+  two retained formations, available energy, and zero Python callbacks.
+- A post-cutover disposable production proof then loaded task 993's current
+  read-only body at tick 54,711 and observed one exact inbound layer-9 bond
+  moving 17 neurons, followed by the same index lineage reaching all 27 exact
+  formation members while 43 neurons moved. Layer-9 count stayed four; the
+  successor was 36 bytes smaller, had distinct SHA-256
+  `bfac3bcf68b6ab42930ef7783ddba481aa682d02b239d188bcfb033e9a8aed69`,
+  and cold-restored exactly. The proof receipt is
+  `ac72216f3b8a37a4b617e009c2ec9506a3b02ce5d22314eb6ebe5ff08142ac0e`.
+  The source mount was read-only and the disposable successor was not
+  published into the primary organism.

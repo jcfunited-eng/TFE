@@ -118,8 +118,19 @@ box remains unchecked until live acceptance passes.
   neurons, and 43,384,300 state bytes remained stable, with one healthy process
   and zero Python cognition callbacks. The release is commit `accf0219`, image
   `sha256:786c937d0cb5479148e22090de05715324fa2f3d2eaa366ac16cd677451b2068`.
-- [ ] **C-006** Prove hippocampal structures act as bounded sparse indexes into
-  distributed retained structure and do not store or return an answer.
+- [x] **C-006** Prove hippocampal structures act as bounded sparse indexes into
+  distributed retained structure and do not store or return an answer. Live
+  task 993 preserved the same identity, 224 reached neurons, four layer-9
+  neurons, and two retained formations. A post-cutover disposable production
+  proof against the live body at tick 54,711 observed one exact retained member
+  reaching layer-9 lineage `474c4e4c494e4531000000000000008a`, followed on
+  the next causal interval by that same lineage reaching all 27 exact members
+  of formation `10f72d227550a26955e7a257bc17c410f5d959a7f4c67cb8130734c7031be91b`.
+  The layer-9 count remained four, the successor was 36 bytes smaller and
+  cold-restored byte-exact, and Python cognition callbacks remained zero. No
+  hippocampal answer, route history, parent, page, or database record was
+  created. The release is commit `b803f1a0`, image
+  `sha256:666c19d27b3948e0b5a561b88dc754ff8c296ebb8ee9b0eb0798c832ebca37b4`.
 - [ ] **C-007** Prove recognition is distributed physical pattern completion
   across sensory, association, retained, body, and affective participants.
 - [ ] **C-008** Prove partial-cue recall reconstructs current organism activity
