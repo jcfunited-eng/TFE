@@ -57,6 +57,7 @@ print(json.dumps({
     "after_resting": after["developmental_resting_neuron_count"],
     "first_dsf": first["totals"]["dsf_delivery_count"],
     "first_transitions": first["totals"]["physically_transitioned_neuron_count"],
+    "first_ingress": first["receptor_ingress"],
     "python_callbacks": after["python_callback_count"],
     "state_bytes": after["state_bytes"],
     "max_fabric_bytes": after["resource_admission"]["max_fabric_bytes"],
@@ -95,6 +96,19 @@ print(json.dumps({
     assert result["first_resting"] == result["after_resting"]
     assert result["first_dsf"] == result["repeat_dsf"] == 43
     assert result["first_transitions"] > 0
+    assert result["first_ingress"] == {
+        "changing_count": 0,
+        "quiescent_count": 42,
+        "sense_counts": {
+            "sight": 27,
+            "sound": 2,
+            "touch": 0,
+            "smell": 8,
+            "taste": 5,
+            "body": 0,
+        },
+        "source_hop_count": 1,
+    }
     assert result["python_callbacks"] == 0
     assert result["repeat_mosaics"] == 0
     assert result["state_bytes"] <= result["max_fabric_bytes"]

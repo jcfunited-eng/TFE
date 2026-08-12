@@ -1993,6 +1993,7 @@ def _autonomy_record() -> dict[str, object]:
             "hop_count",
             "intake",
             "organism_tick",
+            "receptor_ingress",
             "state_sha256",
             "world_revision",
         )
@@ -4043,6 +4044,12 @@ def _commit_admitted_hop(
         maximum_causal_intervals,
     )
     observed = organism.commit(evidence.token)
+    ingress_sense_counts = {
+        sense.value: count
+        for sense, count in zip(
+            SENSE_ORDER, evidence.receptor_ingress_sense_counts, strict=True
+        )
+    }
     return {
         "cognitive_mosaic_count": observed.cognitive_mosaic_count,
         "cognitive_trace_count": observed.cognitive_trace_count,
@@ -4072,6 +4079,13 @@ def _commit_admitted_hop(
         ),
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
+        ),
+        "receptor_ingress_sense_counts": ingress_sense_counts,
+        "receptor_ingress_changing_count": (
+            evidence.receptor_ingress_changing_count
+        ),
+        "receptor_ingress_quiescent_count": (
+            evidence.receptor_ingress_quiescent_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "recurrent_complete_neuron_fractal_count": (
@@ -4313,6 +4327,9 @@ def _perform_admitted_intake_locked(
         "metabolically_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
+    receptor_ingress_sense_counts = {sense.value: 0 for sense in SENSE_ORDER}
+    receptor_ingress_changing_count = 0
+    receptor_ingress_quiescent_count = 0
     restored, admission = _runtime()
     organism = restored.organism
     predecessor = restored.pointer
@@ -4340,6 +4357,16 @@ def _perform_admitted_intake_locked(
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             for key in totals:
                 totals[key] += last_hop[key]
+            for sense, count in last_hop[
+                "receptor_ingress_sense_counts"
+            ].items():
+                receptor_ingress_sense_counts[sense] += count
+            receptor_ingress_changing_count += last_hop[
+                "receptor_ingress_changing_count"
+            ]
+            receptor_ingress_quiescent_count += last_hop[
+                "receptor_ingress_quiescent_count"
+            ]
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if last_hop is None or (
@@ -4403,6 +4430,12 @@ def _perform_admitted_intake_locked(
     _restored = RestoredNativeOrganism(
         organism=organism, pointer=published.pointer
     )
+    receptor_ingress = {
+        "changing_count": receptor_ingress_changing_count,
+        "quiescent_count": receptor_ingress_quiescent_count,
+        "sense_counts": receptor_ingress_sense_counts,
+        "source_hop_count": committed_hop_count,
+    }
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
@@ -4410,6 +4443,7 @@ def _perform_admitted_intake_locked(
         "intake": intake,
         "motor_action": motor_action,
         "predecessor_state_sha256": predecessor.state_sha256,
+        "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
     _refresh_public_observation_cache()
@@ -4436,6 +4470,7 @@ def _perform_admitted_intake_locked(
             "state_sha256": published.pointer.state_sha256,
         },
         "schema": "guala.native_admitted_intake_result.v1",
+        "receptor_ingress": receptor_ingress,
         "totals": totals,
     }
 
@@ -4816,6 +4851,9 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         measured["complete_neuron_fractal_count"] = result["totals"][
             "complete_neuron_fractal_count"
         ]
+        measured["metabolically_perturbed_body_receptor_count"] = result[
+            "totals"
+        ]["metabolically_perturbed_body_receptor_count"]
         measured["partial_cue_reassembly_count"] = result["totals"][
             "partial_cue_reassembly_count"
         ]
@@ -4845,6 +4883,7 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "measured": measured,
             "motor_action": motor_action,
             "organism_tick": after["organism_tick"],
+            "receptor_ingress": result["receptor_ingress"],
             "state_sha256": after["state_sha256"],
             "world_revision": environment["world_revision"],
         }

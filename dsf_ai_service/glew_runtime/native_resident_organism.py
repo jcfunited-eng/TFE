@@ -201,6 +201,16 @@ class ResidentPrepareEvidence:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    )
+    receptor_ingress_changing_count: int = 0
+    receptor_ingress_quiescent_count: int = 0
     motor_unit_recruitments: tuple[tuple[str, int, int], ...] = ()
 
 
@@ -778,6 +788,31 @@ class NativeResidentOrganism:
             candidate.metabolically_perturbed_body_receptor_count,
             "metabolically perturbed body receptor count",
         )
+        raw_ingress_sense_counts = candidate.receptor_ingress_sense_counts
+        if (
+            not isinstance(raw_ingress_sense_counts, tuple)
+            or len(raw_ingress_sense_counts) != 6
+        ):
+            raise RuntimeError("receptor ingress sense counts changed format")
+        receptor_ingress_sense_counts = tuple(
+            _nonnegative_integer(value, "receptor ingress sense count")
+            for value in raw_ingress_sense_counts
+        )
+        receptor_ingress_changing_count = _nonnegative_integer(
+            candidate.receptor_ingress_changing_count,
+            "receptor ingress changing count",
+        )
+        receptor_ingress_quiescent_count = _nonnegative_integer(
+            candidate.receptor_ingress_quiescent_count,
+            "receptor ingress quiescent count",
+        )
+        if (
+            sum(receptor_ingress_sense_counts) != source_port_count
+            or receptor_ingress_changing_count
+            + receptor_ingress_quiescent_count
+            != source_port_count
+        ):
+            raise RuntimeError("receptor ingress observation lost source ports")
         raw_motor_recruitments = candidate.motor_unit_recruitments
         if not isinstance(raw_motor_recruitments, list):
             raise RuntimeError("motor-unit recruitments changed format")
@@ -902,6 +937,9 @@ class NativeResidentOrganism:
             metabolically_perturbed_body_receptor_count=(
                 metabolically_perturbed_body_receptor_count
             ),
+            receptor_ingress_sense_counts=receptor_ingress_sense_counts,
+            receptor_ingress_changing_count=receptor_ingress_changing_count,
+            receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
         )
 
