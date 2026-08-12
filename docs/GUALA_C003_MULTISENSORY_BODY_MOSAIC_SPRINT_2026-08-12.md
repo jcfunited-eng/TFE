@@ -295,3 +295,35 @@ not physics, persistence, or conservation authority.
   count, member sets, and bonds. The run took 146.10 seconds from a cold
   process and peaked at 1,737,160 KiB RSS. Evidence:
   `/tmp/c003-exact-recurrent14.json`.
+
+## Live production closure
+
+C-003 was deployed on 2026-08-12 as commit
+`4cb339fdfb0feb6661e4e8167a421ba14f1e889b`, task `dsf-ai-task:989`, and image
+`sha256:25e2f7fee8d42b62e0efae0722db1caeb2d64c67f9a75b7a9a6c59de52b641d5`.
+The one immutable image build succeeded in 8 minutes 1 second. Its discarded
+candidate rehearsal cold-restored the current live lineage, preserved identity,
+started zero Python cognition workers, and completed an ordinary eight-hop
+transition plus physical motor consequence without writing the live source.
+
+After cutover, one healthy task 989 reported the reviewed commit and digest,
+the original organism identity, and zero Python callbacks. Unattended lived
+time had already advanced it to tick 52,374 and retained one exact distributed
+formation. The authenticated current body was downloaded by its SHA-256 and
+cold-observed with the released native runtime. The formation contains 16
+members across sight (1), sound (10), chemical (3), and body/fluid (2), with 33
+original physical bonds and 33 recurrence bonds. Its canonical receipt is
+`4255963077db742216162c11514c1855967d1b22e2c427fc408882c1592f83a4`.
+The body re-encoded byte-identically.
+
+A later production sample advanced without interaction to tick 52,398. It
+preserved 223 complete neurons and one retained formation, changed state SHA
+through ordinary lived processing while holding encoded size essentially
+stable (43,216,893 to 43,216,851 bytes), reported energy available rather than
+exhausted, and still reported zero Python cognition callbacks. Both public Loom
+pages returned HTTP 200; C-003 makes no functional UI claim.
+
+C-003 is therefore closed in live production. It proves organic retained
+multisensory/body formation through exact sparse physical bonds and shared
+causal time. It does not prove semantic recognition, recall, word learning, or
+recurrence-driven strengthening/weakening; those remain later ledger items.

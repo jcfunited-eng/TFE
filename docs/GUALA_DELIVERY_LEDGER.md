@@ -84,8 +84,17 @@ box remains unchecked until live acceptance passes.
   organism identity, held 222 complete neurons and two mosaics, and reported
   zero Python cognition callbacks. The release is commit `d49cc0c2`, image
   `sha256:47dc20e80b144008b10c69354001255cdb033fcf43d0ac09d193443bf570912b`.
-- [ ] **C-003** Prove multisensory/body neuronal fractals from one causal moment
+- [x] **C-003** Prove multisensory/body neuronal fractals from one causal moment
   form an organic mosaic only through their physical bonds and shared time.
+  Live task 989 retained one exact 16-neuron formation formed during unattended
+  lived time: sight 1, sound 10, chemical 3, and body/fluid 2, connected by 33
+  original physical bonds and 33 recurrence bonds. Its canonical receipt is
+  `4255963077db742216162c11514c1855967d1b22e2c427fc408882c1592f83a4`.
+  Production advanced independently from tick 52,374 to 52,398 with one
+  retained formation, 223 complete neurons, stable state size, available
+  energy, and zero Python cognition callbacks. The release is commit
+  `4cb339fd`, image
+  `sha256:25e2f7fee8d42b62e0efae0722db1caeb2d64c67f9a75b7a9a6c59de52b641d5`.
 - [ ] **C-004** Prove recurrence strengthens, alters, weakens, or dissolves
   mosaics through local physics without a database entity or semantic label.
 - [ ] **C-005** Prove organic relationships among mosaics can recur without an
