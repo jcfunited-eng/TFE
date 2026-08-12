@@ -402,6 +402,20 @@ def _validate_proof(
             proof["hippocampal_route_successor_state_sha256"]
         )
         is not None
+        and proof.get("distributed_recognition_rehearsed") is True
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] > 0
+            for name in (
+                "distributed_recognition_active_neuron_count",
+                "distributed_recognition_association_neuron_count",
+                "distributed_recognition_affective_neuron_count",
+                "distributed_recognition_body_neuron_count",
+                "distributed_recognition_retention_neuron_count",
+                "distributed_recognition_sensory_neuron_count",
+            )
+        )
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]

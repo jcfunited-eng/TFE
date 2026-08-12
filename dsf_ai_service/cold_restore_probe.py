@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import deque
 import hashlib
 import json
 import os
@@ -113,6 +114,38 @@ def _rehearse_native_sparse_index(
             "layer-9 route did not reach one exact distributed formation"
         )
     formation_receipt, formation_members = matching[0]
+    active_neighbours: dict[str, set[str]] = {}
+    for left, right, _ordinal in outbound.active_physical_bonds:
+        active_neighbours.setdefault(left, set()).add(right)
+        active_neighbours.setdefault(right, set()).add(left)
+    active_component = {index_lineage}
+    active_frontier = deque([index_lineage])
+    while active_frontier:
+        current = active_frontier.popleft()
+        for neighbour in sorted(active_neighbours.get(current, ())):
+            if neighbour not in active_component:
+                active_component.add(neighbour)
+                active_frontier.append(neighbour)
+    distributed_layers = {
+        "sensory": {lineage for lineage in active_component if layers[lineage] <= 5},
+        "association": {
+            lineage for lineage in active_component if layers[lineage] == 7
+        },
+        "retention": {
+            lineage for lineage in active_component if layers[lineage] == 9
+        },
+        "body": {
+            lineage for lineage in active_component if layers[lineage] in {5, 8}
+        },
+        "affective": {
+            lineage for lineage in active_component if layers[lineage] == 10
+        },
+    }
+    if (
+        not set(formation_members).issubset(active_component)
+        or any(not participants for participants in distributed_layers.values())
+    ):
+        raise RuntimeError("partial cue did not complete a distributed recognition path")
 
     after = organism.readiness()
     successor_state = organism.save()
@@ -158,6 +191,23 @@ def _rehearse_native_sparse_index(
         ),
         "hippocampal_route_state_byte_delta": after.state_bytes - before.state_bytes,
         "hippocampal_route_successor_state_sha256": after.state_sha256,
+        "distributed_recognition_rehearsed": True,
+        "distributed_recognition_active_neuron_count": len(active_component),
+        "distributed_recognition_association_neuron_count": len(
+            distributed_layers["association"]
+        ),
+        "distributed_recognition_affective_neuron_count": len(
+            distributed_layers["affective"]
+        ),
+        "distributed_recognition_body_neuron_count": len(
+            distributed_layers["body"]
+        ),
+        "distributed_recognition_retention_neuron_count": len(
+            distributed_layers["retention"]
+        ),
+        "distributed_recognition_sensory_neuron_count": len(
+            distributed_layers["sensory"]
+        ),
         "motor_action_rehearsed": False,
     }
 
