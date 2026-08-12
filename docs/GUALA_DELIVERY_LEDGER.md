@@ -190,8 +190,16 @@ box remains unchecked until live acceptance passes.
   committed heading. This proves stable cross-context physical relation reuse,
   not a named concept or word meaning. Release commit `13d9771e`, image
   `sha256:51d3999679b7e019a76ec75b0335ece71f44d3c3ba8c51b1f88793fcc92c8eaa`.
-- [ ] **C-011** Prove ordered recurrent formations can produce tapestry-level
+- [x] **C-011** Prove ordered recurrent formations can produce tapestry-level
   sequences such as remembered moments, sentences, navigation, or avoidance.
+  Live task 1001 preserved one bounded exact directed contact cause per active
+  frontier entry and an ordinary 250-interval `world-move` reassembled 34
+  ordered two-contact paths across two retained formations. The same path
+  evidence survived current-state persistence and exact cold rehearsal, with
+  one organism identity, one healthy task, and zero Python cognition callbacks.
+  No sequence object, ordered-member list, archive, parent hierarchy, or
+  scripted meaning was created. Release commit `c1f7d78e`, image
+  `sha256:8f3c5896a4f55972c858c25443c344b61da533f4112eb58cfb501a6013ad1d7f`.
 - [ ] **C-012** Prove relationships among ordered formations can persist as
   tapestry-of-tapestry thought/expressive structure without a sequence database.
 - [ ] **C-013** Prove weave-level self-expression can emerge from repeated
