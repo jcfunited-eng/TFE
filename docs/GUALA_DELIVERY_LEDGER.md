@@ -145,9 +145,24 @@ box remains unchecked until live acceptance passes.
   This proves distributed recognition, not sparse attention. Release commit
   `0a4d71d8`, image
   `sha256:d4d9d0fc2db1b6808ed5c7cb298561ae259330d3a9ce8d4df47083e222f5dee5`.
-- [ ] **C-008** Prove partial-cue recall reconstructs current organism activity
+- [x] **C-008** Prove partial-cue recall reconstructs current organism activity
   across hippocampal, associative/neocortical, ordering/prefrontal, affective,
-  body, and sensory populations instead of loading a stored record.
+  body, and sensory populations instead of loading a stored record. Live task
+  996 preserved the same identity, one process, and zero Python cognition
+  callbacks. A post-cutover discarded-state proof from exact tick 56,386 used
+  only body-cue lineage `474c4e4c494e4531000000000000005c`; on causal
+  interval 3 it reassembled the retained 27-member formation and produced one
+  current physical component containing 212 reached neurons over 747 active
+  bonds: 88 sensory, two body, two layer-7 association, four layer-9 retention,
+  three layer-10 affective, and four layer-11 ordering participants. The
+  28-byte-smaller successor cold-restored byte-exact from a read-only source;
+  proof receipt
+  `c0b524dce69749d6e84e959e5041f5a92284ebab39287becc0d15f40172279f2`.
+  Later unattended ticks 56,413→56,422 retained 224 reached and 196,505 resting
+  neurons with only a 320-byte state change and zero Python callbacks. This is
+  bounded distributed recall, not sparse attention. Release commit
+  `a893cd22`, image
+  `sha256:cb0b48f7e259fece44fe26dc9aaa30d199aa5d4b27851869030470c65dec5162`.
 - [ ] **C-009** Prove episodic memory preserves causal moments and relationships
   without becoming a recording of full source media.
 - [ ] **C-010** Prove repeated cross-context relations become generalized

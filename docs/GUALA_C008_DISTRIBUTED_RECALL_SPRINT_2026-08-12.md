@@ -235,3 +235,31 @@ remain read-only, one healthy process and one identity must remain, Python
 cognition callbacks must remain zero, and no archive, answer, hierarchy,
 semantic, owner, lock, database, fallback, or unbounded scan may exist on the
 path. Local source/tests/rehearsal do not close the item.
+
+## Live closure — 2026-08-12
+
+C-008 is closed in live production.
+
+- Release commit: `a893cd226fdc1f00d7be6467bff188f4c480b877`.
+- Immutable image: `sha256:cb0b48f7e259fece44fe26dc9aaa30d199aa5d4b27851869030470c65dec5162`.
+- ECS task definition: `dsf-ai-task:996`; exactly one running, healthy process,
+  zero pending processes, and completed rollout.
+- The pre-cutover read-only task-995 proof passed at tick `56,327`. The
+  post-cutover discarded-state proof then passed against task 996's exact live
+  body at tick `56,386` with receipt
+  `c0b524dce69749d6e84e959e5041f5a92284ebab39287becc0d15f40172279f2`.
+- The sole external cue was layer-5 lineage
+  `474c4e4c494e4531000000000000005c`. Interval 3 reassembled one exact
+  27-member formation. Its current active component contained `212` reached
+  neurons over `747` bonds: sensory `88`, body `2`, association `2`, retention
+  `4`, affective `3`, and ordering `4`.
+- The three-interval path delivered `6` complete DSF occurrences and `616`
+  physically transitioned neuron instances. The disposable successor was `28`
+  bytes smaller, had SHA-256
+  `3c22a5f9d31085eaee34d3dcadb92d0e21d120a303e795559b72f64fec8a4c5e`,
+  and cold-restored byte-exact. Production `CURRENT` was read-only throughout.
+- A later unattended two-sample check advanced tick `56,413 -> 56,422` while
+  holding reached/resting populations at `224 / 196,505`; state changed only
+  `320` bytes and Python cognition callbacks remained zero.
+- Both public Loom HTML resources returned HTTP 200. Their functional redesign
+  remains on the UI ledger and is not claimed by C-008.
