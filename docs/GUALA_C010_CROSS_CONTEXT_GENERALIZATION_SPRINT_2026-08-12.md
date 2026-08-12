@@ -125,6 +125,7 @@ history scan, or new formation duplicate.
 | RF-022 | Not triggered unless a retained value domain changes; this sprint currently changes no retained state. |
 | RF-023 | Triggered during target census: the historical null-name JMESPath failure recurred. The durable register now requires unfiltered AWS retrieval followed by validated-string `jq` filtering; the corrected command passed. |
 | RF-024 | Triggered before packaging-test collection: historical test filenames were guessed rather than resolved. The durable register now requires `rg --files` proof for every pytest target before invocation. |
+| RF-025 | Triggered during live context B: the state-changing request outlived the public gateway and returned 504 after committing. The successor was checked before any retry; no duplicate experience was sent. |
 
 ## Failed and rejected paths
 
@@ -154,6 +155,12 @@ history scan, or new formation duplicate.
 - A packaging-boundary command guessed historical test filenames and pytest
   stopped before collection. No candidate test ran or changed state. RF-024
   now requires resolving every exact target from the active worktree first.
+- The live external-yaw request returned HTTP 504 after the bounded native
+  intake outlived the public gateway. It was not repeated. A read-only
+  successor check proved the requested `+64` millidegree yaw committed as
+  world revision `1180`, and the following self-caused `+52` millidegree yaw
+  advanced that exact pose to revision `1181`. RF-025 now requires checking
+  the committed successor before any retry.
 
 ## Completion boundary
 
@@ -177,3 +184,40 @@ a digest without causal context do not close it.
   work is proportional only to the formations and bonds in the already-reached
   relation; no additional native call, retained field, codec byte, database,
   owner, lock, counter, label, or Python cognition callback is introduced.
+
+## Deployment and live-production closure
+
+- One production deployment attempt ran from `2026-08-12T18:10:31Z` through
+  `2026-08-12T18:28:31Z` and completed in 18 minutes.
+- Live task definition: `dsf-ai-task:998`.
+- Live commit: `13d9771e14f675f9f6d7d348b13a18c7ccdbff12`.
+- Live image:
+  `sha256:51d3999679b7e019a76ec75b0335ece71f44d3c3ba8c51b1f88793fcc92c8eaa`.
+- ECS reports one desired/running healthy task, zero pending tasks, zero failed
+  tasks, and one completed PRIMARY rollout.
+- Candidate cold rehearsal restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` byte-exact at tick `57277`, with
+  state bytes `43385280`, zero Python cognition callbacks, and stable relation
+  SHA-256
+  `f3fb4081cec9181e576a02549c0b1dbb97be1c14bfa60dfd62aa161dcff91c8a`.
+- **Context A:** ordinary unattended intake at organism tick `57349` moved her
+  body by a self-caused `+85` millidegree yaw at world revision `1179`. The
+  same stable relation SHA-256 was active.
+- **Context B:** one externally caused request at the same position requested
+  exactly `+64` millidegrees, from heading `81401` to `81465`. It committed as
+  world revision `1180`; no retry was sent after the client-side 504. The next
+  native relation occurrence followed A at tick `57350` with the same stable
+  relation SHA-256.
+- **Context C:** later ordinary unattended intake advanced through tick `57358`
+  and moved her body by a self-caused `+52` millidegree yaw, from the exact B
+  heading `81465` to `81517`, at world revision `1181`. Relation occurrences
+  through ticks `57352`, `57354`, and `57356` retained the same stable relation
+  SHA-256.
+- A and C have `continuous-environment:<occurrence>` provenance; B is the only
+  externally submitted world move and truthfully reports `chose_to_go=false`.
+  The organism identity remained unchanged. State grew only 224 bytes from
+  the first A observation (`43385280`) to the first post-B/C observation
+  (`43385504`), and live observation reports zero Python cognition callbacks.
+- C-010 is therefore **closed in live production**. This proves reuse of one
+  distributed learned physical relation across distinct causal contexts. It
+  does not claim a named concept, word meaning, language, or complete Guala.
