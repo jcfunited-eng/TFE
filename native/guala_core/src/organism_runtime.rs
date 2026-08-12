@@ -116,6 +116,7 @@ type OrderedPathRelationProjection = (
     DirectedPhysicalTransferProjection,
     DirectedPhysicalTransferProjection,
     DirectedPhysicalTransferProjection,
+    DirectedPhysicalTransferProjection,
 );
 type OrganicMosaicRelationProjection = (
     Vec<String>,
@@ -3810,7 +3811,8 @@ fn project_organic_mosaic_relations(
                 .ordered_path_relations
                 .iter()
                 .map(|path| {
-                    let [first, shared, last] = path.directed_transfers();
+                    let [earlier_first, earlier_second, current_first, current_second] =
+                        path.directed_transfers();
                     let project = |(sender, receiver, bond, carriers): (
                         [u8; 16],
                         [u8; 16],
@@ -3824,7 +3826,12 @@ fn project_organic_mosaic_relations(
                             carriers.to_string(),
                         )
                     };
-                    (project(first), project(shared), project(last))
+                    (
+                        project(earlier_first),
+                        project(earlier_second),
+                        project(current_first),
+                        project(current_second),
+                    )
                 })
                 .collect();
             (

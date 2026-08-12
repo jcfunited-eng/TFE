@@ -95,7 +95,7 @@ def _rehearse_native_distributed_recall(
     heading = 0
     transition_count = 0
     dsf_delivery_count = 0
-    for ordinal, signed_step in enumerate((64, -64, 0), 1):
+    for ordinal, signed_step in enumerate((-64, -64, -64, -64), 1):
         interval_predecessor = organism.save()
         prepared = organism.prepare_vestibular_tick(heading, signed_step)
         transition_count += prepared.physically_transitioned_neuron_count
@@ -177,7 +177,7 @@ def _rehearse_native_distributed_recall(
         dsf_delivery_count <= 0
         or transition_count <= 0
         or after.identity != before.identity
-        or after.organism_tick != before.organism_tick + 3
+        or after.organism_tick != before.organism_tick + 4
         or after.python_callback_count != 0
         or after.state_sha256 == before.state_sha256
         or not cold_exact
@@ -203,7 +203,7 @@ def _rehearse_native_distributed_recall(
             recalled["distributed_recall_interval_ordinal"] - 1
         ),
         "distributed_recognition_source_dsf_delivery_count": dsf_delivery_count,
-        "distributed_recognition_source_hop_count": 3,
+        "distributed_recognition_source_hop_count": 4,
         "distributed_recognition_source_physical_transition_count": (
             transition_count
         ),
@@ -238,7 +238,7 @@ def _rehearse_ordered_trajectory_projection(
             current_envelope=current_envelope,
             **budget,
         )
-        prepared = candidate.prepare_vestibular_trajectory(0, (64, -64, 0))
+        prepared = candidate.prepare_vestibular_trajectory(0, (-64, -64, -64, -64))
         relation = _commit_and_observe_episodic_relation(
             candidate,
             prepared,

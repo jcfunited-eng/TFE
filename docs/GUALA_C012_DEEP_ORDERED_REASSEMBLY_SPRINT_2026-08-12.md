@@ -1,4 +1,4 @@
-# C-012 Deep Ordered Reassembly Sprint
+# C-012 Recurrent Ordered-Path Relation Sprint
 
 Date: 2026-08-12
 
@@ -12,27 +12,28 @@ Date: 2026-08-12
   `sha256:8f3c5896a4f55972c858c25443c344b61da533f4112eb58cfb501a6013ad1d7f`.
 - Production organism identity:
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
-- C-012 is not delivered until an ordinary production trajectory and exact
-  cold replay prove the acceptance path below.
+- C-012 is not delivered until the ordinary production path and exact cold
+  replay prove the acceptance path below.
 
 ## Architecture honesty gate
 
-1. **Requested architecture:** deeper recurrent activity must span ordered
-   paths that have themselves already reassembled. “Tapestry of tapestries”
-   is a conversational description of that activity, never a stored object.
-2. **Current code reality:** V20 retains one exact preceding directed
-   electrical frontier. It can prove one two-contact path but cannot prove
-   that two ordered paths overlap in one continued causal propagation.
-3. **Conflict:** yes at the immediate-causal-state depth. The physical
-   transfers exist, but the first of three consecutive transfers has expired
-   before the third is observed.
+1. **Requested architecture:** deeper recurrent activity must relate ordered
+   paths that have themselves already occurred. “Tapestry of tapestries” is a
+   conversational description of that activity, never a stored object.
+2. **Current code reality:** C-011 retains the active and immediately preceding
+   exact sparse directed electrical frontiers. Production diagnostics prove a
+   two-contact path at intervals 2, 4, and 6, with the same physical route but
+   different exact carrier transfers. C-011 cannot see interval 2 when interval
+   4 settles because interval 1 has expired.
+3. **Conflict:** yes, only at the bounded recurrence horizon. The required
+   physical routes already exist; one older sparse frontier is missing.
 4. **Not extended:** semantic tapestry types, ordered-member arrays, episode
-   archives, sequence databases, parent hierarchies, counters, receipt-driven
-   cognition, grammar, scripts, classifiers, or retired formation generators.
-5. **Single exact item:** retain exactly the two immediately preceding sparse
-   directed electrical frontiers. A current directed transfer may prove one
-   deeper relation only when all three exact transfers join physically as
-   `A→B`, `B→C`, `C→D` and span recurrent retained formations.
+   archives, sequence databases, parent hierarchies, receipt-driven cognition,
+   scripts, classifiers, or retired formation generators.
+5. **Single exact item:** V22 retains exactly one additional older sparse
+   directed frontier. A deeper relation exists only when an earlier two-contact
+   path and a later two-contact path use the same sender/receiver/bond route
+   while preserving each interval's exact whole-carrier transfer.
 6. **DSF scope:** every reached neuron continues to receive the full unchanged
    joint L0-L4 field and all seven explicit DSF fields.
 7. **Field loss:** none. This work changes only downstream sparse electrical
@@ -40,13 +41,12 @@ Date: 2026-08-12
 
 ## Biology-equivalent boundary
 
-Neural systems express temporal sequence through recurrent, directionally
-propagating activity, while short-lived changes in active connectivity can
-retain immediately preceding causal structure without permanent firing or an
-event archive. The substrate equivalent here is the exact finite carrier
-transfer already produced by mounted contacts, retained only across the two
-propagation boundaries required for two overlapping paths. It does not add a
-learned sequence rule or claim biological completeness.
+Neural systems express temporal structure through recurrent directionally
+propagating activity. Short-lived active connectivity can preserve an immediate
+causal trace without permanent firing or an event archive. The substrate keeps
+only the exact three predecessor frontiers needed to compare the earlier and
+current two-contact routes. It adds no learned sequence rule and claims no
+biological completeness.
 
 Primary research consulted:
 
@@ -61,85 +61,75 @@ Primary research consulted:
 
 | Boundary | Exact value |
 |---|---|
-| Input | A lawful current source interval plus the exact two immediately preceding sparse directed electrical frontiers from the same organism successor chain. |
-| Native producer | `settle_internal_contact_interval` in `native/guala_core/src/resident_cognitive_formation.rs`; it already produces exact sender, receiver, stable bond, and transferred whole carriers. |
-| State transformation | V21 shifts prior active frontier to preceding frontier, writes the current transfer as active frontier, and discards anything older. Empty/quiet propagation naturally clears the trace. |
-| Formation boundary | `settle_organism_mosaic_boundary` receives older, preceding, and current frontiers and observes only physically continuous three-transfer paths within a current recurrent relation. |
-| Expected output | One bounded observation containing two overlapping ordered physical paths (`A→B→C` and `B→C→D`) tied to recurrent retained formations. |
-| Production acceptance | The ordinary production trajectory returns at least one exact deeper ordered relation; exact same-predecessor/input cold replay returns the same relation digest; one organism/process remains healthy; Python cognition callbacks remain zero. |
-| Resource acceptance | Persisted growth is exactly one additional sparse frontier, work is linear in the reached frontiers/relations, and no organism-wide or historical scan is added. |
-| Observed evidence | The focused three-transfer law passes; the complete native suite passes 410 tests with zero failures and 13 explicitly retired fixtures; the exact release wheel built from this source passes all 45 affected native/Python boundary, cold-restore, aggregation, and rehearsal-controller tests from an isolated install. Immutable candidate rehearsal and production evidence remain pending, so C-012 remains open. |
+| Input | Four consecutive lawful source intervals plus the exact three predecessor sparse directed frontiers from one organism successor chain. |
+| Native producer | `settle_internal_contact_interval` in `native/guala_core/src/resident_cognitive_formation.rs`; it produces exact sender, receiver, stable bond, and transferred whole carriers. |
+| State transformation | V22 shifts predecessor preceding frontier to older, predecessor active to preceding, and current transfers to active; anything older expires. Quiet propagation clears the bounded trace naturally. |
+| Formation boundary | `settle_organism_mosaic_boundary` observes an earlier path from frontiers 1→2 and a current path from frontiers 3→4. The sender, receiver, and bond topology must match; carrier quantities remain exact and may differ. |
+| Expected output | One bounded observation containing both exact two-contact path occurrences tied to a current recurrent formation relation. |
+| Production acceptance | Four ordinary repeated body intervals return at least one exact recurrent ordered-path relation; exact same-predecessor/input cold replay returns the same relation digest; one organism/process remains healthy; Python cognition callbacks remain zero. |
+| Resource acceptance | Persisted growth is exactly one additional sparse frontier; work is bounded by the reached frontier and current relation; no historical scan or sequence store exists. |
+| Observed evidence | Focused four-interval law passes. Full native suite: 410 passed, 0 failed, 13 explicitly ignored. Final exact release wheel SHA-256 `13cfd4f4b70388e2be0fba0f0738d99830b76cdb1f93675661b836163e3f979e`; focused compiled-artifact set: 46 passed; broader serving/preflight/storage/deployment/packaging set: 106 passed. Immutable candidate rehearsal and live proof remain pending, so C-012 remains open. |
 
-The first focused Cargo invocation combined an unqualified test name with
-`--exact`; compilation passed, but the harness correctly ran zero tests. The
-resolved command uses the unique substring without `--exact`. That zero-test
-invocation is not acceptance evidence and will not be repeated.
+## Falsification and correction history
 
-The first complete native run passed 409 tests and exposed one exact V21 codec
-budget mismatch: the empty-body constant still counted V20's three length
-fields rather than V21's four. The required body was 172 bytes and the stale
-constant admitted 164. The constant now derives four `u64` fields; no physics,
-population, frontier cardinality, or acceptance rule changed.
+1. The original V21 candidate modeled two overlapping paths as three transfers
+   (`A→B`, `B→C`, `C→D`). Its native suite passed, but the first immutable
+   candidate (`sha256:a78234d1...`) failed safely before cutover because Python's
+   observation signature still destructured the previous relation shape.
+   Production remained task 1001. RF-030 now makes signatures, equality
+   projections, and consecutive prepares mandatory translation boundaries.
+2. The corrected observation signature passed 93 tests. The second immutable
+   candidate (`sha256:5dfa0d50...`) failed safely because the authenticated
+   production body never produced the assumed three-transfer overlap.
+   Production again remained task 1001.
+3. Read-only diagnostics tested all 27 combinations of `(-64, 0, 64)^3` and
+   four separate 250-interval trajectories. They produced zero three-transfer
+   relations. A six-interval trace showed the real structure: the same exact
+   two-contact route recurred at intervals 2, 4, and 6 with different carrier
+   quantities. That evidence falsified the overlap model and established the
+   V22 recurrent-route model now implemented.
+4. One Python test invocation omitted the isolated worktree from `PYTHONPATH`
+   and stopped at collection. RF-001 already requires the exact worktree first
+   on the import path, so no duplicate rule or code change was added. The
+   corrected source test passed 46/46; the exact compiled wheel passed the same
+   46/46.
 
-The first release-contract invocation named the nonexistent file
-`tests/test_deterministic_guala_release_packaging.py`; pytest refused before
-collection and ran zero tests. The repository census identified the actual
-packaging file as `tests/test_guala_release_packaging.py`; the nonexistent name
-is not acceptance evidence and will not be repeated.
+## Translation-boundary census
 
-The first immutable candidate, image `sha256:a78234d1...`, exited in the
-discarded-state rehearsal before cutover; production remained unchanged on
-task 1001. A read-only diagnostic against that same image and body proved the
-first interval settled, then the second prepare reached a stale five-field
-destructure in Python's `_observation_signature`. The native relation gained
-its sixth deep-path field, but this equality/validation projection had been
-missed by the original translation census. RF-030 now requires these signature
-and before/after equality consumers plus a consecutive-prepare proof. The
-correction carries the sixth field and changes no neuron, relation, codec, or
-acceptance physics.
+The V22 field is carried through every `ResidentCognitiveFormationState`
+constructor, destructure, clone, lineage retirement, current encoder/decoder,
+V19-V21 restore, canonical validator, relation observer, native-to-Python
+projection, prepare signature/equality projection, multi-interval aggregate,
+cold-replay proof, immutable rehearsal, and production acceptance observer.
 
-The corrected complete six-field observation signature passes its direct
-regression and the combined affected-boundary, cold-restore, rehearsal,
-serving, preflight, storage-cutover, deployment, and release-packaging set:
-93 tests passed. Native source is unchanged from the already passing 410-test
-candidate suite.
+The permanent production preflight register applies in full, especially:
 
-## Translation-boundary census before implementation
+- **RF-001/RF-003:** put the worktree and exact rebuilt native artifact first on
+  the import path and print loaded provenance.
+- **RF-005/RF-017/RF-030:** map the complete evidence shape through every
+  constructor, translator, signature, equality projection, mock, and consumer.
+- **RF-027/RF-028:** preserve qualifying later-interval evidence and replay the
+  exact same predecessor/input.
+- **RF-029:** construct live writes from the same-session predecessor and
+  successor-check refusal or timeout before retry.
 
-The change must be carried through every occurrence of
-`active_electrical_frontier`, every `ResidentCognitiveFormationState`
-constructor/destructure/clone, lineage retirement, V20 restore, new V21
-encode/decode/canonical validation, relation observation, native-to-Python
-projection, ordinary multi-interval aggregation, immutable rehearsal, and live
-API acceptance. Focused acceptance is run before the broad suite.
+## Rejected alternatives
 
-The permanent production pre-flight register applies in full, especially:
-
-- **RF-005/RF-017:** decisive evidence and every constructor, wrapper,
-  destructure, mock, and consumer must be mapped before compilation.
-- **RF-027/RF-028:** preserve the first qualifying interval and prove evidence
-  created after interval one survives the ordinary multi-interval aggregate.
-- **RF-029:** derive any live write from the same-session production
-  predecessor and successor-check any refusal or timeout before retry.
-
-## Rejected and falsifiable alternatives
-
-- Carrying C-011 observations in a Python transaction aggregate is rejected:
-  it would be observer memory, not organism state, and would fail cold restore.
-- Persisting an ordered-path or tapestry object is rejected: it would be a
-  sequence database and a second cognitive authority.
-- Sorting bonds, formation receipts, or timestamps is rejected: none is a
-  physical cause of order.
-- An unbounded recursive chain is rejected: it can grow with history rather
-  than the reached physical frontier.
-- A fixed semantic “three means thought” threshold is rejected. Three
-  transfers are used only because two physically overlapping two-transfer
-  paths require exactly three consecutive transfers.
+- Carrying C-011 observations only in a Python aggregate is rejected: it is
+  observer memory and fails cold restore.
+- Persisting an ordered-path or tapestry object is rejected: it creates a
+  sequence database and second cognitive authority.
+- Sorting receipts, bonds, or timestamps is rejected: none causes order.
+- Comparing exact carrier quantities for equality is rejected: recurrence is
+  the same directed material route, while physical magnitude may change.
+- An unbounded recursive chain is rejected: residency would grow with age.
+- A semantic threshold is rejected: four intervals are required only because
+  two separate two-contact physical path occurrences span four intervals.
 
 ## Completion boundary
 
-C-012 closes only after one immutable candidate is deployed and the ordinary
-live organism produces a three-transfer continuous relation among recurrent
-formations, the exact relation survives persistence/cold replay, resource
-growth remains bounded, and no scripted meaning or sequence store exists.
-Tests, source code, or task health alone cannot close it.
+C-012 closes only after an immutable candidate passes discarded-state rehearsal,
+the ordinary live organism produces the recurrent ordered-path relation, exact
+cold replay preserves it, resource growth remains bounded, and no scripted
+meaning or sequence store exists. Tests, source code, or task health alone do
+not close it.

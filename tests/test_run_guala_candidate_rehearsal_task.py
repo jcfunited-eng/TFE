@@ -351,7 +351,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "distributed_recognition_retention_neuron_count": 2,
         "distributed_recognition_sensory_neuron_count": 43,
         "distributed_recognition_source_dsf_delivery_count": 6,
-        "distributed_recognition_source_hop_count": 3,
+        "distributed_recognition_source_hop_count": 4,
         "distributed_recognition_source_physical_transition_count": 223,
         "distributed_recognition_state_byte_delta": 1_644,
         "distributed_recognition_successor_state_sha256": "a" * 64,

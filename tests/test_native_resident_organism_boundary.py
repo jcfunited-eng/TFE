@@ -50,6 +50,7 @@ class _NativeResidentOrganismObservation:
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
+                    tuple[str, str, int, int],
                 ],
                 ...,
             ],
@@ -124,6 +125,7 @@ class _NativeResidentOrganismPrepare:
             list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]],
             list[
                 tuple[
+                    tuple[str, str, int, str],
                     tuple[str, str, int, str],
                     tuple[str, str, int, str],
                     tuple[str, str, int, str],
@@ -281,13 +283,13 @@ def test_observation_signature_carries_deep_ordered_relation() -> None:
         (("01" * 16, "02" * 16, 0),),
         "c" * 64,
         ((transfer, transfer),),
-        ((transfer, transfer, transfer),),
+        ((transfer, transfer, transfer, transfer),),
     )
     observation = replace(_active(), organic_mosaic_relations=(relation,))
 
     signature = boundary._observation_signature(observation)
 
-    assert signature[15][0][5] == ((transfer, transfer, transfer),)
+    assert signature[15][0][5] == ((transfer, transfer, transfer, transfer),)
 
 
 def _restore(

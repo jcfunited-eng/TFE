@@ -119,6 +119,7 @@ class NativeResidentObservationView(Protocol):
                     tuple[str, str, int, str],
                     tuple[str, str, int, str],
                     tuple[str, str, int, str],
+                    tuple[str, str, int, str],
                 ]
             ],
         ]
@@ -251,6 +252,7 @@ class ResidentPrepareEvidence:
             ],
             tuple[
                 tuple[
+                    tuple[str, str, int, int],
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
@@ -1009,6 +1011,7 @@ class NativeResidentOrganism:
                         tuple[str, str, int, int],
                         tuple[str, str, int, int],
                         tuple[str, str, int, int],
+                        tuple[str, str, int, int],
                     ],
                     ...,
                 ],
@@ -1092,10 +1095,11 @@ class NativeResidentOrganism:
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
                     tuple[str, str, int, int],
+                    tuple[str, str, int, int],
                 ]
             ] = []
             for raw_path_relation in raw_ordered_path_relations:
-                if not isinstance(raw_path_relation, tuple) or len(raw_path_relation) != 3:
+                if not isinstance(raw_path_relation, tuple) or len(raw_path_relation) != 4:
                     raise RuntimeError("ordered path relation changed format")
                 transfers = []
                 for raw_transfer in raw_path_relation:
@@ -1115,9 +1119,16 @@ class NativeResidentOrganism:
                             carriers,
                         )
                     )
-                if transfers[0][1] != transfers[1][0] or transfers[1][1] != transfers[2][0]:
-                    raise RuntimeError("ordered path relation is not causally continuous")
-                ordered_path_relations.append((transfers[0], transfers[1], transfers[2]))
+                if (
+                    transfers[0][1] != transfers[1][0]
+                    or transfers[2][1] != transfers[3][0]
+                    or tuple(item[:3] for item in transfers[:2])
+                    != tuple(item[:3] for item in transfers[2:])
+                ):
+                    raise RuntimeError("ordered path relation did not recur physically")
+                ordered_path_relations.append(
+                    (transfers[0], transfers[1], transfers[2], transfers[3])
+                )
             if (
                 len(relation_bonds) != len(raw_bonds)
                 or len(receipts) < 2

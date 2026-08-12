@@ -226,7 +226,8 @@ def test_episodic_relation_resolves_only_against_retained_successor() -> None:
                     (
                         (recalled[0], related[0], 0, 7),
                         (related[0], related[1], 0, 5),
-                        (related[1], related[2], 0, 3),
+                        (recalled[0], related[0], 0, 9),
+                        (related[0], related[1], 0, 4),
                     ),
                 ),
             ),
