@@ -114,11 +114,9 @@ labels, counters, persisted records, and synthetic injection do not pass.
 
 ## Remaining boundary
 
-The live proof establishes C-007's requested distributed physical recognition,
-but it does not yet close C-007 because the corrected exact acceptance path is
-not in the deployed release controller. The component used 217 of 224 reached
-neurons. That is truthful for an admitted whole-sensorium interval, but it is
-not evidence of sparse attention and must never be described as such.
+C-007 is closed in production. The component used 217 of 224 reached neurons.
+That is truthful for an admitted whole-sensorium interval, but it is not
+evidence of sparse attention and must never be described as such.
 
 ## Recorded falsification
 
@@ -136,3 +134,25 @@ not evidence of sparse attention and must never be described as such.
 - No native-frontier change from either falsified hypothesis remains in the
   corrected candidate. The full native result remains 407 passed, zero failed,
   and 13 explicitly ignored frontier tests.
+
+## Production closure
+
+- Deployment attempt 2 ran from `2026-08-12T15:13:37Z` through
+  `2026-08-12T15:31:41Z` and completed one verified cutover.
+- Live task definition: `dsf-ai-task:995`.
+- Live commit: `0a4d71d8a8d8db8a9939388dcf1037e904fadf3f`.
+- Live image:
+  `sha256:d4d9d0fc2db1b6808ed5c7cb298561ae259330d3a9ce8d4df47083e222f5dee5`.
+- Post-cutover readiness: same organism identity, tick `55535`, state
+  `54ab2bc9ee34af5e30cc91162e25bef0e359a7f8116e3798f4e15c399b0aa087`,
+  `43,384,308` bytes, and zero Python cognition callbacks.
+- Post-cutover discarded-state recognition occurred at interval ordinal 3:
+  217 active neurons, 622 active bonds, 100 sensory, one association, four
+  retention, one body, two affective, and two wholly contained retained
+  formations. Eight intervals delivered 848 exact DSF fields and produced
+  1,718 physical neuron transitions. The successor cold-restored byte-exact;
+  source remained read-only.
+- Post-cutover proof receipt:
+  `608e26404337abcc62403261a34e3be0d3b27abba1ef444bc958c42428395445`.
+- ECS settled with one healthy running task and zero pending tasks. No native
+  cognition or persistence schema changed in this release.

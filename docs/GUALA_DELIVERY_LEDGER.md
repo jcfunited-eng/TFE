@@ -131,8 +131,20 @@ box remains unchecked until live acceptance passes.
   hippocampal answer, route history, parent, page, or database record was
   created. The release is commit `b803f1a0`, image
   `sha256:666c19d27b3948e0b5a561b88dc754ff8c296ebb8ee9b0eb0798c832ebca37b4`.
-- [ ] **C-007** Prove recognition is distributed physical pattern completion
-  across sensory, association, retained, body, and affective participants.
+- [x] **C-007** Prove recognition is distributed physical pattern completion
+  across sensory, association, retained, body, and affective participants. Live
+  task 995 preserved the same organism identity and zero Python cognition
+  callbacks. A post-cutover discarded-state proof from exact tick 55,535
+  observed one genuine partial-cue reassembly in an ordinary eight-interval
+  whole-sensorium experience. Its one active physical component contained 217
+  reached neurons over 622 bonds: 100 sensory, one layer-7 association, four
+  layer-9 retention, one body, and two layer-10 affective participants, with
+  two exact retained formations wholly contained. The successor cold-restored
+  byte-exact from a read-only source; proof receipt
+  `608e26404337abcc62403261a34e3be0d3b27abba1ef444bc958c42428395445`.
+  This proves distributed recognition, not sparse attention. Release commit
+  `0a4d71d8`, image
+  `sha256:d4d9d0fc2db1b6808ed5c7cb298561ae259330d3a9ce8d4df47083e222f5dee5`.
 - [ ] **C-008** Prove partial-cue recall reconstructs current organism activity
   across hippocampal, associative/neocortical, ordering/prefrontal, affective,
   body, and sensory populations instead of loading a stored record.
