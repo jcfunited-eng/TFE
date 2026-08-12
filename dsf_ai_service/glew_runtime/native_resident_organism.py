@@ -107,7 +107,9 @@ class NativeResidentObservationView(Protocol):
     @property
     def organic_mosaic_relations(
         self,
-    ) -> list[tuple[list[str], list[str], list[tuple[str, str, int]]]]: ...
+    ) -> list[
+        tuple[list[str], list[str], list[tuple[str, str, int]], str]
+    ]: ...
 
     @property
     def formation_activation_count(self) -> int: ...
@@ -222,7 +224,12 @@ class ResidentPrepareEvidence:
     ] = ()
     active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
     organic_mosaic_relations: tuple[
-        tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str, int], ...]],
+        tuple[
+            tuple[str, ...],
+            tuple[str, ...],
+            tuple[tuple[str, str, int], ...],
+            str,
+        ],
         ...,
     ] = ()
 
@@ -379,8 +386,11 @@ def _observation_signature(
                 tuple(receipts),
                 tuple(lineages),
                 tuple(bonds),
+                structure_receipt,
             )
-            for receipts, lineages, bonds in observation.organic_mosaic_relations
+            for receipts, lineages, bonds, structure_receipt in (
+                observation.organic_mosaic_relations
+            )
         ),
         observation.partial_cue_reassembly_count,
         observation.endogenous_partial_cue_reassembly_count,
@@ -951,12 +961,13 @@ class NativeResidentOrganism:
                 tuple[str, ...],
                 tuple[str, ...],
                 tuple[tuple[str, str, int], ...],
+                str,
             ]
         ] = []
         for raw_relation in raw_organic_mosaic_relations:
-            if not isinstance(raw_relation, tuple) or len(raw_relation) != 3:
+            if not isinstance(raw_relation, tuple) or len(raw_relation) != 4:
                 raise RuntimeError("organic mosaic relation changed format")
-            raw_receipts, raw_lineages, raw_bonds = raw_relation
+            raw_receipts, raw_lineages, raw_bonds, raw_structure_receipt = raw_relation
             if (
                 not isinstance(raw_receipts, list)
                 or not isinstance(raw_lineages, list)
@@ -980,6 +991,10 @@ class NativeResidentOrganism:
                 for value in raw_bonds
                 if isinstance(value, tuple) and len(value) == 3
             )
+            structure_receipt = _canonical_sha256(
+                raw_structure_receipt,
+                "organic relation structural receipt",
+            )
             if (
                 len(relation_bonds) != len(raw_bonds)
                 or len(receipts) < 2
@@ -990,7 +1005,7 @@ class NativeResidentOrganism:
             ):
                 raise RuntimeError("organic mosaic relation is not canonical physical evidence")
             organic_mosaic_relations.append(
-                (receipts, shared_lineages, relation_bonds)
+                (receipts, shared_lineages, relation_bonds, structure_receipt)
             )
         recurrent_complete_neuron_fractal_count = _nonnegative_integer(
             candidate.recurrent_complete_neuron_fractal_count,

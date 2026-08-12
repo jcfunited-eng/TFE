@@ -160,6 +160,8 @@ def _rehearse_native_distributed_recall(
         != episodic_relation["episodic_related_member_sets_sha256"]
         or cold_relation["episodic_relation_active_bonds_sha256"]
         != episodic_relation["episodic_relation_active_bonds_sha256"]
+        or cold_relation["structural_relation_sha256"]
+        != episodic_relation["structural_relation_sha256"]
     ):
         raise RuntimeError("cold successor did not re-form the episodic relation")
     return {
@@ -217,7 +219,7 @@ def _commit_and_observe_episodic_relation(
         return None
     recalled_receipt = recalled_receipts[0]
     candidates = []
-    for receipts, shared_lineages, active_bonds in relations:
+    for receipts, shared_lineages, active_bonds, structure_receipt in relations:
         if (
             recalled_receipt not in receipts
             or len(receipts) < 2
@@ -228,10 +230,20 @@ def _commit_and_observe_episodic_relation(
         member_sets = tuple(sorted(tuple(sorted(by_receipt[receipt])) for receipt in receipts))
         if len(set(member_sets)) != len(member_sets):
             continue
-        candidates.append((receipts, shared_lineages, active_bonds, member_sets))
+        candidates.append(
+            (
+                receipts,
+                shared_lineages,
+                active_bonds,
+                member_sets,
+                structure_receipt,
+            )
+        )
     if len(candidates) != 1:
         return None
-    receipts, shared_lineages, active_bonds, member_sets = candidates[0]
+    receipts, shared_lineages, active_bonds, member_sets, structure_receipt = (
+        candidates[0]
+    )
     return {
         "episodic_recalled_formation_receipt": recalled_receipt,
         "episodic_related_formation_count": len(receipts),
@@ -247,6 +259,7 @@ def _commit_and_observe_episodic_relation(
             _canonical(active_bonds)
         ).hexdigest(),
         "episodic_relation_shared_lineage_count": len(shared_lineages),
+        "structural_relation_sha256": structure_receipt,
     }
 
 

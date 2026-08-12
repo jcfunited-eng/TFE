@@ -4113,8 +4113,11 @@ def _commit_admitted_hop(
                 "formation_receipts": receipts,
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
+                "structural_relation_sha256": structure_receipt,
             }
-            for receipts, lineages, bonds in evidence.organic_mosaic_relations
+            for receipts, lineages, bonds, structure_receipt in (
+                evidence.organic_mosaic_relations
+            )
         ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
@@ -4175,8 +4178,11 @@ def _commit_vestibular_tick(
                 "formation_receipts": receipts,
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
+                "structural_relation_sha256": structure_receipt,
             }
-            for receipts, lineages, bonds in evidence.organic_mosaic_relations
+            for receipts, lineages, bonds, structure_receipt in (
+                evidence.organic_mosaic_relations
+            )
         ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
@@ -4237,8 +4243,11 @@ def _commit_vestibular_trajectory(
                 "formation_receipts": receipts,
                 "shared_neuron_lineages": lineages,
                 "active_physical_bonds": bonds,
+                "structural_relation_sha256": structure_receipt,
             }
-            for receipts, lineages, bonds in evidence.organic_mosaic_relations
+            for receipts, lineages, bonds, structure_receipt in (
+                evidence.organic_mosaic_relations
+            )
         ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count

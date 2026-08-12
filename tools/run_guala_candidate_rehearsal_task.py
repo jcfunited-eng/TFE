@@ -432,6 +432,7 @@ def _validate_proof(
                 "episodic_related_formation_receipts_sha256",
                 "episodic_related_member_sets_sha256",
                 "episodic_relation_active_bonds_sha256",
+                "structural_relation_sha256",
             )
         )
         and hashlib.sha256(

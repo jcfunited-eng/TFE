@@ -47,6 +47,7 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
         "formation_receipts": ("11" * 32, "22" * 32),
         "shared_neuron_lineages": (),
         "active_physical_bonds": (("01" * 16, "02" * 16, 0),),
+        "structural_relation_sha256": "33" * 32,
     }
     organism = object()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
@@ -86,3 +87,57 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
     assert result["observation"]["organism_tick"] == 12
     assert result["observation"]["organic_mosaic_relations"] == (relation,)
 
+
+def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
+    receipts = ("11" * 32, "22" * 32)
+    left_members = ("01" * 16, "02" * 16, "03" * 16)
+    right_members = ("04" * 16, "05" * 16, "06" * 16)
+    bond = (left_members[0], right_members[0], 0)
+    evidence = SimpleNamespace(
+        token="commit-token",
+        predecessor_organism_tick=10,
+        organism_tick=11,
+        complete_neuron_fractal_count=0,
+        emitted_neuron_fractals=(),
+        current_cohort_evaluation_count=1,
+        dsf_delivery_count=1,
+        partial_cue_reassembly_count=1,
+        endogenous_partial_cue_reassembly_count=0,
+        physically_transitioned_neuron_count=2,
+        metabolically_perturbed_body_receptor_count=0,
+        receptor_ingress_sense_counts=(0,) * len(production.SENSE_ORDER),
+        receptor_ingress_changing_count=0,
+        receptor_ingress_quiescent_count=0,
+        motor_unit_recruitments=(),
+        organic_mosaic_relations=((receipts, (), (bond,), "33" * 32),),
+        recurrent_complete_neuron_fractal_count=2,
+    )
+    observed = SimpleNamespace(
+        cognitive_mosaic_count=2,
+        cognitive_trace_count=0,
+        complete_neuron_count=43,
+        developmental_resting_neuron_count=196_509,
+        formation_activation_count=1,
+        organism_tick=11,
+        partial_cue_reassembly_count=1,
+        endogenous_partial_cue_reassembly_count=0,
+        state_sha256="aa" * 32,
+    )
+
+    class Organism:
+        committed = False
+
+        @staticmethod
+        def prepare_admitted(_episode, _intervals):
+            return evidence
+
+        def commit(self, token):
+            assert token == "commit-token"
+            self.committed = True
+            return observed
+
+    hop = production._commit_admitted_hop(Organism(), object(), [])
+
+    assert hop["organic_mosaic_relations"][0]["structural_relation_sha256"] == (
+        "33" * 32
+    )

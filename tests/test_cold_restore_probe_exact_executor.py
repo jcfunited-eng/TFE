@@ -216,7 +216,7 @@ def test_episodic_relation_resolves_only_against_retained_successor() -> None:
     prepared = SimpleNamespace(
         token="prepared-token",
         organic_mosaic_relations=(
-            ((recalled_receipt, related_receipt), (), (bond,)),
+            ((recalled_receipt, related_receipt), (), (bond,), "55" * 32),
         ),
     )
     observed = probe._commit_and_observe_episodic_relation(
@@ -228,3 +228,4 @@ def test_episodic_relation_resolves_only_against_retained_successor() -> None:
     assert observed["episodic_recalled_formation_receipt"] == recalled_receipt
     assert observed["episodic_related_formation_count"] == 2
     assert observed["episodic_relation_active_bond_count"] == 1
+    assert observed["structural_relation_sha256"] == "55" * 32

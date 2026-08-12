@@ -33,7 +33,12 @@ class _NativeResidentOrganismObservation:
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
     organic_mosaic_relations: tuple[
-        tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str, int], ...]],
+        tuple[
+            tuple[str, ...],
+            tuple[str, ...],
+            tuple[tuple[str, str, int], ...],
+            str,
+        ],
         ...,
     ] = ()
     python_callback_count: int = 0
@@ -96,7 +101,7 @@ class _NativeResidentOrganismPrepare:
     motor_unit_recruitments: list[tuple[str, int, int]] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
     organic_mosaic_relations: list[
-        tuple[list[str], list[str], list[tuple[str, str, int]]]
+        tuple[list[str], list[str], list[tuple[str, str, int]], str]
     ] | None = None
     python_callback_count: int = 0
 

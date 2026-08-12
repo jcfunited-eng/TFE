@@ -122,6 +122,7 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
 use rayon::prelude::*;
+use sha2::{Digest, Sha256};
 use std::fmt;
 use std::sync::Arc;
 
@@ -222,6 +223,10 @@ pub(crate) struct OrganicMosaicRelationObservation {
     pub(crate) formation_receipts: Vec<[u8; 32]>,
     pub(crate) shared_lineages: Vec<[u8; 16]>,
     pub(crate) active_bonds: Vec<StablePhysicalBondReference>,
+    /// Stable physical identity of the related retained member sets, shared
+    /// lineages, and active bonds. Unlike formation receipts, this does not
+    /// include the changing latest-recurrence witness.
+    pub(crate) structural_relation_receipt: [u8; 32],
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -904,6 +909,46 @@ fn merge_relation_components(component_roots: &mut [usize], left: usize, right: 
     }
 }
 
+fn structural_relation_receipt(
+    mosaics: &[RetainedOrganismMosaic],
+    frontier_indices: &[usize],
+    relation_members: &[usize],
+    shared_lineages: &[[u8; 16]],
+    active_bonds: &[StablePhysicalBondReference],
+) -> [u8; 32] {
+    let mut member_sets = relation_members
+        .iter()
+        .map(|local_index| {
+            mosaics[frontier_indices[*local_index]]
+                .mosaic
+                .member_lineages()
+        })
+        .collect::<Vec<_>>();
+    member_sets.sort_unstable();
+
+    let mut digest = Sha256::new();
+    digest.update(b"guala.organic_mosaic_relation.structure.v1\0");
+    digest.update((member_sets.len() as u128).to_le_bytes());
+    for member_set in member_sets {
+        digest.update((member_set.len() as u128).to_le_bytes());
+        for lineage in member_set {
+            digest.update(lineage);
+        }
+    }
+    digest.update((shared_lineages.len() as u128).to_le_bytes());
+    for lineage in shared_lineages {
+        digest.update(lineage);
+    }
+    digest.update((active_bonds.len() as u128).to_le_bytes());
+    for bond in active_bonds {
+        let (left, right) = bond.endpoints();
+        digest.update(left);
+        digest.update(right);
+        digest.update(bond.parallel_ordinal().to_le_bytes());
+    }
+    digest.finalize().into()
+}
+
 /// Observe only the connected physical frontier among currently reached
 /// recurrent mosaics, requiring at least one mosaic to have reassembled in
 /// this transition. The temporary component indices organize this calculation
@@ -1036,10 +1081,18 @@ fn observe_organic_mosaic_relations(
         if shared_lineages.is_empty() && bridging_bonds.is_empty() {
             continue;
         }
+        let structural_relation_receipt = structural_relation_receipt(
+            mosaics,
+            frontier_indices,
+            &members,
+            &shared_lineages,
+            &bridging_bonds,
+        );
         relations.push(OrganicMosaicRelationObservation {
             formation_receipts,
             shared_lineages,
             active_bonds: bridging_bonds,
+            structural_relation_receipt,
         });
     }
     relations.sort_by(|left, right| left.formation_receipts.cmp(&right.formation_receipts));
@@ -10968,6 +11021,34 @@ mod tests {
         .unwrap();
         assert_eq!(one_reassembled_relation.len(), 1);
         assert_eq!(one_reassembled_relation[0].formation_receipts.len(), 2);
+        let first_receipts = one_reassembled_relation[0].formation_receipts.clone();
+        let first_structure = one_reassembled_relation[0].structural_relation_receipt;
+
+        let alternate_cue = [receptor_lineages[1]];
+        mosaics[1].mosaic = alter_physical_mosaic_recurrence(
+            &mosaics[1].mosaic,
+            &topology.lineages,
+            &topology.bonds,
+            &alternate_cue,
+        )
+        .unwrap();
+        let changed_receipt_same_structure = observe_organic_mosaic_relations(
+            &topology,
+            &mosaics,
+            &[0, 1],
+            &[0],
+            &topology.bonds,
+            16_000_000,
+        )
+        .unwrap();
+        assert_ne!(
+            changed_receipt_same_structure[0].formation_receipts,
+            first_receipts
+        );
+        assert_eq!(
+            changed_receipt_same_structure[0].structural_relation_receipt,
+            first_structure
+        );
 
         let (_, related_reassemblies, related) = settle_organism_mosaic_boundary(
             &cohorts,

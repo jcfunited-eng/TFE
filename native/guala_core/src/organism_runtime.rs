@@ -107,11 +107,8 @@ const MOUNTED_STEP_SCOPE: &str = "canonical_uf_v1_4_neuronal_settlement";
 /// Scope name of one authored developmental contact growth.  A transaction
 /// label, exactly like the two scopes above; it carries no physics.
 const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sensory_occurrence";
-type OrganicMosaicRelationProjection = (
-    Vec<String>,
-    Vec<String>,
-    Vec<(String, String, u32)>,
-);
+type OrganicMosaicRelationProjection =
+    (Vec<String>, Vec<String>, Vec<(String, String, u32)>, String);
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -3732,7 +3729,12 @@ fn project_organic_mosaic_relations(
                     (hex_bytes(&left), hex_bytes(&right), bond.parallel_ordinal())
                 })
                 .collect();
-            (receipts, lineages, bonds)
+            (
+                receipts,
+                lineages,
+                bonds,
+                hex_digest(&relation.structural_relation_receipt),
+            )
         })
         .collect()
 }

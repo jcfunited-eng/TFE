@@ -368,6 +368,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "episodic_related_member_sets_sha256": "3" * 64,
         "episodic_relation_active_bond_count": 1,
         "episodic_relation_active_bonds_sha256": "4" * 64,
+        "structural_relation_sha256": "5" * 64,
         "episodic_relation_interval_ordinal": 3,
         "episodic_relation_shared_lineage_count": 0,
         "migration_predecessor_state_sha256": None,
