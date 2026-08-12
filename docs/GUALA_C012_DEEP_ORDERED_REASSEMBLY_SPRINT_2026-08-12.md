@@ -68,7 +68,7 @@ Primary research consulted:
 | Expected output | One bounded observation containing both exact two-contact path occurrences tied to a current recurrent formation relation. |
 | Production acceptance | Four ordinary repeated body intervals return at least one exact recurrent ordered-path relation; exact same-predecessor/input cold replay returns the same relation digest; one organism/process remains healthy; Python cognition callbacks remain zero. |
 | Resource acceptance | Persisted growth is exactly one additional sparse frontier; work is bounded by the reached frontier and current relation; no historical scan or sequence store exists. |
-| Observed evidence | Focused four-interval law passes. Full native suite: 410 passed, 0 failed, 13 explicitly ignored. Final exact release wheel SHA-256 `13cfd4f4b70388e2be0fba0f0738d99830b76cdb1f93675661b836163e3f979e`; focused compiled-artifact set: 46 passed; broader serving/preflight/storage/deployment/packaging set: 106 passed. Immutable candidate rehearsal and live proof remain pending, so C-012 remains open. |
+| Observed evidence | Focused four-interval law passes. Full native suite: 410 passed, 0 failed, 13 explicitly ignored. Final exact release wheel SHA-256 `13cfd4f4b70388e2be0fba0f0738d99830b76cdb1f93675661b836163e3f979e`; focused compiled-artifact set: 46 passed; broader serving/preflight/storage/deployment/packaging set: 106 passed. The immutable rehearsal produced 34 recurrent path relations; the ordinary live action produced 35; post-live cold rehearsal reproduced 35. C-012 is live-closed. |
 
 ## Falsification and correction history
 
@@ -141,3 +141,40 @@ the ordinary live organism produces the recurrent ordered-path relation, exact
 cold replay preserves it, resource growth remains bounded, and no scripted
 meaning or sequence store exists. Tests, source code, or task health alone do
 not close it.
+
+## Live closure — 2026-08-12
+
+- The first deployment attempt built candidate image
+  `sha256:726283e3e99c335a54f3b02a41615faea396242b5cc1e39ef8358ac3e5b90075`.
+  Native rehearsal passed with six recurrent path relations and exact cold
+  replay, but the controller safely stopped before cutover because its ordinal
+  validator retained the predecessor horizon of three. Production remained
+  task 1001. The correction derives both one-based ordinal bounds from the
+  exact positive transaction hop count; RF-030 now covers controller bounds.
+- The corrected deployment ran from `2026-08-12T22:35:24Z` through
+  `2026-08-12T22:54:03Z` and completed one verified cutover.
+- Production task: `dsf-ai-task:1005`.
+- Production commit: `677b8fc16e0d4c928d612912173a7216287c3c91`.
+- Production image:
+  `sha256:c1a95c8479d47e9a5499a52120287d6099aa4224587b59a98e550c42110f8738`.
+- Immutable discarded-state rehearsal from live task 1001 produced 34 exact
+  ordered paths and 34 recurrent ordered-path relations, with exact cold
+  replay, unchanged source state, and zero Python cognition callbacks.
+- One ordinary live `world-move` committed world revision 1487 and 250 exact
+  vestibular intervals. It produced 250 partial-cue reassemblies, 43,395
+  physical neuron transitions, 54 neuronal fractals, 38 ordered paths, and 35
+  recurrent ordered-path relations. The successor persisted at organism tick
+  61,814 with state SHA-256
+  `94341f5781022cbb78c29b6e95a0bdba5b67c2ae8cb505994defc850a84630d3`.
+- A post-live read-only cold rehearsal started from exact production tick
+  61,832 and state
+  `5190a85bf603b79ecc75e5d699c0dbd71d4728a1fa4a45e031c172b405ad897b`.
+  Cold restore was exact and reproduced 37 paths and 35 recurrent path
+  relations. Production source remained read-only and Python cognition
+  callbacks remained zero.
+- ECS reports one desired/running task, zero pending tasks, one completed
+  rollout, and both public Loom pages return HTTP 200.
+
+**C-012 is live-closed.** This proves bounded physical recurrence between
+ordered paths. It does not claim semantic thought, language, or weave-level
+self-expression.

@@ -200,8 +200,21 @@ box remains unchecked until live acceptance passes.
   No sequence object, ordered-member list, archive, parent hierarchy, or
   scripted meaning was created. Release commit `c1f7d78e`, image
   `sha256:8f3c5896a4f55972c858c25443c344b61da533f4112eb58cfb501a6013ad1d7f`.
-- [ ] **C-012** Prove relationships among ordered formations can persist as
+- [x] **C-012** Prove relationships among ordered formations can persist as
   tapestry-of-tapestry thought/expressive structure without a sequence database.
+  Live task 1005 retained exactly one additional sparse electrical frontier,
+  allowing an earlier and later two-contact path to relate only when both use
+  the same sender/receiver/bond route; each occurrence preserves its distinct
+  exact carrier quantities. One ordinary 250-interval production `world-move`
+  at world revision 1487 produced 38 ordered paths and 35 recurrent ordered-
+  path relations, 250 partial-cue reassemblies, and 43,395 physical neuron
+  transitions. Its successor persisted at tick 61,814. A later read-only cold
+  rehearsal from exact live tick 61,832 restored byte-exact and reproduced 37
+  paths and 35 recurrent path relations. Identity remained unchanged, Python
+  cognition callbacks remained zero, and ECS retained one healthy process.
+  No sequence object, archive, parent hierarchy, semantic label, or scripted
+  meaning was created. Release commit `677b8fc1`, image
+  `sha256:c1a95c8479d47e9a5499a52120287d6099aa4224587b59a98e550c42110f8738`.
 - [ ] **C-013** Prove weave-level self-expression can emerge from repeated
   cross-context sensory, thought, body, action, and consequence relationships.
 - [ ] **C-014** Prove attention/orienting is a changing sparse reached frontier,
