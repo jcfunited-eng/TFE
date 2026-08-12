@@ -74,8 +74,16 @@ box remains unchecked until live acceptance passes.
   touch, smell, taste, and body (`840` ports total), plus nine local metabolic
   body-receptor consequences, while state bytes stayed fixed and Python
   cognition callbacks remained zero.
-- [ ] **C-002** Prove each participating neuron retains its own exact sparse
-  post-quiescence physical fractal at the expected settlement rate.
+- [x] **C-002** Prove each participating neuron retains its own exact sparse
+  post-quiescence physical fractal at the expected settlement rate. Live task
+  988 accepted the previously unused Z card once at tick 49,992, persisted 216
+  exact neuronal evidence records with 216 unique causal identities, and
+  retained 215 receptor-material plus 46 Psi-winding coordinate deltas. Two
+  later unattended intervals advanced to ticks 50,001 and 50,010, emitted 163
+  and 189 further unique records with zero duplicate identities, preserved the
+  organism identity, held 222 complete neurons and two mosaics, and reported
+  zero Python cognition callbacks. The release is commit `d49cc0c2`, image
+  `sha256:47dc20e80b144008b10c69354001255cdb033fcf43d0ac09d193443bf570912b`.
 - [ ] **C-003** Prove multisensory/body neuronal fractals from one causal moment
   form an organic mosaic only through their physical bonds and shared time.
 - [ ] **C-004** Prove recurrence strengthens, alters, weakens, or dissolves

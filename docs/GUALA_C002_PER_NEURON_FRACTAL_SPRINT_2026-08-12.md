@@ -238,6 +238,36 @@ broadened Python command also exposed 17 stale production-fixture failures:
 those mocks lack the already-existing `mosaic_of_mosaics_count` field. They are
 recorded as out-of-scope fixture debt and were not repaired in C-002.
 
-This remains local candidate evidence, not deployment. C-002 remains open
-until rehearsal and live production reproduce the recurrent positive and
-quiet-tail proofs.
+## Live production closure
+
+The candidate was deployed once on 2026-08-12 as commit
+`d49cc0c22993f6ebae3009f7dee917ae0392a464`, task `dsf-ai-task:988`, and image
+`sha256:47dc20e80b144008b10c69354001255cdb033fcf43d0ac09d193443bf570912b`.
+The single controller run lasted 17 minutes 59 seconds. Before cutover, the
+digest-pinned candidate cold-restored the exact 31,688,948-byte task-987 body
+at tick 49,900 with byte-identical SHA-256, stable identity, and a read-only
+source mount. ECS then settled at one healthy running task and zero pending
+tasks before the image was pinned as `production-current`.
+
+One previously unused live Z-card presentation was admitted exactly once. It
+committed at tick 49,992 and durably persisted 30,922,280 bytes. The transition
+physically moved 218 neurons and exposed 216 per-neuron evidence records with
+216 distinct `(predecessor tick, successor tick, neuron lineage)` identities.
+Those records contain 215 exact `receptor-quantum-residue` entries and 46 exact
+`psi-winding` entries. Existing developmental physics moved the body from 221
+to 222 complete neurons and from one to two mosaics; this is physical formation
+evidence, not a claim that the word "Z" was learned.
+
+Two subsequent unattended production intervals advanced independently to
+ticks 50,001 and 50,010. They exposed 163/163 and 189/189 unique causal
+fractal records with zero duplicate identities, preserved the same organism
+identity, held complete-neuron and mosaic counts at 222 and two, and retained
+zero Python cognition callbacks. At tick 50,010 the persisted body measured
+32,021,476 bytes. During deployment and live proof, observed ECS maxima were
+39.5 percent CPU and 10.0 percent memory; the service remained one healthy
+task with no pending task.
+
+C-002 is therefore closed in live production. It proves bounded recurrent
+per-neuron post-quiescence physical evidence. It does not prove word learning,
+semantic identity, general recognition, or the multisensory mosaic law assigned
+to C-003.
