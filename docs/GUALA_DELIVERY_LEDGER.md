@@ -178,8 +178,18 @@ box remains unchecked until live acceptance passes.
   a tapestry, narrative recall, language, or autonomy. Release commit
   `f8d63184`, image
   `sha256:c64000ab674cfc21d4d69016e9e2505ba87ec507a52c37f66c39400b2855202b`.
-- [ ] **C-010** Prove repeated cross-context relations become generalized
-  learned structure without scripted concepts or word meanings.
+- [x] **C-010** Prove repeated cross-context relations become generalized
+  learned structure without scripted concepts or word meanings. Live task 998
+  retained the same distributed physical-relation digest across an unattended
+  self-caused yaw at tick 57,349, one externally caused `+64` millidegree yaw,
+  and later unattended self-caused settlement through tick 57,358. Identity
+  remained unchanged, Python cognition callbacks remained zero, and observed
+  state grew only 224 bytes across the first A/B/C proof. The public request
+  timed out after committing world revision 1180; a successor check prevented
+  a duplicate experience, and autonomous revision 1181 advanced from the exact
+  committed heading. This proves stable cross-context physical relation reuse,
+  not a named concept or word meaning. Release commit `13d9771e`, image
+  `sha256:51d3999679b7e019a76ec75b0335ece71f44d3c3ba8c51b1f88793fcc92c8eaa`.
 - [ ] **C-011** Prove ordered recurrent formations can produce tapestry-level
   sequences such as remembered moments, sentences, navigation, or avoidance.
 - [ ] **C-012** Prove relationships among ordered formations can persist as
