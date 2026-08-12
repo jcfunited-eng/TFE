@@ -35,7 +35,11 @@ class _Observation:
     cognitive_ordinal: int = 0
     cognitive_trace_count: int = 0
     formation_activation_count: int = 0
+    mosaic_of_mosaics_count: int = 0
+    complete_neuron_count: int = 0
+    developmental_resting_neuron_count: int = 196_335
     partial_cue_reassembly_count: int = 0
+    endogenous_partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
     # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
@@ -48,6 +52,12 @@ class _Observation:
     dissipation_capacity_quanta: int = 0
     separated_elementary_charges: int = 0
     energy_exhausted: bool = False
+    available_energy_zeptojoules: tuple[int, int] = (0, 1)
+    spent_energy_zeptojoules: tuple[int, int] = (0, 1)
+    thermal_energy_zeptojoules: tuple[int, int] = (0, 1)
+    available_energy_capacity_zeptojoules: tuple[int, int] = (0, 1)
+    dissipated_energy_zeptojoules: tuple[int, int] = (0, 1)
+    dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
 
 
 class _Organism:
@@ -56,6 +66,9 @@ class _Organism:
 
     def save(self):
         return b"x" * 500
+
+    def observe_reached_neuron_count_by_layer(self):
+        return ()
 
 
 @dataclass
@@ -108,15 +121,14 @@ def test_native_readiness_names_only_truthful_available_state(monkeypatch) -> No
 
 @pytest.mark.asyncio
 async def test_sensory_transports_refuse_truthfully() -> None:
-    # Live-camera sight remains honestly unmounted; standalone hearing is
-    # suspended by the ratified two-real-signal doctrine (Joe, 2026-08-05)
-    # and must refuse BEFORE the body is even read.
-    sight = await serving.sight_frame(None)
+    # An absent sight payload is malformed input; standalone hearing remains
+    # gated before the request body is read when its mounted conditions fail.
+    sight = serving.sight_frame(None)
     sound = await serving.sound_frame(None)
-    assert sight.status_code == 503
-    assert b"not mounted" in sight.body
+    assert sight.status_code == 422
+    assert b"refused" in sight.body
     assert sound.status_code == 503
-    assert b"two senses delivering real signal" in sound.body
+    assert b"cochlear ear anatomy is not authorized" in sound.body
     assert serving.pcm_open(None).status_code == 503
     assert serving.pcm_close({"session_id": "x"}).status_code == 503
 
@@ -136,7 +148,13 @@ def test_candidate_task_is_read_only_for_rehearsal_and_writable_for_publication(
         "containerDefinitions": [{
             "name": "dsf-ai",
             "image": "example@sha256:" + "c" * 64,
-            "environment": [{"name": "GUALA_S3_BACKUP_BUCKET", "value": "bucket"}],
+            "environment": [
+                {"name": "GUALA_S3_BACKUP_BUCKET", "value": "bucket"},
+                {
+                    "name": "GUALA_NATIVE_ORGANISM_ROOT",
+                    "value": "/app/guala/native-organism",
+                },
+            ],
             "secrets": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
@@ -172,7 +190,7 @@ def test_candidate_task_is_read_only_for_rehearsal_and_writable_for_publication(
     assert writable["containerDefinitions"][0]["mountPoints"][0]["readOnly"] is False
     assert cold["containerDefinitions"][0]["mountPoints"][0]["readOnly"] is True
     assert "--native-store-root" not in read_only["containerDefinitions"][0]["command"]
-    assert runner.NATIVE_STORE in writable["containerDefinitions"][0]["command"]
+    assert "/source/guala/native-organism" in writable["containerDefinitions"][0]["command"]
     assert "dsf_ai_service.cold_restore_probe" in cold["containerDefinitions"][0]["command"]
 
 
@@ -247,17 +265,25 @@ def test_legacy_envelope_generation_is_not_a_migration_authority(
 
 def test_native_current_cold_restore_proof_is_state_bound() -> None:
     record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
         "candidate_git_sha": "d" * 40,
         "candidate_image_digest": "sha256:" + "c" * 64,
         "cold_restore_exact": True,
+        "complete_neuron_count": 0,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
         "mode": "cold-restore",
+        "motor_action_rehearsed": False,
         "python_callback_count": 0,
         "python_cognition_workers_started": 0,
         "raw_glorun_current_only": True,
         "resident_state_bytes": 500,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v1",
+        "schema": "guala.production_native_current_cold_restore.v4",
         "source_identity": IDENTITY,
+        "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
         "tick": 23_723_846,
     }
@@ -313,4 +339,3 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
     proof = json.loads(capsys.readouterr().out)
     assert proof["schema"] == cold_restore_probe.PROOF_SCHEMA
     assert proof["resident_state_sha256"] == STATE_SHA
-

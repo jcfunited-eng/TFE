@@ -262,7 +262,7 @@ def _validate_proof(
     expected_tick: int | None,
     expected_state_sha256: str | None,
     expected_state_root: str | None = None,
-    expected_motor_action_rehearsal: bool = False,
+    expected_distributed_recall_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -326,83 +326,6 @@ def _validate_proof(
             or migration_predecessor == expected_state_sha256
         )
     )
-    motor_action_rehearsal = (
-        proof.get("motor_action_rehearsed") is True
-        and isinstance(proof.get("motor_rehearsal_source_hop_count"), int)
-        and not isinstance(proof["motor_rehearsal_source_hop_count"], bool)
-        and proof["motor_rehearsal_source_hop_count"] > 0
-        and isinstance(proof.get("motor_rehearsal_recruitment_count"), int)
-        and not isinstance(proof["motor_rehearsal_recruitment_count"], bool)
-        and proof["motor_rehearsal_recruitment_count"] > 0
-        and isinstance(
-            proof.get("motor_rehearsal_outward_elementary_carriers"), int
-        )
-        and not isinstance(
-            proof["motor_rehearsal_outward_elementary_carriers"], bool
-        )
-        and proof["motor_rehearsal_outward_elementary_carriers"] > 0
-        and isinstance(proof.get("motor_rehearsal_signed_yaw_millidegrees"), int)
-        and not isinstance(proof["motor_rehearsal_signed_yaw_millidegrees"], bool)
-        and proof["motor_rehearsal_signed_yaw_millidegrees"] != 0
-        and isinstance(proof.get("motor_rehearsal_source_dsf_delivery_count"), int)
-        and proof["motor_rehearsal_source_dsf_delivery_count"] > 0
-        and isinstance(
-            proof.get("motor_rehearsal_source_physical_transition_count"), int
-        )
-        and proof["motor_rehearsal_source_physical_transition_count"] > 0
-        and isinstance(proof.get("motor_rehearsal_vestibular_tick_count"), int)
-        and not isinstance(proof["motor_rehearsal_vestibular_tick_count"], bool)
-        and proof["motor_rehearsal_vestibular_tick_count"] > 0
-        and proof.get("motor_rehearsal_vestibular_dsf_delivery_count")
-        == proof["motor_rehearsal_vestibular_tick_count"] * 2
-        and isinstance(
-            proof.get("motor_rehearsal_reached_neuron_growth"), int
-        )
-        and not isinstance(
-            proof["motor_rehearsal_reached_neuron_growth"], bool
-        )
-        and proof["motor_rehearsal_reached_neuron_growth"] >= 0
-        and isinstance(proof.get("motor_rehearsal_state_byte_delta"), int)
-        and proof.get("motor_rehearsal_world_revision_delta") == 1
-        and isinstance(
-            proof.get("motor_rehearsal_successor_state_sha256"), str
-        )
-        and _SHA.fullmatch(
-            proof["motor_rehearsal_successor_state_sha256"]
-        )
-        is not None
-    )
-    sparse_index_rehearsal = (
-        proof.get("hippocampal_sparse_index_rehearsed") is True
-        and proof.get("motor_action_rehearsed") is False
-        and isinstance(proof.get("hippocampal_route_formation_receipt"), str)
-        and _SHA.fullmatch(proof["hippocampal_route_formation_receipt"])
-        is not None
-        and isinstance(proof.get("hippocampal_route_index_lineage"), str)
-        and re.fullmatch(
-            r"[0-9a-f]{32}", proof["hippocampal_route_index_lineage"]
-        )
-        is not None
-        and proof.get("hippocampal_route_inbound_bond_count") == 1
-        and isinstance(proof.get("hippocampal_route_outbound_member_count"), int)
-        and not isinstance(proof["hippocampal_route_outbound_member_count"], bool)
-        and proof["hippocampal_route_outbound_member_count"] >= 3
-        and isinstance(proof.get("hippocampal_route_layer_nine_count"), int)
-        and not isinstance(proof["hippocampal_route_layer_nine_count"], bool)
-        and proof["hippocampal_route_layer_nine_count"] > 0
-        and isinstance(proof.get("hippocampal_route_inbound_transition_count"), int)
-        and proof["hippocampal_route_inbound_transition_count"] > 0
-        and isinstance(proof.get("hippocampal_route_outbound_transition_count"), int)
-        and proof["hippocampal_route_outbound_transition_count"] > 0
-        and isinstance(proof.get("hippocampal_route_state_byte_delta"), int)
-        and isinstance(
-            proof.get("hippocampal_route_successor_state_sha256"), str
-        )
-        and _SHA.fullmatch(
-            proof["hippocampal_route_successor_state_sha256"]
-        )
-        is not None
-    )
     distributed_recognition_rehearsal = (
         proof.get("distributed_recognition_rehearsed") is True
         and all(
@@ -416,6 +339,7 @@ def _validate_proof(
                 "distributed_recognition_association_neuron_count",
                 "distributed_recognition_body_neuron_count",
                 "distributed_recognition_formation_count",
+                "distributed_recognition_ordering_neuron_count",
                 "distributed_recognition_retention_neuron_count",
                 "distributed_recognition_sensory_neuron_count",
                 "distributed_recognition_source_dsf_delivery_count",
@@ -443,6 +367,37 @@ def _validate_proof(
             )
         )
     )
+    distributed_recall_rehearsal = (
+        distributed_recognition_rehearsal
+        and proof.get("distributed_recall_rehearsed") is True
+        and proof.get("motor_action_rehearsed") is False
+        and isinstance(proof.get("distributed_recall_cue_lineage"), str)
+        and re.fullmatch(r"[0-9a-f]{32}", proof["distributed_recall_cue_lineage"])
+        is not None
+        and isinstance(proof.get("distributed_recall_formation_member_count"), int)
+        and not isinstance(proof["distributed_recall_formation_member_count"], bool)
+        and proof["distributed_recall_formation_member_count"] >= 3
+        and isinstance(proof.get("distributed_recall_interval_ordinal"), int)
+        and not isinstance(proof["distributed_recall_interval_ordinal"], bool)
+        and 1 <= proof["distributed_recall_interval_ordinal"] <= 3
+        and isinstance(proof.get("distributed_recall_source_dsf_delivery_count"), int)
+        and proof["distributed_recall_source_dsf_delivery_count"] > 0
+        and isinstance(
+            proof.get("distributed_recall_source_physical_transition_count"), int
+        )
+        and proof["distributed_recall_source_physical_transition_count"] > 0
+        and isinstance(proof.get("distributed_recall_state_byte_delta"), int)
+        and isinstance(proof.get("distributed_recall_successor_state_sha256"), str)
+        and _SHA.fullmatch(proof["distributed_recall_successor_state_sha256"])
+        is not None
+        and isinstance(proof.get("distributed_recognition_formation_receipts"), list)
+        and len(proof["distributed_recognition_formation_receipts"])
+        == proof["distributed_recognition_formation_count"]
+        and hashlib.sha256(
+            _canonical(proof["distributed_recognition_formation_receipts"])
+        ).hexdigest()
+        == proof["distributed_recognition_formation_receipts_sha256"]
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -469,8 +424,8 @@ def _validate_proof(
         or proof.get("python_callback_count") != 0
         or proof.get("python_cognition_workers_started") != 0
         or (
-            expected_motor_action_rehearsal
-            and not distributed_recognition_rehearsal
+            expected_distributed_recall_rehearsal
+            and not distributed_recall_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -559,7 +514,7 @@ def main() -> int:
         )
         if isinstance(item, dict)
     }
-    expected_motor_action_rehearsal = (
+    expected_distributed_recall_rehearsal = (
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
@@ -643,7 +598,9 @@ def main() -> int:
             expected_tick=values.expected_tick,
             expected_state_sha256=values.expected_state_sha256,
             expected_state_root=genesis_state_root,
-            expected_motor_action_rehearsal=expected_motor_action_rehearsal,
+            expected_distributed_recall_rehearsal=(
+                expected_distributed_recall_rehearsal
+            ),
         )
         print(_canonical(validated).decode("ascii"))
         return 0

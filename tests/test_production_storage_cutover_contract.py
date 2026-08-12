@@ -72,13 +72,13 @@ def test_candidate_task_removes_every_retired_runtime_authority() -> None:
     assert "candidate has more than one persistent state volume" in DEPLOY
 
 
-def test_preflight_and_genesis_rehearsal_complete_before_the_single_cutover() -> None:
+def test_preflight_and_current_rehearsal_complete_before_the_single_cutover() -> None:
     registration = DEPLOY.index("CANDIDATE_JSON=")
     preflight = DEPLOY.index("python3 tools/preflight_guala_production.py")
     rehearsal = DEPLOY.index(
         "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
     )
-    rehearsal_task = DEPLOY.index("--mode genesis-rehearse")
+    rehearsal_task = DEPLOY.index("--mode cold-restore")
     turnover = DEPLOY.index("aws ecs update-service", rehearsal_task)
     live = DEPLOY.index("CURRENT_RUNNING_TASK=$(verify_live_organism", turnover)
     production_tag = DEPLOY.index(
@@ -86,23 +86,23 @@ def test_preflight_and_genesis_rehearsal_complete_before_the_single_cutover() ->
     )
     assert registration < preflight < rehearsal
     assert rehearsal < rehearsal_task < turnover < live < production_tag
-    # The genesis cutover round-trips no predecessor state: the inheritance
-    # publication and cold-restore steps are absent from this path.
+    # The continuity cutover reads and rehearses the exact current predecessor;
+    # it neither publishes a substitute nor invokes a genesis path.
     assert "PUBLICATION_PROOF=" not in DEPLOY
     assert "COLD_RESTORE_PROOF=" not in DEPLOY
-    assert '--expected-identity "${GUALA_ORGANISM_IDENTITY}"' in DEPLOY
+    assert '--expected-identity "${REHEARSAL_IDENTITY}"' in DEPLOY
+    assert '--expected-state-sha256 "${REHEARSAL_STATE_SHA}"' in DEPLOY
     assert "REPEAT_CUTOVER=1" in DEPLOY
     assert "rollback=false" in DEPLOY
 
 
 def test_live_proof_requires_exact_artifact_and_truthful_native_scope() -> None:
     for evidence in (
-        'value.get("ready_scope") != "http_and_native_current_transport_only"',
+        'value.get("ready_scope") != "http_native_current_and_admitted_sensory_transitions"',
         'native.get("available") is not True',
         'native.get("python_callback_count") != 0',
-        'native.get("complete_neuron_available") is not False',
-        'native.get("genuine_neuronal_fractal_available") is not False',
-        'native.get("cognition_available") is not False',
+        'native.get("complete_neuron_available") is not True',
+        'native.get("cognition_available") is not True',
         'containers[0].get("imageDigest") != os.environ["EXPECTED_DIGEST"]',
     ):
         assert evidence in DEPLOY

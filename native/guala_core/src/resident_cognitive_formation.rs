@@ -609,12 +609,12 @@ pub(crate) struct ResidentCognitiveFormationState {
     resting_population: Option<DevelopmentalRestingPopulation>,
     cohorts: Box<[ResidentReachedCohort]>,
     electrical_fabric: ResidentElectricalFabric,
-    /// Exact sparse intrinsic layer-9 lineages newly reached across a physical
-    /// contact in the preceding interval. They alone may bridge a distributed
-    /// member cue to the formation's other members in the next interval. This
-    /// is short-lived electrical propagation state, not stored memory or a
-    /// returned answer. Absolute membrane charge is deliberately not authority
-    /// here: a living neuron's resting potential may be nonzero.
+    /// Exact sparse intrinsic lineages that received whole carriers across a
+    /// physical contact in the preceding interval. They alone may continue
+    /// through another local contact in the next interval. This is short-lived
+    /// electrical propagation state, not stored memory or a returned answer.
+    /// Absolute membrane charge is deliberately not authority here: a living
+    /// neuron's resting potential may be nonzero.
     active_electrical_frontier: Box<[[u8; 16]]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
@@ -7373,17 +7373,6 @@ fn settle_internal_contact_interval(
             .position(|(_, _, retained)| *retained == lineage)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
-    let hippocampal_lineages = flat_locations
-        .iter()
-        .filter_map(|(cohort_index, neuron_index, lineage)| {
-            (cohorts[*cohort_index].anatomy.mounts()[*neuron_index]
-                .place()
-                .layer()
-                == 9)
-                .then_some(*lineage)
-        })
-        .collect::<Vec<_>>();
-
     let mut edges = Vec::<ResidentContactEdge>::new();
     let mut cohort_offsets = Vec::with_capacity(cohorts.len());
     let mut offset = 0usize;
@@ -8070,7 +8059,7 @@ fn settle_internal_contact_interval(
     let mut active_bonds = settled
         .transitions
         .iter()
-        .zip(compact_bonds)
+        .zip(compact_bonds.iter().copied())
         .filter_map(|(transition, bond)| {
             (transition.outward_current_from_left_picoamperes.parts().0 != 0
                 || transition.outward_elementary_charges_from_left != 0
@@ -8080,28 +8069,24 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     active_bonds.sort_unstable();
     active_bonds.dedup();
-    // Persist only a newly reached intrinsic layer-9 cell.  Its physical role
-    // is the sparse one-interval bridge from a distributed member cue to the
-    // other members of that same retained formation.  Carrying an arbitrary
-    // changed recipient would turn ordinary electrical reach into a graph
-    // flood; carrying the predecessor seed would make local relaxation a
-    // perpetual source.  The layer is existing developmental anatomy, not a
-    // runtime label or stored answer.
-    let mut next_active_frontier = transition_predecessors
-        .iter()
-        .filter_map(|predecessor| {
-            (!externally_reached_lineages.contains(&predecessor.lineage)
-                && hippocampal_lineages.contains(&predecessor.lineage))
-            .then_some(predecessor.lineage)
-        })
-        .collect::<Vec<_>>();
-    for bond in &active_bonds {
-        let (left, right) = bond.endpoints();
-        if !externally_reached_lineages.contains(&left) && hippocampal_lineages.contains(&left) {
-            next_active_frontier.push(left);
+    // Carry only a cell that physically received at least one exact whole
+    // carrier in this interval. Positive transfer is left -> right and
+    // negative transfer is right -> left. A changed cell, a sending cell,
+    // both endpoints of an active contact, retained sub-carrier phase, and a
+    // developmental layer name are not propagation authority. This preserves
+    // one-contact-per-interval causality while allowing reconstructed cortical
+    // material to continue beyond its hippocampal route through the same local
+    // electrical law as every other reached neuron.
+    let mut next_active_frontier = Vec::new();
+    for (transition, bond) in settled.transitions.iter().zip(&compact_bonds) {
+        let signed_transfer = transition.outward_elementary_charges_from_left;
+        if signed_transfer == 0 {
+            continue;
         }
-        if !externally_reached_lineages.contains(&right) && hippocampal_lineages.contains(&right) {
-            next_active_frontier.push(right);
+        let (left, right) = bond.endpoints();
+        let receiving_lineage = if signed_transfer > 0 { right } else { left };
+        if !externally_reached_lineages.contains(&receiving_lineage) {
+            next_active_frontier.push(receiving_lineage);
         }
     }
     next_active_frontier.sort_unstable();
@@ -8317,8 +8302,7 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
                 .iter()
                 .position(|candidate| candidate == lineage)
                 .and_then(|position| reached_places.get(position))
-                .map(|place| place.layer())
-                != Some(9)
+                .is_none()
                 || (index > 0 && state.active_electrical_frontier[index - 1] >= *lineage)
         })
     {
@@ -11423,7 +11407,7 @@ mod tests {
     }
 
     #[test]
-    fn whole_organism_activity_reaches_affective_geography_without_inventing_effectors() {
+    fn whole_organism_activity_reaches_ordering_and_one_physical_motor_recruitment() {
         let canal_anatomy =
             CanalAnatomy::new(6, 13_200, PositiveRatio::new(25, 1).unwrap()).unwrap();
         let bundle_anatomy = LocalCupulaBundleAnatomy::new(2, 5, 20_000).unwrap();
@@ -11464,8 +11448,10 @@ mod tests {
             state = vestibular.successor;
         }
         let source = exact_optical_binaural_episode();
+        let mut motor_recruitments = 0usize;
         for _ in 0..6 {
             let prepared = state.prepare(&source, 16_000_000).unwrap();
+            motor_recruitments += prepared.observation.motor_unit_recruitments.len();
             state = prepared.successor;
         }
         let layer_ten = state
@@ -11487,11 +11473,13 @@ mod tests {
             layer_counts.iter().find(|(layer, _)| *layer == 11).copied(),
             Some((11, layer_eleven))
         );
-        // Newly mounted ordering cells are quiescent. A nonzero resting
-        // membrane is not action, so it cannot manufacture motor or
-        // articulatory anatomy without a later genuine physical excitation.
-        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 12));
-        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 13));
+        // Later carrier receipt lawfully reaches the ordering route and
+        // materializes its adjacent motor and articulatory anatomy. Repeated
+        // physical excitation then recruits exactly one motor unit; no action
+        // name, target, or scripted command is involved.
+        assert!(layer_counts.iter().any(|(layer, _)| *layer == 12));
+        assert!(layer_counts.iter().any(|(layer, _)| *layer == 13));
+        assert_eq!(motor_recruitments, 1);
         assert_eq!(
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count

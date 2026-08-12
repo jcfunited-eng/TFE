@@ -7,12 +7,9 @@ from collections import deque
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
-import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
-    exact_motor_unit_yaw_trajectory,
     restore_native_resident_organism,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
@@ -52,16 +49,14 @@ def _arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _rehearse_native_sparse_index(
+def _rehearse_native_distributed_recall(
     current_envelope: bytes,
     *,
     max_envelope_bytes: int,
     max_fabric_bytes: int,
     max_logical_peak_bytes: int,
-    source_dsf_deliveries: int,
-    source_physical_transitions: int,
-) -> dict[str, int | bool | str]:
-    """Prove one bounded member -> layer-9 -> members physical route."""
+) -> dict[str, int | bool | str | tuple[str, ...]]:
+    """Prove one body partial cue becomes distributed current recall."""
 
     budget = {
         "max_envelope_bytes": max_envelope_bytes,
@@ -79,85 +74,78 @@ def _rehearse_native_sparse_index(
             organism.observe_reached_neuron_lineage_layers()
         )
     }
-    layer_nine_before = sum(layer == 9 for layer in layers.values())
     formations = organism.observe_retained_formation_structures()
-
-    inbound = organism.prepare_vestibular_tick(0, 64)
-    organism.commit(inbound.token)
-    outbound = organism.prepare_vestibular_tick(64, 0)
-    organism.commit(outbound.token)
-
-    inbound_layer_nine = [
-        bond
-        for bond in inbound.active_physical_bonds
-        if 9 in (layers[bond[0]], layers[bond[1]])
-    ]
-    if len(inbound_layer_nine) != 1:
-        raise RuntimeError("bounded cue did not reach exactly one layer-9 route")
-    index_lineage = next(
-        lineage
-        for lineage in inbound_layer_nine[0][:2]
-        if layers[lineage] == 9
-    )
-    outbound_members = {
-        right if left == index_lineage else left
-        for left, right, _ordinal in outbound.active_physical_bonds
-        if index_lineage in (left, right)
-    }
-    matching = [
-        (receipt, members)
+    cues = dict(organism.observe_retained_formation_recurrence_cues())
+    body_cued = [
+        (receipt, members, cue)
         for receipt, members, _original, _recurrent, _reinforcements in formations
-        if set(members) == outbound_members
+        if len(cue := cues.get(receipt, ())) == 1 and layers[cue[0]] == 5
     ]
-    if len(matching) != 1:
-        raise RuntimeError(
-            "layer-9 route did not reach one exact distributed formation"
+    if len(body_cued) != 1:
+        raise RuntimeError("CURRENT has no single exact body-cued formation")
+    formation_receipt, formation_members, cue = body_cued[0]
+    recalled = None
+    heading = 0
+    transition_count = 0
+    dsf_delivery_count = 0
+    for ordinal, signed_step in enumerate((64, -64, 0), 1):
+        prepared = organism.prepare_vestibular_tick(heading, signed_step)
+        transition_count += prepared.physically_transitioned_neuron_count
+        dsf_delivery_count += prepared.dsf_delivery_count
+        observed = _observe_distributed_recognition(
+            organism,
+            prepared,
+            formations,
         )
-    formation_receipt, formation_members = matching[0]
+        if observed is not None and formation_receipt in observed[
+            "distributed_recognition_formation_receipts"
+        ]:
+            recalled = {
+                **observed,
+                "distributed_recall_interval_ordinal": ordinal,
+            }
+        organism.commit(prepared.token)
+        heading = (heading + signed_step) % 360_000
+    if recalled is None:
+        raise RuntimeError("body partial cue produced no distributed recall")
     after = organism.readiness()
     successor_state = organism.save()
     cold = restore_native_resident_organism(
         current_envelope=successor_state,
         **budget,
     )
-    layer_nine_after = sum(
-        layer == 9
-        for _lineage, layer, _receptor in (
-            cold.observe_reached_neuron_lineage_layers()
-        )
-    )
     if (
-        source_dsf_deliveries <= 0
-        or source_physical_transitions <= 0
-        or inbound.dsf_delivery_count <= 0
-        or outbound.dsf_delivery_count <= 0
-        or inbound.physically_transitioned_neuron_count <= 0
-        or outbound.physically_transitioned_neuron_count <= 0
-        or len(outbound_members) != len(formation_members)
-        or layer_nine_after != layer_nine_before
+        dsf_delivery_count <= 0
+        or transition_count <= 0
         or after.identity != before.identity
-        or after.organism_tick != before.organism_tick + 2
+        or after.organism_tick != before.organism_tick + 3
         or after.python_callback_count != 0
         or after.state_sha256 == before.state_sha256
         or cold.save() != successor_state
         or cold.readiness().state_sha256 != after.state_sha256
     ):
-        raise RuntimeError("native sparse-index rehearsal changed")
+        raise RuntimeError("native distributed-recall rehearsal changed")
     return {
-        "hippocampal_sparse_index_rehearsed": True,
-        "hippocampal_route_formation_receipt": formation_receipt,
-        "hippocampal_route_index_lineage": index_lineage,
-        "hippocampal_route_inbound_bond_count": len(inbound_layer_nine),
-        "hippocampal_route_outbound_member_count": len(outbound_members),
-        "hippocampal_route_layer_nine_count": layer_nine_after,
-        "hippocampal_route_inbound_transition_count": (
-            inbound.physically_transitioned_neuron_count
+        **recalled,
+        "distributed_recognition_episode_ordinal": (
+            recalled["distributed_recall_interval_ordinal"] - 1
         ),
-        "hippocampal_route_outbound_transition_count": (
-            outbound.physically_transitioned_neuron_count
+        "distributed_recognition_source_dsf_delivery_count": dsf_delivery_count,
+        "distributed_recognition_source_hop_count": 3,
+        "distributed_recognition_source_physical_transition_count": (
+            transition_count
         ),
-        "hippocampal_route_state_byte_delta": after.state_bytes - before.state_bytes,
-        "hippocampal_route_successor_state_sha256": after.state_sha256,
+        "distributed_recognition_state_byte_delta": (
+            after.state_bytes - before.state_bytes
+        ),
+        "distributed_recognition_successor_state_sha256": after.state_sha256,
+        "distributed_recall_cue_lineage": cue[0],
+        "distributed_recall_formation_member_count": len(formation_members),
+        "distributed_recall_rehearsed": True,
+        "distributed_recall_source_dsf_delivery_count": dsf_delivery_count,
+        "distributed_recall_source_physical_transition_count": transition_count,
+        "distributed_recall_state_byte_delta": after.state_bytes - before.state_bytes,
+        "distributed_recall_successor_state_sha256": after.state_sha256,
         "motor_action_rehearsed": False,
     }
 
@@ -166,7 +154,7 @@ def _observe_distributed_recognition(
     organism: object,
     prepared: object,
     formations: tuple[tuple[str, tuple[str, ...], bool, bool, int], ...],
-) -> dict[str, int | bool | str] | None:
+) -> dict[str, int | bool | str | tuple[str, ...]] | None:
     """Observe one actual multisensory reassembly; never drive recognition."""
 
     if prepared.partial_cue_reassembly_count <= 0:
@@ -206,6 +194,7 @@ def _observe_distributed_recognition(
             "retention": {lineage for lineage in component if layers[lineage] == 9},
             "body": {lineage for lineage in component if layers[lineage] in {5, 8}},
             "affective": {lineage for lineage in component if layers[lineage] == 10},
+            "ordering": {lineage for lineage in component if layers[lineage] == 11},
         }
         if matching_receipts and all(participants.values()):
             candidates.append((component, matching_receipts, participants))
@@ -234,273 +223,16 @@ def _observe_distributed_recognition(
         "distributed_recognition_formation_receipts_sha256": hashlib.sha256(
             _canonical(matching_receipts)
         ).hexdigest(),
+        "distributed_recognition_formation_receipts": tuple(matching_receipts),
         "distributed_recognition_rehearsed": True,
         "distributed_recognition_retention_neuron_count": len(
             participants["retention"]
         ),
+        "distributed_recognition_ordering_neuron_count": len(
+            participants["ordering"]
+        ),
         "distributed_recognition_sensory_neuron_count": len(
             participants["sensory"]
-        ),
-    }
-
-
-def _rehearse_native_motor_action(
-    current_envelope: bytes,
-    *,
-    native_store_root: str,
-    max_envelope_bytes: int,
-    max_fabric_bytes: int,
-    max_logical_peak_bytes: int,
-) -> dict[str, int | bool | str]:
-    """Exercise production sensory source -> motor -> yaw -> balance once.
-
-    The source is one ordinary unattended whole-sensorium interval built by
-    the production transport from a copied embodiment world.  No motor event
-    is injected.  Both organism and world are throwaway copies and nothing is
-    published.
-    """
-
-    organism = restore_native_resident_organism(
-        current_envelope=current_envelope,
-        max_envelope_bytes=max_envelope_bytes,
-        max_fabric_bytes=max_fabric_bytes,
-        max_logical_peak_bytes=max_logical_peak_bytes,
-    )
-    before = organism.readiness()
-    formations = organism.observe_retained_formation_structures()
-    with tempfile.TemporaryDirectory(prefix="guala-motor-rehearsal-") as world_root:
-        previous_root = os.environ.get("GUALA_NATIVE_ORGANISM_ROOT")
-        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = world_root
-        try:
-            from dsf_ai_service import native_production_app as production
-        finally:
-            if previous_root is None:
-                os.environ.pop("GUALA_NATIVE_ORGANISM_ROOT", None)
-            else:
-                os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = previous_root
-        if production.STATE_ROOT != Path(world_root):
-            raise RuntimeError("production motor rehearsal did not bind its throwaway root")
-        source_world = Path(native_store_root) / production.WORLD_STATE_FILE
-        target_world = production.STATE_ROOT / production.WORLD_STATE_FILE
-        if source_world.is_file():
-            target_world.write_bytes(source_world.read_bytes())
-
-        episodes, environment = production._unattended_interval_episodes(
-            "candidate-native-motor-reachability"
-        )
-        recruitments: list[tuple[str, int, int]] = []
-        source_dsf_deliveries = 0
-        source_fractals = 0
-        source_physical_transitions = 0
-        distributed_recognition: dict[str, int | bool | str] | None = None
-        for episode_ordinal, (episode, admissions) in enumerate(episodes):
-            prepared = organism.prepare_admitted(episode, admissions)
-            organism.commit(prepared.token)
-            recruitments.extend(prepared.motor_unit_recruitments)
-            source_dsf_deliveries += prepared.dsf_delivery_count
-            source_fractals += prepared.complete_neuron_fractal_count
-            source_physical_transitions += (
-                prepared.physically_transitioned_neuron_count
-            )
-            observed_recognition = _observe_distributed_recognition(
-                organism,
-                prepared,
-                formations,
-            )
-            if distributed_recognition is None and observed_recognition is not None:
-                distributed_recognition = {
-                    **observed_recognition,
-                    "distributed_recognition_episode_ordinal": episode_ordinal,
-                }
-        if not recruitments:
-            if distributed_recognition is None:
-                raise RuntimeError(
-                    "whole-sensorium interval produced no distributed recognition"
-                )
-            after = organism.readiness()
-            successor_state = organism.save()
-            cold = restore_native_resident_organism(
-                current_envelope=successor_state,
-                max_envelope_bytes=max_envelope_bytes,
-                max_fabric_bytes=max_fabric_bytes,
-                max_logical_peak_bytes=max_logical_peak_bytes,
-            )
-            if (
-                not episodes
-                or source_dsf_deliveries <= 0
-                or source_physical_transitions <= 0
-                or after.identity != before.identity
-                or after.organism_tick != before.organism_tick + len(episodes)
-                or after.python_callback_count != 0
-                or after.state_sha256 == before.state_sha256
-                or len(successor_state) != after.state_bytes
-                or hashlib.sha256(successor_state).hexdigest() != after.state_sha256
-                or cold.save() != successor_state
-                or cold.readiness().state_sha256 != after.state_sha256
-            ):
-                raise RuntimeError("distributed recognition rehearsal changed")
-            return {
-                **distributed_recognition,
-                "distributed_recognition_source_dsf_delivery_count": (
-                    source_dsf_deliveries
-                ),
-                "distributed_recognition_source_hop_count": len(episodes),
-                "distributed_recognition_source_physical_transition_count": (
-                    source_physical_transitions
-                ),
-                "distributed_recognition_state_byte_delta": (
-                    after.state_bytes - before.state_bytes
-                ),
-                "distributed_recognition_successor_state_sha256": (
-                    after.state_sha256
-                ),
-                "motor_action_rehearsed": False,
-            }
-        if distributed_recognition is None:
-            raise RuntimeError(
-                "motor source intervals produced no distributed recognition"
-            )
-        prepared_motor = production._prepare_motor_yaw_action(
-            before.state_sha256,
-            tuple(recruitments),
-        )
-        if prepared_motor is None:
-            raise RuntimeError("native motor discharge produced no body yaw")
-        authority, prepared_world, predecessor_heading, signed_steps = prepared_motor
-        with authority.prepared_action_visibility_transaction(prepared_world):
-            execution = authority.commit_prepared_action(prepared_world)
-            committed_world_body = authority.encoded_committed_prepared_action(
-                prepared_world
-            )
-            production._persist_world_body(committed_world_body)
-        authority.verify_execution_receipt(execution)
-        successor_heading, expected_steps = exact_motor_unit_yaw_trajectory(
-            predecessor_heading_millidegrees=predecessor_heading,
-            recruitments=tuple(
-                (topology, outward_carriers)
-                for _, topology, outward_carriers in recruitments
-            ),
-        )
-        if signed_steps != expected_steps:
-            raise RuntimeError("production body boundary changed native motor yaw")
-        after_body = next(
-            body
-            for body in execution.after.bodies
-            if body.body_id == execution.after.self_body_id
-        )
-        vestibular = organism.prepare_vestibular_trajectory(
-            predecessor_heading,
-            signed_steps,
-        )
-        organism.commit(vestibular.token)
-    after = organism.readiness()
-    successor_state = organism.save()
-    cold = restore_native_resident_organism(
-        current_envelope=successor_state,
-        max_envelope_bytes=max_envelope_bytes,
-        max_fabric_bytes=max_fabric_bytes,
-        max_logical_peak_bytes=max_logical_peak_bytes,
-    )
-    cold_observation = cold.readiness()
-    before_total = (
-        before.complete_neuron_count
-        + before.developmental_resting_neuron_count
-    )
-    after_total = (
-        after.complete_neuron_count
-        + after.developmental_resting_neuron_count
-    )
-    reached_growth = after.complete_neuron_count - before.complete_neuron_count
-    resting_use = (
-        before.developmental_resting_neuron_count
-        - after.developmental_resting_neuron_count
-    )
-    expected_vestibular_dsf_deliveries = len(signed_steps) * 2
-    outward_carriers = sum(channels for _, _, channels in recruitments)
-    signed_yaw = sum(signed_steps)
-    if (
-        len(episodes) == 0
-        or outward_carriers <= 0
-        or not signed_steps
-        or signed_yaw == 0
-        or successor_heading
-        != (predecessor_heading + signed_yaw) % 360_000
-        or after_body.pose.heading_millidegrees != successor_heading
-        or execution.after.revision != execution.before.revision + 1
-        or after.identity != before.identity
-        or after.organism_tick
-        != before.organism_tick + len(episodes) + len(signed_steps)
-        or after_total != before_total
-        or reached_growth < 0
-        or resting_use != reached_growth
-        or source_dsf_deliveries <= 0
-        or source_physical_transitions <= 0
-        or vestibular.dsf_delivery_count != expected_vestibular_dsf_deliveries
-        or vestibular.physically_transitioned_neuron_count <= 0
-        or after.python_callback_count != 0
-        or after.state_sha256 == before.state_sha256
-        or len(successor_state) != after.state_bytes
-        or hashlib.sha256(successor_state).hexdigest() != after.state_sha256
-        or cold.save() != successor_state
-        or cold_observation.identity != after.identity
-        or cold_observation.organism_tick != after.organism_tick
-        or cold_observation.state_sha256 != after.state_sha256
-    ):
-        raise RuntimeError(
-            "native motor action rehearsal changed: "
-            + json.dumps(
-                {
-                    "after_complete": after.complete_neuron_count,
-                    "after_resting": after.developmental_resting_neuron_count,
-                    "after_tick": after.organism_tick,
-                    "before_complete": before.complete_neuron_count,
-                    "before_resting": before.developmental_resting_neuron_count,
-                    "before_tick": before.organism_tick,
-                    "cold_equal": cold.save() == successor_state,
-                    "motor_recruitment_count": len(recruitments),
-                    "outward_carriers": outward_carriers,
-                    "signed_yaw": signed_yaw,
-                    "source_dsf_deliveries": source_dsf_deliveries,
-                    "source_fractals": source_fractals,
-                    "source_physical_transitions": source_physical_transitions,
-                    "reached_growth": reached_growth,
-                    "resting_use": resting_use,
-                    "source_hop_count": len(episodes),
-                    "step_count": len(signed_steps),
-                    "successor_heading": successor_heading,
-                    "vestibular_dsf_deliveries": vestibular.dsf_delivery_count,
-                },
-                separators=(",", ":"),
-                sort_keys=True,
-            )
-        )
-    return {
-        **distributed_recognition,
-        "motor_action_rehearsed": True,
-        "motor_rehearsal_external_luminance_present": environment[
-            "external_luminance_present"
-        ],
-        "motor_rehearsal_external_smell_present": environment[
-            "external_smell_present"
-        ],
-        "motor_rehearsal_outward_elementary_carriers": outward_carriers,
-        "motor_rehearsal_recruitment_count": len(recruitments),
-        "motor_rehearsal_reached_neuron_growth": reached_growth,
-        "motor_rehearsal_signed_yaw_millidegrees": signed_yaw,
-        "motor_rehearsal_source_dsf_delivery_count": source_dsf_deliveries,
-        "motor_rehearsal_source_fractal_count": source_fractals,
-        "motor_rehearsal_source_hop_count": len(episodes),
-        "motor_rehearsal_source_physical_transition_count": (
-            source_physical_transitions
-        ),
-        "motor_rehearsal_state_byte_delta": after.state_bytes - before.state_bytes,
-        "motor_rehearsal_successor_state_sha256": after.state_sha256,
-        "motor_rehearsal_vestibular_dsf_delivery_count": (
-            vestibular.dsf_delivery_count
-        ),
-        "motor_rehearsal_vestibular_tick_count": len(signed_steps),
-        "motor_rehearsal_world_revision_delta": (
-            execution.after.revision - execution.before.revision
         ),
     }
 
@@ -555,13 +287,12 @@ def main() -> int:
     before = restored.organism.readiness()
     state = restored.organism.save()
     after = restored.organism.readiness()
-    motor_proof: dict[str, int | bool | str] = {
+    motor_proof: dict[str, int | bool | str | tuple[str, ...]] = {
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        motor_proof = _rehearse_native_motor_action(
+        motor_proof = _rehearse_native_distributed_recall(
             state,
-            native_store_root=values.native_store_root,
             max_envelope_bytes=admission.max_envelope_bytes,
             max_fabric_bytes=admission.max_fabric_bytes,
             max_logical_peak_bytes=admission.max_logical_peak_bytes,

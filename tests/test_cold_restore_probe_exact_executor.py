@@ -27,6 +27,9 @@ class _Observation:
     state_bytes: int = len(STATE)
     state_sha256: str = STATE_SHA
     python_callback_count: int = 0
+    joint_field_count: int = 2
+    complete_neuron_count: int = 217
+    developmental_resting_neuron_count: int = 196_335
 
 
 class _Organism:
@@ -138,10 +141,17 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
     proof = json.loads(capsys.readouterr().out)
     receipt = proof.pop("receipt_sha256")
     assert proof == {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
         "candidate_git_sha": GIT_SHA,
         "candidate_image_digest": IMAGE,
         "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
         "mode": "cold-restore",
+        "motor_action_rehearsed": False,
         "python_callback_count": 0,
         "python_cognition_workers_started": 0,
         "raw_glorun_current_only": True,
@@ -149,6 +159,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "resident_state_sha256": STATE_SHA,
         "schema": probe.PROOF_SCHEMA,
         "source_identity": IDENTITY,
+        "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
         "tick": 23_723_846,
     }

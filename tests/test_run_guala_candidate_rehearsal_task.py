@@ -27,6 +27,10 @@ def _task_definition() -> dict[str, object]:
                     "name": "GUALA_S3_BACKUP_BUCKET",
                     "value": "candidate-test-bucket",
                 },
+                {
+                    "name": "GUALA_NATIVE_ORGANISM_ROOT",
+                    "value": "/app/guala/native-organism",
+                },
             ],
             "secrets": [{"name": "GUALALOOM_API_KEY", "valueFrom": "arn"}],
             "logConfiguration": {
@@ -73,7 +77,7 @@ def test_rehearsal_is_read_only_and_publication_is_the_only_writer() -> None:
     }]
     assert publication_container["mountPoints"][0]["readOnly"] is False
     assert "--native-store-root" not in rehearsal_container["command"]
-    assert runner.NATIVE_STORE in publication_container["command"]
+    assert "/source/guala/native-organism" in publication_container["command"]
     assert rehearsal["ephemeralStorage"] == {
         "sizeInGiB": runner.EPHEMERAL_GIB
     }
@@ -117,7 +121,7 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
         ),
         (
             "cold-restore",
-            "guala.production_native_current_cold_restore.v1",
+            "guala.production_native_current_cold_restore.v4",
             True,
         ),
     ],
@@ -142,6 +146,17 @@ def test_every_task_proof_is_exactly_receipted(
         "source_mount_read_only": read_only,
         "tick": 23_723_846,
     }
+    if mode == "cold-restore":
+        record.update({
+            "baseline_observed_state_sha256": STATE_SHA,
+            "baseline_observed_tick": 23_723_846,
+            "complete_neuron_count": 217,
+            "current_format_migration_rehearsed": False,
+            "developmental_resting_neuron_count": 196_335,
+            "migration_predecessor_state_sha256": None,
+            "motor_action_rehearsed": False,
+            "source_advanced_after_baseline": False,
+        })
     proof = {
         **record,
         "receipt_sha256": hashlib.sha256(runner._canonical(record)).hexdigest(),
@@ -295,4 +310,86 @@ def test_proof_rejects_state_or_receipt_drift() -> None:
             expected_identity=IDENTITY,
             expected_tick=23_723_846,
             expected_state_sha256=STATE_SHA,
+        )
+
+
+def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
+    receipt = "e" * 64
+    formation_receipts = [receipt]
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "distributed_recall_cue_lineage": "f" * 32,
+        "distributed_recall_formation_member_count": 27,
+        "distributed_recall_interval_ordinal": 3,
+        "distributed_recall_rehearsed": True,
+        "distributed_recall_source_dsf_delivery_count": 6,
+        "distributed_recall_source_physical_transition_count": 223,
+        "distributed_recall_state_byte_delta": 1_644,
+        "distributed_recall_successor_state_sha256": "a" * 64,
+        "distributed_recognition_active_bond_count": 486,
+        "distributed_recognition_active_bond_sha256": "b" * 64,
+        "distributed_recognition_active_neuron_count": 152,
+        "distributed_recognition_affective_neuron_count": 3,
+        "distributed_recognition_association_neuron_count": 2,
+        "distributed_recognition_body_neuron_count": 2,
+        "distributed_recognition_episode_ordinal": 2,
+        "distributed_recognition_formation_count": 1,
+        "distributed_recognition_formation_receipts": formation_receipts,
+        "distributed_recognition_formation_receipts_sha256": hashlib.sha256(
+            runner._canonical(formation_receipts)
+        ).hexdigest(),
+        "distributed_recognition_ordering_neuron_count": 4,
+        "distributed_recognition_rehearsed": True,
+        "distributed_recognition_retention_neuron_count": 2,
+        "distributed_recognition_sensory_neuron_count": 43,
+        "distributed_recognition_source_dsf_delivery_count": 6,
+        "distributed_recognition_source_hop_count": 3,
+        "distributed_recognition_source_physical_transition_count": 223,
+        "distributed_recognition_state_byte_delta": 1_644,
+        "distributed_recognition_successor_state_sha256": "a" * 64,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": False,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 43_384_308,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v4",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_distributed_recall_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["distributed_recognition_ordering_neuron_count"] = 0
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_distributed_recall_rehearsal=True,
         )
