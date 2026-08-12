@@ -757,26 +757,14 @@ def _world() -> Any:
         try:
             authority.restore_encoded(path.read_bytes())
         except (ValueError, TypeError, RuntimeError) as error:
-            # A PLACE THAT NO LONGER MATCHES THE HOME IS REBUILT, NOT MOURNED
-            # (2026-08-08). Her rooms changed from three empty boxes to four
-            # furnished ones, and the stored place refused to restore against
-            # them ("embodiment actor port topology changed") -- correctly.
-            #
-            # A world is a PLACE, not her body. Nothing of hers lives in it:
-            # she cannot yet move or pick anything up, so a stored place holds
-            # no history that is hers to lose. It is rebuilt from the authored
-            # home and the reason is reported rather than swallowed.
-            # HER BODY IS NEVER TREATED THIS WAY -- a body that will not
-            # restore is an emergency and stays one.
-            global _world_rebuild_reason
-            _world_rebuild_reason = (
-                "the stored place did not match her authored home and was "
-                f"rebuilt from it ({type(error).__name__}: {str(error)[:90]}). "
-                "Nothing of hers was in it: she cannot yet move or hold "
-                "anything, so a place holds no history she owns"
-            )
-            path.unlink()
-            _persist_world(authority)
+            # Her pose now changes through native motor discharge. A stored
+            # world therefore contains causal organism history and may never
+            # be silently deleted or rebuilt from authored defaults.
+            raise RuntimeError(
+                "the persisted embodiment world could not restore; refusing "
+                "to replace Guala's causal pose history "
+                f"({type(error).__name__}: {error})"
+            ) from error
     _world_authority = authority
     return authority
 
@@ -784,9 +772,15 @@ def _world() -> Any:
 def _persist_world(authority: Any) -> None:
     """Write the world beside her body, atomically."""
 
+    _persist_world_body(authority.encoded_snapshot())
+
+
+def _persist_world_body(body: bytes) -> None:
+    """Atomically write one already-authenticated world persistence body."""
+
     path = STATE_ROOT / WORLD_STATE_FILE
     stage = STATE_ROOT / f".world-{uuid.uuid4()}.stage"
-    stage.write_bytes(authority.encoded_snapshot())
+    stage.write_bytes(body)
     os.replace(stage, path)
 
 
@@ -2004,6 +1998,37 @@ def _autonomy_record() -> dict[str, object]:
         )
     }
     measured = dict(_last_unattended_evidence["measured"])
+    if category == "native_causal_action_observed":
+        motor_action = _last_unattended_evidence.get("motor_action")
+        if not isinstance(motor_action, dict) or motor_action.get("moved") is not True:
+            raise RuntimeError("native action category carries no moved body evidence")
+        return _section(
+            True,
+            category,
+            "the organism's native layer-12 discharge moved its body and the "
+            "resulting displacement returned through its vestibular receptors; "
+            "attention, deliberative choice, and thought remain unmounted",
+            action_observed=True,
+            action=_section(
+                True,
+                "native_motor_yaw_observed",
+                "outward motor-neuron carrier discharge caused exact body yaw",
+                f"body yawed {motor_action['signed_yaw_millidegrees']} millidegrees",
+            ),
+            attention=not_mounted["attention"],
+            choice=not_mounted["choice"],
+            consequence=_section(
+                True,
+                "native_vestibular_consequence_observed",
+                "the body yaw returned through the mounted balance receptors",
+                "motor consequence reached the native vestibular path",
+            ),
+            thought=not_mounted["thought"],
+            last_interval=last_interval,
+            motor_action=dict(motor_action),
+            self_maintenance=measured,
+            unattended_time=unattended_time,
+        )
     if category == "continuous_environment_observed":
         return _section(
             True,
@@ -4330,6 +4355,8 @@ def _perform_admitted_intake_locked(
     else:
         authority, prepared_world, predecessor_heading, trajectory = prepared_motor
         world_committed = False
+        world_persisted = False
+        predecessor_world_body = authority.encoded_snapshot()
         try:
             with authority.prepared_action_visibility_transaction(prepared_world):
                 execution = authority.commit_prepared_action(prepared_world)
@@ -4342,10 +4369,14 @@ def _perform_admitted_intake_locked(
                 committed_vestibular_tick_count += len(trajectory)
                 for key in totals:
                     totals[key] += last_hop[key]
+                successor_world_body = (
+                    authority.encoded_committed_prepared_action(prepared_world)
+                )
+                _persist_world_body(successor_world_body)
+                world_persisted = True
                 published = _publish_committed_organism(
                     organism, admission, predecessor.state_sha256
                 )
-                _persist_world(authority)
             motor_action = {
                 "moved": True,
                 "signed_yaw_millidegrees": sum(trajectory),
@@ -4359,6 +4390,8 @@ def _perform_admitted_intake_locked(
                     prepared_world
                 ) as rollback_world:
                     rollback_world()
+                if world_persisted:
+                    _persist_world_body(predecessor_world_body)
             else:
                 authority.discard_prepared_action(prepared_world)
             raise

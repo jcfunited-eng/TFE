@@ -28,6 +28,9 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
 
     with authority.prepared_action_visibility_transaction(world_action):
         execution = authority.commit_prepared_action(world_action)
+        committed_body = authority.encoded_committed_prepared_action(
+            world_action
+        )
     after_body = next(
         body
         for body in execution.after.bodies
@@ -35,3 +38,4 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
     )
     assert after_body.pose.heading_millidegrees == 5
     assert after_body.pose.position == before_body.pose.position
+    assert committed_body == authority.encoded_snapshot()

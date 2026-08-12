@@ -120,6 +120,10 @@ def _rehearse_native_motor_action(
         authority, prepared_world, predecessor_heading, signed_steps = prepared_motor
         with authority.prepared_action_visibility_transaction(prepared_world):
             execution = authority.commit_prepared_action(prepared_world)
+            committed_world_body = authority.encoded_committed_prepared_action(
+                prepared_world
+            )
+            production._persist_world_body(committed_world_body)
         authority.verify_execution_receipt(execution)
         successor_heading, expected_steps = exact_motor_unit_yaw_trajectory(
             predecessor_heading_millidegrees=predecessor_heading,

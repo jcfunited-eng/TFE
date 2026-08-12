@@ -4082,6 +4082,34 @@ class EmbodimentWorldAuthority:
             self._prepared_action_execution = None
             return current.execution_receipt
 
+    def encoded_committed_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> bytes:
+        """Encode the hidden committed candidate for atomic persistence.
+
+        Public snapshots remain refused while the visibility transaction is
+        open.  The holder of the exact prepared capability may nevertheless
+        persist that same committed candidate before a dependent organism
+        successor becomes public.
+        """
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(
+                prepared,
+                require_live=False,
+            )
+            if (
+                self._visibility_prepared_action is not current
+                or self._state is not current._candidate_state
+                or self._prepared_action_execution is not None
+                or self._committing_prepared_action_execution is not None
+            ):
+                raise RuntimeError(
+                    "committed prepared action is not the hidden world candidate"
+                )
+            return self._encoded_state_for(current._candidate_state)
+
     @contextmanager
     def committed_prepared_action_rollback_transaction(
         self,

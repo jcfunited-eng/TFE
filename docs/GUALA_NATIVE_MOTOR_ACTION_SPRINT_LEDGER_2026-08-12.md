@@ -66,6 +66,18 @@ meaning is introduced.
   a hard maximum of 64. The motor proof uses one lawful object; the unrelated
   fixture defect is not hidden as a motor failure and is not expanded into
   this sprint.
+- The first task-981 cutover exposed a coupled-persistence ordering defect.
+  The hidden world candidate was committed, the organism CURRENT advanced,
+  and only then ordinary public world encoding was attempted while visibility
+  was still closed. The world correctly refused; the in-process organism
+  pointer consequently lagged the already-published CURRENT and the next
+  interval failed closed. The corrected boundary encodes and persists the
+  exact hidden world candidate through its prepared capability before organism
+  publication, restores the predecessor world bytes if organism publication
+  fails, and makes the discarded candidate rehearsal exercise that same
+  persistence boundary. A disposable exact-body run now advances tick 46337
+  to 46346, yawing 129 millidegrees, and cold-restores the exact successor SHA
+  `c121ab1c9730938636ddd2f50be3ec7c763d85062cd73cfb1c826318600a1bca`.
 
 ## Delivery truth
 
