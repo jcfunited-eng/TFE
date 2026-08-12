@@ -23,7 +23,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v4",
+    "cold-restore": "guala.production_native_current_cold_restore.v5",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
 
@@ -398,6 +398,47 @@ def _validate_proof(
         ).hexdigest()
         == proof["distributed_recognition_formation_receipts_sha256"]
     )
+    episodic_memory_rehearsal = (
+        distributed_recall_rehearsal
+        and proof.get("episodic_memory_rehearsed") is True
+        and proof.get("episodic_cold_reassembly_exact") is True
+        and proof.get("episodic_complete_source_replayed") is False
+        and proof.get("episodic_archive_lookup_count") == 0
+        and isinstance(proof.get("episodic_relation_interval_ordinal"), int)
+        and not isinstance(proof["episodic_relation_interval_ordinal"], bool)
+        and 1 <= proof["episodic_relation_interval_ordinal"] <= 3
+        and isinstance(proof.get("episodic_related_formation_count"), int)
+        and not isinstance(proof["episodic_related_formation_count"], bool)
+        and proof["episodic_related_formation_count"] >= 2
+        and isinstance(proof.get("episodic_relation_active_bond_count"), int)
+        and not isinstance(proof["episodic_relation_active_bond_count"], bool)
+        and isinstance(proof.get("episodic_relation_shared_lineage_count"), int)
+        and not isinstance(proof["episodic_relation_shared_lineage_count"], bool)
+        and (
+            proof["episodic_relation_active_bond_count"] > 0
+            or proof["episodic_relation_shared_lineage_count"] > 0
+        )
+        and isinstance(proof.get("episodic_related_formation_receipts"), list)
+        and len(proof["episodic_related_formation_receipts"])
+        == proof["episodic_related_formation_count"]
+        and isinstance(proof.get("episodic_recalled_formation_receipt"), str)
+        and proof["episodic_recalled_formation_receipt"]
+        in proof["episodic_related_formation_receipts"]
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "episodic_recalled_formation_receipt",
+                "episodic_related_formation_receipts_sha256",
+                "episodic_related_member_sets_sha256",
+                "episodic_relation_active_bonds_sha256",
+            )
+        )
+        and hashlib.sha256(
+            _canonical(proof["episodic_related_formation_receipts"])
+        ).hexdigest()
+        == proof["episodic_related_formation_receipts_sha256"]
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -425,7 +466,7 @@ def _validate_proof(
         or proof.get("python_cognition_workers_started") != 0
         or (
             expected_distributed_recall_rehearsal
-            and not distributed_recall_rehearsal
+            and not episodic_memory_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)

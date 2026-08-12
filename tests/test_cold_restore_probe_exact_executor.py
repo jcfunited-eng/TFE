@@ -189,3 +189,42 @@ def test_probe_rejects_state_or_callback_change(monkeypatch) -> None:
     )
     with pytest.raises(RuntimeError, match="cold restore changed"):
         probe.main()
+
+
+def test_episodic_relation_resolves_only_against_retained_successor() -> None:
+    recalled = ("01" * 16, "02" * 16, "03" * 16)
+    related = ("04" * 16, "05" * 16, "06" * 16)
+    recalled_receipt = "1" * 64
+    related_receipt = "2" * 64
+    bond = (recalled[0], related[0], 0)
+
+    class _EpisodicOrganism:
+        committed = False
+
+        def commit(self, token: str) -> None:
+            assert token == "prepared-token"
+            self.committed = True
+
+        def observe_retained_formation_structures(self):
+            assert self.committed
+            return (
+                (recalled_receipt, recalled, (), (), 0),
+                (related_receipt, related, (), (), 0),
+            )
+
+    organism = _EpisodicOrganism()
+    prepared = SimpleNamespace(
+        token="prepared-token",
+        organic_mosaic_relations=(
+            ((recalled_receipt, related_receipt), (), (bond,)),
+        ),
+    )
+    observed = probe._commit_and_observe_episodic_relation(
+        organism,
+        prepared,
+        recalled,
+    )
+    assert observed is not None
+    assert observed["episodic_recalled_formation_receipt"] == recalled_receipt
+    assert observed["episodic_related_formation_count"] == 2
+    assert observed["episodic_relation_active_bond_count"] == 1

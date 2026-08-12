@@ -121,7 +121,7 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
         ),
         (
             "cold-restore",
-            "guala.production_native_current_cold_restore.v4",
+            "guala.production_native_current_cold_restore.v5",
             True,
         ),
     ],
@@ -316,6 +316,7 @@ def test_proof_rejects_state_or_receipt_drift() -> None:
 def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
     receipt = "e" * 64
     formation_receipts = [receipt]
+    episodic_receipts = ["1" * 64, "2" * 64]
     record = {
         "baseline_observed_state_sha256": STATE_SHA,
         "baseline_observed_tick": 23_723_846,
@@ -354,6 +355,21 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "distributed_recognition_source_physical_transition_count": 223,
         "distributed_recognition_state_byte_delta": 1_644,
         "distributed_recognition_successor_state_sha256": "a" * 64,
+        "episodic_archive_lookup_count": 0,
+        "episodic_cold_reassembly_exact": True,
+        "episodic_complete_source_replayed": False,
+        "episodic_memory_rehearsed": True,
+        "episodic_recalled_formation_receipt": episodic_receipts[0],
+        "episodic_related_formation_count": 2,
+        "episodic_related_formation_receipts": episodic_receipts,
+        "episodic_related_formation_receipts_sha256": hashlib.sha256(
+            runner._canonical(episodic_receipts)
+        ).hexdigest(),
+        "episodic_related_member_sets_sha256": "3" * 64,
+        "episodic_relation_active_bond_count": 1,
+        "episodic_relation_active_bonds_sha256": "4" * 64,
+        "episodic_relation_interval_ordinal": 3,
+        "episodic_relation_shared_lineage_count": 0,
         "migration_predecessor_state_sha256": None,
         "mode": "cold-restore",
         "motor_action_rehearsed": False,
@@ -362,7 +378,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v4",
+        "schema": "guala.production_native_current_cold_restore.v5",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,

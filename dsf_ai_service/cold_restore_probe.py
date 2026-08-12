@@ -22,7 +22,7 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-PROOF_SCHEMA = "guala.production_native_current_cold_restore.v4"
+PROOF_SCHEMA = "guala.production_native_current_cold_restore.v5"
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -85,6 +85,7 @@ def _rehearse_native_distributed_recall(
         raise RuntimeError("CURRENT has no single exact body-cued formation")
     formation_receipt, formation_members, cue = body_cued[0]
     recalled = None
+    episodic_relation = None
     heading = 0
     transition_count = 0
     dsf_delivery_count = 0
@@ -97,6 +98,11 @@ def _rehearse_native_distributed_recall(
             prepared,
             formations,
         )
+        relation = _commit_and_observe_episodic_relation(
+            organism,
+            prepared,
+            formation_members,
+        )
         if observed is not None and formation_receipt in observed[
             "distributed_recognition_formation_receipts"
         ]:
@@ -104,9 +110,13 @@ def _rehearse_native_distributed_recall(
                 **observed,
                 "distributed_recall_interval_ordinal": ordinal,
             }
-        organism.commit(prepared.token)
+            if relation is not None:
+                episodic_relation = {
+                    **relation,
+                    "episodic_relation_interval_ordinal": ordinal,
+                }
         heading = (heading + signed_step) % 360_000
-    if recalled is None:
+    if recalled is None or episodic_relation is None:
         raise RuntimeError("body partial cue produced no distributed recall")
     after = organism.readiness()
     successor_state = organism.save()
@@ -114,6 +124,7 @@ def _rehearse_native_distributed_recall(
         current_envelope=successor_state,
         **budget,
     )
+    cold_exact = cold.save() == successor_state
     if (
         dsf_delivery_count <= 0
         or transition_count <= 0
@@ -121,12 +132,39 @@ def _rehearse_native_distributed_recall(
         or after.organism_tick != before.organism_tick + 3
         or after.python_callback_count != 0
         or after.state_sha256 == before.state_sha256
-        or cold.save() != successor_state
+        or not cold_exact
         or cold.readiness().state_sha256 != after.state_sha256
     ):
         raise RuntimeError("native distributed-recall rehearsal changed")
+    cold_formations = cold.observe_retained_formation_structures()
+    cold_cues = dict(cold.observe_retained_formation_recurrence_cues())
+    cold_body_cued = [
+        (receipt, members, cue)
+        for receipt, members, _original, _recurrent, _reinforcements in cold_formations
+        if tuple(members) == tuple(formation_members)
+        and len(cue := cold_cues.get(receipt, ())) == 1
+    ]
+    if len(cold_body_cued) != 1:
+        raise RuntimeError("cold successor lost its exact body-cued formation")
+    _cold_receipt, cold_members, _cold_cue = cold_body_cued[0]
+    cold_prepared = cold.prepare_vestibular_tick(heading, 64)
+    cold_relation = _commit_and_observe_episodic_relation(
+        cold,
+        cold_prepared,
+        cold_members,
+    )
+    if (
+        cold_prepared.partial_cue_reassembly_count <= 0
+        or cold_relation is None
+        or cold_relation["episodic_related_member_sets_sha256"]
+        != episodic_relation["episodic_related_member_sets_sha256"]
+        or cold_relation["episodic_relation_active_bonds_sha256"]
+        != episodic_relation["episodic_relation_active_bonds_sha256"]
+    ):
+        raise RuntimeError("cold successor did not re-form the episodic relation")
     return {
         **recalled,
+        **episodic_relation,
         "distributed_recognition_episode_ordinal": (
             recalled["distributed_recall_interval_ordinal"] - 1
         ),
@@ -146,7 +184,69 @@ def _rehearse_native_distributed_recall(
         "distributed_recall_source_physical_transition_count": transition_count,
         "distributed_recall_state_byte_delta": after.state_bytes - before.state_bytes,
         "distributed_recall_successor_state_sha256": after.state_sha256,
+        "episodic_archive_lookup_count": 0,
+        "episodic_cold_reassembly_exact": True,
+        "episodic_complete_source_replayed": False,
+        "episodic_memory_rehearsed": True,
         "motor_action_rehearsed": False,
+    }
+
+
+def _commit_and_observe_episodic_relation(
+    organism: object,
+    prepared: object,
+    recalled_members: tuple[str, ...],
+) -> dict[str, int | str | tuple[str, ...]] | None:
+    """Resolve one current relation against its exact retained successor."""
+
+    relations = prepared.organic_mosaic_relations
+    organism.commit(prepared.token)
+    if not relations:
+        return None
+    formations = organism.observe_retained_formation_structures()
+    by_receipt = {
+        receipt: tuple(members)
+        for receipt, members, _original, _recurrent, _reinforcements in formations
+    }
+    recalled_receipts = [
+        receipt
+        for receipt, members in by_receipt.items()
+        if members == tuple(recalled_members)
+    ]
+    if len(recalled_receipts) != 1:
+        return None
+    recalled_receipt = recalled_receipts[0]
+    candidates = []
+    for receipts, shared_lineages, active_bonds in relations:
+        if (
+            recalled_receipt not in receipts
+            or len(receipts) < 2
+            or any(receipt not in by_receipt for receipt in receipts)
+            or (not shared_lineages and not active_bonds)
+        ):
+            continue
+        member_sets = tuple(sorted(tuple(sorted(by_receipt[receipt])) for receipt in receipts))
+        if len(set(member_sets)) != len(member_sets):
+            continue
+        candidates.append((receipts, shared_lineages, active_bonds, member_sets))
+    if len(candidates) != 1:
+        return None
+    receipts, shared_lineages, active_bonds, member_sets = candidates[0]
+    return {
+        "episodic_recalled_formation_receipt": recalled_receipt,
+        "episodic_related_formation_count": len(receipts),
+        "episodic_related_formation_receipts": tuple(receipts),
+        "episodic_related_formation_receipts_sha256": hashlib.sha256(
+            _canonical(receipts)
+        ).hexdigest(),
+        "episodic_related_member_sets_sha256": hashlib.sha256(
+            _canonical(member_sets)
+        ).hexdigest(),
+        "episodic_relation_active_bond_count": len(active_bonds),
+        "episodic_relation_active_bonds_sha256": hashlib.sha256(
+            _canonical(active_bonds)
+        ).hexdigest(),
+        "episodic_relation_shared_lineage_count": len(shared_lineages),
     }
 
 
