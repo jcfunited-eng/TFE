@@ -32,10 +32,13 @@ meaning is introduced.
   signed recruitment sum, vestibular ticks must equal the one-tick trajectory,
   cold restore must preserve the resulting body, Python cognition callbacks
   must remain zero, and idle CPU/RAM/state-byte growth must not increase.
-- Observed evidence before release: the exact task-979 body proves a reached
-  layer-12 membrane transition from -2577 to -2590 elementary charges and a
-  transient 19-whole-carrier outward discharge; focused native motor tests and
-  the production-world boundary test pass. Live yaw remains unproved.
+- Observed evidence before release: the exact task-979 body, driven through
+  the ordinary production whole-sensorium episode builder, produces eight
+  native layer-12 discharges totalling 131 outward whole carriers. The
+  production body boundary converts that transient discharge into exactly 131
+  millidegrees of yaw, which returns through one native vestibular interval;
+  the disposable successor cold-restores byte-exactly with zero Python
+  cognition callbacks. Live yaw remains unproved.
 
 ## Failed hypotheses retained
 
@@ -50,6 +53,15 @@ meaning is introduced.
   transported whole carriers. Therefore `newly opened gate channel` was an
   unreachable event source and the release failed source-to-consequence
   preflight. Gate conformation is not reused as efferent discharge authority.
+- A first local whole-sensorium rehearsal loaded the container's previously
+  installed `guala_core` extension instead of the core compiled from this
+  candidate. Its organism state moved layer 12 from -2577 to -2590 exactly as
+  the current native source predicted, but the stale Python boundary reported
+  no motor event. Rebuilding the extension from this commit exposed the exact
+  19-carrier event on that same first hop. Candidate release proof now runs
+  inside the built image and must carry the ordinary source all the way through
+  body yaw and vestibular return; a source-only native test or stale local
+  extension cannot authorize cutover.
 - A fresh default embodiment-world fixture currently declares 66 objects under
   a hard maximum of 64. The motor proof uses one lawful object; the unrelated
   fixture defect is not hidden as a motor failure and is not expanded into

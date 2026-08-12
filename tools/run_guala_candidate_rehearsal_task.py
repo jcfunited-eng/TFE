@@ -23,7 +23,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v3",
+    "cold-restore": "guala.production_native_current_cold_restore.v4",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
 
@@ -262,7 +262,7 @@ def _validate_proof(
     expected_tick: int | None,
     expected_state_sha256: str | None,
     expected_state_root: str | None = None,
-    expected_vestibular_rehearsal: bool = False,
+    expected_motor_action_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -326,31 +326,49 @@ def _validate_proof(
             or migration_predecessor == expected_state_sha256
         )
     )
-    vestibular_rehearsal = (
-        proof.get("vestibular_specialization_rehearsed") is True
-        and proof.get("vestibular_rehearsal_tick_count") == 250
-        and proof.get("vestibular_rehearsal_dsf_delivery_count")
-        == proof["vestibular_rehearsal_tick_count"] * 2
-        and isinstance(proof.get("vestibular_rehearsal_fractal_count"), int)
-        and not isinstance(proof["vestibular_rehearsal_fractal_count"], bool)
-        and proof["vestibular_rehearsal_fractal_count"] >= 0
+    motor_action_rehearsal = (
+        proof.get("motor_action_rehearsed") is True
+        and isinstance(proof.get("motor_rehearsal_source_hop_count"), int)
+        and not isinstance(proof["motor_rehearsal_source_hop_count"], bool)
+        and proof["motor_rehearsal_source_hop_count"] > 0
+        and isinstance(proof.get("motor_rehearsal_recruitment_count"), int)
+        and not isinstance(proof["motor_rehearsal_recruitment_count"], bool)
+        and proof["motor_rehearsal_recruitment_count"] > 0
         and isinstance(
-            proof.get("vestibular_rehearsal_physical_transition_count"), int
-        )
-        and proof["vestibular_rehearsal_physical_transition_count"] > 0
-        and isinstance(
-            proof.get("vestibular_rehearsal_reached_neuron_growth"), int
+            proof.get("motor_rehearsal_outward_elementary_carriers"), int
         )
         and not isinstance(
-            proof["vestibular_rehearsal_reached_neuron_growth"], bool
+            proof["motor_rehearsal_outward_elementary_carriers"], bool
         )
-        and proof["vestibular_rehearsal_reached_neuron_growth"] >= 0
-        and isinstance(proof.get("vestibular_rehearsal_state_byte_delta"), int)
+        and proof["motor_rehearsal_outward_elementary_carriers"] > 0
+        and isinstance(proof.get("motor_rehearsal_signed_yaw_millidegrees"), int)
+        and not isinstance(proof["motor_rehearsal_signed_yaw_millidegrees"], bool)
+        and proof["motor_rehearsal_signed_yaw_millidegrees"] != 0
+        and isinstance(proof.get("motor_rehearsal_source_dsf_delivery_count"), int)
+        and proof["motor_rehearsal_source_dsf_delivery_count"] > 0
         and isinstance(
-            proof.get("vestibular_rehearsal_successor_state_sha256"), str
+            proof.get("motor_rehearsal_source_physical_transition_count"), int
+        )
+        and proof["motor_rehearsal_source_physical_transition_count"] > 0
+        and isinstance(proof.get("motor_rehearsal_vestibular_tick_count"), int)
+        and not isinstance(proof["motor_rehearsal_vestibular_tick_count"], bool)
+        and proof["motor_rehearsal_vestibular_tick_count"] > 0
+        and proof.get("motor_rehearsal_vestibular_dsf_delivery_count")
+        == proof["motor_rehearsal_vestibular_tick_count"] * 2
+        and isinstance(
+            proof.get("motor_rehearsal_reached_neuron_growth"), int
+        )
+        and not isinstance(
+            proof["motor_rehearsal_reached_neuron_growth"], bool
+        )
+        and proof["motor_rehearsal_reached_neuron_growth"] >= 0
+        and isinstance(proof.get("motor_rehearsal_state_byte_delta"), int)
+        and proof.get("motor_rehearsal_world_revision_delta") == 1
+        and isinstance(
+            proof.get("motor_rehearsal_successor_state_sha256"), str
         )
         and _SHA.fullmatch(
-            proof["vestibular_rehearsal_successor_state_sha256"]
+            proof["motor_rehearsal_successor_state_sha256"]
         )
         is not None
     )
@@ -379,7 +397,7 @@ def _validate_proof(
         or proof.get("raw_glorun_current_only") is not True
         or proof.get("python_callback_count") != 0
         or proof.get("python_cognition_workers_started") != 0
-        or (expected_vestibular_rehearsal and not vestibular_rehearsal)
+        or (expected_motor_action_rehearsal and not motor_action_rehearsal)
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
         or proof["resident_state_bytes"] <= 0
@@ -467,7 +485,7 @@ def main() -> int:
         )
         if isinstance(item, dict)
     }
-    expected_vestibular_rehearsal = (
+    expected_motor_action_rehearsal = (
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
@@ -551,7 +569,7 @@ def main() -> int:
             expected_tick=values.expected_tick,
             expected_state_sha256=values.expected_state_sha256,
             expected_state_root=genesis_state_root,
-            expected_vestibular_rehearsal=expected_vestibular_rehearsal,
+            expected_motor_action_rehearsal=expected_motor_action_rehearsal,
         )
         print(_canonical(validated).decode("ascii"))
         return 0

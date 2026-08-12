@@ -6,10 +6,12 @@ import argparse
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
+import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
-    exact_native_yaw_trajectory,
+    exact_motor_unit_yaw_trajectory,
     restore_native_resident_organism,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
@@ -22,7 +24,7 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-PROOF_SCHEMA = "guala.production_native_current_cold_restore.v3"
+PROOF_SCHEMA = "guala.production_native_current_cold_restore.v4"
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -49,14 +51,21 @@ def _arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _rehearse_vestibular_specialization(
+def _rehearse_native_motor_action(
     current_envelope: bytes,
     *,
+    native_store_root: str,
     max_envelope_bytes: int,
     max_fabric_bytes: int,
     max_logical_peak_bytes: int,
 ) -> dict[str, int | bool | str]:
-    """Exercise one exact quarter turn on an in-memory copy of CURRENT."""
+    """Exercise production sensory source -> motor -> yaw -> balance once.
+
+    The source is one ordinary unattended whole-sensorium interval built by
+    the production transport from a copied embodiment world.  No motor event
+    is injected.  Both organism and world are throwaway copies and nothing is
+    published.
+    """
 
     organism = restore_native_resident_organism(
         current_envelope=current_envelope,
@@ -65,22 +74,72 @@ def _rehearse_vestibular_specialization(
         max_logical_peak_bytes=max_logical_peak_bytes,
     )
     before = organism.readiness()
-    successor_heading, signed_steps = exact_native_yaw_trajectory(
-        predecessor_heading_millidegrees=0,
-        signed_displacement_millidegrees=90_000,
-        duration_microseconds=250_000,
-    )
-    heading = 0
-    dsf_deliveries = 0
-    neuronal_fractals = 0
-    physical_transitions = 0
-    for signed_step in signed_steps:
-        prepared = organism.prepare_vestibular_tick(heading, signed_step)
-        organism.commit(prepared.token)
-        heading = (heading + signed_step) % 360_000
-        dsf_deliveries += prepared.dsf_delivery_count
-        neuronal_fractals += prepared.complete_neuron_fractal_count
-        physical_transitions += prepared.physically_transitioned_neuron_count
+    with tempfile.TemporaryDirectory(prefix="guala-motor-rehearsal-") as world_root:
+        previous_root = os.environ.get("GUALA_NATIVE_ORGANISM_ROOT")
+        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = world_root
+        try:
+            from dsf_ai_service import native_production_app as production
+        finally:
+            if previous_root is None:
+                os.environ.pop("GUALA_NATIVE_ORGANISM_ROOT", None)
+            else:
+                os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = previous_root
+        if production.STATE_ROOT != Path(world_root):
+            raise RuntimeError("production motor rehearsal did not bind its throwaway root")
+        source_world = Path(native_store_root) / production.WORLD_STATE_FILE
+        target_world = production.STATE_ROOT / production.WORLD_STATE_FILE
+        if source_world.is_file():
+            target_world.write_bytes(source_world.read_bytes())
+
+        episodes, environment = production._unattended_interval_episodes(
+            "candidate-native-motor-reachability"
+        )
+        recruitments: list[tuple[str, int, int]] = []
+        source_dsf_deliveries = 0
+        source_fractals = 0
+        source_physical_transitions = 0
+        for episode, admissions in episodes:
+            prepared = organism.prepare_admitted(episode, admissions)
+            organism.commit(prepared.token)
+            recruitments.extend(prepared.motor_unit_recruitments)
+            source_dsf_deliveries += prepared.dsf_delivery_count
+            source_fractals += prepared.complete_neuron_fractal_count
+            source_physical_transitions += (
+                prepared.physically_transitioned_neuron_count
+            )
+        if not recruitments:
+            raise RuntimeError(
+                "ordinary production sensory interval produced no native motor discharge"
+            )
+        prepared_motor = production._prepare_motor_yaw_action(
+            before.state_sha256,
+            tuple(recruitments),
+        )
+        if prepared_motor is None:
+            raise RuntimeError("native motor discharge produced no body yaw")
+        authority, prepared_world, predecessor_heading, signed_steps = prepared_motor
+        with authority.prepared_action_visibility_transaction(prepared_world):
+            execution = authority.commit_prepared_action(prepared_world)
+        authority.verify_execution_receipt(execution)
+        successor_heading, expected_steps = exact_motor_unit_yaw_trajectory(
+            predecessor_heading_millidegrees=predecessor_heading,
+            recruitments=tuple(
+                (topology, outward_carriers)
+                for _, topology, outward_carriers in recruitments
+            ),
+        )
+        if signed_steps != expected_steps:
+            raise RuntimeError("production body boundary changed native motor yaw")
+        after_body = next(
+            body
+            for body in execution.after.bodies
+            if body.body_id == execution.after.self_body_id
+        )
+        vestibular = organism.prepare_vestibular_trajectory(
+            predecessor_heading,
+            signed_steps,
+        )
+        organism.commit(vestibular.token)
     after = organism.readiness()
     successor_state = organism.save()
     cold = restore_native_resident_organism(
@@ -103,31 +162,28 @@ def _rehearse_vestibular_specialization(
         before.developmental_resting_neuron_count
         - after.developmental_resting_neuron_count
     )
-    # Every vestibular sample now reaches the already-ratified specialized
-    # receptor and its topology-local intrinsic integration neuron.  Both
-    # neurons receive one complete, unchanged joint-field DSF delivery.  A
-    # A restored, already-experienced body may also claim one integration cell
-    # for each receptor topology it had reached before this release.  Therefore
-    # there is no lawful fixed growth count here: every reached cell must come
-    # from the finite resting population and the total population must remain
-    # exactly conserved.  Nor is a new retained neuronal impression mandatory:
-    # a body that has already lived this exact quarter-turn may reuse its
-    # specialized path without changing any retained-fractal coordinate.  The
-    # rehearsal still requires physical motion, full-field delivery, a changed
-    # persisted state, and exact cold restoration.
-    expected_dsf_deliveries = len(signed_steps) * 2
+    expected_vestibular_dsf_deliveries = len(signed_steps) * 2
+    outward_carriers = sum(channels for _, _, channels in recruitments)
+    signed_yaw = sum(signed_steps)
     if (
-        successor_heading != 90_000
-        or heading != successor_heading
-        or len(signed_steps) != 250
-        or sum(signed_steps) != 90_000
+        len(episodes) == 0
+        or outward_carriers <= 0
+        or not signed_steps
+        or signed_yaw == 0
+        or successor_heading
+        != (predecessor_heading + signed_yaw) % 360_000
+        or after_body.pose.heading_millidegrees != successor_heading
+        or execution.after.revision != execution.before.revision + 1
         or after.identity != before.identity
-        or after.organism_tick != before.organism_tick + 250
+        or after.organism_tick
+        != before.organism_tick + len(episodes) + len(signed_steps)
         or after_total != before_total
         or reached_growth < 0
         or resting_use != reached_growth
-        or dsf_deliveries != expected_dsf_deliveries
-        or physical_transitions <= 0
+        or source_dsf_deliveries <= 0
+        or source_physical_transitions <= 0
+        or vestibular.dsf_delivery_count != expected_vestibular_dsf_deliveries
+        or vestibular.physically_transitioned_neuron_count <= 0
         or after.python_callback_count != 0
         or after.state_sha256 == before.state_sha256
         or len(successor_state) != after.state_bytes
@@ -138,7 +194,7 @@ def _rehearse_vestibular_specialization(
         or cold_observation.state_sha256 != after.state_sha256
     ):
         raise RuntimeError(
-            "vestibular specialization rehearsal changed: "
+            "native motor action rehearsal changed: "
             + json.dumps(
                 {
                     "after_complete": after.complete_neuron_count,
@@ -148,31 +204,50 @@ def _rehearse_vestibular_specialization(
                     "before_resting": before.developmental_resting_neuron_count,
                     "before_tick": before.organism_tick,
                     "cold_equal": cold.save() == successor_state,
-                    "dsf_deliveries": dsf_deliveries,
-                    "expected_dsf_deliveries": expected_dsf_deliveries,
-                    "heading": heading,
-                    "neuronal_fractals": neuronal_fractals,
-                    "physical_transitions": physical_transitions,
+                    "motor_recruitment_count": len(recruitments),
+                    "outward_carriers": outward_carriers,
+                    "signed_yaw": signed_yaw,
+                    "source_dsf_deliveries": source_dsf_deliveries,
+                    "source_fractals": source_fractals,
+                    "source_physical_transitions": source_physical_transitions,
                     "reached_growth": reached_growth,
                     "resting_use": resting_use,
+                    "source_hop_count": len(episodes),
                     "step_count": len(signed_steps),
                     "successor_heading": successor_heading,
+                    "vestibular_dsf_deliveries": vestibular.dsf_delivery_count,
                 },
                 separators=(",", ":"),
                 sort_keys=True,
             )
         )
     return {
-        "vestibular_specialization_rehearsed": True,
-        "vestibular_rehearsal_dsf_delivery_count": dsf_deliveries,
-        "vestibular_rehearsal_fractal_count": neuronal_fractals,
-        "vestibular_rehearsal_physical_transition_count": physical_transitions,
-        "vestibular_rehearsal_reached_neuron_growth": reached_growth,
-        "vestibular_rehearsal_state_byte_delta": (
-            after.state_bytes - before.state_bytes
+        "motor_action_rehearsed": True,
+        "motor_rehearsal_external_luminance_present": environment[
+            "external_luminance_present"
+        ],
+        "motor_rehearsal_external_smell_present": environment[
+            "external_smell_present"
+        ],
+        "motor_rehearsal_outward_elementary_carriers": outward_carriers,
+        "motor_rehearsal_recruitment_count": len(recruitments),
+        "motor_rehearsal_reached_neuron_growth": reached_growth,
+        "motor_rehearsal_signed_yaw_millidegrees": signed_yaw,
+        "motor_rehearsal_source_dsf_delivery_count": source_dsf_deliveries,
+        "motor_rehearsal_source_fractal_count": source_fractals,
+        "motor_rehearsal_source_hop_count": len(episodes),
+        "motor_rehearsal_source_physical_transition_count": (
+            source_physical_transitions
         ),
-        "vestibular_rehearsal_successor_state_sha256": after.state_sha256,
-        "vestibular_rehearsal_tick_count": 250,
+        "motor_rehearsal_state_byte_delta": after.state_bytes - before.state_bytes,
+        "motor_rehearsal_successor_state_sha256": after.state_sha256,
+        "motor_rehearsal_vestibular_dsf_delivery_count": (
+            vestibular.dsf_delivery_count
+        ),
+        "motor_rehearsal_vestibular_tick_count": len(signed_steps),
+        "motor_rehearsal_world_revision_delta": (
+            execution.after.revision - execution.before.revision
+        ),
     }
 
 
@@ -226,12 +301,13 @@ def main() -> int:
     before = restored.organism.readiness()
     state = restored.organism.save()
     after = restored.organism.readiness()
-    vestibular_proof: dict[str, int | bool | str] = {
-        "vestibular_specialization_rehearsed": False,
+    motor_proof: dict[str, int | bool | str] = {
+        "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        vestibular_proof = _rehearse_vestibular_specialization(
+        motor_proof = _rehearse_native_motor_action(
             state,
+            native_store_root=values.native_store_root,
             max_envelope_bytes=admission.max_envelope_bytes,
             max_fabric_bytes=admission.max_fabric_bytes,
             max_logical_peak_bytes=admission.max_logical_peak_bytes,
@@ -287,7 +363,7 @@ def main() -> int:
         "source_advanced_after_baseline": source_advanced_after_baseline,
         "source_mount_read_only": True,
         "tick": before.organism_tick,
-        **vestibular_proof,
+        **motor_proof,
     }
     proof = {
         **record,
