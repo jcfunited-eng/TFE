@@ -114,39 +114,6 @@ def _rehearse_native_sparse_index(
             "layer-9 route did not reach one exact distributed formation"
         )
     formation_receipt, formation_members = matching[0]
-    active_neighbours: dict[str, set[str]] = {}
-    for left, right, _ordinal in outbound.active_physical_bonds:
-        active_neighbours.setdefault(left, set()).add(right)
-        active_neighbours.setdefault(right, set()).add(left)
-    active_component = {index_lineage}
-    active_frontier = deque([index_lineage])
-    while active_frontier:
-        current = active_frontier.popleft()
-        for neighbour in sorted(active_neighbours.get(current, ())):
-            if neighbour not in active_component:
-                active_component.add(neighbour)
-                active_frontier.append(neighbour)
-    distributed_layers = {
-        "sensory": {lineage for lineage in active_component if layers[lineage] <= 5},
-        "association": {
-            lineage for lineage in active_component if layers[lineage] == 7
-        },
-        "retention": {
-            lineage for lineage in active_component if layers[lineage] == 9
-        },
-        "body": {
-            lineage for lineage in active_component if layers[lineage] in {5, 8}
-        },
-        "affective": {
-            lineage for lineage in active_component if layers[lineage] == 10
-        },
-    }
-    if (
-        not set(formation_members).issubset(active_component)
-        or any(not participants for participants in distributed_layers.values())
-    ):
-        raise RuntimeError("partial cue did not complete a distributed recognition path")
-
     after = organism.readiness()
     successor_state = organism.save()
     cold = restore_native_resident_organism(
@@ -191,24 +158,89 @@ def _rehearse_native_sparse_index(
         ),
         "hippocampal_route_state_byte_delta": after.state_bytes - before.state_bytes,
         "hippocampal_route_successor_state_sha256": after.state_sha256,
-        "distributed_recognition_rehearsed": True,
-        "distributed_recognition_active_neuron_count": len(active_component),
-        "distributed_recognition_association_neuron_count": len(
-            distributed_layers["association"]
-        ),
+        "motor_action_rehearsed": False,
+    }
+
+
+def _observe_distributed_recognition(
+    organism: object,
+    prepared: object,
+    formations: tuple[tuple[str, tuple[str, ...], bool, bool, int], ...],
+) -> dict[str, int | bool | str] | None:
+    """Observe one actual multisensory reassembly; never drive recognition."""
+
+    if prepared.partial_cue_reassembly_count <= 0:
+        return None
+    layers = {
+        lineage: layer
+        for lineage, layer, _receptor in (
+            organism.observe_reached_neuron_lineage_layers()
+        )
+    }
+    neighbours: dict[str, set[str]] = {}
+    for left, right, _ordinal in prepared.active_physical_bonds:
+        neighbours.setdefault(left, set()).add(right)
+        neighbours.setdefault(right, set()).add(left)
+    unseen = set(neighbours)
+    candidates = []
+    while unseen:
+        seed = min(unseen)
+        component = {seed}
+        frontier = deque([seed])
+        unseen.remove(seed)
+        while frontier:
+            current = frontier.popleft()
+            for neighbour in sorted(neighbours.get(current, ())):
+                if neighbour not in component:
+                    component.add(neighbour)
+                    unseen.discard(neighbour)
+                    frontier.append(neighbour)
+        matching_receipts = sorted(
+            receipt
+            for receipt, members, _original, _recurrent, _reinforcements in formations
+            if set(members).issubset(component)
+        )
+        participants = {
+            "sensory": {lineage for lineage in component if layers[lineage] <= 5},
+            "association": {lineage for lineage in component if layers[lineage] == 7},
+            "retention": {lineage for lineage in component if layers[lineage] == 9},
+            "body": {lineage for lineage in component if layers[lineage] in {5, 8}},
+            "affective": {lineage for lineage in component if layers[lineage] == 10},
+        }
+        if matching_receipts and all(participants.values()):
+            candidates.append((component, matching_receipts, participants))
+    if len(candidates) != 1:
+        return None
+    component, matching_receipts, participants = candidates[0]
+    active_bonds = sorted(
+        (left, right, ordinal)
+        for left, right, ordinal in prepared.active_physical_bonds
+        if left in component and right in component
+    )
+    return {
+        "distributed_recognition_active_bond_count": len(active_bonds),
+        "distributed_recognition_active_bond_sha256": hashlib.sha256(
+            _canonical(active_bonds)
+        ).hexdigest(),
+        "distributed_recognition_active_neuron_count": len(component),
         "distributed_recognition_affective_neuron_count": len(
-            distributed_layers["affective"]
+            participants["affective"]
         ),
-        "distributed_recognition_body_neuron_count": len(
-            distributed_layers["body"]
+        "distributed_recognition_association_neuron_count": len(
+            participants["association"]
         ),
+        "distributed_recognition_body_neuron_count": len(participants["body"]),
+        "distributed_recognition_formation_count": len(matching_receipts),
+        "distributed_recognition_formation_receipts_sha256": hashlib.sha256(
+            _canonical(matching_receipts)
+        ).hexdigest(),
+        "distributed_recognition_rehearsed": True,
         "distributed_recognition_retention_neuron_count": len(
-            distributed_layers["retention"]
+            participants["retention"]
         ),
         "distributed_recognition_sensory_neuron_count": len(
-            distributed_layers["sensory"]
+            participants["sensory"]
         ),
-        "motor_action_rehearsed": False,
     }
 
 
@@ -235,6 +267,7 @@ def _rehearse_native_motor_action(
         max_logical_peak_bytes=max_logical_peak_bytes,
     )
     before = organism.readiness()
+    formations = organism.observe_retained_formation_structures()
     with tempfile.TemporaryDirectory(prefix="guala-motor-rehearsal-") as world_root:
         previous_root = os.environ.get("GUALA_NATIVE_ORGANISM_ROOT")
         os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = world_root
@@ -259,7 +292,8 @@ def _rehearse_native_motor_action(
         source_dsf_deliveries = 0
         source_fractals = 0
         source_physical_transitions = 0
-        for episode, admissions in episodes:
+        distributed_recognition: dict[str, int | bool | str] | None = None
+        for episode_ordinal, (episode, admissions) in enumerate(episodes):
             prepared = organism.prepare_admitted(episode, admissions)
             organism.commit(prepared.token)
             recruitments.extend(prepared.motor_unit_recruitments)
@@ -268,14 +302,63 @@ def _rehearse_native_motor_action(
             source_physical_transitions += (
                 prepared.physically_transitioned_neuron_count
             )
+            observed_recognition = _observe_distributed_recognition(
+                organism,
+                prepared,
+                formations,
+            )
+            if distributed_recognition is None and observed_recognition is not None:
+                distributed_recognition = {
+                    **observed_recognition,
+                    "distributed_recognition_episode_ordinal": episode_ordinal,
+                }
         if not recruitments:
-            return _rehearse_native_sparse_index(
-                current_envelope,
+            if distributed_recognition is None:
+                raise RuntimeError(
+                    "whole-sensorium interval produced no distributed recognition"
+                )
+            after = organism.readiness()
+            successor_state = organism.save()
+            cold = restore_native_resident_organism(
+                current_envelope=successor_state,
                 max_envelope_bytes=max_envelope_bytes,
                 max_fabric_bytes=max_fabric_bytes,
                 max_logical_peak_bytes=max_logical_peak_bytes,
-                source_dsf_deliveries=source_dsf_deliveries,
-                source_physical_transitions=source_physical_transitions,
+            )
+            if (
+                not episodes
+                or source_dsf_deliveries <= 0
+                or source_physical_transitions <= 0
+                or after.identity != before.identity
+                or after.organism_tick != before.organism_tick + len(episodes)
+                or after.python_callback_count != 0
+                or after.state_sha256 == before.state_sha256
+                or len(successor_state) != after.state_bytes
+                or hashlib.sha256(successor_state).hexdigest() != after.state_sha256
+                or cold.save() != successor_state
+                or cold.readiness().state_sha256 != after.state_sha256
+            ):
+                raise RuntimeError("distributed recognition rehearsal changed")
+            return {
+                **distributed_recognition,
+                "distributed_recognition_source_dsf_delivery_count": (
+                    source_dsf_deliveries
+                ),
+                "distributed_recognition_source_hop_count": len(episodes),
+                "distributed_recognition_source_physical_transition_count": (
+                    source_physical_transitions
+                ),
+                "distributed_recognition_state_byte_delta": (
+                    after.state_bytes - before.state_bytes
+                ),
+                "distributed_recognition_successor_state_sha256": (
+                    after.state_sha256
+                ),
+                "motor_action_rehearsed": False,
+            }
+        if distributed_recognition is None:
+            raise RuntimeError(
+                "motor source intervals produced no distributed recognition"
             )
         prepared_motor = production._prepare_motor_yaw_action(
             before.state_sha256,
@@ -392,6 +475,7 @@ def _rehearse_native_motor_action(
             )
         )
     return {
+        **distributed_recognition,
         "motor_action_rehearsed": True,
         "motor_rehearsal_external_luminance_present": environment[
             "external_luminance_present"

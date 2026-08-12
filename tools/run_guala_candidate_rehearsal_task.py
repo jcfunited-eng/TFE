@@ -402,18 +402,44 @@ def _validate_proof(
             proof["hippocampal_route_successor_state_sha256"]
         )
         is not None
-        and proof.get("distributed_recognition_rehearsed") is True
+    )
+    distributed_recognition_rehearsal = (
+        proof.get("distributed_recognition_rehearsed") is True
         and all(
             isinstance(proof.get(name), int)
             and not isinstance(proof[name], bool)
             and proof[name] > 0
             for name in (
+                "distributed_recognition_active_bond_count",
                 "distributed_recognition_active_neuron_count",
-                "distributed_recognition_association_neuron_count",
                 "distributed_recognition_affective_neuron_count",
+                "distributed_recognition_association_neuron_count",
                 "distributed_recognition_body_neuron_count",
+                "distributed_recognition_formation_count",
                 "distributed_recognition_retention_neuron_count",
                 "distributed_recognition_sensory_neuron_count",
+                "distributed_recognition_source_dsf_delivery_count",
+                "distributed_recognition_source_hop_count",
+                "distributed_recognition_source_physical_transition_count",
+            )
+        )
+        and isinstance(proof.get("distributed_recognition_episode_ordinal"), int)
+        and not isinstance(proof["distributed_recognition_episode_ordinal"], bool)
+        and proof["distributed_recognition_episode_ordinal"] >= 0
+        and proof["distributed_recognition_episode_ordinal"]
+        < proof["distributed_recognition_source_hop_count"]
+        and isinstance(proof.get("distributed_recognition_state_byte_delta"), int)
+        and not isinstance(proof["distributed_recognition_state_byte_delta"], bool)
+        and isinstance(proof.get("complete_neuron_count"), int)
+        and proof["distributed_recognition_active_neuron_count"]
+        <= proof["complete_neuron_count"]
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "distributed_recognition_active_bond_sha256",
+                "distributed_recognition_formation_receipts_sha256",
+                "distributed_recognition_successor_state_sha256",
             )
         )
     )
@@ -444,7 +470,7 @@ def _validate_proof(
         or proof.get("python_cognition_workers_started") != 0
         or (
             expected_motor_action_rehearsal
-            and not (motor_action_rehearsal or sparse_index_rehearsal)
+            and not distributed_recognition_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)

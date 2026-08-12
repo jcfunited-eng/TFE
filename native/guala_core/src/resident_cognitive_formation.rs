@@ -609,15 +609,12 @@ pub(crate) struct ResidentCognitiveFormationState {
     resting_population: Option<DevelopmentalRestingPopulation>,
     cohorts: Box<[ResidentReachedCohort]>,
     electrical_fabric: ResidentElectricalFabric,
-    /// Exact sparse intrinsic layer-6 integration and layer-9 retention
-    /// lineages newly reached across a physical contact in the preceding
-    /// interval. Layer 6 may carry one receptor consequence into its already-
-    /// retained association contacts only while the same current active-bond
-    /// component reaches layer 9; layer 9 may bridge a distributed member cue
-    /// to the formation's other members. This is short-lived electrical
-    /// propagation state, not stored memory or a returned answer. Absolute
-    /// membrane charge is deliberately not authority here: a living neuron's
-    /// resting potential may be nonzero.
+    /// Exact sparse intrinsic layer-9 lineages newly reached across a physical
+    /// contact in the preceding interval. They alone may bridge a distributed
+    /// member cue to the formation's other members in the next interval. This
+    /// is short-lived electrical propagation state, not stored memory or a
+    /// returned answer. Absolute membrane charge is deliberately not authority
+    /// here: a living neuron's resting potential may be nonzero.
     active_electrical_frontier: Box<[[u8; 16]]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
@@ -7376,17 +7373,7 @@ fn settle_internal_contact_interval(
             .position(|(_, _, retained)| *retained == lineage)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
-    let integration_frontier_lineages = flat_locations
-        .iter()
-        .filter_map(|(cohort_index, neuron_index, lineage)| {
-            (cohorts[*cohort_index].anatomy.mounts()[*neuron_index]
-                .place()
-                .layer()
-                == 6)
-                .then_some(*lineage)
-        })
-        .collect::<Vec<_>>();
-    let retention_frontier_lineages = flat_locations
+    let hippocampal_lineages = flat_locations
         .iter()
         .filter_map(|(cohort_index, neuron_index, lineage)| {
             (cohorts[*cohort_index].anatomy.mounts()[*neuron_index]
@@ -8093,74 +8080,30 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     active_bonds.sort_unstable();
     active_bonds.dedup();
-    // Persist only a newly reached intrinsic layer-6 integration or layer-9
-    // retention cell. Layer 6 carries one receptor consequence into its
-    // already-retained association contacts on the next interval only when
-    // this active-bond component also reaches layer 9; layer 9 bridges a
-    // distributed member cue to that formation's other members.
-    // Carrying any other changed recipient would turn ordinary electrical
-    // reach into a graph flood; carrying the predecessor seed would make local
-    // relaxation a perpetual source. These are existing developmental places,
-    // not runtime labels or stored answers.
-    let mut active_frontier_candidates = transition_predecessors
+    // Persist only a newly reached intrinsic layer-9 cell.  Its physical role
+    // is the sparse one-interval bridge from a distributed member cue to the
+    // other members of that same retained formation.  Carrying an arbitrary
+    // changed recipient would turn ordinary electrical reach into a graph
+    // flood; carrying the predecessor seed would make local relaxation a
+    // perpetual source.  The layer is existing developmental anatomy, not a
+    // runtime label or stored answer.
+    let mut next_active_frontier = transition_predecessors
         .iter()
         .filter_map(|predecessor| {
             (!externally_reached_lineages.contains(&predecessor.lineage)
-                && (integration_frontier_lineages.contains(&predecessor.lineage)
-                    || retention_frontier_lineages.contains(&predecessor.lineage)))
+                && hippocampal_lineages.contains(&predecessor.lineage))
             .then_some(predecessor.lineage)
         })
         .collect::<Vec<_>>();
     for bond in &active_bonds {
         let (left, right) = bond.endpoints();
-        if !externally_reached_lineages.contains(&left)
-            && (integration_frontier_lineages.contains(&left)
-                || retention_frontier_lineages.contains(&left))
-        {
-            active_frontier_candidates.push(left);
+        if !externally_reached_lineages.contains(&left) && hippocampal_lineages.contains(&left) {
+            next_active_frontier.push(left);
         }
-        if !externally_reached_lineages.contains(&right)
-            && (integration_frontier_lineages.contains(&right)
-                || retention_frontier_lineages.contains(&right))
-        {
-            active_frontier_candidates.push(right);
+        if !externally_reached_lineages.contains(&right) && hippocampal_lineages.contains(&right) {
+            next_active_frontier.push(right);
         }
     }
-    active_frontier_candidates.sort_unstable();
-    active_frontier_candidates.dedup();
-    let mut retention_component = active_frontier_candidates
-        .iter()
-        .copied()
-        .filter(|lineage| retention_frontier_lineages.contains(lineage))
-        .collect::<Vec<_>>();
-    let mut cursor = 0usize;
-    while cursor < retention_component.len() {
-        let current = retention_component[cursor];
-        for bond in &active_bonds {
-            let (left, right) = bond.endpoints();
-            let neighbour = if left == current {
-                Some(right)
-            } else if right == current {
-                Some(left)
-            } else {
-                None
-            };
-            if let Some(neighbour) = neighbour {
-                if !retention_component.contains(&neighbour) {
-                    retention_component.push(neighbour);
-                }
-            }
-        }
-        cursor += 1;
-    }
-    let mut next_active_frontier = active_frontier_candidates
-        .into_iter()
-        .filter(|lineage| {
-            retention_frontier_lineages.contains(lineage)
-                || (integration_frontier_lineages.contains(lineage)
-                    && retention_component.contains(lineage))
-        })
-        .collect::<Vec<_>>();
     next_active_frontier.sort_unstable();
     next_active_frontier.dedup();
     // One shared full-field occurrence was evaluated for the entire reached
@@ -8374,7 +8317,8 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
                 .iter()
                 .position(|candidate| candidate == lineage)
                 .and_then(|position| reached_places.get(position))
-                .is_none_or(|place| !matches!(place.layer(), 6 | 9))
+                .map(|place| place.layer())
+                != Some(9)
                 || (index > 0 && state.active_electrical_frontier[index - 1] >= *lineage)
         })
     {
