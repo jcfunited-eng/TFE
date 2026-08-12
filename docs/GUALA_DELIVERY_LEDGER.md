@@ -50,8 +50,13 @@ box remains unchecked until live acceptance passes.
   task 978 retained the one reusable route without further layer-13 growth
   across continued live settlement, while preserving exact cold restore and
   zero Python cognition callbacks.
-- [ ] **S-019** Verify growth DNA adds or specializes neurons only from reached
-  physical developmental demand and never scans/instantiates the compact reserve.
+- [x] **S-019** Verify growth DNA adds or specializes neurons only from reached
+  physical developmental demand and never scans/instantiates the compact
+  reserve. Production task 984 carries only the exact current receptor
+  `(lineage, place)` frontier into layer-6 specialization; live unattended
+  intervals advanced tick 47,656→47,665 with reached/resting counts fixed at
+  221/196,508, unchanged per-layer counts and state bytes, and zero Python
+  cognition callbacks.
 - [ ] **S-020** Cold-restore and resource-prove the complete starting
   specialization roster without identity, learned-state, or contact loss.
 

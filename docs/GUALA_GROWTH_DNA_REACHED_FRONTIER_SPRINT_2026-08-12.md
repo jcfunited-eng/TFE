@@ -59,3 +59,33 @@
   accepted if it performs avoidable organism-wide work every interval.
 - No production counter, owner, lock, database record, or validation loop will
   be added merely to prove the absence of a scan.
+
+## Live production delivery evidence
+
+- Full native verification passed 572 tests with zero failures; 11 explicitly
+  retired fixtures remained ignored.
+- The first controller invocation at `2026-08-12T03:53:45Z` failed before
+  packaging because the checked-in shell file lacked its executable bit. No
+  external state changed. The same reviewed controller was immediately invoked
+  through Bash; its successful run lasted from `03:53:53Z` to `04:14:27Z`.
+- Commit `0e320fe19829fac1ce3c96fb5ee1509be646de28`, image digest
+  `sha256:8d4bc7d7d1eef3b2efe167f7fd0c60828a6384ec5e207dc75dac2fd40ea52e6c`,
+  and task definition `dsf-ai-task:984` are live as the single healthy process.
+- Discarded-state rehearsal started from tick 47,575 and state SHA
+  `4b9ae3588d20ed3dbe65f5771ff9f08223018748d9c3e12e736e099d684adc30`.
+  It retained exactly 221 reached and 196,508 resting neurons, added zero
+  reached neurons and zero state bytes, exercised a genuine motor/world/
+  vestibular consequence, cold-restored exactly, and used zero Python cognition
+  callbacks.
+- Live production advanced from tick 47,656 to 47,665 while retaining exactly
+  221 reached neurons, 196,508 resting neurons, every per-layer count, and
+  30,590,939 state bytes. The current process log contains one server process
+  start and zero `Traceback`, `ERROR`, `Exception`, or `CURRENT mismatch`
+  strings.
+- During the twenty-minute deployment window ECS CPU peaked at 27.23% of the
+  four-vCPU reservation and memory at 6.64% of 16 GiB. These measurements prove
+  bounded behavior across this release window, not a lifetime no-growth claim.
+- S-019 is therefore live-verified. The positive novel-frontier branch is proven
+  by the same compiled source's focused exact-cell test; production proves the
+  complementary absence/repetition branch on the living organism without
+  manufacturing an unnecessary new receptor.
