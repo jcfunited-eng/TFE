@@ -416,10 +416,16 @@ def _observation_signature(
                 tuple(bonds),
                 structure_receipt,
                 tuple(ordered_paths),
+                tuple(ordered_path_relations),
             )
-            for receipts, lineages, bonds, structure_receipt, ordered_paths in (
-                observation.organic_mosaic_relations
-            )
+            for (
+                receipts,
+                lineages,
+                bonds,
+                structure_receipt,
+                ordered_paths,
+                ordered_path_relations,
+            ) in observation.organic_mosaic_relations
         ),
         observation.partial_cue_reassembly_count,
         observation.endogenous_partial_cue_reassembly_count,

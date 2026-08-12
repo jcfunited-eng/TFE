@@ -87,6 +87,23 @@ collection and ran zero tests. The repository census identified the actual
 packaging file as `tests/test_guala_release_packaging.py`; the nonexistent name
 is not acceptance evidence and will not be repeated.
 
+The first immutable candidate, image `sha256:a78234d1...`, exited in the
+discarded-state rehearsal before cutover; production remained unchanged on
+task 1001. A read-only diagnostic against that same image and body proved the
+first interval settled, then the second prepare reached a stale five-field
+destructure in Python's `_observation_signature`. The native relation gained
+its sixth deep-path field, but this equality/validation projection had been
+missed by the original translation census. RF-030 now requires these signature
+and before/after equality consumers plus a consecutive-prepare proof. The
+correction carries the sixth field and changes no neuron, relation, codec, or
+acceptance physics.
+
+The corrected complete six-field observation signature passes its direct
+regression and the combined affected-boundary, cold-restore, rehearsal,
+serving, preflight, storage-cutover, deployment, and release-packaging set:
+93 tests passed. Native source is unchanged from the already passing 410-test
+candidate suite.
+
 ## Translation-boundary census before implementation
 
 The change must be carried through every occurrence of
