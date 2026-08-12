@@ -141,6 +141,7 @@ archive record is added.
 | RF-016 | Freeze C-006, task 991, identity, body, and complete candidate diff. |
 | RF-017 | Enumerate every native/PyO3/Python/API constructor and consumer first. |
 | RF-018 | Preserve exact earlier-hop route evidence across the whole occurrence. |
+| RF-019 | Rehearse the exact C-006 sparse-index acceptance branch before the immutable build; do not require motor discharge formerly supplied only by rejected resting-charge flooding. |
 
 ## Failed hypotheses retained against rediscovery
 
@@ -198,4 +199,16 @@ alone cannot close C-006.
   articulatory cells from that false activity. The final native suite passes
   407/407 with 13 intentionally ignored and zero failed. The frozen release-
   wheel rehearsal repeated all 12 bounded intervals and exact cold restore.
-  Production deployment remains unattempted.
+- Deployment attempt 1 built immutable image
+  `sha256:0d478168d958bf098940a6460fbfbf15d68f981da2d0349f09ebadfb290566c2`
+  and candidate task definition `dsf-ai-task:992`, then failed safely in the
+  discarded-state cold-restore rehearsal before cutover. Production remained
+  unchanged on task 991. The stale rehearsal required a motor discharge that
+  had previously been manufactured by the rejected whole-brain resting-charge
+  flood; it did not test C-006's sparse-index acceptance path.
+- RF-019 now requires the exact sprint rehearsal before immutable build. The
+  corrected candidate rehearsal on the authenticated task-991 body observes
+  one inbound member-to-layer-9 bond, the same layer-9 lineage reaching the
+  formation's exact 27 members on the next interval, unchanged layer-9 count,
+  a 28-byte reduction, distinct successor SHA-256, exact successor cold
+  restore, and zero Python callbacks. It does not claim motor action.

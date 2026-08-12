@@ -51,6 +51,117 @@ def _arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _rehearse_native_sparse_index(
+    current_envelope: bytes,
+    *,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+    source_dsf_deliveries: int,
+    source_physical_transitions: int,
+) -> dict[str, int | bool | str]:
+    """Prove one bounded member -> layer-9 -> members physical route."""
+
+    budget = {
+        "max_envelope_bytes": max_envelope_bytes,
+        "max_fabric_bytes": max_fabric_bytes,
+        "max_logical_peak_bytes": max_logical_peak_bytes,
+    }
+    organism = restore_native_resident_organism(
+        current_envelope=current_envelope,
+        **budget,
+    )
+    before = organism.readiness()
+    layers = {
+        lineage: layer
+        for lineage, layer, _receptor in (
+            organism.observe_reached_neuron_lineage_layers()
+        )
+    }
+    layer_nine_before = sum(layer == 9 for layer in layers.values())
+    formations = organism.observe_retained_formation_structures()
+
+    inbound = organism.prepare_vestibular_tick(0, 64)
+    organism.commit(inbound.token)
+    outbound = organism.prepare_vestibular_tick(64, 0)
+    organism.commit(outbound.token)
+
+    inbound_layer_nine = [
+        bond
+        for bond in inbound.active_physical_bonds
+        if 9 in (layers[bond[0]], layers[bond[1]])
+    ]
+    if len(inbound_layer_nine) != 1:
+        raise RuntimeError("bounded cue did not reach exactly one layer-9 route")
+    index_lineage = next(
+        lineage
+        for lineage in inbound_layer_nine[0][:2]
+        if layers[lineage] == 9
+    )
+    outbound_members = {
+        right if left == index_lineage else left
+        for left, right, _ordinal in outbound.active_physical_bonds
+        if index_lineage in (left, right)
+    }
+    matching = [
+        (receipt, members)
+        for receipt, members, _original, _recurrent, _reinforcements in formations
+        if set(members) == outbound_members
+    ]
+    if len(matching) != 1:
+        raise RuntimeError(
+            "layer-9 route did not reach one exact distributed formation"
+        )
+    formation_receipt, formation_members = matching[0]
+
+    after = organism.readiness()
+    successor_state = organism.save()
+    cold = restore_native_resident_organism(
+        current_envelope=successor_state,
+        **budget,
+    )
+    layer_nine_after = sum(
+        layer == 9
+        for _lineage, layer, _receptor in (
+            cold.observe_reached_neuron_lineage_layers()
+        )
+    )
+    if (
+        source_dsf_deliveries <= 0
+        or source_physical_transitions <= 0
+        or inbound.dsf_delivery_count <= 0
+        or outbound.dsf_delivery_count <= 0
+        or inbound.physically_transitioned_neuron_count <= 0
+        or outbound.physically_transitioned_neuron_count <= 0
+        or len(outbound_members) != len(formation_members)
+        or layer_nine_after != layer_nine_before
+        or after.identity != before.identity
+        or after.organism_tick != before.organism_tick + 2
+        or after.python_callback_count != 0
+        or after.state_sha256 == before.state_sha256
+        or cold.save() != successor_state
+        or cold.readiness().state_sha256 != after.state_sha256
+    ):
+        raise RuntimeError("native sparse-index rehearsal changed")
+    return {
+        "hippocampal_sparse_index_rehearsed": True,
+        "hippocampal_route_formation_receipt": formation_receipt,
+        "hippocampal_route_index_lineage": index_lineage,
+        "hippocampal_route_inbound_bond_count": len(inbound_layer_nine),
+        "hippocampal_route_outbound_member_count": len(outbound_members),
+        "hippocampal_route_layer_nine_count": layer_nine_after,
+        "hippocampal_route_inbound_transition_count": (
+            inbound.physically_transitioned_neuron_count
+        ),
+        "hippocampal_route_outbound_transition_count": (
+            outbound.physically_transitioned_neuron_count
+        ),
+        "hippocampal_route_state_byte_delta": after.state_bytes - before.state_bytes,
+        "hippocampal_route_successor_state_sha256": after.state_sha256,
+        "motor_action_rehearsed": False,
+    }
+
+
 def _rehearse_native_motor_action(
     current_envelope: bytes,
     *,
@@ -108,8 +219,13 @@ def _rehearse_native_motor_action(
                 prepared.physically_transitioned_neuron_count
             )
         if not recruitments:
-            raise RuntimeError(
-                "ordinary production sensory interval produced no native motor discharge"
+            return _rehearse_native_sparse_index(
+                current_envelope,
+                max_envelope_bytes=max_envelope_bytes,
+                max_fabric_bytes=max_fabric_bytes,
+                max_logical_peak_bytes=max_logical_peak_bytes,
+                source_dsf_deliveries=source_dsf_deliveries,
+                source_physical_transitions=source_physical_transitions,
             )
         prepared_motor = production._prepare_motor_yaw_action(
             before.state_sha256,

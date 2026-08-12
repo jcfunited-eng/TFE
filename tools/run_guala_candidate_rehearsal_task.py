@@ -372,6 +372,37 @@ def _validate_proof(
         )
         is not None
     )
+    sparse_index_rehearsal = (
+        proof.get("hippocampal_sparse_index_rehearsed") is True
+        and proof.get("motor_action_rehearsed") is False
+        and isinstance(proof.get("hippocampal_route_formation_receipt"), str)
+        and _SHA.fullmatch(proof["hippocampal_route_formation_receipt"])
+        is not None
+        and isinstance(proof.get("hippocampal_route_index_lineage"), str)
+        and re.fullmatch(
+            r"[0-9a-f]{32}", proof["hippocampal_route_index_lineage"]
+        )
+        is not None
+        and proof.get("hippocampal_route_inbound_bond_count") == 1
+        and isinstance(proof.get("hippocampal_route_outbound_member_count"), int)
+        and not isinstance(proof["hippocampal_route_outbound_member_count"], bool)
+        and proof["hippocampal_route_outbound_member_count"] >= 3
+        and isinstance(proof.get("hippocampal_route_layer_nine_count"), int)
+        and not isinstance(proof["hippocampal_route_layer_nine_count"], bool)
+        and proof["hippocampal_route_layer_nine_count"] > 0
+        and isinstance(proof.get("hippocampal_route_inbound_transition_count"), int)
+        and proof["hippocampal_route_inbound_transition_count"] > 0
+        and isinstance(proof.get("hippocampal_route_outbound_transition_count"), int)
+        and proof["hippocampal_route_outbound_transition_count"] > 0
+        and isinstance(proof.get("hippocampal_route_state_byte_delta"), int)
+        and isinstance(
+            proof.get("hippocampal_route_successor_state_sha256"), str
+        )
+        and _SHA.fullmatch(
+            proof["hippocampal_route_successor_state_sha256"]
+        )
+        is not None
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -397,7 +428,10 @@ def _validate_proof(
         or proof.get("raw_glorun_current_only") is not True
         or proof.get("python_callback_count") != 0
         or proof.get("python_cognition_workers_started") != 0
-        or (expected_motor_action_rehearsal and not motor_action_rehearsal)
+        or (
+            expected_motor_action_rehearsal
+            and not (motor_action_rehearsal or sparse_index_rehearsal)
+        )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
         or proof["resident_state_bytes"] <= 0
