@@ -157,6 +157,7 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
 | RF-026 | Every formatter is followed immediately by changed-file and diff-stat containment; apparent file arguments are not trusted. |
 | RF-027 | Acceptance retains the first qualifying interval and cold-replays its exact predecessor/input; later quiet intervals cannot overwrite it. |
 | RF-028 | Ordinary multi-interval production aggregation must preserve decisive evidence created after interval one; every changed observation field is censused through all transaction aggregators before build. |
+| RF-029 | Live acceptance derives its write from an exact predecessor read inside the same operator-origin session; stale public snapshots cannot parameterize writes while unattended activity advances. |
 
 ## Rejected paths and falsified hypotheses
 
@@ -268,3 +269,31 @@ path through prior recurrent formations, changes current organism activity,
 survives exact persistence/cold restore, and remains bounded with one process
 and zero Python cognition callbacks. Source, unit tests, a path digest, or a
 tapestry counter cannot close it.
+
+## Live closure — 2026-08-12
+
+- Deployed in one controller attempt from 20:13:10Z through 20:32:15Z.
+- Production task definition: `dsf-ai-task:1001`.
+- Production commit: `c1f7d78e65b8224dcd709f0a5a920eb0108a5d1b`.
+- Production image: `sha256:8f3c5896a4f55972c858c25443c344b61da533f4112eb58cfb501a6013ad1d7f`.
+- Immutable rehearsal proved 34 ordered paths through the ordinary three-
+  interval trajectory, the same path digest as the per-interval proof, exact
+  same-predecessor cold replay, and zero Python cognition callbacks.
+- One ordinary live `world-move` committed 250 partial-cue reassemblies and
+  43,437 physical transitions. Its bounded relation observation contained 34
+  exact ordered paths under structural relation
+  `f3fb4081cec9181e576a02549c0b1dbb97be1c14bfa60dfd62aa161dcff91c8a`.
+- The persisted successor was observed at organism tick 59,834 with state
+  `37f06df9a7556f6ccfc301ab092a990c42a482eb92e0c9ab9a5f6e8011248dc4`.
+  A fresh read-only cold restore subsequently observed the same identity at a
+  later unattended tick, byte/digest consistency, 38 ordered paths in its
+  exact trajectory rehearsal, and zero Python cognition callbacks.
+- ECS reports one healthy running task, zero pending tasks, and both public
+  Loom pages return HTTP 200.
+- The first live acceptance request was refused before the authored move
+  because its target heading came from a public snapshot that unattended
+  activity advanced. No requested successor committed and it was not blindly
+  retried. RF-029 now requires same-session predecessor derivation.
+
+**C-011 / ST-019 is live-closed.** This proves bounded ordered recurrent
+physical formation evidence; it does not claim language, thought, or a weave.
