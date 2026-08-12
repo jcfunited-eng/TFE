@@ -4106,6 +4106,16 @@ def _commit_admitted_hop(
             evidence.receptor_ingress_quiescent_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
+        "organic_mosaic_relations": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "formation_receipts": receipts,
+                "shared_neuron_lineages": lineages,
+                "active_physical_bonds": bonds,
+            }
+            for receipts, lineages, bonds in evidence.organic_mosaic_relations
+        ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
@@ -4158,6 +4168,16 @@ def _commit_vestibular_tick(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "organic_mosaic_relations": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "formation_receipts": receipts,
+                "shared_neuron_lineages": lineages,
+                "active_physical_bonds": bonds,
+            }
+            for receipts, lineages, bonds in evidence.organic_mosaic_relations
+        ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
@@ -4209,6 +4229,16 @@ def _commit_vestibular_trajectory(
         ),
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
+        ),
+        "organic_mosaic_relations": tuple(
+            {
+                "predecessor_organism_tick": evidence.predecessor_organism_tick,
+                "organism_tick": evidence.organism_tick,
+                "formation_receipts": receipts,
+                "shared_neuron_lineages": lineages,
+                "active_physical_bonds": bonds,
+            }
+            for receipts, lineages, bonds in evidence.organic_mosaic_relations
         ),
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
@@ -4374,6 +4404,7 @@ def _perform_admitted_intake_locked(
     committed_vestibular_tick_count = 0
     motor_unit_recruitments: list[tuple[str, int, int]] = []
     emitted_neuron_fractals: list[dict[str, Any]] = []
+    organic_mosaic_relations: list[dict[str, Any]] = []
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4385,6 +4416,9 @@ def _perform_admitted_intake_locked(
             )
             committed_vestibular_tick_count = len(signed_steps)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
+            organic_mosaic_relations.extend(
+                last_hop["organic_mosaic_relations"]
+            )
             for key in totals:
                 totals[key] += last_hop[key]
         for episode, admissions in episodes:
@@ -4394,6 +4428,9 @@ def _perform_admitted_intake_locked(
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
+            organic_mosaic_relations.extend(
+                last_hop["organic_mosaic_relations"]
+            )
             for key in totals:
                 totals[key] += last_hop[key]
             for sense, count in last_hop[
@@ -4439,6 +4476,9 @@ def _perform_admitted_intake_locked(
                 )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
+                organic_mosaic_relations.extend(
+                    last_hop["organic_mosaic_relations"]
+                )
                 for key in totals:
                     totals[key] += last_hop[key]
                 successor_world_body = (
@@ -4483,6 +4523,7 @@ def _perform_admitted_intake_locked(
         "intake": intake,
         "motor_action": motor_action,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
+        "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),

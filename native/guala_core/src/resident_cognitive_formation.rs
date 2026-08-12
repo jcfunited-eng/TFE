@@ -68,10 +68,10 @@ use crate::optical_receptor_work::{
 };
 use crate::physical_mosaic::{
     admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
-    connected_members,
-    decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
-    prove_physical_mosaic_recurrence, AdmittedPhysicalMosaic, PhysicalMosaicCodecError,
-    PhysicalMosaicError, StablePhysicalBondReference,
+    connected_members, decode_admitted_physical_mosaic_for_topology,
+    encode_admitted_physical_mosaic_for_topology, prove_physical_mosaic_recurrence,
+    AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
+    StablePhysicalBondReference,
 };
 use crate::reached_neuron_cohort::{
     add_omitted_geometry_carrier_material, decode_reached_cohort_cell, decode_reached_cohort_state,
@@ -212,6 +212,16 @@ pub(crate) fn resident_joint_field_evaluation_count() -> usize {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct OrganicMosaicRelationObservation {
+    /// Canonical receipts of the retained formations related by this one
+    /// current physical frontier. Receipts identify observation evidence;
+    /// they do not cause or persist the relationship.
+    pub(crate) formation_receipts: Vec<[u8; 32]>,
+    pub(crate) shared_lineages: Vec<[u8; 16]>,
+    pub(crate) active_bonds: Vec<StablePhysicalBondReference>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CognitiveFormationObservation {
     pub(crate) cognitive_ordinal: u64,
     pub(crate) trace_formed: bool,
@@ -233,6 +243,11 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    /// Transient connected frontiers among recurrent mosaics physically
+    /// reached by this transition, with at least one fully reassembled. No
+    /// relation object, count, hierarchy, or history is retained in the
+    /// organism.
+    pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
@@ -854,6 +869,172 @@ fn mosaic_spans_multiple_cohorts(
     cohort_indices.len() >= 2
 }
 
+fn merge_relation_components(component_roots: &mut [usize], left: usize, right: usize) {
+    let mut left_root = left;
+    while component_roots[left_root] != left_root {
+        left_root = component_roots[left_root];
+    }
+    let mut right_root = right;
+    while component_roots[right_root] != right_root {
+        right_root = component_roots[right_root];
+    }
+    if left_root == right_root {
+        return;
+    }
+    let (kept, replaced) = if left_root < right_root {
+        (left_root, right_root)
+    } else {
+        (right_root, left_root)
+    };
+    for root in component_roots {
+        if *root == replaced {
+            *root = kept;
+        }
+    }
+}
+
+/// Observe only the connected physical frontier among currently reached
+/// recurrent mosaics, requiring at least one mosaic to have reassembled in
+/// this transition. The temporary component indices organize this calculation
+/// only; they are never encoded, retained, or used as cognitive authority.
+fn observe_organic_mosaic_relations(
+    topology: &OrganismMosaicTopology,
+    mosaics: &[RetainedOrganismMosaic],
+    frontier_indices: &[usize],
+    reassembled_indices: &[usize],
+    active_bonds: &[StablePhysicalBondReference],
+    max_encoded_bytes: usize,
+) -> Result<Vec<OrganicMosaicRelationObservation>, FormationError> {
+    if frontier_indices.len() < 2 || reassembled_indices.is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut incidence = Vec::<([u8; 16], usize)>::new();
+    for (local_index, mosaic_index) in frontier_indices.iter().copied().enumerate() {
+        for lineage in mosaics[mosaic_index].mosaic.member_lineages() {
+            incidence.push((*lineage, local_index));
+        }
+    }
+    incidence.sort_unstable();
+    incidence.dedup();
+
+    let participants_for_lineage = |lineage: &[u8; 16]| -> Vec<usize> {
+        incidence
+            .iter()
+            .filter_map(|(candidate, participant)| (candidate == lineage).then_some(*participant))
+            .collect()
+    };
+
+    let mut component_roots = (0..frontier_indices.len()).collect::<Vec<_>>();
+    let mut cursor = 0usize;
+    while cursor < incidence.len() {
+        let lineage = incidence[cursor].0;
+        let start = cursor;
+        while cursor < incidence.len() && incidence[cursor].0 == lineage {
+            cursor += 1;
+        }
+        if cursor - start >= 2 {
+            let first = incidence[start].1;
+            for (_, participant) in &incidence[start + 1..cursor] {
+                merge_relation_components(&mut component_roots, first, *participant);
+            }
+        }
+    }
+    for bond in active_bonds {
+        let (left, right) = bond.endpoints();
+        let mut participants = participants_for_lineage(&left);
+        participants.extend(participants_for_lineage(&right));
+        participants.sort_unstable();
+        participants.dedup();
+        if let Some(first) = participants.first().copied() {
+            for participant in participants.iter().copied().skip(1) {
+                merge_relation_components(&mut component_roots, first, participant);
+            }
+        }
+    }
+
+    let mut relations = Vec::new();
+    for root in 0..frontier_indices.len() {
+        let members = component_roots
+            .iter()
+            .enumerate()
+            .filter_map(|(index, component_root)| (*component_root == root).then_some(index))
+            .collect::<Vec<_>>();
+        if members.len() < 2 {
+            continue;
+        }
+        if !members
+            .iter()
+            .any(|local_index| reassembled_indices.contains(&frontier_indices[*local_index]))
+        {
+            continue;
+        }
+        let mut formation_receipts = members
+            .iter()
+            .map(|local_index| {
+                let retained = &mosaics[frontier_indices[*local_index]].mosaic;
+                encode_admitted_physical_mosaic_for_topology(
+                    &topology.lineages,
+                    &topology.bonds,
+                    &topology.fractal_anatomies,
+                    retained,
+                    max_encoded_bytes,
+                )
+                .map(|encoded| sha256(&encoded))
+                .map_err(FormationError::PhysicalMosaicCodecUnavailable)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        formation_receipts.sort_unstable();
+        formation_receipts.dedup();
+        if formation_receipts.len() < 2 {
+            continue;
+        }
+        let mut shared_lineages = Vec::new();
+        let mut lineage_cursor = 0usize;
+        while lineage_cursor < incidence.len() {
+            let lineage = incidence[lineage_cursor].0;
+            let start = lineage_cursor;
+            while lineage_cursor < incidence.len() && incidence[lineage_cursor].0 == lineage {
+                lineage_cursor += 1;
+            }
+            let member_count = incidence[start..lineage_cursor]
+                .iter()
+                .filter(|(_, participant)| members.binary_search(participant).is_ok())
+                .count();
+            if member_count >= 2 {
+                shared_lineages.push(lineage);
+            }
+        }
+        let mut bridging_bonds = active_bonds
+            .iter()
+            .copied()
+            .filter(|bond| {
+                let (left, right) = bond.endpoints();
+                let mut participants = participants_for_lineage(&left);
+                participants.extend(participants_for_lineage(&right));
+                participants.sort_unstable();
+                participants.dedup();
+                participants
+                    .iter()
+                    .filter(|participant| members.binary_search(participant).is_ok())
+                    .count()
+                    >= 2
+            })
+            .collect::<Vec<_>>();
+        bridging_bonds.sort_unstable();
+        bridging_bonds.dedup();
+        if shared_lineages.is_empty() && bridging_bonds.is_empty() {
+            continue;
+        }
+        relations.push(OrganicMosaicRelationObservation {
+            formation_receipts,
+            shared_lineages,
+            active_bonds: bridging_bonds,
+        });
+    }
+    relations.sort_by(|left, right| left.formation_receipts.cmp(&right.formation_receipts));
+    Ok(relations)
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
@@ -864,9 +1045,16 @@ fn settle_organism_mosaic_boundary(
     active_bonds: &[StablePhysicalBondReference],
     mosaics: &mut Vec<RetainedOrganismMosaic>,
     max_encoded_bytes: usize,
-) -> Result<(Option<[u8; 32]>, usize), FormationError> {
+) -> Result<
+    (
+        Option<[u8; 32]>,
+        usize,
+        Vec<OrganicMosaicRelationObservation>,
+    ),
+    FormationError,
+> {
     if active_bonds.is_empty() {
-        return Ok((None, 0));
+        return Ok((None, 0, Vec::new()));
     }
     let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
     let current_fractals = topology
@@ -880,7 +1068,7 @@ fn settle_organism_mosaic_boundary(
                 .map(|fractal| fractal.delta.clone())
         })
         .collect::<Vec<_>>();
-    let changed_lineages = topology
+    let mut changed_lineages = topology
         .lineages
         .iter()
         .copied()
@@ -890,9 +1078,35 @@ fn settle_organism_mosaic_boundary(
                 .is_ok()
         })
         .collect::<Vec<_>>();
+    changed_lineages.sort_unstable();
+    changed_lineages.dedup();
     let mut receipt = None;
     let mut reassemblies = 0usize;
-    for retained in mosaics.iter_mut() {
+    let mut current_frontier_indices = Vec::new();
+    let mut reassembled_indices = Vec::new();
+    for (retained_index, retained) in mosaics.iter_mut().enumerate() {
+        if !retained.mosaic.is_original_only()
+            && retained
+                .mosaic
+                .member_lineages()
+                .iter()
+                .any(|lineage| changed_lineages.binary_search(lineage).is_ok())
+            && active_bonds.iter().any(|bond| {
+                let (left, right) = bond.endpoints();
+                retained
+                    .mosaic
+                    .member_lineages()
+                    .binary_search(&left)
+                    .is_ok()
+                    || retained
+                        .mosaic
+                        .member_lineages()
+                        .binary_search(&right)
+                        .is_ok()
+            })
+        {
+            current_frontier_indices.push(retained_index);
+        }
         let cue = externally_reached_lineages
             .iter()
             .copied()
@@ -921,6 +1135,13 @@ fn settle_organism_mosaic_boundary(
             )
         } {
             Ok(reassembled) => reassembled,
+            Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation) => {
+                reassembled_indices.push(retained_index);
+                reassemblies = reassemblies
+                    .checked_add(1)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                continue;
+            }
             Err(error) if physical_mosaic_non_admission(error) => continue,
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
@@ -934,10 +1155,22 @@ fn settle_organism_mosaic_boundary(
         .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
         receipt = Some(sha256(&encoded));
         retained.mosaic = reassembled;
+        if !current_frontier_indices.contains(&retained_index) {
+            current_frontier_indices.push(retained_index);
+        }
+        reassembled_indices.push(retained_index);
         reassemblies = reassemblies
             .checked_add(1)
             .ok_or(FormationError::ArithmeticOverflow)?;
     }
+    let organic_relations = observe_organic_mosaic_relations(
+        &topology,
+        mosaics,
+        &current_frontier_indices,
+        &reassembled_indices,
+        active_bonds,
+        max_encoded_bytes,
+    )?;
     let changed = changed_lineages.clone();
     let mut unvisited = topology.lineages.clone();
     while let Some(start) = unvisited.pop() {
@@ -1009,7 +1242,7 @@ fn settle_organism_mosaic_boundary(
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         mosaics.push(RetainedOrganismMosaic::newly_admitted(original));
     }
-    Ok((receipt, reassemblies))
+    Ok((receipt, reassemblies, organic_relations))
 }
 
 /// Encode one retained mosaic reference for the organism state body.  Zero
@@ -2764,17 +2997,18 @@ impl ResidentCognitiveFormationState {
         )?;
         let current_physical_deltas =
             exact_transition_physical_deltas(&cohorts, &transition_neuron_predecessors)?;
-        let (organism_mosaic_receipt, organism_reassemblies) = settle_organism_mosaic_boundary(
-            &cohorts,
-            &electrical_fabric,
-            &emitted_neuron_fractals,
-            &current_physical_deltas,
-            &externally_reached_neuron_lineages,
-            &externally_perturbed_neuron_lineages,
-            &internal_contact.active_bonds,
-            &mut mosaics,
-            max_encoded_bytes,
-        )?;
+        let (organism_mosaic_receipt, organism_reassemblies, organic_mosaic_relations) =
+            settle_organism_mosaic_boundary(
+                &cohorts,
+                &electrical_fabric,
+                &emitted_neuron_fractals,
+                &current_physical_deltas,
+                &externally_reached_neuron_lineages,
+                &externally_perturbed_neuron_lineages,
+                &internal_contact.active_bonds,
+                &mut mosaics,
+                max_encoded_bytes,
+            )?;
         if organism_mosaic_receipt.is_some() {
             mosaic_formed = organism_mosaic_receipt;
         }
@@ -2841,6 +3075,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
                 active_physical_bonds: internal_contact.active_bonds,
+                organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
                 endogenous_partial_cue_reassembly_count,
@@ -3203,6 +3438,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
                 active_physical_bonds: Vec::new(),
+                organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
                 endogenous_partial_cue_reassembly_count: 0,
@@ -10521,7 +10757,7 @@ mod tests {
             .collect::<Vec<_>>();
         current_deltas.sort_unstable_by_key(|(lineage, _)| *lineage);
         let changed_cue = [receptor_lineages[0]];
-        let (altered_receipt, reassemblies) = settle_organism_mosaic_boundary(
+        let (altered_receipt, reassemblies, relations) = settle_organism_mosaic_boundary(
             &cohorts,
             &fabric,
             &[],
@@ -10535,6 +10771,7 @@ mod tests {
         .unwrap();
         assert!(altered_receipt.is_some());
         assert_eq!(reassemblies, 1);
+        assert!(relations.is_empty());
         assert_eq!(mosaics.len(), 1);
         assert_eq!(mosaics[0].reinforcement_count, 0);
         assert_eq!(mosaics[0].mosaic.member_lineages(), original_members);
@@ -10558,6 +10795,84 @@ mod tests {
         )
         .unwrap();
         assert_eq!(altered_cold, mosaics[0]);
+
+        let second_fractal =
+            crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
+                crate::complete_neuron::PhysicalStateDeltaEntry::new(
+                    crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                    crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                        ExactRational::new(2, 3).unwrap(),
+                    ),
+                )
+                .unwrap(),
+            ])
+            .unwrap();
+        let second_original = admit_physical_mosaic_original(
+            &topology.lineages,
+            &topology.fractal_anatomies,
+            &vec![Some(second_fractal); topology.lineages.len()],
+            &topology.bonds,
+        )
+        .unwrap();
+        let second_recognized = prove_physical_mosaic_recurrence(
+            &second_original,
+            &topology.lineages,
+            &topology.bonds,
+            &receptor_lineages,
+        )
+        .unwrap();
+        mosaics.push(RetainedOrganismMosaic::newly_admitted(second_recognized));
+
+        let one_reassembled_relation = observe_organic_mosaic_relations(
+            &topology,
+            &mosaics,
+            &[0, 1],
+            &[0],
+            &topology.bonds,
+            16_000_000,
+        )
+        .unwrap();
+        assert_eq!(one_reassembled_relation.len(), 1);
+        assert_eq!(one_reassembled_relation[0].formation_receipts.len(), 2);
+
+        let (_, related_reassemblies, related) = settle_organism_mosaic_boundary(
+            &cohorts,
+            &fabric,
+            &[],
+            &current_deltas,
+            &changed_cue,
+            &changed_cue,
+            &topology.bonds,
+            &mut mosaics,
+            16_000_000,
+        )
+        .unwrap();
+        assert_eq!(related_reassemblies, 2);
+        assert_eq!(related.len(), 1);
+        assert_eq!(related[0].formation_receipts.len(), 2);
+        let mut expected_shared_lineages = topology.lineages.clone();
+        expected_shared_lineages.sort_unstable();
+        assert_eq!(related[0].shared_lineages, expected_shared_lineages);
+        assert!(!related[0].active_bonds.is_empty());
+
+        let before_quiescent_relation = mosaics.clone();
+        let (receipt, recurring_reassemblies, recurring_relation) =
+            settle_organism_mosaic_boundary(
+                &cohorts,
+                &fabric,
+                &[],
+                &current_deltas,
+                &changed_cue,
+                &changed_cue,
+                &topology.bonds,
+                &mut mosaics,
+                16_000_000,
+            )
+            .unwrap();
+        assert_eq!(receipt, None);
+        assert_eq!(recurring_reassemblies, 2);
+        assert_eq!(recurring_relation, related);
+        assert_eq!(mosaics, before_quiescent_relation);
     }
 
     #[test]

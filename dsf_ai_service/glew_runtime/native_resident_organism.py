@@ -105,6 +105,11 @@ class NativeResidentObservationView(Protocol):
     def mosaic_of_mosaics_count(self) -> int: ...
 
     @property
+    def organic_mosaic_relations(
+        self,
+    ) -> list[tuple[list[str], list[str], list[tuple[str, str, int]]]]: ...
+
+    @property
     def formation_activation_count(self) -> int: ...
 
     @property
@@ -216,6 +221,10 @@ class ResidentPrepareEvidence:
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
     active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
+    organic_mosaic_relations: tuple[
+        tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str, int], ...]],
+        ...,
+    ] = ()
 
 
 def _native_core():
@@ -365,6 +374,14 @@ def _observation_signature(
         observation.cognitive_ordinal,
         observation.cognitive_trace_count,
         observation.cognitive_mosaic_count,
+        tuple(
+            (
+                tuple(receipts),
+                tuple(lineages),
+                tuple(bonds),
+            )
+            for receipts, lineages, bonds in observation.organic_mosaic_relations
+        ),
         observation.partial_cue_reassembly_count,
         observation.endogenous_partial_cue_reassembly_count,
     )
@@ -902,6 +919,55 @@ class NativeResidentOrganism:
                     _nonnegative_integer(raw_bond[2], "active bond parallel ordinal"),
                 )
             )
+        raw_organic_mosaic_relations = candidate.organic_mosaic_relations
+        if not isinstance(raw_organic_mosaic_relations, list):
+            raise RuntimeError("organic mosaic-relation evidence changed format")
+        organic_mosaic_relations: list[
+            tuple[
+                tuple[str, ...],
+                tuple[str, ...],
+                tuple[tuple[str, str, int], ...],
+            ]
+        ] = []
+        for raw_relation in raw_organic_mosaic_relations:
+            if not isinstance(raw_relation, tuple) or len(raw_relation) != 3:
+                raise RuntimeError("organic mosaic relation changed format")
+            raw_receipts, raw_lineages, raw_bonds = raw_relation
+            if (
+                not isinstance(raw_receipts, list)
+                or not isinstance(raw_lineages, list)
+                or not isinstance(raw_bonds, list)
+            ):
+                raise RuntimeError("organic mosaic relation changed format")
+            receipts = tuple(
+                _canonical_sha256(value, "related formation receipt")
+                for value in raw_receipts
+            )
+            shared_lineages = tuple(
+                _canonical_lineage_hex(value, "shared mosaic lineage")
+                for value in raw_lineages
+            )
+            relation_bonds = tuple(
+                (
+                    _canonical_lineage_hex(value[0], "relation bond left lineage"),
+                    _canonical_lineage_hex(value[1], "relation bond right lineage"),
+                    _nonnegative_integer(value[2], "relation bond parallel ordinal"),
+                )
+                for value in raw_bonds
+                if isinstance(value, tuple) and len(value) == 3
+            )
+            if (
+                len(relation_bonds) != len(raw_bonds)
+                or len(receipts) < 2
+                or tuple(sorted(set(receipts))) != receipts
+                or tuple(sorted(set(shared_lineages))) != shared_lineages
+                or tuple(sorted(set(relation_bonds))) != relation_bonds
+                or (not shared_lineages and not relation_bonds)
+            ):
+                raise RuntimeError("organic mosaic relation is not canonical physical evidence")
+            organic_mosaic_relations.append(
+                (receipts, shared_lineages, relation_bonds)
+            )
         recurrent_complete_neuron_fractal_count = _nonnegative_integer(
             candidate.recurrent_complete_neuron_fractal_count,
             "recurrent complete-neuron fractal count",
@@ -1040,6 +1106,7 @@ class NativeResidentOrganism:
                 and partial_cue_reassembly_count
                 <= active_before.partial_cue_reassembly_count
                 and complete_neuron_fractal_count == 0
+                and not organic_mosaic_relations
             )
             or candidate.python_callback_count != 0
         ):
@@ -1097,6 +1164,7 @@ class NativeResidentOrganism:
             motor_unit_recruitments=tuple(motor_unit_recruitments),
             emitted_neuron_fractals=tuple(emitted_neuron_fractals),
             active_physical_bonds=tuple(active_physical_bonds),
+            organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 
     def prepare_authored_contacts(

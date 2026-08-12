@@ -38,8 +38,8 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    EmittedNeuronFractal, MotorUnitRecruitment, PreparedCognitiveFormationTransition,
-    ResidentCognitiveFormationState,
+    EmittedNeuronFractal, MotorUnitRecruitment, OrganicMosaicRelationObservation,
+    PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
     observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
@@ -107,6 +107,11 @@ const MOUNTED_STEP_SCOPE: &str = "canonical_uf_v1_4_neuronal_settlement";
 /// Scope name of one authored developmental contact growth.  A transaction
 /// label, exactly like the two scopes above; it carries no physics.
 const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sensory_occurrence";
+type OrganicMosaicRelationProjection = (
+    Vec<String>,
+    Vec<String>,
+    Vec<(String, String, u32)>,
+);
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -345,6 +350,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
     pub(crate) successor_l0_l4_replay_count: usize,
@@ -790,6 +796,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn organic_mosaic_relations(&self) -> Vec<OrganicMosaicRelationProjection> {
+        project_organic_mosaic_relations(&self.observation.organic_mosaic_relations)
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1177,6 +1188,11 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn organic_mosaic_relations(&self) -> Vec<OrganicMosaicRelationProjection> {
+        project_organic_mosaic_relations(&self.observation.organic_mosaic_relations)
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1438,6 +1454,11 @@ impl NativeOrganismRuntimeTransition {
     #[getter]
     fn mosaic_of_mosaics_count(&self) -> usize {
         self.observation.mosaic_of_mosaics_count
+    }
+
+    #[getter]
+    fn organic_mosaic_relations(&self) -> Vec<OrganicMosaicRelationProjection> {
+        project_organic_mosaic_relations(&self.observation.organic_mosaic_relations)
     }
 
     #[getter]
@@ -3504,6 +3525,7 @@ fn make_restored_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -3572,6 +3594,7 @@ fn make_step_observation(
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         active_physical_bonds: cognitive.active_physical_bonds.clone(),
+        organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
         successor_l0_l4_replay_count: 0,
@@ -3582,7 +3605,8 @@ fn make_step_observation(
         physical_transition_claimed: cognitive.physically_transitioned_neuron_count > 0,
         cognitive_formation_claimed: cognitive.trace_formed
             || cognitive.mosaic_formed.is_some()
-            || !cognitive.activations.is_empty(),
+            || !cognitive.activations.is_empty()
+            || !cognitive.organic_mosaic_relations.is_empty(),
         cognitive_ordinal: cognitive.cognitive_ordinal,
         cognitive_trace_count: cognitive.trace_count,
         cognitive_mosaic_count: cognitive.mosaic_count,
@@ -3635,6 +3659,7 @@ fn make_authored_contact_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
         successor_l0_l4_replay_count: 0,
@@ -3685,6 +3710,31 @@ fn hex_digest(value: &[u8; 32]) -> String {
         output.push(HEX[(byte & 0x0f) as usize] as char);
     }
     output
+}
+
+fn project_organic_mosaic_relations(
+    relations: &[OrganicMosaicRelationObservation],
+) -> Vec<OrganicMosaicRelationProjection> {
+    relations
+        .iter()
+        .map(|relation| {
+            let receipts = relation.formation_receipts.iter().map(hex_digest).collect();
+            let lineages = relation
+                .shared_lineages
+                .iter()
+                .map(|value| hex_bytes(value))
+                .collect();
+            let bonds = relation
+                .active_bonds
+                .iter()
+                .map(|bond| {
+                    let (left, right) = bond.endpoints();
+                    (hex_bytes(&left), hex_bytes(&right), bond.parallel_ordinal())
+                })
+                .collect();
+            (receipts, lineages, bonds)
+        })
+        .collect()
 }
 
 fn hex_bytes(value: &[u8]) -> String {

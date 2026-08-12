@@ -450,6 +450,7 @@ mod tests {
             complete_neuron_fractal_count: 4,
             emitted_neuron_fractals: Vec::new(),
             active_physical_bonds: Vec::new(),
+            organic_mosaic_relations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,
             endogenous_partial_cue_reassembly_count: 0,
