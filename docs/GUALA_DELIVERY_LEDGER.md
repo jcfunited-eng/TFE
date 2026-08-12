@@ -95,8 +95,18 @@ box remains unchecked until live acceptance passes.
   energy, and zero Python cognition callbacks. The release is commit
   `4cb339fd`, image
   `sha256:25e2f7fee8d42b62e0efae0722db1caeb2d64c67f9a75b7a9a6c59de52b641d5`.
-- [ ] **C-004** Prove recurrence strengthens, alters, weakens, or dissolves
+- [x] **C-004** Prove recurrence strengthens, alters, weakens, or dissolves
   mosaics through local physics without a database entity or semantic label.
+  Live task 990 altered the retained task-989 16-neuron formation while
+  preserving its exact members and 33 original physical bonds: the current
+  recurrence witness changed from 33 to 16 bonds and the canonical receipt
+  changed from `4255963077db742216162c11514c1855967d1b22e2c427fc408882c1592f83a4`
+  to `c38a988c06f82b1eacb3217805ac1d453d286619a8d4bb6d4f65ead69f0ddefa`.
+  The retired reinforcement counter remained zero. Production advanced from
+  tick 52,881 to 52,890 with byte-exact cold observation, unchanged
+  43,384,300-byte state across that observed interval, one healthy process,
+  and zero Python cognition callbacks. The release is commit `e80372ac`, image
+  `sha256:2e7362a8235fa08fbc0ce8e1ef1aa968a88dd4245be28d2239d044dd26ef5901`.
 - [ ] **C-005** Prove organic relationships among mosaics can recur without an
   imposed hierarchy, parent ID, serial record, or generated group object.
 - [ ] **C-006** Prove hippocampal structures act as bounded sparse indexes into

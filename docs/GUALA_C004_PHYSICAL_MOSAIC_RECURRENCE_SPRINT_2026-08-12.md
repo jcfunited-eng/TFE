@@ -193,7 +193,7 @@ occurrence must:
 6. expose the exact before/after formation evidence through the live native/API
    observation path.
 
-C-004 remains open until that production behavior is directly observed.
+C-004 is closed by the production evidence below.
 
 ## Candidate test record
 
@@ -218,3 +218,36 @@ C-004 remains open until that production behavior is directly observed.
   52,383 with zero Python cognition callbacks. Elapsed time was 19.86 seconds;
   peak RSS was 1,632,500 KiB, consistent with the known predecessor runtime
   peak rather than new retained growth. Evidence: `/tmp/c004-recurrent.json`.
+
+## Production closure
+
+- Deployment attempt 1 completed from `2026-08-12T10:56:37Z` through
+  `2026-08-12T11:14:41Z` on task definition `dsf-ai-task:990`.
+- The running artifact is commit
+  `e80372ac88c97fe895a1fc6f2b2fab2415d10535`, image
+  `sha256:2e7362a8235fa08fbc0ce8e1ef1aa968a88dd4245be28d2239d044dd26ef5901`.
+  The deployment controller cold-restored task 989 byte-exact at tick 52,827,
+  verified the immutable digest, and reported zero Python cognition callbacks
+  and zero Python cognition workers before cutover.
+- The saved production task-989 body at tick 52,374 and the live task-990 body
+  at tick 52,881 contain the same original 16-neuron formation members and the
+  same 33 original physical bonds. The bounded current recurrence witness
+  changed from 33 to 16 bonds, its receipt changed from
+  `4255963077db742216162c11514c1855967d1b22e2c427fc408882c1592f83a4` to
+  `c38a988c06f82b1eacb3217805ac1d453d286619a8d4bb6d4f65ead69f0ddefa`,
+  and the retired reinforcement counter remained zero. An independently formed
+  second mosaic also exists in the later continuously lived body; it is not
+  counted as the altered formation and is not hidden from this evidence.
+- The exact live body at tick 52,881 was downloaded by its reported SHA
+  `1fe3bd5dbb15ccdcf282f0a9ebc4f8ebbf291360a8c1897519c0d4eb076ff711`
+  and cold-observed byte-exact. Production then advanced ordinarily to tick
+  52,890 and SHA
+  `75af2a384feeea79958d96ee95f54a36c61c14be0b00cf9bdf5edbfe1f020172`;
+  that body also cold-observed byte-exact with the same formation evidence.
+- State size held at 43,384,300 bytes across those nine further live ticks;
+  Python cognition callbacks remained zero. ECS reports one desired/running
+  task, zero pending tasks, and a completed rollout under the existing finite
+  4096-CPU-unit/16,384-MiB task boundary.
+- No owner, lock, database entity, semantic label, reinforcement score, or
+  reduced DSF authority was introduced. Full joint L0-L4 delivery remains
+  unchanged and outside this recurrence operation.
