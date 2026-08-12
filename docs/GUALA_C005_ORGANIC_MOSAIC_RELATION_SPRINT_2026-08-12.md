@@ -197,6 +197,44 @@ Passing source or local tests remains local evidence only.
   are recorded rather than used to alter C-005. The exact task-990 recurrent
   source-to-consequence rehearsal remains the release authority.
 
+## Live production evidence
+
+- One deployment attempt ran from `2026-08-12T12:12:23Z` through
+  `2026-08-12T12:31:12Z`. Packaging, immutable image construction, preflight,
+  read-only cold-restore rehearsal, one cutover, and live verification all
+  passed without a repeated build or failed cutover.
+- Live task definition: `dsf-ai-task:991`; reviewed commit:
+  `accf0219080d9e7c76390ddb7bee644ad7b889d5`; immutable image:
+  `sha256:786c937d0cb5479148e22090de05715324fa2f3d2eaa366ac16cd677451b2068`.
+  ECS reports one desired/running healthy process, zero pending processes, a
+  completed rollout, 4096 CPU units, and 16,384 MiB.
+- The candidate cold-restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` exactly at tick 53619 from
+  43,384,300 persisted bytes with source SHA-256
+  `9905fffcd2b7ce594845da292a5e63e93bdad73b5935a9657cafb9fd90dfc2cf`.
+  The read-only rehearsal reported zero Python cognition callbacks and zero
+  Python cognition workers. Its motor-to-vestibular consequence changed no
+  persisted byte count.
+- The live public observation then exposed one unattended eight-hop experience
+  ending at tick 53673 with five relationship occurrences, followed by a
+  distinct unattended experience ending at tick 53682 with five more. The
+  second experience's relation ticks were 53676, 53678, 53679, 53681, and
+  53682.
+- Every live occurrence carried formation receipts
+  `10f72d227550a26955e7a257bc17c410f5d959a7f4c67cb8130734c7031be91b`
+  and `c38a988c06f82b1eacb3217805ac1d453d286619a8d4bb6d4f65ead69f0ddefa`,
+  plus active stable bond
+  `474c4e4c494e45310000000000000001` to
+  `474c4e4c494e45310000000000000002`, parallel ordinal zero. No shared lineage
+  was fabricated and no parent, hierarchy, relationship object, or counter was
+  persisted.
+- Across those distinct live experiences the body remained 43,384,300 bytes,
+  complete-neuron count remained 224, retained mosaic count remained two, and
+  Python cognition callbacks remained zero. Both live pages still returned
+  HTTP 200 with their pre-existing bodies; C-005 changed no UI code.
+
+**C-005 is closed in live production.**
+
 ## Falsified acceptance hypothesis
 
 - The first exact task-990 candidate probe ran 32 ordinary unattended hops

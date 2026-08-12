@@ -107,8 +107,17 @@ box remains unchecked until live acceptance passes.
   43,384,300-byte state across that observed interval, one healthy process,
   and zero Python cognition callbacks. The release is commit `e80372ac`, image
   `sha256:2e7362a8235fa08fbc0ce8e1ef1aa968a88dd4245be28d2239d044dd26ef5901`.
-- [ ] **C-005** Prove organic relationships among mosaics can recur without an
+- [x] **C-005** Prove organic relationships among mosaics can recur without an
   imposed hierarchy, parent ID, serial record, or generated group object.
+  Live task 991 exposed five exact transient relationship occurrences in each
+  of two distinct unattended experiences ending at ticks 53,673 and 53,682.
+  Every occurrence related the same two exact recurrent-formation receipts
+  through the same active stable bond between lineage 1 and lineage 2; no
+  shared lineage, parent, hierarchy, relationship object, counter, or history
+  was fabricated or persisted. Identity, two retained mosaics, 224 complete
+  neurons, and 43,384,300 state bytes remained stable, with one healthy process
+  and zero Python cognition callbacks. The release is commit `accf0219`, image
+  `sha256:786c937d0cb5479148e22090de05715324fa2f3d2eaa366ac16cd677451b2068`.
 - [ ] **C-006** Prove hippocampal structures act as bounded sparse indexes into
   distributed retained structure and do not store or return an answer.
 - [ ] **C-007** Prove recognition is distributed physical pattern completion
