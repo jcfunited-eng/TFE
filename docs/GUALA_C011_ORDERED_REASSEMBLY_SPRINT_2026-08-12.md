@@ -155,6 +155,7 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
 | RF-024 | Every test path is resolved with `rg --files` before pytest. |
 | RF-025 | A timed-out live write is successor-checked before any retry. |
 | RF-026 | Every formatter is followed immediately by changed-file and diff-stat containment; apparent file arguments are not trusted. |
+| RF-027 | Acceptance retains the first qualifying interval and cold-replays its exact predecessor/input; later quiet intervals cannot overwrite it. |
 
 ## Rejected paths and falsified hypotheses
 
@@ -229,6 +230,14 @@ does not prove a sentence, narrative, language, planning, or C-012 depth.
 - The release native wheel was rebuilt from the final source, loaded from an
   isolated candidate directory, and the same 45 Python tests passed against
   that exact compiled artifact.
+- The first immutable candidate (`sha256:a6325778...`) exited in its read-only
+  rehearsal before cutover; production remained unchanged on task 998. One
+  read-only diagnostic run against the same candidate/body proved interval 2
+  formed 34 ordered paths and a cold branch also formed 34. The false failure
+  came from the rehearsal overwriting that qualifying interval with the later
+  zero-path interval, then comparing a different future interval. RF-027 now
+  requires exact same-predecessor/same-input cold replay and forbids later
+  quiet evidence from replacing the qualifying interval.
 - A broader production-mount fixture run exposed two inherited test-double
   defects unrelated to C-011: one test awaits a synchronous FastAPI response,
   and one stale observation double lacks `mosaic_of_mosaics_count`. They do not

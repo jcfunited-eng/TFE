@@ -86,10 +86,12 @@ def _rehearse_native_distributed_recall(
     formation_receipt, formation_members, cue = body_cued[0]
     recalled = None
     episodic_relation = None
+    ordered_path_cold_reassembly = False
     heading = 0
     transition_count = 0
     dsf_delivery_count = 0
     for ordinal, signed_step in enumerate((64, -64, 0), 1):
+        interval_predecessor = organism.save()
         prepared = organism.prepare_vestibular_tick(heading, signed_step)
         transition_count += prepared.physically_transitioned_neuron_count
         dsf_delivery_count += prepared.dsf_delivery_count
@@ -106,17 +108,56 @@ def _rehearse_native_distributed_recall(
         if observed is not None and formation_receipt in observed[
             "distributed_recognition_formation_receipts"
         ]:
-            recalled = {
+            interval_recall = {
                 **observed,
                 "distributed_recall_interval_ordinal": ordinal,
             }
-            if relation is not None:
+            if (
+                episodic_relation is None
+                and relation is not None
+                and relation["ordered_physical_path_count"] > 0
+            ):
+                replay = restore_native_resident_organism(
+                    current_envelope=interval_predecessor,
+                    **budget,
+                )
+                replay_prepared = replay.prepare_vestibular_tick(heading, signed_step)
+                replay_relation = _commit_and_observe_episodic_relation(
+                    replay,
+                    replay_prepared,
+                    formation_members,
+                )
+                if (
+                    replay_prepared.partial_cue_reassembly_count <= 0
+                    or replay_relation is None
+                    or replay_relation["ordered_physical_path_count"] <= 0
+                    or replay_relation["episodic_related_formation_receipts_sha256"]
+                    != relation["episodic_related_formation_receipts_sha256"]
+                    or replay_relation["episodic_related_member_sets_sha256"]
+                    != relation["episodic_related_member_sets_sha256"]
+                    or replay_relation["episodic_relation_active_bonds_sha256"]
+                    != relation["episodic_relation_active_bonds_sha256"]
+                    or replay_relation["structural_relation_sha256"]
+                    != relation["structural_relation_sha256"]
+                    or replay_relation["ordered_physical_paths_sha256"]
+                    != relation["ordered_physical_paths_sha256"]
+                    or replay.save() != organism.save()
+                ):
+                    raise RuntimeError(
+                        "cold replay did not reproduce the exact ordered relation"
+                    )
+                recalled = interval_recall
                 episodic_relation = {
                     **relation,
                     "episodic_relation_interval_ordinal": ordinal,
                 }
+                ordered_path_cold_reassembly = True
         heading = (heading + signed_step) % 360_000
-    if recalled is None or episodic_relation is None:
+    if (
+        recalled is None
+        or episodic_relation is None
+        or not ordered_path_cold_reassembly
+    ):
         raise RuntimeError("body partial cue produced no distributed recall")
     after = organism.readiness()
     successor_state = organism.save()
@@ -146,32 +187,10 @@ def _rehearse_native_distributed_recall(
     ]
     if len(cold_body_cued) != 1:
         raise RuntimeError("cold successor lost its exact body-cued formation")
-    _cold_receipt, cold_members, _cold_cue = cold_body_cued[0]
-    cold_prepared = cold.prepare_vestibular_tick(heading, 64)
-    cold_relation = _commit_and_observe_episodic_relation(
-        cold,
-        cold_prepared,
-        cold_members,
-    )
-    if (
-        cold_prepared.partial_cue_reassembly_count <= 0
-        or cold_relation is None
-        or cold_relation["episodic_related_member_sets_sha256"]
-        != episodic_relation["episodic_related_member_sets_sha256"]
-        or cold_relation["episodic_relation_active_bonds_sha256"]
-        != episodic_relation["episodic_relation_active_bonds_sha256"]
-        or cold_relation["structural_relation_sha256"]
-        != episodic_relation["structural_relation_sha256"]
-        or episodic_relation["ordered_physical_path_count"] <= 0
-        or cold_relation["ordered_physical_path_count"] <= 0
-        or cold_relation["ordered_physical_paths_sha256"]
-        != episodic_relation["ordered_physical_paths_sha256"]
-    ):
-        raise RuntimeError("cold successor did not re-form the episodic relation")
     return {
         **recalled,
         **episodic_relation,
-        "ordered_physical_cold_reassembly": True,
+        "ordered_physical_cold_reassembly": ordered_path_cold_reassembly,
         "distributed_recognition_episode_ordinal": (
             recalled["distributed_recall_interval_ordinal"] - 1
         ),
