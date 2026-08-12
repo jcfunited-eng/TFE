@@ -4319,7 +4319,11 @@ pub(crate) enum PhysicalStateCoordinate {
     DnaFuel,
     DnaExpressedProduct,
     DnaWaste,
-    OpticalQuantumResidue,
+    /// Exact sub-quantum receptor material retained between causal
+    /// intervals. The same accumulator is used by sight, sound, touch, smell,
+    /// and taste; the coordinate therefore names the physical mechanism, not
+    /// one sense. Its existing wire tag remains 24.
+    ReceptorQuantumResidue,
     /// The retained sub-quantum membrane-return work residue (exact rest-cost
     /// law, 2026-08-06).  It is part of the neuron's persisted physical state,
     /// so a fractal — the sparse difference between the pre-experience and
@@ -4463,7 +4467,7 @@ fn coordinate_accepts_delta(
             PhysicalStateCoordinate::MembraneCarrierPhase
                 | PhysicalStateCoordinate::ConductancePathCarrierPhase(_)
                 | PhysicalStateCoordinate::PlasticRestLength
-                | PhysicalStateCoordinate::OpticalQuantumResidue
+                | PhysicalStateCoordinate::ReceptorQuantumResidue
                 | PhysicalStateCoordinate::MembraneReturnWorkResidue
                 | PhysicalStateCoordinate::PlasticDissipationResidue
                 | PhysicalStateCoordinate::GateDissipationResidue,
@@ -4765,7 +4769,7 @@ pub(crate) fn sparse_physical_state_delta(
     )?;
     push_rational_delta(
         &mut entries,
-        PhysicalStateCoordinate::OpticalQuantumResidue,
+        PhysicalStateCoordinate::ReceptorQuantumResidue,
         predecessor.receptor_quantum_residue,
         successor.receptor_quantum_residue,
     )?;
@@ -4830,6 +4834,7 @@ pub(crate) fn retained_physical_state_coordinate(coordinate: PhysicalStateCoordi
             | PhysicalStateCoordinate::GateOpenPopulation
             | PhysicalStateCoordinate::PlasticRestLength
             | PhysicalStateCoordinate::DnaExpressedProduct
+            | PhysicalStateCoordinate::ReceptorQuantumResidue
     )
 }
 
@@ -5025,7 +5030,7 @@ fn sparse_delta_coordinate_parts(coordinate: PhysicalStateCoordinate) -> (u8, us
         PhysicalStateCoordinate::DnaFuel => (21, 0),
         PhysicalStateCoordinate::DnaExpressedProduct => (22, 0),
         PhysicalStateCoordinate::DnaWaste => (23, 0),
-        PhysicalStateCoordinate::OpticalQuantumResidue => (24, 0),
+        PhysicalStateCoordinate::ReceptorQuantumResidue => (24, 0),
         PhysicalStateCoordinate::MembraneReturnWorkResidue => (25, 0),
         PhysicalStateCoordinate::PlasticDissipationResidue => (26, 0),
         PhysicalStateCoordinate::GateDissipationResidue => (27, 0),
@@ -5061,7 +5066,7 @@ fn sparse_delta_coordinate_from_parts(
         21 if index == 0 => PhysicalStateCoordinate::DnaFuel,
         22 if index == 0 => PhysicalStateCoordinate::DnaExpressedProduct,
         23 if index == 0 => PhysicalStateCoordinate::DnaWaste,
-        24 if index == 0 => PhysicalStateCoordinate::OpticalQuantumResidue,
+        24 if index == 0 => PhysicalStateCoordinate::ReceptorQuantumResidue,
         25 if index == 0 => PhysicalStateCoordinate::MembraneReturnWorkResidue,
         26 if index == 0 => PhysicalStateCoordinate::PlasticDissipationResidue,
         27 if index == 0 => PhysicalStateCoordinate::GateDissipationResidue,
@@ -5439,7 +5444,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
                     integral_member_delta(entry.delta())?,
                 )?;
             }
-            PhysicalStateCoordinate::OpticalQuantumResidue => {
+            PhysicalStateCoordinate::ReceptorQuantumResidue => {
                 applied.receptor_quantum_residue = apply_rational_member_delta(
                     applied.receptor_quantum_residue,
                     rational_member_delta(entry.delta())?,

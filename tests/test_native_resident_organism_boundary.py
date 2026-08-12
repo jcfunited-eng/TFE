@@ -468,6 +468,7 @@ def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
                 [
                     ("psi-winding", 2, True, "3", "1"),
                     ("plastic-rest-length", 0, False, "5", "7"),
+                    ("receptor-quantum-residue", 0, False, "11", "13"),
                 ],
             )
         ],
@@ -481,6 +482,7 @@ def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
             (
                 ("psi-winding", 2, True, 3, 1),
                 ("plastic-rest-length", 0, False, 5, 7),
+                ("receptor-quantum-residue", 0, False, 11, 13),
             ),
         ),
     )

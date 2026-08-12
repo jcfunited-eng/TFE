@@ -3076,7 +3076,6 @@ impl ResidentCognitiveFormationState {
                     .retained_experience
                     .as_ref()
                     .is_some_and(|evidence| evidence.post_experience_rest.is_none())
-                || (cohort.pending_experience.is_some() && cohort.retained_experience.is_some())
             {
                 return Err(FormationError::NoncanonicalState);
             }
@@ -3613,9 +3612,6 @@ impl ResidentCognitiveFormationState {
                 decode_optional_experience_evidence(bytes, &mut cursor, &anatomy, &state, true)?;
             let pending_recurrence =
                 decode_optional_recurrence_evidence(bytes, &mut cursor, &anatomy)?;
-            if pending_experience.is_some() && retained_experience.is_some() {
-                return Err(FormationError::NoncanonicalState);
-            }
             cohorts.push(ResidentReachedCohort {
                 anatomy,
                 state,
@@ -4288,6 +4284,73 @@ fn emit_newly_quiescent_neuron_fractals(
     Ok(emitted)
 }
 
+fn advance_recurrent_neuronal_experience(
+    anatomy: &ReachedCohortAnatomy,
+    pending: &mut Option<ResidentExperienceEvidence>,
+    predecessor: &ReachedCohortState,
+    successor: &ReachedCohortState,
+    retained_change_this_interval: &[bool],
+    gate_work_perturbed_neurons: &[bool],
+    receptor_excitation_zeptojoules: &[Option<ExactRational>],
+    active_electrical_contacts: &[bool],
+) -> Result<Vec<EmittedNeuronFractal>, FormationError> {
+    let experience_preceded_interval = pending.is_some();
+    let mut experience = pending.take().or_else(|| {
+        retained_change_this_interval
+            .iter()
+            .any(|changed| *changed)
+            .then(|| ResidentExperienceEvidence {
+                codec: ExperienceEvidenceCodec::V5,
+                pre_experience_rest: predecessor.clone(),
+                post_experience_rest: None,
+                gate_work_perturbed_neurons: vec![false; anatomy.neuron_count()]
+                    .into_boxed_slice(),
+                receptor_excitation_zeptojoules: receptor_excitation_zeptojoules
+                    .to_vec()
+                    .into_boxed_slice(),
+                retained_change_neurons: vec![false; anatomy.neuron_count()].into_boxed_slice(),
+                retentively_settled_neurons: vec![false; anatomy.neuron_count()]
+                    .into_boxed_slice(),
+                active_electrical_contacts: vec![false; anatomy.contact_count()]
+                    .into_boxed_slice(),
+                local_relaxation_observed: false,
+            })
+    });
+    let Some(mut experience) = experience.take() else {
+        return Ok(Vec::new());
+    };
+    experience.codec = ExperienceEvidenceCodec::V5;
+    or_bits(
+        &mut experience.gate_work_perturbed_neurons,
+        gate_work_perturbed_neurons,
+    )?;
+    or_bits(
+        &mut experience.retained_change_neurons,
+        retained_change_this_interval,
+    )?;
+    or_bits(
+        &mut experience.active_electrical_contacts,
+        active_electrical_contacts,
+    )?;
+    let emitted = if experience_preceded_interval {
+        emit_newly_quiescent_neuron_fractals(
+            anatomy,
+            &mut experience,
+            successor,
+            retained_change_this_interval,
+        )?
+    } else {
+        Vec::new()
+    };
+    let complete = experience
+        .retained_change_neurons
+        .iter()
+        .zip(experience.retentively_settled_neurons.iter())
+        .all(|(changed, settled)| !*changed || *settled);
+    *pending = (!complete).then_some(experience);
+    Ok(emitted)
+}
+
 fn settle_resident_recurrence_interval(
     cohort: &mut ResidentReachedCohort,
     input: ReachedCohortIntervalInput<'_>,
@@ -4345,7 +4408,22 @@ fn settle_resident_recurrence_interval(
     let actual = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
     let partial_cue_reassembly_count = 0;
-    cohort.state = actual.successor.clone();
+    let retained_change_this_interval = recurrence_predecessor
+        .neurons()
+        .iter()
+        .zip(actual.successor.neurons())
+        .enumerate()
+        .map(|(neuron_index, (predecessor, successor))| {
+            sparse_retained_physical_state_delta(predecessor, successor)
+                .map(|delta| delta.is_some())
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let active_contacts = active_contact_bits(&actual.contact_transitions);
     let physically_changed_neurons = recurrence_predecessor
         .neurons()
@@ -4353,6 +4431,17 @@ fn settle_resident_recurrence_interval(
         .zip(actual.successor.neurons())
         .map(|(predecessor, successor)| predecessor != successor)
         .collect::<Vec<_>>();
+    let emitted_neuron_fractals = advance_recurrent_neuronal_experience(
+        &cohort.anatomy,
+        &mut cohort.pending_experience,
+        &recurrence_predecessor,
+        &actual.successor,
+        &retained_change_this_interval,
+        &gate_work_perturbed_neurons,
+        &receptor_excitation_zeptojoules,
+        &active_contacts,
+    )?;
+    cohort.state = actual.successor.clone();
     let formation_locally_settled = {
         let retained = cohort
             .retained_experience
@@ -4436,7 +4525,7 @@ fn settle_resident_recurrence_interval(
     }
     let Some(mut recurrence) = cohort.pending_recurrence.take() else {
         return Ok(ResidentOpticalIntervalOutcome {
-            emitted_neuron_fractals: Vec::new(),
+            emitted_neuron_fractals,
             mosaic_formed: None,
             mosaic_resolutions: Vec::new(),
             partial_cue_reassembly_count,
@@ -4457,7 +4546,7 @@ fn settle_resident_recurrence_interval(
     if exogenous_receptor_energy != Some(false) {
         cohort.pending_recurrence = Some(recurrence);
         return Ok(ResidentOpticalIntervalOutcome {
-            emitted_neuron_fractals: Vec::new(),
+            emitted_neuron_fractals,
             mosaic_formed: None,
             mosaic_resolutions: Vec::new(),
             partial_cue_reassembly_count: 0,
@@ -4495,7 +4584,7 @@ fn settle_resident_recurrence_interval(
                 cohort.pending_recurrence = Some(recurrence);
             }
             return Ok(ResidentOpticalIntervalOutcome {
-                emitted_neuron_fractals: Vec::new(),
+                emitted_neuron_fractals,
                 mosaic_formed: None,
                 mosaic_resolutions: Vec::new(),
                 partial_cue_reassembly_count,
@@ -4525,7 +4614,7 @@ fn settle_resident_recurrence_interval(
     let resolution = resolve_mosaic_structural_identity(existing_mosaics, mosaic);
     let newly_formed = matches!(resolution, MosaicStructuralResolution::NewFormation(_));
     Ok(ResidentOpticalIntervalOutcome {
-        emitted_neuron_fractals: Vec::new(),
+        emitted_neuron_fractals,
         mosaic_formed: newly_formed.then_some(receipt),
         mosaic_resolutions: vec![resolution],
         partial_cue_reassembly_count: 1,
@@ -7301,9 +7390,10 @@ fn settle_internal_contact_interval(
             })
             .collect::<Result<Vec<_>, _>>()?;
         let active_electrical_contacts = active_contact_bits(&settlement.contact_transitions);
-        let experience_preceded_interval = cohort.pending_experience.is_some();
-        let mut experience = if cohort.retained_experience.is_none() {
-            cohort.pending_experience.take().or_else(|| {
+        let mut cohort_fractals = Vec::new();
+        if cohort.retained_experience.is_none() {
+            let experience_preceded_interval = cohort.pending_experience.is_some();
+            let mut experience = cohort.pending_experience.take().or_else(|| {
                 retained_change_this_interval
                     .iter()
                     .any(|changed| *changed)
@@ -7323,34 +7413,41 @@ fn settle_internal_contact_interval(
                             .into_boxed_slice(),
                         local_relaxation_observed: false,
                     })
-            })
-        } else {
-            if cohort.pending_experience.is_some() {
-                return Err(FormationError::NoncanonicalState);
-            }
-            None
-        };
-        let mut cohort_fractals = Vec::new();
-        if let Some(evidence) = experience.as_mut() {
-            evidence.codec = ExperienceEvidenceCodec::V5;
-            or_bits(
-                &mut evidence.retained_change_neurons,
-                &retained_change_this_interval,
-            )?;
-            or_bits(
-                &mut evidence.active_electrical_contacts,
-                &active_electrical_contacts,
-            )?;
-            if experience_preceded_interval {
-                cohort_fractals.extend(emit_newly_quiescent_neuron_fractals(
-                    &cohort.anatomy,
-                    evidence,
-                    &settlement.successor,
+            });
+            if let Some(evidence) = experience.as_mut() {
+                evidence.codec = ExperienceEvidenceCodec::V5;
+                or_bits(
+                    &mut evidence.retained_change_neurons,
                     &retained_change_this_interval,
-                )?);
+                )?;
+                or_bits(
+                    &mut evidence.active_electrical_contacts,
+                    &active_electrical_contacts,
+                )?;
+                if experience_preceded_interval {
+                    cohort_fractals.extend(emit_newly_quiescent_neuron_fractals(
+                        &cohort.anatomy,
+                        evidence,
+                        &settlement.successor,
+                        &retained_change_this_interval,
+                    )?);
+                }
             }
+            cohort.pending_experience = experience;
+        } else {
+            let no_gate_work = vec![false; cohort.anatomy.neuron_count()];
+            let no_receptor_excitation = vec![None; cohort.anatomy.neuron_count()];
+            cohort_fractals.extend(advance_recurrent_neuronal_experience(
+                &cohort.anatomy,
+                &mut cohort.pending_experience,
+                &interval_predecessor_state,
+                &settlement.successor,
+                &retained_change_this_interval,
+                &no_gate_work,
+                &no_receptor_excitation,
+                &active_electrical_contacts,
+            )?);
         }
-        cohort.pending_experience = experience;
         cohort.state = settlement.successor;
         let mut changed_lineages = Vec::new();
         for (neuron_index, _, predecessor) in predecessor_neurons {
@@ -9378,6 +9475,66 @@ mod tests {
         assert!(!emitted.is_empty());
         assert!(state.cohorts[0].pending_experience.is_some());
         assert!(state.cohorts[0].retained_experience.is_none());
+    }
+
+    #[test]
+    fn experienced_neurons_emit_one_new_bounded_fractal_after_later_quiescence() {
+        let light = exact_four_single_optical_episode(0);
+        let dark = exact_four_dark_optical_episode();
+        let seed = explicit_optical_seed(&light, 1);
+        let mut state =
+            ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
+                .unwrap();
+
+        let first = state.prepare(&light, 16_000_000).unwrap();
+        assert_eq!(first.observation.emitted_neuron_fractals.len(), 3);
+        state.commit(first).unwrap();
+
+        // Preserve the first exact settled experience as prior cognitive
+        // state. The current wire format already has independent retained and
+        // pending carriers; no schema or compatibility authority is added.
+        let mut retained = state.cohorts[0].pending_experience.take().unwrap();
+        retained.post_experience_rest = Some(state.cohorts[0].state.clone());
+        retained.local_relaxation_observed = true;
+        state.cohorts[0].retained_experience = Some(retained);
+        let prior_retained = state.cohorts[0].retained_experience.clone();
+
+        let prior_bytes = state.encode(16_000_000).unwrap();
+        state = ResidentCognitiveFormationState::decode(&prior_bytes, 16_000_000).unwrap();
+        assert_eq!(state.encode(16_000_000).unwrap(), prior_bytes);
+
+        let later_occurrence = state.prepare(&light, 16_000_000).unwrap();
+        assert!(later_occurrence.successor.cohorts[0]
+            .retained_experience
+            .is_some());
+        state.commit(later_occurrence).unwrap();
+        assert!(state.cohorts[0].pending_experience.is_some());
+
+        // Simultaneous prior-retained plus current-pending evidence must cold
+        // restore byte-exactly; otherwise production restart would erase the
+        // currently forming experience.
+        let mid_bytes = state.encode(16_000_000).unwrap();
+        state = ResidentCognitiveFormationState::decode(&mid_bytes, 16_000_000).unwrap();
+        assert_eq!(state.encode(16_000_000).unwrap(), mid_bytes);
+
+        let mut later_emitted = Vec::new();
+        for _ in 0..DARK_TAIL_EPISODES {
+            let prepared = state.prepare(&dark, 16_000_000).unwrap();
+            later_emitted.extend(prepared.observation.emitted_neuron_fractals.clone());
+            state.commit(prepared).unwrap();
+            if !later_emitted.is_empty() {
+                break;
+            }
+        }
+        assert!(!later_emitted.is_empty());
+        assert!(later_emitted
+            .iter()
+            .all(|fractal| !fractal.delta.entries().is_empty()));
+        assert_eq!(state.cohorts[0].retained_experience, prior_retained);
+        assert!(state.cohorts[0].pending_experience.is_none());
+
+        let later_dark = state.prepare(&dark, 16_000_000).unwrap();
+        assert!(later_dark.observation.emitted_neuron_fractals.is_empty());
     }
 
     #[test]

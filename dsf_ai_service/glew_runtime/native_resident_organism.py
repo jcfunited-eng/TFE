@@ -774,6 +774,7 @@ class NativeResidentOrganism:
             "gate-open-population",
             "plastic-rest-length",
             "dna-expressed-product",
+            "receptor-quantum-residue",
         }
         for raw_fractal in raw_neuron_fractals:
             if not isinstance(raw_fractal, tuple) or len(raw_fractal) != 2:

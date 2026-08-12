@@ -90,7 +90,7 @@ neuron's unresolved physical experience. Both emitters must obey one law.
 - The transient observation now carries the stable neuron lineage and every
   exact sparse retained entry. The Python boundary validates one unique
   lineage per emitted fractal, nonempty deltas, canonical exact rational
-  parts, and the four permitted retained coordinate families.
+  parts, and the permitted retained coordinate families.
 - Production transport binds each emitted lineage and delta to its exact
   predecessor and successor organism ticks. The public observation exposes
   that same evidence rather than only its count.
@@ -106,7 +106,7 @@ to stop. That distinction is required by a continuously operating organism.
   quiescence.
 - Each emitted delta contains only exact retained-coordinate entries and is
   independently attributable to one participating neuron.
-- Transient membrane, carrier, receptor-residue, dissipation, fuel, spent,
+- Transient membrane charge, carrier transfer, dissipation, fuel, spent,
   heat, and field-delivery changes never become fractal entries.
 - A participating neuron with no retained post-quiescence change emits no
   fractal.
@@ -184,3 +184,60 @@ excluded from opening a new pending physical experience, so its neurons cannot
 emit a later post-quiescence fractal. C-002 remains open until recurrent lived
 experience can retain new per-neuron physical deltas without replacing the
 older retained formation or inventing a second formation law.
+
+## Recurrent-lifecycle correction in progress
+
+The governing preflight now requires the same stateful path to be proved from
+both a pristine participant and a participant carrying prior retained
+experience or restored state. First-use success alone cannot authorize
+packaging.
+
+The candidate uses the wire format's existing independent
+`retained_experience` and `pending_experience` carriers. It permits an
+experienced cohort to open one new bounded pending physical experience,
+accumulate exact retained-coordinate changes, emit each newly quiescent sparse
+neuron delta once, and discard only that completed pending evidence. It does
+not overwrite the prior retained formation, add a schema, or change mosaic
+admission.
+
+Focused native evidence:
+
+- `experienced_neurons_emit_one_new_bounded_fractal_after_later_quiescence`
+  passes;
+- retained plus pending evidence encodes, decodes, and re-encodes byte-exactly;
+- the prior retained formation remains identical after the later experience;
+- the later quiescent interval emits nonempty sparse deltas; and
+- a following quiet interval emits no duplicate.
+
+This is local evidence only. The next gate is the same recurrent path against
+the authenticated task-987 production predecessor; C-002 remains open.
+
+That exact predecessor gate first falsified the candidate: Z physically moved
+218 neurons but produced no retained fractal. The first absent boundary was
+the retained-coordinate projection. It excluded the neuron's persistent
+receptor-quantum accumulator even though the definitive neuron model admits
+exact retained channel or receptor material. The candidate now includes that
+existing rational coordinate under the truthful sense-agnostic name
+`receptor-quantum-residue`; its existing wire tag remains 24, so no body or
+mosaic schema changes.
+
+Against the SHA-verified task-987 body at tick 49,540, a discarded Z lesson
+plus exact quiet tail now proves:
+
+- identity remains `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`;
+- 216 unique recurrent neuronal fractals are emitted;
+- their exact entries contain 215 receptor-residue and 46 winding deltas;
+- four later quiet hops emit zero duplicates;
+- reached neurons move 221 to 222 and mosaics 1 to 2 through existing physics;
+- state growth is 221,259 bytes; and
+- Python cognition callbacks remain zero.
+
+The full native suite passes 572 tests with zero failures and 12 explicit
+ignored tests. The frozen C-002 Python boundary set passes 23/23. A mistakenly
+broadened Python command also exposed 17 stale production-fixture failures:
+those mocks lack the already-existing `mosaic_of_mosaics_count` field. They are
+recorded as out-of-scope fixture debt and were not repaired in C-002.
+
+This remains local candidate evidence, not deployment. C-002 remains open
+until rehearsal and live production reproduce the recurrent positive and
+quiet-tail proofs.

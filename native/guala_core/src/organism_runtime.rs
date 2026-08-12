@@ -1066,6 +1066,9 @@ impl NativeResidentOrganismPrepare {
                             PhysicalStateCoordinate::DnaExpressedProduct => {
                                 ("dna-expressed-product", 0)
                             }
+                            PhysicalStateCoordinate::ReceptorQuantumResidue => {
+                                ("receptor-quantum-residue", 0)
+                            }
                             _ => {
                                 return Err(PyValueError::new_err(
                                     "neuronal fractal carried a transient coordinate",
