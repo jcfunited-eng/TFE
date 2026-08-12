@@ -1586,6 +1586,8 @@ impl ResidentCognitiveFormationState {
         let mut physically_transitioned_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut externally_reached_receptor_places =
+            Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
         let mut externally_reached_by_occurrence =
             vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
         let mut emitted_neuron_fractals = Vec::new();
@@ -2485,6 +2487,8 @@ impl ResidentCognitiveFormationState {
                     let lineage = cohort.anatomy.neuron_lineages()[resident_index];
                     if !externally_reached_neuron_lineages.contains(&lineage) {
                         externally_reached_neuron_lineages.push(lineage);
+                        externally_reached_receptor_places
+                            .push((lineage, cohort.anatomy.mounts()[resident_index].place()));
                     }
                     if !externally_reached_by_occurrence[occurrence_index].contains(&lineage) {
                         externally_reached_by_occurrence[occurrence_index].push(lineage);
@@ -2503,6 +2507,7 @@ impl ResidentCognitiveFormationState {
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
+            &externally_reached_receptor_places,
         )?;
         for occurrence_lineages in &externally_reached_by_occurrence {
             mount_reached_cross_sensory_association(
@@ -5870,31 +5875,20 @@ fn mount_reached_local_integration(
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
+    reached_receptors: &[([u8; 16], DeclaredNeuronPlace)],
 ) -> Result<(), FormationError> {
-    let receptors = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
-                .iter()
-                .zip(cohort.anatomy.neuron_lineages())
-        })
-        .filter_map(|(mount, lineage)| mount.source_site().map(|_| (*lineage, mount.place())))
-        .collect::<Vec<_>>();
-
-    for (receptor_lineage, receptor_place) in receptors {
-        let integration_place = local_integration_place(receptor_place)?;
+    for (receptor_lineage, receptor_place) in reached_receptors {
+        let integration_place = local_integration_place(*receptor_place)?;
         let integration_lineage = mount_intrinsic_neuron_at_place(
             cohorts,
             resting_population,
             next_lineage_ordinal,
             integration_place,
         )?;
-        if !electrical_fabric.contains_contact(receptor_lineage, integration_lineage) {
+        if !electrical_fabric.contains_contact(*receptor_lineage, integration_lineage) {
             *electrical_fabric = electrical_fabric
                 .append_contact(
-                    receptor_lineage,
+                    *receptor_lineage,
                     integration_lineage,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 )
@@ -9876,11 +9870,64 @@ mod tests {
         );
         let mut next_lineage = 4;
         let mut fabric = ResidentElectricalFabric::default();
+        let reached_receptors = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                mount
+                    .source_site()
+                    .map(|_| (*lineage, mount.place()))
+            })
+            .collect::<Vec<_>>();
+        let resting_before = population.as_ref().unwrap().resting_cell_count();
         mount_reached_local_integration(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
+            &reached_receptors[..1],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), 1);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+        let one_frontier_cohorts = cohorts.len();
+        mount_reached_local_integration(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[],
+        )
+        .unwrap();
+        mount_reached_local_integration(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &reached_receptors[..1],
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), one_frontier_cohorts);
+        assert_eq!(fabric.contact_count(), 1);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+        mount_reached_local_integration(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &reached_receptors[1..],
         )
         .unwrap();
         mount_reached_cross_sensory_association(
