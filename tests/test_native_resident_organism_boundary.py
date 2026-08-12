@@ -32,6 +32,10 @@ class _NativeResidentOrganismObservation:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    organic_mosaic_relations: tuple[
+        tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str, int], ...]],
+        ...,
+    ] = ()
     python_callback_count: int = 0
     schema: str = boundary.OBSERVATION_SCHEMA
     identity: str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
@@ -90,6 +94,10 @@ class _NativeResidentOrganismPrepare:
     receptor_ingress_changing_count: int = 0
     receptor_ingress_quiescent_count: int = 96
     motor_unit_recruitments: list[tuple[str, int, int]] | None = None
+    active_physical_bonds: list[tuple[str, str, int]] | None = None
+    organic_mosaic_relations: list[
+        tuple[list[str], list[str], list[tuple[str, str, int]]]
+    ] | None = None
     python_callback_count: int = 0
 
     def __post_init__(self) -> None:
@@ -97,6 +105,10 @@ class _NativeResidentOrganismPrepare:
             self.emitted_neuron_fractals = []
         if self.motor_unit_recruitments is None:
             self.motor_unit_recruitments = []
+        if self.active_physical_bonds is None:
+            self.active_physical_bonds = []
+        if self.organic_mosaic_relations is None:
+            self.organic_mosaic_relations = []
 
     @property
     def token_hex(self) -> str:
@@ -163,6 +175,11 @@ class _NativeResidentOrganismRuntime:
         self,
     ) -> list[tuple[str, list[str]]]:
         return [("b" * 64, ["01" * 16])]
+
+    def observe_reached_neuron_lineage_layers(
+        self,
+    ) -> list[tuple[str, int, bool]]:
+        return [("01" * 16, 5, True), ("02" * 16, 9, False)]
 
     def prepare(self, source: _Source) -> object:
         if self.prepare_result_override is not None:
@@ -262,6 +279,19 @@ def test_recurrence_cue_observation_is_exact_and_read_only(
 
     assert organism.observe_retained_formation_recurrence_cues() == (
         ("b" * 64, ("01" * 16,)),
+    )
+    assert runtime.active.state_sha256 == before
+
+
+def test_lineage_layer_observation_is_exact_and_read_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    before = runtime.active.state_sha256
+
+    assert organism.observe_reached_neuron_lineage_layers() == (
+        ("01" * 16, 5, True),
+        ("02" * 16, 9, False),
     )
     assert runtime.active.state_sha256 == before
 

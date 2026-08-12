@@ -139,6 +139,8 @@ const MAGIC_V17: &[u8; 8] = b"GLCOG017";
 const VERSION_V17: u16 = 17;
 const MAGIC_V18: &[u8; 8] = b"GLCOG018";
 const VERSION_V18: u16 = 18;
+const MAGIC_V19: &[u8; 8] = b"GLCOG019";
+const VERSION_V19: u16 = 19;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
@@ -155,7 +157,7 @@ const FIXED_BYTES: usize = MAGIC.len()
     + 8
     + 8
     + HIPPOCAMPAL_CHECKPOINT_BYTES;
-const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (2 * std::mem::size_of::<u64>());
+const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (3 * std::mem::size_of::<u64>());
 const EXPERIENCE_MAGIC: &[u8; 8] = b"GLEXP01\0";
 const EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
 const EXPERIENCE_V3_MAGIC: &[u8; 8] = b"GLEXP03\0";
@@ -177,9 +179,9 @@ const RETAINED_MOSAIC_COUNTS_MAGIC: &[u8; 8] = b"GLMRC01\0";
 const EVIDENCE_DIGEST_BYTES: usize = 32;
 
 /// Which persisted cognitive-image layout a body carries. Historical layouts
-/// remain readable at the explicit one-way migration boundary; every ordinary
-/// encode emits V15, whose additional field carries the compact developmental
-/// resting population.
+/// remain readable at the explicit one-way migration boundary. Every ordinary
+/// encode emits the current format; V19 adds only the compact causal
+/// electrical frontier needed to continue sparse propagation after restart.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum CognitiveCodecFormat {
     V12,
@@ -189,6 +191,7 @@ enum CognitiveCodecFormat {
     V16,
     V17,
     V18,
+    V19,
 }
 
 #[cfg(test)]
@@ -606,6 +609,13 @@ pub(crate) struct ResidentCognitiveFormationState {
     resting_population: Option<DevelopmentalRestingPopulation>,
     cohorts: Box<[ResidentReachedCohort]>,
     electrical_fabric: ResidentElectricalFabric,
+    /// Exact sparse intrinsic layer-9 lineages newly reached across a physical
+    /// contact in the preceding interval. They alone may bridge a distributed
+    /// member cue to the formation's other members in the next interval. This
+    /// is short-lived electrical propagation state, not stored memory or a
+    /// returned answer. Absolute membrane charge is deliberately not authority
+    /// here: a living neuron's resting potential may be nonzero.
+    active_electrical_frontier: Box<[[u8; 16]]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
 }
@@ -620,6 +630,7 @@ impl Default for ResidentCognitiveFormationState {
             resting_population: None,
             cohorts: Box::new([]),
             electrical_fabric: ResidentElectricalFabric::default(),
+            active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         }
@@ -1451,6 +1462,13 @@ impl ResidentCognitiveFormationState {
                 .electrical_fabric
                 .without_lineages(&retired)
                 .map_err(FormationError::ResidentElectricalUnavailable)?,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(|lineage| !retired.contains(lineage))
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
         };
@@ -1518,6 +1536,7 @@ impl ResidentCognitiveFormationState {
             resting_population: self.resting_population.clone(),
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric: self.electrical_fabric.clone(),
+            active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -1660,6 +1679,7 @@ impl ResidentCognitiveFormationState {
             resting_population: None,
             cohorts: Box::new([]),
             electrical_fabric: ResidentElectricalFabric::default(),
+            active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -1929,6 +1949,7 @@ impl ResidentCognitiveFormationState {
             resting_population: predecessor_resting_population,
             cohorts: predecessor_cohorts,
             electrical_fabric: predecessor_electrical_fabric,
+            active_electrical_frontier: predecessor_active_electrical_frontier,
             mosaics: predecessor_mosaics,
             hippocampal: predecessor_hippocampal,
         } = expanded;
@@ -2904,6 +2925,7 @@ impl ResidentCognitiveFormationState {
             }
         }
         let mut electrical_fabric = predecessor_electrical_fabric;
+        let mut active_electrical_frontier = predecessor_active_electrical_frontier.into_vec();
         mount_reached_local_integration(
             &mut cohorts,
             &mut resting_population,
@@ -2943,6 +2965,11 @@ impl ResidentCognitiveFormationState {
         // an organism-wide reservoir projection. Zero membrane difference
         // contributes no seed and therefore no invented signal.
         let mut internal_frontier_lineages = externally_reached_neuron_lineages.clone();
+        for lineage in &active_electrical_frontier {
+            if !internal_frontier_lineages.contains(lineage) {
+                internal_frontier_lineages.push(*lineage);
+            }
+        }
         for lineage in reached_association_lineages
             .iter()
             .chain(&reached_body_regulation_lineages)
@@ -2962,6 +2989,7 @@ impl ResidentCognitiveFormationState {
             &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
         )?;
+        active_electrical_frontier = internal_contact.next_active_frontier.clone();
         for predecessor in internal_contact.transition_predecessors {
             retain_first_transition_predecessor(&mut transition_neuron_predecessors, predecessor);
         }
@@ -3040,6 +3068,7 @@ impl ResidentCognitiveFormationState {
             resting_population,
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric,
+            active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
         };
@@ -3410,6 +3439,7 @@ impl ResidentCognitiveFormationState {
             resting_population: self.resting_population.clone(),
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric: self.electrical_fabric.clone(),
+            active_electrical_frontier: self.active_electrical_frontier.clone(),
             mosaics: self.mosaics.clone(),
             hippocampal: self.hippocampal,
         };
@@ -3469,7 +3499,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
-        self.encode_with_format(CognitiveCodecFormat::V18, max_encoded_bytes)
+        self.encode_with_format(CognitiveCodecFormat::V19, max_encoded_bytes)
     }
 
     fn encode_with_format(
@@ -3513,7 +3543,8 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V15
             | CognitiveCodecFormat::V16
             | CognitiveCodecFormat::V17
-            | CognitiveCodecFormat::V18 => self
+            | CognitiveCodecFormat::V18
+            | CognitiveCodecFormat::V19 => self
                 .resting_population
                 .as_ref()
                 .map(DevelopmentalRestingPopulation::encode)
@@ -3532,6 +3563,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V16
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             length = length
                 .checked_add(8)
@@ -3573,7 +3605,8 @@ impl ResidentCognitiveFormationState {
                 ),
                 CognitiveCodecFormat::V16
                 | CognitiveCodecFormat::V17
-                | CognitiveCodecFormat::V18 => {
+                | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19 => {
                     encode_reached_cohort_cell_v6(&cohort.anatomy, &cohort.state)
                 }
             }
@@ -3594,6 +3627,7 @@ impl ResidentCognitiveFormationState {
                             | CognitiveCodecFormat::V16
                             | CognitiveCodecFormat::V17
                             | CognitiveCodecFormat::V18
+                            | CognitiveCodecFormat::V19
                     ),
                 )
             };
@@ -3663,7 +3697,10 @@ impl ResidentCognitiveFormationState {
             .ok_or(FormationError::ArithmeticOverflow)?;
         let electrical_fabric = if matches!(
             format,
-            CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17 | CognitiveCodecFormat::V18
+            CognitiveCodecFormat::V16
+                | CognitiveCodecFormat::V17
+                | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             let encoded = self
                 .electrical_fabric
@@ -3680,6 +3717,20 @@ impl ResidentCognitiveFormationState {
             }
             None
         };
+        if format == CognitiveCodecFormat::V19 {
+            length = length
+                .checked_add(8)
+                .and_then(|value| {
+                    value.checked_add(
+                        self.active_electrical_frontier
+                            .len()
+                            .checked_mul(16)?,
+                    )
+                })
+                .ok_or(FormationError::ArithmeticOverflow)?;
+        } else if !self.active_electrical_frontier.is_empty() {
+            return Err(FormationError::NoncanonicalState);
+        }
         if length > max_encoded_bytes {
             return Err(FormationError::BudgetExceeded {
                 required: length,
@@ -3716,6 +3767,10 @@ impl ResidentCognitiveFormationState {
                 output.extend_from_slice(MAGIC_V18);
                 output.extend_from_slice(&VERSION_V18.to_le_bytes());
             }
+            CognitiveCodecFormat::V19 => {
+                output.extend_from_slice(MAGIC_V19);
+                output.extend_from_slice(&VERSION_V19.to_le_bytes());
+            }
         }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -3747,6 +3802,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V16
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             push_length(&mut output, resting_population.as_ref().map_or(0, Vec::len))?;
             if let Some(population) = resting_population {
@@ -3755,11 +3811,20 @@ impl ResidentCognitiveFormationState {
         }
         if matches!(
             format,
-            CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17 | CognitiveCodecFormat::V18
+            CognitiveCodecFormat::V16
+                | CognitiveCodecFormat::V17
+                | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             let electrical_fabric = electrical_fabric.ok_or(FormationError::NoncanonicalState)?;
             push_length(&mut output, electrical_fabric.len())?;
             output.extend_from_slice(&electrical_fabric);
+        }
+        if format == CognitiveCodecFormat::V19 {
+            push_length(&mut output, self.active_electrical_frontier.len())?;
+            for lineage in &self.active_electrical_frontier {
+                output.extend_from_slice(lineage);
+            }
         }
         output.extend_from_slice(
             &u64::try_from(cells.len())
@@ -3879,7 +3944,9 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let format = if bytes.len() >= MAGIC_V18.len() && &bytes[..MAGIC_V18.len()] == MAGIC_V18 {
+        let format = if bytes.len() >= MAGIC_V19.len() && &bytes[..MAGIC_V19.len()] == MAGIC_V19 {
+            CognitiveCodecFormat::V19
+        } else if bytes.len() >= MAGIC_V18.len() && &bytes[..MAGIC_V18.len()] == MAGIC_V18 {
             CognitiveCodecFormat::V18
         } else if bytes.len() >= MAGIC_V17.len() && &bytes[..MAGIC_V17.len()] == MAGIC_V17 {
             CognitiveCodecFormat::V17
@@ -3916,6 +3983,7 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V16 => VERSION_V16,
             CognitiveCodecFormat::V17 => VERSION_V17,
             CognitiveCodecFormat::V18 => VERSION_V18,
+            CognitiveCodecFormat::V19 => VERSION_V19,
         };
         if version != expected_version {
             return Err(FormationError::BadVersion);
@@ -4002,6 +4070,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V16
                 | CognitiveCodecFormat::V17
                 | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             let population_length = read_length(bytes, &mut cursor)?;
             if population_length == 0 {
@@ -4024,7 +4093,10 @@ impl ResidentCognitiveFormationState {
         };
         let electrical_fabric = if matches!(
             format,
-            CognitiveCodecFormat::V16 | CognitiveCodecFormat::V17 | CognitiveCodecFormat::V18
+            CognitiveCodecFormat::V16
+                | CognitiveCodecFormat::V17
+                | CognitiveCodecFormat::V18
+                | CognitiveCodecFormat::V19
         ) {
             let fabric_length = read_length(bytes, &mut cursor)?;
             let fabric_end = cursor
@@ -4040,6 +4112,34 @@ impl ResidentCognitiveFormationState {
             fabric
         } else {
             ResidentElectricalFabric::default()
+        };
+        let active_electrical_frontier = if format == CognitiveCodecFormat::V19 {
+            let count = read_length(bytes, &mut cursor)?;
+            let frontier_end = cursor
+                .checked_add(
+                    count
+                        .checked_mul(16)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                )
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            let encoded = bytes
+                .get(cursor..frontier_end)
+                .ok_or(FormationError::NoncanonicalState)?;
+            cursor = frontier_end;
+            let mut frontier = Vec::new();
+            frontier
+                .try_reserve_exact(count)
+                .map_err(|_| FormationError::ArithmeticOverflow)?;
+            for lineage in encoded.chunks_exact(16) {
+                frontier.push(
+                    lineage
+                        .try_into()
+                        .map_err(|_| FormationError::NoncanonicalState)?,
+                );
+            }
+            frontier
+        } else {
+            Vec::new()
         };
         let cohort_count_end = cursor
             .checked_add(8)
@@ -4152,6 +4252,7 @@ impl ResidentCognitiveFormationState {
             resting_population,
             cohorts: cohorts.into_boxed_slice(),
             electrical_fabric,
+            active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
         };
@@ -4174,8 +4275,9 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let already_geometry_provisioned =
-            bytes.len() >= MAGIC_V18.len() && &bytes[..MAGIC_V18.len()] == MAGIC_V18;
+        let already_geometry_provisioned = bytes.len() >= MAGIC_V18.len()
+            && (&bytes[..MAGIC_V18.len()] == MAGIC_V18
+                || &bytes[..MAGIC_V19.len()] == MAGIC_V19);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         let state = if already_geometry_provisioned {
             state
@@ -7179,6 +7281,7 @@ struct ResidentContactEdge {
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
+    next_active_frontier: Vec<[u8; 16]>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
@@ -7247,6 +7350,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
@@ -7269,6 +7373,16 @@ fn settle_internal_contact_interval(
             .position(|(_, _, retained)| *retained == lineage)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
+    let hippocampal_lineages = flat_locations
+        .iter()
+        .filter_map(|(cohort_index, neuron_index, lineage)| {
+            (cohorts[*cohort_index].anatomy.mounts()[*neuron_index]
+                .place()
+                .layer()
+                == 9)
+                .then_some(*lineage)
+        })
+        .collect::<Vec<_>>();
 
     let mut edges = Vec::<ResidentContactEdge>::new();
     let mut cohort_offsets = Vec::with_capacity(cohorts.len());
@@ -7343,31 +7457,20 @@ fn settle_internal_contact_interval(
         });
     }
 
-    // One physical interval reaches only the externally driven or still
-    // charged material and its immediate electrical neighbours.  The former
-    // transitive graph closure treated a contact as instantaneous authority to
-    // poll every neuron in the connected component, even when no carrier had
-    // crossed the intervening contacts.  Charge retained in a newly reached
-    // neighbour becomes the seed of a later interval, so propagation advances
-    // through lived time rather than jumping across the whole brain.
-    let mut seeds = flat_locations
+    // One physical interval reaches only its explicitly carried causal
+    // frontier and immediate electrical neighbours. Absolute nonzero
+    // membrane charge is not activity: the phase-one pump gives a living
+    // neuron a nonzero resting potential. Likewise a retained sub-carrier
+    // contact phase is material, not proof that current moved in this
+    // interval. The predecessor state carries the exact lineages whose
+    // membrane/contact physics actually changed last interval, and the
+    // caller combines those with this interval's external or metabolic cause.
+    // This replaces the false rule that eventually made every reached neuron
+    // and contact a permanent seed.
+    let seeds = flat_locations
         .iter()
-        .map(|(cohort_index, neuron_index, lineage)| {
-            externally_reached_lineages.contains(lineage)
-                || cohorts[*cohort_index].state.neurons()[*neuron_index]
-                    .membrane_state()
-                    .separated_elementary_charges()
-                    != 0
-        })
+        .map(|(_, _, lineage)| externally_reached_lineages.contains(lineage))
         .collect::<Vec<_>>();
-    for edge in &edges {
-        if edge.state.carrier_phase()
-            != crate::elementary_charge_transfer::ChargeCarrierPhase::zero()
-        {
-            seeds[edge.left] = true;
-            seeds[edge.right] = true;
-        }
-    }
     let contact_endpoints = edges
         .iter()
         .map(|edge| (edge.left, edge.right))
@@ -7382,6 +7485,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
@@ -7414,6 +7518,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
@@ -7975,12 +8080,39 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     active_bonds.sort_unstable();
     active_bonds.dedup();
+    // Persist only a newly reached intrinsic layer-9 cell.  Its physical role
+    // is the sparse one-interval bridge from a distributed member cue to the
+    // other members of that same retained formation.  Carrying an arbitrary
+    // changed recipient would turn ordinary electrical reach into a graph
+    // flood; carrying the predecessor seed would make local relaxation a
+    // perpetual source.  The layer is existing developmental anatomy, not a
+    // runtime label or stored answer.
+    let mut next_active_frontier = transition_predecessors
+        .iter()
+        .filter_map(|predecessor| {
+            (!externally_reached_lineages.contains(&predecessor.lineage)
+                && hippocampal_lineages.contains(&predecessor.lineage))
+            .then_some(predecessor.lineage)
+        })
+        .collect::<Vec<_>>();
+    for bond in &active_bonds {
+        let (left, right) = bond.endpoints();
+        if !externally_reached_lineages.contains(&left) && hippocampal_lineages.contains(&left) {
+            next_active_frontier.push(left);
+        }
+        if !externally_reached_lineages.contains(&right) && hippocampal_lineages.contains(&right) {
+            next_active_frontier.push(right);
+        }
+    }
+    next_active_frontier.sort_unstable();
+    next_active_frontier.dedup();
     // One shared full-field occurrence was evaluated for the entire reached
     // contact frontier, irrespective of how many neurons received their
     // coordinate-local perspectives.
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
+        next_active_frontier,
         metabolically_perturbed_body_receptor_lineages,
         motor_unit_recruitments,
         emitted_neuron_fractals,
@@ -8173,6 +8305,22 @@ fn validate_lineage_state(state: &ResidentCognitiveFormationState) -> Result<(),
         .lineages()
         .iter()
         .any(|lineage| !reached_lineages.contains(lineage))
+    {
+        return Err(FormationError::NoncanonicalState);
+    }
+    if state
+        .active_electrical_frontier
+        .iter()
+        .enumerate()
+        .any(|(index, lineage)| {
+            reached_lineages
+                .iter()
+                .position(|candidate| candidate == lineage)
+                .and_then(|position| reached_places.get(position))
+                .map(|place| place.layer())
+                != Some(9)
+                || (index > 0 && state.active_electrical_frontier[index - 1] >= *lineage)
+        })
     {
         return Err(FormationError::NoncanonicalState);
     }
@@ -8796,12 +8944,12 @@ mod tests {
         assert_eq!(prepared.successor.summary().complete_neuron_count, 8);
         assert_eq!(prepared.successor.retained_neuron_lineages(), lineages);
         let successor = &prepared.successor.cohorts[0].state;
-        // Receptors 2 and 3 receive no new external gate work, but their
-        // retained physical charge from the preceding occurrence remains an
-        // authentic seed. Continuous neuronal settlement therefore advances
-        // them without relabelling that motion as new sensory input.
-        assert_ne!(successor.neurons()[2], predecessor.neurons()[2]);
-        assert_ne!(successor.neurons()[3], predecessor.neurons()[3]);
+        // Receptors 2 and 3 receive no new external gate work. Their nonzero
+        // resting charge is retained state, not a fresh signal, so this
+        // occurrence does not advance them. The two actually reached
+        // receptors do advance.
+        assert_eq!(successor.neurons()[2], predecessor.neurons()[2]);
+        assert_eq!(successor.neurons()[3], predecessor.neurons()[3]);
         assert_ne!(successor.neurons()[0], predecessor.neurons()[0]);
         assert_ne!(successor.neurons()[1], predecessor.neurons()[1]);
 
@@ -9575,6 +9723,8 @@ mod tests {
                 pending_recurrence: None,
             }]
             .into_boxed_slice(),
+            electrical_fabric: ResidentElectricalFabric::default(),
+            active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
         };
@@ -11273,7 +11423,7 @@ mod tests {
     }
 
     #[test]
-    fn whole_organism_activity_reaches_affective_geography_after_lived_propagation() {
+    fn whole_organism_activity_reaches_affective_geography_without_inventing_effectors() {
         let canal_anatomy =
             CanalAnatomy::new(6, 13_200, PositiveRatio::new(25, 1).unwrap()).unwrap();
         let bundle_anatomy = LocalCupulaBundleAnatomy::new(2, 5, 20_000).unwrap();
@@ -11337,12 +11487,11 @@ mod tests {
             layer_counts.iter().find(|(layer, _)| *layer == 11).copied(),
             Some((11, layer_eleven))
         );
-        assert!(layer_counts
-            .iter()
-            .any(|(layer, count)| *layer == 12 && *count > 0));
-        assert!(layer_counts
-            .iter()
-            .any(|(layer, count)| *layer == 13 && *count > 0));
+        // Newly mounted ordering cells are quiescent. A nonzero resting
+        // membrane is not action, so it cannot manufacture motor or
+        // articulatory anatomy without a later genuine physical excitation.
+        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 12));
+        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert_eq!(
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count

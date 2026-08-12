@@ -584,6 +584,30 @@ class NativeResidentOrganism:
             raise RuntimeError("formation observation advanced the organism")
         return tuple(validated)
 
+    def observe_reached_neuron_lineage_layers(
+        self,
+    ) -> tuple[tuple[str, int, bool], ...]:
+        """Read reached lineage, developmental layer, and receptor anatomy."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_reached_neuron_lineage_layers()
+        validated = []
+        seen_lineages: set[str] = set()
+        for lineage, layer, receptor in observed:
+            lineage = str(lineage)
+            layer = _nonnegative_integer(layer, "reached developmental layer")
+            if (
+                len(lineage) != 32
+                or lineage in seen_lineages
+                or not isinstance(receptor, bool)
+            ):
+                raise RuntimeError("reached lineage-layer observation is invalid")
+            validated.append((lineage, layer, receptor))
+            seen_lineages.add(lineage)
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("lineage-layer observation advanced the organism")
+        return tuple(validated)
+
     def observe_retained_formation_structures(
         self,
     ) -> tuple[
