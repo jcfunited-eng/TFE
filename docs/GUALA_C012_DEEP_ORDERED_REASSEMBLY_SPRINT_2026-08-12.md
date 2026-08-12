@@ -93,6 +93,14 @@ Primary research consulted:
    on the import path, so no duplicate rule or code change was added. The
    corrected source test passed 46/46; the exact compiled wheel passed the same
    46/46.
+5. The third immutable candidate, image
+   `sha256:726283e3e99c335a54f3b02a41615faea396242b5cc1e39ef8358ac3e5b90075`,
+   passed the native C-012 rehearsal: six recurrent ordered-path relations,
+   exact cold replay, zero Python cognition callbacks, and unchanged source
+   state. The controller rejected that valid proof because two ordinal checks
+   still capped the predecessor three-hop horizon at 3. Production remained
+   task 1001. RF-030 now includes controller bounds; both one-based ordinals are
+   bounded by the proof's exact positive hop count rather than a stale literal.
 
 ## Translation-boundary census
 

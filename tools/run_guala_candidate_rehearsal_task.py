@@ -379,7 +379,9 @@ def _validate_proof(
         and proof["distributed_recall_formation_member_count"] >= 3
         and isinstance(proof.get("distributed_recall_interval_ordinal"), int)
         and not isinstance(proof["distributed_recall_interval_ordinal"], bool)
-        and 1 <= proof["distributed_recall_interval_ordinal"] <= 3
+        and 1
+        <= proof["distributed_recall_interval_ordinal"]
+        <= proof["distributed_recognition_source_hop_count"]
         and isinstance(proof.get("distributed_recall_source_dsf_delivery_count"), int)
         and proof["distributed_recall_source_dsf_delivery_count"] > 0
         and isinstance(
@@ -432,7 +434,9 @@ def _validate_proof(
         and proof["ordered_path_relation_count"] > 0
         and isinstance(proof.get("episodic_relation_interval_ordinal"), int)
         and not isinstance(proof["episodic_relation_interval_ordinal"], bool)
-        and 1 <= proof["episodic_relation_interval_ordinal"] <= 3
+        and 1
+        <= proof["episodic_relation_interval_ordinal"]
+        <= proof["distributed_recognition_source_hop_count"]
         and isinstance(proof.get("episodic_related_formation_count"), int)
         and not isinstance(proof["episodic_related_formation_count"], bool)
         and proof["episodic_related_formation_count"] >= 2
