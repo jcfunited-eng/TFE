@@ -57,8 +57,13 @@ box remains unchecked until live acceptance passes.
   intervals advanced tick 47,656→47,665 with reached/resting counts fixed at
   221/196,508, unchanged per-layer counts and state bytes, and zero Python
   cognition callbacks.
-- [ ] **S-020** Cold-restore and resource-prove the complete starting
+- [x] **S-020** Cold-restore and resource-prove the complete starting
   specialization roster without identity, learned-state, or contact loss.
+  Task 984 cold-restored the exact current body, retained the same identity,
+  all layers 0–13, 221 reached neurons, 196,508 compact resting cells, 27 held
+  neuronal impressions and one retained mosaic; later unattended intervals
+  preserved counts and 30,590,939 state bytes with bounded CPU/RAM and zero
+  Python cognition callbacks.
 
 ## Cognitive-chain mechanisms
 
