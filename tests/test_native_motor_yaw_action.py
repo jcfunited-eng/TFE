@@ -39,3 +39,36 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
     assert after_body.pose.heading_millidegrees == 5
     assert after_body.pose.position == before_body.pose.position
     assert committed_body == authority.encoded_snapshot()
+
+
+def test_native_motor_action_is_truthfully_projected(monkeypatch) -> None:
+    motor_action = {
+        "moved": True,
+        "signed_yaw_millidegrees": 5,
+        "motor_unit_recruitment_count": 2,
+        "world_revision": 1,
+    }
+    monkeypatch.setattr(
+        production,
+        "_last_unattended_evidence",
+        {
+            "category": "native_causal_action_observed",
+            "declared_interval_milliseconds": 2_000,
+            "hop_count": 8,
+            "intake": "continuous-environment:test",
+            "measured": {},
+            "motor_action": motor_action,
+            "organism_tick": 9,
+            "state_sha256": "33" * 32,
+            "world_revision": 1,
+        },
+    )
+
+    observed = production._autonomy_record()
+
+    assert observed["available"] is True
+    assert observed["status"] == "native_causal_action_observed"
+    assert observed["action_observed"] is True
+    assert observed["action"]["observed_effect"] == "body yawed 5 millidegrees"
+    assert observed["consequence"]["available"] is True
+    assert observed["motor_action"] == motor_action

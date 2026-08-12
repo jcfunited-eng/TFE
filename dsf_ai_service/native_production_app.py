@@ -2013,7 +2013,10 @@ def _autonomy_record() -> dict[str, object]:
                 True,
                 "native_motor_yaw_observed",
                 "outward motor-neuron carrier discharge caused exact body yaw",
-                f"body yawed {motor_action['signed_yaw_millidegrees']} millidegrees",
+                observed_effect=(
+                    f"body yawed {motor_action['signed_yaw_millidegrees']} "
+                    "millidegrees"
+                ),
             ),
             attention=not_mounted["attention"],
             choice=not_mounted["choice"],
@@ -2021,7 +2024,9 @@ def _autonomy_record() -> dict[str, object]:
                 True,
                 "native_vestibular_consequence_observed",
                 "the body yaw returned through the mounted balance receptors",
-                "motor consequence reached the native vestibular path",
+                observed_effect=(
+                    "motor consequence reached the native vestibular path"
+                ),
             ),
             thought=not_mounted["thought"],
             last_interval=last_interval,

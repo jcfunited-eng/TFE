@@ -78,6 +78,13 @@ meaning is introduced.
   persistence boundary. A disposable exact-body run now advances tick 46337
   to 46346, yawing 129 millidegrees, and cold-restores the exact successor SHA
   `c121ab1c9730938636ddd2f50be3ec7c763d85062cd73cfb1c826318600a1bca`.
+- The first full-boundary next-interval rehearsal of task 982 correctly
+  refused before cutover: the action observation passed two evidence strings
+  positionally to `_section`, which accepts only one reason string. The
+  physical action and coupled persistence had completed in throwaway state;
+  truthful projection then raised `TypeError`. The two evidence strings are
+  now named `observed_effect` facts and a focused projection test executes the
+  exact branch before packaging.
 
 ## Delivery truth
 
