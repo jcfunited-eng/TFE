@@ -44,6 +44,12 @@ def main():
     # Display math contract: every row must multiply out by hand.
     # Shares are fractional (stake / entry), marks are rounded to cents
     # BEFORE computing P&L, and the tiles are sums of the row values.
+    def fmt_px(x):
+        # entry fills carry sub-cent precision; show it, or the
+        # row cannot be multiplied out by hand (Joe's AIRO catch)
+        s = f"{x:,.4f}".rstrip("0")
+        return "$" + (s + "0" if s.endswith(".") or len(s.split(".")[-1]) < 2 else s)
+
     def row_upl(f):
         entry = f["entry_px"]
         cur = round(marks.get(f["symbol"], entry), 2)
@@ -67,25 +73,25 @@ def main():
     open_rows = ""
     for f in opens:
         shares, cur, upl = row_upl(f)
-        pct = 100 * upl / f["notional"] if f.get("notional") else 0.0
+        pct = (round(100 * upl / f["notional"], 2) or 0.0) if f.get("notional") else 0.0
         cls = "pos" if upl >= 0 else "neg"
         open_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
                       f'<td><span class="chip">CH3</span>'
                       f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
                       f'<td class="num">{shares:,}</td>'
-                      f'<td class="num">${f["entry_px"]:,.2f}</td>'
+                      f'<td class="num">{fmt_px(f["entry_px"])}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'
                       f'<td class="num {cls}">{pct:+.2f}%</td>'
                       f'<td><span class="status">SIMULATED</span></td>'
-                      f'<td>{f["date"][5:]} {f.get("found_at", "")[11:16]}</td></tr>')
+                      f'<td>{f["date"]}</td></tr>')
     if not open_rows:
         open_rows = '<tr><td colspan="9" class="empty">No open positions.</td></tr>'
 
     closed_rows = ""
     for f in closed[:60]:
         pnl = f.get("pnl") or 0.0
-        pct = f.get("ret_pct") or 0.0
+        pct = round(f.get("ret_pct") or 0.0, 2) or 0.0
         shares = f.get("shares") or (int(round(f.get("notional", 0)
                                      / f["entry_px"])) if f["entry_px"] else 0)
         cls = "pos" if pnl >= 0 else "neg"
@@ -93,12 +99,12 @@ def main():
                         f'<td><span class="chip">CH3</span>'
                         f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
                         f'<td class="num">{shares:,}</td>'
-                        f'<td class="num">${f["entry_px"]:,.2f}</td>'
+                        f'<td class="num">{fmt_px(f["entry_px"])}</td>'
                         f'<td class="num {cls}">{money(pnl, True)}</td>'
                         f'<td class="num {cls}">{pct:+.2f}%</td>'
                         f'<td><span class="status">{f["status"]}</span></td>'
                         f'<td>{f.get("catalyst", "")}</td>'
-                        f'<td>{f["date"][5:]} {f.get("found_at", "")[11:16]}</td></tr>')
+                        f'<td>{f["date"]}</td></tr>')
     if not closed_rows:
         closed_rows = '<tr><td colspan="9" class="empty">No closed trades yet.</td></tr>'
 
@@ -188,7 +194,7 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
   <div class="twrap"><table>
     <thead><tr><th>Ticker</th><th>Signal</th><th>Shares</th><th>Entry</th>
       <th>Current</th><th>Unreal. P&amp;L</th><th>P&amp;L %</th>
-      <th>Status</th><th>Detected</th></tr></thead>
+      <th>Status</th><th>Entered</th></tr></thead>
     <tbody>{open_rows}</tbody></table></div>
 </section>
 <section class="card">
@@ -196,7 +202,7 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
   <div class="twrap"><table>
     <thead><tr><th>Ticker</th><th>Signal</th><th>Shares</th><th>Entry</th>
       <th>P&amp;L $</th><th>P&amp;L %</th><th>Exit</th><th>Catalyst</th>
-      <th>Detected</th></tr></thead>
+      <th>Entered</th></tr></thead>
     <tbody>{closed_rows}</tbody></table></div>
 </section>
 <p class="foot"><b>Reading SHORT rows:</b> a short sale SELLS at the

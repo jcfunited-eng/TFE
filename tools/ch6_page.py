@@ -38,6 +38,12 @@ def main():
     except Exception:
         pass
 
+    def fmt_px(x):
+        # entry fills carry sub-cent precision; show it, or the
+        # row cannot be multiplied out by hand (Joe's AIRO catch)
+        s = f"{x:,.4f}".rstrip("0")
+        return "$" + (s + "0" if s.endswith(".") or len(s.split(".")[-1]) < 2 else s)
+
     def row_upl(sym, p):
         entry = p["entry_px"]
         cur = round(marks.get(sym, entry), 2)
@@ -59,14 +65,14 @@ def main():
     open_rows = ""
     for sym, p in sorted(opens.items()):
         shares, cur, upl = row_upl(sym, p)
-        pct = 100 * upl / p["notional"] if p["notional"] else 0.0
+        pct = (round(100 * upl / p["notional"], 2) or 0.0) if p["notional"] else 0.0
         cls = "pos" if upl >= 0 else "neg"
         status = "AT TARGET" if pct >= 5.0 else "HOLDING"
         open_rows += (f'<tr><td class="tk">{sym}</td>'
                       f'<td><span class="chip">CH6</span>'
                       f'{"<span class=chip2>SHORT</span>" if p["side"] == -1 else ""}</td>'
                       f'<td class="num">{shares:,}</td>'
-                      f'<td class="num">${p["entry_px"]:,.2f}</td>'
+                      f'<td class="num">{fmt_px(p["entry_px"])}</td>'
                       f'<td class="num">${cur:,.2f}</td>'
                       f'<td class="num {cls}">{money(upl, True)}</td>'
                       f'<td class="num {cls}">{pct:+.2f}%</td>'
@@ -83,7 +89,7 @@ def main():
                         f'<td><span class="chip">CH6</span>'
                         f'{"<span class=chip2>SHORT</span>" if t["side"] == -1 else ""}</td>'
                         f'<td class="num">{t["shares"]:,}</td>'
-                        f'<td class="num">${t["entry_px"]:,.2f}</td>'
+                        f'<td class="num">{fmt_px(t["entry_px"])}</td>'
                         f'<td class="num">${t["exit_px"]:,.2f}</td>'
                         f'<td class="num {cls}">{money(t["pnl"], True)}</td>'
                         f'<td class="num {cls}">{t["ret_pct"]:+.2f}%</td>'
