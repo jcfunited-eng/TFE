@@ -1615,6 +1615,98 @@ mod tests {
     }
 
     #[test]
+    fn lawful_prior_local_state_concentrates_a_finite_branch_frontier_without_selector() {
+        let bias_anatomy = SparseElectricalAnatomy::new(
+            2,
+            vec![ElectricalContactAnatomy::new(
+                0,
+                1,
+                ExactRational::integer(500),
+                2,
+            )
+            .unwrap()],
+        )
+        .unwrap();
+        let bias_predecessor = vec![
+            ElementaryChargeMembraneState::genesis(2_000_000_000),
+            ElementaryChargeMembraneState::genesis(0),
+        ];
+        let bias = settle_sparse_electrical_contacts(
+            &bias_anatomy,
+            &SparseElectricalState::genesis(&bias_anatomy),
+            &capacitances(2),
+            &bias_predecessor,
+            &[u128::MAX; 2],
+            1_000,
+        )
+        .unwrap();
+        assert_eq!(
+            bias.successor_membranes[1].separated_elementary_charges(),
+            1_000_000_000
+        );
+
+        let branch_anatomy = SparseElectricalAnatomy::new(
+            3,
+            vec![
+                ElectricalContactAnatomy::new(0, 1, ExactRational::integer(500), 3).unwrap(),
+                ElectricalContactAnatomy::new(0, 2, ExactRational::integer(500), 3).unwrap(),
+            ],
+        )
+        .unwrap();
+        let branch_contacts = SparseElectricalState::genesis(&branch_anatomy);
+        let unbiased = settle_sparse_electrical_transfers(
+            &branch_anatomy,
+            &branch_contacts,
+            &capacitances(3),
+            &[
+                ElementaryChargeMembraneState::genesis(1_000_000_000),
+                ElementaryChargeMembraneState::genesis(0),
+                ElementaryChargeMembraneState::genesis(0),
+            ],
+            &[2, u128::MAX, u128::MAX],
+            1_000,
+        )
+        .unwrap();
+        assert_eq!(
+            unbiased
+                .transitions
+                .iter()
+                .map(|transition| transition.outward_elementary_charges_from_left)
+                .collect::<Vec<_>>(),
+            vec![1, 1]
+        );
+
+        let concentrated = settle_sparse_electrical_transfers(
+            &branch_anatomy,
+            &branch_contacts,
+            &capacitances(3),
+            &[
+                ElementaryChargeMembraneState::genesis(1_000_000_000),
+                bias.successor_membranes[1],
+                ElementaryChargeMembraneState::genesis(0),
+            ],
+            &[2, u128::MAX, u128::MAX],
+            1_000,
+        )
+        .unwrap();
+        assert_eq!(
+            concentrated
+                .transitions
+                .iter()
+                .map(|transition| transition.outward_elementary_charges_from_left)
+                .collect::<Vec<_>>(),
+            vec![0, 2]
+        );
+        assert_eq!(
+            concentrated
+                .outward_elementary_charges_by_neuron
+                .iter()
+                .sum::<i128>(),
+            0
+        );
+    }
+
+    #[test]
     fn unsupported_legacy_contact_plastic_state_cannot_change_conduction() {
         let anatomy = measured_two_neuron_anatomy();
         let virgin = SparseElectricalState::genesis(&anatomy);

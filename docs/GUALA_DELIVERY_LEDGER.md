@@ -217,8 +217,12 @@ box remains unchecked until live acceptance passes.
   `sha256:c1a95c8479d47e9a5499a52120287d6099aa4224587b59a98e550c42110f8738`.
 - [ ] **C-013** Prove weave-level self-expression can emerge from repeated
   cross-context sensory, thought, body, action, and consequence relationships.
+  Dependency-deferred until internally caused attention, working causal state,
+  prediction, action, and sensed consequence are live-proven; it is not closed
+  or redefined.
 - [ ] **C-014** Prove attention/orienting is a changing sparse reached frontier,
   not a selector score, and visibly affects current sensory/cognitive activity.
+  **Active sprint:** `GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md`.
 - [ ] **C-015** Prove bounded unresolved activity supplies working causal state
   and settles or decays without a text buffer or transcript memory.
 - [ ] **C-016** Prove prediction and ordered alternatives emerge through layer

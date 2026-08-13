@@ -33,9 +33,42 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "receptor_ingress_changing_count": 0,
         "receptor_ingress_quiescent_count": 0,
         "motor_unit_recruitments": (),
+        "physical_frontier_routes": (),
+        "preceding_distinct_physical_frontier_routes": (),
+        "reached_and_foregone_physical_frontier_routes": (),
         "organic_mosaic_relations": relations,
         "state_sha256": f"{tick:064x}",
     }
+
+
+def test_frontier_evidence_keeps_only_current_and_preceding_distinct_sets() -> None:
+    first = (("01" * 16, 5, 0, "02" * 16, 8, 0, 0, 1),)
+    second = (("01" * 16, 5, 0, "03" * 16, 8, 1, 0, 2),)
+
+    current, preceding, reached_and_foregone = production._advance_bounded_frontier_evidence(
+        (),
+        (),
+        (),
+        {
+            "physical_frontier_routes": first,
+            "preceding_distinct_physical_frontier_routes": (),
+            "reached_and_foregone_physical_frontier_routes": (),
+        },
+    )
+    current, preceding, reached_and_foregone = production._advance_bounded_frontier_evidence(
+        current,
+        preceding,
+        reached_and_foregone,
+        {
+            "physical_frontier_routes": second,
+            "preceding_distinct_physical_frontier_routes": first,
+            "reached_and_foregone_physical_frontier_routes": second,
+        },
+    )
+
+    assert current == second
+    assert preceding == first
+    assert reached_and_foregone == second
 
 
 def test_admitted_experience_preserves_relation_from_nonfinal_hop(
@@ -111,6 +144,9 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         receptor_ingress_changing_count=0,
         receptor_ingress_quiescent_count=0,
         motor_unit_recruitments=(),
+        physical_frontier_routes=(),
+        preceding_distinct_physical_frontier_routes=(),
+        reached_and_foregone_physical_frontier_routes=(),
         organic_mosaic_relations=((receipts, (), (bond,), "33" * 32, (), ()),),
         recurrent_complete_neuron_fractal_count=2,
     )

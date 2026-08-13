@@ -37,8 +37,9 @@ use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
-    AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    EmittedNeuronFractal, MotorUnitRecruitment, OrganicMosaicRelationObservation,
+    has_reached_and_foregone_frontier_routes, AuthoredDeclaredContact,
+    CognitiveFormationObservation, CognitiveFormationSummary, EmittedNeuronFractal,
+    MotorUnitRecruitment, OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
     PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
@@ -126,6 +127,7 @@ type OrganicMosaicRelationProjection = (
     Vec<OrderedPhysicalPathProjection>,
     Vec<OrderedPathRelationProjection>,
 );
+type PhysicalFrontierRouteProjection = (String, u32, u32, String, u32, u32, u32, i128);
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -364,6 +366,11 @@ pub(crate) struct RuntimeObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) preceding_distinct_physical_frontier_routes:
+        Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) reached_and_foregone_physical_frontier_routes:
+        Vec<PhysicalFrontierRouteObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -815,6 +822,33 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn physical_frontier_routes(&self) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(&self.observation.physical_frontier_routes)
+    }
+
+    #[getter]
+    fn preceding_distinct_physical_frontier_routes(
+        &self,
+    ) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(
+            &self
+                .observation
+                .preceding_distinct_physical_frontier_routes,
+        )
+    }
+
+    #[getter]
+    fn reached_and_foregone_physical_frontier_routes(
+        &self,
+    ) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(
+            &self
+                .observation
+                .reached_and_foregone_physical_frontier_routes,
+        )
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1149,6 +1183,33 @@ impl NativeResidentOrganismPrepare {
                 (hex_bytes(&left), hex_bytes(&right), bond.parallel_ordinal())
             })
             .collect()
+    }
+
+    #[getter]
+    fn physical_frontier_routes(&self) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(&self.observation.physical_frontier_routes)
+    }
+
+    #[getter]
+    fn preceding_distinct_physical_frontier_routes(
+        &self,
+    ) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(
+            &self
+                .observation
+                .preceding_distinct_physical_frontier_routes,
+        )
+    }
+
+    #[getter]
+    fn reached_and_foregone_physical_frontier_routes(
+        &self,
+    ) -> Vec<PhysicalFrontierRouteProjection> {
+        project_physical_frontier_routes(
+            &self
+                .observation
+                .reached_and_foregone_physical_frontier_routes,
+        )
     }
 
     #[getter]
@@ -1691,6 +1752,24 @@ impl ResidentOrganismRuntime {
                 total
                     .motor_unit_recruitments
                     .extend(observation.motor_unit_recruitments.iter().copied());
+                if observation.physical_frontier_routes
+                    != total.physical_frontier_routes
+                {
+                    total.preceding_distinct_physical_frontier_routes =
+                        total.physical_frontier_routes.clone();
+                    total.physical_frontier_routes =
+                        observation.physical_frontier_routes.clone();
+                }
+                if total
+                    .reached_and_foregone_physical_frontier_routes
+                    .is_empty()
+                    && has_reached_and_foregone_frontier_routes(
+                        &observation.physical_frontier_routes,
+                    )
+                {
+                    total.reached_and_foregone_physical_frontier_routes =
+                        observation.physical_frontier_routes.clone();
+                }
                 // A trajectory is one bounded transaction over ordered
                 // one-millisecond intervals. Keep the latest relation state
                 // and one earliest exact ordered witness for each stable
@@ -3579,6 +3658,9 @@ fn make_restored_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        physical_frontier_routes: Vec::new(),
+        preceding_distinct_physical_frontier_routes: Vec::new(),
+        reached_and_foregone_physical_frontier_routes: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3648,6 +3730,13 @@ fn make_step_observation(
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         active_physical_bonds: cognitive.active_physical_bonds.clone(),
+        physical_frontier_routes: cognitive.physical_frontier_routes.clone(),
+        preceding_distinct_physical_frontier_routes: cognitive
+            .preceding_distinct_physical_frontier_routes
+            .clone(),
+        reached_and_foregone_physical_frontier_routes: cognitive
+            .reached_and_foregone_physical_frontier_routes
+            .clone(),
         organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -3713,6 +3802,9 @@ fn make_authored_contact_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        physical_frontier_routes: Vec::new(),
+        preceding_distinct_physical_frontier_routes: Vec::new(),
+        reached_and_foregone_physical_frontier_routes: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3841,6 +3933,28 @@ fn project_organic_mosaic_relations(
                 hex_digest(&relation.structural_relation_receipt),
                 ordered_paths,
                 ordered_path_relations,
+            )
+        })
+        .collect()
+}
+
+fn project_physical_frontier_routes(
+    routes: &[PhysicalFrontierRouteObservation],
+) -> Vec<PhysicalFrontierRouteProjection> {
+    routes
+        .iter()
+        .map(|route| {
+            let seed_place = route.seed_place();
+            let adjacent_place = route.adjacent_place();
+            (
+                hex_bytes(&route.seed_lineage()),
+                seed_place.layer(),
+                seed_place.topology_index(),
+                hex_bytes(&route.adjacent_lineage()),
+                adjacent_place.layer(),
+                adjacent_place.topology_index(),
+                route.bond().parallel_ordinal(),
+                route.outward_whole_carriers_from_seed(),
             )
         })
         .collect()
@@ -4237,6 +4351,21 @@ mod tests {
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
         assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 250);
         assert_eq!(prepared.observation.dsf_delivery_count, 500);
+        assert!(!prepared
+            .observation
+            .preceding_distinct_physical_frontier_routes
+            .is_empty());
+        assert_ne!(
+            prepared.observation.physical_frontier_routes,
+            prepared
+                .observation
+                .preceding_distinct_physical_frontier_routes
+        );
+        assert!(has_reached_and_foregone_frontier_routes(
+            &prepared
+                .observation
+                .reached_and_foregone_physical_frontier_routes,
+        ));
         candidate.commit(prepared.token).unwrap();
 
         assert_eq!(heading, 90_000);

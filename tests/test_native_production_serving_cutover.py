@@ -281,7 +281,7 @@ def test_native_current_cold_restore_proof_is_state_bound() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 500,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v5",
+        "schema": "guala.production_native_current_cold_restore.v6",
         "source_identity": IDENTITY,
         "source_advanced_after_baseline": False,
         "source_mount_read_only": True,

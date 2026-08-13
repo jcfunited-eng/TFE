@@ -23,7 +23,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v5",
+    "cold-restore": "guala.production_native_current_cold_restore.v6",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
 
@@ -263,6 +263,7 @@ def _validate_proof(
     expected_state_sha256: str | None,
     expected_state_root: str | None = None,
     expected_distributed_recall_rehearsal: bool = False,
+    expected_sparse_attention_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -472,6 +473,60 @@ def _validate_proof(
         ).hexdigest()
         == proof["episodic_related_formation_receipts_sha256"]
     )
+    sparse_attention_rehearsal = (
+        proof.get("sparse_attention_rehearsed") is True
+        and proof.get("sparse_attention_cold_replay_exact") is True
+        and isinstance(proof.get("sparse_attention_interval_count"), int)
+        and not isinstance(proof["sparse_attention_interval_count"], bool)
+        and proof["sparse_attention_interval_count"] > 1
+        and isinstance(proof.get("sparse_attention_current_route_count"), int)
+        and not isinstance(proof["sparse_attention_current_route_count"], bool)
+        and proof["sparse_attention_current_route_count"] >= 0
+        and isinstance(proof.get("sparse_attention_preceding_route_count"), int)
+        and not isinstance(proof["sparse_attention_preceding_route_count"], bool)
+        and proof["sparse_attention_preceding_route_count"] > 0
+        and isinstance(proof.get("sparse_attention_qualifying_route_count"), int)
+        and not isinstance(proof["sparse_attention_qualifying_route_count"], bool)
+        and proof["sparse_attention_qualifying_route_count"] > 1
+        and isinstance(proof.get("sparse_attention_reached_route_count"), int)
+        and not isinstance(proof["sparse_attention_reached_route_count"], bool)
+        and proof["sparse_attention_reached_route_count"] > 0
+        and isinstance(proof.get("sparse_attention_foregone_route_count"), int)
+        and not isinstance(proof["sparse_attention_foregone_route_count"], bool)
+        and proof["sparse_attention_foregone_route_count"] > 0
+        and proof["sparse_attention_reached_route_count"]
+        + proof["sparse_attention_foregone_route_count"]
+        == proof["sparse_attention_qualifying_route_count"]
+        and isinstance(proof.get("sparse_attention_downstream_neuron_count"), int)
+        and not isinstance(proof["sparse_attention_downstream_neuron_count"], bool)
+        and 0
+        < proof["sparse_attention_downstream_neuron_count"]
+        <= proof["sparse_attention_reached_route_count"]
+        and isinstance(proof.get("sparse_attention_dsf_delivery_count"), int)
+        and not isinstance(proof["sparse_attention_dsf_delivery_count"], bool)
+        and proof["sparse_attention_dsf_delivery_count"] > 0
+        and isinstance(
+            proof.get("sparse_attention_physically_transitioned_neuron_count"), int
+        )
+        and not isinstance(
+            proof["sparse_attention_physically_transitioned_neuron_count"], bool
+        )
+        and proof["sparse_attention_physically_transitioned_neuron_count"] > 0
+        and isinstance(proof.get("sparse_attention_state_byte_delta"), int)
+        and not isinstance(proof["sparse_attention_state_byte_delta"], bool)
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "sparse_attention_current_routes_sha256",
+                "sparse_attention_preceding_routes_sha256",
+                "sparse_attention_qualifying_routes_sha256",
+                "sparse_attention_successor_state_sha256",
+            )
+        )
+        and proof["sparse_attention_current_routes_sha256"]
+        != proof["sparse_attention_preceding_routes_sha256"]
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -500,6 +555,10 @@ def _validate_proof(
         or (
             expected_distributed_recall_rehearsal
             and not episodic_memory_rehearsal
+        )
+        or (
+            expected_sparse_attention_rehearsal
+            and not sparse_attention_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -592,6 +651,7 @@ def main() -> int:
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
+    expected_sparse_attention_rehearsal = expected_distributed_recall_rehearsal
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -674,6 +734,9 @@ def main() -> int:
             expected_state_root=genesis_state_root,
             expected_distributed_recall_rehearsal=(
                 expected_distributed_recall_rehearsal
+            ),
+            expected_sparse_attention_rehearsal=(
+                expected_sparse_attention_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

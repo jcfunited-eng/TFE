@@ -10,6 +10,7 @@ import os
 import re
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
+    exact_native_yaw_trajectory,
     restore_native_resident_organism,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
@@ -22,7 +23,7 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-PROOF_SCHEMA = "guala.production_native_current_cold_restore.v5"
+PROOF_SCHEMA = "guala.production_native_current_cold_restore.v6"
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -223,6 +224,113 @@ def _rehearse_native_distributed_recall(
         "episodic_complete_source_replayed": False,
         "episodic_memory_rehearsed": True,
         "motor_action_rehearsed": False,
+        **_rehearse_sparse_attention_frontier(current_envelope, budget),
+    }
+
+
+def _rehearse_sparse_attention_frontier(
+    current_envelope: bytes,
+    budget: dict[str, int],
+) -> dict[str, int | bool | str]:
+    """Cold-replay one ordinary body trajectory and its sparse route change."""
+
+    _successor_heading, steps = exact_native_yaw_trajectory(
+        predecessor_heading_millidegrees=0,
+        signed_displacement_millidegrees=90_000,
+        duration_microseconds=250_000,
+    )
+    if len(steps) != 250:
+        raise RuntimeError("native attention rehearsal changed its body clock")
+
+    def settle() -> tuple[object, object, object, bytes]:
+        organism = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        before = organism.readiness()
+        prepared = organism.prepare_vestibular_trajectory(0, steps)
+        after = organism.commit(prepared.token)
+        successor = organism.save()
+        return before, prepared, after, successor
+
+    before, prepared, after, successor = settle()
+    replay_before, replay_prepared, replay_after, replay_successor = settle()
+    current_routes = tuple(prepared.physical_frontier_routes)
+    preceding_routes = tuple(
+        prepared.preceding_distinct_physical_frontier_routes
+    )
+    replay_current_routes = tuple(replay_prepared.physical_frontier_routes)
+    replay_preceding_routes = tuple(
+        replay_prepared.preceding_distinct_physical_frontier_routes
+    )
+    reached_and_foregone_routes = tuple(
+        prepared.reached_and_foregone_physical_frontier_routes
+    )
+    replay_reached_and_foregone_routes = tuple(
+        replay_prepared.reached_and_foregone_physical_frontier_routes
+    )
+    route_sets = (
+        reached_and_foregone_routes,
+        current_routes,
+        preceding_routes,
+    )
+    qualifying = next(
+        (
+            routes
+            for routes in route_sets
+            if len(routes) > 1
+            and any(route[7] == 0 for route in routes)
+            and any(route[7] != 0 for route in routes)
+        ),
+        None,
+    )
+    if (
+        qualifying is None
+        or not preceding_routes
+        or current_routes == preceding_routes
+        or replay_current_routes != current_routes
+        or replay_preceding_routes != preceding_routes
+        or replay_reached_and_foregone_routes != reached_and_foregone_routes
+        or replay_successor != successor
+        or replay_before.state_sha256 != before.state_sha256
+        or replay_after.state_sha256 != after.state_sha256
+        or after.identity != before.identity
+        or after.organism_tick != before.organism_tick + len(steps)
+        or prepared.dsf_delivery_count <= 0
+        or prepared.physically_transitioned_neuron_count <= 0
+        or after.python_callback_count != 0
+    ):
+        raise RuntimeError(
+            "ordinary body trajectory produced no exact sparse attention frontier"
+        )
+    reached = tuple(route for route in qualifying if route[7] != 0)
+    foregone = tuple(route for route in qualifying if route[7] == 0)
+    downstream = {route[3] for route in reached}
+    return {
+        "sparse_attention_cold_replay_exact": True,
+        "sparse_attention_current_route_count": len(current_routes),
+        "sparse_attention_current_routes_sha256": hashlib.sha256(
+            _canonical(current_routes)
+        ).hexdigest(),
+        "sparse_attention_dsf_delivery_count": prepared.dsf_delivery_count,
+        "sparse_attention_downstream_neuron_count": len(downstream),
+        "sparse_attention_foregone_route_count": len(foregone),
+        "sparse_attention_interval_count": len(steps),
+        "sparse_attention_physically_transitioned_neuron_count": (
+            prepared.physically_transitioned_neuron_count
+        ),
+        "sparse_attention_preceding_route_count": len(preceding_routes),
+        "sparse_attention_preceding_routes_sha256": hashlib.sha256(
+            _canonical(preceding_routes)
+        ).hexdigest(),
+        "sparse_attention_qualifying_route_count": len(qualifying),
+        "sparse_attention_qualifying_routes_sha256": hashlib.sha256(
+            _canonical(qualifying)
+        ).hexdigest(),
+        "sparse_attention_reached_route_count": len(reached),
+        "sparse_attention_rehearsed": True,
+        "sparse_attention_state_byte_delta": after.state_bytes - before.state_bytes,
+        "sparse_attention_successor_state_sha256": after.state_sha256,
     }
 
 

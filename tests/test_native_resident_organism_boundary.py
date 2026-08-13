@@ -32,6 +32,15 @@ class _NativeResidentOrganismObservation:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    preceding_distinct_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    reached_and_foregone_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -116,6 +125,15 @@ class _NativeResidentOrganismPrepare:
     receptor_ingress_quiescent_count: int = 96
     motor_unit_recruitments: list[tuple[str, int, int]] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
+    physical_frontier_routes: list[
+        tuple[str, int, int, str, int, int, int, int]
+    ] | None = None
+    preceding_distinct_physical_frontier_routes: list[
+        tuple[str, int, int, str, int, int, int, int]
+    ] | None = None
+    reached_and_foregone_physical_frontier_routes: list[
+        tuple[str, int, int, str, int, int, int, int]
+    ] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -142,6 +160,12 @@ class _NativeResidentOrganismPrepare:
             self.motor_unit_recruitments = []
         if self.active_physical_bonds is None:
             self.active_physical_bonds = []
+        if self.physical_frontier_routes is None:
+            self.physical_frontier_routes = []
+        if self.preceding_distinct_physical_frontier_routes is None:
+            self.preceding_distinct_physical_frontier_routes = []
+        if self.reached_and_foregone_physical_frontier_routes is None:
+            self.reached_and_foregone_physical_frontier_routes = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
 
@@ -277,6 +301,7 @@ def _active() -> _NativeResidentOrganismObservation:
 
 def test_observation_signature_carries_deep_ordered_relation() -> None:
     transfer = ("01" * 16, "02" * 16, 0, 3)
+    route = ("01" * 16, 5, 1, "03" * 16, 8, 2, 0, 0)
     relation = (
         ("a" * 64, "b" * 64),
         (),
@@ -285,11 +310,16 @@ def test_observation_signature_carries_deep_ordered_relation() -> None:
         ((transfer, transfer),),
         ((transfer, transfer, transfer, transfer),),
     )
-    observation = replace(_active(), organic_mosaic_relations=(relation,))
+    observation = replace(
+        _active(),
+        physical_frontier_routes=(route,),
+        organic_mosaic_relations=(relation,),
+    )
 
     signature = boundary._observation_signature(observation)
 
-    assert signature[15][0][5] == ((transfer, transfer, transfer, transfer),)
+    assert (relation,) in signature
+    assert (route,) in signature
 
 
 def _restore(
@@ -601,6 +631,32 @@ def test_prepare_refuses_fractal_count_without_per_neuron_evidence(
 
     with pytest.raises(RuntimeError, match="count lost its exact evidence"):
         organism.prepare(_Source())
+
+
+def test_prepare_carries_exact_bounded_physical_frontier_routes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    reached = ("01" * 16, 5, 7, "02" * 16, 8, 3, 0, 2)
+    foregone = ("01" * 16, 5, 7, "03" * 16, 8, 4, 0, 0)
+    preceding = ("04" * 16, 9, 1, "05" * 16, 11, 2, 0, -1)
+    runtime.prepare_result_override = replace(
+        genuine,
+        physical_frontier_routes=[reached, foregone],
+        preceding_distinct_physical_frontier_routes=[preceding],
+        reached_and_foregone_physical_frontier_routes=[reached, foregone],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.physical_frontier_routes == (reached, foregone)
+    assert prepared.preceding_distinct_physical_frontier_routes == (preceding,)
+    assert prepared.reached_and_foregone_physical_frontier_routes == (
+        reached,
+        foregone,
+    )
 
 
 def test_public_constructor_and_non_fixed_tokens_are_refused(

@@ -105,6 +105,21 @@ class NativeResidentObservationView(Protocol):
     def mosaic_of_mosaics_count(self) -> int: ...
 
     @property
+    def physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
+    def preceding_distinct_physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
+    def reached_and_foregone_physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
     def organic_mosaic_relations(
         self,
     ) -> list[
@@ -237,6 +252,15 @@ class ResidentPrepareEvidence:
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
     active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
+    physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    preceding_distinct_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    reached_and_foregone_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -285,6 +309,12 @@ def _nonnegative_integer(value: object, label: str) -> int:
     return value
 
 
+def _signed_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise RuntimeError(f"resident organism {label} is not an exact signed integer")
+    return value
+
+
 def _positive_decimal_integer(value: object, label: str) -> int:
     if (
         not isinstance(value, str)
@@ -314,6 +344,36 @@ def _canonical_lineage_hex(value: object, label: str) -> str:
     ):
         raise RuntimeError(f"resident organism {label} is not canonical")
     return value
+
+
+def _physical_frontier_route_evidence(
+    value: object, label: str
+) -> tuple[tuple[str, int, int, str, int, int, int, int], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError(f"resident organism {label} changed format")
+    routes: list[tuple[str, int, int, str, int, int, int, int]] = []
+    seen: set[tuple[str, str, int]] = set()
+    for raw_route in value:
+        if not isinstance(raw_route, tuple) or len(raw_route) != 8:
+            raise RuntimeError(f"resident organism {label} changed format")
+        route = (
+            _canonical_lineage_hex(raw_route[0], f"{label} seed lineage"),
+            _nonnegative_integer(raw_route[1], f"{label} seed layer"),
+            _nonnegative_integer(raw_route[2], f"{label} seed topology"),
+            _canonical_lineage_hex(raw_route[3], f"{label} adjacent lineage"),
+            _nonnegative_integer(raw_route[4], f"{label} adjacent layer"),
+            _nonnegative_integer(raw_route[5], f"{label} adjacent topology"),
+            _nonnegative_integer(raw_route[6], f"{label} parallel ordinal"),
+            _signed_integer(raw_route[7], f"{label} outward carriers"),
+        )
+        if route[0] == route[3]:
+            raise RuntimeError(f"resident organism {label} joined one lineage to itself")
+        identity = (route[0], route[3], route[6])
+        if identity in seen:
+            raise RuntimeError(f"resident organism {label} repeated one route")
+        seen.add(identity)
+        routes.append(route)
+    return tuple(routes)
 
 
 def _validated_causal_intervals(
@@ -411,6 +471,9 @@ def _observation_signature(
         observation.cognitive_ordinal,
         observation.cognitive_trace_count,
         observation.cognitive_mosaic_count,
+        tuple(observation.physical_frontier_routes),
+        tuple(observation.preceding_distinct_physical_frontier_routes),
+        tuple(observation.reached_and_foregone_physical_frontier_routes),
         tuple(
             (
                 tuple(receipts),
@@ -990,6 +1053,36 @@ class NativeResidentOrganism:
                     _nonnegative_integer(raw_bond[2], "active bond parallel ordinal"),
                 )
             )
+        physical_frontier_routes = _physical_frontier_route_evidence(
+            candidate.physical_frontier_routes,
+            "physical frontier route evidence",
+        )
+        preceding_distinct_physical_frontier_routes = (
+            _physical_frontier_route_evidence(
+                candidate.preceding_distinct_physical_frontier_routes,
+                "preceding distinct physical frontier route evidence",
+            )
+        )
+        reached_and_foregone_physical_frontier_routes = (
+            _physical_frontier_route_evidence(
+                candidate.reached_and_foregone_physical_frontier_routes,
+                "reached and foregone physical frontier route evidence",
+            )
+        )
+        if reached_and_foregone_physical_frontier_routes and not (
+            len(reached_and_foregone_physical_frontier_routes) > 1
+            and any(
+                route[7] == 0
+                for route in reached_and_foregone_physical_frontier_routes
+            )
+            and any(
+                route[7] != 0
+                for route in reached_and_foregone_physical_frontier_routes
+            )
+        ):
+            raise RuntimeError(
+                "reached and foregone frontier evidence lost its exact distinction"
+            )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -1344,6 +1437,13 @@ class NativeResidentOrganism:
             motor_unit_recruitments=tuple(motor_unit_recruitments),
             emitted_neuron_fractals=tuple(emitted_neuron_fractals),
             active_physical_bonds=tuple(active_physical_bonds),
+            physical_frontier_routes=physical_frontier_routes,
+            preceding_distinct_physical_frontier_routes=(
+                preceding_distinct_physical_frontier_routes
+            ),
+            reached_and_foregone_physical_frontier_routes=(
+                reached_and_foregone_physical_frontier_routes
+            ),
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 

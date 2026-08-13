@@ -521,6 +521,60 @@ impl OrderedPathRelationObservation {
     }
 }
 
+/// One mounted branch available to the current exact physical seed frontier.
+/// The signed transfer is measured outward from `seed_lineage`: positive
+/// means the adjacent neuron received whole carriers, zero means the mounted
+/// branch was physically available but did not advance a whole carrier, and
+/// negative means the branch carried material toward the seed. This is a
+/// bounded transient witness, never retained cognition or a selection score.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct PhysicalFrontierRouteObservation {
+    seed_lineage: [u8; 16],
+    seed_place: DeclaredNeuronPlace,
+    adjacent_lineage: [u8; 16],
+    adjacent_place: DeclaredNeuronPlace,
+    bond: StablePhysicalBondReference,
+    outward_whole_carriers_from_seed: i128,
+}
+
+pub(crate) fn has_reached_and_foregone_frontier_routes(
+    routes: &[PhysicalFrontierRouteObservation],
+) -> bool {
+    routes.len() > 1
+        && routes
+            .iter()
+            .any(|route| route.outward_whole_carriers_from_seed() == 0)
+        && routes
+            .iter()
+            .any(|route| route.outward_whole_carriers_from_seed() != 0)
+}
+
+impl PhysicalFrontierRouteObservation {
+    pub(crate) fn seed_lineage(self) -> [u8; 16] {
+        self.seed_lineage
+    }
+
+    pub(crate) fn seed_place(self) -> DeclaredNeuronPlace {
+        self.seed_place
+    }
+
+    pub(crate) fn adjacent_lineage(self) -> [u8; 16] {
+        self.adjacent_lineage
+    }
+
+    pub(crate) fn adjacent_place(self) -> DeclaredNeuronPlace {
+        self.adjacent_place
+    }
+
+    pub(crate) fn bond(self) -> StablePhysicalBondReference {
+        self.bond
+    }
+
+    pub(crate) fn outward_whole_carriers_from_seed(self) -> i128 {
+        self.outward_whole_carriers_from_seed
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CognitiveFormationObservation {
     pub(crate) cognitive_ordinal: u64,
@@ -543,6 +597,14 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) preceding_distinct_physical_frontier_routes:
+        Vec<PhysicalFrontierRouteObservation>,
+    /// First exact route set in this bounded transaction containing both a
+    /// transported and a zero-whole-carrier mounted alternative. This is a
+    /// transient observation witness, not retained state or selection logic.
+    pub(crate) reached_and_foregone_physical_frontier_routes:
+        Vec<PhysicalFrontierRouteObservation>,
     /// Transient connected frontiers among recurrent mosaics physically
     /// reached by this transition, with at least one fully reassembled. No
     /// relation object, count, hierarchy, or history is retained in the
@@ -3664,6 +3726,15 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
                 active_physical_bonds: internal_contact.active_bonds,
+                reached_and_foregone_physical_frontier_routes: if has_reached_and_foregone_frontier_routes(
+                    &internal_contact.frontier_routes,
+                ) {
+                    internal_contact.frontier_routes.clone()
+                } else {
+                    Vec::new()
+                },
+                physical_frontier_routes: internal_contact.frontier_routes,
+                preceding_distinct_physical_frontier_routes: Vec::new(),
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
@@ -4030,6 +4101,9 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
                 active_physical_bonds: Vec::new(),
+                physical_frontier_routes: Vec::new(),
+                preceding_distinct_physical_frontier_routes: Vec::new(),
+                reached_and_foregone_physical_frontier_routes: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
@@ -7977,6 +8051,7 @@ struct ResidentContactEdge {
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
+    frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
@@ -8046,6 +8121,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
@@ -8170,6 +8246,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
@@ -8186,6 +8263,7 @@ fn settle_internal_contact_interval(
     let mut compact_states = Vec::new();
     let mut compact_origins = Vec::new();
     let mut compact_bonds = Vec::new();
+    let mut compact_edge_flat_endpoints = Vec::new();
     for edge in &edges {
         let (Some(left), Some(right)) = (compact_index[edge.left], compact_index[edge.right])
         else {
@@ -8198,11 +8276,13 @@ fn settle_internal_contact_interval(
         compact_states.push(edge.state.clone());
         compact_origins.push(edge.origin);
         compact_bonds.push(edge.stable_bond);
+        compact_edge_flat_endpoints.push((edge.left, edge.right));
     }
     if compact_contacts.is_empty() {
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             motor_unit_recruitments: Vec::new(),
@@ -8765,6 +8845,50 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     active_bonds.sort_unstable();
     active_bonds.dedup();
+    let mut frontier_routes = Vec::new();
+    for ((transition, bond), (left_flat, right_flat)) in settled
+        .transitions
+        .iter()
+        .zip(compact_bonds.iter().copied())
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
+        let left_seed = seeds[left_flat];
+        let right_seed = seeds[right_flat];
+        if left_seed == right_seed {
+            continue;
+        }
+        let signed_from_left = transition.outward_elementary_charges_from_left;
+        let (seed_flat, adjacent_flat, outward_whole_carriers_from_seed) = if left_seed {
+            (left_flat, right_flat, signed_from_left)
+        } else {
+            (
+                right_flat,
+                left_flat,
+                signed_from_left
+                    .checked_neg()
+                    .ok_or(FormationError::ArithmeticOverflow)?,
+            )
+        };
+        let (seed_cohort, seed_neuron, seed_lineage) = flat_locations[seed_flat];
+        let (adjacent_cohort, adjacent_neuron, adjacent_lineage) =
+            flat_locations[adjacent_flat];
+        frontier_routes.push(PhysicalFrontierRouteObservation {
+            seed_lineage,
+            seed_place: cohorts[seed_cohort].anatomy.mounts()[seed_neuron].place(),
+            adjacent_lineage,
+            adjacent_place: cohorts[adjacent_cohort].anatomy.mounts()[adjacent_neuron].place(),
+            bond,
+            outward_whole_carriers_from_seed,
+        });
+    }
+    frontier_routes.sort_unstable_by_key(|route| {
+        (
+            route.seed_lineage,
+            route.adjacent_lineage,
+            route.bond.parallel_ordinal(),
+        )
+    });
+    frontier_routes.dedup();
     // Carry only a cell that physically received at least one exact whole
     // carrier in this interval. Positive transfer is left -> right and
     // negative transfer is right -> left. A changed cell, a sending cell,
@@ -8802,6 +8926,7 @@ fn settle_internal_contact_interval(
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
+        frontier_routes,
         next_active_frontier,
         metabolically_perturbed_body_receptor_lineages,
         motor_unit_recruitments,
@@ -12184,6 +12309,7 @@ mod tests {
         .unwrap();
         let mut canal = CanalState::at_rest();
         let mut heading = 0_u32;
+        let mut frontier_route_sets = Vec::new();
         for (source_tick, signed_step) in turn.trajectory.as_slice().iter().copied().enumerate() {
             let predecessor_body = YawBodyState::new(heading).unwrap();
             heading =
@@ -12209,13 +12335,27 @@ mod tests {
             let vestibular = state
                 .prepare_vestibular_transition(&ingress, 16_000_000)
                 .unwrap();
+            if !vestibular.observation.physical_frontier_routes.is_empty() {
+                frontier_route_sets.push(
+                    vestibular
+                        .observation
+                        .physical_frontier_routes
+                        .clone(),
+                );
+            }
             state = vestibular.successor;
         }
         let source = exact_optical_binaural_episode();
         let mut motor_recruitments = 0usize;
+        let mut repeated_optical_frontier_route_sets = Vec::new();
         for _ in 0..6 {
             let prepared = state.prepare(&source, 16_000_000).unwrap();
             motor_recruitments += prepared.observation.motor_unit_recruitments.len();
+            if !prepared.observation.physical_frontier_routes.is_empty() {
+                frontier_route_sets.push(prepared.observation.physical_frontier_routes.clone());
+                repeated_optical_frontier_route_sets
+                    .push(prepared.observation.physical_frontier_routes.clone());
+            }
             state = prepared.successor;
         }
         let layer_ten = state
@@ -12244,6 +12384,17 @@ mod tests {
         assert!(layer_counts.iter().any(|(layer, _)| *layer == 12));
         assert!(layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert_eq!(motor_recruitments, 1);
+        assert!(frontier_route_sets.iter().any(|routes| routes.len() > 1));
+        assert!(frontier_route_sets.iter().flatten().any(|route| {
+            route.outward_whole_carriers_from_seed() == 0
+        }));
+        assert!(frontier_route_sets.iter().flatten().any(|route| {
+            route.outward_whole_carriers_from_seed() > 0
+        }));
+        assert!(frontier_route_sets.windows(2).any(|pair| pair[0] != pair[1]));
+        assert!(repeated_optical_frontier_route_sets
+            .windows(2)
+            .any(|pair| pair[0] != pair[1]));
         assert_eq!(
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count

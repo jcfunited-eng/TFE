@@ -1947,9 +1947,10 @@ def _autonomy_record() -> dict[str, object]:
     """Truth-coupled observation of continuous native settlement.
 
     Continuous lived time is not autonomy. This section reports measured
-    physical settlement in the persistent world. Autonomous thought, action,
-    attention, and choice remain unavailable until native evidence proves
-    them.
+    physical settlement in the persistent world. Sparse physical attention is
+    reported separately from this autonomy claim; internally caused thought,
+    choice, and repeated self-directed action remain unavailable until native
+    evidence proves them.
     """
 
     unattended_time: dict[str, object] = {
@@ -1969,7 +1970,7 @@ def _autonomy_record() -> dict[str, object]:
     }
     not_mounted = {
         "action": _unmounted("no native action actuator is mounted"),
-        "attention": _unmounted("no substrate attention operation is mounted"),
+        "attention": _attention_record(),
         "choice": _unmounted("no native choice operation is mounted"),
         "consequence": _unmounted("no autonomous action consequence exists"),
         "thought": _unmounted("no native causal thought loop is mounted"),
@@ -2008,7 +2009,7 @@ def _autonomy_record() -> dict[str, object]:
             category,
             "the organism's native layer-12 discharge moved its body and the "
             "resulting displacement returned through its vestibular receptors; "
-            "attention, deliberative choice, and thought remain unmounted",
+            "this does not prove deliberative choice or thought",
             action_observed=True,
             action=_section(
                 True,
@@ -2121,6 +2122,99 @@ def _unmounted_stage(status: str, reason: str) -> dict[str, object]:
     return _stage(False, status, reason, reason)
 
 
+def _sparse_attention_route_facts(
+    evidence: dict[str, Any] | None,
+) -> dict[str, object] | None:
+    """Project exact reached/foregone route change without selecting a winner."""
+
+    if evidence is None:
+        return None
+    current = tuple(evidence.get("physical_frontier_routes", ()))
+    preceding = tuple(
+        evidence.get("preceding_distinct_physical_frontier_routes", ())
+    )
+    reached_and_foregone = tuple(
+        evidence.get("reached_and_foregone_physical_frontier_routes", ())
+    )
+    if not preceding or current == preceding:
+        return None
+    qualifying_phase = None
+    qualifying: tuple[tuple[Any, ...], ...] | None = None
+    for phase, routes in (
+        ("qualifying_interval", reached_and_foregone),
+        ("current", current),
+        ("preceding", preceding),
+    ):
+        if (
+            len(routes) > 1
+            and any(route[7] == 0 for route in routes)
+            and any(route[7] != 0 for route in routes)
+        ):
+            qualifying_phase = phase
+            qualifying = routes
+            break
+    if qualifying is None:
+        return None
+    reached = tuple(route for route in qualifying if route[7] != 0)
+    foregone = tuple(route for route in qualifying if route[7] == 0)
+    return {
+        "changed_route_sets": True,
+        "current_route_count": len(current),
+        "downstream_neuron_count": len({route[3] for route in reached}),
+        "foregone_route_count": len(foregone),
+        "preceding_route_count": len(preceding),
+        "qualifying_phase": qualifying_phase,
+        "qualifying_route_count": len(qualifying),
+        "transported_route_count": len(reached),
+    }
+
+
+def _attention_record() -> dict[str, object]:
+    facts = _sparse_attention_route_facts(_last_transition_evidence)
+    if facts is None:
+        return _section(
+            False,
+            "physical_frontier_mounted_awaiting_observation",
+            "sparse contact settlement is mounted, but this process has not "
+            "yet observed simultaneous transported and foregone routes whose "
+            "exact route set changed; no selector or attention score is reported",
+            attention_score_authority=False,
+            scripted_focus_authority=False,
+        )
+    return _section(
+        True,
+        "changing_sparse_physical_frontier_observed",
+        "the same bounded physical settlement exposed simultaneous mounted "
+        "routes, exact carrier transport through some, zero whole-carrier "
+        "transport through others, and a changed adjacent route set; membrane, "
+        "carrier, contact, and prior organism state caused the distinction",
+        attention_score_authority=False,
+        scripted_focus_authority=False,
+        **facts,
+    )
+
+
+def _attention_stage() -> dict[str, object]:
+    record = _attention_record()
+    if record["available"] is not True:
+        return _stage(
+            False,
+            str(record["status"]),
+            str(record["reason"]),
+            "No changed reached-versus-foregone physical frontier has been "
+            "observed by this process yet.",
+        )
+    return _stage(
+        True,
+        str(record["status"]),
+        str(record["reason"]),
+        "Her physical activity concentrated through "
+        f"{record['transported_route_count']} route(s) while "
+        f"{record['foregone_route_count']} simultaneous route(s) transported "
+        "no whole carrier; the route set then changed.",
+    )
+
+
 def _describe_intake(intake: str) -> tuple[str, str]:
     """What this experience actually was, in words, and what it carried.
 
@@ -2169,11 +2263,6 @@ def _experience_stage_ledger_record() -> dict[str, object]:
     """The twelve stages of the most recent committed experience."""
 
     absent = {
-        "attention": _unmounted_stage(
-            "not_mounted",
-            "She cannot attend to anything. Nothing in her chooses what to "
-            "focus on, so there is no attention to report.",
-        ),
         "intent": _unmounted_stage(
             "not_mounted",
             "She cannot intend anything. Nothing in her forms an intention, "
@@ -2201,7 +2290,13 @@ def _experience_stage_ledger_record() -> dict[str, object]:
             "no admitted native transition has been committed by this process, "
             "so no experience has stages to report",
             stages={
-                key: (absent[key] if key in absent else pending)
+                key: (
+                    _attention_stage()
+                    if key == "attention"
+                    else absent[key]
+                    if key in absent
+                    else pending
+                )
                 for key in EXPERIENCE_STAGE_ORDER
             },
         )
@@ -2322,6 +2417,7 @@ def _experience_stage_ledger_record() -> dict[str, object]:
                 else "Nothing was learned — this left no lasting change in her."
             ),
         ),
+        "attention": _attention_stage(),
         **absent,
     }
     return _section(
@@ -2778,7 +2874,7 @@ def _build_public_observation() -> dict[str, Any]:
             credits=[],
             scalar_score_authority=False,
         ),
-        "attention": _unmounted("no substrate attention operation is mounted"),
+        "attention": _attention_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
         "articulation": _unmounted(
@@ -4106,6 +4202,13 @@ def _commit_admitted_hop(
             evidence.receptor_ingress_quiescent_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
+        "physical_frontier_routes": evidence.physical_frontier_routes,
+        "preceding_distinct_physical_frontier_routes": (
+            evidence.preceding_distinct_physical_frontier_routes
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            evidence.reached_and_foregone_physical_frontier_routes
+        ),
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4172,6 +4275,13 @@ def _commit_vestibular_tick(
         ),
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
+        ),
+        "physical_frontier_routes": evidence.physical_frontier_routes,
+        "preceding_distinct_physical_frontier_routes": (
+            evidence.preceding_distinct_physical_frontier_routes
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            evidence.reached_and_foregone_physical_frontier_routes
         ),
         "organic_mosaic_relations": tuple(
             {
@@ -4240,6 +4350,13 @@ def _commit_vestibular_trajectory(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "physical_frontier_routes": evidence.physical_frontier_routes,
+        "preceding_distinct_physical_frontier_routes": (
+            evidence.preceding_distinct_physical_frontier_routes
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            evidence.reached_and_foregone_physical_frontier_routes
+        ),
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4260,6 +4377,34 @@ def _commit_vestibular_trajectory(
         ),
         "state_sha256": observed.state_sha256,
     }
+
+
+def _advance_bounded_frontier_evidence(
+    current: tuple[tuple[Any, ...], ...],
+    preceding_distinct: tuple[tuple[Any, ...], ...],
+    reached_and_foregone: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[
+    tuple[tuple[Any, ...], ...],
+    tuple[tuple[Any, ...], ...],
+    tuple[tuple[Any, ...], ...],
+]:
+    """Retain current, preceding, and one bounded reached/foregone witness."""
+
+    next_current = tuple(hop["physical_frontier_routes"])
+    within_hop_preceding = tuple(
+        hop["preceding_distinct_physical_frontier_routes"]
+    )
+    if within_hop_preceding != next_current and within_hop_preceding:
+        next_preceding = within_hop_preceding
+    elif next_current != current:
+        next_preceding = current
+    else:
+        next_preceding = preceding_distinct
+    next_reached_and_foregone = reached_and_foregone or tuple(
+        hop["reached_and_foregone_physical_frontier_routes"]
+    )
+    return next_current, next_preceding, next_reached_and_foregone
 
 
 def _publish_committed_organism(
@@ -4420,6 +4565,13 @@ def _perform_admitted_intake_locked(
     motor_unit_recruitments: list[tuple[str, int, int]] = []
     emitted_neuron_fractals: list[dict[str, Any]] = []
     organic_mosaic_relations: list[dict[str, Any]] = []
+    physical_frontier_routes: tuple[tuple[Any, ...], ...] = ()
+    preceding_distinct_physical_frontier_routes: tuple[
+        tuple[Any, ...], ...
+    ] = ()
+    reached_and_foregone_physical_frontier_routes: tuple[
+        tuple[Any, ...], ...
+    ] = ()
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4428,6 +4580,16 @@ def _perform_admitted_intake_locked(
                 organism,
                 heading,
                 signed_steps,
+            )
+            (
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+            ) = _advance_bounded_frontier_evidence(
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+                last_hop,
             )
             committed_vestibular_tick_count = len(signed_steps)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
@@ -4439,6 +4601,16 @@ def _perform_admitted_intake_locked(
         for episode, admissions in episodes:
             last_hop = _commit_admitted_hop(
                 organism, episode, admissions
+            )
+            (
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+            ) = _advance_bounded_frontier_evidence(
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+                last_hop,
             )
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
@@ -4489,6 +4661,16 @@ def _perform_admitted_intake_locked(
                     predecessor_heading,
                     trajectory,
                 )
+                (
+                    physical_frontier_routes,
+                    preceding_distinct_physical_frontier_routes,
+                    reached_and_foregone_physical_frontier_routes,
+                ) = _advance_bounded_frontier_evidence(
+                    physical_frontier_routes,
+                    preceding_distinct_physical_frontier_routes,
+                    reached_and_foregone_physical_frontier_routes,
+                    last_hop,
+                )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 organic_mosaic_relations.extend(
@@ -4538,6 +4720,13 @@ def _perform_admitted_intake_locked(
         "intake": intake,
         "motor_action": motor_action,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
+        "physical_frontier_routes": physical_frontier_routes,
+        "preceding_distinct_physical_frontier_routes": (
+            preceding_distinct_physical_frontier_routes
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            reached_and_foregone_physical_frontier_routes
+        ),
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,

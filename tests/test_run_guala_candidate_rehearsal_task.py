@@ -121,7 +121,7 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
         ),
         (
             "cold-restore",
-            "guala.production_native_current_cold_restore.v5",
+            "guala.production_native_current_cold_restore.v6",
             True,
         ),
     ],
@@ -390,7 +390,23 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v5",
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "sparse_attention_cold_replay_exact": True,
+        "sparse_attention_current_route_count": 0,
+        "sparse_attention_current_routes_sha256": "c" * 64,
+        "sparse_attention_dsf_delivery_count": 500,
+        "sparse_attention_downstream_neuron_count": 1,
+        "sparse_attention_foregone_route_count": 1,
+        "sparse_attention_interval_count": 250,
+        "sparse_attention_physically_transitioned_neuron_count": 217,
+        "sparse_attention_preceding_route_count": 2,
+        "sparse_attention_preceding_routes_sha256": "d" * 64,
+        "sparse_attention_qualifying_route_count": 2,
+        "sparse_attention_qualifying_routes_sha256": "f" * 64,
+        "sparse_attention_reached_route_count": 1,
+        "sparse_attention_rehearsed": True,
+        "sparse_attention_state_byte_delta": 64,
+        "sparse_attention_successor_state_sha256": "e" * 64,
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -406,6 +422,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         expected_tick=23_723_846,
         expected_state_sha256=STATE_SHA,
         expected_distributed_recall_rehearsal=True,
+        expected_sparse_attention_rehearsal=True,
     ) == proof
 
     changed = dict(record)
@@ -420,4 +437,22 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
             expected_tick=23_723_846,
             expected_state_sha256=STATE_SHA,
             expected_distributed_recall_rehearsal=True,
+            expected_sparse_attention_rehearsal=True,
+        )
+
+    changed = dict(record)
+    changed["sparse_attention_current_routes_sha256"] = changed[
+        "sparse_attention_preceding_routes_sha256"
+    ]
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_distributed_recall_rehearsal=True,
+            expected_sparse_attention_rehearsal=True,
         )

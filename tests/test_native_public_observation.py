@@ -177,6 +177,54 @@ def test_public_observation_is_cached_and_conditional(monkeypatch) -> None:
     assert restored.organism.readiness_calls == 1
 
 
+def test_public_observation_reports_exact_sparse_attention_without_a_score(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    reached = ("01" * 16, 5, 1, "02" * 16, 8, 2, 0, 2)
+    foregone = ("01" * 16, 5, 1, "03" * 16, 8, 3, 0, 0)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "cognitive_mosaic_count": 1,
+            "complete_neuron_fractal_count": 0,
+            "hop_count": 1,
+            "intake": "world-move",
+            "physical_frontier_routes": (),
+            "preceding_distinct_physical_frontier_routes": (
+                reached,
+                foregone,
+            ),
+            "reached_and_foregone_physical_frontier_routes": (
+                reached,
+                foregone,
+            ),
+            "totals": {
+                "complete_neuron_fractal_count": 0,
+                "current_cohort_evaluation_count": 1,
+                "dsf_delivery_count": 2,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 1,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    value = json.loads(serving.native_observation().body)
+
+    attention = value["attention"]
+    assert attention["available"] is True
+    assert attention["status"] == "changing_sparse_physical_frontier_observed"
+    assert attention["transported_route_count"] == 1
+    assert attention["foregone_route_count"] == 1
+    assert attention["attention_score_authority"] is False
+    stage = value["experience_stage_ledger"]["stages"]["attention"]
+    assert stage["available"] is True
+    assert stage["status"] == attention["status"]
+
+
 def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
     _mount(monkeypatch)
     value = json.loads(serving.native_observation().body)
