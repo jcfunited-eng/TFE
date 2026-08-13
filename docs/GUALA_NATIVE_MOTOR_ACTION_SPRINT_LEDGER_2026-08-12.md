@@ -2,8 +2,8 @@
 
 Date resumed: 2026-08-13
 
-Status: active. Nothing in this ledger is delivered until the exact behavior is
-directly observed on public production Guala.
+Status: **Live-Closed 2026-08-13**. The exact behavior was directly observed on
+public production Guala; evidence is recorded below.
 
 ## Task identity
 
@@ -182,3 +182,31 @@ vestibular/sensory return from that same action, and preserves identity, cold
 continuity, zero Python cognition callbacks, one live organism process, and
 bounded resources. Local, candidate, rehearsal, ECS, HTTP, or source evidence
 alone cannot close it.
+
+## Public production closure evidence
+
+- Release commit: `e0c39feac34d673baf753a2331b2478833a781dd`.
+- Image: `sha256:5fc3d2848b0d6145cf4ae129a3b9da39b9e9d01d65c30d04fad1babc86c30205`.
+- ECS task definition: `dsf-ai-task:1019`; one desired, one running, zero
+  pending, one completed deployment, and one healthy container.
+- Identity: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored from the same raw
+  native CURRENT lineage.
+- The public action record exposed eight prepared recruitments containing 32
+  exact contact transfers. Every transfer had layer 11 and layer 12 as its two
+  endpoints; both signed directions occurred and were preserved.
+- One observed prepared action had disposition `applied`, expected and observed
+  world revision 2310, resulting revision 2311, 75 millidegrees of exact yaw,
+  one vestibular return tick, distinct before/after world-state receipts, and a
+  causal-intent receipt that included the preparation transfers.
+- Public organism tick advanced 71,879 to 71,897 with changing native state
+  receipts, the same identity, and zero Python cognition callbacks.
+- The cold candidate rehearsal restored production tick 71,789 byte-exact and
+  preserved C-017/C-018 evidence. The live candidate then ordinary-restored the
+  same current organism and continued it.
+- Runtime bounds: task 1019 is hard-bounded to 4 vCPU and 16 GiB. CloudWatch
+  service maxima sampled during cutover were 29.2477% CPU and 7.2998% memory.
+  Public native state measured 43,432,378 bytes and then 43,432,033 bytes; it
+  did not exhibit monotonic per-tick accumulation in the two closure samples.
+
+This closes only C-019. It does not claim native choice, thought, autonomy,
+speech, or C-020 articulation closure.

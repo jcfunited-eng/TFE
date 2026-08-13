@@ -278,8 +278,21 @@ box remains unchecked until live acceptance passes.
   cognition callbacks. Candidate cold rehearsal reproduced one bounded
   localized witness exactly. Release commit `b9d85da3`, image
   `sha256:09116ddafe48cd71955e78d28b9afd8316c40645babea683557a44f90719ee15`.
-- [ ] **C-019** Prove motor preparation reaches layer 12 and can cause one
+- [x] **C-019** Prove motor preparation reaches layer 12 and can cause one
   at-most-once body actuation whose consequences return through the senses.
+  **Live-closed 2026-08-13:** public production task 1019 exposed exact signed
+  whole-carrier current across direct layer-11/layer-12 contacts bound into
+  each qualifying layer-12 motor recruitment and into the causal action-intent
+  receipt. One observed action was applied against expected/observed world
+  revision 2310, advanced it exactly once to 2311, yawed the body 75
+  millidegrees, and returned one vestibular tick through the mounted balance
+  path. Public production then advanced organism tick 71,879 to 71,897 with
+  changing exact state receipts, the same identity, and zero Python cognition
+  callbacks. ECS settled on one healthy task. The task has a hard 4-vCPU/16-GiB
+  boundary; observed service maxima during cutover were about 29.25% CPU and
+  7.30% memory, while the current organism state remained about 43.4 MB.
+  Release commit `e0c39fea`, image
+  `sha256:5fc3d2848b0d6145cf4ae129a3b9da39b9e9d01d65c30d04fad1babc86c30205`.
 - [ ] **C-020** Prove articulation reaches layer 13 and causes breath, mouth,
   face, and pressure/sound consequences that re-enter self-hearing/body senses.
 - [ ] **C-021** Prove sleep/rest emerges from organism condition and changes
