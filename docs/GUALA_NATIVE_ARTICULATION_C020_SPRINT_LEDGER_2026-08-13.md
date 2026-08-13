@@ -560,3 +560,30 @@ and backend-only state do not close it.
   than recomputed, and the regression proves cancellation is skipped while
   exact replay remains one batch call. RF-043 makes downstream physical effect,
   rather than upstream participation, the durable source-selection rule.
+- The captured task-1024 production body then exposed a separate multiplicative
+  runtime defect in its first genuine four-hop articulation return. Dark-rest
+  recovery performed one full-neuron clone and settlement for every one of up
+  to 618 positional recovery lanes, and repeated exact shared-reservoir
+  arithmetic after the remaining energy was already below every mounted
+  reaction's minimum extent. The original exact hop required approximately
+  121 seconds; batching one neuron's exact catalysts and settling only reached
+  dissipated lanes reduced it, but source review initially missed the complete
+  `cohorts × neurons × lanes` cardinality.
+- The corrected local law derives and retains the minimum recovery energy while
+  the mounted fluid anatomy is already constructed. During rest it closes only
+  the recovery frontier once available energy or either exact output headroom
+  is below that derived minimum; it preserves unmet dissipation as an aggregate
+  observation, batches all positive lane catalysts into one existing recovery
+  settlement, and never changes L0-L4/DSF, neuron state, persisted body bytes,
+  reaction stoichiometry, or the resulting physical successor.
+- Against the exact captured production body, the corrected first hop completes
+  in 25.663 seconds and retains tick 77780, four body receptors, 235 physical
+  transitions, two neuronal fractals, 46,375,440 successor bytes, and exact
+  successor SHA-256
+  `c22d0b2a9c6e054aebe1413bcdce116b338f1bde63a8d60f14cec537c408f098`.
+  The full native suite passes 423/423 executed library tests plus 166/166
+  integration tests; 13 explicitly ignored fixtures remain ignored. This is
+  reviewed local candidate evidence only. Production remains task 1024 and
+  C-020 is not Live-Closed pending immutable rehearsal, cutover, and direct
+  public proof. RF-044 makes execution-cardinality review mandatory before the
+  first broad test or image build.

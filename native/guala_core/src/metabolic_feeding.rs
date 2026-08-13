@@ -29,7 +29,8 @@
 use crate::complete_neuron::{
     membrane_and_gradient_work_zeptojoules, membrane_gradient_pump_charge_bound,
     settle_membrane_pump_transport, settle_recovery_only, NeuronPhysicalAnatomy,
-    NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError, RecoveryLaneAddress,
+    NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError,
+    RecoveryLaneAddress, RecoveryLaneState,
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::elementary_charge_membrane::MembraneChargeError;
@@ -112,6 +113,7 @@ pub(crate) struct DarkRestNeuronSettlement {
     pub(crate) successor_neuron: NeuronPhysicalState,
     pub(crate) successor_reservoir: RecoveryFluidReservoirState,
     pub(crate) lane_recoveries: Vec<RestLaneRecovery>,
+    unmet_dissipation_quanta: u128,
     pub(crate) returned_elementary_charges: i128,
     pub(crate) membrane_return_fuel_quanta: u128,
     pub(crate) pumped_elementary_charges: i128,
@@ -129,10 +131,7 @@ impl DarkRestNeuronSettlement {
     }
 
     pub(crate) fn unmet_dissipation_quanta(&self) -> u128 {
-        self.lane_recoveries
-            .iter()
-            .map(|lane| lane.unmet_dissipation_quanta)
-            .sum()
+        self.unmet_dissipation_quanta
     }
 
     pub(crate) fn fuel_quanta(&self) -> u128 {
@@ -161,32 +160,99 @@ pub(crate) fn settle_dark_rest_neuron(
     predecessor_reservoir: RecoveryFluidReservoirState,
     interval_microseconds: u32,
 ) -> Result<DarkRestNeuronSettlement, MetabolicError> {
-    let mut neuron = predecessor_neuron.clone();
     let mut reservoir = predecessor_reservoir;
     let mut lane_recoveries = Vec::new();
+    let mut successor_lane_states = Vec::new();
     let psi_lane_count = neuron_anatomy.psi_ring_count();
-    lane_recoveries
-        .try_reserve_exact(
-            psi_lane_count
-                .checked_add(2)
-                .ok_or(MetabolicError::ArithmeticWidth)?,
-        )
-        .map_err(|_| MetabolicError::ArithmeticWidth)?;
-    for address in (0..psi_lane_count)
-        .map(RecoveryLaneAddress::Psi)
-        .chain([RecoveryLaneAddress::Gate, RecoveryLaneAddress::Plastic])
-    {
-        let settled = settle_rest_lane(
+    let mut psi_catalysts = vec![0_u128; psi_lane_count];
+    let mut gate_catalyst = 0_u128;
+    let mut plastic_catalyst = 0_u128;
+    let mut total_extent = 0_u128;
+    let mut unmet_dissipation_quanta = 0_u128;
+    let mut reservoir_recovery_open = reservoir_can_recover(recovery_anatomy, reservoir);
+    let mut settle_reached_lane = |address: RecoveryLaneAddress| -> Result<(), MetabolicError> {
+        let dissipated = predecessor_neuron
+            .lane_dissipated_quanta(address)
+            .ok_or(MetabolicError::AnatomyWidth)?;
+        if !reservoir_recovery_open {
+            unmet_dissipation_quanta = unmet_dissipation_quanta
+                .checked_add(dissipated)
+                .ok_or(MetabolicError::ArithmeticWidth)?;
+            return Ok(());
+        }
+        let planned = plan_rest_lane(
             recovery_anatomy,
             neuron_index,
             neuron_anatomy,
             address,
-            &neuron,
+            predecessor_neuron,
             reservoir,
         )?;
-        neuron = settled.0;
-        reservoir = settled.1;
-        lane_recoveries.push(settled.2);
+        unmet_dissipation_quanta = unmet_dissipation_quanta
+            .checked_add(planned.observation.unmet_dissipation_quanta)
+            .ok_or(MetabolicError::ArithmeticWidth)?;
+        if planned.observation.extent == 0 {
+            return Ok(());
+        }
+        match address {
+            RecoveryLaneAddress::Psi(index) => psi_catalysts[index] = planned.catalyst_quanta,
+            RecoveryLaneAddress::Gate => gate_catalyst = planned.catalyst_quanta,
+            RecoveryLaneAddress::Plastic => plastic_catalyst = planned.catalyst_quanta,
+        }
+        total_extent = total_extent
+            .checked_add(planned.observation.extent)
+            .ok_or(MetabolicError::ArithmeticWidth)?;
+        reservoir = planned.successor_reservoir;
+        if planned.observation.extent != 0 {
+            reservoir_recovery_open = reservoir_can_recover(recovery_anatomy, reservoir);
+        }
+        successor_lane_states.push((address, planned.successor_lane));
+        lane_recoveries.push(planned.observation);
+        Ok(())
+    };
+    // Dissipation itself is the reached frontier for recovery. A lane with no
+    // standing dissipated material cannot react, so it must not enter contact
+    // planning merely because positional anatomy exists.
+    for (index, ring) in predecessor_neuron.psi_state().rings().iter().enumerate() {
+        if ring.dissipated_quanta() != 0 {
+            settle_reached_lane(RecoveryLaneAddress::Psi(index))?;
+        }
+    }
+    for address in [RecoveryLaneAddress::Gate, RecoveryLaneAddress::Plastic] {
+        if predecessor_neuron
+            .lane_dissipated_quanta(address)
+            .ok_or(MetabolicError::AnatomyWidth)?
+            != 0
+        {
+            settle_reached_lane(address)?;
+        }
+    }
+    drop(settle_reached_lane);
+    let mut neuron = if total_extent == 0 {
+        predecessor_neuron.clone()
+    } else {
+        let recovered = settle_recovery_only(
+            neuron_anatomy,
+            predecessor_neuron,
+            RecoveryContact::new(&psi_catalysts, gate_catalyst, plastic_catalyst),
+        )?;
+        if recovered.extent != total_extent {
+            return Err(MetabolicError::MaterialContinuity);
+        }
+        recovered.successor
+    };
+    for ((address, successor_lane), observation) in successor_lane_states
+        .into_iter()
+        .zip(lane_recoveries.iter())
+    {
+        neuron.recovery.replace_lane(address, successor_lane)?;
+        if neuron
+            .lane_dissipated_quanta(address)
+            .ok_or(MetabolicError::AnatomyWidth)?
+            != observation.unmet_dissipation_quanta
+        {
+            return Err(MetabolicError::MaterialContinuity);
+        }
     }
     let (successor_neuron, successor_reservoir, returned, pumped, pump_work) =
         settle_membrane_gradient_transport(
@@ -202,11 +268,26 @@ pub(crate) fn settle_dark_rest_neuron(
         successor_neuron,
         successor_reservoir,
         lane_recoveries,
+        unmet_dissipation_quanta,
         returned_elementary_charges: returned,
         membrane_return_fuel_quanta: membrane_fuel,
         pumped_elementary_charges: pumped,
         pump_work_zeptojoules: pump_work,
     })
+}
+
+fn reservoir_can_recover(
+    recovery_anatomy: &ReachedRecoveryFluidAnatomy,
+    reservoir: RecoveryFluidReservoirState,
+) -> bool {
+    let (_, spent_capacity, thermal_capacity) =
+        recovery_anatomy.reservoir_anatomy().capacities();
+    let (available, spent, thermal) = reservoir.physical_parts();
+    let minimum = recovery_anatomy.minimum_recovery_energy_per_extent_zeptojoules();
+    let minimum = wide_rational(minimum);
+    wide_rational(available) >= minimum
+        && wide_rational(spent_capacity) - wide_rational(spent) >= minimum
+        && wide_rational(thermal_capacity) - wide_rational(thermal) >= minimum
 }
 
 /// Settle the neuron's one retained carrier-gradient transport path.
@@ -486,21 +567,22 @@ fn signed_magnitude(negative: bool, magnitude: u128) -> Result<i128, MetabolicEr
     Ok(if negative { -magnitude } else { magnitude })
 }
 
-fn settle_rest_lane(
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct RestLanePlan {
+    catalyst_quanta: u128,
+    successor_lane: RecoveryLaneState,
+    successor_reservoir: RecoveryFluidReservoirState,
+    observation: RestLaneRecovery,
+}
+
+fn plan_rest_lane(
     recovery_anatomy: &ReachedRecoveryFluidAnatomy,
     neuron_index: usize,
     neuron_anatomy: &NeuronPhysicalAnatomy,
     address: RecoveryLaneAddress,
     predecessor_neuron: &NeuronPhysicalState,
     predecessor_reservoir: RecoveryFluidReservoirState,
-) -> Result<
-    (
-        NeuronPhysicalState,
-        RecoveryFluidReservoirState,
-        RestLaneRecovery,
-    ),
-    MetabolicError,
-> {
+) -> Result<RestLanePlan, MetabolicError> {
     let lane_anatomy = neuron_anatomy
         .recovery_anatomy()
         .lane(address)
@@ -512,37 +594,73 @@ fn settle_rest_lane(
     let dissipated = predecessor_neuron
         .lane_dissipated_quanta(address)
         .ok_or(MetabolicError::AnatomyWidth)?;
+    if dissipated == 0 {
+        return Ok(RestLanePlan {
+            catalyst_quanta: 0,
+            successor_lane: lane_state,
+            successor_reservoir: predecessor_reservoir,
+            observation: RestLaneRecovery {
+                address,
+                extent: 0,
+                drained_dissipation_quanta: 0,
+                fuel_quanta: 0,
+                unmet_dissipation_quanta: 0,
+            },
+        });
+    }
     let contact = recovery_anatomy
         .mounted_contact(neuron_index, address)
         .ok_or(MetabolicError::AnatomyWidth)?;
     let (catalyst_per_extent, fuel_per_extent, spent_per_extent, heat_per_extent) =
         lane_anatomy.stoichiometry();
-    let (lane_fuel_capacity, lane_spent_capacity, lane_heat_capacity) = lane_anatomy.capacities();
+    let (_, lane_spent_capacity, lane_heat_capacity) = lane_anatomy.capacities();
     let (lane_fuel, lane_spent, lane_heat) = lane_state.physical_parts();
+    let (contact_catalyst, contact_fuel, contact_spent, contact_heat) = contact.parts();
+    // Reject a physically blocked lane using local integer bounds before doing
+    // exact shared-reservoir arithmetic. The typed anatomy/state constructors
+    // already enforce their capacity invariants; repeating those proofs for
+    // every reached lane made a zero-extent rest interval needlessly expensive.
+    let local_extent = (dissipated / heat_per_extent)
+        .min(lane_fuel / fuel_per_extent)
+        .min(
+            lane_spent_capacity
+                .checked_sub(lane_spent)
+                .ok_or(MetabolicError::MaterialContinuity)?
+                / spent_per_extent,
+        )
+        .min(
+            lane_heat_capacity
+                .checked_sub(lane_heat)
+                .ok_or(MetabolicError::MaterialContinuity)?
+                / heat_per_extent,
+        )
+        .min(contact_catalyst / catalyst_per_extent)
+        .min(contact_fuel / fuel_per_extent)
+        .min(contact_spent / spent_per_extent)
+        .min(contact_heat / heat_per_extent);
+    if local_extent == 0 {
+        return Ok(RestLanePlan {
+            catalyst_quanta: 0,
+            successor_lane: lane_state,
+            successor_reservoir: predecessor_reservoir,
+            observation: RestLaneRecovery {
+                address,
+                extent: 0,
+                drained_dissipation_quanta: 0,
+                fuel_quanta: 0,
+                unmet_dissipation_quanta: dissipated,
+            },
+        });
+    }
     let reservoir_anatomy = recovery_anatomy.reservoir_anatomy();
-    let (reservoir_available_capacity, reservoir_spent_capacity, reservoir_thermal_capacity) =
+    let (_, reservoir_spent_capacity, reservoir_thermal_capacity) =
         reservoir_anatomy.capacities();
     let (reservoir_available, reservoir_spent, reservoir_thermal) =
         predecessor_reservoir.physical_parts();
-    if lane_fuel > lane_fuel_capacity
-        || lane_spent > lane_spent_capacity
-        || lane_heat > lane_heat_capacity
-        || wide_rational(reservoir_available) > wide_rational(reservoir_available_capacity)
-        || wide_rational(reservoir_spent) > wide_rational(reservoir_spent_capacity)
-        || wide_rational(reservoir_thermal) > wide_rational(reservoir_thermal_capacity)
-    {
-        return Err(MetabolicError::RecoveryFluid(
-            RecoveryFluidError::StateOutsideAnatomy,
-        ));
-    }
-    let (contact_catalyst, contact_fuel, contact_spent, contact_heat) = contact.parts();
     let energy_per_extent = neuron_anatomy.recovery_energy_per_extent_zeptojoules(address)?;
     // The rest demand is the dissipation that actually stands in the ledger.
     // Every other term is a capacity the mounted anatomy already declares.
-    let extent = (dissipated / heat_per_extent)
-        .min(lane_fuel / fuel_per_extent)
-        .min((lane_spent_capacity - lane_spent) / spent_per_extent)
-        .min((lane_heat_capacity - lane_heat) / heat_per_extent)
+    let extent = local_extent
         .min(whole_extents_carried(
             reservoir_available,
             energy_per_extent,
@@ -556,11 +674,7 @@ fn settle_rest_lane(
             reservoir_thermal_capacity,
             reservoir_thermal,
             energy_per_extent,
-        )?)
-        .min(contact_catalyst / catalyst_per_extent)
-        .min(contact_fuel / fuel_per_extent)
-        .min(contact_spent / spent_per_extent)
-        .min(contact_heat / heat_per_extent);
+        )?);
     let extent = if recovery_exchange_extent_is_representable(
         predecessor_reservoir,
         energy_per_extent,
@@ -571,40 +685,22 @@ fn settle_rest_lane(
         0
     };
     if extent == 0 {
-        return Ok((
-            predecessor_neuron.clone(),
-            predecessor_reservoir,
-            RestLaneRecovery {
+        return Ok(RestLanePlan {
+            catalyst_quanta: 0,
+            successor_lane: lane_state,
+            successor_reservoir: predecessor_reservoir,
+            observation: RestLaneRecovery {
                 address,
                 extent: 0,
                 drained_dissipation_quanta: 0,
                 fuel_quanta: 0,
                 unmet_dissipation_quanta: dissipated,
             },
-        ));
+        });
     }
     let catalyst = extent
         .checked_mul(catalyst_per_extent)
         .ok_or(MetabolicError::ArithmeticWidth)?;
-    let mut psi_catalysts = vec![0_u128; neuron_anatomy.psi_ring_count()];
-    let (gate_catalyst, plastic_catalyst) = match address {
-        RecoveryLaneAddress::Psi(index) => {
-            *psi_catalysts
-                .get_mut(index)
-                .ok_or(MetabolicError::AnatomyWidth)? = catalyst;
-            (0, 0)
-        }
-        RecoveryLaneAddress::Gate => (catalyst, 0),
-        RecoveryLaneAddress::Plastic => (0, catalyst),
-    };
-    let recovered = settle_recovery_only(
-        neuron_anatomy,
-        predecessor_neuron,
-        RecoveryContact::new(&psi_catalysts, gate_catalyst, plastic_catalyst),
-    )?;
-    if recovered.extent != extent {
-        return Err(MetabolicError::MaterialContinuity);
-    }
     let expected_fuel = extent
         .checked_mul(fuel_per_extent)
         .ok_or(MetabolicError::ArithmeticWidth)?;
@@ -614,11 +710,18 @@ fn settle_rest_lane(
     let expected_heat = extent
         .checked_mul(heat_per_extent)
         .ok_or(MetabolicError::ArithmeticWidth)?;
-    let recovered_lane = recovered
-        .successor
-        .recovery
-        .lane(address)
-        .ok_or(RecoveryError::AnatomyWidth)?;
+    let recovered_lane = RecoveryLaneState::from_physical_parts(
+        lane_anatomy,
+        lane_fuel
+            .checked_sub(expected_fuel)
+            .ok_or(MetabolicError::MaterialContinuity)?,
+        lane_spent
+            .checked_add(expected_spent)
+            .ok_or(MetabolicError::ArithmeticWidth)?,
+        lane_heat
+            .checked_add(expected_heat)
+            .ok_or(MetabolicError::ArithmeticWidth)?,
+    )?;
     let exchanged = settle_recovery_fluid_contact(
         lane_anatomy,
         energy_per_extent,
@@ -633,13 +736,9 @@ fn settle_rest_lane(
     {
         return Err(MetabolicError::MaterialContinuity);
     }
-    let mut successor_neuron = recovered.successor;
-    successor_neuron
-        .recovery
-        .replace_lane(address, exchanged.successor_lane)?;
-    let unmet = successor_neuron
-        .lane_dissipated_quanta(address)
-        .ok_or(MetabolicError::AnatomyWidth)?;
+    let unmet = dissipated
+        .checked_sub(expected_heat)
+        .ok_or(MetabolicError::MaterialContinuity)?;
     if dissipated
         .checked_sub(unmet)
         .ok_or(MetabolicError::MaterialContinuity)?
@@ -647,17 +746,18 @@ fn settle_rest_lane(
     {
         return Err(MetabolicError::MaterialContinuity);
     }
-    Ok((
-        successor_neuron,
-        exchanged.successor_reservoir,
-        RestLaneRecovery {
+    Ok(RestLanePlan {
+        catalyst_quanta: catalyst,
+        successor_lane: exchanged.successor_lane,
+        successor_reservoir: exchanged.successor_reservoir,
+        observation: RestLaneRecovery {
             address,
             extent,
             drained_dissipation_quanta: expected_heat,
             fuel_quanta: expected_fuel,
             unmet_dissipation_quanta: unmet,
         },
-    ))
+    })
 }
 
 #[cfg(test)]

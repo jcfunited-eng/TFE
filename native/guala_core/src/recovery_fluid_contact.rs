@@ -260,6 +260,7 @@ pub(crate) struct RecoveryFluidNeuronAnatomy {
 pub(crate) struct ReachedRecoveryFluidAnatomy {
     reservoir: RecoveryFluidReservoirAnatomy,
     neurons: Box<[RecoveryFluidNeuronAnatomy]>,
+    minimum_recovery_energy_per_extent_zeptojoules: ExactRational,
 }
 
 impl ReachedRecoveryFluidAnatomy {
@@ -272,6 +273,7 @@ impl ReachedRecoveryFluidAnatomy {
             .try_reserve_exact(neurons.len())
             .map_err(|_| RecoveryFluidError::ArithmeticWidth)?;
         let mut energy_capacity = ExactRational::integer(0);
+        let mut minimum_recovery_energy = None;
         for neuron in neurons {
             let mut psi_contacts = Vec::new();
             psi_contacts
@@ -284,6 +286,7 @@ impl ReachedRecoveryFluidAnatomy {
                     RecoveryLaneAddress::Psi(index),
                     contact,
                     &mut energy_capacity,
+                    &mut minimum_recovery_energy,
                 )?;
                 psi_contacts.push(contact);
             }
@@ -293,6 +296,7 @@ impl ReachedRecoveryFluidAnatomy {
                 RecoveryLaneAddress::Gate,
                 gate_contact,
                 &mut energy_capacity,
+                &mut minimum_recovery_energy,
             )?;
             let plastic_contact = derive_contact(neuron, RecoveryLaneAddress::Plastic)?;
             accumulate_contact_energy(
@@ -300,6 +304,7 @@ impl ReachedRecoveryFluidAnatomy {
                 RecoveryLaneAddress::Plastic,
                 plastic_contact,
                 &mut energy_capacity,
+                &mut minimum_recovery_energy,
             )?;
             mounted.push(RecoveryFluidNeuronAnatomy {
                 psi_contacts: psi_contacts.into_boxed_slice(),
@@ -314,6 +319,8 @@ impl ReachedRecoveryFluidAnatomy {
                 energy_capacity,
             )?,
             neurons: mounted.into_boxed_slice(),
+            minimum_recovery_energy_per_extent_zeptojoules: minimum_recovery_energy
+                .ok_or(RecoveryFluidError::AnatomyWidth)?,
         })
     }
 
@@ -331,6 +338,10 @@ impl ReachedRecoveryFluidAnatomy {
 
     pub(crate) fn neuron_count(&self) -> usize {
         self.neurons.len()
+    }
+
+    pub(crate) fn minimum_recovery_energy_per_extent_zeptojoules(&self) -> ExactRational {
+        self.minimum_recovery_energy_per_extent_zeptojoules
     }
 
     fn neuron(&self, index: usize) -> Option<&RecoveryFluidNeuronAnatomy> {
@@ -475,6 +486,7 @@ fn accumulate_contact_energy(
     address: RecoveryLaneAddress,
     contact: RecoveryFluidContactAnatomy,
     energy: &mut ExactRational,
+    minimum_recovery_energy: &mut Option<ExactRational>,
 ) -> Result<(), RecoveryFluidError> {
     let lane = neuron
         .recovery_anatomy()
@@ -491,9 +503,15 @@ fn accumulate_contact_energy(
     {
         return Err(RecoveryFluidError::MaterialContinuity);
     }
-    let contact_energy = neuron
-        .recovery_energy_per_extent_zeptojoules(address)?
-        .checked_mul_unsigned(extents)?;
+    let energy_per_extent = neuron.recovery_energy_per_extent_zeptojoules(address)?;
+    if minimum_recovery_energy
+        .map(|minimum| energy_per_extent.checked_cmp(minimum))
+        .transpose()?
+        .is_none_or(|ordering| ordering == Ordering::Less)
+    {
+        *minimum_recovery_energy = Some(energy_per_extent);
+    }
+    let contact_energy = energy_per_extent.checked_mul_unsigned(extents)?;
     *energy = energy.checked_add(contact_energy)?;
     Ok(())
 }
@@ -938,6 +956,7 @@ pub(crate) fn decode_reached_recovery_fluid_anatomy(
             ExactRational::integer(0),
         )?,
         neurons: mounted.into_boxed_slice(),
+        minimum_recovery_energy_per_extent_zeptojoules: ExactRational::integer(0),
     };
     let derived = ReachedRecoveryFluidAnatomy::derive(neurons)?;
     if contacts.neurons != derived.neurons {
@@ -1189,6 +1208,7 @@ mod tests {
                 plastic_contact: contact,
             }]
             .into_boxed_slice(),
+            minimum_recovery_energy_per_extent_zeptojoules: quantum,
         }
     }
 
