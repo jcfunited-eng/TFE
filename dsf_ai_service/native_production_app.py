@@ -1253,6 +1253,12 @@ _boot_error: str | None = None
 _public_observation_body: bytes | None = None
 _public_observation_etag: str | None = None
 _last_transition_evidence: dict[str, Any] | None = None
+# One bounded observation witness, not organism memory.  A tested physical
+# alternative is otherwise visible only until the next unattended interval,
+# which can replace the public cache before a client receives the event that
+# produced it.  This record contains no field body and never enters cognition;
+# each later tested event replaces it in constant process memory.
+_last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2260,7 +2266,18 @@ def _working_causal_state_record() -> dict[str, object]:
 def _physical_prediction_record() -> dict[str, object]:
     """Report bounded physical alternatives and their later body test."""
 
-    evidence = _last_transition_evidence or {}
+    retained_test = _last_tested_prediction_evidence
+    evidence = retained_test or _last_transition_evidence or {}
+    provenance = {
+        "evidence_scope": (
+            "latest_tested_physical_event"
+            if retained_test is not None
+            else "latest_committed_transition"
+        ),
+        "evidence_organism_tick": evidence.get("organism_tick"),
+        "evidence_state_sha256": evidence.get("state_sha256"),
+        "evidence_intake": evidence.get("intake"),
+    }
     alternatives = tuple(evidence.get("physical_prediction_alternatives", ()))
     consequences = tuple(evidence.get("body_consequence_transfers", ()))
     if len(alternatives) != 2:
@@ -2273,6 +2290,7 @@ def _physical_prediction_record() -> dict[str, object]:
             planner_authority=False,
             score_authority=False,
             semantic_outcome_authority=False,
+            **provenance,
         )
     if not consequences:
         return _section(
@@ -2284,6 +2302,7 @@ def _physical_prediction_record() -> dict[str, object]:
             planner_authority=False,
             score_authority=False,
             semantic_outcome_authority=False,
+            **provenance,
         )
     consequence = consequences[0]
     agreement = tuple(
@@ -2307,6 +2326,7 @@ def _physical_prediction_record() -> dict[str, object]:
             planner_authority=False,
             score_authority=False,
             semantic_outcome_authority=False,
+            **provenance,
         )
     return _section(
         True,
@@ -2325,6 +2345,7 @@ def _physical_prediction_record() -> dict[str, object]:
         planner_authority=False,
         score_authority=False,
         semantic_outcome_authority=False,
+        **provenance,
     )
 
 
@@ -4715,6 +4736,7 @@ def _perform_admitted_intake_locked(
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
     global _restored, _last_transition_evidence, _last_self_moved
+    global _last_tested_prediction_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -4961,6 +4983,17 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    if (
+        len(physical_prediction_alternatives) == 2
+        and body_consequence_transfers
+    ):
+        _last_tested_prediction_evidence = {
+            "body_consequence_transfers": body_consequence_transfers[:1],
+            "intake": intake,
+            "organism_tick": published.pointer.organism_tick,
+            "physical_prediction_alternatives": physical_prediction_alternatives,
+            "state_sha256": published.pointer.state_sha256,
+        }
     _refresh_public_observation_cache()
     if intake_error is not None:
         # 2026-08-07 truth repair: this refusal follows hops that already
@@ -6536,6 +6569,8 @@ def _startup() -> None:
     global _restored, _admission, _boot_error
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _public_observation_body, _public_observation_etag
+    global _last_tested_prediction_evidence
+    _last_tested_prediction_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(

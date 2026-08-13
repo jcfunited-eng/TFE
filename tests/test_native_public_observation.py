@@ -97,6 +97,7 @@ def _mount(monkeypatch) -> _Restored:
     restored = _Restored()
     monkeypatch.setattr(serving, "_restored", restored)
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
+    monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
     monkeypatch.setattr(serving, "_admission", _Admission())
     monkeypatch.setattr(
         serving,
@@ -350,6 +351,58 @@ def test_public_observation_does_not_call_an_unrelated_body_relation_contradicti
     prediction = serving._physical_prediction_record()
     assert prediction["available"] is False
     assert prediction["status"] == "body_consequence_did_not_reach_predicted_relation"
+
+
+def test_public_observation_retains_exactly_one_tested_prediction_witness(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    tested = {
+        "physical_prediction_alternatives": (first, second),
+        "body_consequence_transfers": (("04" * 16, "06" * 16, 0, 3),),
+        "intake": "world-move",
+        "organism_tick": 41,
+        "state_sha256": "d" * 64,
+    }
+    monkeypatch.setattr(serving, "_last_tested_prediction_evidence", tested)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "cognitive_mosaic_count": 0,
+            "complete_neuron_fractal_count": 0,
+            "hop_count": 8,
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (),
+            "intake": "continuous-environment:later",
+            "organism_tick": 49,
+            "physical_frontier_routes": (),
+            "preceding_distinct_physical_frontier_routes": (),
+            "reached_and_foregone_physical_frontier_routes": (),
+            "state_sha256": "e" * 64,
+            "working_causal_continuations": (),
+            "settled_working_frontier": (),
+            "totals": {
+                "complete_neuron_fractal_count": 0,
+                "current_cohort_evaluation_count": 8,
+                "dsf_delivery_count": 8,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 8,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+    serving._refresh_public_observation_cache()
+    prediction = json.loads(serving.native_observation().body)["prediction"]
+    assert prediction["available"] is True
+    assert prediction["status"] == "physical_alternatives_contradicted_by_later_body_consequence"
+    assert prediction["evidence_scope"] == "latest_tested_physical_event"
+    assert prediction["evidence_organism_tick"] == 41
+    assert prediction["evidence_state_sha256"] == "d" * 64
+    assert prediction["evidence_intake"] == "world-move"
 
 
 def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:

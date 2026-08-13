@@ -127,6 +127,26 @@ Primary evidence used only to define that responsibility:
   then the authenticated production predecessor must reproduce the exact
   reverse witness through the ordinary multi-interval path before one cutover.
 
+### 2026-08-13 bounded public-observation retention boundary
+
+- Task `1012`, commit `cb1afb61`, and image digest `sha256:a6a59c65...a9f2d`
+  passed exact-current-body rehearsal and entered production with one healthy
+  process. The rehearsal produced two alternatives, one returned body
+  consequence, 500 full-DSF deliveries, and zero Python cognition callbacks.
+- Direct production turns committed, but the load balancer ended the response
+  after 60 seconds and the next unattended interval replaced the latest-only
+  public transition before its tested-prediction classification could be
+  retained as live evidence. Infrastructure health is therefore proved, but
+  C-016 remains open.
+- The single correction is one process-local observation witness containing
+  exactly two alternatives, one consequence, intake name, organism tick, and
+  state receipt. It is replaced only by the next tested physical event, never
+  enters organism state or cognition, and is cleared on process restart.
+- No neuron, contact, field, codec, persistence, planner, score, semantic
+  outcome, lock, owner, or database authority is added. The witness exists
+  only so a public client can truthfully observe an already-completed physical
+  test after continuous unattended processing advances again.
+
 ## Acceptance-evidence map
 
 | Required fact | Producer | Observer | Status |
