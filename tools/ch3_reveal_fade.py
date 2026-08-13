@@ -76,6 +76,18 @@ capital from ever binding. v3 makes it bind:
           (ch3_kill_test.py) now watches v3 closures against the R2
           object; below its declared 5th percentile the channel
           halts itself.
+  CORRECTED same day (Joe called "bullshit" on the drought story —
+          he was right about the dollars): the expectation above
+          assumed the object's supply, but 75% of object supply and
+          the rich edge (+2.66%/ev) live in UNCOVERED names the
+          roster store never refreshes. The live pipe alone reaches
+          ~2 events/day on 39% of days at +0.73%/ev — roughly
+          $150/day, a seventh of the number above. FIX:
+          ch3_supply_tail.py restores the whole market to the scan
+          (CH3-only store; the shared CH4 store is untouched).
+          Whether the uncovered edge holds on TODAY'S young names —
+          not only the decade's dead ones — is a pre-registered
+          live hypothesis; the tripwire halts the channel below p5.
 
 Runs nightly after the store refresh (ch4_spring_daily_runner.sh).
 State: artifacts/vtvr_observer/ch3_shadow_log.json (same book/page).
@@ -128,6 +140,20 @@ def main():
     latest_s = pd.Timestamp(latest).strftime("%Y-%m-%d")
     day_index = {pd.Timestamp(d).strftime("%Y-%m-%d"): i
                  for i, d in enumerate(days)}
+    # v3 supply tail (ch3_supply_tail.py): the whole market's rows for
+    # names the roster store is NOT currently refreshing — the decade
+    # object's "none" stratum, restored. Single-source per name: any
+    # symbol with a bar at the roster store's latest day stays roster-
+    # only; everything else scans from the tail (no cross-source seams).
+    tail_path = os.path.join(ROOT, "ch3_supply_tail.parquet")
+    if os.path.exists(tail_path):
+        tail = pd.read_parquet(tail_path)
+        tail["Date"] = pd.to_datetime(tail["Date"])
+        refreshed = set(df[df["Date"] == latest]["Symbol"])
+        tail = tail[~tail["Symbol"].isin(refreshed)
+                    & (tail["Date"] <= latest)]
+        df = pd.concat([df[df["Symbol"].isin(refreshed)], tail],
+                       ignore_index=True)
     log = load_log()
 
     # settle: HARVEST at the first close <= 0.95 x entry (checked every

@@ -165,8 +165,10 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
   <div class="sub">The reveal-fade channel, v3: shorts every crowd-less
    violent up-spike at the close · capital split by displacement force ·
    HARVEST exit at the first close at/past +5%, five-session backstop ·
-   declared margin: gross to 2x capital · decade object ~$1,040/day
-   averaged incl. droughts — droughts pay zero, melt-up regimes lose ·
+   declared margin: gross to 2x capital · supply restated 2026-08-13:
+   the uncovered-name stratum is restored to the scan and the dollar
+   rate is a live hypothesis under a self-halting tripwire — droughts
+   pay zero, melt-up regimes lose ·
    SIMULATED — no real orders, borrow costs not modeled ·
    engine {log.get("engine", "ch3_reveal_fade_v1")} · updated {stamp}</div>
 </header>

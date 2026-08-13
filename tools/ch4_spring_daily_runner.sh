@@ -13,6 +13,7 @@ while true; do
     echo "[spring-runner] close pass $(date -u +%FT%TZ)"
     {
       python tools/ch4_store_refresh.py
+      python tools/ch3_supply_tail.py
       CH4_STORE=ch4_live_store.parquet \
         CH4_HERD_EXPORT=artifacts/ch4_uf/herd_state_live.parquet \
         python tools/ch4_uf_spectrum_herd.py
