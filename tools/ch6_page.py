@@ -61,7 +61,7 @@ def main():
         shares, cur, upl = row_upl(sym, p)
         pct = 100 * upl / p["notional"] if p["notional"] else 0.0
         cls = "pos" if upl >= 0 else "neg"
-        status = "ARMED" if p.get("armed") else "WATCH"
+        status = "AT TARGET" if pct >= 5.0 else "HOLDING"
         open_rows += (f'<tr><td class="tk">{sym}</td>'
                       f'<td><span class="chip">CH6</span>'
                       f'{"<span class=chip2>SHORT</span>" if p["side"] == -1 else ""}</td>'
@@ -149,14 +149,15 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
 <main>
 <header>
   <h1>CH6 — Fast Harvest</h1>
-  <div class="sub">Same entries as CH3, different exits (the A/B test):
-   any short past +5% is sold the SAME DAY — immediately if it gives
-   back 1 point from its best, otherwise at the end-of-day sweep;
-   never-armed positions keep CH3's 5-session backstop · prices
-   checked every 5 minutes · clean start 2026-08-07, no inherited
-   positions · SIMULATED — no real orders, borrow costs not modeled ·
-   rules frozen until 20 closures · engine ch6_fast_harvest_v1 ·
-   updated {stamp}</div>
+  <div class="sub">Its own channel, evaluating a potential daily cash
+   tool: CH3-style entry law, own scan (whole market since 2026-08-13),
+   own $100k book — it never reads CH3's. Any short past +5% is sold
+   the SAME DAY — immediately if it gives back 1 point from its best,
+   otherwise at the end-of-day sweep; never-armed positions settle at
+   the 5th session's close · prices checked every 5 minutes · clean
+   start 2026-08-07 · SIMULATED — no real orders, borrow costs not
+   modeled · rules frozen until 20 closures ·
+   engine {book.get("engine", "ch6_fast_harvest")} · updated {stamp}</div>
 </header>
 <section class="tiles">
   <div class="tile"><div class="k">Equity</div><div class="v">{money(equity)}</div></div>
@@ -187,11 +188,13 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
 </section>
 <p class="foot"><b>Reading SHORT rows:</b> a short sale SELLS at the
 Entry price and buys back at Current — Current below Entry is a
-profit. ARMED = past +5%, will be sold today. HARVEST = sold at the
-end-of-day sweep; GIVEBACK = sold intraday after slipping 1 point
-off its peak; TIME = 5-session backstop. This book shares CH3's
-entries exactly — the difference between the two pages IS the exit
-policy experiment.</p>
+profit. AT TARGET = standing at +5% or better, so it is sold before
+the day ends. HARVEST = sold at the end-of-day sweep for being at
++5% or better; TIME = 5-session backstop, the same exit CH3 uses.
+CH6 evaluates a potential daily cash tool: CH3's rules exactly, one
+exception - winners at +5% or better are harvested (trailed from
+their peak, swept at day's end) instead of held five sessions. Verdict
+bound: nothing changes until 20 closed positions.</p>
 </main>
 """
     with open(out_path, "w", encoding="utf-8") as f:

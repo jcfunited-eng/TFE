@@ -40,17 +40,55 @@ def main():
     except Exception:
         pass
 
+    # 2026-08-13 (Joe's catch: every row read "no quote"): when the live
+    # quote feed fails, the store's OFFICIAL CLOSE is an honest mark —
+    # dated, real, checkable — unlike the fabricated entry-price fallback
+    # this page was built to kill. Live quote first; store close second,
+    # labeled with its date; "no quote" only when neither exists.
+    close_marked = {}
+    missing = [s for s in opens if s not in marks]
+    if missing:
+        try:
+            import pandas as pd
+            root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            st = pd.read_parquet(
+                os.path.join(root, "ch4_live_store.parquet"),
+                columns=["Date", "Symbol", "Close"])
+            latest = st["Date"].max()
+            px_close = dict(
+                st[st["Date"] == latest][["Symbol", "Close"]].values)
+            close_day = str(latest)[:10]
+            for s in missing:
+                px = px_close.get(s)
+                if px and float(px) > 0:
+                    marks[s] = float(px)
+                    close_marked[s] = close_day
+        except Exception:
+            pass
+
     invested = sum(p["notional"] for p in opens.values())
     # Display math contract: every row must multiply out by hand.
     # Shares are fractional (stake / entry), marks are rounded to cents
     # BEFORE computing P&L, and the tiles are sums of the row values.
+    # A MISSING QUOTE IS NOT A FLAT STOCK (2026-08-10, Joe's catch).
+    # This used to fall back to the entry price when the feed returned
+    # nothing, which draws a row at exactly +0.00% — identical on screen to
+    # a name that genuinely did not move, and it quietly fed a fabricated
+    # mark into the tiles. A price we do not have is now reported as one we
+    # do not have, and it is left out of the sums rather than invented.
     def row_upl(sym, p):
         entry = p["entry_px"]
-        cur = round(marks.get(sym, entry), 2)
+        px = marks.get(sym)
         shares = p.get("shares") or (int(p["notional"] // entry)
                                      if entry else 0)
+        if px is None:
+            return shares, None, None
+        cur = round(px, 2)
         return shares, cur, round(shares * (cur - entry) * p.get("side", 1), 2)
-    unreal = sum(row_upl(s, p)[2] for s, p in opens.items())
+
+    unpriced = [s for s in opens if s not in marks]
+    unreal = sum(v for v in (row_upl(s, p)[2] for s, p in opens.items())
+                 if v is not None)
     realized = sum(t.get("pnl", 0.0) for t in closed)
     value = cash + invested + unreal
     total_pl = value - CASH0
@@ -60,6 +98,21 @@ def main():
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     last_bar = book.get("last_processed") or "\u2014"
 
+    # Stated on the page, not buried: which names the totals could not
+    # include, because a total that silently omits a position is a total
+    # that cannot be checked by hand.
+    unpriced_note = (
+        f' · <b>NO QUOTE for {", ".join(sorted(unpriced))}</b> — '
+        f'{"that position is" if len(unpriced) == 1 else "those positions are"} '
+        f'excluded from the totals below'
+    ) if unpriced else ""
+    if close_marked:
+        day = sorted(set(close_marked.values()))[-1]
+        unpriced_note += (
+            f' · live quotes unavailable for {len(close_marked)} name'
+            f'{"s" if len(close_marked) != 1 else ""} — marked at the '
+            f'official {day} close instead')
+
     def money(x, signed=False):
         s = f"${abs(x):,.2f}"
         return (("+" if x >= 0 else "-") + s) if signed else s
@@ -68,6 +121,19 @@ def main():
     for sym, p in sorted(opens.items()):
         side = p.get("side", 1)
         shares, cur, upl = row_upl(sym, p)
+        if cur is None:
+            # No quote came back. Say so; do not draw a price we do not have.
+            open_rows += (f'<tr><td class="tk">{sym}</td>'
+                          f'<td><span class="chip">CH4</span>'
+                          f'{"<span class=chip2>SHORT</span>" if side == -1 else ""}</td>'
+                          f'<td class="num">{shares:,}</td>'
+                          f'<td class="num">${p["entry_px"]:,.2f}</td>'
+                          f'<td class="num">no quote</td>'
+                          f'<td class="num">\u2014</td>'
+                          f'<td class="num">\u2014</td>'
+                          f'<td><span class="status">FILLED</span></td>'
+                          f'<td>{p.get("entry_date", "")}</td></tr>')
+            continue
         pct = 100 * upl / p["notional"] if p["notional"] else 0.0
         cls = "pos" if upl >= 0 else "neg"
         open_rows += (f'<tr><td class="tk">{sym}</td>'
@@ -169,7 +235,7 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
   <div class="sub">Herd-conditioned structural patterns on the full
    5,200-name field · positions held to the third pattern boundary ·
    no new entries before weekends · engine herd_kgate_v1 ·
-   last processed bar {last_bar} · updated {stamp}</div>
+   last processed bar {last_bar} · updated {stamp}{unpriced_note}</div>
 </header>
 <div class="mode"><span>Mode <span class="pill">PAPER</span></span>
   <span>Auto-TFE <span class="on">ON</span></span>
