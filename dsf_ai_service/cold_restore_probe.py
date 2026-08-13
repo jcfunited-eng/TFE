@@ -277,6 +277,16 @@ def _rehearse_sparse_attention_frontier(
     replay_settled_working_frontier = tuple(
         replay_prepared.settled_working_frontier
     )
+    prediction_alternatives = tuple(
+        prepared.physical_prediction_alternatives
+    )
+    replay_prediction_alternatives = tuple(
+        replay_prepared.physical_prediction_alternatives
+    )
+    body_consequence_transfers = tuple(prepared.body_consequence_transfers)
+    replay_body_consequence_transfers = tuple(
+        replay_prepared.body_consequence_transfers
+    )
     route_sets = (
         reached_and_foregone_routes,
         current_routes,
@@ -299,11 +309,15 @@ def _rehearse_sparse_attention_frontier(
         or replay_current_routes != current_routes
         or replay_preceding_routes != preceding_routes
         or replay_reached_and_foregone_routes != reached_and_foregone_routes
-        or len(working_continuations) != 1
+        # C-015 is already live-closed. Its transient witness is reported when
+        # present but cannot become a recurring release gate that every later
+        # physical predecessor must reproduce.
         or replay_working_continuations != working_continuations
-        or len(settled_working_frontier) != 1
         or replay_settled_working_frontier != settled_working_frontier
-        or settled_working_frontier[0] != working_continuations[0][1]
+        or len(prediction_alternatives) != 2
+        or replay_prediction_alternatives != prediction_alternatives
+        or len(body_consequence_transfers) != 1
+        or replay_body_consequence_transfers != body_consequence_transfers
         or replay_successor != successor
         or replay_before.state_sha256 != before.state_sha256
         or replay_after.state_sha256 != after.state_sha256
@@ -351,6 +365,14 @@ def _rehearse_sparse_attention_frontier(
         "working_causal_settlement_count": len(settled_working_frontier),
         "working_causal_settlement_sha256": hashlib.sha256(
             _canonical(settled_working_frontier)
+        ).hexdigest(),
+        "physical_prediction_alternative_count": len(prediction_alternatives),
+        "physical_prediction_alternatives_sha256": hashlib.sha256(
+            _canonical(prediction_alternatives)
+        ).hexdigest(),
+        "body_consequence_transfer_count": len(body_consequence_transfers),
+        "body_consequence_transfers_sha256": hashlib.sha256(
+            _canonical(body_consequence_transfers)
         ).hexdigest(),
     }
 

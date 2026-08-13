@@ -688,6 +688,25 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
         --expected-tick "${REHEARSAL_TICK}" \
         --expected-state-sha256 "${REHEARSAL_STATE_SHA}")
     printf '%s\n' "${REHEARSAL_PROOF}"
+    printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
+import json, re, sys
+proof = json.load(sys.stdin)
+for name, count in (
+    ("physical_prediction_alternative_count", 2),
+    ("body_consequence_transfer_count", 1),
+):
+    if proof.get(name) != count:
+        raise SystemExit(f"C-016 rehearsal changed {name}")
+for name in (
+    "physical_prediction_alternatives_sha256",
+    "body_consequence_transfers_sha256",
+):
+    value = proof.get(name)
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        raise SystemExit(f"C-016 rehearsal omitted {name}")
+if proof.get("python_callback_count") != 0:
+    raise SystemExit("C-016 rehearsal invoked Python cognition")
+'
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
         CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \

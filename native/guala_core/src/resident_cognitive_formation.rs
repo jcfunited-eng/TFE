@@ -626,6 +626,16 @@ pub(crate) struct CognitiveFormationObservation {
     /// expired at this boundary. The neuron's ordinary physical state remains
     /// authoritative; this observation stores and changes nothing.
     pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
+    /// Up to two exact internally continued alternatives sharing one reached
+    /// intrinsic cause. Each path crosses an already-retained layer-11
+    /// ordering cell and reaches a distinct layer-10 body/affective relation.
+    /// This is bounded transient evidence, never a retained plan or score.
+    pub(crate) physical_prediction_alternatives: Vec<OrderedPhysicalPathObservation>,
+    /// One exact layer-8 to layer-10 transfer observed only while an authentic
+    /// vestibular occurrence is being settled. It is the later body
+    /// consequence against which prior alternatives can be compared; the
+    /// comparison itself changes no organism state.
+    pub(crate) body_consequence_transfers: Vec<DirectedPhysicalTransferObservation>,
     /// Transient connected frontiers among recurrent mosaics physically
     /// reached by this transition, with at least one fully reassembled. No
     /// relation object, count, hierarchy, or history is retained in the
@@ -1495,6 +1505,104 @@ fn working_causal_frontier_observation(
         continuation.into_iter().collect(),
         settled.copied().into_iter().collect(),
     )
+}
+
+/// Observe one constant-sized set of physically ordered alternatives.
+///
+/// The predecessor interval must have carried material from one common
+/// source-independent neuron into at least two retained ordering cells (layer
+/// 11). The current interval must continue, without an independent current
+/// seed, from those ordering cells into distinct retained body/affective
+/// relations (layer 10). Existing sparse contacts and carrier transfer are the
+/// entire authority; this function retains nothing and chooses no winner.
+fn physical_prediction_alternatives_observation(
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+    current_noncontinuation_seeds: &[[u8; 16]],
+    lineage_layers: &[([u8; 16], u32)],
+) -> Vec<OrderedPhysicalPathObservation> {
+    let layer_of = |lineage: [u8; 16]| {
+        lineage_layers
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| lineage_layers[index].1)
+    };
+    let mut predecessor = predecessor_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .filter(|transfer| {
+            matches!(layer_of(transfer.sender), Some(layer) if layer > 5 && layer != 11)
+                && layer_of(transfer.receiver) == Some(11)
+                && !current_noncontinuation_seeds.contains(&transfer.receiver)
+        })
+        .collect::<Vec<_>>();
+    predecessor.sort_unstable();
+    let mut current = current_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .filter(|transfer| {
+            layer_of(transfer.sender) == Some(11)
+                && layer_of(transfer.receiver) == Some(10)
+                && !current_noncontinuation_seeds.contains(&transfer.receiver)
+        })
+        .collect::<Vec<_>>();
+    current.sort_unstable();
+
+    let mut paths = predecessor
+        .iter()
+        .flat_map(|first| {
+            current
+                .iter()
+                .filter(move |second| second.sender == first.receiver)
+                .map(move |second| OrderedPhysicalPathObservation {
+                    first: *first,
+                    second: *second,
+                })
+        })
+        .collect::<Vec<_>>();
+    paths.sort_unstable();
+    paths.dedup();
+
+    for first_path in &paths {
+        let Some(second_path) = paths.iter().find(|candidate| {
+            candidate.first.sender == first_path.first.sender
+                && candidate.first.receiver != first_path.first.receiver
+                && candidate.second.receiver != first_path.second.receiver
+        }) else {
+            continue;
+        };
+        return vec![*first_path, *second_path];
+    }
+    Vec::new()
+}
+
+/// Observe one exact returned body consequence during vestibular settlement.
+/// A layer-8 sender is the already-mounted body-regulation participant and a
+/// layer-10 receiver is its retained body/affective relation. The caller alone
+/// supplies whether this interval is authentic vestibular ingress, preventing
+/// ordinary internal propagation from being relabelled as sensed consequence.
+fn body_consequence_transfer_observation(
+    current_frontier: &[ActiveElectricalFrontierEntry],
+    lineage_layers: &[([u8; 16], u32)],
+    authentic_vestibular_ingress: bool,
+) -> Vec<DirectedPhysicalTransferObservation> {
+    if !authentic_vestibular_ingress {
+        return Vec::new();
+    }
+    let layer_of = |lineage: [u8; 16]| {
+        lineage_layers
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| lineage_layers[index].1)
+    };
+    current_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .find(|transfer| {
+            layer_of(transfer.sender) == Some(8) && layer_of(transfer.receiver) == Some(10)
+        })
+        .into_iter()
+        .collect()
 }
 
 fn ordered_path_relations_for_relation(
@@ -3685,6 +3793,29 @@ impl ResidentCognitiveFormationState {
                 &active_electrical_frontier,
                 &current_noncontinuation_seed_lineages,
             );
+        let mut lineage_layers = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .neuron_lineages()
+                    .iter()
+                    .zip(cohort.anatomy.mounts())
+                    .map(|(lineage, mount)| (*lineage, mount.place().layer()))
+            })
+            .collect::<Vec<_>>();
+        lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        let physical_prediction_alternatives = physical_prediction_alternatives_observation(
+            &predecessor_active_electrical_frontier,
+            &active_electrical_frontier,
+            &current_noncontinuation_seed_lineages,
+            &lineage_layers,
+        );
+        let body_consequence_transfers = body_consequence_transfer_observation(
+            &active_electrical_frontier,
+            &lineage_layers,
+            vestibular.is_some(),
+        );
         for predecessor in internal_contact.transition_predecessors {
             retain_first_transition_predecessor(&mut transition_neuron_predecessors, predecessor);
         }
@@ -3817,6 +3948,8 @@ impl ResidentCognitiveFormationState {
                 preceding_distinct_physical_frontier_routes: Vec::new(),
                 working_causal_continuations,
                 settled_working_frontier,
+                physical_prediction_alternatives,
+                body_consequence_transfers,
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
@@ -4188,6 +4321,8 @@ impl ResidentCognitiveFormationState {
                 reached_and_foregone_physical_frontier_routes: Vec::new(),
                 working_causal_continuations: Vec::new(),
                 settled_working_frontier: Vec::new(),
+                physical_prediction_alternatives: Vec::new(),
+                body_consequence_transfers: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
@@ -12716,6 +12851,79 @@ mod tests {
             working_causal_frontier_observation(&legacy, &current, &[]);
         assert!(continued.is_empty());
         assert!(settled.is_empty());
+    }
+
+    #[test]
+    fn physical_prediction_requires_two_unseeded_layer_eleven_routes_from_one_intrinsic_cause() {
+        let intrinsic_cause = [1_u8; 16];
+        let ordering_a = [2_u8; 16];
+        let ordering_b = [3_u8; 16];
+        let consequence_a = [4_u8; 16];
+        let consequence_b = [5_u8; 16];
+        let cause_a = StablePhysicalBondReference::new(intrinsic_cause, ordering_a, 0).unwrap();
+        let cause_b = StablePhysicalBondReference::new(intrinsic_cause, ordering_b, 0).unwrap();
+        let ordered_a = StablePhysicalBondReference::new(ordering_a, consequence_a, 0).unwrap();
+        let ordered_b = StablePhysicalBondReference::new(ordering_b, consequence_b, 0).unwrap();
+        let predecessor = [
+            ActiveElectricalFrontierEntry::caused(intrinsic_cause, ordering_a, cause_a, 7).unwrap(),
+            ActiveElectricalFrontierEntry::caused(intrinsic_cause, ordering_b, cause_b, 5).unwrap(),
+        ];
+        let current = [
+            ActiveElectricalFrontierEntry::caused(ordering_a, consequence_a, ordered_a, 3).unwrap(),
+            ActiveElectricalFrontierEntry::caused(ordering_b, consequence_b, ordered_b, 2).unwrap(),
+        ];
+        let layers = [
+            (intrinsic_cause, 13),
+            (ordering_a, 11),
+            (ordering_b, 11),
+            (consequence_a, 10),
+            (consequence_b, 10),
+        ];
+
+        let alternatives =
+            physical_prediction_alternatives_observation(&predecessor, &current, &[], &layers);
+        assert_eq!(alternatives.len(), 2);
+        assert_eq!(alternatives[0].directed_transfers()[0].0, intrinsic_cause);
+        assert_eq!(alternatives[1].directed_transfers()[0].0, intrinsic_cause);
+        assert_ne!(
+            alternatives[0].directed_transfers()[1].1,
+            alternatives[1].directed_transfers()[1].1
+        );
+        assert!(physical_prediction_alternatives_observation(
+            &predecessor[..1],
+            &current[..1],
+            &[],
+            &layers,
+        )
+        .is_empty());
+        assert!(physical_prediction_alternatives_observation(
+            &predecessor,
+            &current,
+            &[ordering_a],
+            &layers,
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn body_consequence_requires_authentic_vestibular_layer_eight_to_ten_transfer() {
+        let regulation = [6_u8; 16];
+        let consequence = [7_u8; 16];
+        let bond = StablePhysicalBondReference::new(regulation, consequence, 0).unwrap();
+        let frontier =
+            [ActiveElectricalFrontierEntry::caused(regulation, consequence, bond, 11).unwrap()];
+        let layers = [(regulation, 8), (consequence, 10)];
+        assert!(body_consequence_transfer_observation(&frontier, &layers, false).is_empty());
+        let observed = body_consequence_transfer_observation(&frontier, &layers, true);
+        assert_eq!(observed.len(), 1);
+        assert_eq!(
+            (
+                observed[0].sender,
+                observed[0].receiver,
+                observed[0].transferred_whole_carriers,
+            ),
+            (regulation, consequence, 11)
+        );
     }
 
     #[test]

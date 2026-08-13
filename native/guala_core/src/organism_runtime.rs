@@ -374,6 +374,8 @@ pub(crate) struct RuntimeObservation {
         Vec<PhysicalFrontierRouteObservation>,
     pub(crate) working_causal_continuations: Vec<OrderedPhysicalPathObservation>,
     pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
+    pub(crate) physical_prediction_alternatives: Vec<OrderedPhysicalPathObservation>,
+    pub(crate) body_consequence_transfers: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -862,6 +864,16 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn physical_prediction_alternatives(&self) -> Vec<OrderedPhysicalPathProjection> {
+        project_ordered_physical_paths(&self.observation.physical_prediction_alternatives)
+    }
+
+    #[getter]
+    fn body_consequence_transfers(&self) -> Vec<DirectedPhysicalTransferProjection> {
+        project_directed_physical_transfers(&self.observation.body_consequence_transfers)
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1233,6 +1245,16 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn settled_working_frontier(&self) -> Vec<DirectedPhysicalTransferProjection> {
         project_directed_physical_transfers(&self.observation.settled_working_frontier)
+    }
+
+    #[getter]
+    fn physical_prediction_alternatives(&self) -> Vec<OrderedPhysicalPathProjection> {
+        project_ordered_physical_paths(&self.observation.physical_prediction_alternatives)
+    }
+
+    #[getter]
+    fn body_consequence_transfers(&self) -> Vec<DirectedPhysicalTransferProjection> {
+        project_directed_physical_transfers(&self.observation.body_consequence_transfers)
     }
 
     #[getter]
@@ -1817,6 +1839,21 @@ impl ResidentOrganismRuntime {
                         }
                     }
                 }
+                let prediction_preceded_this_interval =
+                    !total.physical_prediction_alternatives.is_empty();
+                if total.physical_prediction_alternatives.is_empty()
+                    && !observation.physical_prediction_alternatives.is_empty()
+                {
+                    total.physical_prediction_alternatives =
+                        observation.physical_prediction_alternatives.clone();
+                }
+                if prediction_preceded_this_interval
+                    && total.body_consequence_transfers.is_empty()
+                    && !observation.body_consequence_transfers.is_empty()
+                {
+                    total.body_consequence_transfers =
+                        observation.body_consequence_transfers.clone();
+                }
                 // A trajectory is one bounded transaction over ordered
                 // one-millisecond intervals. Keep the latest relation state
                 // and one earliest exact ordered witness for each stable
@@ -1862,6 +1899,7 @@ impl ResidentOrganismRuntime {
                 // second transfer may fill this slot in a later interval.
                 let mut initial = observation;
                 initial.settled_working_frontier.clear();
+                initial.body_consequence_transfers.clear();
                 aggregate = Some(initial);
             }
         }
@@ -3718,6 +3756,8 @@ fn make_restored_observation(
         reached_and_foregone_physical_frontier_routes: Vec::new(),
         working_causal_continuations: Vec::new(),
         settled_working_frontier: Vec::new(),
+        physical_prediction_alternatives: Vec::new(),
+        body_consequence_transfers: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3796,6 +3836,8 @@ fn make_step_observation(
             .clone(),
         working_causal_continuations: cognitive.working_causal_continuations.clone(),
         settled_working_frontier: cognitive.settled_working_frontier.clone(),
+        physical_prediction_alternatives: cognitive.physical_prediction_alternatives.clone(),
+        body_consequence_transfers: cognitive.body_consequence_transfers.clone(),
         organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -3866,6 +3908,8 @@ fn make_authored_contact_observation(
         reached_and_foregone_physical_frontier_routes: Vec::new(),
         working_causal_continuations: Vec::new(),
         settled_working_frontier: Vec::new(),
+        physical_prediction_alternatives: Vec::new(),
+        body_consequence_transfers: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,

@@ -266,6 +266,47 @@ def test_public_observation_reports_bounded_working_cause_and_exact_settlement(
     assert working["semantic_working_memory_authority"] is False
 
 
+def test_public_observation_reports_prediction_only_after_later_body_test(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    consequence = ("06" * 16, "04" * 16, 0, 3)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "cognitive_mosaic_count": 0,
+            "complete_neuron_fractal_count": 0,
+            "hop_count": 3,
+            "intake": "continuous-environment:test",
+            "physical_frontier_routes": (),
+            "preceding_distinct_physical_frontier_routes": (),
+            "reached_and_foregone_physical_frontier_routes": (),
+            "working_causal_continuations": (),
+            "settled_working_frontier": (),
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (consequence,),
+            "totals": {
+                "complete_neuron_fractal_count": 0,
+                "current_cohort_evaluation_count": 3,
+                "dsf_delivery_count": 3,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 3,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+    serving._refresh_public_observation_cache()
+    prediction = json.loads(serving.native_observation().body)["prediction"]
+    assert prediction["available"] is True
+    assert prediction["agreeing_alternative_indices"] == [0]
+    assert prediction["planner_authority"] is False
+    assert prediction["score_authority"] is False
+
+
 def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
     _mount(monkeypatch)
     value = json.loads(serving.native_observation().body)

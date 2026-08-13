@@ -38,6 +38,8 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "reached_and_foregone_physical_frontier_routes": (),
         "working_causal_continuations": (),
         "settled_working_frontier": (),
+        "physical_prediction_alternatives": (),
+        "body_consequence_transfers": (),
         "organic_mosaic_relations": relations,
         "state_sha256": f"{tick:064x}",
     }
@@ -95,6 +97,31 @@ def test_working_causal_evidence_keeps_one_path_until_that_cause_settles() -> No
 
     assert continuation == ((first, second),)
     assert settlement == (second,)
+
+
+def test_prediction_evidence_keeps_two_alternatives_until_body_consequence() -> None:
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    consequence = ("06" * 16, "04" * 16, 0, 3)
+    alternatives, returned = production._advance_bounded_prediction_evidence(
+        (),
+        (),
+        {
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (),
+        },
+    )
+    alternatives, returned = production._advance_bounded_prediction_evidence(
+        alternatives,
+        returned,
+        {
+            "physical_prediction_alternatives": (),
+            "body_consequence_transfers": (consequence,),
+        },
+    )
+    assert alternatives == (first, second)
+    assert returned == (consequence,)
 
 
 def test_admitted_experience_preserves_relation_from_nonfinal_hop(
@@ -175,6 +202,8 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         reached_and_foregone_physical_frontier_routes=(),
         working_causal_continuations=(),
         settled_working_frontier=(),
+        physical_prediction_alternatives=(),
+        body_consequence_transfers=(),
         organic_mosaic_relations=((receipts, (), (bond,), "33" * 32, (), ()),),
         recurrent_complete_neuron_fractal_count=2,
     )

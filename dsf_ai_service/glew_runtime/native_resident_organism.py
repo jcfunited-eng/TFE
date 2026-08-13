@@ -130,6 +130,16 @@ class NativeResidentObservationView(Protocol):
     ) -> list[tuple[str, str, int, str]]: ...
 
     @property
+    def physical_prediction_alternatives(
+        self,
+    ) -> list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]]: ...
+
+    @property
+    def body_consequence_transfers(
+        self,
+    ) -> list[tuple[str, str, int, str]]: ...
+
+    @property
     def organic_mosaic_relations(
         self,
     ) -> list[
@@ -279,6 +289,14 @@ class ResidentPrepareEvidence:
         ...,
     ] = ()
     settled_working_frontier: tuple[tuple[str, str, int, int], ...] = ()
+    physical_prediction_alternatives: tuple[
+        tuple[
+            tuple[str, str, int, int],
+            tuple[str, str, int, int],
+        ],
+        ...,
+    ] = ()
+    body_consequence_transfers: tuple[tuple[str, str, int, int], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -457,6 +475,55 @@ def _settled_working_frontier_evidence(
     )
 
 
+def _physical_prediction_alternative_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        tuple[str, str, int, int],
+        tuple[str, str, int, int],
+    ],
+    ...,
+]:
+    if not isinstance(value, list) or len(value) not in (0, 2):
+        raise RuntimeError("resident organism prediction alternatives changed bounds")
+    paths = tuple(
+        (
+            _directed_physical_transfer_evidence(
+                raw_path[0], "prediction alternative first transfer"
+            ),
+            _directed_physical_transfer_evidence(
+                raw_path[1], "prediction alternative second transfer"
+            ),
+        )
+        for raw_path in value
+        if isinstance(raw_path, tuple) and len(raw_path) == 2
+    )
+    if len(paths) != len(value):
+        raise RuntimeError("resident organism prediction alternative changed format")
+    if paths and (
+        paths[0][0][1] != paths[0][1][0]
+        or paths[1][0][1] != paths[1][1][0]
+        or paths[0][0][0] != paths[1][0][0]
+        or paths[0][0][1] == paths[1][0][1]
+        or paths[0][1][1] == paths[1][1][1]
+    ):
+        raise RuntimeError("resident organism prediction alternatives lost topology")
+    return paths
+
+
+def _body_consequence_transfer_evidence(
+    value: object,
+) -> tuple[tuple[str, str, int, int], ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism body consequence changed bounds")
+    return tuple(
+        _directed_physical_transfer_evidence(
+            transfer, "body consequence transfer"
+        )
+        for transfer in value
+    )
+
+
 def _validated_causal_intervals(
     maximum_causal_intervals: object,
 ) -> list[tuple[int, int]]:
@@ -557,6 +624,8 @@ def _observation_signature(
         tuple(observation.reached_and_foregone_physical_frontier_routes),
         tuple(observation.working_causal_continuations),
         tuple(observation.settled_working_frontier),
+        tuple(observation.physical_prediction_alternatives),
+        tuple(observation.body_consequence_transfers),
         tuple(
             (
                 tuple(receipts),
@@ -1172,6 +1241,14 @@ class NativeResidentOrganism:
         settled_working_frontier = _settled_working_frontier_evidence(
             candidate.settled_working_frontier
         )
+        physical_prediction_alternatives = (
+            _physical_prediction_alternative_evidence(
+                candidate.physical_prediction_alternatives
+            )
+        )
+        body_consequence_transfers = _body_consequence_transfer_evidence(
+            candidate.body_consequence_transfers
+        )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -1535,6 +1612,8 @@ class NativeResidentOrganism:
             ),
             working_causal_continuations=working_causal_continuations,
             settled_working_frontier=settled_working_frontier,
+            physical_prediction_alternatives=physical_prediction_alternatives,
+            body_consequence_transfers=body_consequence_transfers,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 

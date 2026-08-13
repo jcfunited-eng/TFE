@@ -2257,6 +2257,59 @@ def _working_causal_state_record() -> dict[str, object]:
     )
 
 
+def _physical_prediction_record() -> dict[str, object]:
+    """Report bounded physical alternatives and their later body test."""
+
+    evidence = _last_transition_evidence or {}
+    alternatives = tuple(evidence.get("physical_prediction_alternatives", ()))
+    consequences = tuple(evidence.get("body_consequence_transfers", ()))
+    if len(alternatives) != 2:
+        return _section(
+            False,
+            "physical_prediction_mounted_awaiting_alternatives",
+            "no committed transaction in this process has yet continued one "
+            "intrinsic cause through two distinct layer-11 routes into "
+            "distinct retained body relations",
+            planner_authority=False,
+            score_authority=False,
+            semantic_outcome_authority=False,
+        )
+    if not consequences:
+        return _section(
+            False,
+            "ordered_physical_alternatives_awaiting_body_consequence",
+            "two exact internally continued alternatives were observed before "
+            "the later authentic body consequence required to test them",
+            alternatives=alternatives,
+            planner_authority=False,
+            score_authority=False,
+            semantic_outcome_authority=False,
+        )
+    consequence = consequences[0]
+    agreement = tuple(
+        index
+        for index, alternative in enumerate(alternatives)
+        if alternative[1][1] == consequence[1]
+    )
+    return _section(
+        True,
+        (
+            "physical_alternative_agreed_with_later_body_consequence"
+            if agreement
+            else "physical_alternatives_contradicted_by_later_body_consequence"
+        ),
+        "two exact internally continued layer-11 alternatives preceded an "
+        "authentic returned body relation; equality is tested only by the "
+        "retained consequence lineage and creates no winner, reward, or plan",
+        alternatives=alternatives,
+        consequence=consequence,
+        agreeing_alternative_indices=agreement,
+        planner_authority=False,
+        score_authority=False,
+        semantic_outcome_authority=False,
+    )
+
+
 def _describe_intake(intake: str) -> tuple[str, str]:
     """What this experience actually was, in words, and what it carried.
 
@@ -2918,6 +2971,7 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "attention": _attention_record(),
         "working_causal_state": _working_causal_state_record(),
+        "prediction": _physical_prediction_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
         "articulation": _unmounted(
@@ -4254,6 +4308,10 @@ def _commit_admitted_hop(
         ),
         "working_causal_continuations": evidence.working_causal_continuations,
         "settled_working_frontier": evidence.settled_working_frontier,
+        "physical_prediction_alternatives": (
+            evidence.physical_prediction_alternatives
+        ),
+        "body_consequence_transfers": evidence.body_consequence_transfers,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4330,6 +4388,10 @@ def _commit_vestibular_tick(
         ),
         "working_causal_continuations": evidence.working_causal_continuations,
         "settled_working_frontier": evidence.settled_working_frontier,
+        "physical_prediction_alternatives": (
+            evidence.physical_prediction_alternatives
+        ),
+        "body_consequence_transfers": evidence.body_consequence_transfers,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4406,6 +4468,10 @@ def _commit_vestibular_trajectory(
         ),
         "working_causal_continuations": evidence.working_causal_continuations,
         "settled_working_frontier": evidence.settled_working_frontier,
+        "physical_prediction_alternatives": (
+            evidence.physical_prediction_alternatives
+        ),
+        "body_consequence_transfers": evidence.body_consequence_transfers,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4477,6 +4543,23 @@ def _advance_bounded_working_causal_evidence(
         if matching:
             next_settlement = matching[:1]
     return next_continuation, next_settlement
+
+
+def _advance_bounded_prediction_evidence(
+    alternatives: tuple[tuple[Any, ...], ...],
+    consequence: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[tuple[tuple[Any, ...], ...], tuple[tuple[Any, ...], ...]]:
+    """Retain one two-alternative witness and its first later body consequence."""
+
+    prediction_preceded_this_hop = bool(alternatives)
+    next_alternatives = alternatives or tuple(
+        hop["physical_prediction_alternatives"]
+    )
+    next_consequence = consequence
+    if prediction_preceded_this_hop and not next_consequence:
+        next_consequence = tuple(hop["body_consequence_transfers"])[:1]
+    return next_alternatives, next_consequence
 
 
 def _publish_committed_organism(
@@ -4646,6 +4729,8 @@ def _perform_admitted_intake_locked(
     ] = ()
     working_causal_continuations: tuple[tuple[Any, ...], ...] = ()
     settled_working_frontier: tuple[tuple[Any, ...], ...] = ()
+    physical_prediction_alternatives: tuple[tuple[Any, ...], ...] = ()
+    body_consequence_transfers: tuple[tuple[Any, ...], ...] = ()
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4671,6 +4756,14 @@ def _perform_admitted_intake_locked(
             ) = _advance_bounded_working_causal_evidence(
                 working_causal_continuations,
                 settled_working_frontier,
+                last_hop,
+            )
+            (
+                physical_prediction_alternatives,
+                body_consequence_transfers,
+            ) = _advance_bounded_prediction_evidence(
+                physical_prediction_alternatives,
+                body_consequence_transfers,
                 last_hop,
             )
             committed_vestibular_tick_count = len(signed_steps)
@@ -4700,6 +4793,14 @@ def _perform_admitted_intake_locked(
             ) = _advance_bounded_working_causal_evidence(
                 working_causal_continuations,
                 settled_working_frontier,
+                last_hop,
+            )
+            (
+                physical_prediction_alternatives,
+                body_consequence_transfers,
+            ) = _advance_bounded_prediction_evidence(
+                physical_prediction_alternatives,
+                body_consequence_transfers,
                 last_hop,
             )
             committed_hop_count += 1
@@ -4769,6 +4870,14 @@ def _perform_admitted_intake_locked(
                     settled_working_frontier,
                     last_hop,
                 )
+                (
+                    physical_prediction_alternatives,
+                    body_consequence_transfers,
+                ) = _advance_bounded_prediction_evidence(
+                    physical_prediction_alternatives,
+                    body_consequence_transfers,
+                    last_hop,
+                )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 organic_mosaic_relations.extend(
@@ -4827,6 +4936,8 @@ def _perform_admitted_intake_locked(
         ),
         "working_causal_continuations": working_causal_continuations,
         "settled_working_frontier": settled_working_frontier,
+        "physical_prediction_alternatives": physical_prediction_alternatives,
+        "body_consequence_transfers": body_consequence_transfers,
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,

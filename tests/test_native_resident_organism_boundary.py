@@ -45,6 +45,10 @@ class _NativeResidentOrganismObservation:
         tuple[tuple[str, str, int, int], tuple[str, str, int, int]], ...
     ] = ()
     settled_working_frontier: tuple[tuple[str, str, int, int], ...] = ()
+    physical_prediction_alternatives: tuple[
+        tuple[tuple[str, str, int, int], tuple[str, str, int, int]], ...
+    ] = ()
+    body_consequence_transfers: tuple[tuple[str, str, int, int], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -142,6 +146,10 @@ class _NativeResidentOrganismPrepare:
         tuple[tuple[str, str, int, str], tuple[str, str, int, str]]
     ] | None = None
     settled_working_frontier: list[tuple[str, str, int, str]] | None = None
+    physical_prediction_alternatives: list[
+        tuple[tuple[str, str, int, str], tuple[str, str, int, str]]
+    ] | None = None
+    body_consequence_transfers: list[tuple[str, str, int, str]] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -178,6 +186,10 @@ class _NativeResidentOrganismPrepare:
             self.working_causal_continuations = []
         if self.settled_working_frontier is None:
             self.settled_working_frontier = []
+        if self.physical_prediction_alternatives is None:
+            self.physical_prediction_alternatives = []
+        if self.body_consequence_transfers is None:
+            self.body_consequence_transfers = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
 
