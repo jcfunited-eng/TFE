@@ -91,8 +91,10 @@ def main():
     obj = ev["clock"].to_numpy(dtype=float)
 
     log = json.load(open(LOG))
+    # v1.1 and v2 share the event law and clock exit; v2 changes only
+    # sizing, so per-event returns pool into one live sample
     live = [f["ret_pct"] for f in log["finds"]
-            if f.get("engine") == "ch3_reveal_fade_v1.1"
+            if str(f.get("engine", "")).startswith("ch3_reveal_fade")
             and f["status"] == "TIME"]
     n = len(live)
     if n == 0:

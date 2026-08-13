@@ -1,0 +1,18 @@
+{
+ "declared": "flat vs z-proportional daily allocation, same events, same exits, same capital; no new constants",
+ "n_events": 18588,
+ "n_entry_days": 1929,
+ "per_dollar_mean_ret_pct": {
+  "flat": 1.79,
+  "force": 2.33
+ },
+ "worst_entry_day_ret_pct": {
+  "flat": -610.43,
+  "force": -357.58
+ },
+ "p1_entry_day_ret_pct": {
+  "flat": -37.33,
+  "force": -42.88
+ },
+ "share_of_days_force_beats_flat_pct": 46.1
+}

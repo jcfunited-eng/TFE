@@ -24,6 +24,26 @@ THE CONSTRUCTION (declared):
           short in reality. The shadow book exists to measure whether
           the paper edge survives honest accounting later.
 
+V2 (2026-08-13) — FORCE-PROPORTIONAL SIZING, created from the field:
+the relaxation-field pass (ch3_relaxation_field.py, filed) measured
+the pull monotone in z = |day log-move| / own trailing 20-day noise
+(+1.1%/ev at 3-4 sigma rising to +7.5%/ev beyond 12), and the sizing
+pass (ch3_force_sizing.py, filed) measured the dollar value of
+following it: same events, same exits, same capital per day, split
+by z instead of flat = 2.33% vs 1.79% per deployed dollar per entry
+day on the decade, with the worst day smaller (-358 vs -610).
+  SIZING  the day's capital stays SLICE_USD x (events taken); the
+          split across them is proportional to z. No onset, no cap,
+          no new constant. An allocation under one whole share stays
+          cash. Names need 22 bars now (z needs 20 moves through
+          yesterday); zero-noise names (sd=0) are skipped as data
+          artifacts.
+  ALSO MEASURED AND REFUSED tonight (filed, do not re-derive):
+          crater-side longs even in calm herds (-0.82%/ev, 8/11 years
+          negative — the field has an arrow); z>=3 as the event law
+          (+1.75 vs +2.51 — dilutes); decay-break and above-entry
+          refutation exits (pass 1/2 of ch3_fade_exit_law*.py).
+
 Runs nightly after the store refresh (ch4_spring_daily_runner.sh).
 State: artifacts/vtvr_observer/ch3_shadow_log.json (same book/page).
 Usage: python tools/ch3_reveal_fade.py [DRY]
@@ -43,7 +63,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 LOG_PATH = os.path.join(ROOT, "artifacts", "vtvr_observer",
                         "ch3_shadow_log.json")
-ENGINE = "ch3_reveal_fade_v1.1"
+ENGINE = "ch3_reveal_fade_v2"
+ENGINE_FAMILY = "ch3_reveal_fade"   # v1.1 opens settle under v2 too
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
@@ -79,7 +100,8 @@ def main():
     px_latest = dict(df[df["Date"] == latest][["Symbol", "Close"]].values)
     settled = 0
     for f in log["finds"]:
-        if f["status"] != "OPEN" or f.get("engine") != ENGINE:
+        if (f["status"] != "OPEN"
+                or not str(f.get("engine", "")).startswith(ENGINE_FAMILY)):
             continue
         ei = day_index.get(f["date"])
         li = day_index.get(latest_s)
@@ -110,8 +132,8 @@ def main():
         s = s.sort_values("Date")
         c = s["Close"].to_numpy()
         v = s["Volume"].to_numpy()
-        if len(c) < 21 or s["Date"].iloc[-1] != latest:
-            continue
+        if len(c) < 22 or s["Date"].iloc[-1] != latest:
+            continue                    # v2: z needs 20 moves through yesterday
         if c[-1] < PRICE_FLOOR or c[-2] <= 0:
             continue
         gain = 100 * (c[-1] / c[-2] - 1)
@@ -120,29 +142,47 @@ def main():
             g = gband.get(sym)          # None = no herd; 0 = low greed
             if g is not None and g >= 1:
                 continue                # herd is backing it: a birth, not a collapse
-            run20 = 100 * (c[-2] / c[-22] - 1) if len(c) >= 22 and c[-22] > 0 else 0.0
+            with np.errstate(divide="ignore", invalid="ignore"):
+                lr = np.diff(np.log(np.maximum(c.astype(float), 1e-12)))
+            sd = float(np.std(lr[-21:-1]))          # own 20-day noise
+            if sd <= 1e-9 or not np.isfinite(lr[-1]):
+                continue                # zero-noise name: data artifact
+            z = float(abs(lr[-1]) / sd)             # displacement in own units
+            run20 = 100 * (c[-2] / c[-22] - 1) if c[-22] > 0 else 0.0
             events.append({"symbol": sym, "gain": round(gain, 1),
-                           "close": float(c[-1]),
+                           "close": float(c[-1]), "z": round(z, 2),
                            "herd": "none" if g is None else "low",
                            "prerun": round(run20, 1),
                            "dollar_vol": float(v[-1] * c[-1])})
     events.sort(key=lambda e: -e["dollar_vol"])
     held = {f["symbol"] for f in log["finds"] if f["status"] == "OPEN"}
-    opened = 0
+    # v2 selection unchanged (liquidity-first, caps, one per symbol);
+    # then the day's capital — SLICE_USD per taken event, exactly the
+    # v1.1 total — is split in proportion to each event's pull z
+    take = []
     for e in events:
-        if opened >= MAX_NEW_PER_DAY:
+        if len(take) >= MAX_NEW_PER_DAY:
             break
-        if e["symbol"] in held or log["book"]["cash"] < SLICE_USD:
+        if e["symbol"] in held or any(t["symbol"] == e["symbol"] for t in take):
             continue
-        # whole shares only — a real short cannot be fractional; the
-        # stake is whatever floor(SLICE/px) shares actually cost
-        shares = int(SLICE_USD // e["close"])
+        take.append(e)
+    budget = SLICE_USD * len(take)
+    zsum = sum(t["z"] for t in take) or 1.0
+    opened = 0
+    for e in take:
+        alloc = budget * e["z"] / zsum
+        # whole shares only — a real short cannot be fractional; an
+        # allocation under one share stays cash (pull too weak)
+        shares = int(alloc // e["close"])
         if shares < 1:
             continue
         notional = round(shares * round(e["close"], 4), 2)
+        if log["book"]["cash"] < notional and not dry:
+            continue
         if dry:
             print(f"  WOULD SHORT {shares} {e['symbol']} @ {e['close']} "
-                  f"(+{e['gain']}% day, ${e['dollar_vol']/1e6:.0f}M traded)")
+                  f"(+{e['gain']}% day, z {e['z']}, alloc ${alloc:,.0f}, "
+                  f"${e['dollar_vol']/1e6:.0f}M traded)")
             opened += 1
             continue
         log["book"]["cash"] = round(log["book"]["cash"] - notional, 2)
@@ -151,7 +191,7 @@ def main():
             "symbol": e["symbol"], "side": -1,
             "entry_px": round(e["close"], 4), "shares": shares,
             "target_pct": None, "target_px": None, "bound_pct": None,
-            "notional": notional, "day_chg_pct": e["gain"],
+            "notional": notional, "day_chg_pct": e["gain"], "z": e["z"],
             "catalyst": f"REVEAL/herd-{e['herd']}", "status": "OPEN"})
         held.add(e["symbol"])
         opened += 1

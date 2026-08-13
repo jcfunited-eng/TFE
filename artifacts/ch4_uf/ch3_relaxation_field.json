@@ -1,0 +1,267 @@
+{
+ "declared": "laws, conditions, onset and metrics pre-registered in the docstring before the run; buckets diagnostic only; filed as-is",
+ "LAW_A_crater_long_dollar_form": {
+  "unconditioned_control (v1 said crashes lose)": {
+   "n": 24558,
+   "mean_pct": -0.854,
+   "median_pct": -0.803,
+   "wr_pct": 46.0,
+   "p1_pct": -52.52,
+   "min_pct": -97.81
+  },
+  "TRADEABLE herd-calm (the created law)": {
+   "n": 17805,
+   "mean_pct": -0.815,
+   "median_pct": -0.747,
+   "wr_pct": 46.5,
+   "p1_pct": -56.12,
+   "min_pct": -97.81,
+   "neg_years": [
+    "2017",
+    "2019",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "2026"
+   ],
+   "by_year": {
+    "2016": {
+     "n": 637,
+     "mean_pct": 1.619
+    },
+    "2017": {
+     "n": 741,
+     "mean_pct": -1.196
+    },
+    "2018": {
+     "n": 871,
+     "mean_pct": 0.801
+    },
+    "2019": {
+     "n": 853,
+     "mean_pct": -1.308
+    },
+    "2020": {
+     "n": 911,
+     "mean_pct": 1.899
+    },
+    "2021": {
+     "n": 1540,
+     "mean_pct": -0.475
+    },
+    "2022": {
+     "n": 2406,
+     "mean_pct": -0.452
+    },
+    "2023": {
+     "n": 2546,
+     "mean_pct": -0.252
+    },
+    "2024": {
+     "n": 3074,
+     "mean_pct": -0.588
+    },
+    "2025": {
+     "n": 3321,
+     "mean_pct": -3.172
+    },
+    "2026": {
+     "n": 905,
+     "mean_pct": -1.287
+    }
+   }
+  },
+  "REFUSED herd-fearful (predicted no edge)": {
+   "n": 6753,
+   "mean_pct": -0.957,
+   "median_pct": -0.959,
+   "wr_pct": 44.9,
+   "p1_pct": -44.15,
+   "min_pct": -92.4
+  },
+  "supply": {
+   "trading_days_in_frame": 2549,
+   "events_per_day": 6.99,
+   "days_with_>=1_event_pct": 89.7
+  }
+ },
+ "LAW_B_sigma_form": {
+  "up_side_short_z3_tradeable (vs dollar form +2.507)": {
+   "n": 15122,
+   "mean_pct": 1.75,
+   "median_pct": 1.103,
+   "wr_pct": 58.2,
+   "p1_pct": -63.97,
+   "min_pct": -723.96,
+   "neg_years": [
+    "2017",
+    "2019",
+    "2020"
+   ],
+   "by_year": {
+    "2016": {
+     "n": 435,
+     "mean_pct": 0.567
+    },
+    "2017": {
+     "n": 577,
+     "mean_pct": -0.051
+    },
+    "2018": {
+     "n": 577,
+     "mean_pct": 0.198
+    },
+    "2019": {
+     "n": 630,
+     "mean_pct": -0.397
+    },
+    "2020": {
+     "n": 643,
+     "mean_pct": -1.056
+    },
+    "2021": {
+     "n": 1421,
+     "mean_pct": 2.377
+    },
+    "2022": {
+     "n": 1551,
+     "mean_pct": 3.296
+    },
+    "2023": {
+     "n": 2135,
+     "mean_pct": 2.131
+    },
+    "2024": {
+     "n": 2923,
+     "mean_pct": 1.592
+    },
+    "2025": {
+     "n": 3547,
+     "mean_pct": 2.271
+    },
+    "2026": {
+     "n": 683,
+     "mean_pct": 1.917
+    }
+   }
+  },
+  "down_side_long_z3_tradeable": {
+   "n": 22467,
+   "mean_pct": -0.318,
+   "median_pct": 0.097,
+   "wr_pct": 51.4,
+   "p1_pct": -39.3,
+   "min_pct": -95.54,
+   "neg_years": [
+    "2017",
+    "2019",
+    "2020",
+    "2021",
+    "2022",
+    "2024",
+    "2025",
+    "2026"
+   ],
+   "by_year": {
+    "2016": {
+     "n": 1196,
+     "mean_pct": 0.724
+    },
+    "2017": {
+     "n": 1512,
+     "mean_pct": -0.063
+    },
+    "2018": {
+     "n": 1485,
+     "mean_pct": 0.421
+    },
+    "2019": {
+     "n": 1337,
+     "mean_pct": -0.129
+    },
+    "2020": {
+     "n": 928,
+     "mean_pct": -0.625
+    },
+    "2021": {
+     "n": 1830,
+     "mean_pct": -0.137
+    },
+    "2022": {
+     "n": 2322,
+     "mean_pct": -0.314
+    },
+    "2023": {
+     "n": 2832,
+     "mean_pct": 0.128
+    },
+    "2024": {
+     "n": 3627,
+     "mean_pct": -0.132
+    },
+    "2025": {
+     "n": 4321,
+     "mean_pct": -1.243
+    },
+    "2026": {
+     "n": 1077,
+     "mean_pct": -1.233
+    }
+   }
+  },
+  "diagnostic_zbuckets_up_short_tradeable": {
+   "[3,4)": {
+    "n": 5672,
+    "mean_pct": 1.056
+   },
+   "[4,5)": {
+    "n": 3237,
+    "mean_pct": 0.84
+   },
+   "[5,6)": {
+    "n": 1958,
+    "mean_pct": 1.104
+   },
+   "[6,8)": {
+    "n": 2084,
+    "mean_pct": 2.379
+   },
+   "[8,12)": {
+    "n": 1389,
+    "mean_pct": 3.42
+   },
+   "[12,inf)": {
+    "n": 782,
+    "mean_pct": 7.524
+   }
+  },
+  "diagnostic_zbuckets_down_long_tradeable": {
+   "[3,4)": {
+    "n": 7499,
+    "mean_pct": 0.088
+   },
+   "[4,5)": {
+    "n": 4550,
+    "mean_pct": -0.413
+   },
+   "[5,6)": {
+    "n": 2939,
+    "mean_pct": -0.247
+   },
+   "[6,8)": {
+    "n": 3317,
+    "mean_pct": -0.593
+   },
+   "[8,12)": {
+    "n": 2562,
+    "mean_pct": -0.145
+   },
+   "[12,inf)": {
+    "n": 1600,
+    "mean_pct": -1.793
+   }
+  }
+ }
+}
