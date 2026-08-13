@@ -463,3 +463,35 @@ and backend-only state do not close it.
   cold-replays the same prefix and sensory return. It refuses if the ordinary
   trajectory contains no discharge; it neither manufactures one nor executes
   the unused suffix after one occurs.
+- Corrected candidate commit
+  `a88dd0c820f7cb626ab52c59dd9cb94832518b73`, image
+  `sha256:ec2b9a1bbac5706b0004fa18d3331812c88e91530308ee5c78d619f8e623092a`,
+  and task definition `dsf-ai-task:1029` reached the bounded 15-minute ceiling.
+  Production remained unchanged on task 1024.
+- A discarded diagnostic task using that exact image timed every physical
+  boundary. The first genuine layer-13 source appeared after three ordinary
+  1 ms intervals (1.364, 1.352, and 1.297 seconds). Each of the four admitted
+  articulation-return hops took approximately 4.1 seconds. The complete
+  instrumented cold replay finished successfully and emitted 521 source
+  physical transitions, six complete joint-field DSF deliveries, one
+  layer-13 recruitment, 953 self-hearing transitions, 15 neuronal fractals,
+  14 perturbed local body-receptor neurons, and zero Python cognition
+  callbacks.
+- The ordinary outer validator against the same image again reached its
+  15-minute ceiling. This isolated the remaining proof overhead: it searched
+  the state-dependent articulation prefix interval by interval on both the
+  first run and the exact replay. The body return itself was not the stall.
+- The gate now discovers the genuine prefix once. Its cold comparison restores
+  the same predecessor and replays that already-observed exact prefix through
+  the existing native `prepare_vestibular_trajectory` batch boundary. It still
+  compares source successor state, layer-13 recruitments, total complete-field
+  deliveries, total physical transitions, all four return hops, final state,
+  and saved successor bytes exactly; it only removes the second redundant
+  search.
+- The boundary regression proves that the first run uses three ordinary tick
+  calls and the replay uses exactly one batch call with the same three-step
+  prefix. The focused source test and the complete 54-test source, candidate,
+  deterministic-deployment, and packaging set pass with zero failures. This
+  remains local candidate evidence. A fresh immutable image, authenticated
+  predecessor rehearsal, cutover, and direct public proof remain pending;
+  C-020 is not Live-Closed.

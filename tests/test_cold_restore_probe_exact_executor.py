@@ -253,6 +253,7 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
 def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
     monkeypatch,
 ) -> None:
+    trajectory_calls: list[tuple[int, tuple[int, ...]]] = []
     recruitment = (
         "13" * 16,
         0,
@@ -264,6 +265,7 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
         def __init__(self) -> None:
             self.tick = 40
             self.prepared_intervals = 0
+            self.pending_tick_advance = 0
 
         def readiness(self) -> SimpleNamespace:
             return SimpleNamespace(
@@ -278,6 +280,7 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
             self, heading: int, signed_step: int
         ) -> SimpleNamespace:
             self.prepared_intervals += 1
+            self.pending_tick_advance = 1
             assert heading == 0
             assert signed_step == 0
             return SimpleNamespace(
@@ -289,9 +292,25 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
                 physically_transitioned_neuron_count=10 * self.prepared_intervals,
             )
 
+        def prepare_vestibular_trajectory(
+            self, heading: int, steps: tuple[int, ...]
+        ) -> SimpleNamespace:
+            assert heading == 0
+            assert steps == (0, 0, 0)
+            trajectory_calls.append((heading, steps))
+            self.prepared_intervals = 3
+            self.pending_tick_advance = len(steps)
+            return SimpleNamespace(
+                token="source-3",
+                articulatory_unit_recruitments=(recruitment,),
+                dsf_delivery_count=6,
+                physically_transitioned_neuron_count=60,
+            )
+
         def commit(self, token: str) -> SimpleNamespace:
             assert token == f"source-{self.prepared_intervals}"
-            self.tick += 1
+            self.tick += self.pending_tick_advance
+            self.pending_tick_advance = 0
             return self.readiness()
 
         def save(self) -> bytes:
@@ -329,6 +348,7 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
     assert proof["native_articulation_source_interval_count"] == 3
     assert proof["native_articulation_source_dsf_delivery_count"] == 6
     assert proof["native_articulation_source_layer_13_recruitment_count"] == 1
+    assert trajectory_calls == [(0, (0, 0, 0))]
     assert (
         proof["native_articulation_source_physically_transitioned_neuron_count"]
         == 60

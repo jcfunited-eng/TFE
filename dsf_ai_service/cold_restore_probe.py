@@ -528,7 +528,9 @@ def _rehearse_native_articulation_source(
     if len(steps) != 250:
         raise RuntimeError("native articulation source changed its ordinary body clock")
 
-    def settle() -> tuple[
+    def settle(
+        replay_source_steps: tuple[int, ...] | None = None,
+    ) -> tuple[
         object,
         object,
         object,
@@ -538,32 +540,51 @@ def _rehearse_native_articulation_source(
         int,
         int,
         int,
+        tuple[int, ...],
     ]:
         organism = restore_native_resident_organism(
             current_envelope=current_envelope,
             **budget,
         )
         before = organism.readiness()
-        heading = 0
-        source_dsf_deliveries = 0
-        source_physical_transitions = 0
-        prepared = None
-        after_source = None
-        source_interval_count = 0
-        for source_interval_count, signed_step in enumerate(steps, 1):
-            candidate = organism.prepare_vestibular_tick(heading, signed_step)
-            after_candidate = organism.commit(candidate.token)
-            source_dsf_deliveries += candidate.dsf_delivery_count
-            source_physical_transitions += (
-                candidate.physically_transitioned_neuron_count
+        if replay_source_steps is None:
+            heading = 0
+            source_dsf_deliveries = 0
+            source_physical_transitions = 0
+            prepared = None
+            after_source = None
+            source_interval_count = 0
+            for source_interval_count, signed_step in enumerate(steps, 1):
+                candidate = organism.prepare_vestibular_tick(heading, signed_step)
+                after_candidate = organism.commit(candidate.token)
+                source_dsf_deliveries += candidate.dsf_delivery_count
+                source_physical_transitions += (
+                    candidate.physically_transitioned_neuron_count
+                )
+                heading = (heading + signed_step) % 360_000
+                if candidate.articulatory_unit_recruitments:
+                    prepared = candidate
+                    after_source = after_candidate
+                    break
+            if prepared is None or after_source is None:
+                raise RuntimeError("ordinary native source produced no articulation")
+            source_steps = steps[:source_interval_count]
+        else:
+            if not replay_source_steps or len(replay_source_steps) > len(steps):
+                raise RuntimeError("native articulation replay prefix is invalid")
+            prepared = organism.prepare_vestibular_trajectory(
+                0,
+                replay_source_steps,
             )
-            heading = (heading + signed_step) % 360_000
-            if candidate.articulatory_unit_recruitments:
-                prepared = candidate
-                after_source = after_candidate
-                break
-        if prepared is None or after_source is None:
-            raise RuntimeError("ordinary native source produced no articulation")
+            after_source = organism.commit(prepared.token)
+            if not prepared.articulatory_unit_recruitments:
+                raise RuntimeError("native articulation replay lost its discharge")
+            source_interval_count = len(replay_source_steps)
+            source_dsf_deliveries = prepared.dsf_delivery_count
+            source_physical_transitions = (
+                prepared.physically_transitioned_neuron_count
+            )
+            source_steps = replay_source_steps
         articulation = _rehearse_articulation_and_self_hearing(organism, prepared)
         if articulation is None:
             raise RuntimeError("native discharge produced no articulation")
@@ -579,6 +600,7 @@ def _rehearse_native_articulation_source(
             source_interval_count,
             source_dsf_deliveries,
             source_physical_transitions,
+            source_steps,
         )
 
     (
@@ -591,6 +613,7 @@ def _rehearse_native_articulation_source(
         source_interval_count,
         source_dsf_deliveries,
         source_physical_transitions,
+        source_steps,
     ) = settle()
     (
         replay_before,
@@ -602,7 +625,8 @@ def _rehearse_native_articulation_source(
         replay_source_interval_count,
         replay_source_dsf_deliveries,
         replay_source_physical_transitions,
-    ) = settle()
+        replay_source_steps,
+    ) = settle(source_steps)
     recruitments = tuple(prepared.articulatory_unit_recruitments)
     replay_recruitments = tuple(replay_prepared.articulatory_unit_recruitments)
     if (
@@ -617,12 +641,10 @@ def _rehearse_native_articulation_source(
         != after_source.organism_tick + articulation["self_hearing_hop_count"]
         or after_return.python_callback_count != 0
         or replay_before.state_sha256 != before.state_sha256
-        or replay_prepared.dsf_delivery_count != prepared.dsf_delivery_count
-        or replay_prepared.physically_transitioned_neuron_count
-        != prepared.physically_transitioned_neuron_count
         or replay_source_interval_count != source_interval_count
         or replay_source_dsf_deliveries != source_dsf_deliveries
         or replay_source_physical_transitions != source_physical_transitions
+        or replay_source_steps != source_steps
         or replay_recruitments != recruitments
         or replay_after_source.state_sha256 != after_source.state_sha256
         or replay_after_return.state_sha256 != after_return.state_sha256
