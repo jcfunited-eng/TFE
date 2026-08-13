@@ -293,7 +293,7 @@ box remains unchecked until live acceptance passes.
   7.30% memory, while the current organism state remained about 43.4 MB.
   Release commit `e0c39fea`, image
   `sha256:5fc3d2848b0d6145cf4ae129a3b9da39b9e9d01d65c30d04fad1babc86c30205`.
-- [ ] **C-020** Prove articulation reaches layer 13 and causes breath, mouth,
+- [x] **C-020** Prove articulation reaches layer 13 and causes breath, mouth,
   face, and pressure/sound consequences that re-enter self-hearing/body senses.
   **Partial live proof 2026-08-13; remains open:** public production task 1024
   now exposes native layer-13 recruitment, breath/glottis/mouth/perioral body
@@ -305,6 +305,14 @@ box remains unchecked until live acceptance passes.
   no browser errors. Articulatory proprioceptive/body-receptor neuronal return
   is still absent, so C-020 is not Live-Closed. Release commit `1e4927f3`,
   image `sha256:8bab615e01c904af0c55bcdf262a679024f3927d4b140d74e469178feed227ac`.
+  **Live-closed 2026-08-13:** production task 1034, commit `533e4573`, image
+  `sha256:2d299435813310b054aefce1100ec544ebc6167837ef366daf81d9e36793f890`
+  preserved the same organism and added the missing articulatory body return.
+  One public committed native articulation exposed four nonquiescent body
+  ports, sixteen body-receptor ingresses, sixteen physically perturbed body
+  neurons, four self-hearing hops, and three retained self-hearing neuronal
+  fractals. ECS had one running task, zero pending tasks, no candidate task,
+  and zero Python cognition callbacks.
 - [ ] **C-021** Prove sleep/rest emerges from organism condition and changes
   reachable work without a scheduler pretending to be a brain.
 - [ ] **C-022** Prove bounded internally sourced dream/consolidation reactivates

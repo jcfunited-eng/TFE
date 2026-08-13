@@ -325,6 +325,7 @@ class ResidentPrepareEvidence:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    rest_recovered_neuron_count: int = 0
     externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         0,
@@ -1726,6 +1727,10 @@ class NativeResidentOrganism:
             candidate.metabolically_perturbed_body_receptor_count,
             "metabolically perturbed body receptor count",
         )
+        rest_recovered_neuron_count = _nonnegative_integer(
+            candidate.rest_recovered_neuron_count,
+            "rest recovered neuron count",
+        )
         externally_perturbed_body_receptor_count = _nonnegative_integer(
             candidate.externally_perturbed_body_receptor_count,
             "externally perturbed body receptor count",
@@ -2040,6 +2045,7 @@ class NativeResidentOrganism:
             metabolically_perturbed_body_receptor_count=(
                 metabolically_perturbed_body_receptor_count
             ),
+            rest_recovered_neuron_count=rest_recovered_neuron_count,
             externally_perturbed_body_receptor_count=(
                 externally_perturbed_body_receptor_count
             ),

@@ -691,39 +691,47 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-011 and C-014 through C-018 were closed by their own live transient
-# witnesses.  This release gate requires only the live-sized native C-020
-# articulation path plus organism invariants; it does not make those old
-# trajectories permanent deployment authority.
-articulation = proof.get("native_articulation")
-if not isinstance(articulation, dict):
-    raise SystemExit("C-020 rehearsal produced no native articulation")
-if proof.get("native_articulation_cold_replay_exact") is not True:
-    raise SystemExit("C-020 articulation did not cold-replay exactly")
+# C-020 and every earlier transient witness were closed by their own release.
+# This gate requires only the C-021 live-sized physical rest -> reopened-work
+# path plus organism invariants; it never turns elapsed time into cognition.
+if proof.get("native_physical_rest_wake_rehearsed") is not True:
+    raise SystemExit("C-021 rehearsal produced no physical rest/wake path")
+if proof.get("native_physical_rest_wake_cold_replay_exact") is not True:
+    raise SystemExit("C-021 physical rest/wake did not cold-replay exactly")
 for name in (
-    "layer_13_recruitment_count",
-    "applied_motor_quanta",
-    "articulatory_body_port_count",
-    "articulatory_body_receptor_ingress_count",
-    "articulatory_body_perturbed_neuron_count",
-    "peak_breath_flow_pcm",
-    "glottal_open_samples_at_apex",
-    "mouth_area_square_millimetres_at_apex",
-    "pressure_sample_count",
-    "self_hearing_hop_count",
-    "self_hearing_transitioned_neuron_count",
+    "native_rest_recovered_neuron_count",
+    "native_wake_dsf_delivery_count",
+    "native_wake_physically_transitioned_neuron_count",
 ):
-    value = articulation.get(name)
+    value = proof.get(name)
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
-        raise SystemExit(f"C-020 rehearsal returned invalid {name}")
-perioral = articulation.get("perioral_area_displacement_square_millimetres")
-if not isinstance(perioral, int) or isinstance(perioral, bool) or perioral == 0:
-    raise SystemExit("C-020 rehearsal returned invalid signed perioral displacement")
-pressure_sha = articulation.get("pressure_sha256")
-if not isinstance(pressure_sha, str) or re.fullmatch(r"[0-9a-f]{64}", pressure_sha) is None:
-    raise SystemExit("C-020 rehearsal omitted its pressure digest")
+        raise SystemExit(f"C-021 rehearsal returned invalid {name}")
+for name in (
+    "native_rest_motor_recruitment_count",
+    "native_rest_articulatory_recruitment_count",
+):
+    if proof.get(name) != 0:
+        raise SystemExit(f"C-021 physical rest moved an actuator: {name}")
+def exact_pair(name):
+    value = proof.get(name)
+    if (
+        not isinstance(value, list)
+        or len(value) != 2
+        or any(isinstance(part, bool) or not isinstance(part, int) for part in value)
+        or value[1] <= 0
+    ):
+        raise SystemExit(f"C-021 rehearsal lost exact {name}")
+    from fractions import Fraction
+    return Fraction(value[0], value[1])
+if not (
+    exact_pair("native_rest_dissipated_energy_after_zeptojoules")
+    < exact_pair("native_rest_dissipated_energy_before_zeptojoules")
+    and exact_pair("native_rest_reachable_dissipation_headroom_after_zeptojoules")
+    > exact_pair("native_rest_reachable_dissipation_headroom_before_zeptojoules")
+):
+    raise SystemExit("C-021 rest did not reopen exact physical work capacity")
 if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-020 rehearsal invoked Python cognition")
+    raise SystemExit("C-021 rehearsal invoked Python cognition")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

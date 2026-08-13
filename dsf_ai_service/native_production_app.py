@@ -4696,6 +4696,7 @@ def _commit_admitted_hop(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -4792,6 +4793,7 @@ def _commit_vestibular_tick(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -4877,6 +4879,7 @@ def _commit_vestibular_trajectory(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -5247,6 +5250,7 @@ def _perform_admitted_intake_locked(
         "partial_cue_reassembly_count": 0,
         "physically_transitioned_neuron_count": 0,
         "metabolically_perturbed_body_receptor_count": 0,
+        "rest_recovered_neuron_count": 0,
         "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
@@ -6158,6 +6162,9 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         measured["metabolically_perturbed_body_receptor_count"] = result[
             "totals"
         ]["metabolically_perturbed_body_receptor_count"]
+        measured["rest_recovered_neuron_count"] = result["totals"][
+            "rest_recovered_neuron_count"
+        ]
         measured["partial_cue_reassembly_count"] = result["totals"][
             "partial_cue_reassembly_count"
         ]

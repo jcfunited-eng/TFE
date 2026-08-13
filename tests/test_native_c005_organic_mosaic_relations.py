@@ -16,6 +16,7 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "partial_cue_reassembly_count": 1,
         "physically_transitioned_neuron_count": 2,
         "metabolically_perturbed_body_receptor_count": 0,
+        "rest_recovered_neuron_count": 0,
         "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
@@ -170,7 +171,11 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
             SimpleNamespace(),
         ),
     )
-    hops = iter((_hop(11, (relation,)), _hop(12, ())))
+    first_hop = _hop(11, (relation,))
+    first_hop["rest_recovered_neuron_count"] = 2
+    second_hop = _hop(12, ())
+    second_hop["rest_recovered_neuron_count"] = 3
+    hops = iter((first_hop, second_hop))
     monkeypatch.setattr(
         production,
         "_commit_admitted_hop",
@@ -197,6 +202,7 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
 
     assert result["observation"]["organism_tick"] == 12
     assert result["observation"]["organic_mosaic_relations"] == (relation,)
+    assert result["totals"]["rest_recovered_neuron_count"] == 5
 
 
 def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
@@ -361,6 +367,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         endogenous_partial_cue_reassembly_count=0,
         physically_transitioned_neuron_count=2,
         metabolically_perturbed_body_receptor_count=0,
+        rest_recovered_neuron_count=7,
         externally_perturbed_body_receptor_count=0,
         receptor_ingress_sense_counts=(0,) * len(production.SENSE_ORDER),
         receptor_ingress_changing_count=0,
@@ -408,3 +415,4 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
     assert hop["organic_mosaic_relations"][0]["structural_relation_sha256"] == (
         "33" * 32
     )
+    assert hop["rest_recovered_neuron_count"] == 7

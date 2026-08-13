@@ -250,6 +250,82 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
     assert proof["self_hearing_fractal_count"] == 1
 
 
+def test_physical_rest_reopens_work_and_cold_replays_exactly(monkeypatch) -> None:
+    class _RestWakeOrganism:
+        def __init__(self) -> None:
+            self.phase = 0
+
+        def readiness(self) -> SimpleNamespace:
+            states = (
+                (40, (7, 1), "10" * 32),
+                (41, (3, 1), "20" * 32),
+                (42, (5, 1), "30" * 32),
+            )
+            tick, dissipated, state_sha = states[self.phase]
+            return SimpleNamespace(
+                organism_tick=tick,
+                state_sha256=state_sha,
+                python_callback_count=0,
+                dissipated_energy_zeptojoules=dissipated,
+                dissipation_capacity_energy_zeptojoules=(10, 1),
+            )
+
+        def prepare_vestibular_tick(
+            self, heading: int, signed_step: int
+        ) -> SimpleNamespace:
+            assert heading == 0
+            if self.phase == 0:
+                assert signed_step == 0
+                return SimpleNamespace(
+                    token="rest",
+                    rest_recovered_neuron_count=2,
+                    motor_unit_recruitments=(),
+                    articulatory_unit_recruitments=(),
+                    physically_transitioned_neuron_count=2,
+                    dsf_delivery_count=1,
+                )
+            assert self.phase == 1 and signed_step == 1
+            return SimpleNamespace(
+                token="wake",
+                rest_recovered_neuron_count=0,
+                motor_unit_recruitments=(),
+                articulatory_unit_recruitments=(),
+                physically_transitioned_neuron_count=4,
+                dsf_delivery_count=2,
+            )
+
+        def commit(self, token: str) -> SimpleNamespace:
+            assert token == ("rest" if self.phase == 0 else "wake")
+            self.phase += 1
+            return self.readiness()
+
+        def save(self) -> bytes:
+            return b"rest-wake-successor"
+
+    monkeypatch.setattr(
+        probe,
+        "restore_native_resident_organism",
+        lambda **_kwargs: _RestWakeOrganism(),
+    )
+
+    proof = probe._rehearse_native_physical_rest_and_wake(b"body", {})
+
+    assert proof["native_physical_rest_wake_rehearsed"] is True
+    assert proof["native_physical_rest_wake_cold_replay_exact"] is True
+    assert proof["native_rest_recovered_neuron_count"] == 2
+    assert proof["native_rest_dissipated_energy_before_zeptojoules"] == (7, 1)
+    assert proof["native_rest_dissipated_energy_after_zeptojoules"] == (3, 1)
+    assert (
+        proof["native_rest_reachable_dissipation_headroom_before_zeptojoules"]
+        == (3, 1)
+    )
+    assert (
+        proof["native_rest_reachable_dissipation_headroom_after_zeptojoules"]
+        == (7, 1)
+    )
+    assert proof["native_wake_physically_transitioned_neuron_count"] == 4
+
+
 def test_articulation_translation_preserves_only_exact_native_cancellation(
     monkeypatch,
 ) -> None:

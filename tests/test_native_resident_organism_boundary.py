@@ -32,6 +32,7 @@ class _NativeResidentOrganismObservation:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    rest_recovered_neuron_count: int = 0
     externally_perturbed_body_receptor_count: int = 0
     physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
@@ -146,6 +147,7 @@ class _NativeResidentOrganismPrepare:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    rest_recovered_neuron_count: int = 0
     externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         96,
@@ -503,6 +505,7 @@ def test_prepare_accepts_96_ports_as_two_cohorts_without_publishing_state(
     assert prepared.dsf_delivery_count == 6
     assert prepared.complete_neuron_fractal_count == 0
     assert prepared.recurrent_complete_neuron_fractal_count == 0
+    assert prepared.rest_recovered_neuron_count == 0
     assert prepared.python_callback_count == 0
     assert not prepared.physical_transition_claimed
     assert not prepared.cognitive_formation_claimed

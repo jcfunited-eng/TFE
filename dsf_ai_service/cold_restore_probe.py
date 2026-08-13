@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from collections import deque
+from fractions import Fraction
 import hashlib
 import json
 import os
@@ -38,6 +39,129 @@ def _canonical(value: object) -> bytes:
         separators=(",", ":"),
         sort_keys=True,
     ).encode("ascii")
+
+
+def _exact_energy(value: object, label: str) -> Fraction:
+    if (
+        not isinstance(value, tuple)
+        or len(value) != 2
+        or any(isinstance(part, bool) or not isinstance(part, int) for part in value)
+        or value[1] <= 0
+    ):
+        raise RuntimeError(f"{label} lost its exact rational representation")
+    return Fraction(value[0], value[1])
+
+
+def _fraction_parts(value: Fraction) -> tuple[int, int]:
+    return value.numerator, value.denominator
+
+
+def _rehearse_native_physical_rest_and_wake(
+    current_envelope: bytes,
+    budget: dict[str, int],
+) -> dict[str, object]:
+    """Prove exact local recovery reopens finite work and later work uses it.
+
+    A zero-body-motion mechanical interval supplies passage of physical time,
+    not a sleep command.  Whether recovery occurs is decided only by the
+    retained neuron dissipation and finite recovery-fluid state.  The next
+    one-millidegree interval is an ordinary physical cause, never a scripted
+    cognitive wake operation.
+    """
+
+    def settle() -> tuple[object, object, object, object, object, bytes]:
+        organism = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        before = organism.readiness()
+        rest = organism.prepare_vestibular_tick(0, 0)
+        after_rest = organism.commit(rest.token)
+        wake = organism.prepare_vestibular_tick(0, 1)
+        after_wake = organism.commit(wake.token)
+        return before, rest, after_rest, wake, after_wake, organism.save()
+
+    before, rest, after_rest, wake, after_wake, successor = settle()
+    (
+        replay_before,
+        replay_rest,
+        replay_after_rest,
+        replay_wake,
+        replay_after_wake,
+        replay_successor,
+    ) = settle()
+
+    capacity_before = _exact_energy(
+        before.dissipation_capacity_energy_zeptojoules,
+        "pre-rest dissipation capacity",
+    )
+    dissipated_before = _exact_energy(
+        before.dissipated_energy_zeptojoules,
+        "pre-rest dissipated energy",
+    )
+    capacity_after_rest = _exact_energy(
+        after_rest.dissipation_capacity_energy_zeptojoules,
+        "post-rest dissipation capacity",
+    )
+    dissipated_after_rest = _exact_energy(
+        after_rest.dissipated_energy_zeptojoules,
+        "post-rest dissipated energy",
+    )
+    headroom_before = capacity_before - dissipated_before
+    headroom_after_rest = capacity_after_rest - dissipated_after_rest
+
+    if (
+        rest.rest_recovered_neuron_count <= 0
+        or rest.motor_unit_recruitments
+        or rest.articulatory_unit_recruitments
+        or capacity_after_rest != capacity_before
+        or dissipated_after_rest >= dissipated_before
+        or headroom_after_rest <= headroom_before
+        or after_rest.organism_tick != before.organism_tick + 1
+        or wake.physically_transitioned_neuron_count <= 0
+        or wake.dsf_delivery_count <= 0
+        or after_wake.organism_tick != after_rest.organism_tick + 1
+        or after_wake.state_sha256 == after_rest.state_sha256
+        or after_wake.python_callback_count != 0
+        or replay_before.state_sha256 != before.state_sha256
+        or replay_rest.rest_recovered_neuron_count
+        != rest.rest_recovered_neuron_count
+        or replay_after_rest.state_sha256 != after_rest.state_sha256
+        or replay_wake.physically_transitioned_neuron_count
+        != wake.physically_transitioned_neuron_count
+        or replay_wake.dsf_delivery_count != wake.dsf_delivery_count
+        or replay_after_wake.state_sha256 != after_wake.state_sha256
+        or replay_successor != successor
+    ):
+        raise RuntimeError("native physical rest/wake path did not settle exactly")
+
+    return {
+        "native_physical_rest_wake_rehearsed": True,
+        "native_physical_rest_wake_cold_replay_exact": True,
+        "native_rest_recovered_neuron_count": rest.rest_recovered_neuron_count,
+        "native_rest_motor_recruitment_count": len(rest.motor_unit_recruitments),
+        "native_rest_articulatory_recruitment_count": len(
+            rest.articulatory_unit_recruitments
+        ),
+        "native_rest_dissipated_energy_before_zeptojoules": _fraction_parts(
+            dissipated_before
+        ),
+        "native_rest_dissipated_energy_after_zeptojoules": _fraction_parts(
+            dissipated_after_rest
+        ),
+        "native_rest_reachable_dissipation_headroom_before_zeptojoules": (
+            _fraction_parts(headroom_before)
+        ),
+        "native_rest_reachable_dissipation_headroom_after_zeptojoules": (
+            _fraction_parts(headroom_after_rest)
+        ),
+        "native_rest_successor_state_sha256": after_rest.state_sha256,
+        "native_wake_dsf_delivery_count": wake.dsf_delivery_count,
+        "native_wake_physically_transitioned_neuron_count": (
+            wake.physically_transitioned_neuron_count
+        ),
+        "native_wake_successor_state_sha256": after_wake.state_sha256,
+    }
 
 
 def _arguments() -> argparse.Namespace:
@@ -991,16 +1115,20 @@ def main() -> int:
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        # Earlier body/attention trajectories are transient witnesses for
-        # already closed items. C-020 cold-replays only its smallest genuine
-        # layer-13 source plus acoustic and local body-sense return.
+        # C-020 and every earlier body trajectory are already live-closed.
+        # C-021 now cold-replays the smallest physical rest -> reopened-work
+        # path.  The zero-motion interval supplies time but cannot command
+        # sleep; retained dissipation and recovery material decide the result.
         motor_proof = {
             "motor_action_rehearsed": False,
-            **_rehearse_native_articulation_source(state, {
-                "max_envelope_bytes": admission.max_envelope_bytes,
-                "max_fabric_bytes": admission.max_fabric_bytes,
-                "max_logical_peak_bytes": admission.max_logical_peak_bytes,
-            }),
+            **_rehearse_native_physical_rest_and_wake(
+                state,
+                {
+                    "max_envelope_bytes": admission.max_envelope_bytes,
+                    "max_fabric_bytes": admission.max_fabric_bytes,
+                    "max_logical_peak_bytes": admission.max_logical_peak_bytes,
+                },
+            ),
         }
     source_advanced_after_baseline = before.organism_tick > values.expected_tick
     if (
