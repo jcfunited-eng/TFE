@@ -445,3 +445,21 @@ and backend-only state do not close it.
   deployment, and packaging suites pass 54/54. This remains candidate evidence;
   immutable rehearsal, cutover, and direct public production proof remain
   pending.
+- Candidate commit `52649eb4c42eb559a2f542c3603dbe96c48fba1e`,
+  image
+  `sha256:62cd1968fb7e746b7695bb931f8bdfb1b15686e9872a2f42d721f2aa2a173c9e`,
+  and task definition `dsf-ai-task:1028` reached the corrected rehearsal and
+  exited promptly rather than timing out. It correctly refused because the
+  newer living predecessor did not discharge layer 13 during that particular
+  first interval. Production remained unchanged on task 1024.
+- A fresh read-only probe on that exact predecessor advanced the ordinary
+  native body one 1 ms interval at a time and stopped at the first real
+  layer-13 event. The first discharge occurred at interval three in 4.07
+  seconds and produced three recruitments; its triggering interval carried 188
+  physical neuron transitions and two complete joint-field DSF deliveries.
+- The rehearsal source is therefore no longer a fixed one-interval assertion.
+  It follows the already-authored 250 ms ordinary body trajectory only through
+  the first actual layer-13 discharge, retains that exact causal prefix, and
+  cold-replays the same prefix and sensory return. It refuses if the ordinary
+  trajectory contains no discharge; it neither manufactures one nor executes
+  the unused suffix after one occurs.

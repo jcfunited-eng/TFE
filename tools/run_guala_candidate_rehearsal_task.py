@@ -599,7 +599,12 @@ def _validate_proof(
         )
         and proof["native_articulation_source_physically_transitioned_neuron_count"]
         > 0
-        and proof.get("native_articulation_source_interval_count") == 1
+        and proof.get("native_articulation_source_available_interval_count") == 250
+        and isinstance(proof.get("native_articulation_source_interval_count"), int)
+        and not isinstance(proof["native_articulation_source_interval_count"], bool)
+        and 1
+        <= proof["native_articulation_source_interval_count"]
+        <= proof["native_articulation_source_available_interval_count"]
         and proof.get("native_articulation_source_layer_13_recruitment_count")
         == articulation["layer_13_recruitment_count"]
         and isinstance(proof.get("native_articulation_source_state_byte_delta"), int)

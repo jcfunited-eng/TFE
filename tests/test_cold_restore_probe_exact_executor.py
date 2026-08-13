@@ -263,6 +263,7 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
     class _SourceOrganism:
         def __init__(self) -> None:
             self.tick = 40
+            self.prepared_intervals = 0
 
         def readiness(self) -> SimpleNamespace:
             return SimpleNamespace(
@@ -273,20 +274,23 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
                 state_sha256=f"{self.tick:064x}",
             )
 
-        def prepare_vestibular_trajectory(
-            self, heading: int, steps: tuple[int, ...]
+        def prepare_vestibular_tick(
+            self, heading: int, signed_step: int
         ) -> SimpleNamespace:
+            self.prepared_intervals += 1
             assert heading == 0
-            assert steps == (360,)
+            assert signed_step == 0
             return SimpleNamespace(
-                token="source",
-                articulatory_unit_recruitments=(recruitment,),
+                token=f"source-{self.prepared_intervals}",
+                articulatory_unit_recruitments=(
+                    (recruitment,) if self.prepared_intervals == 3 else ()
+                ),
                 dsf_delivery_count=2,
-                physically_transitioned_neuron_count=208,
+                physically_transitioned_neuron_count=10 * self.prepared_intervals,
             )
 
         def commit(self, token: str) -> SimpleNamespace:
-            assert token == "source"
+            assert token == f"source-{self.prepared_intervals}"
             self.tick += 1
             return self.readiness()
 
@@ -296,7 +300,7 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
     monkeypatch.setattr(
         probe,
         "exact_native_yaw_trajectory",
-        lambda **_kwargs: (360, (360,)),
+        lambda **_kwargs: (90_000, (0,) * 250),
     )
     monkeypatch.setattr(
         probe,
@@ -321,12 +325,13 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
     proof = probe._rehearse_native_articulation_source(b"body", {})
 
     assert proof["native_articulation_cold_replay_exact"] is True
-    assert proof["native_articulation_source_interval_count"] == 1
-    assert proof["native_articulation_source_dsf_delivery_count"] == 2
+    assert proof["native_articulation_source_available_interval_count"] == 250
+    assert proof["native_articulation_source_interval_count"] == 3
+    assert proof["native_articulation_source_dsf_delivery_count"] == 6
     assert proof["native_articulation_source_layer_13_recruitment_count"] == 1
     assert (
         proof["native_articulation_source_physically_transitioned_neuron_count"]
-        == 208
+        == 60
     )
 
 

@@ -512,32 +512,61 @@ def _rehearse_native_articulation_source(
 ) -> dict[str, object]:
     """Cold-replay the smallest real layer-13 source and its sensory return.
 
-    C-014's 250 ms sparse-attention trajectory is already live-closed.  C-020
-    needs a real native layer-13 discharge, not a replay of that historical
-    witness.  One exact 1 ms body interval is sufficient on the authenticated
-    production predecessor and exercises the same native contact, articulation,
-    acoustic, and local body-receptor path without multiplying unrelated work.
+    C-014's 250 ms sparse-attention evidence is already live-closed. C-020
+    follows that ordinary body's exact 1 ms intervals only through its first
+    real layer-13 discharge, then exercises articulation plus acoustic and
+    local body-receptor return. The causal prefix depends on retained physical
+    state; neither one fixed interval nor the whole historical trajectory is
+    made an artificial prerequisite.
     """
 
     _successor_heading, steps = exact_native_yaw_trajectory(
         predecessor_heading_millidegrees=0,
-        signed_displacement_millidegrees=360,
-        duration_microseconds=1_000,
+        signed_displacement_millidegrees=90_000,
+        duration_microseconds=250_000,
     )
-    if len(steps) != 1:
-        raise RuntimeError("native articulation source changed its one-interval clock")
+    if len(steps) != 250:
+        raise RuntimeError("native articulation source changed its ordinary body clock")
 
-    def settle() -> tuple[object, object, object, object, bytes, dict[str, object]]:
+    def settle() -> tuple[
+        object,
+        object,
+        object,
+        object,
+        bytes,
+        dict[str, object],
+        int,
+        int,
+        int,
+    ]:
         organism = restore_native_resident_organism(
             current_envelope=current_envelope,
             **budget,
         )
         before = organism.readiness()
-        prepared = organism.prepare_vestibular_trajectory(0, steps)
-        after_source = organism.commit(prepared.token)
+        heading = 0
+        source_dsf_deliveries = 0
+        source_physical_transitions = 0
+        prepared = None
+        after_source = None
+        source_interval_count = 0
+        for source_interval_count, signed_step in enumerate(steps, 1):
+            candidate = organism.prepare_vestibular_tick(heading, signed_step)
+            after_candidate = organism.commit(candidate.token)
+            source_dsf_deliveries += candidate.dsf_delivery_count
+            source_physical_transitions += (
+                candidate.physically_transitioned_neuron_count
+            )
+            heading = (heading + signed_step) % 360_000
+            if candidate.articulatory_unit_recruitments:
+                prepared = candidate
+                after_source = after_candidate
+                break
+        if prepared is None or after_source is None:
+            raise RuntimeError("ordinary native source produced no articulation")
         articulation = _rehearse_articulation_and_self_hearing(organism, prepared)
         if articulation is None:
-            raise RuntimeError("one-interval native source produced no articulation")
+            raise RuntimeError("native discharge produced no articulation")
         successor = organism.save()
         after_return = organism.readiness()
         return (
@@ -547,9 +576,22 @@ def _rehearse_native_articulation_source(
             after_return,
             successor,
             articulation,
+            source_interval_count,
+            source_dsf_deliveries,
+            source_physical_transitions,
         )
 
-    before, prepared, after_source, after_return, successor, articulation = settle()
+    (
+        before,
+        prepared,
+        after_source,
+        after_return,
+        successor,
+        articulation,
+        source_interval_count,
+        source_dsf_deliveries,
+        source_physical_transitions,
+    ) = settle()
     (
         replay_before,
         replay_prepared,
@@ -557,15 +599,19 @@ def _rehearse_native_articulation_source(
         replay_after_return,
         replay_successor,
         replay_articulation,
+        replay_source_interval_count,
+        replay_source_dsf_deliveries,
+        replay_source_physical_transitions,
     ) = settle()
     recruitments = tuple(prepared.articulatory_unit_recruitments)
     replay_recruitments = tuple(replay_prepared.articulatory_unit_recruitments)
     if (
-        prepared.dsf_delivery_count <= 0
-        or prepared.physically_transitioned_neuron_count <= 0
+        source_dsf_deliveries <= 0
+        or source_physical_transitions <= 0
         or not recruitments
         or after_source.identity != before.identity
-        or after_source.organism_tick != before.organism_tick + 1
+        or after_source.organism_tick
+        != before.organism_tick + source_interval_count
         or after_return.identity != before.identity
         or after_return.organism_tick
         != after_source.organism_tick + articulation["self_hearing_hop_count"]
@@ -574,6 +620,9 @@ def _rehearse_native_articulation_source(
         or replay_prepared.dsf_delivery_count != prepared.dsf_delivery_count
         or replay_prepared.physically_transitioned_neuron_count
         != prepared.physically_transitioned_neuron_count
+        or replay_source_interval_count != source_interval_count
+        or replay_source_dsf_deliveries != source_dsf_deliveries
+        or replay_source_physical_transitions != source_physical_transitions
         or replay_recruitments != recruitments
         or replay_after_source.state_sha256 != after_source.state_sha256
         or replay_after_return.state_sha256 != after_return.state_sha256
@@ -588,14 +637,15 @@ def _rehearse_native_articulation_source(
             after_return.state_sha256
         ),
         "native_articulation_source_dsf_delivery_count": (
-            prepared.dsf_delivery_count
+            source_dsf_deliveries
         ),
-        "native_articulation_source_interval_count": len(steps),
+        "native_articulation_source_available_interval_count": len(steps),
+        "native_articulation_source_interval_count": source_interval_count,
         "native_articulation_source_layer_13_recruitment_count": len(
             recruitments
         ),
         "native_articulation_source_physically_transitioned_neuron_count": (
-            prepared.physically_transitioned_neuron_count
+            source_physical_transitions
         ),
         "native_articulation_source_state_byte_delta": (
             after_source.state_bytes - before.state_bytes

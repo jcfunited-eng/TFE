@@ -348,8 +348,9 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "native_articulation": articulation,
         "native_articulation_cold_replay_exact": True,
         "native_articulation_rehearsal_successor_state_sha256": "f" * 64,
+        "native_articulation_source_available_interval_count": 250,
         "native_articulation_source_dsf_delivery_count": 2,
-        "native_articulation_source_interval_count": 1,
+        "native_articulation_source_interval_count": 3,
         "native_articulation_source_layer_13_recruitment_count": 78,
         "native_articulation_source_physically_transitioned_neuron_count": 208,
         "native_articulation_source_state_byte_delta": 64,
@@ -396,6 +397,20 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         **articulation,
         "relaxation_sample_count": 1,
     }
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_articulation_rehearsal=True,
+        )
+
+    changed = dict(record)
+    changed["native_articulation_source_interval_count"] = 251
     with pytest.raises(RuntimeError, match="proof changed"):
         runner._validate_proof(
             _receipted(changed),
