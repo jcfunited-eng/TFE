@@ -435,11 +435,16 @@ def _rehearse_sparse_attention_frontier(
 def _rehearse_articulation_and_self_hearing(
     organism: object,
     prepared: object,
+    trajectory: object | None = None,
 ) -> dict[str, object] | None:
     """Run only a reached layer-13 discharge through body and cochlear return."""
 
     recruitments = tuple(prepared.articulatory_unit_recruitments)
     if not recruitments:
+        return None
+    if trajectory is None:
+        trajectory = _exact_articulatory_trajectory_or_none(recruitments)
+    if trajectory is None:
         return None
     (
         sample_rate_hz,
@@ -452,12 +457,7 @@ def _rehearse_articulation_and_self_hearing(
         applied_motor_quanta,
         stalled_motor_quanta,
         relaxation_sample_count,
-    ) = exact_articulatory_unit_trajectory(
-        recruitments=tuple(
-            (topology_index, carriers)
-            for _lineage, topology_index, carriers, _transfers in recruitments
-        )
-    )
+    ) = trajectory
     # Import only the current native transport builder. It creates physical
     # source episodes; it does not start the HTTP app or another runtime.
     from dsf_ai_service.native_production_app import _mono_pcm_hop_episodes
@@ -504,6 +504,24 @@ def _rehearse_articulation_and_self_hearing(
         "articulatory_body_perturbed_neuron_count": body_perturbed,
         "stalled_motor_quanta": stalled_motor_quanta,
     }
+
+
+def _exact_articulatory_trajectory_or_none(
+    recruitments: tuple[tuple[object, int, int, object], ...],
+) -> object | None:
+    """Translate the native body's exact antagonist cancellation, and only it."""
+
+    try:
+        return exact_articulatory_unit_trajectory(
+            recruitments=tuple(
+                (topology_index, carriers)
+                for _lineage, topology_index, carriers, _transfers in recruitments
+            )
+        )
+    except ValueError as error:
+        if error.args == ("CancelledRecruitment",):
+            return None
+        raise
 
 
 def _rehearse_native_articulation_source(
@@ -553,6 +571,7 @@ def _rehearse_native_articulation_source(
             source_physical_transitions = 0
             prepared = None
             after_source = None
+            articulation_trajectory = None
             source_interval_count = 0
             for source_interval_count, signed_step in enumerate(steps, 1):
                 candidate = organism.prepare_vestibular_tick(heading, signed_step)
@@ -563,9 +582,14 @@ def _rehearse_native_articulation_source(
                 )
                 heading = (heading + signed_step) % 360_000
                 if candidate.articulatory_unit_recruitments:
-                    prepared = candidate
-                    after_source = after_candidate
-                    break
+                    candidate_trajectory = _exact_articulatory_trajectory_or_none(
+                        tuple(candidate.articulatory_unit_recruitments)
+                    )
+                    if candidate_trajectory is not None:
+                        prepared = candidate
+                        after_source = after_candidate
+                        articulation_trajectory = candidate_trajectory
+                        break
             if prepared is None or after_source is None:
                 raise RuntimeError("ordinary native source produced no articulation")
             source_steps = steps[:source_interval_count]
@@ -579,13 +603,22 @@ def _rehearse_native_articulation_source(
             after_source = organism.commit(prepared.token)
             if not prepared.articulatory_unit_recruitments:
                 raise RuntimeError("native articulation replay lost its discharge")
+            articulation_trajectory = _exact_articulatory_trajectory_or_none(
+                tuple(prepared.articulatory_unit_recruitments)
+            )
+            if articulation_trajectory is None:
+                raise RuntimeError("native articulation replay cancelled its discharge")
             source_interval_count = len(replay_source_steps)
             source_dsf_deliveries = prepared.dsf_delivery_count
             source_physical_transitions = (
                 prepared.physically_transitioned_neuron_count
             )
             source_steps = replay_source_steps
-        articulation = _rehearse_articulation_and_self_hearing(organism, prepared)
+        articulation = _rehearse_articulation_and_self_hearing(
+            organism,
+            prepared,
+            articulation_trajectory,
+        )
         if articulation is None:
             raise RuntimeError("native discharge produced no articulation")
         successor = organism.save()

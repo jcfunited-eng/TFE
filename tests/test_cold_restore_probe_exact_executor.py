@@ -250,10 +250,35 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
     assert proof["self_hearing_fractal_count"] == 1
 
 
-def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
+def test_articulation_translation_preserves_only_exact_native_cancellation(
+    monkeypatch,
+) -> None:
+    recruitment = (("13" * 16, 1, 5, ()),)
+
+    def cancelled(**_kwargs):
+        raise ValueError("CancelledRecruitment")
+
+    monkeypatch.setattr(probe, "exact_articulatory_unit_trajectory", cancelled)
+    assert probe._exact_articulatory_trajectory_or_none(recruitment) is None
+
+    def failed(**_kwargs):
+        raise ValueError("ArithmeticWidth")
+
+    monkeypatch.setattr(probe, "exact_articulatory_unit_trajectory", failed)
+    with pytest.raises(ValueError, match="ArithmeticWidth"):
+        probe._exact_articulatory_trajectory_or_none(recruitment)
+
+
+def test_native_articulation_source_skips_cancelled_recruitment_and_replays_exactly(
     monkeypatch,
 ) -> None:
     trajectory_calls: list[tuple[int, tuple[int, ...]]] = []
+    cancelled = (
+        "13" * 16,
+        1,
+        5,
+        (("12" * 16, 12, "13" * 16, 13, 0, 5),),
+    )
     recruitment = (
         "13" * 16,
         0,
@@ -286,7 +311,9 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
             return SimpleNamespace(
                 token=f"source-{self.prepared_intervals}",
                 articulatory_unit_recruitments=(
-                    (recruitment,) if self.prepared_intervals == 3 else ()
+                    (cancelled,)
+                    if self.prepared_intervals == 2
+                    else ((recruitment,) if self.prepared_intervals == 3 else ())
                 ),
                 dsf_delivery_count=2,
                 physically_transitioned_neuron_count=10 * self.prepared_intervals,
@@ -326,9 +353,15 @@ def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
         "restore_native_resident_organism",
         lambda **_kwargs: _SourceOrganism(),
     )
+    monkeypatch.setattr(
+        probe,
+        "_exact_articulatory_trajectory_or_none",
+        lambda recruitments: None if recruitments == (cancelled,) else ("trajectory",),
+    )
 
-    def articulate(organism, prepared):
+    def articulate(organism, prepared, trajectory):
         assert tuple(prepared.articulatory_unit_recruitments) == (recruitment,)
+        assert trajectory == ("trajectory",)
         organism.tick += 4
         return {
             "layer_13_recruitment_count": 1,

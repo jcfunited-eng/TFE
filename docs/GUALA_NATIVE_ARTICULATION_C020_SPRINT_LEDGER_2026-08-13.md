@@ -539,3 +539,24 @@ and backend-only state do not close it.
   observations. Candidate 1031 is not cut over because its provenance predates
   this release-gate correction. Production remains task 1024 and C-020 remains
   not Live-Closed pending one fresh rehearsed candidate and public proof.
+- Candidate commit `15681b905ea405ab77d77ccc3928253a26c91139`, image
+  `sha256:1a4c390ba7af6480972970766126618d4df8950b138dac8b245aafb2bb0c0ca5`,
+  and its discarded cold task reached the 15-minute controller ceiling without
+  a proof. Production remained unchanged on task 1024 and the timed-out task
+  was stopped; no diagnostic process remains.
+- Read-only timing on that exact image localized the wait to the first
+  articulation-return `prepare_admitted` boundary. A subsequent exact-current
+  source inspection exposed the source-selection defect: the gate stopped at
+  any layer-13 recruitment, although one observed pair of opposing topology
+  recruitments cancelled exactly in the native articulatory body and produced
+  no act. A later ordinary interval produced a genuine three-recruitment act;
+  its first full-sensorium return settled in 4.095 seconds with 231 physical
+  transitions and two locally perturbed body receptors.
+- The source gate now asks the native articulatory body to settle each reached
+  recruitment set. It continues across the body's exact
+  `CancelledRecruitment` result and stops only at the first genuine movement,
+  retaining that causal prefix for one batch replay. Any other native error is
+  still fatal. The precomputed trajectory is reused for sensory return rather
+  than recomputed, and the regression proves cancellation is skipped while
+  exact replay remains one batch call. RF-043 makes downstream physical effect,
+  rather than upstream participation, the durable source-selection rule.
