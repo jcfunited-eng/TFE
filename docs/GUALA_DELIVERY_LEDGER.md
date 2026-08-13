@@ -220,9 +220,18 @@ box remains unchecked until live acceptance passes.
   Dependency-deferred until internally caused attention, working causal state,
   prediction, action, and sensed consequence are live-proven; it is not closed
   or redefined.
-- [ ] **C-014** Prove attention/orienting is a changing sparse reached frontier,
+- [x] **C-014** Prove attention/orienting is a changing sparse reached frontier,
   not a selector score, and visibly affects current sensory/cognitive activity.
-  **Active sprint:** `GUALA_C014_ATTENTION_ORIENTING_SPRINT_2026-08-12.md`.
+  **Live-closed 2026-08-13:** task 1006 exposes exact simultaneous physical
+  routes, including reached and foregone alternatives, through the ordinary
+  native observation path with no score or scripted focus. Pre-cutover and
+  post-live discarded-state proofs replayed byte-exact with zero Python
+  cognition callbacks. The live observer reported 695 qualifying routes, 677
+  reached routes, 18 foregone routes, and 118 downstream neurons. The post-live
+  cold proof from tick 63,091 reproduced 654 qualifying routes (646 reached,
+  8 foregone), 500 complete DSF deliveries, and 42,561 physical neuron
+  transitions. Release commit `89cb6cfa`, image
+  `sha256:c318ddcd23758cfa311f74781a174f835ffbbc75cd8c6884c88a8fcfb257d86d`.
 - [ ] **C-015** Prove bounded unresolved activity supplies working causal state
   and settles or decays without a text buffer or transcript memory.
 - [ ] **C-016** Prove prediction and ordered alternatives emerge through layer

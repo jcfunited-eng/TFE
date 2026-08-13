@@ -170,3 +170,48 @@ exact cold replay prove a causally changing reached-versus-foregone sparse
 frontier that changes current downstream activity, with bounded resources and
 zero selector score or scripted meaning. Local tests or a new observation type
 cannot close it.
+
+## Live closure — 2026-08-13
+
+- Immutable release commit:
+  `89cb6cfa7a5517b02d9aae35dc909297aa528cfe`.
+- Production image:
+  `sha256:c318ddcd23758cfa311f74781a174f835ffbbc75cd8c6884c88a8fcfb257d86d`.
+- Production task: `dsf-ai-task:1006`; deployment ran from `00:05:35Z` through
+  `00:27:31Z` and completed one verified cutover.
+- The pre-cutover read-only rehearsal used exact task-1005 tick `62,642`, state
+  `b74d60f07ee4e9de390a9897f3ddd6f57d2467bed152ce289e4112a6482a4bed`.
+  Cold replay was byte-exact and produced 502 qualifying simultaneous routes:
+  489 reached and 13 foregone, affecting 128 downstream neurons across 500
+  complete DSF deliveries and 50,837 physical neuron transitions, with zero
+  Python cognition callbacks.
+- After cutover, one live pose-bound 90-degree turn advanced the authoritative
+  world from revision `1592`, heading `144847`, to revision `1594`, heading
+  `234903`. CloudFront timed out before returning the response, so no client
+  response is claimed; the authoritative successor and native observer show
+  that the world/body transition committed and a further 56-millidegree native
+  motor consequence returned through the vestibular path.
+- The live native observer reported status
+  `changing_sparse_physical_frontier_observed`: 695 qualifying routes, 677
+  reached, 18 foregone, 118 downstream neurons, changed adjacent route sets,
+  `attention_score_authority=false`, and `scripted_focus_authority=false`.
+- The generic post-live controller first aborted on an unrelated C-012 ordered-
+  relation prerequisite that was absent from the later state. That abort is not
+  accepted as C-014 evidence. RF-019 applies. A C-014-only task then cold-
+  restored the same production body read-only at tick `63,091`, state
+  `154c9a291f9cfd083e62d366f89b22ad01d46977a4755fa158baa52481b39dcf`,
+  and replayed byte-exact. It produced 654 qualifying routes, 646 reached,
+  8 foregone, 118 downstream neurons, 500 complete DSF deliveries, and 42,561
+  physical transitions. Proof receipt:
+  `6a7daa993d095d81a07be57439d520fda7047e759c16a3188fd1fe2f9d59da79`.
+- Final ECS census: one desired/running task, zero pending tasks, one completed
+  deployment, and no C-014 rehearsal task running. Across the observed release
+  window service CPU peaked at `46.03%` and memory at `8.85%`. Persisted state
+  measured `43,452,853` bytes at tick `63,028` and `43,432,171` bytes at tick
+  `63,091`; the transient route witness added no retained schema or age-growing
+  history. Both Loom pages and the native observation endpoint returned HTTP
+  200, but C-014 does not claim the pages' later UI deliverables are complete.
+
+**C-014 is live-closed.** It proves physical attention/orienting as a changing
+sparse reached frontier. It does not prove causal thought, deliberative choice,
+prediction, imagination, or autonomous self-selected action.
