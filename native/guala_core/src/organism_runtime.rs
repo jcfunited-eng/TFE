@@ -1124,7 +1124,14 @@ impl NativeResidentOrganismPrepare {
     /// exact outward whole-carrier discharge remains the authority; reading
     /// this projection stores and advances nothing.
     #[getter]
-    fn motor_unit_recruitments(&self) -> Vec<(String, u32, u128)> {
+    fn motor_unit_recruitments(
+        &self,
+    ) -> Vec<(
+        String,
+        u32,
+        u128,
+        Vec<(String, u32, String, u32, u32, u128)>,
+    )> {
         self.motor_unit_recruitments
             .iter()
             .map(|event| {
@@ -1132,6 +1139,26 @@ impl NativeResidentOrganismPrepare {
                     hex_bytes(&event.neuron_lineage),
                     event.topology_index,
                     event.outward_elementary_carriers,
+                    event
+                        .preparation_transfers
+                        .iter()
+                        .map(|transfer| {
+                            let (sender_layer, receiver_layer) =
+                                if transfer.sender == event.neuron_lineage {
+                                    (12, 11)
+                                } else {
+                                    (11, 12)
+                                };
+                            (
+                                hex_bytes(&transfer.sender),
+                                sender_layer,
+                                hex_bytes(&transfer.receiver),
+                                receiver_layer,
+                                transfer.bond.parallel_ordinal(),
+                                transfer.transferred_whole_carriers,
+                            )
+                        })
+                        .collect(),
                 )
             })
             .collect()
@@ -1932,7 +1959,7 @@ impl ResidentOrganismRuntime {
                     .extend(observation.emitted_neuron_fractals.iter().cloned());
                 total
                     .motor_unit_recruitments
-                    .extend(observation.motor_unit_recruitments.iter().copied());
+                    .extend(observation.motor_unit_recruitments.iter().cloned());
                 if observation.physical_frontier_routes != total.physical_frontier_routes {
                     total.preceding_distinct_physical_frontier_routes =
                         total.physical_frontier_routes.clone();

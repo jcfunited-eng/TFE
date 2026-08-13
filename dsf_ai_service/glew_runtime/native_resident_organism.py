@@ -333,7 +333,15 @@ class ResidentPrepareEvidence:
     )
     receptor_ingress_changing_count: int = 0
     receptor_ingress_quiescent_count: int = 0
-    motor_unit_recruitments: tuple[tuple[str, int, int], ...] = ()
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ] = ()
     emitted_neuron_fractals: tuple[
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
@@ -1734,19 +1742,87 @@ class NativeResidentOrganism:
         raw_motor_recruitments = candidate.motor_unit_recruitments
         if not isinstance(raw_motor_recruitments, list):
             raise RuntimeError("motor-unit recruitments changed format")
-        motor_unit_recruitments: list[tuple[str, int, int]] = []
+        motor_unit_recruitments: list[
+            tuple[
+                str,
+                int,
+                int,
+                tuple[tuple[str, int, str, int, int, int], ...],
+            ]
+        ] = []
         for raw in raw_motor_recruitments:
-            if not isinstance(raw, tuple) or len(raw) != 3:
+            if not isinstance(raw, tuple) or len(raw) != 4:
                 raise RuntimeError("motor-unit recruitment changed format")
             lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
             topology_index = _nonnegative_integer(
                 raw[1], "motor-unit topology index"
             )
-            newly_opened_channels = _positive_integer(
-                raw[2], "newly opened motor-unit channels"
+            outward_elementary_carriers = _positive_integer(
+                raw[2], "motor-unit outward elementary carriers"
             )
+            if not isinstance(raw[3], list) or not raw[3]:
+                raise RuntimeError("motor-unit preparation transfers changed format")
+            preparation_transfers: list[
+                tuple[str, int, str, int, int, int]
+            ] = []
+            for transfer in raw[3]:
+                if not isinstance(transfer, tuple) or len(transfer) != 6:
+                    raise RuntimeError(
+                        "motor-unit preparation transfer changed format"
+                    )
+                sender = _canonical_lineage_hex(
+                    transfer[0], "motor preparation sender"
+                )
+                sender_layer = _nonnegative_integer(
+                    transfer[1], "motor preparation sender layer"
+                )
+                receiver = _canonical_lineage_hex(
+                    transfer[2], "motor preparation receiver"
+                )
+                receiver_layer = _nonnegative_integer(
+                    transfer[3], "motor preparation receiver layer"
+                )
+                parallel_ordinal = _nonnegative_integer(
+                    transfer[4], "motor preparation parallel ordinal"
+                )
+                transferred_whole_carriers = _positive_integer(
+                    transfer[5], "motor preparation transferred whole carriers"
+                )
+                if (
+                    sender == receiver
+                    or not (
+                        (
+                            sender == lineage
+                            and sender_layer == 12
+                            and receiver_layer == 11
+                        )
+                        or (
+                            receiver == lineage
+                            and receiver_layer == 12
+                            and sender_layer == 11
+                        )
+                    )
+                ):
+                    raise RuntimeError(
+                        "motor-unit preparation is not an exact layer 11/layer 12 contact transfer"
+                    )
+                preparation_transfers.append(
+                    (
+                        sender,
+                        sender_layer,
+                        receiver,
+                        receiver_layer,
+                        parallel_ordinal,
+                        transferred_whole_carriers,
+                    )
+                )
             motor_unit_recruitments.append(
-                (lineage, topology_index, newly_opened_channels)
+                (
+                    lineage,
+                    topology_index,
+                    outward_elementary_carriers,
+                    tuple(preparation_transfers),
+                )
             )
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero

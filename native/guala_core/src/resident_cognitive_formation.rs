@@ -799,11 +799,18 @@ pub(crate) struct EmittedNeuronFractal {
 /// motor neuron. The exact outward whole-carrier membrane discharge is the
 /// authority; this value is neither persisted nor counted as a fractal,
 /// memory, intent, or action.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct MotorUnitRecruitment {
     pub(crate) neuron_lineage: [u8; 16],
     pub(crate) topology_index: u32,
     pub(crate) outward_elementary_carriers: u128,
+    /// Every exact whole-carrier transfer across this motor cell's direct
+    /// contact with a mounted layer-11 ordering cell in the settled actuator
+    /// interval. The potential difference of both endpoints causes the
+    /// transfer; its signed direction is preserved rather than relabelled as
+    /// excitation. This is transient causal evidence, not a plan, score,
+    /// command, or retained action object.
+    pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -8467,6 +8474,24 @@ fn settle_internal_contact_interval(
             .position(|(_, _, retained)| *retained == lineage)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
+    let mut lineage_layers = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .zip(cohort.anatomy.mounts())
+                .map(|(lineage, mount)| (*lineage, mount.place().layer()))
+        })
+        .collect::<Vec<_>>();
+    lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+    let layer_of = |lineage: [u8; 16]| {
+        lineage_layers
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| lineage_layers[index].1)
+    };
     let mut edges = Vec::<ResidentContactEdge>::new();
     let mut cohort_offsets = Vec::with_capacity(cohorts.len());
     let mut offset = 0usize;
@@ -8938,6 +8963,33 @@ fn settle_internal_contact_interval(
         .with_contact_states(fabric_states)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
 
+    // Preserve the exact directed whole-carrier transfers from this settled
+    // interval before the disjoint cohort consequences are applied. A motor
+    // recruitment may use only the exact current settled across its direct
+    // contact with a mounted layer-11 neighbour. The two endpoint potentials
+    // jointly cause that transfer; its observed direction is never rewritten.
+    let mut settled_directed_transfers = Vec::new();
+    for (transition, bond) in settled.transitions.iter().zip(&compact_bonds) {
+        let signed_transfer = transition.outward_elementary_charges_from_left;
+        if signed_transfer == 0 {
+            continue;
+        }
+        let (left, right) = bond.endpoints();
+        let (sender, receiver) = if signed_transfer > 0 {
+            (left, right)
+        } else {
+            (right, left)
+        };
+        settled_directed_transfers.push(DirectedPhysicalTransferObservation {
+            sender,
+            receiver,
+            bond: *bond,
+            transferred_whole_carriers: signed_transfer.unsigned_abs(),
+        });
+    }
+    settled_directed_transfers.sort_unstable();
+    settled_directed_transfers.dedup();
+
     // The shared contact field and carrier transfers above are settled once.
     // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
     // so those local consequences can settle concurrently without changing
@@ -9063,13 +9115,28 @@ fn settle_internal_contact_interval(
             .zip(combined_outward.iter().copied())
             .filter_map(|((_, neuron_index), outward)| {
                 let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let mut preparation_transfers = settled_directed_transfers
+                    .iter()
+                    .copied()
+                    .filter(|transfer| {
+                        (transfer.receiver == motor_lineage
+                            && layer_of(transfer.sender) == Some(11))
+                            || (transfer.sender == motor_lineage
+                                && layer_of(transfer.receiver) == Some(11))
+                    })
+                    .collect::<Vec<_>>();
+                preparation_transfers.sort_unstable();
+                preparation_transfers.dedup();
                 (mount.source_site().is_none()
                     && mount.place().layer() == 12
-                    && outward > 0)
+                    && outward > 0
+                    && !preparation_transfers.is_empty())
                     .then_some(MotorUnitRecruitment {
                         neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
                         topology_index: mount.place().topology_index(),
                         outward_elementary_carriers: outward.unsigned_abs(),
+                        preparation_transfers,
                     })
             })
             .collect::<Vec<_>>();
@@ -12826,11 +12893,17 @@ mod tests {
             state = vestibular.successor;
         }
         let source = exact_optical_binaural_episode();
-        let mut motor_recruitments = 0usize;
+        let mut motor_recruitments = Vec::new();
         let mut repeated_optical_frontier_route_sets = Vec::new();
-        for _ in 0..6 {
+        for _ in 0..8 {
             let prepared = state.prepare(&source, 16_000_000).unwrap();
-            motor_recruitments += prepared.observation.motor_unit_recruitments.len();
+            motor_recruitments.extend(
+                prepared
+                    .observation
+                    .motor_unit_recruitments
+                    .iter()
+                    .cloned(),
+            );
             if !prepared.observation.physical_frontier_routes.is_empty() {
                 frontier_route_sets.push(prepared.observation.physical_frontier_routes.clone());
                 repeated_optical_frontier_route_sets
@@ -12863,7 +12936,32 @@ mod tests {
         // name, target, or scripted command is involved.
         assert!(layer_counts.iter().any(|(layer, _)| *layer == 12));
         assert!(layer_counts.iter().any(|(layer, _)| *layer == 13));
-        assert_eq!(motor_recruitments, 1);
+        assert!(!motor_recruitments.is_empty());
+        assert!(motor_recruitments.iter().all(|recruitment| {
+            !recruitment.preparation_transfers.is_empty()
+                && recruitment.preparation_transfers.iter().all(|transfer| {
+                    let other = if transfer.receiver == recruitment.neuron_lineage {
+                        transfer.sender
+                    } else if transfer.sender == recruitment.neuron_lineage {
+                        transfer.receiver
+                    } else {
+                        return false;
+                    };
+                    state
+                        .cohorts
+                        .iter()
+                        .flat_map(|cohort| {
+                            cohort
+                                .anatomy
+                                .neuron_lineages()
+                                .iter()
+                                .zip(cohort.anatomy.mounts())
+                        })
+                        .any(|(lineage, mount)| {
+                            *lineage == other && mount.place().layer() == 11
+                        })
+                })
+        }));
         assert!(frontier_route_sets.iter().any(|routes| routes.len() > 1));
         assert!(frontier_route_sets
             .iter()

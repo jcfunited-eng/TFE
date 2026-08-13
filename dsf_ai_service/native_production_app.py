@@ -5012,7 +5012,15 @@ def _publish_committed_organism(
 
 def _prepare_motor_yaw_action(
     predecessor_state_sha256: str,
-    recruitments: tuple[tuple[str, int, int], ...],
+    recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ],
 ) -> tuple[Any, Any, int, tuple[int, ...]] | None:
     """Prepare one native motor consequence without changing live world state."""
 
@@ -5031,16 +5039,36 @@ def _prepare_motor_yaw_action(
     body = next(item for item in before.bodies if item.body_id == before.self_body_id)
     successor_heading, trajectory = exact_motor_unit_yaw_trajectory(
         predecessor_heading_millidegrees=body.pose.heading_millidegrees,
-        recruitments=tuple((topology, channels) for _, topology, channels in recruitments),
+        recruitments=tuple(
+            (topology, carriers)
+            for _, topology, carriers, _ in recruitments
+        ),
     )
     if not any(trajectory):
         return None
     intent_material = bytearray(b"guala.native-motor-yaw.v1\0")
     intent_material.extend(bytes.fromhex(predecessor_state_sha256))
-    for lineage, topology, channels in recruitments:
+    for lineage, topology, carriers, preparation_transfers in recruitments:
         intent_material.extend(bytes.fromhex(lineage))
         intent_material.extend(topology.to_bytes(4, "little"))
-        intent_material.extend(channels.to_bytes(16, "little"))
+        intent_material.extend(carriers.to_bytes(16, "little"))
+        intent_material.extend(len(preparation_transfers).to_bytes(8, "little"))
+        for (
+            sender,
+            sender_layer,
+            receiver,
+            receiver_layer,
+            parallel_ordinal,
+            transferred_whole_carriers,
+        ) in preparation_transfers:
+            intent_material.extend(bytes.fromhex(sender))
+            intent_material.extend(sender_layer.to_bytes(4, "little"))
+            intent_material.extend(bytes.fromhex(receiver))
+            intent_material.extend(receiver_layer.to_bytes(4, "little"))
+            intent_material.extend(parallel_ordinal.to_bytes(4, "little"))
+            intent_material.extend(
+                transferred_whole_carriers.to_bytes(16, "little")
+            )
     prepared = authority.prepare_port_command(
         port_id=PORT_ID,
         command_payload=encode_command(
@@ -5127,7 +5155,14 @@ def _perform_admitted_intake_locked(
     last_hop: dict[str, Any] | None = None
     committed_hop_count = 0
     committed_vestibular_tick_count = 0
-    motor_unit_recruitments: list[tuple[str, int, int]] = []
+    motor_unit_recruitments: list[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ]
+    ] = []
     emitted_neuron_fractals: list[dict[str, Any]] = []
     organic_mosaic_relations: list[dict[str, Any]] = []
     physical_frontier_routes: tuple[tuple[Any, ...], ...] = ()
@@ -5342,10 +5377,55 @@ def _perform_admitted_intake_locked(
                     organism, admission, predecessor.state_sha256
                 )
             motor_action = {
+                "causal_intent_receipt_sha256": (
+                    execution.causal_intent_receipt_sha256
+                ),
+                "command_sha256": execution.command_sha256,
+                "disposition": execution.disposition,
+                "expected_world_revision": execution.expected_revision,
+                "lifecycle": list(execution.lifecycle),
                 "moved": True,
                 "signed_yaw_millidegrees": sum(trajectory),
                 "motor_unit_recruitment_count": len(motor_unit_recruitments),
+                "observed_world_revision": execution.observed_revision,
+                "prepared_recruitments": [
+                    {
+                        "motor_lineage": lineage,
+                        "motor_layer": 12,
+                        "motor_topology_index": topology,
+                        "outward_elementary_carriers": carriers,
+                        "preparation_transfers": [
+                            {
+                                "sender_lineage": sender,
+                                "sender_layer": sender_layer,
+                                "receiver_lineage": receiver,
+                                "receiver_layer": receiver_layer,
+                                "parallel_ordinal": parallel_ordinal,
+                                "transferred_whole_carriers": (
+                                    transferred_whole_carriers
+                                ),
+                            }
+                            for (
+                                sender,
+                                sender_layer,
+                                receiver,
+                                receiver_layer,
+                                parallel_ordinal,
+                                transferred_whole_carriers,
+                            ) in preparation_transfers
+                        ],
+                    }
+                    for (
+                        lineage,
+                        topology,
+                        carriers,
+                        preparation_transfers,
+                    ) in motor_unit_recruitments
+                ],
+                "vestibular_tick_count": len(trajectory),
                 "world_revision": execution.after.revision,
+                "world_state_after_sha256": execution.after.state_sha256,
+                "world_state_before_sha256": execution.before.state_sha256,
             }
             _last_self_moved = dict(motor_action)
         except BaseException:

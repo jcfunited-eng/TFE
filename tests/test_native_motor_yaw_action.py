@@ -18,13 +18,55 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
 
     prepared = production._prepare_motor_yaw_action(
         "00" * 32,
-        (("11" * 16, 0, 7), ("22" * 16, 1, 2)),
+        (
+            (
+                "11" * 16,
+                0,
+                7,
+                (("11" * 16, 12, "33" * 16, 11, 0, 5),),
+            ),
+            (
+                "22" * 16,
+                1,
+                2,
+                (("44" * 16, 11, "22" * 16, 12, 0, 3),),
+            ),
+        ),
     )
     assert prepared is not None
     authority, world_action, predecessor_heading, trajectory = prepared
     assert predecessor_heading == before_body.pose.heading_millidegrees
     assert trajectory == (5,)
     assert authority.observation_snapshot() == before
+    alternate_world = EmbodimentWorldAuthority(
+        authority_key="native-motor-yaw-test-key",
+        initial_objects=_default_objects()[:1],
+    )
+    monkeypatch.setattr(production, "_world", lambda: alternate_world)
+    alternate = production._prepare_motor_yaw_action(
+        "00" * 32,
+        (
+            (
+                "11" * 16,
+                0,
+                7,
+                (("11" * 16, 12, "33" * 16, 11, 0, 6),),
+            ),
+            (
+                "22" * 16,
+                1,
+                2,
+                (("44" * 16, 11, "22" * 16, 12, 0, 3),),
+            ),
+        ),
+    )
+    assert alternate is not None
+    assert (
+        alternate[1].execution_receipt.causal_intent_receipt_sha256
+        != world_action.execution_receipt.causal_intent_receipt_sha256
+    )
+    assert alternate_world.observation_snapshot() == before
+    monkeypatch.setattr(production, "_world", lambda: world)
 
     with authority.prepared_action_visibility_transaction(world_action):
         execution = authority.commit_prepared_action(world_action)

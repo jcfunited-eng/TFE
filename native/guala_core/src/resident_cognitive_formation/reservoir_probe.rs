@@ -562,6 +562,12 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
             "lineage": lineage_hex(event.neuron_lineage),
             "topology_index": event.topology_index,
             "outward_elementary_carriers": event.outward_elementary_carriers.to_string(),
+            "preparation_transfers": event.preparation_transfers.into_iter().map(|transfer| json!({
+                "sender": lineage_hex(transfer.sender),
+                "receiver": lineage_hex(transfer.receiver),
+                "parallel_ordinal": transfer.bond.parallel_ordinal(),
+                "transferred_whole_carriers": transfer.transferred_whole_carriers.to_string(),
+            })).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
     })
 }

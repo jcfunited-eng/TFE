@@ -155,7 +155,14 @@ class _NativeResidentOrganismPrepare:
     )
     receptor_ingress_changing_count: int = 0
     receptor_ingress_quiescent_count: int = 96
-    motor_unit_recruitments: list[tuple[str, int, int]] | None = None
+    motor_unit_recruitments: list[
+        tuple[
+            str,
+            int,
+            int,
+            list[tuple[str, int, str, int, int, int]],
+        ]
+    ] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
     physical_frontier_routes: list[
         tuple[str, int, int, str, int, int, int, int]
@@ -707,6 +714,50 @@ def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
             ),
         ),
     )
+
+
+def test_prepare_carries_exact_layer_eleven_motor_contact_transfer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    motor = "12" * 16
+    ordering = "11" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        motor_unit_recruitments=[
+            (motor, 3, 9, [(motor, 12, ordering, 11, 0, 4)])
+        ],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.motor_unit_recruitments == (
+        (motor, 3, 9, ((motor, 12, ordering, 11, 0, 4),)),
+    )
+
+
+def test_prepare_refuses_motor_transfer_not_incident_to_motor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    runtime.prepare_result_override = replace(
+        genuine,
+        motor_unit_recruitments=[
+            (
+                "12" * 16,
+                3,
+                9,
+                [("11" * 16, 11, "22" * 16, 12, 0, 4)],
+            )
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="exact layer 11/layer 12 contact"):
+        organism.prepare(_Source())
 
 
 def test_prepare_refuses_fractal_count_without_per_neuron_evidence(

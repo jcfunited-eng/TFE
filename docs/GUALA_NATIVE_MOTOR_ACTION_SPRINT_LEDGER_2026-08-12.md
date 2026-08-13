@@ -1,92 +1,184 @@
-# Guala Native Motor Action Sprint Ledger — 2026-08-12
+# Guala C-019 Motor Preparation and Action Sprint Ledger
 
-## Requested architecture
+Date resumed: 2026-08-13
 
-One bounded native causal path from already-mounted layer-12 motor-neuron
-physics to exact virtual-body motion and vestibular sensory return. No Python
-choice logic, semantic intent, timer-authored activity, dense/global scan,
-owner, queue, lock, database object, persisted command, or new cognitive
-meaning is introduced.
+Status: active. Nothing in this ledger is delivered until the exact behavior is
+directly observed on public production Guala.
 
-## Change-impact ledger
+## Task identity
 
-- Exact input: positive outward whole-elementary-carrier discharge produced by
-  an already-mounted layer-12 neuron during one reached contact interval.
-- Function/file path:
-  `resident_cognitive_formation::settle_internal_contact_interval` settles the
-  sparse contact frontier once and admits only positive whole-carrier discharge
-  from source-independent layer-12 cells; `organism_runtime` projects those
-  transient events across the native boundary; `_perform_admitted_intake_locked`
-  consumes them once.
-- State transformation: the neuron state changes under existing physics. The
-  event itself changes no retained organism state. Its opposed motor topology
-  settles on the existing one-millidegree/one-millisecond yaw lattice; the
-  resulting vestibular trajectory returns through the existing native body
-  path.
-- Expected output: no recruitment means no changed behavior or added
-  per-neuron allocation. Recruitment means one prepared world yaw, one native
-  vestibular consequence, one organism publication, and one world
-  persistence.
-- Production acceptance: a live unattended interval must report
-  `native_causal_action_observed`, the world heading must change by the exact
-  signed recruitment sum, vestibular ticks must equal the one-tick trajectory,
-  cold restore must preserve the resulting body, Python cognition callbacks
-  must remain zero, and idle CPU/RAM/state-byte growth must not increase.
-- Observed evidence before release: the exact task-979 body, driven through
-  the ordinary production whole-sensorium episode builder, produces eight
-  native layer-12 discharges totalling 131 outward whole carriers. The
-  production body boundary converts that transient discharge into exactly 131
-  millidegrees of yaw, which returns through one native vestibular interval;
-  the disposable successor cold-restores byte-exactly with zero Python
-  cognition callbacks. Live yaw remains unproved.
+- Active delivery-ledger item: `C-019`.
+- Acceptance condition: prove motor preparation reaches layer 12 and can cause
+  one at-most-once body actuation whose consequences return through the senses.
+- Immediate predecessor: `C-018`, live-closed on public task
+  `dsf-ai-task:1018`, release commit `b9d85da3`, image
+  `sha256:09116ddafe48cd71955e78d28b9afd8316c40645babea683557a44f90719ee15`.
+- Production baseline: organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, public task 1018, with live
+  layer-12-discharge yaw and vestibular return already observed.
+- Ledger movement: advance to C-019. C-018 is not reopened.
 
-## Failed hypotheses retained
+## Architecture honesty gate
 
-- A dense zero-filled event vector was rejected during review because it
-  allocates in proportion to every reached neuron. The implementation now
-  carries only sparse nonzero `(lineage, topology, outward whole carriers)`
-  entries.
-- The historical unattended-time test is not release evidence: it depends on
-  the deleted `UNATTENDED_CADENCE_ENV` control. That control is not restored.
-- Task 979 proved yaw only after synthetic recruitment injection. Exact live
-  body inspection showed every intrinsic gate closed while layer 12 still
-  transported whole carriers. Therefore `newly opened gate channel` was an
-  unreachable event source and the release failed source-to-consequence
-  preflight. Gate conformation is not reused as efferent discharge authority.
-- A first local whole-sensorium rehearsal loaded the container's previously
-  installed `guala_core` extension instead of the core compiled from this
-  candidate. Its organism state moved layer 12 from -2577 to -2590 exactly as
-  the current native source predicted, but the stale Python boundary reported
-  no motor event. Rebuilding the extension from this commit exposed the exact
-  19-carrier event on that same first hop. Candidate release proof now runs
-  inside the built image and must carry the ordinary source all the way through
-  body yaw and vestibular return; a source-only native test or stale local
-  extension cannot authorize cutover.
-- A fresh default embodiment-world fixture currently declares 66 objects under
-  a hard maximum of 64. The motor proof uses one lawful object; the unrelated
-  fixture defect is not hidden as a motor failure and is not expanded into
-  this sprint.
-- The first task-981 cutover exposed a coupled-persistence ordering defect.
-  The hidden world candidate was committed, the organism CURRENT advanced,
-  and only then ordinary public world encoding was attempted while visibility
-  was still closed. The world correctly refused; the in-process organism
-  pointer consequently lagged the already-published CURRENT and the next
-  interval failed closed. The corrected boundary encodes and persists the
-  exact hidden world candidate through its prepared capability before organism
-  publication, restores the predecessor world bytes if organism publication
-  fails, and makes the discarded candidate rehearsal exercise that same
-  persistence boundary. A disposable exact-body run now advances tick 46337
-  to 46346, yawing 129 millidegrees, and cold-restores the exact successor SHA
-  `c121ab1c9730938636ddd2f50be3ec7c763d85062cd73cfb1c826318600a1bca`.
-- The first full-boundary next-interval rehearsal of task 982 correctly
-  refused before cutover: the action observation passed two evidence strings
-  positionally to `_section`, which accepts only one reason string. The
-  physical action and coupled persistence had completed in throwaway state;
-  truthful projection then raised `TypeError`. The two evidence strings are
-  now named `observed_effect` facts and a focused projection test executes the
-  exact branch before packaging.
+1. Requested architecture: one exact layer-11 physical preparation influences
+   a mounted layer-12 motor neuron through their direct contact; that prepared physical continuation can emit
+   one motor recruitment, execute one body actuation at most once, and return
+   its body consequence through mounted sensory mechanics.
+2. Current code reality: layer-12 discharge already crosses the native/Python
+   transport boundary, prepares one exact yaw, commits one world revision, and
+   returns through the native vestibular path. Its transient recruitment did
+   not carry the exact current across its direct layer-11/layer-12 contact, so
+   the action could not be attributed to physical preparation.
+3. Conflict: yes, confined to the missing preparation-to-recruitment causal
+   binding and its public observation.
+4. Not extended: Python choice or planning, semantic intent, action labels as
+   authority, score selection, timer-authored action, owner, lock, queue,
+   database, UI animation, dense scan, persistent command, or C-018 fluid law.
+5. Single exact item: bind the complete exact layer-11/layer-12 contact-transfer
+   set to the transient layer-12 recruitment and carry it unchanged
+   through the already-mounted at-most-once yaw and vestibular return path.
+6. DSF: every participating neuron continues to receive the full unchanged
+   joint seven-field L0-L4 result.
+7. Field loss: none. No DSF projection, scalar, score, or reduced field is
+   introduced.
 
-## Delivery truth
+## Frozen scope and change-impact path
 
-This ledger is local implementation evidence only. The sprint is not delivered
-until the production acceptance path above passes against the live organism.
+- Exact input: the present native interval's settled current across a direct
+  contact between a mounted layer-11 cell and the mounted layer-12 motor cell.
+  The endpoint potentials jointly cause the transfer; its actual signed
+  direction is preserved.
+- Native path:
+  `ResidentCognitiveFormationState::prepare_*`
+  -> `settle_internal_contact_interval`
+  -> `MotorUnitRecruitment`
+  -> `ResidentPrepareReceipt`
+  -> `NativeResidentOrganismPrepare::motor_unit_recruitments`.
+- Python/actuator path:
+  `NativeResidentOrganismBoundary.prepare`
+  -> `_commit_admitted_hop`
+  -> `_perform_admitted_intake_locked`
+  -> `_prepare_motor_yaw_action`
+  -> `EmbodimentWorldAuthority.prepare_port_command`
+  -> `commit_prepared_action`
+  -> `_commit_vestibular_trajectory`
+  -> one organism/world publication
+  -> public native observation.
+- State transformation: a positive whole-carrier layer-12 discharge is
+  eligible for actuation only when the same settlement also contains nonzero
+  current across that motor's direct contact with layer 11. The evidence is
+  transient and changes no retained cognition, neuron, or world state.
+- Expected output: one prepared motor recruitment with exact layer-11 sender,
+  layer-12 receiver, stable bond, transferred whole carriers, layer-12
+  topology, and outward motor carriers; one exact yaw action; one world
+  revision; one vestibular trajectory; one persisted organism/world successor.
+- Unchanged invariants: organism identity, complete-neuron state law, full DSF,
+  existing contacts, current-only persistence, zero Python cognition callbacks,
+  sparse reached-frontier work, and all C-018 conservation evidence.
+
+## Acceptance-evidence map
+
+| Required fact | Producer | Retained/runtime state | Boundary | Public proof |
+|---|---|---|---|---|
+| layer-11 preparation influences layer 12 | exact signed current across their direct physical contact | present settlement only | motor recruitment projection | exact sender/receiver directions, layer 11 and layer 12 endpoints, bond, and carriers |
+| prepared motor cell discharges | complete-neuron/contact settlement | transient motor recruitment | PyO3 and Python tuple unchanged | exact motor lineage/topology/outward carriers |
+| action executes at most once | prepared world command bound to predecessor state and revision | one committed world successor | coupled world/organism publication | one revision and exact signed yaw for one intent |
+| consequence returns through senses | body yaw trajectory | native vestibular successor | ordinary intake aggregate | nonzero vestibular tick count and returned body/sensory evidence |
+| continuity and bounds hold | native runtime and current-only persistence | exact successor | public observation/resource surfaces | same identity, cold restore, one process, zero Python cognition callbacks, bounded bytes/CPU/RAM |
+
+## Stateful branch matrix
+
+| Branch | Required result |
+|---|---|
+| pristine focused body | real current across a direct layer-11/layer-12 contact can qualify a motor discharge for one sensed action |
+| authenticated task-1018 predecessor | the ordinary unattended source-to-consequence path produces a new bounded successor without replacing prior neurons, contacts, mosaics, or identity |
+| cold-restored successor | the exact committed body/world pair restores and completes one later ordinary interval without replaying the prior action |
+
+## Applicable deployment recurrence checks
+
+| IDs | Earliest check for this sprint |
+|---|---|
+| RF-001, RF-002 | exact worktree first on `PYTHONPATH`; import only after exporting the exact task-1018 environment |
+| RF-003 | rebuild the candidate wheel and print the loaded native module path/provenance before end-to-end proof |
+| RF-004, RF-022 | run pristine and task-1018 restored branches; no persisted schema changes are expected |
+| RF-005, RF-017, RF-018, RF-028, RF-030 | census every native constructor/getter, PyO3 tuple, Python parser, multi-hop aggregate, observer, signature, and controller consumer before compile |
+| RF-007, RF-033 | resolve the real AWS account/region/service/task and controller invocation before the deployment clock |
+| RF-010, RF-021, RF-027 | keep assertions bound to the exact successor; compare persisted `CURRENT`, cold-start it, and run the next ordinary interval |
+| RF-012, RF-020 | source must be the real production predecessor; mounted layer 12 or synthetic recruitment is insufficient |
+| RF-016, RF-034 | candidate diff and rehearsal assertions belong only to C-019; closed witnesses are not recurring requirements |
+| RF-025, RF-029 | on timeout/refusal, read the successor before any retry; never duplicate an action |
+| RF-031, RF-032 | resolve test names, working directories, and nonzero executed-test counts before interpreting results |
+| RF-035 | rehearsal input must match the ordinary live unattended producer in magnitude, duration, and provenance |
+
+## Failed and rejected paths retained
+
+- Synthetic motor recruitment proves only the downstream yaw helper; it cannot
+  satisfy C-019 source-to-consequence acceptance.
+- A layer-12 discharge without simultaneous current across its direct layer-11 contact proves an
+  efferent event, not motor preparation.
+- Public task 1018 already proves discharge, one yaw, and vestibular return; it
+  does not by itself close C-019 because those facts are not causally bound to
+  layer-11 preparation.
+- A semantic action name, planner, score winner, or Python selection is not an
+  acceptable replacement for the missing physical link.
+
+## Translation-boundary review before first compile
+
+- Native producer census: `MotorUnitRecruitment` is constructed only in
+  `settle_internal_contact_interval`; empty observations are constructed at the
+  quiescent/no-frontier branches and in test-only cognitive-capital fixtures.
+- Native consumers: cognitive observation, multi-interval runtime aggregate,
+  prepare receipt, PyO3 getter, and the read-only reservoir probe. The motor
+  evidence is transient; no neuron, cognitive, world, or outer-state codec
+  serializes it, so this sprint requires no schema reinterpretation or state
+  migration.
+- Boundary field map:
+  `settled layer-11/layer-12 ElectricalContactTransition`
+  -> exact directed `(sender, receiver, stable bond, carriers)`
+  -> native recruitment `(motor lineage, topology, outward carriers,
+  preparation transfers)`
+  -> PyO3 nested tuple
+  -> Python immutable tuple
+  -> action-intent bytes and public prepared-recruitment record.
+- Multi-hop behavior: the ordinary intake aggregate appends each sparse
+  recruitment and preserves its preparation transfers. The later vestibular
+  hop cannot overwrite them; the public motor-action record is built from the
+  complete admitted transaction.
+- Causal scope: only a positive layer-12 whole-carrier discharge accompanied
+  by nonzero exact current across that motor's direct layer-11 contact can reach
+  the actuator. The transfer direction remains the physical direction produced
+  by the endpoint potentials. An unprepared discharge remains ordinary neuronal physics and
+  produces no action event.
+- Conservation: this change moves no additional carrier or energy and creates
+  no retained state. The existing motor discharge supplies the action amount;
+  the preparation transfer is exact causal evidence and is not added to that
+  amount a second time.
+- Added control/data structures: one sparse transient transfer vector per
+  emitted motor recruitment. No Boolean gate, threshold, counter, owner, lock,
+  database, cache, Python callback, or persistent object is added.
+- Test/runtime provenance remains pending until the candidate native wheel is
+  rebuilt and loaded under the exact task-1018 environment.
+- First focused native compile failed before tests because the test-only
+  `reservoir_probe` directly called `settle_internal_contact_interval` and the
+  initial census searched only the parent Rust file. Disposition: the probe was
+  updated with the same narrowed signature, and constructor/caller census
+  commands must include the complete `native/guala_core/src` tree (RF-017). No
+  runtime or production state changed.
+- The immediately preceding-frontier hypothesis was falsified: the exact
+  layer-11/layer-12 current was not there when the motor discharged.
+- The same-interval one-way layer-11-to-layer-12 hypothesis was also falsified:
+  the direct contact carried current in the opposite signed direction. The
+  retained physics is an undirected dissipative contact whose two endpoint
+  potentials jointly determine current. The implementation therefore binds
+  the exact signed current across the direct layer-11/layer-12 contact and does
+  not rewrite its direction into a fictional excitatory transmission.
+
+## Live completion rule
+
+`C-019` becomes **Live-Closed** only when the public production observation on
+`dsf-ai.com` directly exposes one exact signed layer-11/layer-12 contact transfer bound
+to the layer-12 recruitment that caused one committed body yaw, shows the
+vestibular/sensory return from that same action, and preserves identity, cold
+continuity, zero Python cognition callbacks, one live organism process, and
+bounded resources. Local, candidate, rehearsal, ECS, HTTP, or source evidence
+alone cannot close it.
