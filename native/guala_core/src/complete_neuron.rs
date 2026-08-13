@@ -3599,23 +3599,80 @@ pub(crate) struct GateOpeningQuantumWindow {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct GatePopulationOpeningSchedule {
     predecessor_open_population: u128,
-    activation_quanta: Box<[u128]>,
+    channel_count: u128,
+    first_barrier_quanta: Exact,
+    barrier_step_quanta: Exact,
 }
 
 impl GatePopulationOpeningSchedule {
+    pub(crate) fn from_progression(
+        predecessor_open_population: u128,
+        channel_count: u128,
+        first_barrier_quanta: Exact,
+        barrier_step_quanta: Exact,
+    ) -> Result<Self, GateSettlementError> {
+        if barrier_step_quanta.is_negative() {
+            return Err(GateSettlementError::InvalidAnatomy);
+        }
+        Ok(Self {
+            predecessor_open_population,
+            channel_count,
+            first_barrier_quanta,
+            barrier_step_quanta,
+        })
+    }
+
     pub(crate) fn predecessor_open_population(&self) -> u128 {
         self.predecessor_open_population
     }
 
-    pub(crate) fn activation_quanta(&self) -> &[u128] {
-        &self.activation_quanta
+    pub(crate) fn channel_count(&self) -> u128 {
+        self.channel_count
+    }
+
+    pub(crate) fn first_barrier_quanta(&self) -> &Exact {
+        &self.first_barrier_quanta
+    }
+
+    pub(crate) fn barrier_step_quanta(&self) -> &Exact {
+        &self.barrier_step_quanta
+    }
+
+    #[cfg(test)]
+    pub(crate) fn expanded_activation_quanta(&self) -> Result<Vec<u128>, GateSettlementError> {
+        let mut expanded = Vec::new();
+        expanded
+            .try_reserve_exact(
+                usize::try_from(self.channel_count)
+                    .map_err(|_| GateSettlementError::ArithmeticWidth)?,
+            )
+            .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+        for offset in 0..self.channel_count {
+            let barrier = &self.first_barrier_quanta
+                + &self.barrier_step_quanta
+                    * Exact::from_integer(BigInt::from(offset));
+            expanded.push(if barrier.is_positive() {
+                barrier
+                    .floor()
+                    .to_integer()
+                    .to_u128()
+                    .ok_or(GateSettlementError::ArithmeticWidth)?
+                    .checked_add(1)
+                    .ok_or(GateSettlementError::ArithmeticWidth)?
+            } else {
+                0
+            });
+        }
+        Ok(expanded)
     }
 }
 
-/// Derive the exact sequential activation cost of every still-closed channel
-/// from this neuron's current material state.  The schedule is an energy
-/// boundary, not an authored response: the receptor occurrence may open only
-/// the prefix whose complete barriers it can physically pay.
+/// Derive the exact sequential activation law for every still-closed channel
+/// from this neuron's current material state. Gate free energy is quadratic in
+/// collective open population, so successive single-channel barriers form an
+/// exact arithmetic progression. Retaining that progression instead of one
+/// rational object per channel preserves every barrier without population-
+/// proportional allocation or evaluation.
 pub(crate) fn gate_population_opening_schedule_with_psi(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
@@ -3633,14 +3690,17 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         .ok_or(GateSettlementError::GatePopulationExceeded)?;
     let closed_population = anatomy.gate.population - predecessor.gate.open_population;
     let schedule_len = closed_population.min(free_dissipation);
-    let mut activation_quanta = Vec::new();
-    activation_quanta
-        .try_reserve_exact(
-            usize::try_from(schedule_len).map_err(|_| GateSettlementError::ArithmeticWidth)?,
+    if schedule_len == 0 {
+        return GatePopulationOpeningSchedule::from_progression(
+            predecessor.gate.open_population,
+            0,
+            Exact::zero(),
+            Exact::zero(),
         )
-        .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+        .map_err(NeuronPhysicalError::from);
+    }
     let zero_work = GateWorkOccurrence::new(Exact::zero());
-    let mut prior_energy = gate_population_free_energy(
+    let predecessor_energy = gate_population_free_energy(
         &anatomy.gate,
         &anatomy.plastic,
         &predecessor.plastic,
@@ -3650,13 +3710,28 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         &zero_work,
         predecessor.gate.open_population,
     )?;
-    for offset in 1..=schedule_len {
-        let population = predecessor
-            .gate
-            .open_population
-            .checked_add(offset)
+    let first_population = predecessor
+        .gate
+        .open_population
+        .checked_add(1)
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let first_energy = gate_population_free_energy(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &predecessor.plastic,
+        predecessor.membrane,
+        anatomy.capacitance,
+        &psi.successor,
+        &zero_work,
+        first_population,
+    )?;
+    let first_barrier_quanta = (&first_energy - &predecessor_energy)
+        / &anatomy.gate.dissipation_quantum_zeptojoules;
+    let barrier_step_quanta = if schedule_len > 1 {
+        let second_population = first_population
+            .checked_add(1)
             .ok_or(GateSettlementError::ArithmeticWidth)?;
-        let energy = gate_population_free_energy(
+        let second_energy = gate_population_free_energy(
             &anatomy.gate,
             &anatomy.plastic,
             &predecessor.plastic,
@@ -3664,30 +3739,21 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
             anatomy.capacitance,
             &psi.successor,
             &zero_work,
-            population,
+            second_population,
         )?;
-        let barrier = &energy - &prior_energy;
-        let required = if barrier.is_positive() {
-            (&barrier / &anatomy.gate.dissipation_quantum_zeptojoules)
-                .floor()
-                .to_integer()
-                .to_u128()
-                .ok_or(GateSettlementError::ArithmeticWidth)?
-                .checked_add(1)
-                .ok_or(GateSettlementError::ArithmeticWidth)?
-        } else {
-            // This step is already downhill under the retained material
-            // geometry. It consumes no receptor energy; the exact negative
-            // internal work is released by gate settlement itself.
-            0
-        };
-        activation_quanta.push(required);
-        prior_energy = energy;
-    }
-    Ok(GatePopulationOpeningSchedule {
-        predecessor_open_population: predecessor.gate.open_population,
-        activation_quanta: activation_quanta.into_boxed_slice(),
-    })
+        let second_barrier_quanta = (&second_energy - &first_energy)
+            / &anatomy.gate.dissipation_quantum_zeptojoules;
+        second_barrier_quanta - &first_barrier_quanta
+    } else {
+        Exact::zero()
+    };
+    GatePopulationOpeningSchedule::from_progression(
+        predecessor.gate.open_population,
+        schedule_len,
+        first_barrier_quanta,
+        barrier_step_quanta,
+    )
+    .map_err(NeuronPhysicalError::from)
 }
 
 pub(crate) fn gate_opening_quantum_window(

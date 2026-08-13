@@ -11,7 +11,7 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{One, Zero};
 
-use crate::complete_neuron::GateWorkOccurrence;
+use crate::complete_neuron::{GatePopulationOpeningSchedule, GateWorkOccurrence};
 use crate::exact_rational::ExactRational;
 use crate::joint_source_episode::{JointSourcePortView, NativeJointSourceEpisode};
 use crate::joint_uf_neuron_boundary::JointNeuronPerspective;
@@ -151,15 +151,13 @@ pub(crate) fn quantize_optical_population_delivery(
     transduced_energy_zeptojoules: &BigRational,
     predecessor_residue: ExactRational,
     lattice_quantum_zeptojoules: &BigRational,
-    predecessor_open_population: u128,
-    activation_quanta: &[u128],
+    schedule: &GatePopulationOpeningSchedule,
 ) -> Result<QuantizedOpticalDelivery, OpticalReceptorWorkError> {
     quantize_population_receptor_delivery(
         transduced_energy_zeptojoules,
         predecessor_residue,
         lattice_quantum_zeptojoules,
-        predecessor_open_population,
-        activation_quanta,
+        schedule,
     )
     .map_err(OpticalReceptorWorkError::from)
 }

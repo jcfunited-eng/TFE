@@ -35,6 +35,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/Cargo.lock",
     "native/guala_core/Cargo.toml",
     "native/guala_core/pyproject.toml",
+    "native/guala_core/src/articulatory_receptor_work.rs",
     "native/guala_core/src/auditory.rs",
     "native/guala_core/src/auditory_incremental.rs",
     "native/guala_core/src/auditory_reachability.rs",

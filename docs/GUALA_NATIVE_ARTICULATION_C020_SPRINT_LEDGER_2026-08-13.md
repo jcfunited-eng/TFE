@@ -367,3 +367,35 @@ and backend-only state do not close it.
 - These are candidate proofs only. Authenticated production-predecessor
   rehearsal, cutover, and direct public evidence remain pending; C-020 is not
   Live-Closed.
+
+### Full-strength cognitive-overhead finding
+
+- The first immutable body-return candidate restored the exact production
+  predecessor quickly, but a real articulation with 196--253 layer-13
+  recruitments did not finish its first self-sensing hop before the bounded
+  rehearsal limit. No production cutover occurred.
+- Weak one-recruitment controls completed in 4.7--5.7 seconds. Pressure-only
+  and body-only controls both completed; a quiescent 109-port hop also
+  completed. The neuron roster, cold restore, full joint field, and four body
+  ports are therefore not the population explosion.
+- The exact source defect was the graded receptor opening schedule: it created
+  one `BigRational` activation entry and reevaluated gate free energy once for
+  every still-closed channel, then walked that complete list again. Strong
+  live articulation reached millions of temporary rational objects before one
+  cognitive hop could settle.
+- Gate free energy is exactly quadratic in collective open-channel population.
+  Its sequential single-channel barriers are therefore an exact arithmetic
+  progression. The candidate now retains that progression in four values and
+  computes the identical affordable prefix with exact Euclidean floor-sum
+  arithmetic and logarithmic search. No channel, threshold, energy, residue,
+  retained state, or DSF field is capped, approximated, or removed.
+- The compact solver matches the former explicit walk over positive, zero, and
+  initially downhill barrier regimes. A 4,563,410-channel case completes
+  without population-sized allocation. The full native library currently
+  passes 420 tests with zero failures and 13 explicitly ignored fixtures.
+- RF-039 is now the durable earliest check: every graded receptor release must
+  execute both weakest-nonzero and maximum producer-reachable occurrences and
+  reject population-proportional temporary materialization before packaging.
+- This remains local candidate evidence. The corrected full-strength
+  production-predecessor rehearsal, immutable cutover, and public body-return
+  proof remain pending; C-020 is not Live-Closed.

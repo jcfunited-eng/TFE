@@ -3605,11 +3605,10 @@ impl ResidentCognitiveFormationState {
                                                     )
                                                 })?;
                                         let population = quantize_population_receptor_delivery(
-                                                &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                            &transduced_energy_zeptojoules,
+                                            predecessor_neuron.receptor_quantum_residue,
                                             neuron_anatomy.gate_dissipation_quantum_zeptojoules(),
-                                                schedule.predecessor_open_population(),
-                                                schedule.activation_quanta(),
+                                            &schedule,
                                         );
                                         match law {
                                             ReceptorLaw::Sight => population.map_err(|error| {

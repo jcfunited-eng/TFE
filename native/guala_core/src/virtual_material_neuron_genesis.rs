@@ -849,8 +849,7 @@ mod tests {
                 &energy,
                 specialized.state().receptor_quantum_residue,
                 &quantum,
-                schedule.predecessor_open_population(),
-                schedule.activation_quanta(),
+                &schedule,
             )
             .unwrap();
             let lit = settle_extended_interval_with_contact(
@@ -930,15 +929,17 @@ mod tests {
             // exact barrier depend on the currently open population. The
             // former constant 17-quantum schedule belonged to the rejected
             // independent irreversible-prefix model.
-            assert_eq!(schedule.activation_quanta(), &[1, 2, 3, 4, 5, 5]);
+            assert_eq!(
+                schedule.expanded_activation_quanta().unwrap(),
+                [1, 2, 3, 4, 5, 5]
+            );
             let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
             let energy = &quantum * BigRational::from_integer(BigInt::from(energy_quanta));
             let delivery = quantize_optical_population_delivery(
                 &energy,
                 genesis.state().receptor_quantum_residue,
                 &quantum,
-                schedule.predecessor_open_population(),
-                schedule.activation_quanta(),
+                &schedule,
             )
             .unwrap();
             let lit = settle_extended_interval_with_contact(
