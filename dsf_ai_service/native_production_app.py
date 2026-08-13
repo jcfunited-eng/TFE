@@ -5354,7 +5354,7 @@ def _perform_admitted_intake_locked(
             deferred_recurrent_articulation_count = 0
             for self_hearing_episode, admissions in _mono_pcm_hop_episodes(
                 assembly_prefix=(
-                    f"native-self-articulation-{organism.organism_tick()}"
+                    f"native-self-articulation-{last_hop['organism_tick']}"
                 ),
                 samples=pressure_pcm,
                 sample_rate_hz=sample_rate_hz,

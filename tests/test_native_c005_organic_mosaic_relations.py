@@ -214,7 +214,10 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     heard = _hop(12, ())
     heard["physically_transitioned_neuron_count"] = 4
     heard["complete_neuron_fractal_count"] = 1
-    organism = SimpleNamespace(organism_tick=lambda: 11)
+    # The production boundary deliberately exposes no direct ``organism_tick``
+    # method.  The exact committed hop already carries the causal tick used to
+    # name its self-hearing occurrence.
+    organism = object()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -282,7 +285,7 @@ def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
     heard = _hop(262, ())
     heard["physically_transitioned_neuron_count"] = 3
     heard["complete_neuron_fractal_count"] = 2
-    organism = SimpleNamespace(organism_tick=lambda: 261)
+    organism = object()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,

@@ -202,6 +202,50 @@ transition is mounted.
   neurons, full-DSF work, identity, persistence, and zero Python cognition
   callbacks. Earlier C-011/C-014-through-C-018 transient witnesses may still be
   reported when present but are no longer recurring release authority.
+- Corrected release commit
+  `117449837eadc95fdff2b6923cede91cc233be55`, immutable image
+  `sha256:762c77db7b50acabc8c709705cc2dbc14e9e6514eca38304f1a734b4f85d0535`,
+  and candidate task definition `dsf-ai-task:1023` were built. The discarded
+  cold rehearsal task `9d35b322f6f845dda296da822e3b0929` refused before
+  cutover with `native CURRENT cold restore changed`; production remained on
+  task 1021 and no public acceptance action was issued.
+- RF-010 is the exact cause of that refusal. A read-only task mounted against
+  production EFS observed durable `CURRENT` at tick 73164, SHA-256
+  `6a6c25d138a7177c6cec60bf328b4160826f7f98600de010a0b22c9a8f91cd73`,
+  and 43,440,073 bytes, with pointer, readiness, and body bytes exact. The
+  authenticated running task-1021 readiness surface observed the same organism
+  in process at tick 73804, SHA-256
+  `61a0936960ea6576fc80811ff5add07f89641fb6d2289e79f727e4825cac82f1`,
+  and 43,439,935 bytes. The candidate therefore correctly refused to replace
+  lived in-process experience with the older durable body.
+- The active correction remains bounded to current-only publication. No
+  management flush, owner, rollback body, invented seal, repeated guided turn,
+  or new cognitive mechanism is authorized. The discarded-body reproduction
+  below refuted the initially considered sensory-publication path: every
+  ordinary interval that reaches articulation encounters the same exception
+  before it can publish. The memory-only tail has no committed organism or
+  world successor and is therefore not lawful experience. Recovery must cold
+  restart exactly from authenticated `CURRENT`, then rehearse and deploy the
+  corrected candidate before another unattended interval can recreate the
+  failure.
+- A discarded writable copy of the exact persisted task-1021 body reproduced
+  the publication gap on its first ordinary unattended interval. Layer-13
+  recruitment reached articulation, then the self-hearing occurrence prefix
+  called `organism.organism_tick()` on the factory-only production boundary,
+  raising `AttributeError` before publication. The mock-based C-020 aggregate
+  tests had supplied that nonexistent method and therefore hid the production
+  failure. This is RF-037 at the active source-to-consequence path.
+- The bounded correction reads the exact causal tick already present in the
+  committed native hop evidence. It adds no observer call, state, owner, lock,
+  retry, or new physics. The two articulation aggregate tests now use a
+  boundary handle with no direct tick method, so the former false interface
+  cannot pass again.
+- The direct correction gate passes 2/2. A broader boundary run passed 76
+  tests; six tests in `test_native_production_unattended_time.py` stopped in
+  fixture setup because that inherited fixture still references the already
+  removed `UNATTENDED_CADENCE_ENV`. None executed an organism transition. The
+  retired cadence controller is not restored for C-020; the unaffected
+  boundary suites were rerun separately and pass 76/76.
 
 ## Live completion rule
 
