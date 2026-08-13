@@ -1,18 +1,19 @@
 {
- "ran_at_utc": "2026-08-13T01:13:23.020953+00:00",
- "object": {
-  "n_events": 18622,
-  "mean_pct": 2.507
+ "ran_at_utc": "2026-08-13T06:56:24.069177+00:00",
+ "object_events": 18622,
+ "kill_threshold_pctl": 5.0,
+ "samples": {
+  "clock_engines_v1.1_v2": {
+   "n_closures": 10,
+   "live_mean_pct": 0.346,
+   "object_mean_pct": 2.507,
+   "live_mean_percentile": 31.83,
+   "broken": false
+  },
+  "harvest_engine_v3": {
+   "n_closures": 0,
+   "note": "no closures yet"
+  }
  },
- "live": {
-  "n_closures": 10,
-  "mean_pct": 0.346,
-  "total_pnl_usd": 68.53
- },
- "bootstrap": {
-  "draws": 100000,
-  "live_mean_percentile": 31.83,
-  "kill_threshold_pctl": 5.0
- },
- "verdict": "INSIDE THE OBJECT \u2014 the live record is within the decade object's own dispersion at this sample size; the channel keeps running"
+ "verdict": "INSIDE THE OBJECT \u2014 every populated live sample is within its own object's dispersion; the channel keeps running"
 }

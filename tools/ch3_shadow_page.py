@@ -162,10 +162,12 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
 <main>
 <header>
   <h1>CH3 — Shadow Hunter</h1>
-  <div class="sub">The reveal-fade channel: shorts the day's violent
-   up-spikes at the close, holds five sessions, time exit · measured
-   +1.33%/event 2016-2026, positive every year since 2021 · SIMULATED —
-   no real orders, borrow costs not modeled ·
+  <div class="sub">The reveal-fade channel, v3: shorts every crowd-less
+   violent up-spike at the close · capital split by displacement force ·
+   HARVEST exit at the first close at/past +5%, five-session backstop ·
+   declared margin: gross to 2x capital · decade object ~$1,040/day
+   averaged incl. droughts — droughts pay zero, melt-up regimes lose ·
+   SIMULATED — no real orders, borrow costs not modeled ·
    engine {log.get("engine", "ch3_reveal_fade_v1")} · updated {stamp}</div>
 </header>
 <div class="acct">Shadow account: equity {money(equity)} · cash {money(book["cash"])}</div>
@@ -199,9 +201,14 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
 Entry price and buys back at Current — so Current BELOW Entry is a
 profit (green, positive) and Current above Entry is a loss. Longs
 read the normal way. Shadow record — every row is a simulated fill
-at real market prices. HIT = target touched, MISS = stop hit, CUT =
-closed by review, EOD = flattened at the close. This record decides
-when the live channel re-arms.</p>
+at real market prices. HARVEST = closed at the first close at or
+past +5% profit; TIME = five-session backstop. A self-check runs
+after every settlement: if the live record falls below what ten
+years of the same trades allows for a cold streak, the channel
+halts itself. Stated plainly: this construction is scaffolding, not
+the destination — the measured-parts answer to a dollar target,
+holding the channel while a construction native to this project's
+physics is conceived.</p>
 </main>
 """
     with open(out_path, "w", encoding="utf-8") as f:

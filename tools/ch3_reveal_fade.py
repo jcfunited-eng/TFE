@@ -44,6 +44,39 @@ day on the decade, with the worst day smaller (-358 vs -610).
           (+1.75 vs +2.51 — dilutes); decay-break and above-entry
           refutation exits (pass 1/2 of ch3_fade_exit_law*.py).
 
+V3 (2026-08-13, same night) — THE DOLLAR-TARGET CONSTRUCTION. Joe's
+question: can this channel target ~$1,000/day. The honest arithmetic
+from the filed objects: harvest exits (ch3_fade_exit_law2 R2: exit at
+the first close giving the short >= +5%, else the 5-session clock)
+earn 0.685%/deployed-dollar/session vs the clock's 0.501%. Velocity
+loses per event and wins per book ONCE CAPITAL BINDS — v1's 10/day
+cap and flat $2k slices were the underived constants that kept
+capital from ever binding. v3 makes it bind:
+  SUPPLY  every qualifying event is taken (no daily count cap; the
+          field's supply is the limit, ~9.7/day decade average).
+  ENVELOPE declared margin like any real short desk: gross exposure
+          to GROSS_MULT (2.0) x capital; the cash ledger may borrow
+          to -(GROSS_MULT-1) x CASH0. Borrow costs remain unmodeled
+          and STATED, as since v1.
+  SIZING  the day's remaining envelope is the budget, split by pull
+          z (v2's force law), with no single event above
+          MAX_EVENT_FRAC (10%) of capital — a ruin cap, declared as
+          survival not alpha (the decade's worst force-day cohort
+          lost 3.6x its own deployed dollars; at 2x gross that tail
+          can end a book without this cap).
+  EXIT    HARVEST at the first close <= 0.95 x entry (R2, measured
+          +2.161%/ev at 3.16-session holds, wr 69); TIME backstop at
+          the 5th session close, unchanged.
+  EXPECTED (decade object, stated before live): ~$200k deployed x
+          0.685%/session ~= $1,370/event-day, ~= $1,040/day averaged
+          over the decade's droughts. Price tag stated with it:
+          droughts pay ZERO for weeks (green tape = no supply, the
+          filter working); 2020-style melt-up regimes LOSE at any
+          size; the squeeze tail doubles with gross. The kill test
+          (ch3_kill_test.py) now watches v3 closures against the R2
+          object; below its declared 5th percentile the channel
+          halts itself.
+
 Runs nightly after the store refresh (ch4_spring_daily_runner.sh).
 State: artifacts/vtvr_observer/ch3_shadow_log.json (same book/page).
 Usage: python tools/ch3_reveal_fade.py [DRY]
@@ -63,15 +96,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 LOG_PATH = os.path.join(ROOT, "artifacts", "vtvr_observer",
                         "ch3_shadow_log.json")
-ENGINE = "ch3_reveal_fade_v2"
-ENGINE_FAMILY = "ch3_reveal_fade"   # v1.1 opens settle under v2 too
+ENGINE = "ch3_reveal_fade_v3"
+ENGINE_FAMILY = "ch3_reveal_fade"   # older opens settle under v3 too
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
-SLICE_USD = 2000.0
-MAX_NEW_PER_DAY = 10
 HOLD_SESSIONS = 5
 CASH0 = 100_000.0
+GROSS_MULT = 2.0          # declared margin envelope: gross <= 2x capital
+HARVEST_X = 0.95          # R2: exit at first close <= 0.95 x entry
+MAX_EVENT_FRAC = 0.10     # ruin cap per event (survival, not alpha)
 
 
 def load_log():
@@ -96,7 +130,8 @@ def main():
                  for i, d in enumerate(days)}
     log = load_log()
 
-    # settle positions whose 5th session close is the latest day (or past)
+    # settle: HARVEST at the first close <= 0.95 x entry (checked every
+    # nightly pass = every close), TIME backstop at the 5th session close
     px_latest = dict(df[df["Date"] == latest][["Symbol", "Close"]].values)
     settled = 0
     for f in log["finds"]:
@@ -105,16 +140,19 @@ def main():
             continue
         ei = day_index.get(f["date"])
         li = day_index.get(latest_s)
-        if ei is None or li is None or li - ei < HOLD_SESSIONS:
+        if ei is None or li is None or li - ei < 1:
             continue
         px = px_latest.get(f["symbol"])
         if px is None:
             continue
+        harvest = float(px) <= HARVEST_X * f["entry_px"]
+        if not harvest and li - ei < HOLD_SESSIONS:
+            continue
         ret = 100 * (1 - float(px) / f["entry_px"])          # short
         pnl = round(f["notional"] * ret / 100, 2)
         log["book"]["cash"] = round(log["book"]["cash"] + f["notional"] + pnl, 2)
-        f.update(status="TIME", resolved=now, ret_pct=round(ret, 2),
-                 pnl=pnl, exit_px=float(px))
+        f.update(status="HARVEST" if harvest else "TIME", resolved=now,
+                 ret_pct=round(ret, 2), pnl=pnl, exit_px=float(px))
         settled += 1
 
     # herd greed at the latest day (exported by the same nightly pass,
@@ -156,28 +194,28 @@ def main():
                            "dollar_vol": float(v[-1] * c[-1])})
     events.sort(key=lambda e: -e["dollar_vol"])
     held = {f["symbol"] for f in log["finds"] if f["status"] == "OPEN"}
-    # v2 selection unchanged (liquidity-first, caps, one per symbol);
-    # then the day's capital — SLICE_USD per taken event, exactly the
-    # v1.1 total — is split in proportion to each event's pull z
+    # v3: every qualifying event is taken (supply is the only count
+    # limit); the day's budget is the remaining margin envelope (gross
+    # to GROSS_MULT x capital, so cash may borrow to the floor), split
+    # by pull z, no single event above MAX_EVENT_FRAC of capital
     take = []
     for e in events:
-        if len(take) >= MAX_NEW_PER_DAY:
-            break
         if e["symbol"] in held or any(t["symbol"] == e["symbol"] for t in take):
             continue
         take.append(e)
-    budget = SLICE_USD * len(take)
+    floor_cash = -(GROSS_MULT - 1.0) * CASH0
+    budget = max(0.0, log["book"]["cash"] - floor_cash)
     zsum = sum(t["z"] for t in take) or 1.0
     opened = 0
     for e in take:
-        alloc = budget * e["z"] / zsum
+        alloc = min(budget * e["z"] / zsum, MAX_EVENT_FRAC * CASH0)
         # whole shares only — a real short cannot be fractional; an
         # allocation under one share stays cash (pull too weak)
         shares = int(alloc // e["close"])
         if shares < 1:
             continue
         notional = round(shares * round(e["close"], 4), 2)
-        if log["book"]["cash"] < notional and not dry:
+        if log["book"]["cash"] - notional < floor_cash and not dry:
             continue
         if dry:
             print(f"  WOULD SHORT {shares} {e['symbol']} @ {e['close']} "
@@ -198,7 +236,7 @@ def main():
 
     if not dry:
         day = [f for f in log["finds"] if f.get("resolved", "")[:10] == now[:10]
-               and f["status"] == "TIME"]
+               and f["status"] in ("TIME", "HARVEST")]
         wins = sum(1 for f in day if f["pnl"] > 0)
         log["days"][latest_s] = {
             "finds": opened, "hits": wins,
