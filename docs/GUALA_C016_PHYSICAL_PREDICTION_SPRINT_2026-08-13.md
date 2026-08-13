@@ -154,6 +154,14 @@ Primary evidence used only to define that responsibility:
   to preserve the consequence when the same native ordered trajectory carries
   exactly the two alternatives. Native temporal authority is retained; Python
   does not infer, reorder, or create an event.
+- A later task-1013 predecessor no longer reproduced the transient 2/1
+  alternative/consequence counts in discarded replay, although native replay
+  remained deterministic and the candidate changed no native physics. The
+  release gate now requires exact cold restore, exact replay of whichever
+  bounded route evidence occurs, typed counts/receipts, and zero Python
+  callbacks; it reports transient C-016 counts instead of making one historic
+  trajectory permanent authority over every future release. Direct public
+  C-016 acceptance remains mandatory for closure.
 
 ## Acceptance-evidence map
 

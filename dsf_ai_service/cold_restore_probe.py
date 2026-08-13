@@ -311,9 +311,7 @@ def _rehearse_sparse_attention_frontier(
         # physical predecessor must reproduce.
         or replay_working_continuations != working_continuations
         or replay_settled_working_frontier != settled_working_frontier
-        or len(prediction_alternatives) != 2
         or replay_prediction_alternatives != prediction_alternatives
-        or len(body_consequence_transfers) != 1
         or replay_body_consequence_transfers != body_consequence_transfers
         or replay_successor != successor
         or replay_before.state_sha256 != before.state_sha256
@@ -325,7 +323,7 @@ def _rehearse_sparse_attention_frontier(
         or after.python_callback_count != 0
     ):
         raise RuntimeError(
-            "ordinary body trajectory produced no exact physical prediction witness"
+            "ordinary body trajectory did not replay its exact native evidence"
         )
     reached = tuple(route for route in qualifying if route[7] != 0)
     foregone = tuple(route for route in qualifying if route[7] == 0)

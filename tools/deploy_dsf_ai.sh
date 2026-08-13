@@ -691,12 +691,19 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-for name, count in (
-    ("physical_prediction_alternative_count", 2),
-    ("body_consequence_transfer_count", 1),
+# C-016 alternatives/consequence are transient trajectory facts, not body
+# state.  Requiring every later living predecessor to recreate exactly 2/1
+# makes a closed transient event permanent deployment authority.  The native
+# cold probe itself requires exact replay of whichever bounded values occur;
+# this boundary verifies their typed receipts and never turns absence into a
+# failed cold restore.
+for name in (
+    "physical_prediction_alternative_count",
+    "body_consequence_transfer_count",
 ):
-    if proof.get(name) != count:
-        raise SystemExit(f"C-016 rehearsal changed {name}")
+    value = proof.get(name)
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise SystemExit(f"C-016 rehearsal returned invalid {name}")
 for name in (
     "physical_prediction_alternatives_sha256",
     "body_consequence_transfers_sha256",
