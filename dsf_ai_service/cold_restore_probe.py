@@ -10,6 +10,7 @@ import os
 import re
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
+    exact_articulatory_unit_trajectory,
     exact_native_yaw_trajectory,
     restore_native_resident_organism,
 )
@@ -242,7 +243,7 @@ def _rehearse_sparse_attention_frontier(
     if len(steps) != 250:
         raise RuntimeError("native attention rehearsal changed its body clock")
 
-    def settle() -> tuple[object, object, object, bytes]:
+    def settle() -> tuple[object, object, object, bytes, dict[str, object] | None]:
         organism = restore_native_resident_organism(
             current_envelope=current_envelope,
             **budget,
@@ -250,11 +251,20 @@ def _rehearse_sparse_attention_frontier(
         before = organism.readiness()
         prepared = organism.prepare_vestibular_trajectory(0, steps)
         after = organism.commit(prepared.token)
+        articulation = _rehearse_articulation_and_self_hearing(
+            organism, prepared
+        )
         successor = organism.save()
-        return before, prepared, after, successor
+        return before, prepared, after, successor, articulation
 
-    before, prepared, after, successor = settle()
-    replay_before, replay_prepared, replay_after, replay_successor = settle()
+    before, prepared, after, successor, articulation = settle()
+    (
+        replay_before,
+        replay_prepared,
+        replay_after,
+        replay_successor,
+        replay_articulation,
+    ) = settle()
     current_routes = tuple(prepared.physical_frontier_routes)
     preceding_routes = tuple(
         prepared.preceding_distinct_physical_frontier_routes
@@ -327,6 +337,7 @@ def _rehearse_sparse_attention_frontier(
         != affective_balance_trajectories
         or replay_localized_fluid_chemistry != localized_fluid_chemistry
         or replay_successor != successor
+        or replay_articulation != articulation
         or replay_before.state_sha256 != before.state_sha256
         or replay_after.state_sha256 != after.state_sha256
         or after.identity != before.identity
@@ -375,6 +386,7 @@ def _rehearse_sparse_attention_frontier(
             localized_fluid_witnesses
         ),
         "sparse_attention_cold_replay_exact": True,
+        "native_articulation": articulation,
         "sparse_attention_current_route_count": len(current_routes),
         "sparse_attention_current_routes_sha256": hashlib.sha256(
             _canonical(current_routes)
@@ -416,6 +428,71 @@ def _rehearse_sparse_attention_frontier(
         "body_consequence_transfers_sha256": hashlib.sha256(
             _canonical(body_consequence_transfers)
         ).hexdigest(),
+    }
+
+
+def _rehearse_articulation_and_self_hearing(
+    organism: object,
+    prepared: object,
+) -> dict[str, object] | None:
+    """Run only a reached layer-13 discharge through body and cochlear return."""
+
+    recruitments = tuple(prepared.articulatory_unit_recruitments)
+    if not recruitments:
+        return None
+    (
+        sample_rate_hz,
+        pressure_pcm,
+        peak_breath_flow_pcm,
+        glottal_open_samples_at_apex,
+        mouth_area_square_millimetres_at_apex,
+        perioral_area_displacement_square_millimetres,
+        applied_motor_quanta,
+        stalled_motor_quanta,
+        relaxation_sample_count,
+    ) = exact_articulatory_unit_trajectory(
+        recruitments=tuple(
+            (topology_index, carriers)
+            for _lineage, topology_index, carriers, _transfers in recruitments
+        )
+    )
+    # Import only the current native transport builder. It creates physical
+    # source episodes; it does not start the HTTP app or another runtime.
+    from dsf_ai_service.native_production_app import _mono_pcm_hop_episodes
+
+    transitioned = 0
+    fractals = 0
+    hop_count = 0
+    for episode, admissions in _mono_pcm_hop_episodes(
+        assembly_prefix=f"c020-cold-self-hearing-{organism.organism_tick()}",
+        samples=pressure_pcm,
+        sample_rate_hz=sample_rate_hz,
+    ):
+        heard = organism.prepare_admitted(episode, admissions)
+        transitioned += heard.physically_transitioned_neuron_count
+        fractals += heard.complete_neuron_fractal_count
+        organism.commit(heard.token)
+        hop_count += 1
+    return {
+        "applied_motor_quanta": applied_motor_quanta,
+        "glottal_open_samples_at_apex": glottal_open_samples_at_apex,
+        "layer_13_recruitment_count": len(recruitments),
+        "mouth_area_square_millimetres_at_apex": (
+            mouth_area_square_millimetres_at_apex
+        ),
+        "peak_breath_flow_pcm": peak_breath_flow_pcm,
+        "perioral_area_displacement_square_millimetres": (
+            perioral_area_displacement_square_millimetres
+        ),
+        "pressure_sample_count": len(pressure_pcm),
+        "pressure_sha256": hashlib.sha256(
+            b"".join(int(value).to_bytes(2, "little", signed=True) for value in pressure_pcm)
+        ).hexdigest(),
+        "relaxation_sample_count": relaxation_sample_count,
+        "self_hearing_fractal_count": fractals,
+        "self_hearing_hop_count": hop_count,
+        "self_hearing_transitioned_neuron_count": transitioned,
+        "stalled_motor_quanta": stalled_motor_quanta,
     }
 
 

@@ -342,6 +342,15 @@ class ResidentPrepareEvidence:
         ],
         ...,
     ] = ()
+    articulatory_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ] = ()
     emitted_neuron_fractals: tuple[
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
@@ -1824,6 +1833,98 @@ class NativeResidentOrganism:
                     tuple(preparation_transfers),
                 )
             )
+        # Older pure-Python boundary doubles carry no layer-13 observation;
+        # absence is exactly an empty transient recruitment list. Native
+        # production candidates expose the field explicitly.
+        raw_articulatory_recruitments = getattr(
+            candidate, "articulatory_unit_recruitments", []
+        )
+        if not isinstance(raw_articulatory_recruitments, list):
+            raise RuntimeError("articulatory-unit recruitments changed format")
+        articulatory_unit_recruitments: list[
+            tuple[
+                str,
+                int,
+                int,
+                tuple[tuple[str, int, str, int, int, int], ...],
+            ]
+        ] = []
+        for raw in raw_articulatory_recruitments:
+            if not isinstance(raw, tuple) or len(raw) != 4:
+                raise RuntimeError("articulatory-unit recruitment changed format")
+            lineage = _canonical_lineage_hex(raw[0], "articulatory-unit lineage")
+            topology_index = _nonnegative_integer(
+                raw[1], "articulatory-unit topology index"
+            )
+            outward_elementary_carriers = _positive_integer(
+                raw[2], "articulatory-unit outward elementary carriers"
+            )
+            if not isinstance(raw[3], list) or not raw[3]:
+                raise RuntimeError(
+                    "articulatory-unit motor transfers changed format"
+                )
+            motor_transfers: list[
+                tuple[str, int, str, int, int, int]
+            ] = []
+            for transfer in raw[3]:
+                if not isinstance(transfer, tuple) or len(transfer) != 6:
+                    raise RuntimeError(
+                        "articulatory-unit motor transfer changed format"
+                    )
+                sender = _canonical_lineage_hex(
+                    transfer[0], "articulatory motor sender"
+                )
+                sender_layer = _nonnegative_integer(
+                    transfer[1], "articulatory motor sender layer"
+                )
+                receiver = _canonical_lineage_hex(
+                    transfer[2], "articulatory motor receiver"
+                )
+                receiver_layer = _nonnegative_integer(
+                    transfer[3], "articulatory motor receiver layer"
+                )
+                parallel_ordinal = _nonnegative_integer(
+                    transfer[4], "articulatory motor parallel ordinal"
+                )
+                transferred_whole_carriers = _positive_integer(
+                    transfer[5], "articulatory motor transferred whole carriers"
+                )
+                if (
+                    sender == receiver
+                    or not (
+                        (
+                            sender == lineage
+                            and sender_layer == 13
+                            and receiver_layer == 12
+                        )
+                        or (
+                            receiver == lineage
+                            and receiver_layer == 13
+                            and sender_layer == 12
+                        )
+                    )
+                ):
+                    raise RuntimeError(
+                        "articulatory-unit preparation is not an exact layer 12/layer 13 contact transfer"
+                    )
+                motor_transfers.append(
+                    (
+                        sender,
+                        sender_layer,
+                        receiver,
+                        receiver_layer,
+                        parallel_ordinal,
+                        transferred_whole_carriers,
+                    )
+                )
+            articulatory_unit_recruitments.append(
+                (
+                    lineage,
+                    topology_index,
+                    outward_elementary_carriers,
+                    tuple(motor_transfers),
+                )
+            )
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero
         # mounted cohorts (cognition still receives its occurrences).
@@ -1936,6 +2037,9 @@ class NativeResidentOrganism:
             receptor_ingress_changing_count=receptor_ingress_changing_count,
             receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
+            articulatory_unit_recruitments=tuple(
+                articulatory_unit_recruitments
+            ),
             emitted_neuron_fractals=tuple(emitted_neuron_fractals),
             active_physical_bonds=tuple(active_physical_bonds),
             physical_frontier_routes=physical_frontier_routes,
@@ -2258,6 +2362,41 @@ def exact_motor_unit_yaw_trajectory(
     return int(successor), tuple(int(step) for step in steps)
 
 
+def exact_articulatory_unit_trajectory(
+    *,
+    recruitments: tuple[tuple[int, int], ...],
+) -> tuple[int, tuple[int, ...], int, int, int, int, int, int, int]:
+    """Settle native layer-13 discharge through the bounded vocal body."""
+
+    trajectory = getattr(_native_core(), "exact_articulatory_unit_trajectory", None)
+    if not callable(trajectory):
+        raise RuntimeError(
+            "guala_core does not expose native articulatory body physics"
+        )
+    (
+        sample_rate_hz,
+        radiated_pressure_pcm,
+        peak_breath_flow_pcm,
+        glottal_open_samples_at_apex,
+        mouth_area_square_millimetres_at_apex,
+        perioral_area_displacement_square_millimetres,
+        applied_motor_quanta,
+        stalled_motor_quanta,
+        relaxation_sample_count,
+    ) = trajectory(list(recruitments))
+    return (
+        int(sample_rate_hz),
+        tuple(int(value) for value in radiated_pressure_pcm),
+        int(peak_breath_flow_pcm),
+        int(glottal_open_samples_at_apex),
+        int(mouth_area_square_millimetres_at_apex),
+        int(perioral_area_displacement_square_millimetres),
+        int(applied_motor_quanta),
+        int(stalled_motor_quanta),
+        int(relaxation_sample_count),
+    )
+
+
 def migrate_native_resident_organism_exact_energy(
     *,
     current_envelope: bytes,
@@ -2470,6 +2609,7 @@ __all__ = (
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
     "exact_motor_unit_yaw_trajectory",
+    "exact_articulatory_unit_trajectory",
     "exact_native_yaw_trajectory",
     "restore_native_resident_organism",
     "migrate_native_resident_organism_exact_energy",

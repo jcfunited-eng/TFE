@@ -716,6 +716,7 @@ pub(crate) struct CognitiveFormationObservation {
     /// organism.
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    pub(crate) articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
     /// Total mosaic-of-mosaics relation events recorded against the retained
@@ -811,6 +812,18 @@ pub(crate) struct MotorUnitRecruitment {
     /// excitation. This is transient causal evidence, not a plan, score,
     /// command, or retained action object.
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
+}
+
+/// One transient efferent event produced by an already-mounted layer-13
+/// articulatory neuron. Its exact outward whole-carrier discharge and direct
+/// layer-12 contact transfer are the only authority. It is not speech,
+/// phoneme identity, meaning, a retained motor program, or an action selector.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ArticulatoryUnitRecruitment {
+    pub(crate) neuron_lineage: [u8; 16],
+    pub(crate) topology_index: u32,
+    pub(crate) outward_elementary_carriers: u128,
+    pub(crate) motor_transfers: Vec<DirectedPhysicalTransferObservation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -4045,6 +4058,7 @@ impl ResidentCognitiveFormationState {
                 localized_fluid_chemistry: internal_contact.localized_fluid_chemistry,
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
+                articulatory_unit_recruitments: internal_contact.articulatory_unit_recruitments,
                 partial_cue_reassembly_count,
                 endogenous_partial_cue_reassembly_count,
                 mosaic_of_mosaics_count,
@@ -4420,6 +4434,7 @@ impl ResidentCognitiveFormationState {
                 localized_fluid_chemistry: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
+                articulatory_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
                 endogenous_partial_cue_reassembly_count: 0,
                 mosaic_of_mosaics_count,
@@ -8371,6 +8386,7 @@ struct InternalContactSettlementObservation {
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     transition_predecessors: Vec<TransitionNeuronPredecessor>,
 }
@@ -8454,6 +8470,7 @@ fn settle_internal_contact_interval(
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
         });
@@ -8599,6 +8616,7 @@ fn settle_internal_contact_interval(
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
         });
@@ -8637,6 +8655,7 @@ fn settle_internal_contact_interval(
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
         });
@@ -9001,8 +9020,9 @@ fn settle_internal_contact_interval(
         .map(
             |(cohort_index, cohort)| -> Result<
             Option<(
-                    Vec<TransitionNeuronPredecessor>,
+                Vec<TransitionNeuronPredecessor>,
                 Vec<MotorUnitRecruitment>,
+                Vec<ArticulatoryUnitRecruitment>,
                 Vec<EmittedNeuronFractal>,
             )>,
             FormationError,
@@ -9140,6 +9160,36 @@ fn settle_internal_contact_interval(
                     })
             })
             .collect::<Vec<_>>();
+        let articulatory_unit_recruitments = selected_members
+            .iter()
+            .zip(combined_outward.iter().copied())
+            .filter_map(|((_, neuron_index), outward)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let articulatory_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let mut motor_transfers = settled_directed_transfers
+                    .iter()
+                    .copied()
+                    .filter(|transfer| {
+                        (transfer.receiver == articulatory_lineage
+                            && layer_of(transfer.sender) == Some(12))
+                            || (transfer.sender == articulatory_lineage
+                                && layer_of(transfer.receiver) == Some(12))
+                    })
+                    .collect::<Vec<_>>();
+                motor_transfers.sort_unstable();
+                motor_transfers.dedup();
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 13
+                    && outward > 0
+                    && !motor_transfers.is_empty())
+                    .then_some(ArticulatoryUnitRecruitment {
+                        neuron_lineage: articulatory_lineage,
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers: outward.unsigned_abs(),
+                        motor_transfers,
+                    })
+            })
+            .collect::<Vec<_>>();
         let local_successor = SparseElectricalState::from_contact_states(
             cohort.anatomy.electrical_anatomy(),
             local_successors[cohort_index].clone(),
@@ -9272,18 +9322,26 @@ fn settle_internal_contact_interval(
             }
         }
         Ok(Some((
-                    changed_predecessors,
+            changed_predecessors,
             motor_unit_recruitments,
+            articulatory_unit_recruitments,
             cohort_fractals,
         )))
             },
         )
     .collect::<Vec<_>>();
     let mut motor_unit_recruitments = Vec::new();
+    let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
     let mut transition_predecessors = Vec::new();
     for result in cohort_results {
-        if let Some((changed_predecessors, cohort_motor_recruitments, cohort_fractals)) = result? {
+        if let Some((
+            changed_predecessors,
+            cohort_motor_recruitments,
+            cohort_articulatory_recruitments,
+            cohort_fractals,
+        )) = result?
+        {
             for predecessor in changed_predecessors {
                 let lineage = predecessor.lineage;
                 if !physically_transitioned_neuron_lineages.contains(&lineage) {
@@ -9292,6 +9350,7 @@ fn settle_internal_contact_interval(
                 retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
             }
             motor_unit_recruitments.extend(cohort_motor_recruitments);
+            articulatory_unit_recruitments.extend(cohort_articulatory_recruitments);
             emitted_neuron_fractals.extend(cohort_fractals);
         }
     }
@@ -9496,6 +9555,7 @@ fn settle_internal_contact_interval(
         affective_balance_trajectories,
         localized_fluid_chemistry,
         motor_unit_recruitments,
+        articulatory_unit_recruitments,
         emitted_neuron_fractals,
         transition_predecessors,
     })
@@ -12894,6 +12954,7 @@ mod tests {
         }
         let source = exact_optical_binaural_episode();
         let mut motor_recruitments = Vec::new();
+        let mut articulatory_recruitments = Vec::new();
         let mut repeated_optical_frontier_route_sets = Vec::new();
         for _ in 0..8 {
             let prepared = state.prepare(&source, 16_000_000).unwrap();
@@ -12901,6 +12962,13 @@ mod tests {
                 prepared
                     .observation
                     .motor_unit_recruitments
+                    .iter()
+                    .cloned(),
+            );
+            articulatory_recruitments.extend(
+                prepared
+                    .observation
+                    .articulatory_unit_recruitments
                     .iter()
                     .cloned(),
             );
@@ -12959,6 +13027,32 @@ mod tests {
                         })
                         .any(|(lineage, mount)| {
                             *lineage == other && mount.place().layer() == 11
+                        })
+                })
+        }));
+        assert!(!articulatory_recruitments.is_empty());
+        assert!(articulatory_recruitments.iter().all(|recruitment| {
+            !recruitment.motor_transfers.is_empty()
+                && recruitment.motor_transfers.iter().all(|transfer| {
+                    let other = if transfer.receiver == recruitment.neuron_lineage {
+                        transfer.sender
+                    } else if transfer.sender == recruitment.neuron_lineage {
+                        transfer.receiver
+                    } else {
+                        return false;
+                    };
+                    state
+                        .cohorts
+                        .iter()
+                        .flat_map(|cohort| {
+                            cohort
+                                .anatomy
+                                .neuron_lineages()
+                                .iter()
+                                .zip(cohort.anatomy.mounts())
+                        })
+                        .any(|(lineage, mount)| {
+                            *lineage == other && mount.place().layer() == 12
                         })
                 })
         }));

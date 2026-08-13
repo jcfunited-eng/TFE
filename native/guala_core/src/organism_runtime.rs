@@ -38,10 +38,11 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
-    AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    DirectedPhysicalTransferObservation, EmittedNeuronFractal, LocalizedFluidChemistryObservation,
-    MotorUnitRecruitment, OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
-    PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
+    ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CognitiveFormationObservation,
+    CognitiveFormationSummary, DirectedPhysicalTransferObservation, EmittedNeuronFractal,
+    LocalizedFluidChemistryObservation, MotorUnitRecruitment, OrderedPhysicalPathObservation,
+    OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
+    PreparedCognitiveFormationTransition,
     ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
@@ -56,6 +57,9 @@ use crate::vestibular_neuron_path::{
 };
 use crate::virtual_body_yaw_motion::{
     settle_motor_unit_yaw_actuation, settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
+};
+use crate::virtual_articulatory_body::{
+    settle_articulatory_unit_discharge, ARTICULATORY_SAMPLE_RATE_HZ,
 };
 use crate::virtual_vestibular_canal::{decode_canal_state, encode_canal_state, CanalState};
 use num_bigint::BigInt;
@@ -586,6 +590,7 @@ struct ResidentPrepareReceipt {
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -626,6 +631,7 @@ pub struct NativeResidentOrganismPrepare {
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -1148,6 +1154,50 @@ impl NativeResidentOrganismPrepare {
                                     (12, 11)
                                 } else {
                                     (11, 12)
+                                };
+                            (
+                                hex_bytes(&transfer.sender),
+                                sender_layer,
+                                hex_bytes(&transfer.receiver),
+                                receiver_layer,
+                                transfer.bond.parallel_ordinal(),
+                                transfer.transferred_whole_carriers,
+                            )
+                        })
+                        .collect(),
+                )
+            })
+            .collect()
+    }
+
+    /// Transient native layer-13 efferent events. Each event is projected
+    /// only with the exact direct layer-12 contact transfers that physically
+    /// prepared it; no label, phoneme, word, or stored program is introduced.
+    #[getter]
+    fn articulatory_unit_recruitments(
+        &self,
+    ) -> Vec<(
+        String,
+        u32,
+        u128,
+        Vec<(String, u32, String, u32, u32, u128)>,
+    )> {
+        self.articulatory_unit_recruitments
+            .iter()
+            .map(|event| {
+                (
+                    hex_bytes(&event.neuron_lineage),
+                    event.topology_index,
+                    event.outward_elementary_carriers,
+                    event
+                        .motor_transfers
+                        .iter()
+                        .map(|transfer| {
+                            let (sender_layer, receiver_layer) =
+                                if transfer.sender == event.neuron_lineage {
+                                    (13, 12)
+                                } else {
+                                    (12, 13)
                                 };
                             (
                                 hex_bytes(&transfer.sender),
@@ -1960,6 +2010,9 @@ impl ResidentOrganismRuntime {
                 total
                     .motor_unit_recruitments
                     .extend(observation.motor_unit_recruitments.iter().cloned());
+                total
+                    .articulatory_unit_recruitments
+                    .extend(observation.articulatory_unit_recruitments.iter().cloned());
                 if observation.physical_frontier_routes != total.physical_frontier_routes {
                     total.preceding_distinct_physical_frontier_routes =
                         total.physical_frontier_routes.clone();
@@ -2175,6 +2228,8 @@ impl ResidentOrganismRuntime {
                 RuntimeError::Vestibular("vestibular trajectory carried no ingress".into())
             })?,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
+            articulatory_unit_recruitments: cognitive_observation
+                .articulatory_unit_recruitments,
         })
     }
 
@@ -2243,6 +2298,9 @@ impl ResidentOrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
+        let articulatory_unit_recruitments = cognitive_observation
+            .articulatory_unit_recruitments
+            .clone();
         let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
         let transition = MountedJointDsfTransition {
             joint_field_count: source.joint_source_occurrences().len(),
@@ -2319,6 +2377,7 @@ impl ResidentOrganismRuntime {
             phase_counts,
             receptor_ingress,
             motor_unit_recruitments,
+            articulatory_unit_recruitments,
         })
     }
 
@@ -2475,6 +2534,7 @@ impl ResidentOrganismRuntime {
             phase_counts: MountedTransitionPhaseCounts::default(),
             receptor_ingress: ResidentReceptorIngressObservation::default(),
             motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
         })
     }
 
@@ -2593,6 +2653,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
         })
     }
 
@@ -2619,6 +2680,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
         })
     }
 
@@ -2654,6 +2716,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
         })
     }
 
@@ -2684,6 +2747,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
         })
     }
 
@@ -2732,6 +2796,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
         })
     }
 
@@ -2963,6 +3028,25 @@ fn exact_motor_unit_yaw_trajectory(
     Ok((
         settled.successor.heading_millidegrees(),
         settled.trajectory.as_slice().to_vec(),
+    ))
+}
+
+#[pyfunction]
+fn exact_articulatory_unit_trajectory(
+    recruitments: Vec<(u32, u128)>,
+) -> PyResult<(u32, Vec<i16>, i32, i32, i32, i32, u128, u128, usize)> {
+    let settled = settle_articulatory_unit_discharge(&recruitments)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    Ok((
+        ARTICULATORY_SAMPLE_RATE_HZ,
+        settled.radiated_pressure_pcm,
+        settled.peak_breath_flow_pcm,
+        settled.glottal_open_samples_at_apex,
+        settled.mouth_area_square_millimetres_at_apex,
+        settled.perioral_area_displacement_square_millimetres,
+        settled.applied_motor_quanta,
+        settled.stalled_motor_quanta,
+        settled.relaxation_sample_count,
     ))
 }
 
@@ -3459,6 +3543,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
     module.add_function(wrap_pyfunction!(exact_motor_unit_yaw_trajectory, module)?)?;
+    module.add_function(wrap_pyfunction!(exact_articulatory_unit_trajectory, module)?)?;
     module.add_function(wrap_pyfunction!(
         restore_native_resident_organism_runtime,
         module

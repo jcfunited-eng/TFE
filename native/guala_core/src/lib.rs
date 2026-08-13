@@ -87,6 +87,7 @@ mod tactile_receptor_work;
 mod vestibular_joint_source_builder;
 mod vestibular_neuron_path;
 mod virtual_body_yaw_motion;
+mod virtual_articulatory_body;
 mod virtual_material_neuron_genesis;
 mod virtual_vestibular_canal;
 

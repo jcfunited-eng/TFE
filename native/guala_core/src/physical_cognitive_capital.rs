@@ -461,6 +461,7 @@ mod tests {
             localized_fluid_chemistry: Vec::new(),
             organic_mosaic_relations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,
             endogenous_partial_cue_reassembly_count: 0,
             mosaic_of_mosaics_count: 0,

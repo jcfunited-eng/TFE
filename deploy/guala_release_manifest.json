@@ -82,6 +82,7 @@
         "native/guala_core/src/tactile_receptor_work.rs",
         "native/guala_core/src/vestibular_joint_source_builder.rs",
         "native/guala_core/src/vestibular_neuron_path.rs",
+        "native/guala_core/src/virtual_articulatory_body.rs",
         "native/guala_core/src/virtual_body_yaw_motion.rs",
         "native/guala_core/src/virtual_material_neuron_genesis.rs",
         "native/guala_core/src/virtual_vestibular_canal.rs",

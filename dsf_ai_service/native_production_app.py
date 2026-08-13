@@ -94,6 +94,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     ResidentPrepareEvidence,
     create_native_resident_organism,
+    exact_articulatory_unit_trajectory,
     exact_motor_unit_yaw_trajectory,
     exact_native_yaw_trajectory,
 )
@@ -1261,6 +1262,7 @@ _last_transition_evidence: dict[str, Any] | None = None
 _last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_tested_affective_balance_evidence: dict[str, Any] | None = None
 _last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
+_last_tested_articulation_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2853,6 +2855,28 @@ def _last_transition_record() -> dict[str, object]:
     )
 
 
+def _articulation_record() -> dict[str, object]:
+    """The last persisted native layer-13 body-and-self-hearing consequence."""
+
+    articulation = _last_tested_articulation_evidence
+    if articulation is None and _last_transition_evidence is not None:
+        articulation = _last_transition_evidence.get("articulation")
+    if not isinstance(articulation, dict):
+        return _unmounted(
+            "no native layer-13 discharge has yet caused a persisted "
+            "articulatory body and self-hearing transition in this process"
+        )
+    return _section(
+        True,
+        "native_articulation_and_self_hearing_committed",
+        "an exact layer-12/layer-13 contact discharge moved the bounded "
+        "breath, glottis, vocal tract, mouth, and perioral body; its emitted "
+        "pressure then returned through the ordinary cochlear receptor path "
+        "before the one successor organism was persisted",
+        **articulation,
+    )
+
+
 def _retained_impression_neuron_count() -> int | None:
     """How many of her neurons hold a retained impression RIGHT NOW.
 
@@ -3289,12 +3313,8 @@ def _build_public_observation() -> dict[str, Any]:
         "localized_fluid_chemistry": _localized_fluid_chemistry_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
-        "articulation": _unmounted(
-            "no native articulation or emitted-sound transition is mounted"
-        ),
-        "expression": _unmounted(
-            "no native gaze, face, or body expression actuator is mounted"
-        ),
+        "articulation": _articulation_record(),
+        "expression": _articulation_record(),
         "curriculum": _curriculum_media_record(),
         "last_transition": last,
         "last_card_lesson_receipt": _card_lesson_receipt_record(),
@@ -4614,6 +4634,9 @@ def _commit_admitted_hop(
             evidence.receptor_ingress_quiescent_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
+        "articulatory_unit_recruitments": (
+            evidence.articulatory_unit_recruitments
+        ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -5135,6 +5158,7 @@ def _perform_admitted_intake_locked(
     global _restored, _last_transition_evidence, _last_self_moved
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
+    global _last_tested_articulation_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -5163,6 +5187,15 @@ def _perform_admitted_intake_locked(
             tuple[tuple[str, int, str, int, int, int], ...],
         ]
     ] = []
+    articulatory_unit_recruitments: list[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ]
+    ] = []
+    articulation: dict[str, Any] | None = None
     emitted_neuron_fractals: list[dict[str, Any]] = []
     organic_mosaic_relations: list[dict[str, Any]] = []
     physical_frontier_routes: tuple[tuple[Any, ...], ...] = ()
@@ -5276,6 +5309,9 @@ def _perform_admitted_intake_locked(
             )
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
+            articulatory_unit_recruitments.extend(
+                last_hop["articulatory_unit_recruitments"]
+            )
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
                 last_hop["organic_mosaic_relations"]
@@ -5292,6 +5328,98 @@ def _perform_admitted_intake_locked(
             receptor_ingress_quiescent_count += last_hop[
                 "receptor_ingress_quiescent_count"
             ]
+        if articulatory_unit_recruitments:
+            (
+                sample_rate_hz,
+                pressure_pcm,
+                peak_breath_flow_pcm,
+                glottal_open_samples_at_apex,
+                mouth_area_square_millimetres_at_apex,
+                perioral_area_displacement_square_millimetres,
+                applied_motor_quanta,
+                stalled_motor_quanta,
+                relaxation_sample_count,
+            ) = exact_articulatory_unit_trajectory(
+                recruitments=tuple(
+                    (topology, carriers)
+                    for _, topology, carriers, _ in articulatory_unit_recruitments
+                )
+            )
+            self_hearing_hop_count = 0
+            self_hearing_transitioned_neuron_count = 0
+            self_hearing_fractal_count = 0
+            deferred_recurrent_articulation_count = 0
+            for self_hearing_episode, admissions in _mono_pcm_hop_episodes(
+                assembly_prefix=(
+                    f"native-self-articulation-{organism.organism_tick()}"
+                ),
+                samples=pressure_pcm,
+                sample_rate_hz=sample_rate_hz,
+            ):
+                last_hop = _commit_admitted_hop(
+                    organism, self_hearing_episode, admissions
+                )
+                self_hearing_hop_count += 1
+                committed_hop_count += 1
+                self_hearing_transitioned_neuron_count += last_hop[
+                    "physically_transitioned_neuron_count"
+                ]
+                self_hearing_fractal_count += last_hop[
+                    "complete_neuron_fractal_count"
+                ]
+                deferred_recurrent_articulation_count += len(
+                    last_hop["articulatory_unit_recruitments"]
+                )
+                emitted_neuron_fractals.extend(
+                    last_hop["emitted_neuron_fractals"]
+                )
+                organic_mosaic_relations.extend(
+                    last_hop["organic_mosaic_relations"]
+                )
+                for key in totals:
+                    totals[key] += last_hop[key]
+                for sense, count in last_hop[
+                    "receptor_ingress_sense_counts"
+                ].items():
+                    receptor_ingress_sense_counts[sense] += count
+                receptor_ingress_changing_count += last_hop[
+                    "receptor_ingress_changing_count"
+                ]
+                receptor_ingress_quiescent_count += last_hop[
+                    "receptor_ingress_quiescent_count"
+                ]
+            articulation = {
+                "layer_13_recruitment_count": len(
+                    articulatory_unit_recruitments
+                ),
+                "recruitments": tuple(articulatory_unit_recruitments),
+                "sample_rate_hz": sample_rate_hz,
+                "pressure_sample_count": len(pressure_pcm),
+                "pressure_sha256": hashlib.sha256(
+                    struct.pack(f"<{len(pressure_pcm)}h", *pressure_pcm)
+                ).hexdigest(),
+                "peak_breath_flow_pcm": peak_breath_flow_pcm,
+                "glottal_open_samples_at_apex": (
+                    glottal_open_samples_at_apex
+                ),
+                "mouth_area_square_millimetres_at_apex": (
+                    mouth_area_square_millimetres_at_apex
+                ),
+                "perioral_area_displacement_square_millimetres": (
+                    perioral_area_displacement_square_millimetres
+                ),
+                "applied_motor_quanta": applied_motor_quanta,
+                "stalled_motor_quanta": stalled_motor_quanta,
+                "relaxation_sample_count": relaxation_sample_count,
+                "self_hearing_hop_count": self_hearing_hop_count,
+                "self_hearing_transitioned_neuron_count": (
+                    self_hearing_transitioned_neuron_count
+                ),
+                "self_hearing_fractal_count": self_hearing_fractal_count,
+                "deferred_recurrent_articulation_count": (
+                    deferred_recurrent_articulation_count
+                ),
+            }
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if last_hop is None or (
@@ -5454,6 +5582,7 @@ def _perform_admitted_intake_locked(
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
         "motor_action": motor_action,
+        "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
@@ -5473,6 +5602,13 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    if articulation is not None:
+        _last_tested_articulation_evidence = {
+            **articulation,
+            "intake": intake,
+            "organism_tick": published.pointer.organism_tick,
+            "state_sha256": published.pointer.state_sha256,
+        }
     if (
         len(physical_prediction_alternatives) == 2
         and body_consequence_transfers
@@ -7089,9 +7225,11 @@ def _startup() -> None:
     global _public_observation_body, _public_observation_etag
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
+    global _last_tested_articulation_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
+    _last_tested_articulation_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(

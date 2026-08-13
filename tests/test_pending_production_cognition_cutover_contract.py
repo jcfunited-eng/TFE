@@ -99,5 +99,5 @@ def test_native_serving_does_not_import_retired_cognition_or_old_app() -> None:
         "speechSynthesis",
     ):
         assert forbidden not in source
-    assert '"articulation": _unmounted(' in source
-    assert '"no native articulation or emitted-sound transition is mounted"' in source
+    assert '"articulation": _articulation_record()' in source
+    assert "def _articulation_record()" in source
