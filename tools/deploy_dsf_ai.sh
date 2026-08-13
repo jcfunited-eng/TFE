@@ -691,51 +691,34 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-016 alternatives/consequence are transient trajectory facts, not body
-# state.  Requiring every later living predecessor to recreate exactly 2/1
-# makes a closed transient event permanent deployment authority.  The native
-# cold probe itself requires exact replay of whichever bounded values occur;
-# this boundary verifies their typed receipts and never turns absence into a
-# failed cold restore.
+# C-011 and C-014 through C-018 were closed by their own live transient
+# witnesses.  This release gate requires only the live-sized native C-020
+# articulation path plus organism invariants; it does not make those old
+# trajectories permanent deployment authority.
+articulation = proof.get("native_articulation")
+if not isinstance(articulation, dict):
+    raise SystemExit("C-020 rehearsal produced no native articulation")
+if proof.get("native_articulation_cold_replay_exact") is not True:
+    raise SystemExit("C-020 articulation did not cold-replay exactly")
 for name in (
-    "physical_prediction_alternative_count",
-    "body_consequence_transfer_count",
-    "affective_balance_trajectory_count",
+    "layer_13_recruitment_count",
+    "applied_motor_quanta",
+    "peak_breath_flow_pcm",
+    "glottal_open_samples_at_apex",
+    "mouth_area_square_millimetres_at_apex",
+    "perioral_area_displacement_square_millimetres",
+    "pressure_sample_count",
+    "self_hearing_hop_count",
+    "self_hearing_transitioned_neuron_count",
 ):
-    value = proof.get(name)
-    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-        raise SystemExit(f"candidate rehearsal returned invalid {name}")
-complete = proof.get("affective_balance_complete_trajectory_count")
-if not isinstance(complete, int) or isinstance(complete, bool) or complete <= 0:
-    raise SystemExit("C-017 rehearsal produced no complete physical trajectory")
-if proof.get("affective_balance_cold_replay_exact") is not True:
-    raise SystemExit("C-017 rehearsal did not cold-replay exactly")
-localized_count = proof.get("localized_fluid_chemistry_count")
-localized_witness_count = proof.get(
-    "localized_fluid_reached_unreached_witness_count"
-)
-if (
-    not isinstance(localized_count, int)
-    or isinstance(localized_count, bool)
-    or localized_count <= 0
-    or not isinstance(localized_witness_count, int)
-    or isinstance(localized_witness_count, bool)
-    or localized_witness_count <= 0
-):
-    raise SystemExit("C-018 rehearsal produced no localized conserved witness")
-if proof.get("localized_fluid_chemistry_cold_replay_exact") is not True:
-    raise SystemExit("C-018 rehearsal did not cold-replay exactly")
-for name in (
-    "physical_prediction_alternatives_sha256",
-    "body_consequence_transfers_sha256",
-    "affective_balance_trajectories_sha256",
-    "localized_fluid_chemistry_sha256",
-):
-    value = proof.get(name)
-    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
-        raise SystemExit(f"candidate rehearsal omitted {name}")
+    value = articulation.get(name)
+    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+        raise SystemExit(f"C-020 rehearsal returned invalid {name}")
+pressure_sha = articulation.get("pressure_sha256")
+if not isinstance(pressure_sha, str) or re.fullmatch(r"[0-9a-f]{64}", pressure_sha) is None:
+    raise SystemExit("C-020 rehearsal omitted its pressure digest")
 if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-016 rehearsal invoked Python cognition")
+    raise SystemExit("C-020 rehearsal invoked Python cognition")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

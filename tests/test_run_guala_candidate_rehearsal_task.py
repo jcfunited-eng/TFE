@@ -313,6 +313,77 @@ def test_proof_rejects_state_or_receipt_drift() -> None:
         )
 
 
+def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
+    articulation = {
+        "applied_motor_quanta": 8,
+        "glottal_open_samples_at_apex": 144,
+        "layer_13_recruitment_count": 78,
+        "mouth_area_square_millimetres_at_apex": 305,
+        "peak_breath_flow_pcm": 12_000,
+        "perioral_area_displacement_square_millimetres": 40,
+        "pressure_sample_count": 16_000,
+        "pressure_sha256": "e" * 64,
+        "relaxation_sample_count": 16_000,
+        "sample_rate_hz": 16_000,
+        "self_hearing_fractal_count": 49,
+        "self_hearing_hop_count": 4,
+        "self_hearing_transitioned_neuron_count": 889,
+        "stalled_motor_quanta": 42,
+    }
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": False,
+        "native_articulation": articulation,
+        "native_articulation_cold_replay_exact": True,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 43_384_308,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "sparse_attention_dsf_delivery_count": 500,
+        "sparse_attention_physically_transitioned_neuron_count": 889,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_native_articulation_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["native_articulation"] = None
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_articulation_rehearsal=True,
+        )
+
+
 def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
     receipt = "e" * 64
     formation_receipts = [receipt]

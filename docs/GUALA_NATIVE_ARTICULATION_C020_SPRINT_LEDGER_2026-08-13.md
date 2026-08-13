@@ -191,6 +191,17 @@ transition is mounted.
   body settlement and the public transition evidence. The focused gate now
   passes 74/74. A fresh immutable deployment and direct public proof remain;
   C-020 is still not Live-Closed.
+- Immutable candidate `b11df62d14c0038224472b6286baec17b6d8e6ea`
+  was refused before cutover by the cold rehearsal. The real C-020 trajectory
+  had not failed: the generic probe first required the already closed C-011
+  body to recreate a historical ordered-path relation. Production remained
+  healthy on task 1021 and no live action was retried.
+- RF-034 applies directly. The probe and deployment controller now require the
+  active C-020 evidence—exact replay of layer-13 recruitment, breath, glottis,
+  mouth/perioral movement, radiated pressure, cochlear-return hops, transitioned
+  neurons, full-DSF work, identity, persistence, and zero Python cognition
+  callbacks. Earlier C-011/C-014-through-C-018 transient witnesses may still be
+  reported when present but are no longer recurring release authority.
 
 ## Live completion rule
 

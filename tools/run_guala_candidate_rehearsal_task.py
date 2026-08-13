@@ -264,6 +264,7 @@ def _validate_proof(
     expected_state_root: str | None = None,
     expected_distributed_recall_rehearsal: bool = False,
     expected_sparse_attention_rehearsal: bool = False,
+    expected_native_articulation_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -527,6 +528,61 @@ def _validate_proof(
         and proof["sparse_attention_current_routes_sha256"]
         != proof["sparse_attention_preceding_routes_sha256"]
     )
+    articulation = proof.get("native_articulation")
+    native_articulation_rehearsal = (
+        proof.get("native_articulation_cold_replay_exact") is True
+        and isinstance(articulation, dict)
+        and set(articulation) == {
+            "applied_motor_quanta",
+            "glottal_open_samples_at_apex",
+            "layer_13_recruitment_count",
+            "mouth_area_square_millimetres_at_apex",
+            "peak_breath_flow_pcm",
+            "perioral_area_displacement_square_millimetres",
+            "pressure_sample_count",
+            "pressure_sha256",
+            "relaxation_sample_count",
+            "sample_rate_hz",
+            "self_hearing_fractal_count",
+            "self_hearing_hop_count",
+            "self_hearing_transitioned_neuron_count",
+            "stalled_motor_quanta",
+        }
+        and all(
+            isinstance(articulation.get(name), int)
+            and not isinstance(articulation[name], bool)
+            and articulation[name] > 0
+            for name in (
+                "applied_motor_quanta",
+                "glottal_open_samples_at_apex",
+                "layer_13_recruitment_count",
+                "mouth_area_square_millimetres_at_apex",
+                "peak_breath_flow_pcm",
+                "perioral_area_displacement_square_millimetres",
+                "pressure_sample_count",
+                "sample_rate_hz",
+                "self_hearing_hop_count",
+                "self_hearing_transitioned_neuron_count",
+            )
+        )
+        and articulation["pressure_sample_count"] == articulation["sample_rate_hz"]
+        and articulation["relaxation_sample_count"]
+        == articulation["pressure_sample_count"]
+        and isinstance(articulation.get("self_hearing_fractal_count"), int)
+        and not isinstance(articulation["self_hearing_fractal_count"], bool)
+        and articulation["self_hearing_fractal_count"] >= 0
+        and isinstance(articulation.get("stalled_motor_quanta"), int)
+        and not isinstance(articulation["stalled_motor_quanta"], bool)
+        and articulation["stalled_motor_quanta"] >= 0
+        and isinstance(articulation.get("pressure_sha256"), str)
+        and _SHA.fullmatch(articulation["pressure_sha256"]) is not None
+        and isinstance(proof.get("sparse_attention_dsf_delivery_count"), int)
+        and proof["sparse_attention_dsf_delivery_count"] > 0
+        and isinstance(
+            proof.get("sparse_attention_physically_transitioned_neuron_count"), int
+        )
+        and proof["sparse_attention_physically_transitioned_neuron_count"] > 0
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -559,6 +615,10 @@ def _validate_proof(
         or (
             expected_sparse_attention_rehearsal
             and not sparse_attention_rehearsal
+        )
+        or (
+            expected_native_articulation_rehearsal
+            and not native_articulation_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -647,14 +707,18 @@ def main() -> int:
         )
         if isinstance(item, dict)
     }
-    expected_distributed_recall_rehearsal = (
-        values.mode == "cold-restore"
-        and source_environment.get("GUALA_VESTIBULAR") == "1"
-    )
+    # Distributed recall and ordered-path witnesses closed earlier ledger
+    # items.  They remain observable when they recur but are not release gates
+    # for a later living predecessor (RF-034).
+    expected_distributed_recall_rehearsal = False
     # C-014's sparse-attention witness is already live-closed and is a
     # transient trajectory fact, not permanent body state. Later releases
     # report it when it recurs but never require it as their acceptance gate.
     expected_sparse_attention_rehearsal = False
+    expected_native_articulation_rehearsal = (
+        values.mode == "cold-restore"
+        and source_environment.get("GUALA_VESTIBULAR") == "1"
+    )
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -740,6 +804,9 @@ def main() -> int:
             ),
             expected_sparse_attention_rehearsal=(
                 expected_sparse_attention_rehearsal
+            ),
+            expected_native_articulation_rehearsal=(
+                expected_native_articulation_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

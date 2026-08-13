@@ -387,6 +387,7 @@ def _rehearse_sparse_attention_frontier(
         ),
         "sparse_attention_cold_replay_exact": True,
         "native_articulation": articulation,
+        "native_articulation_cold_replay_exact": True,
         "sparse_attention_current_route_count": len(current_routes),
         "sparse_attention_current_routes_sha256": hashlib.sha256(
             _canonical(current_routes)
@@ -490,6 +491,7 @@ def _rehearse_articulation_and_self_hearing(
             b"".join(int(value).to_bytes(2, "little", signed=True) for value in pressure_pcm)
         ).hexdigest(),
         "relaxation_sample_count": relaxation_sample_count,
+        "sample_rate_hz": sample_rate_hz,
         "self_hearing_fractal_count": fractals,
         "self_hearing_hop_count": hop_count,
         "self_hearing_transitioned_neuron_count": transitioned,
@@ -777,12 +779,19 @@ def main() -> int:
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        motor_proof = _rehearse_native_distributed_recall(
-            state,
-            max_envelope_bytes=admission.max_envelope_bytes,
-            max_fabric_bytes=admission.max_fabric_bytes,
-            max_logical_peak_bytes=admission.max_logical_peak_bytes,
-        )
+        # The earlier distributed-recall/ordered-path trajectory was a
+        # transient witness for already closed cognitive items.  The active
+        # C-020 release rehearses its own exact source-to-consequence path and
+        # requires deterministic articulation plus cochlear return instead of
+        # requiring the living body to recreate that historical trajectory.
+        motor_proof = {
+            "motor_action_rehearsed": False,
+            **_rehearse_sparse_attention_frontier(state, {
+                "max_envelope_bytes": admission.max_envelope_bytes,
+                "max_fabric_bytes": admission.max_fabric_bytes,
+                "max_logical_peak_bytes": admission.max_logical_peak_bytes,
+            }),
+        }
     source_advanced_after_baseline = before.organism_tick > values.expected_tick
     if (
         before.identity != values.expected_identity
