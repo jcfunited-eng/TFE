@@ -250,6 +250,86 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
     assert proof["self_hearing_fractal_count"] == 1
 
 
+def test_native_articulation_source_uses_one_real_interval_and_replays_exactly(
+    monkeypatch,
+) -> None:
+    recruitment = (
+        "13" * 16,
+        0,
+        5,
+        (("12" * 16, 12, "13" * 16, 13, 0, 5),),
+    )
+
+    class _SourceOrganism:
+        def __init__(self) -> None:
+            self.tick = 40
+
+        def readiness(self) -> SimpleNamespace:
+            return SimpleNamespace(
+                identity=IDENTITY,
+                organism_tick=self.tick,
+                python_callback_count=0,
+                state_bytes=1_000 + self.tick,
+                state_sha256=f"{self.tick:064x}",
+            )
+
+        def prepare_vestibular_trajectory(
+            self, heading: int, steps: tuple[int, ...]
+        ) -> SimpleNamespace:
+            assert heading == 0
+            assert steps == (360,)
+            return SimpleNamespace(
+                token="source",
+                articulatory_unit_recruitments=(recruitment,),
+                dsf_delivery_count=2,
+                physically_transitioned_neuron_count=208,
+            )
+
+        def commit(self, token: str) -> SimpleNamespace:
+            assert token == "source"
+            self.tick += 1
+            return self.readiness()
+
+        def save(self) -> bytes:
+            return f"successor-{self.tick}".encode("ascii")
+
+    monkeypatch.setattr(
+        probe,
+        "exact_native_yaw_trajectory",
+        lambda **_kwargs: (360, (360,)),
+    )
+    monkeypatch.setattr(
+        probe,
+        "restore_native_resident_organism",
+        lambda **_kwargs: _SourceOrganism(),
+    )
+
+    def articulate(organism, prepared):
+        assert tuple(prepared.articulatory_unit_recruitments) == (recruitment,)
+        organism.tick += 4
+        return {
+            "layer_13_recruitment_count": 1,
+            "self_hearing_hop_count": 4,
+        }
+
+    monkeypatch.setattr(
+        probe,
+        "_rehearse_articulation_and_self_hearing",
+        articulate,
+    )
+
+    proof = probe._rehearse_native_articulation_source(b"body", {})
+
+    assert proof["native_articulation_cold_replay_exact"] is True
+    assert proof["native_articulation_source_interval_count"] == 1
+    assert proof["native_articulation_source_dsf_delivery_count"] == 2
+    assert proof["native_articulation_source_layer_13_recruitment_count"] == 1
+    assert (
+        proof["native_articulation_source_physically_transitioned_neuron_count"]
+        == 208
+    )
+
+
 def test_episodic_relation_resolves_only_against_retained_successor() -> None:
     recalled = ("01" * 16, "02" * 16, "03" * 16)
     related = ("04" * 16, "05" * 16, "06" * 16)

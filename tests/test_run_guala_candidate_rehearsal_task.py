@@ -347,6 +347,13 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "motor_action_rehearsed": False,
         "native_articulation": articulation,
         "native_articulation_cold_replay_exact": True,
+        "native_articulation_rehearsal_successor_state_sha256": "f" * 64,
+        "native_articulation_source_dsf_delivery_count": 2,
+        "native_articulation_source_interval_count": 1,
+        "native_articulation_source_layer_13_recruitment_count": 78,
+        "native_articulation_source_physically_transitioned_neuron_count": 208,
+        "native_articulation_source_state_byte_delta": 64,
+        "native_articulation_source_successor_state_sha256": "c" * 64,
         "python_callback_count": 0,
         "python_cognition_workers_started": 0,
         "raw_glorun_current_only": True,
@@ -356,8 +363,6 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
-        "sparse_attention_dsf_delivery_count": 500,
-        "sparse_attention_physically_transitioned_neuron_count": 889,
         "tick": 23_723_846,
     }
     proof = _receipted(record)

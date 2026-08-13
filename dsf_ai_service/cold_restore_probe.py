@@ -506,6 +506,106 @@ def _rehearse_articulation_and_self_hearing(
     }
 
 
+def _rehearse_native_articulation_source(
+    current_envelope: bytes,
+    budget: dict[str, int],
+) -> dict[str, object]:
+    """Cold-replay the smallest real layer-13 source and its sensory return.
+
+    C-014's 250 ms sparse-attention trajectory is already live-closed.  C-020
+    needs a real native layer-13 discharge, not a replay of that historical
+    witness.  One exact 1 ms body interval is sufficient on the authenticated
+    production predecessor and exercises the same native contact, articulation,
+    acoustic, and local body-receptor path without multiplying unrelated work.
+    """
+
+    _successor_heading, steps = exact_native_yaw_trajectory(
+        predecessor_heading_millidegrees=0,
+        signed_displacement_millidegrees=360,
+        duration_microseconds=1_000,
+    )
+    if len(steps) != 1:
+        raise RuntimeError("native articulation source changed its one-interval clock")
+
+    def settle() -> tuple[object, object, object, object, bytes, dict[str, object]]:
+        organism = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        before = organism.readiness()
+        prepared = organism.prepare_vestibular_trajectory(0, steps)
+        after_source = organism.commit(prepared.token)
+        articulation = _rehearse_articulation_and_self_hearing(organism, prepared)
+        if articulation is None:
+            raise RuntimeError("one-interval native source produced no articulation")
+        successor = organism.save()
+        after_return = organism.readiness()
+        return (
+            before,
+            prepared,
+            after_source,
+            after_return,
+            successor,
+            articulation,
+        )
+
+    before, prepared, after_source, after_return, successor, articulation = settle()
+    (
+        replay_before,
+        replay_prepared,
+        replay_after_source,
+        replay_after_return,
+        replay_successor,
+        replay_articulation,
+    ) = settle()
+    recruitments = tuple(prepared.articulatory_unit_recruitments)
+    replay_recruitments = tuple(replay_prepared.articulatory_unit_recruitments)
+    if (
+        prepared.dsf_delivery_count <= 0
+        or prepared.physically_transitioned_neuron_count <= 0
+        or not recruitments
+        or after_source.identity != before.identity
+        or after_source.organism_tick != before.organism_tick + 1
+        or after_return.identity != before.identity
+        or after_return.organism_tick
+        != after_source.organism_tick + articulation["self_hearing_hop_count"]
+        or after_return.python_callback_count != 0
+        or replay_before.state_sha256 != before.state_sha256
+        or replay_prepared.dsf_delivery_count != prepared.dsf_delivery_count
+        or replay_prepared.physically_transitioned_neuron_count
+        != prepared.physically_transitioned_neuron_count
+        or replay_recruitments != recruitments
+        or replay_after_source.state_sha256 != after_source.state_sha256
+        or replay_after_return.state_sha256 != after_return.state_sha256
+        or replay_articulation != articulation
+        or replay_successor != successor
+    ):
+        raise RuntimeError("native articulation source did not cold-replay exactly")
+    return {
+        "native_articulation": articulation,
+        "native_articulation_cold_replay_exact": True,
+        "native_articulation_rehearsal_successor_state_sha256": (
+            after_return.state_sha256
+        ),
+        "native_articulation_source_dsf_delivery_count": (
+            prepared.dsf_delivery_count
+        ),
+        "native_articulation_source_interval_count": len(steps),
+        "native_articulation_source_layer_13_recruitment_count": len(
+            recruitments
+        ),
+        "native_articulation_source_physically_transitioned_neuron_count": (
+            prepared.physically_transitioned_neuron_count
+        ),
+        "native_articulation_source_state_byte_delta": (
+            after_source.state_bytes - before.state_bytes
+        ),
+        "native_articulation_source_successor_state_sha256": (
+            after_source.state_sha256
+        ),
+    }
+
+
 def _rehearse_ordered_trajectory_projection(
     current_envelope: bytes,
     formation_members: tuple[str, ...],
@@ -786,14 +886,12 @@ def main() -> int:
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        # The earlier distributed-recall/ordered-path trajectory was a
-        # transient witness for already closed cognitive items.  The active
-        # C-020 release rehearses its own exact source-to-consequence path and
-        # requires deterministic articulation plus cochlear return instead of
-        # requiring the living body to recreate that historical trajectory.
+        # Earlier body/attention trajectories are transient witnesses for
+        # already closed items. C-020 cold-replays only its smallest genuine
+        # layer-13 source plus acoustic and local body-sense return.
         motor_proof = {
             "motor_action_rehearsed": False,
-            **_rehearse_sparse_attention_frontier(state, {
+            **_rehearse_native_articulation_source(state, {
                 "max_envelope_bytes": admission.max_envelope_bytes,
                 "max_fabric_bytes": admission.max_fabric_bytes,
                 "max_logical_peak_bytes": admission.max_logical_peak_bytes,

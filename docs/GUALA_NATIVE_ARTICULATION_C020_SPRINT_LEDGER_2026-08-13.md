@@ -2,9 +2,9 @@
 
 Date resumed: 2026-08-13
 
-Status: **In progress; not Live-Closed.** Public production task 1019 reports
-`articulation.available=false` because no native articulation or emitted-sound
-transition is mounted.
+Status: **In progress; not Live-Closed.** Public production task 1024 has native
+articulation and acoustic self-hearing; local articulatory body-sense return is
+the remaining C-020 production claim.
 
 ## Task identity
 
@@ -417,3 +417,31 @@ and backend-only state do not close it.
   A 4,563,410-channel settlement executes without a population scan. Candidate
   1026 is refused and will not be cut over; a fresh immutable candidate is
   required after the complete gate-path proof passes.
+- Corrected candidate commit `490eebd4c4e6a9e06f71afc149bfa51c7138c425`,
+  image
+  `sha256:85fa2a70ddd4edb010b1a9543f239546ade0a5a1606e5747da549fd471e58ef7`,
+  and task definition `dsf-ai-task:1027` were refused after the same bounded
+  15-minute rehearsal ceiling. Production remained unchanged on task 1024.
+- A discarded read-only diagnostic using that exact immutable image sampled
+  the stalled call path. At 60 seconds it remained inside the inherited
+  250-interval C-014 vestibular preparation; only later did it reach the first
+  C-020 sensory-return hop. The gate was therefore replaying an already-closed
+  sparse-attention witness before testing C-020, then repeating the complete
+  source and four return hops for cold comparison.
+- Progressive discarded source probes against the authenticated production
+  body proved that one exact 1 ms native yaw interval already produces five
+  layer-13 recruitments, 208 physical neuron transitions, and two complete
+  joint-field DSF deliveries in 1.42 seconds. Four intervals produced six
+  recruitments in 2.20 seconds; 16 produced 82 in 5.64 seconds. The 250 ms
+  historical witness is not required to reach real C-020 articulation.
+- The cold gate now uses the smallest genuine one-interval layer-13 source and
+  exact-replays that source plus all four acoustic/body return hops. It no
+  longer makes C-014 routes, predictions, or attention evidence a C-020
+  prerequisite. The candidate validator requires the one source interval,
+  its nonzero full-DSF delivery and physical transitions, exact layer-13 count,
+  source/final state receipts, local body perturbation, and byte-exact replay.
+- A native wheel built from the exact current worktree exposes the articulatory
+  body function. The focused source, transport, candidate-proof, deterministic
+  deployment, and packaging suites pass 54/54. This remains candidate evidence;
+  immutable rehearsal, cutover, and direct public production proof remain
+  pending.

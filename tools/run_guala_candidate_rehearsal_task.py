@@ -586,12 +586,34 @@ def _validate_proof(
         and articulation["stalled_motor_quanta"] >= 0
         and isinstance(articulation.get("pressure_sha256"), str)
         and _SHA.fullmatch(articulation["pressure_sha256"]) is not None
-        and isinstance(proof.get("sparse_attention_dsf_delivery_count"), int)
-        and proof["sparse_attention_dsf_delivery_count"] > 0
         and isinstance(
-            proof.get("sparse_attention_physically_transitioned_neuron_count"), int
+            proof.get("native_articulation_source_dsf_delivery_count"), int
         )
-        and proof["sparse_attention_physically_transitioned_neuron_count"] > 0
+        and not isinstance(
+            proof["native_articulation_source_dsf_delivery_count"], bool
+        )
+        and proof["native_articulation_source_dsf_delivery_count"] > 0
+        and isinstance(
+            proof.get("native_articulation_source_physically_transitioned_neuron_count"),
+            int,
+        )
+        and proof["native_articulation_source_physically_transitioned_neuron_count"]
+        > 0
+        and proof.get("native_articulation_source_interval_count") == 1
+        and proof.get("native_articulation_source_layer_13_recruitment_count")
+        == articulation["layer_13_recruitment_count"]
+        and isinstance(proof.get("native_articulation_source_state_byte_delta"), int)
+        and not isinstance(
+            proof["native_articulation_source_state_byte_delta"], bool
+        )
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "native_articulation_source_successor_state_sha256",
+                "native_articulation_rehearsal_successor_state_sha256",
+            )
+        )
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
