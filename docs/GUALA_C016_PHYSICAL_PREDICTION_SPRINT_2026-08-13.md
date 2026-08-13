@@ -98,6 +98,35 @@ Primary evidence used only to define that responsibility:
 | Resource acceptance | Work remains linear in the reached neuron/contact/body frontier. The witness is constant/bounded per transaction, retained state does not grow with elapsed time, and Python cognition callbacks remain zero. |
 | Observed evidence | The candidate restored the exact production body at tick `65,223` and cold-rehearsed the same 250-interval vestibular trajectory twice. Both runs produced two exact alternatives from intrinsic lineage `...0072` through layer-11 lineages `...0062` and `...0070` into distinct layer-10 lineages `...0061` and `...006f`, followed later by one authentic layer-8 to layer-10 body transfer. Alternative receipt `a6baa225...e7e0dea7` and consequence receipt `94f1d5a7...80a3f346` reproduced exactly; 500 full-DSF deliveries occurred with zero Python cognition callbacks. Live task 1011 later falsified closure: ordinary self-yaw repeatedly produced the two paths without a consequence transfer, and a direct 90-degree/250-ms production turn also produced two paths but zero consequence transfers. The current observer also does not prove that either path reassembles a relation retained from a prior lived action/consequence episode. C-016 remains open. |
 
+### 2026-08-13 live-falsification correction boundary
+
+- **Exact live input:** the direct-origin 90-degree, 250-millisecond turn from
+  world revision `1879` to `1880`, followed by its authentic vestibular return.
+- **Exact physical result:** both predicted layer-10 endpoints (`...0061` and
+  `...006f`) transferred whole carriers toward the currently reached layer-8
+  body-regulation cells. The signed frontier therefore contained exact
+  layer-10-to-layer-8 transfers of `7` and `10` whole carriers on those
+  already-mounted body/relation contacts.
+- **Falsified observer assumption:**
+  `body_consequence_transfer_observation` accepted only layer-8-to-layer-10
+  direction. It discarded the exact reverse transfer and falsely reported no
+  body consequence.
+- **Frozen correction:** accept either actual direction only on a layer-8 /
+  layer-10 contact whose layer-8 endpoint is reached by the current authentic
+  vestibular occurrence. Preserve the actual sender, receiver, bond, and
+  carrier count. In the read-only public comparison, a predicted layer-10
+  target reached as the consequence receiver is agreement; that target acting
+  as the consequence sender toward the reached body cell is contradiction; an
+  unrelated endpoint proves neither.
+- **No state or physics expansion:** no retained state, codec, schema, neuron,
+  contact, DSF, MathLoom, Psi/Krimelack, planner, score, or semantic outcome is
+  added. The change corrects only the bounded native observation and public
+  evidence comparison.
+- **Acceptance path:** forward transfer -> exact agreement; reverse transfer ->
+  exact contradiction; unrelated transfer -> prediction remains unavailable;
+  then the authenticated production predecessor must reproduce the exact
+  reverse witness through the ordinary multi-interval path before one cutover.
+
 ## Acceptance-evidence map
 
 | Required fact | Producer | Observer | Status |
@@ -182,16 +211,22 @@ Primary evidence used only to define that responsibility:
 
 ## Current bounded verification
 
-- Exact candidate native module provenance:
-  `/tmp/guala-c016-python.tmMgsz/guala_core/__init__.py`.
-- Translation, deployment, packaging, and public-observation suites: `140
-  passed`; the focused five-file boundary subset is `56 passed`.
-- Complete native suite: `580 passed`, `13 ignored`, `0 failed`; every ignored
-  case is explicitly retired or requires an external authenticated fixture.
-- `git diff --check` and Python compilation pass.
-- Read-only target preflight re-resolved one healthy task-1009 process at the
-  expected digest, 4-vCPU/16-GiB envelope, current organism root, and both
-  public pages at HTTP 200.
+- The bidirectional reached-body/relation correction passes one exact native
+  direction test plus three public comparison cases: forward agreement,
+  reverse contradiction, and unrelated consequence unavailability.
+- The complete native suite after the correction is `580 passed`, `13 ignored`,
+  `0 failed`. The ignored cases retain their pre-existing explicit retirement
+  or authenticated-fixture reasons.
+- The focused native/Python observer, transaction aggregation, cold-probe,
+  rehearsal-controller, packaging, production-preflight, and deployment
+  contract set is `155 passed`, `0 failed`.
+- Candidate native provenance is
+  `/tmp/guala-c016-bidirectional-python.IGZvWi/guala_core/__init__.py`; the
+  Python observer loaded from this exact worktree. The release wheel is
+  `/tmp/guala-c016-bidirectional-wheel.o3gwUu/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`.
+- `git diff --check` and Python bytecode compilation pass. File-scoped
+  `rustfmt --check` continues to expose the already-recorded inherited crate
+  drift; it made no edits and did not replace the focused source review.
 - These are local and discarded-state checks. They do not make C-016
   Live-Closed.
 

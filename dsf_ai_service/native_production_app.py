@@ -2291,6 +2291,23 @@ def _physical_prediction_record() -> dict[str, object]:
         for index, alternative in enumerate(alternatives)
         if alternative[1][1] == consequence[1]
     )
+    contradiction = tuple(
+        index
+        for index, alternative in enumerate(alternatives)
+        if alternative[1][1] == consequence[0]
+    )
+    if not agreement and not contradiction:
+        return _section(
+            False,
+            "body_consequence_did_not_reach_predicted_relation",
+            "an authentic returned body relation was observed, but neither "
+            "endpoint matched either prior physical alternative",
+            alternatives=alternatives,
+            consequence=consequence,
+            planner_authority=False,
+            score_authority=False,
+            semantic_outcome_authority=False,
+        )
     return _section(
         True,
         (
@@ -2304,6 +2321,7 @@ def _physical_prediction_record() -> dict[str, object]:
         alternatives=alternatives,
         consequence=consequence,
         agreeing_alternative_indices=agreement,
+        contradicted_alternative_indices=contradiction,
         planner_authority=False,
         score_authority=False,
         semantic_outcome_authority=False,

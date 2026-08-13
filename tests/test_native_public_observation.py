@@ -303,8 +303,53 @@ def test_public_observation_reports_prediction_only_after_later_body_test(
     prediction = json.loads(serving.native_observation().body)["prediction"]
     assert prediction["available"] is True
     assert prediction["agreeing_alternative_indices"] == [0]
+    assert prediction["contradicted_alternative_indices"] == []
     assert prediction["planner_authority"] is False
     assert prediction["score_authority"] is False
+
+
+def test_public_observation_preserves_reverse_body_relation_as_contradiction(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    consequence = ("04" * 16, "06" * 16, 0, 3)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (consequence,),
+        },
+    )
+    prediction = serving._physical_prediction_record()
+    assert prediction["available"] is True
+    assert prediction["status"] == "physical_alternatives_contradicted_by_later_body_consequence"
+    assert prediction["agreeing_alternative_indices"] == ()
+    assert prediction["contradicted_alternative_indices"] == (0,)
+
+
+def test_public_observation_does_not_call_an_unrelated_body_relation_contradiction(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    consequence = ("07" * 16, "06" * 16, 0, 3)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (consequence,),
+        },
+    )
+    prediction = serving._physical_prediction_record()
+    assert prediction["available"] is False
+    assert prediction["status"] == "body_consequence_did_not_reach_predicted_relation"
 
 
 def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:

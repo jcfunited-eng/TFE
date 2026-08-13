@@ -1577,13 +1577,16 @@ fn physical_prediction_alternatives_observation(
 }
 
 /// Observe one exact returned body consequence during vestibular settlement.
-/// A layer-8 sender is the already-mounted body-regulation participant and a
-/// layer-10 receiver is its retained body/affective relation. The caller alone
-/// supplies whether this interval is authentic vestibular ingress, preventing
-/// ordinary internal propagation from being relabelled as sensed consequence.
+/// The layer-8 endpoint must be reached by this exact body occurrence and its
+/// layer-10 endpoint is an already-mounted body/affective relation. Preserve
+/// the actual carrier direction: body-to-relation can agree with a prior path,
+/// while relation-to-body can contradict it. The caller alone supplies whether
+/// this interval is authentic vestibular ingress, preventing ordinary internal
+/// propagation from being relabelled as sensed consequence.
 fn body_consequence_transfer_observation(
     current_frontier: &[ActiveElectricalFrontierEntry],
     lineage_layers: &[([u8; 16], u32)],
+    reached_body_regulation_lineages: &[[u8; 16]],
     authentic_vestibular_ingress: bool,
 ) -> Vec<DirectedPhysicalTransferObservation> {
     if !authentic_vestibular_ingress {
@@ -1599,7 +1602,12 @@ fn body_consequence_transfer_observation(
         .iter()
         .filter_map(|entry| entry.directed_transfer())
         .find(|transfer| {
-            layer_of(transfer.sender) == Some(8) && layer_of(transfer.receiver) == Some(10)
+            (layer_of(transfer.sender) == Some(8)
+                && layer_of(transfer.receiver) == Some(10)
+                && reached_body_regulation_lineages.contains(&transfer.sender))
+                || (layer_of(transfer.sender) == Some(10)
+                    && layer_of(transfer.receiver) == Some(8)
+                    && reached_body_regulation_lineages.contains(&transfer.receiver))
         })
         .into_iter()
         .collect()
@@ -3814,6 +3822,7 @@ impl ResidentCognitiveFormationState {
         let body_consequence_transfers = body_consequence_transfer_observation(
             &active_electrical_frontier,
             &lineage_layers,
+            &reached_body_regulation_lineages,
             vestibular.is_some(),
         );
         for predecessor in internal_contact.transition_predecessors {
@@ -12906,15 +12915,18 @@ mod tests {
     }
 
     #[test]
-    fn body_consequence_requires_authentic_vestibular_layer_eight_to_ten_transfer() {
+    fn body_consequence_preserves_both_directions_on_the_reached_vestibular_relation() {
         let regulation = [6_u8; 16];
         let consequence = [7_u8; 16];
         let bond = StablePhysicalBondReference::new(regulation, consequence, 0).unwrap();
-        let frontier =
+        let outward =
             [ActiveElectricalFrontierEntry::caused(regulation, consequence, bond, 11).unwrap()];
         let layers = [(regulation, 8), (consequence, 10)];
-        assert!(body_consequence_transfer_observation(&frontier, &layers, false).is_empty());
-        let observed = body_consequence_transfer_observation(&frontier, &layers, true);
+        let reached = [regulation];
+        assert!(
+            body_consequence_transfer_observation(&outward, &layers, &reached, false).is_empty()
+        );
+        let observed = body_consequence_transfer_observation(&outward, &layers, &reached, true);
         assert_eq!(observed.len(), 1);
         assert_eq!(
             (
@@ -12924,6 +12936,20 @@ mod tests {
             ),
             (regulation, consequence, 11)
         );
+
+        let inward =
+            [ActiveElectricalFrontierEntry::caused(consequence, regulation, bond, 7).unwrap()];
+        let observed = body_consequence_transfer_observation(&inward, &layers, &reached, true);
+        assert_eq!(observed.len(), 1);
+        assert_eq!(
+            (
+                observed[0].sender,
+                observed[0].receiver,
+                observed[0].transferred_whole_carriers,
+            ),
+            (consequence, regulation, 7)
+        );
+        assert!(body_consequence_transfer_observation(&inward, &layers, &[], true).is_empty());
     }
 
     #[test]
