@@ -307,3 +307,63 @@ transition is mounted.
 self-sensed consequences are directly observed on public production Guala at
 `dsf-ai.com`. Local tests, candidate builds, rehearsals, ECS health, HTTP 200,
 and backend-only state do not close it.
+
+## Body-sense return continuation — 2026-08-13
+
+- Frozen remaining input: the already-produced native articulatory trajectory,
+  not its apex summaries and not a new action command.
+- Biological equivalent: respiration supplies airflow/pressure afference;
+  laryngeal configuration supplies local mechanosensation; oral opening supplies
+  jaw/oral position; facial skin deformation supplies perioral somatosensation.
+  These are separate local receptor sites, not whole-body yaw/translation and
+  not one aggregate interoceptor.
+- Current first missing boundary: `virtual_articulatory_body.rs` computes the
+  trajectory but returns only radiated pressure plus fixed apex observations.
+  `native_production_app.py` therefore gives the self-hearing occurrence real
+  acoustic samples and quiescent body samples.
+- Single correction path:
+  `settle_articulatory_unit_discharge` -> compact exact breath/larynx/oral/face
+  trajectories -> four distinct layer-5 body-source ports on the same source
+  clock as radiated pressure -> one unchanged joint UF/DSF evaluation -> local
+  mechanical receptor work -> complete-neuron settlement -> bounded public
+  articulation evidence.
+- The body receptor law consumes signed normalized local mechanical state and
+  derives nonnegative deformation work from its exact squared trajectory over
+  time. Full-scale sensitivity reuses the already-mounted receptor-energy
+  declaration; no new fitted coefficient, threshold, score, meaning, or
+  controller is introduced. Sign and exact local source remain present in the
+  full joint field and local neuron perspective.
+- Translation map required before testing:
+  native body samples -> packed little-endian `i16` body -> Python compact array
+  without per-sample rational objects -> decimated hop samples -> body ports ->
+  GLJSRC02 source -> native receptor law -> externally perturbed body-receptor
+  count -> articulation observation -> public API/pages.
+- Explicit non-goals: no change to C-019 yaw, no reuse of displacement ports,
+  no food/oral-intake mechanism, no speech meaning, no phoneme, no persistent
+  raw waveform/trajectory, no S-009 closure, and no C-021 work.
+- Live acceptance: one public ordinary articulation must show nonzero native
+  layer-13 recruitment, pressure and cochlear return, four nonquiescent
+  articulatory body inputs, and nonzero physically perturbed body receptor
+  neurons from that same trajectory. The exact successor must persist, cold
+  restore, recur, remain bounded, and continue to report zero Python cognition
+  callbacks.
+
+### Body-return candidate evidence
+
+- The focused native body and receptor-law checks pass: 4/4 executed tests,
+  zero failures. The body emits four bounded, shared-clock local mechanical
+  trajectories; true quiescence delivers zero receptor work.
+- The exact release wheel was rebuilt from this worktree as
+  `guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`, SHA-256
+  `5bf0e79a2a025c7fc4e186b04ddc6155fb8d681ba5a09327d9d19eeb17d80f6c`.
+  Python loaded it from `/tmp/c020-body-site.xnKkoT/guala_core/__init__.py`;
+  the boundary returned ten fields, 16,000 pressure samples, and exactly
+  128,000 body-trajectory bytes: four signed-int16 channels on the same
+  16,000-sample clock.
+- Focused Python transport/rehearsal checks pass: 6/6 executed tests, zero
+  failures. The cold-rehearsal contract now refuses closure unless all four
+  local body ports enter each self-sensing hop and at least one body receptor
+  neuron physically changes.
+- These are candidate proofs only. Authenticated production-predecessor
+  rehearsal, cutover, and direct public evidence remain pending; C-020 is not
+  Live-Closed.

@@ -110,6 +110,8 @@ class NativeResidentObservationView(Protocol):
 
     @property
     def metabolically_perturbed_body_receptor_count(self) -> int: ...
+    @property
+    def externally_perturbed_body_receptor_count(self) -> int: ...
 
     @property
     def cold_restore_authentication_count(self) -> int: ...
@@ -323,6 +325,7 @@ class ResidentPrepareEvidence:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         0,
         0,
@@ -1723,6 +1726,10 @@ class NativeResidentOrganism:
             candidate.metabolically_perturbed_body_receptor_count,
             "metabolically perturbed body receptor count",
         )
+        externally_perturbed_body_receptor_count = _nonnegative_integer(
+            candidate.externally_perturbed_body_receptor_count,
+            "externally perturbed body receptor count",
+        )
         raw_ingress_sense_counts = candidate.receptor_ingress_sense_counts
         if (
             not isinstance(raw_ingress_sense_counts, tuple)
@@ -2032,6 +2039,9 @@ class NativeResidentOrganism:
             ),
             metabolically_perturbed_body_receptor_count=(
                 metabolically_perturbed_body_receptor_count
+            ),
+            externally_perturbed_body_receptor_count=(
+                externally_perturbed_body_receptor_count
             ),
             receptor_ingress_sense_counts=receptor_ingress_sense_counts,
             receptor_ingress_changing_count=receptor_ingress_changing_count,
@@ -2365,7 +2375,7 @@ def exact_motor_unit_yaw_trajectory(
 def exact_articulatory_unit_trajectory(
     *,
     recruitments: tuple[tuple[int, int], ...],
-) -> tuple[int, tuple[int, ...], int, int, int, int, int, int, int]:
+) -> tuple[int, tuple[int, ...], bytes, int, int, int, int, int, int, int]:
     """Settle native layer-13 discharge through the bounded vocal body."""
 
     trajectory = getattr(_native_core(), "exact_articulatory_unit_trajectory", None)
@@ -2376,6 +2386,7 @@ def exact_articulatory_unit_trajectory(
     (
         sample_rate_hz,
         radiated_pressure_pcm,
+        body_mechanical_trajectories,
         peak_breath_flow_pcm,
         glottal_open_samples_at_apex,
         mouth_area_square_millimetres_at_apex,
@@ -2387,6 +2398,7 @@ def exact_articulatory_unit_trajectory(
     return (
         int(sample_rate_hz),
         tuple(int(value) for value in radiated_pressure_pcm),
+        bytes(body_mechanical_trajectories),
         int(peak_breath_flow_pcm),
         int(glottal_open_samples_at_apex),
         int(mouth_area_square_millimetres_at_apex),

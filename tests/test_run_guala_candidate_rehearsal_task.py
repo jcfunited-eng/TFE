@@ -316,6 +316,9 @@ def test_proof_rejects_state_or_receipt_drift() -> None:
 def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     articulation = {
         "applied_motor_quanta": 8,
+        "articulatory_body_port_count": 4,
+        "articulatory_body_receptor_ingress_count": 16,
+        "articulatory_body_perturbed_neuron_count": 4,
         "glottal_open_samples_at_apex": 144,
         "layer_13_recruitment_count": 78,
         "mouth_area_square_millimetres_at_apex": 305,

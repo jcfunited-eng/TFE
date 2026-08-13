@@ -36,6 +36,10 @@ pub(crate) enum ArticulatoryBodyError {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ArticulatoryBodyTransition {
     pub(crate) radiated_pressure_pcm: Vec<i16>,
+    /// Port-major local body mechanics at the same sample instants as the
+    /// radiated pressure: breath flow, glottal configuration displacement,
+    /// oral aperture displacement, and perioral skin displacement.
+    pub(crate) body_mechanical_trajectories: [Vec<i16>; 4],
     pub(crate) peak_breath_flow_pcm: i32,
     pub(crate) glottal_open_samples_at_apex: i32,
     pub(crate) mouth_area_square_millimetres_at_apex: i32,
@@ -109,6 +113,9 @@ pub(crate) fn settle_articulatory_unit_discharge(
     let mut left = [0_i32; TRACT_SECTION_COUNT];
     let mut previous_flow = 0_i32;
     let mut radiated = Vec::with_capacity(ACTIVE_SAMPLE_COUNT + MAX_RELAXATION_SAMPLES);
+    let mut body_mechanics: [Vec<i16>; 4] = std::array::from_fn(|_| {
+        Vec::with_capacity(ACTIVE_SAMPLE_COUNT + MAX_RELAXATION_SAMPLES)
+    });
 
     for sample_index in 0..ACTIVE_SAMPLE_COUNT {
         let phase = sample_index % LARYNGEAL_CYCLE_SAMPLES;
@@ -136,6 +143,24 @@ pub(crate) fn settle_articulatory_unit_discharge(
         right = next_right;
         left = next_left;
         radiated.push(emitted);
+        body_mechanics[0].push(
+            i16::try_from(flow).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+        );
+        body_mechanics[1].push(
+            i16::try_from(glottal_apex - NEUTRAL_GLOTTAL_OPEN_SAMPLES)
+                .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+        );
+        body_mechanics[2].push(
+            i16::try_from(
+                areas[TRACT_SECTION_COUNT - 1]
+                    - NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[TRACT_SECTION_COUNT - 1],
+            )
+            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+        );
+        body_mechanics[3].push(
+            i16::try_from(areas[0] - NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES[0])
+                .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+        );
     }
 
     let mut relaxation_sample_count = 0usize;
@@ -156,11 +181,22 @@ pub(crate) fn settle_articulatory_unit_discharge(
         right = next_right;
         left = next_left;
         radiated.push(emitted);
+        for trajectory in &mut body_mechanics {
+            trajectory.push(0);
+        }
         relaxation_sample_count += 1;
+    }
+
+    if body_mechanics
+        .iter()
+        .any(|trajectory| trajectory.len() != radiated.len())
+    {
+        return Err(ArticulatoryBodyError::ArithmeticWidth);
     }
 
     Ok(ArticulatoryBodyTransition {
         radiated_pressure_pcm: radiated,
+        body_mechanical_trajectories: body_mechanics,
         peak_breath_flow_pcm: peak_flow,
         glottal_open_samples_at_apex: glottal_apex,
         mouth_area_square_millimetres_at_apex: apex_areas[TRACT_SECTION_COUNT - 1],

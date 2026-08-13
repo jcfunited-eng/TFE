@@ -21,6 +21,7 @@ pub use resident_d3_runtime::{
 mod auditory;
 mod auditory_reachability;
 mod auditory_receptor_work;
+mod articulatory_receptor_work;
 mod canonical_basin;
 #[cfg(test)]
 mod canonical_causal_evidence;

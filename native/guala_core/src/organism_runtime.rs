@@ -420,6 +420,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) developmental_resting_neuron_count: usize,
     pub(crate) physically_transitioned_neuron_count: usize,
     pub(crate) metabolically_perturbed_body_receptor_count: usize,
+    pub(crate) externally_perturbed_body_receptor_count: usize,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
@@ -1036,6 +1037,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn externally_perturbed_body_receptor_count(&self) -> usize {
+        self.observation.externally_perturbed_body_receptor_count
+    }
+
+    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
     }
@@ -1529,6 +1535,11 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn externally_perturbed_body_receptor_count(&self) -> usize {
+        self.observation.externally_perturbed_body_receptor_count
+    }
+
+    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
     }
@@ -1999,6 +2010,10 @@ impl ResidentOrganismRuntime {
                 total.metabolically_perturbed_body_receptor_count = total
                     .metabolically_perturbed_body_receptor_count
                     .checked_add(observation.metabolically_perturbed_body_receptor_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.externally_perturbed_body_receptor_count = total
+                    .externally_perturbed_body_receptor_count
+                    .checked_add(observation.externally_perturbed_body_receptor_count)
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
                 total.complete_neuron_fractal_count = total
                     .complete_neuron_fractal_count
@@ -3032,14 +3047,33 @@ fn exact_motor_unit_yaw_trajectory(
 }
 
 #[pyfunction]
-fn exact_articulatory_unit_trajectory(
+fn exact_articulatory_unit_trajectory<'py>(
+    py: Python<'py>,
     recruitments: Vec<(u32, u128)>,
-) -> PyResult<(u32, Vec<i16>, i32, i32, i32, i32, u128, u128, usize)> {
+) -> PyResult<(
+    u32,
+    Vec<i16>,
+    Bound<'py, PyBytes>,
+    i32,
+    i32,
+    i32,
+    i32,
+    u128,
+    u128,
+    usize,
+)> {
     let settled = settle_articulatory_unit_discharge(&recruitments)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    let body_bytes = settled
+        .body_mechanical_trajectories
+        .iter()
+        .flat_map(|trajectory| trajectory.iter())
+        .flat_map(|sample| sample.to_le_bytes())
+        .collect::<Vec<_>>();
     Ok((
         ARTICULATORY_SAMPLE_RATE_HZ,
         settled.radiated_pressure_pcm,
+        PyBytes::new(py, &body_bytes),
         settled.peak_breath_flow_pcm,
         settled.glottal_open_samples_at_apex,
         settled.mouth_area_square_millimetres_at_apex,
@@ -4016,6 +4050,7 @@ fn make_restored_observation(
         developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
+        externally_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
@@ -4094,6 +4129,8 @@ fn make_step_observation(
         physically_transitioned_neuron_count: cognitive.physically_transitioned_neuron_count,
         metabolically_perturbed_body_receptor_count: cognitive
             .metabolically_perturbed_body_receptor_count,
+        externally_perturbed_body_receptor_count: cognitive
+            .externally_perturbed_body_receptor_count,
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         active_physical_bonds: cognitive.active_physical_bonds.clone(),
@@ -4172,6 +4209,7 @@ fn make_authored_contact_observation(
         developmental_resting_neuron_count: cognitive.resting_neuron_count,
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
+        externally_perturbed_body_receptor_count: 0,
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),

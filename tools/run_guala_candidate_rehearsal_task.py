@@ -534,6 +534,9 @@ def _validate_proof(
         and isinstance(articulation, dict)
         and set(articulation) == {
             "applied_motor_quanta",
+            "articulatory_body_port_count",
+            "articulatory_body_receptor_ingress_count",
+            "articulatory_body_perturbed_neuron_count",
             "glottal_open_samples_at_apex",
             "layer_13_recruitment_count",
             "mouth_area_square_millimetres_at_apex",
@@ -554,6 +557,9 @@ def _validate_proof(
             and articulation[name] > 0
             for name in (
                 "applied_motor_quanta",
+                "articulatory_body_port_count",
+                "articulatory_body_receptor_ingress_count",
+                "articulatory_body_perturbed_neuron_count",
                 "glottal_open_samples_at_apex",
                 "layer_13_recruitment_count",
                 "mouth_area_square_millimetres_at_apex",
@@ -566,6 +572,10 @@ def _validate_proof(
             )
         )
         and articulation["pressure_sample_count"] >= articulation["sample_rate_hz"]
+        and articulation["articulatory_body_port_count"] == 4
+        and articulation["articulatory_body_receptor_ingress_count"]
+        == articulation["articulatory_body_port_count"]
+        * articulation["self_hearing_hop_count"]
         and articulation["relaxation_sample_count"]
         == articulation["pressure_sample_count"] - articulation["sample_rate_hz"]
         and isinstance(articulation.get("self_hearing_fractal_count"), int)

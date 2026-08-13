@@ -915,6 +915,27 @@ NATIVE_VESTIBULAR_SUBSTREAM_ID = "local-hair-bundle-0"
 DISPLACEMENT_QUANTITY = "body-displacement-fraction"
 DISPLACEMENT_UNIT = "fraction-of-declared-displacement-span"
 
+# Separate local somatosensory anatomy for the vocal body. These do not reuse
+# the whole-body displacement ports: airflow, larynx, mouth, and facial skin
+# occupy distinct physical places even when one articulatory act moves them on
+# the same clock.
+ARTICULATORY_BODY_CHANNELS = (
+    "respiratory-flow",
+    "laryngeal-glottis",
+    "oral-aperture",
+    "perioral-skin",
+)
+ARTICULATORY_BODY_QUANTITIES = (
+    "respiratory-volume-velocity",
+    "laryngeal-glottal-opening",
+    "oral-aperture-area",
+    "perioral-skin-area-deformation",
+)
+ARTICULATORY_BODY_DECLARED_SPANS = (4_000, 64, 40, 40)
+ARTICULATORY_BODY_PORT_COUNT = len(ARTICULATORY_BODY_CHANNELS)
+ARTICULATORY_BODY_SENSOR_ID = "articulatory-body-mechanoreceptors"
+ARTICULATORY_BODY_UNIT = "fraction-of-declared-articulatory-mechanical-span"
+
 
 CHEMORECEPTION_ENV = "GUALA_CHEMORECEPTION"
 
@@ -963,6 +984,7 @@ LESSON_PORT_COUNT = (
     + TASTE_PORT_COUNT
     + SMELL_PORT_COUNT
     + DISPLACEMENT_PORT_COUNT
+    + ARTICULATORY_BODY_PORT_COUNT
 )
 # One physical instant has one complete joint sensorium and therefore one
 # unchanged L0-L4 evaluation.  Its declared groups preserve the distinct
@@ -3907,6 +3929,49 @@ def _displacement_occurrences(
     )
 
 
+def _articulatory_body_ports(
+    source_times: tuple[Fraction, ...],
+    trajectories: tuple[tuple[float, ...], ...] | None,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """Four local mechanoreceptor trajectories of the vocal body."""
+
+    frame_count = len(source_times)
+    held = trajectories or tuple(
+        (0.0,) * frame_count for _ in range(ARTICULATORY_BODY_PORT_COUNT)
+    )
+    if len(held) != ARTICULATORY_BODY_PORT_COUNT or any(
+        len(signal) != frame_count for signal in held
+    ):
+        raise ValueError("articulatory body trajectory changed anatomy or clock")
+    return tuple(
+        NativeSensorySubstreamInput(
+            sense=PhysicalSense.BODY,
+            sensor_id=ARTICULATORY_BODY_SENSOR_ID,
+            substream_id=f"articulation-{channel}",
+            topology_index=(
+                INTEROCEPTION_PORT_COUNT + DISPLACEMENT_PORT_COUNT + index
+            ),
+            coordinates=(
+                NativeAxisCoordinate("articulatory-site", channel),
+                NativeAxisCoordinate("somatic-frame", "organism-local"),
+            ),
+            physical_quantity=quantity,
+            physical_unit=ARTICULATORY_BODY_UNIT,
+            source_times=source_times,
+            normalized_signal=signal,
+            phase_turns=(Fraction(0),) * frame_count,
+        )
+        for index, (channel, quantity, signal) in enumerate(
+            zip(
+                ARTICULATORY_BODY_CHANNELS,
+                ARTICULATORY_BODY_QUANTITIES,
+                held,
+                strict=True,
+            )
+        )
+    )
+
+
 def _declared_composition(
     value: object,
     channels: tuple[str, ...],
@@ -4303,6 +4368,7 @@ def _lesson_port_groups() -> tuple[tuple[int, ...], ...]:
     append_group(TASTE_PORT_COUNT)
     append_group(SMELL_PORT_COUNT)
     append_group(DISPLACEMENT_PORT_COUNT)
+    append_group(ARTICULATORY_BODY_PORT_COUNT)
     if cursor != LESSON_PORT_COUNT:
         raise ValueError("mounted lesson groups do not partition the sensorium")
     return tuple(groups)
@@ -4345,6 +4411,10 @@ def _declared_anatomy_episode() -> Any:
         observed[PhysicalSense.BODY] = (
             observed.get(PhysicalSense.BODY, ()) + displacement_ports
         )
+    observed[PhysicalSense.BODY] = (
+        observed.get(PhysicalSense.BODY, ())
+        + _articulatory_body_ports(times, None)
+    )
     return settle_native_joint_source_episode(
         assembly_id="guala-production-declared-anatomy",
         observed_substreams=observed,
@@ -4626,6 +4696,9 @@ def _commit_admitted_hop(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "externally_perturbed_body_receptor_count": (
+            evidence.externally_perturbed_body_receptor_count
+        ),
         "receptor_ingress_sense_counts": ingress_sense_counts,
         "receptor_ingress_changing_count": (
             evidence.receptor_ingress_changing_count
@@ -4719,6 +4792,9 @@ def _commit_vestibular_tick(
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
         ),
+        "externally_perturbed_body_receptor_count": (
+            evidence.externally_perturbed_body_receptor_count
+        ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -4800,6 +4876,9 @@ def _commit_vestibular_trajectory(
         ),
         "metabolically_perturbed_body_receptor_count": (
             evidence.metabolically_perturbed_body_receptor_count
+        ),
+        "externally_perturbed_body_receptor_count": (
+            evidence.externally_perturbed_body_receptor_count
         ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
@@ -5168,6 +5247,7 @@ def _perform_admitted_intake_locked(
         "partial_cue_reassembly_count": 0,
         "physically_transitioned_neuron_count": 0,
         "metabolically_perturbed_body_receptor_count": 0,
+        "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
     receptor_ingress_sense_counts = {sense.value: 0 for sense in SENSE_ORDER}
@@ -5335,6 +5415,7 @@ def _perform_admitted_intake_locked(
             (
                 sample_rate_hz,
                 pressure_pcm,
+                articulatory_body_trajectories,
                 peak_breath_flow_pcm,
                 glottal_open_samples_at_apex,
                 mouth_area_square_millimetres_at_apex,
@@ -5351,6 +5432,7 @@ def _perform_admitted_intake_locked(
             self_hearing_hop_count = 0
             self_hearing_transitioned_neuron_count = 0
             self_hearing_fractal_count = 0
+            self_articulatory_body_perturbed_neuron_count = 0
             deferred_recurrent_articulation_count = 0
             for self_hearing_episode, admissions in _mono_pcm_hop_episodes(
                 assembly_prefix=(
@@ -5358,6 +5440,7 @@ def _perform_admitted_intake_locked(
                 ),
                 samples=pressure_pcm,
                 sample_rate_hz=sample_rate_hz,
+                articulatory_body=articulatory_body_trajectories,
             ):
                 last_hop = _commit_admitted_hop(
                     organism, self_hearing_episode, admissions
@@ -5369,6 +5452,9 @@ def _perform_admitted_intake_locked(
                 ]
                 self_hearing_fractal_count += last_hop[
                     "complete_neuron_fractal_count"
+                ]
+                self_articulatory_body_perturbed_neuron_count += last_hop[
+                    "externally_perturbed_body_receptor_count"
                 ]
                 deferred_recurrent_articulation_count += len(
                     last_hop["articulatory_unit_recruitments"]
@@ -5419,6 +5505,19 @@ def _perform_admitted_intake_locked(
                     self_hearing_transitioned_neuron_count
                 ),
                 "self_hearing_fractal_count": self_hearing_fractal_count,
+                "articulatory_body_port_count": ARTICULATORY_BODY_PORT_COUNT,
+                "articulatory_body_nonquiescent_port_count": (
+                    _articulatory_body_nonquiescent_port_count(
+                        articulatory_body_trajectories,
+                        len(pressure_pcm),
+                    )
+                ),
+                "articulatory_body_receptor_ingress_count": (
+                    ARTICULATORY_BODY_PORT_COUNT * self_hearing_hop_count
+                ),
+                "articulatory_body_perturbed_neuron_count": (
+                    self_articulatory_body_perturbed_neuron_count
+                ),
                 "deferred_recurrent_articulation_count": (
                     deferred_recurrent_articulation_count
                 ),
@@ -6228,6 +6327,75 @@ def _pcm_hops(
     return hops
 
 
+def _articulatory_body_hops(
+    packed_trajectories: bytes,
+    sample_count: int,
+    sample_rate_hz: int,
+) -> list[tuple[tuple[float, ...], ...]]:
+    """Decimate the four exact native body trajectories on PCM hop clocks."""
+
+    expected_bytes = (
+        ARTICULATORY_BODY_PORT_COUNT * sample_count * struct.calcsize("<h")
+    )
+    if len(packed_trajectories) != expected_bytes:
+        raise ValueError("native articulatory body bytes changed cardinality")
+    raw = array("h")
+    raw.frombytes(packed_trajectories)
+    if sys.byteorder != "little":
+        raw.byteswap()
+    hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
+    frame_budget = min(MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES)
+    channels = []
+    for channel_index, span in enumerate(ARTICULATORY_BODY_DECLARED_SPANS):
+        start = channel_index * sample_count
+        values = raw[start : start + sample_count]
+        if any(abs(value) > span for value in values):
+            raise ValueError("native articulatory body exceeded its declared span")
+        remainder = len(values) % hop_samples
+        if remainder:
+            values.extend([0] * (hop_samples - remainder))
+        values.append(0)
+        channels.append(values)
+    if not channels or len({len(values) for values in channels}) != 1:
+        raise ValueError("native articulatory body channels lost their shared clock")
+    hops: list[tuple[tuple[float, ...], ...]] = []
+    for start in range(0, len(channels[0]) - 1, hop_samples):
+        stride = max(1, -(-(hop_samples + 1) // frame_budget))
+        indices = list(range(0, hop_samples + 1, stride))
+        if indices[-1] != hop_samples:
+            indices.append(hop_samples)
+        hops.append(
+            tuple(
+                tuple(values[start + index] / float(span) for index in indices)
+                for values, span in zip(
+                    channels, ARTICULATORY_BODY_DECLARED_SPANS, strict=True
+                )
+            )
+        )
+    return hops
+
+
+def _articulatory_body_nonquiescent_port_count(
+    packed_trajectories: bytes,
+    sample_count: int,
+) -> int:
+    """Count local body sites whose exact native trajectory actually moved."""
+
+    expected_bytes = (
+        ARTICULATORY_BODY_PORT_COUNT * sample_count * struct.calcsize("<h")
+    )
+    if len(packed_trajectories) != expected_bytes:
+        raise ValueError("native articulatory body bytes changed cardinality")
+    raw = array("h")
+    raw.frombytes(packed_trajectories)
+    if sys.byteorder != "little":
+        raw.byteswap()
+    return sum(
+        any(raw[index * sample_count : (index + 1) * sample_count])
+        for index in range(ARTICULATORY_BODY_PORT_COUNT)
+    )
+
+
 def _cochlear_hops(
     samples: tuple[int, ...],
     sample_rate_hz: int,
@@ -6360,6 +6528,7 @@ def _whole_roster_hop_episode(
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
     moved: tuple[Fraction, ...] | None = None,
+    articulated: tuple[tuple[float, ...], ...] | None = None,
 ) -> Any:
     """One hop over the whole declared roster on one shared clock.
 
@@ -6411,6 +6580,10 @@ def _whole_roster_hop_episode(
         observed[PhysicalSense.BODY] = (
             observed.get(PhysicalSense.BODY, ()) + displacement_ports
         )
+    observed[PhysicalSense.BODY] = (
+        observed.get(PhysicalSense.BODY, ())
+        + _articulatory_body_ports(times, articulated)
+    )
     if cochlear is not None and cochlear[0] != times:
         raise ValueError("coexisting sensor structures do not share one source clock")
     occurrences = (
@@ -6493,6 +6666,11 @@ def _compact_whole_roster_signal_body(
             DISPLACEMENT_SITE_COUNT,
             "body displacement",
         )
+    constant_ports(
+        (Fraction(0),) * ARTICULATORY_BODY_PORT_COUNT,
+        ARTICULATORY_BODY_PORT_COUNT,
+        "quiescent articulatory body",
+    )
     if len(signals) != LESSON_PORT_COUNT * frame_count:
         raise ValueError("compact lesson signals do not cover the authored anatomy")
     if sys.byteorder != "little":
@@ -6778,6 +6956,7 @@ def _mono_pcm_hop_episodes(
     assembly_prefix: str,
     samples: tuple[int, ...],
     sample_rate_hz: int,
+    articulatory_body: bytes | None = None,
 ) -> list[tuple[Any, list[tuple[int, int]]]]:
     """Ambient mono PCM as whole-sensorium hops.
 
@@ -6803,8 +6982,15 @@ def _mono_pcm_hop_episodes(
     cochlear_hops = (
         _cochlear_hops(samples, sample_rate_hz) if COCHLEAR_EARS_AUTHORIZED else []
     )
+    articulatory_body_hops = (
+        _articulatory_body_hops(articulatory_body, len(samples), sample_rate_hz)
+        if articulatory_body is not None
+        else []
+    )
     if not hops or (COCHLEAR_EARS_AUTHORIZED and len(cochlear_hops) < len(hops)):
         raise ValueError("mono PCM intake does not span one intake hop")
+    if articulatory_body is not None and len(articulatory_body_hops) != len(hops):
+        raise ValueError("articulatory body and pressure changed hop cardinality")
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
     episodes: list[tuple[Any, list[tuple[int, int]]]] = []
     for hop_index, (times, signal) in enumerate(hops):
@@ -6814,6 +7000,11 @@ def _mono_pcm_hop_episodes(
             dark,
             signal,
             cochlear_hops[hop_index] if COCHLEAR_EARS_AUTHORIZED else None,
+            articulated=(
+                articulatory_body_hops[hop_index]
+                if articulatory_body is not None
+                else None
+            ),
         )
         # The maximum causal interval is this app's declared ambient intake
         # window: transport contract authority, never derived from the

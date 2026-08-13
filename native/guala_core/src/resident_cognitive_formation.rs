@@ -20,6 +20,13 @@ use crate::auditory_receptor_work::{
     quantize_auditory_delivery, AuditoryReceptorAnatomy, AuditoryReceptorWorkError,
     COCHLEAR_BAND_PRESSURE_QUANTITY, COCHLEAR_REFERENCE_PRESSURE_UNIT,
 };
+use crate::articulatory_receptor_work::{
+    derive_articulatory_receptor_sample_range_work, quantize_articulatory_delivery,
+    ArticulatoryReceptorAnatomy, ArticulatoryReceptorWorkError,
+    ARTICULATORY_MECHANICAL_FRACTION_UNIT, LARYNGEAL_GLOTTAL_OPENING_QUANTITY,
+    ORAL_APERTURE_AREA_QUANTITY, PERIORAL_SKIN_DEFORMATION_QUANTITY,
+    RESPIRATORY_VOLUME_VELOCITY_QUANTITY,
+};
 use crate::chemical_receptor_work::{
     derive_chemical_receptor_sample_range_work, quantize_chemical_delivery,
     ChemicalReceptorAnatomy, ChemicalReceptorWorkError, GUSTATORY_CONTACT_CONCENTRATION_QUANTITY,
@@ -669,6 +676,9 @@ pub(crate) struct CognitiveFormationObservation {
     /// `complete_neuron_count`.
     pub(crate) resting_neuron_count: usize,
     pub(crate) physically_transitioned_neuron_count: usize,
+    /// Receptor cells on the body projection whose own exact local source
+    /// delivered nonzero gate work in this transition. Observation only.
+    pub(crate) externally_perturbed_body_receptor_count: usize,
     /// Reached layer-5 body receptors whose separated membrane charge changed
     /// during this transition's exact local recovery-fluid settlement. This
     /// is local causal evidence, never a projection of body-wide ledgers.
@@ -3529,6 +3539,24 @@ impl ResidentCognitiveFormationState {
                                                 .map_err(FormationError::ChemicalWorkUnavailable)?;
                                             settlement.transduced_energy_zeptojoules
                                         }
+                                        ReceptorLaw::ArticulatoryBody => {
+                                            let articulatory_anatomy =
+                                                exact_articulatory_receptor_anatomy(
+                                                    neuron_anatomy.gate_population(),
+                                                )?;
+                                            let settlement =
+                                                derive_articulatory_receptor_sample_range_work(
+                                                    source,
+                                                    perspective,
+                                                    &articulatory_anatomy,
+                                                    field_gate_interval.first_sev,
+                                                    field_gate_interval.last_sev,
+                                                )
+                                                .map_err(
+                                                    FormationError::ArticulatoryWorkUnavailable,
+                                                )?;
+                                            settlement.transduced_energy_zeptojoules
+                                        }
                                     };
                                     if !transduced_energy_zeptojoules.is_zero() {
                                         exogenous_receptor_energy = Some(true);
@@ -3602,6 +3630,12 @@ impl ResidentCognitiveFormationState {
                                             )
                                                 })?
                                         }
+                                            ReceptorLaw::ArticulatoryBody => population
+                                                .map_err(|error| {
+                                                    FormationError::ArticulatoryWorkUnavailable(
+                                                        error.into(),
+                                                    )
+                                                })?,
                                         }
                                     } else {
                                         match law {
@@ -3641,6 +3675,19 @@ impl ResidentCognitiveFormationState {
                                             window.window_cap_quanta,
                                         )
                                         .map_err(FormationError::ChemicalWorkUnavailable)?,
+                                        ReceptorLaw::ArticulatoryBody => {
+                                            quantize_articulatory_delivery(
+                                                &transduced_energy_zeptojoules,
+                                                predecessor_neuron.receptor_quantum_residue,
+                                                neuron_anatomy
+                                                    .gate_dissipation_quantum_zeptojoules(),
+                                                window.opening_threshold_quanta,
+                                                window.window_cap_quanta,
+                                            )
+                                            .map_err(
+                                                FormationError::ArticulatoryWorkUnavailable,
+                                            )?
+                                        }
                                         }
                                     };
                                     (
@@ -3995,6 +4042,20 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &newly_retained_mosaic_members,
         )?;
+        let externally_perturbed_body_receptor_count = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .neuron_lineages()
+                    .iter()
+                    .zip(cohort.anatomy.source_sites())
+            })
+            .filter(|(lineage, source)| {
+                source.sense() == PhysicalSourceSense::Body
+                    && externally_perturbed_neuron_lineages.contains(lineage)
+            })
+            .count();
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -4037,6 +4098,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_count,
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count,
+                externally_perturbed_body_receptor_count,
                 metabolically_perturbed_body_receptor_count:
                     metabolically_perturbed_body_receptor_lineages.len(),
                 complete_neuron_fractal_count,
@@ -4419,6 +4481,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_count: summary.complete_neuron_count,
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count: 0,
+                externally_perturbed_body_receptor_count: 0,
                 metabolically_perturbed_body_receptor_count: 0,
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
@@ -9980,6 +10043,25 @@ fn exact_chemical_receptor_anatomy(
     .map_err(FormationError::ChemicalWorkUnavailable)
 }
 
+/// Local articulatory mechanoreceptors use the organism's existing exact
+/// full-scale receptor-energy declaration. The source retains its distinct
+/// physical quantity and signed trajectory; only the material sensitivity is
+/// shared, so no fitted body coefficient is introduced.
+fn exact_articulatory_receptor_anatomy(
+    aperture_population: u128,
+) -> Result<ArticulatoryReceptorAnatomy, FormationError> {
+    if aperture_population == 0 {
+        return Err(FormationError::NoncanonicalState);
+    }
+    ArticulatoryReceptorAnatomy::new(
+        BigRational::from_integer(BigInt::from(4)),
+        BigRational::from_integer(BigInt::from(aperture_population)),
+        BigRational::new(BigInt::from(1), BigInt::from(2)),
+        BigRational::from_integer(BigInt::from(1)),
+    )
+    .map_err(FormationError::ArticulatoryWorkUnavailable)
+}
+
 /// Which mounted receptor law governs one occurrence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ReceptorLaw {
@@ -9987,6 +10069,7 @@ pub(crate) enum ReceptorLaw {
     Sound,
     Touch,
     Chemical,
+    ArticulatoryBody,
 }
 
 fn receptor_law_for_reached_coordinates(
@@ -10062,6 +10145,19 @@ fn receptor_law_for_ports(
     }) {
         return Some(ReceptorLaw::Chemical);
     }
+    if all_ports(|port| {
+        port.sense == PhysicalSourceSense::Body.declared_layer()
+            && matches!(
+                port.physical_quantity.as_str(),
+                RESPIRATORY_VOLUME_VELOCITY_QUANTITY
+                    | LARYNGEAL_GLOTTAL_OPENING_QUANTITY
+                    | ORAL_APERTURE_AREA_QUANTITY
+                    | PERIORAL_SKIN_DEFORMATION_QUANTITY
+            )
+            && port.physical_unit == ARTICULATORY_MECHANICAL_FRACTION_UNIT
+    }) {
+        return Some(ReceptorLaw::ArticulatoryBody);
+    }
     None
 }
 
@@ -10083,6 +10179,7 @@ pub(crate) enum FormationError {
     AuditoryWorkUnavailable(AuditoryReceptorWorkError),
     TactileWorkUnavailable(TactileReceptorWorkError),
     ChemicalWorkUnavailable(ChemicalReceptorWorkError),
+    ArticulatoryWorkUnavailable(ArticulatoryReceptorWorkError),
     PhysicalSettlementUnavailable(ReachedCohortError),
     ResidentElectricalUnavailable(SparseElectricalError),
     InternalMembraneUnavailable(MembraneChargeError),
@@ -10151,6 +10248,10 @@ impl fmt::Display for FormationError {
             Self::ChemicalWorkUnavailable(error) => {
                 write!(output, "exact chemical receptor work is unavailable: {error:?}")
             }
+            Self::ArticulatoryWorkUnavailable(error) => write!(
+                output,
+                "exact articulatory body receptor work is unavailable: {error:?}"
+            ),
             Self::PhysicalSettlementUnavailable(error) => {
                 write!(output, "resident physical neuron settlement is unavailable: {error:?}")
             }

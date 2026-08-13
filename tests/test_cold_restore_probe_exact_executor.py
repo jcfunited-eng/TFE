@@ -205,6 +205,7 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
                 token="heard",
                 physically_transitioned_neuron_count=2,
                 complete_neuron_fractal_count=1,
+                externally_perturbed_body_receptor_count=1,
             )
 
         def commit(self, token: str) -> None:
@@ -213,7 +214,18 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
     monkeypatch.setattr(
         probe,
         "exact_articulatory_unit_trajectory",
-        lambda **_kwargs: (16_000, (1, -1), 3, 80, 265, 0, 1, 0, 2),
+        lambda **_kwargs: (
+            16_000,
+            (1, -1),
+            b"\x01\x00\x00\x00" * 4,
+            3,
+            80,
+            265,
+            0,
+            1,
+            0,
+            2,
+        ),
     )
     observed_prefixes: list[str] = []
 

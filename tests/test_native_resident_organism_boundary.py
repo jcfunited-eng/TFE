@@ -32,6 +32,7 @@ class _NativeResidentOrganismObservation:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    externally_perturbed_body_receptor_count: int = 0
     physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
     ] = ()
@@ -145,6 +146,7 @@ class _NativeResidentOrganismPrepare:
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
+    externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         96,
         0,

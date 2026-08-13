@@ -703,6 +703,9 @@ if proof.get("native_articulation_cold_replay_exact") is not True:
 for name in (
     "layer_13_recruitment_count",
     "applied_motor_quanta",
+    "articulatory_body_port_count",
+    "articulatory_body_receptor_ingress_count",
+    "articulatory_body_perturbed_neuron_count",
     "peak_breath_flow_pcm",
     "glottal_open_samples_at_apex",
     "mouth_area_square_millimetres_at_apex",

@@ -444,6 +444,7 @@ def _rehearse_articulation_and_self_hearing(
     (
         sample_rate_hz,
         pressure_pcm,
+        articulatory_body_trajectories,
         peak_breath_flow_pcm,
         glottal_open_samples_at_apex,
         mouth_area_square_millimetres_at_apex,
@@ -463,16 +464,19 @@ def _rehearse_articulation_and_self_hearing(
 
     transitioned = 0
     fractals = 0
+    body_perturbed = 0
     hop_count = 0
     self_hearing_start_tick = organism.readiness().organism_tick
     for episode, admissions in _mono_pcm_hop_episodes(
         assembly_prefix=f"c020-cold-self-hearing-{self_hearing_start_tick}",
         samples=pressure_pcm,
         sample_rate_hz=sample_rate_hz,
+        articulatory_body=articulatory_body_trajectories,
     ):
         heard = organism.prepare_admitted(episode, admissions)
         transitioned += heard.physically_transitioned_neuron_count
         fractals += heard.complete_neuron_fractal_count
+        body_perturbed += heard.externally_perturbed_body_receptor_count
         organism.commit(heard.token)
         hop_count += 1
     return {
@@ -495,6 +499,9 @@ def _rehearse_articulation_and_self_hearing(
         "self_hearing_fractal_count": fractals,
         "self_hearing_hop_count": hop_count,
         "self_hearing_transitioned_neuron_count": transitioned,
+        "articulatory_body_port_count": 4,
+        "articulatory_body_receptor_ingress_count": 4 * hop_count,
+        "articulatory_body_perturbed_neuron_count": body_perturbed,
         "stalled_motor_quanta": stalled_motor_quanta,
     }
 

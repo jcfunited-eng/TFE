@@ -16,6 +16,7 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "partial_cue_reassembly_count": 1,
         "physically_transitioned_neuron_count": 2,
         "metabolically_perturbed_body_receptor_count": 0,
+        "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
     return {
@@ -214,6 +215,7 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     heard = _hop(12, ())
     heard["physically_transitioned_neuron_count"] = 4
     heard["complete_neuron_fractal_count"] = 1
+    heard["externally_perturbed_body_receptor_count"] = 4
     # The production boundary deliberately exposes no direct ``organism_tick``
     # method.  The exact committed hop already carries the causal tick used to
     # name its self-hearing occurrence.
@@ -259,6 +261,10 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     assert articulation["self_hearing_hop_count"] == 1
     assert articulation["self_hearing_transitioned_neuron_count"] == 4
     assert articulation["self_hearing_fractal_count"] == 1
+    assert articulation["articulatory_body_port_count"] == 4
+    assert articulation["articulatory_body_nonquiescent_port_count"] == 4
+    assert articulation["articulatory_body_receptor_ingress_count"] == 4
+    assert articulation["articulatory_body_perturbed_neuron_count"] == 4
     production._last_transition_evidence = {"articulation": None}
     retained_observation = production._articulation_record()
     assert retained_observation["available"] is True
@@ -285,6 +291,7 @@ def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
     heard = _hop(262, ())
     heard["physically_transitioned_neuron_count"] = 3
     heard["complete_neuron_fractal_count"] = 2
+    heard["externally_perturbed_body_receptor_count"] = 4
     organism = object()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
@@ -354,6 +361,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         endogenous_partial_cue_reassembly_count=0,
         physically_transitioned_neuron_count=2,
         metabolically_perturbed_body_receptor_count=0,
+        externally_perturbed_body_receptor_count=0,
         receptor_ingress_sense_counts=(0,) * len(production.SENSE_ORDER),
         receptor_ingress_changing_count=0,
         receptor_ingress_quiescent_count=0,

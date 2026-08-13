@@ -446,6 +446,7 @@ mod tests {
             complete_neuron_count: 4,
             resting_neuron_count: 0,
             physically_transitioned_neuron_count: 4,
+            externally_perturbed_body_receptor_count: 0,
             metabolically_perturbed_body_receptor_count: 0,
             complete_neuron_fractal_count: 4,
             emitted_neuron_fractals: Vec::new(),
