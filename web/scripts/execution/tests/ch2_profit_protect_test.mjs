@@ -1,7 +1,8 @@
 /**
  * Tests for the CH2 profit-protect floor (free-fall guard):
  *   1. UTZ 2026-07-21 replay — +90% peak ratchets a +60% floor
- *   2. Never engages below +25% (EXIT-A's winner-capping sin stays dead)
+ *   2. Never engages below +20% (EXIT-A's winner-capping sin stays dead;
+ *      engage lowered 25→20 on Joe's order 2026-08-13)
  *   3. Floor ratchets up with the peak, never down
  *   4. Garbage inputs never fire
  *
@@ -27,14 +28,14 @@ console.log("\n1. UTZ replay — the gain that started this");
   assert(profitProtectFloor(7.40, 14.08) > 7.40 * 1.5, "floor locks in well over +50%");
 }
 
-console.log("\n2. Never engages below +25%");
+console.log("\n2. Never engages below +20%");
 {
   assert(profitProtectFloor(100, 110) === null, "+10% → not engaged");
-  assert(profitProtectFloor(100, 124.9) === null, "+24.9% → not engaged");
-  const atEngage = profitProtectFloor(100, 125);
-  assert(atEngage !== null && Math.abs(atEngage - (100 * (1 + 0.25 * (1 - PROFIT_PROTECT_GIVEBACK)))) < 1e-9,
-    `+25% exactly → engaged, floor at +${(0.25 * (1 - PROFIT_PROTECT_GIVEBACK) * 100).toFixed(1)}%`);
-  assert(PROFIT_PROTECT_ENGAGE === 0.25, "engage threshold pinned at +25%");
+  assert(profitProtectFloor(100, 119.9) === null, "+19.9% → not engaged");
+  const atEngage = profitProtectFloor(100, 120.01);
+  assert(atEngage !== null && Math.abs(atEngage - (100 * (1 + 0.2001 * (1 - PROFIT_PROTECT_GIVEBACK)))) < 1e-6,
+    `just over +20% → engaged, floor at two-thirds of the gain`);
+  assert(PROFIT_PROTECT_ENGAGE === 0.20, "engage threshold pinned at +20% (Joe, 2026-08-13)");
 }
 
 console.log("\n3. Floor ratchets with the peak");

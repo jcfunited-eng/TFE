@@ -115,13 +115,15 @@ export function shouldCh3StallExit(entryFilledAt, plPct, nowMs = Date.now()) {
 }
 
 // ── CH2 profit protection (free-fall guard for big winners) ───────────────
-// Engages ONLY after +25% unrealized gain — normal positions are never
+// Engages ONLY after +20% unrealized gain — normal positions are never
 // touched, so EXIT-A's winner-capping sin (GL-BRIEF-039) stays dead. Tracks
 // the position's peak price (persisted in rationale_json across restarts)
 // and exits if price gives back more than a third of the peak gain: a +90%
 // peak ratchets a floor at +60%. 2026-07-21 UTZ sat at +90% ($2,204) with
 // zero resting orders and only the -10%-from-entry floor ($6.66) beneath it.
-export const PROFIT_PROTECT_ENGAGE   = 0.25;
+// 2026-08-13: engage lowered 0.25 -> 0.20 on Joe's explicit order ("anything
+// that goes over 20% ... stop profit gain loss rule"); giveback unchanged.
+export const PROFIT_PROTECT_ENGAGE   = 0.20;
 export const PROFIT_PROTECT_GIVEBACK = 1 / 3;
 export function profitProtectFloor(entryPrice, peakPrice) {
   if (!Number.isFinite(entryPrice) || !Number.isFinite(peakPrice)) return null;
@@ -1104,7 +1106,7 @@ export async function runSentinel() {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
 
-      // ── PROFIT PROTECT: free-fall guard (engages only above +25%) ────
+      // ── PROFIT PROTECT: free-fall guard (engages only above +20%) ────
       if (livePosEntry !== null && livePosPrice !== null) {
         const peakStored = parseFloat(pos.rationale_json?.peak_price ?? "") || 0;
         const peakNow = Math.max(peakStored, livePosPrice);
