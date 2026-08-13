@@ -5632,9 +5632,8 @@ mod tests {
         encode_reached_cohort_state_delta, encode_reached_cohort_state_v4,
         settle_reached_cohort_dark_rest, settle_reached_cohort_experience_to_quiescence,
         settle_reached_cohort_interval, settle_reached_cohort_membrane_pumps,
-        settle_reached_cohort_recurrence,
-        settle_reached_cohort_to_quiescence, ReachedCohortAnatomy, ReachedCohortIntervalInput,
-        ReachedCohortState,
+        settle_reached_cohort_recurrence, settle_reached_cohort_to_quiescence,
+        ReachedCohortAnatomy, ReachedCohortIntervalInput, ReachedCohortState,
     };
     use crate::recovery_fluid_contact::RecoveryFluidReservoirState;
     use crate::sparse_electrical_contact::{
@@ -6003,14 +6002,50 @@ mod tests {
             .sum::<u128>();
 
         let (successor, observation) =
-            settle_reached_cohort_membrane_pumps(&anatomy, &predecessor, &[1], 250_000)
-                .unwrap();
+            settle_reached_cohort_membrane_pumps(&anatomy, &predecessor, &[1], 250_000).unwrap();
 
         assert_eq!(successor.neurons()[0], predecessor_first);
         assert_ne!(successor.neurons()[1], predecessor_second);
         assert!(successor.neurons()[1].carrier_reservoirs().intracellular() > 0);
         assert!(observation.pumped_elementary_charges < 0);
         assert_eq!(observation.recovered_neuron_count, 1);
+        assert_eq!(observation.reached_neuron_count, 1);
+        assert_eq!(observation.changed_reached_neuron_count, 1);
+        assert_eq!(observation.unchanged_unreached_neuron_count, 1);
+        assert_eq!(observation.changed_unreached_neuron_count, 0);
+        assert_eq!(observation.localized_fluid_chemistry.len(), 1);
+        let local = observation.localized_fluid_chemistry[0];
+        assert_eq!(local.neuron_index, 1);
+        assert_eq!(local.predecessor_intracellular_carriers, 0);
+        assert_eq!(
+            local.predecessor_intracellular_carriers + local.predecessor_extracellular_carriers,
+            local.successor_intracellular_carriers + local.successor_extracellular_carriers
+        );
+        assert_eq!(
+            local.successor_intracellular_carriers as i128,
+            local.predecessor_intracellular_carriers as i128 - local.pumped_elementary_charges
+        );
+        assert_eq!(
+            local.successor_extracellular_carriers as i128,
+            local.predecessor_extracellular_carriers as i128 + local.pumped_elementary_charges
+        );
+        assert_eq!(
+            local.successor_reservoir.0,
+            local
+                .predecessor_reservoir
+                .0
+                .checked_sub(local.membrane_gradient_work_zeptojoules)
+                .unwrap()
+        );
+        assert_eq!(
+            local.successor_reservoir.1,
+            local
+                .predecessor_reservoir
+                .1
+                .checked_add(local.membrane_gradient_work_zeptojoules)
+                .unwrap()
+        );
+        assert_eq!(local.successor_reservoir.2, local.predecessor_reservoir.2);
         assert_eq!(successor.electrical(), predecessor.electrical());
         assert_eq!(
             successor

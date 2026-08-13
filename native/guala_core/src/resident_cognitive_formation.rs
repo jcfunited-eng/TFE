@@ -87,10 +87,10 @@ use crate::reached_neuron_cohort::{
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     settle_reached_cohort_dark_rest, settle_reached_cohort_interval,
     settle_reached_cohort_membrane_pumps, widen_reached_cohort_state_contacts,
-    ReachedCohortAnatomy, ReachedCohortEnergyState, ReachedCohortError, ReachedCohortIntervalInput,
-    ReachedCohortMetabolicObservation, ReachedCohortPostExperienceSettlement,
-    ReachedCohortRecurrenceSettlement, ReachedCohortState, ReachedNeuronGenesisCell,
-    ReachedNeuronMount, RestReachedCohortState,
+    LocalizedFluidChemistrySettlement, ReachedCohortAnatomy, ReachedCohortEnergyState,
+    ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
+    ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement, ReachedCohortState,
+    ReachedNeuronGenesisCell, ReachedNeuronMount, RestReachedCohortState,
 };
 use crate::receptor_quantum_delivery::{
     big_to_exact_rational, quantize_population_receptor_delivery,
@@ -512,8 +512,35 @@ pub(crate) struct AffectiveBalanceTrajectoryObservation {
     pub(crate) neuron_place: DeclaredNeuronPlace,
     pub(crate) association_influence: Option<TimedDirectedPhysicalTransferObservation>,
     pub(crate) body_influence: Option<TimedDirectedPhysicalTransferObservation>,
-    pub(crate) localized_gradient_settlement:
-        Option<LocalAffectiveGradientSettlementObservation>,
+    pub(crate) localized_gradient_settlement: Option<LocalAffectiveGradientSettlementObservation>,
+}
+
+/// One exact local recovery-fluid/membrane settlement mapped back to its
+/// stable resident neuron. The record is transient observation only; all
+/// causative state remains in the ordinary neuron and cohort reservoir.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct LocalizedFluidChemistryObservation {
+    pub(crate) cognitive_ordinal: u64,
+    pub(crate) neuron_lineage: [u8; 16],
+    pub(crate) neuron_place: DeclaredNeuronPlace,
+    pub(crate) interval_microseconds: u32,
+    pub(crate) pump_contact_power_zeptojoules_per_microsecond: ExactRational,
+    pub(crate) reached_neuron_count: usize,
+    pub(crate) changed_reached_neuron_count: usize,
+    pub(crate) unchanged_unreached_neuron_count: usize,
+    pub(crate) unchanged_developmental_resting_neuron_count: usize,
+    pub(crate) changed_unreached_neuron_count: usize,
+    pub(crate) predecessor_separated_elementary_charges: i128,
+    pub(crate) successor_separated_elementary_charges: i128,
+    pub(crate) predecessor_intracellular_carriers: u128,
+    pub(crate) predecessor_extracellular_carriers: u128,
+    pub(crate) successor_intracellular_carriers: u128,
+    pub(crate) successor_extracellular_carriers: u128,
+    pub(crate) predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) successor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) returned_elementary_charges: i128,
+    pub(crate) pumped_elementary_charges: i128,
+    pub(crate) membrane_gradient_work_zeptojoules: ExactRational,
 }
 
 impl OrderedPhysicalPathObservation {
@@ -650,13 +677,11 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
     pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
-    pub(crate) preceding_distinct_physical_frontier_routes:
-        Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) preceding_distinct_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     /// First exact route set in this bounded transaction containing both a
     /// transported and a zero-whole-carrier mounted alternative. This is a
     /// transient observation witness, not retained state or selection logic.
-    pub(crate) reached_and_foregone_physical_frontier_routes:
-        Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) reached_and_foregone_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     /// One exact adjacent-interval path whose intermediate neuron was reached
     /// only from the predecessor's retained whole-carrier frontier. This is a
     /// transient proof of immediate physical continuation, not retained
@@ -682,6 +707,9 @@ pub(crate) struct CognitiveFormationObservation {
     /// become emotion labels, scores, persisted histories, or settlement
     /// authority.
     pub(crate) affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
+    /// Exact per-target fluid/contact settlements from the already-reached
+    /// sparse frontier. No cohort aggregate may substitute for these records.
+    pub(crate) localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
     /// Transient connected frontiers among recurrent mosaics physically
     /// reached by this transition, with at least one fully reassembled. No
     /// relation object, count, hierarchy, or history is retained in the
@@ -1515,16 +1543,13 @@ fn working_causal_frontier_observation(
         .iter()
         .filter_map(|entry| entry.directed_transfer())
         .collect::<Vec<_>>();
-    predecessor.sort_unstable_by_key(|transfer| {
-        (transfer.receiver, transfer.sender, transfer.bond)
-    });
+    predecessor
+        .sort_unstable_by_key(|transfer| (transfer.receiver, transfer.sender, transfer.bond));
     let mut current = current_frontier
         .iter()
         .filter_map(|entry| entry.directed_transfer())
         .collect::<Vec<_>>();
-    current.sort_unstable_by_key(|transfer| {
-        (transfer.sender, transfer.receiver, transfer.bond)
-    });
+    current.sort_unstable_by_key(|transfer| (transfer.sender, transfer.receiver, transfer.bond));
 
     let continuation = predecessor.iter().find_map(|first| {
         if current_noncontinuation_seeds.contains(&first.receiver) {
@@ -1541,11 +1566,9 @@ fn working_causal_frontier_observation(
                 second: *second,
             })
     });
-    let settled = predecessor.iter().find(|first| {
-        !current
+    let settled = predecessor
             .iter()
-            .any(|second| second.sender == first.receiver)
-    });
+        .find(|first| !current.iter().any(|second| second.sender == first.receiver));
 
     (
         continuation.into_iter().collect(),
@@ -3816,8 +3839,7 @@ impl ResidentCognitiveFormationState {
         // as an external receptor without manufacturing gate work or reading
         // an organism-wide reservoir projection. Zero membrane difference
         // contributes no seed and therefore no invented signal.
-        let mut current_noncontinuation_seed_lineages =
-            externally_reached_neuron_lineages.clone();
+        let mut current_noncontinuation_seed_lineages = externally_reached_neuron_lineages.clone();
         for lineage in reached_association_lineages
             .iter()
             .chain(&reached_body_regulation_lineages)
@@ -3840,6 +3862,13 @@ impl ResidentCognitiveFormationState {
             &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
             source_generation,
+            resting_population
+                .as_ref()
+                .map(DevelopmentalRestingPopulation::resting_cell_count)
+                .map(usize::try_from)
+                .transpose()
+                .map_err(|_| FormationError::ArithmeticOverflow)?
+                .unwrap_or(0),
         )?;
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
         let (working_causal_continuations, settled_working_frontier) =
@@ -3993,9 +4022,8 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
                 active_physical_bonds: internal_contact.active_bonds,
-                reached_and_foregone_physical_frontier_routes: if has_reached_and_foregone_frontier_routes(
-                    &internal_contact.frontier_routes,
-                ) {
+                reached_and_foregone_physical_frontier_routes:
+                    if has_reached_and_foregone_frontier_routes(&internal_contact.frontier_routes) {
                     internal_contact.frontier_routes.clone()
                 } else {
                     Vec::new()
@@ -4006,8 +4034,8 @@ impl ResidentCognitiveFormationState {
                 settled_working_frontier,
                 physical_prediction_alternatives,
                 body_consequence_transfers,
-                affective_balance_trajectories: internal_contact
-                    .affective_balance_trajectories,
+                affective_balance_trajectories: internal_contact.affective_balance_trajectories,
+                localized_fluid_chemistry: internal_contact.localized_fluid_chemistry,
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
@@ -4382,6 +4410,7 @@ impl ResidentCognitiveFormationState {
                 physical_prediction_alternatives: Vec::new(),
                 body_consequence_transfers: Vec::new(),
                 affective_balance_trajectories: Vec::new(),
+                localized_fluid_chemistry: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
@@ -8333,12 +8362,13 @@ struct InternalContactSettlementObservation {
     next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
+    localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     transition_predecessors: Vec<TransitionNeuronPredecessor>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct ReachedLayerTenGradientSettlement {
     neuron_lineage: [u8; 16],
     neuron_place: DeclaredNeuronPlace,
@@ -8405,6 +8435,7 @@ fn settle_internal_contact_interval(
     externally_reached_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut Vec<[u8; 16]>,
     cognitive_ordinal: u64,
+    unchanged_developmental_resting_neuron_count: usize,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     if externally_reached_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
         return Ok(InternalContactSettlementObservation {
@@ -8414,6 +8445,7 @@ fn settle_internal_contact_interval(
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
+            localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
@@ -8540,6 +8572,7 @@ fn settle_internal_contact_interval(
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
+            localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
@@ -8577,6 +8610,7 @@ fn settle_internal_contact_interval(
             next_active_frontier: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
+            localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: Vec::new(),
@@ -8614,6 +8648,7 @@ fn settle_internal_contact_interval(
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     let mut metabolically_perturbed_body_receptor_lineages = Vec::new();
     let mut reached_layer_ten_gradient_settlements = Vec::new();
+    let mut localized_fluid_chemistry = Vec::new();
     for cohort_index in 0..cohorts.len() {
         let reached_indices = selected_predecessor_neurons[cohort_index]
             .iter()
@@ -8631,24 +8666,58 @@ fn settle_internal_contact_interval(
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
         if cohorts[cohort_index].anatomy.neuron_count() == 1
             && reached_indices.as_slice() == [0]
-            && cohorts[cohort_index].anatomy.mounts()[0]
-                .place()
-                .layer()
-                == 10
+            && cohorts[cohort_index].anatomy.mounts()[0].place().layer() == 10
         {
-            reached_layer_ten_gradient_settlements.push(
-                ReachedLayerTenGradientSettlement {
+            reached_layer_ten_gradient_settlements.push(ReachedLayerTenGradientSettlement {
                     neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[0],
                     neuron_place: cohorts[cohort_index].anatomy.mounts()[0].place(),
-                    predecessor_separated_elementary_charges: cohorts[cohort_index]
-                        .state
-                        .neurons()[0]
+                predecessor_separated_elementary_charges: cohorts[cohort_index].state.neurons()[0]
                         .separated_elementary_charges(),
                     post_gradient_separated_elementary_charges: successor.neurons()[0]
                         .separated_elementary_charges(),
-                    metabolic,
-                },
-            );
+                metabolic: metabolic.clone(),
+            });
+        }
+        for settlement in metabolic.localized_fluid_chemistry.iter().copied() {
+            let LocalizedFluidChemistrySettlement {
+                neuron_index,
+                interval_microseconds,
+                pump_contact_power_zeptojoules_per_microsecond,
+                predecessor_separated_elementary_charges,
+                successor_separated_elementary_charges,
+                predecessor_intracellular_carriers,
+                predecessor_extracellular_carriers,
+                successor_intracellular_carriers,
+                successor_extracellular_carriers,
+                predecessor_reservoir,
+                successor_reservoir,
+                returned_elementary_charges,
+                pumped_elementary_charges,
+                membrane_gradient_work_zeptojoules,
+            } = settlement;
+            localized_fluid_chemistry.push(LocalizedFluidChemistryObservation {
+                cognitive_ordinal,
+                neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[neuron_index],
+                neuron_place: cohorts[cohort_index].anatomy.mounts()[neuron_index].place(),
+                interval_microseconds,
+                pump_contact_power_zeptojoules_per_microsecond,
+                reached_neuron_count: metabolic.reached_neuron_count,
+                changed_reached_neuron_count: metabolic.changed_reached_neuron_count,
+                unchanged_unreached_neuron_count: metabolic.unchanged_unreached_neuron_count,
+                unchanged_developmental_resting_neuron_count,
+                changed_unreached_neuron_count: metabolic.changed_unreached_neuron_count,
+                predecessor_separated_elementary_charges,
+                successor_separated_elementary_charges,
+                predecessor_intracellular_carriers,
+                predecessor_extracellular_carriers,
+                successor_intracellular_carriers,
+                successor_extracellular_carriers,
+                predecessor_reservoir,
+                successor_reservoir,
+                returned_elementary_charges,
+                pumped_elementary_charges,
+                membrane_gradient_work_zeptojoules,
+            });
         }
         for (neuron_index, predecessor) in &selected_predecessor_neurons[cohort_index] {
             let mount = &cohorts[cohort_index].anatomy.mounts()[*neuron_index];
@@ -8664,6 +8733,19 @@ fn settle_internal_contact_interval(
             }
         }
         cohorts[cohort_index].state = successor;
+    }
+
+    // Settlement receives only the sorted reached indices and writes only
+    // those indices.  Derive the untouched active count from that sparse
+    // write boundary; do not rescan the organism after every interval.
+    let reached_organism_neuron_count = reached.iter().filter(|reached| **reached).count();
+    let unchanged_unreached_organism_neuron_count = flat_locations
+        .len()
+        .checked_sub(reached_organism_neuron_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    for settlement in &mut localized_fluid_chemistry {
+        settlement.unchanged_unreached_neuron_count = unchanged_unreached_organism_neuron_count;
+        settlement.changed_unreached_neuron_count = 0;
     }
 
     let mut capacitances = Vec::with_capacity(selected.len());
@@ -9152,8 +9234,7 @@ fn settle_internal_contact_interval(
             .iter()
             .find(|(_, _, lineage)| *lineage == gradient.neuron_lineage)
             .map(|(cohort_index, neuron_index, _)| {
-                cohorts[*cohort_index].state.neurons()[*neuron_index]
-                    .separated_elementary_charges()
+                cohorts[*cohort_index].state.neurons()[*neuron_index].separated_elementary_charges()
             })
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
         let mut association_influences = Vec::new();
@@ -9217,13 +9298,9 @@ fn settle_internal_contact_interval(
                     post_gradient_separated_elementary_charges: gradient
                         .post_gradient_separated_elementary_charges,
                     interval_successor_separated_elementary_charges,
-                    returned_elementary_charges: gradient
-                        .metabolic
-                        .returned_elementary_charges,
+                    returned_elementary_charges: gradient.metabolic.returned_elementary_charges,
                     pumped_elementary_charges: gradient.metabolic.pumped_elementary_charges,
-                    unreturned_elementary_charges: gradient
-                        .metabolic
-                        .unreturned_elementary_charges,
+                    unreturned_elementary_charges: gradient.metabolic.unreturned_elementary_charges,
                     membrane_gradient_work_zeptojoules: gradient
                         .metabolic
                         .membrane_gradient_work_zeptojoules,
@@ -9238,6 +9315,21 @@ fn settle_internal_contact_interval(
         });
     }
     affective_balance_trajectories.sort_unstable_by_key(|entry| entry.neuron_lineage);
+    localized_fluid_chemistry.sort_unstable_by_key(|entry| entry.neuron_lineage);
+    if localized_fluid_chemistry.len() > 1 {
+        let selected = localized_fluid_chemistry
+            .iter()
+            .find(|entry| {
+                entry.unchanged_unreached_neuron_count != 0
+                    || entry.unchanged_developmental_resting_neuron_count != 0
+            })
+            .or_else(|| localized_fluid_chemistry.first())
+            .copied();
+        localized_fluid_chemistry.clear();
+        if let Some(selected) = selected {
+            localized_fluid_chemistry.push(selected);
+        }
+    }
     let mut active_bonds = settled
         .transitions
         .iter()
@@ -9276,8 +9368,7 @@ fn settle_internal_contact_interval(
             )
         };
         let (seed_cohort, seed_neuron, seed_lineage) = flat_locations[seed_flat];
-        let (adjacent_cohort, adjacent_neuron, adjacent_lineage) =
-            flat_locations[adjacent_flat];
+        let (adjacent_cohort, adjacent_neuron, adjacent_lineage) = flat_locations[adjacent_flat];
         frontier_routes.push(PhysicalFrontierRouteObservation {
             seed_lineage,
             seed_place: cohorts[seed_cohort].anatomy.mounts()[seed_neuron].place(),
@@ -9336,6 +9427,7 @@ fn settle_internal_contact_interval(
         next_active_frontier,
         metabolically_perturbed_body_receptor_lineages,
         affective_balance_trajectories,
+        localized_fluid_chemistry,
         motor_unit_recruitments,
         emitted_neuron_fractals,
         transition_predecessors,
@@ -11533,12 +11625,8 @@ mod tests {
         let lineage = state.cohorts[0].anatomy.neuron_lineages()[0];
         let mut emitted = Vec::new();
         for source_tick in 1..=(DARK_TAIL_EPISODES * 4) {
-            let reached = settle_reached_vestibular_bundle_tick(
-                canal_anatomy,
-                canal,
-                0,
-                bundle_anatomy,
-            )
+            let reached =
+                settle_reached_vestibular_bundle_tick(canal_anatomy, canal, 0, bundle_anatomy)
             .unwrap();
             canal = reached.successor_canal;
             let resting_ingress = prepare_resident_vestibular_ingress(
@@ -12166,20 +12254,10 @@ mod tests {
         assert_ne!(mosaics[0].mosaic.partial_cue_lineages(), prior_cue);
         assert_eq!(mosaics[0].mosaic.partial_cue_lineages(), changed_cue);
 
-        let altered_bytes = encode_retained_organism_mosaic(
-            &cohorts,
-            &fabric,
-            &mosaics[0],
-            16_000_000,
-        )
-        .unwrap();
-        let altered_cold = decode_retained_organism_mosaic(
-            &cohorts,
-            &fabric,
-            &altered_bytes,
-            16_000_000,
-        )
-        .unwrap();
+        let altered_bytes =
+            encode_retained_organism_mosaic(&cohorts, &fabric, &mosaics[0], 16_000_000).unwrap();
+        let altered_cold =
+            decode_retained_organism_mosaic(&cohorts, &fabric, &altered_bytes, 16_000_000).unwrap();
         assert_eq!(altered_cold, mosaics[0]);
 
         let second_fractal =
@@ -12743,12 +12821,7 @@ mod tests {
                 .prepare_vestibular_transition(&ingress, 16_000_000)
                 .unwrap();
             if !vestibular.observation.physical_frontier_routes.is_empty() {
-                frontier_route_sets.push(
-                    vestibular
-                        .observation
-                        .physical_frontier_routes
-                        .clone(),
-                );
+                frontier_route_sets.push(vestibular.observation.physical_frontier_routes.clone());
             }
             state = vestibular.successor;
         }
@@ -12792,13 +12865,17 @@ mod tests {
         assert!(layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert_eq!(motor_recruitments, 1);
         assert!(frontier_route_sets.iter().any(|routes| routes.len() > 1));
-        assert!(frontier_route_sets.iter().flatten().any(|route| {
-            route.outward_whole_carriers_from_seed() == 0
-        }));
-        assert!(frontier_route_sets.iter().flatten().any(|route| {
-            route.outward_whole_carriers_from_seed() > 0
-        }));
-        assert!(frontier_route_sets.windows(2).any(|pair| pair[0] != pair[1]));
+        assert!(frontier_route_sets
+            .iter()
+            .flatten()
+            .any(|route| { route.outward_whole_carriers_from_seed() == 0 }));
+        assert!(frontier_route_sets
+            .iter()
+            .flatten()
+            .any(|route| { route.outward_whole_carriers_from_seed() > 0 }));
+        assert!(frontier_route_sets
+            .windows(2)
+            .any(|pair| pair[0] != pair[1]));
         assert!(repeated_optical_frontier_route_sets
             .windows(2)
             .any(|pair| pair[0] != pair[1]));
@@ -12994,11 +13071,9 @@ mod tests {
         let second_bond = StablePhysicalBondReference::new(via, last, 0).unwrap();
         let predecessor =
             [ActiveElectricalFrontierEntry::caused(first, via, first_bond, 7).unwrap()];
-        let current =
-            [ActiveElectricalFrontierEntry::caused(via, last, second_bond, 5).unwrap()];
+        let current = [ActiveElectricalFrontierEntry::caused(via, last, second_bond, 5).unwrap()];
 
-        let (continued, settled) =
-            working_causal_frontier_observation(&predecessor, &current, &[]);
+        let (continued, settled) = working_causal_frontier_observation(&predecessor, &current, &[]);
         assert_eq!(continued.len(), 1);
         assert_eq!(
             continued[0].directed_transfers(),
@@ -13018,8 +13093,7 @@ mod tests {
 
         // With no onward whole-carrier transfer, the predecessor cause loses
         // propagation authority after exactly this adjacent interval.
-        let (continued, settled) =
-            working_causal_frontier_observation(&predecessor, &[], &[]);
+        let (continued, settled) = working_causal_frontier_observation(&predecessor, &[], &[]);
         assert!(continued.is_empty());
         assert_eq!(settled.len(), 1);
         assert_eq!(
@@ -13035,8 +13109,7 @@ mod tests {
         // Historical receiver-only frontier entries can propagate physically
         // but cannot be promoted into directed causal evidence.
         let legacy = [ActiveElectricalFrontierEntry::legacy_receiver(via)];
-        let (continued, settled) =
-            working_causal_frontier_observation(&legacy, &current, &[]);
+        let (continued, settled) = working_causal_frontier_observation(&legacy, &current, &[]);
         assert!(continued.is_empty());
         assert!(settled.is_empty());
     }
@@ -13138,13 +13211,16 @@ mod tests {
         let third = [3_u8; 16];
         let first_bond = StablePhysicalBondReference::new(first, second, 0).unwrap();
         let second_bond = StablePhysicalBondReference::new(second, third, 0).unwrap();
-        let oldest = [ActiveElectricalFrontierEntry::caused(
+        let oldest =
+            [
+                ActiveElectricalFrontierEntry::caused(
             first,
             first_bond.endpoints().1,
             first_bond,
             7,
         )
-        .unwrap()];
+                .unwrap(),
+            ];
         let older = [ActiveElectricalFrontierEntry::caused(second, third, second_bond, 5).unwrap()];
         let preceding =
             [ActiveElectricalFrontierEntry::caused(first, second, first_bond, 9).unwrap()];

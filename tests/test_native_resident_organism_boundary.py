@@ -72,6 +72,7 @@ class _NativeResidentOrganismObservation:
         ],
         ...,
     ] = ()
+    localized_fluid_chemistry: tuple[tuple[object, ...], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -174,6 +175,7 @@ class _NativeResidentOrganismPrepare:
     ] | None = None
     body_consequence_transfers: list[tuple[str, str, int, str]] | None = None
     affective_balance_trajectories: list[tuple[object, ...]] | None = None
+    localized_fluid_chemistry: list[tuple[object, ...]] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -216,6 +218,8 @@ class _NativeResidentOrganismPrepare:
             self.body_consequence_transfers = []
         if self.affective_balance_trajectories is None:
             self.affective_balance_trajectories = []
+        if self.localized_fluid_chemistry is None:
+            self.localized_fluid_chemistry = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
 

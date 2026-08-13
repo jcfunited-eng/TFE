@@ -41,6 +41,7 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "physical_prediction_alternatives": (),
         "body_consequence_transfers": (),
         "affective_balance_trajectories": (),
+        "localized_fluid_chemistry": (),
         "organic_mosaic_relations": relations,
         "state_sha256": f"{tick:064x}",
     }
@@ -225,6 +226,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         physical_prediction_alternatives=(),
         body_consequence_transfers=(),
         affective_balance_trajectories=(),
+        localized_fluid_chemistry=(),
         organic_mosaic_relations=((receipts, (), (bond,), "33" * 32, (), ()),),
         recurrent_complete_neuron_fractal_count=2,
     )

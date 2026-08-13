@@ -41,6 +41,19 @@ AffectiveBalanceTrajectoryEvidence = tuple[
     TimedDirectedPhysicalTransferEvidence | None,
     LocalAffectiveGradientSettlementEvidence | None,
 ]
+LocalizedFluidChemistryEvidence = tuple[
+    str,
+    int,
+    int,
+    int,
+    tuple[int, ExactRationalEvidence, int, int, int, int, int],
+    tuple[int, int, int, int, int, int, int, int],
+    tuple[
+        tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+        tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+        ExactRationalEvidence,
+    ],
+]
 
 _FACTORY_AUTHORITY = object()
 
@@ -188,6 +201,9 @@ class NativeResidentObservationView(Protocol):
             | None,
         ]
     ]: ...
+
+    @property
+    def localized_fluid_chemistry(self) -> list[tuple[object, ...]]: ...
 
     @property
     def organic_mosaic_relations(
@@ -350,6 +366,7 @@ class ResidentPrepareEvidence:
     affective_balance_trajectories: tuple[
         AffectiveBalanceTrajectoryEvidence, ...
     ] = ()
+    localized_fluid_chemistry: tuple[LocalizedFluidChemistryEvidence, ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -412,6 +429,17 @@ def _positive_decimal_integer(value: object, label: str) -> int:
         or value[0] == "0"
     ):
         raise RuntimeError(f"resident organism {label} is not a positive exact integer")
+    return int(value)
+
+
+def _nonnegative_decimal_integer(value: object, label: str) -> int:
+    if (
+        not isinstance(value, str)
+        or not value
+        or any(character not in "0123456789" for character in value)
+        or (len(value) > 1 and value[0] == "0")
+    ):
+        raise RuntimeError(f"resident organism {label} is not a nonnegative exact integer")
     return int(value)
 
 
@@ -669,6 +697,84 @@ def _affective_balance_trajectory_evidence(
     return tuple(trajectories)
 
 
+def _localized_fluid_chemistry_evidence(
+    value: object,
+) -> tuple[LocalizedFluidChemistryEvidence, ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism localized fluid chemistry changed format")
+    settlements: list[LocalizedFluidChemistryEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError("resident organism localized fluid chemistry changed format")
+        lineage = _canonical_lineage_hex(raw[0], "localized fluid target lineage")
+        layer = _nonnegative_integer(raw[1], "localized fluid target layer")
+        topology = _nonnegative_integer(raw[2], "localized fluid target topology")
+        ordinal = _positive_integer(raw[3], "localized fluid cognitive ordinal")
+        contact = raw[4]
+        carrier = raw[5]
+        reservoir = raw[6]
+        if not isinstance(contact, tuple) or len(contact) != 7:
+            raise RuntimeError("resident organism localized fluid contact changed format")
+        contact_evidence = (
+            _positive_integer(contact[0], "localized fluid interval"),
+            _exact_rational_evidence(contact[1], "localized fluid contact power"),
+            _positive_integer(contact[2], "localized fluid reached count"),
+            _positive_integer(contact[3], "localized fluid changed reached count"),
+            _nonnegative_integer(contact[4], "localized fluid unchanged unreached count"),
+            _nonnegative_integer(
+                contact[5], "localized fluid unchanged developmental resting count"
+            ),
+            _nonnegative_integer(contact[6], "localized fluid changed unreached count"),
+        )
+        if contact_evidence[3] > contact_evidence[2] or contact_evidence[6] != 0:
+            raise RuntimeError("resident organism localized fluid locality was not preserved")
+        if not isinstance(carrier, tuple) or len(carrier) != 8:
+            raise RuntimeError("resident organism localized fluid carrier changed format")
+        carrier_evidence = (
+            _signed_integer(carrier[0], "localized fluid predecessor charge"),
+            _signed_integer(carrier[1], "localized fluid successor charge"),
+            _nonnegative_decimal_integer(carrier[2], "localized fluid predecessor intracellular"),
+            _nonnegative_decimal_integer(carrier[3], "localized fluid predecessor extracellular"),
+            _nonnegative_decimal_integer(carrier[4], "localized fluid successor intracellular"),
+            _nonnegative_decimal_integer(carrier[5], "localized fluid successor extracellular"),
+            _signed_integer(carrier[6], "localized fluid returned carriers"),
+            _signed_integer(carrier[7], "localized fluid pumped carriers"),
+        )
+        if carrier_evidence[2] + carrier_evidence[3] != carrier_evidence[4] + carrier_evidence[5]:
+            raise RuntimeError("resident organism localized fluid carrier material changed")
+        if not isinstance(reservoir, tuple) or len(reservoir) != 3:
+            raise RuntimeError("resident organism localized fluid reservoir changed format")
+        reservoir_states: list[
+            tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence]
+        ] = []
+        for index, state in enumerate(reservoir[:2]):
+            if not isinstance(state, tuple) or len(state) != 3:
+                raise RuntimeError("resident organism localized fluid reservoir changed format")
+            reservoir_states.append(
+                (
+                    _exact_rational_evidence(state[0], f"localized fluid reservoir {index} available"),
+                    _exact_rational_evidence(state[1], f"localized fluid reservoir {index} spent"),
+                    _exact_rational_evidence(state[2], f"localized fluid reservoir {index} thermal"),
+                )
+            )
+        settlements.append(
+            (
+                lineage,
+                layer,
+                topology,
+                ordinal,
+                contact_evidence,
+                carrier_evidence,
+                (
+                    reservoir_states[0],
+                    reservoir_states[1],
+                    _exact_rational_evidence(reservoir[2], "localized fluid gradient work"),
+                ),
+            )
+        )
+    return tuple(settlements)
+
+
 def _validated_causal_intervals(
     maximum_causal_intervals: object,
 ) -> list[tuple[int, int]]:
@@ -772,6 +878,7 @@ def _observation_signature(
         tuple(observation.physical_prediction_alternatives),
         tuple(observation.body_consequence_transfers),
         tuple(observation.affective_balance_trajectories),
+        tuple(observation.localized_fluid_chemistry),
         tuple(
             (
                 tuple(receipts),
@@ -1398,6 +1505,9 @@ class NativeResidentOrganism:
         affective_balance_trajectories = _affective_balance_trajectory_evidence(
             candidate.affective_balance_trajectories
         )
+        localized_fluid_chemistry = _localized_fluid_chemistry_evidence(
+            candidate.localized_fluid_chemistry
+        )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -1764,6 +1874,7 @@ class NativeResidentOrganism:
             physical_prediction_alternatives=physical_prediction_alternatives,
             body_consequence_transfers=body_consequence_transfers,
             affective_balance_trajectories=affective_balance_trajectories,
+            localized_fluid_chemistry=localized_fluid_chemistry,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 

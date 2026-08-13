@@ -2102,6 +2102,24 @@ pub(crate) struct ReachedCohortRecurrenceSettlement {
 /// What the metabolic loops did to one cohort in one settlement — reported
 /// exactly, including the demand the body could NOT meet.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct LocalizedFluidChemistrySettlement {
+    pub(crate) neuron_index: usize,
+    pub(crate) interval_microseconds: u32,
+    pub(crate) pump_contact_power_zeptojoules_per_microsecond: ExactRational,
+    pub(crate) predecessor_separated_elementary_charges: i128,
+    pub(crate) successor_separated_elementary_charges: i128,
+    pub(crate) predecessor_intracellular_carriers: u128,
+    pub(crate) predecessor_extracellular_carriers: u128,
+    pub(crate) successor_intracellular_carriers: u128,
+    pub(crate) successor_extracellular_carriers: u128,
+    pub(crate) predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) successor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) returned_elementary_charges: i128,
+    pub(crate) pumped_elementary_charges: i128,
+    pub(crate) membrane_gradient_work_zeptojoules: ExactRational,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ReachedCohortMetabolicObservation {
     pub(crate) recovered_neuron_count: usize,
     pub(crate) drained_dissipation_quanta: u128,
@@ -2113,6 +2131,11 @@ pub(crate) struct ReachedCohortMetabolicObservation {
     pub(crate) membrane_gradient_work_zeptojoules: ExactRational,
     pub(crate) environment_energy_delivered_zeptojoules: ExactRational,
     pub(crate) environment_heat_exported_zeptojoules: ExactRational,
+    pub(crate) reached_neuron_count: usize,
+    pub(crate) changed_reached_neuron_count: usize,
+    pub(crate) unchanged_unreached_neuron_count: usize,
+    pub(crate) changed_unreached_neuron_count: usize,
+    pub(crate) localized_fluid_chemistry: Vec<LocalizedFluidChemistrySettlement>,
 }
 
 impl Default for ReachedCohortMetabolicObservation {
@@ -2128,6 +2151,11 @@ impl Default for ReachedCohortMetabolicObservation {
             membrane_gradient_work_zeptojoules: ExactRational::integer(0),
             environment_energy_delivered_zeptojoules: ExactRational::integer(0),
             environment_heat_exported_zeptojoules: ExactRational::integer(0),
+            reached_neuron_count: 0,
+            changed_reached_neuron_count: 0,
+            unchanged_unreached_neuron_count: 0,
+            changed_unreached_neuron_count: 0,
+            localized_fluid_chemistry: Vec::new(),
         }
     }
 }
@@ -2179,15 +2207,15 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
                         error,
                     })?,
             )
-            .map_err(|_| ReachedCohortError::MaterialArithmetic(
-                "reached pump power sum overflow",
-            ))?;
+            .map_err(|_| {
+                ReachedCohortError::MaterialArithmetic("reached pump power sum overflow")
+            })?;
     }
     let maximum_interval_energy = maximum_power
         .checked_mul_unsigned(u128::from(interval_microseconds))
-        .map_err(|_| ReachedCohortError::MaterialArithmetic(
-            "reached pump interval energy overflow",
-        ))?;
+        .map_err(|_| {
+            ReachedCohortError::MaterialArithmetic("reached pump interval energy overflow")
+        })?;
     let environment = settle_powered_environment_exchange(
         anatomy.recovery_fluid.reservoir_anatomy(),
         predecessor.recovery_fluid,
@@ -2199,15 +2227,29 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
     let mut observation = ReachedCohortMetabolicObservation {
         environment_energy_delivered_zeptojoules: environment.delivered_energy_zeptojoules,
         environment_heat_exported_zeptojoules: environment.exported_heat_zeptojoules,
+        reached_neuron_count: reached_neuron_indices.len(),
+        unchanged_unreached_neuron_count: anatomy
+            .neurons
+            .len()
+            .checked_sub(reached_neuron_indices.len())
+            .ok_or(ReachedCohortError::AnatomyStateWidth)?,
         ..ReachedCohortMetabolicObservation::default()
     };
     for neuron_index in reached_neuron_indices.iter().copied() {
+        let predecessor_neuron = neurons[neuron_index].clone();
+        let predecessor_reservoir = reservoir;
+        let pump_contact_power_zeptojoules_per_microsecond = anatomy.neurons[neuron_index]
+            .pump_contact_power_zeptojoules_per_microsecond()
+            .map_err(|error| ReachedCohortError::Neuron {
+                neuron_index,
+                error,
+            })?;
         let (successor, successor_reservoir, returned, pumped, pump_work) =
             settle_membrane_gradient_transport(
                 &anatomy.neurons[neuron_index],
-                &neurons[neuron_index],
+                &predecessor_neuron,
                 anatomy.recovery_fluid.reservoir_anatomy(),
-                reservoir,
+                predecessor_reservoir,
                 interval_microseconds,
             )?;
         observation.returned_elementary_charges = observation
@@ -2225,9 +2267,9 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         observation.membrane_gradient_work_zeptojoules = observation
             .membrane_gradient_work_zeptojoules
             .checked_add(pump_work)
-            .map_err(|_| ReachedCohortError::MaterialArithmetic(
-                "reached pump work sum overflow",
-            ))?;
+            .map_err(|_| {
+                ReachedCohortError::MaterialArithmetic("reached pump work sum overflow")
+            })?;
         observation.unreturned_elementary_charges = observation
             .unreturned_elementary_charges
             .checked_add(successor.separated_elementary_charges())
@@ -2241,6 +2283,92 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
                 .ok_or(ReachedCohortError::MaterialArithmetic(
                     "reached pump changed-neuron count overflow",
                 ))?;
+            observation.changed_reached_neuron_count = observation
+                .changed_reached_neuron_count
+                .checked_add(1)
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached pump local changed-neuron count overflow",
+                ))?;
+            let predecessor_carriers = predecessor_neuron.carrier_reservoirs();
+            let successor_carriers = successor.carrier_reservoirs();
+            if predecessor_carriers
+                .total()
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "local predecessor carrier overflow",
+                ))?
+                != successor_carriers
+                    .total()
+                    .ok_or(ReachedCohortError::MaterialArithmetic(
+                        "local successor carrier overflow",
+                    ))?
+            {
+                return Err(ReachedCohortError::MaterialArithmetic(
+                    "local pump carrier material changed",
+                ));
+            }
+            let predecessor_reservoir_parts = predecessor_reservoir.physical_parts();
+            let successor_reservoir_parts = successor_reservoir.physical_parts();
+            let zero = ExactRational::integer(0);
+            let available_delta = successor_reservoir_parts
+                .0
+                .checked_sub(predecessor_reservoir_parts.0)
+                .map_err(|_| {
+                    ReachedCohortError::MaterialArithmetic(
+                        "local pump available-energy delta overflow",
+                    )
+                })?;
+            let spent_delta = successor_reservoir_parts
+                .1
+                .checked_sub(predecessor_reservoir_parts.1)
+                .map_err(|_| {
+                    ReachedCohortError::MaterialArithmetic("local pump spent-energy delta overflow")
+                })?;
+            let thermal_delta = successor_reservoir_parts
+                .2
+                .checked_sub(predecessor_reservoir_parts.2)
+                .map_err(|_| {
+                    ReachedCohortError::MaterialArithmetic(
+                        "local pump thermal-energy delta overflow",
+                    )
+                })?;
+            let active_conserved = pumped != 0
+                && returned == 0
+                && available_delta
+                    == pump_work.checked_neg().map_err(|_| {
+                        ReachedCohortError::MaterialArithmetic("local pump work negation overflow")
+                    })?
+                && spent_delta == pump_work
+                && thermal_delta == zero;
+            let passive_conserved = returned != 0
+                && pumped == 0
+                && available_delta == zero
+                && spent_delta == zero
+                && thermal_delta == pump_work;
+            if !active_conserved && !passive_conserved {
+                return Err(ReachedCohortError::MaterialArithmetic(
+                    "local pump energy was not exactly conserved",
+                ));
+            }
+            observation
+                .localized_fluid_chemistry
+                .push(LocalizedFluidChemistrySettlement {
+                    neuron_index,
+                    interval_microseconds,
+                    pump_contact_power_zeptojoules_per_microsecond,
+                    predecessor_separated_elementary_charges: predecessor_neuron
+                        .separated_elementary_charges(),
+                    successor_separated_elementary_charges: successor
+                        .separated_elementary_charges(),
+                    predecessor_intracellular_carriers: predecessor_carriers.intracellular(),
+                    predecessor_extracellular_carriers: predecessor_carriers.extracellular(),
+                    successor_intracellular_carriers: successor_carriers.intracellular(),
+                    successor_extracellular_carriers: successor_carriers.extracellular(),
+                    predecessor_reservoir: predecessor_reservoir_parts,
+                    successor_reservoir: successor_reservoir_parts,
+                    returned_elementary_charges: returned,
+                    pumped_elementary_charges: pumped,
+                    membrane_gradient_work_zeptojoules: pump_work,
+                });
         }
         neurons[neuron_index] = successor;
         reservoir = successor_reservoir;
@@ -2294,17 +2422,15 @@ pub(crate) fn settle_reached_cohort_dark_rest(
                 neuron_index,
                 error,
             })?;
-        contact_rate = contact_rate
-            .checked_add(local_rate)
-            .map_err(|_| ReachedCohortError::MaterialArithmetic(
-                "dark-rest pump power sum overflow",
-            ))?;
+        contact_rate = contact_rate.checked_add(local_rate).map_err(|_| {
+            ReachedCohortError::MaterialArithmetic("dark-rest pump power sum overflow")
+        })?;
     }
     let maximum_interval_energy = contact_rate
         .checked_mul_unsigned(u128::from(interval_microseconds))
-        .map_err(|_| ReachedCohortError::MaterialArithmetic(
-            "dark-rest interval energy overflow",
-        ))?;
+        .map_err(|_| {
+            ReachedCohortError::MaterialArithmetic("dark-rest interval energy overflow")
+        })?;
     let environment = settle_powered_environment_exchange(
         anatomy.recovery_fluid.reservoir_anatomy(),
         predecessor.recovery_fluid,
@@ -2361,9 +2487,9 @@ pub(crate) fn settle_reached_cohort_dark_rest(
         observation.membrane_gradient_work_zeptojoules = observation
             .membrane_gradient_work_zeptojoules
             .checked_add(settled.pump_work_zeptojoules)
-            .map_err(|_| ReachedCohortError::MaterialArithmetic(
-                "dark-rest pump work sum overflow",
-            ))?;
+            .map_err(|_| {
+                ReachedCohortError::MaterialArithmetic("dark-rest pump work sum overflow")
+            })?;
         if settled.changed() {
             observation.recovered_neuron_count = observation
                 .recovered_neuron_count
@@ -2835,14 +2961,11 @@ pub(crate) fn settle_reached_cohort_recurrence(
 fn total_carrier_material(neurons: &[NeuronPhysicalState]) -> Result<u128, ReachedCohortError> {
     neurons.iter().try_fold(0_u128, |total, neuron| {
         total
-            .checked_add(
-                neuron
-                    .carrier_reservoirs()
-                    .total()
-                    .ok_or(ReachedCohortError::MaterialArithmetic(
+            .checked_add(neuron.carrier_reservoirs().total().ok_or(
+                ReachedCohortError::MaterialArithmetic(
                         "one neuron's carrier compartments overflow",
-                    ))?,
-            )
+                ),
+            )?)
             .ok_or(ReachedCohortError::MaterialArithmetic(
                 "cohort carrier-material sum overflow",
             ))

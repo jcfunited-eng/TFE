@@ -63,25 +63,24 @@ pub(super) fn parse_envelope(bytes: &[u8]) -> (u64, Vec<u8>) {
     let mut fc = 0usize;
     let fabric_magic = take(fabric, &mut fc, 8);
     assert!(
-        fabric_magic == PRE_VESTIBULAR_FABRIC_MAGIC
-            || fabric_magic == CURRENT_FABRIC_MAGIC,
+        fabric_magic == PRE_VESTIBULAR_FABRIC_MAGIC || fabric_magic == CURRENT_FABRIC_MAGIC,
         "fabric magic"
     );
     let fabric_version = take_u16(fabric, &mut fc);
     assert_eq!(
         fabric_version,
-        if fabric_magic == CURRENT_FABRIC_MAGIC { 8 } else { 7 },
+        if fabric_magic == CURRENT_FABRIC_MAGIC {
+            8
+        } else {
+            7
+        },
         "fabric version"
     );
     let _generation = take_u64(fabric, &mut fc);
     let joint_len = take_u32(fabric, &mut fc) as usize;
     let cognitive_len = take_u32(fabric, &mut fc) as usize;
     if fabric_magic == CURRENT_FABRIC_MAGIC {
-        let _vestibular_anatomy = take(
-            fabric,
-            &mut fc,
-            FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
-        );
+        let _vestibular_anatomy = take(fabric, &mut fc, FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES);
         let _canal_state = take(fabric, &mut fc, CANAL_STATE_BYTES);
         let _vestibular_source_tick = take_u64(fabric, &mut fc);
     }
@@ -497,12 +496,18 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         })
         .collect::<Vec<_>>();
     let mut changed = Vec::new();
+    let unchanged_developmental_resting_neuron_count = successor
+        .resting_population
+        .as_ref()
+        .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
+        .unwrap_or(0);
     let observation = super::settle_internal_contact_interval(
         &mut successor.cohorts,
         &mut successor.electrical_fabric,
         &externally_reached,
         &mut changed,
         successor.generation,
+        unchanged_developmental_resting_neuron_count,
     )
     .expect("maximal external frontier settles");
     let pending_post_quiescence_candidates = successor
@@ -616,9 +621,9 @@ fn reservoir_probe_dump() {
                     let left_lineage = state.electrical_fabric.lineages()[left];
                     let right_lineage = state.electrical_fabric.lineages()[right];
                     let layer = |lineage| {
-                        mounted
-                            .iter()
-                            .find_map(|(candidate, layer)| (*candidate == lineage).then_some(*layer))
+                        mounted.iter().find_map(|(candidate, layer)| {
+                            (*candidate == lineage).then_some(*layer)
+                        })
                     };
                     let lineage_hex = |lineage: [u8; 16]| {
                         lineage

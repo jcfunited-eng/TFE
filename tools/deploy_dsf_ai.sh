@@ -710,10 +710,26 @@ if not isinstance(complete, int) or isinstance(complete, bool) or complete <= 0:
     raise SystemExit("C-017 rehearsal produced no complete physical trajectory")
 if proof.get("affective_balance_cold_replay_exact") is not True:
     raise SystemExit("C-017 rehearsal did not cold-replay exactly")
+localized_count = proof.get("localized_fluid_chemistry_count")
+localized_witness_count = proof.get(
+    "localized_fluid_reached_unreached_witness_count"
+)
+if (
+    not isinstance(localized_count, int)
+    or isinstance(localized_count, bool)
+    or localized_count <= 0
+    or not isinstance(localized_witness_count, int)
+    or isinstance(localized_witness_count, bool)
+    or localized_witness_count <= 0
+):
+    raise SystemExit("C-018 rehearsal produced no localized conserved witness")
+if proof.get("localized_fluid_chemistry_cold_replay_exact") is not True:
+    raise SystemExit("C-018 rehearsal did not cold-replay exactly")
 for name in (
     "physical_prediction_alternatives_sha256",
     "body_consequence_transfers_sha256",
     "affective_balance_trajectories_sha256",
+    "localized_fluid_chemistry_sha256",
 ):
     value = proof.get(name)
     if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:

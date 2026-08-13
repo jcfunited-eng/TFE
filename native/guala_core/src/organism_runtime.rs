@@ -39,10 +39,10 @@ use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick
 use crate::resident_cognitive_formation::{
     has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
     AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
-    DirectedPhysicalTransferObservation, EmittedNeuronFractal, MotorUnitRecruitment,
-    OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
-    PhysicalFrontierRouteObservation,
-    PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
+    DirectedPhysicalTransferObservation, EmittedNeuronFractal, LocalizedFluidChemistryObservation,
+    MotorUnitRecruitment, OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
+    PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
+    ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
     observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
@@ -151,6 +151,35 @@ type AffectiveBalanceTrajectoryProjection = (
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<LocalAffectiveGradientSettlementProjection>,
+);
+type LocalizedFluidChemistryProjection = (
+    String,
+    u32,
+    u32,
+    u64,
+    (
+        u32,
+        ExactRationalProjection,
+        usize,
+        usize,
+        usize,
+        usize,
+        usize,
+    ),
+    (i128, i128, String, String, String, String, i128, i128),
+    (
+        (
+            ExactRationalProjection,
+            ExactRationalProjection,
+            ExactRationalProjection,
+        ),
+        (
+            ExactRationalProjection,
+            ExactRationalProjection,
+            ExactRationalProjection,
+        ),
+        ExactRationalProjection,
+    ),
 );
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
@@ -391,15 +420,14 @@ pub(crate) struct RuntimeObservation {
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
     pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
-    pub(crate) preceding_distinct_physical_frontier_routes:
-        Vec<PhysicalFrontierRouteObservation>,
-    pub(crate) reached_and_foregone_physical_frontier_routes:
-        Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) preceding_distinct_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) reached_and_foregone_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     pub(crate) working_causal_continuations: Vec<OrderedPhysicalPathObservation>,
     pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) physical_prediction_alternatives: Vec<OrderedPhysicalPathObservation>,
     pub(crate) body_consequence_transfers: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
+    pub(crate) localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -856,13 +884,9 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
-    fn preceding_distinct_physical_frontier_routes(
-        &self,
-    ) -> Vec<PhysicalFrontierRouteProjection> {
+    fn preceding_distinct_physical_frontier_routes(&self) -> Vec<PhysicalFrontierRouteProjection> {
         project_physical_frontier_routes(
-            &self
-                .observation
-                .preceding_distinct_physical_frontier_routes,
+            &self.observation.preceding_distinct_physical_frontier_routes,
         )
     }
 
@@ -900,6 +924,11 @@ impl NativeResidentOrganismObservation {
     #[getter]
     fn affective_balance_trajectories(&self) -> Vec<AffectiveBalanceTrajectoryProjection> {
         project_affective_balance_trajectories(&self.observation.affective_balance_trajectories)
+    }
+
+    #[getter]
+    fn localized_fluid_chemistry(&self) -> Vec<LocalizedFluidChemistryProjection> {
+        project_localized_fluid_chemistry(&self.observation.localized_fluid_chemistry)
     }
 
     #[getter]
@@ -1245,13 +1274,9 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
-    fn preceding_distinct_physical_frontier_routes(
-        &self,
-    ) -> Vec<PhysicalFrontierRouteProjection> {
+    fn preceding_distinct_physical_frontier_routes(&self) -> Vec<PhysicalFrontierRouteProjection> {
         project_physical_frontier_routes(
-            &self
-                .observation
-                .preceding_distinct_physical_frontier_routes,
+            &self.observation.preceding_distinct_physical_frontier_routes,
         )
     }
 
@@ -1289,6 +1314,11 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn affective_balance_trajectories(&self) -> Vec<AffectiveBalanceTrajectoryProjection> {
         project_affective_balance_trajectories(&self.observation.affective_balance_trajectories)
+    }
+
+    #[getter]
+    fn localized_fluid_chemistry(&self) -> Vec<LocalizedFluidChemistryProjection> {
+        project_localized_fluid_chemistry(&self.observation.localized_fluid_chemistry)
     }
 
     #[getter]
@@ -1657,9 +1687,10 @@ fn retain_trajectory_relation_witnesses(
     observed: &[OrganicMosaicRelationObservation],
 ) {
     for relation in observed {
-        if let Some(prior) = retained.iter_mut().find(|prior| {
-            prior.structural_relation_receipt == relation.structural_relation_receipt
-        }) {
+        if let Some(prior) = retained
+            .iter_mut()
+            .find(|prior| prior.structural_relation_receipt == relation.structural_relation_receipt)
+        {
             let earliest_ordered_witness = if prior.ordered_physical_paths.is_empty() {
                 relation.ordered_physical_paths.clone()
             } else {
@@ -1706,9 +1737,7 @@ fn retain_affective_balance_trajectory_evidence(
         let influence_ordinal = entry
             .association_influence
             .zip(entry.body_influence)
-            .map(|(association, body)| {
-                association.cognitive_ordinal.max(body.cognitive_ordinal)
-            });
+            .map(|(association, body)| association.cognitive_ordinal.max(body.cognitive_ordinal));
         if entry
             .localized_gradient_settlement
             .zip(influence_ordinal)
@@ -1718,13 +1747,37 @@ fn retain_affective_balance_trajectory_evidence(
         }
         if entry.localized_gradient_settlement.is_none() {
             if let Some(gradient) = observation.localized_gradient_settlement {
-                if influence_ordinal.is_none_or(|influence| {
-                    gradient.cognitive_ordinal > influence
-                }) {
+                if influence_ordinal.is_none_or(|influence| gradient.cognitive_ordinal > influence)
+                {
                     entry.localized_gradient_settlement = Some(gradient);
                 }
             }
         }
+    }
+}
+
+fn retain_localized_fluid_chemistry_evidence(
+    retained: &mut Vec<LocalizedFluidChemistryObservation>,
+    observed: &[LocalizedFluidChemistryObservation],
+) {
+    let retained_is_multi_neuron = retained.first().is_some_and(|entry| {
+        entry.unchanged_unreached_neuron_count != 0
+            || entry.unchanged_developmental_resting_neuron_count != 0
+    });
+    if retained_is_multi_neuron {
+        return;
+    }
+    let selected = observed
+        .iter()
+        .find(|entry| {
+            entry.unchanged_unreached_neuron_count != 0
+                || entry.unchanged_developmental_resting_neuron_count != 0
+        })
+        .or_else(|| observed.first())
+        .copied();
+    if let Some(selected) = selected {
+        retained.clear();
+        retained.push(selected);
     }
 }
 
@@ -1880,13 +1933,10 @@ impl ResidentOrganismRuntime {
                 total
                     .motor_unit_recruitments
                     .extend(observation.motor_unit_recruitments.iter().copied());
-                if observation.physical_frontier_routes
-                    != total.physical_frontier_routes
-                {
+                if observation.physical_frontier_routes != total.physical_frontier_routes {
                     total.preceding_distinct_physical_frontier_routes =
                         total.physical_frontier_routes.clone();
-                    total.physical_frontier_routes =
-                        observation.physical_frontier_routes.clone();
+                    total.physical_frontier_routes = observation.physical_frontier_routes.clone();
                 }
                 if total
                     .reached_and_foregone_physical_frontier_routes
@@ -1940,6 +1990,10 @@ impl ResidentOrganismRuntime {
                 retain_affective_balance_trajectory_evidence(
                     &mut total.affective_balance_trajectories,
                     &observation.affective_balance_trajectories,
+                );
+                retain_localized_fluid_chemistry_evidence(
+                    &mut total.localized_fluid_chemistry,
+                    &observation.localized_fluid_chemistry,
                 );
                 // A trajectory is one bounded transaction over ordered
                 // one-millisecond intervals. Keep the latest relation state
@@ -2789,8 +2843,7 @@ impl NativeResidentOrganismRuntime {
             .map(|formations| {
                 formations
                     .into_iter()
-                    .map(
-                        |(receipt, members, original, recurrence, reinforcements)| {
+                    .map(|(receipt, members, original, recurrence, reinforcements)| {
                             (
                                 hex_bytes(&receipt),
                                 members.iter().map(|lineage| hex_bytes(lineage)).collect(),
@@ -2798,8 +2851,7 @@ impl NativeResidentOrganismRuntime {
                                 recurrence.iter().map(&bond).collect(),
                                 reinforcements,
                             )
-                        },
-                    )
+                    })
                     .collect()
             })
     }
@@ -3863,6 +3915,7 @@ fn make_restored_observation(
         physical_prediction_alternatives: Vec::new(),
         body_consequence_transfers: Vec::new(),
         affective_balance_trajectories: Vec::new(),
+        localized_fluid_chemistry: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3944,6 +3997,7 @@ fn make_step_observation(
         physical_prediction_alternatives: cognitive.physical_prediction_alternatives.clone(),
         body_consequence_transfers: cognitive.body_consequence_transfers.clone(),
         affective_balance_trajectories: cognitive.affective_balance_trajectories.clone(),
+        localized_fluid_chemistry: cognitive.localized_fluid_chemistry.clone(),
         organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -4017,6 +4071,7 @@ fn make_authored_contact_observation(
         physical_prediction_alternatives: Vec::new(),
         body_consequence_transfers: Vec::new(),
         affective_balance_trajectories: Vec::new(),
+        localized_fluid_chemistry: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -4169,7 +4224,8 @@ fn project_directed_physical_transfers(
 fn project_affective_balance_trajectories(
     trajectories: &[AffectiveBalanceTrajectoryObservation],
 ) -> Vec<AffectiveBalanceTrajectoryProjection> {
-    let transfer = |timed: crate::resident_cognitive_formation::TimedDirectedPhysicalTransferObservation| {
+    let transfer =
+        |timed: crate::resident_cognitive_formation::TimedDirectedPhysicalTransferObservation| {
         (
             timed.cognitive_ordinal,
             (
@@ -4208,6 +4264,56 @@ fn project_affective_balance_trajectories(
                         rational(gradient.environment_heat_exported_zeptojoules),
                     )
                 }),
+            )
+        })
+        .collect()
+}
+
+fn project_localized_fluid_chemistry(
+    settlements: &[LocalizedFluidChemistryObservation],
+) -> Vec<LocalizedFluidChemistryProjection> {
+    let rational = |value: crate::exact_rational::ExactRational| {
+        let (numerator, denominator) = value.parts();
+        (numerator.to_string(), denominator.to_string())
+    };
+    let reservoir = |parts: (
+        crate::exact_rational::ExactRational,
+        crate::exact_rational::ExactRational,
+        crate::exact_rational::ExactRational,
+    )| (rational(parts.0), rational(parts.1), rational(parts.2));
+    settlements
+        .iter()
+        .map(|settlement| {
+            let place = settlement.neuron_place;
+            (
+                hex_bytes(&settlement.neuron_lineage),
+                place.layer(),
+                place.topology_index(),
+                settlement.cognitive_ordinal,
+                (
+                    settlement.interval_microseconds,
+                    rational(settlement.pump_contact_power_zeptojoules_per_microsecond),
+                    settlement.reached_neuron_count,
+                    settlement.changed_reached_neuron_count,
+                    settlement.unchanged_unreached_neuron_count,
+                    settlement.unchanged_developmental_resting_neuron_count,
+                    settlement.changed_unreached_neuron_count,
+                ),
+                (
+                    settlement.predecessor_separated_elementary_charges,
+                    settlement.successor_separated_elementary_charges,
+                    settlement.predecessor_intracellular_carriers.to_string(),
+                    settlement.predecessor_extracellular_carriers.to_string(),
+                    settlement.successor_intracellular_carriers.to_string(),
+                    settlement.successor_extracellular_carriers.to_string(),
+                    settlement.returned_elementary_charges,
+                    settlement.pumped_elementary_charges,
+                ),
+                (
+                    reservoir(settlement.predecessor_reservoir),
+                    reservoir(settlement.successor_reservoir),
+                    rational(settlement.membrane_gradient_work_zeptojoules),
+                ),
             )
         })
         .collect()
@@ -4666,6 +4772,25 @@ mod tests {
                 .observation
                 .reached_and_foregone_physical_frontier_routes,
         ));
+        assert_eq!(prepared.observation.localized_fluid_chemistry.len(), 1);
+        assert_eq!(
+            prepared.observation.localized_fluid_chemistry[0].changed_unreached_neuron_count,
+            0
+        );
+        assert!(
+            prepared.observation.localized_fluid_chemistry[0].unchanged_unreached_neuron_count
+                + prepared.observation.localized_fluid_chemistry[0]
+                    .unchanged_developmental_resting_neuron_count
+                > 0
+        );
+        let replay = create_resident_genesis(IDENTITY, 0, budget())
+            .unwrap()
+            .prepare_vestibular_trajectory(0, steps)
+            .unwrap();
+        assert_eq!(
+            replay.observation.localized_fluid_chemistry,
+            prepared.observation.localized_fluid_chemistry
+        );
         candidate.commit(prepared.token).unwrap();
 
         assert_eq!(heading, 90_000);

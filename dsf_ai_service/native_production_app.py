@@ -1260,6 +1260,7 @@ _last_transition_evidence: dict[str, Any] | None = None
 # each later tested event replaces it in constant process memory.
 _last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_tested_affective_balance_evidence: dict[str, Any] | None = None
+_last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2449,6 +2450,179 @@ def _affective_balance_record() -> dict[str, object]:
     )
 
 
+def _localized_fluid_chemistry_record() -> dict[str, object]:
+    """Report one exact reached/unreached local-fluid conservation witness."""
+
+    retained_test = _last_tested_localized_fluid_chemistry_evidence
+    evidence = retained_test or _last_transition_evidence or {}
+    settlements = tuple(evidence.get("localized_fluid_chemistry", ()))
+    witness = next(
+        (
+            settlement
+            for settlement in settlements
+            if settlement[4][4] + settlement[4][5] > 0
+            and settlement[4][6] == 0
+        ),
+        None,
+    )
+    authority = {
+        "named_chemical_authority": False,
+        "python_decision_authority": False,
+        "reward_authority": False,
+        "score_authority": False,
+    }
+    if witness is None:
+        return _section(
+            False,
+            "localized_fluid_chemistry_mounted_awaiting_reached_unreached_witness",
+            "the native local recovery-fluid path is mounted, but this process "
+            "has not yet observed a changed reached neuron beside an unchanged "
+            "active neuron or the separately retained developmental-resting "
+            "population outside the same bounded organism pump phase",
+            evidence_scope=(
+                "latest_tested_physical_event"
+                if retained_test is not None
+                else "latest_committed_transition"
+            ),
+            **authority,
+        )
+
+    lineage, layer, topology, ordinal, contact, carrier, reservoirs = witness
+    (
+        interval_microseconds,
+        contact_power,
+        reached_count,
+        changed_reached_count,
+        unchanged_unreached_count,
+        unchanged_developmental_resting_count,
+        changed_unreached_count,
+    ) = contact
+    (
+        predecessor_charge,
+        successor_charge,
+        predecessor_intracellular,
+        predecessor_extracellular,
+        successor_intracellular,
+        successor_extracellular,
+        returned_carriers,
+        pumped_carriers,
+    ) = carrier
+    predecessor_reservoir, successor_reservoir, gradient_work = reservoirs
+
+    predecessor_material = predecessor_intracellular + predecessor_extracellular
+    successor_material = successor_intracellular + successor_extracellular
+    signed_transfer = returned_carriers + pumped_carriers
+    material_conserved = (
+        predecessor_material == successor_material
+        and successor_intracellular == predecessor_intracellular - signed_transfer
+        and successor_extracellular == predecessor_extracellular + signed_transfer
+    )
+    work = Fraction(*gradient_work)
+    predecessor_available, predecessor_spent, predecessor_thermal = (
+        Fraction(*part) for part in predecessor_reservoir
+    )
+    successor_available, successor_spent, successor_thermal = (
+        Fraction(*part) for part in successor_reservoir
+    )
+    if pumped_carriers != 0 and returned_carriers == 0:
+        energy_conserved = (
+            successor_available == predecessor_available - work
+            and successor_spent == predecessor_spent + work
+            and successor_thermal == predecessor_thermal
+        )
+        settlement_mode = "active_gradient_pump"
+    elif returned_carriers != 0 and pumped_carriers == 0:
+        energy_conserved = (
+            successor_available == predecessor_available
+            and successor_spent == predecessor_spent
+            and successor_thermal == predecessor_thermal + work
+        )
+        settlement_mode = "passive_gradient_return"
+    else:
+        energy_conserved = False
+        settlement_mode = "invalid_mixed_or_motionless_settlement"
+    locality_conserved = (
+        reached_count > 0
+        and changed_reached_count > 0
+        and unchanged_unreached_count + unchanged_developmental_resting_count > 0
+        and changed_unreached_count == 0
+    )
+    exact_conservation = material_conserved and energy_conserved and locality_conserved
+
+    def rational_record(value: tuple[int, int]) -> dict[str, int]:
+        return {"numerator": value[0], "denominator": value[1]}
+
+    return _section(
+        exact_conservation,
+        (
+            "localized_contact_conserved"
+            if exact_conservation
+            else "localized_contact_conservation_failed"
+        ),
+        "one reached neuron changed through its mounted local recovery-fluid "
+        "contact; active cells outside the reached frontier remained outside the "
+        "native sparse write boundary and the separate developmental-resting population "
+        "remained outside the "
+        "mutable pump boundary; carrier material and reservoir energy reconcile exactly",
+        evidence_scope=(
+            "latest_tested_physical_event"
+            if retained_test is not None
+            else "latest_committed_transition"
+        ),
+        evidence_organism_tick=evidence.get("organism_tick"),
+        evidence_state_sha256=evidence.get("state_sha256"),
+        evidence_intake=evidence.get("intake"),
+        target={
+            "neuron_lineage": lineage,
+            "neuron_layer": layer,
+            "neuron_topology_index": topology,
+            "cognitive_ordinal": ordinal,
+        },
+        contact={
+            "interval_microseconds": interval_microseconds,
+            "pump_contact_power_zeptojoules_per_microsecond": rational_record(
+                contact_power
+            ),
+            "reached_neuron_count": reached_count,
+            "changed_reached_neuron_count": changed_reached_count,
+            "unchanged_unreached_active_neuron_count": unchanged_unreached_count,
+            "unchanged_unreached_developmental_resting_neuron_count": (
+                unchanged_developmental_resting_count
+            ),
+            "changed_unreached_neuron_count": changed_unreached_count,
+        },
+        carrier_material={
+            "predecessor_separated_elementary_charges": predecessor_charge,
+            "successor_separated_elementary_charges": successor_charge,
+            "predecessor_intracellular_carriers": predecessor_intracellular,
+            "predecessor_extracellular_carriers": predecessor_extracellular,
+            "successor_intracellular_carriers": successor_intracellular,
+            "successor_extracellular_carriers": successor_extracellular,
+            "returned_elementary_charges": returned_carriers,
+            "pumped_elementary_charges": pumped_carriers,
+            "material_conserved": material_conserved,
+        },
+        reservoir_energy={
+            "settlement_mode": settlement_mode,
+            "predecessor": {
+                "available_zeptojoules": rational_record(predecessor_reservoir[0]),
+                "spent_zeptojoules": rational_record(predecessor_reservoir[1]),
+                "thermal_zeptojoules": rational_record(predecessor_reservoir[2]),
+            },
+            "successor": {
+                "available_zeptojoules": rational_record(successor_reservoir[0]),
+                "spent_zeptojoules": rational_record(successor_reservoir[1]),
+                "thermal_zeptojoules": rational_record(successor_reservoir[2]),
+            },
+            "membrane_gradient_work_zeptojoules": rational_record(gradient_work),
+            "energy_conserved": energy_conserved,
+        },
+        locality_conserved=locality_conserved,
+        exact_conservation=exact_conservation,
+        **authority,
+    )
+
+
 def _describe_intake(intake: str) -> tuple[str, str]:
     """What this experience actually was, in words, and what it carried.
 
@@ -3112,6 +3286,7 @@ def _build_public_observation() -> dict[str, Any]:
         "working_causal_state": _working_causal_state_record(),
         "prediction": _physical_prediction_record(),
         "affective_balance": _affective_balance_record(),
+        "localized_fluid_chemistry": _localized_fluid_chemistry_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
         "articulation": _unmounted(
@@ -4453,6 +4628,7 @@ def _commit_admitted_hop(
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
+        "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4534,6 +4710,7 @@ def _commit_vestibular_tick(
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
+        "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4615,6 +4792,7 @@ def _commit_vestibular_trajectory(
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
+        "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4767,6 +4945,31 @@ def _advance_bounded_affective_balance_evidence(
     return tuple(by_lineage[lineage] for lineage in sorted(by_lineage))
 
 
+def _advance_bounded_localized_fluid_chemistry_evidence(
+    retained: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[tuple[Any, ...], ...]:
+    """Retain at most one local settlement, preferring a locality witness."""
+
+    if (
+        retained
+        and retained[0][4][4] + retained[0][4][5] > 0
+        and retained[0][4][6] == 0
+    ):
+        return retained
+    observed = tuple(hop["localized_fluid_chemistry"])
+    witness = next(
+        (
+            settlement
+            for settlement in observed
+            if settlement[4][4] + settlement[4][5] > 0
+            and settlement[4][6] == 0
+        ),
+        observed[0] if observed else None,
+    )
+    return (witness,) if witness is not None else retained
+
+
 def _publish_committed_organism(
     organism: Any,
     admission: NativeResidentResourceAdmission,
@@ -4903,6 +5106,7 @@ def _perform_admitted_intake_locked(
 
     global _restored, _last_transition_evidence, _last_self_moved
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
+    global _last_tested_localized_fluid_chemistry_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -4938,6 +5142,7 @@ def _perform_admitted_intake_locked(
     physical_prediction_alternatives: tuple[tuple[Any, ...], ...] = ()
     body_consequence_transfers: tuple[tuple[Any, ...], ...] = ()
     affective_balance_trajectories: tuple[tuple[Any, ...], ...] = ()
+    localized_fluid_chemistry: tuple[tuple[Any, ...], ...] = ()
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4976,6 +5181,12 @@ def _perform_admitted_intake_locked(
             affective_balance_trajectories = (
                 _advance_bounded_affective_balance_evidence(
                     affective_balance_trajectories,
+                    last_hop,
+                )
+            )
+            localized_fluid_chemistry = (
+                _advance_bounded_localized_fluid_chemistry_evidence(
+                    localized_fluid_chemistry,
                     last_hop,
                 )
             )
@@ -5019,6 +5230,12 @@ def _perform_admitted_intake_locked(
             affective_balance_trajectories = (
                 _advance_bounded_affective_balance_evidence(
                     affective_balance_trajectories,
+                    last_hop,
+                )
+            )
+            localized_fluid_chemistry = (
+                _advance_bounded_localized_fluid_chemistry_evidence(
+                    localized_fluid_chemistry,
                     last_hop,
                 )
             )
@@ -5103,6 +5320,12 @@ def _perform_admitted_intake_locked(
                         last_hop,
                     )
                 )
+                localized_fluid_chemistry = (
+                    _advance_bounded_localized_fluid_chemistry_evidence(
+                        localized_fluid_chemistry,
+                        last_hop,
+                    )
+                )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 organic_mosaic_relations.extend(
@@ -5164,6 +5387,7 @@ def _perform_admitted_intake_locked(
         "physical_prediction_alternatives": physical_prediction_alternatives,
         "body_consequence_transfers": body_consequence_transfers,
         "affective_balance_trajectories": affective_balance_trajectories,
+        "localized_fluid_chemistry": localized_fluid_chemistry,
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,
@@ -5192,6 +5416,19 @@ def _perform_admitted_intake_locked(
         _last_tested_affective_balance_evidence = {
             "affective_balance_trajectories": complete_affective_balance[:1],
             "intake": intake,
+            "organism_tick": published.pointer.organism_tick,
+            "state_sha256": published.pointer.state_sha256,
+        }
+    complete_localized_fluid_chemistry = tuple(
+        settlement
+        for settlement in localized_fluid_chemistry
+        if settlement[4][4] + settlement[4][5] > 0
+        and settlement[4][6] == 0
+    )
+    if complete_localized_fluid_chemistry:
+        _last_tested_localized_fluid_chemistry_evidence = {
+            "intake": intake,
+            "localized_fluid_chemistry": complete_localized_fluid_chemistry[:1],
             "organism_tick": published.pointer.organism_tick,
             "state_sha256": published.pointer.state_sha256,
         }
@@ -6771,8 +7008,10 @@ def _startup() -> None:
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _public_observation_body, _public_observation_etag
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
+    global _last_tested_localized_fluid_chemistry_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
+    _last_tested_localized_fluid_chemistry_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
