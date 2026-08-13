@@ -232,8 +232,15 @@ box remains unchecked until live acceptance passes.
   8 foregone), 500 complete DSF deliveries, and 42,561 physical neuron
   transitions. Release commit `89cb6cfa`, image
   `sha256:c318ddcd23758cfa311f74781a174f835ffbbc75cd8c6884c88a8fcfb257d86d`.
-- [ ] **C-015** Prove bounded unresolved activity supplies working causal state
+- [x] **C-015** Prove bounded unresolved activity supplies working causal state
   and settles or decays without a text buffer or transcript memory.
+  **Live-closed 2026-08-13:** task 1009 exposed one exact internally continued
+  cause `...5e -> ...5d -> ...01` and its later settlement through the public
+  production observation path. A forced serving-process replacement restored
+  the same organism identity and continued unattended operation on release
+  commit `6dc3f3c7`, image
+  `sha256:18fc7d11ca51cef5db248a2385e28faacd55df6b04e53fbeef27355d4069594e`,
+  with zero Python cognition callbacks and bounded CPU, RAM, and durable state.
 - [ ] **C-016** Prove prediction and ordered alternatives emerge through layer
   11 and physical consequence, without a scripted planner or score winner.
 - [ ] **C-017** Prove body/fluid/association trajectories influence affect and
