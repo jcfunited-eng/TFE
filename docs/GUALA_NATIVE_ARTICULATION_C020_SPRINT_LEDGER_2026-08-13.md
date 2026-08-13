@@ -519,3 +519,23 @@ and backend-only state do not close it.
   deterministic-deployment, and packaging tests. RF-041 records this at the
   earliest pre-build boundary. Candidate 1030 is refused; a fresh immutable
   candidate is required. C-020 remains not Live-Closed.
+- Candidate commit `dd7e9aeba2ed5551bd7ada783fa591f8a0a2797d`, image
+  `sha256:b995548ef3ff263a99cf1737377722efd3a23180441d73f9d9113f213bd1687d`,
+  and task definition `dsf-ai-task:1031` completed the native discarded-state
+  rehearsal and exited zero. Its exact proof reported three real layer-13
+  recruitments, four articulation-return hops, 16 locally perturbed body
+  receptor neurons, 79 neuronal fractals, 961 self-hearing physical
+  transitions, exact cold replay, and zero Python cognition callbacks.
+- The outer release validator alone refused that proof because the body's
+  signed perioral-area displacement was `-15` square millimetres and the
+  validator incorrectly classified every nonzero physical observation as a
+  positive magnitude. Changing only that sign in a disposable copy made every
+  other proof condition pass; the emitted physical evidence was lawful.
+- Both candidate and deployment validators now classify perioral displacement
+  as a signed coordinate and require nonzero motion, while retaining positive
+  magnitude checks for unsigned observations. The boundary regression uses a
+  negative displacement, the unaltered task-1031 proof passes the corrected
+  validator, and RF-042 requires negative/positive/zero tests for future signed
+  observations. Candidate 1031 is not cut over because its provenance predates
+  this release-gate correction. Production remains task 1024 and C-020 remains
+  not Live-Closed pending one fresh rehearsed candidate and public proof.

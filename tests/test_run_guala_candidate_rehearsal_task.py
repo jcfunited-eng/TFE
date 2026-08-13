@@ -323,7 +323,7 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "layer_13_recruitment_count": 78,
         "mouth_area_square_millimetres_at_apex": 305,
         "peak_breath_flow_pcm": 12_000,
-        "perioral_area_displacement_square_millimetres": 40,
+        "perioral_area_displacement_square_millimetres": -40,
         "pressure_sample_count": 16_000,
         "pressure_sha256": "e" * 64,
         "relaxation_sample_count": 0,
@@ -396,6 +396,23 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     changed["native_articulation"] = {
         **articulation,
         "relaxation_sample_count": 1,
+    }
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_articulation_rehearsal=True,
+        )
+
+    changed = dict(record)
+    changed["native_articulation"] = {
+        **articulation,
+        "perioral_area_displacement_square_millimetres": 0,
     }
     with pytest.raises(RuntimeError, match="proof changed"):
         runner._validate_proof(

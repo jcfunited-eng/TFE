@@ -564,13 +564,21 @@ def _validate_proof(
                 "layer_13_recruitment_count",
                 "mouth_area_square_millimetres_at_apex",
                 "peak_breath_flow_pcm",
-                "perioral_area_displacement_square_millimetres",
                 "pressure_sample_count",
                 "sample_rate_hz",
                 "self_hearing_hop_count",
                 "self_hearing_transitioned_neuron_count",
             )
         )
+        and isinstance(
+            articulation.get("perioral_area_displacement_square_millimetres"),
+            int,
+        )
+        and not isinstance(
+            articulation["perioral_area_displacement_square_millimetres"],
+            bool,
+        )
+        and articulation["perioral_area_displacement_square_millimetres"] != 0
         and articulation["pressure_sample_count"] >= articulation["sample_rate_hz"]
         and articulation["articulatory_body_port_count"] == 4
         and articulation["articulatory_body_receptor_ingress_count"]

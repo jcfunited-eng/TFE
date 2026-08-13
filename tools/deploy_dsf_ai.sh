@@ -709,7 +709,6 @@ for name in (
     "peak_breath_flow_pcm",
     "glottal_open_samples_at_apex",
     "mouth_area_square_millimetres_at_apex",
-    "perioral_area_displacement_square_millimetres",
     "pressure_sample_count",
     "self_hearing_hop_count",
     "self_hearing_transitioned_neuron_count",
@@ -717,6 +716,9 @@ for name in (
     value = articulation.get(name)
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
         raise SystemExit(f"C-020 rehearsal returned invalid {name}")
+perioral = articulation.get("perioral_area_displacement_square_millimetres")
+if not isinstance(perioral, int) or isinstance(perioral, bool) or perioral == 0:
+    raise SystemExit("C-020 rehearsal returned invalid signed perioral displacement")
 pressure_sha = articulation.get("pressure_sha256")
 if not isinstance(pressure_sha, str) or re.fullmatch(r"[0-9a-f]{64}", pressure_sha) is None:
     raise SystemExit("C-020 rehearsal omitted its pressure digest")
