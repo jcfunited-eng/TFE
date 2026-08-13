@@ -153,10 +153,30 @@ cohort aggregate.
 
 ## Current evidence level
 
-C-018 is **not Live-Closed**. Source tracing, the durable sprint boundary, and
-the native-to-public implementation are complete locally. Focused proofs now
-pass for exact local material/energy conservation, an untouched active cohort
-member, a live-style whole-runtime trajectory with an unchanged developmental
-population, bounded projection, and deterministic replay. Candidate build,
-restored-production rehearsal, deployment, and public live verification remain
-pending.
+C-018 is **Live-Closed**.
+
+- The complete native library suite passed: 414 tests passed, zero failed, and
+  13 explicitly retired tests were ignored.
+- The focused native/Python observation boundary passed 53 tests.
+- The first discarded candidate rehearsal correctly stopped before cutover
+  because fixed-width subtraction could not represent the difference between
+  two valid live reservoir rationals. No production state changed. The
+  observation-only conservation check was corrected to use exact widened
+  integer-rational equality; neuron state, physics, DSF, and persistence were
+  unchanged.
+- The corrected discarded rehearsal cold-restored live tick 71,150 and
+  reproduced one localized fluid witness exactly, receipt
+  `1bf8287f425cd6db63c6d3807746c651edeb929119357ad7df77c603a8a639f4`,
+  with zero Python cognition callbacks.
+- Public production task `dsf-ai-task:1018` runs commit
+  `b9d85da31e48d54aff5389d0a49155aedeaa9572` and image
+  `sha256:09116ddafe48cd71955e78d28b9afd8316c40645babea683557a44f90719ee15`.
+- The public endpoint exposed `localized_contact_conserved`: one reached
+  layer-0 neuron moved one carrier through its active gradient pump; carrier
+  material and reservoir energy reconciled exactly; 27 neurons were reached,
+  3 changed, 2 active neurons and 196,505 developmental-resting neurons stayed
+  outside the sparse write boundary, and zero unreached neurons changed.
+- Public production advanced from tick 71,240 to 71,249, preserved identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and reported zero Python cognition
+  callbacks. ECS showed one completed PRIMARY deployment, desired/running
+  1/1, pending 0, and no stopped service task after cutover.

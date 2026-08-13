@@ -265,8 +265,19 @@ box remains unchecked until live acceptance passes.
   decisions. Candidate cold rehearsal reproduced three complete trajectories
   exactly. Release commit `7add36a2`, image
   `sha256:f4891ce2b0c977f4216c087ce82169620ecee823f679b7d54d7be4d4f722a855`.
-- [ ] **C-018** Prove fluid-brain transport and localized chemistry influence
+- [x] **C-018** Prove fluid-brain transport and localized chemistry influence
   only physically connected neurons and remain conserved and bounded.
+  **Live-closed 2026-08-13:** public production task 1018 exposed one exact
+  layer-0 local recovery-fluid settlement at organism ordinal 71,232. One
+  carrier moved through the reached neuron's mounted active-gradient pump;
+  carrier material and available/spent/thermal reservoir energy reconciled
+  exactly. The sparse write boundary reached 27 neurons, changed 3, left 2
+  active neurons and 196,505 developmental-resting neurons outside that
+  boundary, and changed zero unreached neurons. Public production advanced
+  from tick 71,240 to 71,249 with the same organism identity and zero Python
+  cognition callbacks. Candidate cold rehearsal reproduced one bounded
+  localized witness exactly. Release commit `b9d85da3`, image
+  `sha256:09116ddafe48cd71955e78d28b9afd8316c40645babea683557a44f90719ee15`.
 - [ ] **C-019** Prove motor preparation reaches layer 12 and can cause one
   at-most-once body actuation whose consequences return through the senses.
 - [ ] **C-020** Prove articulation reaches layer 13 and causes breath, mouth,
