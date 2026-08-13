@@ -146,6 +146,14 @@ Primary evidence used only to define that responsibility:
   outcome, lock, owner, or database authority is added. The witness exists
   only so a public client can truthfully observe an already-completed physical
   test after continuous unattended processing advances again.
+- Task `1013` proved the bounded witness itself was live, but exposed the exact
+  preceding translation loss: the native 250-interval trajectory returned two
+  alternatives and one later consequence, while Python treated the complete
+  trajectory as one instant and discarded that consequence unless the
+  alternatives had arrived in an earlier Python call. The frozen correction is
+  to preserve the consequence when the same native ordered trajectory carries
+  exactly the two alternatives. Native temporal authority is retained; Python
+  does not infer, reorder, or create an event.
 
 ## Acceptance-evidence map
 

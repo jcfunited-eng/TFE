@@ -124,6 +124,25 @@ def test_prediction_evidence_keeps_two_alternatives_until_body_consequence() -> 
     assert returned == (consequence,)
 
 
+def test_prediction_evidence_preserves_later_consequence_inside_ordered_trajectory() -> None:
+    intrinsic_cause = "01" * 16
+    first = ((intrinsic_cause, "02" * 16, 0, 7), ("02" * 16, "04" * 16, 0, 5))
+    second = ((intrinsic_cause, "03" * 16, 0, 6), ("03" * 16, "05" * 16, 0, 4))
+    consequence = ("04" * 16, "06" * 16, 0, 3)
+
+    alternatives, returned = production._advance_bounded_prediction_evidence(
+        (),
+        (),
+        {
+            "physical_prediction_alternatives": (first, second),
+            "body_consequence_transfers": (consequence,),
+        },
+    )
+
+    assert alternatives == (first, second)
+    assert returned == (consequence,)
+
+
 def test_admitted_experience_preserves_relation_from_nonfinal_hop(
     monkeypatch,
 ) -> None:

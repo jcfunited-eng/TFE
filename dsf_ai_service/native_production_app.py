@@ -4589,14 +4589,27 @@ def _advance_bounded_prediction_evidence(
     consequence: tuple[tuple[Any, ...], ...],
     hop: dict[str, Any],
 ) -> tuple[tuple[tuple[Any, ...], ...], tuple[tuple[Any, ...], ...]]:
-    """Retain one two-alternative witness and its first later body consequence."""
+    """Retain one two-alternative witness and its first later body consequence.
+
+    One native trajectory contains many ordered one-millisecond intervals.  If
+    its native evidence carries both the alternatives and a consequence, the
+    native producer has already established their temporal order; the Python
+    transaction boundary must not flatten that trajectory into one instant and
+    discard its consequence.
+    """
 
     prediction_preceded_this_hop = bool(alternatives)
     next_alternatives = alternatives or tuple(
         hop["physical_prediction_alternatives"]
     )
     next_consequence = consequence
-    if prediction_preceded_this_hop and not next_consequence:
+    alternatives_ordered_within_hop = (
+        len(tuple(hop["physical_prediction_alternatives"])) == 2
+    )
+    if (
+        not next_consequence
+        and (prediction_preceded_this_hop or alternatives_ordered_within_hop)
+    ):
         next_consequence = tuple(hop["body_consequence_transfers"])[:1]
     return next_alternatives, next_consequence
 
