@@ -1,0 +1,258 @@
+{
+ "declared": "rules and metrics pre-registered in this file's docstring before the run; one pass, no scans",
+ "store": "ch4_live_store.parquet",
+ "events_total": 35361,
+ "strata_counts": {
+  "backed": 16739,
+  "none": 14030,
+  "low": 4592
+ },
+ "internal_check_clock_all": {
+  "n": 35361,
+  "mean_pct": 1.308,
+  "median_pct": 2.013,
+  "wr_pct": 57.8,
+  "p1_pct": -74.85,
+  "min_pct": -1872.83,
+  "mean_hold_sessions": 5.0,
+  "ret_per_session_pct": 0.262
+ },
+ "traded_stratum (low+none, the live engine's supply)": {
+  "CLOCK_v1.1": {
+   "n": 18622,
+   "mean_pct": 2.507,
+   "median_pct": 3.511,
+   "wr_pct": 61.1,
+   "p1_pct": -84.98,
+   "min_pct": -1872.83,
+   "mean_hold_sessions": 5.0,
+   "ret_per_session_pct": 0.501,
+   "by_year": {
+    "2016": {
+     "n": 336,
+     "mean_pct": 0.789
+    },
+    "2017": {
+     "n": 408,
+     "mean_pct": 0.97
+    },
+    "2018": {
+     "n": 440,
+     "mean_pct": 0.406
+    },
+    "2019": {
+     "n": 446,
+     "mean_pct": 0.196
+    },
+    "2020": {
+     "n": 718,
+     "mean_pct": -3.077
+    },
+    "2021": {
+     "n": 1703,
+     "mean_pct": 2.711
+    },
+    "2022": {
+     "n": 2343,
+     "mean_pct": 4.26
+    },
+    "2023": {
+     "n": 3018,
+     "mean_pct": 2.615
+    },
+    "2024": {
+     "n": 3888,
+     "mean_pct": 2.533
+    },
+    "2025": {
+     "n": 4459,
+     "mean_pct": 2.752
+    },
+    "2026": {
+     "n": 863,
+     "mean_pct": 3.891
+    }
+   }
+  },
+  "DECAY_v2": {
+   "n": 18622,
+   "mean_pct": 1.224,
+   "median_pct": -0.466,
+   "wr_pct": 46.2,
+   "p1_pct": -57.6,
+   "min_pct": -480.0,
+   "mean_hold_sessions": 2.21,
+   "ret_per_session_pct": 0.553,
+   "by_year": {
+    "2016": {
+     "n": 336,
+     "mean_pct": 0.179
+    },
+    "2017": {
+     "n": 408,
+     "mean_pct": 0.4
+    },
+    "2018": {
+     "n": 440,
+     "mean_pct": 0.144
+    },
+    "2019": {
+     "n": 446,
+     "mean_pct": 0.296
+    },
+    "2020": {
+     "n": 718,
+     "mean_pct": -1.586
+    },
+    "2021": {
+     "n": 1703,
+     "mean_pct": 1.707
+    },
+    "2022": {
+     "n": 2343,
+     "mean_pct": 1.619
+    },
+    "2023": {
+     "n": 3018,
+     "mean_pct": 0.961
+    },
+    "2024": {
+     "n": 3888,
+     "mean_pct": 1.128
+    },
+    "2025": {
+     "n": 4459,
+     "mean_pct": 1.807
+    },
+    "2026": {
+     "n": 863,
+     "mean_pct": 1.714
+    }
+   }
+  }
+ },
+ "backed_stratum (v1.1 refuses; taken LONG)": {
+  "SHORT_clock (what v1.1 would have earned)": {
+   "n": 16739,
+   "mean_pct": -0.025,
+   "median_pct": 0.863,
+   "wr_pct": 54.2,
+   "p1_pct": -58.07,
+   "min_pct": -748.54,
+   "mean_hold_sessions": 5.0,
+   "ret_per_session_pct": -0.005
+  },
+  "BIRTH_5d_long": {
+   "n": 16739,
+   "mean_pct": 0.025,
+   "median_pct": -0.863,
+   "wr_pct": 45.4,
+   "p1_pct": -43.52,
+   "min_pct": -96.36,
+   "mean_hold_sessions": 5.0,
+   "ret_per_session_pct": 0.005,
+   "by_year": {
+    "2016": {
+     "n": 998,
+     "mean_pct": 1.1
+    },
+    "2017": {
+     "n": 1121,
+     "mean_pct": -0.069
+    },
+    "2018": {
+     "n": 1194,
+     "mean_pct": -0.124
+    },
+    "2019": {
+     "n": 1317,
+     "mean_pct": -0.687
+    },
+    "2020": {
+     "n": 2457,
+     "mean_pct": -0.084
+    },
+    "2021": {
+     "n": 1920,
+     "mean_pct": 0.797
+    },
+    "2022": {
+     "n": 1615,
+     "mean_pct": -0.112
+    },
+    "2023": {
+     "n": 1755,
+     "mean_pct": 0.082
+    },
+    "2024": {
+     "n": 2311,
+     "mean_pct": 0.287
+    },
+    "2025": {
+     "n": 1716,
+     "mean_pct": -0.675
+    },
+    "2026": {
+     "n": 335,
+     "mean_pct": -1.018
+    }
+   }
+  },
+  "BIRTH_decaybreak_long": {
+   "n": 16739,
+   "mean_pct": -0.023,
+   "median_pct": -1.44,
+   "wr_pct": 32.8,
+   "p1_pct": -27.17,
+   "min_pct": -80.96,
+   "mean_hold_sessions": 1.84,
+   "ret_per_session_pct": -0.012,
+   "by_year": {
+    "2016": {
+     "n": 998,
+     "mean_pct": 0.918
+    },
+    "2017": {
+     "n": 1121,
+     "mean_pct": -0.139
+    },
+    "2018": {
+     "n": 1194,
+     "mean_pct": -0.315
+    },
+    "2019": {
+     "n": 1317,
+     "mean_pct": -0.361
+    },
+    "2020": {
+     "n": 2457,
+     "mean_pct": -0.046
+    },
+    "2021": {
+     "n": 1920,
+     "mean_pct": 0.151
+    },
+    "2022": {
+     "n": 1615,
+     "mean_pct": 0.172
+    },
+    "2023": {
+     "n": 1755,
+     "mean_pct": 0.394
+    },
+    "2024": {
+     "n": 2311,
+     "mean_pct": 0.072
+    },
+    "2025": {
+     "n": 1716,
+     "mean_pct": -0.734
+    },
+    "2026": {
+     "n": 335,
+     "mean_pct": -1.02
+    }
+   }
+  }
+ }
+}
