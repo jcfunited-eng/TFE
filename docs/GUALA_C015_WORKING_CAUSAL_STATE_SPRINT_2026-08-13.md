@@ -138,3 +138,34 @@ the same causal intervals from the exact cold predecessor; and demonstrate
 bounded CPU, RAM, durable bytes, and zero Python cognition callbacks. This
 does not by itself prove prediction, alternatives, choice, thought, planning,
 imagination, or autonomous action.
+
+## Live-closed receipt
+
+C-015 is **Live-Closed** on 2026-08-13.
+
+- Production commit: `6dc3f3c74bca0c96ffb912844f5ec90c2d6aaaa9`.
+- Production task definition: `dsf-ai-task:1009`.
+- Production image and `production-current` digest:
+  `sha256:18fc7d11ca51cef5db248a2385e28faacd55df6b04e53fbeef27355d4069594e`.
+- ECS settled with one desired/running healthy process, zero pending/failed
+  tasks, and one completed rollout.
+- The exact live paired body turn produced one internally continued cause
+  `...5e -> ...5d -> ...01`; the second transfer carried `404` whole carriers
+  and was later observed without onward propagation. Public production
+  reported `bounded_working_cause_continued_and_settled`, with retained-history
+  and semantic-working-memory authority both false.
+- That live accepted transition produced `712` full-DSF deliveries, `43,030`
+  physical neuron transitions, and `27` post-quiescence neuronal fractals, then
+  persisted tick `64,872` at `43,441,177` bytes.
+- A forced replacement of the serving process cold-restored the same organism
+  identity, replaced task ARN `...4d9cffae7283407f8de5f7c2de0c048f` with
+  `...353f2141c6004aea8f61a1f12fa8bf5c`, resumed beyond pre-restart tick
+  `64,881`, and remained on the exact task, digest, and commit with zero Python
+  cognition callbacks.
+- Across the subsequent observed unattended interval, tick advanced from
+  `64,926` to `64,944` while state size changed from `43,429,894` to
+  `43,429,963` bytes. The replacement task's observed CPU peak was about
+  `28.3%` and memory peak about `5.5%` of its 4-vCPU/16-GiB envelope.
+- C-015 proves bounded immediate causal continuation and settlement only. It
+  does not claim prediction, scenario generation, thought, choice, language,
+  imagination, or autonomous action; those remain later ledger work.
