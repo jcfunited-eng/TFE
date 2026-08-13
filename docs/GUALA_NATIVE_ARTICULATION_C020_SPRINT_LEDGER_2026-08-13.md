@@ -160,6 +160,17 @@ transition is mounted.
 - Immutable candidate build, authenticated task-1019 predecessor rehearsal,
   production cutover, direct public behavior, and resource evidence remain
   pending.
+- First immutable candidate: commit `1bd764de529b158027a12b047a91228f956c9c0f`,
+  image
+  `sha256:9af9b2427ccfcc5b2ad79a8bf5a76e3446736287938556c3c28159c52c3ca4e5`,
+  task definition `dsf-ai-task:1020`. It was refused before cutover because
+  the cold probe read `organism_tick()` directly from the concrete boundary
+  handle instead of reading `readiness().organism_tick` from its typed native
+  observation. Production remained unchanged on task 1019.
+- The exact boundary call is corrected and a regression proves rehearsal with
+  a factory-only native handle that exposes no direct tick method. The focused
+  rehearsal gate passes 23/23 after that correction. A fresh immutable
+  candidate is required; task 1020 is not a delivered release.
 
 ## Live completion rule
 

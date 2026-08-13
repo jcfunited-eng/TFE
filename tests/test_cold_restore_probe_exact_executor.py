@@ -191,6 +191,53 @@ def test_probe_rejects_state_or_callback_change(monkeypatch) -> None:
         probe.main()
 
 
+def test_articulation_rehearsal_reads_tick_through_native_observation(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service import native_production_app
+
+    class _ArticulatingOrganism:
+        def readiness(self) -> SimpleNamespace:
+            return SimpleNamespace(organism_tick=37)
+
+        def prepare_admitted(self, _episode, _admissions) -> SimpleNamespace:
+            return SimpleNamespace(
+                token="heard",
+                physically_transitioned_neuron_count=2,
+                complete_neuron_fractal_count=1,
+            )
+
+        def commit(self, token: str) -> None:
+            assert token == "heard"
+
+    monkeypatch.setattr(
+        probe,
+        "exact_articulatory_unit_trajectory",
+        lambda **_kwargs: (16_000, (1, -1), 3, 80, 265, 0, 1, 0, 2),
+    )
+    observed_prefixes: list[str] = []
+
+    def episodes(**kwargs):
+        observed_prefixes.append(kwargs["assembly_prefix"])
+        return [(object(), [])]
+
+    monkeypatch.setattr(native_production_app, "_mono_pcm_hop_episodes", episodes)
+    prepared = SimpleNamespace(
+        articulatory_unit_recruitments=(
+            ("13" * 16, 0, 1, (("12" * 16, 12, "13" * 16, 13, 0, 1),)),
+        )
+    )
+
+    proof = probe._rehearse_articulation_and_self_hearing(
+        _ArticulatingOrganism(), prepared
+    )
+
+    assert observed_prefixes == ["c020-cold-self-hearing-37"]
+    assert proof is not None
+    assert proof["self_hearing_transitioned_neuron_count"] == 2
+    assert proof["self_hearing_fractal_count"] == 1
+
+
 def test_episodic_relation_resolves_only_against_retained_successor() -> None:
     recalled = ("01" * 16, "02" * 16, "03" * 16)
     related = ("04" * 16, "05" * 16, "06" * 16)

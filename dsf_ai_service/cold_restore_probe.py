@@ -463,8 +463,9 @@ def _rehearse_articulation_and_self_hearing(
     transitioned = 0
     fractals = 0
     hop_count = 0
+    self_hearing_start_tick = organism.readiness().organism_tick
     for episode, admissions in _mono_pcm_hop_episodes(
-        assembly_prefix=f"c020-cold-self-hearing-{organism.organism_tick()}",
+        assembly_prefix=f"c020-cold-self-hearing-{self_hearing_start_tick}",
         samples=pressure_pcm,
         sample_rate_hz=sample_rate_hz,
     ):
