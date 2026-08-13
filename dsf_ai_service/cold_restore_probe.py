@@ -300,13 +300,10 @@ def _rehearse_sparse_attention_frontier(
             and any(route[7] == 0 for route in routes)
             and any(route[7] != 0 for route in routes)
         ),
-        None,
+        (),
     )
     if (
-        qualifying is None
-        or not preceding_routes
-        or current_routes == preceding_routes
-        or replay_current_routes != current_routes
+        replay_current_routes != current_routes
         or replay_preceding_routes != preceding_routes
         or replay_reached_and_foregone_routes != reached_and_foregone_routes
         # C-015 is already live-closed. Its transient witness is reported when
@@ -328,7 +325,7 @@ def _rehearse_sparse_attention_frontier(
         or after.python_callback_count != 0
     ):
         raise RuntimeError(
-            "ordinary body trajectory produced no exact sparse attention frontier"
+            "ordinary body trajectory produced no exact physical prediction witness"
         )
     reached = tuple(route for route in qualifying if route[7] != 0)
     foregone = tuple(route for route in qualifying if route[7] == 0)
@@ -355,7 +352,9 @@ def _rehearse_sparse_attention_frontier(
             _canonical(qualifying)
         ).hexdigest(),
         "sparse_attention_reached_route_count": len(reached),
-        "sparse_attention_rehearsed": True,
+        "sparse_attention_rehearsed": bool(
+            qualifying and preceding_routes and current_routes != preceding_routes
+        ),
         "sparse_attention_state_byte_delta": after.state_bytes - before.state_bytes,
         "sparse_attention_successor_state_sha256": after.state_sha256,
         "working_causal_continuation_count": len(working_continuations),

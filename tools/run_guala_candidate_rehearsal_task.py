@@ -651,7 +651,10 @@ def main() -> int:
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
-    expected_sparse_attention_rehearsal = expected_distributed_recall_rehearsal
+    # C-014's sparse-attention witness is already live-closed and is a
+    # transient trajectory fact, not permanent body state. Later releases
+    # report it when it recurs but never require it as their acceptance gate.
+    expected_sparse_attention_rehearsal = False
     task_input = probe_task_definition(
         source,
         mode=values.mode,

@@ -138,6 +138,7 @@ Primary evidence used only to define that responsibility:
 | RF-031 | Require the expected nonzero targeted test count. | passes: 56 targeted Python tests and 580 active native tests executed with zero failures |
 | RF-032 | Resolve every tool root and target path before invocation. | passes for compile/test roots; deployment-controller roots remain to be resolved before cutover |
 | RF-033 | Re-read account, cluster, service, task, and digest before release. | complete for baseline |
+| RF-034 | Do not make a closed transient witness a recurring release gate. | first immutable rehearsal correctly stopped before cutover because the generic probe still demanded C-014 sparse attention; that stale assertion is removed while exact route replay remains reported |
 
 ## Failed-hypothesis register
 
@@ -160,6 +161,12 @@ Primary evidence used only to define that responsibility:
    direction in the authenticated current body is a shared source-independent
    predecessor into two layer-11 cells. The accepted witness follows those
    exact directed transfers rather than rewriting them to fit the hypothesis.
+7. **Rejected by immutable rehearsal task 116:** require C-014's transient
+   reached/foregone attention witness to recur on every later body. The fresh
+   task-1009 body at tick `65,628` did not reproduce that closed witness. The
+   rehearsal stopped before cutover; production remained unchanged. Route
+   evidence remains exactly replayed and reported, while only C-016 evidence
+   is required for this release.
 
 ## Current bounded verification
 
@@ -175,6 +182,15 @@ Primary evidence used only to define that responsibility:
   public pages at HTTP 200.
 - These are local and discarded-state checks. They do not make C-016
   Live-Closed.
+
+## Deployment clock
+
+- Attempt 1 started from clean commit `7ffc324d` and built candidate task 1010,
+  digest `sha256:4b5d5fba...4d91`.
+- Isolated rehearsal task 116 failed before cutover on the obsolete recurring
+  C-014 sparse-attention assertion. Production remained task 1009 and healthy.
+- The failed attempt counts toward total delivery time; no production cutover
+  attempt occurred.
 
 ## Completion boundary
 
