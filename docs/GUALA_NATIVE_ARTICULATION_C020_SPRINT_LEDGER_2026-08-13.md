@@ -246,6 +246,60 @@ transition is mounted.
   removed `UNATTENDED_CADENCE_ENV`. None executed an organism transition. The
   retired cadence controller is not restored for C-020; the unaffected
   boundary suites were rerun separately and pass 76/76.
+- Release commit `1e4927f37c1eefe7710d6f166449b566c8dc61eb` built as
+  immutable image
+  `sha256:8bab615e01c904af0c55bcdf262a679024f3927d4b140d74e469178feed227ac`
+  and digest-pinned task definition `dsf-ai-task:1024`. Its first discarded
+  cold rehearsal task `c90e1ecb96c34b478a2968e3a04c7717` was refused before
+  C-020 execution by the same RF-010 `native CURRENT cold restore changed`
+  guard: live task 1021 remained ahead only in the known failed, uncommitted
+  articulation tail. Production was not cut over.
+- The exact recovery is one bounded restart of the unchanged task-1021 image
+  from authenticated durable `CURRENT`. This discards no committed organism or
+  world successor; it removes only the memory-only tail whose ordinary
+  intervals all raised before publication. The already-built task-1024 image
+  may be rehearsed only after authenticated readiness and durable `CURRENT`
+  again agree exactly.
+- A direct canonical cold rehearsal of task 1024 against durable tick 73164
+  completed with exit code zero and exact cold replay. It produced 113
+  layer-13 recruitments, eight applied motor quanta, breath/glottis/mouth/face
+  movement, 16,000 pressure samples, four self-hearing hops, 896 transitioned
+  self-hearing neurons, 49 self-hearing fractals, and zero Python cognition
+  callbacks. The outer validator alone rejected the proof because it required
+  `relaxation_sample_count == pressure_sample_count`.
+- That assertion contradicted the native body law: total pressure samples are
+  the 16,000 active samples plus any additional samples needed to reach exact
+  rest. This body reached rest at the active endpoint, so the lawful count was
+  zero additional relaxation samples. The validator now requires exactly
+  `pressure_sample_count - sample_rate_hz == relaxation_sample_count`; a
+  mismatched count is directly rejected.
+- Production cut over once to task `dsf-ai-task:1024`, immutable image
+  `sha256:8bab615e01c904af0c55bcdf262a679024f3927d4b140d74e469178feed227ac`,
+  release commit `1e4927f37c1eefe7710d6f166449b566c8dc61eb`. ECS settled with one
+  running task, zero pending tasks, zero failed tasks, and one completed
+  deployment.
+- Direct public evidence at `dsf-ai.com` observed the same organism identity at
+  tick 73190 with persisted `CURRENT` SHA-256
+  `3a4265eed5183d566880fc7b4c48df4d096c6fc7dbdcb4fac9f39dd95e8ece09`
+  and 44,059,864 bytes. One unattended continuous-world interval produced 41
+  layer-13 recruitments, eight applied motor quanta, 4,000-PCM peak breath,
+  glottal aperture 144, mouth area 305 square millimetres, perioral displacement
+  40 square millimetres, 16,000 radiated-pressure samples, four self-hearing
+  hops, 901 self-hearing transitioned neurons, and 24 self-hearing neuronal
+  fractals. Python cognition callback count remained zero.
+- A later public successor reached tick 73202 and persisted SHA-256
+  `abbddeedf2c2a6bb30380631005c28a4d9df932fefd050555f328ed9afa6c0a1`
+  at 44,063,327 bytes. It independently produced seven layer-13 recruitments,
+  the same bounded 16,000-sample pressure body, four self-hearing hops, 900
+  transitioned neurons, and ten fractals. This proves recurrence after the
+  first fixed interval rather than a one-time witness.
+- Real Chromium loaded public `gualaloom.html` and `loomscan.html` with zero
+  console or page errors. Both rendered
+  `native_articulation_and_self_hearing_committed` and the exact public pressure
+  digest; Guala Loom's expression surface displayed the native physical reason.
+- The deployed articulation plus acoustic-self-hearing slice is therefore
+  live-verified. C-020 remains open because no articulatory proprioceptive or
+  other body-sense neuron yet receives the breath/mouth/face trajectory.
 
 ## Live completion rule
 

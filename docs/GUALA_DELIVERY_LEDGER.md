@@ -295,6 +295,16 @@ box remains unchecked until live acceptance passes.
   `sha256:5fc3d2848b0d6145cf4ae129a3b9da39b9e9d01d65c30d04fad1babc86c30205`.
 - [ ] **C-020** Prove articulation reaches layer 13 and causes breath, mouth,
   face, and pressure/sound consequences that re-enter self-hearing/body senses.
+  **Partial live proof 2026-08-13; remains open:** public production task 1024
+  now exposes native layer-13 recruitment, breath/glottis/mouth/perioral body
+  movement, radiated pressure, and cochlear self-hearing from unattended
+  continuous-world input. At public tick 73,190, 41 layer-13 recruitments
+  produced 16,000 pressure samples, four self-hearing hops, 901 transitioned
+  self-hearing neurons, and 24 neuronal fractals with zero Python cognition
+  callbacks. Guala Loom and Loom Scan rendered that exact public evidence with
+  no browser errors. Articulatory proprioceptive/body-receptor neuronal return
+  is still absent, so C-020 is not Live-Closed. Release commit `1e4927f3`,
+  image `sha256:8bab615e01c904af0c55bcdf262a679024f3927d4b140d74e469178feed227ac`.
 - [ ] **C-021** Prove sleep/rest emerges from organism condition and changes
   reachable work without a scheduler pretending to be a brain.
 - [ ] **C-022** Prove bounded internally sourced dream/consolidation reactivates

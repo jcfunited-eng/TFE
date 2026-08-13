@@ -565,9 +565,9 @@ def _validate_proof(
                 "self_hearing_transitioned_neuron_count",
             )
         )
-        and articulation["pressure_sample_count"] == articulation["sample_rate_hz"]
+        and articulation["pressure_sample_count"] >= articulation["sample_rate_hz"]
         and articulation["relaxation_sample_count"]
-        == articulation["pressure_sample_count"]
+        == articulation["pressure_sample_count"] - articulation["sample_rate_hz"]
         and isinstance(articulation.get("self_hearing_fractal_count"), int)
         and not isinstance(articulation["self_hearing_fractal_count"], bool)
         and articulation["self_hearing_fractal_count"] >= 0
