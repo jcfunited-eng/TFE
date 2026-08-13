@@ -3417,14 +3417,15 @@ fn select_gate_population_settlement(
             exported_heat_zeptojoules,
         }));
     }
-    let mut lowest_energy: Option<Exact> = None;
-    let mut selected: Option<GatePopulationSettlement> = None;
-    let mut tied = false;
-    for open_population in 0..=anatomy.population {
-        if open_population == predecessor_gate.open_population {
-            continue;
-        }
-        let candidate_energy = gate_population_free_energy(
+    // The collective support coordinate is affine in open population and its
+    // elastic energy is quadratic; every other gate term is linear. The whole
+    // gate free-energy law is therefore convex over integer population. Find
+    // its exact discrete minimum by comparing adjacent energies instead of
+    // reevaluating every possible population. At most two adjacent integers
+    // can share the minimum, so the predecessor and tie behavior below is
+    // identical to the former exhaustive scan.
+    let energy_at = |open_population| {
+        gate_population_free_energy(
             anatomy,
             plastic_anatomy,
             plastic_state,
@@ -3433,7 +3434,46 @@ fn select_gate_population_settlement(
             psi,
             gate_work,
             open_population,
+        )
+    };
+    let mut low = 0_u128;
+    let mut high = anatomy.population;
+    while low < high {
+        let middle = low + (high - low) / 2;
+        let middle_energy = energy_at(middle)?;
+        let next_energy = energy_at(
+            middle
+                .checked_add(1)
+                .ok_or(GateSettlementError::ArithmeticWidth)?,
         )?;
+        if next_energy < middle_energy {
+            low = middle
+                .checked_add(1)
+                .ok_or(GateSettlementError::ArithmeticWidth)?;
+        } else {
+            high = middle;
+        }
+    }
+    let first_minimum = low;
+    let first_minimum_energy = energy_at(first_minimum)?;
+    let second_minimum = if first_minimum < anatomy.population {
+        let candidate = first_minimum
+            .checked_add(1)
+            .ok_or(GateSettlementError::ArithmeticWidth)?;
+        (energy_at(candidate)? == first_minimum_energy).then_some(candidate)
+    } else {
+        None
+    };
+    let mut selected: Option<GatePopulationSettlement> = None;
+    let mut tied = false;
+    for open_population in [Some(first_minimum), second_minimum]
+        .into_iter()
+        .flatten()
+    {
+        if open_population == predecessor_gate.open_population {
+            continue;
+        }
+        let candidate_energy = energy_at(open_population)?;
         if candidate_energy >= predecessor_energy {
             continue;
         }
@@ -3448,29 +3488,15 @@ fn select_gate_population_settlement(
         else {
             continue;
         };
-        match lowest_energy.as_ref() {
-            None => {
-                lowest_energy = Some(candidate_energy.clone());
-                selected = Some(GatePopulationSettlement {
-                    open_population,
-                    released_quanta,
-                    dissipation_residue_zeptojoules,
-                    exported_heat_zeptojoules,
-                });
-                tied = false;
-            }
-            Some(lowest) if candidate_energy < *lowest => {
-                lowest_energy = Some(candidate_energy.clone());
-                selected = Some(GatePopulationSettlement {
-                    open_population,
-                    released_quanta,
-                    dissipation_residue_zeptojoules,
-                    exported_heat_zeptojoules,
-                });
-                tied = false;
-            }
-            Some(lowest) if candidate_energy == *lowest => tied = true,
-            Some(_) => {}
+        if selected.is_none() {
+            selected = Some(GatePopulationSettlement {
+                open_population,
+                released_quanta,
+                dissipation_residue_zeptojoules,
+                exported_heat_zeptojoules,
+            });
+        } else {
+            tied = true;
         }
     }
     if tied {
@@ -6287,6 +6313,109 @@ mod tests {
         )
         .unwrap();
         assert_eq!(settlement, None);
+    }
+
+    #[test]
+    fn logarithmic_population_minimum_matches_exhaustive_convex_law() {
+        let fixture = physical_fixture();
+        for population in 2..=16_u128 {
+            let gate = population_gate(&fixture, population, q(1, 16));
+            for predecessor_open in 0..=population {
+                let mut predecessor_gate = fixture.state.gate.clone();
+                predecessor_gate.open_population = predecessor_open;
+                for signed_work in -32..=32_i64 {
+                    let work = GateWorkOccurrence::new(q(signed_work, 1));
+                    let predecessor_energy = gate_population_free_energy(
+                        &gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        fixture.state.membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &work,
+                        predecessor_open,
+                    )
+                    .unwrap();
+                    let mut exhaustive: Option<(u128, Exact)> = None;
+                    let mut tied = false;
+                    for candidate in 0..=population {
+                        if candidate == predecessor_open {
+                            continue;
+                        }
+                        let energy = gate_population_free_energy(
+                            &gate,
+                            &fixture.anatomy.plastic,
+                            &fixture.state.plastic,
+                            fixture.state.membrane,
+                            fixture.anatomy.capacitance,
+                            &fixture.state.psi,
+                            &work,
+                            candidate,
+                        )
+                        .unwrap();
+                        if energy >= predecessor_energy {
+                            continue;
+                        }
+                        match exhaustive.as_ref() {
+                            None => {
+                                exhaustive = Some((candidate, energy));
+                                tied = false;
+                            }
+                            Some((_, lowest)) if energy < *lowest => {
+                                exhaustive = Some((candidate, energy));
+                                tied = false;
+                            }
+                            Some((_, lowest)) if energy == *lowest => tied = true,
+                            Some(_) => {}
+                        }
+                    }
+                    let expected = if tied {
+                        None
+                    } else {
+                        exhaustive.map(|(candidate, _)| candidate)
+                    };
+                    let observed = select_gate_population_settlement(
+                        &gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        &predecessor_gate,
+                        fixture.state.membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &work,
+                        None,
+                    )
+                    .unwrap()
+                    .map(|settlement| settlement.open_population);
+                    assert_eq!(
+                        observed, expected,
+                        "population={population} predecessor={predecessor_open} work={signed_work}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn multi_million_channel_population_settles_without_population_scan() {
+        let fixture = physical_fixture();
+        let population = 4_563_410_u128;
+        let gate = population_gate(&fixture, population, q(1, 16));
+        let settled = select_gate_population_settlement(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            &fixture.state.gate,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::new(q(-9, 1)),
+            None,
+        )
+        .unwrap();
+        assert!(settled
+            .as_ref()
+            .is_none_or(|value| value.open_population <= population));
     }
 
     fn scaled_physical_fixture(positions: usize, constraint_count: usize) -> Fixture {

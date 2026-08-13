@@ -399,3 +399,21 @@ and backend-only state do not close it.
 - This remains local candidate evidence. The corrected full-strength
   production-predecessor rehearsal, immutable cutover, and public body-return
   proof remain pending; C-020 is not Live-Closed.
+- Immutable candidate commit `ba3257473abdf4a4abf7c740a6b2b98c548249aa`,
+  image `sha256:014e5baf40c32085a9b897944055082ad839f84eea1e7e14a05620245267aa57`,
+  and task definition `dsf-ai-task:1026` were built. Its discarded rehearsal
+  restored the authenticated task-1024 predecessor but reached the fixed
+  15-minute ceiling before emitting a result. Production remained unchanged.
+- That measured failure exposed the second population enumeration in the same
+  gate law. After receptor activation, an untargeted settlement evaluated
+  every possible open population `0..=N` to find the lowest exact energy.
+  Because the existing collective gate free energy is convex quadratic in
+  integer open population, the candidate now finds the exact one-or-two
+  adjacent minima by logarithmic discrete-convex comparison. The former
+  exhaustive minimum and tie result is preserved exactly; no physical state or
+  threshold changes.
+- The logarithmic minimum matches the former exhaustive scan for populations
+  2 through 16, every predecessor population, and signed work -32 through 32.
+  A 4,563,410-channel settlement executes without a population scan. Candidate
+  1026 is refused and will not be cut over; a fresh immutable candidate is
+  required after the complete gate-path proof passes.
