@@ -241,8 +241,18 @@ box remains unchecked until live acceptance passes.
   commit `6dc3f3c7`, image
   `sha256:18fc7d11ca51cef5db248a2385e28faacd55df6b04e53fbeef27355d4069594e`,
   with zero Python cognition callbacks and bounded CPU, RAM, and durable state.
-- [ ] **C-016** Prove prediction and ordered alternatives emerge through layer
+- [x] **C-016** Prove prediction and ordered alternatives emerge through layer
   11 and physical consequence, without a scripted planner or score winner.
+  **Live-closed 2026-08-13:** public production task 1015 retained two exact
+  layer-11 alternatives and one later authentic body consequence. Alternative
+  0 agreed through pre-existing layer-10 body/affective relation lineage
+  `...0061`; the tested event occurred at organism tick 69,512 with state
+  receipt `085a9a7a...4242e74`. After unattended time advanced the organism to
+  tick 69,521, the public endpoint still exposed the same bounded tested-event
+  witness with snapshot receipt `c5d04a72...0e53506`, no planner, score, or
+  semantic-outcome authority, and zero Python cognition callbacks. Release
+  commit `5cd50950`, image
+  `sha256:b19e2679d7b2ffa3e0886b1dbd12d7ca45b949b65cb283da8e3534682daff477`.
 - [ ] **C-017** Prove body/fluid/association trajectories influence affect and
   emotional balance without named emotion variables.
 - [ ] **C-018** Prove fluid-brain transport and localized chemistry influence

@@ -306,3 +306,32 @@ consequence; exact later agreement or disagreement; same-predecessor/input cold
 reproduction; bounded reached-frontier work; no score, planner, scenario,
 semantic outcome, Python cognition, or retained history. It does not close
 choice, general thought, planning, imagination, or autonomy.
+
+## Live closure — 2026-08-13
+
+C-016 is **Live-Closed** on public production task `1015`, release commit
+`5cd50950aebf45ee90903a163bee02e24640da1f`, and immutable image digest
+`sha256:b19e2679d7b2ffa3e0886b1dbd12d7ca45b949b65cb283da8e3534682daff477`.
+
+- ECS settled with one desired/running healthy process and no pending or
+  overlapping deployment.
+- The same authenticated organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` cold-restored, with zero Python
+  cognition callbacks.
+- At organism tick `69,512`, two exact internally continued alternatives
+  crossed pre-existing layer-11 ordering cells into distinct pre-existing
+  layer-10 body/affective relations. One later authentic returned body
+  transfer reached relation lineage `...0061`, agreeing with alternative `0`.
+- The tested event state receipt is
+  `085a9a7af40fe84602b56f053fcf9d6907472c2d5b3d3138cdd9c74ec4242e74`;
+  its first public snapshot receipt is
+  `90b67d18c8a0ad218e9838d56b6afa43cb9f3172fb3f0113cc4ad5075f613b91`.
+- After unattended processing advanced to tick `69,521`, the same bounded
+  event remained publicly observable under snapshot receipt
+  `c5d04a72fe3076bf6d82dd833fb91206de3a05b69888ffd23e5c751420e53506`.
+- The public record explicitly reports `planner_authority=false`,
+  `score_authority=false`, `semantic_outcome_authority=false`, and
+  `python_cognition_callback_count=0`.
+
+This closes only the physical prediction precursor in C-016. It does not prove
+thought, deliberative choice, planning, imagination, meaning, or autonomy.
