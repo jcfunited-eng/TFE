@@ -49,6 +49,29 @@ class _NativeResidentOrganismObservation:
         tuple[tuple[str, str, int, int], tuple[str, str, int, int]], ...
     ] = ()
     body_consequence_transfers: tuple[tuple[str, str, int, int], ...] = ()
+    affective_balance_trajectories: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[int, tuple[str, str, int, int]] | None,
+            tuple[int, tuple[str, str, int, int]] | None,
+            tuple[
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+            ]
+            | None,
+        ],
+        ...,
+    ] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -150,6 +173,7 @@ class _NativeResidentOrganismPrepare:
         tuple[tuple[str, str, int, str], tuple[str, str, int, str]]
     ] | None = None
     body_consequence_transfers: list[tuple[str, str, int, str]] | None = None
+    affective_balance_trajectories: list[tuple[object, ...]] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -190,6 +214,8 @@ class _NativeResidentOrganismPrepare:
             self.physical_prediction_alternatives = []
         if self.body_consequence_transfers is None:
             self.body_consequence_transfers = []
+        if self.affective_balance_trajectories is None:
+            self.affective_balance_trajectories = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
 
@@ -344,6 +370,44 @@ def test_observation_signature_carries_deep_ordered_relation() -> None:
 
     assert (relation,) in signature
     assert (route,) in signature
+
+
+def test_affective_balance_trajectory_preserves_exact_local_physics() -> None:
+    lineage = "10" * 16
+    association = (7, ("07" * 16, lineage, 0, "3"))
+    body = (8, ("08" * 16, lineage, 0, "2"))
+    gradient = (
+        9,
+        -5,
+        -3,
+        -4,
+        2,
+        2,
+        0,
+        ("11", "2"),
+        ("13", "2"),
+        ("1", "1"),
+    )
+    observation = replace(
+        _active(),
+        affective_balance_trajectories=(
+            (lineage, 10, 4, association, body, gradient),
+        ),
+    )
+
+    assert boundary._affective_balance_trajectory_evidence(
+        list(observation.affective_balance_trajectories)
+    ) == ((
+        lineage,
+        10,
+        4,
+        (7, ("07" * 16, lineage, 0, 3)),
+        (8, ("08" * 16, lineage, 0, 2)),
+        (9, -5, -3, -4, 2, 2, 0, (11, 2), (13, 2), (1, 1)),
+    ),)
+    assert observation.affective_balance_trajectories in boundary._observation_signature(
+        observation
+    )
 
 
 def _restore(

@@ -1259,6 +1259,7 @@ _last_transition_evidence: dict[str, Any] | None = None
 # produced it.  This record contains no field body and never enters cognition;
 # each later tested event replaces it in constant process memory.
 _last_tested_prediction_evidence: dict[str, Any] | None = None
+_last_tested_affective_balance_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2349,6 +2350,105 @@ def _physical_prediction_record() -> dict[str, object]:
     )
 
 
+def _affective_balance_record() -> dict[str, object]:
+    """Report one exact body/association/local-gradient trajectory."""
+
+    retained_test = _last_tested_affective_balance_evidence
+    evidence = retained_test or _last_transition_evidence or {}
+    trajectories = tuple(evidence.get("affective_balance_trajectories", ()))
+    complete = next(
+        (
+            trajectory
+            for trajectory in trajectories
+            if trajectory[3] is not None
+            and trajectory[4] is not None
+            and trajectory[5] is not None
+            and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+        ),
+        None,
+    )
+    authority = {
+        "affect_score_authority": False,
+        "named_emotion_authority": False,
+        "python_decision_authority": False,
+        "reward_authority": False,
+    }
+    if complete is None:
+        return _section(
+            False,
+            "affective_balance_mounted_awaiting_complete_trajectory",
+            "layer-7 association, layer-8 body regulation, layer-10 junction, "
+            "and localized membrane-gradient recovery are mounted, but this "
+            "process has not yet observed both physical influences followed "
+            "by a later nonzero local gradient settlement on the same cell",
+            evidence_scope=(
+                "latest_tested_physical_event"
+                if retained_test is not None
+                else "latest_committed_transition"
+            ),
+            **authority,
+        )
+    lineage, layer, topology, association, body, gradient = complete
+
+    def transfer_record(
+        timed: tuple[int, tuple[str, str, int, int]], source_layer: int
+    ) -> dict[str, object]:
+        ordinal, transfer = timed
+        return {
+            "cognitive_ordinal": ordinal,
+            "source_layer": source_layer,
+            "sender_lineage": transfer[0],
+            "receiver_lineage": transfer[1],
+            "parallel_contact_ordinal": transfer[2],
+            "transferred_whole_carriers": transfer[3],
+        }
+
+    def rational_record(value: tuple[int, int]) -> dict[str, int]:
+        return {"numerator": value[0], "denominator": value[1]}
+
+    return _section(
+        True,
+        "body_association_perturbation_followed_by_local_gradient_recovery",
+        "the same physical layer-10 cell received exact association and body "
+        "contact consequences and, at a strictly later cognitive ordinal, "
+        "its own localized recovery-fluid compartment moved its retained "
+        "membrane gradient; this is affective-balance physics, not a named "
+        "emotion, preference, reward, or score",
+        evidence_scope=(
+            "latest_tested_physical_event"
+            if retained_test is not None
+            else "latest_committed_transition"
+        ),
+        evidence_organism_tick=evidence.get("organism_tick"),
+        evidence_state_sha256=evidence.get("state_sha256"),
+        evidence_intake=evidence.get("intake"),
+        trajectory={
+            "neuron_lineage": lineage,
+            "neuron_layer": layer,
+            "neuron_topology_index": topology,
+            "association_influence": transfer_record(association, 7),
+            "body_influence": transfer_record(body, 8),
+            "localized_gradient_settlement": {
+                "cognitive_ordinal": gradient[0],
+                "predecessor_separated_elementary_charges": gradient[1],
+                "post_gradient_separated_elementary_charges": gradient[2],
+                "interval_successor_separated_elementary_charges": gradient[3],
+                "returned_elementary_charges": gradient[4],
+                "pumped_elementary_charges": gradient[5],
+                "unreturned_elementary_charges": gradient[6],
+                "membrane_gradient_work_zeptojoules": rational_record(gradient[7]),
+                "environment_energy_delivered_zeptojoules": rational_record(
+                    gradient[8]
+                ),
+                "environment_heat_exported_zeptojoules": rational_record(
+                    gradient[9]
+                ),
+            },
+        },
+        **authority,
+    )
+
+
 def _describe_intake(intake: str) -> tuple[str, str]:
     """What this experience actually was, in words, and what it carried.
 
@@ -3011,6 +3111,7 @@ def _build_public_observation() -> dict[str, Any]:
         "attention": _attention_record(),
         "working_causal_state": _working_causal_state_record(),
         "prediction": _physical_prediction_record(),
+        "affective_balance": _affective_balance_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
         "articulation": _unmounted(
@@ -4351,6 +4452,7 @@ def _commit_admitted_hop(
             evidence.physical_prediction_alternatives
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
+        "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4431,6 +4533,7 @@ def _commit_vestibular_tick(
             evidence.physical_prediction_alternatives
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
+        "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4511,6 +4614,7 @@ def _commit_vestibular_trajectory(
             evidence.physical_prediction_alternatives
         ),
         "body_consequence_transfers": evidence.body_consequence_transfers,
+        "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4612,6 +4716,55 @@ def _advance_bounded_prediction_evidence(
     ):
         next_consequence = tuple(hop["body_consequence_transfers"])[:1]
     return next_alternatives, next_consequence
+
+
+def _advance_bounded_affective_balance_evidence(
+    retained: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[tuple[Any, ...], ...]:
+    """Merge one bounded physical trajectory per exact layer-10 lineage."""
+
+    by_lineage = {entry[0]: entry for entry in retained}
+    for observed in tuple(hop["affective_balance_trajectories"]):
+        lineage, layer, topology, association, body, gradient = observed
+        prior = by_lineage.get(lineage)
+        if prior is not None:
+            _, prior_layer, prior_topology, prior_association, prior_body, prior_gradient = prior
+            if (layer, topology) != (prior_layer, prior_topology):
+                raise RuntimeError("affective-balance lineage changed physical place")
+            association = prior_association or association
+            body = prior_body or body
+            gradient = prior_gradient or gradient
+        influence_ordinal = (
+            max(association[0], body[0])
+            if association is not None and body is not None
+            else None
+        )
+        if (
+            gradient is not None
+            and influence_ordinal is not None
+            and gradient[0] <= influence_ordinal
+        ):
+            gradient = None
+        observed_gradient = observed[5]
+        if (
+            gradient is None
+            and observed_gradient is not None
+            and (
+                influence_ordinal is None
+                or observed_gradient[0] > influence_ordinal
+            )
+        ):
+            gradient = observed_gradient
+        by_lineage[lineage] = (
+            lineage,
+            layer,
+            topology,
+            association,
+            body,
+            gradient,
+        )
+    return tuple(by_lineage[lineage] for lineage in sorted(by_lineage))
 
 
 def _publish_committed_organism(
@@ -4749,7 +4902,7 @@ def _perform_admitted_intake_locked(
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
     global _restored, _last_transition_evidence, _last_self_moved
-    global _last_tested_prediction_evidence
+    global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -4784,6 +4937,7 @@ def _perform_admitted_intake_locked(
     settled_working_frontier: tuple[tuple[Any, ...], ...] = ()
     physical_prediction_alternatives: tuple[tuple[Any, ...], ...] = ()
     body_consequence_transfers: tuple[tuple[Any, ...], ...] = ()
+    affective_balance_trajectories: tuple[tuple[Any, ...], ...] = ()
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4818,6 +4972,12 @@ def _perform_admitted_intake_locked(
                 physical_prediction_alternatives,
                 body_consequence_transfers,
                 last_hop,
+            )
+            affective_balance_trajectories = (
+                _advance_bounded_affective_balance_evidence(
+                    affective_balance_trajectories,
+                    last_hop,
+                )
             )
             committed_vestibular_tick_count = len(signed_steps)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
@@ -4855,6 +5015,12 @@ def _perform_admitted_intake_locked(
                 physical_prediction_alternatives,
                 body_consequence_transfers,
                 last_hop,
+            )
+            affective_balance_trajectories = (
+                _advance_bounded_affective_balance_evidence(
+                    affective_balance_trajectories,
+                    last_hop,
+                )
             )
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
@@ -4931,6 +5097,12 @@ def _perform_admitted_intake_locked(
                     body_consequence_transfers,
                     last_hop,
                 )
+                affective_balance_trajectories = (
+                    _advance_bounded_affective_balance_evidence(
+                        affective_balance_trajectories,
+                        last_hop,
+                    )
+                )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 organic_mosaic_relations.extend(
@@ -4991,6 +5163,7 @@ def _perform_admitted_intake_locked(
         "settled_working_frontier": settled_working_frontier,
         "physical_prediction_alternatives": physical_prediction_alternatives,
         "body_consequence_transfers": body_consequence_transfers,
+        "affective_balance_trajectories": affective_balance_trajectories,
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,
@@ -5005,6 +5178,21 @@ def _perform_admitted_intake_locked(
             "intake": intake,
             "organism_tick": published.pointer.organism_tick,
             "physical_prediction_alternatives": physical_prediction_alternatives,
+            "state_sha256": published.pointer.state_sha256,
+        }
+    complete_affective_balance = tuple(
+        trajectory
+        for trajectory in affective_balance_trajectories
+        if trajectory[3] is not None
+        and trajectory[4] is not None
+        and trajectory[5] is not None
+        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+    )
+    if complete_affective_balance:
+        _last_tested_affective_balance_evidence = {
+            "affective_balance_trajectories": complete_affective_balance[:1],
+            "intake": intake,
+            "organism_tick": published.pointer.organism_tick,
             "state_sha256": published.pointer.state_sha256,
         }
     _refresh_public_observation_cache()
@@ -6582,8 +6770,9 @@ def _startup() -> None:
     global _restored, _admission, _boot_error
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _public_observation_body, _public_observation_etag
-    global _last_tested_prediction_evidence
+    global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     _last_tested_prediction_evidence = None
+    _last_tested_affective_balance_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(

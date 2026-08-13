@@ -457,6 +457,7 @@ mod tests {
             settled_working_frontier: Vec::new(),
             physical_prediction_alternatives: Vec::new(),
             body_consequence_transfers: Vec::new(),
+            affective_balance_trajectories: Vec::new(),
             organic_mosaic_relations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,

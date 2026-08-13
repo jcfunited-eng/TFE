@@ -287,6 +287,12 @@ def _rehearse_sparse_attention_frontier(
     replay_body_consequence_transfers = tuple(
         replay_prepared.body_consequence_transfers
     )
+    affective_balance_trajectories = tuple(
+        prepared.affective_balance_trajectories
+    )
+    replay_affective_balance_trajectories = tuple(
+        replay_prepared.affective_balance_trajectories
+    )
     route_sets = (
         reached_and_foregone_routes,
         current_routes,
@@ -313,6 +319,8 @@ def _rehearse_sparse_attention_frontier(
         or replay_settled_working_frontier != settled_working_frontier
         or replay_prediction_alternatives != prediction_alternatives
         or replay_body_consequence_transfers != body_consequence_transfers
+        or replay_affective_balance_trajectories
+        != affective_balance_trajectories
         or replay_successor != successor
         or replay_before.state_sha256 != before.state_sha256
         or replay_after.state_sha256 != after.state_sha256
@@ -328,7 +336,25 @@ def _rehearse_sparse_attention_frontier(
     reached = tuple(route for route in qualifying if route[7] != 0)
     foregone = tuple(route for route in qualifying if route[7] == 0)
     downstream = {route[3] for route in reached}
+    complete_affective_balance_trajectories = tuple(
+        trajectory
+        for trajectory in affective_balance_trajectories
+        if trajectory[3] is not None
+        and trajectory[4] is not None
+        and trajectory[5] is not None
+        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+    )
     return {
+        "affective_balance_complete_trajectory_count": len(
+            complete_affective_balance_trajectories
+        ),
+        "affective_balance_cold_replay_exact": True,
+        "affective_balance_trajectory_count": len(
+            affective_balance_trajectories
+        ),
+        "affective_balance_trajectories_sha256": hashlib.sha256(
+            _canonical(affective_balance_trajectories)
+        ).hexdigest(),
         "sparse_attention_cold_replay_exact": True,
         "sparse_attention_current_route_count": len(current_routes),
         "sparse_attention_current_routes_sha256": hashlib.sha256(

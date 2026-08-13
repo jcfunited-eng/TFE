@@ -98,6 +98,7 @@ def _mount(monkeypatch) -> _Restored:
     monkeypatch.setattr(serving, "_restored", restored)
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
+    monkeypatch.setattr(serving, "_last_tested_affective_balance_evidence", None)
     monkeypatch.setattr(serving, "_admission", _Admission())
     monkeypatch.setattr(
         serving,
@@ -514,6 +515,42 @@ def test_recall_section_is_truth_coupled_to_the_native_observation(
     assert value["recall"]["status"] == "endogenous_physical_reassembly_observed"
     assert value["recall"]["partial_cue_reassembly_count"] == 3
     assert value["formations"]["mosaic_count"] == 1
+
+
+def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
+    _mount(monkeypatch)
+    lineage = "10" * 16
+    association = (7, ("07" * 16, lineage, 0, 3))
+    body = (8, ("08" * 16, lineage, 0, 2))
+    gradient = (9, -5, -3, -4, 2, 2, 0, (11, 2), (13, 2), (1, 1))
+    monkeypatch.setattr(
+        serving,
+        "_last_tested_affective_balance_evidence",
+        {
+            "affective_balance_trajectories": (
+                (lineage, 10, 4, association, body, gradient),
+            ),
+            "intake": "unattended-world",
+            "organism_tick": 42,
+            "state_sha256": "d" * 64,
+        },
+    )
+    serving._refresh_public_observation_cache()
+
+    value = json.loads(serving.native_observation().body)["affective_balance"]
+
+    assert value["available"] is True
+    assert value["status"] == (
+        "body_association_perturbation_followed_by_local_gradient_recovery"
+    )
+    assert value["trajectory"]["neuron_layer"] == 10
+    assert value["trajectory"]["association_influence"]["source_layer"] == 7
+    assert value["trajectory"]["body_influence"]["source_layer"] == 8
+    assert value["trajectory"]["localized_gradient_settlement"][
+        "cognitive_ordinal"
+    ] == 9
+    assert value["named_emotion_authority"] is False
+    assert value["python_decision_authority"] is False
 
 
 def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:

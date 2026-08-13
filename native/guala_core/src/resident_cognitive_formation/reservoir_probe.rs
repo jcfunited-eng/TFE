@@ -502,6 +502,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &mut successor.electrical_fabric,
         &externally_reached,
         &mut changed,
+        successor.generation,
     )
     .expect("maximal external frontier settles");
     let pending_post_quiescence_candidates = successor

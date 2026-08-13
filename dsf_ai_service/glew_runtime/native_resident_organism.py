@@ -18,6 +18,30 @@ RUNTIME_SCHEMA = "guala.native.resident_organism_runtime.v3"
 OBSERVATION_SCHEMA = "guala.native.resident_organism_observation.v3"
 PREPARE_SCHEMA = "guala.native.resident_organism_prepare.v3"
 
+DirectedPhysicalTransferEvidence = tuple[str, str, int, int]
+TimedDirectedPhysicalTransferEvidence = tuple[int, DirectedPhysicalTransferEvidence]
+ExactRationalEvidence = tuple[int, int]
+LocalAffectiveGradientSettlementEvidence = tuple[
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+]
+AffectiveBalanceTrajectoryEvidence = tuple[
+    str,
+    int,
+    int,
+    TimedDirectedPhysicalTransferEvidence | None,
+    TimedDirectedPhysicalTransferEvidence | None,
+    LocalAffectiveGradientSettlementEvidence | None,
+]
+
 _FACTORY_AUTHORITY = object()
 
 
@@ -138,6 +162,32 @@ class NativeResidentObservationView(Protocol):
     def body_consequence_transfers(
         self,
     ) -> list[tuple[str, str, int, str]]: ...
+
+    @property
+    def affective_balance_trajectories(
+        self,
+    ) -> list[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[int, tuple[str, str, int, str]] | None,
+            tuple[int, tuple[str, str, int, str]] | None,
+            tuple[
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+            ]
+            | None,
+        ]
+    ]: ...
 
     @property
     def organic_mosaic_relations(
@@ -297,6 +347,9 @@ class ResidentPrepareEvidence:
         ...,
     ] = ()
     body_consequence_transfers: tuple[tuple[str, str, int, int], ...] = ()
+    affective_balance_trajectories: tuple[
+        AffectiveBalanceTrajectoryEvidence, ...
+    ] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -524,6 +577,98 @@ def _body_consequence_transfer_evidence(
     )
 
 
+def _exact_rational_evidence(value: object, label: str) -> ExactRationalEvidence:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise RuntimeError(f"resident organism {label} changed format")
+    numerator_text, denominator_text = value
+    if (
+        not isinstance(numerator_text, str)
+        or not isinstance(denominator_text, str)
+        or not numerator_text.removeprefix("-").isdecimal()
+        or not denominator_text.isdecimal()
+    ):
+        raise RuntimeError(f"resident organism {label} lost exact rational")
+    numerator = int(numerator_text)
+    denominator = int(denominator_text)
+    if denominator <= 0:
+        raise RuntimeError(f"resident organism {label} has invalid denominator")
+    return numerator, denominator
+
+
+def _timed_directed_physical_transfer_evidence(
+    value: object, label: str
+) -> TimedDirectedPhysicalTransferEvidence:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise RuntimeError(f"resident organism {label} changed format")
+    return (
+        _nonnegative_integer(value[0], f"{label} cognitive ordinal"),
+        _directed_physical_transfer_evidence(value[1], label),
+    )
+
+
+def _affective_balance_trajectory_evidence(
+    value: object,
+) -> tuple[AffectiveBalanceTrajectoryEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("resident organism affective-balance trajectory changed format")
+    trajectories: list[AffectiveBalanceTrajectoryEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 6:
+            raise RuntimeError(
+                "resident organism affective-balance trajectory changed format"
+            )
+        lineage = _canonical_lineage_hex(raw[0], "affective-balance lineage")
+        layer = _nonnegative_integer(raw[1], "affective-balance layer")
+        topology = _nonnegative_integer(raw[2], "affective-balance topology")
+        if layer != 10:
+            raise RuntimeError("resident organism affective-balance cell left layer 10")
+        association = (
+            None
+            if raw[3] is None
+            else _timed_directed_physical_transfer_evidence(
+                raw[3], "affective-balance association influence"
+            )
+        )
+        body = (
+            None
+            if raw[4] is None
+            else _timed_directed_physical_transfer_evidence(
+                raw[4], "affective-balance body influence"
+            )
+        )
+        for influence in (association, body):
+            if influence is not None and lineage not in influence[1][:2]:
+                raise RuntimeError(
+                    "resident organism affective-balance influence missed its cell"
+                )
+        gradient = None
+        if raw[5] is not None:
+            if not isinstance(raw[5], tuple) or len(raw[5]) != 10:
+                raise RuntimeError(
+                    "resident organism affective-balance gradient changed format"
+                )
+            gradient = (
+                _nonnegative_integer(raw[5][0], "affective-balance gradient ordinal"),
+                _signed_integer(raw[5][1], "affective-balance predecessor charge"),
+                _signed_integer(raw[5][2], "affective-balance post-gradient charge"),
+                _signed_integer(raw[5][3], "affective-balance successor charge"),
+                _signed_integer(raw[5][4], "affective-balance returned carriers"),
+                _signed_integer(raw[5][5], "affective-balance pumped carriers"),
+                _signed_integer(raw[5][6], "affective-balance remaining charge"),
+                _exact_rational_evidence(raw[5][7], "affective-balance gradient work"),
+                _exact_rational_evidence(
+                    raw[5][8], "affective-balance environment delivery"
+                ),
+                _exact_rational_evidence(raw[5][9], "affective-balance heat export"),
+            )
+        trajectories.append((lineage, layer, topology, association, body, gradient))
+    if tuple(item[0] for item in trajectories) != tuple(
+        sorted({item[0] for item in trajectories})
+    ):
+        raise RuntimeError("resident organism affective-balance trajectories are not canonical")
+    return tuple(trajectories)
+
+
 def _validated_causal_intervals(
     maximum_causal_intervals: object,
 ) -> list[tuple[int, int]]:
@@ -626,6 +771,7 @@ def _observation_signature(
         tuple(observation.settled_working_frontier),
         tuple(observation.physical_prediction_alternatives),
         tuple(observation.body_consequence_transfers),
+        tuple(observation.affective_balance_trajectories),
         tuple(
             (
                 tuple(receipts),
@@ -1249,6 +1395,9 @@ class NativeResidentOrganism:
         body_consequence_transfers = _body_consequence_transfer_evidence(
             candidate.body_consequence_transfers
         )
+        affective_balance_trajectories = _affective_balance_trajectory_evidence(
+            candidate.affective_balance_trajectories
+        )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -1614,6 +1763,7 @@ class NativeResidentOrganism:
             settled_working_frontier=settled_working_frontier,
             physical_prediction_alternatives=physical_prediction_alternatives,
             body_consequence_transfers=body_consequence_transfers,
+            affective_balance_trajectories=affective_balance_trajectories,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 

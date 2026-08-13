@@ -2110,6 +2110,7 @@ pub(crate) struct ReachedCohortMetabolicObservation {
     pub(crate) unreturned_elementary_charges: i128,
     pub(crate) fuel_quanta: u128,
     pub(crate) pumped_elementary_charges: i128,
+    pub(crate) membrane_gradient_work_zeptojoules: ExactRational,
     pub(crate) environment_energy_delivered_zeptojoules: ExactRational,
     pub(crate) environment_heat_exported_zeptojoules: ExactRational,
 }
@@ -2124,6 +2125,7 @@ impl Default for ReachedCohortMetabolicObservation {
             unreturned_elementary_charges: 0,
             fuel_quanta: 0,
             pumped_elementary_charges: 0,
+            membrane_gradient_work_zeptojoules: ExactRational::integer(0),
             environment_energy_delivered_zeptojoules: ExactRational::integer(0),
             environment_heat_exported_zeptojoules: ExactRational::integer(0),
         }
@@ -2200,7 +2202,7 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         ..ReachedCohortMetabolicObservation::default()
     };
     for neuron_index in reached_neuron_indices.iter().copied() {
-        let (successor, successor_reservoir, returned, pumped, _pump_work) =
+        let (successor, successor_reservoir, returned, pumped, pump_work) =
             settle_membrane_gradient_transport(
                 &anatomy.neurons[neuron_index],
                 &neurons[neuron_index],
@@ -2219,6 +2221,12 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
             .checked_add(pumped)
             .ok_or(ReachedCohortError::MaterialArithmetic(
                 "reached pump transported-carrier sum overflow",
+            ))?;
+        observation.membrane_gradient_work_zeptojoules = observation
+            .membrane_gradient_work_zeptojoules
+            .checked_add(pump_work)
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "reached pump work sum overflow",
             ))?;
         observation.unreturned_elementary_charges = observation
             .unreturned_elementary_charges
@@ -2349,6 +2357,12 @@ pub(crate) fn settle_reached_cohort_dark_rest(
             .checked_add(settled.pumped_elementary_charges)
             .ok_or(ReachedCohortError::MaterialArithmetic(
                 "dark-rest transported-carrier sum overflow",
+            ))?;
+        observation.membrane_gradient_work_zeptojoules = observation
+            .membrane_gradient_work_zeptojoules
+            .checked_add(settled.pump_work_zeptojoules)
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "dark-rest pump work sum overflow",
             ))?;
         if settled.changed() {
             observation.recovered_neuron_count = observation

@@ -37,10 +37,11 @@ use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
-    has_reached_and_foregone_frontier_routes, AuthoredDeclaredContact,
-    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
-    EmittedNeuronFractal, MotorUnitRecruitment, OrderedPhysicalPathObservation,
-    OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
+    has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
+    AuthoredDeclaredContact, CognitiveFormationObservation, CognitiveFormationSummary,
+    DirectedPhysicalTransferObservation, EmittedNeuronFractal, MotorUnitRecruitment,
+    OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
+    PhysicalFrontierRouteObservation,
     PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
@@ -129,6 +130,28 @@ type OrganicMosaicRelationProjection = (
     Vec<OrderedPathRelationProjection>,
 );
 type PhysicalFrontierRouteProjection = (String, u32, u32, String, u32, u32, u32, i128);
+type ExactRationalProjection = (String, String);
+type TimedDirectedPhysicalTransferProjection = (u64, DirectedPhysicalTransferProjection);
+type LocalAffectiveGradientSettlementProjection = (
+    u64,
+    i128,
+    i128,
+    i128,
+    i128,
+    i128,
+    i128,
+    ExactRationalProjection,
+    ExactRationalProjection,
+    ExactRationalProjection,
+);
+type AffectiveBalanceTrajectoryProjection = (
+    String,
+    u32,
+    u32,
+    Option<TimedDirectedPhysicalTransferProjection>,
+    Option<TimedDirectedPhysicalTransferProjection>,
+    Option<LocalAffectiveGradientSettlementProjection>,
+);
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -376,6 +399,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) physical_prediction_alternatives: Vec<OrderedPhysicalPathObservation>,
     pub(crate) body_consequence_transfers: Vec<DirectedPhysicalTransferObservation>,
+    pub(crate) affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -874,6 +898,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn affective_balance_trajectories(&self) -> Vec<AffectiveBalanceTrajectoryProjection> {
+        project_affective_balance_trajectories(&self.observation.affective_balance_trajectories)
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1255,6 +1284,11 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn body_consequence_transfers(&self) -> Vec<DirectedPhysicalTransferProjection> {
         project_directed_physical_transfers(&self.observation.body_consequence_transfers)
+    }
+
+    #[getter]
+    fn affective_balance_trajectories(&self) -> Vec<AffectiveBalanceTrajectoryProjection> {
+        project_affective_balance_trajectories(&self.observation.affective_balance_trajectories)
     }
 
     #[getter]
@@ -1645,6 +1679,55 @@ fn retain_trajectory_relation_witnesses(
     }
 }
 
+fn retain_affective_balance_trajectory_evidence(
+    retained: &mut Vec<AffectiveBalanceTrajectoryObservation>,
+    observed: &[AffectiveBalanceTrajectoryObservation],
+) {
+    for observation in observed {
+        let index = match retained
+            .binary_search_by_key(&observation.neuron_lineage, |entry| entry.neuron_lineage)
+        {
+            Ok(index) => index,
+            Err(index) => {
+                retained.insert(index, observation.clone());
+                index
+            }
+        };
+        let entry = &mut retained[index];
+        if entry.neuron_place != observation.neuron_place {
+            continue;
+        }
+        if entry.association_influence.is_none() {
+            entry.association_influence = observation.association_influence;
+        }
+        if entry.body_influence.is_none() {
+            entry.body_influence = observation.body_influence;
+        }
+        let influence_ordinal = entry
+            .association_influence
+            .zip(entry.body_influence)
+            .map(|(association, body)| {
+                association.cognitive_ordinal.max(body.cognitive_ordinal)
+            });
+        if entry
+            .localized_gradient_settlement
+            .zip(influence_ordinal)
+            .is_some_and(|(gradient, influence)| gradient.cognitive_ordinal <= influence)
+        {
+            entry.localized_gradient_settlement = None;
+        }
+        if entry.localized_gradient_settlement.is_none() {
+            if let Some(gradient) = observation.localized_gradient_settlement {
+                if influence_ordinal.is_none_or(|influence| {
+                    gradient.cognitive_ordinal > influence
+                }) {
+                    entry.localized_gradient_settlement = Some(gradient);
+                }
+            }
+        }
+    }
+}
+
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
@@ -1854,6 +1937,10 @@ impl ResidentOrganismRuntime {
                     total.body_consequence_transfers =
                         observation.body_consequence_transfers.clone();
                 }
+                retain_affective_balance_trajectory_evidence(
+                    &mut total.affective_balance_trajectories,
+                    &observation.affective_balance_trajectories,
+                );
                 // A trajectory is one bounded transaction over ordered
                 // one-millisecond intervals. Keep the latest relation state
                 // and one earliest exact ordered witness for each stable
@@ -1900,6 +1987,23 @@ impl ResidentOrganismRuntime {
                 let mut initial = observation;
                 initial.settled_working_frontier.clear();
                 initial.body_consequence_transfers.clear();
+                for trajectory in &mut initial.affective_balance_trajectories {
+                    if trajectory
+                        .localized_gradient_settlement
+                        .zip(trajectory.association_influence)
+                        .is_some_and(|(gradient, influence)| {
+                            gradient.cognitive_ordinal <= influence.cognitive_ordinal
+                        })
+                        || trajectory
+                            .localized_gradient_settlement
+                            .zip(trajectory.body_influence)
+                            .is_some_and(|(gradient, influence)| {
+                                gradient.cognitive_ordinal <= influence.cognitive_ordinal
+                            })
+                    {
+                        trajectory.localized_gradient_settlement = None;
+                    }
+                }
                 aggregate = Some(initial);
             }
         }
@@ -3758,6 +3862,7 @@ fn make_restored_observation(
         settled_working_frontier: Vec::new(),
         physical_prediction_alternatives: Vec::new(),
         body_consequence_transfers: Vec::new(),
+        affective_balance_trajectories: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3838,6 +3943,7 @@ fn make_step_observation(
         settled_working_frontier: cognitive.settled_working_frontier.clone(),
         physical_prediction_alternatives: cognitive.physical_prediction_alternatives.clone(),
         body_consequence_transfers: cognitive.body_consequence_transfers.clone(),
+        affective_balance_trajectories: cognitive.affective_balance_trajectories.clone(),
         organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -3910,6 +4016,7 @@ fn make_authored_contact_observation(
         settled_working_frontier: Vec::new(),
         physical_prediction_alternatives: Vec::new(),
         body_consequence_transfers: Vec::new(),
+        affective_balance_trajectories: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -4054,6 +4161,53 @@ fn project_directed_physical_transfers(
                 hex_bytes(&transfer.receiver),
                 transfer.bond.parallel_ordinal(),
                 transfer.transferred_whole_carriers.to_string(),
+            )
+        })
+        .collect()
+}
+
+fn project_affective_balance_trajectories(
+    trajectories: &[AffectiveBalanceTrajectoryObservation],
+) -> Vec<AffectiveBalanceTrajectoryProjection> {
+    let transfer = |timed: crate::resident_cognitive_formation::TimedDirectedPhysicalTransferObservation| {
+        (
+            timed.cognitive_ordinal,
+            (
+                hex_bytes(&timed.transfer.sender),
+                hex_bytes(&timed.transfer.receiver),
+                timed.transfer.bond.parallel_ordinal(),
+                timed.transfer.transferred_whole_carriers.to_string(),
+            ),
+        )
+    };
+    let rational = |value: crate::exact_rational::ExactRational| {
+        let (numerator, denominator) = value.parts();
+        (numerator.to_string(), denominator.to_string())
+    };
+    trajectories
+        .iter()
+        .map(|trajectory| {
+            let place = trajectory.neuron_place;
+            (
+                hex_bytes(&trajectory.neuron_lineage),
+                place.layer(),
+                place.topology_index(),
+                trajectory.association_influence.map(transfer),
+                trajectory.body_influence.map(transfer),
+                trajectory.localized_gradient_settlement.map(|gradient| {
+                    (
+                        gradient.cognitive_ordinal,
+                        gradient.predecessor_separated_elementary_charges,
+                        gradient.post_gradient_separated_elementary_charges,
+                        gradient.interval_successor_separated_elementary_charges,
+                        gradient.returned_elementary_charges,
+                        gradient.pumped_elementary_charges,
+                        gradient.unreturned_elementary_charges,
+                        rational(gradient.membrane_gradient_work_zeptojoules),
+                        rational(gradient.environment_energy_delivered_zeptojoules),
+                        rational(gradient.environment_heat_exported_zeptojoules),
+                    )
+                }),
             )
         })
         .collect()
