@@ -225,6 +225,47 @@ def test_public_observation_reports_exact_sparse_attention_without_a_score(
     assert stage["status"] == attention["status"]
 
 
+def test_public_observation_reports_bounded_working_cause_and_exact_settlement(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    first = ("01" * 16, "02" * 16, 0, 7)
+    second = ("02" * 16, "03" * 16, 0, 5)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "cognitive_mosaic_count": 0,
+            "complete_neuron_fractal_count": 0,
+            "hop_count": 3,
+            "intake": "continuous-environment:test",
+            "physical_frontier_routes": (),
+            "preceding_distinct_physical_frontier_routes": (),
+            "reached_and_foregone_physical_frontier_routes": (),
+            "working_causal_continuations": ((first, second),),
+            "settled_working_frontier": (second,),
+            "totals": {
+                "complete_neuron_fractal_count": 0,
+                "current_cohort_evaluation_count": 3,
+                "dsf_delivery_count": 3,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 3,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    value = json.loads(serving.native_observation().body)
+    working = value["working_causal_state"]
+    assert working["available"] is True
+    assert working["status"] == "bounded_working_cause_continued_and_settled"
+    assert working["continuation"] == [list(first), list(second)]
+    assert working["settled_transfer"] == list(second)
+    assert working["retained_history_authority"] is False
+    assert working["semantic_working_memory_authority"] is False
+
+
 def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
     _mount(monkeypatch)
     value = json.loads(serving.native_observation().body)

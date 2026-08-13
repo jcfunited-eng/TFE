@@ -453,6 +453,8 @@ mod tests {
             physical_frontier_routes: Vec::new(),
             preceding_distinct_physical_frontier_routes: Vec::new(),
             reached_and_foregone_physical_frontier_routes: Vec::new(),
+            working_causal_continuations: Vec::new(),
+            settled_working_frontier: Vec::new(),
             organic_mosaic_relations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,

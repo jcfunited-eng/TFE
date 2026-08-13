@@ -269,6 +269,14 @@ def _rehearse_sparse_attention_frontier(
     replay_reached_and_foregone_routes = tuple(
         replay_prepared.reached_and_foregone_physical_frontier_routes
     )
+    working_continuations = tuple(prepared.working_causal_continuations)
+    replay_working_continuations = tuple(
+        replay_prepared.working_causal_continuations
+    )
+    settled_working_frontier = tuple(prepared.settled_working_frontier)
+    replay_settled_working_frontier = tuple(
+        replay_prepared.settled_working_frontier
+    )
     route_sets = (
         reached_and_foregone_routes,
         current_routes,
@@ -291,6 +299,11 @@ def _rehearse_sparse_attention_frontier(
         or replay_current_routes != current_routes
         or replay_preceding_routes != preceding_routes
         or replay_reached_and_foregone_routes != reached_and_foregone_routes
+        or len(working_continuations) != 1
+        or replay_working_continuations != working_continuations
+        or len(settled_working_frontier) != 1
+        or replay_settled_working_frontier != settled_working_frontier
+        or settled_working_frontier[0] != working_continuations[0][1]
         or replay_successor != successor
         or replay_before.state_sha256 != before.state_sha256
         or replay_after.state_sha256 != after.state_sha256
@@ -331,6 +344,14 @@ def _rehearse_sparse_attention_frontier(
         "sparse_attention_rehearsed": True,
         "sparse_attention_state_byte_delta": after.state_bytes - before.state_bytes,
         "sparse_attention_successor_state_sha256": after.state_sha256,
+        "working_causal_continuation_count": len(working_continuations),
+        "working_causal_continuation_sha256": hashlib.sha256(
+            _canonical(working_continuations)
+        ).hexdigest(),
+        "working_causal_settlement_count": len(settled_working_frontier),
+        "working_causal_settlement_sha256": hashlib.sha256(
+            _canonical(settled_working_frontier)
+        ).hexdigest(),
     }
 
 

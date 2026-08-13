@@ -41,6 +41,10 @@ class _NativeResidentOrganismObservation:
     reached_and_foregone_physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
     ] = ()
+    working_causal_continuations: tuple[
+        tuple[tuple[str, str, int, int], tuple[str, str, int, int]], ...
+    ] = ()
+    settled_working_frontier: tuple[tuple[str, str, int, int], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -134,6 +138,10 @@ class _NativeResidentOrganismPrepare:
     reached_and_foregone_physical_frontier_routes: list[
         tuple[str, int, int, str, int, int, int, int]
     ] | None = None
+    working_causal_continuations: list[
+        tuple[tuple[str, str, int, str], tuple[str, str, int, str]]
+    ] | None = None
+    settled_working_frontier: list[tuple[str, str, int, str]] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -166,6 +174,10 @@ class _NativeResidentOrganismPrepare:
             self.preceding_distinct_physical_frontier_routes = []
         if self.reached_and_foregone_physical_frontier_routes is None:
             self.reached_and_foregone_physical_frontier_routes = []
+        if self.working_causal_continuations is None:
+            self.working_causal_continuations = []
+        if self.settled_working_frontier is None:
+            self.settled_working_frontier = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
 
@@ -656,6 +668,33 @@ def test_prepare_carries_exact_bounded_physical_frontier_routes(
     assert prepared.reached_and_foregone_physical_frontier_routes == (
         reached,
         foregone,
+    )
+
+
+def test_prepare_carries_only_bounded_adjacent_working_causal_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    first = ("01" * 16, "02" * 16, 0, "7")
+    second = ("02" * 16, "03" * 16, 0, "5")
+    runtime.prepare_result_override = replace(
+        genuine,
+        working_causal_continuations=[(first, second)],
+        settled_working_frontier=[second],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.working_causal_continuations == (
+        (
+            (first[0], first[1], first[2], 7),
+            (second[0], second[1], second[2], 5),
+        ),
+    )
+    assert prepared.settled_working_frontier == (
+        (second[0], second[1], second[2], 5),
     )
 
 

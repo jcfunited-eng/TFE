@@ -605,6 +605,16 @@ pub(crate) struct CognitiveFormationObservation {
     /// transient observation witness, not retained state or selection logic.
     pub(crate) reached_and_foregone_physical_frontier_routes:
         Vec<PhysicalFrontierRouteObservation>,
+    /// One exact adjacent-interval path whose intermediate neuron was reached
+    /// only from the predecessor's retained whole-carrier frontier. This is a
+    /// transient proof of immediate physical continuation, not retained
+    /// working memory, a scenario, or an activity score.
+    pub(crate) working_causal_continuations: Vec<OrderedPhysicalPathObservation>,
+    /// One exact predecessor transfer whose receiving neuron sent no whole
+    /// carrier onward in this interval. Its propagation authority therefore
+    /// expired at this boundary. The neuron's ordinary physical state remains
+    /// authoritative; this observation stores and changes nothing.
+    pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
     /// Transient connected frontiers among recurrent mosaics physically
     /// reached by this transition, with at least one fully reassembled. No
     /// relation object, count, hierarchy, or history is retained in the
@@ -1419,6 +1429,61 @@ fn ordered_physical_paths_for_relation(
     paths.sort_unstable();
     paths.dedup();
     paths
+}
+
+/// Observe at most one exact internally continued path and at most one exact
+/// expired predecessor cause. The retained active frontiers already are the
+/// working physical state; this function adds no state and authors no causal
+/// rule. Restricting the projection to one canonical witness keeps the
+/// observer constant-sized even when a sparse frontier branches.
+fn working_causal_frontier_observation(
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+    current_noncontinuation_seeds: &[[u8; 16]],
+) -> (
+    Vec<OrderedPhysicalPathObservation>,
+    Vec<DirectedPhysicalTransferObservation>,
+) {
+    let mut predecessor = predecessor_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .collect::<Vec<_>>();
+    predecessor.sort_unstable_by_key(|transfer| {
+        (transfer.receiver, transfer.sender, transfer.bond)
+    });
+    let mut current = current_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .collect::<Vec<_>>();
+    current.sort_unstable_by_key(|transfer| {
+        (transfer.sender, transfer.receiver, transfer.bond)
+    });
+
+    let continuation = predecessor.iter().find_map(|first| {
+        if current_noncontinuation_seeds.contains(&first.receiver) {
+            return None;
+        }
+        current
+            .iter()
+            .find(|second| {
+                second.sender == first.receiver
+                    && !current_noncontinuation_seeds.contains(&second.receiver)
+            })
+            .map(|second| OrderedPhysicalPathObservation {
+                first: *first,
+                second: *second,
+            })
+    });
+    let settled = predecessor.iter().find(|first| {
+        !current
+            .iter()
+            .any(|second| second.sender == first.receiver)
+    });
+
+    (
+        continuation.into_iter().collect(),
+        settled.copied().into_iter().collect(),
+    )
 }
 
 fn ordered_path_relations_for_relation(
@@ -3578,24 +3643,22 @@ impl ResidentCognitiveFormationState {
         // as an external receptor without manufacturing gate work or reading
         // an organism-wide reservoir projection. Zero membrane difference
         // contributes no seed and therefore no invented signal.
-        let mut internal_frontier_lineages = externally_reached_neuron_lineages.clone();
+        let mut current_noncontinuation_seed_lineages =
+            externally_reached_neuron_lineages.clone();
+        for lineage in reached_association_lineages
+            .iter()
+            .chain(&reached_body_regulation_lineages)
+            .chain(&metabolically_perturbed_body_receptor_lineages)
+        {
+            if !current_noncontinuation_seed_lineages.contains(lineage) {
+                current_noncontinuation_seed_lineages.push(*lineage);
+            }
+        }
+        let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
         for entry in &active_electrical_frontier {
             let lineage = entry.receiver();
             if !internal_frontier_lineages.contains(&lineage) {
                 internal_frontier_lineages.push(lineage);
-            }
-        }
-        for lineage in reached_association_lineages
-            .iter()
-            .chain(&reached_body_regulation_lineages)
-        {
-            if !internal_frontier_lineages.contains(lineage) {
-                internal_frontier_lineages.push(*lineage);
-            }
-        }
-        for lineage in &metabolically_perturbed_body_receptor_lineages {
-            if !internal_frontier_lineages.contains(lineage) {
-                internal_frontier_lineages.push(*lineage);
             }
         }
         let internal_contact = settle_internal_contact_interval(
@@ -3605,6 +3668,12 @@ impl ResidentCognitiveFormationState {
             &mut physically_transitioned_neuron_lineages,
         )?;
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
+        let (working_causal_continuations, settled_working_frontier) =
+            working_causal_frontier_observation(
+                &predecessor_active_electrical_frontier,
+                &active_electrical_frontier,
+                &current_noncontinuation_seed_lineages,
+            );
         for predecessor in internal_contact.transition_predecessors {
             retain_first_transition_predecessor(&mut transition_neuron_predecessors, predecessor);
         }
@@ -3735,6 +3804,8 @@ impl ResidentCognitiveFormationState {
                 },
                 physical_frontier_routes: internal_contact.frontier_routes,
                 preceding_distinct_physical_frontier_routes: Vec::new(),
+                working_causal_continuations,
+                settled_working_frontier,
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 partial_cue_reassembly_count,
@@ -4104,6 +4175,8 @@ impl ResidentCognitiveFormationState {
                 physical_frontier_routes: Vec::new(),
                 preceding_distinct_physical_frontier_routes: Vec::new(),
                 reached_and_foregone_physical_frontier_routes: Vec::new(),
+                working_causal_continuations: Vec::new(),
+                settled_working_frontier: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
@@ -12576,6 +12649,62 @@ mod tests {
             &[ActiveElectricalFrontierEntry::caused(last, via, second_bond, 5).unwrap()],
         )
         .is_empty());
+    }
+
+    #[test]
+    fn working_causal_frontier_requires_unseeded_adjacent_continuation_and_expires() {
+        let first = [1_u8; 16];
+        let via = [2_u8; 16];
+        let last = [3_u8; 16];
+        let first_bond = StablePhysicalBondReference::new(first, via, 0).unwrap();
+        let second_bond = StablePhysicalBondReference::new(via, last, 0).unwrap();
+        let predecessor =
+            [ActiveElectricalFrontierEntry::caused(first, via, first_bond, 7).unwrap()];
+        let current =
+            [ActiveElectricalFrontierEntry::caused(via, last, second_bond, 5).unwrap()];
+
+        let (continued, settled) =
+            working_causal_frontier_observation(&predecessor, &current, &[]);
+        assert_eq!(continued.len(), 1);
+        assert_eq!(
+            continued[0].directed_transfers(),
+            [(first, via, first_bond, 7), (via, last, second_bond, 5)]
+        );
+        assert!(settled.is_empty());
+
+        // A current external/body/fluid seed at the intermediate cell makes
+        // the second transfer causally ambiguous, so it cannot prove internal
+        // continuation from the predecessor frontier.
+        let (externally_reseeded, _) =
+            working_causal_frontier_observation(&predecessor, &current, &[via]);
+        assert!(externally_reseeded.is_empty());
+        let (adjacent_reseeded, _) =
+            working_causal_frontier_observation(&predecessor, &current, &[last]);
+        assert!(adjacent_reseeded.is_empty());
+
+        // With no onward whole-carrier transfer, the predecessor cause loses
+        // propagation authority after exactly this adjacent interval.
+        let (continued, settled) =
+            working_causal_frontier_observation(&predecessor, &[], &[]);
+        assert!(continued.is_empty());
+        assert_eq!(settled.len(), 1);
+        assert_eq!(
+            (
+                settled[0].sender,
+                settled[0].receiver,
+                settled[0].bond,
+                settled[0].transferred_whole_carriers,
+            ),
+            (first, via, first_bond, 7)
+        );
+
+        // Historical receiver-only frontier entries can propagate physically
+        // but cannot be promoted into directed causal evidence.
+        let legacy = [ActiveElectricalFrontierEntry::legacy_receiver(via)];
+        let (continued, settled) =
+            working_causal_frontier_observation(&legacy, &current, &[]);
+        assert!(continued.is_empty());
+        assert!(settled.is_empty());
     }
 
     #[test]

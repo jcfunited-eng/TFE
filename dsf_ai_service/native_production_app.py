@@ -2215,6 +2215,48 @@ def _attention_stage() -> dict[str, object]:
     )
 
 
+def _working_causal_state_record() -> dict[str, object]:
+    """Report exact adjacent carrier continuation without calling it thought."""
+
+    evidence = _last_transition_evidence or {}
+    continuations = tuple(evidence.get("working_causal_continuations", ()))
+    settlements = tuple(evidence.get("settled_working_frontier", ()))
+    if not continuations:
+        return _section(
+            False,
+            "working_frontier_mounted_awaiting_continuation",
+            "the exact one-interval carrier frontier is mounted, but this "
+            "process has not yet observed an intermediate neuron continue a "
+            "prior transfer without being independently reseeded",
+            retained_history_authority=False,
+            semantic_working_memory_authority=False,
+        )
+    first, second = continuations[0]
+    settled_exact_continuation = bool(settlements and settlements[0] == second)
+    return _section(
+        settled_exact_continuation,
+        (
+            "bounded_working_cause_continued_and_settled"
+            if settled_exact_continuation
+            else "working_cause_continued_awaiting_settlement"
+        ),
+        (
+            "one exact whole-carrier transfer caused its receiving neuron to "
+            "send across a second contact in the adjacent interval without "
+            "an independent current seed; that exact second cause then lost "
+            "propagation authority"
+            if settled_exact_continuation
+            else "one exact whole-carrier transfer continued across a second "
+            "contact in the adjacent interval without an independent current "
+            "seed, but settlement of that same cause has not yet been observed"
+        ),
+        continuation=(first, second),
+        settled_transfer=settlements[0] if settlements else None,
+        retained_history_authority=False,
+        semantic_working_memory_authority=False,
+    )
+
+
 def _describe_intake(intake: str) -> tuple[str, str]:
     """What this experience actually was, in words, and what it carried.
 
@@ -2875,6 +2917,7 @@ def _build_public_observation() -> dict[str, Any]:
             scalar_score_authority=False,
         ),
         "attention": _attention_record(),
+        "working_causal_state": _working_causal_state_record(),
         "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
         "autonomy": _autonomy_record(),
         "articulation": _unmounted(
@@ -4209,6 +4252,8 @@ def _commit_admitted_hop(
         "reached_and_foregone_physical_frontier_routes": (
             evidence.reached_and_foregone_physical_frontier_routes
         ),
+        "working_causal_continuations": evidence.working_causal_continuations,
+        "settled_working_frontier": evidence.settled_working_frontier,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4283,6 +4328,8 @@ def _commit_vestibular_tick(
         "reached_and_foregone_physical_frontier_routes": (
             evidence.reached_and_foregone_physical_frontier_routes
         ),
+        "working_causal_continuations": evidence.working_causal_continuations,
+        "settled_working_frontier": evidence.settled_working_frontier,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4357,6 +4404,8 @@ def _commit_vestibular_trajectory(
         "reached_and_foregone_physical_frontier_routes": (
             evidence.reached_and_foregone_physical_frontier_routes
         ),
+        "working_causal_continuations": evidence.working_causal_continuations,
+        "settled_working_frontier": evidence.settled_working_frontier,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -4405,6 +4454,29 @@ def _advance_bounded_frontier_evidence(
         hop["reached_and_foregone_physical_frontier_routes"]
     )
     return next_current, next_preceding, next_reached_and_foregone
+
+
+def _advance_bounded_working_causal_evidence(
+    continuation: tuple[tuple[Any, ...], ...],
+    settlement: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[tuple[tuple[Any, ...], ...], tuple[tuple[Any, ...], ...]]:
+    """Retain one continuation and settlement of that exact continued cause."""
+
+    next_continuation = continuation or tuple(
+        hop["working_causal_continuations"]
+    )
+    next_settlement = settlement
+    if next_continuation and not next_settlement:
+        continued_transfer = next_continuation[0][1]
+        matching = tuple(
+            transfer
+            for transfer in hop["settled_working_frontier"]
+            if transfer == continued_transfer
+        )
+        if matching:
+            next_settlement = matching[:1]
+    return next_continuation, next_settlement
 
 
 def _publish_committed_organism(
@@ -4572,6 +4644,8 @@ def _perform_admitted_intake_locked(
     reached_and_foregone_physical_frontier_routes: tuple[
         tuple[Any, ...], ...
     ] = ()
+    working_causal_continuations: tuple[tuple[Any, ...], ...] = ()
+    settled_working_frontier: tuple[tuple[Any, ...], ...] = ()
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -4589,6 +4663,14 @@ def _perform_admitted_intake_locked(
                 physical_frontier_routes,
                 preceding_distinct_physical_frontier_routes,
                 reached_and_foregone_physical_frontier_routes,
+                last_hop,
+            )
+            (
+                working_causal_continuations,
+                settled_working_frontier,
+            ) = _advance_bounded_working_causal_evidence(
+                working_causal_continuations,
+                settled_working_frontier,
                 last_hop,
             )
             committed_vestibular_tick_count = len(signed_steps)
@@ -4610,6 +4692,14 @@ def _perform_admitted_intake_locked(
                 physical_frontier_routes,
                 preceding_distinct_physical_frontier_routes,
                 reached_and_foregone_physical_frontier_routes,
+                last_hop,
+            )
+            (
+                working_causal_continuations,
+                settled_working_frontier,
+            ) = _advance_bounded_working_causal_evidence(
+                working_causal_continuations,
+                settled_working_frontier,
                 last_hop,
             )
             committed_hop_count += 1
@@ -4671,6 +4761,14 @@ def _perform_admitted_intake_locked(
                     reached_and_foregone_physical_frontier_routes,
                     last_hop,
                 )
+                (
+                    working_causal_continuations,
+                    settled_working_frontier,
+                ) = _advance_bounded_working_causal_evidence(
+                    working_causal_continuations,
+                    settled_working_frontier,
+                    last_hop,
+                )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
                 organic_mosaic_relations.extend(
@@ -4727,6 +4825,8 @@ def _perform_admitted_intake_locked(
         "reached_and_foregone_physical_frontier_routes": (
             reached_and_foregone_physical_frontier_routes
         ),
+        "working_causal_continuations": working_causal_continuations,
+        "settled_working_frontier": settled_working_frontier,
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,

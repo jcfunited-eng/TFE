@@ -36,6 +36,8 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "physical_frontier_routes": (),
         "preceding_distinct_physical_frontier_routes": (),
         "reached_and_foregone_physical_frontier_routes": (),
+        "working_causal_continuations": (),
+        "settled_working_frontier": (),
         "organic_mosaic_relations": relations,
         "state_sha256": f"{tick:064x}",
     }
@@ -69,6 +71,30 @@ def test_frontier_evidence_keeps_only_current_and_preceding_distinct_sets() -> N
     assert current == second
     assert preceding == first
     assert reached_and_foregone == second
+
+
+def test_working_causal_evidence_keeps_one_path_until_that_cause_settles() -> None:
+    first = ("01" * 16, "02" * 16, 0, 7)
+    second = ("02" * 16, "03" * 16, 0, 5)
+    continuation, settlement = production._advance_bounded_working_causal_evidence(
+        (),
+        (),
+        {
+            "working_causal_continuations": ((first, second),),
+            "settled_working_frontier": (),
+        },
+    )
+    continuation, settlement = production._advance_bounded_working_causal_evidence(
+        continuation,
+        settlement,
+        {
+            "working_causal_continuations": (),
+            "settled_working_frontier": (first, second),
+        },
+    )
+
+    assert continuation == ((first, second),)
+    assert settlement == (second,)
 
 
 def test_admitted_experience_preserves_relation_from_nonfinal_hop(
@@ -147,6 +173,8 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         physical_frontier_routes=(),
         preceding_distinct_physical_frontier_routes=(),
         reached_and_foregone_physical_frontier_routes=(),
+        working_causal_continuations=(),
+        settled_working_frontier=(),
         organic_mosaic_relations=((receipts, (), (bond,), "33" * 32, (), ()),),
         recurrent_complete_neuron_fractal_count=2,
     )

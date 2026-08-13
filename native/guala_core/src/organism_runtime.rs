@@ -38,8 +38,9 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     has_reached_and_foregone_frontier_routes, AuthoredDeclaredContact,
-    CognitiveFormationObservation, CognitiveFormationSummary, EmittedNeuronFractal,
-    MotorUnitRecruitment, OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
+    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
+    EmittedNeuronFractal, MotorUnitRecruitment, OrderedPhysicalPathObservation,
+    OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
     PreparedCognitiveFormationTransition, ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
@@ -371,6 +372,8 @@ pub(crate) struct RuntimeObservation {
         Vec<PhysicalFrontierRouteObservation>,
     pub(crate) reached_and_foregone_physical_frontier_routes:
         Vec<PhysicalFrontierRouteObservation>,
+    pub(crate) working_causal_continuations: Vec<OrderedPhysicalPathObservation>,
+    pub(crate) settled_working_frontier: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
     pub(crate) source_cohort_l0_l4_evaluation_count: usize,
@@ -849,6 +852,16 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn working_causal_continuations(&self) -> Vec<OrderedPhysicalPathProjection> {
+        project_ordered_physical_paths(&self.observation.working_causal_continuations)
+    }
+
+    #[getter]
+    fn settled_working_frontier(&self) -> Vec<DirectedPhysicalTransferProjection> {
+        project_directed_physical_transfers(&self.observation.settled_working_frontier)
+    }
+
+    #[getter]
     fn formation_activation_count(&self) -> usize {
         self.observation.formation_activation_count
     }
@@ -1210,6 +1223,16 @@ impl NativeResidentOrganismPrepare {
                 .observation
                 .reached_and_foregone_physical_frontier_routes,
         )
+    }
+
+    #[getter]
+    fn working_causal_continuations(&self) -> Vec<OrderedPhysicalPathProjection> {
+        project_ordered_physical_paths(&self.observation.working_causal_continuations)
+    }
+
+    #[getter]
+    fn settled_working_frontier(&self) -> Vec<DirectedPhysicalTransferProjection> {
+        project_directed_physical_transfers(&self.observation.settled_working_frontier)
     }
 
     #[getter]
@@ -1769,6 +1792,30 @@ impl ResidentOrganismRuntime {
                 {
                     total.reached_and_foregone_physical_frontier_routes =
                         observation.physical_frontier_routes.clone();
+                }
+                if total.working_causal_continuations.is_empty()
+                    && !observation.working_causal_continuations.is_empty()
+                {
+                    total.working_causal_continuations =
+                        observation.working_causal_continuations.clone();
+                }
+                if total.settled_working_frontier.is_empty() {
+                    if let Some(path) = total.working_causal_continuations.first() {
+                        let [_, continued_transfer] = path.directed_transfers();
+                        if let Some(settled) = observation
+                            .settled_working_frontier
+                            .iter()
+                            .find(|candidate| {
+                                candidate.sender == continued_transfer.0
+                                    && candidate.receiver == continued_transfer.1
+                                    && candidate.bond == continued_transfer.2
+                                    && candidate.transferred_whole_carriers
+                                        == continued_transfer.3
+                            })
+                        {
+                            total.settled_working_frontier = vec![*settled];
+                        }
+                    }
                 }
                 // A trajectory is one bounded transaction over ordered
                 // one-millisecond intervals. Keep the latest relation state
@@ -3661,6 +3708,8 @@ fn make_restored_observation(
         physical_frontier_routes: Vec::new(),
         preceding_distinct_physical_frontier_routes: Vec::new(),
         reached_and_foregone_physical_frontier_routes: Vec::new(),
+        working_causal_continuations: Vec::new(),
+        settled_working_frontier: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3737,6 +3786,8 @@ fn make_step_observation(
         reached_and_foregone_physical_frontier_routes: cognitive
             .reached_and_foregone_physical_frontier_routes
             .clone(),
+        working_causal_continuations: cognitive.working_causal_continuations.clone(),
+        settled_working_frontier: cognitive.settled_working_frontier.clone(),
         organic_mosaic_relations: cognitive.organic_mosaic_relations.clone(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count,
@@ -3805,6 +3856,8 @@ fn make_authored_contact_observation(
         physical_frontier_routes: Vec::new(),
         preceding_distinct_physical_frontier_routes: Vec::new(),
         reached_and_foregone_physical_frontier_routes: Vec::new(),
+        working_causal_continuations: Vec::new(),
+        settled_working_frontier: Vec::new(),
         organic_mosaic_relations: Vec::new(),
         recurrent_complete_neuron_fractal_count: 0,
         source_cohort_l0_l4_evaluation_count: 0,
@@ -3934,6 +3987,47 @@ fn project_organic_mosaic_relations(
                 ordered_paths,
                 ordered_path_relations,
             )
+        })
+        .collect()
+}
+
+fn project_directed_physical_transfers(
+    transfers: &[DirectedPhysicalTransferObservation],
+) -> Vec<DirectedPhysicalTransferProjection> {
+    transfers
+        .iter()
+        .map(|transfer| {
+            (
+                hex_bytes(&transfer.sender),
+                hex_bytes(&transfer.receiver),
+                transfer.bond.parallel_ordinal(),
+                transfer.transferred_whole_carriers.to_string(),
+            )
+        })
+        .collect()
+}
+
+fn project_ordered_physical_paths(
+    paths: &[OrderedPhysicalPathObservation],
+) -> Vec<OrderedPhysicalPathProjection> {
+    paths
+        .iter()
+        .map(|path| {
+            let [first, second] = path.directed_transfers();
+            let project = |(sender, receiver, bond, carriers): (
+                [u8; 16],
+                [u8; 16],
+                StablePhysicalBondReference,
+                u128,
+            )| {
+                (
+                    hex_bytes(&sender),
+                    hex_bytes(&receiver),
+                    bond.parallel_ordinal(),
+                    carriers.to_string(),
+                )
+            };
+            (project(first), project(second))
         })
         .collect()
 }

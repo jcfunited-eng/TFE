@@ -120,6 +120,16 @@ class NativeResidentObservationView(Protocol):
     ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
 
     @property
+    def working_causal_continuations(
+        self,
+    ) -> list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]]: ...
+
+    @property
+    def settled_working_frontier(
+        self,
+    ) -> list[tuple[str, str, int, str]]: ...
+
+    @property
     def organic_mosaic_relations(
         self,
     ) -> list[
@@ -261,6 +271,14 @@ class ResidentPrepareEvidence:
     reached_and_foregone_physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
     ] = ()
+    working_causal_continuations: tuple[
+        tuple[
+            tuple[str, str, int, int],
+            tuple[str, str, int, int],
+        ],
+        ...,
+    ] = ()
+    settled_working_frontier: tuple[tuple[str, str, int, int], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -376,6 +394,69 @@ def _physical_frontier_route_evidence(
     return tuple(routes)
 
 
+def _directed_physical_transfer_evidence(
+    value: object, label: str
+) -> tuple[str, str, int, int]:
+    if not isinstance(value, tuple) or len(value) != 4:
+        raise RuntimeError(f"resident organism {label} changed format")
+    carriers_text = value[3]
+    if not isinstance(carriers_text, str) or not carriers_text.isdecimal():
+        raise RuntimeError(f"resident organism {label} lost exact carriers")
+    carriers = int(carriers_text)
+    if carriers <= 0:
+        raise RuntimeError(f"resident organism {label} carried no material")
+    sender = _canonical_lineage_hex(value[0], f"{label} sender")
+    receiver = _canonical_lineage_hex(value[1], f"{label} receiver")
+    if sender == receiver:
+        raise RuntimeError(f"resident organism {label} joined one lineage to itself")
+    return (
+        sender,
+        receiver,
+        _nonnegative_integer(value[2], f"{label} bond ordinal"),
+        carriers,
+    )
+
+
+def _working_causal_continuation_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        tuple[str, str, int, int],
+        tuple[str, str, int, int],
+    ],
+    ...,
+]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism working continuation changed bounds")
+    paths = []
+    for raw_path in value:
+        if not isinstance(raw_path, tuple) or len(raw_path) != 2:
+            raise RuntimeError("resident organism working continuation changed format")
+        first = _directed_physical_transfer_evidence(
+            raw_path[0], "working continuation first transfer"
+        )
+        second = _directed_physical_transfer_evidence(
+            raw_path[1], "working continuation second transfer"
+        )
+        if first[1] != second[0]:
+            raise RuntimeError("resident organism working continuation is not adjacent")
+        paths.append((first, second))
+    return tuple(paths)
+
+
+def _settled_working_frontier_evidence(
+    value: object,
+) -> tuple[tuple[str, str, int, int], ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism settled working frontier changed bounds")
+    return tuple(
+        _directed_physical_transfer_evidence(
+            transfer, "settled working frontier transfer"
+        )
+        for transfer in value
+    )
+
+
 def _validated_causal_intervals(
     maximum_causal_intervals: object,
 ) -> list[tuple[int, int]]:
@@ -474,6 +555,8 @@ def _observation_signature(
         tuple(observation.physical_frontier_routes),
         tuple(observation.preceding_distinct_physical_frontier_routes),
         tuple(observation.reached_and_foregone_physical_frontier_routes),
+        tuple(observation.working_causal_continuations),
+        tuple(observation.settled_working_frontier),
         tuple(
             (
                 tuple(receipts),
@@ -1083,6 +1166,12 @@ class NativeResidentOrganism:
             raise RuntimeError(
                 "reached and foregone frontier evidence lost its exact distinction"
             )
+        working_causal_continuations = _working_causal_continuation_evidence(
+            candidate.working_causal_continuations
+        )
+        settled_working_frontier = _settled_working_frontier_evidence(
+            candidate.settled_working_frontier
+        )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -1444,6 +1533,8 @@ class NativeResidentOrganism:
             reached_and_foregone_physical_frontier_routes=(
                 reached_and_foregone_physical_frontier_routes
             ),
+            working_causal_continuations=working_causal_continuations,
+            settled_working_frontier=settled_working_frontier,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 
