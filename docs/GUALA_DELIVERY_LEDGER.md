@@ -253,8 +253,18 @@ box remains unchecked until live acceptance passes.
   semantic-outcome authority, and zero Python cognition callbacks. Release
   commit `5cd50950`, image
   `sha256:b19e2679d7b2ffa3e0886b1dbd12d7ca45b949b65cb283da8e3534682daff477`.
-- [ ] **C-017** Prove body/fluid/association trajectories influence affect and
+- [x] **C-017** Prove body/fluid/association trajectories influence affect and
   emotional balance without named emotion variables.
+  **Live-closed 2026-08-13:** public production task 1016 exposed one exact
+  same-lineage layer-10 trajectory: layer-7 association and layer-8 body
+  carrier transfers at organism ordinal 70,197 were followed by that cell's
+  localized membrane-gradient recovery at ordinal 70,198. Public production
+  advanced from tick 70,196 to 70,205 while preserving organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, zero Python cognition callbacks,
+  and false authority for named emotion, reward, affect score, and Python
+  decisions. Candidate cold rehearsal reproduced three complete trajectories
+  exactly. Release commit `7add36a2`, image
+  `sha256:f4891ce2b0c977f4216c087ce82169620ecee823f679b7d54d7be4d4f722a855`.
 - [ ] **C-018** Prove fluid-brain transport and localized chemistry influence
   only physically connected neurons and remain conserved and bounded.
 - [ ] **C-019** Prove motor preparation reaches layer 12 and can cause one

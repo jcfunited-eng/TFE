@@ -14,10 +14,11 @@ Date: 2026-08-13
   organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and tested-event
   state receipt
   `085a9a7af40fe84602b56f053fcf9d6907472c2d5b3d3138cdd9c74ec4242e74`.
-- The public observer currently exposes three reached layer-10 cells and exact
-  live layer-7/layer-10 and layer-8/layer-10 carrier transfers, but it does not
-  expose the layer-10 cell's local recovery-fluid settlement or prove a
-  perturbation-to-recovery trajectory. C-017 therefore remains open.
+- **C-017 is Live-Closed.** Public production task `dsf-ai-task:1016`, commit
+  `7add36a227d1aec46dd58912312501d7bcd04549`, and image
+  `sha256:f4891ce2b0c977f4216c087ce82169620ecee823f679b7d54d7be4d4f722a855`
+  expose the exact same-cell perturbation-to-recovery trajectory described in
+  this sprint while preserving the continuing organism identity.
 
 ## Architecture honesty gate
 
@@ -60,7 +61,7 @@ Date: 2026-08-13
 | Invariants | No new neuron, contact, persistent field, codec, schema magic, owner, lock, history, score, or semantic state. Existing current organism bytes remain the only cognitive authority. Work is linear in the already-selected sparse frontier. |
 | Public acceptance | The public production observer shows one exact layer-10 trajectory with both physical association and body influence, nonzero localized recovery/pump consequence on that same cell, exact before/after physical quantities, `named_emotion_authority=false`, `score_authority=false`, and zero Python cognition callbacks. |
 | Cold/resource acceptance | The same predecessor and trajectory reproduce the same observation byte-for-byte; current state cold-restores exactly; one process remains healthy; no persistent-byte growth is caused by observation; work/calls remain proportional to the reached frontier. |
-| Evidence level | Source trace complete; live C-016 predecessor closed; C-017 implementation, candidate proof, rehearsal, and public production acceptance not yet complete. |
+| Evidence level | Live-Closed on public production task 1016: exact candidate cold replay passed, public same-lineage association/body/recovery evidence is available, identity continued, and zero Python cognition callbacks were observed. |
 
 ## Translation-boundary preflight
 
@@ -207,7 +208,7 @@ above on the continuing organism, with exact cold replay, bounded resources,
 one healthy process, and zero Python cognition callbacks. Local tests,
 candidate tasks, deployment success, or HTTP 200 do not close it.
 
-## Current evidence (not live closure)
+## Live-production closure evidence
 
 - Rust source compiles against the current native crate.
 - The native library suite executed 427 tests: 424 passed and 3 explicitly
@@ -219,5 +220,14 @@ candidate tasks, deployment success, or HTTP 200 do not close it.
   new trajectory field.
 - No persistent schema, neuron state, DSF field, organism identity, contact,
   or developmental population was added or changed by this observation path.
-- C-017 is **not Live-Closed**. Immutable image rehearsal, production cutover,
-  and direct public-production behavior remain pending.
+- The candidate cold rehearsal produced three complete trajectories with exact
+  replay and the continuing identity; its trajectory receipt was
+  `9572ca3e60b2e3ae91d1d19129170e6def451f6f17c56ba56ba369ae218f61db`.
+- Public production exposed both physical influences at ordinal 70,197 and the
+  same layer-10 cell's strictly later localized recovery at ordinal 70,198.
+- Public production advanced from tick 70,196 to 70,205 while retaining the
+  same organism identity and zero Python cognition callbacks.
+- The service has one healthy running task, zero pending tasks, and no stopped
+  service task after cutover.
+- C-017 is **Live-Closed**. This is affective-balance trajectory evidence; it
+  is not a claim of a named emotion, preference, reward, or thought.
