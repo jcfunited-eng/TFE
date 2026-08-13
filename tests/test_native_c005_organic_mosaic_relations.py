@@ -266,6 +266,74 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     assert retained_observation["organism_tick"] == 12
 
 
+def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
+    monkeypatch.setattr(production, "_last_transition_evidence", None)
+    recruitment = (
+        "13" * 16,
+        0,
+        5,
+        (("12" * 16, 12, "13" * 16, 13, 0, 5),),
+    )
+    trajectory = _hop(261, ())
+    trajectory["articulatory_unit_recruitments"] = (recruitment,)
+    heard = _hop(262, ())
+    heard["physically_transitioned_neuron_count"] = 3
+    heard["complete_neuron_fractal_count"] = 2
+    organism = SimpleNamespace(organism_tick=lambda: 261)
+    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    monkeypatch.setattr(
+        production,
+        "_runtime",
+        lambda: (
+            SimpleNamespace(organism=organism, pointer=predecessor),
+            SimpleNamespace(),
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_commit_vestibular_trajectory",
+        lambda *_args: trajectory,
+    )
+    monkeypatch.setattr(
+        production,
+        "_commit_admitted_hop",
+        lambda *_args: heard,
+    )
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **_kwargs: [(object(), [])],
+    )
+    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
+    monkeypatch.setattr(
+        production,
+        "_publish_committed_organism",
+        lambda *_args: SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=262,
+                state_bytes=100,
+                state_sha256="bb" * 32,
+            )
+        ),
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+
+    result = production._perform_admitted_intake_locked(
+        [],
+        "c020-live-path-test",
+        vestibular_yaw=(0, (360,)),
+    )
+
+    articulation = result["observation"]["articulation"]
+    assert articulation["layer_13_recruitment_count"] == 1
+    assert articulation["self_hearing_hop_count"] == 1
+    assert articulation["self_hearing_transitioned_neuron_count"] == 3
+    assert articulation["self_hearing_fractal_count"] == 2
+
+
 def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
     receipts = ("11" * 32, "22" * 32)
     left_members = ("01" * 16, "02" * 16, "03" * 16)

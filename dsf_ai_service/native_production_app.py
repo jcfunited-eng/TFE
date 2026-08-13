@@ -5259,6 +5259,9 @@ def _perform_admitted_intake_locked(
                 )
             )
             committed_vestibular_tick_count = len(signed_steps)
+            articulatory_unit_recruitments.extend(
+                last_hop["articulatory_unit_recruitments"]
+            )
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
                 last_hop["organic_mosaic_relations"]

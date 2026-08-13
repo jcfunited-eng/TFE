@@ -171,6 +171,26 @@ transition is mounted.
   a factory-only native handle that exposes no direct tick method. The focused
   rehearsal gate passes 23/23 after that correction. A fresh immutable
   candidate is required; task 1020 is not a delivered release.
+- Corrected commit `586d7ac331ed6c6e207b88caa99d14b024d9a3c1`, image
+  `sha256:3a5a1f849562de689b71af8401acf1e33fe4272dfe7c0d44fe7c2e9b5149258e`,
+  and task `dsf-ai-task:1021` deployed successfully. The discarded live-body
+  rehearsal produced 78 layer-13 recruitments, 16,000 radiated-pressure
+  samples, four cochlear-return hops, 889 self-hearing neuron transitions,
+  and 49 self-hearing neuronal fractals with exact replay and zero Python
+  cognition callbacks.
+- Direct public production then falsified closure. One non-retried guided turn
+  advanced world revision 2416 to 2417 and heading 113008 to 203008. Its native
+  successor advanced tick 72824 to 73164 with 712 full-DSF deliveries, 42,862
+  neuronal transitions, and 27 fractals, but public articulation remained
+  unavailable. The ordinary transaction aggregate copied layer-13
+  recruitments from source episodes but omitted the preceding vestibular
+  trajectory that produced them.
+- That one omitted aggregate edge is now corrected. A boundary regression
+  executes the ordinary production shape—vestibular trajectory first,
+  self-hearing hop second—and proves the layer-13 recruitment survives into
+  body settlement and the public transition evidence. The focused gate now
+  passes 74/74. A fresh immutable deployment and direct public proof remain;
+  C-020 is still not Live-Closed.
 
 ## Live completion rule
 
