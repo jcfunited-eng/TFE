@@ -2308,42 +2308,27 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
             }
             let predecessor_reservoir_parts = predecessor_reservoir.physical_parts();
             let successor_reservoir_parts = successor_reservoir.physical_parts();
-            let zero = ExactRational::integer(0);
-            let available_delta = successor_reservoir_parts
-                .0
-                .checked_sub(predecessor_reservoir_parts.0)
-                .map_err(|_| {
-                    ReachedCohortError::MaterialArithmetic(
-                        "local pump available-energy delta overflow",
-                    )
-                })?;
-            let spent_delta = successor_reservoir_parts
-                .1
-                .checked_sub(predecessor_reservoir_parts.1)
-                .map_err(|_| {
-                    ReachedCohortError::MaterialArithmetic("local pump spent-energy delta overflow")
-                })?;
-            let thermal_delta = successor_reservoir_parts
-                .2
-                .checked_sub(predecessor_reservoir_parts.2)
-                .map_err(|_| {
-                    ReachedCohortError::MaterialArithmetic(
-                        "local pump thermal-energy delta overflow",
-                    )
-                })?;
+            // The resident rationals are deliberately fixed-width.  Verify
+            // conservation after widening so two finite canonical values do
+            // not fail merely because cross-multiplication of their reduced
+            // denominators exceeds the resident representation.
+            let predecessor_available = wide_energy(predecessor_reservoir_parts.0);
+            let predecessor_spent = wide_energy(predecessor_reservoir_parts.1);
+            let predecessor_thermal = wide_energy(predecessor_reservoir_parts.2);
+            let successor_available = wide_energy(successor_reservoir_parts.0);
+            let successor_spent = wide_energy(successor_reservoir_parts.1);
+            let successor_thermal = wide_energy(successor_reservoir_parts.2);
+            let exact_work = wide_energy(pump_work);
             let active_conserved = pumped != 0
                 && returned == 0
-                && available_delta
-                    == pump_work.checked_neg().map_err(|_| {
-                        ReachedCohortError::MaterialArithmetic("local pump work negation overflow")
-                    })?
-                && spent_delta == pump_work
-                && thermal_delta == zero;
+                && &successor_available + &exact_work == predecessor_available
+                && successor_spent == &predecessor_spent + &exact_work
+                && successor_thermal == predecessor_thermal;
             let passive_conserved = returned != 0
                 && pumped == 0
-                && available_delta == zero
-                && spent_delta == zero
-                && thermal_delta == pump_work;
+                && successor_available == predecessor_available
+                && successor_spent == predecessor_spent
+                && successor_thermal == &predecessor_thermal + &exact_work;
             if !active_conserved && !passive_conserved {
                 return Err(ReachedCohortError::MaterialArithmetic(
                     "local pump energy was not exactly conserved",
