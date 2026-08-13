@@ -1793,27 +1793,27 @@ impl ResidentOrganismRuntime {
                     total.reached_and_foregone_physical_frontier_routes =
                         observation.physical_frontier_routes.clone();
                 }
-                if total.working_causal_continuations.is_empty()
-                    && !observation.working_causal_continuations.is_empty()
-                {
+                let selected_continuation_now = total.working_causal_continuations.is_empty()
+                    && !observation.working_causal_continuations.is_empty();
+                if selected_continuation_now {
                     total.working_causal_continuations =
                         observation.working_causal_continuations.clone();
                 }
-                if total.settled_working_frontier.is_empty() {
+                if !selected_continuation_now && total.settled_working_frontier.is_empty() {
                     if let Some(path) = total.working_causal_continuations.first() {
                         let [_, continued_transfer] = path.directed_transfers();
-                        if let Some(settled) = observation
-                            .settled_working_frontier
+                        let sent_onward = observation
+                            .physical_frontier_routes
                             .iter()
-                            .find(|candidate| {
-                                candidate.sender == continued_transfer.0
-                                    && candidate.receiver == continued_transfer.1
-                                    && candidate.bond == continued_transfer.2
-                                    && candidate.transferred_whole_carriers
-                                        == continued_transfer.3
-                            })
-                        {
-                            total.settled_working_frontier = vec![*settled];
+                            .any(|route| route.directed_sender() == Some(continued_transfer.1));
+                        if !sent_onward {
+                            total.settled_working_frontier =
+                                vec![DirectedPhysicalTransferObservation {
+                                    sender: continued_transfer.0,
+                                    receiver: continued_transfer.1,
+                                    bond: continued_transfer.2,
+                                    transferred_whole_carriers: continued_transfer.3,
+                                }];
                         }
                     }
                 }

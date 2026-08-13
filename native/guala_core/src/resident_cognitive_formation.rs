@@ -558,6 +558,17 @@ impl PhysicalFrontierRouteObservation {
         self.seed_place
     }
 
+    /// Return the exact sender only when this available branch carried a
+    /// nonzero whole-carrier transfer. The sign is measured outward from the
+    /// declared seed, so a negative route was sent by the adjacent neuron.
+    pub(crate) fn directed_sender(self) -> Option<[u8; 16]> {
+        match self.outward_whole_carriers_from_seed.cmp(&0) {
+            std::cmp::Ordering::Greater => Some(self.seed_lineage),
+            std::cmp::Ordering::Less => Some(self.adjacent_lineage),
+            std::cmp::Ordering::Equal => None,
+        }
+    }
+
     pub(crate) fn adjacent_lineage(self) -> [u8; 16] {
         self.adjacent_lineage
     }
