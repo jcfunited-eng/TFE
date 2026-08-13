@@ -35,9 +35,9 @@ use crate::chemical_receptor_work::{
 use crate::complete_neuron::{
     extend_neuron_positional_fabric, gate_opening_quantum_window_with_psi,
     gate_population_opening_schedule_with_psi, sparse_physical_state_delta,
-    sparse_retained_physical_state_delta, DnaExpressionContact, GateWorkOccurrence,
-    NeuronIntervalInput, NeuronPhysicalAnatomy, NeuronPhysicalState, RecoveryContact,
-    SparsePhysicalStateDelta,
+    sparse_retained_physical_state_delta, DnaExpressionContact, ExactPhysicalStateDelta,
+    ExactSignedDelta, GateWorkOccurrence, NeuronIntervalInput, NeuronPhysicalAnatomy,
+    NeuronPhysicalState, PhysicalStateDeltaEntry, RecoveryContact, SparsePhysicalStateDelta,
 };
 use crate::declared_geometric_anatomy::{declared_neuron_territory, DeclaredNeuronPlace};
 use crate::developmental_electrical_anatomy::{
@@ -804,6 +804,131 @@ pub(crate) struct FormationActivation;
 pub(crate) struct EmittedNeuronFractal {
     pub(crate) neuron_lineage: [u8; 16],
     pub(crate) delta: SparsePhysicalStateDelta,
+}
+
+/// One admitted organism transition may settle a receptor and its immediately
+/// connected internal contact in sequence. If the same neuron reaches retained
+/// rest at both boundaries, compose those exact changes into its one sparse
+/// transition impression instead of exporting the lineage twice.
+fn coalesce_emitted_neuron_fractals(
+    mut emitted: Vec<EmittedNeuronFractal>,
+) -> Result<Vec<EmittedNeuronFractal>, FormationError> {
+    emitted.sort_unstable_by_key(|fractal| fractal.neuron_lineage);
+    let mut coalesced = Vec::<EmittedNeuronFractal>::new();
+    for fractal in emitted {
+        let Some(prior) = coalesced.last_mut() else {
+            coalesced.push(fractal);
+            continue;
+        };
+        if prior.neuron_lineage != fractal.neuron_lineage {
+            coalesced.push(fractal);
+            continue;
+        }
+        match compose_retained_deltas(&prior.delta, &fractal.delta)? {
+            Some(delta) => prior.delta = delta,
+            None => {
+                coalesced.pop();
+            }
+        }
+    }
+    Ok(coalesced)
+}
+
+fn compose_retained_deltas(
+    first: &SparsePhysicalStateDelta,
+    second: &SparsePhysicalStateDelta,
+) -> Result<Option<SparsePhysicalStateDelta>, FormationError> {
+    let mut entries = Vec::new();
+    entries
+        .try_reserve(first.entries().len().saturating_add(second.entries().len()))
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let mut left = 0usize;
+    let mut right = 0usize;
+    while left < first.entries().len() || right < second.entries().len() {
+        let entry = match (first.entries().get(left), second.entries().get(right)) {
+            (Some(first_entry), Some(second_entry)) => {
+                match first_entry.coordinate().cmp(&second_entry.coordinate()) {
+                    std::cmp::Ordering::Less => {
+                        left += 1;
+                        Some(first_entry.clone())
+                    }
+                    std::cmp::Ordering::Greater => {
+                        right += 1;
+                        Some(second_entry.clone())
+                    }
+                    std::cmp::Ordering::Equal => {
+                        left += 1;
+                        right += 1;
+                        compose_retained_entry(first_entry, second_entry)?
+                    }
+                }
+            }
+            (Some(first_entry), None) => {
+                left += 1;
+                Some(first_entry.clone())
+            }
+            (None, Some(second_entry)) => {
+                right += 1;
+                Some(second_entry.clone())
+            }
+            (None, None) => break,
+        };
+        if let Some(entry) = entry {
+            entries.push(entry);
+        }
+    }
+    if entries.is_empty() {
+        return Ok(None);
+    }
+    SparsePhysicalStateDelta::from_canonical_entries(entries)
+        .map(Some)
+        .ok_or(FormationError::NoncanonicalState)
+}
+
+fn compose_retained_entry(
+    first: &PhysicalStateDeltaEntry,
+    second: &PhysicalStateDeltaEntry,
+) -> Result<Option<PhysicalStateDeltaEntry>, FormationError> {
+    if first.coordinate() != second.coordinate() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let delta = match (first.delta(), second.delta()) {
+        (ExactPhysicalStateDelta::Integral(first), ExactPhysicalStateDelta::Integral(second)) => {
+            let (first_negative, first_magnitude) = first.parts();
+            let (second_negative, second_magnitude) = second.parts();
+            if first_negative == second_negative {
+                ExactSignedDelta::from_parts(
+                    first_negative,
+                    first_magnitude
+                        .checked_add(second_magnitude)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                )
+                .map(ExactPhysicalStateDelta::Integral)
+            } else {
+                match first_magnitude.cmp(&second_magnitude) {
+                    std::cmp::Ordering::Greater => ExactSignedDelta::from_parts(
+                        first_negative,
+                        first_magnitude - second_magnitude,
+                    )
+                    .map(ExactPhysicalStateDelta::Integral),
+                    std::cmp::Ordering::Less => ExactSignedDelta::from_parts(
+                        second_negative,
+                        second_magnitude - first_magnitude,
+                    )
+                    .map(ExactPhysicalStateDelta::Integral),
+                    std::cmp::Ordering::Equal => None,
+                }
+            }
+        }
+        (ExactPhysicalStateDelta::Rational(first), ExactPhysicalStateDelta::Rational(second)) => {
+            let summed = first
+                .checked_add(second)
+                .map_err(|_| FormationError::ArithmeticOverflow)?;
+            (summed.parts().0 != 0).then_some(ExactPhysicalStateDelta::Rational(summed))
+        }
+        _ => return Err(FormationError::NoncanonicalState),
+    };
+    Ok(delta.and_then(|delta| PhysicalStateDeltaEntry::new(first.coordinate(), delta)))
 }
 
 /// One transient efferent event produced by an already-mounted layer-12
@@ -3979,6 +4104,7 @@ impl ResidentCognitiveFormationState {
         dsf_delivery_count = dsf_delivery_count
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
+        emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
         mount_reached_affective_reach(
             &mut cohorts,
             &mut resting_population,
@@ -11292,6 +11418,61 @@ mod tests {
         let mut lineage = [0u8; 16];
         lineage[15] = value;
         lineage
+    }
+
+    #[test]
+    fn one_transition_exports_one_composed_fractal_per_neuron() {
+        let delta = |gate_negative: bool, gate_magnitude: u128, plastic: i128| {
+            let mut entries = vec![PhysicalStateDeltaEntry::new(
+                crate::complete_neuron::PhysicalStateCoordinate::GateOpenPopulation,
+                ExactPhysicalStateDelta::Integral(
+                    ExactSignedDelta::from_parts(gate_negative, gate_magnitude).unwrap(),
+                ),
+            )
+            .unwrap()];
+            if plastic != 0 {
+                entries.push(
+                    PhysicalStateDeltaEntry::new(
+                        crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                        ExactPhysicalStateDelta::Rational(
+                            ExactRational::new(plastic, 3).unwrap(),
+                        ),
+                    )
+                    .unwrap(),
+                );
+            }
+            SparsePhysicalStateDelta::from_canonical_entries(entries).unwrap()
+        };
+        let first = structural_test_lineage(1);
+        let second = structural_test_lineage(2);
+        let coalesced = coalesce_emitted_neuron_fractals(vec![
+            EmittedNeuronFractal {
+                neuron_lineage: first,
+                delta: delta(false, 2, 1),
+            },
+            EmittedNeuronFractal {
+                neuron_lineage: second,
+                delta: delta(false, 4, 0),
+            },
+            EmittedNeuronFractal {
+                neuron_lineage: first,
+                delta: delta(true, 1, -1),
+            },
+        ])
+        .unwrap();
+
+        assert_eq!(coalesced.len(), 2);
+        assert_eq!(coalesced[0].neuron_lineage, first);
+        assert_eq!(coalesced[0].delta.entries().len(), 1);
+        assert_eq!(
+            coalesced[0].delta.exact_delta(
+                crate::complete_neuron::PhysicalStateCoordinate::GateOpenPopulation,
+            ),
+            Some(ExactPhysicalStateDelta::Integral(
+                ExactSignedDelta::from_parts(false, 1).unwrap(),
+            ))
+        );
+        assert_eq!(coalesced[1].neuron_lineage, second);
     }
 
     /// Synthesize an admitted mosaic with explicit member and active-bond

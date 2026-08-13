@@ -495,3 +495,27 @@ and backend-only state do not close it.
   remains local candidate evidence. A fresh immutable image, authenticated
   predecessor rehearsal, cutover, and direct public proof remain pending;
   C-020 is not Live-Closed.
+- Candidate commit `614ec32b58133653bd5c700af0b894c4288dcae2`, image
+  `sha256:b475c9813a9d4a7ff8304ec4f6e2bbdd32253fdef1d42fb63b367f74ecee5d80`,
+  and task definition `dsf-ai-task:1030` reached the corrected discarded-state
+  rehearsal promptly. Cold rehearsal task
+  `5e3894e769c441d083165f159f964019` then refused the first articulation-return
+  hop because one neuronal lineage was emitted twice. Production remained
+  unchanged on task 1024.
+- The ordinary input was already one joint occurrence: pressure and all four
+  local articulatory body ports shared one clock. The duplicate instead arose
+  when the same neuron reached retained rest at the receptor boundary and its
+  immediately connected internal-contact boundary; append-only collection
+  exported both partial post-quiescence deltas as separate fractals. The Python
+  boundary correctly refused that noncanonical lineage set, while mosaic
+  admission would otherwise have selected only one partial delta.
+- The candidate now exactly composes every sparse retained coordinate for a
+  repeated lineage before mosaic admission, persistence, and Python export.
+  Equal-and-opposite signed changes cancel; no first/last selection, Boolean
+  deduplication, new experience, or DSF reduction is introduced. A direct
+  overlapping-lineage regression passes, the full native library passes
+  423/423 executed tests with 13 explicitly ignored fixtures, and the exact
+  rebuilt native extension passes the 54/54 source, boundary, candidate,
+  deterministic-deployment, and packaging tests. RF-041 records this at the
+  earliest pre-build boundary. Candidate 1030 is refused; a fresh immutable
+  candidate is required. C-020 remains not Live-Closed.
