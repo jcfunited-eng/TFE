@@ -96,7 +96,7 @@ Primary evidence used only to define that responsibility:
 | Translation path | Native local physical transition -> bounded native observation -> ordinary multi-interval aggregate -> PyO3 projection -> Python transport -> read-only public evidence. The actual world/body action and returned receptor consequence remain organism-boundary facts, not Python cognition. |
 | Production acceptance | One exact live predecessor must produce internally sourced layer-11 alternatives before an authentic consequence, then expose exact agreement or disagreement when that consequence returns. Same-predecessor/input cold replay must reproduce the same witness. The public observer must continue saying thought and choice are unavailable. |
 | Resource acceptance | Work remains linear in the reached neuron/contact/body frontier. The witness is constant/bounded per transaction, retained state does not grow with elapsed time, and Python cognition callbacks remain zero. |
-| Observed evidence | The candidate restored the exact production body at tick `65,223` and cold-rehearsed the same 250-interval vestibular trajectory twice. Both runs produced two exact alternatives from intrinsic lineage `...0072` through layer-11 lineages `...0062` and `...0070` into distinct layer-10 lineages `...0061` and `...006f`, followed later by one authentic layer-8 to layer-10 body transfer. Alternative receipt `a6baa225...e7e0dea7` and consequence receipt `94f1d5a7...80a3f346` reproduced exactly; 500 full-DSF deliveries occurred with zero Python cognition callbacks. This is discarded-state rehearsal, not live production closure. |
+| Observed evidence | The candidate restored the exact production body at tick `65,223` and cold-rehearsed the same 250-interval vestibular trajectory twice. Both runs produced two exact alternatives from intrinsic lineage `...0072` through layer-11 lineages `...0062` and `...0070` into distinct layer-10 lineages `...0061` and `...006f`, followed later by one authentic layer-8 to layer-10 body transfer. Alternative receipt `a6baa225...e7e0dea7` and consequence receipt `94f1d5a7...80a3f346` reproduced exactly; 500 full-DSF deliveries occurred with zero Python cognition callbacks. Live task 1011 later falsified closure: ordinary self-yaw repeatedly produced the two paths without a consequence transfer, and a direct 90-degree/250-ms production turn also produced two paths but zero consequence transfers. The current observer also does not prove that either path reassembles a relation retained from a prior lived action/consequence episode. C-016 remains open. |
 
 ## Acceptance-evidence map
 
@@ -109,7 +109,7 @@ Primary evidence used only to define that responsibility:
 | expectation precedes consequence | internal transition before receptor consequence | transaction interval ordering | native aggregation refuses same/earlier consequence; replay passes |
 | agreement or disagreement | later authentic receptor/body route compared to the immutable prior physical route | bounded transient result | exact later contradiction observed in rehearsal; no score or rewrite |
 | cold replay | same predecessor and same causal inputs | discarded-state rehearsal | passes exactly |
-| live production behavior | task-1009 successor release | public native observation | pending |
+| live production behavior | task-1011 release | public native observation | deployed but not closed: two alternatives are continuously observed; ordinary 1-ms self-yaw has not produced the qualifying layer-8 to layer-10 consequence transfer |
 
 ## Applicable recurrence checks
 
@@ -117,28 +117,29 @@ Primary evidence used only to define that responsibility:
 |---|---|---|
 | RF-001 | Put this exact worktree first on `PYTHONPATH` before collection. | passes: Python loaded the worktree service and the rebuilt native wheel from `/tmp/guala-c016-python.tmMgsz` |
 | RF-002 | Resolve the task-1009 environment before process-fixed imports. | passes: exact task environment resolved; ears, touch, chemoreception, vestibular, world, and unattended time are `1`, interoception and migration are `0` |
-| RF-003 | Rebuild the exact native candidate and print loaded provenance. | release wheel rebuilt and loaded from `/tmp/guala-c016-python.tmMgsz/guala_core`; image provenance pending |
+| RF-003 | Rebuild the exact native candidate and print loaded provenance. | release wheel rebuilt and loaded from `/tmp/guala-c016-python.tmMgsz/guala_core`; live task 1011 reports commit `ad5490c` and image `sha256:e08ef007...ea4f` |
 | RF-004 | Exercise both pristine and authenticated-current bodies. | exact current production body passes; pristine unit law passes |
 | RF-005 | Carry exact alternatives and consequence evidence through every observer boundary. | passes locally through native observation, PyO3, Python evidence, transaction aggregation, and public observation |
-| RF-010 | Persist the exact successor, cold-start it, and run another interval. | pending |
-| RF-012 | Execute the exact live prediction/consequence acceptance action. | pending |
+| RF-010 | Persist the exact successor, cold-start it, and run another interval. | isolated task-117 rehearsal passed; live task 1011 restored the same identity and continues ordinary intervals |
+| RF-012 | Execute the exact live prediction/consequence acceptance action. | executed through the direct TLS production origin: the persisted 90-degree/250-ms turn produced two alternatives and zero qualifying consequence transfers, so acceptance failed |
 | RF-013 | Keep inherited formatter drift outside the bounded sprint diff. | crate-wide and file-scoped `rustfmt --check` expose inherited drift across untouched code; no bulk formatting was applied, while the C-016 additions were manually kept in canonical shape |
 | RF-016 | Keep only C-016 active against live-closed C-015 and task 1009. | complete at sprint start |
 | RF-017 | Census all constructors, destructures, getters, wrappers, mocks, and consumers before a shared type change. | complete before edits: two `CognitiveFormationObservation` constructors; three `RuntimeObservation` constructors; trajectory aggregation; `NativeResidentOrganismPrepare` plus five prepare wrappers; PyO3 projections; the Python protocol, dataclass, validator, equality signature, admitted/vestibular commit wrappers, transaction aggregate, cold probe, public observer, and boundary/public mocks/tests are enumerated. |
 | RF-018 | Preserve decisive earlier-interval evidence through the final consequence hop. | passes: later consequence cannot occupy the slot before alternatives exist |
-| RF-019 | Map immutable rehearsal assertions only to C-016. | controller now requires exactly two alternatives, one later consequence, exact receipts, and zero Python cognition callbacks; immutable-image execution pending |
+| RF-019 | Map immutable rehearsal assertions only to C-016. | immutable task-117 rehearsal passed the C-016 assertions, but RF-035 found that its 90-degree/250-ms input did not model live self-yaw |
 | RF-020 | Prove layer-11 and consequence-route participation, not mounted populations or labels. | passes on the authenticated current body with exact directed transfers |
 | RF-021 | Observe the same successor produced by the declared input. | passes discarded-state rehearsal; no successor substitution or intervening restore |
-| RF-022 | Trace codecs if any retained value changes; no schema change is presently proposed. | pending |
-| RF-025 | Successor-check any live gateway timeout before retry. | pending |
-| RF-027 | Bind evidence to the first qualifying interval and cold-replay that exact interval. | same authenticated predecessor and 250-interval input reproduce the exact first retained witness; immutable-image proof pending |
+| RF-022 | Trace codecs if any retained value changes; no schema change is presently proposed. | not applicable: task-1011 added only bounded transient observation and did not change retained-state codecs |
+| RF-025 | Successor-check any live gateway timeout before retry. | passes: the timed-out first turn was proved committed by the exact tick/world successor before any further action; the later direct-origin turn was a distinct acceptance action |
+| RF-027 | Bind evidence to the first qualifying interval and cold-replay that exact interval. | immutable task-117 rehearsal reproduced its qualifying interval exactly; the later live body did not reproduce a qualifying consequence and therefore cannot close the item |
 | RF-028 | Preserve a later qualifying witness through ordinary transaction aggregation. | passes native and Python transaction-aggregation tests and current-body rehearsal |
-| RF-029 | Derive a live write from a fresh same-session predecessor. | pending |
+| RF-029 | Derive a live write from a fresh same-session predecessor. | passes: position and heading were read immediately before constructing the one world-turn request |
 | RF-030 | Census signatures, projections, validators, and interval horizons before build. | complete; all enumerated native/PyO3/Python constructors and aggregators compile and test |
 | RF-031 | Require the expected nonzero targeted test count. | passes: 56 targeted Python tests and 580 active native tests executed with zero failures |
-| RF-032 | Resolve every tool root and target path before invocation. | passes for compile/test roots; deployment-controller roots remain to be resolved before cutover |
+| RF-032 | Resolve every tool root and target path before invocation. | passes for compile, test, controller, ECS, CloudFront, and direct TLS operator origins |
 | RF-033 | Re-read account, cluster, service, task, and digest before release. | complete for baseline |
 | RF-034 | Do not make a closed transient witness a recurring release gate. | first immutable rehearsal correctly stopped before cutover because the generic probe still demanded C-014 sparse attention; that stale assertion is removed while exact route replay remains reported |
+| RF-035 | Rehearse the exact magnitude, duration, and provenance produced by live behavior. | failed pre-cutover in retrospect: rehearsal used 90 degrees over 250 intervals; ordinary self-yaw is approximately 53–83 millidegrees in one interval. The large rehearsal proved mechanism reachability, not live self-action reachability. |
 
 ## Failed-hypothesis register
 
@@ -167,6 +168,17 @@ Primary evidence used only to define that responsibility:
    rehearsal stopped before cutover; production remained unchanged. Route
    evidence remains exactly replayed and reported, while only C-016 evidence
    is required for this release.
+8. **Rejected by live task 1011:** treat the 90-degree/250-ms rehearsal as a
+   model of ordinary self-yaw. Live self-actions moved approximately 53–83
+   millidegrees in one millisecond and repeatedly produced the two alternatives
+   without the qualifying later layer-8 to layer-10 transfer. The larger
+   rehearsal proves the downstream path can occur, but not that ordinary live
+   self-action reaches it.
+9. **Rejected by direct live acceptance:** call two layer-11 to layer-10 paths
+   prediction merely because they are internally continued and precede a body
+   action. The current implementation does not prove that either path
+   reassembles a relation retained from an earlier lived action/consequence
+   episode. Ordered propagation is a prerequisite, not prediction or thought.
 
 ## Current bounded verification
 
@@ -191,6 +203,28 @@ Primary evidence used only to define that responsibility:
   C-014 sparse-attention assertion. Production remained task 1009 and healthy.
 - The failed attempt counts toward total delivery time; no production cutover
   attempt occurred.
+- Attempt 2 built commit `ad5490c`, task 1011, image
+  `sha256:e08ef007d8f7c5d393acd6317ab0eb9e31e33392c1632ad1068ccbf1e604ea4f`.
+  Isolated rehearsal task 117 passed and one cutover completed. ECS reports
+  one desired/running healthy task and no pending deployment.
+- Public production repeatedly exposed exactly two ordered alternatives and
+  zero Python cognition callbacks, but ordinary 1-ms self-yaw did not expose
+  the required consequence transfer. C-016 therefore remains open.
+- One live 90-degree/250-ms in-world turn began at world revision 1876. The
+  public gateway returned 504 after 30 seconds while the server continued the
+  single request. It committed 250 vestibular intervals plus two sensory hops;
+  no retry was issued.
+- One new direct-origin acceptance turn began from world revision 1879 and
+  completed at revision 1880 in 2 minutes 29 seconds. It persisted organism
+  successor `7ae1b867934dfb3108ee43dba03316f6bac7595da1d05c6d6aab710289aa2552`
+  from predecessor
+  `2262dfce188404abf8327ae44f80469ff9545cfaab1db47a10da429bcf0eb7e3`,
+  processed 251 vestibular intervals plus two multisensory hops, delivered 714
+  full DSF fields, physically transitioned 43,038 neurons, retained exactly two
+  ordered paths, and emitted **zero** qualifying consequence transfers. The
+  public observer preserved the same transaction at tick 66,600 with zero
+  Python cognition callbacks. This is direct live falsification of C-016
+  closure, not a deployment success.
 
 ## Completion boundary
 
