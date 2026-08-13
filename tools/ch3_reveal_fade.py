@@ -188,6 +188,16 @@ def main():
     hday = int(pd.Timestamp(latest).strftime("%Y%m%d"))
     gband = {s: int(g) for s, d, g in zip(
         herd["sym"], herd["date"].astype(int), herd["gband"]) if int(d) == hday}
+    if not gband:
+        # herd state for this close not published (export late/failed).
+        # Without it every spike reads "crowd-less" and the engine would
+        # enter UNFILTERED — fail-open. Same guard CH6 has: settles above
+        # already ran; entries wait for the next pass.
+        print(f"[reveal-fade] {latest_s}: herd state missing — settles "
+              f"done ({settled}), entries refused (fail-closed)")
+        if not dry:
+            json.dump(log, open(LOG_PATH, "w"), indent=1)
+        return
 
     # today's reveal events
     sub = df[df["Date"].isin(days[-25:])]
