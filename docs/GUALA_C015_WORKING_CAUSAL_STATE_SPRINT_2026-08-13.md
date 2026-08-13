@@ -65,7 +65,7 @@ Date: 2026-08-13
 | Production acceptance | From one exact live predecessor and input, production must show physical activity continuing into a later ordinary interval after the initiating external cause is absent, changing later settlement solely through retained local state. The activity must subsequently settle/decay or remain supported only by an explicit local conserved source. Exact same-predecessor/input cold replay must reproduce the same interval-by-interval result. |
 | Falsification | A repeated identical external sample, unattended-world input, retained mosaic recurrence, ongoing body/fluid input, or observer aggregation must not be mislabeled internally continued activity. The proof must isolate the causal carry across the interval boundary and separately report any continuing external/body/fluid cause. |
 | Resource acceptance | Work remains linear in the reached neuron/contact/reaction frontier. Current-state bytes do not grow with elapsed intervals; no append-only history, duplicated snapshots, Python cognition callback, whole-organism scan, recursive re-entry, hidden worker, or age-growing witness is permitted. |
-| Observed evidence | Source trace proves exact directed whole-carrier causes already persist for one adjacent interval and expire from propagation authority when no whole carrier is sent onward. The isolated exact-law test passes; the native library passes 412/412 tests; translation/public-observer tests pass 39/39. A newborn 250 ms vestibular probe produced settlement but no strict internally continued two-contact path, so it is not C-015 acceptance. Discarded-current-production rehearsal and live proof remain pending. |
+| Observed evidence | Source trace proves exact directed whole-carrier causes already persist for one adjacent interval and expire from propagation authority when no whole carrier is sent onward. The isolated exact-law test passes; the native library passes 412/412 tests; translation/public-observer tests pass 39/39. A newborn 250 ms vestibular probe produced settlement but no strict internally continued two-contact path, so it is not C-015 acceptance. The first discarded-current-production rehearsal at task-1007 image `sha256:4d4f54e40b432a82c1a8da9cc27f156fe2dc7ff0e980957a8f6b7f55fdf5aae1` failed before cutover. An exact read-only current-body diagnostic at tick 63,748 proved 500 full-DSF deliveries, 50,637 physical neuron transitions, one internally continued path (`...62 -> ...61 -> ...5e`), and one unrelated earlier settlement (`...8a -> ...19`). This falsified the trajectory observer's initialization order, not the continuation physics. The observer now discards pre-continuation settlements and may retain only a later settlement of the selected path's exact second transfer. Rehearsal rerun and live proof remain pending. |
 
 ## Acceptance-evidence map
 
@@ -117,6 +117,11 @@ Date: 2026-08-13
    produced bounded frontier settlement but no strict un-reseeded two-contact
    continuation. That is an honest negative fixture result, not a reason to
    redesign the physics before testing the current production topology.
+4. **Rejected observer ordering:** let the first interval initialize the
+   aggregate's settlement slot before any continuation is selected. The exact
+   current production body proved this can retain an unrelated expired
+   transfer and later block the selected continuation's own settlement.
+   Pre-continuation settlements therefore carry no C-015 authority.
 
 ## Completion boundary
 

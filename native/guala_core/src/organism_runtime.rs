@@ -1854,7 +1854,15 @@ impl ResidentOrganismRuntime {
                 total.membrane_unreturned_elementary_charges =
                     observation.membrane_unreturned_elementary_charges;
             } else {
-                aggregate = Some(observation);
+                // A settlement observed before this trajectory has selected
+                // its first exact continuation cannot settle that selected
+                // cause.  Do not let an earlier, unrelated expired transfer
+                // occupy the trajectory's single bounded settlement slot.
+                // Once a continuation is selected above, only its exact
+                // second transfer may fill this slot in a later interval.
+                let mut initial = observation;
+                initial.settled_working_frontier.clear();
+                aggregate = Some(initial);
             }
         }
         let cognitive_observation = aggregate.ok_or_else(|| {
