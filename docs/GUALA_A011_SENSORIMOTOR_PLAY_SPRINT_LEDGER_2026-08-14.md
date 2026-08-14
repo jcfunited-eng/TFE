@@ -307,3 +307,29 @@ settlement, action, choice, persistence, DSF, or cognitive capital.
   persistence schema, or action authority is added.
 - The corrected focused suite passes 29/29 and the bounded adjacent suite
   passes 56/56 with `git diff --check` clean before corrective deployment.
+
+### A-011.2 live closure
+
+- Corrective commit `0611f6d3b92816e5c83d97f1dcb2b5b9bcc1da03` deployed in
+  one attempt as task `dsf-ai-task:1059`, image
+  `sha256:1a1f2becadec0af3dbd4711140d3cce9abc0587d9b7af1d804dd054182d93cfb`.
+  Exact cold restore preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; the service settled at one healthy
+  running process with zero pending tasks and zero Python cognition callbacks.
+- At live tick 95,528, retained formation
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`
+  had caused a `-34` millidegree action at world revision 4,211 and later a
+  distinct `-36` millidegree action at revision 4,215. Both sensed consequences
+  remained the already-proved A-011.1 authority.
+- Both actions' exact formation relations carried active physical bonds to the
+  same specialized layer-10 cell at topology 5. The relation receipt was
+  `5303ca6f8dbb0e93c79429276ab258bb0113980803028ad80ea6cc003e8ec6eb`;
+  the two complete localized trajectories retained distinct receipts
+  `9537dea06f0d5bbf7a89925b97aeb3acf707175db127f74593fcfadee058f820`
+  and `bcb380127df997e69e0d721f4b4bcb5180701abdc035d57abb02ce5b3b63606a`.
+- Live `play.affective_engagement` is available while `fun`, `social_joy`, and
+  `laughter` remain explicitly unavailable. No reward or named-emotion
+  authority is claimed.
+- Three later read-only samples held the public payload at 177,424 bytes and
+  state at 58,377,516 bytes. The 15-minute ECS window peaked at 29.40% CPU and
+  8.33% memory; the latest maxima were 29.28% and 6.94% respectively.
