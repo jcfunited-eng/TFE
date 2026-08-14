@@ -93,10 +93,10 @@ def _transition(
         },
         "organism_tick": consequence_tick,
         "state_sha256": "d" * 64,
+        "unmet_dissipation_quanta": 0,
         "totals": {
             "energy_exhausted_interval_count": 0,
             "rest_drained_dissipation_quanta": 7,
-            "unmet_dissipation_quanta": 0,
         },
     }
     choice = {
@@ -291,7 +291,7 @@ def test_unmet_dissipation_refuses_overload_exclusion() -> None:
         yaw=18,
         world_revision=50,
     )
-    transition["totals"]["unmet_dissipation_quanta"] = 1
+    transition["unmet_dissipation_quanta"] = 1
 
     episode = production._sensorimotor_play_episode_from_transition(
         transition,

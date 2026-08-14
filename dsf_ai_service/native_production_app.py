@@ -2732,7 +2732,10 @@ def _same_transition_metabolic_overload_exclusion(
     ):
         return None
     drained = totals.get("rest_drained_dissipation_quanta")
-    unmet = totals.get("unmet_dissipation_quanta")
+    # Unmet dissipation is the exact standing remainder at transaction
+    # completion, not work performed. Summing it across hops counts the same
+    # retained material repeatedly. The final committed hop is authoritative.
+    unmet = evidence.get("unmet_dissipation_quanta")
     exhausted_intervals = totals.get("energy_exhausted_interval_count")
     if not all(
         isinstance(value, int) and value >= 0
@@ -6884,7 +6887,6 @@ def _perform_admitted_intake_locked(
         "metabolically_perturbed_body_receptor_count": 0,
         "rest_recovered_neuron_count": 0,
         "rest_drained_dissipation_quanta": 0,
-        "unmet_dissipation_quanta": 0,
         "energy_exhausted_interval_count": 0,
         "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,

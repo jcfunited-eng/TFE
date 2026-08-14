@@ -208,6 +208,8 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
     assert result["observation"]["organism_tick"] == 12
     assert result["observation"]["organic_mosaic_relations"] == (relation,)
     assert result["totals"]["rest_recovered_neuron_count"] == 5
+    assert "unmet_dissipation_quanta" not in result["totals"]
+    assert result["observation"]["unmet_dissipation_quanta"] == 0
 
 
 def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(

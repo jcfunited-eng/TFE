@@ -417,3 +417,28 @@ owner, lock, validation pass, or Python cognition callback.
 | RF-030 / RF-037 / RF-042 | Existing signatures and signed motion are unchanged; new counters are nonnegative exact magnitudes. |
 | RF-031 | Every recorded test command reports a nonzero executed-test count. |
 | RF-039 / RF-041 / RF-045 | No receptor, fractal, or sensor-clock change. |
+
+### Task-1060 live falsification and corrective scope
+
+- Commit `ce25eeccb675c305e3a055c07109362704587892` deployed in the
+  first attempt as task `dsf-ai-task:1060`, image
+  `sha256:6a6bd8324a14f1aa812cb7b18f70e4a457e19fcfe4d1200cd109666d4434cab3`.
+  Deployment ran from 22:23:39 through 22:42:46 UTC (19 minutes 7 seconds).
+  Exact rehearsal cold-restored the task-1059 body at tick 96,116 with the
+  same identity, byte-exact 58,377,920-byte state, and zero Python cognition
+  callbacks. The cutover settled on one healthy process.
+- Task 1060 then produced a new varied play pair from retained formation
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`:
+  `-26` millidegrees at world revision 4,263 and `-46` millidegrees at
+  revision 4,267. The new overload witness correctly remained unavailable.
+- The live transaction exposed the exact defect: the final committed interval
+  reported zero unmet dissipation and a non-exhausted energy state, while the
+  transaction `totals` reported 77,090 unmet quanta. `unmet` is the standing
+  dissipated material remaining after one interval; summing it across 13 hops
+  repeatedly counts the same retained material. In contrast, drained work is
+  genuinely additive and an exhausted-interval count is genuinely countable.
+- Corrective scope is observer-only: remove unmet dissipation from additive
+  transaction totals and use the final committed hop's exact standing unmet
+  value. Keep summed drained work and exhausted-interval count unchanged. No
+  neuron, metabolic, recovery, energy, persistence, DSF, action, or capacity
+  law changes.
