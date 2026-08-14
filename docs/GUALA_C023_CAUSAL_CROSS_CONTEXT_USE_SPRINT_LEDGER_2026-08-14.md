@@ -118,6 +118,7 @@ invented sensory energy.
 | RF-019/021/040 | Rehearsal must execute the current ordinary recurrent path from the exact predecessor and observe its own successor; do not replay a historical C-020/C-022 ceremony. |
 | RF-024/031 | Resolve every test path first and require nonzero collection. The selected files existed; 14 tests passed, while six stale tests and one stale native module prevented valid collection/execution. |
 | RF-044 | Changed runtime cardinality is unchanged: four existing body ports and the existing retained frames; no new inner loop, object, callback, or state byte. |
+| RF-045 | The cochlear transducer's declared 160-sample observation window is now the transported retained clock when cochlear ears are mounted; repeated held envelopes on the faster legacy PCM grid are prohibited. Raw 16-kHz pressure still enters the complete filter mechanics. |
 
 ## Falsified and rejected paths
 
@@ -315,3 +316,50 @@ invented sensory energy.
   heading produced one exact enclosure miss and 3,999 hits in 0.62 seconds;
   cache occupancy was one of its five-entry bound. The affected Python set
   passes 35 tests.
+
+## Production task 1044 and cochlear-clock falsification
+
+- Commit `b0dcbb5bc1d1d14d4a7d4d14acf56d08321d5eee`, image
+  `sha256:197b50a9e76f84ac7b90b7a20b36ae4622b4101a4a7cfcff28e5e817458ab9e9`,
+  and task `dsf-ai-task:1044` deployed through one successful controller
+  attempt in 27 minutes 59 seconds. The rehearsal cold-restored identity and
+  byte state exactly, the service settled at one healthy process with zero
+  pending tasks, and Python cognition callbacks remained zero.
+- Live production disproved closure of the compute correction. Complete
+  12-hop intervals advanced, but took roughly minutes and grew state from
+  54,121,853 to 55,224,418 to 56,291,800 bytes while the last interval formed
+  zero neuronal fractals, zero new mosaics, and six complete neurons. This is
+  not accepted as cognitive growth or bounded runtime evidence.
+- A read-only profile against an immutable copy of production tick 81,873
+  localized 132.986 of 153.536 profiled seconds inside the twelve native
+  `prepare_admitted` calls. Ordinary world hops took 1.3--1.5 seconds; each of
+  four self-hearing/body-return hops took 30--32 seconds. Episode construction
+  separately took 12.109 seconds.
+- Translation defect: cochlear mechanics already consume every 16-kHz PCM
+  sample and emit one RMS envelope per declared 160-sample (10 ms) window,
+  but transport repeated each settled envelope onto the retired approximately
+  one-millisecond PCM grid. One cochlear hop therefore carried 8,032 values
+  across 32 sites instead of the 832 values its physical observation windows
+  produce. The repeated values are not additional sensory evidence.
+- Candidate correction: when cochlear ears are mounted, the existing exact
+  160-sample cochlear observation window is the retained shared clock for PCM,
+  cochlear envelope, articulatory-body return, and true-silence construction.
+  The gammatone mechanics still receive every raw pressure sample. With no
+  cochlea mounted, the previous bounded PCM grid remains byte-for-byte in
+  force. No DSF, neuron, filter, receptor value, codec, state cap, behavioral
+  threshold, or cognitive acceptance law changes.
+- The implemented source, run against the same immutable production copy,
+  reached the in-memory successor in 15.528 seconds rather than 153.573. It
+  advanced 13 ticks, retained all 295 complete and 196,434 developmental
+  resting neurons, kept 12 mosaics, created no neuron, and reduced encoded
+  state by 9,865 bytes instead of adding roughly 1.07 MB.
+- Focused exact-clock, articulatory-source, and rotation tests pass 6/6. The
+  broader changed surface passes 72 tests. Three inherited tests fail before
+  this boundary: one reads a deleted legacy engine file, one constructs a
+  world above its pre-existing object capacity, and one subprocess replaces
+  the exact candidate native-extension path with the stale container path.
+  No runtime workaround is added for those unrelated failures.
+- The final release-relevant set passes 70/70 after adding explicit proof that
+  the authorized cochlea retains 26 exact 10-ms instants per 250-ms hop and
+  the roster without cochlear ears retains its previous 251-point bounded PCM
+  grid. Python compilation and `git diff --check` pass.

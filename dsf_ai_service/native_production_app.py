@@ -1043,12 +1043,10 @@ assert (
     LESSON_PORT_COUNT * INTAKE_HOP_MAX_FRAMES
     <= MAX_NATIVE_SAMPLES_PER_SETTLEMENT
 ), "declared lesson hop exceeds the ratified settlement sample bound"
-# Frame count of one quiescent (dark, silent) hop; the same timebase carries
-# the partial-presentation glimpse hop below.
-# The ended sensorium retains the same one-millisecond source clock as a
-# 16-kHz lesson hop.  Transport ending does not replace the physical clock
-# with a different grid.
-QUIESCENT_HOP_FRAME_COUNT = INTAKE_HOP_MILLISECONDS
+# A dark or silent interval retains the clock of the mounted receptor that
+# can physically change fastest.  With the cochlea mounted that is its native
+# 160-sample envelope observation below, not the retired one-millisecond PCM
+# transport grid.  Transport ending never changes the receptor clock.
 
 # ---------------------------------------------------------------------------
 # The cochlea (transport layer, not physics)
@@ -6329,9 +6327,6 @@ def _pcm_hops(
     """
 
     hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
-    frame_budget = min(
-        MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES
-    )
     signal_samples = list(samples)
     remainder = len(signal_samples) % hop_samples
     if remainder:
@@ -6340,14 +6335,53 @@ def _pcm_hops(
     hops: list[tuple[tuple[Fraction, ...], tuple[float, ...]]] = []
     for start in range(0, len(signal_samples) - 1, hop_samples):
         window = signal_samples[start : start + hop_samples + 1]
-        stride = max(1, -(-(hop_samples + 1) // frame_budget))
-        indices = list(range(0, hop_samples + 1, stride))
-        if indices[-1] != hop_samples:
-            indices.append(hop_samples)
+        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
         times = tuple(Fraction(index, sample_rate_hz) for index in indices)
         signal = tuple(window[index] / 32768.0 for index in indices)
         hops.append((times, signal))
     return hops
+
+
+def _retained_hop_sample_indices(
+    hop_samples: int,
+    sample_rate_hz: int,
+) -> tuple[int, ...]:
+    """Return the mounted receptor's exact observation instants in one hop.
+
+    The authorized cochlea consumes every 16-kHz pressure sample inside its
+    gammatone mechanics, then emits one physical envelope observation per
+    declared 160-sample window.  Repeating that already-settled envelope on
+    the retired PCM transport grid creates no additional sensory evidence.
+    Without a cochlea, retain the pre-existing bounded PCM transport grid.
+    """
+
+    if COCHLEAR_EARS_AUTHORIZED:
+        if sample_rate_hz != COCHLEAR_SAMPLE_RATE_HZ:
+            raise ValueError(
+                "the declared cochlea observes only 16 kHz captures; a capture at "
+                "another rate cannot be transduced without resampling it, and no "
+                "resampler is declared"
+            )
+        if hop_samples % COCHLEAR_OBSERVATION_HOP_SAMPLES:
+            raise ValueError(
+                "the intake hop does not contain whole cochlear observation windows"
+            )
+        return tuple(
+            range(
+                0,
+                hop_samples + 1,
+                COCHLEAR_OBSERVATION_HOP_SAMPLES,
+            )
+        )
+    frame_budget = min(
+        MAX_NATIVE_SAMPLES_PER_SUBSTREAM,
+        INTAKE_HOP_MAX_FRAMES,
+    )
+    stride = max(1, -(-(hop_samples + 1) // frame_budget))
+    indices = list(range(0, hop_samples + 1, stride))
+    if indices[-1] != hop_samples:
+        indices.append(hop_samples)
+    return tuple(indices)
 
 
 def _articulatory_body_hops(
@@ -6367,7 +6401,6 @@ def _articulatory_body_hops(
     if sys.byteorder != "little":
         raw.byteswap()
     hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
-    frame_budget = min(MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES)
     channels = []
     for channel_index, span in enumerate(ARTICULATORY_BODY_DECLARED_SPANS):
         start = channel_index * sample_count
@@ -6383,10 +6416,7 @@ def _articulatory_body_hops(
         raise ValueError("native articulatory body channels lost their shared clock")
     hops: list[tuple[tuple[Fraction, ...], ...]] = []
     for start in range(0, len(channels[0]) - 1, hop_samples):
-        stride = max(1, -(-(hop_samples + 1) // frame_budget))
-        indices = list(range(0, hop_samples + 1, stride))
-        if indices[-1] != hop_samples:
-            indices.append(hop_samples)
+        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
         hops.append(
             tuple(
                 tuple(Fraction(values[start + index], span) for index in indices)
@@ -6447,7 +6477,6 @@ def _cochlear_hops(
             "resampler is declared"
         )
     hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1000)
-    frame_budget = min(MAX_NATIVE_SAMPLES_PER_SUBSTREAM, INTAKE_HOP_MAX_FRAMES)
     signal = [value / 32768.0 for value in samples]
     # The capture ends mid-hop; what physically follows it is silence, so the
     # final partial hop is completed with true silence rather than truncated.
@@ -6462,10 +6491,7 @@ def _cochlear_hops(
     )
     hops: list[tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]] = []
     for start in range(0, physical_sample_count, hop_samples):
-        stride = max(1, -(-(hop_samples + 1) // frame_budget))
-        indices = list(range(0, hop_samples + 1, stride))
-        if indices[-1] != hop_samples:
-            indices.append(hop_samples)
+        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
         if (start + hop_samples) // COCHLEAR_OBSERVATION_HOP_SAMPLES >= len(envelopes):
             break
         times = tuple(Fraction(index, sample_rate_hz) for index in indices)
@@ -6533,10 +6559,15 @@ def _read_tutor_wav(path: Path, expected_sample_count: object) -> tuple[int, tup
 def _quiescent_hop_times() -> tuple[Fraction, ...]:
     """Exact retained instants of one dark, silent 250 ms hop."""
 
+    hop_samples = (
+        COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1000
+    )
     return tuple(
-        Fraction(index, QUIESCENT_HOP_FRAME_COUNT)
-        * Fraction(INTAKE_HOP_MILLISECONDS, 1000)
-        for index in range(QUIESCENT_HOP_FRAME_COUNT + 1)
+        Fraction(index, COCHLEAR_SAMPLE_RATE_HZ)
+        for index in _retained_hop_sample_indices(
+            hop_samples,
+            COCHLEAR_SAMPLE_RATE_HZ,
+        )
     )
 
 
