@@ -363,3 +363,28 @@ invented sensory energy.
   the authorized cochlea retains 26 exact 10-ms instants per 250-ms hop and
   the roster without cochlear ears retains its previous 251-point bounded PCM
   grid. Python compilation and `git diff --check` pass.
+
+## Production task 1045 physical cochlear clock
+
+- Commit `a5183b81e8dd7e47a8ad8f6af2b54da116c183fe`, image
+  `sha256:035c3a9111bb4b8756aea52085be7e9888d80a26676daa3f9b5a4ae40b0f6d6c`,
+  and task `dsf-ai-task:1045` deployed through one successful controller
+  attempt. ECS settled at one running process, zero pending processes, zero
+  failed tasks, and a completed rollout. The raw native identity remained
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; Python cognition callbacks remained
+  zero.
+- Live unattended production advanced from tick 82,055 through 82,068,
+  82,081, and 82,094. The latter two completed intervals were observed 43 and
+  47 seconds apart. This is materially faster than the multi-minute task-1044
+  intervals, although it does not yet meet the declared two-second transport
+  interval and therefore does not close the broader C-023 efficiency work.
+- Encoded state at ticks 82,055 and 82,094 was 56,291,250 and 56,287,202 bytes:
+  a net reduction of 4,048 bytes across 39 ticks. Intermediate bodies of
+  56,286,627, 55,181,751, and 56,287,202 bytes show an alternating body-shape
+  change rather than the previous monotonic approximately 1.07-MB-per-interval
+  accumulation. This short window is not a long-soak bounded-storage claim.
+- Each observed committed transition retained 12 hops, all 295 complete
+  neurons, all 196,434 developmental resting neurons, and 12 mosaics. The
+  sampled intervals produced physical neuron transitions but zero new or
+  recurrent neuronal fractals. No cognition, learning, or C-023 completion is
+  claimed from this clock correction.
