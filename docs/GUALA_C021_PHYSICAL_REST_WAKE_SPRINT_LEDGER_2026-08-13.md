@@ -196,3 +196,29 @@ work.
   zero failed; the 95 bounded-physics tests and every remaining native target
   also passed. Exact local quiescent fractal closure and one-seal/per-interval
   byte equality remain proved.
+
+## Deployment attempt 2 and actuator-boundary correction
+
+- Attempt 2 built image
+  `sha256:c94fff9d90a2e993779143e40b1fc9454e6cc94320f9b8597d75b52c5d82617a`,
+  registered `dsf-ai-task:1036`, and ran discarded candidate task
+  `10c9625a5be84c9686ef8a221897b18d`. It failed before cutover because no
+  qualifying zero-action rest interval appeared within sixteen true
+  dark/silent intervals. Production remained task 1034, healthy and
+  unchanged.
+- One read-only diagnostic task against a discarded copy of the live body
+  proved recovery was not missing: interval one recovered 43 neurons and
+  reduced dissipated energy from `2337477/16` to `1148183/8` zJ. The same
+  interval nevertheless reported six motor and nine articulatory
+  recruitments.
+- Translation trace found the exact defect: motor and articulatory
+  recruitments were selected from every directed transfer in the wider local
+  settlement neighbourhood. That neighbourhood deliberately includes quiet
+  receptors so post-experience neuronal settling can reach quiescence, but it
+  is not causal action authority.
+- Corrected boundary: an actuator may emit only when its lineage is the
+  current causal seed or an exact whole-carrier transfer moved away from a
+  causal seed and reached that actuator across one contact. Passive local
+  balancing still settles and remains available to neuronal-fractal closure,
+  but it cannot become body motion or articulation. No threshold, sleep mode,
+  scheduler, action suppression flag, state field, or codec change was added.

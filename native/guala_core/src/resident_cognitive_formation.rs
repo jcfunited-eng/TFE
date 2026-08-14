@@ -9242,6 +9242,42 @@ fn settle_internal_contact_interval(
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
 
+    // Local electrical settlement is wider than causal propagation: quiet
+    // receptors and their adjacent cells must still relax so neuronal
+    // experience can reach quiescence.  That wider settlement is not body
+    // authority.  An effector may emit only when it was already this
+    // interval's causal seed or when an exact whole-carrier transfer moved
+    // away from a causal seed and reached it across one contact.  This keeps
+    // passive balancing in a dark/silent neighbourhood from becoming motion
+    // or articulation without adding a threshold, mode, or command.
+    let mut causally_active_lineages = flat_locations
+        .iter()
+        .enumerate()
+        .filter_map(|(flat, (_, _, lineage))| causal_seeds[flat].then_some(*lineage))
+        .collect::<Vec<_>>();
+    for (transition, (left_flat, right_flat)) in settled
+        .transitions
+        .iter()
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
+        let signed_transfer = transition.outward_elementary_charges_from_left;
+        let reached_flat = if signed_transfer > 0 && causal_seeds[left_flat] {
+            Some(right_flat)
+        } else if signed_transfer < 0 && causal_seeds[right_flat] {
+            Some(left_flat)
+        } else {
+            None
+        };
+        if let Some(reached_flat) = reached_flat {
+            let lineage = flat_locations[reached_flat].2;
+            if !causally_active_lineages.contains(&lineage) {
+                causally_active_lineages.push(lineage);
+            }
+        }
+    }
+    causally_active_lineages.sort_unstable();
+    causally_active_lineages.dedup();
+
     // The shared contact field and carrier transfers above are settled once.
     // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
     // so those local consequences can settle concurrently without changing
@@ -9383,6 +9419,7 @@ fn settle_internal_contact_interval(
                 preparation_transfers.dedup();
                 (mount.source_site().is_none()
                     && mount.place().layer() == 12
+                    && causally_active_lineages.contains(&motor_lineage)
                     && outward > 0
                     && !preparation_transfers.is_empty())
                     .then_some(MotorUnitRecruitment {
@@ -9413,6 +9450,7 @@ fn settle_internal_contact_interval(
                 motor_transfers.dedup();
                 (mount.source_site().is_none()
                     && mount.place().layer() == 13
+                    && causally_active_lineages.contains(&articulatory_lineage)
                     && outward > 0
                     && !motor_transfers.is_empty())
                     .then_some(ArticulatoryUnitRecruitment {
