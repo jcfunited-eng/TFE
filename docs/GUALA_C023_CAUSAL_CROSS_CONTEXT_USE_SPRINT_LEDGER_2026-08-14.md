@@ -264,3 +264,29 @@ invented sensory energy.
   manifest; this was caught before image build or production cutover.
 - This is local candidate evidence only. The candidate is not deployed and
   C-023 remains in progress.
+
+## Production falsification and conductive-path correction
+
+- Commit `df4e74e3026ab33538e8a371d452ce5232affd82`, image
+  `sha256:8a1f3f4102defd8cd7f9da236a11ea63790e445cbb415117cf2f9cc5a7c561f2`,
+  and task `dsf-ai-task:1042` deployed through one successful controller
+  cutover. Identity and raw current-state continuity were preserved, ECS
+  settled at one healthy process, and Python cognition callbacks remained
+  zero.
+- Live behavior falsified the partially-open retention hypothesis: the new
+  process again committed eight hops and then refused exact articulatory work
+  with `ResidueWidth`. The current state remained valid and advanced from tick
+  81,568 to 81,577; C-023 did not close.
+- Corrected physics: a physically open receptor channel is already a
+  conductive path. An occurrence does not need to open one additional channel
+  before its whole absorbed lattice quanta can enter the existing gate-energy
+  and membrane settlement. Only a fully closed population must retain
+  sub-threshold work toward its first barrier. This is caused by exact open
+  population, not by a sensory label, desired result, threshold, or fitted
+  coefficient.
+- The earlier broad wording "any open channel drains" was rejected because it
+  did not distinguish absorbed-energy settlement from membrane current. The
+  corrected implementation now makes that distinction explicit: energy enters
+  the open conformation once, while carrier current remains separately derived
+  from open population, per-channel conductance, driving potential, elapsed
+  time, and finite carrier reservoirs.

@@ -3351,8 +3351,6 @@ fn select_gate_population_settlement(
         if !anatomy.has_independent_channel_supports()
             || target_population < predecessor_gate.open_population
             || target_population > anatomy.population
-            || (target_population == predecessor_gate.open_population
-                && predecessor_gate.open_population != anatomy.population)
         {
             return Err(GateSettlementError::GatePopulationExceeded);
         }
@@ -3624,7 +3622,6 @@ pub(crate) struct GateOpeningQuantumWindow {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct GatePopulationOpeningSchedule {
     predecessor_open_population: u128,
-    total_population: u128,
     channel_count: u128,
     first_barrier_quanta: Exact,
     barrier_step_quanta: Exact,
@@ -3646,7 +3643,6 @@ impl GatePopulationOpeningSchedule {
         }
         Ok(Self {
             predecessor_open_population,
-            total_population,
             channel_count,
             first_barrier_quanta,
             barrier_step_quanta,
@@ -3659,10 +3655,6 @@ impl GatePopulationOpeningSchedule {
 
     pub(crate) fn channel_count(&self) -> u128 {
         self.channel_count
-    }
-
-    pub(crate) fn is_fully_open(&self) -> bool {
-        self.predecessor_open_population == self.total_population
     }
 
     pub(crate) fn first_barrier_quanta(&self) -> &Exact {
@@ -6307,7 +6299,7 @@ mod tests {
     }
 
     #[test]
-    fn fully_open_receptor_population_settles_exact_work_without_opening_more_channels() {
+    fn open_receptor_population_settles_exact_work_without_opening_more_channels() {
         let fixture = physical_fixture();
         let gate = TwoStateGateAnatomy::new_independent_channels(
             4,
@@ -6322,7 +6314,7 @@ mod tests {
         )
         .unwrap();
         let mut predecessor_gate = fixture.state.gate.clone();
-        predecessor_gate.open_population = 4;
+        predecessor_gate.open_population = 2;
         let delivered = q(3, 1);
         let settlement = select_gate_population_settlement(
             &gate,
@@ -6332,13 +6324,13 @@ mod tests {
             fixture.state.membrane,
             fixture.anatomy.capacitance,
             &fixture.state.psi,
-            &GateWorkOccurrence::receptor_activation(-delivered.clone(), 4).unwrap(),
+            &GateWorkOccurrence::receptor_activation(-delivered.clone(), 2).unwrap(),
             None,
         )
         .unwrap()
         .unwrap();
 
-        assert_eq!(settlement.open_population, 4);
+        assert_eq!(settlement.open_population, 2);
         assert_eq!(settlement.released_quanta, 6);
         assert_eq!(
             gate.dissipation_quantum_zeptojoules

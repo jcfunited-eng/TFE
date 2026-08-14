@@ -117,13 +117,14 @@ pub(crate) fn quantize_receptor_delivery(
 /// population.  Complete activation barriers determine how many channels can
 /// open. Once at least one barrier is paid, every whole lattice quantum from
 /// this occurrence enters the same settlement exactly once; surplus becomes
-/// dissipation there instead of being carried into later presentations. A
-/// partially open population that cannot yet pay its next barrier keeps
-/// integrating exactly. A fully open population has no remaining activation
-/// barrier, so every whole absorbed quantum enters its existing conformation's
-/// energy settlement; only the sub-quantum remainder remains. This energy
-/// delivery is distinct from membrane carrier current, which is settled later
-/// from open population, conductance, driving potential, and elapsed time.
+/// dissipation there instead of being carried into later presentations. Once
+/// any channel is physically open, the population already has a conductive
+/// path: whole absorbed quanta enter that existing conformation's exact energy
+/// settlement even when the occurrence cannot open another channel. A closed,
+/// sub-threshold population keeps integrating exactly. The sub-quantum
+/// remainder is always retained. This absorbed-energy settlement is distinct
+/// from membrane carrier current, which is settled later from open population,
+/// conductance, driving potential, elapsed time, and finite carriers.
 pub(crate) fn quantize_population_receptor_delivery(
     transduced_energy_zeptojoules: &BigRational,
     predecessor_residue: ExactRational,
@@ -151,7 +152,8 @@ pub(crate) fn quantize_population_receptor_delivery(
         .predecessor_open_population()
         .checked_add(activated)
         .ok_or(ReceptorDeliveryError::ResidueWidth)?;
-    let occurrence_reaches_settlement = activated > 0 || schedule.is_fully_open();
+    let occurrence_reaches_settlement =
+        activated > 0 || schedule.predecessor_open_population() > 0;
     let consumed_quanta = if occurrence_reaches_settlement {
         available_quanta
     } else {
@@ -394,7 +396,7 @@ mod tests {
     }
 
     #[test]
-    fn partially_open_population_retains_work_until_its_next_barrier_is_paid() {
+    fn partially_open_population_routes_work_through_its_existing_conductive_path() {
         let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
         let predecessor = rational(3, 16);
         let energy = &quantum * BigRational::from_integer(BigInt::from(13));
@@ -410,11 +412,12 @@ mod tests {
             quantize_population_receptor_delivery(&energy, predecessor, &quantum, &schedule)
                 .unwrap();
 
-        assert_eq!(delivery.delivered_quanta, 0);
-        assert!(delivery.gate_work.is_zero());
-        assert_eq!(delivery.successor_residue, rational(1, 1));
+        assert_eq!(delivery.delivered_quanta, 16);
+        assert!(!delivery.gate_work.is_zero());
+        assert_eq!(delivery.successor_residue, rational(0, 1));
         assert_eq!(
-            exact_rational_to_big(delivery.successor_residue),
+            delivery.delivered_energy_zeptojoules
+                + exact_rational_to_big(delivery.successor_residue),
             exact_rational_to_big(predecessor) + energy,
         );
     }
