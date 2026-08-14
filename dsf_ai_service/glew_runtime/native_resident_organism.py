@@ -2089,8 +2089,11 @@ class NativeResidentOrganism:
                 candidate.cognitive_formation_claimed
                 and cognitive_mosaic_count <= active_before.cognitive_mosaic_count
                 and formation_activation_count == 0
-                and partial_cue_reassembly_count
-                <= active_before.partial_cue_reassembly_count
+                # Native recurrence counts describe this prepared interval;
+                # they are not retained organism totals. One recurrence now
+                # remains evidence even when the preceding interval also
+                # observed exactly one recurrence.
+                and partial_cue_reassembly_count == 0
                 and complete_neuron_fractal_count == 0
                 and not organic_mosaic_relations
             )

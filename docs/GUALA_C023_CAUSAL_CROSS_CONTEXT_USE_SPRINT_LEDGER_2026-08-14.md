@@ -15,9 +15,9 @@ Status: In progress. No C-023 production claim exists.
   The same organism internally reorganized retained structure, retained
   `internally_simulated` provenance, cold-restored exactly, and used zero
   Python cognition callbacks.
-- Production baseline: task `dsf-ai-task:1046`, commit
-  `cdb4f10dc3f596a07d73288930191605829022c7`, image
-  `sha256:fa33839f6d65ff6fdfcd857845815050bfaad799d1ce9b804d5c5dca8786a3a3`,
+- Production baseline: task `dsf-ai-task:1047`, commit
+  `c39a72f8f8f52678ae6d31127f3a871453f0e79f`, image
+  `sha256:0a2d89d0d9e096ceeb5eff5aa9bd4dfd4c20a03cd85bff196b07a50cd81a2237`,
   and organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
 - Ledger movement: advance to C-023. C-022 is not reopened.
 
@@ -121,6 +121,7 @@ invented sensory energy.
 | RF-024/031 | Resolve every test path first and require nonzero collection. The selected files existed; 14 tests passed, while six stale tests and one stale native module prevented valid collection/execution. |
 | RF-044 | Changed runtime cardinality is unchanged: four existing body ports and the existing retained frames; no new inner loop, object, callback, or state byte. |
 | RF-045 | The cochlear transducer's declared 160-sample observation window is now the transported retained clock when cochlear ears are mounted; repeated held envelopes on the faster legacy PCM grid are prohibited. Raw 16-kHz pressure still enters the complete filter mechanics. |
+| RF-046 | Every hop producer entering the shared C-023 observer must carry its explicit observation shape. Exact task-1047 action, cold restore, and one further action-bearing ordinary interval now pass after the vestibular tick and trajectory translators began carrying their native motor recruitments. |
 
 ## Falsified and rejected paths
 
@@ -607,3 +608,215 @@ invented sensory energy.
   lets an internally caused formation continuation survive into a later
   distinct lived context without a semantic record, episode archive, or Python
   cognition authority.
+
+### Task-1047 exact-body topology diagnosis and local provenance correction
+
+- The immutable task-1047 specimen at tick 85,794 has SHA-256
+  `14c02e6dc8f5694e875ed97281dd91940b1e962ce98f61df17713c6e8ad0e913`
+  and 56,319,308 bytes. It cold-restores as 295 reached neurons, 196,434
+  developmental resting neurons, and 12 retained formations.
+- The missing-contact hypothesis is falsified. The 14-member body-linked
+  formation has one exact layer-9 recurrent cell connected to all 14 members,
+  and that cell already has a 500-pS contact to layer 11. Exact current crosses
+  the layer-9/layer-11 contact. Adding another contact would duplicate valid
+  anatomy and is prohibited.
+- Twelve discarded-state quiet intervals repeatedly produced the same two
+  internally reassembled formations and 15 native motor recruitments, but the
+  bounded causal observer did not join them: active continuation alternated
+  among layers 5, 6, 8, and 9 and never retained the relevant layer-11 branch
+  as provenance from either cue. This is falsification, not production proof.
+- The first live blocker is narrower: `settle_organism_mosaic_boundary` erased
+  every formation's local metabolic cue whenever any receptor anywhere in the
+  organism was externally perturbed. That makes internal provenance impossible
+  during continuous awake sensing even when the external perturbation is not a
+  member of the formation.
+- Candidate correction: derive both external and metabolic cues by exact
+  member-lineage intersection. External provenance remains authoritative when
+  this same formation carries an external cue; an unrelated external
+  perturbation can no longer erase an independently measured metabolic cue.
+  No DSF field, neuron, contact, conductance, threshold, score, label, archive,
+  owner, lock, callback, or persisted byte is added.
+- Acceptance remains unchanged: the exact production predecessor must produce
+  a causal retained-formation path into later motor discharge, applied body
+  action, and sensed return. Merely restoring internal cue observation does not
+  close C-023.
+
+### Rejected generic convergence candidate and its falsification evidence
+
+The candidate described in this subsection was subsequently rejected by the
+complete native regression in the next subsection. Its exact-body result is
+retained only as falsification evidence and is not the releasable C-023 law.
+
+- A 128-hop exact replay after the formation-local provenance correction
+  produced 61 internal reassemblies and 184 native motor recruitments but no
+  joined causal path. The failure was deterministic: the tracked wave alternated
+  between the formation's layer-6 and layer-8 members while the already-moving
+  layer-9 recurrent endpoint was discarded at convergence.
+- The rejected generic candidate attempted to preserve one additional causal
+  case only.
+  When one endpoint is a current-interval cause only, the other endpoint carries
+  the immediately preceding frontier only, and exact nonzero whole-carrier
+  transfer crosses their contact, the continued endpoint remains the single
+  next frontier. Carrier direction is unchanged and independently retained.
+  Contacts with ambiguous, shared, or absent provenance still do not advance.
+- The candidate copied neither endpoint pair and added no contact, neuron,
+  threshold, score, callback, codec field, or retained byte. That narrow
+  implementation shape did not make its provenance law valid: the broader
+  native regression later proved it could still join unrelated activity.
+- Fresh candidate extension SHA-256
+  `685d56f84450680a0f6990768ee7fbbfd5d192d138d4c458651efaf14acd954c`
+  loaded from `/tmp/guala-c023-convergence-site.csH0bS`.
+- From the immutable task-1047 tick-85,794 body, the first eight ordinary
+  continuous-world hops produced four internal reassemblies and one exact path:
+  layer-5 member `...0094` exchanged 1,168 carriers with recurrent layer 9
+  `...00b4`; layer 9 exchanged 615 carriers with layer 11 `...00c4`; the same
+  layer-11 cell exchanged 864 carriers through the preparation contact of the
+  recruited layer-12 motor `...0135`. Recurrence occurred at tick 85,800 and
+  motor discharge at tick 85,802.
+- The ordinary native action path then committed one -122,207-millidegree yaw,
+  changed the world from revision 0 to 1, and delivered one exact vestibular
+  successor at tick 85,803 with one externally perturbed body receptor. The
+  57,932,343-byte successor cold-restored byte-exact and reported zero Python
+  cognition callbacks.
+- These are isolated exact-production-predecessor candidate facts. C-023 remains
+  open until the same release is deployed and independently observed live.
+
+### Rejection of generic convergence and formation-local replacement
+
+- The complete native library rejected the generic current-only/prior-only
+  convergence rule. The regression
+  `non_simultaneous_body_and_sensory_activity_does_not_manufacture_effectors`
+  observed a layer-10 participant from non-simultaneous vestibular and visual
+  activity. That candidate could join unrelated activity across time and has
+  been removed. Its task-1047 model result above is falsification evidence, not
+  releasable proof.
+- The accepted implementation boundary is formation-local and interval-local.
+  A retained formation's already-mounted layer-9 recurrent cell may remain the
+  single next causal frontier only when all three exact facts are present:
+  the cell carried the immediately preceding frontier; the formation is
+  internally reassembled in the current interval; and a nonzero whole-carrier
+  transfer in that same interval crosses between the recurrent cell and one of
+  that formation's exact cue members. Carrier direction remains unchanged.
+- Runtime topology index: each retained formation derives its layer-9 lineage
+  from the already-encoded mounted contacts on cold restore or immediately
+  after new retention mounts. The index is not encoded, does not become a
+  second authority, and prevents a whole-organism scan on each recurrence.
+- Exact translation path: `settle_sparse_electrical_transfers` produces the
+  directed transfer once; `InternalContactSettlementObservation` carries it
+  transiently; `settle_organism_mosaic_boundary` proves current internal
+  reassembly; `retain_internally_reassembled_recurrent_frontier` retains at
+  most one deterministic recurrent endpoint per reassembly; the existing
+  frontier codec carries the exact transfer into the next interval. No native,
+  Python, API, or UI schema is changed.
+- Cardinality bound: one topology derivation per retained formation only on
+  restore or topology growth; per interval, one scan over the current internal
+  reassembly observations and their already-bounded settled transfers. No
+  resting neuron, unreached neuron, absent contact, or historical episode is
+  visited.
+- Acceptance facts remain: the exact task-1047 predecessor must produce a
+  formation-local recurrent path into layer-12 discharge, one applied body
+  action, one sensed body/vestibular return, exact cold restore, unchanged
+  identity, zero Python cognition callbacks, and bounded current-state bytes.
+- Applicable recurrence checks for this candidate: RF-003/036 native artifact
+  provenance; RF-004 pristine and retained branches; RF-010 persisted CURRENT
+  and next cold interval; RF-016 exact C-023 task identity; RF-017 complete
+  constructor/consumer census for both transient structs; RF-021 same causal
+  successor; RF-028 ordinary multi-interval aggregation; RF-031 nonzero test
+  collection; RF-041 unique composed fractals; and RF-044 reached-frontier
+  cardinality.
+
+### Formation-local exact-body and fresh-process proof
+
+- Fresh native wheel SHA-256
+  `72324e5d462501e5c5bf878fa679d1f454200de6b29836a837c8d710842d8710`
+  was installed without cache into the isolated target
+  `/tmp/guala-c023-formation-site.92Dz3k`. The loaded compiled extension was
+  `/tmp/guala-c023-formation-site.92Dz3k/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so`
+  with SHA-256
+  `723171ad94a420da2142e9dd14cbf3e8e25f9534e4b9c79cc5ab553cfeaf28cd`.
+- A first rehearsal attempt imported the process-fixed application before the
+  disposable `CURRENT` predecessor existed. Startup therefore truthfully
+  latched organism-unavailable and the intake refused before cognition. This
+  was probe-order failure, not organism evidence. The corrected rehearsal
+  publishes the authenticated predecessor before importing the application.
+- From task-1047 body SHA-256
+  `14c02e6dc8f5694e875ed97281dd91940b1e962ce98f61df17713c6e8ad0e913`
+  at tick 85,794, one ordinary 12-hop transaction produced formation receipt
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`.
+  Recurrence occurred at tick 85,800 and motor discharge at tick 85,802. The
+  exact path transferred 1,168 carriers from recurrent layer 9 to cue layer 5,
+  615 from layer 11 to recurrent layer 9, and 864 from layer 12 to layer 11.
+- The ordinary action path applied a -122,207-millidegree yaw, changed the
+  world from revision 0 to 1, and delivered one exact vestibular/body return.
+  The successor reached tick 85,807, retained identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, used zero Python cognition callbacks,
+  encoded to 56,780,064 bytes, and cold-restored byte-exact. It was 460,756
+  bytes larger than the predecessor; this is one bounded transition, not yet a
+  long non-growth claim.
+- The first fresh-process next-interval proof exposed RF-046: the vestibular
+  return translator omitted the native `motor_unit_recruitments` field required
+  by the shared formation-to-motor observer. The world transaction rolled back
+  and no successor was published. Both `_commit_vestibular_tick` and
+  `_commit_vestibular_trajectory` now carry that already-produced native field;
+  no default, duplicate cognition, schema, or retained byte was added.
+- A new process then restored the exact tick-85,807 successor and world revision
+  1, completed another ordinary eight-hop interval with a real motor action and
+  vestibular return, and published tick 85,816. The 56,797,081-byte successor
+  cold-restored exactly, used zero Python cognition callbacks, and named the
+  prior SHA-256 as its predecessor. Persistence retained exactly `CURRENT` plus
+  one predecessor: two generation bodies totaling 113,577,145 bytes.
+- These are exact authenticated-predecessor rehearsal facts. They prove the
+  narrow formation-local candidate and the next cold interval locally; C-023
+  remains open until the reviewed immutable release passes the broad gates and
+  the same source-to-action-to-sensed-consequence path is directly observed in
+  live production.
+
+### Fresh-genesis translation correction and final candidate regression
+
+- The first broad Python release run passed 112 checks and truthfully refused
+  the fresh-genesis lesson on its fourth committed hop. The native candidate
+  reported one genuine partial-cue reassembly for that interval, while the
+  Python boundary compared the interval count (`1`) with the preceding
+  interval's count (`1`) as though both were retained totals. Equal consecutive
+  recurrence events were therefore falsely rejected.
+- The translation now treats `partial_cue_reassembly_count` as the native
+  per-interval evidence it is. The native cognition claim also names a nonzero
+  per-interval partial-cue reassembly explicitly. No physics, threshold,
+  retained state, codec, schema, fallback, or acceptance condition was removed.
+  A focused boundary regression proves that one recurrence in each of two
+  consecutive intervals remains one truthful event in the current interval.
+- Fresh final candidate wheel SHA-256
+  `15e0d9ae576fe1ffc4bea82b8821738729779398a6a031a26695fdb684cbcbde`
+  was installed without cache into `/tmp/guala-c023-site.She1mt`; its loaded
+  extension SHA-256 is
+  `552b1fff0332ba3c37ead7a37aed7d594463459d533a31e7aef99a9d9e4928f9`.
+- The exact fresh-genesis lesson now passes. The same final candidate also
+  reproduced the authenticated task-1047 proof unchanged: recurrence at tick
+  85,800, motor discharge at 85,802, applied yaw, sensed vestibular return,
+  tick-85,807 byte-exact successor, unchanged identity, and zero Python
+  cognition callbacks. A new process then restored it and published the exact
+  tick-85,816 successor with another motor action and sensed return.
+- Complete native regression: 596 executed tests passed, zero failed, 13
+  explicitly ignored. Focused and release-boundary Python regression: 137
+  passed, zero failed. C-023 remains open because no production deployment or
+  live observation has yet occurred.
+
+### Candidate-image acceptance gate
+
+- The production controller's former immutable-image rehearsal still asserted
+  C-022 internal consolidation. That closed-task assertion could not establish
+  C-023 and was replaced before packaging.
+- The one-shot cold candidate now publishes the exact authenticated live body
+  only into a disposable local `CURRENT`, runs one ordinary unattended
+  whole-sensorium transaction through the production application, and requires
+  formation-local recurrence, three or more exact directed transfers, native
+  motor discharge, one applied world revision, a sensed vestibular/body return,
+  a distinct persisted successor, byte-exact cold restore, unchanged identity,
+  and zero Python cognition callbacks. It injects neither recruitment nor
+  action and never writes the read-only live source mount.
+- The candidate-task validator and deployment controller both require those
+  C-023 fields. A focused validator regression rejects a false world revision.
+  The exact local task-1047 body passes this production-shaped candidate probe.
+- After this gate change, 150/150 changed Python, rehearsal, packaging,
+  persistence, serving, and deployment-controller tests pass. C-023 remains
+  open pending immutable image rehearsal, cutover, and direct live proof.

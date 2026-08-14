@@ -4820,6 +4820,7 @@ def _commit_vestibular_tick(
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
+        "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -4910,6 +4911,7 @@ def _commit_vestibular_trajectory(
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
+        "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes

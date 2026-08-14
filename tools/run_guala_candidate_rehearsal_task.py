@@ -268,6 +268,7 @@ def _validate_proof(
     expected_native_articulation_rehearsal: bool = False,
     expected_native_physical_rest_wake_rehearsal: bool = False,
     expected_native_internal_consolidation_rehearsal: bool = False,
+    expected_native_causal_cross_context_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -738,6 +739,59 @@ def _validate_proof(
         and proof.get("native_internal_consolidation_state_sha256_before")
         != proof.get("native_internal_consolidation_state_sha256_after")
     )
+    native_causal_cross_context_rehearsal = (
+        proof.get("native_causal_cross_context_use_rehearsed") is True
+        and proof.get("native_causal_cross_context_cold_restore_exact") is True
+        and proof.get("motor_action_rehearsed") is True
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] > 0
+            for name in (
+                "native_causal_cross_context_transfer_count",
+                "native_causal_cross_context_recurrence_tick",
+                "native_causal_cross_context_motor_tick",
+                "native_causal_cross_context_hop_count",
+                "native_causal_cross_context_body_receptor_count",
+                "native_causal_cross_context_vestibular_tick_count",
+                "native_causal_cross_context_state_bytes_before",
+                "native_causal_cross_context_state_bytes_after",
+                "native_causal_cross_context_successor_tick",
+            )
+        )
+        and isinstance(
+            proof.get("native_causal_cross_context_signed_yaw_millidegrees"), int
+        )
+        and not isinstance(
+            proof["native_causal_cross_context_signed_yaw_millidegrees"], bool
+        )
+        and proof["native_causal_cross_context_signed_yaw_millidegrees"] != 0
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] >= 0
+            for name in (
+                "native_causal_cross_context_world_revision_before",
+                "native_causal_cross_context_world_revision_after",
+            )
+        )
+        and proof.get("native_causal_cross_context_world_revision_after")
+        == proof.get("native_causal_cross_context_world_revision_before") + 1
+        and proof["native_causal_cross_context_recurrence_tick"]
+        < proof["native_causal_cross_context_motor_tick"]
+        < proof["native_causal_cross_context_successor_tick"]
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "native_causal_cross_context_formation_receipt",
+                "native_causal_cross_context_state_sha256_before",
+                "native_causal_cross_context_state_sha256_after",
+            )
+        )
+        and proof.get("native_causal_cross_context_state_sha256_before")
+        != proof.get("native_causal_cross_context_state_sha256_after")
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -782,6 +836,10 @@ def _validate_proof(
         or (
             expected_native_internal_consolidation_rehearsal
             and not native_internal_consolidation_rehearsal
+        )
+        or (
+            expected_native_causal_cross_context_rehearsal
+            and not native_causal_cross_context_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -879,7 +937,8 @@ def main() -> int:
     # report it when it recurs but never require it as their acceptance gate.
     expected_sparse_attention_rehearsal = False
     expected_native_physical_rest_wake_rehearsal = False
-    expected_native_internal_consolidation_rehearsal = (
+    expected_native_internal_consolidation_rehearsal = False
+    expected_native_causal_cross_context_rehearsal = (
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
@@ -977,6 +1036,9 @@ def main() -> int:
             ),
             expected_native_internal_consolidation_rehearsal=(
                 expected_native_internal_consolidation_rehearsal
+            ),
+            expected_native_causal_cross_context_rehearsal=(
+                expected_native_causal_cross_context_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

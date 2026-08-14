@@ -691,44 +691,34 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-021 and every earlier transient witness are live-closed. C-022 requires
-# one changed retained formation caused by local metabolism, with durable
-# internally-simulated provenance and exact replay.
-if proof.get("native_internal_consolidation_rehearsed") is not True:
-    raise SystemExit("C-022 rehearsal produced no internal consolidation")
-if proof.get("native_internal_consolidation_cold_restore_exact") is not True:
-    raise SystemExit("C-022 consolidation did not cold-restore exactly")
-if proof.get("native_internal_consolidation_cold_replay_exact") is not True:
-    raise SystemExit("C-022 consolidation did not replay exactly")
-if proof.get("native_internal_consolidation_source") != "local_metabolic_settlement":
-    raise SystemExit("C-022 consolidation used a nonphysical source")
-if proof.get("native_internal_consolidation_origin") != "internally_simulated":
-    raise SystemExit("C-022 consolidation lost simulated provenance")
+# C-022 and every earlier consolidation witness are live-closed. C-023 must
+# carry one retained formation through native motor discharge, applied body
+# motion, and a sensed vestibular consequence in this immutable image.
+if proof.get("native_causal_cross_context_use_rehearsed") is not True:
+    raise SystemExit("C-023 rehearsal produced no causal cross-context use")
+if proof.get("native_causal_cross_context_cold_restore_exact") is not True:
+    raise SystemExit("C-023 successor did not cold-restore exactly")
+if proof.get("motor_action_rehearsed") is not True:
+    raise SystemExit("C-023 rehearsal produced no applied motor action")
 for name in (
-    "native_internal_consolidation_member_count",
-    "native_internal_consolidation_cue_count",
-    "native_internal_consolidation_formation_count",
-    "native_internal_consolidation_metabolic_receptor_count",
-    "native_internal_consolidation_recovered_neuron_count",
+    "native_causal_cross_context_transfer_count",
+    "native_causal_cross_context_hop_count",
+    "native_causal_cross_context_body_receptor_count",
+    "native_causal_cross_context_vestibular_tick_count",
 ):
     value = proof.get(name)
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
-        raise SystemExit(f"C-022 rehearsal returned invalid {name}")
-if proof.get("native_internal_consolidation_external_receptor_count") != 0:
-    raise SystemExit("C-022 internal consolidation used an external receptor")
-for name in (
-    "native_internal_consolidation_motor_recruitment_count",
-    "native_internal_consolidation_articulatory_recruitment_count",
+        raise SystemExit(f"C-023 rehearsal returned invalid {name}")
+if proof.get("native_causal_cross_context_world_revision_after") != (
+    proof.get("native_causal_cross_context_world_revision_before", -2) + 1
 ):
-    value = proof.get(name)
-    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-        raise SystemExit(f"C-022 rehearsal returned invalid {name}")
-if proof.get("native_internal_consolidation_formation_receipt_before") == proof.get(
-    "native_internal_consolidation_formation_receipt_after"
+    raise SystemExit("C-023 action did not advance the candidate world once")
+if proof.get("native_causal_cross_context_state_sha256_before") == proof.get(
+    "native_causal_cross_context_state_sha256_after"
 ):
-    raise SystemExit("C-022 retained formation did not reorganize")
+    raise SystemExit("C-023 rehearsal produced no distinct organism successor")
 if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-022 rehearsal invoked Python cognition")
+    raise SystemExit("C-023 rehearsal invoked Python cognition")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

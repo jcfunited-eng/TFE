@@ -551,6 +551,10 @@ pub(crate) struct CausalFrontierTransferObservation {
 pub(crate) struct InternallyReassembledFormationCueObservation {
     pub(crate) formation_receipt: [u8; 32],
     pub(crate) cue_lineages: Vec<[u8; 16]>,
+    /// The already-mounted layer-9 cell physically connected to every member
+    /// of this formation. This is reconstructed from contact topology on cold
+    /// restore and is never a separately encoded authority.
+    recurrent_lineage: Option<[u8; 16]>,
 }
 
 /// One exact directed contact transfer at one native cognitive ordinal. The
@@ -1273,6 +1277,10 @@ impl DormantLineageSeed {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct RetainedOrganismMosaic {
     mosaic: AdmittedPhysicalMosaic,
+    /// A runtime index reconstructed from the retained contact topology. It
+    /// avoids scanning the reached organism on every recurrence and is not
+    /// encoded as a second authority.
+    recurrent_lineage: Option<[u8; 16]>,
     /// Retired historical codec field. A count is not physical strengthening,
     /// so current physics never reads or increments it.
     reinforcement_count: u64,
@@ -1289,6 +1297,7 @@ impl RetainedOrganismMosaic {
     fn newly_admitted(mosaic: AdmittedPhysicalMosaic) -> Self {
         Self {
             mosaic,
+            recurrent_lineage: None,
             reinforcement_count: 0,
             mosaic_of_mosaics_relation_count: 0,
         }
@@ -2215,21 +2224,22 @@ fn settle_organism_mosaic_boundary(
                     .is_ok()
             })
             .collect::<Vec<_>>();
-        let internal_cue = if externally_perturbed_lineages.is_empty() {
-            metabolically_perturbed_lineages
-                .iter()
-                .copied()
-                .filter(|lineage| {
-                    retained
-                        .mosaic
-                        .member_lineages()
-                        .binary_search(lineage)
-                        .is_ok()
-                })
-                .collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
+        // Provenance is formation-local. An external perturbation elsewhere
+        // in the continuously sensed organism cannot erase this formation's
+        // independently measured metabolic cue. If this same formation also
+        // carries an external cue, the external branch below remains the
+        // conservative authority; no mixed activity is relabelled internal.
+        let internal_cue = metabolically_perturbed_lineages
+            .iter()
+            .copied()
+            .filter(|lineage| {
+                retained
+                    .mosaic
+                    .member_lineages()
+                    .binary_search(lineage)
+                    .is_ok()
+            })
+            .collect::<Vec<_>>();
         let (cue, origin) = if !external_cue.is_empty() {
             (external_cue, PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
         } else if !internal_cue.is_empty() {
@@ -2276,6 +2286,7 @@ fn settle_organism_mosaic_boundary(
                         InternallyReassembledFormationCueObservation {
                             formation_receipt: sha256(&encoded),
                             cue_lineages: cue,
+                            recurrent_lineage: retained.recurrent_lineage,
                         },
                     );
                 }
@@ -2310,6 +2321,7 @@ fn settle_organism_mosaic_boundary(
                 InternallyReassembledFormationCueObservation {
                     formation_receipt: reassembled_receipt,
                     cue_lineages: cue,
+                    recurrent_lineage: retained.recurrent_lineage,
                 },
             );
         }
@@ -2454,9 +2466,19 @@ fn decode_retained_organism_mosaic(
     max_encoded_bytes: usize,
 ) -> Result<RetainedOrganismMosaic, FormationError> {
     if encoded.get(..RETAINED_MOSAIC_COUNTS_MAGIC.len()) != Some(RETAINED_MOSAIC_COUNTS_MAGIC) {
-        return Ok(RetainedOrganismMosaic::newly_admitted(
-            decode_organism_mosaic(cohorts, electrical_fabric, encoded, max_encoded_bytes)?,
-        ));
+        let mosaic =
+            decode_organism_mosaic(cohorts, electrical_fabric, encoded, max_encoded_bytes)?;
+        let recurrent_lineage = recurrent_retention_lineage(
+            cohorts,
+            electrical_fabric,
+            mosaic.member_lineages(),
+        )?;
+        return Ok(RetainedOrganismMosaic {
+            mosaic,
+            recurrent_lineage,
+            reinforcement_count: 0,
+            mosaic_of_mosaics_relation_count: 0,
+        });
     }
     let mut cursor = RETAINED_MOSAIC_COUNTS_MAGIC.len();
     let reinforcement_count = take_state_u64(encoded, &mut cursor)?;
@@ -2472,8 +2494,11 @@ fn decode_retained_organism_mosaic(
             .ok_or(FormationError::NoncanonicalState)?,
         max_encoded_bytes,
     )?;
+    let recurrent_lineage =
+        recurrent_retention_lineage(cohorts, electrical_fabric, mosaic.member_lineages())?;
     Ok(RetainedOrganismMosaic {
         mosaic,
+        recurrent_lineage,
         reinforcement_count,
         mosaic_of_mosaics_relation_count,
     })
@@ -4405,6 +4430,12 @@ impl ResidentCognitiveFormationState {
         endogenous_partial_cue_reassembly_count = endogenous_partial_cue_reassembly_count
             .checked_add(organism_internal_reassemblies)
             .ok_or(FormationError::ArithmeticOverflow)?;
+        retain_internally_reassembled_recurrent_frontier(
+            &mut active_electrical_frontier,
+            &predecessor_active_electrical_frontier,
+            &internally_reassembled_formation_cues,
+            &internal_contact.settled_directed_transfers,
+        )?;
         let newly_retained_mosaic_members = mosaics
             .iter()
             .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
@@ -4422,6 +4453,20 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &newly_retained_mosaic_members,
         )?;
+        // The layer-9 cell and its member contacts are the retained physical
+        // authority. Cache only their derived lineage after topology changes,
+        // never by rescanning the organism on every recurrence.
+        for index in 0..mosaics.len() {
+            if mosaics[index].recurrent_lineage.is_some() {
+                continue;
+            }
+            let recurrent_lineage = recurrent_retention_lineage(
+                &cohorts,
+                &electrical_fabric,
+                mosaics[index].mosaic.member_lineages(),
+            )?;
+            mosaics[index].recurrent_lineage = recurrent_lineage;
+        }
         let externally_perturbed_body_receptor_count = cohorts
             .iter()
             .flat_map(|cohort| {
@@ -8832,6 +8877,85 @@ fn mount_new_recurrent_retention(
     Ok(())
 }
 
+/// Resolve one formation's recurrent cell from exact mounted anatomy.
+///
+/// The result is a runtime index only: the layer-9 cell and every one of its
+/// member contacts remain the physical authority and are already encoded.
+/// Resolution occurs on cold restore or when a new formation is mounted, not
+/// on every cognitive interval.
+fn recurrent_retention_lineage(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    members: &[[u8; 16]],
+) -> Result<Option<[u8; 16]>, FormationError> {
+    let mut resolved = None;
+    for (mount, lineage) in cohorts.iter().flat_map(|cohort| {
+        cohort
+            .anatomy
+            .mounts()
+            .iter()
+            .zip(cohort.anatomy.neuron_lineages())
+    }) {
+        if mount.place().layer() != 9
+            || !members
+                .iter()
+                .all(|member| electrical_fabric.contains_contact(*member, *lineage))
+        {
+            continue;
+        }
+        if resolved.replace(*lineage).is_some() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+    }
+    Ok(resolved)
+}
+
+/// Preserve the already-moving recurrent cell only when this interval has
+/// physically reassembled its own retained formation through that cell.
+///
+/// This is deliberately narrower than generic cross-time convergence. The
+/// formation must have an internally caused cue now, its exact recurrent cell
+/// must have carried the immediately preceding frontier, and this same
+/// interval must have settled a nonzero whole-carrier transfer between that
+/// cell and one of the cue members. The transfer direction remains exact while
+/// the recurrent endpoint remains the single advancing causal frontier.
+fn retain_internally_reassembled_recurrent_frontier(
+    next_frontier: &mut Vec<ActiveElectricalFrontierEntry>,
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    reassemblies: &[InternallyReassembledFormationCueObservation],
+    settled_transfers: &[DirectedPhysicalTransferObservation],
+) -> Result<(), FormationError> {
+    for reassembly in reassemblies {
+        let Some(recurrent_lineage) = reassembly.recurrent_lineage else {
+            continue;
+        };
+        if !predecessor_frontier
+            .iter()
+            .any(|entry| entry.frontier_lineage() == recurrent_lineage)
+        {
+            continue;
+        }
+        let Some(transfer) = settled_transfers.iter().copied().find(|transfer| {
+            (transfer.sender == recurrent_lineage
+                && reassembly.cue_lineages.contains(&transfer.receiver))
+                || (transfer.receiver == recurrent_lineage
+                    && reassembly.cue_lineages.contains(&transfer.sender))
+        }) else {
+            continue;
+        };
+        next_frontier.push(ActiveElectricalFrontierEntry::caused_with_frontier(
+            transfer.sender,
+            transfer.receiver,
+            recurrent_lineage,
+            transfer.bond,
+            transfer.transferred_whole_carriers,
+        )?);
+    }
+    next_frontier.sort_unstable();
+    next_frontier.dedup();
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 enum ResidentContactOrigin {
     Local {
@@ -8859,6 +8983,10 @@ struct InternalContactSettlementObservation {
     active_bonds: Vec<StablePhysicalBondReference>,
     frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
+    /// Exact nonzero whole-carrier transfers settled on this interval. This
+    /// transient evidence lets a formation-local recurrence retain its
+    /// already-moving recurrent cell without recomputing contact settlement.
+    settled_directed_transfers: Vec<DirectedPhysicalTransferObservation>,
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
@@ -8944,6 +9072,7 @@ fn settle_internal_contact_interval(
             active_bonds: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
+            settled_directed_transfers: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
@@ -9094,6 +9223,7 @@ fn settle_internal_contact_interval(
             active_bonds: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
+            settled_directed_transfers: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
@@ -9133,6 +9263,7 @@ fn settle_internal_contact_interval(
             active_bonds: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
+            settled_directed_transfers: Vec::new(),
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
@@ -10079,6 +10210,7 @@ fn settle_internal_contact_interval(
         active_bonds,
         frontier_routes,
         next_active_frontier,
+        settled_directed_transfers,
         metabolically_perturbed_body_receptor_lineages,
         affective_balance_trajectories,
         localized_fluid_chemistry,
@@ -11957,6 +12089,7 @@ mod tests {
         let reference = synthetic_admitted_mosaic(&[1, 2, 3], &[(1, 2), (2, 3)], 1);
         let mut mosaics = vec![RetainedOrganismMosaic {
             mosaic: reference.clone(),
+            recurrent_lineage: None,
             reinforcement_count: 5,
             mosaic_of_mosaics_relation_count: 1,
         }];
@@ -12817,6 +12950,64 @@ mod tests {
     }
 
     #[test]
+    fn only_current_internal_reassembly_retains_its_recurrent_frontier() {
+        let cue = [1_u8; 16];
+        let recurrent = [9_u8; 16];
+        let predecessor_sender = [8_u8; 16];
+        let unrelated = [7_u8; 16];
+        let predecessor_bond =
+            StablePhysicalBondReference::new(predecessor_sender, recurrent, 0).unwrap();
+        let predecessor = ActiveElectricalFrontierEntry::caused_with_frontier(
+            predecessor_sender,
+            recurrent,
+            recurrent,
+            predecessor_bond,
+            3,
+        )
+        .unwrap();
+        let cue_bond = StablePhysicalBondReference::new(cue, recurrent, 0).unwrap();
+        let transfer = DirectedPhysicalTransferObservation {
+            sender: recurrent,
+            receiver: cue,
+            bond: cue_bond,
+            transferred_whole_carriers: 5,
+        };
+        let reassembly = InternallyReassembledFormationCueObservation {
+            formation_receipt: [4_u8; 32],
+            cue_lineages: vec![cue],
+            recurrent_lineage: Some(recurrent),
+        };
+
+        let mut retained = Vec::new();
+        retain_internally_reassembled_recurrent_frontier(
+            &mut retained,
+            &[predecessor],
+            std::slice::from_ref(&reassembly),
+            &[transfer],
+        )
+        .unwrap();
+        assert_eq!(retained.len(), 1);
+        assert_eq!(retained[0].frontier_lineage(), recurrent);
+        assert_eq!(retained[0].directed_transfer(), Some(transfer));
+
+        let unrelated_transfer = DirectedPhysicalTransferObservation {
+            sender: unrelated,
+            receiver: cue,
+            bond: StablePhysicalBondReference::new(unrelated, cue, 0).unwrap(),
+            transferred_whole_carriers: 5,
+        };
+        let mut absent = Vec::new();
+        retain_internally_reassembled_recurrent_frontier(
+            &mut absent,
+            &[predecessor],
+            &[reassembly],
+            &[unrelated_transfer],
+        )
+        .unwrap();
+        assert!(absent.is_empty());
+    }
+
+    #[test]
     fn one_multisensory_occurrence_mounts_one_reusable_physical_association() {
         fn receptor_cohort(
             sense: PhysicalSourceSense,
@@ -13243,6 +13434,35 @@ mod tests {
             .unwrap();
             assert_eq!(cold, *retained);
         }
+
+        // Continuous sensing elsewhere in the body is not provenance for
+        // either retained formation. It must therefore neither relabel nor
+        // erase their independently measured metabolic recurrence.
+        let unrelated_external = [[0xfe_u8; 16]];
+        let (_, mixed_total, mixed_internal_count, _, mixed_internal_cues) =
+            settle_organism_mosaic_boundary(
+                &cohorts,
+                &fabric,
+                &[],
+                &current_deltas,
+                &unrelated_external,
+                &unrelated_external,
+                &internal_cue,
+                &topology.bonds,
+                &[],
+                &[],
+                &[],
+                &[],
+                &mut mosaics,
+                16_000_000,
+            )
+            .unwrap();
+        assert_eq!(mixed_total, 2);
+        assert_eq!(mixed_internal_count, 2);
+        assert_eq!(mixed_internal_cues.len(), 2);
+        assert!(mixed_internal_cues
+            .iter()
+            .all(|observation| observation.cue_lineages == internal_cue));
     }
 
     #[test]

@@ -443,6 +443,74 @@ def test_cold_restore_requires_exact_c022_internal_consolidation() -> None:
         )
 
 
+def test_cold_restore_requires_exact_c023_causal_cross_context_use() -> None:
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": True,
+        "native_causal_cross_context_use_rehearsed": True,
+        "native_causal_cross_context_cold_restore_exact": True,
+        "native_causal_cross_context_formation_receipt": "a" * 64,
+        "native_causal_cross_context_transfer_count": 3,
+        "native_causal_cross_context_recurrence_tick": 23_723_850,
+        "native_causal_cross_context_motor_tick": 23_723_852,
+        "native_causal_cross_context_hop_count": 12,
+        "native_causal_cross_context_signed_yaw_millidegrees": -122_207,
+        "native_causal_cross_context_world_revision_before": 4,
+        "native_causal_cross_context_world_revision_after": 5,
+        "native_causal_cross_context_body_receptor_count": 1,
+        "native_causal_cross_context_vestibular_tick_count": 1,
+        "native_causal_cross_context_state_sha256_before": "b" * 64,
+        "native_causal_cross_context_state_sha256_after": "c" * 64,
+        "native_causal_cross_context_state_bytes_before": 442_430,
+        "native_causal_cross_context_state_bytes_after": 442_431,
+        "native_causal_cross_context_successor_tick": 23_723_857,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_native_causal_cross_context_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["native_causal_cross_context_world_revision_after"] = 4
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_causal_cross_context_rehearsal=True,
+        )
+
+
 def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     articulation = {
         "applied_motor_quanta": 8,

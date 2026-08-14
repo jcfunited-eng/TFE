@@ -4251,6 +4251,7 @@ fn make_step_observation(
         cognitive_formation_claimed: cognitive.trace_formed
             || cognitive.mosaic_formed.is_some()
             || !cognitive.activations.is_empty()
+            || cognitive.partial_cue_reassembly_count() > 0
             || !cognitive.organic_mosaic_relations.is_empty(),
         cognitive_ordinal: cognitive.cognitive_ordinal,
         cognitive_trace_count: cognitive.trace_count,

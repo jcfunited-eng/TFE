@@ -8,7 +8,9 @@ from fractions import Fraction
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
+import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_articulatory_unit_trajectory,
@@ -17,8 +19,10 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
     NativeOrganismBinaryStoreError,
+    publish_staged_native_organism,
     rehearse_current_native_organism_current_format,
     restore_current_native_organism,
+    stage_active_native_organism,
 )
 from dsf_ai_service.substrate.native_resident_resource_admission import (
     derive_native_resident_resource_admission,
@@ -366,6 +370,142 @@ def _rehearse_native_internal_consolidation(
         **proof,
         "native_internal_consolidation_cold_replay_exact": True,
     }
+
+
+def _rehearse_native_causal_cross_context_use(
+    current_envelope: bytes,
+    budget: dict[str, int],
+) -> dict[str, object]:
+    """Prove retained formation -> motor action -> sensed consequence.
+
+    The authenticated predecessor is published only into a disposable local
+    CURRENT store. The production application then performs one ordinary
+    unattended whole-sensorium transaction with its real world/action
+    persistence ordering. No synthetic recruitment or direct action is
+    injected.
+    """
+
+    with tempfile.TemporaryDirectory(prefix="guala-c023-candidate-") as name:
+        root = Path(name)
+        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = str(root)
+        os.environ.pop("GUALA_S3_BACKUP_BUCKET", None)
+        os.environ["GUALA_UNATTENDED_TIME"] = "0"
+        os.environ["GUALA_CURRENT_FORMAT_MIGRATION"] = "0"
+
+        # This module is imported only after the disposable process-fixed root
+        # is declared. Candidate rehearsal runs in its own one-shot process.
+        from dsf_ai_service import native_production_app as production
+
+        if production.STATE_ROOT != root:
+            raise RuntimeError("C-023 candidate imported a different state root")
+        predecessor = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        staged = stage_active_native_organism(
+            root,
+            predecessor,
+            max_envelope_bytes=budget["max_envelope_bytes"],
+        )
+        published = publish_staged_native_organism(
+            staged,
+            expected_predecessor_sha256=None,
+            object_store=production._LocalDirectoryObjectStore(
+                root / production.LOCAL_OBJECT_MIRROR_DIRECTORY
+            ),
+            **budget,
+        )
+
+        production._startup()
+        loaded, _admission = production._runtime()
+        if loaded.pointer.state_sha256 != published.pointer.state_sha256:
+            raise RuntimeError("C-023 candidate did not start from the published body")
+        episodes, sampled_world = production._unattended_interval_episodes(
+            "c023-candidate-rehearsal"
+        )
+        result = production._perform_admitted_intake(
+            episodes,
+            "c023-candidate-rehearsal",
+        )
+        observation = result["observation"]
+        causal = observation.get("causal_cross_context_use")
+        motor = observation.get("motor_action")
+        if not isinstance(causal, dict):
+            raise RuntimeError("C-023 candidate produced no causal cross-context use")
+        if not isinstance(motor, dict) or motor.get("moved") is not True:
+            raise RuntimeError("C-023 candidate produced no applied motor action")
+        sensed = causal.get("sensed_consequence")
+        transfers = causal.get("directed_physical_transfers")
+        if (
+            not isinstance(sensed, dict)
+            or sensed.get("externally_perturbed_body_receptor_count", 0) <= 0
+            or not isinstance(transfers, (list, tuple))
+            or len(transfers) < 3
+            or observation.get("python_callback_count", 0) != 0
+        ):
+            raise RuntimeError("C-023 candidate lost physical path evidence")
+
+        successor = restore_current_native_organism(root, **budget)
+        successor_body = successor.organism.save()
+        if (
+            successor.pointer.identity != published.pointer.identity
+            or successor.pointer.organism_tick <= published.pointer.organism_tick
+            or successor.pointer.predecessor_state_sha256
+            != published.pointer.state_sha256
+            or hashlib.sha256(successor_body).hexdigest()
+            != successor.pointer.state_sha256
+            or sensed.get("successor_state_sha256")
+            != successor.pointer.state_sha256
+            or motor.get("world_revision")
+            != sampled_world.get("world_revision", 0) + 1
+        ):
+            raise RuntimeError("C-023 candidate successor did not persist exactly")
+
+        return {
+            "native_causal_cross_context_use_rehearsed": True,
+            "native_causal_cross_context_cold_restore_exact": True,
+            "native_causal_cross_context_formation_receipt": causal.get(
+                "formation_receipt_sha256"
+            ),
+            "native_causal_cross_context_transfer_count": len(transfers),
+            "native_causal_cross_context_recurrence_tick": causal.get(
+                "recurrence_organism_tick"
+            ),
+            "native_causal_cross_context_motor_tick": causal.get(
+                "motor_organism_tick"
+            ),
+            "native_causal_cross_context_hop_count": result["hop_count"],
+            "native_causal_cross_context_signed_yaw_millidegrees": motor.get(
+                "signed_yaw_millidegrees"
+            ),
+            "native_causal_cross_context_world_revision_before": sampled_world.get(
+                "world_revision"
+            ),
+            "native_causal_cross_context_world_revision_after": motor.get(
+                "world_revision"
+            ),
+            "native_causal_cross_context_body_receptor_count": sensed.get(
+                "externally_perturbed_body_receptor_count"
+            ),
+            "native_causal_cross_context_vestibular_tick_count": sensed.get(
+                "vestibular_tick_count"
+            ),
+            "native_causal_cross_context_state_sha256_before": (
+                published.pointer.state_sha256
+            ),
+            "native_causal_cross_context_state_sha256_after": (
+                successor.pointer.state_sha256
+            ),
+            "native_causal_cross_context_state_bytes_before": (
+                published.pointer.state_bytes
+            ),
+            "native_causal_cross_context_state_bytes_after": (
+                successor.pointer.state_bytes
+            ),
+            "native_causal_cross_context_successor_tick": (
+                successor.pointer.organism_tick
+            ),
+        }
 
 
 def _arguments() -> argparse.Namespace:
@@ -1319,13 +1459,12 @@ def main() -> int:
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        # C-021 and every earlier body trajectory are already live-closed.
-        # C-022 requires a changed retained formation whose cause and durable
-        # origin are internal physical settlement, not the historical wake
-        # trajectory or a counter standing in for structure.
+        # C-022 and every earlier consolidation witness are already
+        # live-closed. C-023 requires one retained formation to continue into
+        # a real motor action and an exact sensed body consequence.
         motor_proof = {
-            "motor_action_rehearsed": False,
-            **_rehearse_native_internal_consolidation(
+            "motor_action_rehearsed": True,
+            **_rehearse_native_causal_cross_context_use(
                 state,
                 {
                     "max_envelope_bytes": admission.max_envelope_bytes,

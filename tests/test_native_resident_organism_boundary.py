@@ -143,6 +143,9 @@ class _NativeResidentOrganismPrepare:
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
     endogenous_partial_cue_reassembly_count: int = 0
+    internally_reassembled_formation_cues: list[
+        tuple[str, list[str]]
+    ] | None = None
     complete_neuron_count: int = 0
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
@@ -233,6 +236,8 @@ class _NativeResidentOrganismPrepare:
             self.localized_fluid_chemistry = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
+        if self.internally_reassembled_formation_cues is None:
+            self.internally_reassembled_formation_cues = []
 
     @property
     def token_hex(self) -> str:
@@ -701,6 +706,26 @@ def test_prepare_refuses_dsfs_presented_as_native_cognitive_formation(
 
     with pytest.raises(RuntimeError, match="changed causal physics"):
         organism.prepare(_Source())
+
+
+def test_prepare_accepts_equal_consecutive_per_interval_reassembly_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    runtime.active.mounted_step_completed = True
+    runtime.active.partial_cue_reassembly_count = 1
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    runtime.prepare_result_override = replace(
+        genuine,
+        cognitive_formation_claimed=True,
+        partial_cue_reassembly_count=1,
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.cognitive_formation_claimed
+    assert prepared.partial_cue_reassembly_count == 1
 
 
 def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
