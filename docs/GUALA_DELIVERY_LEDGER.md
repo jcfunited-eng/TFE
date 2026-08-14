@@ -368,8 +368,18 @@ box remains unchecked until live acceptance passes.
 
 ## Continuous causal autonomy and embodiment
 
-- [ ] **A-001** Replace endpoint-triggered existence with one continuously
+- [x] **A-001** Replace endpoint-triggered existence with one continuously
   advancing native sensory/cognitive/action life while unattended.
+  **Live-closed 2026-08-14:** production task 1050 already owned one lifespan-
+  started continuous-world transport thread feeding the same persistent native
+  organism; the public observer explicitly could not advance it. With inert
+  reads, live state advanced from tick 89,604/state `5a15babe...` to tick
+  89,617/state `94829750...` in approximately 35 seconds, preserving identity
+  and zero Python cognition callbacks. The observed native successor included
+  layer-12 motor discharge, 405 millidegrees of body yaw, and vestibular
+  consequence re-entry. The obsolete A-001 regression test was replaced and
+  the corrected boundary suite passed 13/13. Deliberative thought and choice
+  remain unclaimed later autonomy items.
 - [ ] **A-002** Make the persistent virtual room/world continue independently
   of browser presence and retain exact body/object/environment consequences.
 - [ ] **A-003** Connect continuous real and simulated sight, sound, touch,
