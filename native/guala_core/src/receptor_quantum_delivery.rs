@@ -115,11 +115,15 @@ pub(crate) fn quantize_receptor_delivery(
 
 /// Pay the current receptor occurrence across the finite ordered channel
 /// population.  Complete activation barriers determine how many channels can
-/// open.  Once at least one barrier is paid, every whole lattice quantum from
+/// open. Once at least one barrier is paid, every whole lattice quantum from
 /// this occurrence enters the same settlement exactly once; surplus becomes
-/// dissipation there instead of being carried into later presentations.  A
-/// genuinely sub-threshold occurrence is retained intact, and a sub-quantum
-/// remainder is always retained exactly.
+/// dissipation there instead of being carried into later presentations. A
+/// partially open population that cannot yet pay its next barrier keeps
+/// integrating exactly. A fully open population has no remaining activation
+/// barrier, so every whole absorbed quantum enters its existing conformation's
+/// energy settlement; only the sub-quantum remainder remains. This energy
+/// delivery is distinct from membrane carrier current, which is settled later
+/// from open population, conductance, driving potential, and elapsed time.
 pub(crate) fn quantize_population_receptor_delivery(
     transduced_energy_zeptojoules: &BigRational,
     predecessor_residue: ExactRational,
@@ -143,20 +147,26 @@ pub(crate) fn quantize_population_receptor_delivery(
         .to_u128()
         .ok_or(ReceptorDeliveryError::ResidueWidth)?;
     let activated = affordable_activation_prefix(schedule, available_quanta)?;
-    let consumed_quanta = if activated == 0 { 0 } else { available_quanta };
+    let target_open_population = schedule
+        .predecessor_open_population()
+        .checked_add(activated)
+        .ok_or(ReceptorDeliveryError::ResidueWidth)?;
+    let occurrence_reaches_settlement = activated > 0 || schedule.is_fully_open();
+    let consumed_quanta = if occurrence_reaches_settlement {
+        available_quanta
+    } else {
+        0
+    };
     let delivered_energy_zeptojoules =
         lattice_quantum_zeptojoules * BigRational::from_integer(BigInt::from(consumed_quanta));
     let successor_residue_big = &accumulated - &delivered_energy_zeptojoules;
     let successor_residue = big_to_exact_rational(&successor_residue_big)?;
-    let gate_work = if activated == 0 {
+    let gate_work = if !occurrence_reaches_settlement {
         GateWorkOccurrence::new(BigRational::zero())
     } else {
         GateWorkOccurrence::receptor_activation(
             -delivered_energy_zeptojoules.clone(),
-            schedule
-                .predecessor_open_population()
-                .checked_add(activated)
-                .ok_or(ReceptorDeliveryError::ResidueWidth)?,
+            target_open_population,
         )
         .map_err(|_| ReceptorDeliveryError::OpeningWindowUnavailable)?
     };
@@ -204,13 +214,9 @@ fn affordable_activation_prefix(
         .ok_or(ReceptorDeliveryError::ResidueWidth)
 }
 
-fn barrier_at(
-    schedule: &GatePopulationOpeningSchedule,
-    offset: u128,
-) -> BigRational {
+fn barrier_at(schedule: &GatePopulationOpeningSchedule, offset: u128) -> BigRational {
     schedule.first_barrier_quanta()
-        + schedule.barrier_step_quanta()
-            * BigRational::from_integer(BigInt::from(offset))
+        + schedule.barrier_step_quanta() * BigRational::from_integer(BigInt::from(offset))
 }
 
 fn first_positive_barrier_offset(
@@ -310,17 +316,14 @@ mod tests {
         let schedule = GatePopulationOpeningSchedule::from_progression(
             0,
             4,
+            4,
             BigRational::from_integer(BigInt::from(17)),
             BigRational::zero(),
         )
         .unwrap();
-        let delivery = quantize_population_receptor_delivery(
-            &energy,
-            rational(0, 1),
-            &quantum,
-            &schedule,
-        )
-        .unwrap();
+        let delivery =
+            quantize_population_receptor_delivery(&energy, rational(0, 1), &quantum, &schedule)
+                .unwrap();
         assert_eq!(delivery.delivered_quanta, 35);
         assert_eq!(
             delivery.delivered_energy_zeptojoules,
@@ -341,19 +344,72 @@ mod tests {
         let predecessor = rational(3, 16);
         let energy = &quantum * BigRational::from_integer(BigInt::from(13));
         let schedule = GatePopulationOpeningSchedule::from_progression(
+            0,
             2,
             2,
             BigRational::from_integer(BigInt::from(17)),
             BigRational::zero(),
         )
         .unwrap();
-        let delivery = quantize_population_receptor_delivery(
-            &energy,
-            predecessor,
-            &quantum,
-            &schedule,
+        let delivery =
+            quantize_population_receptor_delivery(&energy, predecessor, &quantum, &schedule)
+                .unwrap();
+        assert_eq!(delivery.delivered_quanta, 0);
+        assert!(delivery.gate_work.is_zero());
+        assert_eq!(delivery.successor_residue, rational(1, 1));
+        assert_eq!(
+            exact_rational_to_big(delivery.successor_residue),
+            exact_rational_to_big(predecessor) + energy,
+        );
+    }
+
+    #[test]
+    fn fully_open_population_routes_absorbed_work_without_residue_growth() {
+        let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
+        let predecessor = rational(
+            49_000_727_687_437_192_077_430_114_190_881_352_817,
+            649_037_107_316_853_453_566_312_041_152_512_000,
+        );
+        let energy = BigRational::new(BigInt::from(219), BigInt::from(1_600_000));
+        let schedule = GatePopulationOpeningSchedule::from_progression(
+            24,
+            24,
+            0,
+            BigRational::zero(),
+            BigRational::zero(),
         )
         .unwrap();
+        let delivery =
+            quantize_population_receptor_delivery(&energy, predecessor, &quantum, &schedule)
+                .unwrap();
+
+        assert_eq!(delivery.delivered_quanta, 1_207);
+        assert!(!delivery.gate_work.is_zero());
+        assert!(exact_rational_to_big(delivery.successor_residue) < quantum);
+        assert_eq!(
+            delivery.delivered_energy_zeptojoules
+                + exact_rational_to_big(delivery.successor_residue),
+            exact_rational_to_big(predecessor) + energy,
+        );
+    }
+
+    #[test]
+    fn partially_open_population_retains_work_until_its_next_barrier_is_paid() {
+        let quantum = BigRational::new(BigInt::from(1), BigInt::from(16));
+        let predecessor = rational(3, 16);
+        let energy = &quantum * BigRational::from_integer(BigInt::from(13));
+        let schedule = GatePopulationOpeningSchedule::from_progression(
+            1,
+            3,
+            2,
+            BigRational::from_integer(BigInt::from(17)),
+            BigRational::zero(),
+        )
+        .unwrap();
+        let delivery =
+            quantize_population_receptor_delivery(&energy, predecessor, &quantum, &schedule)
+                .unwrap();
+
         assert_eq!(delivery.delivered_quanta, 0);
         assert!(delivery.gate_work.is_zero());
         assert_eq!(delivery.successor_residue, rational(1, 1));
@@ -368,6 +424,7 @@ mod tests {
         let count = 4_563_410_u128;
         let schedule = GatePopulationOpeningSchedule::from_progression(
             0,
+            count,
             count,
             BigRational::new(BigInt::from(-7), BigInt::from(3)),
             BigRational::new(BigInt::from(2), BigInt::from(3)),
@@ -392,6 +449,7 @@ mod tests {
             let schedule = GatePopulationOpeningSchedule::from_progression(
                 0,
                 257,
+                257,
                 first.clone(),
                 step.clone(),
             )
@@ -400,8 +458,7 @@ mod tests {
                 let mut explicit_cost = 0_u128;
                 let mut explicit_count = 0_u128;
                 for offset in 0..257_u128 {
-                    let barrier = &first
-                        + &step * BigRational::from_integer(BigInt::from(offset));
+                    let barrier = &first + &step * BigRational::from_integer(BigInt::from(offset));
                     let required = if barrier.is_positive() {
                         barrier.floor().to_integer().to_u128().unwrap() + 1
                     } else {

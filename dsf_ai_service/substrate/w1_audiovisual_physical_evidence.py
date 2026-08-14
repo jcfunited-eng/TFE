@@ -2048,11 +2048,6 @@ class W1AudiovisualPhysicalEvidenceAuthority:
         ears = _ear_positions(
             after_self, self._calibration.ear_separation_mm
         )
-        if ears is None:
-            return self._unsettled(
-                W1EvidenceState.UNAVAILABLE,
-                "noncardinal_two_ear_calibration_is_unavailable",
-            )
         left, right = ears
         left_distance_squared = _distance_squared(
             after_emitter.pose.position, left

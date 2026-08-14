@@ -42,6 +42,9 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
     ExactCausalExperienceOwner,
 )
+from dsf_ai_service.substrate.exact_lattice_rotation import (
+    rotate_lattice_offset,
+)
 from dsf_ai_service.substrate.w1_binaural_acoustic_physics import (
     W1EarAuditoryTransductionCustody,
     binaural_joint_units,
@@ -116,21 +119,12 @@ def _self_body(observation: ObservationSnapshot) -> EmbodiedBody:
 def _body_fixed_position(
     body: EmbodiedBody,
     offset: PositionMM,
-) -> PositionMM | None:
-    if body.pose.heading_millidegrees % 90_000:
-        if offset.x != 0 or offset.y != 0:
-            return None
-        dx, dy = 0, 0
-    else:
-        quarter_turns = (body.pose.heading_millidegrees // 90_000) % 4
-        if quarter_turns == 0:
-            dx, dy = offset.x, offset.y
-        elif quarter_turns == 1:
-            dx, dy = -offset.y, offset.x
-        elif quarter_turns == 2:
-            dx, dy = -offset.x, -offset.y
-        else:
-            dx, dy = offset.y, -offset.x
+) -> PositionMM:
+    dx, dy = rotate_lattice_offset(
+        offset.x,
+        offset.y,
+        body.pose.heading_millidegrees,
+    )
     return PositionMM(
         body.pose.position.x + dx,
         body.pose.position.y + dy,

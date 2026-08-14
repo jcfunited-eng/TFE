@@ -33,6 +33,9 @@ from dsf_ai_service.substrate.embodiment_world import (
     ObservationSnapshot,
     PositionMM,
 )
+from dsf_ai_service.substrate.exact_lattice_rotation import (
+    rotate_lattice_offset,
+)
 from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
     AuditoryFullFieldCapture,
     transduce_auditory_full_field,
@@ -275,8 +278,8 @@ def body_from_snapshot(
 def calibrated_ear_positions(
     body: EmbodiedBody,
     ear_separation_mm: int,
-) -> tuple[PositionMM, PositionMM] | None:
-    """Return ordered left/right ear positions for exact cardinal headings."""
+) -> tuple[PositionMM, PositionMM]:
+    """Return ordered ears on the exact millidegree/one-mm body lattice."""
 
     if (
         isinstance(ear_separation_mm, bool)
@@ -285,16 +288,12 @@ def calibrated_ear_positions(
         or ear_separation_mm % 2
     ):
         raise ValueError("W1 ear separation must be a positive even integer")
-    heading = body.pose.heading_millidegrees
-    if heading not in CARDINAL_HEADINGS_MILLIDEGREES:
-        return None
     half = ear_separation_mm // 2
-    left_offset = {
-        0: (0, half),
-        90_000: (-half, 0),
-        180_000: (0, -half),
-        270_000: (half, 0),
-    }[heading]
+    left_offset = rotate_lattice_offset(
+        0,
+        half,
+        body.pose.heading_millidegrees,
+    )
     position = body.pose.position
     left = PositionMM(
         position.x + left_offset[0],

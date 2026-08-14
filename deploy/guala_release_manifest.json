@@ -148,6 +148,7 @@
         "dsf_ai_service/substrate/embodiment_sensory_outcome.py",
         "dsf_ai_service/substrate/embodiment_world.py",
         "dsf_ai_service/substrate/exact_causal_experience.py",
+        "dsf_ai_service/substrate/exact_lattice_rotation.py",
         "dsf_ai_service/substrate/native_evidence_custody.py",
         "dsf_ai_service/substrate/native_organism_binary_store.py",
         "dsf_ai_service/substrate/native_resident_resource_admission.py",

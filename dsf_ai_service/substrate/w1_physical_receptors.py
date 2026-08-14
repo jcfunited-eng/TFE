@@ -51,6 +51,9 @@ from dsf_ai_service.substrate.exact_causal_experience import (
     CausalExperienceSettlement,
     ExactCausalExperienceOwner,
 )
+from dsf_ai_service.substrate.exact_lattice_rotation import (
+    rotate_lattice_offset,
+)
 
 
 OUTCOME_OBSERVATION_SCHEMA = "guala.embodiment.physical_receptor_observation.v1"
@@ -400,22 +403,11 @@ def _body_fixed_receptor_position(
     body: EmbodiedBody,
     offset: PositionMM,
 ) -> PositionMM:
-    if body.pose.heading_millidegrees % 90_000:
-        if offset.x != 0 or offset.y != 0:
-            raise ValueError(
-                "signed receptor offset requires exact heading geometry"
-            )
-        dx, dy = 0, 0
-    else:
-        quarter_turns = (body.pose.heading_millidegrees // 90_000) % 4
-        if quarter_turns == 0:
-            dx, dy = offset.x, offset.y
-        elif quarter_turns == 1:
-            dx, dy = -offset.y, offset.x
-        elif quarter_turns == 2:
-            dx, dy = -offset.x, -offset.y
-        else:
-            dx, dy = offset.y, -offset.x
+    dx, dy = rotate_lattice_offset(
+        offset.x,
+        offset.y,
+        body.pose.heading_millidegrees,
+    )
     return PositionMM(
         body.pose.position.x + dx,
         body.pose.position.y + dy,

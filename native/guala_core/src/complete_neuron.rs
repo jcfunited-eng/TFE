@@ -3349,8 +3349,10 @@ fn select_gate_population_settlement(
     )?;
     if let Some(target_population) = gate_work.receptor_target_open_population {
         if !anatomy.has_independent_channel_supports()
-            || target_population <= predecessor_gate.open_population
+            || target_population < predecessor_gate.open_population
             || target_population > anatomy.population
+            || (target_population == predecessor_gate.open_population
+                && predecessor_gate.open_population != anatomy.population)
         {
             return Err(GateSettlementError::GatePopulationExceeded);
         }
@@ -3466,10 +3468,7 @@ fn select_gate_population_settlement(
     };
     let mut selected: Option<GatePopulationSettlement> = None;
     let mut tied = false;
-    for open_population in [Some(first_minimum), second_minimum]
-        .into_iter()
-        .flatten()
-    {
+    for open_population in [Some(first_minimum), second_minimum].into_iter().flatten() {
         if open_population == predecessor_gate.open_population {
             continue;
         }
@@ -3625,6 +3624,7 @@ pub(crate) struct GateOpeningQuantumWindow {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct GatePopulationOpeningSchedule {
     predecessor_open_population: u128,
+    total_population: u128,
     channel_count: u128,
     first_barrier_quanta: Exact,
     barrier_step_quanta: Exact,
@@ -3633,15 +3633,20 @@ pub(crate) struct GatePopulationOpeningSchedule {
 impl GatePopulationOpeningSchedule {
     pub(crate) fn from_progression(
         predecessor_open_population: u128,
+        total_population: u128,
         channel_count: u128,
         first_barrier_quanta: Exact,
         barrier_step_quanta: Exact,
     ) -> Result<Self, GateSettlementError> {
-        if barrier_step_quanta.is_negative() {
+        if predecessor_open_population > total_population
+            || channel_count > total_population - predecessor_open_population
+            || barrier_step_quanta.is_negative()
+        {
             return Err(GateSettlementError::InvalidAnatomy);
         }
         Ok(Self {
             predecessor_open_population,
+            total_population,
             channel_count,
             first_barrier_quanta,
             barrier_step_quanta,
@@ -3654,6 +3659,10 @@ impl GatePopulationOpeningSchedule {
 
     pub(crate) fn channel_count(&self) -> u128 {
         self.channel_count
+    }
+
+    pub(crate) fn is_fully_open(&self) -> bool {
+        self.predecessor_open_population == self.total_population
     }
 
     pub(crate) fn first_barrier_quanta(&self) -> &Exact {
@@ -3675,8 +3684,7 @@ impl GatePopulationOpeningSchedule {
             .map_err(|_| GateSettlementError::ArithmeticWidth)?;
         for offset in 0..self.channel_count {
             let barrier = &self.first_barrier_quanta
-                + &self.barrier_step_quanta
-                    * Exact::from_integer(BigInt::from(offset));
+                + &self.barrier_step_quanta * Exact::from_integer(BigInt::from(offset));
             expanded.push(if barrier.is_positive() {
                 barrier
                     .floor()
@@ -3719,6 +3727,7 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
     if schedule_len == 0 {
         return GatePopulationOpeningSchedule::from_progression(
             predecessor.gate.open_population,
+            anatomy.gate.population,
             0,
             Exact::zero(),
             Exact::zero(),
@@ -3751,8 +3760,8 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         &zero_work,
         first_population,
     )?;
-    let first_barrier_quanta = (&first_energy - &predecessor_energy)
-        / &anatomy.gate.dissipation_quantum_zeptojoules;
+    let first_barrier_quanta =
+        (&first_energy - &predecessor_energy) / &anatomy.gate.dissipation_quantum_zeptojoules;
     let barrier_step_quanta = if schedule_len > 1 {
         let second_population = first_population
             .checked_add(1)
@@ -3767,14 +3776,15 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
             &zero_work,
             second_population,
         )?;
-        let second_barrier_quanta = (&second_energy - &first_energy)
-            / &anatomy.gate.dissipation_quantum_zeptojoules;
+        let second_barrier_quanta =
+            (&second_energy - &first_energy) / &anatomy.gate.dissipation_quantum_zeptojoules;
         second_barrier_quanta - &first_barrier_quanta
     } else {
         Exact::zero()
     };
     GatePopulationOpeningSchedule::from_progression(
         predecessor.gate.open_population,
+        anatomy.gate.population,
         schedule_len,
         first_barrier_quanta,
         barrier_step_quanta,
@@ -6294,6 +6304,49 @@ mod tests {
         )
         .unwrap();
         assert_eq!(full_work - zero_work, q(-8, 1));
+    }
+
+    #[test]
+    fn fully_open_receptor_population_settles_exact_work_without_opening_more_channels() {
+        let fixture = physical_fixture();
+        let gate = TwoStateGateAnatomy::new_independent_channels(
+            4,
+            0,
+            q(0, 1),
+            q(1, 2),
+            100_000,
+            r(1, 1),
+            r(-1, 1),
+            Vec::new(),
+            fixture.ring_count,
+        )
+        .unwrap();
+        let mut predecessor_gate = fixture.state.gate.clone();
+        predecessor_gate.open_population = 4;
+        let delivered = q(3, 1);
+        let settlement = select_gate_population_settlement(
+            &gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            &predecessor_gate,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &fixture.state.psi,
+            &GateWorkOccurrence::receptor_activation(-delivered.clone(), 4).unwrap(),
+            None,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(settlement.open_population, 4);
+        assert_eq!(settlement.released_quanta, 6);
+        assert_eq!(
+            gate.dissipation_quantum_zeptojoules
+                * Exact::from_integer(BigInt::from(settlement.released_quanta))
+                + settlement.dissipation_residue_zeptojoules.energy()
+                + settlement.exported_heat_zeptojoules,
+            predecessor_gate.dissipation_residue_zeptojoules.energy() + delivered,
+        );
     }
 
     #[test]

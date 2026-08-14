@@ -1158,7 +1158,7 @@ def test_symmetric_two_ear_field_is_explicitly_ambiguous():
     assert authority.status()["active_epochs"] == 0
 
 
-def test_unsettled_physical_capture_closes_continuity_epoch():
+def test_noncardinal_heading_retains_two_ear_physical_capture():
     world = _world(self_heading_millidegrees=1_000)
     authority = _authority(world)
     epoch = authority.open_epoch()
@@ -1175,11 +1175,10 @@ def test_unsettled_physical_capture_closes_continuity_epoch():
         ),
     )
 
-    assert result.state is W1EvidenceState.UNAVAILABLE
-    assert result.reason == (
-        "noncardinal_two_ear_calibration_is_unavailable"
-    )
-    assert authority.status()["active_epochs"] == 0
+    assert result.state is W1EvidenceState.OBSERVED
+    assert result.reason == "anonymous_multisensory_evidence_observed"
+    assert result.binaural_pcm is not None
+    assert authority.status()["active_epochs"] == 1
 
 
 def test_self_port_cannot_authenticate_external_pressure():

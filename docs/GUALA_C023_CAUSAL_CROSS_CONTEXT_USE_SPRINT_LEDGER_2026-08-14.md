@@ -185,3 +185,82 @@ invented sensory energy.
   and 13 unchanged explicit ignores. Seventy-one affected Python transport,
   public-observation, cold-restore, rehearsal-controller, and exact-executor
   tests pass. Python compilation and `git diff --check` pass.
+
+## Saturated receptor settlement correction
+
+### Change-impact record
+
+- Exact input: one already-transduced non-negative receptor-energy integral,
+  its retained exact residue, the receiving gate's dissipation quantum, and
+  the gate population's exact predecessor, total population, and remaining
+  opening-barrier progression.
+- Function path:
+  `resident_cognitive_formation::prepare_resident_transition`
+  `-> gate_population_opening_schedule_with_psi`
+  `-> quantize_population_receptor_delivery`
+  `-> settle_extended_interval_with_contact`
+  `-> settle_gate_membrane_with_contact`.
+- State transformation: a partially open receptor that cannot pay its next
+  exact barrier retains the complete occurrence; a receptor that pays one or
+  more barriers advances by exactly that affordable prefix; a physically fully
+  open receptor has no remaining activation barrier and routes every whole
+  absorbed lattice quantum through the existing gate-energy settlement while
+  retaining only the exact sub-quantum remainder. Membrane carrier current is
+  a later, separate transition derived from open population, single-channel
+  conductance, `V-E`, elapsed time, and finite carrier reservoirs.
+- Expected output: no unbounded pending-opening residue at physical full
+  saturation; no loss of threshold integration in a merely partially open
+  receptor; exact energy conservation; no population-sized allocation or
+  scan; no state, codec, DSF, or Python-callback change.
+- Production acceptance: starting from the authenticated current production
+  body, complete repeated ordinary unattended intervals across saturated
+  receptor sites, arbitrary body headings, and cold restore with unchanged
+  identity, zero Python cognition callbacks, and bounded state/resource
+  behavior.
+
+### Rejected hypothesis and corrected law
+
+- Rejected before deployment: `any predecessor open channel` was briefly used
+  as sufficient authority to drain every whole pending quantum. That erased
+  integration toward the next barrier in a partially open population and was
+  an outcome-driven shortcut.
+- Corrected boundary: the compact schedule now carries the gate's exact total
+  population. Only `activated > 0` or
+  `predecessor_open_population == total_population` reaches gate-energy
+  settlement. No threshold, coefficient, desired output, sensory label, or
+  fitted control was added.
+- Scaling: activation barriers remain one exact arithmetic progression and
+  the affordable prefix remains an exact floor-sum plus logarithmic search.
+  A million-channel receptor does not create or visit a million channel
+  objects. Electrical response remains proportional to the exact open-channel
+  population through the pre-existing local membrane law.
+
+### Current candidate evidence
+
+- Six focused receptor-delivery tests pass, including distinct partially open
+  and fully open behavior, exact conservation, and a 4,563,410-channel compact
+  progression.
+- The complete native library passes 428 tests with zero failures and 13
+  unchanged explicit ignores.
+- A fresh isolated release wheel loads the candidate native extension with
+  SHA-256
+  `c7c2bdfe15d845d6d671b8a64d70459f597f660a2b6c4f2042a2adb0b19ed0aa`.
+- A discarded copy of production state cold-restored with identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced from tick 81,352 to
+  tick 81,388 across the rehearsal chain, and retained zero Python cognition
+  callbacks. One initial interval refused after nine committed hops; the next
+  three ordinary intervals completed under the immediately preceding build of
+  the same corrected settlement law. This local copy used an older persisted
+  world body, and the final source additionally refuses same-population work
+  unless that population is physically full; this is supporting evidence, not
+  the mandatory candidate-task rehearsal against the current production world.
+- A changed-surface Python run passes 37 tests. Eight inherited tests fail
+  before reaching changed physics because the repository's default test world
+  constructs 66 curriculum objects under its older 64-object constructor cap.
+  The candidate does not alter that inventory or cap; current production and
+  the required candidate rehearsal restore the persisted world instead.
+- Release-closure review found that the newly imported exact rotation module
+  was absent from the explicit package manifest. It is now named in that
+  manifest; this was caught before image build or production cutover.
+- This is local candidate evidence only. The candidate is not deployed and
+  C-023 remains in progress.
