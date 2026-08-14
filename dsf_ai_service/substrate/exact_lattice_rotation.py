@@ -10,6 +10,7 @@ floating point never has authority over the selected millimetre.
 from __future__ import annotations
 
 from fractions import Fraction
+from functools import lru_cache
 from math import factorial
 
 
@@ -21,6 +22,21 @@ _HALF_TURN_MILLIDEGREES = 180_000
 # encloses pi and bounds the sine/cosine remainder; it is numerical proof
 # precision, not sensory anatomy, a tolerance, or a behavioral threshold.
 _PROOF_TERMS = 80
+
+
+def _proof_term_counts() -> tuple[int, ...]:
+    """Return exponentially refined proof depths through the exact limit."""
+
+    counts: list[int] = []
+    count = 6
+    while True:
+        counts.append(count)
+        if count == _PROOF_TERMS:
+            return tuple(counts)
+        count = min(count * 2, _PROOF_TERMS)
+
+
+_PROOF_TERM_COUNTS = _proof_term_counts()
 
 _Interval = tuple[Fraction, Fraction]
 
@@ -120,6 +136,7 @@ def _sine_cosine_bounds(
     )
 
 
+@lru_cache(maxsize=len(_PROOF_TERM_COUNTS))
 def _quadrant_bounds(
     heading_millidegrees: int,
     term_count: int,
@@ -169,7 +186,7 @@ def rotate_lattice_offset(
             return -x_millimetres, -y_millimetres
         return y_millimetres, -x_millimetres
 
-    for term_count in range(6, _PROOF_TERMS + 1):
+    for term_count in _PROOF_TERM_COUNTS:
         sine, cosine = _quadrant_bounds(
             heading_millidegrees,
             term_count,

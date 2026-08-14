@@ -290,3 +290,28 @@ invented sensory energy.
   the open conformation once, while carrier current remains separately derived
   from open population, per-channel conductance, driving potential, elapsed
   time, and finite carrier reservoirs.
+
+## Production compute falsification and exact-proof reuse
+
+- Commit `7f4dbc6935c764a2e2173d26ec6ccb94399bbef8`, image
+  `sha256:44ff3a4246061a146e261b52d62e680f9115c495b57e9a0d7a303624922aad1e`,
+  and task `dsf-ai-task:1043` deployed with exact identity continuity. Live
+  production then completed two full eight-hop intervals: tick 81,734 to
+  81,743, with 18 neuronal fractals, 274 physically transitioned neurons, one
+  partial-cue reassembly, native motor yaw, vestibular consequence, and zero
+  Python cognition callbacks. The `ResidueWidth` refusal was absent.
+- The following interval exposed a separate compute defect: every receptor at
+  the same body heading recomputed the same exact rational sine/cosine
+  enclosure. This does not change physics, but multiplies one geometry proof by
+  the receptor population and held the interval open for minutes.
+- Correction: exact proof depth now refines exponentially through
+  `6, 12, 24, 48, 80` terms rather than recomputing every intermediate depth,
+  and the pure heading/depth enclosure is cached at exactly the five entries
+  needed by one heading's complete proof schedule. A changed heading replaces
+  those entries through ordinary bounded LRU eviction. The cache contains no
+  receptor, neuron, sensory value, desired coordinate, or cognitive state and
+  cannot alter the proved result.
+- Local cardinality proof: 4,000 receptor-position calls at one noncardinal
+  heading produced one exact enclosure miss and 3,999 hits in 0.62 seconds;
+  cache occupancy was one of its five-entry bound. The affected Python set
+  passes 35 tests.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dsf_ai_service.substrate.exact_lattice_rotation import (
+    _quadrant_bounds,
     rotate_lattice_offset,
 )
 
@@ -26,3 +27,16 @@ def test_opposite_headings_preserve_rigid_body_symmetry() -> None:
             (heading + 180_000) % 360_000,
         )
         assert opposite == (-rotated[0], -rotated[1])
+
+
+def test_one_heading_reuses_one_bounded_exact_proof_schedule() -> None:
+    _quadrant_bounds.cache_clear()
+    first = rotate_lattice_offset(200, 0, 10_888)
+    before = _quadrant_bounds.cache_info()
+    second = rotate_lattice_offset(0, 180, 10_888)
+    after = _quadrant_bounds.cache_info()
+
+    assert first == (196, 38)
+    assert second == (-34, 177)
+    assert after.hits > before.hits
+    assert after.currsize <= after.maxsize == 5
