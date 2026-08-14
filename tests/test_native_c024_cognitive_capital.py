@@ -117,7 +117,7 @@ def test_causal_reassembly_credits_use_but_not_unproved_meaning(monkeypatch) -> 
             "retained_formation_caused_body_action_and_sensed_consequence",
         ),
         "formation_receipt_sha256": formation_receipt,
-        "intake": "unattended-world",
+        "intake": "continuous-environment:c024-test",
         "action": {"command_sha256": "a" * 64},
         "sensed_consequence": {"successor_state_sha256": "b" * 64},
     }
@@ -174,7 +174,7 @@ def test_later_quiet_transition_does_not_erase_the_bounded_causal_witness(
 ) -> None:
     witness = {
         "formation_receipt_sha256": "f" * 64,
-        "intake": "unattended-world",
+        "intake": "continuous-environment:c024-test",
         "organism_tick": 88_004,
         "state_sha256": "a" * 64,
         "action": {"command_sha256": "b" * 64},

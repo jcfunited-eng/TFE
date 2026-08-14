@@ -155,3 +155,11 @@ observation fragment; it never supplies meaning or cognition.
   file; these failures are recorded and do not justify changing its frozen
   observer scope.
 - No production claim exists yet.
+- First live cutover attempt: task definition `dsf-ai-task:1049`, commit
+  `8023cd10`, image `sha256:25c58e88…`; the release deployed cleanly in one
+  cutover. Live observation then falsified completion: an internally caused
+  causal-use witness was present, but `autonomous_use` remained blank because
+  the mapper expected a retired `unattended` intake prefix instead of the
+  current exact `continuous-environment:` transport identity. The release
+  remains live and healthy, but C-024 stays open until that one translation
+  mismatch is corrected and reverified.

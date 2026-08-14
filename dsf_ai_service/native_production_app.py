@@ -3321,7 +3321,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                 "body.causal_cross_context_use",
                 causal,
             )
-        if str(causal.get("intake", "")).startswith("unattended"):
+        if str(causal.get("intake", "")).startswith("continuous-environment:"):
             for capability in (
                 "Procedural and physical memory",
                 "Self and body continuity",
