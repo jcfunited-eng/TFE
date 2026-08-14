@@ -442,3 +442,38 @@ owner, lock, validation pass, or Python cognition callback.
   value. Keep summed drained work and exhausted-interval count unchanged. No
   neuron, metabolic, recovery, energy, persistence, DSF, action, or capacity
   law changes.
+
+### A-011.3 live closure
+
+- Corrective commit `9d1719c80dc11a696bf42f83e38a9807497c6f3a`
+  deployed in the second A-011.3 cutover as task `dsf-ai-task:1061`, image
+  `sha256:3fa2eeadbf8f0ccd31743dbe684496c32cac22c0d4bba8d9de16a5c8731ccd8d`.
+  The deployment ran from 22:50:27 through 23:09:18 UTC (18 minutes 51
+  seconds). Rehearsal cold-restored task 1060 at tick 96,536 with the same
+  organism identity, byte-exact 58,377,755-byte state, zero Python cognition
+  callbacks, and no migration. The service settled on one healthy process.
+- Task 1061 independently produced a new completed play witness from retained
+  formation `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`.
+  Its first action was `-18` millidegrees at world revision 4,291; its varied
+  return was `-36` millidegrees at revision 4,292. Both body consequences were
+  sensed and both actions carried exact localized affect/body participation.
+- The first transaction drained 50,350 dissipation quanta and completed with
+  zero unmet quanta and zero exhausted intervals. Its witness receipt is
+  `f6580e3a1e16b707289623f0c5123681c7802dcc240281bcd25905bf3b352d5a`.
+  The return drained 50,343 quanta and also completed with zero unmet quanta
+  and zero exhausted intervals. Its receipt is
+  `2b7181363e96992f33ae1eed87e2283c11305383557ca7df75c4c8bed4bbf687`.
+  Both used exact mounted dissipation capacity `798387/1` zeptojoules.
+- `play.overload_exclusion` is live and available. It remains read-only and is
+  explicitly not organism sensing or positive affect. Distress exclusion stays
+  unavailable because no localized nociceptive/aversive pathway is mounted;
+  fun, social joy, and laughter also remain unavailable.
+- A later unattended sample advanced tick 96,606 to 96,620 while state bytes
+  decreased from 58,377,670 to 58,377,063. Public payload was 187,542 bytes,
+  Python cognition callbacks remained zero, and the service remained one
+  healthy task with zero pending tasks. The observed service window peaked at
+  29.19% CPU and 8.29% memory. Both Loom pages continued to return HTTP 200;
+  no UI behavior was changed or claimed by A-011.3.
+
+**A-011.3 is Live-Closed.** The wider A-011 objective and the overall Guala
+project remain open.
