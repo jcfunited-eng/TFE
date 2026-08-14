@@ -2,7 +2,7 @@
 
 Date: 2026-08-13
 
-Status: active. This ledger is continuity evidence, not a completion claim.
+Status: Live-Closed 2026-08-14.
 
 ## Task identity
 
@@ -222,3 +222,25 @@ work.
   balancing still settles and remains available to neuronal-fractal closure,
   but it cannot become body motion or articulation. No threshold, sleep mode,
   scheduler, action suppression flag, state field, or codec change was added.
+
+## Live production closure
+
+- Release commit:
+  `76e51c29bdfd1d199a6a5abbba0e68d5f239c0d0`.
+- Production task: `dsf-ai-task:1037`; image:
+  `sha256:235c48ac845a74e6a8bce7b5af8a32126eea7fc6cb695b07465d5ab176772e33`.
+- Candidate rehearsal cold-restored live tick 79,899 and the same organism
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` without migration.
+- Physical rest emerged on interval 9: 32 neurons recovered; motor and
+  articulatory recruitment were both zero; dissipated energy fell from
+  `2348273/16` to `587053/4` zJ; reachable dissipation headroom rose from
+  `8447551/16` to `2111903/4` zJ.
+- The following ordinary one-millidegree vestibular cause produced 214
+  physically transitioned neurons and two unchanged full-DSF deliveries. The
+  complete rest/wake successor cold-replayed byte-exactly with zero Python
+  cognition callbacks.
+- The deterministic deployment controller then cut over once, verified the
+  native live state, and pinned the exact image as `production-current`.
+  Independent ECS readback shows one desired/running healthy task, zero
+  pending tasks, zero failed tasks, one completed PRIMARY deployment, and no
+  overlapping production deployment.

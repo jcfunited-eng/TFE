@@ -313,8 +313,18 @@ box remains unchecked until live acceptance passes.
   neurons, four self-hearing hops, and three retained self-hearing neuronal
   fractals. ECS had one running task, zero pending tasks, no candidate task,
   and zero Python cognition callbacks.
-- [ ] **C-021** Prove sleep/rest emerges from organism condition and changes
+- [x] **C-021** Prove sleep/rest emerges from organism condition and changes
   reachable work without a scheduler pretending to be a brain.
+  **Live-closed 2026-08-14:** production task 1037, commit `76e51c29`, image
+  `sha256:235c48ac845a74e6a8bce7b5af8a32126eea7fc6cb695b07465d5ab176772e33`
+  preserved the same organism. On a cold-restored copy of live tick 79,899,
+  physical rest emerged on interval 9: 32 neurons recovered, motor and mouth
+  recruitment were both zero, exact dissipation fell, and available
+  dissipation headroom increased. A following ordinary vestibular cause moved
+  214 neurons through two full-DSF deliveries; cold replay was byte-exact and
+  Python cognition callbacks remained zero. ECS independently showed one
+  healthy running task, zero pending/failed tasks, and one completed PRIMARY
+  deployment.
 - [ ] **C-022** Prove bounded internally sourced dream/consolidation reactivates
   and reorganizes retained structure with simulated provenance.
 - [ ] **C-023** Prove imagination, social cognition, self/body continuity,
