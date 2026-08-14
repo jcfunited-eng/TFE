@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from fractions import Fraction
 import hashlib
 import json
 from pathlib import PurePosixPath
@@ -265,6 +266,7 @@ def _validate_proof(
     expected_distributed_recall_rehearsal: bool = False,
     expected_sparse_attention_rehearsal: bool = False,
     expected_native_articulation_rehearsal: bool = False,
+    expected_native_physical_rest_wake_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -628,6 +630,63 @@ def _validate_proof(
             )
         )
     )
+    exact_rest_pairs = (
+        "native_rest_dissipated_energy_before_zeptojoules",
+        "native_rest_dissipated_energy_after_zeptojoules",
+        "native_rest_reachable_dissipation_headroom_before_zeptojoules",
+        "native_rest_reachable_dissipation_headroom_after_zeptojoules",
+    )
+    exact_rest_values = {
+        name: proof.get(name)
+        for name in exact_rest_pairs
+    }
+    exact_rest_values_valid = all(
+        isinstance(value, list)
+        and len(value) == 2
+        and all(isinstance(part, int) and not isinstance(part, bool) for part in value)
+        and value[1] > 0
+        for value in exact_rest_values.values()
+    )
+    native_physical_rest_wake_rehearsal = (
+        proof.get("native_physical_rest_wake_rehearsed") is True
+        and proof.get("native_physical_rest_wake_cold_replay_exact") is True
+        and isinstance(proof.get("native_rest_interval_ordinal"), int)
+        and not isinstance(proof["native_rest_interval_ordinal"], bool)
+        and 1 <= proof["native_rest_interval_ordinal"] <= 16
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] > 0
+            for name in (
+                "native_rest_recovered_neuron_count",
+                "native_wake_dsf_delivery_count",
+                "native_wake_physically_transitioned_neuron_count",
+            )
+        )
+        and proof.get("native_rest_motor_recruitment_count") == 0
+        and proof.get("native_rest_articulatory_recruitment_count") == 0
+        and exact_rest_values_valid
+        and Fraction(*exact_rest_values[
+            "native_rest_dissipated_energy_after_zeptojoules"
+        ])
+        < Fraction(*exact_rest_values[
+            "native_rest_dissipated_energy_before_zeptojoules"
+        ])
+        and Fraction(*exact_rest_values[
+            "native_rest_reachable_dissipation_headroom_after_zeptojoules"
+        ])
+        > Fraction(*exact_rest_values[
+            "native_rest_reachable_dissipation_headroom_before_zeptojoules"
+        ])
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "native_rest_successor_state_sha256",
+                "native_wake_successor_state_sha256",
+            )
+        )
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -664,6 +723,10 @@ def _validate_proof(
         or (
             expected_native_articulation_rehearsal
             and not native_articulation_rehearsal
+        )
+        or (
+            expected_native_physical_rest_wake_rehearsal
+            and not native_physical_rest_wake_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -760,7 +823,7 @@ def main() -> int:
     # transient trajectory fact, not permanent body state. Later releases
     # report it when it recurs but never require it as their acceptance gate.
     expected_sparse_attention_rehearsal = False
-    expected_native_articulation_rehearsal = (
+    expected_native_physical_rest_wake_rehearsal = (
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
@@ -851,7 +914,10 @@ def main() -> int:
                 expected_sparse_attention_rehearsal
             ),
             expected_native_articulation_rehearsal=(
-                expected_native_articulation_rehearsal
+                False
+            ),
+            expected_native_physical_rest_wake_rehearsal=(
+                expected_native_physical_rest_wake_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

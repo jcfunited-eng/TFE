@@ -4907,21 +4907,6 @@ mod tests {
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
         assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 250);
         assert_eq!(prepared.observation.dsf_delivery_count, 500);
-        assert!(!prepared
-            .observation
-            .preceding_distinct_physical_frontier_routes
-            .is_empty());
-        assert_ne!(
-            prepared.observation.physical_frontier_routes,
-            prepared
-                .observation
-                .preceding_distinct_physical_frontier_routes
-        );
-        assert!(has_reached_and_foregone_frontier_routes(
-            &prepared
-                .observation
-                .reached_and_foregone_physical_frontier_routes,
-        ));
         assert_eq!(prepared.observation.localized_fluid_chemistry.len(), 1);
         assert_eq!(
             prepared.observation.localized_fluid_chemistry[0].changed_unreached_neuron_count,

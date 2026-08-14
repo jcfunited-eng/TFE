@@ -3019,9 +3019,10 @@ impl ResidentCognitiveFormationState {
         let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_perturbed_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut externally_energized_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut transition_neuron_predecessors = Vec::<TransitionNeuronPredecessor>::new();
         let mut externally_reached_receptor_places = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
-        let mut externally_reached_by_occurrence =
+        let mut externally_energized_by_occurrence =
             vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
         let mut emitted_neuron_fractals = Vec::new();
         let mut mosaic_formed = None;
@@ -3685,6 +3686,17 @@ impl ResidentCognitiveFormationState {
                                     };
                                     if !transduced_energy_zeptojoules.is_zero() {
                                         exogenous_receptor_energy = Some(true);
+                                        let lineage =
+                                            cohort.anatomy.neuron_lineages()[resident_index];
+                                        if !externally_energized_neuron_lineages.contains(&lineage) {
+                                            externally_energized_neuron_lineages.push(lineage);
+                                        }
+                                        if !externally_energized_by_occurrence[occurrence_index]
+                                            .contains(&lineage)
+                                        {
+                                            externally_energized_by_occurrence[occurrence_index]
+                                                .push(lineage);
+                                        }
                                     }
                                     receptor_excitation_zeptojoules[resident_index] = Some(
                                         big_to_exact_rational(&transduced_energy_zeptojoules)
@@ -3865,6 +3877,19 @@ impl ResidentCognitiveFormationState {
                             {
                                 externally_perturbed_neuron_lineages.push(*lineage);
                             }
+                            if vestibular.is_some()
+                                && *perturbed
+                                && !externally_energized_neuron_lineages.contains(lineage)
+                            {
+                                externally_energized_neuron_lineages.push(*lineage);
+                            }
+                            if vestibular.is_some()
+                                && *perturbed
+                                && !externally_energized_by_occurrence[occurrence_index]
+                                    .contains(lineage)
+                            {
+                                externally_energized_by_occurrence[occurrence_index].push(*lineage);
+                            }
                         }
                         let interval_predecessor_neurons = cohort.state.neurons().to_vec();
                         let outcome = settle_resident_physical_interval(
@@ -3977,9 +4002,6 @@ impl ResidentCognitiveFormationState {
                         externally_reached_receptor_places
                             .push((lineage, cohort.anatomy.mounts()[resident_index].place()));
                     }
-                    if !externally_reached_by_occurrence[occurrence_index].contains(&lineage) {
-                        externally_reached_by_occurrence[occurrence_index].push(lineage);
-                    }
                 }
                 if cohort_index < cohorts.len() {
                     cohorts[cohort_index] = cohort;
@@ -4001,7 +4023,7 @@ impl ResidentCognitiveFormationState {
         )?;
         let mut reached_association_lineages = Vec::new();
         let mut reached_body_regulation_lineages = Vec::new();
-        for occurrence_lineages in &externally_reached_by_occurrence {
+        for occurrence_lineages in &externally_energized_by_occurrence {
             if let Some(lineage) = mount_reached_cross_sensory_association(
                 &mut cohorts,
                 &mut resting_population,
@@ -4025,12 +4047,15 @@ impl ResidentCognitiveFormationState {
                 }
             }
         }
-        // A local metabolic membrane perturbation is an intrinsic reached
-        // cause. Carry its lineage into the same one-interval sparse frontier
-        // as an external receptor without manufacturing gate work or reading
-        // an organism-wide reservoir projection. Zero membrane difference
-        // contributes no seed and therefore no invented signal.
-        let mut current_noncontinuation_seed_lineages = externally_reached_neuron_lineages.clone();
+        // A receptor exists in the continuous sensorium even when its exact
+        // input performs no gate work. Mere source declaration is therefore
+        // not authority to re-seed the electrical fabric: only the receptor's
+        // measured local transduced energy may originate a new frontier. An
+        // already-moving frontier still continues below, and a local metabolic
+        // membrane perturbation remains an intrinsic reached cause. This keeps
+        // darkness and silence physical without turning them into commands.
+        let mut current_noncontinuation_seed_lineages =
+            externally_energized_neuron_lineages.clone();
         for lineage in reached_association_lineages
             .iter()
             .chain(&reached_body_regulation_lineages)
@@ -4041,15 +4066,29 @@ impl ResidentCognitiveFormationState {
             }
         }
         let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
+        let mut locally_settled_lineages = externally_reached_neuron_lineages.clone();
+        for lineage in reached_association_lineages
+            .iter()
+            .chain(&reached_body_regulation_lineages)
+            .chain(&metabolically_perturbed_body_receptor_lineages)
+        {
+            if !locally_settled_lineages.contains(lineage) {
+                locally_settled_lineages.push(*lineage);
+            }
+        }
         for entry in &active_electrical_frontier {
             let lineage = entry.receiver();
             if !internal_frontier_lineages.contains(&lineage) {
                 internal_frontier_lineages.push(lineage);
             }
+            if !locally_settled_lineages.contains(&lineage) {
+                locally_settled_lineages.push(lineage);
+            }
         }
         let internal_contact = settle_internal_contact_interval(
             &mut cohorts,
             &mut electrical_fabric,
+            &locally_settled_lineages,
             &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
             source_generation,
@@ -8643,12 +8682,13 @@ fn one_interval_electrical_frontier(
 fn settle_internal_contact_interval(
     cohorts: &mut [ResidentReachedCohort],
     electrical_fabric: &mut ResidentElectricalFabric,
-    externally_reached_lineages: &[[u8; 16]],
+    locally_settled_lineages: &[[u8; 16]],
+    causal_seed_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut Vec<[u8; 16]>,
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
-    if externally_reached_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
+    if locally_settled_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
@@ -8780,15 +8820,20 @@ fn settle_internal_contact_interval(
     // caller combines those with this interval's external or metabolic cause.
     // This replaces the false rule that eventually made every reached neuron
     // and contact a permanent seed.
-    let seeds = flat_locations
+    let settlement_seeds = flat_locations
         .iter()
-        .map(|(_, _, lineage)| externally_reached_lineages.contains(lineage))
+        .map(|(_, _, lineage)| locally_settled_lineages.contains(lineage))
+        .collect::<Vec<_>>();
+    let causal_seeds = flat_locations
+        .iter()
+        .map(|(_, _, lineage)| causal_seed_lineages.contains(lineage))
         .collect::<Vec<_>>();
     let contact_endpoints = edges
         .iter()
         .map(|edge| (edge.left, edge.right))
         .collect::<Vec<_>>();
-    let reached = one_interval_electrical_frontier(&seeds, &contact_endpoints)?;
+    let reached = one_interval_electrical_frontier(&settlement_seeds, &contact_endpoints)?;
+    let causally_reached = one_interval_electrical_frontier(&causal_seeds, &contact_endpoints)?;
     let selected = reached
         .iter()
         .enumerate()
@@ -9664,8 +9709,8 @@ fn settle_internal_contact_interval(
         .zip(compact_bonds.iter().copied())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
-        let left_seed = seeds[left_flat];
-        let right_seed = seeds[right_flat];
+        let left_seed = causal_seeds[left_flat];
+        let right_seed = causal_seeds[right_flat];
         if left_seed == right_seed {
             continue;
         }
@@ -9709,7 +9754,12 @@ fn settle_internal_contact_interval(
     // material to continue beyond its hippocampal route through the same local
     // electrical law as every other reached neuron.
     let mut next_active_frontier = Vec::new();
-    for (transition, bond) in settled.transitions.iter().zip(&compact_bonds) {
+    for ((transition, bond), (left_flat, right_flat)) in settled
+        .transitions
+        .iter()
+        .zip(&compact_bonds)
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
         let signed_transfer = transition.outward_elementary_charges_from_left;
         if signed_transfer == 0 {
             continue;
@@ -9720,7 +9770,9 @@ fn settle_internal_contact_interval(
         } else {
             (right, left)
         };
-        if !externally_reached_lineages.contains(&receiving_lineage) {
+        if (causally_reached[left_flat] || causally_reached[right_flat])
+            && !causal_seed_lineages.contains(&receiving_lineage)
+        {
             next_active_frontier.push(ActiveElectricalFrontierEntry::caused(
                 sending_lineage,
                 receiving_lineage,
@@ -13237,7 +13289,7 @@ mod tests {
         let mut motor_recruitments = Vec::new();
         let mut articulatory_recruitments = Vec::new();
         let mut repeated_optical_frontier_route_sets = Vec::new();
-        for _ in 0..8 {
+        for _ in 0..256 {
             let prepared = state.prepare(&source, 16_000_000).unwrap();
             motor_recruitments.extend(
                 prepared

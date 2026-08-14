@@ -505,6 +505,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &mut successor.cohorts,
         &mut successor.electrical_fabric,
         &externally_reached,
+        &externally_reached,
         &mut changed,
         successor.generation,
         unchanged_developmental_resting_neuron_count,

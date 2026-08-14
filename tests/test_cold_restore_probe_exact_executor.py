@@ -270,20 +270,25 @@ def test_physical_rest_reopens_work_and_cold_replays_exactly(monkeypatch) -> Non
                 dissipation_capacity_energy_zeptojoules=(10, 1),
             )
 
+        def prepare_admitted(
+            self, episode: object, admissions: object
+        ) -> SimpleNamespace:
+            assert self.phase == 0
+            assert episode == "quiet"
+            assert admissions == "admissions"
+            return SimpleNamespace(
+                token="rest",
+                rest_recovered_neuron_count=2,
+                motor_unit_recruitments=(),
+                articulatory_unit_recruitments=(),
+                physically_transitioned_neuron_count=2,
+                dsf_delivery_count=1,
+            )
+
         def prepare_vestibular_tick(
             self, heading: int, signed_step: int
         ) -> SimpleNamespace:
             assert heading == 0
-            if self.phase == 0:
-                assert signed_step == 0
-                return SimpleNamespace(
-                    token="rest",
-                    rest_recovered_neuron_count=2,
-                    motor_unit_recruitments=(),
-                    articulatory_unit_recruitments=(),
-                    physically_transitioned_neuron_count=2,
-                    dsf_delivery_count=1,
-                )
             assert self.phase == 1 and signed_step == 1
             return SimpleNamespace(
                 token="wake",
@@ -307,11 +312,19 @@ def test_physical_rest_reopens_work_and_cold_replays_exactly(monkeypatch) -> Non
         "restore_native_resident_organism",
         lambda **_kwargs: _RestWakeOrganism(),
     )
+    from dsf_ai_service import native_production_app as production
+
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **_kwargs: [("quiet", "admissions")],
+    )
 
     proof = probe._rehearse_native_physical_rest_and_wake(b"body", {})
 
     assert proof["native_physical_rest_wake_rehearsed"] is True
     assert proof["native_physical_rest_wake_cold_replay_exact"] is True
+    assert proof["native_rest_interval_ordinal"] == 1
     assert proof["native_rest_recovered_neuron_count"] == 2
     assert proof["native_rest_dissipated_energy_before_zeptojoules"] == (7, 1)
     assert proof["native_rest_dissipated_energy_after_zeptojoules"] == (3, 1)

@@ -313,6 +313,68 @@ def test_proof_rejects_state_or_receipt_drift() -> None:
         )
 
 
+def test_cold_restore_requires_exact_c021_physical_rest_and_wake() -> None:
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "current_format_migration_rehearsed": False,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "native_physical_rest_wake_cold_replay_exact": True,
+        "native_physical_rest_wake_rehearsed": True,
+        "native_rest_articulatory_recruitment_count": 0,
+        "native_rest_dissipated_energy_after_zeptojoules": [3, 1],
+        "native_rest_dissipated_energy_before_zeptojoules": [7, 1],
+        "native_rest_interval_ordinal": 2,
+        "native_rest_motor_recruitment_count": 0,
+        "native_rest_reachable_dissipation_headroom_after_zeptojoules": [7, 1],
+        "native_rest_reachable_dissipation_headroom_before_zeptojoules": [3, 1],
+        "native_rest_recovered_neuron_count": 2,
+        "native_rest_successor_state_sha256": "e" * 64,
+        "native_wake_dsf_delivery_count": 1,
+        "native_wake_physically_transitioned_neuron_count": 4,
+        "native_wake_successor_state_sha256": "f" * 64,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_native_physical_rest_wake_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["native_rest_motor_recruitment_count"] = 1
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_physical_rest_wake_rehearsal=True,
+        )
+
+
 def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     articulation = {
         "applied_motor_quanta": 8,

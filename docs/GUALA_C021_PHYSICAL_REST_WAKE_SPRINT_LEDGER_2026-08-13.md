@@ -167,3 +167,32 @@ work.
   task 1034's Python wrapper does not expose the already-native recovery
   getter. That is the exact boundary this candidate changes; production state
   was not mutated and no candidate remains running.
+
+## Deployment attempt 1 and corrected change-impact path
+
+- Attempt 1 built image
+  `sha256:dcca6b978aa057055b0aef5810b73c7ea52e5acedd851f5e0e553192458ce4b1`,
+  registered `dsf-ai-task:1035`, and ran discarded candidate task
+  `a0b55ab0db5b41f29c66c15aeace7a4b`. It failed before cutover because the
+  rehearsal used a zero-yaw vestibular occurrence as rest. Production remained
+  task 1034, healthy and unchanged.
+- Exact diagnostics against discarded copies of the live body proved that
+  zero yaw is still a vestibular occurrence and that true dark/silent
+  whole-sensorium intervals recover 31–40 neurons and drain dissipation, but
+  the declared zero-energy receptors were also being reused as new electrical
+  frontier seeds. Sixteen such intervals continued to create real motor yaw
+  and articulatory pressure.
+- Corrected native boundary: every declared receptor remains in local
+  settlement so quiescence and neuronal-fractal closure remain lawful, while
+  only nonzero exact transduced receptor energy, vestibular gate perturbation,
+  local metabolic perturbation, or an already-active causal frontier may
+  authorize onward propagation. No sleep flag, action suppression, scheduler,
+  score, owner, lock, global scan, or persistence field was added.
+- Translation-boundary correction: the candidate-task validator now requires
+  the C-021 physical-rest/wake proof. The retired C-020 articulation witness is
+  no longer selected as the release gate merely because vestibular transport
+  is enabled.
+- Post-correction native regression: 423 library tests passed, 13 ignored,
+  zero failed; the 95 bounded-physics tests and every remaining native target
+  also passed. Exact local quiescent fractal closure and one-seal/per-interval
+  byte equality remain proved.

@@ -62,27 +62,77 @@ def _rehearse_native_physical_rest_and_wake(
 ) -> dict[str, object]:
     """Prove exact local recovery reopens finite work and later work uses it.
 
-    A zero-body-motion mechanical interval supplies passage of physical time,
-    not a sleep command.  Whether recovery occurs is decided only by the
-    retained neuron dissipation and finite recovery-fluid state.  The next
-    one-millidegree interval is an ordinary physical cause, never a scripted
-    cognitive wake operation.
+    A bounded run of true dark, silent whole-sensorium intervals supplies
+    passage of physical time, not a sleep command. Whether recovery and quiet
+    occur is decided only by retained neuronal state and finite recovery-fluid
+    material. The next vestibular interval is an ordinary physical cause,
+    never a scripted cognitive wake operation.
     """
 
-    def settle() -> tuple[object, object, object, object, object, bytes]:
+    def settle() -> tuple[int, object, object, object, object, object, bytes]:
+        # Import only the existing whole-sensorium transport builder. It
+        # constructs native source occurrences and starts no HTTP runtime.
+        from dsf_ai_service.native_production_app import _mono_pcm_hop_episodes
+
         organism = restore_native_resident_organism(
             current_envelope=current_envelope,
             **budget,
         )
-        before = organism.readiness()
-        rest = organism.prepare_vestibular_tick(0, 0)
-        after_rest = organism.commit(rest.token)
+        [(quiet_episode, quiet_admissions)] = _mono_pcm_hop_episodes(
+            assembly_prefix="c021-cold-physical-rest",
+            samples=(0,) * 4_000,
+            sample_rate_hz=16_000,
+        )
+        qualifying: tuple[int, object, object, object] | None = None
+        for interval_ordinal in range(1, 17):
+            before = organism.readiness()
+            candidate = organism.prepare_admitted(quiet_episode, quiet_admissions)
+            after = organism.commit(candidate.token)
+            capacity_before = _exact_energy(
+                before.dissipation_capacity_energy_zeptojoules,
+                "pre-rest dissipation capacity",
+            )
+            dissipated_before = _exact_energy(
+                before.dissipated_energy_zeptojoules,
+                "pre-rest dissipated energy",
+            )
+            capacity_after = _exact_energy(
+                after.dissipation_capacity_energy_zeptojoules,
+                "post-rest dissipation capacity",
+            )
+            dissipated_after = _exact_energy(
+                after.dissipated_energy_zeptojoules,
+                "post-rest dissipated energy",
+            )
+            if (
+                candidate.rest_recovered_neuron_count > 0
+                and not candidate.motor_unit_recruitments
+                and not candidate.articulatory_unit_recruitments
+                and capacity_after == capacity_before
+                and dissipated_after < dissipated_before
+                and capacity_after - dissipated_after
+                > capacity_before - dissipated_before
+            ):
+                qualifying = (interval_ordinal, before, candidate, after)
+                break
+        if qualifying is None:
+            raise RuntimeError("native physical rest did not emerge within 16 intervals")
+        interval_ordinal, before, rest, after_rest = qualifying
         wake = organism.prepare_vestibular_tick(0, 1)
         after_wake = organism.commit(wake.token)
-        return before, rest, after_rest, wake, after_wake, organism.save()
+        return (
+            interval_ordinal,
+            before,
+            rest,
+            after_rest,
+            wake,
+            after_wake,
+            organism.save(),
+        )
 
-    before, rest, after_rest, wake, after_wake, successor = settle()
+    interval_ordinal, before, rest, after_rest, wake, after_wake, successor = settle()
     (
+        replay_interval_ordinal,
         replay_before,
         replay_rest,
         replay_after_rest,
@@ -123,6 +173,7 @@ def _rehearse_native_physical_rest_and_wake(
         or after_wake.organism_tick != after_rest.organism_tick + 1
         or after_wake.state_sha256 == after_rest.state_sha256
         or after_wake.python_callback_count != 0
+        or replay_interval_ordinal != interval_ordinal
         or replay_before.state_sha256 != before.state_sha256
         or replay_rest.rest_recovered_neuron_count
         != rest.rest_recovered_neuron_count
@@ -138,6 +189,7 @@ def _rehearse_native_physical_rest_and_wake(
     return {
         "native_physical_rest_wake_rehearsed": True,
         "native_physical_rest_wake_cold_replay_exact": True,
+        "native_rest_interval_ordinal": interval_ordinal,
         "native_rest_recovered_neuron_count": rest.rest_recovered_neuron_count,
         "native_rest_motor_recruitment_count": len(rest.motor_unit_recruitments),
         "native_rest_articulatory_recruitment_count": len(
