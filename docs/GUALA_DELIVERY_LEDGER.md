@@ -466,8 +466,20 @@ box remains unchecked until live acceptance passes.
   ordinary processing continued, and Python cognition callbacks remained
   zero. The bounded public projection was 169,240 bytes rather than the
   predecessor's 3,824,041-byte duplicate graph export.
-- [ ] **A-010** Prove the closed attention → choice → action → sensed-consequence
+- [x] **A-010** Prove the closed attention → choice → action → sensed-consequence
   loop repeats without external prompting, duplicated work, or runaway growth.
+  **Live-closed 2026-08-14:** production task 1056 produced five distinct
+  unattended causal-intent/consequence receipts across consecutive world
+  revisions 4071 through 4075. Every loop exposed changing physical attention,
+  one internally caused physical continuation, one action, the same receipt in
+  the world and organism observers, all 109 sensory ports, and five internal
+  metabolic receptors. Identity remained unchanged and Python cognition
+  callbacks remained zero. During a paired 62-second resource interval, PID 1
+  retained 10 threads, cgroup peak memory remained 1,410,412,544 bytes,
+  persistent-root storage decreased from 415,936 to 414,864 KiB, and the sole
+  Python process accumulated 63.6 CPU seconds inside the four-vCPU envelope.
+  Public observations remained 155,610--179,820 bytes. A-015 retains the
+  separate long-soak acceptance requirement.
 - [ ] **A-011** Prove genuine self-selected play, fun, social joy, and
   body-owned laughter rather than a scripted animation or response.
 - [ ] **A-012** Prove self-selected rest, sleep, wake, exploration, learning,
