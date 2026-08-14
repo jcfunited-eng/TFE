@@ -206,7 +206,7 @@ td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
    SIMULATED — no real orders, borrow costs not modeled ·
    engine {log.get("engine", "ch3_reveal_fade_v1")} · updated {stamp}</div>
 </header>
-<div class="acct">Shadow account: equity {money(equity)} · cash {money(book["cash"])}</div>
+<div class="acct">Shadow account: equity {money(equity)} · cash {money(book["cash"], True)}{" (margin borrowed)" if book["cash"] < 0 else ""}</div>
 <section class="tiles">
   <div class="tile"><div class="k">Equity</div><div class="v">{money(equity)}</div></div>
   <div class="tile"><div class="k">Realized</div>
