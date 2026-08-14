@@ -399,8 +399,16 @@ box remains unchecked until live acceptance passes.
   same `continuous-environment:` intake and successor tick 89,873, with zero
   Python cognition callbacks. Real browser camera/microphone usability remains
   explicitly separate under A-014.
-- [ ] **A-004** Implement controlled physical imbalance that can decay but is
+- [x] **A-004** Implement controlled physical imbalance that can decay but is
   never permanently and absolutely resolved.
+  **Live-closed 2026-08-14:** exact native tests prove energy-descending decay,
+  quiescent indivisible residuals, and finite reservoir-powered gradient
+  restoration without a target voltage or score. In live task 1050, one
+  unattended successor transferred approximately 1.8313 zJ exactly from
+  available to spent reservoir state, increased thermal state by 6.05 zJ, and
+  changed a still-nonzero separated-charge field through localized one-carrier
+  pumping. The organism remained non-exhausted with zero Python cognition
+  callbacks; no semantic need or permanent satisfaction state was added.
 - [ ] **A-005** Implement local entropy/cohesion/System-Greed competition as
   causal geometry for unresolved possibilities, without reward scores.
 - [ ] **A-006** Prove curiosity and intrinsic motivation emerge as changing
