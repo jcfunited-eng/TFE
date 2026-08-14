@@ -12,6 +12,7 @@ MANIFEST = ROOT / "deploy" / "guala_release_manifest.json"
 REJECTED_D3_SOURCES = (
     "native/guala_core/src/chemical_synapse_physics.rs",
     "native/guala_core/src/cognitive_capital_evidence.rs",
+    "native/guala_core/src/cognitive_capital_ledger.rs",
     "native/guala_core/src/directed_synapse_recovery.rs",
     "native/guala_core/src/finite_reservoir_neuron_physics.rs",
     "native/guala_core/src/hippocampal_paged_index.rs",
@@ -19,6 +20,8 @@ REJECTED_D3_SOURCES = (
     "native/guala_core/src/local_krimelack_transition.rs",
     "native/guala_core/src/neuron_electrical_physics.rs",
     "native/guala_core/src/recursive_cognitive_formation.rs",
+    "native/guala_core/src/physical_cognitive_capital.rs",
+    "native/guala_core/src/resident_d3_runtime.rs",
     "native/guala_core/src/vestibular_hair_cell_transduction.rs",
 )
 

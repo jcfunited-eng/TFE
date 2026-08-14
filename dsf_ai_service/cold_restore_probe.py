@@ -8,9 +8,7 @@ from fractions import Fraction
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
-import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_articulatory_unit_trajectory,
@@ -19,10 +17,8 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
     NativeOrganismBinaryStoreError,
-    publish_staged_native_organism,
     rehearse_current_native_organism_current_format,
     restore_current_native_organism,
-    stage_active_native_organism,
 )
 from dsf_ai_service.substrate.native_resident_resource_admission import (
     derive_native_resident_resource_admission,
@@ -58,6 +54,101 @@ def _exact_energy(value: object, label: str) -> Fraction:
 
 def _fraction_parts(value: Fraction) -> tuple[int, int]:
     return value.numerator, value.denominator
+
+
+def _observe_c024_cognitive_capital(expected_state_sha256: str) -> dict[str, object]:
+    """Read the exact restored body through the candidate public observer."""
+
+    from dsf_ai_service import native_production_app as production
+
+    production._startup()
+    observed = production._build_public_observation()
+    if observed["generation_state"]["state_sha256"] != expected_state_sha256:
+        raise RuntimeError("C-024 observer did not read the rehearsed CURRENT")
+    capital = observed.get("cognitive_capital")
+    if not isinstance(capital, dict):
+        raise RuntimeError("C-024 observer supplied no cognitive-capital record")
+    capabilities = capital.get("capabilities")
+    dimensions = capital.get("dimensions")
+    credits = capital.get("credits")
+    if (
+        capabilities != list(production.COGNITIVE_CAPITAL_CAPABILITIES)
+        or dimensions != list(production.COGNITIVE_CAPITAL_DIMENSIONS)
+        or not isinstance(credits, list)
+        or capital.get("scalar_score_authority") is not False
+        or capital.get("cognition_authority") is not False
+    ):
+        raise RuntimeError("C-024 observer changed its non-flattened contract")
+    cells: set[tuple[str, str]] = set()
+    evidence_reference_count = 0
+    for credit in credits:
+        if not isinstance(credit, dict):
+            raise RuntimeError("C-024 credit is not an object")
+        cell = (credit.get("capability"), credit.get("dimension"))
+        evidence = credit.get("evidence")
+        if (
+            cell[0] not in production.COGNITIVE_CAPITAL_CAPABILITIES
+            or cell[1] not in production.COGNITIVE_CAPITAL_DIMENSIONS
+            or cell in cells
+            or not isinstance(evidence, list)
+            or not evidence
+        ):
+            raise RuntimeError("C-024 credit is duplicate, unknown, or unreferenced")
+        cells.add(cell)
+        for reference in evidence:
+            if (
+                not isinstance(reference, dict)
+                or set(reference) != {"kind", "path", "receipt_sha256"}
+                or not isinstance(reference["kind"], str)
+                or not reference["kind"]
+                or not isinstance(reference["path"], str)
+                or not reference["path"]
+                or not isinstance(reference["receipt_sha256"], str)
+                or _SHA256.fullmatch(reference["receipt_sha256"]) is None
+            ):
+                raise RuntimeError("C-024 evidence reference lost exact identity")
+            evidence_reference_count += 1
+    unproved = {
+        "Language comprehension",
+        "Motivation, needs, and curiosity",
+        "Social cognition and other-perspective",
+        "Creativity and self-expression",
+    }
+    if any(capability in unproved for capability, _dimension in cells):
+        raise RuntimeError("C-024 observer credited an unproved capability")
+    required_retained_cells = {
+        ("Episodic memory", "retention"),
+        ("Episodic memory", "durability"),
+        ("Learning and developmental growth", "retention"),
+    }
+    if int(observed["formations"].get("mosaic_count", 0)) > 0 and not (
+        required_retained_cells <= cells
+    ):
+        raise RuntimeError("C-024 observer omitted retained formation capital")
+    import guala_core
+
+    false_native_exports = (
+        "cognitive_capital_schema",
+        "cognitive_capital_capabilities",
+        "cognitive_capital_dimensions",
+        "cognitive_capital_reference",
+        "cognitive_capital_evidence",
+    )
+    if any(hasattr(guala_core, name) for name in false_native_exports):
+        raise RuntimeError("retired false native cognitive capital remains exported")
+    return {
+        "c024_cognitive_capital_rehearsed": True,
+        "c024_cognitive_capital_state_sha256": expected_state_sha256,
+        "c024_cognitive_capital_capability_count": len(capabilities),
+        "c024_cognitive_capital_dimension_count": len(dimensions),
+        "c024_cognitive_capital_credit_cell_count": len(cells),
+        "c024_cognitive_capital_evidence_reference_count": (
+            evidence_reference_count
+        ),
+        "c024_cognitive_capital_observation_bytes": len(_canonical(observed)),
+        "c024_cognitive_capital_unproved_cells_preserved": True,
+        "c024_false_native_capital_exports_absent": True,
+    }
 
 
 def _rehearse_native_physical_rest_and_wake(
@@ -370,142 +461,6 @@ def _rehearse_native_internal_consolidation(
         **proof,
         "native_internal_consolidation_cold_replay_exact": True,
     }
-
-
-def _rehearse_native_causal_cross_context_use(
-    current_envelope: bytes,
-    budget: dict[str, int],
-) -> dict[str, object]:
-    """Prove retained formation -> motor action -> sensed consequence.
-
-    The authenticated predecessor is published only into a disposable local
-    CURRENT store. The production application then performs one ordinary
-    unattended whole-sensorium transaction with its real world/action
-    persistence ordering. No synthetic recruitment or direct action is
-    injected.
-    """
-
-    with tempfile.TemporaryDirectory(prefix="guala-c023-candidate-") as name:
-        root = Path(name)
-        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = str(root)
-        os.environ.pop("GUALA_S3_BACKUP_BUCKET", None)
-        os.environ["GUALA_UNATTENDED_TIME"] = "0"
-        os.environ["GUALA_CURRENT_FORMAT_MIGRATION"] = "0"
-
-        # This module is imported only after the disposable process-fixed root
-        # is declared. Candidate rehearsal runs in its own one-shot process.
-        from dsf_ai_service import native_production_app as production
-
-        if production.STATE_ROOT != root:
-            raise RuntimeError("C-023 candidate imported a different state root")
-        predecessor = restore_native_resident_organism(
-            current_envelope=current_envelope,
-            **budget,
-        )
-        staged = stage_active_native_organism(
-            root,
-            predecessor,
-            max_envelope_bytes=budget["max_envelope_bytes"],
-        )
-        published = publish_staged_native_organism(
-            staged,
-            expected_predecessor_sha256=None,
-            object_store=production._LocalDirectoryObjectStore(
-                root / production.LOCAL_OBJECT_MIRROR_DIRECTORY
-            ),
-            **budget,
-        )
-
-        production._startup()
-        loaded, _admission = production._runtime()
-        if loaded.pointer.state_sha256 != published.pointer.state_sha256:
-            raise RuntimeError("C-023 candidate did not start from the published body")
-        episodes, sampled_world = production._unattended_interval_episodes(
-            "c023-candidate-rehearsal"
-        )
-        result = production._perform_admitted_intake(
-            episodes,
-            "c023-candidate-rehearsal",
-        )
-        observation = result["observation"]
-        causal = observation.get("causal_cross_context_use")
-        motor = observation.get("motor_action")
-        if not isinstance(causal, dict):
-            raise RuntimeError("C-023 candidate produced no causal cross-context use")
-        if not isinstance(motor, dict) or motor.get("moved") is not True:
-            raise RuntimeError("C-023 candidate produced no applied motor action")
-        sensed = causal.get("sensed_consequence")
-        transfers = causal.get("directed_physical_transfers")
-        if (
-            not isinstance(sensed, dict)
-            or sensed.get("externally_perturbed_body_receptor_count", 0) <= 0
-            or not isinstance(transfers, (list, tuple))
-            or len(transfers) < 3
-            or observation.get("python_callback_count", 0) != 0
-        ):
-            raise RuntimeError("C-023 candidate lost physical path evidence")
-
-        successor = restore_current_native_organism(root, **budget)
-        successor_body = successor.organism.save()
-        if (
-            successor.pointer.identity != published.pointer.identity
-            or successor.pointer.organism_tick <= published.pointer.organism_tick
-            or successor.pointer.predecessor_state_sha256
-            != published.pointer.state_sha256
-            or hashlib.sha256(successor_body).hexdigest()
-            != successor.pointer.state_sha256
-            or sensed.get("successor_state_sha256")
-            != successor.pointer.state_sha256
-            or motor.get("world_revision")
-            != sampled_world.get("world_revision", 0) + 1
-        ):
-            raise RuntimeError("C-023 candidate successor did not persist exactly")
-
-        return {
-            "native_causal_cross_context_use_rehearsed": True,
-            "native_causal_cross_context_cold_restore_exact": True,
-            "native_causal_cross_context_formation_receipt": causal.get(
-                "formation_receipt_sha256"
-            ),
-            "native_causal_cross_context_transfer_count": len(transfers),
-            "native_causal_cross_context_recurrence_tick": causal.get(
-                "recurrence_organism_tick"
-            ),
-            "native_causal_cross_context_motor_tick": causal.get(
-                "motor_organism_tick"
-            ),
-            "native_causal_cross_context_hop_count": result["hop_count"],
-            "native_causal_cross_context_signed_yaw_millidegrees": motor.get(
-                "signed_yaw_millidegrees"
-            ),
-            "native_causal_cross_context_world_revision_before": sampled_world.get(
-                "world_revision"
-            ),
-            "native_causal_cross_context_world_revision_after": motor.get(
-                "world_revision"
-            ),
-            "native_causal_cross_context_body_receptor_count": sensed.get(
-                "externally_perturbed_body_receptor_count"
-            ),
-            "native_causal_cross_context_vestibular_tick_count": sensed.get(
-                "vestibular_tick_count"
-            ),
-            "native_causal_cross_context_state_sha256_before": (
-                published.pointer.state_sha256
-            ),
-            "native_causal_cross_context_state_sha256_after": (
-                successor.pointer.state_sha256
-            ),
-            "native_causal_cross_context_state_bytes_before": (
-                published.pointer.state_bytes
-            ),
-            "native_causal_cross_context_state_bytes_after": (
-                successor.pointer.state_bytes
-            ),
-            "native_causal_cross_context_successor_tick": (
-                successor.pointer.organism_tick
-            ),
-        }
 
 
 def _arguments() -> argparse.Namespace:
@@ -1458,21 +1413,9 @@ def main() -> int:
     motor_proof: dict[str, int | bool | str | tuple[str, ...]] = {
         "motor_action_rehearsed": False,
     }
-    if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        # C-022 and every earlier consolidation witness are already
-        # live-closed. C-023 requires one retained formation to continue into
-        # a real motor action and an exact sensed body consequence.
-        motor_proof = {
-            "motor_action_rehearsed": True,
-            **_rehearse_native_causal_cross_context_use(
-                state,
-                {
-                    "max_envelope_bytes": admission.max_envelope_bytes,
-                    "max_fabric_bytes": admission.max_fabric_bytes,
-                    "max_logical_peak_bytes": admission.max_logical_peak_bytes,
-                },
-            ),
-        }
+    # C-023's motor/action trajectory is live-closed historical evidence. It
+    # is not replayed for C-024 (RF-034/RF-040); this probe exercises only the
+    # active observer plus invariant CURRENT continuity.
     source_advanced_after_baseline = before.organism_tick > values.expected_tick
     if (
         before.identity != values.expected_identity
@@ -1525,6 +1468,7 @@ def main() -> int:
         "source_mount_read_only": True,
         "tick": before.organism_tick,
         **motor_proof,
+        **_observe_c024_cognitive_capital(before.state_sha256),
     }
     proof = {
         **record,

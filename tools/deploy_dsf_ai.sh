@@ -691,34 +691,37 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-022 and every earlier consolidation witness are live-closed. C-023 must
-# carry one retained formation through native motor discharge, applied body
-# motion, and a sensed vestibular consequence in this immutable image.
-if proof.get("native_causal_cross_context_use_rehearsed") is not True:
-    raise SystemExit("C-023 rehearsal produced no causal cross-context use")
-if proof.get("native_causal_cross_context_cold_restore_exact") is not True:
-    raise SystemExit("C-023 successor did not cold-restore exactly")
-if proof.get("motor_action_rehearsed") is not True:
-    raise SystemExit("C-023 rehearsal produced no applied motor action")
-for name in (
-    "native_causal_cross_context_transfer_count",
-    "native_causal_cross_context_hop_count",
-    "native_causal_cross_context_body_receptor_count",
-    "native_causal_cross_context_vestibular_tick_count",
+# C-023 and every earlier transient witness are live-closed.  Replaying them
+# would repeat completed work and could reject a truthful later release merely
+# because the same transient trajectory did not recur inside this rehearsal.
+# C-024 instead reads the exact restored body through the candidate observer.
+if proof.get("c024_cognitive_capital_rehearsed") is not True:
+    raise SystemExit("C-024 rehearsal produced no cognitive-capital evidence")
+if proof.get("c024_cognitive_capital_state_sha256") != proof.get(
+    "resident_state_sha256"
 ):
-    value = proof.get(name)
-    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
-        raise SystemExit(f"C-023 rehearsal returned invalid {name}")
-if proof.get("native_causal_cross_context_world_revision_after") != (
-    proof.get("native_causal_cross_context_world_revision_before", -2) + 1
+    raise SystemExit("C-024 observer read a different organism state")
+if proof.get("c024_cognitive_capital_capability_count") != 39:
+    raise SystemExit("C-024 capability axis changed")
+if proof.get("c024_cognitive_capital_dimension_count") != 10:
+    raise SystemExit("C-024 dimension axis changed")
+cells = proof.get("c024_cognitive_capital_credit_cell_count")
+references = proof.get("c024_cognitive_capital_evidence_reference_count")
+if (
+    not isinstance(cells, int)
+    or isinstance(cells, bool)
+    or not 0 < cells <= 390
+    or not isinstance(references, int)
+    or isinstance(references, bool)
+    or references < cells
 ):
-    raise SystemExit("C-023 action did not advance the candidate world once")
-if proof.get("native_causal_cross_context_state_sha256_before") == proof.get(
-    "native_causal_cross_context_state_sha256_after"
-):
-    raise SystemExit("C-023 rehearsal produced no distinct organism successor")
+    raise SystemExit("C-024 sparse evidence bounds changed")
+if proof.get("c024_cognitive_capital_unproved_cells_preserved") is not True:
+    raise SystemExit("C-024 credited an unproved capability")
+if proof.get("c024_false_native_capital_exports_absent") is not True:
+    raise SystemExit("retired false native capital remains exported")
 if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-023 rehearsal invoked Python cognition")
+    raise SystemExit("C-024 observation invoked Python cognition")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

@@ -125,6 +125,60 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 
 APP_SCHEMA = "guala.native_production_http.v1"
 PUBLIC_OBSERVATION_SCHEMA = "guala.native.public_observation.v1"
+COGNITIVE_CAPITAL_SCHEMA = "guala.cognitive_capital.evidence.v1"
+COGNITIVE_CAPITAL_DIMENSIONS = (
+    "availability",
+    "participation",
+    "retention",
+    "recognition",
+    "recall",
+    "causal_use",
+    "transfer",
+    "autonomous_use",
+    "durability",
+    "integration_depth",
+)
+COGNITIVE_CAPITAL_CAPABILITIES = (
+    "Vision",
+    "Hearing",
+    "Touch",
+    "Temperature",
+    "Smell",
+    "Taste",
+    "Proprioception and body position",
+    "Vestibular balance",
+    "Interoception and visceral state",
+    "Multisensory integration",
+    "Recognition and familiarity",
+    "Attention and orienting",
+    "Immediate causal state",
+    "Episodic memory",
+    "Procedural and physical memory",
+    "Recall",
+    "Relational thought",
+    "Prediction",
+    "Deliberation and choice",
+    "Imagination and simulation",
+    "Language comprehension",
+    "Speech and articulation",
+    "Ordered thinking",
+    "Social cognition and other-perspective",
+    "Empathy",
+    "Emotion and affect",
+    "Emotional balance and regulation",
+    "Motivation, needs, and curiosity",
+    "Self and body continuity",
+    "Motor and actuator control",
+    "Navigation and avoidance",
+    "Play and exploration",
+    "Sleep and rest",
+    "Dreaming",
+    "Consolidation",
+    "Autonomous cognition and action",
+    "Learning and developmental growth",
+    "Creativity and self-expression",
+    "Integrated practiced capability",
+)
 # The twelve stages the live interfaces render, in their declared order.
 EXPERIENCE_STAGE_ORDER = (
     "capture",
@@ -1283,6 +1337,8 @@ _last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_tested_affective_balance_evidence: dict[str, Any] | None = None
 _last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
 _last_tested_articulation_evidence: dict[str, Any] | None = None
+# Bounded read-only witnesses. They never enter organism state or settlement.
+_last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2937,6 +2993,367 @@ def _retained_impression_neuron_count() -> int | None:
     return len(members)
 
 
+def _causal_cross_context_use_record() -> dict[str, object]:
+    evidence = _last_causal_cross_context_use_evidence
+    if evidence is None:
+        return _section(
+            False,
+            "awaiting_retained_formation_to_sensed_consequence",
+            "this process has not yet observed one retained formation reassemble, "
+            "cross the motor path, move the body, and return through body senses",
+            scripted_action_authority=False,
+        )
+    return _section(
+        True,
+        "retained_formation_caused_body_action_and_sensed_consequence",
+        "one internally reassembled retained formation crossed exact physical "
+        "contacts into motor discharge, moved the persistent body, and returned "
+        "through vestibular/body receptors",
+        evidence_scope="latest_causal_cross_context_use_this_process",
+        evidence_organism_tick=evidence.get("organism_tick"),
+        evidence_state_sha256=evidence.get("state_sha256"),
+        formation_receipt_sha256=evidence.get("formation_receipt_sha256"),
+        intake=evidence.get("intake"),
+        internally_caused=True,
+        scripted_action_authority=False,
+        action=evidence.get("action"),
+        sensed_consequence=evidence.get("sensed_consequence"),
+    )
+
+
+def _body_record() -> dict[str, object]:
+    causal = _causal_cross_context_use_record()
+    if causal["available"] is not True:
+        return _section(
+            WORLD_AUTHORIZED,
+            "body_mounted_awaiting_causal_use_witness",
+            "the persistent body and world are mounted, but this process has "
+            "not yet retained one exact formation-to-action-to-sensed-return "
+            "witness",
+            world_mounted=WORLD_AUTHORIZED,
+            vestibular_mounted=VESTIBULAR_AUTHORIZED,
+        )
+    return _section(
+        True,
+        "native_body_action_and_sensed_return_observed",
+        "the persistent native body moved under its own retained physical "
+        "formation activity and sensed the resulting world consequence",
+        world_mounted=WORLD_AUTHORIZED,
+        vestibular_mounted=VESTIBULAR_AUTHORIZED,
+        causal_cross_context_use=causal,
+    )
+
+
+def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
+    """Project exact evidence without becoming cognition or a scalar score."""
+
+    credits: dict[tuple[str, str], dict[str, object]] = {}
+
+    def credit(
+        capability: str,
+        dimensions: tuple[str, ...],
+        evidence_kind: str,
+        evidence_path: str,
+        evidence: object,
+    ) -> None:
+        if capability not in COGNITIVE_CAPITAL_CAPABILITIES:
+            raise RuntimeError(f"unknown cognitive-capital capability: {capability}")
+        receipt = _receipt(evidence)
+        for dimension in dimensions:
+            if dimension not in COGNITIVE_CAPITAL_DIMENSIONS:
+                raise RuntimeError(
+                    f"unknown cognitive-capital dimension: {dimension}"
+                )
+            key = (capability, dimension)
+            cell = credits.setdefault(
+                key,
+                {
+                    "capability": capability,
+                    "dimension": dimension,
+                    "evidence": [],
+                },
+            )
+            reference = {
+                "kind": evidence_kind,
+                "path": evidence_path,
+                "receipt_sha256": receipt,
+            }
+            if reference not in cell["evidence"]:
+                cell["evidence"].append(reference)
+
+    sensory = record["sensory"]
+    sensory_capabilities = {
+        "visual": "Vision",
+        "auditory": "Hearing",
+        "touch": "Touch",
+        "temperature": "Temperature",
+        "smell": "Smell",
+        "taste": "Taste",
+        "proprioception": "Proprioception and body position",
+        "vestibular": "Vestibular balance",
+        "interoception": "Interoception and visceral state",
+    }
+    for modality, capability in sensory_capabilities.items():
+        evidence = sensory[modality]
+        if evidence.get("available") is True:
+            credit(
+                capability,
+                ("availability",),
+                "mounted_physical_sensory_path",
+                f"sensory.{modality}",
+                evidence,
+            )
+
+    transition = _last_transition_evidence or {}
+    ingress = transition.get("receptor_ingress")
+    sense_counts = ingress.get("sense_counts", {}) if isinstance(ingress, dict) else {}
+    for sense, capability in (
+        ("sight", "Vision"),
+        ("sound", "Hearing"),
+        ("touch", "Touch"),
+        ("smell", "Smell"),
+        ("taste", "Taste"),
+    ):
+        if int(sense_counts.get(sense, 0)) > 0:
+            credit(
+                capability,
+                ("participation",),
+                "receptor_ingress",
+                f"last_transition.receptor_ingress.sense_counts.{sense}",
+                {
+                    "sense": sense,
+                    "count": sense_counts[sense],
+                    "tick": transition.get("organism_tick"),
+                },
+            )
+    if int(transition.get("vestibular_tick_count", 0)) > 0:
+        credit(
+            "Vestibular balance",
+            ("participation",),
+            "vestibular_sensed_consequence",
+            "last_transition.vestibular_tick_count",
+            {
+                "count": transition["vestibular_tick_count"],
+                "tick": transition.get("organism_tick"),
+            },
+        )
+    totals = transition.get("totals", {})
+    if int(totals.get("metabolically_perturbed_body_receptor_count", 0)) > 0:
+        credit(
+            "Interoception and visceral state",
+            ("participation",),
+            "local_body_receptor_perturbation",
+            "last_transition.totals.metabolically_perturbed_body_receptor_count",
+            {
+                "count": totals["metabolically_perturbed_body_receptor_count"],
+                "tick": transition.get("organism_tick"),
+            },
+        )
+    participating_senses = tuple(
+        sorted(sense for sense, count in sense_counts.items() if int(count) > 0)
+    )
+    if len(participating_senses) > 1:
+        credit(
+            "Multisensory integration",
+            ("availability", "participation"),
+            "same_transition_multisensory_ingress",
+            "last_transition.receptor_ingress.sense_counts",
+            {
+                "participating_senses": participating_senses,
+                "tick": transition.get("organism_tick"),
+            },
+        )
+
+    if record["fractals"].get("available") is True:
+        credit(
+            "Learning and developmental growth",
+            ("availability", "retention"),
+            "retained_neuronal_fractal_state",
+            "fractals",
+            record["fractals"],
+        )
+    if int(record["formations"].get("mosaic_count", 0)) > 0:
+        for capability in ("Episodic memory", "Learning and developmental growth"):
+            credit(
+                capability,
+                ("availability", "retention"),
+                "retained_physical_formation_state",
+                "formations",
+                record["formations"],
+            )
+            if record["persistence"].get("available") is True:
+                credit(
+                    capability,
+                    ("durability",),
+                    "retained_formation_state_cold_restored",
+                    "formations+persistence",
+                    {
+                        "formations": record["formations"],
+                        "persistence": record["persistence"],
+                    },
+                )
+
+    recall = record["recall"]
+    if recall.get("available") is True:
+        credit(
+            "Recognition and familiarity",
+            ("availability", "participation", "recognition"),
+            recall["status"],
+            "recall",
+            recall,
+        )
+        for capability in ("Episodic memory", "Recall"):
+            credit(
+                capability,
+                ("availability", "participation", "recall"),
+                recall["status"],
+                "recall",
+                recall,
+            )
+
+    if record["body"].get("available") is True:
+        credit(
+            "Self and body continuity",
+            ("availability",),
+            record["body"]["status"],
+            "identity+body+persistence",
+            {
+                "identity": record["identity"],
+                "body": record["body"],
+                "persistence": record["persistence"],
+            },
+        )
+
+    for capability, path in (
+        ("Attention and orienting", "attention"),
+        ("Immediate causal state", "working_causal_state"),
+        ("Prediction", "prediction"),
+    ):
+        evidence = record[path]
+        if evidence.get("available") is True:
+            dimensions = (
+                ("availability", "participation", "causal_use", "integration_depth")
+                if path == "prediction"
+                else ("availability", "participation", "causal_use")
+                if path == "working_causal_state"
+                else ("availability", "participation")
+            )
+            credit(capability, dimensions, evidence["status"], path, evidence)
+
+    affect = record["affective_balance"]
+    if affect.get("available") is True:
+        for capability in ("Emotion and affect", "Emotional balance and regulation"):
+            credit(
+                capability,
+                ("availability", "participation", "integration_depth"),
+                affect["status"],
+                "affective_balance",
+                affect,
+            )
+
+    articulation = record["articulation"]
+    if articulation.get("available") is True:
+        credit(
+            "Speech and articulation",
+            ("availability", "participation", "causal_use", "integration_depth"),
+            articulation["status"],
+            "articulation",
+            articulation,
+        )
+        credit(
+            "Motor and actuator control",
+            ("participation", "causal_use"),
+            articulation["status"],
+            "articulation",
+            articulation,
+        )
+        credit(
+            "Hearing",
+            ("participation",),
+            "articulatory_self_hearing",
+            "articulation",
+            articulation,
+        )
+
+    causal = record["body"].get("causal_cross_context_use")
+    if isinstance(causal, dict) and causal.get("available") is True:
+        causal_capabilities = (
+            "Recognition and familiarity",
+            "Episodic memory",
+            "Procedural and physical memory",
+            "Recall",
+            "Self and body continuity",
+            "Motor and actuator control",
+            "Autonomous cognition and action",
+            "Learning and developmental growth",
+        )
+        for capability in causal_capabilities:
+            credit(
+                capability,
+                (
+                    "availability",
+                    "participation",
+                    "causal_use",
+                    "transfer",
+                    "integration_depth",
+                ),
+                causal["status"],
+                "body.causal_cross_context_use",
+                causal,
+            )
+        for capability in ("Recognition and familiarity",):
+            credit(
+                capability,
+                ("recognition",),
+                causal["status"],
+                "body.causal_cross_context_use",
+                causal,
+            )
+        for capability in (
+            "Episodic memory",
+            "Procedural and physical memory",
+            "Recall",
+        ):
+            credit(
+                capability,
+                ("recall",),
+                causal["status"],
+                "body.causal_cross_context_use",
+                causal,
+            )
+        if str(causal.get("intake", "")).startswith("unattended"):
+            for capability in (
+                "Procedural and physical memory",
+                "Self and body continuity",
+                "Motor and actuator control",
+                "Autonomous cognition and action",
+            ):
+                credit(
+                    capability,
+                    ("autonomous_use",),
+                    causal["status"],
+                    "body.causal_cross_context_use",
+                    causal,
+                )
+    ordered = [credits[key] for key in sorted(credits)]
+    for cell in ordered:
+        cell["evidence"].sort(
+            key=lambda item: (item["kind"], item["path"], item["receipt_sha256"])
+        )
+    return _section(
+        bool(ordered),
+        "sparse_exact_evidence_observed" if ordered else "no_capital_evidence_observed",
+        "each credit references one exact current or committed physical witness; "
+        "absent cells are unproved, and no aggregate score is produced",
+        schema=COGNITIVE_CAPITAL_SCHEMA,
+        capabilities=list(COGNITIVE_CAPITAL_CAPABILITIES),
+        dimensions=list(COGNITIVE_CAPITAL_DIMENSIONS),
+        credits=ordered,
+        scalar_score_authority=False,
+        cognition_authority=False,
+    )
+
+
 def _build_public_observation() -> dict[str, Any]:
     native = _native_record()
     last = _last_transition_record()
@@ -3334,19 +3751,13 @@ def _build_public_observation() -> dict[str, Any]:
             exhausted=native["energy_exhausted"],
             separated_elementary_charges=native["separated_elementary_charges"],
         ),
-        "cognitive_capital": _section(
-            False,
-            "not_implemented",
-            "no physical cognitive operation supplies capital evidence",
-            credits=[],
-            scalar_score_authority=False,
-        ),
+        "cognitive_capital": None,
         "attention": _attention_record(),
         "working_causal_state": _working_causal_state_record(),
         "prediction": _physical_prediction_record(),
         "affective_balance": _affective_balance_record(),
         "localized_fluid_chemistry": _localized_fluid_chemistry_record(),
-        "body": _unmounted("no native body, world, motor, or consequence transition is mounted"),
+        "body": _body_record(),
         "autonomy": _autonomy_record(),
         "articulation": _articulation_record(),
         "expression": _articulation_record(),
@@ -3411,6 +3822,7 @@ def _build_public_observation() -> dict[str, Any]:
             "read_advances_organism": False,
         },
     }
+    record["cognitive_capital"] = _cognitive_capital_record(record)
     record["snapshot_receipt_sha256"] = _receipt(record)
     return record
 
@@ -5400,6 +5812,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
+    global _last_causal_cross_context_use_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -5940,6 +6353,14 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    if causal_cross_context_use is not None:
+        _last_causal_cross_context_use_evidence = {
+            **causal_cross_context_use,
+            "intake": intake,
+            "organism_tick": published.pointer.organism_tick,
+            "predecessor_state_sha256": predecessor.state_sha256,
+            "state_sha256": published.pointer.state_sha256,
+        }
     if articulation is not None:
         _last_tested_articulation_evidence = {
             **articulation,
@@ -7692,10 +8113,12 @@ def _startup() -> None:
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
+    global _last_causal_cross_context_use_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
     _last_tested_articulation_evidence = None
+    _last_causal_cross_context_use_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(

@@ -8,15 +8,6 @@
 use pyo3::prelude::*;
 
 pub use joint_source_episode::{decode_native_joint_source_episode, NativeJointSourceEpisode};
-pub use physical_cognitive_capital::{
-    CognitiveCapability, CognitiveCapitalDimension, CognitiveCapitalEvidence,
-    CognitiveCapitalEvidenceKind, CognitiveCapitalObservation, COGNITIVE_CAPITAL_SCHEMA,
-};
-pub use resident_d3_runtime::{
-    create_native_resident_d3_genesis, create_native_resident_d3_genesis_with_growth_dna,
-    transition_native_resident_d3, transition_native_resident_d3_with_authored_admissions,
-    NativeResidentD3Transition,
-};
 
 mod auditory;
 mod auditory_reachability;
@@ -66,7 +57,6 @@ mod optical_receptor_work;
 mod ordered_gate_delivery_candidate;
 pub mod organism;
 mod organism_runtime;
-mod physical_cognitive_capital;
 mod physical_mosaic;
 #[cfg(test)]
 mod positional_krimelack_boundary;
@@ -76,7 +66,6 @@ mod receptor_quantum_delivery;
 mod recovery_fluid_contact;
 mod resident_cognitive_formation;
 mod resident_electrical_fabric;
-mod resident_d3_runtime;
 mod resident_receptor_transition;
 #[cfg(test)]
 mod scratch_auditory_ear_proofs;
@@ -137,7 +126,6 @@ fn guala_core(module: &Bound<'_, PyModule>) -> PyResult<()> {
     joint_source_episode::register(module)?;
     materialized_fabric::register(module)?;
     organism_runtime::register(module)?;
-    resident_d3_runtime::register(module)?;
     module.add_function(wrap_pyfunction!(organism_state_structure_check, module)?)?;
     module.add_function(wrap_pyfunction!(unverified_organism_state_receipt, module)?)?;
     module.add("__version__", "0.1.0")?;

@@ -129,6 +129,15 @@ def probe_task_definition(
         if mode in {"publish", "cold-restore"}
         else None
     )
+    if mode == "cold-restore":
+        environment = [
+            item
+            for item in environment
+            if item.get("name") != "GUALA_NATIVE_ORGANISM_ROOT"
+        ]
+        environment.append(
+            {"name": "GUALA_NATIVE_ORGANISM_ROOT", "value": native_store}
+        )
     if mode == "genesis-rehearse":
         if (
             not genesis_state_root
@@ -269,6 +278,7 @@ def _validate_proof(
     expected_native_physical_rest_wake_rehearsal: bool = False,
     expected_native_internal_consolidation_rehearsal: bool = False,
     expected_native_causal_cross_context_rehearsal: bool = False,
+    expected_c024_cognitive_capital_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -792,6 +802,31 @@ def _validate_proof(
         and proof.get("native_causal_cross_context_state_sha256_before")
         != proof.get("native_causal_cross_context_state_sha256_after")
     )
+    c024_cognitive_capital_rehearsal = (
+        proof.get("c024_cognitive_capital_rehearsed") is True
+        and proof.get("c024_cognitive_capital_state_sha256")
+        == actual_state_sha256
+        and proof.get("c024_cognitive_capital_capability_count") == 39
+        and proof.get("c024_cognitive_capital_dimension_count") == 10
+        and isinstance(proof.get("c024_cognitive_capital_credit_cell_count"), int)
+        and not isinstance(proof["c024_cognitive_capital_credit_cell_count"], bool)
+        and 0 < proof["c024_cognitive_capital_credit_cell_count"] <= 390
+        and isinstance(
+            proof.get("c024_cognitive_capital_evidence_reference_count"), int
+        )
+        and not isinstance(
+            proof["c024_cognitive_capital_evidence_reference_count"], bool
+        )
+        and proof["c024_cognitive_capital_evidence_reference_count"]
+        >= proof["c024_cognitive_capital_credit_cell_count"]
+        and isinstance(
+            proof.get("c024_cognitive_capital_observation_bytes"), int
+        )
+        and not isinstance(proof["c024_cognitive_capital_observation_bytes"], bool)
+        and proof["c024_cognitive_capital_observation_bytes"] > 0
+        and proof.get("c024_cognitive_capital_unproved_cells_preserved") is True
+        and proof.get("c024_false_native_capital_exports_absent") is True
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -840,6 +875,10 @@ def _validate_proof(
         or (
             expected_native_causal_cross_context_rehearsal
             and not native_causal_cross_context_rehearsal
+        )
+        or (
+            expected_c024_cognitive_capital_rehearsal
+            and not c024_cognitive_capital_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -917,17 +956,6 @@ def main() -> int:
     source = ecs.describe_task_definition(
         taskDefinition=values.candidate_task_definition
     )["taskDefinition"]
-    source_containers = source.get("containerDefinitions", [])
-    source_environment = {
-        item.get("name"): item.get("value")
-        for item in (
-            source_containers[0].get("environment", [])
-            if len(source_containers) == 1
-            and isinstance(source_containers[0], dict)
-            else []
-        )
-        if isinstance(item, dict)
-    }
     # Distributed recall and ordered-path witnesses closed earlier ledger
     # items.  They remain observable when they recur but are not release gates
     # for a later living predecessor (RF-034).
@@ -938,10 +966,8 @@ def main() -> int:
     expected_sparse_attention_rehearsal = False
     expected_native_physical_rest_wake_rehearsal = False
     expected_native_internal_consolidation_rehearsal = False
-    expected_native_causal_cross_context_rehearsal = (
-        values.mode == "cold-restore"
-        and source_environment.get("GUALA_VESTIBULAR") == "1"
-    )
+    expected_native_causal_cross_context_rehearsal = False
+    expected_c024_cognitive_capital_rehearsal = values.mode == "cold-restore"
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -1039,6 +1065,9 @@ def main() -> int:
             ),
             expected_native_causal_cross_context_rehearsal=(
                 expected_native_causal_cross_context_rehearsal
+            ),
+            expected_c024_cognitive_capital_rehearsal=(
+                expected_c024_cognitive_capital_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

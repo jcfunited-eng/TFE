@@ -104,6 +104,12 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
     assert "--expected-state-sha256" in command
     assert "--expected-baseline-generation" not in command
     assert "--expected-active-generation" not in command
+    environment = {
+        item["name"]: item["value"] for item in container["environment"]
+    }
+    assert environment["GUALA_NATIVE_ORGANISM_ROOT"] == (
+        runner.SOURCE_MOUNT + "/native-organism"
+    )
 
 
 @pytest.mark.parametrize(
@@ -508,6 +514,66 @@ def test_cold_restore_requires_exact_c023_causal_cross_context_use() -> None:
             expected_tick=23_723_846,
             expected_state_sha256=STATE_SHA,
             expected_native_causal_cross_context_rehearsal=True,
+        )
+
+
+def test_cold_restore_requires_exact_c024_cognitive_capital() -> None:
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "c024_cognitive_capital_rehearsed": True,
+        "c024_cognitive_capital_state_sha256": STATE_SHA,
+        "c024_cognitive_capital_capability_count": 39,
+        "c024_cognitive_capital_dimension_count": 10,
+        "c024_cognitive_capital_credit_cell_count": 12,
+        "c024_cognitive_capital_evidence_reference_count": 18,
+        "c024_cognitive_capital_observation_bytes": 8_192,
+        "c024_cognitive_capital_unproved_cells_preserved": True,
+        "c024_false_native_capital_exports_absent": True,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": False,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_c024_cognitive_capital_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["c024_cognitive_capital_unproved_cells_preserved"] = False
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_c024_cognitive_capital_rehearsal=True,
         )
 
 
