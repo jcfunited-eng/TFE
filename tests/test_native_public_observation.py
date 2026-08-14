@@ -105,6 +105,7 @@ def _mount(monkeypatch) -> _Restored:
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_affective_balance_evidence", None)
+    monkeypatch.setattr(serving, "_last_intrinsic_curiosity_evidence", None)
     monkeypatch.setattr(serving, "_admission", _Admission())
     monkeypatch.setattr(
         serving,

@@ -85,4 +85,34 @@
   action and returned vestibular/body consequence. This field remains absent
   unless all three exact boundaries occurred.
 
+## First live subrelease
+
+- Production task `dsf-ai-task:1051`, commit `72baabc7`, image
+  `sha256:aa9018f11cbfe9597908406d5d8c77fe430ecd0d455dc12a0128025bda0dcea8`.
+- The candidate cold-restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and the exact 59,496,901-byte live
+  state at tick 90,419. The settled live service has one healthy process and
+  zero pending tasks; Python cognition callbacks remain zero.
+- Ordinary unattended life emitted 20 retained retinal impressions at tick
+  90,485. One impression then crossed four exact whole-carrier transfers into
+  layer-12 motor discharge at tick 90,489. The action changed the persistent
+  world and returned through one vestibular/body receptor by tick 90,497.
+- The exact path shared lineage `474c…00df` with both a layer-11 physical-
+  alternative path and a complete association/body/local-gradient trajectory.
+  The same transaction also exposed 1,267 transported and nine foregone routes
+  while its sparse route set changed.
+- This live result proves the missing physical causal path. It does not yet
+  close A-006 because the read-only cognitive-capital projection still leaves
+  motivation/curiosity blank.
+
+## Final projection candidate — not yet production evidence
+
+- One compact latest-tested witness now projects the already-proven causal
+  intersections without retaining the complete motor-preparation body.
+- The cognitive-capital grid credits only `Motivation, needs, and curiosity`
+  for availability, participation, causal use, autonomous use, and integration
+  depth. It does not credit play or social cognition and produces no scalar.
+- Focused causal, translation, public-observation, and adjacent integration
+  tests pass 27/27.
+
 Status: **In progress**. No A-006 completion or production delivery is claimed.

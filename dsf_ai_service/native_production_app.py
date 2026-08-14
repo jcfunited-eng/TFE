@@ -1339,6 +1339,7 @@ _last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
 _last_tested_articulation_evidence: dict[str, Any] | None = None
 # Bounded read-only witnesses. They never enter organism state or settlement.
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
+_last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -3044,6 +3045,111 @@ def _body_record() -> dict[str, object]:
     )
 
 
+def _intrinsic_curiosity_evidence_from_transition(
+    evidence: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Project one exact new-impression/imbalance/action causal witness."""
+
+    causal = evidence.get("new_impression_causal_use")
+    if not isinstance(causal, dict):
+        return None
+    action = causal.get("action")
+    consequence = causal.get("sensed_consequence")
+    if not isinstance(action, dict) or not isinstance(consequence, dict):
+        return None
+    if (
+        int(consequence.get("vestibular_tick_count", 0)) <= 0
+        or int(consequence.get("externally_perturbed_body_receptor_count", 0))
+        <= 0
+    ):
+        return None
+    attention = _sparse_attention_route_facts(evidence)
+    if attention is None:
+        return None
+    alternatives = tuple(evidence.get("physical_prediction_alternatives", ()))
+    if len(alternatives) != 2:
+        return None
+    transfers = tuple(causal.get("directed_physical_transfers", ()))
+    path_lineages = {
+        lineage
+        for transfer in transfers
+        for lineage in transfer[:2]
+    }
+    prediction_lineages = {
+        lineage
+        for alternative in alternatives
+        for transfer in alternative
+        for lineage in transfer[:2]
+    }
+    complete_affective = tuple(
+        trajectory
+        for trajectory in evidence.get("affective_balance_trajectories", ())
+        if trajectory[3] is not None
+        and trajectory[4] is not None
+        and trajectory[5] is not None
+        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+    )
+    shared_lineages = tuple(
+        sorted(
+            path_lineages
+            & prediction_lineages
+            & {trajectory[0] for trajectory in complete_affective}
+        )
+    )
+    if not shared_lineages:
+        return None
+    return {
+        "action": action,
+        "attention": attention,
+        "directed_physical_transfers": transfers,
+        "emitted_neuron_lineages": tuple(
+            causal.get("emitted_neuron_lineages", ())
+        ),
+        "impression_organism_tick": causal.get("impression_organism_tick"),
+        "intake": evidence.get("intake"),
+        "motor_organism_tick": causal.get("motor_organism_tick"),
+        "organism_tick": evidence.get("organism_tick"),
+        "physical_prediction_alternatives": alternatives,
+        "sensed_consequence": consequence,
+        "shared_causal_lineages": shared_lineages,
+        "state_sha256": evidence.get("state_sha256"),
+    }
+
+
+def _intrinsic_curiosity_record() -> dict[str, object]:
+    evidence = _last_intrinsic_curiosity_evidence
+    authority = {
+        "curiosity_score_authority": False,
+        "named_need_authority": False,
+        "python_decision_authority": False,
+        "reward_authority": False,
+        "scripted_action_authority": False,
+        "social_experience_claimed": False,
+    }
+    if evidence is None:
+        return _section(
+            False,
+            "physical_curiosity_mounted_awaiting_causal_witness",
+            "this process has not yet observed a new neuronal impression "
+            "change the sparse reachable frontier, cross a physical "
+            "alternative/affective junction, cause body action, and return "
+            "through body senses",
+            **authority,
+        )
+    return _section(
+        True,
+        "new_impression_changed_reachable_activity_and_caused_sensed_action",
+        "new retained sensory structure propagated through exact sparse "
+        "carrier transfers while reached and foregone routes changed, shared "
+        "a physical junction with possible-consequence and body/affective "
+        "activity, caused body action, and returned through body senses; this "
+        "is bounded physical curiosity evidence, not a need, reward, or score",
+        evidence_scope="latest_tested_intrinsic_causal_event",
+        **evidence,
+        **authority,
+    )
+
+
 def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
     """Project exact evidence without becoming cognition or a scalar score."""
 
@@ -3335,6 +3441,21 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                     "body.causal_cross_context_use",
                     causal,
                 )
+    curiosity = record["intrinsic_curiosity"]
+    if curiosity.get("available") is True:
+        credit(
+            "Motivation, needs, and curiosity",
+            (
+                "availability",
+                "participation",
+                "causal_use",
+                "autonomous_use",
+                "integration_depth",
+            ),
+            curiosity["status"],
+            "intrinsic_curiosity",
+            curiosity,
+        )
     ordered = [credits[key] for key in sorted(credits)]
     for cell in ordered:
         cell["evidence"].sort(
@@ -3753,6 +3874,7 @@ def _build_public_observation() -> dict[str, Any]:
         ),
         "cognitive_capital": None,
         "attention": _attention_record(),
+        "intrinsic_curiosity": _intrinsic_curiosity_record(),
         "working_causal_state": _working_causal_state_record(),
         "prediction": _physical_prediction_record(),
         "affective_balance": _affective_balance_record(),
@@ -5642,16 +5764,28 @@ def _advance_causal_motor_traces(
                         "motor_layer": 12,
                         "motor_topology_index": topology_index,
                         "outward_elementary_carriers": outward_carriers,
-                        "preparation_transfers": preparation,
                     },
                 }
                 if origin_kind == "retained_formation":
+                    proof["motor_unit_recruitment"][
+                        "preparation_transfers"
+                    ] = preparation
                     proof.update(
                         formation_receipt_sha256=origin_receipt,
                         internal_cue_lineages=origin_lineages,
                         recurrence_organism_tick=origin_tick,
                     )
                 else:
+                    proof["motor_unit_recruitment"][
+                        "matched_preparation_transfer"
+                    ] = (
+                        sender,
+                        sender_layer,
+                        receiver,
+                        receiver_layer,
+                        ordinal,
+                        carriers,
+                    )
                     proof.update(
                         emitted_neuron_lineages=origin_lineages,
                         impression_organism_tick=origin_tick,
@@ -5896,6 +6030,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
+    global _last_intrinsic_curiosity_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -6474,6 +6609,11 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    intrinsic_curiosity_evidence = _intrinsic_curiosity_evidence_from_transition(
+        _last_transition_evidence
+    )
+    if intrinsic_curiosity_evidence is not None:
+        _last_intrinsic_curiosity_evidence = intrinsic_curiosity_evidence
     if causal_cross_context_use is not None:
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
@@ -8235,11 +8375,13 @@ def _startup() -> None:
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
+    global _last_intrinsic_curiosity_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
     _last_tested_articulation_evidence = None
     _last_causal_cross_context_use_evidence = None
+    _last_intrinsic_curiosity_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
