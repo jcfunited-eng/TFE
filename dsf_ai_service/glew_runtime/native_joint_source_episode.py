@@ -361,7 +361,11 @@ def encode_native_joint_source_episode(
             output.extend(struct.pack("<d", exact_signal_value))
             _rational(output, phase)
             _rational(output, relevance)
-            exact_signal = Fraction.from_float(exact_signal_value)
+            exact_signal = (
+                port.exact_physical_signal[index]
+                if port.exact_physical_signal is not None
+                else Fraction.from_float(exact_signal_value)
+            )
             _rational(output, input_map.forward(exact_signal))
 
     _u32(output, len(occurrences))

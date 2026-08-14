@@ -3945,13 +3945,14 @@ def _displacement_occurrences(
 
 def _articulatory_body_ports(
     source_times: tuple[Fraction, ...],
-    trajectories: tuple[tuple[float, ...], ...] | None,
+    trajectories: tuple[tuple[Fraction, ...], ...] | None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     """Four local mechanoreceptor trajectories of the vocal body."""
 
     frame_count = len(source_times)
     held = trajectories or tuple(
-        (0.0,) * frame_count for _ in range(ARTICULATORY_BODY_PORT_COUNT)
+        (Fraction(0),) * frame_count
+        for _ in range(ARTICULATORY_BODY_PORT_COUNT)
     )
     if len(held) != ARTICULATORY_BODY_PORT_COUNT or any(
         len(signal) != frame_count for signal in held
@@ -3972,8 +3973,9 @@ def _articulatory_body_ports(
             physical_quantity=quantity,
             physical_unit=ARTICULATORY_BODY_UNIT,
             source_times=source_times,
-            normalized_signal=signal,
+            normalized_signal=tuple(float(value) for value in signal),
             phase_turns=(Fraction(0),) * frame_count,
+            exact_physical_signal=signal,
         )
         for index, (channel, quantity, signal) in enumerate(
             zip(
@@ -6352,7 +6354,7 @@ def _articulatory_body_hops(
     packed_trajectories: bytes,
     sample_count: int,
     sample_rate_hz: int,
-) -> list[tuple[tuple[float, ...], ...]]:
+) -> list[tuple[tuple[Fraction, ...], ...]]:
     """Decimate the four exact native body trajectories on PCM hop clocks."""
 
     expected_bytes = (
@@ -6379,7 +6381,7 @@ def _articulatory_body_hops(
         channels.append(values)
     if not channels or len({len(values) for values in channels}) != 1:
         raise ValueError("native articulatory body channels lost their shared clock")
-    hops: list[tuple[tuple[float, ...], ...]] = []
+    hops: list[tuple[tuple[Fraction, ...], ...]] = []
     for start in range(0, len(channels[0]) - 1, hop_samples):
         stride = max(1, -(-(hop_samples + 1) // frame_budget))
         indices = list(range(0, hop_samples + 1, stride))
@@ -6387,7 +6389,7 @@ def _articulatory_body_hops(
             indices.append(hop_samples)
         hops.append(
             tuple(
-                tuple(values[start + index] / float(span) for index in indices)
+                tuple(Fraction(values[start + index], span) for index in indices)
                 for values, span in zip(
                     channels, ARTICULATORY_BODY_DECLARED_SPANS, strict=True
                 )

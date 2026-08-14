@@ -132,6 +132,13 @@ class NativeSensorySubstreamInput:
     kernel_input_map: KernelNativeInputMap = (
         SIGNED_UNIT_KERNEL_INPUT_MAP
     )
+    # Optional exact physical source authority when the sensor's native lattice
+    # is not itself representable as binary64.  ``normalized_signal`` remains
+    # a checked nearest-binary64 transport projection; this exact tuple feeds
+    # the invertible dimensionless field already carried by GLJSRC02 into
+    # unchanged L0-L4 and is recovered for receptor physics.  No second sample
+    # or semantic value is introduced.
+    exact_physical_signal: tuple[Fraction, ...] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.sense, PhysicalSense):
@@ -154,6 +161,10 @@ class NativeSensorySubstreamInput:
             == len(self.phase_turns)
         ):
             raise ValueError("native sensory sample fields changed cardinality")
+        if self.exact_physical_signal is not None and len(
+            self.exact_physical_signal
+        ) != len(self.normalized_signal):
+            raise ValueError("exact physical source changed sample cardinality")
         if self.source_relevance is None:
             if (
                 self.source_relevance_rule != UNIT_SOURCE_RELEVANCE_RULE
@@ -200,6 +211,20 @@ class NativeSensorySubstreamInput:
                 signal, f"native sensory signal {index}")
             if not -1 <= exact_signal <= 1:
                 raise ValueError("native sensory signal must remain in [-1,1]")
+            if self.exact_physical_signal is not None:
+                physical = self.exact_physical_signal[index]
+                require_fraction(
+                    physical, f"native exact physical signal {index}"
+                )
+                if not -1 <= physical <= 1:
+                    raise ValueError(
+                        "native exact physical signal must remain in [-1,1]"
+                    )
+                if Fraction.from_float(float(physical)) != exact_signal:
+                    raise ValueError(
+                        "native binary64 signal is not the exact physical "
+                        "source projection"
+                    )
 
 
 @dataclass(slots=True)

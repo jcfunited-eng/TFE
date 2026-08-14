@@ -16,6 +16,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
+use crate::full_field_bank::rational_to_f64_bits;
 use crate::sha256::sha256;
 
 const MAGIC: &[u8; 8] = b"GLJSRC02";
@@ -828,8 +829,21 @@ impl<'a> Parser<'a> {
             let phase_turns = self.rational("phase_turns")?;
             let relevance = self.rational("relevance")?;
             let dimensionless_field = self.rational("dimensionless_field")?;
-            let exact_signal = BigRational::from_float(signal)
-                .ok_or_else(|| "joint-source signal is not exact binary64".to_string())?;
+            let exact_signal = (&dimensionless_field - &field_offset) / &field_scale;
+            if exact_signal < source_min || exact_signal > source_max {
+                return Err("joint-source exact physical signal left its source interval".into());
+            }
+            let projection_matches = if exact_signal.is_zero() && signal == 0.0 {
+                true
+            } else {
+                rational_to_f64_bits(&exact_signal)? == signal.to_bits()
+            };
+            if !projection_matches {
+                return Err(
+                    "joint-source binary64 signal differs from its exact physical projection"
+                        .into(),
+                );
+            }
             let expected = &field_offset + &field_scale * &exact_signal;
             if dimensionless_field != expected {
                 return Err("joint-source field differs from its physical input map".into());
@@ -1047,6 +1061,38 @@ mod tests {
         }
     }
 
+    fn non_dyadic_exact_source_port(output: &mut Vec<u8>) {
+        output.push(5);
+        push_u32(output, 0);
+        short_text(output, "articulatory-body");
+        short_text(output, "respiratory-flow");
+        push_u16(output, 1);
+        short_text(output, "receptor");
+        short_text(output, "0");
+        short_text(output, "respiratory-volume-velocity");
+        short_text(output, "fraction-of-declared-articulatory-mechanical-span");
+        short_text(output, "direct");
+        short_text(output, "");
+        short_text(output, "affine");
+        rational(output, -1, 1);
+        rational(output, 1, 1);
+        rational(output, 1, 1);
+        rational(output, 1, 2);
+        bytes(output, &[7]);
+        push_u32(output, 2);
+        for (time, source, phase, field) in [
+            (0, (0, 1), (0, 1), (1, 1)),
+            (1, (1, 4000), (0, 1), (8001, 8000)),
+        ] {
+            rational(output, time, 1);
+            let projection = source.0 as f64 / source.1 as f64;
+            output.extend_from_slice(&projection.to_bits().to_le_bytes());
+            rational(output, phase.0, phase.1);
+            rational(output, 1, 1);
+            rational(output, field.0, field.1);
+        }
+    }
+
     fn candidate(include_occurrence: bool) -> Vec<u8> {
         let mut output = MAGIC.to_vec();
         push_u16(&mut output, VERSION);
@@ -1131,5 +1177,48 @@ mod tests {
             right.occurrences[0].authority_receipt
         );
         assert_ne!(left.occurrences[0].authority_receipt, [0; 32]);
+    }
+
+    #[test]
+    fn non_dyadic_physical_source_survives_beside_its_binary64_projection() {
+        let mut payload = MAGIC.to_vec();
+        push_u16(&mut payload, VERSION);
+        short_text(&mut payload, "articulatory-source");
+        payload.extend_from_slice(&[1, 1, 1, 1, 1, 0]);
+        push_u32(&mut payload, 1);
+        non_dyadic_exact_source_port(&mut payload);
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 0);
+        push_u32(&mut payload, 2);
+        rational(&mut payload, 0, 1);
+        rational(&mut payload, 1, 1);
+        bytes(&mut payload, &[6, 5, 4]);
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 0);
+        bytes(&mut payload, &[9, 8, 7]);
+        push_u32(&mut payload, 2);
+        rational(&mut payload, 1, 1);
+        rational(&mut payload, 1, 1);
+
+        let parsed = Parser::new(&payload, 1, 2, 1, 2).parse().unwrap();
+        assert_eq!(
+            parsed.ports[0].exact_normalized_sources[1],
+            BigRational::new(1.into(), 4000.into())
+        );
+        assert_eq!(
+            parsed.ports[0].dimensionless_fields[1],
+            BigRational::new(8001.into(), 8000.into())
+        );
+
+        let mut mismatched = payload;
+        let projection_bits = (1.0_f64 / 4000.0).to_bits().to_le_bytes();
+        let offset = mismatched
+            .windows(projection_bits.len())
+            .rposition(|window| window == projection_bits)
+            .unwrap();
+        mismatched[offset..offset + 8].copy_from_slice(&(1.0_f64 / 4096.0).to_bits().to_le_bytes());
+        assert!(Parser::new(&mismatched, 1, 2, 1, 2).parse().is_err());
     }
 }

@@ -1000,7 +1000,7 @@ fn rational_from_f64_bits(bits: u64) -> Result<BigRational, String> {
     Ok(BigRational::new(numerator, denominator))
 }
 
-fn rational_to_f64_bits(value: &BigRational) -> Result<u64, String> {
+pub(crate) fn rational_to_f64_bits(value: &BigRational) -> Result<u64, String> {
     if value.is_zero() {
         return Ok(0);
     }
