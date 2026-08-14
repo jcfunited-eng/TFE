@@ -373,8 +373,9 @@ def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypat
                 externally_perturbed_body_receptor_count=0,
                 metabolically_perturbed_body_receptor_count=2,
                 endogenous_partial_cue_reassembly_count=1,
-                motor_unit_recruitments=(),
-                articulatory_unit_recruitments=(),
+                rest_recovered_neuron_count=4,
+                motor_unit_recruitments=(("04" * 16, 1, 1, ()),),
+                articulatory_unit_recruitments=(("05" * 16, 1, 1, ()),),
             )
 
         def commit(self, token: str):
@@ -410,6 +411,9 @@ def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypat
     assert proof["native_internal_consolidation_member_count"] == 3
     assert proof["native_internal_consolidation_cue_count"] == 3
     assert proof["native_internal_consolidation_formation_count"] == 1
+    assert proof["native_internal_consolidation_recovered_neuron_count"] == 4
+    assert proof["native_internal_consolidation_motor_recruitment_count"] == 1
+    assert proof["native_internal_consolidation_articulatory_recruitment_count"] == 1
 
 
 def test_articulation_translation_preserves_only_exact_native_cancellation(

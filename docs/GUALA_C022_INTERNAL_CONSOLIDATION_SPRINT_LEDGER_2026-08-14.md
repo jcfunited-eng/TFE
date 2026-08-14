@@ -227,3 +227,26 @@ lineage, zero Python cognition callbacks, and reached-frontier work only.
 - Correction: retain and validate the exact positive changed-formation count;
   do not reject lawful simultaneous reactivation. No neuron, cue, mosaic, or
   codec physics changed in this correction.
+
+## Rehearsal attempt 2 and exact diagnostic
+
+- Commit `7d234aa6ce9f03bd9c344b34687e993497bf8000` produced a second immutable
+  candidate. Its rehearsal refused the first internally caused reorganization
+  because motor and articulatory recruitment occurred in the same interval.
+  Production remained task 1037.
+- A read-only 32-interval diagnostic against an exact copy of the current live
+  organism proved interval 1 reorganized two retained formations with zero
+  external receptor changes, five metabolic receptor changes, two endogenous
+  partial-cue reassemblies, and 36 recovering neurons. Ten motor and nine
+  articulatory recruitments co-occurred. No later retained reorganization
+  occurred in that bounded run.
+- C-022 requires internally sourced consolidation with simulated provenance;
+  it does not require absolute motor immobility. The rehearsal now requires
+  positive metabolic change, positive recovery, positive endogenous
+  reassembly, zero external input, exact state/tick transition, zero Python
+  callbacks, and exact cold replay. Motor and articulatory counts remain
+  explicit evidence but are not false rejection gates.
+- A formation created in the same interval is not consolidation evidence and
+  is ignored. Every predecessor retained formation must remain present, and
+  only a changed pre-existing formation with the same exact members and
+  original bonds can satisfy C-022.

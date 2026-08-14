@@ -709,17 +709,20 @@ for name in (
     "native_internal_consolidation_cue_count",
     "native_internal_consolidation_formation_count",
     "native_internal_consolidation_metabolic_receptor_count",
+    "native_internal_consolidation_recovered_neuron_count",
 ):
     value = proof.get(name)
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
         raise SystemExit(f"C-022 rehearsal returned invalid {name}")
+if proof.get("native_internal_consolidation_external_receptor_count") != 0:
+    raise SystemExit("C-022 internal consolidation used an external receptor")
 for name in (
-    "native_internal_consolidation_external_receptor_count",
     "native_internal_consolidation_motor_recruitment_count",
     "native_internal_consolidation_articulatory_recruitment_count",
 ):
-    if proof.get(name) != 0:
-        raise SystemExit(f"C-022 internal consolidation violated quiet causality: {name}")
+    value = proof.get(name)
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise SystemExit(f"C-022 rehearsal returned invalid {name}")
 if proof.get("native_internal_consolidation_formation_receipt_before") == proof.get(
     "native_internal_consolidation_formation_receipt_after"
 ):

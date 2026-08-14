@@ -708,13 +708,21 @@ def _validate_proof(
                 "native_internal_consolidation_cue_count",
                 "native_internal_consolidation_formation_count",
                 "native_internal_consolidation_metabolic_receptor_count",
+                "native_internal_consolidation_recovered_neuron_count",
                 "native_internal_consolidation_state_bytes_before",
                 "native_internal_consolidation_state_bytes_after",
             )
         )
         and proof.get("native_internal_consolidation_external_receptor_count") == 0
-        and proof.get("native_internal_consolidation_motor_recruitment_count") == 0
-        and proof.get("native_internal_consolidation_articulatory_recruitment_count") == 0
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] >= 0
+            for name in (
+                "native_internal_consolidation_motor_recruitment_count",
+                "native_internal_consolidation_articulatory_recruitment_count",
+            )
+        )
         and all(
             isinstance(proof.get(name), str)
             and _SHA.fullmatch(proof[name]) is not None

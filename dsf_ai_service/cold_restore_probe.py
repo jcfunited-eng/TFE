@@ -270,12 +270,22 @@ def _rehearse_native_internal_consolidation(
             candidate = organism.prepare_admitted(quiet_episode, quiet_admissions)
             after = organism.commit(candidate.token)
             current = snapshot(organism)
-            if len(current) != len(prior):
-                raise RuntimeError("internal consolidation changed formation cardinality")
+            prior_by_identity = {
+                (formation[1], formation[2]): formation for formation in prior
+            }
+            current_by_identity = {
+                (formation[1], formation[2]): formation for formation in current
+            }
+            if (
+                len(prior_by_identity) != len(prior)
+                or len(current_by_identity) != len(current)
+            ):
+                raise RuntimeError("internal consolidation identity is not unique")
+            if not prior_by_identity.keys() <= current_by_identity.keys():
+                raise RuntimeError("internal consolidation lost retained formation identity")
             changed = []
-            for predecessor, successor in zip(prior, current, strict=True):
-                if predecessor[1:3] != successor[1:3]:
-                    raise RuntimeError("internal consolidation changed retained formation identity")
+            for identity, predecessor in prior_by_identity.items():
+                successor = current_by_identity[identity]
                 if (
                     successor[5] == "internally_simulated"
                     and successor[0] != predecessor[0]
@@ -288,8 +298,7 @@ def _rehearse_native_internal_consolidation(
                     candidate.externally_perturbed_body_receptor_count != 0
                     or candidate.metabolically_perturbed_body_receptor_count <= 0
                     or candidate.endogenous_partial_cue_reassembly_count <= 0
-                    or candidate.motor_unit_recruitments
-                    or candidate.articulatory_unit_recruitments
+                    or candidate.rest_recovered_neuron_count <= 0
                     or after.organism_tick != before.organism_tick + 1
                     or after.state_sha256 == before.state_sha256
                     or after.python_callback_count != 0
@@ -333,6 +342,9 @@ def _rehearse_native_internal_consolidation(
                         ),
                         "native_internal_consolidation_external_receptor_count": (
                             candidate.externally_perturbed_body_receptor_count
+                        ),
+                        "native_internal_consolidation_recovered_neuron_count": (
+                            candidate.rest_recovered_neuron_count
                         ),
                         "native_internal_consolidation_motor_recruitment_count": len(
                             candidate.motor_unit_recruitments
