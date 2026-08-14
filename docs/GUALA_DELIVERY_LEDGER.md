@@ -380,8 +380,16 @@ box remains unchecked until live acceptance passes.
   consequence re-entry. The obsolete A-001 regression test was replaced and
   the corrected boundary suite passed 13/13. Deliberative thought and choice
   remain unclaimed later autonomy items.
-- [ ] **A-002** Make the persistent virtual room/world continue independently
+- [x] **A-002** Make the persistent virtual room/world continue independently
   of browser presence and retain exact body/object/environment consequences.
+  **Live-closed 2026-08-14:** production task 1050 retained the authenticated
+  four-room, 15-object, two-body world across its cold start with no rebuild
+  reason. Focused production-path tests passed 6/6 for exact action,
+  persistence, byte-identical cold restore, corruption refusal, bounded state,
+  and read-only observation. With observation reads only, live world revision
+  advanced from 3789 to 3790 and Guala's heading from 322211 to 322564
+  millidegrees through 136 native motor recruitments. No new runtime deployment
+  was required because this exact mechanism was already live in task 1050.
 - [ ] **A-003** Connect continuous real and simulated sight, sound, touch,
   smell, taste, body, and fluid events to the same organism clock.
 - [ ] **A-004** Implement controlled physical imbalance that can decay but is
