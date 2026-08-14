@@ -390,8 +390,15 @@ box remains unchecked until live acceptance passes.
   advanced from 3789 to 3790 and Guala's heading from 322211 to 322564
   millidegrees through 136 native motor recruitments. No new runtime deployment
   was required because this exact mechanism was already live in task 1050.
-- [ ] **A-003** Connect continuous real and simulated sight, sound, touch,
+- [x] **A-003** Connect continuous real and simulated sight, sound, touch,
   smell, taste, body, and fluid events to the same organism clock.
+  **Live-closed 2026-08-14:** the production roster carries 109 ports as one
+  26-frame, 250 ms joint occurrence, and focused A-001/A-002/A-003 boundary
+  tests passed 10/10. Live task 1050 carried sight, sound, touch, smell, taste,
+  and body ingress plus exactly conserved localized fluid settlement under the
+  same `continuous-environment:` intake and successor tick 89,873, with zero
+  Python cognition callbacks. Real browser camera/microphone usability remains
+  explicitly separate under A-014.
 - [ ] **A-004** Implement controlled physical imbalance that can decay but is
   never permanently and absolutely resolved.
 - [ ] **A-005** Implement local entropy/cohesion/System-Greed competition as
