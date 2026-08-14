@@ -333,3 +333,87 @@ settlement, action, choice, persistence, DSF, or cognitive capital.
 - Three later read-only samples held the public payload at 177,424 bytes and
   state at 58,377,516 bytes. The 15-minute ECS window peaked at 29.40% CPU and
   8.33% memory; the latest maxima were 29.28% and 6.94% respectively.
+
+## A-011.3 metabolic-overload exclusion increment
+
+### Frozen scope and architecture truth
+
+- **Input:** each already-admitted native interval's exact recovered-lane work,
+  unmet dissipation work, reached-cohort energy state, and mounted positive
+  dissipation capacity.
+- **Process:** preserve the two exact dissipation counters through the existing
+  native observation and Python boundary; sum them once across the ordinary
+  bounded transaction; count each committed hop whose exact successor energy
+  state is exhausted.
+- **Output:** one constant-size, read-only witness for each already-qualified
+  play episode. It exists only when mounted capacity is positive, unmet work is
+  zero, and no committed hop ended exhausted.
+- **Refusal:** one unit of unmet work, one exhausted committed hop, missing
+  capacity, or missing transaction evidence refuses the overload-exclusion
+  witness.
+- This observer proves only that the two play transactions did not exceed the
+  mounted metabolic settlement capacity. It is not an organism interoceptor,
+  action authority, reward, valence, need, or emotion signal.
+- No localized nociceptive or other aversive body pathway is mounted. Therefore
+  absence of pain or distress remains unproved. Fun, social joy, and laughter
+  also remain unavailable.
+- The full unchanged L0-L4 field remains authoritative. This increment neither
+  evaluates a reduced DSF projection nor changes DSF, neuron settlement,
+  persistence, action, choice, or cognitive capital.
+
+### Translation and boundedness map
+
+| Boundary | Exact evidence carried |
+|---|---|
+| Native cognitive settlement -> runtime observation | `rest_drained_dissipation_quanta`, `unmet_dissipation_quanta`, and existing reached-cohort energy state |
+| Ordered native trajectory | checked-add of the two exact counters; no per-neuron or per-coordinate materialization |
+| Native prepare -> Python resident boundary | nonnegative arbitrary-precision integers without defaulting, scaling, or reduction |
+| Committed hop -> ordinary transaction | the two counters plus one Boolean-derived exhausted-hop count; summed once over the already-bounded hop list |
+| Transaction -> play observer | compact capacity/counter facts and SHA-256 witness only; no organism-state mutation |
+
+The changed path adds constant work per already-committed hop. It does not add
+an occurrence, temporal gate, cohort, neuron, contact, topology-lane, database,
+owner, lock, validation pass, or Python cognition callback.
+
+### Candidate evidence before production rehearsal
+
+- Python compilation and `git diff --check` pass from the exact candidate
+  worktree. `cargo check --lib` passes.
+- The candidate native extension was rebuilt with `maturin build --release`
+  into a fresh directory and installed without cache into a fresh isolated
+  target. No stale installed extension was used.
+- The complete native library suite passes: 416 passed, 0 failed, 11 ignored.
+- The focused and adjacent source/translation/observer suite passes 87/87.
+  This includes the ordinary multi-hop aggregate, special vestibular producer,
+  public observer, affective participation, rest/wake boundary, unattended
+  transport, lesson receipt, release-rehearsal helper, and boundary-faithful
+  native wrapper.
+- Exact nonzero translation is tested: 7 drained and 3 unmet quanta cross the
+  native-to-Python boundary unchanged. A separate refusal test proves that one
+  unmet quantum prevents overload exclusion.
+- An adjacent broad run exposed four stale hand-written hop fixtures that
+  omitted the newly explicit counters; those fixtures were corrected under
+  RF-014/RF-017. Two unrelated inherited failures remain outside this sprint:
+  one exact-dictionary assertion omits an already-existing emitted-fractal
+  field, and one fabricated historical test body is an unsupported old fabric
+  version. Neither is used as A-011.3 evidence or changed by this increment.
+
+### Applicable deployment recurrence register
+
+| ID | A-011.3 observed result before immutable build |
+|---|---|
+| RF-001 / RF-003 / RF-015 / RF-036 | Exact worktree and fresh candidate-native target are explicit; the new getters are exercised through that binary. |
+| RF-002 | Exact task-1059 environment must be exported before the authenticated-predecessor rehearsal. |
+| RF-004 / RF-010 | No retained schema changes; task-1059 `CURRENT` must cold-restore byte-exact and a fresh process must complete another ordinary interval. |
+| RF-005 / RF-017 / RF-028 / RF-038 / RF-046 | Every constructor, getter, wrapper, hop producer, and aggregate carries the two exact counters; first-branch and nonfinal-hop fixtures are covered. |
+| RF-007 / RF-023 / RF-024 / RF-032 / RF-033 | Controller, paths, AWS target, environment filtering, and working directories must be resolved before rehearsal/cutover. |
+| RF-011 / RF-044 | The observer adds constant-size scalars/receipts and constant work per existing hop; it performs no neuron/frontier scan. |
+| RF-012 / RF-034 | Prior play closure is a prerequisite, not sufficient acceptance. Live closure requires two new play episodes carrying exact overload witnesses. |
+| RF-013 / RF-026 | Only the seven changed source/test files and this ledger are checked; no repository-wide formatting rewrite is permitted. |
+| RF-016 | A-011.3 is the sole active item; A-011.2 remains live-closed on task 1059. |
+| RF-019 / RF-021 / RF-027 / RF-035 / RF-040 / RF-043 | Rehearsal must use task-1059's ordinary live-sized autonomous source and evaluate its actual successor; no synthetic injection or closed-item replay can satisfy acceptance. |
+| RF-022 | No persistence value domain or codec changes. |
+| RF-025 / RF-029 | Live acceptance is read-only; no public state-changing retry is authorized. |
+| RF-030 / RF-037 / RF-042 | Existing signatures and signed motion are unchanged; new counters are nonnegative exact magnitudes. |
+| RF-031 | Every recorded test command reports a nonzero executed-test count. |
+| RF-039 / RF-041 / RF-045 | No receptor, fractal, or sensor-clock change. |

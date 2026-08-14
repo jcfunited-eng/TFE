@@ -73,6 +73,8 @@ def _transition(
             ),
         ),
         "causal_cross_context_use": causal,
+        "dissipation_capacity_energy_zeptojoules": (100, 1),
+        "hop_count": 4,
         "organic_mosaic_relations": (
             {
                 "active_physical_bonds": (
@@ -91,6 +93,11 @@ def _transition(
         },
         "organism_tick": consequence_tick,
         "state_sha256": "d" * 64,
+        "totals": {
+            "energy_exhausted_interval_count": 0,
+            "rest_drained_dissipation_quanta": 7,
+            "unmet_dissipation_quanta": 0,
+        },
     }
     choice = {
         "causal_intent_receipt_sha256": action_receipt,
@@ -162,6 +169,12 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     assert completed["return_episode"]["affective_body_participation"][
         "organic_relation_receipt_sha256"
     ] == ORGANIC_RELATION
+    assert completed["first_episode"]["metabolic_overload_exclusion"][
+        "unmet_dissipation_quanta"
+    ] == 0
+    assert completed["return_episode"]["metabolic_overload_exclusion"][
+        "energy_exhausted_interval_count"
+    ] == 0
     assert len(completed["evidence_receipt_sha256"]) == 64
 
 
@@ -241,6 +254,8 @@ def test_public_record_does_not_inflate_play_into_fun_or_laughter(monkeypatch) -
     assert observed["voluntary_return"] is True
     assert observed["affective_engagement"]["available"] is True
     assert observed["affective_engagement"]["named_emotion_authority"] is False
+    assert observed["overload_exclusion"]["available"] is True
+    assert observed["distress_exclusion"]["available"] is False
     assert observed["fun"]["available"] is False
     assert observed["social_joy"]["available"] is False
     assert observed["laughter"]["available"] is False
@@ -267,3 +282,22 @@ def test_unshared_affective_trajectory_cannot_be_bound_to_play() -> None:
 
     assert episode is not None
     assert "affective_body_participation" not in episode
+
+
+def test_unmet_dissipation_refuses_overload_exclusion() -> None:
+    transition, choice = _transition(
+        action_receipt="8" * 64,
+        origin_tick=500,
+        yaw=18,
+        world_revision=50,
+    )
+    transition["totals"]["unmet_dissipation_quanta"] = 1
+
+    episode = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:overloaded",
+    )
+
+    assert episode is not None
+    assert "metabolic_overload_exclusion" not in episode

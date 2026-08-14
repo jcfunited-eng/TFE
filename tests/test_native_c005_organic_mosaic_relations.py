@@ -17,6 +17,9 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "physically_transitioned_neuron_count": 2,
         "metabolically_perturbed_body_receptor_count": 0,
         "rest_recovered_neuron_count": 0,
+        "rest_drained_dissipation_quanta": 0,
+        "unmet_dissipation_quanta": 0,
+        "energy_exhausted_interval_count": 0,
         "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }
@@ -371,6 +374,8 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         physically_transitioned_neuron_count=2,
         metabolically_perturbed_body_receptor_count=0,
         rest_recovered_neuron_count=7,
+        rest_drained_dissipation_quanta=11,
+        unmet_dissipation_quanta=0,
         externally_perturbed_body_receptor_count=0,
         receptor_ingress_sense_counts=(0,) * len(production.SENSE_ORDER),
         receptor_ingress_changing_count=0,
@@ -398,6 +403,8 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         organism_tick=11,
         partial_cue_reassembly_count=1,
         endogenous_partial_cue_reassembly_count=0,
+        energy_exhausted=False,
+        dissipation_capacity_energy_zeptojoules=(100, 1),
         state_sha256="aa" * 32,
     )
 
@@ -419,3 +426,5 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         "33" * 32
     )
     assert hop["rest_recovered_neuron_count"] == 7
+    assert hop["rest_drained_dissipation_quanta"] == 11
+    assert hop["unmet_dissipation_quanta"] == 0

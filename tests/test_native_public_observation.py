@@ -517,6 +517,9 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
             "affective_body_participation": {
                 "trajectory_receipt_sha256": "3" * 64,
             },
+            "metabolic_overload_exclusion": {
+                "witness_receipt_sha256": "5" * 64,
+            },
             "signed_yaw_millidegrees": -58,
             "world_revision": 40,
         },
@@ -526,6 +529,9 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
             "action_causal_intent_receipt_sha256": "2" * 64,
             "affective_body_participation": {
                 "trajectory_receipt_sha256": "4" * 64,
+            },
+            "metabolic_overload_exclusion": {
+                "witness_receipt_sha256": "6" * 64,
             },
             "signed_yaw_millidegrees": -40,
             "world_revision": 41,
@@ -544,6 +550,8 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     assert play["first_episode"]["signed_yaw_millidegrees"] == -58
     assert play["return_episode"]["signed_yaw_millidegrees"] == -40
     assert play["affective_engagement"]["available"] is True
+    assert play["overload_exclusion"]["available"] is True
+    assert play["distress_exclusion"]["available"] is False
     assert play["fun"]["available"] is False
     assert play["social_joy"]["available"] is False
     assert play["laughter"]["available"] is False

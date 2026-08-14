@@ -2706,6 +2706,59 @@ def _same_transition_affective_body_participation(
     }
 
 
+def _same_transition_metabolic_overload_exclusion(
+    evidence: dict[str, Any],
+) -> dict[str, object] | None:
+    """Project exact observer evidence that one transaction stayed payable.
+
+    This reads native dissipation work and refusal facts after settlement. It
+    is not an interoceptor, distress signal, action input, or organism-wide
+    need scalar. Zero unmet work plus zero exhausted intervals can exclude
+    metabolic overload only; it cannot exclude pain or other distress.
+    """
+
+    totals = evidence.get("totals")
+    capacity = evidence.get("dissipation_capacity_energy_zeptojoules")
+    hop_count = evidence.get("hop_count")
+    if (
+        not isinstance(totals, dict)
+        or not isinstance(capacity, (list, tuple))
+        or len(capacity) != 2
+        or not all(isinstance(value, int) for value in capacity)
+        or capacity[0] <= 0
+        or capacity[1] <= 0
+        or not isinstance(hop_count, int)
+        or hop_count <= 0
+    ):
+        return None
+    drained = totals.get("rest_drained_dissipation_quanta")
+    unmet = totals.get("unmet_dissipation_quanta")
+    exhausted_intervals = totals.get("energy_exhausted_interval_count")
+    if not all(
+        isinstance(value, int) and value >= 0
+        for value in (drained, unmet, exhausted_intervals)
+    ):
+        return None
+    if unmet != 0 or exhausted_intervals != 0:
+        return None
+    facts = (
+        hop_count,
+        drained,
+        unmet,
+        exhausted_intervals,
+        tuple(capacity),
+    )
+    return {
+        "dissipation_capacity_energy_zeptojoules": tuple(capacity),
+        "energy_exhausted_interval_count": exhausted_intervals,
+        "hop_count": hop_count,
+        "rest_drained_dissipation_quanta": drained,
+        "unmet_dissipation_quanta": unmet,
+        "witness_receipt_sha256": _receipt(facts),
+        "organism_sensing_authority": False,
+    }
+
+
 def _sensorimotor_play_episode_from_transition(
     evidence: dict[str, Any],
     physical_choice: dict[str, Any] | None,
@@ -2785,6 +2838,9 @@ def _sensorimotor_play_episode_from_transition(
     )
     if affective_participation is not None:
         episode["affective_body_participation"] = affective_participation
+    overload_exclusion = _same_transition_metabolic_overload_exclusion(evidence)
+    if overload_exclusion is not None:
+        episode["metabolic_overload_exclusion"] = overload_exclusion
     return episode
 
 
@@ -2880,6 +2936,18 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 "no completed varied play witness is available to test against "
                 "same-transition localized affect/body physics",
             ),
+            overload_exclusion=_section(
+                False,
+                "play_metabolic_overload_exclusion_unproved",
+                "no completed varied play witness is available to test for "
+                "zero unmet dissipation and zero exhausted intervals",
+            ),
+            distress_exclusion=_section(
+                False,
+                "localized_distress_path_unmounted",
+                "no localized nociceptive or other aversive body pathway is "
+                "mounted, so absence of distress cannot be claimed",
+            ),
             fun=_section(
                 False,
                 "positive_engagement_trajectory_unproved",
@@ -2896,6 +2964,15 @@ def _sensorimotor_play_record() -> dict[str, object]:
     )
     affective_available = isinstance(first_affective, dict) and isinstance(
         return_affective, dict
+    )
+    first_overload = _last_sensorimotor_play_evidence["first_episode"].get(
+        "metabolic_overload_exclusion"
+    )
+    return_overload = _last_sensorimotor_play_evidence["return_episode"].get(
+        "metabolic_overload_exclusion"
+    )
+    overload_excluded = isinstance(first_overload, dict) and isinstance(
+        return_overload, dict
     )
     return _section(
         True,
@@ -2939,6 +3016,41 @@ def _sensorimotor_play_record() -> dict[str, object]:
             ),
             named_emotion_authority=False,
             reward_authority=False,
+        ),
+        overload_exclusion=_section(
+            overload_excluded,
+            (
+                "both_play_actions_completed_without_metabolic_overload"
+                if overload_excluded
+                else "play_metabolic_overload_exclusion_incomplete"
+            ),
+            (
+                "both autonomous play transactions had mounted dissipation "
+                "capacity, zero unmet dissipation, and zero exhausted native "
+                "intervals; this is read-only overload evidence, not an "
+                "organism sensor or positive affect"
+                if overload_excluded
+                else "one or both play transactions lacked exact zero-unmet "
+                "dissipation and zero-exhaustion evidence"
+            ),
+            first_witness_receipt_sha256=(
+                first_overload.get("witness_receipt_sha256")
+                if isinstance(first_overload, dict)
+                else None
+            ),
+            return_witness_receipt_sha256=(
+                return_overload.get("witness_receipt_sha256")
+                if isinstance(return_overload, dict)
+                else None
+            ),
+            organism_sensing_authority=False,
+        ),
+        distress_exclusion=_section(
+            False,
+            "localized_distress_path_unmounted",
+            "metabolic headroom does not exclude pain or other distress; no "
+            "localized nociceptive or aversive body pathway is mounted",
+            organism_sensing_authority=False,
         ),
         fun=_section(
             False,
@@ -5950,6 +6062,15 @@ def _commit_admitted_hop(
             evidence.metabolically_perturbed_body_receptor_count
         ),
         "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
+        "rest_drained_dissipation_quanta": (
+            evidence.rest_drained_dissipation_quanta
+        ),
+        "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
+        "energy_exhausted": observed.energy_exhausted,
+        "energy_exhausted_interval_count": int(observed.energy_exhausted),
+        "dissipation_capacity_energy_zeptojoules": (
+            observed.dissipation_capacity_energy_zeptojoules
+        ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -6051,6 +6172,15 @@ def _commit_vestibular_tick(
             evidence.metabolically_perturbed_body_receptor_count
         ),
         "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
+        "rest_drained_dissipation_quanta": (
+            evidence.rest_drained_dissipation_quanta
+        ),
+        "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
+        "energy_exhausted": observed.energy_exhausted,
+        "energy_exhausted_interval_count": int(observed.energy_exhausted),
+        "dissipation_capacity_energy_zeptojoules": (
+            observed.dissipation_capacity_energy_zeptojoules
+        ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -6142,6 +6272,15 @@ def _commit_vestibular_trajectory(
             evidence.metabolically_perturbed_body_receptor_count
         ),
         "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
+        "rest_drained_dissipation_quanta": (
+            evidence.rest_drained_dissipation_quanta
+        ),
+        "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
+        "energy_exhausted": observed.energy_exhausted,
+        "energy_exhausted_interval_count": int(observed.energy_exhausted),
+        "dissipation_capacity_energy_zeptojoules": (
+            observed.dissipation_capacity_energy_zeptojoules
+        ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
@@ -6744,6 +6883,9 @@ def _perform_admitted_intake_locked(
         "physically_transitioned_neuron_count": 0,
         "metabolically_perturbed_body_receptor_count": 0,
         "rest_recovered_neuron_count": 0,
+        "rest_drained_dissipation_quanta": 0,
+        "unmet_dissipation_quanta": 0,
+        "energy_exhausted_interval_count": 0,
         "externally_perturbed_body_receptor_count": 0,
         "recurrent_complete_neuron_fractal_count": 0,
     }

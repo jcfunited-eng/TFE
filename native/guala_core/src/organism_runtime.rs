@@ -465,6 +465,11 @@ pub(crate) struct RuntimeObservation {
     /// as a healthy one.
     pub(crate) energy: ReachedCohortEnergyState,
     pub(crate) rest_recovered_neuron_count: usize,
+    /// Exact transition work that cleared occupied dissipation lanes and the
+    /// exact demand that could not be accepted. These are transient observer
+    /// facts, never a distress score or action authority.
+    pub(crate) rest_drained_dissipation_quanta: u128,
+    pub(crate) unmet_dissipation_quanta: u128,
     pub(crate) membrane_returned_elementary_charges: i128,
 }
 
@@ -1046,6 +1051,16 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn rest_drained_dissipation_quanta(&self) -> BigInt {
+        BigInt::from(self.observation.rest_drained_dissipation_quanta)
+    }
+
+    #[getter]
+    fn unmet_dissipation_quanta(&self) -> BigInt {
+        BigInt::from(self.observation.unmet_dissipation_quanta)
+    }
+
+    #[getter]
     fn metabolically_perturbed_body_receptor_count(&self) -> usize {
         self.observation.metabolically_perturbed_body_receptor_count
     }
@@ -1550,6 +1565,16 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn rest_recovered_neuron_count(&self) -> usize {
         self.observation.rest_recovered_neuron_count
+    }
+
+    #[getter]
+    fn rest_drained_dissipation_quanta(&self) -> BigInt {
+        BigInt::from(self.observation.rest_drained_dissipation_quanta)
+    }
+
+    #[getter]
+    fn unmet_dissipation_quanta(&self) -> BigInt {
+        BigInt::from(self.observation.unmet_dissipation_quanta)
     }
 
     #[getter]
@@ -2153,6 +2178,14 @@ impl ResidentOrganismRuntime {
                 total.rest_recovered_neuron_count = total
                     .rest_recovered_neuron_count
                     .checked_add(observation.rest_recovered_neuron_count)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.rest_drained_dissipation_quanta = total
+                    .rest_drained_dissipation_quanta
+                    .checked_add(observation.rest_drained_dissipation_quanta)
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                total.unmet_dissipation_quanta = total
+                    .unmet_dissipation_quanta
+                    .checked_add(observation.unmet_dissipation_quanta)
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
                 total.cognitive_ordinal = observation.cognitive_ordinal;
                 total.trace_count = observation.trace_count;
@@ -4176,6 +4209,8 @@ fn make_restored_observation(
         derived_budget,
         energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: 0,
+        rest_drained_dissipation_quanta: 0,
+        unmet_dissipation_quanta: 0,
         membrane_returned_elementary_charges: 0,
     }
 }
@@ -4268,6 +4303,8 @@ fn make_step_observation(
         derived_budget,
         energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: cognitive.rest_recovered_neuron_count,
+        rest_drained_dissipation_quanta: cognitive.rest_drained_dissipation_quanta,
+        unmet_dissipation_quanta: cognitive.unmet_dissipation_quanta,
         membrane_returned_elementary_charges: cognitive.membrane_returned_elementary_charges,
     }
 }
@@ -4340,6 +4377,8 @@ fn make_authored_contact_observation(
         derived_budget,
         energy: cognitive.energy.clone(),
         rest_recovered_neuron_count: 0,
+        rest_drained_dissipation_quanta: 0,
+        unmet_dissipation_quanta: 0,
         membrane_returned_elementary_charges: 0,
     }
 }

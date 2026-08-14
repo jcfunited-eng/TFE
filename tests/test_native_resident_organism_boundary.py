@@ -33,6 +33,8 @@ class _NativeResidentOrganismObservation:
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
     rest_recovered_neuron_count: int = 0
+    rest_drained_dissipation_quanta: int = 0
+    unmet_dissipation_quanta: int = 0
     externally_perturbed_body_receptor_count: int = 0
     physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
@@ -151,6 +153,8 @@ class _NativeResidentOrganismPrepare:
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
     rest_recovered_neuron_count: int = 0
+    rest_drained_dissipation_quanta: int = 0
+    unmet_dissipation_quanta: int = 0
     externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         96,
@@ -332,6 +336,8 @@ class _NativeResidentOrganismRuntime:
             successor=successor,
             current_cohort_count=2,
             token=token,
+            rest_drained_dissipation_quanta=7,
+            unmet_dissipation_quanta=3,
         )
 
     def commit(self, token: bytes) -> None:
@@ -528,6 +534,8 @@ def test_prepare_accepts_96_ports_as_two_cohorts_without_publishing_state(
     assert prepared.complete_neuron_fractal_count == 0
     assert prepared.recurrent_complete_neuron_fractal_count == 0
     assert prepared.rest_recovered_neuron_count == 0
+    assert prepared.rest_drained_dissipation_quanta == 7
+    assert prepared.unmet_dissipation_quanta == 3
     assert prepared.python_callback_count == 0
     assert not prepared.physical_transition_claimed
     assert not prepared.cognitive_formation_claimed

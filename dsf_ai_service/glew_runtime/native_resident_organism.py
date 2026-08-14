@@ -110,6 +110,16 @@ class NativeResidentObservationView(Protocol):
 
     @property
     def metabolically_perturbed_body_receptor_count(self) -> int: ...
+
+    @property
+    def rest_recovered_neuron_count(self) -> int: ...
+
+    @property
+    def rest_drained_dissipation_quanta(self) -> int: ...
+
+    @property
+    def unmet_dissipation_quanta(self) -> int: ...
+
     @property
     def externally_perturbed_body_receptor_count(self) -> int: ...
 
@@ -334,6 +344,8 @@ class ResidentPrepareEvidence:
     physically_transitioned_neuron_count: int = 0
     metabolically_perturbed_body_receptor_count: int = 0
     rest_recovered_neuron_count: int = 0
+    rest_drained_dissipation_quanta: int = 0
+    unmet_dissipation_quanta: int = 0
     externally_perturbed_body_receptor_count: int = 0
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         0,
@@ -1830,6 +1842,14 @@ class NativeResidentOrganism:
             candidate.rest_recovered_neuron_count,
             "rest recovered neuron count",
         )
+        rest_drained_dissipation_quanta = _nonnegative_integer(
+            candidate.rest_drained_dissipation_quanta,
+            "rest drained dissipation quanta",
+        )
+        unmet_dissipation_quanta = _nonnegative_integer(
+            candidate.unmet_dissipation_quanta,
+            "unmet dissipation quanta",
+        )
         externally_perturbed_body_receptor_count = _nonnegative_integer(
             candidate.externally_perturbed_body_receptor_count,
             "externally perturbed body receptor count",
@@ -2151,6 +2171,8 @@ class NativeResidentOrganism:
                 metabolically_perturbed_body_receptor_count
             ),
             rest_recovered_neuron_count=rest_recovered_neuron_count,
+            rest_drained_dissipation_quanta=rest_drained_dissipation_quanta,
+            unmet_dissipation_quanta=unmet_dissipation_quanta,
             externally_perturbed_body_receptor_count=(
                 externally_perturbed_body_receptor_count
             ),
