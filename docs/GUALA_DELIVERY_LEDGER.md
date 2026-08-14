@@ -441,8 +441,18 @@ box remains unchecked until live acceptance passes.
   goal, random selector, score selector, semantic command, and Python cognition
   authority remain false. Identity cold-restored unchanged and Python cognition
   callback count remained zero.
-- [ ] **A-008** Prove that choice reaches layer 12 and causes a real world/body
+- [x] **A-008** Prove that choice reaches layer 12 and causes a real world/body
   action at most once.
+  **Live-closed 2026-08-14:** production task 1054 exposed one internally
+  caused physical choice and one applied world/body action under the same
+  causal-intent receipt. Its exact `-126` millidegree antagonist settlement
+  reached 144 layer-12 motor recruitments; world revision advanced exactly
+  once from 3957 to 3958, changed the world-state receipt, and returned one
+  vestibular tick plus one perturbed body receptor at organism tick 91,992.
+  The source consumes the single prepared capability after commit and refuses
+  reuse; the focused choice/motor/at-most-once boundary passes 8/8. No new
+  runtime deployment was required because this exact mechanism was already
+  live in the A-007 production task.
 - [ ] **A-009** Prove the action's visual, auditory, vestibular, proprioceptive,
   tactile, chemical, and internal consequences re-enter the same organism.
 - [ ] **A-010** Prove the closed attention → choice → action → sensed-consequence
