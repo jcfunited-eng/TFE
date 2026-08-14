@@ -203,6 +203,32 @@ action/sensorium checks pass 6/6.
   of 3,643,959 bytes, while retaining the state identity, action receipt,
   sensory consequence, and exact collection counts.
 
-Status: **the causal A-009 action/consequence path is live on task 1055; A-009
-remains open until the bounded public projection is deployed and directly
-verified on its successor task**.
+## Final live acceptance
+
+- The bounded observer commit
+  `f0e60e339eb18845a938ba83ccb7de1754a846f0` deployed in one cutover from
+  2026-08-14T19:30:23Z to 2026-08-14T19:50:38Z as `dsf-ai-task:1056`, image
+  `sha256:f98648c097158ecec2e941130c1b2872983c7a419c7d4a54a8cb178b88fa5d2e`.
+  The service is one desired, one running, zero pending, healthy task; the
+  automatic legacy rollback remains disabled.
+- Rehearsal cold-restored the exact live identity at tick 93346 and state
+  `3158fbbd9cd018049dee8ea2bd93cc7a230604ab53413e6026b7c1f2814c5816`,
+  with 313 complete neurons, 196,416 developmental resting neurons, no
+  migration, and zero Python cognition callbacks.
+- After restart, production generated another unattended world action. Its
+  causal-intent receipt exactly matched the consequence receipt. The same
+  successor carried 109 reached sensory ports: sight 27, sound 34, touch 27,
+  smell 8, taste 5, and body 8. Four local proprioceptive receptors re-entered
+  truthfully quiescent, the separate vestibular trajectory followed, and five
+  internal metabolic receptors participated. The world observer and organism
+  observer exposed the same latest action receipt.
+- Ordinary unattended processing continued beyond the consequence. A later
+  direct sample reached organism generation 93430 and state
+  `537a286fc1f83b2ebd413e7d149f089f3216004ccff905b0c2c94a25fe490862`.
+- The live public observation measured 169,240 bytes. Neither public copy of
+  the motor action contains `prepared_recruitments`; none of the six expanded
+  recruitment/relation/route arrays remain in `last_transition`; their exact
+  counts remain available. Python cognition callbacks remain zero.
+
+Status: **Live-Closed 2026-08-14 on production task 1056. A-010 is next and is
+not claimed by A-009 evidence.**

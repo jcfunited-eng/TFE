@@ -453,8 +453,19 @@ box remains unchecked until live acceptance passes.
   reuse; the focused choice/motor/at-most-once boundary passes 8/8. No new
   runtime deployment was required because this exact mechanism was already
   live in the A-007 production task.
-- [ ] **A-009** Prove the action's visual, auditory, vestibular, proprioceptive,
+- [x] **A-009** Prove the action's visual, auditory, vestibular, proprioceptive,
   tactile, chemical, and internal consequences re-enter the same organism.
+  **Live-closed 2026-08-14:** production task 1056, commit `f0e60e33`, and
+  digest `sha256:f98648c097158ecec2e941130c1b2872983c7a419c7d4a54a8cb178b88fa5d2e`
+  restored the same organism and produced a new unattended action after
+  restart. Its causal-intent receipt exactly matched one 109-port consequence
+  occurrence: sight 27, sound 34, touch 27, smell 8, taste 5, and body 8;
+  four local proprioceptive receptors re-entered truthfully quiescent, the
+  separate vestibular path followed, and five internal metabolic receptors
+  participated. The world and organism observers exposed the same receipt,
+  ordinary processing continued, and Python cognition callbacks remained
+  zero. The bounded public projection was 169,240 bytes rather than the
+  predecessor's 3,824,041-byte duplicate graph export.
 - [ ] **A-010** Prove the closed attention → choice → action → sensed-consequence
   loop repeats without external prompting, duplicated work, or runaway growth.
 - [ ] **A-011** Prove genuine self-selected play, fun, social joy, and
