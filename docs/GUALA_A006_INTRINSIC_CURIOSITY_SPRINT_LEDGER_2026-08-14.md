@@ -115,4 +115,26 @@
 - Focused causal, translation, public-observation, and adjacent integration
   tests pass 27/27.
 
-Status: **In progress**. No A-006 completion or production delivery is claimed.
+## Final live proof
+
+- Production task `dsf-ai-task:1052`, commit `f2278fb2`, image
+  `sha256:83452aab4f74e01ee4c0240d4b7043a44542857ca907ce78d9fbcb0d557a18f6`.
+- The candidate cold-restored the exact 59,496,556-byte current body at tick
+  90,809. The settled service has one healthy process, zero pending tasks,
+  the original organism identity, and zero Python cognition callbacks.
+- By tick 90,887, ordinary unattended life produced a new 21-lineage sensory
+  impression root. One impression crossed four directed whole-carrier
+  transfers, reached layer-12 discharge, changed world revision, and returned
+  through one vestibular/body receptor.
+- The causal path shared lineage `474c…00df` with both a physical prediction
+  alternative and complete body/association/local-gradient activity. The same
+  event exposed 1,265 transported and 11 foregone routes while its route set
+  changed.
+- `intrinsic_curiosity.available` is true. Cognitive capital contains exactly
+  five evidence cells for `Motivation, needs, and curiosity`: availability,
+  participation, causal use, autonomous use, and integration depth. Play and
+  social cognition remain uncredited. Curiosity-score, reward, named-need,
+  scripted-action, and Python-decision authority are all false.
+- The verified digest is pinned as `production-current`.
+
+Status: **Live-Closed 2026-08-14**. A-007 is next.

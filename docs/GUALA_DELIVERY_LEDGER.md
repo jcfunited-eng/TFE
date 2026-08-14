@@ -418,9 +418,17 @@ box remains unchecked until live acceptance passes.
   163 downstream neurons while adjacent route sets changed. Attention-score,
   scripted-focus, and Python cognition authority were all absent. System Greed
   is the resulting unequal geometry-mediated access, not a stored coefficient.
-- [ ] **A-006** Prove curiosity and intrinsic motivation emerge as changing
+- [x] **A-006** Prove curiosity and intrinsic motivation emerge as changing
   reachable activity from novelty, uncertainty, recurrence, body condition,
   affection/social experience, and possible consequences.
+  **Live-closed 2026-08-14:** production task 1052 observed newly retained
+  sensory structure cross four exact sparse carrier transfers through a
+  lineage shared with physical-alternative and complete body/affective
+  activity, cause layer-12 body action, and return through vestibular/body
+  receptors while reached and foregone route sets changed. The read-only
+  cognitive-capital grid credits five exact curiosity dimensions; score,
+  reward, named-need, scripted-action, social-experience, and Python decision
+  authority remain false.
 - [ ] **A-007** Prove one internally caused attention-to-choice transition with
   no authored goal, random selector, semantic command, or Python cognition.
 - [ ] **A-008** Prove that choice reaches layer 12 and causes a real world/body
