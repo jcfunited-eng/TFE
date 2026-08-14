@@ -325,8 +325,20 @@ box remains unchecked until live acceptance passes.
   Python cognition callbacks remained zero. ECS independently showed one
   healthy running task, zero pending/failed tasks, and one completed PRIMARY
   deployment.
-- [ ] **C-022** Prove bounded internally sourced dream/consolidation reactivates
+- [x] **C-022** Prove bounded internally sourced dream/consolidation reactivates
   and reorganizes retained structure with simulated provenance.
+  **Live-closed 2026-08-14:** production task 1040, commit `576846b6`, image
+  `sha256:abfc768a59193df0de3af12a3ce03907e838b9e3c24332601cda252263bd6ac2`
+  preserved the same organism. Candidate rehearsal against a read-only copy of
+  live tick 80,560 reorganized two pre-existing retained formations on interval
+  one from five metabolic receptor changes and 37 recovering neurons, with
+  zero external receptor changes, internally simulated origin, exact cold
+  restore/replay, and zero Python cognition callbacks. Unattended production
+  then retained one `internally_simulated` formation with four exact cue
+  lineages at tick 80,623. A later external recurrence lawfully replaced that
+  formation's latest-origin witness; no permanent dream archive was created.
+  ECS showed one healthy running task, zero pending tasks, one completed
+  PRIMARY deployment, and the exact digest pinned as `production-current`.
 - [ ] **C-023** Prove imagination, social cognition, self/body continuity,
   procedural skill, creativity, and reflection through causal cross-context use.
 - [ ] **C-024** Implement and live-prove non-flattened cognitive-capital evidence

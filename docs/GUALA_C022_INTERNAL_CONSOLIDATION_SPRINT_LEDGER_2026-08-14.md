@@ -2,7 +2,7 @@
 
 Date: 2026-08-14
 
-Status: in progress; nothing in this ledger is a production completion claim.
+Status: Live-Closed on 2026-08-14.
 
 ## Task identity
 
@@ -250,3 +250,31 @@ lineage, zero Python cognition callbacks, and reached-frontier work only.
   is ignored. Every predecessor retained formation must remain present, and
   only a changed pre-existing formation with the same exact members and
   original bonds can satisfy C-022.
+
+## Rehearsal acceptance and production closure
+
+- Commit `576846b672f1918b273d116234564aadd0a0c15c` produced immutable image
+  `sha256:abfc768a59193df0de3af12a3ce03907e838b9e3c24332601cda252263bd6ac2`
+  and digest-pinned task definition `dsf-ai-task:1040`.
+- The exact candidate rehearsal cold-restored live tick 80,560 and reorganized
+  two pre-existing retained formations on interval one. It observed five
+  metabolic receptor changes, 37 recovering neurons, zero external receptor
+  changes, ten motor recruitments, eight articulatory recruitments, and
+  `internally_simulated` origin. The successor cold-restored and cold-replayed
+  exactly with zero Python cognition callbacks.
+- The same rehearsed task definition was cut over directly; no duplicate image
+  was built. ECS settled on one healthy running task, zero pending tasks, and
+  one completed PRIMARY deployment. Organism identity remained
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- Unattended live production retained one internally simulated formation with
+  four exact cue lineages at public tick 80,623 and state receipt
+  `cef66a3704dfd4ea2156737a5d6bf3584dc164eed70de667a97a637ad38d5251`.
+  Direct persisted readiness later advanced to tick 80,632 with the same
+  identity and zero Python cognition callbacks.
+- A later external recurrence replaced the latest-origin witness on the
+  formation. This is lawful: origin describes the latest reassembly and is not
+  an immutable event archive. The exact internally simulated successor had
+  already been live-observed, while candidate proof established its byte-exact
+  durability across cold restore.
+- ECR `production-current` resolves to the exact live digest above. C-022 is
+  Live-Closed. C-023 remains the next unstarted cognitive task.
