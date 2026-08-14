@@ -1390,6 +1390,13 @@ _last_tested_articulation_evidence: dict[str, Any] | None = None
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
 _last_tested_physical_choice_evidence: dict[str, Any] | None = None
+# Two constant-size read-only play witnesses. They never enter the organism,
+# select an action, or survive restart. The first holds one qualifying physical
+# episode while ordinary native settlement determines whether the same retained
+# formation later returns to the body with a different displacement. The second
+# holds only the completed compact evidence until another restart.
+_sensorimotor_play_candidate: dict[str, Any] | None = None
+_last_sensorimotor_play_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2615,6 +2622,192 @@ def _physical_choice_record() -> dict[str, object]:
     )
 
 
+def _sensorimotor_play_episode_from_transition(
+    evidence: dict[str, Any],
+    physical_choice: dict[str, Any] | None,
+    intake: str,
+) -> dict[str, Any] | None:
+    """Project one endogenous retained-formation body episode compactly.
+
+    This observer does not decide whether to move. It accepts only a movement
+    whose already-completed native evidence binds internal formation
+    recurrence, physical choice, exact action, and sensed body return.
+    """
+
+    if not intake.startswith("continuous-environment:"):
+        return None
+    causal = evidence.get("causal_cross_context_use")
+    action = evidence.get("motor_action")
+    if (
+        not isinstance(causal, dict)
+        or causal.get("origin_kind") != "retained_formation"
+        or not isinstance(action, dict)
+        or not isinstance(physical_choice, dict)
+    ):
+        return None
+    causal_action = causal.get("action")
+    consequence = causal.get("sensed_consequence")
+    if not isinstance(causal_action, dict) or not isinstance(consequence, dict):
+        return None
+    action_receipt = action.get("causal_intent_receipt_sha256")
+    formation_receipt = causal.get("formation_receipt_sha256")
+    state_sha256 = evidence.get("state_sha256")
+    if not all(
+        isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
+        for value in (action_receipt, formation_receipt, state_sha256)
+    ):
+        return None
+    if (
+        causal_action.get("causal_intent_receipt_sha256") != action_receipt
+        or physical_choice.get("causal_intent_receipt_sha256") != action_receipt
+        or physical_choice.get("formation_receipt_sha256") != formation_receipt
+    ):
+        return None
+    origin_tick = int(causal.get("origin_organism_tick", 0))
+    motor_tick = int(causal.get("motor_organism_tick", 0))
+    consequence_tick = int(consequence.get("successor_organism_tick", 0))
+    world_revision = int(action.get("observed_world_revision", 0))
+    yaw = int(action.get("signed_yaw_millidegrees", 0))
+    vestibular_ticks = int(consequence.get("vestibular_tick_count", 0))
+    body_receptors = int(
+        consequence.get("externally_perturbed_body_receptor_count", 0)
+    )
+    if (
+        origin_tick <= 0
+        or motor_tick <= origin_tick
+        or consequence_tick < motor_tick
+        or world_revision <= 0
+        or yaw == 0
+        or vestibular_ticks <= 0
+        or body_receptors <= 0
+    ):
+        return None
+    return {
+        "action_causal_intent_receipt_sha256": action_receipt,
+        "body_receptor_return_count": body_receptors,
+        "causal_path_receipt_sha256": _receipt(causal),
+        "consequence_organism_tick": consequence_tick,
+        "formation_receipt_sha256": formation_receipt,
+        "motor_organism_tick": motor_tick,
+        "origin_organism_tick": origin_tick,
+        "physical_choice_receipt_sha256": _receipt(physical_choice),
+        "signed_yaw_millidegrees": yaw,
+        "state_sha256": state_sha256,
+        "vestibular_tick_count": vestibular_ticks,
+        "world_revision": world_revision,
+    }
+
+
+def _advance_bounded_sensorimotor_play_evidence(
+    candidate: dict[str, Any] | None,
+    completed: dict[str, Any] | None,
+    evidence: dict[str, Any],
+    physical_choice: dict[str, Any] | None,
+    intake: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """Observe movement, cessation, and later varied retained return.
+
+    The evidence is constant-size process observation. It has no route back to
+    cognition and cannot cause, reward, repeat, or suppress an action.
+    """
+
+    if completed is not None:
+        return candidate, completed
+    episode = _sensorimotor_play_episode_from_transition(
+        evidence, physical_choice, intake
+    )
+    if episode is None:
+        return candidate, None
+    if candidate is None:
+        return episode, None
+    if (
+        episode["action_causal_intent_receipt_sha256"]
+        == candidate["action_causal_intent_receipt_sha256"]
+    ):
+        return candidate, None
+    if episode["formation_receipt_sha256"] != candidate["formation_receipt_sha256"]:
+        # Keep no list of competing candidates. The later episode becomes the
+        # sole bounded candidate for a future return of its own formation.
+        return episode, None
+    if (
+        episode["origin_organism_tick"] <= candidate["consequence_organism_tick"]
+        or episode["world_revision"] <= candidate["world_revision"]
+        or episode["signed_yaw_millidegrees"]
+        == candidate["signed_yaw_millidegrees"]
+    ):
+        return candidate, None
+    play = {
+        "activity": "sensorimotor_body_yaw",
+        "first_episode": candidate,
+        "formation_receipt_sha256": candidate["formation_receipt_sha256"],
+        "movement_ceased_before_return": True,
+        "return_episode": episode,
+        "return_gap_organism_ticks": (
+            episode["origin_organism_tick"]
+            - candidate["consequence_organism_tick"]
+        ),
+        "varied_displacement": True,
+    }
+    play["evidence_receipt_sha256"] = _receipt(play)
+    return None, play
+
+
+def _sensorimotor_play_record() -> dict[str, object]:
+    """Truthful play evidence without fun, joy, humor, or laughter inflation."""
+
+    authority = {
+        "activity_label_cognition_authority": False,
+        "python_action_authority": False,
+        "random_selector_authority": False,
+        "reward_authority": False,
+        "timer_choice_authority": False,
+    }
+    unavailable = {
+        "fun": _section(
+            False,
+            "positive_engagement_trajectory_unproved",
+            "sensorimotor return does not yet prove positive valence, sustained "
+            "engagement, preference, or later cross-context return",
+        ),
+        "social_joy": _section(
+            False,
+            "reciprocal_social_play_unproved",
+            "no authenticated other participant has yet joined and reciprocated "
+            "in this play trajectory",
+        ),
+        "laughter": _section(
+            False,
+            "playful_body_owned_laughter_unproved",
+            "no learned playful or social formation has yet caused a complete "
+            "breath, larynx, mouth, face, body, sound, and self-hearing trajectory",
+        ),
+    }
+    if _last_sensorimotor_play_evidence is None:
+        return _section(
+            False,
+            "awaiting_varied_retained_formation_sensorimotor_return",
+            "this process has not yet observed two distinct unattended body "
+            "actions from the same internally reassembled retained formation, "
+            "with the first action completed before a varied later return",
+            **authority,
+            **unavailable,
+        )
+    return _section(
+        True,
+        "sensorimotor_play_observed",
+        "the organism ended one self-initiated retained-formation body movement "
+        "and later returned through the same formation to a different exact "
+        "movement, with both consequences sensed; this proves basic "
+        "sensorimotor play only",
+        endogenous_initiation=True,
+        evidence_scope="latest_completed_bounded_play_witness_this_process",
+        voluntary_return=True,
+        **_last_sensorimotor_play_evidence,
+        **authority,
+        **unavailable,
+    )
+
+
 def _working_causal_state_record() -> dict[str, object]:
     """Report exact adjacent carrier continuation without calling it thought."""
 
@@ -3794,6 +3987,21 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
             "choice",
             choice,
         )
+    play = record.get("play")
+    if isinstance(play, dict) and play.get("available") is True:
+        credit(
+            "Play and exploration",
+            (
+                "availability",
+                "participation",
+                "causal_use",
+                "autonomous_use",
+                "integration_depth",
+            ),
+            play["status"],
+            "play",
+            play,
+        )
     ordered = [credits[key] for key in sorted(credits)]
     for cell in ordered:
         cell["evidence"].sort(
@@ -4220,6 +4428,7 @@ def _build_public_observation() -> dict[str, Any]:
         "localized_fluid_chemistry": _localized_fluid_chemistry_record(),
         "body": _body_record(),
         "autonomy": _autonomy_record(),
+        "play": _sensorimotor_play_record(),
         "articulation": _articulation_record(),
         "expression": _articulation_record(),
         "curriculum": _curriculum_media_record(),
@@ -6382,6 +6591,7 @@ def _perform_admitted_intake_locked(
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
+    global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -7108,6 +7318,16 @@ def _perform_admitted_intake_locked(
     )
     if physical_choice_evidence is not None:
         _last_tested_physical_choice_evidence = physical_choice_evidence
+    (
+        _sensorimotor_play_candidate,
+        _last_sensorimotor_play_evidence,
+    ) = _advance_bounded_sensorimotor_play_evidence(
+        _sensorimotor_play_candidate,
+        _last_sensorimotor_play_evidence,
+        _last_transition_evidence,
+        physical_choice_evidence,
+        intake,
+    )
     if causal_cross_context_use is not None:
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
@@ -8998,6 +9218,7 @@ def _startup() -> None:
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
+    global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
@@ -9005,6 +9226,8 @@ def _startup() -> None:
     _last_causal_cross_context_use_evidence = None
     _last_intrinsic_curiosity_evidence = None
     _last_tested_physical_choice_evidence = None
+    _sensorimotor_play_candidate = None
+    _last_sensorimotor_play_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(

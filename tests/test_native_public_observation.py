@@ -65,6 +65,9 @@ class _Organism:
     def observe_reached_neuron_count_by_layer(self):
         return ((0, 27), (1, 27), (6, 42))
 
+    def observe_reached_source_site_count(self, _sensor_id: str, _substream: str):
+        return 0
+
     def observe_retained_formations(self):
         return ()
 
@@ -106,6 +109,8 @@ def _mount(monkeypatch) -> _Restored:
     monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_affective_balance_evidence", None)
     monkeypatch.setattr(serving, "_last_intrinsic_curiosity_evidence", None)
+    monkeypatch.setattr(serving, "_sensorimotor_play_candidate", None)
+    monkeypatch.setattr(serving, "_last_sensorimotor_play_evidence", None)
     monkeypatch.setattr(serving, "_admission", _Admission())
     monkeypatch.setattr(
         serving,
@@ -486,6 +491,7 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         "attention",
         "body",
         "autonomy",
+        "play",
         "articulation",
         "expression",
         "curriculum",
@@ -497,6 +503,50 @@ def test_public_observation_matches_both_browser_consumers(monkeypatch) -> None:
         assert isinstance(section["available"], bool)
         assert section["status"]
         assert section["reason"]
+
+
+def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    evidence = {
+        "activity": "sensorimotor_body_yaw",
+        "evidence_receipt_sha256": "e" * 64,
+        "first_episode": {
+            "action_causal_intent_receipt_sha256": "1" * 64,
+            "signed_yaw_millidegrees": -58,
+            "world_revision": 40,
+        },
+        "formation_receipt_sha256": "f" * 64,
+        "movement_ceased_before_return": True,
+        "return_episode": {
+            "action_causal_intent_receipt_sha256": "2" * 64,
+            "signed_yaw_millidegrees": -40,
+            "world_revision": 41,
+        },
+        "return_gap_organism_ticks": 11,
+        "varied_displacement": True,
+    }
+    monkeypatch.setattr(serving, "_last_sensorimotor_play_evidence", evidence)
+    serving._refresh_public_observation_cache()
+
+    value = json.loads(serving.native_observation().body)
+    play = value["play"]
+    assert play["available"] is True
+    assert play["status"] == "sensorimotor_play_observed"
+    assert play["formation_receipt_sha256"] == "f" * 64
+    assert play["first_episode"]["signed_yaw_millidegrees"] == -58
+    assert play["return_episode"]["signed_yaw_millidegrees"] == -40
+    assert play["fun"]["available"] is False
+    assert play["social_joy"]["available"] is False
+    assert play["laughter"]["available"] is False
+
+    cells = {
+        (credit["capability"], credit["dimension"])
+        for credit in value["cognitive_capital"]["credits"]
+    }
+    assert ("Play and exploration", "autonomous_use") in cells
+    assert ("Play and exploration", "transfer") not in cells
 
     # Auditory intake and the curriculum's card surface are genuinely
     # mounted now; every other modality must still refuse honestly.

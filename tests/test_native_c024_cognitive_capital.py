@@ -42,6 +42,9 @@ def _record() -> dict[str, object]:
         "prediction": _section(False),
         "affective_balance": _section(False),
         "articulation": _section(False),
+        "intrinsic_curiosity": _section(False),
+        "choice": _section(False),
+        "play": _section(False),
         "body": _section(False),
         "identity": {**_section(True), "value": "test-organism"},
         "persistence": {**_section(True), "current_ref": "a" * 64},
@@ -191,3 +194,35 @@ def test_later_quiet_transition_does_not_erase_the_bounded_causal_witness(
     assert record["available"] is True
     assert record["evidence_organism_tick"] == 88_004
     assert record["formation_receipt_sha256"] == "f" * 64
+
+
+def test_sensorimotor_play_credits_only_observed_play_dimensions(monkeypatch) -> None:
+    record = _record()
+    record["play"] = {
+        **_section(True, "sensorimotor_play_observed"),
+        "evidence_receipt_sha256": "e" * 64,
+        "formation_receipt_sha256": "f" * 64,
+        "varied_displacement": True,
+        "voluntary_return": True,
+    }
+    monkeypatch.setattr(serving, "_last_transition_evidence", None)
+
+    capital = serving._cognitive_capital_record(record)
+    cells = {
+        (credit["capability"], credit["dimension"])
+        for credit in capital["credits"]
+    }
+
+    assert {
+        ("Play and exploration", "availability"),
+        ("Play and exploration", "participation"),
+        ("Play and exploration", "causal_use"),
+        ("Play and exploration", "autonomous_use"),
+        ("Play and exploration", "integration_depth"),
+    }.issubset(cells)
+    assert ("Play and exploration", "transfer") not in cells
+    assert ("Play and exploration", "durability") not in cells
+    assert not any(
+        capability == "Creativity and self-expression"
+        for capability, _ in cells
+    )
