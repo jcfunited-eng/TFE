@@ -409,8 +409,15 @@ box remains unchecked until live acceptance passes.
   changed a still-nonzero separated-charge field through localized one-carrier
   pumping. The organism remained non-exhausted with zero Python cognition
   callbacks; no semantic need or permanent satisfaction state was added.
-- [ ] **A-005** Implement local entropy/cohesion/System-Greed competition as
+- [x] **A-005** Implement local entropy/cohesion/System-Greed competition as
   causal geometry for unresolved possibilities, without reward scores.
+  **Live-closed 2026-08-14:** the existing C-014 native mechanism was
+  re-falsified and observed in task 1050. Exact local state changes two finite
+  carrier branches from `[1,1]` to `[0,2]` without a selector. Live production
+  exposed 1,290 simultaneous routes—1,281 transported and 9 foregone—affecting
+  163 downstream neurons while adjacent route sets changed. Attention-score,
+  scripted-focus, and Python cognition authority were all absent. System Greed
+  is the resulting unequal geometry-mediated access, not a stored coefficient.
 - [ ] **A-006** Prove curiosity and intrinsic motivation emerge as changing
   reachable activity from novelty, uncertainty, recurrence, body condition,
   affection/social experience, and possible consequences.
