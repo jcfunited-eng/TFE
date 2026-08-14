@@ -2,7 +2,8 @@
 
 Date: 2026-08-14
 
-Status: In progress. No C-023 production claim exists.
+Status: Live-Closed on 2026-08-14. The exact reviewed artifact is deployed and
+its causal retained-formation-to-action path was directly observed in production.
 
 ## Task identity
 
@@ -820,3 +821,36 @@ retained only as falsification evidence and is not the releasable C-023 law.
 - After this gate change, 150/150 changed Python, rehearsal, packaging,
   persistence, serving, and deployment-controller tests pass. C-023 remains
   open pending immutable image rehearsal, cutover, and direct live proof.
+
+## Live closure
+
+- Reviewed implementation commit:
+  `46f1c09cd45e5554162e76f42c1a40c6dc187e72`.
+- Immutable production image:
+  `sha256:d4d222709becc796b1c268dde9da3e5813fa5c9af5100646e83432f5d46b9c82`;
+  the same digest is pinned as `production-current` and served by
+  `dsf-ai-task:1048`.
+- The isolated candidate rehearsal began from authenticated live tick 87,861,
+  observed retained-formation recurrence at tick 87,862, motor discharge at
+  tick 87,864, one applied world action, and one vestibular/body return in the
+  persisted tick-87,874 successor. Identity and byte-exact cold restoration
+  held, with zero Python cognition callbacks.
+- Direct production observation then showed formation receipt
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`
+  recur at tick 87,992, reach motor discharge at tick 87,994 through three
+  exact directed carrier transfers, apply one body/world action from revision
+  3,649 to 3,650, and return one vestibular tick plus one perturbed body
+  receptor in the persisted tick-88,004 successor.
+- A later authenticated readiness observation reached tick 88,056 with the
+  same organism identity, exact current-only persistence, 56,322,455 state
+  bytes, 295 reached complete neurons, 196,434 developmental resting neurons,
+  12 retained mosaics, and zero Python cognition callbacks.
+- ECS reported exactly one desired/running healthy process, zero pending
+  processes, one completed PRIMARY deployment, and the exact task and image
+  above. Health, native observation, Guala Loom, and Loom Scan returned HTTP
+  200. The page checks establish serving availability only; C-023 does not
+  claim those interfaces are functionally complete.
+- C-023 is therefore Live-Closed. Its evidence is one substrate-physical
+  retained-formation-to-action-to-sensed-consequence mechanism; it is not a
+  claim that later curriculum, language, creativity, or interface tasks are
+  complete.

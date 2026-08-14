@@ -339,8 +339,18 @@ box remains unchecked until live acceptance passes.
   formation's latest-origin witness; no permanent dream archive was created.
   ECS showed one healthy running task, zero pending tasks, one completed
   PRIMARY deployment, and the exact digest pinned as `production-current`.
-- [ ] **C-023** Prove imagination, social cognition, self/body continuity,
+- [x] **C-023** Prove imagination, social cognition, self/body continuity,
   procedural skill, creativity, and reflection through causal cross-context use.
+  **Live-closed 2026-08-14:** production task 1048, commit `46f1c09c`, and
+  image `sha256:d4d222709becc796b1c268dde9da3e5813fa5c9af5100646e83432f5d46b9c82`
+  preserved the same organism and directly showed one internally reassembled
+  retained formation traverse exact layer-9/11/12 carrier transfers into motor
+  discharge, an applied world action, and a sensed vestibular/body successor.
+  Production advanced from recurrence tick 87,992 through persisted successor
+  tick 88,004 and later readiness tick 88,056 with exact current-only restore,
+  zero Python cognition callbacks, and one healthy process. This closes the
+  causal mechanism; it does not claim later curriculum, language, creativity,
+  or interface tasks are complete.
 - [ ] **C-024** Implement and live-prove non-flattened cognitive-capital evidence
   for senses, recognition, recall, thought, speech, body capability, affective
   balance, motivation, learning, action, and self-expression.
