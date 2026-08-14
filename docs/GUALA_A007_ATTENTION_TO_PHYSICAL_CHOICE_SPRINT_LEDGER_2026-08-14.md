@@ -105,18 +105,32 @@
    different intervals. The corrected candidate admits only an exact directed
    transfer observed simultaneously as an attention route and motor
    preparation inside one native hop.
+7. Rejected by the first production candidate on task 1053: require the route
+   change classification to exist inside the same native hop as its exact
+   motor transfer. The earlier hop cannot know that its route set changed until
+   a later hop supplies the comparison frontier. The completed transaction is
+   the smallest lawful observation boundary: it preserves one exact
+   reached-and-foregone interval, its later distinct route set, and exact
+   directed motor transfers without flattening their contact identities.
 
 ## Candidate evidence — not production
 
-- The candidate records at most the first exact same-hop binding and retains
-  only attention counts, matched motor lineages, the hop tick, antagonist
+- The corrected candidate records at most the first exact binding after the
+  completed transaction supplies the later route comparison. It retains only
+  attention counts, matched motor lineages, the transaction tick, antagonist
   totals, one formation reference, one causal-intent reference, and the current
   state reference. It copies no route or preparation body.
 - Matching is linear: exact directed preparation transfers are indexed once,
   then the sparse attention routes are visited once. No route x recruitment
   cross-product exists.
 - The focused attention, causal-trace, motor, unattended, and public-observation
-  regression set passes 31/31. It directly rejects unrelated coexistence and
-  exact antagonist cancellation.
+  regression set passes 32/32. It directly rejects unrelated coexistence and
+  exact antagonist cancellation, and proves that a later comparison frontier
+  can classify an earlier exact route without losing its motor contact.
+- Replaying live task-1053 transition tick 91524 through the corrected boundary
+  yields 24 exact matched attention-to-motor contacts, 1,478 positive and 1,626
+  negative antagonist carriers, and the already-observed `-148` signed yaw
+  intent. This is model evidence only until the correction is deployed and
+  observed through the live endpoint.
 
 Status: **in progress**. No A-007 production claim exists yet.

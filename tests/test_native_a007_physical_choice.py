@@ -92,6 +92,32 @@ def test_attention_enters_opposed_motor_settlement_and_prepares_one_intent() -> 
     assert evidence["internal_cause_motor_lineage"] == POSITIVE_MOTOR
 
 
+def test_completed_transaction_supplies_the_later_route_comparison() -> None:
+    earlier_hop = _transition()
+    earlier_hop["preceding_distinct_physical_frontier_routes"] = ()
+    earlier_hop["attention_motor_binding"] = None
+
+    assert production._attention_motor_binding_from_hop(earlier_hop) is None
+
+    completed_transaction = deepcopy(earlier_hop)
+    completed_transaction["preceding_distinct_physical_frontier_routes"] = (
+        (FOREGONE, 12, 2, ORDERING, 11, 0, 0, 2),
+    )
+    completed_transaction["attention_motor_binding"] = (
+        production._advance_bounded_attention_motor_binding(
+            None,
+            completed_transaction,
+        )
+    )
+
+    evidence = production._physical_choice_evidence_from_transition(
+        completed_transaction
+    )
+
+    assert evidence is not None
+    assert evidence["matched_attention_route_count"] == 1
+
+
 def test_coexisting_attention_without_motor_contact_is_not_choice() -> None:
     transition = _transition()
     transition["reached_and_foregone_physical_frontier_routes"] = (

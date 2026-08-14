@@ -2407,7 +2407,7 @@ def _physical_choice_evidence_from_transition(
 def _attention_motor_binding_from_hop(
     hop: dict[str, Any],
 ) -> dict[str, Any] | None:
-    """Capture exact same-hop attention transfers that prepare motor cells."""
+    """Capture exact attention transfers that also prepare motor cells."""
 
     attention = _sparse_attention_route_facts(hop)
     if attention is None:
@@ -2464,7 +2464,7 @@ def _advance_bounded_attention_motor_binding(
     retained: dict[str, Any] | None,
     hop: dict[str, Any],
 ) -> dict[str, Any] | None:
-    """Retain only the first exact same-hop attention-to-motor binding."""
+    """Retain only the first exact attention-to-motor binding."""
 
     return retained or _attention_motor_binding_from_hop(hop)
 
@@ -6825,6 +6825,20 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    # A route-set change is knowable only after a later hop supplies the
+    # distinct comparison frontier.  Re-evaluate once at the completed
+    # transaction boundary so an exact motor-preparation transfer observed in
+    # the retained qualifying interval is not discarded merely because its
+    # attention classification was not yet available inside that earlier hop.
+    # This does not join unrelated contacts: the helper still requires the
+    # same directed sender, receiver, parallel ordinal, and carrier magnitude.
+    attention_motor_binding = _advance_bounded_attention_motor_binding(
+        attention_motor_binding,
+        _last_transition_evidence,
+    )
+    _last_transition_evidence["attention_motor_binding"] = (
+        attention_motor_binding
+    )
     intrinsic_curiosity_evidence = _intrinsic_curiosity_evidence_from_transition(
         _last_transition_evidence
     )
