@@ -848,25 +848,42 @@ def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
     honest reduction rather than discarding five bands or inventing a site.
     """
 
-    totals = [0.0] * CARD_SURFACE_PORT_COUNT
+    return _world_retinal_luminance_endpoints(substreams)[1]
+
+
+def _world_retinal_luminance_endpoints(
+    substreams: tuple[Any, ...],
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    """Collapse exact before/after spectral retina onto monochrome cells."""
+
+    before_totals = [0.0] * CARD_SURFACE_PORT_COUNT
+    after_totals = [0.0] * CARD_SURFACE_PORT_COUNT
     counts = [0] * CARD_SURFACE_PORT_COUNT
     for stream in substreams:
         cell = stream.topology_index // 6
         if cell >= CARD_SURFACE_PORT_COUNT:
             continue
-        # The world reports each band as (before, after); what reaches her
-        # retina now is where the light ended up.
-        totals[cell] += float(stream.normalized_signal[-1])
+        if len(stream.normalized_signal) != 2:
+            raise ValueError("world retinal transition changed endpoint count")
+        before_totals[cell] += float(stream.normalized_signal[0])
+        after_totals[cell] += float(stream.normalized_signal[1])
         counts[cell] += 1
     return tuple(
-        min(1.0, max(0.0, totals[index] / counts[index])) if counts[index] else 0.0
-        for index in range(CARD_SURFACE_PORT_COUNT)
+        tuple(
+            min(1.0, max(0.0, totals[index] / counts[index]))
+            if counts[index]
+            else 0.0
+            for index in range(CARD_SURFACE_PORT_COUNT)
+        )
+        for totals in (before_totals, after_totals)
     )
 
 
 def _world_chemistry(
     before: Any,
     after: Any,
+    *,
+    source_time_end: Fraction | None = None,
 ) -> tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None]:
     """What the objects around her taste and smell of, from the world itself.
 
@@ -878,8 +895,29 @@ def _world_chemistry(
     lawful state and not an absent sense.
     """
 
+    taste, smell = _world_chemistry_endpoints(
+        before,
+        after,
+        source_time_end=source_time_end,
+    )
+    return taste[1], smell[1]
+
+
+def _world_chemistry_endpoints(
+    before: Any,
+    after: Any,
+    *,
+    source_time_end: Fraction | None = None,
+) -> tuple[
+    tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None],
+    tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None],
+]:
+    """Read each local chemical field once and preserve both endpoints."""
+
     if not CHEMORECEPTION_AUTHORIZED:
-        return None, None
+        return (None, None), (None, None)
+    if source_time_end is None:
+        source_time_end = Fraction(INTAKE_HOP_MILLISECONDS, 1000)
     from dsf_ai_service.substrate.w1_coupled_material_sensory_physics import (
         material_receptor_substreams,
     )
@@ -889,19 +927,30 @@ def _world_chemistry(
         before=before,
         after=after,
         source_time_start=Fraction(0),
-        source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+        source_time_end=source_time_end,
     )
 
-    def collapse(sense: Any, count: int) -> tuple[Fraction, ...] | None:
+    def collapse(
+        sense: Any,
+        count: int,
+    ) -> tuple[tuple[Fraction, ...] | None, tuple[Fraction, ...] | None]:
         ports = streams.get(sense, ())
         if not ports:
-            return None
-        held = [Fraction(0)] * count
+            return None, None
+        endpoints = ([Fraction(0)] * count, [Fraction(0)] * count)
         for port in ports:
             if port.topology_index < count:
-                value = Fraction(port.normalized_signal[-1]).limit_denominator(1_000_000)
-                held[port.topology_index] = min(Fraction(1), max(Fraction(0), value))
-        return tuple(held)
+                for endpoint, value in zip(
+                    endpoints,
+                    (port.normalized_signal[0], port.normalized_signal[-1]),
+                    strict=True,
+                ):
+                    exact = Fraction(value).limit_denominator(1_000_000)
+                    endpoint[port.topology_index] = min(
+                        Fraction(1),
+                        max(Fraction(0), exact),
+                    )
+        return tuple(endpoints[0]), tuple(endpoints[1])
 
     return (
         collapse(PhysicalSense.TASTE, TASTE_SITE_COUNT),
@@ -1744,6 +1793,64 @@ def _displacement_record(modality: str) -> dict[str, object]:
     )
 
 
+def _proprioception_record() -> dict[str, object]:
+    """Truthful local body configuration, distinct from world displacement."""
+
+    reached = sum(
+        _runtime()[0].organism.observe_reached_source_site_count(
+            ARTICULATORY_BODY_SENSOR_ID,
+            f"articulation-{channel}",
+        )
+        for channel in ARTICULATORY_BODY_CHANNELS
+    )
+    consequence = (
+        _last_self_moved.get("sensory_consequence")
+        if isinstance(_last_self_moved, dict)
+        and isinstance(_last_self_moved.get("sensory_consequence"), dict)
+        else None
+    )
+    if consequence is not None:
+        lane = consequence.get("proprioceptive")
+        if (
+            not isinstance(lane, dict)
+            or lane.get("sensor_id") != ARTICULATORY_BODY_SENSOR_ID
+        ):
+            raise RuntimeError("action consequence changed proprioceptive source")
+        return _section(
+            reached > 0,
+            "local_proprioceptive_action_consequence_committed",
+            "the rigid-body yaw left breath, glottis, mouth, and facial-skin "
+            "configuration unchanged; all four genuine local body receptors "
+            "re-entered the same organism as quiescent while vestibular and "
+            "visual receptors carried the rotation",
+            action_receipt_sha256=consequence["action_receipt_sha256"],
+            changed_site_count=lane["changed"],
+            coverage="local articulatory body; limb and joint anatomy remains absent",
+            native_neuronal_participation=reached > 0,
+            reached_site_count=reached,
+            transported_site_count=lane["transported"],
+        )
+    if reached > 0:
+        return _section(
+            True,
+            "local_proprioceptive_neurons_persisted",
+            "the current native body retains reached breath, glottis, mouth, "
+            "and facial-skin mechanoreceptors; no whole-body or limb/joint "
+            "proprioception is claimed",
+            coverage="local articulatory body; limb and joint anatomy remains absent",
+            native_neuronal_participation=True,
+            reached_site_count=reached,
+        )
+    return _section(
+        False,
+        "local_proprioception_not_reached",
+        "no reached local body-configuration receptor is present; global "
+        "world displacement is not substituted for proprioception",
+        coverage="none",
+        native_neuronal_participation=False,
+    )
+
+
 def _chemoreceptive_record(
     modality: str,
     channels: tuple[str, ...],
@@ -2029,7 +2136,7 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
             "taste", TASTE_CHANNELS, TASTE_SENSOR_ID, native
         ),
         "vestibular": _displacement_record("vestibular"),
-        "proprioception": _displacement_record("proprioception"),
+        "proprioception": _proprioception_record(),
         "interoception": _interoception_record(native),
     }
     return _section(
@@ -4766,6 +4873,7 @@ def _chemoreceptive_ports(
     channels: tuple[str, ...],
     source_times: tuple[Fraction, ...],
     composition: tuple[Fraction, ...] | None,
+    trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     """One chemoreceptive roster for one hop.
 
@@ -4780,6 +4888,11 @@ def _chemoreceptive_ports(
     if len(held) != len(channels):
         raise ValueError("declared composition differs from the declared anatomy")
     frame_count = len(source_times)
+    signals = trajectories or tuple((value,) * frame_count for value in held)
+    if len(signals) != len(channels) or any(
+        len(signal) != frame_count for signal in signals
+    ):
+        raise ValueError("chemical trajectories changed anatomy or clock")
     return tuple(
         NativeSensorySubstreamInput(
             sense=sense,
@@ -4793,30 +4906,34 @@ def _chemoreceptive_ports(
             physical_quantity=quantity,
             physical_unit=CHEMICAL_UNIT,
             source_times=source_times,
-            normalized_signal=(float(value),) * frame_count,
+            normalized_signal=tuple(float(value) for value in signal),
             phase_turns=(Fraction(0),) * frame_count,
         )
-        for index, (channel, value) in enumerate(zip(channels, held))
+        for index, (channel, signal) in enumerate(
+            zip(channels, signals, strict=True)
+        )
     )
 
 
 def _taste_ports(
     source_times: tuple[Fraction, ...],
     composition: tuple[Fraction, ...] | None,
+    trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     return _chemoreceptive_ports(
         PhysicalSense.TASTE, TASTE_SENSOR_ID, TASTE_QUANTITY,
-        TASTE_CHANNELS, source_times, composition,
+        TASTE_CHANNELS, source_times, composition, trajectories,
     )
 
 
 def _smell_ports(
     source_times: tuple[Fraction, ...],
     composition: tuple[Fraction, ...] | None,
+    trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     return _chemoreceptive_ports(
         PhysicalSense.SMELL, SMELL_SENSOR_ID, SMELL_QUANTITY,
-        SMELL_CHANNELS, source_times, composition,
+        SMELL_CHANNELS, source_times, composition, trajectories,
     )
 
 
@@ -6227,6 +6344,7 @@ def _perform_admitted_intake_locked(
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
     global _restored, _last_transition_evidence, _last_self_moved
+    global _last_displacement
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
@@ -6572,6 +6690,7 @@ def _perform_admitted_intake_locked(
         tuple(motor_unit_recruitments),
     )
     motor_action: dict[str, Any] | None = None
+    action_consequence: dict[str, Any] | None = None
     if prepared_motor is None:
         published = _publish_committed_organism(
             organism, admission, predecessor.state_sha256
@@ -6585,6 +6704,110 @@ def _perform_admitted_intake_locked(
             with authority.prepared_action_visibility_transaction(prepared_world):
                 execution = authority.commit_prepared_action(prepared_world)
                 world_committed = True
+                (
+                    consequence_episode,
+                    consequence_admissions,
+                    consequence_lane_truth,
+                ) = _action_consequence_episode(execution)
+                consequence_hop = _commit_admitted_hop(
+                    organism,
+                    consequence_episode,
+                    consequence_admissions,
+                )
+                (
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                ) = _advance_causal_motor_traces(
+                    organism,
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                    consequence_hop,
+                )
+                (
+                    physical_frontier_routes,
+                    preceding_distinct_physical_frontier_routes,
+                    reached_and_foregone_physical_frontier_routes,
+                ) = _advance_bounded_frontier_evidence(
+                    physical_frontier_routes,
+                    preceding_distinct_physical_frontier_routes,
+                    reached_and_foregone_physical_frontier_routes,
+                    consequence_hop,
+                )
+                attention_motor_binding = _advance_bounded_attention_motor_binding(
+                    attention_motor_binding,
+                    consequence_hop,
+                )
+                (
+                    working_causal_continuations,
+                    settled_working_frontier,
+                ) = _advance_bounded_working_causal_evidence(
+                    working_causal_continuations,
+                    settled_working_frontier,
+                    consequence_hop,
+                )
+                (
+                    physical_prediction_alternatives,
+                    body_consequence_transfers,
+                ) = _advance_bounded_prediction_evidence(
+                    physical_prediction_alternatives,
+                    body_consequence_transfers,
+                    consequence_hop,
+                )
+                affective_balance_trajectories = (
+                    _advance_bounded_affective_balance_evidence(
+                        affective_balance_trajectories,
+                        consequence_hop,
+                    )
+                )
+                localized_fluid_chemistry = (
+                    _advance_bounded_localized_fluid_chemistry_evidence(
+                        localized_fluid_chemistry,
+                        consequence_hop,
+                    )
+                )
+                committed_hop_count += 1
+                emitted_neuron_fractals.extend(
+                    consequence_hop["emitted_neuron_fractals"]
+                )
+                organic_mosaic_relations.extend(
+                    consequence_hop["organic_mosaic_relations"]
+                )
+                for key in totals:
+                    totals[key] += consequence_hop[key]
+                for sense, count in consequence_hop[
+                    "receptor_ingress_sense_counts"
+                ].items():
+                    receptor_ingress_sense_counts[sense] += count
+                receptor_ingress_changing_count += consequence_hop[
+                    "receptor_ingress_changing_count"
+                ]
+                receptor_ingress_quiescent_count += consequence_hop[
+                    "receptor_ingress_quiescent_count"
+                ]
+                action_consequence = {
+                    **consequence_lane_truth,
+                    "externally_perturbed_body_receptor_count": (
+                        consequence_hop[
+                            "externally_perturbed_body_receptor_count"
+                        ]
+                    ),
+                    "internal_metabolic_receptor_count": (
+                        consequence_hop[
+                            "metabolically_perturbed_body_receptor_count"
+                        ]
+                    ),
+                    "organism_tick": consequence_hop["organism_tick"],
+                    "receptor_ingress_changing_count": (
+                        consequence_hop["receptor_ingress_changing_count"]
+                    ),
+                    "receptor_ingress_quiescent_count": (
+                        consequence_hop["receptor_ingress_quiescent_count"]
+                    ),
+                    "receptor_ingress_sense_counts": dict(
+                        consequence_hop["receptor_ingress_sense_counts"]
+                    ),
+                    "state_sha256": consequence_hop["state_sha256"],
+                }
                 last_hop = _commit_vestibular_trajectory(
                     organism,
                     predecessor_heading,
@@ -6712,8 +6935,13 @@ def _perform_admitted_intake_locked(
                 "new_neuronal_fractal_motor_path": (
                     completed_causal_motor_traces.get("new_neuronal_fractal")
                 ),
+                "sensory_consequence": action_consequence,
             }
             _last_self_moved = dict(motor_action)
+            _last_displacement = _world_displacement(
+                execution.before,
+                execution.after,
+            )
         except BaseException:
             if world_committed:
                 with authority.committed_prepared_action_rollback_transaction(
@@ -7077,6 +7305,123 @@ def _unattended_interval_episodes(
         "external_smell_present": bool(smelled and any(value > 0 for value in smelled)),
         "world_revision": snapshot.revision,
     }
+
+
+def _action_consequence_episode(
+    execution: Any,
+) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
+    """One exact joint sensorium caused by one committed 1 ms body action.
+
+    The world supplies the before/after optics, contact geometry, body motion,
+    and local chemistry.  A yaw has no authored acoustic emitter, so the ears
+    receive true silence.  An unchanged receptor lane remains present and
+    quiescent; no lane is labelled changed merely because an action occurred.
+    """
+
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        physical_receptor_substreams,
+    )
+
+    action_duration = Fraction(1, 1_000)
+    times = (Fraction(0), action_duration)
+    world_streams = physical_receptor_substreams(
+        execution.before,
+        execution.after,
+        causal_transition=True,
+        source_time_start=times[0],
+        source_time_end=times[1],
+    )
+    before_luminance, after_luminance = _world_retinal_luminance_endpoints(
+        world_streams.get(PhysicalSense.SIGHT, ())
+    )
+    taste_endpoints, smell_endpoints = _world_chemistry_endpoints(
+        execution.before,
+        execution.after,
+        source_time_end=action_duration,
+    )
+    before_taste, after_taste = taste_endpoints
+    before_smell, after_smell = smell_endpoints
+
+    touch_streams = world_streams.get(PhysicalSense.TOUCH, ())
+    touch_values = tuple(
+        Fraction(value).limit_denominator(1_000_000)
+        for stream in touch_streams
+        for value in stream.normalized_signal
+    )
+    if any(touch_values):
+        raise RuntimeError(
+            "the action reached nonzero W1 contact geometry that has no "
+            "lawful retinotopic contact-sheet placement"
+        )
+
+    surface_trajectories = tuple(
+        (before, after)
+        for before, after in zip(
+            before_luminance,
+            after_luminance,
+            strict=True,
+        )
+    )
+    taste_trajectories = (
+        tuple(zip(before_taste, after_taste, strict=True))
+        if before_taste is not None and after_taste is not None
+        else None
+    )
+    smell_trajectories = (
+        tuple(zip(before_smell, after_smell, strict=True))
+        if before_smell is not None and after_smell is not None
+        else None
+    )
+    episode = _whole_roster_hop_episode(
+        (
+            "native-action-consequence-"
+            f"{execution.causal_intent_receipt_sha256}"
+        ),
+        times,
+        after_luminance,
+        (0.0, 0.0),
+        tasted=after_taste,
+        smelled=after_smell,
+        surface_trajectories=surface_trajectories,
+        taste_trajectories=taste_trajectories,
+        smell_trajectories=smell_trajectories,
+    )
+
+    def changed_count(
+        before: tuple[Any, ...] | None,
+        after: tuple[Any, ...] | None,
+    ) -> int:
+        before_values = before or ()
+        after_values = after or ()
+        if len(before_values) != len(after_values):
+            raise ValueError("action consequence changed receptor anatomy")
+        return sum(left != right for left, right in zip(before_values, after_values))
+
+    visual_changed = changed_count(before_luminance, after_luminance)
+    taste_changed = changed_count(before_taste, after_taste)
+    smell_changed = changed_count(before_smell, after_smell)
+    lane_truth = {
+        "action_duration_microseconds": 1_000,
+        "action_receipt_sha256": execution.causal_intent_receipt_sha256,
+        "auditory": {"changed": 0, "transported": EAR_PORT_COUNT},
+        "chemical": {
+            "smell_changed": smell_changed,
+            "smell_transported": SMELL_PORT_COUNT,
+            "taste_changed": taste_changed,
+            "taste_transported": TASTE_PORT_COUNT,
+        },
+        "proprioceptive": {
+            "changed": 0,
+            "sensor_id": ARTICULATORY_BODY_SENSOR_ID,
+            "transported": ARTICULATORY_BODY_PORT_COUNT,
+        },
+        "tactile": {"changed": 0, "transported": TOUCH_PORT_COUNT},
+        "visual": {
+            "changed": visual_changed,
+            "transported": CARD_SURFACE_PORT_COUNT,
+        },
+    }
+    return episode, [(1, 1_000)] * LESSON_OCCURRENCE_COUNT, lane_truth
 
 
 # HER GAIT, carried between steps: the way she is facing, how strong the air
@@ -7717,6 +8062,9 @@ def _whole_roster_hop_episode(
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
     moved: tuple[Fraction, ...] | None = None,
+    surface_trajectories: tuple[tuple[float, ...], ...] | None = None,
+    taste_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
+    smell_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     articulated: tuple[tuple[float, ...], ...] | None = None,
 ) -> Any:
     """One hop over the whole declared roster on one shared clock.
@@ -7738,14 +8086,21 @@ def _whole_roster_hop_episode(
     """
 
     frame_count = len(times)
+    retinal_signals = surface_trajectories or tuple(
+        (surface_levels[index],) * frame_count
+        for index in range(CARD_SURFACE_PORT_COUNT)
+    )
+    if len(retinal_signals) != CARD_SURFACE_PORT_COUNT or any(
+        len(signal) != frame_count for signal in retinal_signals
+    ):
+        raise ValueError("retinal trajectories changed anatomy or clock")
     observed = {
         PhysicalSense.SIGHT: tuple(
             _card_surface_substream(
                 row,
                 column,
                 times,
-                (surface_levels[row * CARD_SURFACE_COLUMNS + column],)
-                * frame_count,
+                retinal_signals[row * CARD_SURFACE_COLUMNS + column],
             )
             for row in range(CARD_SURFACE_ROWS)
             for column in range(CARD_SURFACE_COLUMNS)
@@ -7757,10 +8112,10 @@ def _whole_roster_hop_episode(
         observed[PhysicalSense.TOUCH] = touch_ports
     # NOTHING IS BEING EATEN unless something is: every channel carries its
     # true zero, which is a lawful state and not an absent sense.
-    taste_ports = _taste_ports(times, tasted)
+    taste_ports = _taste_ports(times, tasted, taste_trajectories)
     if taste_ports:
         observed[PhysicalSense.TASTE] = taste_ports
-    smell_ports = _smell_ports(times, smelled)
+    smell_ports = _smell_ports(times, smelled, smell_trajectories)
     if smell_ports:
         observed[PhysicalSense.SMELL] = smell_ports
     # STANDING STILL IS A LAWFUL STATE, not an absent sense.
