@@ -384,7 +384,31 @@ invented sensory energy.
   change rather than the previous monotonic approximately 1.07-MB-per-interval
   accumulation. This short window is not a long-soak bounded-storage claim.
 - Each observed committed transition retained 12 hops, all 295 complete
-  neurons, all 196,434 developmental resting neurons, and 12 mosaics. The
-  sampled intervals produced physical neuron transitions but zero new or
-  recurrent neuronal fractals. No cognition, learning, or C-023 completion is
-  claimed from this clock correction.
+  neurons, all 196,434 developmental resting neurons, and 12 mosaics. Initial
+  inspection incorrectly read the final hop's
+  `complete_neuron_fractal_count = 0` as the whole experience. The same live
+  record's exact interval total and emitted evidence both contained 27 new
+  neuronal-fractal occurrences. No recurrent fractal, cognition, learning, or
+  C-023 completion is claimed from this clock correction.
+
+## Whole-experience neuronal-fractal observation correction
+
+- Live task 1045 proves an observation-boundary contradiction: the most recent
+  admitted experience exported 27 exact sparse retained physical deltas and
+  its interval `totals.complete_neuron_fractal_count` was 27, while the public
+  `fractals.formed_in_last_experience` field reported the final quiet hop's
+  count of zero beside those 27 evidence records.
+- The candidate correction derives the public count from the exact emitted
+  evidence sequence already assembled across every committed hop. It adds no
+  threshold, score, coefficient, quota, neuron state, cognitive label, or
+  additional scan. Full joint seven-field DSF and neuron settlement are
+  unchanged.
+- Acceptance requires a multi-hop experience whose final hop is quiet to
+  report a count exactly equal to its exported evidence cardinality, followed
+  by the same equality in live production. C-023 remains in progress.
+- The focused public-observation suite passes 15/15, including a three-hop
+  specimen whose final hop reports zero while two earlier hops emit exact
+  retained deltas. Release packaging and 16 additional release-surface tests
+  pass. Two static-page tests retain superseded assumptions about a single API
+  route and an old room-image reference; neither reaches or exercises this
+  observation boundary, and no runtime or UI workaround is added for them.

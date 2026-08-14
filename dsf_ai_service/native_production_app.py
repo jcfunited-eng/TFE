@@ -2940,16 +2940,17 @@ def _retained_impression_neuron_count() -> int | None:
 def _build_public_observation() -> dict[str, Any]:
     native = _native_record()
     last = _last_transition_record()
-    last_fractal_count = (
-        _last_transition_evidence["complete_neuron_fractal_count"]
-        if _last_transition_evidence is not None
-        else 0
-    )
     last_fractal_evidence = (
         _last_transition_evidence.get("emitted_neuron_fractals", ())
         if _last_transition_evidence is not None
         else ()
     )
+    # One admitted experience may contain many physical hops.  Its top-level
+    # transition fields describe only the final hop, while this sequence is
+    # assembled from every committed hop.  Count the exact exported evidence;
+    # otherwise a final quiet hop reports zero beside the fractals emitted by
+    # earlier hops of the same experience.
+    last_fractal_count = len(last_fractal_evidence)
     retained_impressions = _retained_impression_neuron_count()
     record: dict[str, Any] = {
         "schema": PUBLIC_OBSERVATION_SCHEMA,

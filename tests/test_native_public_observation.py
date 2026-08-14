@@ -185,6 +185,54 @@ def test_public_observation_is_cached_and_conditional(monkeypatch) -> None:
     assert restored.organism.readiness_calls == 1
 
 
+def test_public_observation_counts_every_fractal_emitted_by_the_experience(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    emitted = (
+        {
+            "neuron_lineage": "01" * 16,
+            "organism_tick": 24,
+            "predecessor_organism_tick": 23,
+            "sparse_retained_delta": (("psi-winding", 0, 1),),
+        },
+        {
+            "neuron_lineage": "02" * 16,
+            "organism_tick": 25,
+            "predecessor_organism_tick": 24,
+            "sparse_retained_delta": (("receptor-quantum-residue", 0, 1),),
+        },
+    )
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            # The final hop is quiet, but two earlier hops of this same
+            # admitted experience emitted exact retained physical deltas.
+            "complete_neuron_fractal_count": 0,
+            "emitted_neuron_fractals": emitted,
+            "hop_count": 3,
+            "intake": "continuous-environment:test",
+            "totals": {
+                "complete_neuron_fractal_count": 2,
+                "current_cohort_evaluation_count": 3,
+                "dsf_delivery_count": 3,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 3,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    fractals = json.loads(serving.native_observation().body)["fractals"]
+
+    assert fractals["formed_in_last_experience"] == len(emitted)
+    assert fractals["formed_evidence_in_last_experience"] == json.loads(
+        json.dumps(emitted)
+    )
+
+
 def test_public_observation_reports_exact_sparse_attention_without_a_score(
     monkeypatch,
 ) -> None:
