@@ -2626,38 +2626,66 @@ def _same_transition_affective_body_participation(
     evidence: dict[str, Any],
     causal: dict[str, Any],
 ) -> dict[str, object] | None:
-    """Bind one causal path to one exact localized affect/body trajectory.
+    """Bind one causal formation to one exact localized affect/body trajectory.
 
-    A shared lineage is physical topology, not a semantic affect label. The
-    projection retains only exact ordinals and receipts; it neither selects an
-    action nor calls the trajectory positive, preferred, rewarding, or fun.
+    The specialized layer-10 cell is not itself a layer-11/12 motor-path cell.
+    Authority is therefore the active physical bond that placed the causal
+    retained formation and that affective cell in the same organic relation at
+    the formation's reassembly ordinal. The projection retains only exact
+    ordinals and receipts; it neither selects an action nor calls the
+    trajectory positive, preferred, rewarding, or fun.
     """
 
-    path_lineages = {
-        lineage
-        for transfer in tuple(causal.get("directed_physical_transfers", ()))
-        if isinstance(transfer, (list, tuple)) and len(transfer) >= 2
-        for lineage in transfer[:2]
-        if isinstance(lineage, str)
-    }
-    if not path_lineages:
+    formation_receipt = causal.get("formation_receipt_sha256")
+    reassembly_ordinal = causal.get("origin_organism_tick")
+    if not isinstance(formation_receipt, str) or not isinstance(
+        reassembly_ordinal, int
+    ):
         return None
     complete = tuple(
         trajectory
         for trajectory in tuple(evidence.get("affective_balance_trajectories", ()))
         if isinstance(trajectory, (list, tuple))
         and len(trajectory) == 6
-        and trajectory[0] in path_lineages
         and trajectory[3] is not None
         and trajectory[4] is not None
         and trajectory[5] is not None
         and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+        and trajectory[5][0] == reassembly_ordinal
     )
     if not complete:
         return None
-    lineage, layer, topology, association, body, gradient = sorted(
-        complete, key=lambda trajectory: trajectory[0]
-    )[0]
+    candidates: list[tuple[tuple[Any, ...], dict[str, Any], tuple[Any, ...]]] = []
+    for relation in tuple(evidence.get("organic_mosaic_relations", ())):
+        if not isinstance(relation, dict):
+            continue
+        if relation.get("organism_tick") != reassembly_ordinal:
+            continue
+        if formation_receipt not in tuple(relation.get("formation_receipts", ())):
+            continue
+        bonds = tuple(relation.get("active_physical_bonds", ()))
+        for trajectory in complete:
+            lineage = trajectory[0]
+            matching_bonds = tuple(
+                bond
+                for bond in bonds
+                if isinstance(bond, (list, tuple))
+                and len(bond) == 3
+                and lineage in bond[:2]
+            )
+            if matching_bonds:
+                candidates.append((trajectory, relation, sorted(matching_bonds)[0]))
+    if not candidates:
+        return None
+    trajectory, relation, affective_bond = min(
+        candidates,
+        key=lambda candidate: (
+            candidate[0][0],
+            candidate[1].get("structural_relation_sha256", ""),
+            candidate[2],
+        ),
+    )
+    lineage, layer, topology, association, body, gradient = trajectory
     return {
         "affective_neuron_layer": layer,
         "affective_neuron_lineage": lineage,
@@ -2668,6 +2696,10 @@ def _same_transition_affective_body_participation(
         "body_transfer_receipt_sha256": _receipt(body[1]),
         "localized_gradient_settlement_ordinal": gradient[0],
         "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
+        "organic_relation_receipt_sha256": relation[
+            "structural_relation_sha256"
+        ],
+        "formation_to_affective_bond_receipt_sha256": _receipt(affective_bond),
         "trajectory_receipt_sha256": _receipt(
             (lineage, layer, topology, association, body, gradient)
         ),
@@ -2885,13 +2917,15 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 else "play_affective_body_participation_incomplete"
             ),
             (
-                "each autonomous play action shared an exact physical lineage "
-                "with a same-transition layer-10 association/body perturbation "
-                "and later localized membrane-gradient settlement; this is "
-                "affective participation, not a named emotion or fun"
+                "each autonomous play action's exact retained formation shared "
+                "a same-transition active physical bond with a layer-10 "
+                "association/body perturbation and later localized "
+                "membrane-gradient settlement; this is affective participation, "
+                "not a named emotion or fun"
                 if affective_available
-                else "one or both play actions lacked an exact shared lineage "
-                "to a complete same-transition localized affect/body trajectory"
+                else "one or both play actions lacked an exact active formation "
+                "bond to a complete same-transition localized affect/body "
+                "trajectory"
             ),
             first_trajectory_receipt_sha256=(
                 first_affective.get("trajectory_receipt_sha256")

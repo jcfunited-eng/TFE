@@ -244,8 +244,9 @@ explicitly unavailable.
 
 The approved A-011.2 increment may only bind each already-qualified play
 episode to one complete localized affect/body trajectory in the **same admitted
-transition** when an exact lineage occurs in both the retained-formation motor
-path and that trajectory. A complete trajectory retains:
+transition** when the causal retained-formation receipt occurs in an organic
+mosaic relation whose active physical bond reaches that trajectory's layer-10
+cell at the formation reassembly ordinal. A complete trajectory retains:
 
 `layer-7 association influence -> layer-8 body influence -> same layer-10 cell -> strictly later localized membrane-gradient settlement`.
 
@@ -262,9 +263,9 @@ settlement, action, choice, persistence, DSF, or cognitive capital.
   projections are present and exact.
 - `play.fun` remains unavailable. Shared affect/body physics does not establish
   positive valence, distress exclusion, preference, or cross-context return.
-- A same-transition affective trajectory with no lineage shared by the causal
-  motor path is refused. Intake identity or timing proximity alone cannot bind
-  the records.
+- A same-transition affective trajectory with no exact active bond to the
+  causal retained formation is refused. Intake identity, timing proximity, or
+  matching topology number alone cannot bind the records.
 - No reward, valence, emotion, preference, fun, distress, or activity label is
   written into organism state or used as action authority.
 
@@ -284,3 +285,25 @@ settlement, action, choice, persistence, DSF, or cognitive capital.
   at-most-once, action consequence, unattended time, release packaging, and
   cold-restore isolation. `git diff --check` passes. The nine emitted warnings
   are pre-existing FastAPI/Pydantic deprecations outside this increment.
+
+### Task-1058 live falsification and bounded correction
+
+- Commit `9d4dfc1fa948de415c17a1e5bc5ac6562c02b577` deployed in one attempt as
+  task `dsf-ai-task:1058`, image
+  `sha256:17a8f1b5e028ec6d4eda836adffde8f73c61ca45a09b2238775014735582e570`.
+  Rehearsal and cutover passed with exact cold restore, the same organism
+  identity, zero Python cognition callbacks, and one healthy process.
+- Live task 1058 re-proved sensorimotor play at tick 95,080, but correctly
+  refused `affective_engagement`: neither action's layer-11/12 motor path can
+  share a neuron lineage with its specialized layer-10 affective cell. The
+  candidate's direct-lineage equality was therefore physically wrong and is
+  rejected as A-011.2 acceptance evidence.
+- The bounded correction uses the native physical bridge already present in
+  the same transition: the causal retained-formation receipt must occur in an
+  organic mosaic relation whose active physical bond reaches the complete
+  layer-10 affective trajectory at the formation reassembly ordinal. That
+  exact formation then remains the authority for the already-proved motor path.
+  No proximity, matching topology number, inferred label, native physics,
+  persistence schema, or action authority is added.
+- The corrected focused suite passes 29/29 and the bounded adjacent suite
+  passes 56/56 with `git diff --check` clean before corrective deployment.

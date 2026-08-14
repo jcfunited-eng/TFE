@@ -7,6 +7,7 @@ from dsf_ai_service import native_production_app as production
 
 FORMATION = "f" * 64
 SHARED_AFFECTIVE_LINEAGE = "02" * 16
+ORGANIC_RELATION = "9" * 64
 
 
 def _transition(
@@ -33,13 +34,13 @@ def _transition(
     }
     causal = {
         "action": causal_action,
-        "directed_physical_transfers": (("01" * 16, "02" * 16, 0, 3),),
+        "directed_physical_transfers": (("03" * 16, "04" * 16, 0, 3),),
         "formation_receipt_sha256": FORMATION,
         "internal_cue_lineages": ("01" * 16,),
         "motor_organism_tick": motor_tick,
         "motor_unit_recruitment": {
             "motor_layer": 12,
-            "motor_lineage": "02" * 16,
+            "motor_lineage": "04" * 16,
             "motor_topology_index": 1,
             "outward_elementary_carriers": abs(yaw),
         },
@@ -55,10 +56,10 @@ def _transition(
                 SHARED_AFFECTIVE_LINEAGE,
                 10,
                 4,
-                (origin_tick, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
-                (origin_tick, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
+                (origin_tick - 1, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
+                (origin_tick - 1, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
                 (
-                    origin_tick + 1,
+                    origin_tick,
                     -5,
                     -3,
                     -4,
@@ -72,6 +73,16 @@ def _transition(
             ),
         ),
         "causal_cross_context_use": causal,
+        "organic_mosaic_relations": (
+            {
+                "active_physical_bonds": (
+                    ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0),
+                ),
+                "formation_receipts": (FORMATION, "e" * 64),
+                "organism_tick": origin_tick,
+                "structural_relation_sha256": ORGANIC_RELATION,
+            },
+        ),
         "motor_action": {
             **causal_action,
             "internally_reassembled_formation_motor_path": causal,
@@ -147,7 +158,10 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     ] == SHARED_AFFECTIVE_LINEAGE
     assert completed["return_episode"]["affective_body_participation"][
         "localized_gradient_settlement_ordinal"
-    ] == 115
+    ] == 114
+    assert completed["return_episode"]["affective_body_participation"][
+        "organic_relation_receipt_sha256"
+    ] == ORGANIC_RELATION
     assert len(completed["evidence_receipt_sha256"]) == 64
 
 
