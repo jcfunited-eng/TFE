@@ -170,5 +170,39 @@ failures are recorded, not repaired or waived as A-009 evidence. The focused
 candidate path passes 2/2 with the exact native wheel, and the four adjacent
 action/sensorium checks pass 6/6.
 
-Status: **locally complete; immutable candidate rehearsal and live production
-acceptance remain**.
+## First live cutover and bounded-observer correction
+
+- Commit `2df85e770b89b0dcd3dcd2eb24a4639c228d626e` was deployed as
+  `dsf-ai-task:1055`, image
+  `sha256:e6033c6d048dd95ab7033a5b408550b026e8e6f637dc6a1d6e5e95fdf716a8ea`.
+  The service reached one desired, one running, zero pending, healthy task.
+- Exact current-only rehearsal and live restoration preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, 313 complete neurons, 196,416
+  developmental resting neurons, and zero Python cognition callbacks without
+  migration.
+- Live unattended action consequence was observed. The action receipt
+  `333e9d5b776bd647f9378d1dac9830c071975ac0ad485b65a8832ab6a21726c6`
+  bound the action to one 109-port consequence occurrence: sight 27, sound 34,
+  touch 27, smell 8, taste 5, and body 8, followed by the separately mounted
+  vestibular trajectory and localized internal metabolic afference. The
+  consequence committed at organism tick 92995 and ordinary processing
+  continued to tick 92996.
+- That first live cutover exposed an observation-bound defect: the read-only
+  endpoint exported internal preparation and physical-frontier graphs twice.
+  At tick 93066 the response was 3,824,041 bytes: `last_transition` was
+  3,132,401 bytes and `autonomy` was 571,173 bytes. The internal physical
+  state remained bounded; its public projection was not.
+- The current follow-up changes only the read-only projection. It omits the
+  duplicated per-neuron `prepared_recruitments` graph and reports exact counts
+  instead of copying motor/articulation recruitments, organic relations, and
+  current/preceding/foregone frontier-route arrays. The state identified by
+  `state_sha256` retains the full causal evidence. No neuron, cognition,
+  persistence, DSF, action, or consequence mechanism changes.
+- The focused exact-worktree suite passes 7/7. Applying the candidate
+  projection to the live tick-93066 response yields 180,082 bytes, a reduction
+  of 3,643,959 bytes, while retaining the state identity, action receipt,
+  sensory consequence, and exact collection counts.
+
+Status: **the causal A-009 action/consequence path is live on task 1055; A-009
+remains open until the bounded public projection is deployed and directly
+verified on its successor task**.

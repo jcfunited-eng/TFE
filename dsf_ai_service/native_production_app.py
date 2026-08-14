@@ -2149,6 +2149,16 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
     )
 
 
+def _bounded_motor_action_observation(action: dict[str, Any]) -> dict[str, Any]:
+    """Project one action without exporting its per-neuron preparation graph."""
+
+    return {
+        key: value
+        for key, value in action.items()
+        if key != "prepared_recruitments"
+    }
+
+
 def _autonomy_record() -> dict[str, object]:
     """Truth-coupled observation of continuous native settlement.
 
@@ -2239,7 +2249,7 @@ def _autonomy_record() -> dict[str, object]:
             ),
             thought=not_mounted["thought"],
             last_interval=last_interval,
-            motor_action=dict(motor_action),
+            motor_action=_bounded_motor_action_observation(motor_action),
             self_maintenance=measured,
             unattended_time=unattended_time,
         )
@@ -3227,11 +3237,32 @@ def _last_transition_record() -> dict[str, object]:
             "no_transition_this_process",
             "no admitted native transition has been committed by this process",
         )
+    evidence = dict(_last_transition_evidence)
+    motor_action = evidence.get("motor_action")
+    if isinstance(motor_action, dict):
+        evidence["motor_action"] = _bounded_motor_action_observation(motor_action)
+    for field, count_field in (
+        ("motor_unit_recruitments", "motor_unit_recruitment_count"),
+        ("articulatory_unit_recruitments", "articulatory_unit_recruitment_count"),
+        ("organic_mosaic_relations", "organic_mosaic_relation_count"),
+        ("physical_frontier_routes", "physical_frontier_route_count"),
+        (
+            "preceding_distinct_physical_frontier_routes",
+            "preceding_distinct_physical_frontier_route_count",
+        ),
+        (
+            "reached_and_foregone_physical_frontier_routes",
+            "reached_and_foregone_physical_frontier_route_count",
+        ),
+    ):
+        values = evidence.pop(field, ())
+        evidence[count_field] = len(values) if isinstance(values, (list, tuple)) else 0
     return _section(
         True,
         "committed_admitted_transition",
-        "facts of the most recent committed admitted transition in this process",
-        **_last_transition_evidence,
+        "bounded facts of the most recent committed admitted transition; exact "
+        "cognitive detail remains in the state identified by state_sha256",
+        **evidence,
     )
 
 

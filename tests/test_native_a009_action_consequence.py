@@ -176,3 +176,39 @@ def test_rigid_yaw_reports_local_proprioception_as_reached_quiescence(
     assert evidence["changed_site_count"] == 0
     assert evidence["reached_site_count"] == 4
     assert evidence["native_neuronal_participation"] is True
+
+
+def test_public_action_consequence_does_not_export_preparation_graphs(
+    monkeypatch,
+) -> None:
+    motor_action = {
+        "moved": True,
+        "motor_unit_recruitment_count": 2,
+        "prepared_recruitments": ({"large": "internal"},) * 2,
+        "sensory_consequence": {"action_receipt_sha256": "22" * 32},
+    }
+    monkeypatch.setattr(
+        production,
+        "_last_transition_evidence",
+        {
+            "state_sha256": "33" * 32,
+            "motor_action": motor_action,
+            "motor_unit_recruitments": (1, 2),
+            "articulatory_unit_recruitments": (3,),
+            "organic_mosaic_relations": (4, 5, 6),
+            "physical_frontier_routes": (7,),
+            "preceding_distinct_physical_frontier_routes": (8, 9),
+            "reached_and_foregone_physical_frontier_routes": (10, 11, 12, 13),
+        },
+    )
+
+    observed = production._last_transition_record()
+
+    assert "prepared_recruitments" not in observed["motor_action"]
+    assert observed["motor_action"]["motor_unit_recruitment_count"] == 2
+    assert observed["motor_unit_recruitment_count"] == 2
+    assert observed["articulatory_unit_recruitment_count"] == 1
+    assert observed["organic_mosaic_relation_count"] == 3
+    assert observed["physical_frontier_route_count"] == 1
+    assert observed["preceding_distinct_physical_frontier_route_count"] == 2
+    assert observed["reached_and_foregone_physical_frontier_route_count"] == 4
