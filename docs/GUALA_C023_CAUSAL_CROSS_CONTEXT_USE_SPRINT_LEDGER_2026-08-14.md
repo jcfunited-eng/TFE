@@ -412,3 +412,16 @@ invented sensory energy.
   pass. Two static-page tests retain superseded assumptions about a single API
   route and an old room-image reference; neither reaches or exercises this
   observation boundary, and no runtime or UI workaround is added for them.
+- Commit `cdb4f10dc3f596a07d73288930191605829022c7`, image
+  `sha256:fa33839f6d65ff6fdfcd857845815050bfaad799d1ce9b804d5c5dca8786a3a3`,
+  and task `dsf-ai-task:1046` deployed through one successful controller
+  attempt in 20 minutes 2 seconds. The discarded-current-state rehearsal
+  cold-restored tick 82,666 byte-exact with unchanged identity, 295 complete
+  neurons, 196,434 developmental resting neurons, and zero Python cognition
+  callbacks. ECS settled at one running process, zero pending processes, and
+  a completed rollout.
+- Live task 1046 at tick 82,757 reports final-hop fractal count `0`, exact
+  whole-experience total `27`, public `formed_in_last_experience = 27`, and
+  exactly 27 exported sparse evidence records. Identity remains
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; Python cognition callbacks remain
+  zero. The observation correction is live-closed. C-023 remains in progress.
