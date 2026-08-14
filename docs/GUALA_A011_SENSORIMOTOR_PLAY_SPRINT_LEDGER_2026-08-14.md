@@ -226,3 +226,61 @@ explicitly unavailable.
 | RF-025 / RF-029 | A-011 live acceptance is read-only; no state-changing public request or retry is permitted. |
 | RF-030 / RF-037 / RF-042 | No signature, boundary-handle method, interval horizon, or signed-motion validator changes. Both yaw directions are lawful; only zero is rejected by the observer. |
 | RF-039 / RF-041 / RF-045 | No receptor population, fractal composition, sensor clock, or occurrence transport changes. |
+
+## A-011.2 approved affect/body increment
+
+### Production predecessor
+
+- The sensorimotor-play increment is live-closed on task `dsf-ai-task:1057`,
+  commit `ef08aa7c42435627b1a0be1d74251f5213af432a`, and image
+  `sha256:d0bbeb5ef4528b4fa1613dcb2828b16c9595f065e068c8258a38381d3371c420`.
+- Live task 1057 observed the same retained formation cause distinct `-38` and
+  `-44` millidegree actions at world revisions 4,138 and 4,139. Each action
+  returned through vestibular and body receptors. The completed witness is
+  constant-size, Python cognition callbacks remain zero, and fun, social joy,
+  and laughter remain unavailable.
+
+### Frozen change
+
+The approved A-011.2 increment may only bind each already-qualified play
+episode to one complete localized affect/body trajectory in the **same admitted
+transition** when an exact lineage occurs in both the retained-formation motor
+path and that trajectory. A complete trajectory retains:
+
+`layer-7 association influence -> layer-8 body influence -> same layer-10 cell -> strictly later localized membrane-gradient settlement`.
+
+The observer projects only the shared lineage, physical place, exact cognitive
+ordinals, and receipts of the two transfers, gradient settlement, and complete
+trajectory. It does not retain the path or trajectory bodies. It does not alter
+settlement, action, choice, persistence, DSF, or cognitive capital.
+
+### Acceptance and refusal
+
+- Both episodes in the already-required varied play witness must carry a
+  nonempty `affective_body_participation` projection.
+- `play.affective_engagement` may become available only when both episode
+  projections are present and exact.
+- `play.fun` remains unavailable. Shared affect/body physics does not establish
+  positive valence, distress exclusion, preference, or cross-context return.
+- A same-transition affective trajectory with no lineage shared by the causal
+  motor path is refused. Intake identity or timing proximity alone cannot bind
+  the records.
+- No reward, valence, emotion, preference, fun, distress, or activity label is
+  written into organism state or used as action authority.
+
+### Initial candidate evidence
+
+- The translation review found that the ordinary committed transition already
+  carries both `causal_cross_context_use.directed_physical_transfers` and
+  `affective_balance_trajectories`; no native, FFI, persistence, or DSF change
+  is required.
+- The first bounded live poll did not observe another retained-formation action
+  and therefore supplied no acceptance evidence. It was not treated as a
+  failure or success.
+- Focused A-011, C-017 affective-balance, A-006 intrinsic-cause, public observer,
+  and C-024 cognitive-capital tests pass 29/29 after correcting one test-only
+  ordinal typo (`114 + 1 = 115`).
+- The bounded adjacent acceptance suite passes 56/56, including action
+  at-most-once, action consequence, unattended time, release packaging, and
+  cold-restore isolation. `git diff --check` passes. The nine emitted warnings
+  are pre-existing FastAPI/Pydantic deprecations outside this increment.

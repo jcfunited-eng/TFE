@@ -2622,6 +2622,58 @@ def _physical_choice_record() -> dict[str, object]:
     )
 
 
+def _same_transition_affective_body_participation(
+    evidence: dict[str, Any],
+    causal: dict[str, Any],
+) -> dict[str, object] | None:
+    """Bind one causal path to one exact localized affect/body trajectory.
+
+    A shared lineage is physical topology, not a semantic affect label. The
+    projection retains only exact ordinals and receipts; it neither selects an
+    action nor calls the trajectory positive, preferred, rewarding, or fun.
+    """
+
+    path_lineages = {
+        lineage
+        for transfer in tuple(causal.get("directed_physical_transfers", ()))
+        if isinstance(transfer, (list, tuple)) and len(transfer) >= 2
+        for lineage in transfer[:2]
+        if isinstance(lineage, str)
+    }
+    if not path_lineages:
+        return None
+    complete = tuple(
+        trajectory
+        for trajectory in tuple(evidence.get("affective_balance_trajectories", ()))
+        if isinstance(trajectory, (list, tuple))
+        and len(trajectory) == 6
+        and trajectory[0] in path_lineages
+        and trajectory[3] is not None
+        and trajectory[4] is not None
+        and trajectory[5] is not None
+        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+    )
+    if not complete:
+        return None
+    lineage, layer, topology, association, body, gradient = sorted(
+        complete, key=lambda trajectory: trajectory[0]
+    )[0]
+    return {
+        "affective_neuron_layer": layer,
+        "affective_neuron_lineage": lineage,
+        "affective_neuron_topology_index": topology,
+        "association_influence_ordinal": association[0],
+        "association_transfer_receipt_sha256": _receipt(association[1]),
+        "body_influence_ordinal": body[0],
+        "body_transfer_receipt_sha256": _receipt(body[1]),
+        "localized_gradient_settlement_ordinal": gradient[0],
+        "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
+        "trajectory_receipt_sha256": _receipt(
+            (lineage, layer, topology, association, body, gradient)
+        ),
+    }
+
+
 def _sensorimotor_play_episode_from_transition(
     evidence: dict[str, Any],
     physical_choice: dict[str, Any] | None,
@@ -2682,7 +2734,7 @@ def _sensorimotor_play_episode_from_transition(
         or body_receptors <= 0
     ):
         return None
-    return {
+    episode = {
         "action_causal_intent_receipt_sha256": action_receipt,
         "body_receptor_return_count": body_receptors,
         "causal_path_receipt_sha256": _receipt(causal),
@@ -2696,6 +2748,12 @@ def _sensorimotor_play_episode_from_transition(
         "vestibular_tick_count": vestibular_ticks,
         "world_revision": world_revision,
     }
+    affective_participation = _same_transition_affective_body_participation(
+        evidence, causal
+    )
+    if affective_participation is not None:
+        episode["affective_body_participation"] = affective_participation
+    return episode
 
 
 def _advance_bounded_sensorimotor_play_evidence(
@@ -2763,12 +2821,6 @@ def _sensorimotor_play_record() -> dict[str, object]:
         "timer_choice_authority": False,
     }
     unavailable = {
-        "fun": _section(
-            False,
-            "positive_engagement_trajectory_unproved",
-            "sensorimotor return does not yet prove positive valence, sustained "
-            "engagement, preference, or later cross-context return",
-        ),
         "social_joy": _section(
             False,
             "reciprocal_social_play_unproved",
@@ -2790,8 +2842,29 @@ def _sensorimotor_play_record() -> dict[str, object]:
             "actions from the same internally reassembled retained formation, "
             "with the first action completed before a varied later return",
             **authority,
+            affective_engagement=_section(
+                False,
+                "play_affective_body_participation_unproved",
+                "no completed varied play witness is available to test against "
+                "same-transition localized affect/body physics",
+            ),
+            fun=_section(
+                False,
+                "positive_engagement_trajectory_unproved",
+                "sensorimotor return does not yet prove positive valence, "
+                "distress exclusion, preference, or cross-context return",
+            ),
             **unavailable,
         )
+    first_affective = _last_sensorimotor_play_evidence["first_episode"].get(
+        "affective_body_participation"
+    )
+    return_affective = _last_sensorimotor_play_evidence["return_episode"].get(
+        "affective_body_participation"
+    )
+    affective_available = isinstance(first_affective, dict) and isinstance(
+        return_affective, dict
+    )
     return _section(
         True,
         "sensorimotor_play_observed",
@@ -2804,6 +2877,41 @@ def _sensorimotor_play_record() -> dict[str, object]:
         voluntary_return=True,
         **_last_sensorimotor_play_evidence,
         **authority,
+        affective_engagement=_section(
+            affective_available,
+            (
+                "both_play_actions_shared_exact_localized_affective_body_physics"
+                if affective_available
+                else "play_affective_body_participation_incomplete"
+            ),
+            (
+                "each autonomous play action shared an exact physical lineage "
+                "with a same-transition layer-10 association/body perturbation "
+                "and later localized membrane-gradient settlement; this is "
+                "affective participation, not a named emotion or fun"
+                if affective_available
+                else "one or both play actions lacked an exact shared lineage "
+                "to a complete same-transition localized affect/body trajectory"
+            ),
+            first_trajectory_receipt_sha256=(
+                first_affective.get("trajectory_receipt_sha256")
+                if isinstance(first_affective, dict)
+                else None
+            ),
+            return_trajectory_receipt_sha256=(
+                return_affective.get("trajectory_receipt_sha256")
+                if isinstance(return_affective, dict)
+                else None
+            ),
+            named_emotion_authority=False,
+            reward_authority=False,
+        ),
+        fun=_section(
+            False,
+            "positive_engagement_trajectory_unproved",
+            "even exact affect/body participation does not establish positive "
+            "valence, distress exclusion, preference, or cross-context return",
+        ),
         **unavailable,
     )
 

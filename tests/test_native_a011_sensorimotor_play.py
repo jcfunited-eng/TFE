@@ -6,6 +6,7 @@ from dsf_ai_service import native_production_app as production
 
 
 FORMATION = "f" * 64
+SHARED_AFFECTIVE_LINEAGE = "02" * 16
 
 
 def _transition(
@@ -49,6 +50,27 @@ def _transition(
         "sensed_consequence": consequence,
     }
     transition = {
+        "affective_balance_trajectories": (
+            (
+                SHARED_AFFECTIVE_LINEAGE,
+                10,
+                4,
+                (origin_tick, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
+                (origin_tick, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
+                (
+                    origin_tick + 1,
+                    -5,
+                    -3,
+                    -4,
+                    2,
+                    2,
+                    0,
+                    (11, 2),
+                    (13, 2),
+                    (1, 1),
+                ),
+            ),
+        ),
         "causal_cross_context_use": causal,
         "motor_action": {
             **causal_action,
@@ -120,6 +142,12 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     assert completed["return_gap_organism_ticks"] == 11
     assert completed["first_episode"]["signed_yaw_millidegrees"] == -58
     assert completed["return_episode"]["signed_yaw_millidegrees"] == -40
+    assert completed["first_episode"]["affective_body_participation"][
+        "affective_neuron_lineage"
+    ] == SHARED_AFFECTIVE_LINEAGE
+    assert completed["return_episode"]["affective_body_participation"][
+        "localized_gradient_settlement_ordinal"
+    ] == 115
     assert len(completed["evidence_receipt_sha256"]) == 64
 
 
@@ -197,8 +225,31 @@ def test_public_record_does_not_inflate_play_into_fun_or_laughter(monkeypatch) -
     assert observed["status"] == "sensorimotor_play_observed"
     assert observed["endogenous_initiation"] is True
     assert observed["voluntary_return"] is True
+    assert observed["affective_engagement"]["available"] is True
+    assert observed["affective_engagement"]["named_emotion_authority"] is False
     assert observed["fun"]["available"] is False
     assert observed["social_joy"]["available"] is False
     assert observed["laughter"]["available"] is False
     assert observed["python_action_authority"] is False
     assert observed["reward_authority"] is False
+
+
+def test_unshared_affective_trajectory_cannot_be_bound_to_play() -> None:
+    transition, choice = _transition(
+        action_receipt="7" * 64,
+        origin_tick=400,
+        yaw=22,
+        world_revision=40,
+    )
+    trajectory = list(transition["affective_balance_trajectories"][0])
+    trajectory[0] = "09" * 16
+    transition["affective_balance_trajectories"] = (tuple(trajectory),)
+
+    episode = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:unshared",
+    )
+
+    assert episode is not None
+    assert "affective_body_participation" not in episode
