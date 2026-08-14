@@ -5516,57 +5516,65 @@ def _advance_bounded_localized_fluid_chemistry_evidence(
     return (witness,) if witness is not None else retained
 
 
-def _advance_internal_formation_motor_trace(
+def _advance_causal_motor_traces(
     organism: Any,
     active: dict[
-        tuple[str, tuple[str, ...], int],
+        tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
-    completed: dict[str, Any] | None,
+    completed: dict[str, dict[str, Any]],
     hop: dict[str, Any],
 ) -> tuple[
     dict[
-        tuple[str, tuple[str, ...], int],
+        tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
-    dict[str, Any] | None,
+    dict[str, dict[str, Any]],
 ]:
-    """Follow exact changed endpoints from internal recurrence to later motor discharge.
+    """Follow exact changed endpoints from physical causes to later motor discharge.
 
     Every prepared hop must represent exactly one physical interval; otherwise
     the Python boundary cannot observe the intervening frontiers and makes no
-    causal claim. The retained formation never becomes settlement authority:
-    this observer follows only whole-carrier transfers already present in the
-    native active frontier.
+    causal claim. Neither a retained formation nor a new neuronal impression
+    becomes settlement authority: this observer follows only whole-carrier
+    transfers already present in the native active frontier. Both origin kinds
+    share one union query per hop.
     """
 
-    if completed is not None:
+    origin_kinds = ("retained_formation", "new_neuronal_fractal")
+    if all(kind in completed for kind in origin_kinds):
         return active, completed
     predecessor_tick = int(hop["predecessor_organism_tick"])
     organism_tick = int(hop["organism_tick"])
     if organism_tick != predecessor_tick + 1:
-        return {}, None
-    next_active = dict(active)
-    for receipt, cue_lineages in hop["internally_reassembled_formation_cues"]:
-        cues = tuple(cue_lineages)
-        key = (receipt, cues, organism_tick)
-        next_active.setdefault(key, {lineage: () for lineage in cues})
-    if not next_active:
-        return {}, None
-    reached_lineages = tuple(
-        sorted(
-            {
-                lineage
-                for paths in next_active.values()
-                for lineage in paths
-            }
+        return {}, completed
+    next_active = {
+        key: paths
+        for key, paths in active.items()
+        if key[0] not in completed
+    }
+    if "retained_formation" not in completed:
+        for receipt, cue_lineages in hop["internally_reassembled_formation_cues"]:
+            cues = tuple(cue_lineages)
+            key = ("retained_formation", receipt, cues, organism_tick)
+            next_active.setdefault(key, {lineage: () for lineage in cues})
+    if next_active:
+        reached_lineages = tuple(
+            sorted(
+                {
+                    lineage
+                    for paths in next_active.values()
+                    for lineage in paths
+                }
+            )
         )
-    )
-    transfers = organism.observe_active_electrical_frontier_advances_from(
-        reached_lineages
-    )
+        transfers = organism.observe_active_electrical_frontier_advances_from(
+            reached_lineages
+        )
+    else:
+        transfers = ()
     advanced: dict[
-        tuple[str, tuple[str, ...], int],
+        tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ] = {}
     for key, paths_by_lineage in next_active.items():
@@ -5589,9 +5597,16 @@ def _advance_internal_formation_motor_trace(
                 next_paths[frontier] = candidate
         if next_paths:
             advanced[key] = next_paths
-    proofs: list[dict[str, Any]] = []
-    for (receipt, cues, recurrence_tick), paths_by_lineage in next_active.items():
-        if organism_tick <= recurrence_tick:
+    proofs: dict[str, list[dict[str, Any]]] = {
+        kind: [] for kind in origin_kinds if kind not in completed
+    }
+    for (
+        origin_kind,
+        origin_receipt,
+        origin_lineages,
+        origin_tick,
+    ), paths_by_lineage in next_active.items():
+        if organism_tick <= origin_tick:
             continue
         for recruitment in hop["motor_unit_recruitments"]:
             motor_lineage, topology_index, outward_carriers, preparation = recruitment
@@ -5615,35 +5630,103 @@ def _advance_internal_formation_motor_trace(
                 motor_transfer = (sender, receiver, ordinal, carriers)
                 if motor_transfer in prior_path:
                     continue
-                proofs.append(
-                    {
-                        "formation_receipt_sha256": receipt,
-                        "internal_cue_lineages": cues,
-                        "recurrence_organism_tick": recurrence_tick,
-                        "motor_organism_tick": organism_tick,
-                        "directed_physical_transfers": prior_path
-                        + (motor_transfer,),
-                        "motor_unit_recruitment": {
-                            "motor_lineage": motor_lineage,
-                            "motor_layer": 12,
-                            "motor_topology_index": topology_index,
-                            "outward_elementary_carriers": outward_carriers,
-                            "preparation_transfers": preparation,
-                        },
-                    }
-                )
-    if not proofs:
-        return advanced, None
-    proof = min(
-        proofs,
-        key=lambda item: (
-            len(item["directed_physical_transfers"]),
-            item["directed_physical_transfers"],
-            item["formation_receipt_sha256"],
-            item["internal_cue_lineages"],
-        ),
+                proof = {
+                    "origin_kind": origin_kind,
+                    "origin_lineages": origin_lineages,
+                    "origin_organism_tick": origin_tick,
+                    "motor_organism_tick": organism_tick,
+                    "directed_physical_transfers": prior_path
+                    + (motor_transfer,),
+                    "motor_unit_recruitment": {
+                        "motor_lineage": motor_lineage,
+                        "motor_layer": 12,
+                        "motor_topology_index": topology_index,
+                        "outward_elementary_carriers": outward_carriers,
+                        "preparation_transfers": preparation,
+                    },
+                }
+                if origin_kind == "retained_formation":
+                    proof.update(
+                        formation_receipt_sha256=origin_receipt,
+                        internal_cue_lineages=origin_lineages,
+                        recurrence_organism_tick=origin_tick,
+                    )
+                else:
+                    proof.update(
+                        emitted_neuron_lineages=origin_lineages,
+                        impression_organism_tick=origin_tick,
+                    )
+                proofs[origin_kind].append(proof)
+    next_completed = dict(completed)
+    for origin_kind, candidates in proofs.items():
+        if candidates:
+            next_completed[origin_kind] = min(
+                candidates,
+                key=lambda item: (
+                    len(item["directed_physical_transfers"]),
+                    item["directed_physical_transfers"],
+                    item["origin_lineages"],
+                    item["origin_organism_tick"],
+                ),
+            )
+    advanced = {
+        key: paths
+        for key, paths in advanced.items()
+        if key[0] not in next_completed
+    }
+    if "new_neuronal_fractal" not in next_completed:
+        emitted = tuple(
+            sorted(
+                {
+                    str(fractal["neuron_lineage"])
+                    for fractal in hop.get("emitted_neuron_fractals", ())
+                }
+            )
+        )
+        if emitted:
+            key = ("new_neuronal_fractal", "", emitted, organism_tick)
+            advanced.setdefault(key, {lineage: () for lineage in emitted})
+    return advanced, next_completed
+
+
+def _advance_internal_formation_motor_trace(
+    organism: Any,
+    active: dict[
+        tuple[str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+    completed: dict[str, Any] | None,
+    hop: dict[str, Any],
+) -> tuple[
+    dict[
+        tuple[str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+    dict[str, Any] | None,
+]:
+    """Compatibility surface for the already-live C-023 focused proof."""
+
+    if completed is not None:
+        return active, completed
+    typed_active = {
+        ("retained_formation", receipt, lineages, tick): paths
+        for (receipt, lineages, tick), paths in active.items()
+    }
+    typed_completed = (
+        {"retained_formation": completed} if completed is not None else {}
     )
-    return advanced, proof
+    next_active, next_completed = _advance_causal_motor_traces(
+        organism,
+        typed_active,
+        typed_completed,
+        hop,
+    )
+    formation_active = {
+        (receipt, lineages, tick): paths
+        for (kind, receipt, lineages, tick), paths in next_active.items()
+        if kind == "retained_formation"
+    }
+    return formation_active, next_completed.get("retained_formation")
 
 
 def _publish_committed_organism(
@@ -5867,11 +5950,11 @@ def _perform_admitted_intake_locked(
     body_consequence_transfers: tuple[tuple[Any, ...], ...] = ()
     affective_balance_trajectories: tuple[tuple[Any, ...], ...] = ()
     localized_fluid_chemistry: tuple[tuple[Any, ...], ...] = ()
-    active_internal_formation_traces: dict[
-        tuple[str, tuple[str, ...], int],
+    active_causal_motor_traces: dict[
+        tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ] = {}
-    internally_reassembled_motor_path: dict[str, Any] | None = None
+    completed_causal_motor_traces: dict[str, dict[str, Any]] = {}
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -5882,12 +5965,12 @@ def _perform_admitted_intake_locked(
                 signed_steps,
             )
             (
-                active_internal_formation_traces,
-                internally_reassembled_motor_path,
-            ) = _advance_internal_formation_motor_trace(
+                active_causal_motor_traces,
+                completed_causal_motor_traces,
+            ) = _advance_causal_motor_traces(
                 organism,
-                active_internal_formation_traces,
-                internally_reassembled_motor_path,
+                active_causal_motor_traces,
+                completed_causal_motor_traces,
                 last_hop,
             )
             (
@@ -5943,12 +6026,12 @@ def _perform_admitted_intake_locked(
                 organism, episode, admissions
             )
             (
-                active_internal_formation_traces,
-                internally_reassembled_motor_path,
-            ) = _advance_internal_formation_motor_trace(
+                active_causal_motor_traces,
+                completed_causal_motor_traces,
+            ) = _advance_causal_motor_traces(
                 organism,
-                active_internal_formation_traces,
-                internally_reassembled_motor_path,
+                active_causal_motor_traces,
+                completed_causal_motor_traces,
                 last_hop,
             )
             (
@@ -6045,12 +6128,12 @@ def _perform_admitted_intake_locked(
                     organism, self_hearing_episode, admissions
                 )
                 (
-                    active_internal_formation_traces,
-                    internally_reassembled_motor_path,
-                ) = _advance_internal_formation_motor_trace(
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                ) = _advance_causal_motor_traces(
                     organism,
-                    active_internal_formation_traces,
-                    internally_reassembled_motor_path,
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
                     last_hop,
                 )
                 self_hearing_hop_count += 1
@@ -6162,12 +6245,12 @@ def _perform_admitted_intake_locked(
                     trajectory,
                 )
                 (
-                    active_internal_formation_traces,
-                    internally_reassembled_motor_path,
-                ) = _advance_internal_formation_motor_trace(
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                ) = _advance_causal_motor_traces(
                     organism,
-                    active_internal_formation_traces,
-                    internally_reassembled_motor_path,
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
                     last_hop,
                 )
                 (
@@ -6274,7 +6357,10 @@ def _perform_admitted_intake_locked(
                 "world_state_after_sha256": execution.after.state_sha256,
                 "world_state_before_sha256": execution.before.state_sha256,
                 "internally_reassembled_formation_motor_path": (
-                    internally_reassembled_motor_path
+                    completed_causal_motor_traces.get("retained_formation")
+                ),
+                "new_neuronal_fractal_motor_path": (
+                    completed_causal_motor_traces.get("new_neuronal_fractal")
                 ),
             }
             _last_self_moved = dict(motor_action)
@@ -6298,10 +6384,44 @@ def _perform_admitted_intake_locked(
         "sense_counts": receptor_ingress_sense_counts,
         "source_hop_count": committed_hop_count,
     }
+    internally_reassembled_motor_path = completed_causal_motor_traces.get(
+        "retained_formation"
+    )
+    new_neuronal_fractal_motor_path = completed_causal_motor_traces.get(
+        "new_neuronal_fractal"
+    )
     causal_cross_context_use: dict[str, Any] | None = None
     if motor_action is not None and internally_reassembled_motor_path is not None:
         causal_cross_context_use = {
             **internally_reassembled_motor_path,
+            "action": {
+                "causal_intent_receipt_sha256": motor_action[
+                    "causal_intent_receipt_sha256"
+                ],
+                "command_sha256": motor_action["command_sha256"],
+                "observed_world_revision": motor_action[
+                    "observed_world_revision"
+                ],
+                "world_state_after_sha256": motor_action[
+                    "world_state_after_sha256"
+                ],
+                "world_state_before_sha256": motor_action[
+                    "world_state_before_sha256"
+                ],
+            },
+            "sensed_consequence": {
+                "vestibular_tick_count": motor_action["vestibular_tick_count"],
+                "externally_perturbed_body_receptor_count": last_hop[
+                    "externally_perturbed_body_receptor_count"
+                ],
+                "successor_organism_tick": last_hop["organism_tick"],
+                "successor_state_sha256": last_hop["state_sha256"],
+            },
+        }
+    new_impression_causal_use: dict[str, Any] | None = None
+    if motor_action is not None and new_neuronal_fractal_motor_path is not None:
+        new_impression_causal_use = {
+            **new_neuronal_fractal_motor_path,
             "action": {
                 "causal_intent_receipt_sha256": motor_action[
                     "causal_intent_receipt_sha256"
@@ -6333,6 +6453,7 @@ def _perform_admitted_intake_locked(
         "intake": intake,
         "motor_action": motor_action,
         "causal_cross_context_use": causal_cross_context_use,
+        "new_impression_causal_use": new_impression_causal_use,
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,
