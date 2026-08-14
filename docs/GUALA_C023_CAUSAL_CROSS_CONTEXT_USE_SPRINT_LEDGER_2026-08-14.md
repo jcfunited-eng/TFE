@@ -15,8 +15,10 @@ Status: In progress. No C-023 production claim exists.
   The same organism internally reorganized retained structure, retained
   `internally_simulated` provenance, cold-restored exactly, and used zero
   Python cognition callbacks.
-- Production baseline: the same task and organism identity
-  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- Production baseline: task `dsf-ai-task:1046`, commit
+  `cdb4f10dc3f596a07d73288930191605829022c7`, image
+  `sha256:fa33839f6d65ff6fdfcd857845815050bfaad799d1ce9b804d5c5dca8786a3a3`,
+  and organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
 - Ledger movement: advance to C-023. C-022 is not reopened.
 
 ## Architecture honesty gate
@@ -425,3 +427,150 @@ invented sensory energy.
   exactly 27 exported sparse evidence records. Identity remains
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; Python cognition callbacks remain
   zero. The observation correction is live-closed. C-023 remains in progress.
+
+## Internally reassembled formation to action — current subrelease
+
+### Architecture honesty gate
+
+1. Requested architecture: retained neuron/contact physics participating in an
+   internally reassembled formation must causally alter later physical
+   settlement, action preparation, embodied action, and sensed consequence.
+2. Current code reality: the exact task-1046 predecessor deterministically
+   produces an internally simulated recurrence of one 14-neuron retained
+   formation from four metabolically perturbed layer-5 body receptors. The
+   same interval also contains 15 motor and 9 articulatory recruitments, but
+   no directed carrier path connects those cue neurons to the recruitments.
+3. Conflict: yes. Co-occurrence is not causal cross-context use.
+4. Mechanisms not extended: retained mosaic records as settlement authority,
+   semantic triggers, formation hierarchy, dream/autonomy archives, scores,
+   timers, owners, locks, databases, scripted actions, or L0-L4.
+5. Single exact next item: preserve exact physical carrier direction separately
+   from the one previously unseeded endpoint reached by a nonzero local contact
+   transfer, then require that endpoint-local frontier to continue into a later
+   motor recruitment before any action claim.
+6. DSF scope: unchanged full joint seven-field L0-L4 remains authoritative.
+7. Lost DSF structure: none.
+
+### Change-impact record
+
+- Exact input: four layer-5 formation-member neurons whose local recovery
+  settlement changes their membrane gradients during a dark/silent ordinary
+  whole-sensorium interval.
+- Function path:
+  `resident_cognitive_formation::settle_internal_contact_interval`
+  `-> settle_sparse_electrical_transfers`
+  `-> next_active_frontier`
+  `-> later settle_internal_contact_interval`
+  `-> MotorUnitRecruitment`
+  `-> native at-most-once body action`
+  `-> vestibular/body consequence`.
+- Current state transformation: exact carrier transfer changes both contact
+  endpoints, but `next_active_frontier` retains only the receiving endpoint.
+  In the task-1046 specimen every internal cue pulls carriers from a layer-6
+  or layer-9 neighbour, so the changed sender is discarded and the cue never
+  becomes a directed outward continuation.
+- Required state transformation: the exact sender, receiver, physical bond,
+  and carrier count remain unchanged, while the one previously unseeded bond
+  endpoint is separately retained as the advancing causal frontier. A contact
+  with both or neither endpoint already seeded cannot advance that boundary.
+  No population scan, semantic record, counter, or copied formation state may
+  enter settlement.
+- Expected output: at least one internally reassembled formation cue has a
+  continuous exact contact-transfer lineage into a later layer-12 recruitment;
+  that recruitment causes one ordinary body action whose vestibular/body return
+  re-enters the same organism. If the physics does not produce that path, the
+  release is falsified rather than relabelled.
+- Production acceptance: starting from the authenticated task-1046 body, cold
+  replay the same ordinary input byte-exact; deploy once; observe the causal
+  cue-to-motor path, applied action, sensed consequence, unchanged identity,
+  zero Python cognition callbacks, and bounded reached-frontier CPU/RAM/state.
+
+### Pre-edit production/model evidence
+
+- Immutable task-1046 body SHA-256
+  `bb30df55491c0c8ec38c3a1eef668a3b36d60ec331ed3f1a1f21a798c3a7fe65`
+  was fetched from the content-addressed production mirror and verified
+  byte-exact at 56,291,910 bytes.
+- A fresh native wheel from current source loaded from
+  `/tmp/guala-c023-site.ikHnP8TJ/guala_core` with extension SHA-256
+  `7fdeab1918639ca3a34b3c71903544a3adca56eea5d98938d91e5f002bb54819`.
+- Two exact replays both changed the same retained formation on the first
+  interval, with four internal cues, 15 motor recruitments, 9 articulatory
+  recruitments, exact cold restoration, and zero Python cognition callbacks.
+- Across 16 consecutive ordinary intervals, each of the four cue neurons had
+  zero outward frontier transfers. Each instead received one exact transfer
+  from layer 6 or layer 9. Existing working-continuation evidence never passed
+  through a cue lineage. Therefore the current motor events are not accepted
+  as use of the internally reassembled formation.
+
+### Frontier hypotheses and candidate evidence
+
+- Falsified narrow hypothesis: retaining only the physical carrier receiver
+  lost causal continuation whenever current flowed toward the already-seeded
+  endpoint. Sixteen ordinary intervals produced no cue-to-motor path.
+- Rejected broad hypothesis: retaining both changed endpoints produced the
+  desired path in three intervals, but activated approximately 1,600 of the
+  body's 1,617 reached contacts. It converted the already-reached interior into
+  permanent seeds and was removed before release.
+- Corrected local law: carrier direction and causal-frontier direction are
+  distinct facts. Current codec `GLCOG023` keeps the exact physical transfer
+  and one bit identifying whether its sender or receiver is the newly reached
+  endpoint. Historical formats decode without inventing that bit; the ordinary
+  next successor writes the new current format. No per-entry bytes, neuron,
+  contact, semantic state, threshold, score, or settlement scan is added.
+- Focused Rust proof executes one test and passes: physical direction remains
+  byte-exact while either endpoint can be the single causal frontier. Historical
+  receiver-only frontier migration also executes one test and passes. The
+  focused Python causal trace passes 2/2 and advances only across an exact XOR
+  boundary rather than copying both endpoints forward.
+- An intermediate four-contact observer path was rejected before release. It
+  inferred the advancing endpoint from transfer incidence alone and therefore
+  mistook one arrival at the tracked endpoint for an onward causal departure.
+  The native observation boundary now exports the separately retained frontier
+  endpoint; the Python trace follows only an exact advance from its prior
+  lineage. Its final edge must also be one of the layer-12 recruitment's own
+  exact layer-11 preparation transfers, rather than merely touching a motor
+  neuron that happened to recruit.
+- Fresh isolated release wheel
+  `/tmp/guala-c023-build.Vs2h8v/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`
+  has SHA-256
+  `754fd4e64800563d311c6ed2b35c1ab8fbe30c6e250f1d8f861dd95d3a7d412e`;
+  its loaded extension has SHA-256
+  `b62c7c469669bf87b694f5a5e3705095352dc0f1de1f50b6609ba08481253d09`.
+- The authenticated task-1046 body used for the final model has SHA-256
+  `7367eb8a244c7ae03a0bf0ac6902bcd7c5c1d0e9f9b7f58c66da22d6115bf666`,
+  size 56,293,300 bytes, and tick 84,005. Its pre-transition active frontier
+  contained 754 exact transfers.
+- In eight ordinary dark/silent whole-sensorium intervals, the corrected body
+  produced one exact six-contact path from an internally reassembled formation
+  cue to a layer-11 lineage and then through one exact preparation transfer of
+  the layer-12 recruitment at tick 84,013. Native frontier cardinality
+  fluctuated `1024, 700, 967, 811, 862, 659, 863, 661` rather than monotonically
+  saturating the contact fabric.
+- The complete local action model used those native recruitments to commit one
+  ordinary world yaw of -178 millidegrees, changed world revision 0 to 1 and
+  its state receipt, then admitted the resulting vestibular trajectory. One
+  external body receptor was physically perturbed at successor tick 84,014.
+  The final organism was 9,713 bytes larger than the authenticated predecessor,
+  cold-restored byte-exact, used zero Python cognition callbacks, and completed
+  in 10.694 seconds in the isolated model.
+- The complete native release surface passes 595 tests with zero failures and
+  13 unchanged explicit ignores: 429 library tests plus integration groups of
+  13, 7, 95, 6, 8, 14, and 23. The focused C-023 observer tests pass 2/2 and
+  the adjacent organic-relation surface passes with them, 10/10. Python source
+  compilation and `git diff --check` pass.
+- The production release surface passes 85/85: packaging, deterministic deploy
+  controller, production preflight, candidate cold-rehearsal controller,
+  native serving cutover, storage cutover, C-023 causal observer, and adjacent
+  organic-relation contracts.
+- Three broader Python failures are not candidate-physics failures and are not
+  being hidden inside runtime changes: one teaching test pins an older sensory
+  roster and sound description; one rehearsal test supplies the deliberately
+  invalid fake body `GLORUN01-native-current-test` now that real cold rehearsal
+  is active; and one chemical-receptor subprocess overwrites the candidate
+  extension path with the repository root and loads the stale installed native
+  module. None reached or falsified the exact C-023 path. They remain recorded
+  test-maintenance debt rather than a reason to alter organism physics.
+- This remains candidate evidence. C-023 is not complete until the immutable
+  release is deployed and the same causal path, body action, sensed return,
+  identity continuity, zero callbacks, and bounded state are observed live.

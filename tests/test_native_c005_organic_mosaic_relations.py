@@ -28,7 +28,9 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "developmental_resting_neuron_count": 196_509,
         "emitted_neuron_fractals": (),
         "formation_activation_count": 0,
+        "predecessor_organism_tick": tick - 1,
         "organism_tick": tick,
+        "internally_reassembled_formation_cues": (),
         "receptor_ingress_sense_counts": {
             sense.value: 0 for sense in production.SENSE_ORDER
         },
@@ -365,6 +367,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         dsf_delivery_count=1,
         partial_cue_reassembly_count=1,
         endogenous_partial_cue_reassembly_count=0,
+        internally_reassembled_formation_cues=(),
         physically_transitioned_neuron_count=2,
         metabolically_perturbed_body_receptor_count=0,
         rest_recovered_neuron_count=7,

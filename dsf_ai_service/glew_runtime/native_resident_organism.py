@@ -238,6 +238,11 @@ class NativeResidentObservationView(Protocol):
     def endogenous_partial_cue_reassembly_count(self) -> int: ...
 
     @property
+    def internally_reassembled_formation_cues(
+        self,
+    ) -> list[tuple[str, list[str]]]: ...
+
+    @property
     def python_callback_count(self) -> int: ...
 
     # Exact shared body-energy state. Local neuronal lanes keep their own
@@ -320,6 +325,9 @@ class ResidentPrepareEvidence:
     formation_activation_count: int
     partial_cue_reassembly_count: int
     endogenous_partial_cue_reassembly_count: int
+    internally_reassembled_formation_cues: tuple[
+        tuple[str, tuple[str, ...]], ...
+    ]
     python_callback_count: int
     complete_neuron_count: int = 0
     developmental_resting_neuron_count: int = 0
@@ -1144,6 +1152,42 @@ class NativeResidentOrganism:
             raise RuntimeError("lineage-layer observation advanced the organism")
         return tuple(validated)
 
+    def observe_active_electrical_frontier_advances_from(
+        self, lineages: tuple[str, ...]
+    ) -> tuple[tuple[str, str, int, int, str], ...]:
+        """Read exact transfers advancing from supplied causal lineages."""
+
+        canonical = tuple(
+            _canonical_lineage_hex(lineage, "active frontier filter lineage")
+            for lineage in lineages
+        )
+        if not canonical or len(set(canonical)) != len(canonical):
+            raise ValueError("active frontier filter lineages must be nonempty and unique")
+        before = self.readiness()
+        observed = self.__runtime.observe_active_electrical_frontier_advances_from(
+            list(canonical)
+        )
+        validated = []
+        for raw in observed:
+            if not isinstance(raw, tuple) or len(raw) != 5:
+                raise RuntimeError("causal frontier advance changed format")
+            transfer = _directed_physical_transfer_evidence(
+                raw[:4], "causal frontier advance"
+            )
+            frontier = _canonical_lineage_hex(raw[4], "causal frontier lineage")
+            if frontier not in transfer[:2]:
+                raise RuntimeError("causal frontier is not a transfer endpoint")
+            predecessor = transfer[1] if frontier == transfer[0] else transfer[0]
+            if predecessor not in canonical:
+                raise RuntimeError("causal frontier did not advance from supplied lineage")
+            validated.append((*transfer, frontier))
+        result = tuple(validated)
+        if len(set(result)) != len(result):
+            raise RuntimeError("filtered active electrical frontier is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("filtered active electrical frontier observation advanced the organism")
+        return result
+
     def observe_retained_formation_structures(
         self,
     ) -> tuple[
@@ -1736,6 +1780,37 @@ class NativeResidentOrganism:
             candidate.endogenous_partial_cue_reassembly_count,
             "endogenous partial cue reassembly count",
         )
+        raw_internal_cues = candidate.internally_reassembled_formation_cues
+        if not isinstance(raw_internal_cues, list):
+            raise RuntimeError("internally reassembled formation cues changed format")
+        internally_reassembled_formation_cues: list[
+            tuple[str, tuple[str, ...]]
+        ] = []
+        for raw_cue in raw_internal_cues:
+            if not isinstance(raw_cue, tuple) or len(raw_cue) != 2:
+                raise RuntimeError(
+                    "internally reassembled formation cue changed format"
+                )
+            raw_receipt, raw_cues = raw_cue
+            if not isinstance(raw_cues, list) or not raw_cues:
+                raise RuntimeError("internally reassembled formation cue is empty")
+            receipt = _canonical_sha256(
+                raw_receipt, "internally reassembled formation receipt"
+            )
+            cues = tuple(
+                _canonical_lineage_hex(lineage, "internal formation cue lineage")
+                for lineage in raw_cues
+            )
+            if tuple(sorted(set(cues))) != cues:
+                raise RuntimeError("internally reassembled formation cue is not canonical")
+            internally_reassembled_formation_cues.append((receipt, cues))
+        if (
+            len(set(internally_reassembled_formation_cues))
+            != len(internally_reassembled_formation_cues)
+            or len(internally_reassembled_formation_cues)
+            > endogenous_partial_cue_reassembly_count
+        ):
+            raise RuntimeError("internally reassembled formation cues exceed physical recurrence")
         complete_neuron_count = _nonnegative_integer(
             candidate.complete_neuron_count, "complete neuron count"
         )
@@ -2055,6 +2130,9 @@ class NativeResidentOrganism:
             partial_cue_reassembly_count=partial_cue_reassembly_count,
             endogenous_partial_cue_reassembly_count=(
                 endogenous_partial_cue_reassembly_count
+            ),
+            internally_reassembled_formation_cues=tuple(
+                internally_reassembled_formation_cues
             ),
             physical_transition_claimed=candidate.physical_transition_claimed,
             cognitive_formation_claimed=candidate.cognitive_formation_claimed,

@@ -465,6 +465,7 @@ mod tests {
             articulatory_unit_recruitments: Vec::new(),
             partial_cue_reassembly_count: 1,
             endogenous_partial_cue_reassembly_count: 0,
+            internally_reassembled_formation_cues: Vec::new(),
             mosaic_of_mosaics_count: 0,
             rest_recovered_neuron_count: 0,
             rest_drained_dissipation_quanta: 0,

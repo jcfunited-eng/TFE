@@ -38,8 +38,9 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
-    ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CognitiveFormationObservation,
-    CognitiveFormationSummary, DirectedPhysicalTransferObservation, EmittedNeuronFractal,
+    ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CausalFrontierTransferObservation,
+    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
+    EmittedNeuronFractal, InternallyReassembledFormationCueObservation,
     LocalizedFluidChemistryObservation, MotorUnitRecruitment, OrderedPhysicalPathObservation,
     OrganicMosaicRelationObservation, PhysicalFrontierRouteObservation,
     PreparedCognitiveFormationTransition,
@@ -115,6 +116,8 @@ const MOUNTED_STEP_SCOPE: &str = "canonical_uf_v1_4_neuronal_settlement";
 /// label, exactly like the two scopes above; it carries no physics.
 const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sensory_occurrence";
 type DirectedPhysicalTransferProjection = (String, String, u32, String);
+type CausalFrontierTransferProjection = (String, String, u32, String, String);
+type InternallyReassembledFormationCueProjection = (String, Vec<String>);
 type OrderedPhysicalPathProjection = (
     DirectedPhysicalTransferProjection,
     DirectedPhysicalTransferProjection,
@@ -452,6 +455,8 @@ pub(crate) struct RuntimeObservation {
     pub(crate) formation_activation_count: usize,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
+    pub(crate) internally_reassembled_formation_cues:
+        Vec<InternallyReassembledFormationCueObservation>,
     pub(crate) python_callback_count: u64,
     pub(crate) derived_budget: DerivedRuntimeBudget,
     /// The body's energy state and this transition's metabolic facts (minimal
@@ -951,6 +956,15 @@ impl NativeResidentOrganismObservation {
     #[getter]
     fn endogenous_partial_cue_reassembly_count(&self) -> usize {
         self.observation.endogenous_partial_cue_reassembly_count
+    }
+
+    #[getter]
+    fn internally_reassembled_formation_cues(
+        &self,
+    ) -> Vec<InternallyReassembledFormationCueProjection> {
+        project_internally_reassembled_formation_cues(
+            &self.observation.internally_reassembled_formation_cues,
+        )
     }
 
     #[getter]
@@ -1475,6 +1489,15 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn internally_reassembled_formation_cues(
+        &self,
+    ) -> Vec<InternallyReassembledFormationCueProjection> {
+        project_internally_reassembled_formation_cues(
+            &self.observation.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
     fn python_callback_count(&self) -> u64 {
         0
     }
@@ -1746,6 +1769,15 @@ impl NativeOrganismRuntimeTransition {
     #[getter]
     fn endogenous_partial_cue_reassembly_count(&self) -> usize {
         self.observation.endogenous_partial_cue_reassembly_count
+    }
+
+    #[getter]
+    fn internally_reassembled_formation_cues(
+        &self,
+    ) -> Vec<InternallyReassembledFormationCueProjection> {
+        project_internally_reassembled_formation_cues(
+            &self.observation.internally_reassembled_formation_cues,
+        )
     }
 
     #[getter]
@@ -2111,6 +2143,13 @@ impl ResidentOrganismRuntime {
                     .endogenous_partial_cue_reassembly_count
                     .checked_add(observation.endogenous_partial_cue_reassembly_count)
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
+                for cue in &observation.internally_reassembled_formation_cues {
+                    if !total.internally_reassembled_formation_cues.contains(cue) {
+                        total
+                            .internally_reassembled_formation_cues
+                            .push(cue.clone());
+                    }
+                }
                 total.rest_recovered_neuron_count = total
                     .rest_recovered_neuron_count
                     .checked_add(observation.rest_recovered_neuron_count)
@@ -2840,6 +2879,33 @@ impl NativeResidentOrganismRuntime {
             .into_iter()
             .map(|(lineage, layer, receptor)| (hex_bytes(&lineage), layer, receptor))
             .collect()
+    }
+
+    /// Read only exact current-boundary transfers advancing from the supplied
+    /// lineages. Native filtering and the explicit advancing endpoint prevent
+    /// a sparse trace from reversing carrier flow or materializing unrelated
+    /// frontier entries across the Python boundary.
+    fn observe_active_electrical_frontier_advances_from(
+        &self,
+        lineage_hexes: Vec<String>,
+    ) -> PyResult<Vec<CausalFrontierTransferProjection>> {
+        if lineage_hexes.is_empty() {
+            return Err(PyValueError::new_err(
+                "active electrical frontier filter requires a lineage",
+            ));
+        }
+        let mut lineages = lineage_hexes
+            .iter()
+            .map(|value| parse_lineage_hex(value))
+            .collect::<PyResult<Vec<_>>>()?;
+        lineages.sort_unstable();
+        lineages.dedup();
+        Ok(project_causal_frontier_transfers(
+            &self
+                .runtime
+                .cognitive_state()
+                .observe_active_electrical_frontier_advances_from(&lineages),
+        ))
     }
 
     /// Read-only reached-neuron electrical evidence for translation-boundary
@@ -4105,6 +4171,7 @@ fn make_restored_observation(
         formation_activation_count: 0,
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
+        internally_reassembled_formation_cues: Vec::new(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -4193,6 +4260,9 @@ fn make_step_observation(
         partial_cue_reassembly_count: cognitive.partial_cue_reassembly_count(),
         endogenous_partial_cue_reassembly_count: cognitive
             .endogenous_partial_cue_reassembly_count(),
+        internally_reassembled_formation_cues: cognitive
+            .internally_reassembled_formation_cues
+            .clone(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -4264,6 +4334,7 @@ fn make_authored_contact_observation(
         formation_activation_count: 0,
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
+        internally_reassembled_formation_cues: Vec::new(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -4298,6 +4369,24 @@ fn hex_digest(value: &[u8; 32]) -> String {
         output.push(HEX[(byte & 0x0f) as usize] as char);
     }
     output
+}
+
+fn project_internally_reassembled_formation_cues(
+    observations: &[InternallyReassembledFormationCueObservation],
+) -> Vec<InternallyReassembledFormationCueProjection> {
+    observations
+        .iter()
+        .map(|observation| {
+            (
+                hex_digest(&observation.formation_receipt),
+                observation
+                    .cue_lineages
+                    .iter()
+                    .map(|lineage| hex_bytes(lineage))
+                    .collect(),
+            )
+        })
+        .collect()
 }
 
 fn project_organic_mosaic_relations(
@@ -4391,6 +4480,24 @@ fn project_directed_physical_transfers(
                 hex_bytes(&transfer.receiver),
                 transfer.bond.parallel_ordinal(),
                 transfer.transferred_whole_carriers.to_string(),
+            )
+        })
+        .collect()
+}
+
+fn project_causal_frontier_transfers(
+    transfers: &[CausalFrontierTransferObservation],
+) -> Vec<CausalFrontierTransferProjection> {
+    transfers
+        .iter()
+        .map(|observation| {
+            let transfer = &observation.transfer;
+            (
+                hex_bytes(&transfer.sender),
+                hex_bytes(&transfer.receiver),
+                transfer.bond.parallel_ordinal(),
+                transfer.transferred_whole_carriers.to_string(),
+                hex_bytes(&observation.frontier_lineage),
             )
         })
         .collect()
@@ -4549,6 +4656,27 @@ fn hex_bytes(value: &[u8]) -> String {
         output.push(HEX[(byte & 0x0f) as usize] as char);
     }
     output
+}
+
+fn parse_lineage_hex(value: &str) -> PyResult<[u8; 16]> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 32 {
+        return Err(PyValueError::new_err("neuron lineage is not canonical hex"));
+    }
+    let nibble = |byte: u8| match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        _ => None,
+    };
+    let mut lineage = [0_u8; 16];
+    for (index, output) in lineage.iter_mut().enumerate() {
+        let high = nibble(bytes[index * 2])
+            .ok_or_else(|| PyValueError::new_err("neuron lineage is not canonical hex"))?;
+        let low = nibble(bytes[index * 2 + 1])
+            .ok_or_else(|| PyValueError::new_err("neuron lineage is not canonical hex"))?;
+        *output = (high << 4) | low;
+    }
+    Ok(lineage)
 }
 
 fn take_u16(bytes: &[u8], offset: &mut usize) -> Result<u16, RuntimeError> {
