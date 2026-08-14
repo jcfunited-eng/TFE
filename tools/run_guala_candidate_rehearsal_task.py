@@ -706,6 +706,7 @@ def _validate_proof(
             for name in (
                 "native_internal_consolidation_member_count",
                 "native_internal_consolidation_cue_count",
+                "native_internal_consolidation_formation_count",
                 "native_internal_consolidation_metabolic_receptor_count",
                 "native_internal_consolidation_state_bytes_before",
                 "native_internal_consolidation_state_bytes_after",

@@ -707,6 +707,7 @@ if proof.get("native_internal_consolidation_origin") != "internally_simulated":
 for name in (
     "native_internal_consolidation_member_count",
     "native_internal_consolidation_cue_count",
+    "native_internal_consolidation_formation_count",
     "native_internal_consolidation_metabolic_receptor_count",
 ):
     value = proof.get(name)

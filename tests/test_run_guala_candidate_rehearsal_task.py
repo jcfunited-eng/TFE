@@ -393,6 +393,7 @@ def test_cold_restore_requires_exact_c022_internal_consolidation() -> None:
         "native_internal_consolidation_interval_ordinal": 3,
         "native_internal_consolidation_member_count": 14,
         "native_internal_consolidation_cue_count": 2,
+        "native_internal_consolidation_formation_count": 2,
         "native_internal_consolidation_metabolic_receptor_count": 2,
         "native_internal_consolidation_external_receptor_count": 0,
         "native_internal_consolidation_motor_recruitment_count": 0,

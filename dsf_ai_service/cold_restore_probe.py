@@ -283,8 +283,6 @@ def _rehearse_native_internal_consolidation(
                 ):
                     changed.append((predecessor, successor))
             if changed:
-                if len(changed) != 1:
-                    raise RuntimeError("one interval reorganized more than one retained formation")
                 predecessor, successor = changed[0]
                 if (
                     candidate.externally_perturbed_body_receptor_count != 0
@@ -315,6 +313,7 @@ def _rehearse_native_internal_consolidation(
                         "native_internal_consolidation_cold_restore_exact": True,
                         "native_internal_consolidation_source": "local_metabolic_settlement",
                         "native_internal_consolidation_origin": successor[5],
+                        "native_internal_consolidation_formation_count": len(changed),
                         "native_internal_consolidation_member_count": len(successor[1]),
                         "native_internal_consolidation_cue_count": len(successor[4]),
                         "native_internal_consolidation_recurrence_bond_count_before": len(

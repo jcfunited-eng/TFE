@@ -409,6 +409,7 @@ def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypat
     assert proof["native_internal_consolidation_origin"] == "internally_simulated"
     assert proof["native_internal_consolidation_member_count"] == 3
     assert proof["native_internal_consolidation_cue_count"] == 3
+    assert proof["native_internal_consolidation_formation_count"] == 1
 
 
 def test_articulation_translation_preserves_only_exact_native_cancellation(

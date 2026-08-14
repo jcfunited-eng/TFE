@@ -213,3 +213,17 @@ lineage, zero Python cognition callbacks, and reached-frontier work only.
 - The active candidate rehearsal now requires C-022 internal consolidation;
   it no longer executes the historical C-021 rest-to-wake trajectory as the
   release gate.
+
+## Rehearsal attempt 1
+
+- Commit `6b96e2984041d55e41e60bcf7aea01533124964a` produced one immutable
+  candidate image and discarded task
+  `cf63b7f2d31b411f9a2c0411e59ed3d2`. Production remained task 1037.
+- The candidate reached internal consolidation, but the proof process refused
+  it because one interval reorganized more than one retained formation. That
+  refusal was an artificial test restriction: C-022 requires one or more
+  physically reached formations and places no single-formation cap on a
+  connected internal interval.
+- Correction: retain and validate the exact positive changed-formation count;
+  do not reject lawful simultaneous reactivation. No neuron, cue, mosaic, or
+  codec physics changed in this correction.
