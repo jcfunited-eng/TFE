@@ -44,6 +44,29 @@ def main():
     # Display math contract: every row must multiply out by hand.
     # Shares are fractional (stake / entry), marks are rounded to cents
     # BEFORE computing P&L, and the tiles are sums of the row values.
+
+    # A MISSING QUOTE IS NOT A FLAT STOCK (CH4's cure, applied here
+    # 2026-08-14 after the quote feed died and drew every row flat at
+    # entry). Fallback: official latest close from the stores (dated),
+    # then honest "no quote". Never the entry price.
+    close_fallback = {}
+    close_day = ""
+    try:
+        import os as _os, pandas as _pd
+        _root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+        _frames = []
+        for _p in ("ch4_live_store.parquet", "ch3_supply_tail.parquet"):
+            _fp = _os.path.join(_root, _p)
+            if _os.path.exists(_fp):
+                _frames.append(_pd.read_parquet(_fp, columns=["Date", "Symbol", "Close"]))
+        if _frames:
+            _st = _pd.concat(_frames, ignore_index=True)
+            _latest = _st["Date"].max()
+            close_day = str(_latest)[:10]
+            close_fallback = dict(_st[_st["Date"] == _latest][["Symbol", "Close"]].values)
+    except Exception:
+        pass
+
     def fmt_px(x):
         # entry fills carry sub-cent precision; show it, or the
         # row cannot be multiplied out by hand (Joe's AIRO catch)
@@ -52,7 +75,12 @@ def main():
 
     def row_upl(f):
         entry = f["entry_px"]
-        cur = round(marks.get(f["symbol"], entry), 2)
+        px = marks.get(f["symbol"])
+        if px is None:
+            px = close_fallback.get(f["symbol"])
+        if px is None or float(px) <= 0:
+            px = entry  # last resort marker; counted below as unmarked
+        cur = round(float(px), 2)
         shares = f.get("shares") or (int(f.get("notional", 0) // entry)
                                      if entry else 0)
         return shares, cur, round(shares * (cur - entry) * f["side"], 2)

@@ -38,6 +38,29 @@ def main():
     except Exception:
         pass
 
+
+    # A MISSING QUOTE IS NOT A FLAT STOCK (CH4's cure, applied here
+    # 2026-08-14 after the quote feed died and drew every row flat at
+    # entry). Fallback: official latest close from the stores (dated),
+    # then honest "no quote". Never the entry price.
+    close_fallback = {}
+    close_day = ""
+    try:
+        import os as _os, pandas as _pd
+        _root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+        _frames = []
+        for _p in ("ch4_live_store.parquet", "ch3_supply_tail.parquet"):
+            _fp = _os.path.join(_root, _p)
+            if _os.path.exists(_fp):
+                _frames.append(_pd.read_parquet(_fp, columns=["Date", "Symbol", "Close"]))
+        if _frames:
+            _st = _pd.concat(_frames, ignore_index=True)
+            _latest = _st["Date"].max()
+            close_day = str(_latest)[:10]
+            close_fallback = dict(_st[_st["Date"] == _latest][["Symbol", "Close"]].values)
+    except Exception:
+        pass
+
     def fmt_px(x):
         # entry fills carry sub-cent precision; show it, or the
         # row cannot be multiplied out by hand (Joe's AIRO catch)
@@ -46,11 +69,22 @@ def main():
 
     def row_upl(sym, p):
         entry = p["entry_px"]
-        cur = round(marks.get(sym, entry), 2)
-        return p["shares"], cur, round(p["shares"] * (cur - entry) * p["side"], 2)
+        px = marks.get(sym)
+        stale = False
+        if px is None:
+            px = close_fallback.get(sym)
+            stale = px is not None
+        if px is None or float(px) <= 0:
+            return p["shares"], None, None, False
+        cur = round(float(px), 2)
+        return (p["shares"], cur,
+                round(p["shares"] * (cur - entry) * p["side"], 2), stale)
 
     held = sum(p["notional"] for p in opens.values())
-    unreal = sum(row_upl(s, p)[2] for s, p in opens.items())
+    rows_u = {s: row_upl(s, p) for s, p in opens.items()}
+    unreal = sum(r[2] for r in rows_u.values() if r[2] is not None)
+    n_stale = sum(1 for r in rows_u.values() if r[3])
+    n_missing = sum(1 for r in rows_u.values() if r[1] is None)
     realized = sum(t["pnl"] for t in closed)
     equity = cash + held + unreal
     wins = sum(1 for t in closed if t["pnl"] > 0)
@@ -64,7 +98,18 @@ def main():
 
     open_rows = ""
     for sym, p in sorted(opens.items()):
-        shares, cur, upl = row_upl(sym, p)
+        shares, cur, upl, _stale = rows_u[sym]
+        if cur is None:
+            open_rows += (f'<tr><td class="tk">{sym}</td>'
+                          f'<td><span class="chip">CH6</span>'
+                          f'{"<span class=chip2>SHORT</span>" if p["side"] == -1 else ""}</td>'
+                          f'<td class="num">{shares:,}</td>'
+                          f'<td class="num">{fmt_px(p["entry_px"])}</td>'
+                          f'<td class="num">no quote</td><td class="num">—</td>'
+                          f'<td class="num">—</td><td class="num">—</td>'
+                          f'<td><span class="status">HOLDING</span></td>'
+                          f'<td>{p.get("entry_date", "")}</td></tr>')
+            continue
         pct = (round(100 * upl / p["notional"], 2) or 0.0) if p["notional"] else 0.0
         cls = "pos" if upl >= 0 else "neg"
         status = "AT TARGET" if pct >= 5.0 else "HOLDING"
@@ -99,6 +144,14 @@ def main():
     if not closed_rows:
         closed_rows = '<tr><td colspan="10" class="empty">No closed trades yet.</td></tr>'
 
+    mark_note = ""
+    if n_stale or n_missing:
+        bits = []
+        if n_stale:
+            bits.append(f"live quotes unavailable for {n_stale} — marked at the official {close_day} close")
+        if n_missing:
+            bits.append(f"{n_missing} with no quote at all, excluded from totals")
+        mark_note = " · <b>" + "; ".join(bits) + "</b> ·"
     html = f"""<title>CH6 Fast Harvest</title>
 <style>
 :root {{ --bg:#f2f4f1; --card:#ffffff; --head:#e8efe7; --ink:#232a24;
