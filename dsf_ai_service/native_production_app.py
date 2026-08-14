@@ -1340,6 +1340,7 @@ _last_tested_articulation_evidence: dict[str, Any] | None = None
 # Bounded read-only witnesses. They never enter organism state or settlement.
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
+_last_tested_physical_choice_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2066,10 +2067,11 @@ def _autonomy_record() -> dict[str, object]:
         "pauses_for_external_intake": True,
         "pauses_when_energy_exhausted": False,
     }
+    physical_choice = _physical_choice_record()
     not_mounted = {
         "action": _unmounted("no native action actuator is mounted"),
         "attention": _attention_record(),
-        "choice": _unmounted("no native choice operation is mounted"),
+        "choice": physical_choice,
         "consequence": _unmounted("no autonomous action consequence exists"),
         "thought": _unmounted("no native causal thought loop is mounted"),
     }
@@ -2310,6 +2312,189 @@ def _attention_stage() -> dict[str, object]:
         f"{record['transported_route_count']} route(s) while "
         f"{record['foregone_route_count']} simultaneous route(s) transported "
         "no whole carrier; the route set then changed.",
+    )
+
+
+def _physical_choice_evidence_from_transition(
+    evidence: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Bind sparse attention to exact opposed motor settlement without choosing."""
+
+    attention_motor_binding = evidence.get("attention_motor_binding")
+    causal = evidence.get("causal_cross_context_use")
+    action = evidence.get("motor_action")
+    if (
+        not isinstance(attention_motor_binding, dict)
+        or not isinstance(causal, dict)
+        or not isinstance(action, dict)
+    ):
+        return None
+    if causal.get("origin_kind") != "retained_formation":
+        return None
+    causal_motor = causal.get("motor_unit_recruitment")
+    if not isinstance(causal_motor, dict):
+        return None
+    causal_motor_lineage = causal_motor.get("motor_lineage")
+    recruitments = tuple(action.get("prepared_recruitments", ()))
+    if not recruitments:
+        return None
+
+    positive_carriers = 0
+    negative_carriers = 0
+    positive_recruitments = 0
+    negative_recruitments = 0
+    causal_motor_prepared = False
+    for recruitment in recruitments:
+        if not isinstance(recruitment, dict):
+            return None
+        topology_index = int(recruitment["motor_topology_index"])
+        carriers = int(recruitment["outward_elementary_carriers"])
+        if carriers <= 0:
+            return None
+        if topology_index % 2 == 0:
+            positive_carriers += carriers
+            positive_recruitments += 1
+        else:
+            negative_carriers += carriers
+            negative_recruitments += 1
+        if recruitment.get("motor_lineage") == causal_motor_lineage:
+            causal_motor_prepared = True
+        if not all(
+            isinstance(transfer, dict)
+            for transfer in recruitment.get("preparation_transfers", ())
+        ):
+            return None
+    if (
+        not causal_motor_prepared
+        or causal_motor_lineage
+        not in attention_motor_binding["matched_motor_lineages"]
+        or positive_carriers <= 0
+        or negative_carriers <= 0
+    ):
+        return None
+
+    settled_signed_intent = positive_carriers - negative_carriers
+    if (
+        settled_signed_intent == 0
+        or settled_signed_intent != int(action.get("signed_yaw_millidegrees", 0))
+    ):
+        return None
+    causal_intent = action.get("causal_intent_receipt_sha256")
+    if not isinstance(causal_intent, str) or len(causal_intent) != 64:
+        return None
+    return {
+        "attention": attention_motor_binding["attention"],
+        "attention_motor_binding_organism_tick": attention_motor_binding[
+            "organism_tick"
+        ],
+        "causal_intent_receipt_sha256": causal_intent,
+        "formation_receipt_sha256": causal.get("formation_receipt_sha256"),
+        "internal_cause_motor_lineage": causal_motor_lineage,
+        "matched_attention_route_count": attention_motor_binding[
+            "matched_attention_route_count"
+        ],
+        "negative_antagonist_carriers": negative_carriers,
+        "negative_antagonist_recruitment_count": negative_recruitments,
+        "organism_tick": evidence.get("organism_tick"),
+        "positive_antagonist_carriers": positive_carriers,
+        "positive_antagonist_recruitment_count": positive_recruitments,
+        "prepared_intent_count": 1,
+        "settled_signed_yaw_millidegrees": settled_signed_intent,
+        "state_sha256": evidence.get("state_sha256"),
+    }
+
+
+def _attention_motor_binding_from_hop(
+    hop: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Capture exact same-hop attention transfers that prepare motor cells."""
+
+    attention = _sparse_attention_route_facts(hop)
+    if attention is None:
+        return None
+    phase = str(attention["qualifying_phase"])
+    if phase == "qualifying_interval":
+        routes = tuple(hop.get("reached_and_foregone_physical_frontier_routes", ()))
+    elif phase == "current":
+        routes = tuple(hop.get("physical_frontier_routes", ()))
+    elif phase == "preceding":
+        routes = tuple(hop.get("preceding_distinct_physical_frontier_routes", ()))
+    else:
+        return None
+    transfers_to_motors: dict[tuple[str, str, int, int], set[str]] = {}
+    for recruitment in hop.get("motor_unit_recruitments", ()):
+        if len(recruitment) != 4:
+            return None
+        motor_lineage, _topology, _carriers, preparation = recruitment
+        for transfer in preparation:
+            if len(transfer) != 6:
+                return None
+            sender, _sender_layer, receiver, _receiver_layer, ordinal, carriers = transfer
+            transfers_to_motors.setdefault(
+                (str(sender), str(receiver), int(ordinal), int(carriers)), set()
+            ).add(str(motor_lineage))
+    matched_transfers: set[tuple[str, str, int, int]] = set()
+    matched_motor_lineages: set[str] = set()
+    for route in routes:
+        if len(route) != 8:
+            return None
+        signed_carriers = int(route[7])
+        if signed_carriers == 0:
+            continue
+        transfer = (
+            (str(route[0]), str(route[3]), int(route[6]), signed_carriers)
+            if signed_carriers > 0
+            else (str(route[3]), str(route[0]), int(route[6]), -signed_carriers)
+        )
+        motors = transfers_to_motors.get(transfer)
+        if motors:
+            matched_transfers.add(transfer)
+            matched_motor_lineages.update(motors)
+    if not matched_transfers:
+        return None
+    return {
+        "attention": attention,
+        "matched_attention_route_count": len(matched_transfers),
+        "matched_motor_lineages": tuple(sorted(matched_motor_lineages)),
+        "organism_tick": hop.get("organism_tick"),
+    }
+
+
+def _advance_bounded_attention_motor_binding(
+    retained: dict[str, Any] | None,
+    hop: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Retain only the first exact same-hop attention-to-motor binding."""
+
+    return retained or _attention_motor_binding_from_hop(hop)
+
+
+def _physical_choice_record() -> dict[str, object]:
+    evidence = _last_tested_physical_choice_evidence
+    authority = {
+        "authored_goal_authority": False,
+        "python_cognition_authority": False,
+        "random_selector_authority": False,
+        "score_selector_authority": False,
+        "semantic_command_authority": False,
+    }
+    if evidence is None:
+        return _section(
+            False,
+            "physical_choice_mounted_awaiting_causal_witness",
+            "this process has not yet observed internally caused sparse attention "
+            "enter both opposed motor populations and settle one nonzero intent",
+            **authority,
+        )
+    return _section(
+        True,
+        "internally_caused_attention_settled_one_physical_continuation",
+        "transported routes from a changing reached/foregone attention frontier "
+        "entered exact motor preparation; both antagonist populations discharged, "
+        "and their conserved signed difference prepared one nonzero body intent",
+        evidence_scope="latest_tested_physical_choice_this_process",
+        **evidence,
+        **authority,
     )
 
 
@@ -3456,6 +3641,21 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
             "intrinsic_curiosity",
             curiosity,
         )
+    choice = record.get("choice")
+    if isinstance(choice, dict) and choice.get("available") is True:
+        credit(
+            "Deliberation and choice",
+            (
+                "availability",
+                "participation",
+                "causal_use",
+                "autonomous_use",
+                "integration_depth",
+            ),
+            choice["status"],
+            "choice",
+            choice,
+        )
     ordered = [credits[key] for key in sorted(credits)]
     for cell in ordered:
         cell["evidence"].sort(
@@ -3875,6 +4075,7 @@ def _build_public_observation() -> dict[str, Any]:
         "cognitive_capital": None,
         "attention": _attention_record(),
         "intrinsic_curiosity": _intrinsic_curiosity_record(),
+        "choice": _physical_choice_record(),
         "working_causal_state": _working_causal_state_record(),
         "prediction": _physical_prediction_record(),
         "affective_balance": _affective_balance_record(),
@@ -6031,6 +6232,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
+    global _last_tested_physical_choice_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -6079,6 +6281,7 @@ def _perform_admitted_intake_locked(
     reached_and_foregone_physical_frontier_routes: tuple[
         tuple[Any, ...], ...
     ] = ()
+    attention_motor_binding: dict[str, Any] | None = None
     working_causal_continuations: tuple[tuple[Any, ...], ...] = ()
     settled_working_frontier: tuple[tuple[Any, ...], ...] = ()
     physical_prediction_alternatives: tuple[tuple[Any, ...], ...] = ()
@@ -6116,6 +6319,10 @@ def _perform_admitted_intake_locked(
                 physical_frontier_routes,
                 preceding_distinct_physical_frontier_routes,
                 reached_and_foregone_physical_frontier_routes,
+                last_hop,
+            )
+            attention_motor_binding = _advance_bounded_attention_motor_binding(
+                attention_motor_binding,
                 last_hop,
             )
             (
@@ -6177,6 +6384,10 @@ def _perform_admitted_intake_locked(
                 physical_frontier_routes,
                 preceding_distinct_physical_frontier_routes,
                 reached_and_foregone_physical_frontier_routes,
+                last_hop,
+            )
+            attention_motor_binding = _advance_bounded_attention_motor_binding(
+                attention_motor_binding,
                 last_hop,
             )
             (
@@ -6398,6 +6609,10 @@ def _perform_admitted_intake_locked(
                     reached_and_foregone_physical_frontier_routes,
                     last_hop,
                 )
+                attention_motor_binding = _advance_bounded_attention_motor_binding(
+                    attention_motor_binding,
+                    last_hop,
+                )
                 (
                     working_causal_continuations,
                     settled_working_frontier,
@@ -6598,6 +6813,7 @@ def _perform_admitted_intake_locked(
         "reached_and_foregone_physical_frontier_routes": (
             reached_and_foregone_physical_frontier_routes
         ),
+        "attention_motor_binding": attention_motor_binding,
         "working_causal_continuations": working_causal_continuations,
         "settled_working_frontier": settled_working_frontier,
         "physical_prediction_alternatives": physical_prediction_alternatives,
@@ -6614,6 +6830,11 @@ def _perform_admitted_intake_locked(
     )
     if intrinsic_curiosity_evidence is not None:
         _last_intrinsic_curiosity_evidence = intrinsic_curiosity_evidence
+    physical_choice_evidence = _physical_choice_evidence_from_transition(
+        _last_transition_evidence
+    )
+    if physical_choice_evidence is not None:
+        _last_tested_physical_choice_evidence = physical_choice_evidence
     if causal_cross_context_use is not None:
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
@@ -8376,12 +8597,14 @@ def _startup() -> None:
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
+    global _last_tested_physical_choice_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
     _last_tested_articulation_evidence = None
     _last_causal_cross_context_use_evidence = None
     _last_intrinsic_curiosity_evidence = None
+    _last_tested_physical_choice_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
