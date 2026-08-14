@@ -574,3 +574,36 @@ invented sensory energy.
 - This remains candidate evidence. C-023 is not complete until the immutable
   release is deployed and the same causal path, body action, sensed return,
   identity continuity, zero callbacks, and bounded state are observed live.
+
+### Task-1047 production deployment and live falsification
+
+- Commit `c39a72f8f8f52678ae6d31127f3a871453f0e79f`, image
+  `sha256:0a2d89d0d9e096ceeb5eff5aa9bd4dfd4c20a03cd85bff196b07a50cd81a2237`,
+  and task `dsf-ai-task:1047` were delivered by one controller execution and
+  one successful cutover. The deployment ran from 11:15:29Z to 11:34:52Z.
+- Before cutover, that exact image cold-restored the authenticated production
+  body at tick 85,468 with state receipt
+  `6726441f50115a6f515c3d81b4925e9223ced03d1a2984ca3ef2c3fb45d61157`.
+  Identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; cold restore and
+  replay were exact; Python cognition callbacks remained zero.
+- Production settled at exactly one healthy process on task 1047 and pinned
+  only the verified digest as `production-current`. No failed cutover or image
+  retry occurred.
+- Repeated live unattended observations advanced by 13 organism ticks per
+  interval and applied native motor yaw with vestibular return. State encoding
+  alternated between approximately 55.2 and 56.3 MB rather than growing
+  monotonically. These are genuine body actions, but they are not C-023 proof:
+  `causal_cross_context_use` remained absent because every observed interval
+  had zero internally reassembled formation cues.
+- The live failure exposed an existing global provenance veto in
+  `settle_organism_mosaic_boundary`: any external receptor perturbation anywhere
+  makes the internal cue empty for every retained formation. A continuously
+  sensing awake organism therefore cannot produce the internal-origin witness
+  required by the candidate observer. Removing that veto without retaining
+  exact independent physical provenance would merely relabel mixed activity,
+  so no such relabelling was deployed.
+- Result: the causal observer subrelease is deployed and healthy, but C-023
+  remains open. Its next exact item is a bounded physical provenance path that
+  lets an internally caused formation continuation survive into a later
+  distinct lived context without a semantic record, episode archive, or Python
+  cognition authority.
