@@ -429,8 +429,18 @@ box remains unchecked until live acceptance passes.
   cognitive-capital grid credits five exact curiosity dimensions; score,
   reward, named-need, scripted-action, social-experience, and Python decision
   authority remain false.
-- [ ] **A-007** Prove one internally caused attention-to-choice transition with
+- [x] **A-007** Prove one internally caused attention-to-choice transition with
   no authored goal, random selector, semantic command, or Python cognition.
+  **Live-closed 2026-08-14:** production task 1054, commit `a4ae22e3`, and
+  digest `sha256:947615882ac4631ac40d37560ab37c2a85310cb25c1b9a88ca39e40f7bb1dda5`
+  observed 881 transported and five simultaneous foregone routes; 25 exact
+  attention transfers entered motor preparation; both antagonist populations
+  discharged 1,362 versus 1,484 carriers; and their exact `-122` difference
+  prepared one nonzero yaw continuation from retained-formation activity. The
+  observer and cognitive-capital grid expose the same evidence while authored
+  goal, random selector, score selector, semantic command, and Python cognition
+  authority remain false. Identity cold-restored unchanged and Python cognition
+  callback count remained zero.
 - [ ] **A-008** Prove that choice reaches layer 12 and causes a real world/body
   action at most once.
 - [ ] **A-009** Prove the action's visual, auditory, vestibular, proprioceptive,

@@ -113,7 +113,7 @@
    reached-and-foregone interval, its later distinct route set, and exact
    directed motor transfers without flattening their contact identities.
 
-## Candidate evidence — not production
+## Candidate and production evidence
 
 - The corrected candidate records at most the first exact binding after the
   completed transaction supplies the later route comparison. It retains only
@@ -130,7 +130,26 @@
 - Replaying live task-1053 transition tick 91524 through the corrected boundary
   yields 24 exact matched attention-to-motor contacts, 1,478 positive and 1,626
   negative antagonist carriers, and the already-observed `-148` signed yaw
-  intent. This is model evidence only until the correction is deployed and
-  observed through the live endpoint.
+  intent. This was the final pre-deployment model check.
+- The corrected candidate cold-restored the exact production body at tick
+  91797 and state
+  `10a9a1dc5949f6aeb75860552796ab27177457470440d92d603ec403fd24c436`.
+  Identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; the body contained
+  313 active complete neurons and 196,416 developmental resting neurons; no
+  migration or Python cognition worker/callback occurred.
+- Live task 1054 runs commit `a4ae22e36331138213be585c534abd865bd3dfca`
+  at immutable digest
+  `sha256:947615882ac4631ac40d37560ab37c2a85310cb25c1b9a88ca39e40f7bb1dda5`.
+  At tick 91862, 881 of 886 qualifying routes transported and five were
+  foregone; 25 exact transfers also prepared motor cells. Even-topology motor
+  units carried 1,362 and odd-topology units 1,484, whose exact difference is
+  the one observed `-122` millidegree intent. The cause is retained-formation
+  activity and all authored-goal, random, score, semantic-command, and Python
+  cognition authority flags are false.
+- The same live evidence is present under both `choice` and `autonomy.choice`.
+  Cognitive capital credits exactly five `Deliberation and choice` dimensions:
+  availability, participation, causal use, integration depth, and autonomous
+  use. ECS settled with one running task, zero pending/failed tasks, and one
+  completed primary deployment; the digest is pinned as `production-current`.
 
-Status: **in progress**. No A-007 production claim exists yet.
+Status: **live-closed 2026-08-14**. A-008 is not claimed.
