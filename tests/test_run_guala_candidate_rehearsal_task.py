@@ -375,6 +375,72 @@ def test_cold_restore_requires_exact_c021_physical_rest_and_wake() -> None:
         )
 
 
+def test_cold_restore_requires_exact_c022_internal_consolidation() -> None:
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "current_format_migration_rehearsed": False,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "native_internal_consolidation_rehearsed": True,
+        "native_internal_consolidation_cold_restore_exact": True,
+        "native_internal_consolidation_cold_replay_exact": True,
+        "native_internal_consolidation_source": "local_metabolic_settlement",
+        "native_internal_consolidation_origin": "internally_simulated",
+        "native_internal_consolidation_interval_ordinal": 3,
+        "native_internal_consolidation_member_count": 14,
+        "native_internal_consolidation_cue_count": 2,
+        "native_internal_consolidation_metabolic_receptor_count": 2,
+        "native_internal_consolidation_external_receptor_count": 0,
+        "native_internal_consolidation_motor_recruitment_count": 0,
+        "native_internal_consolidation_articulatory_recruitment_count": 0,
+        "native_internal_consolidation_state_bytes_before": 442_430,
+        "native_internal_consolidation_state_bytes_after": 442_431,
+        "native_internal_consolidation_formation_receipt_before": "a" * 64,
+        "native_internal_consolidation_formation_receipt_after": "b" * 64,
+        "native_internal_consolidation_state_sha256_before": "c" * 64,
+        "native_internal_consolidation_state_sha256_after": "d" * 64,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v6",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_native_internal_consolidation_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["native_internal_consolidation_origin"] = "externally_observed"
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_native_internal_consolidation_rehearsal=True,
+        )
+
+
 def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     articulation = {
         "applied_motor_quanta": 8,

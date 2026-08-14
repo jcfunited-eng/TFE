@@ -1390,6 +1390,16 @@ def _native_record() -> dict[str, Any]:
     # transition in flight and re-enters freely inside one.
     with _transition_lock:
         observed = restored.organism.readiness()
+    recurrence_evidence = [
+        {
+            "formation_receipt": receipt,
+            "cue_lineages": list(cue_lineages),
+            "origin": origin,
+        }
+        for receipt, cue_lineages, origin in (
+            restored.organism.observe_retained_formation_recurrence_evidence()
+        )
+    ]
     return {
         "cognitive_mosaic_count": observed.cognitive_mosaic_count,
         "mosaic_of_mosaics_count": observed.mosaic_of_mosaics_count,
@@ -1417,6 +1427,7 @@ def _native_record() -> dict[str, Any]:
         "endogenous_partial_cue_reassembly_count": (
             observed.endogenous_partial_cue_reassembly_count
         ),
+        "retained_formation_recurrence_evidence": recurrence_evidence,
         "physical_transition_claimed": observed.physical_transition_claimed,
         "python_callback_count": observed.python_callback_count,
         "reached_dsf_perspective_count": observed.joint_neuron_count,
@@ -3288,6 +3299,9 @@ def _build_public_observation() -> dict[str, Any]:
             partial_cue_reassembly_count=native["partial_cue_reassembly_count"],
             endogenous_partial_cue_reassembly_count=native[
                 "endogenous_partial_cue_reassembly_count"
+            ],
+            retained_formation_recurrence_evidence=native[
+                "retained_formation_recurrence_evidence"
             ],
         ),
         # Truth-coupled to the decoded native body: an exhausted ledger or an

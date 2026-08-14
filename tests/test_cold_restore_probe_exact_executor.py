@@ -339,6 +339,78 @@ def test_physical_rest_reopens_work_and_cold_replays_exactly(monkeypatch) -> Non
     assert proof["native_wake_physically_transitioned_neuron_count"] == 4
 
 
+def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypatch) -> None:
+    members = ("01" * 16, "02" * 16, "03" * 16)
+    original = ((members[0], members[1], 0), (members[1], members[2], 0))
+
+    class _ConsolidatingOrganism:
+        def __init__(self, internal: bool) -> None:
+            self.internal = internal
+
+        def readiness(self) -> SimpleNamespace:
+            return SimpleNamespace(
+                organism_tick=51 if self.internal else 50,
+                state_sha256=("2" if self.internal else "1") * 64,
+                state_bytes=101 if self.internal else 100,
+                python_callback_count=0,
+            )
+
+        def observe_retained_formation_structures(self):
+            receipt = ("b" if self.internal else "a") * 64
+            recurrence = original if self.internal else (original[0],)
+            return ((receipt, members, original, recurrence, 0),)
+
+        def observe_retained_formation_recurrence_evidence(self):
+            receipt = ("b" if self.internal else "a") * 64
+            cue = members if self.internal else members[:1]
+            origin = "internally_simulated" if self.internal else "externally_observed"
+            return ((receipt, cue, origin),)
+
+        def prepare_admitted(self, episode: object, admissions: object):
+            assert not self.internal and episode == "quiet" and admissions == "admissions"
+            return SimpleNamespace(
+                token="internal",
+                externally_perturbed_body_receptor_count=0,
+                metabolically_perturbed_body_receptor_count=2,
+                endogenous_partial_cue_reassembly_count=1,
+                motor_unit_recruitments=(),
+                articulatory_unit_recruitments=(),
+            )
+
+        def commit(self, token: str):
+            assert token == "internal"
+            self.internal = True
+            return self.readiness()
+
+        def save(self) -> bytes:
+            return b"internal-successor" if self.internal else b"body"
+
+    monkeypatch.setattr(
+        probe,
+        "restore_native_resident_organism",
+        lambda *, current_envelope, **_kwargs: _ConsolidatingOrganism(
+            current_envelope == b"internal-successor"
+        ),
+    )
+    from dsf_ai_service import native_production_app as production
+
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **_kwargs: [("quiet", "admissions")],
+    )
+
+    proof = probe._rehearse_native_internal_consolidation(b"body", {})
+
+    assert proof["native_internal_consolidation_rehearsed"] is True
+    assert proof["native_internal_consolidation_cold_restore_exact"] is True
+    assert proof["native_internal_consolidation_cold_replay_exact"] is True
+    assert proof["native_internal_consolidation_interval_ordinal"] == 1
+    assert proof["native_internal_consolidation_origin"] == "internally_simulated"
+    assert proof["native_internal_consolidation_member_count"] == 3
+    assert proof["native_internal_consolidation_cue_count"] == 3
+
+
 def test_articulation_translation_preserves_only_exact_native_cancellation(
     monkeypatch,
 ) -> None:

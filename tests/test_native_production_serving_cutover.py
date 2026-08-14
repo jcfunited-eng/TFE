@@ -70,6 +70,9 @@ class _Organism:
     def observe_reached_neuron_count_by_layer(self):
         return ()
 
+    def observe_retained_formation_recurrence_evidence(self):
+        return ()
+
 
 @dataclass
 class _Pointer:

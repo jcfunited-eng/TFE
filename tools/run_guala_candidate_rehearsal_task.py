@@ -267,6 +267,7 @@ def _validate_proof(
     expected_sparse_attention_rehearsal: bool = False,
     expected_native_articulation_rehearsal: bool = False,
     expected_native_physical_rest_wake_rehearsal: bool = False,
+    expected_native_internal_consolidation_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -687,6 +688,47 @@ def _validate_proof(
             )
         )
     )
+    native_internal_consolidation_rehearsal = (
+        proof.get("native_internal_consolidation_rehearsed") is True
+        and proof.get("native_internal_consolidation_cold_restore_exact") is True
+        and proof.get("native_internal_consolidation_cold_replay_exact") is True
+        and proof.get("native_internal_consolidation_source")
+        == "local_metabolic_settlement"
+        and proof.get("native_internal_consolidation_origin")
+        == "internally_simulated"
+        and isinstance(proof.get("native_internal_consolidation_interval_ordinal"), int)
+        and not isinstance(proof["native_internal_consolidation_interval_ordinal"], bool)
+        and 1 <= proof["native_internal_consolidation_interval_ordinal"] <= 32
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] > 0
+            for name in (
+                "native_internal_consolidation_member_count",
+                "native_internal_consolidation_cue_count",
+                "native_internal_consolidation_metabolic_receptor_count",
+                "native_internal_consolidation_state_bytes_before",
+                "native_internal_consolidation_state_bytes_after",
+            )
+        )
+        and proof.get("native_internal_consolidation_external_receptor_count") == 0
+        and proof.get("native_internal_consolidation_motor_recruitment_count") == 0
+        and proof.get("native_internal_consolidation_articulatory_recruitment_count") == 0
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "native_internal_consolidation_formation_receipt_before",
+                "native_internal_consolidation_formation_receipt_after",
+                "native_internal_consolidation_state_sha256_before",
+                "native_internal_consolidation_state_sha256_after",
+            )
+        )
+        and proof.get("native_internal_consolidation_formation_receipt_before")
+        != proof.get("native_internal_consolidation_formation_receipt_after")
+        and proof.get("native_internal_consolidation_state_sha256_before")
+        != proof.get("native_internal_consolidation_state_sha256_after")
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -727,6 +769,10 @@ def _validate_proof(
         or (
             expected_native_physical_rest_wake_rehearsal
             and not native_physical_rest_wake_rehearsal
+        )
+        or (
+            expected_native_internal_consolidation_rehearsal
+            and not native_internal_consolidation_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -823,7 +869,8 @@ def main() -> int:
     # transient trajectory fact, not permanent body state. Later releases
     # report it when it recurs but never require it as their acceptance gate.
     expected_sparse_attention_rehearsal = False
-    expected_native_physical_rest_wake_rehearsal = (
+    expected_native_physical_rest_wake_rehearsal = False
+    expected_native_internal_consolidation_rehearsal = (
         values.mode == "cold-restore"
         and source_environment.get("GUALA_VESTIBULAR") == "1"
     )
@@ -918,6 +965,9 @@ def main() -> int:
             ),
             expected_native_physical_rest_wake_rehearsal=(
                 expected_native_physical_rest_wake_rehearsal
+            ),
+            expected_native_internal_consolidation_rehearsal=(
+                expected_native_internal_consolidation_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

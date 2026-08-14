@@ -2985,6 +2985,31 @@ impl NativeResidentOrganismRuntime {
             })
     }
 
+    /// Exact retained recurrence evidence as
+    /// ``(formation_receipt, cue_lineages, physical_origin)``.
+    fn observe_retained_formation_recurrence_evidence(
+        &self,
+    ) -> PyResult<Vec<(String, Vec<String>, String)>> {
+        self.runtime
+            .cognitive_state()
+            .observe_retained_formation_recurrence_evidence(
+                self.runtime.budget.max_fabric_bytes,
+            )
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+            .map(|formations| {
+                formations
+                    .into_iter()
+                    .map(|(receipt, cue, origin)| {
+                        (
+                            hex_bytes(&receipt),
+                            cue.iter().map(|lineage| hex_bytes(lineage)).collect(),
+                            origin.to_owned(),
+                        )
+                    })
+                    .collect()
+            })
+    }
+
     /// The retired archive navigator.
     ///
     /// This used to walk a neuron's archived posting chain and return episode

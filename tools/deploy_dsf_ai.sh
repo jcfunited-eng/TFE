@@ -691,47 +691,40 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-020 and every earlier transient witness were closed by their own release.
-# This gate requires only the C-021 live-sized physical rest -> reopened-work
-# path plus organism invariants; it never turns elapsed time into cognition.
-if proof.get("native_physical_rest_wake_rehearsed") is not True:
-    raise SystemExit("C-021 rehearsal produced no physical rest/wake path")
-if proof.get("native_physical_rest_wake_cold_replay_exact") is not True:
-    raise SystemExit("C-021 physical rest/wake did not cold-replay exactly")
+# C-021 and every earlier transient witness are live-closed. C-022 requires
+# one changed retained formation caused by local metabolism, with durable
+# internally-simulated provenance and exact replay.
+if proof.get("native_internal_consolidation_rehearsed") is not True:
+    raise SystemExit("C-022 rehearsal produced no internal consolidation")
+if proof.get("native_internal_consolidation_cold_restore_exact") is not True:
+    raise SystemExit("C-022 consolidation did not cold-restore exactly")
+if proof.get("native_internal_consolidation_cold_replay_exact") is not True:
+    raise SystemExit("C-022 consolidation did not replay exactly")
+if proof.get("native_internal_consolidation_source") != "local_metabolic_settlement":
+    raise SystemExit("C-022 consolidation used a nonphysical source")
+if proof.get("native_internal_consolidation_origin") != "internally_simulated":
+    raise SystemExit("C-022 consolidation lost simulated provenance")
 for name in (
-    "native_rest_recovered_neuron_count",
-    "native_wake_dsf_delivery_count",
-    "native_wake_physically_transitioned_neuron_count",
+    "native_internal_consolidation_member_count",
+    "native_internal_consolidation_cue_count",
+    "native_internal_consolidation_metabolic_receptor_count",
 ):
     value = proof.get(name)
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
-        raise SystemExit(f"C-021 rehearsal returned invalid {name}")
+        raise SystemExit(f"C-022 rehearsal returned invalid {name}")
 for name in (
-    "native_rest_motor_recruitment_count",
-    "native_rest_articulatory_recruitment_count",
+    "native_internal_consolidation_external_receptor_count",
+    "native_internal_consolidation_motor_recruitment_count",
+    "native_internal_consolidation_articulatory_recruitment_count",
 ):
     if proof.get(name) != 0:
-        raise SystemExit(f"C-021 physical rest moved an actuator: {name}")
-def exact_pair(name):
-    value = proof.get(name)
-    if (
-        not isinstance(value, list)
-        or len(value) != 2
-        or any(isinstance(part, bool) or not isinstance(part, int) for part in value)
-        or value[1] <= 0
-    ):
-        raise SystemExit(f"C-021 rehearsal lost exact {name}")
-    from fractions import Fraction
-    return Fraction(value[0], value[1])
-if not (
-    exact_pair("native_rest_dissipated_energy_after_zeptojoules")
-    < exact_pair("native_rest_dissipated_energy_before_zeptojoules")
-    and exact_pair("native_rest_reachable_dissipation_headroom_after_zeptojoules")
-    > exact_pair("native_rest_reachable_dissipation_headroom_before_zeptojoules")
+        raise SystemExit(f"C-022 internal consolidation violated quiet causality: {name}")
+if proof.get("native_internal_consolidation_formation_receipt_before") == proof.get(
+    "native_internal_consolidation_formation_receipt_after"
 ):
-    raise SystemExit("C-021 rest did not reopen exact physical work capacity")
+    raise SystemExit("C-022 retained formation did not reorganize")
 if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-021 rehearsal invoked Python cognition")
+    raise SystemExit("C-022 rehearsal invoked Python cognition")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

@@ -216,6 +216,147 @@ def _rehearse_native_physical_rest_and_wake(
     }
 
 
+def _rehearse_native_internal_consolidation(
+    current_envelope: bytes,
+    budget: dict[str, int],
+) -> dict[str, object]:
+    """Prove one internally caused retained-formation reorganization.
+
+    The only driving occurrence is a measured dark/silent whole-sensorium
+    interval. Exact metabolic movement supplies the internal cue. No timer,
+    stored episode, random selector, or external perturbation is admitted.
+    """
+
+    def snapshot(organism: object) -> tuple[tuple[object, ...], ...]:
+        structures = organism.observe_retained_formation_structures()
+        recurrence = {
+            receipt: (tuple(cue), origin)
+            for receipt, cue, origin in (
+                organism.observe_retained_formation_recurrence_evidence()
+            )
+        }
+        observed = []
+        for receipt, members, original_bonds, recurrence_bonds, reinforcements in structures:
+            cue, origin = recurrence[receipt]
+            observed.append(
+                (
+                    receipt,
+                    tuple(members),
+                    tuple(original_bonds),
+                    tuple(recurrence_bonds),
+                    cue,
+                    origin,
+                    reinforcements,
+                )
+            )
+        return tuple(observed)
+
+    def settle() -> tuple[dict[str, object], bytes]:
+        from dsf_ai_service.native_production_app import _mono_pcm_hop_episodes
+
+        organism = restore_native_resident_organism(
+            current_envelope=current_envelope,
+            **budget,
+        )
+        [(quiet_episode, quiet_admissions)] = _mono_pcm_hop_episodes(
+            assembly_prefix="c022-internal-consolidation",
+            samples=(0,) * 4_000,
+            sample_rate_hz=16_000,
+        )
+        prior = snapshot(organism)
+        initial = organism.readiness()
+        for interval_ordinal in range(1, 33):
+            before = organism.readiness()
+            candidate = organism.prepare_admitted(quiet_episode, quiet_admissions)
+            after = organism.commit(candidate.token)
+            current = snapshot(organism)
+            if len(current) != len(prior):
+                raise RuntimeError("internal consolidation changed formation cardinality")
+            changed = []
+            for predecessor, successor in zip(prior, current, strict=True):
+                if predecessor[1:3] != successor[1:3]:
+                    raise RuntimeError("internal consolidation changed retained formation identity")
+                if (
+                    successor[5] == "internally_simulated"
+                    and successor[0] != predecessor[0]
+                    and (successor[3] != predecessor[3] or successor[4] != predecessor[4])
+                ):
+                    changed.append((predecessor, successor))
+            if changed:
+                if len(changed) != 1:
+                    raise RuntimeError("one interval reorganized more than one retained formation")
+                predecessor, successor = changed[0]
+                if (
+                    candidate.externally_perturbed_body_receptor_count != 0
+                    or candidate.metabolically_perturbed_body_receptor_count <= 0
+                    or candidate.endogenous_partial_cue_reassembly_count <= 0
+                    or candidate.motor_unit_recruitments
+                    or candidate.articulatory_unit_recruitments
+                    or after.organism_tick != before.organism_tick + 1
+                    or after.state_sha256 == before.state_sha256
+                    or after.python_callback_count != 0
+                ):
+                    raise RuntimeError("internal consolidation lacked exact causal evidence")
+                successor_body = organism.save()
+                cold = restore_native_resident_organism(
+                    current_envelope=successor_body,
+                    **budget,
+                )
+                if (
+                    cold.save() != successor_body
+                    or cold.readiness().state_sha256 != after.state_sha256
+                    or snapshot(cold) != current
+                ):
+                    raise RuntimeError("internal consolidation did not cold restore exactly")
+                return (
+                    {
+                        "native_internal_consolidation_rehearsed": True,
+                        "native_internal_consolidation_interval_ordinal": interval_ordinal,
+                        "native_internal_consolidation_cold_restore_exact": True,
+                        "native_internal_consolidation_source": "local_metabolic_settlement",
+                        "native_internal_consolidation_origin": successor[5],
+                        "native_internal_consolidation_member_count": len(successor[1]),
+                        "native_internal_consolidation_cue_count": len(successor[4]),
+                        "native_internal_consolidation_recurrence_bond_count_before": len(
+                            predecessor[3]
+                        ),
+                        "native_internal_consolidation_recurrence_bond_count_after": len(
+                            successor[3]
+                        ),
+                        "native_internal_consolidation_formation_receipt_before": predecessor[0],
+                        "native_internal_consolidation_formation_receipt_after": successor[0],
+                        "native_internal_consolidation_state_sha256_before": initial.state_sha256,
+                        "native_internal_consolidation_state_sha256_after": after.state_sha256,
+                        "native_internal_consolidation_state_bytes_before": initial.state_bytes,
+                        "native_internal_consolidation_state_bytes_after": after.state_bytes,
+                        "native_internal_consolidation_metabolic_receptor_count": (
+                            candidate.metabolically_perturbed_body_receptor_count
+                        ),
+                        "native_internal_consolidation_external_receptor_count": (
+                            candidate.externally_perturbed_body_receptor_count
+                        ),
+                        "native_internal_consolidation_motor_recruitment_count": len(
+                            candidate.motor_unit_recruitments
+                        ),
+                        "native_internal_consolidation_articulatory_recruitment_count": len(
+                            candidate.articulatory_unit_recruitments
+                        ),
+                    },
+                    successor_body,
+                )
+            prior = current
+        raise RuntimeError("internal consolidation did not emerge within 32 intervals")
+
+    proof, successor = settle()
+    replay_proof, replay_successor = settle()
+    if proof != replay_proof or successor != replay_successor:
+        raise RuntimeError("internal consolidation did not cold replay exactly")
+    return {
+        **proof,
+        "native_internal_consolidation_cold_replay_exact": True,
+    }
+
+
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--native-store-root", required=True)
@@ -1167,13 +1308,13 @@ def main() -> int:
         "motor_action_rehearsed": False,
     }
     if os.environ.get("GUALA_VESTIBULAR", "0") == "1":
-        # C-020 and every earlier body trajectory are already live-closed.
-        # C-021 now cold-replays the smallest physical rest -> reopened-work
-        # path.  The zero-motion interval supplies time but cannot command
-        # sleep; retained dissipation and recovery material decide the result.
+        # C-021 and every earlier body trajectory are already live-closed.
+        # C-022 requires a changed retained formation whose cause and durable
+        # origin are internal physical settlement, not the historical wake
+        # trajectory or a counter standing in for structure.
         motor_proof = {
             "motor_action_rehearsed": False,
-            **_rehearse_native_physical_rest_and_wake(
+            **_rehearse_native_internal_consolidation(
                 state,
                 {
                     "max_envelope_bytes": admission.max_envelope_bytes,

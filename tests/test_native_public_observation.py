@@ -68,6 +68,9 @@ class _Organism:
     def observe_retained_formations(self):
         return ()
 
+    def observe_retained_formation_recurrence_evidence(self):
+        return ()
+
 
 @dataclass
 class _Restored:
@@ -91,6 +94,9 @@ class _ReassemblingOrganism(_Organism):
             endogenous_partial_cue_reassembly_count=3,
             cognitive_mosaic_count=1,
         )
+
+    def observe_retained_formation_recurrence_evidence(self):
+        return (("d" * 64, ("01" * 16,), "internally_simulated"),)
 
 
 def _mount(monkeypatch) -> _Restored:
@@ -514,6 +520,13 @@ def test_recall_section_is_truth_coupled_to_the_native_observation(
     assert value["recall"]["available"] is True
     assert value["recall"]["status"] == "endogenous_physical_reassembly_observed"
     assert value["recall"]["partial_cue_reassembly_count"] == 3
+    assert value["recall"]["retained_formation_recurrence_evidence"] == [
+        {
+            "formation_receipt": "d" * 64,
+            "cue_lineages": ["01" * 16],
+            "origin": "internally_simulated",
+        }
+    ]
     assert value["formations"]["mosaic_count"] == 1
 
 

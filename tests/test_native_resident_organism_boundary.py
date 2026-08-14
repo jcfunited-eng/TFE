@@ -300,6 +300,11 @@ class _NativeResidentOrganismRuntime:
     ) -> list[tuple[str, list[str]]]:
         return [("b" * 64, ["01" * 16])]
 
+    def observe_retained_formation_recurrence_evidence(
+        self,
+    ) -> list[tuple[str, list[str], str]]:
+        return [("b" * 64, ["01" * 16], "internally_simulated")]
+
     def observe_reached_neuron_lineage_layers(
         self,
     ) -> list[tuple[str, int, bool]]:
@@ -464,6 +469,18 @@ def test_recurrence_cue_observation_is_exact_and_read_only(
 
     assert organism.observe_retained_formation_recurrence_cues() == (
         ("b" * 64, ("01" * 16,)),
+    )
+    assert runtime.active.state_sha256 == before
+
+
+def test_recurrence_origin_observation_is_exact_and_read_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    before = runtime.active.state_sha256
+
+    assert organism.observe_retained_formation_recurrence_evidence() == (
+        ("b" * 64, ("01" * 16,), "internally_simulated"),
     )
     assert runtime.active.state_sha256 == before
 
