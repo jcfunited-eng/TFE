@@ -351,9 +351,20 @@ box remains unchecked until live acceptance passes.
   zero Python cognition callbacks, and one healthy process. This closes the
   causal mechanism; it does not claim later curriculum, language, creativity,
   or interface tasks are complete.
-- [ ] **C-024** Implement and live-prove non-flattened cognitive-capital evidence
+- [x] **C-024** Implement and live-prove non-flattened cognitive-capital evidence
   for senses, recognition, recall, thought, speech, body capability, affective
   balance, motivation, learning, action, and self-expression.
+  **Live-closed 2026-08-14:** production task 1050, commit `e5b366c5`, and
+  image `sha256:31c7edeee93846dd5d87244f7e5499e0abdb88e76b0191d14d9751d0e4b67489`
+  preserved the same organism and exposed the exact 39-capability by
+  10-dimension catalog as 79 sparse cells backed by 87 bounded receipt
+  references. An unattended `continuous-environment:` event retained one
+  formation-to-action-to-sensed-return witness and credited four exact
+  `autonomous_use` capabilities. Unproved language, motivation, social
+  cognition, and creativity remained blank; no scalar or cognition authority
+  was added and Python cognition callbacks remained zero. A later committed
+  generation retained the same 79/87 cardinality while the organism advanced
+  from tick 89,448 to 89,461.
 
 ## Continuous causal autonomy and embodiment
 

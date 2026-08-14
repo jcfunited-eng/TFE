@@ -123,7 +123,7 @@ observation fragment; it never supplies meaning or cognition.
 
 ## Current status
 
-- C-024 is in progress.
+- C-024 is live-closed.
 - Architecture, path, lifecycle, evidence, translation, and resource scope
   were frozen before the first source edit.
 - Local source now exposes the fixed 39x10 axes and sparse referenced credits;
@@ -154,7 +154,6 @@ observation fragment; it never supplies meaning or cognition.
   schema literal, and missing approved-art references. C-024 changes no UI
   file; these failures are recorded and do not justify changing its frozen
   observer scope.
-- No production claim exists yet.
 - First live cutover attempt: task definition `dsf-ai-task:1049`, commit
   `8023cd10`, image `sha256:25c58e88…`; the release deployed cleanly in one
   cutover. Live observation then falsified completion: an internally caused
@@ -163,3 +162,26 @@ observation fragment; it never supplies meaning or cognition.
   current exact `continuous-environment:` transport identity. The release
   remains live and healthy, but C-024 stays open until that one translation
   mismatch is corrected and reverified.
+- Corrected live cutover: task definition `dsf-ai-task:1050`, commit
+  `e5b366c5`, image
+  `sha256:31c7edeee93846dd5d87244f7e5499e0abdb88e76b0191d14d9751d0e4b67489`.
+  The same organism identity survived exact cold restore. Live tick 89,422
+  exposed an internally caused `continuous-environment:` formation-to-action-
+  to-sensed-return witness. The catalog contained 79 unique sparse cells and
+  87 receipt references, including `autonomous_use` for procedural/physical
+  memory, self/body continuity, motor control, and autonomous cognition/action.
+  Language comprehension, motivation/curiosity, social cognition, and
+  creativity/self-expression remained uncredited; both scalar-score and
+  cognition authority were false; Python cognition callbacks were zero.
+- Recurrence proof: production advanced from tick 89,448/state `db242ec6…` to
+  tick 89,461/state `a9b5f730…`; the capital record remained exactly 79 cells,
+  87 references, and 23,560 canonical bytes while the causal witness remained
+  available. The complete public observation grew from 4,651,928 to 5,660,560
+  bytes because pre-existing motor-action evidence copies large transfer
+  bodies. That broader observer bloat is not produced by C-024 and remains an
+  explicit later observation/UI efficiency defect; it is not hidden as C-024
+  capital.
+- Deployment accounting: two release attempts. Task 1049 deployed cleanly but
+  failed the subsequent live C-024 acceptance check. Task 1050 corrected the
+  one exact intake-name translation and passed rehearsal, cutover, and live
+  recurrence verification. C-024 is therefore Live-Closed; A-001 is next.
