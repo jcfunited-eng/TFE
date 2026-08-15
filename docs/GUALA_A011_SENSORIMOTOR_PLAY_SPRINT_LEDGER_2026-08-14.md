@@ -1090,3 +1090,30 @@ second persistence authority remain out of scope and must not be extended.
   physiological-reinforcement acceptance, functional-reinforcement evidence,
   or A-011.6 closure. No threshold, coefficient, label, stimulus repetition,
   or second release was introduced to force a result.
+- A read-only discarded-body probe initially targeted the image-local default
+  `/app/guala/native-organism` and correctly refused that unrelated old fabric.
+  The exact task environment resolved production CURRENT at
+  `/app/guala/native-organism-gen5`; repeating against that declared root cold-
+  restored the live body exactly. The wrong-root probe made no state change and
+  must not be repeated.
+- Against the exact task-1070 body, one ordinary detached 250 ms vestibular
+  trajectory produced 11 complete layer-10 association/body/gradient
+  trajectories. All 11 received nonzero contact-modulated physiological energy;
+  none changed retained plastic geometry. A one-ms detached interval then
+  showed why: each cell received `9/16` through `3/4` zeptojoules, the work was
+  admitted with zero gate-work residue, and every cell's plastic rest remained
+  `4/3 -> 4/3` nanometres.
+- The mature production cells have already reached this single neuron-wide
+  support's yielded rest. That coordinate can prove a first generic material
+  yield, but it cannot retain repeated episode-specific reinforcement and does
+  not independently alter one participating contact's later conductance.
+  Additional waiting or energy would only spend reservoir material without
+  supplying the missing functional plastic authority.
+- Recommended next item requiring architecture approval: add the smallest
+  sparse **contact-local** physical plastic coordinate to an actually reached
+  synapse/contact, settle it from exact pre/post carrier activity plus local
+  fluid modulation, and make that same coordinate alter the contact's later
+  conductance. Do not extend the quarantined legacy neuron-wide contact-plastic
+  scalar, add a score/label/threshold, or migrate DSF. A discarded-body model
+  must prove locality, conservation, cold persistence, and changed later causal
+  reach before another production release.
