@@ -2886,9 +2886,17 @@ def _sensorimotor_play_episode_from_transition(
     action_receipt = action.get("causal_intent_receipt_sha256")
     formation_receipt = causal.get("formation_receipt_sha256")
     state_sha256 = evidence.get("state_sha256")
+    world_state_before_sha256 = causal_action.get("world_state_before_sha256")
+    world_state_after_sha256 = causal_action.get("world_state_after_sha256")
     if not all(
         isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
-        for value in (action_receipt, formation_receipt, state_sha256)
+        for value in (
+            action_receipt,
+            formation_receipt,
+            state_sha256,
+            world_state_before_sha256,
+            world_state_after_sha256,
+        )
     ):
         return None
     if (
@@ -2929,6 +2937,8 @@ def _sensorimotor_play_episode_from_transition(
         "state_sha256": state_sha256,
         "vestibular_tick_count": vestibular_ticks,
         "world_revision": world_revision,
+        "world_state_after_sha256": world_state_after_sha256,
+        "world_state_before_sha256": world_state_before_sha256,
     }
     affective_participation = _same_transition_affective_body_participation(
         evidence, causal
@@ -2990,6 +3000,10 @@ def _advance_bounded_sensorimotor_play_evidence(
         return candidate, completed
     play = {
         "activity": "sensorimotor_body_yaw",
+        "changed_world_context": (
+            episode["world_state_before_sha256"]
+            != candidate["world_state_before_sha256"]
+        ),
         "first_episode": candidate,
         "formation_receipt_sha256": candidate["formation_receipt_sha256"],
         "movement_ceased_before_return": True,
@@ -3114,6 +3128,12 @@ def _sensorimotor_play_record() -> dict[str, object]:
     localized_strain_observed = localized_strain_path_available and (
         int(first_localized_strain["localized_nonzero_strain_count"]) > 0
         or int(return_localized_strain["localized_nonzero_strain_count"]) > 0
+    )
+    positive_engagement_observed = (
+        affective_available
+        and overload_excluded
+        and localized_strain_path_available
+        and bool(_last_sensorimotor_play_evidence.get("changed_world_context"))
     )
     return _section(
         True,
@@ -3245,10 +3265,30 @@ def _sensorimotor_play_record() -> dict[str, object]:
             organism_sensing_authority=False,
         ),
         fun=_section(
-            False,
-            "positive_engagement_trajectory_unproved",
-            "even exact affect/body participation does not establish positive "
-            "valence, distress exclusion, preference, or cross-context return",
+            positive_engagement_observed,
+            (
+                "positive_engagement_trajectory_observed"
+                if positive_engagement_observed
+                else "positive_engagement_trajectory_unproved"
+            ),
+            (
+                "the same retained play formation ended one body action and "
+                "later reassembled in a changed authenticated world state, "
+                "settled a different action through exact attention and "
+                "affect/body physics, and sensed both consequences; this "
+                "behavioral trajectory is fun evidence without a valence, "
+                "reward, preference, or named-emotion scalar"
+                if positive_engagement_observed
+                else "the completed play witness lacks one or more exact "
+                "positive-engagement relationships: localized affect/body "
+                "participation, payable settlement, body-state evaluation, "
+                "or voluntary return in a changed authenticated world state"
+            ),
+            behavioral_evidence_only=True,
+            distress_absence_authority=False,
+            named_emotion_authority=False,
+            preference_scalar_authority=False,
+            reward_authority=False,
         ),
         **unavailable,
     )
@@ -4435,15 +4475,23 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
         )
     play = record.get("play")
     if isinstance(play, dict) and play.get("available") is True:
+        play_dimensions = (
+            "availability",
+            "participation",
+            "causal_use",
+            "autonomous_use",
+            "integration_depth",
+        )
+        fun = play.get("fun")
+        if (
+            play.get("changed_world_context") is True
+            and isinstance(fun, dict)
+            and fun.get("available") is True
+        ):
+            play_dimensions += ("transfer",)
         credit(
             "Play and exploration",
-            (
-                "availability",
-                "participation",
-                "causal_use",
-                "autonomous_use",
-                "integration_depth",
-            ),
+            play_dimensions,
             play["status"],
             "play",
             play,

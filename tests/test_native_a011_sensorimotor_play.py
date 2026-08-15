@@ -30,8 +30,8 @@ def _transition(
         "causal_intent_receipt_sha256": action_receipt,
         "command_sha256": "c" * 64,
         "observed_world_revision": world_revision,
-        "world_state_after_sha256": "b" * 64,
-        "world_state_before_sha256": "a" * 64,
+        "world_state_after_sha256": f"{world_revision + 1:064x}",
+        "world_state_before_sha256": f"{world_revision:064x}",
     }
     causal = {
         "action": causal_action,
@@ -225,7 +225,9 @@ def test_external_or_unvaried_activity_cannot_be_reported_as_play() -> None:
     assert completed is None
 
 
-def test_public_record_does_not_inflate_play_into_fun_or_laughter(monkeypatch) -> None:
+def test_public_record_reports_behavioral_fun_without_inflating_joy_or_laughter(
+    monkeypatch,
+) -> None:
     first, first_choice = _transition(
         action_receipt="5" * 64,
         origin_tick=300,
@@ -271,7 +273,11 @@ def test_public_record_does_not_inflate_play_into_fun_or_laughter(monkeypatch) -
     assert observed["distress_exclusion"]["exclusion_scope"] == (
         "localized_metabolic_strain_only"
     )
-    assert observed["fun"]["available"] is False
+    assert observed["fun"]["available"] is True
+    assert observed["fun"]["status"] == "positive_engagement_trajectory_observed"
+    assert observed["fun"]["behavioral_evidence_only"] is True
+    assert observed["fun"]["named_emotion_authority"] is False
+    assert observed["fun"]["reward_authority"] is False
     assert observed["social_joy"]["available"] is False
     assert observed["laughter"]["available"] is False
     assert observed["python_action_authority"] is False
@@ -362,7 +368,54 @@ def test_nonzero_localized_metabolic_strain_refuses_narrow_exclusion(
     assert observed["distress_exclusion"]["status"] == (
         "localized_metabolic_strain_observed"
     )
+    assert observed["fun"]["available"] is True
+    assert observed["fun"]["distress_absence_authority"] is False
+
+
+def test_unchanged_world_context_refuses_positive_engagement_claim(
+    monkeypatch,
+) -> None:
+    first, first_choice = _transition(
+        action_receipt="9" * 64,
+        origin_tick=700,
+        yaw=-29,
+        world_revision=70,
+    )
+    candidate, _ = production._advance_bounded_sensorimotor_play_evidence(
+        None,
+        None,
+        first,
+        first_choice,
+        "continuous-environment:first",
+    )
+    second, second_choice = _transition(
+        action_receipt="8" * 64,
+        origin_tick=714,
+        yaw=-17,
+        world_revision=71,
+    )
+    same_context = first["causal_cross_context_use"]["action"][
+        "world_state_before_sha256"
+    ]
+    second["causal_cross_context_use"]["action"][
+        "world_state_before_sha256"
+    ] = same_context
+    second["motor_action"]["world_state_before_sha256"] = same_context
+    _, completed = production._advance_bounded_sensorimotor_play_evidence(
+        candidate,
+        None,
+        second,
+        second_choice,
+        "continuous-environment:second",
+    )
+    monkeypatch.setattr(production, "_last_sensorimotor_play_evidence", completed)
+
+    observed = production._sensorimotor_play_record()
+
+    assert observed["available"] is True
+    assert observed["changed_world_context"] is False
     assert observed["fun"]["available"] is False
+    assert observed["fun"]["status"] == "positive_engagement_trajectory_unproved"
 
 
 def test_later_zero_evaluation_clears_prior_sparse_strain_without_summing() -> None:

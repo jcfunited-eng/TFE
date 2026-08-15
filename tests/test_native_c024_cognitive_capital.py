@@ -200,8 +200,10 @@ def test_sensorimotor_play_credits_only_observed_play_dimensions(monkeypatch) ->
     record = _record()
     record["play"] = {
         **_section(True, "sensorimotor_play_observed"),
+        "changed_world_context": True,
         "evidence_receipt_sha256": "e" * 64,
         "formation_receipt_sha256": "f" * 64,
+        "fun": _section(True, "positive_engagement_trajectory_observed"),
         "varied_displacement": True,
         "voluntary_return": True,
     }
@@ -220,7 +222,7 @@ def test_sensorimotor_play_credits_only_observed_play_dimensions(monkeypatch) ->
         ("Play and exploration", "autonomous_use"),
         ("Play and exploration", "integration_depth"),
     }.issubset(cells)
-    assert ("Play and exploration", "transfer") not in cells
+    assert ("Play and exploration", "transfer") in cells
     assert ("Play and exploration", "durability") not in cells
     assert not any(
         capability == "Creativity and self-expression"

@@ -511,6 +511,7 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     _mount(monkeypatch)
     evidence = {
         "activity": "sensorimotor_body_yaw",
+        "changed_world_context": True,
         "evidence_receipt_sha256": "e" * 64,
         "first_episode": {
             "action_causal_intent_receipt_sha256": "1" * 64,
@@ -519,6 +520,10 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
             },
             "metabolic_overload_exclusion": {
                 "witness_receipt_sha256": "5" * 64,
+            },
+            "localized_metabolic_strain": {
+                "localized_nonzero_strain_count": 0,
+                "witness_receipt_sha256": "7" * 64,
             },
             "signed_yaw_millidegrees": -58,
             "world_revision": 40,
@@ -532,6 +537,10 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
             },
             "metabolic_overload_exclusion": {
                 "witness_receipt_sha256": "6" * 64,
+            },
+            "localized_metabolic_strain": {
+                "localized_nonzero_strain_count": 0,
+                "witness_receipt_sha256": "8" * 64,
             },
             "signed_yaw_millidegrees": -40,
             "world_revision": 41,
@@ -551,8 +560,12 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     assert play["return_episode"]["signed_yaw_millidegrees"] == -40
     assert play["affective_engagement"]["available"] is True
     assert play["overload_exclusion"]["available"] is True
-    assert play["distress_exclusion"]["available"] is False
-    assert play["fun"]["available"] is False
+    assert play["distress_exclusion"]["available"] is True
+    assert play["distress_exclusion"]["exclusion_scope"] == (
+        "localized_metabolic_strain_only"
+    )
+    assert play["fun"]["available"] is True
+    assert play["fun"]["status"] == "positive_engagement_trajectory_observed"
     assert play["social_joy"]["available"] is False
     assert play["laughter"]["available"] is False
 
@@ -561,7 +574,7 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
         for credit in value["cognitive_capital"]["credits"]
     }
     assert ("Play and exploration", "autonomous_use") in cells
-    assert ("Play and exploration", "transfer") not in cells
+    assert ("Play and exploration", "transfer") in cells
 
     # Auditory intake and the curriculum's card surface are genuinely
     # mounted now; every other modality must still refuse honestly.

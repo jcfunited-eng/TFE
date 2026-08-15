@@ -666,3 +666,56 @@ coercive condition.
 **A-011.4 is Live-Closed.** The wider A-011 objective remains open: positive
 engagement/fun, reciprocal social joy, and body-owned laughter are not yet
 proved.
+
+## A-011.5 positive-engagement trajectory increment
+
+### Frozen scope
+
+This increment corrects only the read-only positive-engagement evidence
+boundary. It does not create a fun state, valence, preference, reward, named
+emotion, scripted action, or new cognitive mechanism.
+
+The native predecessor already supplies the physical facts required by the
+ratified fun law: one retained formation ends a self-initiated body action,
+later reassembles, crosses exact attention and motor paths, produces a varied
+body action, shares localized affect/body physics, and senses both
+consequences. A-011.5 additionally binds the two episodes to their exact
+authenticated predecessor world-state digests. Positive engagement is
+available only when the later voluntary return occurred in a different world
+state, both transactions remained payable, and both localized body-state paths
+were evaluated.
+
+Nonzero localized metabolic strain does not become pain, distress, reward, or
+negative valence. Its absence is not fabricated. The observer reports
+`distress_absence_authority=false`; the positive-engagement claim rests on the
+organism's completed, ceased, varied, and later voluntarily resumed physical
+trajectory despite retaining that body state. Social joy and body-owned
+laughter remain unavailable after this increment.
+
+### Change-impact ledger
+
+| Boundary | Exact path | State transformation | Required output |
+|---|---|---|---|
+| Native physical input | Existing continuous world occurrence and retained formation recurrence | Unchanged | Existing native recurrence, attention, action, affect/body, strain, and sensed-consequence evidence |
+| Translation boundary | `dsf_ai_service/native_production_app.py::_sensorimotor_play_episode_from_transition` | Preserve exact before/after world-state digests on each bounded episode | Two authenticated physical contexts without semantic labels |
+| Read-only interpretation | `dsf_ai_service/native_production_app.py::_sensorimotor_play_record` | Evaluate the complete retained trajectory; never feed a result back to cognition | `positive_engagement_trajectory_observed` only when every physical relationship is present |
+| Falsification | `tests/test_native_a011_sensorimotor_play.py` | Remove changed-context authority while preserving all other play facts | Fun remains unavailable |
+
+This increment neither evaluates nor reduces DSF. All local seven-field
+deliveries remain unchanged and outside this read-only evidence projection.
+
+### Candidate evidence
+
+- The focused A-011.5 observer, public-observation, and cognitive-capital
+  acceptance path passes 29/29 against this worktree and a freshly built native
+  candidate.
+- The adjacent A-008/A-009 causal-action, unattended-processing,
+  release-packaging, and cold-restore-isolation path passes 56/56 against those
+  same exact candidate paths.
+- One broader runner attempt accidentally loaded the stale globally installed
+  `guala_core` and failed nine tests before reaching A-011.5 behavior. The
+  corrected runner loaded `guala_core` from
+  `/tmp/guala-a0114-native.tgt2Ck` and the serving app from this worktree; no
+  production compatibility path or source workaround was added.
+- Python compilation and `git diff --check` pass. These are candidate facts,
+  not production closure.
