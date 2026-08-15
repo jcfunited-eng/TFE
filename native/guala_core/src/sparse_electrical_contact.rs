@@ -1048,6 +1048,30 @@ const SPARSE_ELECTRICAL_CELL_CONTACT_BYTES: usize = 80;
 const SPARSE_ELECTRICAL_CELL_V2_CONTACT_BYTES: usize = 160;
 const SPARSE_ELECTRICAL_CELL_V3_CONTACT_BYTES: usize = 192;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum SparseElectricalCellFormat {
+    V1,
+    V2,
+    V3,
+}
+
+pub(crate) fn sparse_electrical_cell_format(
+    encoded: &[u8],
+) -> Result<SparseElectricalCellFormat, SparseElectricalError> {
+    match encoded.get(..SPARSE_ELECTRICAL_CELL_CODEC_MAGIC.len()) {
+        Some(magic) if magic == SPARSE_ELECTRICAL_CELL_CODEC_MAGIC => {
+            Ok(SparseElectricalCellFormat::V1)
+        }
+        Some(magic) if magic == SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC => {
+            Ok(SparseElectricalCellFormat::V2)
+        }
+        Some(magic) if magic == SPARSE_ELECTRICAL_CELL_CODEC_V3_MAGIC => {
+            Ok(SparseElectricalCellFormat::V3)
+        }
+        _ => Err(SparseElectricalError::InvalidEncoding),
+    }
+}
+
 /// Keep fixed sparse-contact anatomy and its unresolved carrier phase together
 /// across cold restart. The encoding chooses no contacts or conductances.
 pub(crate) fn encode_sparse_electrical_cell(
@@ -1081,6 +1105,53 @@ pub(crate) fn encode_sparse_electrical_cell(
         let (residue_numerator, residue_denominator) = contact_state
             .transition_work_residue_zeptojoules
             .parts();
+        encoded.extend_from_slice(&residue_numerator.to_le_bytes());
+        encoded.extend_from_slice(&residue_denominator.to_le_bytes());
+    }
+    Ok(encoded)
+}
+
+/// Reproduce an admitted `GLSEC02` body exactly.  The retained plastic fields
+/// are predecessor compatibility bytes only; current contact physics never
+/// reads them.
+pub(crate) fn encode_sparse_electrical_cell_v2(
+    anatomy: &SparseElectricalAnatomy,
+    state: &SparseElectricalState,
+) -> Result<Vec<u8>, SparseElectricalError> {
+    if anatomy.contacts.len() != state.contacts.len()
+        || anatomy
+            .contacts
+            .iter()
+            .zip(state.contacts.iter())
+            .any(|(anatomy, contact)| {
+                contact.conducting_channel_population != anatomy.genesis_conducting_population
+                    || contact.transition_work_residue_zeptojoules.parts().0 != 0
+            })
+    {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC);
+    push_electrical_usize(&mut encoded, anatomy.neuron_count)?;
+    push_electrical_usize(&mut encoded, anatomy.contacts.len())?;
+    for (contact, contact_state) in anatomy.contacts.iter().zip(state.contacts.iter()) {
+        push_electrical_usize(&mut encoded, contact.left_neuron)?;
+        push_electrical_usize(&mut encoded, contact.right_neuron)?;
+        let (conductance_numerator, conductance_denominator) =
+            contact.conductance_picosiemens().parts();
+        encoded.extend_from_slice(&conductance_numerator.to_le_bytes());
+        encoded.extend_from_slice(&conductance_denominator.to_le_bytes());
+        let (phase_numerator, phase_denominator) = contact_state.carrier_phase.parts();
+        encoded.extend_from_slice(&phase_numerator.to_le_bytes());
+        encoded.extend_from_slice(&phase_denominator.to_le_bytes());
+        let (rest, dissipated, residue) = contact_state
+            .legacy_plastic_compatibility
+            .physical_parts();
+        let (rest_numerator, rest_denominator) = rest.parts();
+        encoded.extend_from_slice(&rest_numerator.to_le_bytes());
+        encoded.extend_from_slice(&rest_denominator.to_le_bytes());
+        encoded.extend_from_slice(&dissipated.to_le_bytes());
+        let (residue_numerator, residue_denominator) = residue.parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -2182,6 +2253,10 @@ mod tests {
         legacy_body.extend_from_slice(&residue_denominator.to_le_bytes());
         let (restored_anatomy, legacy) = decode_sparse_electrical_cell(&legacy_body).unwrap();
         assert_eq!(restored_anatomy, anatomy);
+        assert_eq!(
+            encode_sparse_electrical_cell_v2(&restored_anatomy, &legacy).unwrap(),
+            legacy_body
+        );
         assert_eq!(legacy.contact_states()[0].conducting_channel_population(), 50);
         assert_eq!(
             legacy.contact_states()[0].transition_work_residue_zeptojoules(),

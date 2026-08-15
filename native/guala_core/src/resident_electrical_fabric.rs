@@ -11,8 +11,9 @@
 use crate::exact_rational::ExactRational;
 use crate::sparse_electrical_contact::{
     decode_sparse_electrical_cell, encode_sparse_electrical_cell,
-    ElectricalContactAnatomy, SparseElectricalAnatomy, SparseElectricalError,
-    SparseElectricalState,
+    encode_sparse_electrical_cell_v1, encode_sparse_electrical_cell_v2,
+    sparse_electrical_cell_format, ElectricalContactAnatomy, SparseElectricalAnatomy,
+    SparseElectricalCellFormat, SparseElectricalError, SparseElectricalState,
 };
 
 const MAGIC: &[u8; 8] = b"GLREF01\0";
@@ -22,6 +23,7 @@ pub(crate) struct ResidentElectricalFabric {
     lineages: Box<[[u8; 16]]>,
     anatomy: SparseElectricalAnatomy,
     state: SparseElectricalState,
+    cell_format: SparseElectricalCellFormat,
 }
 
 impl Default for ResidentElectricalFabric {
@@ -33,6 +35,7 @@ impl Default for ResidentElectricalFabric {
             lineages: Box::new([]),
             anatomy,
             state,
+            cell_format: SparseElectricalCellFormat::V3,
         }
     }
 }
@@ -114,6 +117,7 @@ impl ResidentElectricalFabric {
             lineages: lineages.into_boxed_slice(),
             anatomy: successor_anatomy,
             state: successor_state,
+            cell_format: SparseElectricalCellFormat::V3,
         })
     }
 
@@ -125,6 +129,7 @@ impl ResidentElectricalFabric {
             lineages: self.lineages.clone(),
             anatomy: self.anatomy.clone(),
             state: SparseElectricalState::from_contact_states(&self.anatomy, contact_states)?,
+            cell_format: SparseElectricalCellFormat::V3,
         })
     }
 
@@ -193,6 +198,7 @@ impl ResidentElectricalFabric {
             lineages: lineages.into_boxed_slice(),
             anatomy,
             state,
+            cell_format: SparseElectricalCellFormat::V3,
         })
     }
 
@@ -210,7 +216,17 @@ impl ResidentElectricalFabric {
         {
             return Err(SparseElectricalError::AnatomyStateWidth);
         }
-        let electrical = encode_sparse_electrical_cell(&self.anatomy, &self.state)?;
+        let electrical = match self.cell_format {
+            SparseElectricalCellFormat::V1 => {
+                encode_sparse_electrical_cell_v1(&self.anatomy, &self.state)
+            }
+            SparseElectricalCellFormat::V2 => {
+                encode_sparse_electrical_cell_v2(&self.anatomy, &self.state)
+            }
+            SparseElectricalCellFormat::V3 => {
+                encode_sparse_electrical_cell(&self.anatomy, &self.state)
+            }
+        }?;
         let mut encoded = Vec::new();
         encoded.extend_from_slice(MAGIC);
         encoded.extend_from_slice(
@@ -283,6 +299,7 @@ impl ResidentElectricalFabric {
         if cursor != encoded.len() {
             return Err(SparseElectricalError::InvalidEncoding);
         }
+        let cell_format = sparse_electrical_cell_format(electrical)?;
         let (anatomy, state) = decode_sparse_electrical_cell(electrical)?;
         if anatomy.neuron_count() != lineages.len() {
             return Err(SparseElectricalError::AnatomyStateWidth);
@@ -291,6 +308,7 @@ impl ResidentElectricalFabric {
             lineages: lineages.into_boxed_slice(),
             anatomy,
             state,
+            cell_format,
         })
     }
 }

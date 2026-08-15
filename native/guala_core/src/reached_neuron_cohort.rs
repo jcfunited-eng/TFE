@@ -47,9 +47,10 @@ use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
 use crate::sha256::sha256;
 use crate::sparse_electrical_contact::{
     decode_sparse_electrical_cell, encode_sparse_electrical_cell, encode_sparse_electrical_cell_v1,
-    settle_sparse_electrical_transfers_reached, ElectricalContactAnatomy, ElectricalContactState,
-    ElectricalContactTransition, SparseElectricalAnatomy, SparseElectricalError,
-    SparseElectricalState, SparseElectricalTransferSettlement,
+    encode_sparse_electrical_cell_v2, settle_sparse_electrical_transfers_reached,
+    ElectricalContactAnatomy, ElectricalContactState, ElectricalContactTransition,
+    SparseElectricalAnatomy, SparseElectricalError, SparseElectricalState,
+    SparseElectricalTransferSettlement,
 };
 use num_bigint::BigInt;
 use num_rational::BigRational;
@@ -812,6 +813,7 @@ const REACHED_COHORT_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCS05\0";
 const REACHED_COHORT_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCS06\0";
 const REACHED_COHORT_CELL_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCC05\0";
 const REACHED_COHORT_CELL_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCC06\0";
+const REACHED_COHORT_CELL_CODEC_V7_MAGIC: &[u8; 8] = b"GLRCC07\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const REACHED_COHORT_STATE_DELTA_V2_MAGIC: &[u8; 8] = b"GLRSD02\0";
 const REACHED_COHORT_STATE_DELTA_V3_MAGIC: &[u8; 8] = b"GLRSD03\0";
@@ -871,6 +873,11 @@ pub(crate) fn encode_reached_cohort_cell(
 pub(crate) fn decode_reached_cohort_cell(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    if encoded.get(..REACHED_COHORT_CELL_CODEC_V7_MAGIC.len())
+        == Some(REACHED_COHORT_CELL_CODEC_V7_MAGIC)
+    {
+        return decode_reached_cohort_cell_v7(encoded);
+    }
     if encoded.get(..REACHED_COHORT_CELL_CODEC_V6_MAGIC.len())
         == Some(REACHED_COHORT_CELL_CODEC_V6_MAGIC)
     {
@@ -1179,10 +1186,24 @@ pub(crate) fn encode_reached_cohort_cell_v6(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<Vec<u8>, ReachedCohortError> {
+    let carries_changed_channels = state
+        .electrical
+        .contact_states()
+        .iter()
+        .zip(anatomy.electrical.contact_anatomies())
+        .any(|(contact, contact_anatomy)| {
+            contact.conducting_channel_population()
+                != contact_anatomy.genesis_conducting_population()
+                || contact.transition_work_residue_zeptojoules().parts().0 != 0
+        });
     encode_reached_cohort_cell_content_addressed(
         anatomy,
         state,
-        ContentAddressedCohortFormat::V6Mounted,
+        if carries_changed_channels {
+            ContentAddressedCohortFormat::V7MountedChannels
+        } else {
+            ContentAddressedCohortFormat::V6Mounted
+        },
     )
 }
 
@@ -1191,6 +1212,7 @@ enum ContentAddressedCohortFormat {
     V5WithoutContactPlasticity,
     V5WithContactPlasticity,
     V6Mounted,
+    V7MountedChannels,
 }
 
 fn encode_reached_cohort_cell_content_addressed(
@@ -1222,6 +1244,9 @@ fn encode_reached_cohort_cell_content_addressed(
             REACHED_COHORT_CELL_CODEC_V5_MAGIC
         }
         ContentAddressedCohortFormat::V6Mounted => REACHED_COHORT_CELL_CODEC_V6_MAGIC,
+        ContentAddressedCohortFormat::V7MountedChannels => {
+            REACHED_COHORT_CELL_CODEC_V7_MAGIC
+        }
     });
     push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
     anatomy_table.encode_into(&mut encoded)?;
@@ -1245,7 +1270,8 @@ fn encode_reached_cohort_cell_content_addressed(
                 push_cohort_usize(&mut encoded, source.len())?;
                 encoded.extend_from_slice(&source);
             }
-            ContentAddressedCohortFormat::V6Mounted => match mount {
+            ContentAddressedCohortFormat::V6Mounted
+            | ContentAddressedCohortFormat::V7MountedChannels => match mount {
                 ReachedNeuronMount::Receptor(source_site) => {
                     encoded.push(0);
                     let source = encode_neuron_source_site(source_site)?;
@@ -1272,14 +1298,19 @@ fn encode_reached_cohort_cell_content_addressed(
         encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
     push_cohort_usize(&mut encoded, recovery_state.len())?;
     encoded.extend_from_slice(&recovery_state);
-    let electrical = if matches!(
-        format,
-        ContentAddressedCohortFormat::V5WithContactPlasticity
-            | ContentAddressedCohortFormat::V6Mounted
-    ) {
-        encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)
-    } else {
-        encode_sparse_electrical_cell_v1(&anatomy.electrical, &state.electrical)
+    let electrical = match format {
+        ContentAddressedCohortFormat::V5WithoutContactPlasticity => {
+            encode_sparse_electrical_cell_v1(&anatomy.electrical, &state.electrical)
+        }
+        ContentAddressedCohortFormat::V5WithContactPlasticity => {
+            encode_sparse_electrical_cell_v2(&anatomy.electrical, &state.electrical)
+        }
+        ContentAddressedCohortFormat::V6Mounted => {
+            encode_sparse_electrical_cell_v2(&anatomy.electrical, &state.electrical)
+        }
+        ContentAddressedCohortFormat::V7MountedChannels => {
+            encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)
+        }
     }?;
     push_cohort_usize(&mut encoded, electrical.len())?;
     encoded.extend_from_slice(&electrical);
@@ -1289,25 +1320,33 @@ fn encode_reached_cohort_cell_content_addressed(
 fn decode_reached_cohort_cell_v5(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
-    decode_reached_cohort_cell_content_addressed(encoded, false)
+    decode_reached_cohort_cell_content_addressed(encoded, None)
 }
 
 fn decode_reached_cohort_cell_v6(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
-    decode_reached_cohort_cell_content_addressed(encoded, true)
+    decode_reached_cohort_cell_content_addressed(
+        encoded,
+        Some(REACHED_COHORT_CELL_CODEC_V6_MAGIC),
+    )
+}
+
+fn decode_reached_cohort_cell_v7(
+    encoded: &[u8],
+) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    decode_reached_cohort_cell_content_addressed(
+        encoded,
+        Some(REACHED_COHORT_CELL_CODEC_V7_MAGIC),
+    )
 }
 
 fn decode_reached_cohort_cell_content_addressed(
     encoded: &[u8],
-    carries_mounted_sites: bool,
+    mounted_magic: Option<&[u8; 8]>,
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
     let mut reader = CohortStateReader::new(encoded);
-    let expected_magic = if carries_mounted_sites {
-        REACHED_COHORT_CELL_CODEC_V6_MAGIC
-    } else {
-        REACHED_COHORT_CELL_CODEC_V5_MAGIC
-    };
+    let expected_magic = mounted_magic.unwrap_or(REACHED_COHORT_CELL_CODEC_V5_MAGIC);
     if reader.take(expected_magic.len())? != expected_magic {
         return Err(ReachedCohortError::InvalidStateEncoding);
     }
@@ -1343,7 +1382,7 @@ fn decode_reached_cohort_cell_content_addressed(
                 .try_into()
                 .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
         );
-        let mount = if carries_mounted_sites {
+        let mount = if mounted_magic.is_some() {
             match reader.u8()? {
                 0 => {
                     let source_length = reader.usize()?;
@@ -1916,6 +1955,75 @@ pub(crate) fn encode_reached_cohort_state_delta(
     push_cohort_usize(&mut encoded, recovery_state.len())?;
     encoded.extend_from_slice(&recovery_state);
     encoded.extend_from_slice(&reached_cohort_state_content_digest(anatomy, target)?);
+    Ok(encoded)
+}
+
+/// Preserve the exact GLRSD02 predecessor representation for untouched
+/// GLEXP05 evidence.  Its plastic state is compatibility-only in the current
+/// runtime, but its bytes remain part of the authenticated predecessor body.
+pub(crate) fn encode_reached_cohort_state_delta_v2(
+    anatomy: &ReachedCohortAnatomy,
+    base: &ReachedCohortState,
+    target: &ReachedCohortState,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if base.neurons.len() != anatomy.neurons.len()
+        || target.neurons.len() != anatomy.neurons.len()
+        || base.electrical.contact_count() != anatomy.electrical.contact_count()
+        || target.electrical.contact_count() != anatomy.electrical.contact_count()
+        || target
+            .electrical
+            .contact_states()
+            .iter()
+            .zip(anatomy.electrical.contact_anatomies())
+            .any(|(contact, contact_anatomy)| {
+                contact.conducting_channel_population()
+                    != contact_anatomy.genesis_conducting_population()
+                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+            })
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_STATE_DELTA_V2_MAGIC);
+    push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
+    for (neuron_index, (base_neuron, target_neuron)) in
+        base.neurons.iter().zip(target.neurons.iter()).enumerate()
+    {
+        match sparse_physical_state_delta(base_neuron, target_neuron).map_err(|error| {
+            ReachedCohortError::Neuron {
+                neuron_index,
+                error,
+            }
+        })? {
+            None => encoded.push(0),
+            Some(delta) => {
+                encoded.push(1);
+                let body = encode_sparse_physical_state_delta(&delta)?;
+                push_cohort_usize(&mut encoded, body.len())?;
+                encoded.extend_from_slice(&body);
+            }
+        }
+    }
+    for contact in target.electrical.contact_states() {
+        let (phase_numerator, phase_denominator) = contact.carrier_phase().parts();
+        encoded.extend_from_slice(&phase_numerator.to_le_bytes());
+        encoded.extend_from_slice(&phase_denominator.to_le_bytes());
+        let (rest, dissipated, residue) = contact
+            .legacy_plastic_compatibility_state()
+            .physical_parts();
+        let (rest_numerator, rest_denominator) = rest.parts();
+        encoded.extend_from_slice(&rest_numerator.to_le_bytes());
+        encoded.extend_from_slice(&rest_denominator.to_le_bytes());
+        encoded.extend_from_slice(&dissipated.to_le_bytes());
+        let (residue_numerator, residue_denominator) = residue.parts();
+        encoded.extend_from_slice(&residue_numerator.to_le_bytes());
+        encoded.extend_from_slice(&residue_denominator.to_le_bytes());
+    }
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, target.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    encoded.extend_from_slice(&reached_cohort_state_v5_content_digest(anatomy, target)?);
     Ok(encoded)
 }
 

@@ -1223,3 +1223,27 @@ second persistence authority remain out of scope and must not be extended.
   V4 digests but omitted V5. It now admits V6, V5, or V4 according to the
   bytes actually present; legacy plastic remains decode-only and cannot alter
   contact conductance. The full native suite passes `420/420` after this fix.
+- Production attempt 1 built image
+  `sha256:bb1472d5de62fdb3fc1df280c3a5de3fa3a012356723ddbd869f10858215200f`
+  and failed closed during candidate rehearsal before cutover. ECS task
+  `b28dcd3b59c248868569fb43cae6d28a` exited because the candidate refused the
+  exact task-1070 cognitive body as noncanonical. Production remained task
+  1070; no organism state or service authority changed.
+- The deployment failure exposed three coupled format-version omissions in
+  the first candidate: new `GLRCS06` evidence was placed under old `GLEXP05`,
+  old cross-cohort `GLREF01/GLSEC02` fabric re-encoded as `GLSEC03`, and old
+  reached-cohort `GLRCC06/GLSEC02` cells re-encoded with the new contact body.
+  The correction preserves every predecessor wrapper and payload byte, adds
+  fresh `GLEXP06` and `GLRCC07` only for changed channel state, and retains the
+  decoded sparse-cell format until the cross-cohort fabric physically changes.
+- A byte-level diagnostic decoded the hash-verified task-1070 body without its
+  final canonicality comparison and re-encoded it as its declared `GLCOG023`
+  format. The comparison reached the end of all `58,413,197` cognitive bytes
+  with equal length and no differing byte. The temporary diagnostic test was
+  then removed.
+- The corrected release extension directly cold-restored both downloaded,
+  SHA-verified production envelopes:
+  `4edabffd90edd20bcfb6cf7487ef2f6ee2859587c148b30961eb701e0e38c2ff`
+  (the exact failed-attempt predecessor) and
+  `dfc1907c5c0c735a2564cf093e88e33bd2b378e1691623b7046079843f0858c`
+  (the later task-1070 body). No migration or rewrite was used.

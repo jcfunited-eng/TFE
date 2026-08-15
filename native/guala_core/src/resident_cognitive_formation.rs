@@ -87,7 +87,8 @@ use crate::reached_neuron_cohort::{
     decode_reached_cohort_state_delta, encode_reached_cohort_cell, encode_reached_cohort_cell_v5,
     encode_reached_cohort_cell_v5_with_contact_plasticity, encode_reached_cohort_cell_v6,
     encode_reached_cohort_state, encode_reached_cohort_state_delta,
-    encode_reached_cohort_state_delta_v1, encode_reached_cohort_state_v4,
+    encode_reached_cohort_state_delta_v1, encode_reached_cohort_state_delta_v2,
+    encode_reached_cohort_state_v4, encode_reached_cohort_state_v5,
     encode_reached_cohort_state_v6,
     expand_legacy_receptor_channel_populations as expand_reached_receptor_channel_populations,
     extend_reached_cohort_cells, extend_reached_cohort_contacts,
@@ -185,6 +186,7 @@ const EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
 const EXPERIENCE_V3_MAGIC: &[u8; 8] = b"GLEXP03\0";
 const EXPERIENCE_V4_MAGIC: &[u8; 8] = b"GLEXP04\0";
 const EXPERIENCE_V5_MAGIC: &[u8; 8] = b"GLEXP05\0";
+const EXPERIENCE_V6_MAGIC: &[u8; 8] = b"GLEXP06\0";
 const RECURRENCE_MAGIC: &[u8; 8] = b"GLREC02\0";
 const ENDOGENOUS_RECURRENCE_MAGIC: &[u8; 8] = b"GLREC03\0";
 const PHYSICAL_RECURRENCE_MAGIC: &[u8; 8] = b"GLREC04\0";
@@ -1217,6 +1219,7 @@ enum ExperienceEvidenceCodec {
     V3,
     V4,
     V5,
+    V6,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -6492,7 +6495,7 @@ fn settle_resident_original_interval(
             .iter()
             .any(|changed| *changed)
             .then(|| ResidentExperienceEvidence {
-                codec: ExperienceEvidenceCodec::V5,
+                codec: ExperienceEvidenceCodec::V6,
                 pre_experience_rest: predecessor_state,
                 post_experience_rest: None,
                 gate_work_perturbed_neurons: vec![false; cohort.anatomy.neuron_count()]
@@ -6510,7 +6513,7 @@ fn settle_resident_original_interval(
             })
     });
     if let Some(experience) = experience.as_mut() {
-        experience.codec = ExperienceEvidenceCodec::V5;
+        experience.codec = ExperienceEvidenceCodec::V6;
         or_bits(
             &mut experience.gate_work_perturbed_neurons,
             &gate_work_perturbed_neurons,
@@ -6721,7 +6724,7 @@ fn advance_recurrent_neuronal_experience(
             .iter()
             .any(|changed| *changed)
             .then(|| ResidentExperienceEvidence {
-                codec: ExperienceEvidenceCodec::V5,
+                codec: ExperienceEvidenceCodec::V6,
                 pre_experience_rest: predecessor.clone(),
                 post_experience_rest: None,
                 gate_work_perturbed_neurons: vec![false; anatomy.neuron_count()].into_boxed_slice(),
@@ -6737,7 +6740,7 @@ fn advance_recurrent_neuronal_experience(
     let Some(mut experience) = experience.take() else {
         return Ok(Vec::new());
     };
-    experience.codec = ExperienceEvidenceCodec::V5;
+    experience.codec = ExperienceEvidenceCodec::V6;
     or_bits(
         &mut experience.gate_work_perturbed_neurons,
         gate_work_perturbed_neurons,
@@ -6886,7 +6889,7 @@ fn settle_resident_recurrence_interval(
             .retained_experience
             .as_mut()
             .ok_or(FormationError::NoncanonicalState)?
-            .codec = ExperienceEvidenceCodec::V5;
+            .codec = ExperienceEvidenceCodec::V6;
         cohort
             .retained_experience
             .as_mut()
@@ -7291,9 +7294,15 @@ fn encode_experience_evidence_v2(
     }
     let selective_layout = matches!(
         evidence.codec,
-        ExperienceEvidenceCodec::V4 | ExperienceEvidenceCodec::V5
+        ExperienceEvidenceCodec::V4
+            | ExperienceEvidenceCodec::V5
+            | ExperienceEvidenceCodec::V6
     );
-    let excitation_layout = evidence.codec == ExperienceEvidenceCodec::V5;
+    let excitation_layout = matches!(
+        evidence.codec,
+        ExperienceEvidenceCodec::V5 | ExperienceEvidenceCodec::V6
+    );
+    let carries_contact_channels = evidence.codec == ExperienceEvidenceCodec::V6;
     let mut encoded = Vec::new();
     encoded.extend_from_slice(match evidence.codec {
         ExperienceEvidenceCodec::V1 => unreachable!(),
@@ -7301,14 +7310,21 @@ fn encode_experience_evidence_v2(
         ExperienceEvidenceCodec::V3 => EXPERIENCE_V3_MAGIC,
         ExperienceEvidenceCodec::V4 => EXPERIENCE_V4_MAGIC,
         ExperienceEvidenceCodec::V5 => EXPERIENCE_V5_MAGIC,
+        ExperienceEvidenceCodec::V6 => EXPERIENCE_V6_MAGIC,
     });
     if selective_layout {
         encoded.push(u8::from(evidence.local_relaxation_observed));
     }
     match base {
         Some(base) => {
-            let body = if carries_contact_plasticity {
+            let body = if carries_contact_channels {
                 encode_reached_cohort_state_delta(anatomy, base, &evidence.pre_experience_rest)
+            } else if carries_contact_plasticity {
+                encode_reached_cohort_state_delta_v2(
+                    anatomy,
+                    base,
+                    &evidence.pre_experience_rest,
+                )
             } else {
                 encode_reached_cohort_state_delta_v1(anatomy, base, &evidence.pre_experience_rest)
             }
@@ -7318,8 +7334,10 @@ fn encode_experience_evidence_v2(
             encoded.extend_from_slice(&body);
         }
         None => {
-            let body = if carries_contact_plasticity {
+            let body = if carries_contact_channels {
                 encode_reached_cohort_state_v6(anatomy, &evidence.pre_experience_rest)
+            } else if carries_contact_plasticity {
+                encode_reached_cohort_state_v5(anatomy, &evidence.pre_experience_rest)
             } else {
                 encode_reached_cohort_state_v4(anatomy, &evidence.pre_experience_rest)
             }
@@ -7333,8 +7351,10 @@ fn encode_experience_evidence_v2(
         None => encoded.push(0),
         Some(post) => {
             let state_body = |state: &ReachedCohortState| {
-                if carries_contact_plasticity {
+                if carries_contact_channels {
                     encode_reached_cohort_state_v6(anatomy, state)
+                } else if carries_contact_plasticity {
+                    encode_reached_cohort_state_v5(anatomy, state)
                 } else {
                     encode_reached_cohort_state_v4(anatomy, state)
                 }
@@ -7445,6 +7465,23 @@ fn decode_experience_evidence_v2(
                 true,
                 true,
                 EXPERIENCE_V5_MAGIC
+                    .len()
+                    .checked_add(1)
+                    .ok_or(FormationError::ArithmeticOverflow)?,
+            )
+        } else if encoded.get(..EXPERIENCE_V6_MAGIC.len()) == Some(EXPERIENCE_V6_MAGIC) {
+            let flag = *encoded
+                .get(EXPERIENCE_V6_MAGIC.len())
+                .ok_or(FormationError::NoncanonicalState)?;
+            if flag > 1 {
+                return Err(FormationError::NoncanonicalState);
+            }
+            (
+                ExperienceEvidenceCodec::V6,
+                flag == 1,
+                true,
+                true,
+                EXPERIENCE_V6_MAGIC
                     .len()
                     .checked_add(1)
                     .ok_or(FormationError::ArithmeticOverflow)?,
@@ -7649,6 +7686,7 @@ fn decode_any_experience_evidence(
         || encoded.get(..EXPERIENCE_V3_MAGIC.len()) == Some(EXPERIENCE_V3_MAGIC)
         || encoded.get(..EXPERIENCE_V4_MAGIC.len()) == Some(EXPERIENCE_V4_MAGIC)
         || encoded.get(..EXPERIENCE_V5_MAGIC.len()) == Some(EXPERIENCE_V5_MAGIC)
+        || encoded.get(..EXPERIENCE_V6_MAGIC.len()) == Some(EXPERIENCE_V6_MAGIC)
     {
         decode_experience_evidence_v2(encoded, anatomy, base)
     } else {
@@ -10344,7 +10382,7 @@ fn settle_internal_contact_interval(
                     .iter()
                     .any(|changed| *changed)
                     .then(|| ResidentExperienceEvidence {
-                        codec: ExperienceEvidenceCodec::V5,
+                        codec: ExperienceEvidenceCodec::V6,
                         pre_experience_rest: interval_predecessor_state.clone(),
                         post_experience_rest: None,
                                 gate_work_perturbed_neurons: vec![
@@ -10373,7 +10411,7 @@ fn settle_internal_contact_interval(
                     })
             });
             if let Some(evidence) = experience.as_mut() {
-                evidence.codec = ExperienceEvidenceCodec::V5;
+                evidence.codec = ExperienceEvidenceCodec::V6;
                 or_bits(
                     &mut evidence.retained_change_neurons,
                     &retained_change_this_interval,
