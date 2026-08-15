@@ -722,6 +722,18 @@ if proof.get("c024_false_native_capital_exports_absent") is not True:
     raise SystemExit("retired false native capital remains exported")
 if proof.get("python_callback_count") != 0:
     raise SystemExit("C-024 observation invoked Python cognition")
+if (
+    proof.get("a0116_contact_local_junction_rehearsed") is not True
+    or proof.get("a0116_cold_restore_exact") is not True
+    or not isinstance(proof.get("a0116_contact_local_interval_ordinal"), int)
+    or isinstance(proof.get("a0116_contact_local_interval_ordinal"), bool)
+    or not 1 <= proof["a0116_contact_local_interval_ordinal"] <= 250
+    or not isinstance(proof.get("a0116_contact_count"), int)
+    or proof["a0116_contact_count"] <= 0
+    or not isinstance(proof.get("a0116_changed_contact_count"), int)
+    or not 0 < proof["a0116_changed_contact_count"] <= proof["a0116_contact_count"]
+):
+    raise SystemExit("A-011.6 contact-local rehearsal did not prove retained change")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

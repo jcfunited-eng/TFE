@@ -3050,6 +3050,42 @@ impl NativeResidentOrganismRuntime {
             .observe_reached_contact_count_by_layer_pair()
     }
 
+    /// Read-only exact retained channel state for every reached sparse
+    /// contact. This is live evidence only; it supplies no organism authority.
+    #[allow(clippy::type_complexity)]
+    fn observe_reached_contact_channel_states(
+        &self,
+    ) -> Vec<(String, String, u32, u128, i128, u128, i128, u128)> {
+        self.runtime
+            .cognitive_state()
+            .observe_reached_contact_channel_states()
+            .into_iter()
+            .map(
+                |(
+                    left,
+                    right,
+                    parallel_ordinal,
+                    population,
+                    residue_numerator,
+                    residue_denominator,
+                    conductance_numerator,
+                    conductance_denominator,
+                )| {
+                    (
+                        hex_bytes(&left),
+                        hex_bytes(&right),
+                        parallel_ordinal,
+                        population,
+                        residue_numerator,
+                        residue_denominator,
+                        conductance_numerator,
+                        conductance_denominator,
+                    )
+                },
+            )
+            .collect()
+    }
+
     /// Read-only count of reached cells carrying one exact persisted source
     /// anchor. The caller names physical source identity, not cognition.
     fn observe_reached_source_site_count(

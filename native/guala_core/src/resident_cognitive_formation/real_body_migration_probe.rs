@@ -438,7 +438,7 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
         .electrical()
         .contact_states()
         .iter()
-        .filter(|contact| contact.plastic_state() != contact_genesis)
+        .filter(|contact| contact.legacy_plastic_compatibility_state() != contact_genesis)
         .count();
     for (left, right) in original_cohort.anatomy.contact_endpoints() {
         let contact_coordinate =

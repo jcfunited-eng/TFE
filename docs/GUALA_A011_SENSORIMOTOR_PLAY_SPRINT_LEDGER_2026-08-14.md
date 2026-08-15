@@ -1117,3 +1117,109 @@ second persistence authority remain out of scope and must not be extended.
   scalar, add a score/label/threshold, or migrate DSF. A discarded-body model
   must prove locality, conservation, cold persistence, and changed later causal
   reach before another production release.
+
+### A-011.6 contact-local electrical-junction implementation sprint
+
+- **Architecture decision:** Joseph approved the complete constitution in
+  `GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md` on 2026-08-15.
+- **Active item:** A-011.6 remains the sole active item. This continues A-011.6;
+  it does not reopen A-011.5 or advance to A-011.7.
+- **Immediate predecessor:** A-011.5 remains Live-Closed. The exact production
+  baseline for this increment is task `dsf-ai-task:1070`, commit
+  `63910b7463d0aaa6a84bb50751ad21f1bfac11e7`, image
+  `sha256:d12f1f41c16c508a39e3f0365c7e3a7da35a641028d6b9e1a1e658d26db12708`.
+- **Frozen input:** one reached sparse electrical contact after its ordinary
+  exact current settlement, the exact work released at that contact, and the
+  two endpoint-local layer-10 carrier-gradient directions from that same
+  causal interval.
+- **Single change:** the contact retains a bounded conducting-channel
+  population and exact sub-quantum work residue. Its successor conductance is
+  derived from that population and is usable only in the next interval.
+- **Expected output:** local active-pump direction can strengthen only that
+  contact; passive-return direction can weaken only that contact; quiescence or
+  opposing endpoint directions preserve it; all released work is exactly
+  divided between completed transitions, bounded residue, and heat.
+- **Unchanged:** full L0-L4/DSF, MathLoom, neuron identity, neuron-wide plastic
+  support, formations, action choice, UI, curriculum, and all closed ledger
+  evidence.
+
+#### Translation and acceptance map before first compile
+
+| Boundary | Exact producer/path | Required carried state | Acceptance evidence |
+|---|---|---|---|
+| Electrical predecessor -> local contact work | `sparse_electrical_contact.rs::settle_sparse_electrical_transfers*` after the final exact joint current settlement | predecessor effective conductance, exact endpoint potential difference, exact settled current, exact interval | nonnegative exact contact-local work; no cohort aggregate redistributed |
+| Endpoint gradient -> direction | `resident_cognitive_formation.rs` exact `ReachedLayerTenGradientSettlement` for each contact endpoint and the same organism transition | pumped charges, returned charges, endpoint lineage, ordinal | active/pump, passive/return, quiescent, or opposing tie without labels or scores |
+| Contact transition -> retained successor | `sparse_electrical_contact.rs::settle_contact_local_conductance` | carrier phase, conducting population, rational residue, exported heat | bounded population, residue strictly below quantum, next-interval-only conductance |
+| Retained state -> cold restore | fresh sparse-contact codec and direct reached-cohort/resident-fabric callers | complete new contact state; predecessor GLSEC01/02 legacy bytes remain readable but non-authoritative | task-1070 bytes restore; a changed contact round-trips byte-exact; legacy plastic cannot affect conductance |
+| Native state -> live acceptance | ordinary production organism transition and bounded public evidence already used by A-011.6 | changed exact contact state and later changed sparse causal reach | one live contact change, continued organism identity/activity, bounded calls/CPU/RAM/storage; no claim of A-011.6 closure until later functional reach changes |
+
+#### Pre-test recurrence checks
+
+- RF-001/RF-003/RF-036: use the exact worktree on `PYTHONPATH`, build a fresh
+  candidate wheel without cache, and print its loaded native path/provenance.
+- RF-004/RF-010/RF-022: prove pristine state, task-1070 predecessor restore,
+  one new lawful contact state, persisted `CURRENT`, and one post-restart
+  ordinary interval.
+- RF-005/RF-017/RF-028: census every constructor, codec, FFI getter,
+  transaction aggregate, and observer required for the acceptance evidence
+  before packaging.
+- RF-009/RF-039/RF-044: no aggregate work prerequisite, no per-channel object,
+  and no whole-population scan. Work is one compact exact settlement per
+  reached contact.
+- RF-016/RF-034: only A-011.6 is active; no historical witness or unrelated
+  downstream behavior becomes a release gate.
+- RF-032: compile and test from `native/guala_core`, where `Cargo.toml` exists.
+
+#### Rejected or falsified paths retained for continuity
+
+- Task 1070's neuron-aggregate `ContactModulatedGateEnergySettlement` cannot
+  author contact-local history and will not be redistributed to contacts.
+- The legacy copied `PlasticSupportState` cannot independently alter one
+  contact's later conductance and remains decode-only compatibility evidence.
+- A second stored carrier-gradient scalar would duplicate the already-retained
+  intracellular/extracellular carrier partition and is not introduced.
+- No owner, lock, database, score, semantic reward, DSF migration, or per-channel
+  software object is permitted in this transition.
+
+#### Implementation evidence in progress
+
+- The focused sparse-contact suite passes `17/17`. It proves one-contact
+  next-interval-only conductance, three-contact independence and opposing
+  direction tie, exact bounded work/residue/heat settlement, fresh `GLSEC03`
+  round-trip, and predecessor `GLSEC02` compatibility with its legacy plastic
+  material excluded from conductance authority.
+- Two malformed Cargo invocations during this sprint supplied two positional
+  test filters and were refused before running any test. Neither changed source
+  or state. The required single module filter was then run correctly and passed
+  `17/17`. The recurrence was operator error despite the prior ledger entry;
+  all remaining Cargo invocations use one module filter or the whole library.
+- The task-1070 neuron-local gate-energy/plastic-support settlement is preserved
+  unchanged. It is not redistributed into the new contact state and does not
+  determine contact conductance; removing it would exceed the approved sprint
+  and contradict the ratification's explicit unchanged neuron-wide support.
+- Full native evidence after organism integration passes `420/420`, with the
+  same 11 intentionally ignored tests and zero failures. The Python extension
+  compiles with the changed PyO3 boundary.
+- A fresh release wheel was built from an empty Cargo target. Its loaded native
+  module resolved to that candidate wheel, and the focused native/Python/
+  controller boundary suite passes `68/68`.
+- Packaging, cold-probe, storage-cutover, and bootstrap-custody coverage now
+  passes. Two cold-probe mocks were updated to provide the new A-011.6
+  rehearsal receipt rather than attempt real native settlement from fake
+  bytes. One stale custody assertion that demanded retired Python
+  `load_full_state` from the native binary CURRENT probe was corrected to
+  require `restore_current_native_organism` instead.
+- RF-032 recurred once when one mixed Python/Rust verification command was
+  started from `native/guala_core`; Python refused the root-relative path
+  before Cargo ran. The identical command was rerun from the repository root
+  with an explicit Cargo manifest and passed. Mixed-boundary commands must
+  start at the repository root; Rust-only commands remain rooted at the crate.
+- Read-only production preflight re-resolved one healthy task 1070 process,
+  zero pending processes, the expected image digest, 4 vCPU/16 GiB, and HTTP
+  200 for both Loom pages. It made no production change.
+- Pre-commit codec review found one task-1070 compatibility omission before
+  deployment: an older `GLEXP05` content-addressed post marker may carry the
+  exact `GLRCS05` digest. The decoder initially admitted current V6 and older
+  V4 digests but omitted V5. It now admits V6, V5, or V4 according to the
+  bytes actually present; legacy plastic remains decode-only and cannot alter
+  contact conductance. The full native suite passes `420/420` after this fix.

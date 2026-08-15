@@ -88,12 +88,13 @@ use crate::reached_neuron_cohort::{
     encode_reached_cohort_cell_v5_with_contact_plasticity, encode_reached_cohort_cell_v6,
     encode_reached_cohort_state, encode_reached_cohort_state_delta,
     encode_reached_cohort_state_delta_v1, encode_reached_cohort_state_v4,
-    encode_reached_cohort_state_v5,
+    encode_reached_cohort_state_v6,
     expand_legacy_receptor_channel_populations as expand_reached_receptor_channel_populations,
     extend_reached_cohort_cells, extend_reached_cohort_contacts,
     extend_reached_cohort_positional_fabrics, extend_reached_cohort_state_with_genesis,
     legacy_receptor_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
+    reached_cohort_state_v5_content_digest,
     settle_reached_cohort_dark_rest, settle_reached_cohort_interval,
     settle_reached_cohort_membrane_pumps, settle_contact_modulated_gate_energy,
     widen_reached_cohort_state_contacts, LocalizedFluidChemistrySettlement,
@@ -110,8 +111,9 @@ use crate::resident_electrical_fabric::ResidentElectricalFabric;
 use crate::resident_receptor_transition::ResidentVestibularIngress;
 use crate::sha256::sha256;
 use crate::sparse_electrical_contact::{
-    settle_sparse_electrical_transfers, ElectricalContactAnatomy, ElectricalContactState,
-    ElectricalContactTransition, SparseElectricalAnatomy, SparseElectricalError,
+    settle_contact_local_conductance, settle_sparse_electrical_transfers,
+    ElectricalContactAnatomy, ElectricalContactState, ElectricalContactTransition,
+    LocalGradientDirection, SparseElectricalAnatomy, SparseElectricalError,
     SparseElectricalState, SparseElectricalTransferSettlement,
 };
 use crate::tactile_receptor_work::{
@@ -4889,6 +4891,97 @@ impl ResidentCognitiveFormationState {
         pairs
     }
 
+    /// Read-only exact retained channel state for every reached sparse
+    /// electrical contact. Endpoint lineage plus parallel ordinal is the
+    /// stable contact identity; the remaining values are conducting channel
+    /// population, bounded transition-work residue, and effective
+    /// conductance. Cognition never consumes this projection and reading it
+    /// advances no state.
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn observe_reached_contact_channel_states(
+        &self,
+    ) -> Vec<([u8; 16], [u8; 16], u32, u128, i128, u128, i128, u128)> {
+        let mut observed =
+            Vec::<([u8; 16], [u8; 16], u32, u128, i128, u128, i128, u128)>::new();
+        let mut admit = |first: [u8; 16],
+                         second: [u8; 16],
+                         anatomy: crate::sparse_electrical_contact::ElectricalContactAnatomy,
+                         state: &crate::sparse_electrical_contact::ElectricalContactState| {
+            let (left, right) = if first < second {
+                (first, second)
+            } else {
+                (second, first)
+            };
+            let parallel_ordinal = u32::try_from(
+                observed
+                    .iter()
+                    .filter(|entry| entry.0 == left && entry.1 == right)
+                    .count(),
+            )
+            .expect("reached contact count fits its persisted ordinal");
+            let (residue_numerator, residue_denominator) =
+                state.transition_work_residue_zeptojoules().parts();
+            let (conductance_numerator, conductance_denominator) = anatomy
+                .effective_conductance(state)
+                .expect("resident contact anatomy and state were validated")
+                .parts();
+            observed.push((
+                left,
+                right,
+                parallel_ordinal,
+                state.conducting_channel_population(),
+                residue_numerator,
+                residue_denominator,
+                conductance_numerator,
+                conductance_denominator,
+            ));
+        };
+        for cohort in &self.cohorts {
+            for ((left, right), (anatomy, state)) in cohort
+                .anatomy
+                .electrical_anatomy()
+                .contact_endpoints()
+                .zip(
+                    cohort
+                        .anatomy
+                        .electrical_anatomy()
+                        .contact_anatomies()
+                        .iter()
+                        .copied()
+                        .zip(cohort.state.electrical().contact_states()),
+                )
+            {
+                admit(
+                    cohort.anatomy.neuron_lineages()[left],
+                    cohort.anatomy.neuron_lineages()[right],
+                    anatomy,
+                    state,
+                );
+            }
+        }
+        for ((left, right), (anatomy, state)) in self
+            .electrical_fabric
+            .contact_endpoints()
+            .zip(
+                self.electrical_fabric
+                    .anatomy()
+                    .contact_anatomies()
+                    .iter()
+                    .copied()
+                    .zip(self.electrical_fabric.state().contact_states()),
+            )
+        {
+            admit(
+                self.electrical_fabric.lineages()[left],
+                self.electrical_fabric.lineages()[right],
+                anatomy,
+                state,
+            );
+        }
+        observed.sort_unstable_by_key(|entry| (entry.0, entry.1, entry.2));
+        observed
+    }
+
     /// Count reached neurons anchored to one exact declared physical source.
     /// This observes persisted source anatomy only; it assigns no meaning and
     /// advances no state.
@@ -7132,7 +7225,7 @@ fn active_contact_bits(
         .map(|transition| {
             transition.outward_current_from_left_picoamperes.parts().0 != 0
                 || transition.outward_elementary_charges_from_left != 0
-                || transition.plastic_changed
+                || transition.conductance_changed
         })
         .collect()
 }
@@ -7226,7 +7319,7 @@ fn encode_experience_evidence_v2(
         }
         None => {
             let body = if carries_contact_plasticity {
-                encode_reached_cohort_state_v5(anatomy, &evidence.pre_experience_rest)
+                encode_reached_cohort_state_v6(anatomy, &evidence.pre_experience_rest)
             } else {
                 encode_reached_cohort_state_v4(anatomy, &evidence.pre_experience_rest)
             }
@@ -7241,7 +7334,7 @@ fn encode_experience_evidence_v2(
         Some(post) => {
             let state_body = |state: &ReachedCohortState| {
                 if carries_contact_plasticity {
-                    encode_reached_cohort_state_v5(anatomy, state)
+                    encode_reached_cohort_state_v6(anatomy, state)
                 } else {
                     encode_reached_cohort_state_v4(anatomy, state)
                 }
@@ -7421,8 +7514,9 @@ fn decode_experience_evidence_v2(
                 .map_err(|_| FormationError::NoncanonicalState)?;
             let current = reached_cohort_state_content_digest(anatomy, base)
                 .map_err(|_| FormationError::NoncanonicalState)?;
+            let predecessor_v5 = reached_cohort_state_v5_content_digest(anatomy, base).ok();
             let legacy = reached_cohort_state_v4_content_digest(anatomy, base).ok();
-            if claimed != current && legacy != Some(claimed) {
+            if claimed != current && predecessor_v5 != Some(claimed) && legacy != Some(claimed) {
                 return Err(FormationError::NoncanonicalState);
             }
             cursor = end;
@@ -9106,7 +9200,7 @@ enum ResidentContactOrigin {
 struct ResidentContactEdge {
     left: usize,
     right: usize,
-    conductance: ExactRational,
+    anatomy: ElectricalContactAnatomy,
     state: ElectricalContactState,
     stable_bond: StablePhysicalBondReference,
     origin: ResidentContactOrigin,
@@ -9137,6 +9231,25 @@ struct ReachedLayerTenGradientSettlement {
     predecessor_separated_elementary_charges: i128,
     post_gradient_separated_elementary_charges: i128,
     metabolic: ReachedCohortMetabolicObservation,
+}
+
+fn local_gradient_direction(
+    settlements: &[ReachedLayerTenGradientSettlement],
+    lineage: [u8; 16],
+) -> LocalGradientDirection {
+    settlements
+        .iter()
+        .find(|settlement| settlement.neuron_lineage == lineage)
+        .map_or(LocalGradientDirection::Quiescent, |settlement| {
+            match (
+                settlement.metabolic.pumped_elementary_charges != 0,
+                settlement.metabolic.returned_elementary_charges != 0,
+            ) {
+                (true, false) => LocalGradientDirection::ActivePump,
+                (false, true) => LocalGradientDirection::PassiveReturn,
+                (false, false) | (true, true) => LocalGradientDirection::Quiescent,
+            }
+        })
 }
 
 #[derive(Clone)]
@@ -9291,7 +9404,7 @@ fn settle_internal_contact_interval(
                 right: offset
                     .checked_add(right_member)
                     .ok_or(FormationError::ArithmeticOverflow)?,
-                conductance: contact.conductance_picosiemens(),
+                anatomy: contact,
                 state,
                 stable_bond,
                 origin: ResidentContactOrigin::Local {
@@ -9330,7 +9443,7 @@ fn settle_internal_contact_interval(
         edges.push(ResidentContactEdge {
             left: lineage_member(left_lineage)?,
             right: lineage_member(right_lineage)?,
-            conductance: contact.conductance_picosiemens(),
+            anatomy: contact,
             state,
             stable_bond,
             origin: ResidentContactOrigin::Fabric { contact_index },
@@ -9397,7 +9510,8 @@ fn settle_internal_contact_interval(
             continue;
         };
         compact_contacts.push(
-            ElectricalContactAnatomy::new(left, right, edge.conductance, selected.len())
+            edge.anatomy
+                .rebind_endpoints(left, right, selected.len())
                 .map_err(FormationError::ResidentElectricalUnavailable)?,
         );
         compact_states.push(edge.state.clone());
@@ -9571,7 +9685,7 @@ fn settle_internal_contact_interval(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         );
     }
-    let settled = settle_sparse_electrical_transfers(
+    let mut settled = settle_sparse_electrical_transfers(
         &compact_anatomy,
         &compact_predecessor,
         &capacitances,
@@ -9580,6 +9694,39 @@ fn settle_internal_contact_interval(
         interval_microseconds,
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let mut contact_successors = Vec::with_capacity(settled.transitions.len());
+    let mut contact_transitions = Vec::with_capacity(settled.transitions.len());
+    for ((contact, transition), (left_flat, right_flat)) in compact_anatomy
+        .contact_anatomies()
+        .iter()
+        .copied()
+        .zip(settled.transitions.iter().cloned())
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
+        let left_direction = local_gradient_direction(
+            &reached_layer_ten_gradient_settlements,
+            flat_locations[left_flat].2,
+        );
+        let right_direction = local_gradient_direction(
+            &reached_layer_ten_gradient_settlements,
+            flat_locations[right_flat].2,
+        );
+        let transition = settle_contact_local_conductance(
+            contact,
+            transition,
+            left_direction,
+            right_direction,
+        )
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+        contact_successors.push(transition.successor.clone());
+        contact_transitions.push(transition);
+    }
+    settled.successor_contacts = SparseElectricalState::from_contact_states(
+        &compact_anatomy,
+        contact_successors,
+    )
+    .map_err(FormationError::ResidentElectricalUnavailable)?;
+    settled.transitions = contact_transitions.into_boxed_slice();
 
     // Preserve exact pathway-local contact activity before the endpoint
     // consequences are applied. A layer-10 cell qualifies for local fluid
@@ -9720,6 +9867,7 @@ fn settle_internal_contact_interval(
         &capacitances,
         interval_microseconds,
         &compact_anatomy,
+        &compact_predecessor,
     )?);
     let source_authority = sha256(&source_body);
     let shared = prepare_complete_joint_field_from_evaluated(
@@ -9754,7 +9902,9 @@ fn settle_internal_contact_interval(
                     successor,
                     outward_current_from_left_picoamperes: ExactRational::integer(0),
                     outward_elementary_charges_from_left: 0,
-                    plastic_changed: false,
+                    released_work_zeptojoules: ExactRational::integer(0),
+                    exported_heat_zeptojoules: ExactRational::integer(0),
+                    conductance_changed: false,
                 })
                 .collect::<Vec<_>>()
         })
@@ -10445,7 +10595,7 @@ fn settle_internal_contact_interval(
         .filter_map(|(transition, bond)| {
             (transition.outward_current_from_left_picoamperes.parts().0 != 0
                 || transition.outward_elementary_charges_from_left != 0
-                || transition.plastic_changed)
+                || transition.conductance_changed)
                 .then_some(bond)
         })
         .collect::<Vec<_>>();
@@ -10612,9 +10762,13 @@ fn encode_internal_contact_source(
     capacitances: &[crate::elementary_charge_membrane::MembraneCapacitance],
     interval_microseconds: u32,
     electrical: &SparseElectricalAnatomy,
+    electrical_state: &SparseElectricalState,
 ) -> Result<Vec<u8>, FormationError> {
+    if electrical.contact_count() != electrical_state.contact_count() {
+        return Err(FormationError::NoncanonicalState);
+    }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(b"GLINT01\0");
+    encoded.extend_from_slice(b"GLINT02\0");
     encoded.extend_from_slice(&interval_microseconds.to_le_bytes());
     push_length(&mut encoded, selected.len())?;
     for (coordinate, flat) in selected.iter().copied().enumerate() {
@@ -10634,11 +10788,18 @@ fn encode_internal_contact_source(
         encoded.extend_from_slice(&denominator.to_le_bytes());
     }
     push_length(&mut encoded, electrical.contact_count())?;
-    for contact in electrical.contact_anatomies() {
+    for (contact, state) in electrical
+        .contact_anatomies()
+        .iter()
+        .zip(electrical_state.contact_states())
+    {
         let (left, right) = contact.endpoints();
         push_length(&mut encoded, left)?;
         push_length(&mut encoded, right)?;
-        let (numerator, denominator) = contact.conductance_picosiemens().parts();
+        let (numerator, denominator) = contact
+            .effective_conductance(state)
+            .map_err(FormationError::ResidentElectricalUnavailable)?
+            .parts();
         encoded.extend_from_slice(&numerator.to_le_bytes());
         encoded.extend_from_slice(&denominator.to_le_bytes());
     }

@@ -1,6 +1,6 @@
 # A-011.6 Single Ratification Decision
 
-**Status:** exact proposal awaiting Joseph's approval; no implementation or deployment  
+**Status:** approved by Joseph on 2026-08-15; implementation and production proof tracked in the A-011 sprint ledger
 **Production remains:** `dsf-ai-task:1070`  
 
 ## The one decision

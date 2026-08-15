@@ -809,10 +809,12 @@ const REACHED_COHORT_CODEC_MAGIC: &[u8; 8] = b"GLRCS03\0";
 const REACHED_COHORT_CELL_CODEC_MAGIC: &[u8; 8] = b"GLRCC03\0";
 const REACHED_COHORT_CODEC_V4_MAGIC: &[u8; 8] = b"GLRCS04\0";
 const REACHED_COHORT_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCS05\0";
+const REACHED_COHORT_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCS06\0";
 const REACHED_COHORT_CELL_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCC05\0";
 const REACHED_COHORT_CELL_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCC06\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const REACHED_COHORT_STATE_DELTA_V2_MAGIC: &[u8; 8] = b"GLRSD02\0";
+const REACHED_COHORT_STATE_DELTA_V3_MAGIC: &[u8; 8] = b"GLRSD03\0";
 const MIN_REACHED_COHORT_NEURON_RECORD_BYTES: usize = 32;
 const CONTENT_DIGEST_BYTES: usize = 32;
 
@@ -954,42 +956,16 @@ pub(crate) fn encode_reached_cohort_state(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<Vec<u8>, ReachedCohortError> {
-    if state.neurons.len() != anatomy.neurons.len()
-        || state.electrical.contact_count() != anatomy.electrical.contact_count()
-    {
-        return Err(ReachedCohortError::AnatomyStateWidth);
-    }
-    let mut encoded = Vec::new();
-    encoded.extend_from_slice(REACHED_COHORT_CODEC_MAGIC);
-    push_cohort_usize(&mut encoded, state.neurons.len())?;
-    push_cohort_usize(&mut encoded, state.electrical.contact_count())?;
-    for ((lineage, neuron_anatomy), neuron_state) in anatomy
-        .neuron_lineages
-        .iter()
-        .zip(anatomy.neurons.iter())
-        .zip(state.neurons.iter())
-    {
-        encoded.extend_from_slice(lineage);
-        let neuron = encode_neuron_physical_state(neuron_anatomy, neuron_state)?;
-        push_cohort_usize(&mut encoded, neuron.len())?;
-        encoded.extend_from_slice(&neuron);
-    }
-    for contact in state.electrical.contact_states() {
-        let (numerator, denominator) = contact.carrier_phase().parts();
-        encoded.extend_from_slice(&numerator.to_le_bytes());
-        encoded.extend_from_slice(&denominator.to_le_bytes());
-    }
-    let recovery_state =
-        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
-    push_cohort_usize(&mut encoded, recovery_state.len())?;
-    encoded.extend_from_slice(&recovery_state);
-    Ok(encoded)
+    encode_reached_cohort_state_v6(anatomy, state)
 }
 
 pub(crate) fn decode_reached_cohort_state(
     anatomy: &ReachedCohortAnatomy,
     encoded: &[u8],
 ) -> Result<ReachedCohortState, ReachedCohortError> {
+    if encoded.get(..REACHED_COHORT_CODEC_V6_MAGIC.len()) == Some(REACHED_COHORT_CODEC_V6_MAGIC) {
+        return decode_reached_cohort_state_v6(anatomy, encoded);
+    }
     if encoded.get(..REACHED_COHORT_CODEC_V5_MAGIC.len()) == Some(REACHED_COHORT_CODEC_V5_MAGIC) {
         return decode_reached_cohort_state_v5(anatomy, encoded);
     }
@@ -1022,10 +998,13 @@ pub(crate) fn decode_reached_cohort_state(
         )?);
     }
     let mut contacts = Vec::with_capacity(contact_count);
-    for _ in 0..contact_count {
+    for contact_anatomy in anatomy.electrical.contact_anatomies() {
         let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
             .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
-        contacts.push(ElectricalContactState::from_carrier_phase(phase));
+        contacts.push(ElectricalContactState::from_legacy_carrier_phase(
+            *contact_anatomy,
+            phase,
+        ));
     }
     let recovery_state_length = reader.usize()?;
     let recovery_fluid = decode_reached_recovery_fluid_state(
@@ -1454,14 +1433,20 @@ pub(crate) fn encode_reached_cohort_state_v4(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<Vec<u8>, ReachedCohortError> {
-    let contact_genesis = PlasticSupportState::definitive_virtual_genesis();
     if state.neurons.len() != anatomy.neurons.len()
         || state.electrical.contact_count() != anatomy.electrical.contact_count()
         || state
             .electrical
             .contact_states()
             .iter()
-            .any(|contact| contact.plastic_state() != contact_genesis)
+            .zip(anatomy.electrical.contact_anatomies())
+            .any(|(contact, contact_anatomy)| {
+                contact.conducting_channel_population()
+                    != contact_anatomy.genesis_conducting_population()
+                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.legacy_plastic_compatibility_state()
+                        != PlasticSupportState::definitive_virtual_genesis()
+            })
     {
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
@@ -1498,6 +1483,16 @@ pub(crate) fn encode_reached_cohort_state_v5(
 ) -> Result<Vec<u8>, ReachedCohortError> {
     if state.neurons.len() != anatomy.neurons.len()
         || state.electrical.contact_count() != anatomy.electrical.contact_count()
+        || state
+            .electrical
+            .contact_states()
+            .iter()
+            .zip(anatomy.electrical.contact_anatomies())
+            .any(|(contact, contact_anatomy)| {
+                contact.conducting_channel_population()
+                    != contact_anatomy.genesis_conducting_population()
+                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+            })
     {
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
@@ -1520,12 +1515,55 @@ pub(crate) fn encode_reached_cohort_state_v5(
         let (numerator, denominator) = contact.carrier_phase().parts();
         encoded.extend_from_slice(&numerator.to_le_bytes());
         encoded.extend_from_slice(&denominator.to_le_bytes());
-        let (rest, dissipated, residue) = contact.plastic_state().physical_parts();
+        let (rest, dissipated, residue) = contact
+            .legacy_plastic_compatibility_state()
+            .physical_parts();
         let (rest_numerator, rest_denominator) = rest.parts();
         encoded.extend_from_slice(&rest_numerator.to_le_bytes());
         encoded.extend_from_slice(&rest_denominator.to_le_bytes());
         encoded.extend_from_slice(&dissipated.to_le_bytes());
         let (residue_numerator, residue_denominator) = residue.parts();
+        encoded.extend_from_slice(&residue_numerator.to_le_bytes());
+        encoded.extend_from_slice(&residue_denominator.to_le_bytes());
+    }
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    Ok(encoded)
+}
+
+pub(crate) fn encode_reached_cohort_state_v6(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if state.neurons.len() != anatomy.neurons.len()
+        || state.electrical.contact_count() != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = ContentDigestTable::default();
+    let mut state_references = Vec::with_capacity(state.neurons.len());
+    for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
+        state_references
+            .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
+    }
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_CODEC_V6_MAGIC);
+    push_cohort_usize(&mut encoded, state.neurons.len())?;
+    push_cohort_usize(&mut encoded, state.electrical.contact_count())?;
+    state_table.encode_into(&mut encoded)?;
+    for (lineage, state_reference) in anatomy.neuron_lineages.iter().zip(state_references.iter()) {
+        encoded.extend_from_slice(lineage);
+        encoded.extend_from_slice(state_reference);
+    }
+    for contact in state.electrical.contact_states() {
+        let (phase_numerator, phase_denominator) = contact.carrier_phase().parts();
+        encoded.extend_from_slice(&phase_numerator.to_le_bytes());
+        encoded.extend_from_slice(&phase_denominator.to_le_bytes());
+        encoded.extend_from_slice(&contact.conducting_channel_population().to_le_bytes());
+        let (residue_numerator, residue_denominator) =
+            contact.transition_work_residue_zeptojoules().parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -1569,10 +1607,13 @@ fn decode_reached_cohort_state_v4(
     }
     state_table.fully_referenced()?;
     let mut contacts = Vec::with_capacity(contact_count);
-    for _ in 0..contact_count {
+    for contact_anatomy in anatomy.electrical.contact_anatomies() {
         let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
             .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
-        contacts.push(ElectricalContactState::from_carrier_phase(phase));
+        contacts.push(ElectricalContactState::from_legacy_carrier_phase(
+            *contact_anatomy,
+            phase,
+        ));
     }
     let recovery_state_length = reader.usize()?;
     let recovery_fluid = decode_reached_recovery_fluid_state(
@@ -1619,7 +1660,7 @@ fn decode_reached_cohort_state_v5(
     }
     state_table.fully_referenced()?;
     let mut contacts = Vec::with_capacity(contact_count);
-    for _ in 0..contact_count {
+    for contact_anatomy in anatomy.electrical.contact_anatomies() {
         let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
             .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
         let plastic = PlasticSupportState::from_physical_parts(
@@ -1630,7 +1671,67 @@ fn decode_reached_cohort_state_v5(
                 .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
         )
         .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
-        contacts.push(ElectricalContactState::from_physical_parts(phase, plastic));
+        contacts.push(ElectricalContactState::from_legacy_physical_parts(
+            *contact_anatomy,
+            phase,
+            plastic,
+        ));
+    }
+    let recovery_state_length = reader.usize()?;
+    let recovery_fluid = decode_reached_recovery_fluid_state(
+        reader.take(recovery_state_length)?,
+        &anatomy.recovery_fluid,
+    )?;
+    if !reader.finished() {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let electrical = SparseElectricalState::from_contact_states(&anatomy.electrical, contacts)?;
+    ReachedCohortState::from_mounted_parts(anatomy, neurons, electrical, recovery_fluid)
+}
+
+fn decode_reached_cohort_state_v6(
+    anatomy: &ReachedCohortAnatomy,
+    encoded: &[u8],
+) -> Result<ReachedCohortState, ReachedCohortError> {
+    let mut reader = CohortStateReader::new(encoded);
+    if reader.take(REACHED_COHORT_CODEC_V6_MAGIC.len())? != REACHED_COHORT_CODEC_V6_MAGIC {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let neuron_count = reader.usize()?;
+    let contact_count = reader.usize()?;
+    if neuron_count != anatomy.neurons.len() || contact_count != anatomy.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = DecodedDigestTable::decode(&mut reader)?;
+    reader.require_records(neuron_count, 16 + CONTENT_DIGEST_BYTES)?;
+    let mut neurons = Vec::with_capacity(neuron_count);
+    for (index, neuron_anatomy) in anatomy.neurons.iter().enumerate() {
+        let lineage: [u8; 16] = reader
+            .take(16)?
+            .try_into()
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        if lineage != anatomy.neuron_lineages[index] {
+            return Err(ReachedCohortError::InvalidNeuronLineage);
+        }
+        let state_reference = take_content_digest(&mut reader)?;
+        neurons.push(decode_neuron_physical_state(
+            neuron_anatomy,
+            state_table.resolve(state_reference)?,
+        )?);
+    }
+    state_table.fully_referenced()?;
+    let mut contacts = Vec::with_capacity(contact_count);
+    for contact_anatomy in anatomy.electrical.contact_anatomies() {
+        let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        contacts.push(ElectricalContactState::from_channel_parts(
+            *contact_anatomy,
+            phase,
+            reader.u128()?,
+            ExactRational::new(reader.i128()?, reader.u128()?)
+                .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+        )?);
     }
     let recovery_state_length = reader.usize()?;
     let recovery_fluid = decode_reached_recovery_fluid_state(
@@ -1647,6 +1748,13 @@ fn decode_reached_cohort_state_v5(
 /// The 32-byte content digest of the canonical `GLRCS04` encoding of one
 /// cohort state.
 pub(crate) fn reached_cohort_state_content_digest(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
+    Ok(sha256(&encode_reached_cohort_state_v6(anatomy, state)?))
+}
+
+pub(crate) fn reached_cohort_state_v5_content_digest(
     anatomy: &ReachedCohortAnatomy,
     state: &ReachedCohortState,
 ) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
@@ -1707,7 +1815,6 @@ pub(crate) fn encode_reached_cohort_state_delta_v1(
     base: &ReachedCohortState,
     target: &ReachedCohortState,
 ) -> Result<Vec<u8>, ReachedCohortError> {
-    let contact_genesis = PlasticSupportState::definitive_virtual_genesis();
     if base.neurons.len() != anatomy.neurons.len()
         || target.neurons.len() != anatomy.neurons.len()
         || base.electrical.contact_count() != anatomy.electrical.contact_count()
@@ -1716,7 +1823,14 @@ pub(crate) fn encode_reached_cohort_state_delta_v1(
             .electrical
             .contact_states()
             .iter()
-            .any(|contact| contact.plastic_state() != contact_genesis)
+            .zip(anatomy.electrical.contact_anatomies())
+            .any(|(contact, contact_anatomy)| {
+                contact.conducting_channel_population()
+                    != contact_anatomy.genesis_conducting_population()
+                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.legacy_plastic_compatibility_state()
+                        != PlasticSupportState::definitive_virtual_genesis()
+            })
     {
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
@@ -1767,7 +1881,7 @@ pub(crate) fn encode_reached_cohort_state_delta(
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(REACHED_COHORT_STATE_DELTA_V2_MAGIC);
+    encoded.extend_from_slice(REACHED_COHORT_STATE_DELTA_V3_MAGIC);
     push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
     for (neuron_index, (base_neuron, target_neuron)) in
         base.neurons.iter().zip(target.neurons.iter()).enumerate()
@@ -1788,15 +1902,12 @@ pub(crate) fn encode_reached_cohort_state_delta(
         }
     }
     for contact in target.electrical.contact_states() {
-        let (numerator, denominator) = contact.carrier_phase().parts();
-        encoded.extend_from_slice(&numerator.to_le_bytes());
-        encoded.extend_from_slice(&denominator.to_le_bytes());
-        let (rest, dissipated, residue) = contact.plastic_state().physical_parts();
-        let (rest_numerator, rest_denominator) = rest.parts();
-        encoded.extend_from_slice(&rest_numerator.to_le_bytes());
-        encoded.extend_from_slice(&rest_denominator.to_le_bytes());
-        encoded.extend_from_slice(&dissipated.to_le_bytes());
-        let (residue_numerator, residue_denominator) = residue.parts();
+        let (phase_numerator, phase_denominator) = contact.carrier_phase().parts();
+        encoded.extend_from_slice(&phase_numerator.to_le_bytes());
+        encoded.extend_from_slice(&phase_denominator.to_le_bytes());
+        encoded.extend_from_slice(&contact.conducting_channel_population().to_le_bytes());
+        let (residue_numerator, residue_denominator) =
+            contact.transition_work_residue_zeptojoules().parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -1820,8 +1931,9 @@ pub(crate) fn decode_reached_cohort_state_delta(
     }
     let mut reader = CohortStateReader::new(encoded);
     let magic = reader.take(REACHED_COHORT_STATE_DELTA_MAGIC.len())?;
+    let carries_channels = magic == REACHED_COHORT_STATE_DELTA_V3_MAGIC;
     let carries_plastic = magic == REACHED_COHORT_STATE_DELTA_V2_MAGIC;
-    if !carries_plastic && magic != REACHED_COHORT_STATE_DELTA_MAGIC {
+    if !carries_channels && !carries_plastic && magic != REACHED_COHORT_STATE_DELTA_MAGIC {
         return Err(ReachedCohortError::InvalidStateEncoding);
     }
     let neuron_count = reader.usize()?;
@@ -1845,10 +1957,18 @@ pub(crate) fn decode_reached_cohort_state_delta(
         }
     }
     let mut contacts = Vec::with_capacity(anatomy.electrical.contact_count());
-    for _ in 0..anatomy.electrical.contact_count() {
+    for contact_anatomy in anatomy.electrical.contact_anatomies() {
         let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)
             .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
-        contacts.push(if carries_plastic {
+        contacts.push(if carries_channels {
+            ElectricalContactState::from_channel_parts(
+                *contact_anatomy,
+                phase,
+                reader.u128()?,
+                ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+            )?
+        } else if carries_plastic {
             let plastic = PlasticSupportState::from_physical_parts(
                 ExactRational::new(reader.i128()?, reader.u128()?)
                     .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
@@ -1857,9 +1977,13 @@ pub(crate) fn decode_reached_cohort_state_delta(
                     .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
             )
             .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
-            ElectricalContactState::from_physical_parts(phase, plastic)
+            ElectricalContactState::from_legacy_physical_parts(
+                *contact_anatomy,
+                phase,
+                plastic,
+            )
         } else {
-            ElectricalContactState::from_carrier_phase(phase)
+            ElectricalContactState::from_legacy_carrier_phase(*contact_anatomy, phase)
         });
     }
     let recovery_state_length = reader.usize()?;
@@ -1880,12 +2004,15 @@ pub(crate) fn decode_reached_cohort_state_delta(
     let electrical = SparseElectricalState::from_contact_states(&anatomy.electrical, contacts)?;
     let target =
         ReachedCohortState::from_mounted_parts(anatomy, neurons, electrical, recovery_fluid)?;
-    let actual_digest = if carries_plastic {
+    let actual_digest = if carries_channels {
         reached_cohort_state_content_digest(anatomy, &target)?
+    } else if carries_plastic {
+        reached_cohort_state_v5_content_digest(anatomy, &target)?
     } else {
         reached_cohort_state_v4_content_digest(anatomy, &target)?
     };
-    let legacy_digest_matches = legacy_recovery_state
+    let legacy_digest_matches = !carries_channels
+        && legacy_recovery_state
         && cohort_state_content_digest_with_recovery(
             anatomy,
             &target,

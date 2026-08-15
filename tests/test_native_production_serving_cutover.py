@@ -328,6 +328,35 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
     )
     monkeypatch.setattr(
         cold_restore_probe,
+        "_rehearse_contact_local_junction",
+        lambda *_args, **_kwargs: {
+            "a0116_contact_local_junction_rehearsed": True,
+            "a0116_contact_local_interval_ordinal": 1,
+            "a0116_contact_count": 3,
+            "a0116_changed_contact_count": 1,
+            "a0116_changed_contacts_sha256": "a" * 64,
+            "a0116_contact_state_sha256": "b" * 64,
+            "a0116_successor_state_sha256": "c" * 64,
+            "a0116_cold_restore_exact": True,
+        },
+    )
+    monkeypatch.setattr(
+        cold_restore_probe,
+        "_observe_c024_cognitive_capital",
+        lambda *_args, **_kwargs: {
+            "c024_cognitive_capital_rehearsed": True,
+            "c024_cognitive_capital_state_sha256": STATE_SHA,
+            "c024_cognitive_capital_capability_count": 39,
+            "c024_cognitive_capital_dimension_count": 10,
+            "c024_cognitive_capital_credit_cell_count": 1,
+            "c024_cognitive_capital_evidence_reference_count": 1,
+            "c024_cognitive_capital_observation_bytes": 1,
+            "c024_cognitive_capital_unproved_cells_preserved": True,
+            "c024_false_native_capital_exports_absent": True,
+        },
+    )
+    monkeypatch.setattr(
+        cold_restore_probe,
         "_arguments",
         lambda: type("Args", (), {
             "native_store_root": "/state",

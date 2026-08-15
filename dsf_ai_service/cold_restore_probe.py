@@ -986,6 +986,89 @@ def _rehearse_articulation_and_self_hearing(
     }
 
 
+def _rehearse_contact_local_junction(
+    current_envelope: bytes,
+    *,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> dict[str, object]:
+    """Prove one real body cause changes and cold-restores one local contact."""
+
+    budget = {
+        "max_envelope_bytes": max_envelope_bytes,
+        "max_fabric_bytes": max_fabric_bytes,
+        "max_logical_peak_bytes": max_logical_peak_bytes,
+    }
+    organism = restore_native_resident_organism(
+        current_envelope=current_envelope,
+        **budget,
+    )
+    predecessor = tuple(organism.observe_reached_contact_channel_states())
+    if not predecessor:
+        raise RuntimeError("A-011.6 rehearsal found no reached sparse contact")
+    _successor_heading, steps = exact_native_yaw_trajectory(
+        predecessor_heading_millidegrees=0,
+        signed_displacement_millidegrees=90_000,
+        duration_microseconds=250_000,
+    )
+    if len(steps) != 250:
+        raise RuntimeError("A-011.6 rehearsal body clock changed")
+    changed: tuple[
+        tuple[
+            tuple[str, str, int, int, int, int, int, int],
+            tuple[str, str, int, int, int, int, int, int],
+        ],
+        ...,
+    ] = ()
+    interval_ordinal = 0
+    heading = 0
+    for interval_ordinal, signed_step in enumerate(steps, 1):
+        candidate = organism.prepare_vestibular_tick(heading, signed_step)
+        organism.commit(candidate.token)
+        heading = (heading + signed_step) % 360_000
+        successor = tuple(organism.observe_reached_contact_channel_states())
+        if tuple(row[:3] for row in successor) != tuple(
+            row[:3] for row in predecessor
+        ):
+            raise RuntimeError("A-011.6 rehearsal changed contact identity")
+        changed = tuple(
+            (before, after)
+            for before, after in zip(predecessor, successor, strict=True)
+            if before[3:] != after[3:]
+        )
+        if changed:
+            break
+        predecessor = successor
+    if not changed:
+        raise RuntimeError(
+            "A-011.6 real vestibular source produced no retained contact change"
+        )
+    successor_envelope = bytes(organism.save())
+    cold = restore_native_resident_organism(
+        current_envelope=successor_envelope,
+        **budget,
+    )
+    cold_contacts = tuple(cold.observe_reached_contact_channel_states())
+    live_contacts = tuple(organism.observe_reached_contact_channel_states())
+    if cold_contacts != live_contacts:
+        raise RuntimeError("A-011.6 changed contact did not cold-restore exactly")
+    return {
+        "a0116_contact_local_junction_rehearsed": True,
+        "a0116_contact_local_interval_ordinal": interval_ordinal,
+        "a0116_contact_count": len(live_contacts),
+        "a0116_changed_contact_count": len(changed),
+        "a0116_changed_contacts_sha256": hashlib.sha256(
+            _canonical(changed)
+        ).hexdigest(),
+        "a0116_contact_state_sha256": hashlib.sha256(
+            _canonical(live_contacts)
+        ).hexdigest(),
+        "a0116_successor_state_sha256": cold.readiness().state_sha256,
+        "a0116_cold_restore_exact": True,
+    }
+
+
 def _exact_articulatory_trajectory_or_none(
     recruitments: tuple[tuple[object, int, int, object], ...],
 ) -> object | None:
@@ -1499,6 +1582,12 @@ def main() -> int:
         )
     ):
         raise RuntimeError("native CURRENT cold restore changed")
+    contact_local_proof = _rehearse_contact_local_junction(
+        state,
+        max_envelope_bytes=admission.max_envelope_bytes,
+        max_fabric_bytes=admission.max_fabric_bytes,
+        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+    )
     record = {
         "baseline_observed_state_sha256": values.expected_state_sha256,
         "baseline_observed_tick": values.expected_tick,
@@ -1525,6 +1614,7 @@ def main() -> int:
         "source_mount_read_only": True,
         "tick": before.organism_tick,
         **motor_proof,
+        **contact_local_proof,
         **_observe_c024_cognitive_capital(restored, admission, before.state_sha256),
     }
     proof = {

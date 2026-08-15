@@ -2566,6 +2566,59 @@ class NativeResidentOrganism:
             raise RuntimeError("reached contact observation advanced the organism")
         return observed
 
+    def observe_reached_contact_channel_states(
+        self,
+    ) -> tuple[tuple[str, str, int, int, int, int, int, int], ...]:
+        """Read exact retained channel state of each reached sparse contact."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _canonical_lineage_hex(left, "contact left lineage"),
+                _canonical_lineage_hex(right, "contact right lineage"),
+                _nonnegative_integer(parallel, "contact parallel ordinal"),
+                _nonnegative_integer(population, "conducting channel population"),
+                int(residue_numerator),
+                _positive_integer(residue_denominator, "contact residue denominator"),
+                int(conductance_numerator),
+                _positive_integer(
+                    conductance_denominator, "contact conductance denominator"
+                ),
+            )
+            for (
+                left,
+                right,
+                parallel,
+                population,
+                residue_numerator,
+                residue_denominator,
+                conductance_numerator,
+                conductance_denominator,
+            ) in self.__runtime.observe_reached_contact_channel_states()
+        )
+        if any(
+            left >= right
+            or population > 6_400
+            or residue_numerator < 0
+            or conductance_numerator <= 0
+            or (index > 0 and observed[index - 1][:3] >= row[:3])
+            for index, row in enumerate(observed)
+            for (
+                left,
+                right,
+                _parallel,
+                population,
+                residue_numerator,
+                _residue_denominator,
+                conductance_numerator,
+                _conductance_denominator,
+            ) in (row,)
+        ):
+            raise RuntimeError("reached contact channel projection is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached contact channel observation advanced the organism")
+        return observed
+
     def observe_reached_source_site_count(
         self,
         sensor_id: str,

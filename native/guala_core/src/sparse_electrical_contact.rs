@@ -34,6 +34,10 @@ use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
 const PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE: u128 = 1_000;
+const JUNCTION_TOTAL_CHANNEL_POPULATION: u128 = 6_400;
+const JUNCTION_GENESIS_CONDUCTING_POPULATION: u128 = 50;
+const JUNCTION_TRANSITION_WORK_NUMERATOR: i128 = 16_822_854_657;
+const JUNCTION_TRANSITION_WORK_DENOMINATOR: u128 = 800_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum SparseElectricalError {
@@ -81,7 +85,10 @@ impl From<PlasticityError> for SparseElectricalError {
 pub(crate) struct ElectricalContactAnatomy {
     left_neuron: usize,
     right_neuron: usize,
-    conductance_picosiemens: ExactRational,
+    single_channel_conductance_picosiemens: ExactRational,
+    total_channel_population: u128,
+    genesis_conducting_population: u128,
+    transition_work_quantum_zeptojoules: ExactRational,
 }
 
 impl ElectricalContactAnatomy {
@@ -100,10 +107,18 @@ impl ElectricalContactAnatomy {
         if conductance_picosiemens.parts().0 <= 0 {
             return Err(SparseElectricalError::NonPositiveConductance);
         }
+        let single_channel_conductance_picosiemens = conductance_picosiemens
+            .checked_div_unsigned(JUNCTION_GENESIS_CONDUCTING_POPULATION)?;
         Ok(Self {
             left_neuron,
             right_neuron,
-            conductance_picosiemens,
+            single_channel_conductance_picosiemens,
+            total_channel_population: JUNCTION_TOTAL_CHANNEL_POPULATION,
+            genesis_conducting_population: JUNCTION_GENESIS_CONDUCTING_POPULATION,
+            transition_work_quantum_zeptojoules: ExactRational::new(
+                JUNCTION_TRANSITION_WORK_NUMERATOR,
+                JUNCTION_TRANSITION_WORK_DENOMINATOR,
+            )?,
         })
     }
 
@@ -112,28 +127,86 @@ impl ElectricalContactAnatomy {
     }
 
     pub(crate) fn conductance_picosiemens(self) -> ExactRational {
-        self.conductance_picosiemens
+        self.single_channel_conductance_picosiemens
+            .checked_mul_unsigned(self.genesis_conducting_population)
+            .expect("validated contact constitution preserves its authored conductance")
+    }
+
+    pub(crate) fn single_channel_conductance_picosiemens(self) -> ExactRational {
+        self.single_channel_conductance_picosiemens
+    }
+
+    pub(crate) fn total_channel_population(self) -> u128 {
+        self.total_channel_population
+    }
+
+    pub(crate) fn genesis_conducting_population(self) -> u128 {
+        self.genesis_conducting_population
+    }
+
+    pub(crate) fn transition_work_quantum_zeptojoules(self) -> ExactRational {
+        self.transition_work_quantum_zeptojoules
+    }
+
+    pub(crate) fn rebind_endpoints(
+        self,
+        left_neuron: usize,
+        right_neuron: usize,
+        neuron_count: usize,
+    ) -> Result<Self, SparseElectricalError> {
+        if left_neuron >= neuron_count
+            || right_neuron >= neuron_count
+            || left_neuron == right_neuron
+        {
+            return Err(SparseElectricalError::InvalidEndpoint);
+        }
+        Ok(Self {
+            left_neuron,
+            right_neuron,
+            ..self
+        })
+    }
+
+    pub(crate) fn effective_conductance(
+        self,
+        state: &ElectricalContactState,
+    ) -> Result<ExactRational, SparseElectricalError> {
+        if state.conducting_channel_population > self.total_channel_population {
+            return Err(SparseElectricalError::AnatomyStateWidth);
+        }
+        self.single_channel_conductance_picosiemens
+            .checked_mul_unsigned(state.conducting_channel_population)
+            .map_err(Into::into)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ElectricalContactState {
     carrier_phase: ChargeCarrierPhase,
-    plastic: PlasticSupportState,
+    conducting_channel_population: u128,
+    transition_work_residue_zeptojoules: ExactRational,
+    /// Decode-only compatibility material for predecessor GLSEC02/GLRCS05
+    /// bodies. It is never read by electrical or junctional physics.
+    legacy_plastic_compatibility: PlasticSupportState,
 }
 
 impl ElectricalContactState {
-    pub(crate) fn genesis() -> Self {
+    pub(crate) fn genesis(anatomy: ElectricalContactAnatomy) -> Self {
         Self {
             carrier_phase: ChargeCarrierPhase::zero(),
-            plastic: PlasticSupportState::definitive_virtual_genesis(),
+            conducting_channel_population: anatomy.genesis_conducting_population,
+            transition_work_residue_zeptojoules: ExactRational::integer(0),
+            legacy_plastic_compatibility: PlasticSupportState::definitive_virtual_genesis(),
         }
     }
 
-    pub(crate) fn from_carrier_phase(carrier_phase: ChargeCarrierPhase) -> Self {
+    pub(crate) fn from_legacy_carrier_phase(
+        anatomy: ElectricalContactAnatomy,
+        carrier_phase: ChargeCarrierPhase,
+    ) -> Self {
         Self {
             carrier_phase,
-            ..Self::genesis()
+            ..Self::genesis(anatomy)
         }
     }
 
@@ -141,18 +214,50 @@ impl ElectricalContactState {
         self.carrier_phase
     }
 
-    pub(crate) fn plastic_state(&self) -> PlasticSupportState {
-        self.plastic.clone()
+    pub(crate) fn conducting_channel_population(&self) -> u128 {
+        self.conducting_channel_population
     }
 
-    pub(crate) fn from_physical_parts(
+    pub(crate) fn transition_work_residue_zeptojoules(&self) -> ExactRational {
+        self.transition_work_residue_zeptojoules
+    }
+
+    pub(crate) fn legacy_plastic_compatibility_state(&self) -> PlasticSupportState {
+        self.legacy_plastic_compatibility.clone()
+    }
+
+    pub(crate) fn from_legacy_physical_parts(
+        anatomy: ElectricalContactAnatomy,
         carrier_phase: ChargeCarrierPhase,
-        plastic: PlasticSupportState,
+        legacy_plastic_compatibility: PlasticSupportState,
     ) -> Self {
         Self {
             carrier_phase,
-            plastic,
+            legacy_plastic_compatibility,
+            ..Self::genesis(anatomy)
         }
+    }
+
+    pub(crate) fn from_channel_parts(
+        anatomy: ElectricalContactAnatomy,
+        carrier_phase: ChargeCarrierPhase,
+        conducting_channel_population: u128,
+        transition_work_residue_zeptojoules: ExactRational,
+    ) -> Result<Self, SparseElectricalError> {
+        if conducting_channel_population > anatomy.total_channel_population
+            || transition_work_residue_zeptojoules.parts().0 < 0
+            || transition_work_residue_zeptojoules
+                .checked_cmp(anatomy.transition_work_quantum_zeptojoules)?
+                != Ordering::Less
+        {
+            return Err(SparseElectricalError::AnatomyStateWidth);
+        }
+        Ok(Self {
+            carrier_phase,
+            conducting_channel_population,
+            transition_work_residue_zeptojoules,
+            legacy_plastic_compatibility: PlasticSupportState::definitive_virtual_genesis(),
+        })
     }
 }
 
@@ -161,7 +266,128 @@ pub(crate) struct ElectricalContactTransition {
     pub(crate) successor: ElectricalContactState,
     pub(crate) outward_current_from_left_picoamperes: ExactRational,
     pub(crate) outward_elementary_charges_from_left: i128,
-    pub(crate) plastic_changed: bool,
+    pub(crate) released_work_zeptojoules: ExactRational,
+    pub(crate) exported_heat_zeptojoules: ExactRational,
+    pub(crate) conductance_changed: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum LocalGradientDirection {
+    PassiveReturn,
+    Quiescent,
+    ActivePump,
+}
+
+fn combined_gradient_direction(
+    left: LocalGradientDirection,
+    right: LocalGradientDirection,
+) -> LocalGradientDirection {
+    use LocalGradientDirection::{ActivePump, PassiveReturn, Quiescent};
+    match (left, right) {
+        (Quiescent, direction) | (direction, Quiescent) => direction,
+        (ActivePump, ActivePump) => ActivePump,
+        (PassiveReturn, PassiveReturn) => PassiveReturn,
+        (ActivePump, PassiveReturn) | (PassiveReturn, ActivePump) => Quiescent,
+    }
+}
+
+fn wide_rational(value: ExactRational) -> BigRational {
+    let (numerator, denominator) = value.parts();
+    BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+}
+
+fn narrow_rational(value: BigRational) -> Result<ExactRational, SparseElectricalError> {
+    ExactRational::new(
+        value
+            .numer()
+            .to_i128()
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        value
+            .denom()
+            .to_u128()
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+    )
+    .map_err(Into::into)
+}
+
+/// Apply the ratified contact-local junctional transition after electrical
+/// current has settled. The exact work belongs to this contact alone; endpoint
+/// gradient motion supplies only its physical direction. The successor
+/// conductance cannot affect the interval that produced it.
+pub(crate) fn settle_contact_local_conductance(
+    anatomy: ElectricalContactAnatomy,
+    mut transition: ElectricalContactTransition,
+    left_direction: LocalGradientDirection,
+    right_direction: LocalGradientDirection,
+) -> Result<ElectricalContactTransition, SparseElectricalError> {
+    let direction = combined_gradient_direction(left_direction, right_direction);
+    let work = wide_rational(transition.released_work_zeptojoules);
+    if work.is_negative() {
+        return Err(SparseElectricalError::ArithmeticWidth);
+    }
+    if work.is_zero() || direction == LocalGradientDirection::Quiescent {
+        transition.exported_heat_zeptojoules = transition.released_work_zeptojoules;
+        return Ok(transition);
+    }
+    let predecessor_residue = wide_rational(
+        transition
+            .successor
+            .transition_work_residue_zeptojoules,
+    );
+    let quantum = wide_rational(anatomy.transition_work_quantum_zeptojoules);
+    let accumulated = predecessor_residue + work;
+    let whole = (&accumulated / &quantum).floor().to_integer();
+    let available = match direction {
+        LocalGradientDirection::ActivePump => anatomy
+            .total_channel_population
+            .checked_sub(transition.successor.conducting_channel_population)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?,
+        LocalGradientDirection::PassiveReturn => {
+            transition.successor.conducting_channel_population
+        }
+        LocalGradientDirection::Quiescent => 0,
+    };
+    let moved = whole
+        .to_u128()
+        .ok_or(SparseElectricalError::ArithmeticWidth)?
+        .min(available);
+    if moved == 0 {
+        if available == 0 {
+            transition.successor.transition_work_residue_zeptojoules =
+                ExactRational::integer(0);
+            transition.exported_heat_zeptojoules = narrow_rational(accumulated)?;
+        } else {
+            transition.successor.transition_work_residue_zeptojoules =
+                narrow_rational(accumulated)?;
+        }
+        return Ok(transition);
+    }
+    transition.successor.conducting_channel_population = match direction {
+        LocalGradientDirection::ActivePump => transition
+            .successor
+            .conducting_channel_population
+            .checked_add(moved)
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        LocalGradientDirection::PassiveReturn => transition
+            .successor
+            .conducting_channel_population
+            .checked_sub(moved)
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        LocalGradientDirection::Quiescent => unreachable!(),
+    };
+    let reached_boundary = transition.successor.conducting_channel_population == 0
+        || transition.successor.conducting_channel_population == anatomy.total_channel_population;
+    let successor_residue = if reached_boundary {
+        BigRational::zero()
+    } else {
+        &accumulated - &quantum * BigInt::from(moved)
+    };
+    let exported_heat = &accumulated - &successor_residue;
+    transition.successor.transition_work_residue_zeptojoules =
+        narrow_rational(successor_residue)?;
+    transition.exported_heat_zeptojoules = narrow_rational(exported_heat)?;
+    transition.conductance_changed = moved != 0;
+    Ok(transition)
 }
 
 /// One endpoint of a contact as the settlement sees it: the exact separated
@@ -287,7 +513,9 @@ fn quiescent_contact(predecessor: ElectricalContactState) -> ElectricalContactTr
         successor: predecessor,
         outward_current_from_left_picoamperes: ExactRational::integer(0),
         outward_elementary_charges_from_left: 0,
-        plastic_changed: false,
+        released_work_zeptojoules: ExactRational::integer(0),
+        exported_heat_zeptojoules: ExactRational::integer(0),
+        conductance_changed: false,
     }
 }
 
@@ -302,7 +530,7 @@ fn settle_contact(
         .potential_millivolts
         .checked_sub(right.potential_millivolts)?;
     let current = anatomy
-        .conductance_picosiemens
+        .effective_conductance(&predecessor)?
         .checked_mul(potential_difference)?
         .checked_div_unsigned(PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE)?;
     settle_contact_at_current(predecessor, left, right, current, interval_microseconds)
@@ -365,11 +593,13 @@ fn settle_contact_at_current(
     Ok(ElectricalContactTransition {
         successor: ElectricalContactState {
             carrier_phase: carrier.successor_phase,
-            plastic: predecessor.plastic,
+            ..predecessor
         },
         outward_current_from_left_picoamperes: bounded_current,
         outward_elementary_charges_from_left: carrier.outward_elementary_charges,
-        plastic_changed: false,
+        released_work_zeptojoules: ExactRational::integer(0),
+        exported_heat_zeptojoules: ExactRational::integer(0),
+        conductance_changed: false,
     })
 }
 
@@ -589,7 +819,9 @@ fn globally_energy_descending_transitions(
                 outward_current_from_left_picoamperes:
                     exact_current_for_whole_carrier_transfer(carriers, interval_microseconds)?,
                 outward_elementary_charges_from_left: carriers,
-                plastic_changed: false,
+                released_work_zeptojoules: ExactRational::integer(0),
+                exported_heat_zeptojoules: ExactRational::integer(0),
+                conductance_changed: false,
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -748,7 +980,12 @@ pub(crate) struct SparseElectricalState {
 impl SparseElectricalState {
     pub(crate) fn genesis(anatomy: &SparseElectricalAnatomy) -> Self {
         Self {
-            contacts: vec![ElectricalContactState::genesis(); anatomy.contacts.len()]
+            contacts: anatomy
+                .contacts
+                .iter()
+                .copied()
+                .map(ElectricalContactState::genesis)
+                .collect::<Vec<_>>()
                 .into_boxed_slice(),
         }
     }
@@ -794,9 +1031,11 @@ impl SparseElectricalState {
             return Err(SparseElectricalError::AnatomyStateWidth);
         }
         let mut contacts = self.contacts.to_vec();
-        contacts.resize(
-            successor_anatomy.contacts.len(),
-            ElectricalContactState::genesis(),
+        contacts.extend(
+            successor_anatomy.contacts[self.contacts.len()..]
+                .iter()
+                .copied()
+                .map(ElectricalContactState::genesis),
         );
         Self::from_contact_states(successor_anatomy, contacts)
     }
@@ -804,8 +1043,10 @@ impl SparseElectricalState {
 
 const SPARSE_ELECTRICAL_CELL_CODEC_MAGIC: &[u8; 8] = b"GLSEC01\0";
 const SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC: &[u8; 8] = b"GLSEC02\0";
+const SPARSE_ELECTRICAL_CELL_CODEC_V3_MAGIC: &[u8; 8] = b"GLSEC03\0";
 const SPARSE_ELECTRICAL_CELL_CONTACT_BYTES: usize = 80;
 const SPARSE_ELECTRICAL_CELL_V2_CONTACT_BYTES: usize = 160;
+const SPARSE_ELECTRICAL_CELL_V3_CONTACT_BYTES: usize = 192;
 
 /// Keep fixed sparse-contact anatomy and its unresolved carrier phase together
 /// across cold restart. The encoding chooses no contacts or conductances.
@@ -817,25 +1058,29 @@ pub(crate) fn encode_sparse_electrical_cell(
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC);
+    encoded.extend_from_slice(SPARSE_ELECTRICAL_CELL_CODEC_V3_MAGIC);
     push_electrical_usize(&mut encoded, anatomy.neuron_count)?;
     push_electrical_usize(&mut encoded, anatomy.contacts.len())?;
     for (contact, contact_state) in anatomy.contacts.iter().zip(state.contacts.iter()) {
         push_electrical_usize(&mut encoded, contact.left_neuron)?;
         push_electrical_usize(&mut encoded, contact.right_neuron)?;
-        let (conductance_numerator, conductance_denominator) =
-            contact.conductance_picosiemens.parts();
-        encoded.extend_from_slice(&conductance_numerator.to_le_bytes());
-        encoded.extend_from_slice(&conductance_denominator.to_le_bytes());
+        let (unit_numerator, unit_denominator) =
+            contact.single_channel_conductance_picosiemens.parts();
+        encoded.extend_from_slice(&unit_numerator.to_le_bytes());
+        encoded.extend_from_slice(&unit_denominator.to_le_bytes());
+        encoded.extend_from_slice(&contact.total_channel_population.to_le_bytes());
+        encoded.extend_from_slice(&contact.genesis_conducting_population.to_le_bytes());
+        let (quantum_numerator, quantum_denominator) =
+            contact.transition_work_quantum_zeptojoules.parts();
+        encoded.extend_from_slice(&quantum_numerator.to_le_bytes());
+        encoded.extend_from_slice(&quantum_denominator.to_le_bytes());
         let (phase_numerator, phase_denominator) = contact_state.carrier_phase.parts();
         encoded.extend_from_slice(&phase_numerator.to_le_bytes());
         encoded.extend_from_slice(&phase_denominator.to_le_bytes());
-        let (rest, dissipated, residue) = contact_state.plastic.physical_parts();
-        let (rest_numerator, rest_denominator) = rest.parts();
-        encoded.extend_from_slice(&rest_numerator.to_le_bytes());
-        encoded.extend_from_slice(&rest_denominator.to_le_bytes());
-        encoded.extend_from_slice(&dissipated.to_le_bytes());
-        let (residue_numerator, residue_denominator) = residue.parts();
+        encoded.extend_from_slice(&contact_state.conducting_channel_population.to_le_bytes());
+        let (residue_numerator, residue_denominator) = contact_state
+            .transition_work_residue_zeptojoules
+            .parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -850,9 +1095,17 @@ pub(crate) fn encode_sparse_electrical_cell_v1(
     anatomy: &SparseElectricalAnatomy,
     state: &SparseElectricalState,
 ) -> Result<Vec<u8>, SparseElectricalError> {
-    let genesis = PlasticSupportState::definitive_virtual_genesis();
     if anatomy.contacts.len() != state.contacts.len()
-        || state.contacts.iter().any(|contact| contact.plastic != genesis)
+        || anatomy
+            .contacts
+            .iter()
+            .zip(state.contacts.iter())
+            .any(|(anatomy, contact)| {
+                contact.conducting_channel_population != anatomy.genesis_conducting_population
+                    || contact.transition_work_residue_zeptojoules.parts().0 != 0
+                    || contact.legacy_plastic_compatibility
+                        != PlasticSupportState::definitive_virtual_genesis()
+            })
     {
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
@@ -864,7 +1117,7 @@ pub(crate) fn encode_sparse_electrical_cell_v1(
         push_electrical_usize(&mut encoded, contact.left_neuron)?;
         push_electrical_usize(&mut encoded, contact.right_neuron)?;
         let (conductance_numerator, conductance_denominator) =
-            contact.conductance_picosiemens.parts();
+            contact.conductance_picosiemens().parts();
         encoded.extend_from_slice(&conductance_numerator.to_le_bytes());
         encoded.extend_from_slice(&conductance_denominator.to_le_bytes());
         let (phase_numerator, phase_denominator) = contact_state.carrier_phase.parts();
@@ -879,15 +1132,18 @@ pub(crate) fn decode_sparse_electrical_cell(
 ) -> Result<(SparseElectricalAnatomy, SparseElectricalState), SparseElectricalError> {
     let mut reader = SparseElectricalCellReader::new(encoded);
     let magic = reader.take(SPARSE_ELECTRICAL_CELL_CODEC_MAGIC.len())?;
+    let carries_channels = magic == SPARSE_ELECTRICAL_CELL_CODEC_V3_MAGIC;
     let carries_plastic = magic == SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC;
-    if !carries_plastic && magic != SPARSE_ELECTRICAL_CELL_CODEC_MAGIC {
+    if !carries_channels && !carries_plastic && magic != SPARSE_ELECTRICAL_CELL_CODEC_MAGIC {
         return Err(SparseElectricalError::InvalidEncoding);
     }
     let neuron_count = reader.usize()?;
     let contact_count = reader.usize()?;
     reader.require_records(
         contact_count,
-        if carries_plastic {
+        if carries_channels {
+            SPARSE_ELECTRICAL_CELL_V3_CONTACT_BYTES
+        } else if carries_plastic {
             SPARSE_ELECTRICAL_CELL_V2_CONTACT_BYTES
         } else {
             SPARSE_ELECTRICAL_CELL_CONTACT_BYTES
@@ -902,25 +1158,64 @@ pub(crate) fn decode_sparse_electrical_cell(
         .try_reserve_exact(contact_count)
         .map_err(|_| SparseElectricalError::ArithmeticWidth)?;
     for _ in 0..contact_count {
-        contacts.push(ElectricalContactAnatomy::new(
-            reader.usize()?,
-            reader.usize()?,
-            ExactRational::new(reader.i128()?, reader.u128()?)?,
-            neuron_count,
-        )?);
-        let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)?;
-        states.push(if carries_plastic {
-            ElectricalContactState::from_physical_parts(
-                phase,
-                PlasticSupportState::from_physical_parts(
-                    ExactRational::new(reader.i128()?, reader.u128()?)?,
-                    reader.u128()?,
-                    ExactRational::new(reader.i128()?, reader.u128()?)?,
-                )?,
-            )
+        let left = reader.usize()?;
+        let right = reader.usize()?;
+        let contact = if carries_channels {
+            let single_channel_conductance_picosiemens =
+                ExactRational::new(reader.i128()?, reader.u128()?)?;
+            let total_channel_population = reader.u128()?;
+            let genesis_conducting_population = reader.u128()?;
+            let transition_work_quantum_zeptojoules =
+                ExactRational::new(reader.i128()?, reader.u128()?)?;
+            if left >= neuron_count
+                || right >= neuron_count
+                || left == right
+                || single_channel_conductance_picosiemens.parts().0 <= 0
+                || total_channel_population != JUNCTION_TOTAL_CHANNEL_POPULATION
+                || genesis_conducting_population != JUNCTION_GENESIS_CONDUCTING_POPULATION
+                || transition_work_quantum_zeptojoules
+                    != ExactRational::new(
+                        JUNCTION_TRANSITION_WORK_NUMERATOR,
+                        JUNCTION_TRANSITION_WORK_DENOMINATOR,
+                    )?
+            {
+                return Err(SparseElectricalError::InvalidEncoding);
+            }
+            ElectricalContactAnatomy {
+                left_neuron: left,
+                right_neuron: right,
+                single_channel_conductance_picosiemens,
+                total_channel_population,
+                genesis_conducting_population,
+                transition_work_quantum_zeptojoules,
+            }
         } else {
-            ElectricalContactState::from_carrier_phase(phase)
+            ElectricalContactAnatomy::new(
+                left,
+                right,
+                ExactRational::new(reader.i128()?, reader.u128()?)?,
+                neuron_count,
+            )?
+        };
+        let phase = ChargeCarrierPhase::new(reader.i128()?, reader.u128()?)?;
+        states.push(if carries_channels {
+            ElectricalContactState::from_channel_parts(
+                contact,
+                phase,
+                reader.u128()?,
+                ExactRational::new(reader.i128()?, reader.u128()?)?,
+            )?
+        } else if carries_plastic {
+            let legacy_plastic = PlasticSupportState::from_physical_parts(
+                ExactRational::new(reader.i128()?, reader.u128()?)?,
+                reader.u128()?,
+                ExactRational::new(reader.i128()?, reader.u128()?)?,
+            )?;
+            ElectricalContactState::from_legacy_physical_parts(contact, phase, legacy_plastic)
+        } else {
+            ElectricalContactState::from_legacy_carrier_phase(contact, phase)
         });
+        contacts.push(contact);
     }
     if !reader.finished() {
         return Err(SparseElectricalError::InvalidEncoding);
@@ -1026,6 +1321,33 @@ pub(crate) struct SparseElectricalTransferSettlement {
     pub(crate) outward_elementary_charges_by_neuron: Box<[i128]>,
 }
 
+fn attach_contact_local_released_work(
+    anatomy: &SparseElectricalAnatomy,
+    potentials_millivolts: &[ExactRational],
+    interval_microseconds: u32,
+    transitions: &mut [ElectricalContactTransition],
+) -> Result<(), SparseElectricalError> {
+    if anatomy.contacts.len() != transitions.len()
+        || potentials_millivolts.len() != anatomy.neuron_count
+    {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
+    for (contact, transition) in anatomy.contacts.iter().zip(transitions.iter_mut()) {
+        let potential_difference = potentials_millivolts[contact.left_neuron]
+            .checked_sub(potentials_millivolts[contact.right_neuron])?;
+        let released = transition
+            .outward_current_from_left_picoamperes
+            .checked_mul(potential_difference)?
+            .checked_mul_unsigned(u128::from(interval_microseconds))?;
+        if released.parts().0 < 0 {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        transition.released_work_zeptojoules = released;
+        transition.exported_heat_zeptojoules = released;
+    }
+    Ok(())
+}
+
 /// Settle sparse contact currents and their shared carrier phases from one
 /// predecessor generation. The returned equal-and-opposite carrier counts are
 /// not applied here; a reached neuron cohort must combine them atomically with
@@ -1073,7 +1395,7 @@ pub(crate) fn settle_sparse_electrical_transfers(
         )?;
         provisional.push(transition);
     }
-    let transitions = jointly_carrier_bound_transitions(
+    let mut transitions = jointly_carrier_bound_transitions(
         anatomy,
         predecessor_contacts,
         capacitances,
@@ -1081,6 +1403,12 @@ pub(crate) fn settle_sparse_electrical_transfers(
         available_carriers,
         interval_microseconds,
         provisional,
+    )?;
+    attach_contact_local_released_work(
+        anatomy,
+        &potentials,
+        interval_microseconds,
+        &mut transitions,
     )?;
     let mut outward_by_neuron = vec![0_i128; anatomy.neuron_count];
     for (contact, transition) in anatomy.contacts.iter().zip(&transitions) {
@@ -1176,7 +1504,7 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
         };
         provisional.push(transition);
     }
-    let transitions = jointly_carrier_bound_transitions(
+    let mut transitions = jointly_carrier_bound_transitions(
         anatomy,
         predecessor_contacts,
         capacitances,
@@ -1184,6 +1512,12 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
         available_carriers,
         interval_microseconds,
         provisional,
+    )?;
+    attach_contact_local_released_work(
+        anatomy,
+        &potentials,
+        interval_microseconds,
+        &mut transitions,
     )?;
     let mut outward_by_neuron = vec![0_i128; anatomy.neuron_count];
     for (contact, transition) in anatomy.contacts.iter().zip(&transitions) {
@@ -1285,6 +1619,114 @@ mod tests {
             .sum()
     }
 
+    fn released_transition(
+        contact: ElectricalContactAnatomy,
+        work: ExactRational,
+    ) -> ElectricalContactTransition {
+        ElectricalContactTransition {
+            successor: ElectricalContactState::genesis(contact),
+            outward_current_from_left_picoamperes: ExactRational::integer(1),
+            outward_elementary_charges_from_left: 1,
+            released_work_zeptojoules: work,
+            exported_heat_zeptojoules: work,
+            conductance_changed: false,
+        }
+    }
+
+    #[test]
+    fn one_contact_changes_only_next_interval_conductance_and_conserves_work() {
+        let contact = ElectricalContactAnatomy::new(
+            0,
+            1,
+            ExactRational::integer(500),
+            2,
+        )
+        .unwrap();
+        let quantum = contact.transition_work_quantum_zeptojoules();
+        let half_quantum = quantum.checked_div_unsigned(2).unwrap();
+        let work = quantum
+            .checked_mul_unsigned(2)
+            .unwrap()
+            .checked_add(half_quantum)
+            .unwrap();
+        let strengthened = settle_contact_local_conductance(
+            contact,
+            released_transition(contact, work),
+            LocalGradientDirection::ActivePump,
+            LocalGradientDirection::Quiescent,
+        )
+        .unwrap();
+        assert_eq!(strengthened.successor.conducting_channel_population(), 52);
+        assert_eq!(
+            strengthened.successor.transition_work_residue_zeptojoules(),
+            half_quantum
+        );
+        assert_eq!(
+            strengthened.exported_heat_zeptojoules,
+            quantum.checked_mul_unsigned(2).unwrap()
+        );
+        assert!(strengthened.conductance_changed);
+        assert_eq!(
+            contact.effective_conductance(&strengthened.successor).unwrap(),
+            ExactRational::integer(520)
+        );
+
+        let weakened = settle_contact_local_conductance(
+            contact,
+            ElectricalContactTransition {
+                released_work_zeptojoules: half_quantum,
+                exported_heat_zeptojoules: half_quantum,
+                conductance_changed: false,
+                ..strengthened
+            },
+            LocalGradientDirection::PassiveReturn,
+            LocalGradientDirection::Quiescent,
+        )
+        .unwrap();
+        assert_eq!(weakened.successor.conducting_channel_population(), 51);
+        assert_eq!(contact.effective_conductance(&weakened.successor).unwrap(), ExactRational::integer(510));
+    }
+
+    #[test]
+    fn three_contacts_settle_independently_and_opposing_directions_tie() {
+        let contacts = [
+            ElectricalContactAnatomy::new(0, 1, ExactRational::integer(500), 4).unwrap(),
+            ElectricalContactAnatomy::new(1, 2, ExactRational::integer(500), 4).unwrap(),
+            ElectricalContactAnatomy::new(2, 3, ExactRational::integer(500), 4).unwrap(),
+        ];
+        let quantum = contacts[0].transition_work_quantum_zeptojoules();
+        let first = settle_contact_local_conductance(
+            contacts[0],
+            released_transition(contacts[0], quantum),
+            LocalGradientDirection::ActivePump,
+            LocalGradientDirection::Quiescent,
+        )
+        .unwrap();
+        let tied_work = quantum.checked_mul_unsigned(2).unwrap();
+        let tied = settle_contact_local_conductance(
+            contacts[1],
+            released_transition(contacts[1], tied_work),
+            LocalGradientDirection::ActivePump,
+            LocalGradientDirection::PassiveReturn,
+        )
+        .unwrap();
+        let third_work = quantum.checked_mul_unsigned(3).unwrap();
+        let third = settle_contact_local_conductance(
+            contacts[2],
+            released_transition(contacts[2], third_work),
+            LocalGradientDirection::PassiveReturn,
+            LocalGradientDirection::Quiescent,
+        )
+        .unwrap();
+        assert_eq!(first.successor.conducting_channel_population(), 51);
+        assert_eq!(tied.successor.conducting_channel_population(), 50);
+        assert_eq!(third.successor.conducting_channel_population(), 47);
+        assert_eq!(first.exported_heat_zeptojoules, quantum);
+        assert_eq!(tied.exported_heat_zeptojoules, tied_work);
+        assert_eq!(third.exported_heat_zeptojoules, third_work);
+        assert!(!tied.conductance_changed);
+    }
+
     /// A living body's retained charge lives at contact INDICES.  Appending
     /// must therefore leave every existing index, endpoint, conductance and
     /// unresolved carrier phase exactly where it was.
@@ -1303,10 +1745,12 @@ mod tests {
         let lived = SparseElectricalState::from_contact_states(
             &anatomy,
             vec![
-                ElectricalContactState::from_carrier_phase(
+                ElectricalContactState::from_legacy_carrier_phase(
+                    anatomy.contacts[0],
                     ChargeCarrierPhase::new(3, 7).unwrap(),
                 ),
-                ElectricalContactState::from_carrier_phase(
+                ElectricalContactState::from_legacy_carrier_phase(
+                    anatomy.contacts[1],
                     ChargeCarrierPhase::new(-2, 5).unwrap(),
                 ),
             ],
@@ -1328,7 +1772,7 @@ mod tests {
         assert_eq!(grown_state.contact_states()[..2], lived.contact_states()[..]);
         assert_eq!(
             grown_state.contact_states()[2],
-            ElectricalContactState::genesis()
+            ElectricalContactState::genesis(grown.contacts[2])
         );
     }
 
@@ -1364,7 +1808,7 @@ mod tests {
         // sits byte-identically at its own offset.
         assert_eq!(after[..16], before[..16]);
         assert_eq!(after[24..before.len()], before[24..]);
-        assert_eq!(after.len(), before.len() + SPARSE_ELECTRICAL_CELL_V2_CONTACT_BYTES);
+        assert_eq!(after.len(), before.len() + SPARSE_ELECTRICAL_CELL_V3_CONTACT_BYTES);
         let (restored_anatomy, restored_state) = decode_sparse_electrical_cell(&after).unwrap();
         assert_eq!(restored_anatomy, grown);
         assert_eq!(restored_state, grown_state);
@@ -1716,14 +2160,33 @@ mod tests {
             ExactRational::integer(0),
         )
         .unwrap();
-        let legacy = SparseElectricalState::from_contact_states(
-            &anatomy,
-            vec![ElectricalContactState::from_physical_parts(
-                ChargeCarrierPhase::zero(),
-                legacy_material.clone(),
-            )],
-        )
-        .unwrap();
+        let mut legacy_body = Vec::new();
+        legacy_body.extend_from_slice(SPARSE_ELECTRICAL_CELL_CODEC_V2_MAGIC);
+        push_electrical_usize(&mut legacy_body, anatomy.neuron_count()).unwrap();
+        push_electrical_usize(&mut legacy_body, 1).unwrap();
+        push_electrical_usize(&mut legacy_body, 0).unwrap();
+        push_electrical_usize(&mut legacy_body, 1).unwrap();
+        let (conductance_numerator, conductance_denominator) =
+            anatomy.contacts[0].conductance_picosiemens().parts();
+        legacy_body.extend_from_slice(&conductance_numerator.to_le_bytes());
+        legacy_body.extend_from_slice(&conductance_denominator.to_le_bytes());
+        legacy_body.extend_from_slice(&0_i128.to_le_bytes());
+        legacy_body.extend_from_slice(&1_u128.to_le_bytes());
+        let (rest, dissipated, residue) = legacy_material.physical_parts();
+        let (rest_numerator, rest_denominator) = rest.parts();
+        legacy_body.extend_from_slice(&rest_numerator.to_le_bytes());
+        legacy_body.extend_from_slice(&rest_denominator.to_le_bytes());
+        legacy_body.extend_from_slice(&dissipated.to_le_bytes());
+        let (residue_numerator, residue_denominator) = residue.parts();
+        legacy_body.extend_from_slice(&residue_numerator.to_le_bytes());
+        legacy_body.extend_from_slice(&residue_denominator.to_le_bytes());
+        let (restored_anatomy, legacy) = decode_sparse_electrical_cell(&legacy_body).unwrap();
+        assert_eq!(restored_anatomy, anatomy);
+        assert_eq!(legacy.contact_states()[0].conducting_channel_population(), 50);
+        assert_eq!(
+            legacy.contact_states()[0].transition_work_residue_zeptojoules(),
+            ExactRational::integer(0)
+        );
         let membranes = vec![
             ElementaryChargeMembraneState::genesis(1_000_000_000),
             ElementaryChargeMembraneState::genesis(0),
@@ -1756,7 +2219,8 @@ mod tests {
             virgin_transition.transitions[0].outward_elementary_charges_from_left
         );
         assert_eq!(
-            legacy_transition.successor_contacts.contact_states()[0].plastic_state(),
+            legacy_transition.successor_contacts.contact_states()[0]
+                .legacy_plastic_compatibility_state(),
             legacy_material
         );
     }
@@ -2022,11 +2486,24 @@ mod tests {
             ElectricalContactAnatomy::new(1, 2, ExactRational::new(5, 4).unwrap(), 3).unwrap(),
         ];
         let anatomy = SparseElectricalAnatomy::new(3, contacts).unwrap();
+        let retained_residue = anatomy.contacts[0]
+            .transition_work_quantum_zeptojoules()
+            .checked_div_unsigned(2)
+            .unwrap();
         let state = SparseElectricalState::from_contact_states(
             &anatomy,
             vec![
-                ElectricalContactState::from_carrier_phase(ChargeCarrierPhase::new(1, 3).unwrap()),
-                ElectricalContactState::from_carrier_phase(ChargeCarrierPhase::new(-2, 7).unwrap()),
+                ElectricalContactState::from_channel_parts(
+                    anatomy.contacts[0],
+                    ChargeCarrierPhase::new(1, 3).unwrap(),
+                    51,
+                    retained_residue,
+                )
+                .unwrap(),
+                ElectricalContactState::from_legacy_carrier_phase(
+                    anatomy.contacts[1],
+                    ChargeCarrierPhase::new(-2, 7).unwrap(),
+                ),
             ],
         )
         .unwrap();

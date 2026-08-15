@@ -46,17 +46,18 @@ def test_production_and_cold_restore_create_no_scripted_learning() -> None:
         assert "see spot run" not in source
         assert "Seed Corpus" not in source
 
-    for path, name in (
-        (APP_PATH, "_gl_init"),
-        (COLD_PROBE_PATH, "main"),
-    ):
+    for path, name in ((APP_PATH, "_gl_init"), (COLD_PROBE_PATH, "main")):
         calls = _called_attributes(_function(path, name))
         assert not {
             "add_corpus",
             "load_corpus",
             "read_sentence",
         }.intersection(calls)
-        assert "load_full_state" in calls
+        if path == APP_PATH:
+            assert "load_full_state" in calls
+        else:
+            assert "load_full_state" not in calls
+            assert "restore_current_native_organism(" in cold_source
 
     assert "causal sensory tutor not yet connected" not in app_source
     assert "background_curriculum_retired" not in app_source
