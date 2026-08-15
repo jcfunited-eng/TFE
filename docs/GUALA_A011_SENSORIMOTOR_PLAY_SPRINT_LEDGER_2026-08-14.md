@@ -815,3 +815,20 @@ refused the contradiction. `_action_consequence_episode` now derives the
 admission numerator and denominator from the exact `action_duration`. A
 newborn 250 ms other-body visual transition then changed two retinal cells,
 settled 207 neurons, and advanced one organism tick without changing DSF.
+
+Task 1067 deployed the correction from commit `4726c69b` at image digest
+`sha256:81b01b6c56b8df93037dbd4bb4812825dfb3254a418b216e83a916b795fe7628`.
+The live endpoint then accepted participant actions, changed one retinal cell
+per turn, admitted each transition in six native hops, and persisted exact
+organism successors. Two bounded exchanges produced the exact alternating
+world order other/Guala/other/Guala (4652/4653/4654/4655 and
+4657/4658/4659/4660). Neither qualified as reciprocal social positive
+engagement: the Guala responses did not both carry an active organic relation
+between the retained formation and an affective neuron in the same transition.
+The latest retained-formation response carried 11 affective trajectories, five
+evaluated body receptors, five nonzero localized-strain settlements, zero unmet
+dissipation, and zero exhausted intervals, but zero organic mosaic relations.
+Additional unattended intervals preserved that absence. No relation was
+authored and no further participant stimulation was repeated.
+
+**A-011.6 is deployed but not Live-Closed. A-011 remains open.**
