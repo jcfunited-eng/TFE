@@ -719,3 +719,15 @@ deliveries remain unchanged and outside this read-only evidence projection.
   production compatibility path or source workaround was added.
 - Python compilation and `git diff --check` pass. These are candidate facts,
   not production closure.
+- Deployment attempt 1 built immutable image
+  `sha256:6126303ae3493c3a4734bc5dc4e64b66fb37ea75610e1163d4a9d3d54c8896b3`
+  and failed closed before cutover in private cold-restore rehearsal. The probe
+  restored one exact CURRENT and then its C-024 observer reread the continuously
+  advancing read-only source EFS root; production advanced between those two
+  reads, so two valid moments had different receipts. Task 1063 remained the
+  sole production task.
+- The deployment correction snapshots the already-restored in-memory body into
+  one disposable local CURRENT and runs the C-024 observer against that exact
+  body. It adds no organism state, lock, owner, retry, fallback, or schema. Its
+  focused deployment/probe suite passes 35/35 against the exact candidate
+  native path.

@@ -94,6 +94,56 @@ def test_probe_cannot_import_the_retired_python_organism() -> None:
     assert "raw_glorun_current_only" in source
 
 
+def test_c024_observer_reads_one_disposable_exact_current(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service import native_production_app as production
+
+    staged = object()
+    restored = SimpleNamespace(organism=object())
+    admission = _Admission()
+    snapshot_roots: list[Path] = []
+
+    def stage(root, organism, *, max_envelope_bytes):
+        snapshot_roots.append(Path(root))
+        assert organism is restored.organism
+        assert max_envelope_bytes == admission.max_envelope_bytes
+        return staged
+
+    def publish(value, **kwargs):
+        assert value is staged
+        assert kwargs["expected_predecessor_sha256"] is None
+
+    def startup() -> None:
+        assert production.STATE_ROOT == snapshot_roots[0]
+
+    observed = {
+        "generation_state": {"state_sha256": STATE_SHA},
+        "cognitive_capital": {
+            "capabilities": list(production.COGNITIVE_CAPITAL_CAPABILITIES),
+            "dimensions": list(production.COGNITIVE_CAPITAL_DIMENSIONS),
+            "credits": [],
+            "scalar_score_authority": False,
+            "cognition_authority": False,
+        },
+        "formations": {"mosaic_count": 0},
+    }
+    monkeypatch.setattr(probe, "stage_active_native_organism", stage)
+    monkeypatch.setattr(probe, "publish_staged_native_organism", publish)
+    monkeypatch.setattr(production, "_startup", startup)
+    monkeypatch.setattr(production, "_build_public_observation", lambda: observed)
+
+    proof = probe._observe_c024_cognitive_capital(
+        restored,
+        admission,
+        STATE_SHA,
+    )
+
+    assert proof["c024_cognitive_capital_state_sha256"] == STATE_SHA
+    assert len(snapshot_roots) == 1
+    assert not snapshot_roots[0].exists()
+
+
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     (

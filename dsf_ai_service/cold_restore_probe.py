@@ -8,7 +8,9 @@ from fractions import Fraction
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
+import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_articulatory_unit_trajectory,
@@ -17,8 +19,10 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
     NativeOrganismBinaryStoreError,
+    publish_staged_native_organism,
     rehearse_current_native_organism_current_format,
     restore_current_native_organism,
+    stage_active_native_organism,
 )
 from dsf_ai_service.substrate.native_resident_resource_admission import (
     derive_native_resident_resource_admission,
@@ -56,13 +60,40 @@ def _fraction_parts(value: Fraction) -> tuple[int, int]:
     return value.numerator, value.denominator
 
 
-def _observe_c024_cognitive_capital(expected_state_sha256: str) -> dict[str, object]:
+def _observe_c024_cognitive_capital(
+    restored: object,
+    admission: object,
+    expected_state_sha256: str,
+) -> dict[str, object]:
     """Read the exact restored body through the candidate public observer."""
 
     from dsf_ai_service import native_production_app as production
 
-    production._startup()
-    observed = production._build_public_observation()
+    # The mounted source is a living EFS root. It can lawfully advance between
+    # this probe's first restore and the public observer's startup, which used
+    # to compare two different valid moments and intermittently reject a
+    # release. Publish the already-restored in-memory body into one disposable
+    # local CURRENT so the observer reads the exact body under rehearsal.
+    with tempfile.TemporaryDirectory(prefix="guala-c024-current-") as temporary:
+        snapshot_root = Path(temporary)
+        staged = stage_active_native_organism(
+            snapshot_root,
+            restored.organism,
+            max_envelope_bytes=admission.max_envelope_bytes,
+        )
+        publish_staged_native_organism(
+            staged,
+            expected_predecessor_sha256=None,
+            object_store=production._LocalDirectoryObjectStore(
+                snapshot_root / "object-mirror"
+            ),
+            max_envelope_bytes=admission.max_envelope_bytes,
+            max_fabric_bytes=admission.max_fabric_bytes,
+            max_logical_peak_bytes=admission.max_logical_peak_bytes,
+        )
+        production.STATE_ROOT = snapshot_root
+        production._startup()
+        observed = production._build_public_observation()
     if observed["generation_state"]["state_sha256"] != expected_state_sha256:
         raise RuntimeError("C-024 observer did not read the rehearsed CURRENT")
     capital = observed.get("cognitive_capital")
@@ -1494,7 +1525,7 @@ def main() -> int:
         "source_mount_read_only": True,
         "tick": before.organism_tick,
         **motor_proof,
-        **_observe_c024_cognitive_capital(before.state_sha256),
+        **_observe_c024_cognitive_capital(restored, admission, before.state_sha256),
     }
     proof = {
         **record,
