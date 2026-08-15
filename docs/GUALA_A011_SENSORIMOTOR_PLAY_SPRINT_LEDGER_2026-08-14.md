@@ -947,3 +947,37 @@ The focused observer/public/cognitive-capital suite now passes `34/34` using
 the exact candidate native module, Python compilation passes, and the diff is
 clean. A new production cutover and one live four-turn witness are still
 required; **A-011.6 remains open**.
+
+### Task 1069 live result
+
+The bounded-order correction deployed successfully on `dsf-ai-task:1069`,
+commit `8c9c8b066df5828369d2141618204bb48e627dae`, image digest
+`sha256:84a6bff6d875554402c60195b00e14fbcc4aedce6044ded2b3a913bc5f171264`.
+The rehearsal and cutover preserved identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored `313` complete neurons and
+`196416` developmental resting neurons exactly, and started zero Python
+cognition workers or callbacks.
+
+The one bounded live trial preserved the intended actor order despite Guala's
+intervening autonomous actions. The participant invitation committed, Guala
+made multiple autonomous movements, retained formation
+`bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`
+caused a later action at tick `103284`, the participant return committed, and
+the same formation caused another distinct action at tick `103319`. Both HTTP
+participant requests timed out after the durable world commit; world read-back
+prevented duplicate writes.
+
+The observer correctly did **not** report social joy. The live retained action
+at tick `103319` carried localized body-receptor strain and zero overload, but
+its eleven layer-10 trajectories had association/body transfer at tick
+`103306` and gradient settlement at `103307`, before the retained formation's
+origin at `103308` and motor settlement at `103310`. The currently accepted
+formation-origin -> affect-gradient -> motor order was absent. A further
+bounded observation window found no qualifying co-occurrence. No stimulus was
+repeated and no evidence rule was weakened.
+
+**A-011.6 remains open.** The sole next causal question is whether the existing
+physical topology proves an affect-trajectory -> retained-formation -> motor
+path that the observer currently omits, or whether that path is genuinely
+unmounted. No new reward, label, coefficient, threshold, or action mechanism
+is authorized by this result.
