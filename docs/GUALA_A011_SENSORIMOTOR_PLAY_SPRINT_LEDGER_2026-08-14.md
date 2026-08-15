@@ -804,3 +804,14 @@ port. Exactly one of Guala's 27 retinal cells changes. The participant receipt
 is installed as the bounded invitation before that exact before/after visual
 transition enters the organism, so an endogenous retained-formation motor
 response arising in the same intake cannot be lost at the transport boundary.
+
+### First live attempt and exact correction
+
+Task 1066 accepted and persisted the first participant-body action at world
+revision 4619, but refused its sensory settlement. The reproduced cause was
+one stale literal at the translation boundary: a 250 ms action episode still
+declared a 1 ms maximum admission interval. The full-field gate correctly
+refused the contradiction. `_action_consequence_episode` now derives the
+admission numerator and denominator from the exact `action_duration`. A
+newborn 250 ms other-body visual transition then changed two retinal cells,
+settled 207 neurons, and advanced one organism tick without changing DSF.

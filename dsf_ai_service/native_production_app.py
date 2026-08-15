@@ -8433,7 +8433,13 @@ def _action_consequence_episode(
             "transported": CARD_SURFACE_PORT_COUNT,
         },
     }
-    return episode, [(1, 1_000)] * LESSON_OCCURRENCE_COUNT, lane_truth
+    return (
+        episode,
+        [
+            (action_duration.numerator, action_duration.denominator)
+        ] * LESSON_OCCURRENCE_COUNT,
+        lane_truth,
+    )
 
 
 # HER GAIT, carried between steps: the way she is facing, how strong the air

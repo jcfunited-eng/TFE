@@ -364,8 +364,10 @@ def test_other_participant_action_physically_changes_gualas_retina(
     )
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
     observed_candidate_stages: list[str | None] = []
+    observed_admissions: list[object] = []
 
     def accepted_with_candidate(*args, **kwargs):
+        observed_admissions.append(args[0][0][1])
         observed_candidate_stages.append(
             (production._reciprocal_social_play_candidate or {}).get("stage")
         )
@@ -419,6 +421,7 @@ def test_other_participant_action_physically_changes_gualas_retina(
         "awaiting_guala_response"
     )
     assert observed_candidate_stages == ["awaiting_guala_response"]
+    assert observed_admissions == [[(1, 4)]]
 
 
 def test_external_or_unvaried_activity_cannot_be_reported_as_play() -> None:
