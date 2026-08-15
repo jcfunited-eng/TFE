@@ -573,6 +573,21 @@ pub(crate) struct TimedDirectedPhysicalTransferObservation {
     pub(crate) transfer: DirectedPhysicalTransferObservation,
 }
 
+/// One reached sparse contact whose retained channel constitution changed in
+/// this exact interval. This is transient observation only: the authoritative
+/// successor remains the contact state already stored in the organism.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct ChangedContactChannelStateObservation {
+    pub(crate) cognitive_ordinal: u64,
+    pub(crate) bond: StablePhysicalBondReference,
+    pub(crate) predecessor_conducting_channel_population: u128,
+    pub(crate) predecessor_transition_work_phase: ExactRational,
+    pub(crate) predecessor_effective_conductance_picosiemens: ExactRational,
+    pub(crate) successor_conducting_channel_population: u128,
+    pub(crate) successor_transition_work_phase: ExactRational,
+    pub(crate) successor_effective_conductance_picosiemens: ExactRational,
+}
+
 /// One exact local membrane-gradient settlement for a reached layer-10 cell.
 /// Every quantity comes from the cell's already-mounted one-neuron recovery
 /// compartment. This is transient physical evidence, not a named emotion or
@@ -844,6 +859,7 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    pub(crate) changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     pub(crate) preceding_distinct_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     /// First exact route set in this bounded transaction containing both a
@@ -4664,6 +4680,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count,
                 emitted_neuron_fractals,
                 active_physical_bonds: internal_contact.active_bonds,
+                changed_contact_channel_states: internal_contact.changed_contact_channel_states,
                 reached_and_foregone_physical_frontier_routes:
                     if has_reached_and_foregone_frontier_routes(&internal_contact.frontier_routes) {
                     internal_contact.frontier_routes.clone()
@@ -5140,6 +5157,7 @@ impl ResidentCognitiveFormationState {
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),
                 active_physical_bonds: Vec::new(),
+                changed_contact_channel_states: Vec::new(),
                 physical_frontier_routes: Vec::new(),
                 preceding_distinct_physical_frontier_routes: Vec::new(),
                 reached_and_foregone_physical_frontier_routes: Vec::new(),
@@ -9247,6 +9265,7 @@ struct ResidentContactEdge {
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
+    changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
     /// Exact nonzero whole-carrier transfers settled on this interval. This
@@ -9369,6 +9388,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             settled_directed_transfers: Vec::new(),
@@ -9520,6 +9540,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             settled_directed_transfers: Vec::new(),
@@ -9561,6 +9582,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
             settled_directed_transfers: Vec::new(),
@@ -9765,6 +9787,44 @@ fn settle_internal_contact_interval(
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
     settled.transitions = contact_transitions.into_boxed_slice();
+
+    // The compact predecessor, compact anatomy, stable bond, and settled
+    // successor share one construction order. Project only the sparse reached
+    // contacts whose retained channel population or transition-work phase
+    // changed; do not rescan the resident organism after settlement.
+    let mut changed_contact_channel_states = Vec::new();
+    for (((anatomy, predecessor), transition), bond) in compact_anatomy
+        .contact_anatomies()
+        .iter()
+        .copied()
+        .zip(compact_predecessor.contact_states())
+        .zip(settled.transitions.iter())
+        .zip(compact_bonds.iter().copied())
+    {
+        let successor = &transition.successor;
+        if predecessor.conducting_channel_population()
+            == successor.conducting_channel_population()
+            && predecessor.transition_work_phase() == successor.transition_work_phase()
+        {
+            continue;
+        }
+        changed_contact_channel_states.push(ChangedContactChannelStateObservation {
+            cognitive_ordinal,
+            bond,
+            predecessor_conducting_channel_population: predecessor
+                .conducting_channel_population(),
+            predecessor_transition_work_phase: predecessor.transition_work_phase(),
+            predecessor_effective_conductance_picosiemens: anatomy
+                .effective_conductance(predecessor)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            successor_conducting_channel_population: successor
+                .conducting_channel_population(),
+            successor_transition_work_phase: successor.transition_work_phase(),
+            successor_effective_conductance_picosiemens: anatomy
+                .effective_conductance(successor)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+        });
+    }
 
     // Preserve exact pathway-local contact activity before the endpoint
     // consequences are applied. A layer-10 cell qualifies for local fluid
@@ -10727,6 +10787,7 @@ fn settle_internal_contact_interval(
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
+        changed_contact_channel_states,
         frontier_routes,
         next_active_frontier,
         settled_directed_transfers,

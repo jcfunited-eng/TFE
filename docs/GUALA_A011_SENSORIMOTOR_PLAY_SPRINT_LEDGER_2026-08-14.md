@@ -1335,3 +1335,71 @@ second persistence authority remain out of scope and must not be extended.
   selection exposed five pre-existing stale-contract failures in unrelated
   legacy/UI fixtures; none intersects this rehearsal-only diff and none was
   patched or added to this sprint.
+
+#### Task 1075 live later-causal-use result and continuing A-011.6 item
+
+- **Immediate predecessor remains closed:** task `dsf-ai-task:1075`, commit
+  `8a989fb8dd876a72062323ed7208a8a178ad328e`, image
+  `sha256:9775f5626370cf42fd21fea62c12cf84838104e51a4cff553eb56fec6481b3ab`
+  is the sole healthy production task. Its exact-current rehearsal changed 114
+  of 1,824 reached contacts at interval 1; the same stable contact carried
+  `-8582` whole carriers at interval 2; the successor cold-restored exactly;
+  Python cognition callbacks remained zero. This closes contact retention and
+  later causal use, not reciprocal motor consequence or A-011.6.
+- **Active ledger ID:** `A-011.6` continues. It is not reopened or advanced to
+  another item.
+- **Frozen input:** one authenticated reciprocal opportunity that reaches a
+  retained non-genesis contact state already proved causally usable by task
+  1075.
+- **Single acceptance condition:** the identical stable contact must occur on
+  an exact sparse causal path that reaches a real layer-12 motor discharge;
+  the body must move; its vestibular/body consequence must return through the
+  same committed organism transaction; and the successor must persist and cold
+  restore exactly. Contact change, route use, motor recruitment, or historical
+  action separately cannot satisfy this condition.
+- **Invariant scope:** unchanged L0-L4 and full DSF; unchanged contact
+  constitution; no semantic social, joy, reward, or valence state; no selector,
+  new action law, owner, lock, database, UI claim, curriculum change, whole-
+  organism scan, or migration.
+- **Production roster:** cochlear ears `1`, touch `1`, interoception `0`,
+  chemoreception `1`, vestibular `1`, world `1`, current-format migration `0`.
+  Every candidate/restored-body probe must use these exact values.
+
+| Recurrence | Applicability and earliest check for this sprint |
+|---|---|
+| RF-001/RF-003/RF-036 | Put this worktree first on `PYTHONPATH`; build a fresh candidate wheel with no cache and print its loaded native path before boundary tests. |
+| RF-002/RF-023/RF-033 | Resolve the exact task-1075 target and environment without unsafe JMESPath string predicates before imports or AWS actions. |
+| RF-004/RF-010/RF-046 | Exercise both first-use fixture and exact cold-restored production predecessor; compare committed and persisted `CURRENT`, restart, then complete another action/consequence interval. |
+| RF-005/RF-017/RF-028/RF-038 | Census every producer, constructor, FFI getter, wrapper, aggregator, mock, and public consumer for contact-path, motor, and returned-consequence evidence before changing a shared type. |
+| RF-016/RF-019/RF-034/RF-040 | Require only this A-011.6 contact-to-motor acceptance path; do not execute or require a closed historical rehearsal suffix. |
+| RF-020/RF-021/RF-043 | Prove actual reciprocal-source participants and preserve the same predecessor/input/successor through contact, motor, and consequence; recruitment or an injected source is insufficient. |
+| RF-027/RF-030/RF-042 | Bind the first exact qualifying causal path; preserve signed nonzero physical quantities; carry its true interval horizon through validators. |
+| RF-035/RF-039/RF-044/RF-045 | Use a live-producible reciprocal input; review every nested cardinality and sensor clock; reject dense scans, per-channel expansion, or repeated held observations. |
+| RF-007/RF-012/RF-025/RF-029 | Resolve controller/operator command shapes before the clock; on timeout or refusal inspect the successor before any retry; require direct live consequence rather than health or HTTP status. |
+
+#### A-011.6 task-1075 boundary correction before candidate release
+
+- **Review correction:** the existing task-1075 projections separately prove a
+  changed retained contact and a later motor/body path, but they do not bind
+  the same stable contact across that boundary. The earlier statement that no
+  transport field was required was therefore false.
+- **Implemented boundary:** `settle_internal_contact_interval` now emits one
+  transient record only for each reached contact whose retained conducting
+  population or transition-work phase actually changed. It reuses the exact
+  compact predecessor, settled successor, anatomy, stable endpoints, and
+  parallel ordinal already in hand; it does not rescan the organism.
+- **Causal binding:** the Python transaction observer retains the earliest
+  exact change per stable bond and binds it only when that same bond occurs on
+  a strictly later retained-formation path reaching layer-12 motor discharge.
+  The existing body action and vestibular return then complete the witness.
+- **No new authority:** no persisted state, codec, migration, contact physics,
+  DSF path, semantic label, selector, owner, lock, database, UI behavior, or
+  whole-organism scan was added.
+- **Focused evidence:** the candidate wheel loaded from its explicit isolated
+  path; 25/25 affected Python tests and 421/421 active native tests passed
+  (11 retired native fixtures remained ignored). The exact production-body
+  cold rehearsal and live cutover remain required before A-011.6 can be called
+  Live-Closed.
+- **Following item:** A-011.7 remains the immediate next increment after
+  A-011.6 Live-Closure. Its exact acceptance has not yet been ratified in this
+  ledger and must be reconciled before implementation rather than invented.

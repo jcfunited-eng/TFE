@@ -181,6 +181,9 @@ class NativeResidentObservationView(Protocol):
     ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
 
     @property
+    def changed_contact_channel_states(self) -> list[tuple[object, ...]]: ...
+
+    @property
     def preceding_distinct_physical_frontier_routes(
         self,
     ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
@@ -422,6 +425,7 @@ class ResidentPrepareEvidence:
         tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
     ] = ()
     active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
+    changed_contact_channel_states: tuple[tuple[object, ...], ...] = ()
     physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
     ] = ()
@@ -585,6 +589,53 @@ def _physical_frontier_route_evidence(
         seen.add(identity)
         routes.append(route)
     return tuple(routes)
+
+
+def _changed_contact_channel_state_evidence(
+    value: object,
+) -> tuple[tuple[object, ...], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("resident changed contact-channel evidence changed format")
+    changes: list[tuple[object, ...]] = []
+    seen: set[tuple[int, str, str, int]] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 6:
+            raise RuntimeError("resident changed contact-channel evidence changed format")
+        cognitive_ordinal = _nonnegative_integer(
+            raw[0], "changed contact-channel cognitive ordinal"
+        )
+        left = _canonical_lineage_hex(raw[1], "changed contact-channel left lineage")
+        right = _canonical_lineage_hex(raw[2], "changed contact-channel right lineage")
+        if left >= right:
+            raise RuntimeError("changed contact-channel endpoints are not canonical")
+        parallel_ordinal = _nonnegative_integer(
+            raw[3], "changed contact-channel parallel ordinal"
+        )
+        states: list[tuple[object, ...]] = []
+        for label, state in (("predecessor", raw[4]), ("successor", raw[5])):
+            if not isinstance(state, tuple) or len(state) != 3:
+                raise RuntimeError(f"changed contact-channel {label} changed format")
+            states.append(
+                (
+                    _nonnegative_decimal_integer(
+                        state[0], f"changed contact-channel {label} population"
+                    ),
+                    _exact_rational_evidence(
+                        state[1], f"changed contact-channel {label} work phase"
+                    ),
+                    _exact_rational_evidence(
+                        state[2], f"changed contact-channel {label} conductance"
+                    ),
+                )
+            )
+        if states[0] == states[1]:
+            raise RuntimeError("changed contact-channel evidence carried no change")
+        identity = (cognitive_ordinal, left, right, parallel_ordinal)
+        if identity in seen:
+            raise RuntimeError("changed contact-channel evidence repeated one contact")
+        seen.add(identity)
+        changes.append((cognitive_ordinal, left, right, parallel_ordinal, *states))
+    return tuple(changes)
 
 
 def _directed_physical_transfer_evidence(
@@ -1733,6 +1784,9 @@ class NativeResidentOrganism:
                     _nonnegative_integer(raw_bond[2], "active bond parallel ordinal"),
                 )
             )
+        changed_contact_channel_states = _changed_contact_channel_state_evidence(
+            candidate.changed_contact_channel_states
+        )
         physical_frontier_routes = _physical_frontier_route_evidence(
             candidate.physical_frontier_routes,
             "physical frontier route evidence",
@@ -2366,6 +2420,7 @@ class NativeResidentOrganism:
             ),
             emitted_neuron_fractals=tuple(emitted_neuron_fractals),
             active_physical_bonds=tuple(active_physical_bonds),
+            changed_contact_channel_states=changed_contact_channel_states,
             physical_frontier_routes=physical_frontier_routes,
             preceding_distinct_physical_frontier_routes=(
                 preceding_distinct_physical_frontier_routes

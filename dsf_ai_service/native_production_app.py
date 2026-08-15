@@ -4207,9 +4207,15 @@ def _causal_cross_context_use_record() -> dict[str, object]:
             "cross the motor path, move the body, and return through body senses",
             scripted_action_authority=False,
         )
+    changed_contact = evidence.get("changed_contact_channel_state")
+    exact_contact_bound = isinstance(changed_contact, dict)
     return _section(
         True,
-        "retained_formation_caused_body_action_and_sensed_consequence",
+        (
+            "retained_contact_changed_then_reached_body_action_and_sensed_consequence"
+            if exact_contact_bound
+            else "retained_formation_caused_body_action_and_sensed_consequence"
+        ),
         "one internally reassembled retained formation crossed exact physical "
         "contacts into motor discharge, moved the persistent body, and returned "
         "through vestibular/body receptors",
@@ -4220,6 +4226,8 @@ def _causal_cross_context_use_record() -> dict[str, object]:
         intake=evidence.get("intake"),
         internally_caused=True,
         scripted_action_authority=False,
+        changed_contact_channel_state=changed_contact,
+        exact_changed_contact_bound_to_motor_path=exact_contact_bound,
         action=evidence.get("action"),
         sensed_consequence=evidence.get("sensed_consequence"),
     )
@@ -6542,6 +6550,9 @@ def _commit_admitted_hop(
         "articulatory_unit_recruitments": (
             evidence.articulatory_unit_recruitments
         ),
+        "changed_contact_channel_states": (
+            evidence.changed_contact_channel_states
+        ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -6646,6 +6657,9 @@ def _commit_vestibular_tick(
             evidence.externally_perturbed_body_receptor_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
+        "changed_contact_channel_states": (
+            evidence.changed_contact_channel_states
+        ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -6750,6 +6764,9 @@ def _commit_vestibular_trajectory(
             evidence.externally_perturbed_body_receptor_count
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
+        "changed_contact_channel_states": (
+            evidence.changed_contact_channel_states
+        ),
         "physical_frontier_routes": evidence.physical_frontier_routes,
         "preceding_distinct_physical_frontier_routes": (
             evidence.preceding_distinct_physical_frontier_routes
@@ -7095,6 +7112,16 @@ def _advance_causal_motor_traces(
     organism_tick = int(hop["organism_tick"])
     if organism_tick != predecessor_tick + 1:
         return {}, completed
+    prior_changed = completed.get("_changed_contact_channel_states", {})
+    changed_by_bond = {
+        tuple(entry[1:4]): (int(observed_tick), tuple(entry))
+        for observed_tick, entry in prior_changed.get("entries", ())
+    }
+    for change in tuple(hop.get("changed_contact_channel_states", ())):
+        if not isinstance(change, (list, tuple)) or len(change) != 6:
+            raise RuntimeError("changed contact-channel hop evidence changed format")
+        bond = tuple(change[1:4])
+        changed_by_bond.setdefault(bond, (organism_tick, tuple(change)))
     next_active = {
         key: paths
         for key, paths in active.items()
@@ -7191,6 +7218,24 @@ def _advance_causal_motor_traces(
                         "outward_elementary_carriers": outward_carriers,
                     },
                 }
+                matched_changes = []
+                for path_transfer in proof["directed_physical_transfers"]:
+                    first, second, path_ordinal, _ = path_transfer
+                    left, right = sorted((first, second))
+                    observed = changed_by_bond.get((left, right, path_ordinal))
+                    if observed is not None and observed[0] < organism_tick:
+                        matched_changes.append(observed)
+                if matched_changes:
+                    changed_tick, changed_state = min(matched_changes)
+                    proof["changed_contact_channel_state"] = {
+                        "change_organism_tick": changed_tick,
+                        "contact_cognitive_ordinal": changed_state[0],
+                        "left_lineage": changed_state[1],
+                        "right_lineage": changed_state[2],
+                        "parallel_ordinal": changed_state[3],
+                        "predecessor_state": changed_state[4],
+                        "successor_state": changed_state[5],
+                    }
                 if origin_kind == "retained_formation":
                     proof["motor_unit_recruitment"][
                         "preparation_transfers"
@@ -7234,11 +7279,18 @@ def _advance_causal_motor_traces(
                     )
                 proofs[origin_kind].append(proof)
     next_completed = dict(completed)
+    if changed_by_bond:
+        next_completed["_changed_contact_channel_states"] = {
+            "entries": tuple(
+                changed_by_bond[bond] for bond in sorted(changed_by_bond)
+            )
+        }
     for origin_kind, candidates in proofs.items():
         if candidates:
             next_completed[origin_kind] = min(
                 candidates,
                 key=lambda item: (
+                    0 if "changed_contact_channel_state" in item else 1,
                     len(item["directed_physical_transfers"]),
                     item["directed_physical_transfers"],
                     item["origin_lineages"],
@@ -8334,7 +8386,12 @@ def _perform_admitted_intake_locked(
         physical_choice_evidence,
         intake,
     )
-    if causal_cross_context_use is not None:
+    if causal_cross_context_use is not None and (
+        _last_causal_cross_context_use_evidence is None
+        or "changed_contact_channel_state" in causal_cross_context_use
+        or "changed_contact_channel_state"
+        not in _last_causal_cross_context_use_evidence
+    ):
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
             "intake": intake,

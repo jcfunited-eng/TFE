@@ -39,8 +39,9 @@ use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick
 use crate::resident_cognitive_formation::{
     has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
     ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CausalFrontierTransferObservation,
-    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
-    EmittedNeuronFractal, InternallyReassembledFormationCueObservation,
+    ChangedContactChannelStateObservation, CognitiveFormationObservation,
+    CognitiveFormationSummary, DirectedPhysicalTransferObservation, EmittedNeuronFractal,
+    InternallyReassembledFormationCueObservation,
     LocalizedFluidChemistryObservation, LocalizedMetabolicStrainObservation, MotorUnitRecruitment,
     OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
     PhysicalFrontierRouteObservation,
@@ -139,6 +140,14 @@ type OrganicMosaicRelationProjection = (
 );
 type PhysicalFrontierRouteProjection = (String, u32, u32, String, u32, u32, u32, i128);
 type ExactRationalProjection = (String, String);
+type ChangedContactChannelStateProjection = (
+    u64,
+    String,
+    String,
+    u32,
+    (String, ExactRationalProjection, ExactRationalProjection),
+    (String, ExactRationalProjection, ExactRationalProjection),
+);
 type TimedDirectedPhysicalTransferProjection = (u64, DirectedPhysicalTransferProjection);
 type LocalAffectiveGradientSettlementProjection = (
     u64,
@@ -458,6 +467,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
+    pub(crate) changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     pub(crate) physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     pub(crate) preceding_distinct_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     pub(crate) reached_and_foregone_physical_frontier_routes: Vec<PhysicalFrontierRouteObservation>,
@@ -1429,6 +1439,13 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn changed_contact_channel_states(&self) -> Vec<ChangedContactChannelStateProjection> {
+        project_changed_contact_channel_states(
+            &self.observation.changed_contact_channel_states,
+        )
+    }
+
+    #[getter]
     fn physical_frontier_routes(&self) -> Vec<PhysicalFrontierRouteProjection> {
         project_physical_frontier_routes(&self.observation.physical_frontier_routes)
     }
@@ -2163,6 +2180,15 @@ impl ResidentOrganismRuntime {
                 total
                     .emitted_neuron_fractals
                     .extend(observation.emitted_neuron_fractals.iter().cloned());
+                for change in &observation.changed_contact_channel_states {
+                    if !total
+                        .changed_contact_channel_states
+                        .iter()
+                        .any(|retained| retained.bond == change.bond)
+                    {
+                        total.changed_contact_channel_states.push(*change);
+                    }
+                }
                 total
                     .motor_unit_recruitments
                     .extend(observation.motor_unit_recruitments.iter().cloned());
@@ -4306,6 +4332,7 @@ fn make_restored_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        changed_contact_channel_states: Vec::new(),
         physical_frontier_routes: Vec::new(),
         preceding_distinct_physical_frontier_routes: Vec::new(),
         reached_and_foregone_physical_frontier_routes: Vec::new(),
@@ -4391,6 +4418,7 @@ fn make_step_observation(
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         active_physical_bonds: cognitive.active_physical_bonds.clone(),
+        changed_contact_channel_states: cognitive.changed_contact_channel_states.clone(),
         physical_frontier_routes: cognitive.physical_frontier_routes.clone(),
         preceding_distinct_physical_frontier_routes: cognitive
             .preceding_distinct_physical_frontier_routes
@@ -4480,6 +4508,7 @@ fn make_authored_contact_observation(
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
+        changed_contact_channel_states: Vec::new(),
         physical_frontier_routes: Vec::new(),
         preceding_distinct_physical_frontier_routes: Vec::new(),
         reached_and_foregone_physical_frontier_routes: Vec::new(),
@@ -4656,6 +4685,37 @@ fn project_directed_physical_transfers(
                 hex_bytes(&transfer.receiver),
                 transfer.bond.parallel_ordinal(),
                 transfer.transferred_whole_carriers.to_string(),
+            )
+        })
+        .collect()
+}
+
+fn project_changed_contact_channel_states(
+    changes: &[ChangedContactChannelStateObservation],
+) -> Vec<ChangedContactChannelStateProjection> {
+    let rational = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        (numerator.to_string(), denominator.to_string())
+    };
+    changes
+        .iter()
+        .map(|change| {
+            let (left, right) = change.bond.endpoints();
+            (
+                change.cognitive_ordinal,
+                hex_bytes(&left),
+                hex_bytes(&right),
+                change.bond.parallel_ordinal(),
+                (
+                    change.predecessor_conducting_channel_population.to_string(),
+                    rational(change.predecessor_transition_work_phase),
+                    rational(change.predecessor_effective_conductance_picosiemens),
+                ),
+                (
+                    change.successor_conducting_channel_population.to_string(),
+                    rational(change.successor_transition_work_phase),
+                    rational(change.successor_effective_conductance_picosiemens),
+                ),
             )
         })
         .collect()

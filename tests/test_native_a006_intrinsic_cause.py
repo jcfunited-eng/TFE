@@ -125,6 +125,58 @@ def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
     assert observer.filters == [(impression, cue)]
 
 
+def test_retained_contact_change_is_bound_only_to_its_later_motor_path() -> None:
+    cue = "01" * 16
+    association = "02" * 16
+    motor = "03" * 16
+    observer = _FrontierObserver()
+    changed = (
+        11,
+        cue,
+        association,
+        0,
+        (50, (0, 1), (1, 1)),
+        (51, (0, 1), (51, 50)),
+    )
+
+    first = (association, cue, 0, 29)
+    observer.transfers = ((*first, association),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        {
+            **_hop(10, cues=(("11" * 32, (cue,)),)),
+            "changed_contact_channel_states": (changed,),
+        },
+    )
+    assert "retained_formation" not in completed
+
+    second = (association, motor, 0, 7)
+    observer.transfers = ()
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            11,
+            motors=((motor, 4, 7, ((association, 11, motor, 12, 0, 7),)),),
+        ),
+    )
+
+    proof = completed["retained_formation"]
+    assert proof["directed_physical_transfers"] == (first, second)
+    assert proof["changed_contact_channel_state"] == {
+        "change_organism_tick": 11,
+        "contact_cognitive_ordinal": 11,
+        "left_lineage": cue,
+        "right_lineage": association,
+        "parallel_ordinal": 0,
+        "predecessor_state": changed[4],
+        "successor_state": changed[5],
+    }
+
+
 def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> None:
     affective = "0a" * 16
     ordering = "0b" * 16
