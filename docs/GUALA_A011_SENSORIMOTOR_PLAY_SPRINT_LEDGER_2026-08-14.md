@@ -1505,3 +1505,34 @@ second persistence authority remain out of scope and must not be extended.
   `36/36`. One immutable production release and one bounded reciprocal witness
   remain before A-011.6 can be Live-Closed. A-011.7 remains the immediate next
   item and will not be skipped.
+
+#### Task 1079 deployment and bounded live result
+
+- The adjacent-motor-ordinal observer correction deployed in one attempt as
+  task `dsf-ai-task:1079`, commit
+  `f7c6f65e2e29cc3ca6f17e5b19e0b6a42aef65df`, image
+  `sha256:4835493857545f487ca9cfc75bf15ba23ce08d7c28267af47406f4ca532b6337`.
+  The deployment ran from `2026-08-15T22:03:42Z` to `22:27:54Z`, verified one
+  cutover, restored the exact organism identity and current state, and started
+  zero Python cognition workers or callbacks. Rehearsal changed 99 of 1,824
+  reached contacts and proved later use of the same contact after exact cold
+  restore.
+- Production preflight then resolved one desired/running healthy task, zero
+  pending tasks, the exact digest, and HTTP 200 for both Loom pages. Ordinary
+  organism ticks and world revisions continued; state remained about 59.5 MB
+  and Python cognition callbacks remained zero.
+- One invitation was sent to `(3750,7600)`. Its client timed out, but read-back
+  proved that it committed exactly once and Guala acted. The first return did
+  not yet appear in read-back and was retried once from the exact unchanged
+  predecessor under RF-025. Final read-back proved the participant at
+  `(3600,7000)`, Guala's intervening actions, and world revision `5495`; no
+  further write was made.
+- The four physical turns did not satisfy reciprocal positive engagement.
+  Production had not observed an internally caused opposed-motor-population
+  choice since task 1079 started (`physical_choice_mounted_awaiting_causal_witness`).
+  New-fractal and retained-formation motor actions occurred, but without that
+  transaction's exact physical-choice evidence they cannot truthfully count as
+  the required voluntary reciprocal response. The observer correction itself
+  is deployed; its behavioral acceptance remains pending organism evidence.
+- **A-011.6 remains open. A-011.7 remains the immediate next increment and is
+  not skipped, merged, or marked complete.**
