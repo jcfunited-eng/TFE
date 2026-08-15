@@ -778,12 +778,15 @@ The exact physical chain is:
 
 `authenticated other-body action -> changed retinal field -> Guala retained-formation action and sensed consequence -> authenticated other-body return -> changed retinal field -> Guala voluntary retained-formation return and sensed consequence`
 
-Every adjacency is joined by the prior action's world-state successor receipt
-equaling the next action's world-state predecessor receipt. Both Guala actions
-must separately carry exact localized affect/body settlement, evaluated body
-strain, zero unmet dissipation, and zero exhausted intervals. The external
-participant acts only through `SECOND_BODY_PORT_ID`; that path cannot move
-Guala's body.
+The two external actions remain authenticated through the same bounded
+second-body port, and exact monotonically ordered world revisions place each
+later Guala response after the corresponding external action. Guala's own
+additional world actions are permitted between turns; requiring byte-adjacent
+whole-world states would incorrectly turn continued autonomy into a social
+failure. Both qualifying Guala actions must separately carry exact localized
+affect/body settlement, evaluated body strain, zero unmet dissipation, and zero
+exhausted intervals. The external participant acts only through
+`SECOND_BODY_PORT_ID`; that path cannot move Guala's body.
 
 ### Change-impact ledger
 
@@ -910,3 +913,37 @@ choice, action, persistence, or resource law.
 - RF-025/RF-029: the participant-return request produced an upstream timeout;
   exact world read-back proved its successor and Guala's later action, so the
   write was not repeated.
+
+### Task 1068 live witness and bounded-order correction
+
+The observer-only affect-clock correction deployed successfully on
+`dsf-ai-task:1068`, commit `a2da3b8c59272b05faab5eb8782cd112e6cfff2c`,
+image digest
+`sha256:351e24c94bf8b26699aba0d8dc98e3061e920daba5c5136c602e928cecce7801`.
+The controller verified one cutover and native-state continuity.
+
+One bounded live exchange then proved both physical halves. The participant
+acted at revision `4715`; Guala answered at `4716`. The participant return
+timed out at the HTTP boundary, but read-back proved it committed and Guala
+answered again at revision `4719`, so it was not repeated. The observer still
+reported reciprocal social play unproved. Exact revisions exposed why: Guala
+had made an additional autonomous world action between her first response and
+the participant return. `_advance_social_play_on_other_body_action` required
+byte-adjacent whole-world state receipts and consequently replaced the active
+four-turn candidate even though the authenticated actor order remained exact.
+
+The next correction remains bounded read-only observation. The first later
+qualifying Guala episode is admitted when its predecessor world revision is at
+or after the corresponding external action's successor revision. The first
+subsequent authenticated second-body action advances the external return when
+its predecessor revision follows the first Guala action. Candidate evidence is
+retained rather than erased by a nonqualifying autonomous episode. Formation
+identity, distinct motor intent, later organism ordinal, varied yaw, exact
+localized affect/body settlement, localized strain, and zero overload remain
+mandatory. No cognition, action, reward, semantic label, DSF, neuron,
+formation, persistence, or resource law changes.
+
+The focused observer/public/cognitive-capital suite now passes `34/34` using
+the exact candidate native module, Python compilation passes, and the diff is
+clean. A new production cutover and one live four-turn witness are still
+required; **A-011.6 remains open**.

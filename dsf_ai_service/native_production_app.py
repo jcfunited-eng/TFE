@@ -3054,8 +3054,9 @@ def _advance_social_play_on_other_body_action(
     if (
         candidate is not None
         and candidate.get("stage") == "awaiting_other_return"
-        and action["world_state_before_sha256"]
-        == candidate["first_guala_episode"]["world_state_after_sha256"]
+        and action["actor_body_id"] == candidate["invitation"]["actor_body_id"]
+        and int(action["world_revision_before"])
+        >= int(candidate["first_guala_episode"]["world_revision"]) + 1
     ):
         return {
             **candidate,
@@ -3087,12 +3088,12 @@ def _advance_bounded_reciprocal_social_play_evidence(
     stage = candidate.get("stage")
     if stage == "awaiting_guala_response":
         invitation = candidate["invitation"]
-        if (
-            episode["world_state_before_sha256"]
-            != invitation["world_state_after_sha256"]
-            or not _complete_positive_engagement_episode(episode)
+        if int(episode["world_revision"]) < int(
+            invitation["world_revision_after"]
         ):
-            return None, completed
+            return candidate, completed
+        if not _complete_positive_engagement_episode(episode):
+            return candidate, completed
         return {
             **candidate,
             "first_guala_episode": episode,
@@ -3103,8 +3104,8 @@ def _advance_bounded_reciprocal_social_play_evidence(
     first = candidate["first_guala_episode"]
     other_return = candidate["other_return"]
     if (
-        episode["world_state_before_sha256"]
-        != other_return["world_state_after_sha256"]
+        int(episode["world_revision"])
+        < int(other_return["world_revision_after"])
         or episode["formation_receipt_sha256"]
         != first["formation_receipt_sha256"]
         or episode["action_causal_intent_receipt_sha256"]
@@ -3114,7 +3115,7 @@ def _advance_bounded_reciprocal_social_play_evidence(
         == first["signed_yaw_millidegrees"]
         or not _complete_positive_engagement_episode(episode)
     ):
-        return None, completed
+        return candidate, completed
     social = {
         "activity": "reciprocal_embodied_turn_taking",
         "first_guala_episode": first,

@@ -218,6 +218,8 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
         "actor_body_id": "person-body-1",
         "authority_receipt_sha256": "1" * 64,
         "evidence_receipt_sha256": "2" * 64,
+        "world_revision_after": 80,
+        "world_revision_before": 79,
         "world_state_before_sha256": f"{79:064x}",
         "world_state_after_sha256": f"{80:064x}",
     }
@@ -225,6 +227,8 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
         "actor_body_id": "person-body-1",
         "authority_receipt_sha256": "3" * 64,
         "evidence_receipt_sha256": "4" * 64,
+        "world_revision_after": 82,
+        "world_revision_before": 81,
         "world_state_before_sha256": f"{81:064x}",
         "world_state_after_sha256": f"{82:064x}",
     }
@@ -277,7 +281,7 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     assert observed["other_participant_enjoyment_authority"] is False
 
 
-def test_social_play_refuses_a_broken_world_receipt_chain() -> None:
+def test_social_play_waits_when_a_guala_episode_predates_the_invitation() -> None:
     transition, choice = _transition(
         action_receipt="c" * 64,
         origin_tick=900,
@@ -286,6 +290,8 @@ def test_social_play_refuses_a_broken_world_receipt_chain() -> None:
     )
     invitation = {
         "actor_body_id": "person-body-1",
+        "world_revision_after": 91,
+        "world_revision_before": 90,
         "world_state_before_sha256": f"{88:064x}",
         "world_state_after_sha256": f"{89:064x}",
     }
@@ -294,13 +300,81 @@ def test_social_play_refuses_a_broken_world_receipt_chain() -> None:
         invitation,
     )
 
-    assert production._advance_bounded_reciprocal_social_play_evidence(
-        candidate,
+    candidate_after, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            transition,
+            choice,
+            "continuous-environment:unrelated",
+        )
+    )
+    assert candidate_after == candidate
+    assert completed is None
+
+
+def test_social_play_allows_gualas_own_intervening_world_actions() -> None:
+    first, first_choice = _transition(
+        action_receipt="d" * 64,
+        origin_tick=1_000,
+        yaw=-23,
+        world_revision=102,
+    )
+    second, second_choice = _transition(
+        action_receipt="e" * 64,
+        origin_tick=1_014,
+        yaw=-11,
+        world_revision=106,
+    )
+    invitation = {
+        "actor_body_id": "person-body-1",
+        "world_revision_before": 99,
+        "world_revision_after": 100,
+        "world_state_before_sha256": f"{99:064x}",
+        "world_state_after_sha256": f"{100:064x}",
+    }
+    other_return = {
+        "actor_body_id": "person-body-1",
+        "world_revision_before": 104,
+        "world_revision_after": 105,
+        "world_state_before_sha256": f"{104:064x}",
+        "world_state_after_sha256": f"{105:064x}",
+    }
+
+    candidate = production._advance_social_play_on_other_body_action(
         None,
-        transition,
-        choice,
-        "continuous-environment:unrelated",
-    ) == (None, None)
+        invitation,
+    )
+    candidate, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            first,
+            first_choice,
+            "continuous-environment:first-response",
+        )
+    )
+    assert candidate["stage"] == "awaiting_other_return"
+    assert completed is None
+    candidate = production._advance_social_play_on_other_body_action(
+        candidate,
+        other_return,
+    )
+    assert candidate["stage"] == "awaiting_guala_return"
+    candidate, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            second,
+            second_choice,
+            "continuous-environment:return-response",
+        )
+    )
+
+    assert candidate is None
+    assert completed is not None
+    assert completed["first_guala_episode"]["world_revision"] == 102
+    assert completed["return_guala_episode"]["world_revision"] == 106
 
 
 def test_other_participant_moves_only_its_authenticated_world_body(
