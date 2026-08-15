@@ -731,3 +731,36 @@ deliveries remain unchanged and outside this read-only evidence projection.
   body. It adds no organism state, lock, owner, retry, fallback, or schema. Its
   focused deployment/probe suite passes 35/35 against the exact candidate
   native path.
+
+### Live production closure
+
+- Deployment attempt 2 completed one verified cutover on 2026-08-15 as task
+  `dsf-ai-task:1065`, commit
+  `7f8a5ececea4ef9219177f50f966cd418ae9050d`, and image
+  `sha256:e26aa60eb24566333074f11d2de72c168154c695f819db3ef2e7521978fa7e5f`.
+  ECS reported one desired/running healthy task, zero pending tasks, and zero
+  failed tasks.
+- In the new process, retained formation
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`
+  first caused -21 millidegrees of yaw at organism tick 100318 and later caused
+  -33 millidegrees at tick 100332. Movement ceased between them, their exact
+  predecessor world-state receipts differ, and both vestibular consequences
+  returned to the organism.
+- Both episodes carried exact same-transition localized affect/body physics,
+  five evaluated nonzero localized-strain receptors, zero unmet dissipation,
+  and zero energy-exhausted intervals. The live observer reported
+  `positive_engagement_trajectory_observed` with
+  `behavioral_evidence_only=true`; named emotion, reward, preference scalar,
+  and universal distress-absence authority remained false.
+- Play/exploration cognitive capital gained the read-only `transfer` evidence
+  dimension. Reciprocal social joy and body-owned laughter remained explicitly
+  unavailable.
+- Ordinary processing advanced from tick 100344 to 100358 with zero Python
+  cognition callbacks. State size moved from 59,476,643 bytes to 58,377,617
+  bytes rather than growing monotonically. During the surrounding 15-minute
+  window ECS CPU peaked at 29.25% of reservation and memory at 8.32%; this is
+  bounded immediate evidence, not the separate A-015 long soak. Both Loom
+  pages returned HTTP 200; no UI-function claim is made here.
+
+**A-011.5 is Live-Closed. A-011 remains open.** Its next unmet requirement is
+reciprocal social play/joy; body-owned laughter remains after that.
