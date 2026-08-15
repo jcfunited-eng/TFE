@@ -2599,6 +2599,22 @@ def _advance_bounded_attention_motor_binding(
     return retained or _attention_motor_binding_from_hop(hop)
 
 
+def _completed_transaction_attention_motor_binding(
+    retained: dict[str, Any] | None,
+    transition: dict[str, Any],
+    motor_unit_recruitments: tuple[Any, ...],
+) -> dict[str, Any] | None:
+    """Bind completed route evidence to its transaction's preparations."""
+
+    return _advance_bounded_attention_motor_binding(
+        retained,
+        {
+            **transition,
+            "motor_unit_recruitments": motor_unit_recruitments,
+        },
+    )
+
+
 def _physical_choice_record() -> dict[str, object]:
     evidence = _last_tested_physical_choice_evidence
     authority = {
@@ -8429,9 +8445,10 @@ def _perform_admitted_intake_locked(
     # attention classification was not yet available inside that earlier hop.
     # This does not join unrelated contacts: the helper still requires the
     # same directed sender, receiver, parallel ordinal, and carrier magnitude.
-    attention_motor_binding = _advance_bounded_attention_motor_binding(
+    attention_motor_binding = _completed_transaction_attention_motor_binding(
         attention_motor_binding,
         _last_transition_evidence,
+        tuple(motor_unit_recruitments),
     )
     _last_transition_evidence["attention_motor_binding"] = (
         attention_motor_binding

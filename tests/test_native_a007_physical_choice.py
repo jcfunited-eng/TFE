@@ -118,6 +118,33 @@ def test_completed_transaction_supplies_the_later_route_comparison() -> None:
     assert evidence["matched_attention_route_count"] == 1
 
 
+def test_completed_transaction_preserves_earlier_motor_preparation() -> None:
+    earlier_hop = _transition()
+    motor_unit_recruitments = earlier_hop["motor_unit_recruitments"]
+    completed_transaction = deepcopy(earlier_hop)
+    completed_transaction["motor_unit_recruitments"] = ()
+    completed_transaction["attention_motor_binding"] = None
+
+    assert (
+        production._attention_motor_binding_from_hop(completed_transaction)
+        is None
+    )
+
+    completed_transaction["attention_motor_binding"] = (
+        production._completed_transaction_attention_motor_binding(
+            None,
+            completed_transaction,
+            motor_unit_recruitments,
+        )
+    )
+    evidence = production._physical_choice_evidence_from_transition(
+        completed_transaction
+    )
+
+    assert evidence is not None
+    assert evidence["matched_attention_route_count"] == 1
+
+
 def test_coexisting_attention_without_motor_contact_is_not_choice() -> None:
     transition = _transition()
     transition["reached_and_foregone_physical_frontier_routes"] = (

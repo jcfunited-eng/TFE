@@ -1536,3 +1536,50 @@ second persistence authority remain out of scope and must not be extended.
   is deployed; its behavioral acceptance remains pending organism evidence.
 - **A-011.6 remains open. A-011.7 remains the immediate next increment and is
   not skipped, merged, or marked complete.**
+
+#### Task 1079 choice-witness translation diagnosis
+
+- Five consecutive ordinary live actions after task 1079 carried new-fractal
+  or retained-formation motor causation but exposed no
+  `attention_motor_binding`; this is contradictory live evidence against the
+  A-007/A-010 transaction-boundary witness and does not reopen those closed
+  items.
+- One read-only discarded-state interval copied task 1079's authenticated body
+  at tick `113563` and ran the ordinary eight-hop source without persisting or
+  publishing it. No individual hop contained both the later route comparison
+  and its earlier motor preparation, so every same-hop binding was correctly
+  absent.
+- At the completed transaction boundary, the bounded route aggregate contained
+  `864` exact transported routes and the already-collected motor aggregate
+  contained `1,456` exact preparation transfers. They had `36` byte-exact
+  directed sender/receiver/parallel-ordinal/carrier matches and produced the
+  valid choice binding at tick `113571` across `17` motor lineages.
+- The physical attention, preparation, and motor paths are therefore present.
+  The exact failure is the Python transaction boundary: it re-evaluates the
+  completed route aggregate against only the final hop's motor recruitments,
+  dropping the already-bounded recruitments collected from the earlier hops.
+  The single correction is to supply that existing transaction-local aggregate
+  only to the final binding calculation. It adds no state, physics, persistence,
+  scan, owner, lock, database, score, semantic label, or DSF change.
+- Rejected: weaken matching to contact endpoints, add a choice controller, or
+  change contact/neuron physics. Exact magnitude matching already succeeds 36
+  times; those changes would conceal the translation defect.
+- A-011.6 remains the sole active item. Its exact live behavioral acceptance is
+  still required before A-011.7 begins; A-011.7 remains the immediate next
+  increment and cannot be skipped.
+- The correction's direct A-007 transaction-boundary suite passes `6/6`.
+  The first adjacent run loaded `/usr/local/.../guala_core`, which lacked the
+  already-live exact virtual-yaw function; its two failures were classified as
+  RF-003/RF-036 provenance failures, not patched. A second temporary build had
+  yaw but was later proved to predate task 1079's contact observation and is
+  not release authority. Re-running against the complete task-1079 native build
+  at `/tmp/guala-a0116-native.1IuTlI/python` passes the A-007, A-011,
+  public-observation, and C-024 cognitive-capital path `42/42`. Native source is
+  unchanged from task 1079.
+- The adjacent action/consequence, unattended, deployment-controller,
+  packaging, candidate-rehearsal, cold-probe-isolation, and no-scripted-authority
+  path passes `62/62` against the later exact task-1079 native build at
+  `/tmp/guala-a0116-native.1IuTlI/python`. A first run intentionally failed
+  closed on the older temporary native build and on a duplicated test
+  `PYTHONPATH`; neither failure changed source or scope. `git diff --check` and
+  Python compilation pass.
