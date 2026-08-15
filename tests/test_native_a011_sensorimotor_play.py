@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+import json
+
 from dsf_ai_service import native_production_app as production
+from dsf_ai_service.substrate.embodiment_world import (
+    PORT_ID,
+    SECOND_BODY_PORT_ID,
+    MoveCommand,
+    PoseMM,
+    PositionMM,
+    encode_command,
+)
 
 
 FORMATION = "f" * 64
@@ -114,6 +124,17 @@ def _transition(
     return transition, choice
 
 
+def _accepted_external_intake(*_args, **_kwargs) -> dict[str, object]:
+    return {
+        "accepted": True,
+        "hop_count": 1,
+        "persisted": {
+            "organism_tick": 1,
+            "state_sha256": "7" * 64,
+        },
+    }
+
+
 def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -> None:
     first, first_choice = _transition(
         action_receipt="1" * 64,
@@ -184,6 +205,220 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
         "localized_nonzero_strain_count"
     ] == 0
     assert len(completed["evidence_receipt_sha256"]) == 64
+
+
+def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
+    monkeypatch,
+) -> None:
+    first, first_choice = _transition(
+        action_receipt="a" * 64,
+        origin_tick=800,
+        yaw=-31,
+        world_revision=80,
+    )
+    second, second_choice = _transition(
+        action_receipt="b" * 64,
+        origin_tick=814,
+        yaw=-17,
+        world_revision=82,
+    )
+    invitation = {
+        "actor_body_id": "person-body-1",
+        "authority_receipt_sha256": "1" * 64,
+        "evidence_receipt_sha256": "2" * 64,
+        "world_state_before_sha256": f"{79:064x}",
+        "world_state_after_sha256": f"{80:064x}",
+    }
+    other_return = {
+        "actor_body_id": "person-body-1",
+        "authority_receipt_sha256": "3" * 64,
+        "evidence_receipt_sha256": "4" * 64,
+        "world_state_before_sha256": f"{81:064x}",
+        "world_state_after_sha256": f"{82:064x}",
+    }
+
+    candidate = production._advance_social_play_on_other_body_action(
+        None,
+        invitation,
+    )
+    candidate, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            first,
+            first_choice,
+            "external-participant-world-action:first-social-turn",
+        )
+    )
+    assert candidate["stage"] == "awaiting_other_return"
+    assert completed is None
+    candidate = production._advance_social_play_on_other_body_action(
+        candidate,
+        other_return,
+    )
+    assert candidate["stage"] == "awaiting_guala_return"
+    candidate, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            second,
+            second_choice,
+            "external-participant-world-action:return-social-turn",
+        )
+    )
+
+    assert candidate is None
+    assert completed is not None
+    assert completed["other_body_id"] == "person-body-1"
+    assert completed["formation_receipt_sha256"] == FORMATION
+    assert completed["first_guala_episode"]["signed_yaw_millidegrees"] == -31
+    assert completed["return_guala_episode"]["signed_yaw_millidegrees"] == -17
+    monkeypatch.setattr(
+        production,
+        "_last_reciprocal_social_play_evidence",
+        completed,
+    )
+    observed = production._reciprocal_social_joy_section()
+    assert observed["available"] is True
+    assert observed["status"] == "reciprocal_social_positive_engagement_observed"
+    assert observed["named_emotion_authority"] is False
+    assert observed["other_participant_enjoyment_authority"] is False
+
+
+def test_social_play_refuses_a_broken_world_receipt_chain() -> None:
+    transition, choice = _transition(
+        action_receipt="c" * 64,
+        origin_tick=900,
+        yaw=-23,
+        world_revision=90,
+    )
+    invitation = {
+        "actor_body_id": "person-body-1",
+        "world_state_before_sha256": f"{88:064x}",
+        "world_state_after_sha256": f"{89:064x}",
+    }
+    candidate = production._advance_social_play_on_other_body_action(
+        None,
+        invitation,
+    )
+
+    assert production._advance_bounded_reciprocal_social_play_evidence(
+        candidate,
+        None,
+        transition,
+        choice,
+        "continuous-environment:unrelated",
+    ) == (None, None)
+
+
+def test_other_participant_moves_only_its_authenticated_world_body(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", None)
+    monkeypatch.setattr(
+        production,
+        "_reciprocal_social_play_candidate",
+        None,
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        _accepted_external_intake,
+    )
+
+    response = production.world_other_body_move(
+        {
+            "heading_millidegrees": 170_000,
+            "signed_yaw_millidegrees": -10_000,
+            "x_mm": 3_500,
+            "y_mm": 7_600,
+        }
+    )
+    value = json.loads(response.body)
+
+    assert response.status_code == 200
+    assert value["action"]["actor_body_id"] == "person-body-1"
+    assert value["action"]["port_id"] == SECOND_BODY_PORT_ID
+    assert value["action"]["world_revision_after"] == 1
+    assert value["action"]["world_state_before_sha256"] != value["action"][
+        "world_state_after_sha256"
+    ]
+    assert (tmp_path / production.WORLD_STATE_FILE).is_file()
+
+
+def test_other_participant_action_physically_changes_gualas_retina(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", None)
+    monkeypatch.setattr(
+        production,
+        "_reciprocal_social_play_candidate",
+        None,
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    observed_candidate_stages: list[str | None] = []
+
+    def accepted_with_candidate(*args, **kwargs):
+        observed_candidate_stages.append(
+            (production._reciprocal_social_play_candidate or {}).get("stage")
+        )
+        return _accepted_external_intake(*args, **kwargs)
+
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        accepted_with_candidate,
+    )
+
+    authority = production._world()
+    for ordinal, (x, y, heading) in enumerate(
+        (
+            (3_000, 2_000, 0),
+            (2_500, 3_000, 0),
+            (2_300, 3_750, 0),
+            (2_300, 4_500, 65_000),
+        ),
+        start=1,
+    ):
+        before = authority.observation_snapshot()
+        moved = authority.execute_port_command(
+            port_id=PORT_ID,
+            command_payload=encode_command(
+                MoveCommand(
+                    PoseMM(PositionMM(x, y, 0), heading),
+                    200_000,
+                )
+            ),
+            causal_intent_receipt_sha256=f"{ordinal:064x}",
+            expected_revision=before.revision,
+        )
+        assert moved.disposition == "applied"
+
+    response = production.world_other_body_move(
+        {
+            "heading_millidegrees": 180_000,
+            "signed_yaw_millidegrees": 0,
+            "x_mm": 3_750,
+            "y_mm": 7_600,
+        }
+    )
+    value = json.loads(response.body)
+
+    assert response.status_code == 200
+    assert value["social_play_opportunity_reached_vision"] is True
+    assert value["action"]["visual_changed_receptor_count"] == 1
+    assert production._reciprocal_social_play_candidate is not None
+    assert production._reciprocal_social_play_candidate["stage"] == (
+        "awaiting_guala_response"
+    )
+    assert observed_candidate_stages == ["awaiting_guala_response"]
 
 
 def test_external_or_unvaried_activity_cannot_be_reported_as_play() -> None:

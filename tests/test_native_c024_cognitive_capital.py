@@ -204,6 +204,10 @@ def test_sensorimotor_play_credits_only_observed_play_dimensions(monkeypatch) ->
         "evidence_receipt_sha256": "e" * 64,
         "formation_receipt_sha256": "f" * 64,
         "fun": _section(True, "positive_engagement_trajectory_observed"),
+        "social_joy": {
+            **_section(True, "reciprocal_social_positive_engagement_observed"),
+            "evidence_receipt_sha256": "9" * 64,
+        },
         "varied_displacement": True,
         "voluntary_return": True,
     }
@@ -223,6 +227,11 @@ def test_sensorimotor_play_credits_only_observed_play_dimensions(monkeypatch) ->
         ("Play and exploration", "integration_depth"),
     }.issubset(cells)
     assert ("Play and exploration", "transfer") in cells
+    assert {
+        ("Social cognition and other-perspective", "availability"),
+        ("Social cognition and other-perspective", "autonomous_use"),
+        ("Social cognition and other-perspective", "transfer"),
+    }.issubset(cells)
     assert ("Play and exploration", "durability") not in cells
     assert not any(
         capability == "Creativity and self-expression"

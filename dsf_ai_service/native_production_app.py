@@ -488,6 +488,7 @@ CONTACT_SHEET_SENSOR_ID = "organism-contact-sheet"
 WORLD_ENV = "GUALA_WORLD"
 WORLD_STATE_FILE = "world.glworld"
 WORLD_MOVE_ENDPOINT = "/api/v1/world/move"
+WORLD_OTHER_BODY_MOVE_ENDPOINT = "/api/v1/world/other-body/move"
 WORLD_OBSERVATION_ENDPOINT = "/api/v1/world/observation"
 # The declared span a displacement is reported as a fraction of.  A body that
 # crosses more than this in one move is refused rather than saturated.
@@ -1397,6 +1398,11 @@ _last_tested_physical_choice_evidence: dict[str, Any] | None = None
 # holds only the completed compact evidence until another restart.
 _sensorimotor_play_candidate: dict[str, Any] | None = None
 _last_sensorimotor_play_evidence: dict[str, Any] | None = None
+# One bounded, read-only turn-taking witness. The external body's authenticated
+# world action and Guala's own native action remain separate authorities; exact
+# predecessor/successor world receipts are the only relation between them.
+_reciprocal_social_play_candidate: dict[str, Any] | None = None
+_last_reciprocal_social_play_evidence: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2860,6 +2866,8 @@ def _sensorimotor_play_episode_from_transition(
     evidence: dict[str, Any],
     physical_choice: dict[str, Any] | None,
     intake: str,
+    *,
+    allow_external_participant: bool = False,
 ) -> dict[str, Any] | None:
     """Project one endogenous retained-formation body episode compactly.
 
@@ -2868,7 +2876,13 @@ def _sensorimotor_play_episode_from_transition(
     recurrence, physical choice, exact action, and sensed body return.
     """
 
-    if not intake.startswith("continuous-environment:"):
+    if not (
+        intake.startswith("continuous-environment:")
+        or (
+            allow_external_participant
+            and intake.startswith("external-participant-world-action:")
+        )
+    ):
         return None
     causal = evidence.get("causal_cross_context_use")
     action = evidence.get("motor_action")
@@ -3033,6 +3047,129 @@ def _advance_bounded_sensorimotor_play_evidence(
     )
 
 
+def _complete_positive_engagement_episode(episode: dict[str, Any]) -> bool:
+    """Whether one Guala action carries the required local body physics."""
+
+    affect = episode.get("affective_body_participation")
+    strain = episode.get("localized_metabolic_strain")
+    overload = episode.get("metabolic_overload_exclusion")
+    return (
+        isinstance(affect, dict)
+        and isinstance(strain, dict)
+        and int(strain.get("evaluated_body_receptor_count", 0)) > 0
+        and isinstance(overload, dict)
+        and int(overload.get("unmet_dissipation_quanta", -1)) == 0
+        and int(overload.get("energy_exhausted_interval_count", -1)) == 0
+    )
+
+
+def _advance_social_play_on_other_body_action(
+    candidate: dict[str, Any] | None,
+    action: dict[str, Any],
+) -> dict[str, Any]:
+    """Advance or begin one exact other/Guala turn-taking opportunity."""
+
+    if (
+        candidate is not None
+        and candidate.get("stage") == "awaiting_other_return"
+        and action["world_state_before_sha256"]
+        == candidate["first_guala_episode"]["world_state_after_sha256"]
+    ):
+        return {
+            **candidate,
+            "other_return": action,
+            "stage": "awaiting_guala_return",
+        }
+    return {"invitation": action, "stage": "awaiting_guala_response"}
+
+
+def _advance_bounded_reciprocal_social_play_evidence(
+    candidate: dict[str, Any] | None,
+    completed: dict[str, Any] | None,
+    evidence: dict[str, Any],
+    physical_choice: dict[str, Any] | None,
+    intake: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """Observe exact other/Guala/other/Guala physical turn-taking."""
+
+    if completed is not None:
+        return candidate, completed
+    episode = _sensorimotor_play_episode_from_transition(
+        evidence,
+        physical_choice,
+        intake,
+        allow_external_participant=True,
+    )
+    if episode is None or candidate is None:
+        return candidate, completed
+    stage = candidate.get("stage")
+    if stage == "awaiting_guala_response":
+        invitation = candidate["invitation"]
+        if (
+            episode["world_state_before_sha256"]
+            != invitation["world_state_after_sha256"]
+            or not _complete_positive_engagement_episode(episode)
+        ):
+            return None, completed
+        return {
+            **candidate,
+            "first_guala_episode": episode,
+            "stage": "awaiting_other_return",
+        }, completed
+    if stage != "awaiting_guala_return":
+        return candidate, completed
+    first = candidate["first_guala_episode"]
+    other_return = candidate["other_return"]
+    if (
+        episode["world_state_before_sha256"]
+        != other_return["world_state_after_sha256"]
+        or episode["formation_receipt_sha256"]
+        != first["formation_receipt_sha256"]
+        or episode["action_causal_intent_receipt_sha256"]
+        == first["action_causal_intent_receipt_sha256"]
+        or episode["origin_organism_tick"] <= first["consequence_organism_tick"]
+        or episode["signed_yaw_millidegrees"]
+        == first["signed_yaw_millidegrees"]
+        or not _complete_positive_engagement_episode(episode)
+    ):
+        return None, completed
+    social = {
+        "activity": "reciprocal_embodied_turn_taking",
+        "first_guala_episode": first,
+        "formation_receipt_sha256": first["formation_receipt_sha256"],
+        "invitation": candidate["invitation"],
+        "other_body_id": candidate["invitation"]["actor_body_id"],
+        "other_return": other_return,
+        "return_guala_episode": episode,
+    }
+    social["evidence_receipt_sha256"] = _receipt(social)
+    return None, social
+
+
+def _reciprocal_social_joy_section() -> dict[str, object]:
+    evidence = _last_reciprocal_social_play_evidence
+    if evidence is None:
+        return _section(
+            False,
+            "reciprocal_social_play_unproved",
+            "no authenticated other-body action and return have yet been "
+            "joined by exact world receipts to two voluntary Guala responses",
+        )
+    return _section(
+        True,
+        "reciprocal_social_positive_engagement_observed",
+        "an authenticated other body acted, Guala responded through her own "
+        "retained formation and affect/body physics, the other body returned, "
+        "and Guala voluntarily returned again; this is behavioral social-joy "
+        "evidence without a named emotion or claim about the other participant",
+        **evidence,
+        behavioral_evidence_only=True,
+        named_emotion_authority=False,
+        other_participant_enjoyment_authority=False,
+        reward_authority=False,
+    )
+
+
 def _sensorimotor_play_record() -> dict[str, object]:
     """Truthful play evidence without fun, joy, humor, or laughter inflation."""
 
@@ -3044,12 +3181,6 @@ def _sensorimotor_play_record() -> dict[str, object]:
         "timer_choice_authority": False,
     }
     unavailable = {
-        "social_joy": _section(
-            False,
-            "reciprocal_social_play_unproved",
-            "no authenticated other participant has yet joined and reciprocated "
-            "in this play trajectory",
-        ),
         "laughter": _section(
             False,
             "playful_body_owned_laughter_unproved",
@@ -3096,6 +3227,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 "sensorimotor return does not yet prove positive valence, "
                 "distress exclusion, preference, or cross-context return",
             ),
+            social_joy=_reciprocal_social_joy_section(),
             **unavailable,
         )
     first_affective = _last_sensorimotor_play_evidence["first_episode"].get(
@@ -3290,6 +3422,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
             preference_scalar_authority=False,
             reward_authority=False,
         ),
+        social_joy=_reciprocal_social_joy_section(),
         **unavailable,
     )
 
@@ -4496,6 +4629,22 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
             "play",
             play,
         )
+        social_joy = play.get("social_joy")
+        if isinstance(social_joy, dict) and social_joy.get("available") is True:
+            credit(
+                "Social cognition and other-perspective",
+                (
+                    "availability",
+                    "participation",
+                    "causal_use",
+                    "autonomous_use",
+                    "integration_depth",
+                    "transfer",
+                ),
+                social_joy["status"],
+                "play.social_joy",
+                social_joy,
+            )
     ordered = [credits[key] for key in sorted(credits)]
     for cell in ordered:
         cell["evidence"].sort(
@@ -7149,6 +7298,8 @@ def _perform_admitted_intake_locked(
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
+    global _reciprocal_social_play_candidate
+    global _last_reciprocal_social_play_evidence
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -7925,6 +8076,16 @@ def _perform_admitted_intake_locked(
         physical_choice_evidence,
         intake,
     )
+    (
+        _reciprocal_social_play_candidate,
+        _last_reciprocal_social_play_evidence,
+    ) = _advance_bounded_reciprocal_social_play_evidence(
+        _reciprocal_social_play_candidate,
+        _last_reciprocal_social_play_evidence,
+        _last_transition_evidence,
+        physical_choice_evidence,
+        intake,
+    )
     if causal_cross_context_use is not None:
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
@@ -8157,6 +8318,8 @@ def _unattended_interval_episodes(
 
 def _action_consequence_episode(
     execution: Any,
+    *,
+    action_duration: Fraction = Fraction(1, 1_000),
 ) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
     """One exact joint sensorium caused by one committed 1 ms body action.
 
@@ -8170,7 +8333,8 @@ def _action_consequence_episode(
         physical_receptor_substreams,
     )
 
-    action_duration = Fraction(1, 1_000)
+    if action_duration <= 0:
+        raise ValueError("action consequence duration must be positive")
     times = (Fraction(0), action_duration)
     world_streams = physical_receptor_substreams(
         execution.before,
@@ -8249,7 +8413,7 @@ def _action_consequence_episode(
     taste_changed = changed_count(before_taste, after_taste)
     smell_changed = changed_count(before_smell, after_smell)
     lane_truth = {
-        "action_duration_microseconds": 1_000,
+        "action_duration_microseconds": int(action_duration * 1_000_000),
         "action_receipt_sha256": execution.causal_intent_receipt_sha256,
         "auditory": {"changed": 0, "transported": EAR_PORT_COUNT},
         "chemical": {
@@ -9816,6 +9980,8 @@ def _startup() -> None:
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
+    global _reciprocal_social_play_candidate
+    global _last_reciprocal_social_play_evidence
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
@@ -9825,6 +9991,8 @@ def _startup() -> None:
     _last_tested_physical_choice_evidence = None
     _sensorimotor_play_candidate = None
     _last_sensorimotor_play_evidence = None
+    _reciprocal_social_play_candidate = None
+    _last_reciprocal_social_play_evidence = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
@@ -10511,6 +10679,210 @@ def world_observation() -> JSONResponse:
             ),
         },
     )
+
+
+@app.post(WORLD_OTHER_BODY_MOVE_ENDPOINT)
+def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Let an external participant move only its own authenticated world body."""
+
+    global _reciprocal_social_play_candidate
+    if not WORLD_AUTHORIZED:
+        return _refusal(503, "no persistent world is mounted")
+    if not isinstance(payload, dict):
+        return _refusal(422, "an other-body move requires a JSON body")
+    try:
+        x = int(payload["x_mm"])
+        y = int(payload["y_mm"])
+        heading = int(payload["heading_millidegrees"])
+        signed_yaw = int(payload.get("signed_yaw_millidegrees", 0))
+    except (KeyError, TypeError, ValueError):
+        return _refusal(
+            422,
+            "an other-body move requires integer x_mm, y_mm, "
+            "heading_millidegrees, and signed_yaw_millidegrees",
+        )
+    if any(isinstance(payload.get(name), bool) for name in (
+        "x_mm",
+        "y_mm",
+        "heading_millidegrees",
+        "signed_yaw_millidegrees",
+    )):
+        return _refusal(422, "other-body coordinates and yaw must be integers")
+    if not -(1 << 31) <= signed_yaw < (1 << 31):
+        return _refusal(422, "signed_yaw_millidegrees exceeds signed 32-bit range")
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
+        MoveCommand,
+        PoseMM,
+        PositionMM,
+        PreparedActionExecution,
+        SECOND_BODY_PORT_ID,
+        encode_command,
+    )
+    with _transition_lock:
+        authority = _world()
+        before = authority.observation_snapshot()
+        other_port = next(
+            item
+            for item in authority.actor_ports
+            if item.port_id == SECOND_BODY_PORT_ID
+        )
+        other = next(
+            item for item in before.bodies
+            if item.body_id == other_port.actor_body_id
+        )
+        successor_heading, _trajectory = exact_native_yaw_trajectory(
+            predecessor_heading_millidegrees=other.pose.heading_millidegrees,
+            signed_displacement_millidegrees=signed_yaw,
+            duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+        )
+        if successor_heading != heading:
+            return _refusal(
+                422,
+                "signed_yaw_millidegrees does not settle at the requested "
+                "other-body heading",
+            )
+        intent = _receipt(
+            {
+                "actor_body_id": other.body_id,
+                "expected_world_revision": before.revision,
+                "signed_yaw_millidegrees": signed_yaw,
+                "target_heading_millidegrees": heading,
+                "target_x_mm": x,
+                "target_y_mm": y,
+            }
+        )
+        try:
+            prepared = authority.prepare_port_command(
+                port_id=SECOND_BODY_PORT_ID,
+                command_payload=encode_command(
+                    MoveCommand(
+                        target_pose=PoseMM(PositionMM(x, y, 0), heading),
+                        duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                    )
+                ),
+                causal_intent_receipt_sha256=intent,
+                expected_revision=before.revision,
+            )
+        except (RuntimeError, TypeError, ValueError) as error:
+            return _refusal(422, f"the other-body action was refused: {error}")
+        if isinstance(prepared, ActionExecutionReceipt):
+            return _refusal(
+                409,
+                f"the other-body action was refused: {prepared.reason}",
+            )
+        if not isinstance(prepared, PreparedActionExecution):
+            return _refusal(503, "the other-body action lost its prepared state")
+        execution = prepared.execution_receipt
+        try:
+            (
+                consequence_episode,
+                consequence_admissions,
+                consequence_lane_truth,
+            ) = _action_consequence_episode(
+                execution,
+                action_duration=Fraction(INTAKE_HOP_MILLISECONDS, 1_000),
+            )
+            visual_changed = int(consequence_lane_truth["visual"]["changed"])
+        except (RuntimeError, TypeError, ValueError) as error:
+            authority.discard_prepared_action(prepared)
+            return _refusal(
+                422,
+                f"the other-body action could not reach Guala's retina: {error}",
+            )
+
+        predecessor_world = authority.encoded_snapshot()
+        committed = False
+        persisted = False
+        try:
+            with authority.prepared_action_visibility_transaction(prepared):
+                execution = authority.commit_prepared_action(prepared)
+                committed = True
+                successor_world = authority.encoded_committed_prepared_action(
+                    prepared
+                )
+                _persist_world_body(successor_world)
+                persisted = True
+        except BaseException as error:
+            if committed:
+                with authority.committed_prepared_action_rollback_transaction(
+                    prepared
+                ) as rollback_world:
+                    rollback_world()
+                if persisted:
+                    _persist_world_body(predecessor_world)
+            else:
+                authority.discard_prepared_action(prepared)
+            return _refusal(
+                503,
+                f"the other-body action could not persist: "
+                f"{type(error).__name__}: {error}",
+            )
+
+        action = {
+            "actor_body_id": execution.actor_body_id,
+            "authority_receipt_sha256": execution.authority_receipt_sha256,
+            "causal_intent_receipt_sha256": intent,
+            "heading_millidegrees": heading,
+            "port_id": execution.port_id,
+            "signed_yaw_millidegrees": signed_yaw,
+            "visual_changed_receptor_count": visual_changed,
+            "world_revision_after": execution.after.revision,
+            "world_revision_before": execution.before.revision,
+            "world_state_after_sha256": execution.after.state_sha256,
+            "world_state_before_sha256": execution.before.state_sha256,
+            "x_mm": x,
+            "y_mm": y,
+        }
+        action["evidence_receipt_sha256"] = _receipt(action)
+        if visual_changed > 0:
+            _reciprocal_social_play_candidate = (
+                _advance_social_play_on_other_body_action(
+                    _reciprocal_social_play_candidate,
+                    action,
+                )
+            )
+        try:
+            sensory_result = _perform_admitted_intake_locked(
+                [(consequence_episode, consequence_admissions)],
+                f"external-participant-world-action:{intent}",
+            )
+        except (RuntimeError, TypeError, ValueError) as error:
+            _refresh_public_observation_cache()
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "accepted": True,
+                    "action": action,
+                    "ok": False,
+                    "reason": (
+                        "the other body moved and persisted, but its exact "
+                        "sensory transition was refused; do not repeat the "
+                        f"action ({type(error).__name__}: {error})"
+                    ),
+                    "schema": "guala.external_embodied_participant_action.v1",
+                    "sensory_delivery": {"accepted": False},
+                    "social_play_opportunity_reached_vision": False,
+                },
+            )
+        _refresh_public_observation_cache()
+        return JSONResponse(
+            status_code=200,
+            content={
+                "accepted": True,
+                "action": action,
+                "ok": True,
+                "schema": "guala.external_embodied_participant_action.v1",
+                "sensory_delivery": {
+                    "accepted": True,
+                    "hop_count": sensory_result["hop_count"],
+                    "organism_tick": sensory_result["persisted"]["organism_tick"],
+                    "state_sha256": sensory_result["persisted"]["state_sha256"],
+                },
+                "social_play_opportunity_reached_vision": visual_changed > 0,
+            },
+        )
 
 
 @app.post(WORLD_MOVE_ENDPOINT)

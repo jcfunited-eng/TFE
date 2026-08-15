@@ -764,3 +764,43 @@ deliveries remain unchanged and outside this read-only evidence projection.
 
 **A-011.5 is Live-Closed. A-011 remains open.** Its next unmet requirement is
 reciprocal social play/joy; body-owned laughter remains after that.
+
+## A-011.6 reciprocal social-play increment
+
+### Frozen scope
+
+This increment adds one real external-participant path through the second body
+already mounted in Guala's persistent world. It does not create a companion
+mind, scripted response, reward, social label inside cognition, named emotion,
+or claim that the other participant enjoyed the exchange.
+
+The exact physical chain is:
+
+`authenticated other-body action -> changed retinal field -> Guala retained-formation action and sensed consequence -> authenticated other-body return -> changed retinal field -> Guala voluntary retained-formation return and sensed consequence`
+
+Every adjacency is joined by the prior action's world-state successor receipt
+equaling the next action's world-state predecessor receipt. Both Guala actions
+must separately carry exact localized affect/body settlement, evaluated body
+strain, zero unmet dissipation, and zero exhausted intervals. The external
+participant acts only through `SECOND_BODY_PORT_ID`; that path cannot move
+Guala's body.
+
+### Change-impact ledger
+
+| Boundary | Exact path | State transformation | Required output |
+|---|---|---|---|
+| External participant -> world | `native_production_app.py::world_other_body_move` | One prepared, world-authenticated move through the existing second-body port; exact world persistence | Other-body receipt and before/after world receipts; no organism choice claim |
+| World -> Guala retina | Existing `w1_physical_receptors.py` silhouette projection, `_action_consequence_episode`, and ordinary admitted intake | The other body's exact before/after geometry alters only the physically reached retinal sites and is admitted on its actual action duration | Ordinary full-field sensory settlement with an exact persisted organism successor; no social label |
+| Guala -> world | Existing retained-formation attention/choice/motor/consequence path | Guala's own native carrier settlement chooses or refuses a response | Exact endogenous action, affect/body, strain, overload, and sensed consequence receipts |
+| Bounded observation | `_advance_bounded_reciprocal_social_play_evidence` | Preserve only one four-turn receipt chain in constant process memory | Reciprocal social positive-engagement evidence only after the complete chain |
+| Cognitive-capital observation | `_cognitive_capital_record` | Reference the completed receipt without feeding it back | Sparse Social cognition/other-perspective evidence; no scalar score |
+
+A-011.6 does not evaluate, modify, or reduce DSF. Full seven-field delivery and
+the neuron/Krimelack boundary are unchanged.
+
+The local end-to-end geometry witness places Guala through four lawful world
+moves into the living room and then moves only `person-body-1` through its own
+port. Exactly one of Guala's 27 retinal cells changes. The participant receipt
+is installed as the bounded invitation before that exact before/after visual
+transition enters the organism, so an endogenous retained-formation motor
+response arising in the same intake cannot be lost at the transport boundary.
