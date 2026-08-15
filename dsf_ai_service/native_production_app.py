@@ -2635,8 +2635,10 @@ def _same_transition_affective_body_participation(
     """Bind one causal occurrence to its localized affect/body trajectory.
 
     The retained formation and one complete layer-10 affect/body trajectory
-    must each propagate by exact whole-carrier transfers to the same layer-12
-    motor discharge. Temporal proximity alone is not causal participation.
+    must each contribute to the same exact motor-population event and action
+    receipt. A direct shared motor lineage is accepted when present; otherwise
+    the affect/body branch must include its exact locally changed contact.
+    Temporal proximity alone is not causal participation.
     The projection retains only exact paths, clocks, and receipts; it neither
     selects an action nor calls the trajectory positive, preferred, rewarding,
     joyful, good, or fun.
@@ -2658,51 +2660,122 @@ def _same_transition_affective_body_participation(
         if isinstance(affective_cause, dict)
         else None
     )
-    if (
-        not isinstance(affective_cause, dict)
-        or not isinstance(causal_motor, dict)
-        or not isinstance(affective_motor, dict)
-        or affective_cause.get("motor_organism_tick") != motor_ordinal
-        or affective_motor.get("motor_lineage") != causal_motor.get("motor_lineage")
-        or affective_cause.get("action", {}).get(
+    causal_action_receipt = causal.get("action", {}).get(
+        "causal_intent_receipt_sha256"
+    )
+    direct_affective_path = (
+        isinstance(affective_cause, dict)
+        and isinstance(causal_motor, dict)
+        and isinstance(affective_motor, dict)
+        and affective_cause.get("motor_organism_tick") == motor_ordinal
+        and affective_motor.get("motor_lineage") == causal_motor.get("motor_lineage")
+        and affective_cause.get("action", {}).get(
             "causal_intent_receipt_sha256"
         )
-        != causal.get("action", {}).get("causal_intent_receipt_sha256")
-    ):
-        return None
-    affective_lineage = affective_cause.get("affective_neuron_lineage")
-    gradient_ordinal = affective_cause.get(
-        "localized_gradient_settlement_organism_tick"
+        == causal_action_receipt
     )
-    plasticity_ordinal = affective_cause.get(
-        "localized_plasticity_settlement_organism_tick"
-    )
-    trajectory_receipt = affective_cause.get(
-        "affective_trajectory_receipt_sha256"
-    )
-    if (
-        not isinstance(affective_lineage, str)
-        or not isinstance(gradient_ordinal, int)
-        or not isinstance(plasticity_ordinal, int)
-        or not isinstance(trajectory_receipt, str)
-    ):
-        return None
+    changed_contact: dict[str, Any] | None = None
+    if not direct_affective_path:
+        affective_cause = evidence.get("new_impression_causal_use")
+        affective_motor = (
+            affective_cause.get("motor_unit_recruitment")
+            if isinstance(affective_cause, dict)
+            else None
+        )
+        changed_contact = (
+            affective_cause.get("changed_contact_channel_state")
+            if isinstance(affective_cause, dict)
+            else None
+        )
+        if (
+            not isinstance(affective_cause, dict)
+            or not isinstance(causal_motor, dict)
+            or not isinstance(affective_motor, dict)
+            or not isinstance(changed_contact, dict)
+            or affective_cause.get("motor_organism_tick") != motor_ordinal
+            or affective_cause.get("action", {}).get(
+                "causal_intent_receipt_sha256"
+            )
+            != causal_action_receipt
+        ):
+            return None
+        changed_left = changed_contact.get("left_lineage")
+        changed_right = changed_contact.get("right_lineage")
+        changed_ordinal = changed_contact.get("parallel_ordinal")
+        if (
+            not isinstance(changed_left, str)
+            or not isinstance(changed_right, str)
+            or not isinstance(changed_ordinal, int)
+            or not any(
+                isinstance(transfer, (list, tuple))
+                and len(transfer) == 4
+                and {transfer[0], transfer[1]} == {changed_left, changed_right}
+                and transfer[2] == changed_ordinal
+                for transfer in affective_cause.get(
+                    "directed_physical_transfers", ()
+                )
+            )
+        ):
+            return None
+    if direct_affective_path:
+        if not isinstance(affective_cause, dict):
+            return None
+        affective_lineages = (affective_cause.get("affective_neuron_lineage"),)
+        gradient_ordinal = affective_cause.get(
+            "localized_gradient_settlement_organism_tick"
+        )
+        plasticity_ordinal = affective_cause.get(
+            "localized_plasticity_settlement_organism_tick"
+        )
+        trajectory_receipt = affective_cause.get(
+            "affective_trajectory_receipt_sha256"
+        )
+        if (
+            not isinstance(affective_lineages[0], str)
+            or not isinstance(gradient_ordinal, int)
+            or not isinstance(plasticity_ordinal, int)
+            or not isinstance(trajectory_receipt, str)
+        ):
+            return None
+    else:
+        if not isinstance(affective_cause, dict) or not isinstance(
+            changed_contact, dict
+        ):
+            return None
+        affective_lineages = (
+            changed_contact["left_lineage"],
+            changed_contact["right_lineage"],
+        )
+        gradient_ordinal = None
+        plasticity_ordinal = changed_contact.get("change_organism_tick")
+        trajectory_receipt = None
+        if not isinstance(plasticity_ordinal, int):
+            return None
     complete = tuple(
         trajectory
         for trajectory in tuple(evidence.get("affective_balance_trajectories", ()))
         if isinstance(trajectory, (list, tuple))
         and len(trajectory) == 7
-        and trajectory[0] == affective_lineage
+        and trajectory[0] in affective_lineages
+        and trajectory[1] == 10
         and trajectory[3] is not None
         and trajectory[4] is not None
         and trajectory[5] is not None
         and _retained_local_plasticity(trajectory[6])
-        and trajectory[5][0] == gradient_ordinal
         and trajectory[6][0] == plasticity_ordinal
+        and (
+            gradient_ordinal is None
+            or trajectory[5][0] == gradient_ordinal
+        )
         and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
         and trajectory[5][0] < motor_ordinal
         and trajectory[6][0] < motor_ordinal
-        and _receipt(tuple(trajectory)) == trajectory_receipt
+        and trajectory[6][0] == trajectory[3][0]
+        and trajectory[6][0] == trajectory[4][0]
+        and (
+            trajectory_receipt is None
+            or _receipt(tuple(trajectory)) == trajectory_receipt
+        )
     )
     if not complete:
         return None
@@ -3325,15 +3398,15 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 else "play_affective_body_participation_incomplete"
             ),
             (
-                "each autonomous play action's exact retained formation shared "
-                "a same-transition active physical bond with a layer-10 "
-                "association/body perturbation and later localized "
-                "membrane-gradient settlement; this is affective participation, "
-                "not a named emotion or fun"
+                "each autonomous play action's exact retained formation and a "
+                "layer-10 association/body path with retained plasticity and "
+                "later localized membrane-gradient settlement converged on "
+                "the same exact motor event and action receipt; this is "
+                "affective participation, not a named emotion or fun"
                 if affective_available
-                else "one or both play actions lacked an exact active formation "
-                "bond to a complete same-transition localized affect/body "
-                "trajectory"
+                else "one or both play actions lacked exact motor-event "
+                "convergence with a complete same-transition localized "
+                "affect/body trajectory"
             ),
             first_trajectory_receipt_sha256=(
                 first_affective.get("trajectory_receipt_sha256")

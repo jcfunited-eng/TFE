@@ -93,7 +93,7 @@ def _transition(
             (13, 2),
             (1, 1),
         ),
-        _plasticity(origin_tick + 1),
+        _plasticity(origin_tick),
     )
     transition = {
         "affective_balance_trajectories": (affective_trajectory,),
@@ -108,7 +108,7 @@ def _transition(
                 ("03" * 16, "04" * 16, 0, 3),
             ),
             "localized_gradient_settlement_organism_tick": origin_tick + 1,
-            "localized_plasticity_settlement_organism_tick": origin_tick + 1,
+            "localized_plasticity_settlement_organism_tick": origin_tick,
             "motor_organism_tick": motor_tick,
             "motor_unit_recruitment": {
                 "motor_layer": 12,
@@ -665,6 +665,68 @@ def test_affective_timing_without_a_carrier_path_cannot_be_bound_to_play() -> No
 
     assert episode is not None
     assert "affective_body_participation" not in episode
+
+
+def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() -> None:
+    transition, choice = _transition(
+        action_receipt="9" * 64,
+        origin_tick=470,
+        yaw=24,
+        world_revision=47,
+    )
+    trajectory = list(transition["affective_balance_trajectories"][0])
+    trajectory[6] = _plasticity(470)
+    transition["affective_balance_trajectories"] = (tuple(trajectory),)
+    transition["affective_motor_causal_use"] = None
+    transition["new_impression_causal_use"] = {
+        "action": transition["causal_cross_context_use"]["action"],
+        "changed_contact_channel_state": {
+            "change_organism_tick": 470,
+            "contact_cognitive_ordinal": 470,
+            "left_lineage": SHARED_AFFECTIVE_LINEAGE,
+            "right_lineage": "03" * 16,
+            "parallel_ordinal": 0,
+            "predecessor_state": (50, (0, 1), (1, 1)),
+            "successor_state": (51, (0, 1), (51, 50)),
+        },
+        "directed_physical_transfers": (
+            (SHARED_AFFECTIVE_LINEAGE, "03" * 16, 0, 4),
+            ("03" * 16, "06" * 16, 0, 3),
+        ),
+        "motor_organism_tick": 472,
+        "motor_unit_recruitment": {
+            "motor_layer": 12,
+            "motor_lineage": "06" * 16,
+            "motor_topology_index": 2,
+            "outward_elementary_carriers": 24,
+        },
+        "origin_kind": "new_neuronal_fractal",
+    }
+
+    episode = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:population-convergence",
+    )
+
+    assert episode is not None
+    participation = episode["affective_body_participation"]
+    assert participation["affective_neuron_lineage"] == SHARED_AFFECTIVE_LINEAGE
+    assert participation["localized_plasticity_settlement_ordinal"] == 470
+    assert participation["localized_gradient_settlement_ordinal"] == 471
+
+    new_impression = transition["new_impression_causal_use"]
+    new_impression["action"] = {
+        **new_impression["action"],
+        "causal_intent_receipt_sha256": "8" * 64,
+    }
+    refused = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:different-action",
+    )
+    assert refused is not None
+    assert "affective_body_participation" not in refused
 
 
 def test_unmet_dissipation_refuses_overload_exclusion() -> None:

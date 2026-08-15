@@ -1441,3 +1441,36 @@ second persistence authority remain out of scope and must not be extended.
   sensorimotor-play, and public-observation suite passes 35/35 against the exact
   task-1076 native module. Production deployment and one new live witness are
   still required; A-011.6 is not yet Live-Closed and A-011.7 remains next.
+
+#### Task 1077 live ordering result and motor-population convergence correction
+
+- The association/body/plasticity ordering correction deployed in one attempt
+  as task `dsf-ai-task:1077`, commit
+  `84ef177569fa7e49b8ecdcfbedfc05a0d70771e7`, image
+  `sha256:e41754ea4ef9675d880c93583ea3790bbbc002169d2f8c3e11a979c025ac34d8`.
+  Read-only preflight on 2026-08-15 re-resolved one healthy process, zero
+  pending processes, 4 vCPU/16 GiB, the exact image, and HTTP 200 for both Loom
+  pages. Live native observation reported the same organism identity, tick
+  `112989`, state bytes `59,554,512`, and zero Python cognition callbacks.
+- The live transition at motor ordinal `112980` supplied the missing exact
+  evidence. The new-impression branch carried changed stable contact
+  `...a7 <-> ...ee` from tick `112976` through layer-12 motor lineage `...c5`;
+  the retained-formation branch reached layer-12 motor lineage `...8d`. Both
+  branches caused the same action receipt
+  `998557fd6c8039b0dfab13cb9ed13c0dd3a83491a7139f26fa769f28a06978c8`
+  and the same sensed consequence. The `...a7` layer-10 trajectory carried
+  association/body influence and retained plasticity at tick `112976`, then
+  localized gradient settlement at `112977`.
+- Requiring one identical layer-12 neuron for both branches is false topology:
+  the embodied act is the exact motor-population settlement, and multiple motor
+  neurons lawfully contribute to it. The bounded observer now accepts either a
+  direct shared-motor-lineage path or exact convergence of the locally plastic
+  changed-contact path and retained-formation path on the same motor ordinal
+  and causal action receipt. It still refuses timing-only coincidence, an
+  unmatched contact, a different motor ordinal, or a different action receipt.
+- The change remains read-only and constant-size. It adds no physics, state,
+  persistence, scan, score, label, owner, lock, database, DSF change, or action
+  authority. The focused causal/play/public suite passes `36/36` against the
+  exact task-1077 native module. A new immutable production release and one
+  bounded reciprocal four-turn witness remain required before A-011.6 can be
+  called Live-Closed. A-011.7 remains the immediate next item.
