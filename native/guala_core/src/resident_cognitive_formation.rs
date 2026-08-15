@@ -4897,7 +4897,7 @@ impl ResidentCognitiveFormationState {
     /// Read-only exact retained channel state for every reached sparse
     /// electrical contact. Endpoint lineage plus parallel ordinal is the
     /// stable contact identity; the remaining values are conducting channel
-    /// population, bounded transition-work residue, and effective
+    /// population, bounded transition-work phase, and effective
     /// conductance. Cognition never consumes this projection and reading it
     /// advances no state.
     #[allow(clippy::type_complexity)]
@@ -4922,8 +4922,8 @@ impl ResidentCognitiveFormationState {
                     .count(),
             )
             .expect("reached contact count fits its persisted ordinal");
-            let (residue_numerator, residue_denominator) =
-                state.transition_work_residue_zeptojoules().parts();
+            let (transition_phase_numerator, transition_phase_denominator) =
+                state.transition_work_phase().parts();
             let (conductance_numerator, conductance_denominator) = anatomy
                 .effective_conductance(state)
                 .expect("resident contact anatomy and state were validated")
@@ -4933,8 +4933,8 @@ impl ResidentCognitiveFormationState {
                 right,
                 parallel_ordinal,
                 state.conducting_channel_population(),
-                residue_numerator,
-                residue_denominator,
+                transition_phase_numerator,
+                transition_phase_denominator,
                 conductance_numerator,
                 conductance_denominator,
             ));
@@ -9940,8 +9940,8 @@ fn settle_internal_contact_interval(
                     successor,
                     outward_current_from_left_picoamperes: ExactRational::integer(0),
                     outward_elementary_charges_from_left: 0,
-                    released_work_zeptojoules: ExactRational::integer(0),
-                    exported_heat_zeptojoules: ExactRational::integer(0),
+                    released_work_zeptojoules: BigRational::zero(),
+                    exported_heat_zeptojoules: BigRational::zero(),
                     conductance_changed: false,
                 })
                 .collect::<Vec<_>>()

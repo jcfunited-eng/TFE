@@ -1247,3 +1247,28 @@ second persistence authority remain out of scope and must not be extended.
   (the exact failed-attempt predecessor) and
   `dfc1907c5c0c735a2564cf093e88e33bd2b378e1691623b7046079843f0858c`
   (the later task-1070 body). No migration or rewrite was used.
+- Production attempt 2 built image
+  `sha256:235d202e01f44cc70965cb5874160b12fe80e21be227a0cbd51c6446654dfd42`
+  and candidate task `77ae2822933e4026b043ee161e3b6c50` restored the exact
+  predecessor, then failed closed before cutover on the first 1 ms vestibular
+  interval. The released-work multiplication exceeded the old transient
+  signed-128-bit rational numerator. Production remained task 1070.
+- The mature task-1070 value is exactly
+  `240649705228216893057568596195456040809 /`
+  `14651898759795200000000000000000000000 zJ`, approximately `16.42447 zJ`,
+  below the approved `q`. The corrected settlement carries transient work in
+  wide exact arithmetic and persists only the exact proper phase `rho = R/q`.
+  This is a bounded representation of the same approved residue, not a new
+  coefficient, threshold, or physical mechanism.
+- The exact downloaded predecessor
+  `41c134a6d40926b9265f70ee2efc11fef6fd3a73130ea7c197875feb30fbc96b`
+  now completes the first interval: 117 of 1,824 reached contacts change, the
+  contact-state digest is
+  `c291f06f8f2f2e1d9c404112c424a12f5649ba4f54c722b5a5142db8fa036051`,
+  and the successor cold-restores exactly with digest
+  `9faf8d458acb9888902282af64a9ff7a4a50735a94b72e36eac8a17aef0d8f48`.
+- Current pre-release evidence passes 18/18 focused sparse-contact tests and
+  421/421 complete native tests with the same 11 ignored tests. The selected
+  Python deployment/cold-boundary suite passes 65/65; one initial invocation
+  had only a test-harness `PYTHONPATH` shape mismatch and passed unchanged when
+  rerun with the candidate wheel as one inherited path.

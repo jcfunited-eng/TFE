@@ -3066,8 +3066,8 @@ impl NativeResidentOrganismRuntime {
                     right,
                     parallel_ordinal,
                     population,
-                    residue_numerator,
-                    residue_denominator,
+                    transition_phase_numerator,
+                    transition_phase_denominator,
                     conductance_numerator,
                     conductance_denominator,
                 )| {
@@ -3076,8 +3076,8 @@ impl NativeResidentOrganismRuntime {
                         hex_bytes(&right),
                         parallel_ordinal,
                         population,
-                        residue_numerator,
-                        residue_denominator,
+                        transition_phase_numerator,
+                        transition_phase_denominator,
                         conductance_numerator,
                         conductance_denominator,
                     )

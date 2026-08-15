@@ -1194,7 +1194,7 @@ pub(crate) fn encode_reached_cohort_cell_v6(
         .any(|(contact, contact_anatomy)| {
             contact.conducting_channel_population()
                 != contact_anatomy.genesis_conducting_population()
-                || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                || contact.transition_work_phase().parts().0 != 0
         });
     encode_reached_cohort_cell_content_addressed(
         anatomy,
@@ -1482,7 +1482,7 @@ pub(crate) fn encode_reached_cohort_state_v4(
             .any(|(contact, contact_anatomy)| {
                 contact.conducting_channel_population()
                     != contact_anatomy.genesis_conducting_population()
-                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.transition_work_phase().parts().0 != 0
                     || contact.legacy_plastic_compatibility_state()
                         != PlasticSupportState::definitive_virtual_genesis()
             })
@@ -1530,7 +1530,7 @@ pub(crate) fn encode_reached_cohort_state_v5(
             .any(|(contact, contact_anatomy)| {
                 contact.conducting_channel_population()
                     != contact_anatomy.genesis_conducting_population()
-                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.transition_work_phase().parts().0 != 0
             })
     {
         return Err(ReachedCohortError::AnatomyStateWidth);
@@ -1602,7 +1602,7 @@ pub(crate) fn encode_reached_cohort_state_v6(
         encoded.extend_from_slice(&phase_denominator.to_le_bytes());
         encoded.extend_from_slice(&contact.conducting_channel_population().to_le_bytes());
         let (residue_numerator, residue_denominator) =
-            contact.transition_work_residue_zeptojoules().parts();
+            contact.transition_work_phase().parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -1866,7 +1866,7 @@ pub(crate) fn encode_reached_cohort_state_delta_v1(
             .any(|(contact, contact_anatomy)| {
                 contact.conducting_channel_population()
                     != contact_anatomy.genesis_conducting_population()
-                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.transition_work_phase().parts().0 != 0
                     || contact.legacy_plastic_compatibility_state()
                         != PlasticSupportState::definitive_virtual_genesis()
             })
@@ -1946,7 +1946,7 @@ pub(crate) fn encode_reached_cohort_state_delta(
         encoded.extend_from_slice(&phase_denominator.to_le_bytes());
         encoded.extend_from_slice(&contact.conducting_channel_population().to_le_bytes());
         let (residue_numerator, residue_denominator) =
-            contact.transition_work_residue_zeptojoules().parts();
+            contact.transition_work_phase().parts();
         encoded.extend_from_slice(&residue_numerator.to_le_bytes());
         encoded.extend_from_slice(&residue_denominator.to_le_bytes());
     }
@@ -1978,7 +1978,7 @@ pub(crate) fn encode_reached_cohort_state_delta_v2(
             .any(|(contact, contact_anatomy)| {
                 contact.conducting_channel_population()
                     != contact_anatomy.genesis_conducting_population()
-                    || contact.transition_work_residue_zeptojoules().parts().0 != 0
+                    || contact.transition_work_phase().parts().0 != 0
             })
     {
         return Err(ReachedCohortError::AnatomyStateWidth);

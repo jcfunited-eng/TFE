@@ -31,6 +31,8 @@ For contact `i`:
 
 - predecessor conducting population: `n_i`;
 - predecessor transition-work residue: `R_i`, where `0 <= R_i < q`;
+- retained representation: the exact proper phase `rho_i = R_i / q`, where
+  `0 <= rho_i < 1`; `R_i` is always recovered exactly as `rho_i * q`;
 - exact contact-local released work: `W_i >= 0`;
 - physical direction from its endpoint gradient motion: `d_i` in `{-1, 0, +1}`.
 

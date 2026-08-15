@@ -509,6 +509,12 @@ def _signed_integer(value: object, label: str) -> int:
     return value
 
 
+def _positive_exact_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise RuntimeError(f"resident organism {label} is not a positive exact integer")
+    return value
+
+
 def _positive_decimal_integer(value: object, label: str) -> int:
     if (
         not isinstance(value, str)
@@ -2569,7 +2575,7 @@ class NativeResidentOrganism:
     def observe_reached_contact_channel_states(
         self,
     ) -> tuple[tuple[str, str, int, int, int, int, int, int], ...]:
-        """Read exact retained channel state of each reached sparse contact."""
+        """Read exact retained channel and sub-transition phase state."""
 
         before = self.readiness()
         observed = tuple(
@@ -2578,10 +2584,14 @@ class NativeResidentOrganism:
                 _canonical_lineage_hex(right, "contact right lineage"),
                 _nonnegative_integer(parallel, "contact parallel ordinal"),
                 _nonnegative_integer(population, "conducting channel population"),
-                int(residue_numerator),
-                _positive_integer(residue_denominator, "contact residue denominator"),
-                int(conductance_numerator),
-                _positive_integer(
+                _signed_integer(
+                    transition_phase_numerator, "contact transition phase numerator"
+                ),
+                _positive_exact_integer(
+                    transition_phase_denominator, "contact transition phase denominator"
+                ),
+                _signed_integer(conductance_numerator, "contact conductance numerator"),
+                _positive_exact_integer(
                     conductance_denominator, "contact conductance denominator"
                 ),
             )
@@ -2590,8 +2600,8 @@ class NativeResidentOrganism:
                 right,
                 parallel,
                 population,
-                residue_numerator,
-                residue_denominator,
+                transition_phase_numerator,
+                transition_phase_denominator,
                 conductance_numerator,
                 conductance_denominator,
             ) in self.__runtime.observe_reached_contact_channel_states()
@@ -2599,7 +2609,8 @@ class NativeResidentOrganism:
         if any(
             left >= right
             or population > 6_400
-            or residue_numerator < 0
+            or transition_phase_numerator < 0
+            or transition_phase_numerator >= transition_phase_denominator
             or conductance_numerator <= 0
             or (index > 0 and observed[index - 1][:3] >= row[:3])
             for index, row in enumerate(observed)
@@ -2608,8 +2619,8 @@ class NativeResidentOrganism:
                 right,
                 _parallel,
                 population,
-                residue_numerator,
-                _residue_denominator,
+                transition_phase_numerator,
+                transition_phase_denominator,
                 conductance_numerator,
                 _conductance_denominator,
             ) in (row,)
