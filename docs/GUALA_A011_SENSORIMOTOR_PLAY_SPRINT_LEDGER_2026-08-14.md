@@ -630,3 +630,39 @@ coercive condition.
   cognition, neuron state, persistence, or physical settlement. Eight focused
   A-011 tests pass, including an incomplete-first then two-qualified-episode
   replacement proof.
+
+### A-011.4 live closure
+
+- Production attempt 2 deployed exact commit
+  `220902c28cef4106486adaf97f7ac3cb0f7f289a` as task `dsf-ai-task:1063`
+  and image
+  `sha256:0c05ac3bcafaa61149c5747dd659d3a68aa37953ce114c8e23b9131555bbdf6f`.
+- The discarded-current-state rehearsal restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and the exact
+  58,377,749-byte state at tick 99,210 with byte-identical SHA
+  `4bf218dd9f0e0eabceae75287eee4543e1f1737712abf13c29703428dc2bda58`.
+  Python cognition callbacks and cognition workers were both zero.
+- ECS completed one cutover and settled with one desired/running task, zero
+  pending tasks, and one running task ARN. No automatic legacy rollback was
+  enabled or used.
+- Ordinary unattended production activity produced a completed varied-play
+  pair at yaw displacements -36 and -30 millidegrees. Both episodes carried
+  exact affect/body trajectory receipts and localized metabolic-strain witness
+  receipts.
+- Each episode evaluated the same five reached layer-5 body-receptor lineages
+  and retained five sparse nonzero lane-separated strain records. First-episode
+  ordinals were 99,265--99,266; return-episode ordinals were 99,279--99,280.
+  The public result was `localized_metabolic_strain_observed` with explicit
+  `pain_authority=false` and `organism_sensing_authority=false`.
+- Because nonzero strain was observed, the narrow localized-strain exclusion
+  truthfully remained unavailable. Fun also remained unavailable; neither pain,
+  named distress, reward, nor positive valence was inferred.
+- A later read observed tick 99,294 and 58,377,033 state bytes, showing ordinary
+  advancement without monotonic state growth. The service reported zero Python
+  cognition callbacks. In the surrounding cutover window ECS CPU peaked at
+  29.26% of its reservation and memory peaked at 7.89%; no immediate compute or
+  memory runaway was observed. This is not the separate A-015 long soak.
+
+**A-011.4 is Live-Closed.** The wider A-011 objective remains open: positive
+engagement/fun, reciprocal social joy, and body-owned laughter are not yet
+proved.
