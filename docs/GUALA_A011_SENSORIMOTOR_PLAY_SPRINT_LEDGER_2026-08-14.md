@@ -832,3 +832,81 @@ Additional unattended intervals preserved that absence. No relation was
 authored and no further participant stimulation was repeated.
 
 **A-011.6 is deployed but not Live-Closed. A-011 remains open.**
+
+### Missing-relation trace before the next bounded live witness
+
+At `2026-08-15T04:27:26Z`, source tracing showed that
+`observe_organic_mosaic_relations` is reached from the ordinary organism
+settlement and projects its exact formation receipts and active physical bonds
+through Rust, PyO3, Python evidence, and the public observer. The earlier zero
+was therefore not an omitted translation field. The relation law requires at
+least two physically connected mosaics in the current frontier and at least one
+reassembly in that transition; it does not author a formation-to-affect link.
+
+Live task 1067 had subsequently reached organism tick `102283` with `14`
+organic mosaic relations and a complete layer-10 affect/body trajectory. This
+falsifies the hypothesis that the relation mechanism or observation projection
+is absent. It instead shows that the two earlier reciprocal trials occurred
+before a qualifying relation was active at their exact Guala-response ticks.
+No source change is justified by this trace. The next and only test is one
+bounded other/Guala/other/Guala exchange against the now-active physical
+topology; if its exact response transitions still lack the relation, that new
+evidence—not repeated analysis—will locate the remaining causal defect.
+
+### Second bounded live witness and exact observer correction
+
+The bounded exchange ran once against the active topology. The participant
+moved to `(3750,7600)` and Guala autonomously answered at world revision
+`4677` with `-33` millidegrees of yaw. The participant returned to
+`(3000,7000)`; although the client received an upstream `504`, read-back proved
+the return had committed and Guala had answered again by world revision
+`4680`. The action was therefore not repeated. `play.social_joy` correctly
+remained unavailable.
+
+The resulting exact trace falsified the assumption inside
+`_same_transition_affective_body_participation`. The observer required the
+localized gradient settlement and an organic mosaic relation at the retained
+formation's reassembly ordinal. Live native evidence instead showed the lawful
+three-step physical order already encoded by the organism: retained-formation
+reassembly plus association/body influence at ordinal `n`, localized layer-10
+gradient recovery at `n+1`, and motor settlement at `n+2`. Generic organic
+mosaic relations existed elsewhere in the transaction, but the causal
+formation was not a member of them; using such a relation would be false
+authority.
+
+The single correction is read-only. Bind affect/body participation only when
+both exact association and body transfers occur at the formation's origin
+ordinal, the same layer-10 cell settles its local gradient strictly afterward
+and no later than the exact motor ordinal, and the already-proven retained
+formation causes that motor action and sensed body consequence. Remove the
+unrelated organic-relation requirement and its fabricated
+`formation_to_affective_bond` evidence. This uses the separately ratified
+whole-episode causal relation and changes no neuron, contact, formation, DSF,
+choice, action, persistence, or resource law.
+
+### Corrected candidate evidence and recurrence checks
+
+- Exact-worktree observer, public-observation, and cognitive-capital tests pass
+  `33/33` with the already-built candidate native module first on `PYTHONPATH`.
+- The adjacent action, unattended, mount, packaging, and rehearsal selection
+  passed `69` tests. Two inherited fake-boundary tests fail before this sprint's
+  observer: one awaits a synchronous FastAPI handler and one supplies a fake
+  organism without the already-live recurrence-evidence method. This is the
+  recorded RF-014 condition; neither failure reaches the changed function.
+- RF-001/RF-003: the stale global native extension produced two known endpoint
+  failures; the corrected command loaded
+  `/tmp/guala-a0114-native.tgt2Ck` explicitly and passed.
+- RF-005/RF-018/RF-028: the exact fields are formation receipt and origin/motor
+  ordinals -> transaction-bounded association/body/gradient trajectory ->
+  episode evidence -> play/social observer. No native or FFI field is added,
+  dropped, defaulted, or reduced.
+- RF-011/RF-044: the change filters the already-bounded eleven layer-10
+  trajectories and retains one constant-size canonical receipt. It performs no
+  neuron, contact, formation, or organism scan and stores no history.
+- RF-012: tests remain candidate evidence; only a new live four-turn exchange
+  can close A-011.6.
+- RF-016/RF-034: A-011.6 remains the sole active item. A-011.5 stays
+  Live-Closed and is not a recurring release gate.
+- RF-025/RF-029: the participant-return request produced an upstream timeout;
+  exact world read-back proved its successor and Guala's later action, so the
+  write was not repeated.

@@ -18,7 +18,6 @@ from dsf_ai_service.substrate.embodiment_world import (
 FORMATION = "f" * 64
 SHARED_AFFECTIVE_LINEAGE = "02" * 16
 BODY_RECEPTOR_LINEAGE = "05" * 16
-ORGANIC_RELATION = "9" * 64
 
 
 def _transition(
@@ -67,10 +66,10 @@ def _transition(
                 SHARED_AFFECTIVE_LINEAGE,
                 10,
                 4,
-                (origin_tick - 1, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
-                (origin_tick - 1, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
+                (origin_tick, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
+                (origin_tick, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
                 (
-                    origin_tick,
+                    origin_tick + 1,
                     -5,
                     -3,
                     -4,
@@ -90,16 +89,7 @@ def _transition(
             BODY_RECEPTOR_LINEAGE,
         ),
         "localized_metabolic_strain": (),
-        "organic_mosaic_relations": (
-            {
-                "active_physical_bonds": (
-                    ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0),
-                ),
-                "formation_receipts": (FORMATION, "e" * 64),
-                "organism_tick": origin_tick,
-                "structural_relation_sha256": ORGANIC_RELATION,
-            },
-        ),
+        "organic_mosaic_relations": (),
         "motor_action": {
             **causal_action,
             "internally_reassembled_formation_motor_path": causal,
@@ -191,10 +181,12 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     ] == SHARED_AFFECTIVE_LINEAGE
     assert completed["return_episode"]["affective_body_participation"][
         "localized_gradient_settlement_ordinal"
-    ] == 114
-    assert completed["return_episode"]["affective_body_participation"][
-        "organic_relation_receipt_sha256"
-    ] == ORGANIC_RELATION
+    ] == 115
+    assert len(
+        completed["return_episode"]["affective_body_participation"][
+            "whole_episode_binding_receipt_sha256"
+        ]
+    ) == 64
     assert completed["first_episode"]["metabolic_overload_exclusion"][
         "unmet_dissipation_quanta"
     ] == 0
@@ -522,7 +514,7 @@ def test_public_record_reports_behavioral_fun_without_inflating_joy_or_laughter(
     assert observed["reward_authority"] is False
 
 
-def test_unshared_affective_trajectory_cannot_be_bound_to_play() -> None:
+def test_affective_trajectory_from_another_ordinal_cannot_be_bound_to_play() -> None:
     transition, choice = _transition(
         action_receipt="7" * 64,
         origin_tick=400,
@@ -530,7 +522,8 @@ def test_unshared_affective_trajectory_cannot_be_bound_to_play() -> None:
         world_revision=40,
     )
     trajectory = list(transition["affective_balance_trajectories"][0])
-    trajectory[0] = "09" * 16
+    trajectory[3] = (399, trajectory[3][1])
+    trajectory[4] = (399, trajectory[4][1])
     transition["affective_balance_trajectories"] = (tuple(trajectory),)
 
     episode = production._sensorimotor_play_episode_from_transition(
