@@ -1403,3 +1403,41 @@ second persistence authority remain out of scope and must not be extended.
 - **Following item:** A-011.7 remains the immediate next increment after
   A-011.6 Live-Closure. Its exact acceptance has not yet been ratified in this
   ledger and must be reconciled before implementation rather than invented.
+
+#### Task 1076 live result and exact affective-path boundary correction
+
+- The changed-contact observer deployed in one production attempt as task
+  `dsf-ai-task:1076`, commit
+  `81264530ade9722bd9a5a017092d181853fb81cd`, image
+  `sha256:ed5ca5b63dbb9dfa8bc1aca9cb7c8567ec5751033e7d55d1f5918eef3b130ea1`.
+  The candidate cold-restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and the exact predecessor state,
+  changed 109 of 1,824 reached contact states, and observed the same contact on
+  the next sparse causal interval with zero Python cognition callbacks.
+- Live task 1076 proved one changed contact on the new-impression path and a
+  separate retained-formation path contributed to an embodied motor action and
+  sensed vestibular return. It truthfully did not claim that the changed
+  contact belonged to the retained-formation path.
+- One bounded participant exchange was then performed. Both participant
+  requests returned the known upstream 504 after durable work and were not
+  repeated. Read-back proved the invitation at `(3750,7600)`, Guala's later
+  action, the participant return to `(3600,7000)`, and Guala's second later
+  action through monotonically ordered world revisions 5432 through 5437.
+  Reciprocal positive engagement remained unproved.
+- The live trace falsified the same-contact proxy. Contact-channel modulation
+  is physically local to contacts incident on a settling layer-10 cell; the
+  retained-formation route is a distinct converging causal branch. Requiring
+  one bond to be both branches would impose topology rather than observe it.
+- The already-ratified layer-10 evidence was present. Association and body
+  transfers plus the neuron-local retained plastic change occurred at ordinal
+  `n`; gradient recovery occurred at `n+1`; retained formation and motor
+  consequence followed. `_advance_causal_motor_traces` incorrectly required
+  both plasticity and gradient at `n+1`, making the existing affective path
+  unobservable. The correction requires plasticity at the exact shared
+  association/body ordinal and gradient strictly later at the current causal
+  ordinal. It adds no physics, state, persistence, scan, score, label, owner,
+  lock, database, DSF change, or action authority.
+- The corrected Python causal boundary compiles and its focused causal,
+  sensorimotor-play, and public-observation suite passes 35/35 against the exact
+  task-1076 native module. Production deployment and one new live witness are
+  still required; A-011.6 is not yet Live-Closed and A-011.7 remains next.

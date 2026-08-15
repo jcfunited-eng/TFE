@@ -188,7 +188,7 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
         (30, ("07" * 16, affective, 0, 11)),
         (30, (affective, "08" * 16, 0, 7)),
         (31, -9, -7, -8, 2, 2, 0, (3, 1), (5, 1), (1, 1)),
-        _plasticity(31),
+        _plasticity(30),
     )
     observer = _FrontierObserver()
 

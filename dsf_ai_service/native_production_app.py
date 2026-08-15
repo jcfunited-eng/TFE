@@ -7339,7 +7339,8 @@ def _advance_causal_motor_traces(
                 or gradient[0] != organism_tick
                 or gradient[0] <= max(association[0], body[0])
                 or not _retained_local_plasticity(plasticity)
-                or plasticity[0] != organism_tick
+                or plasticity[0] != association[0]
+                or plasticity[0] != body[0]
             ):
                 continue
             key = (
