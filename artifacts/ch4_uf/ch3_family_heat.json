@@ -1,0 +1,54 @@
+{
+ "declared": "family=top-20 positively-correlated covered names, trailing 60 sessions; heat=share with gband>=1; gate refuses heat>0.5; all pre-registered in the docstring",
+ "decade_uncovered_split": {
+  "hot_family (gate would refuse)": {
+   "n": 9898,
+   "mean_pct": 2.094,
+   "median_pct": 6.452,
+   "wr_pct": 70.5,
+   "p1_pct": -81.7
+  },
+  "cool_family (gate passes)": {
+   "n": 2953,
+   "mean_pct": 3.436,
+   "median_pct": 6.897,
+   "wr_pct": 71.9,
+   "p1_pct": -76.29
+  },
+  "no_family_computable (too young \u2014 passes)": {
+   "n": 1178,
+   "mean_pct": 3.745,
+   "median_pct": 7.101,
+   "wr_pct": 72.2,
+   "p1_pct": -83.91
+  }
+ },
+ "share_refused_pct": 70.6,
+ "acceptance_2026_08_13": {
+  "EXOD": {
+   "heat": null,
+   "family_n": 0,
+   "gate": "no family data \u2014 passes"
+  },
+  "UPLD": {
+   "heat": null,
+   "family_n": 0,
+   "gate": "no family data \u2014 passes"
+  },
+  "AEBI": {
+   "heat": null,
+   "family_n": 0,
+   "gate": "no family data \u2014 passes"
+  },
+  "FGI": {
+   "heat": null,
+   "family_n": 0,
+   "gate": "no family data \u2014 passes"
+  },
+  "AIRO": {
+   "heat": null,
+   "family_n": 0,
+   "gate": "no family data \u2014 passes"
+  }
+ }
+}
