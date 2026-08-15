@@ -395,3 +395,62 @@ def test_later_zero_evaluation_clears_prior_sparse_strain_without_summing() -> N
 
     assert evaluated == (BODY_RECEPTOR_LINEAGE,)
     assert retained == ()
+
+
+def test_incomplete_first_play_is_replaced_by_two_later_qualified_episodes() -> None:
+    first, first_choice = _transition(
+        action_receipt="c" * 64,
+        origin_tick=800,
+        yaw=-21,
+        world_revision=80,
+    )
+    first["affective_balance_trajectories"] = ()
+    candidate, completed = production._advance_bounded_sensorimotor_play_evidence(
+        None,
+        None,
+        first,
+        first_choice,
+        "continuous-environment:first",
+    )
+
+    second, second_choice = _transition(
+        action_receipt="d" * 64,
+        origin_tick=814,
+        yaw=-39,
+        world_revision=81,
+    )
+    candidate, completed = production._advance_bounded_sensorimotor_play_evidence(
+        candidate,
+        completed,
+        second,
+        second_choice,
+        "continuous-environment:second",
+    )
+    assert completed is not None
+    assert "localized_metabolic_strain" not in completed["first_episode"]
+    assert candidate == completed["return_episode"]
+
+    third, third_choice = _transition(
+        action_receipt="e" * 64,
+        origin_tick=828,
+        yaw=-27,
+        world_revision=82,
+    )
+    candidate, completed = production._advance_bounded_sensorimotor_play_evidence(
+        candidate,
+        completed,
+        third,
+        third_choice,
+        "continuous-environment:third",
+    )
+
+    assert candidate is None
+    assert completed is not None
+    assert completed["first_episode"]["signed_yaw_millidegrees"] == -39
+    assert completed["return_episode"]["signed_yaw_millidegrees"] == -27
+    assert completed["first_episode"]["localized_metabolic_strain"][
+        "evaluated_body_receptor_count"
+    ] == 1
+    assert completed["return_episode"]["localized_metabolic_strain"][
+        "evaluated_body_receptor_count"
+    ] == 1

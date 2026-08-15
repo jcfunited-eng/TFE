@@ -611,3 +611,22 @@ coercive condition.
   pending tasks. Unattended activity was advancing, native play was available,
   and the current public observer still truthfully reported the A-011.3
   `localized_distress_path_unmounted` state before this release.
+- Production attempt 1 deployed exact commit
+  `de3e15abb662f74b420883b67958897a9b945c5b` as task 1062 and image
+  `sha256:1cceccdc8e654300433ecd814a1d13c8e6c4a17d7b9a38549ce0b194533ab077`.
+  Its rehearsal cold-restored identity and the 58,377,590-byte state exactly at
+  tick 98,846 with zero Python cognition callbacks; ECS reached one running
+  task and zero pending tasks.
+- Live acceptance refused closure. The first completed play pair exposed an
+  exact localized-strain receipt only on its return episode because the first
+  episode preceded complete same-transition affect/body participation. The
+  process observer then froze that incomplete first pair and could not replace
+  it after later qualified activity. Native transition evidence itself was
+  present: five layer-5 body-receptor lineages were evaluated and one carried
+  exact sparse nonzero lane state.
+- The bounded observer now keeps the incomplete basic-play witness visible
+  while retaining at most one later qualified episode. A subsequent varied
+  qualified return replaces the incomplete pair. This changes no action,
+  cognition, neuron state, persistence, or physical settlement. Eight focused
+  A-011 tests pass, including an incomplete-first then two-qualified-episode
+  replacement proof.

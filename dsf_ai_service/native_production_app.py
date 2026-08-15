@@ -2960,31 +2960,34 @@ def _advance_bounded_sensorimotor_play_evidence(
     cognition and cannot cause, reward, repeat, or suppress an action.
     """
 
-    if completed is not None:
+    if completed is not None and all(
+        isinstance(completed[key].get("localized_metabolic_strain"), dict)
+        for key in ("first_episode", "return_episode")
+    ):
         return candidate, completed
     episode = _sensorimotor_play_episode_from_transition(
         evidence, physical_choice, intake
     )
     if episode is None:
-        return candidate, None
+        return candidate, completed
     if candidate is None:
-        return episode, None
+        return episode, completed
     if (
         episode["action_causal_intent_receipt_sha256"]
         == candidate["action_causal_intent_receipt_sha256"]
     ):
-        return candidate, None
+        return candidate, completed
     if episode["formation_receipt_sha256"] != candidate["formation_receipt_sha256"]:
         # Keep no list of competing candidates. The later episode becomes the
         # sole bounded candidate for a future return of its own formation.
-        return episode, None
+        return episode, completed
     if (
         episode["origin_organism_tick"] <= candidate["consequence_organism_tick"]
         or episode["world_revision"] <= candidate["world_revision"]
         or episode["signed_yaw_millidegrees"]
         == candidate["signed_yaw_millidegrees"]
     ):
-        return candidate, None
+        return candidate, completed
     play = {
         "activity": "sensorimotor_body_yaw",
         "first_episode": candidate,
@@ -2998,7 +3001,22 @@ def _advance_bounded_sensorimotor_play_evidence(
         "varied_displacement": True,
     }
     play["evidence_receipt_sha256"] = _receipt(play)
-    return None, play
+    # Basic play remains truthful even when its first episode preceded the
+    # localized affect/body path. Keep the latest qualified episode as the one
+    # bounded candidate so a later varied return can replace, rather than
+    # permanently freeze, that incomplete process-local observation.
+    play_has_complete_localized_strain = all(
+        isinstance(play[key].get("localized_metabolic_strain"), dict)
+        for key in ("first_episode", "return_episode")
+    )
+    return (
+        None
+        if play_has_complete_localized_strain
+        else episode
+        if isinstance(episode.get("localized_metabolic_strain"), dict)
+        else None,
+        play,
+    )
 
 
 def _sensorimotor_play_record() -> dict[str, object]:
