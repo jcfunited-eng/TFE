@@ -1061,3 +1061,32 @@ second persistence authority remain out of scope and must not be extended.
   was refused by cargo before executing tests. It changed no source or state;
   the two filters were then run separately and passed. This exact invocation
   mistake is recorded so it is not repeated.
+
+### Task 1070 live result
+
+- Production attempt 1 ran from `2026-08-15T06:45:01Z` through
+  `2026-08-15T07:03:57Z` (18 minutes 56 seconds). Commit
+  `63910b7463d0aaa6a84bb50751ad21f1bfac11e7` deployed as task
+  `dsf-ai-task:1070`, image
+  `sha256:d12f1f41c16c508a39e3f0365c7e3a7da35a641028d6b9e1a1e658d26db12708`.
+  The exact candidate cold-restored task 1069 at tick 104,719 with unchanged
+  identity, 313 complete neurons, 196,416 developmental resting neurons,
+  59,505,889 state bytes, no migration, and zero Python cognition callbacks.
+- The service settled at one desired/running healthy process and zero pending
+  tasks. A bounded read-only live monitor then observed ordinary unattended
+  activity through tick 105,237; final continuity measurement reached tick
+  105,251 and 59,509,716 state bytes. This is 532 ticks and 3,827 bytes of net
+  state growth, about 7.2 bytes per observed tick, with no process error.
+  Public observation was 186,535 bytes at the final sample. The 30-minute
+  service window peaked at 29.21% CPU and 8.62% memory.
+- Autonomous body action remained live (the final observation reported an
+  exact `-38` millidegree yaw and vestibular consequence). The new retained
+  physiological/plastic settlement did **not** appear during the bounded live
+  window. `affective_balance` truthfully remained
+  `affective_balance_mounted_awaiting_complete_trajectory`; reciprocal social
+  play also remained unproved.
+- This is a successful deployment and a live falsification of the isolated
+  model's expected convergence rate on the mature production body. It is not
+  physiological-reinforcement acceptance, functional-reinforcement evidence,
+  or A-011.6 closure. No threshold, coefficient, label, stimulus repetition,
+  or second release was introduced to force a result.
