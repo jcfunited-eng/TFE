@@ -693,7 +693,7 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
             (SHARED_AFFECTIVE_LINEAGE, "03" * 16, 0, 4),
             ("03" * 16, "06" * 16, 0, 3),
         ),
-        "motor_organism_tick": 472,
+        "motor_organism_tick": 473,
         "motor_unit_recruitment": {
             "motor_layer": 12,
             "motor_lineage": "06" * 16,
@@ -712,6 +712,8 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
     assert episode is not None
     participation = episode["affective_body_participation"]
     assert participation["affective_neuron_lineage"] == SHARED_AFFECTIVE_LINEAGE
+    assert participation["affective_motor_organism_tick"] == 473
+    assert participation["retained_formation_motor_organism_tick"] == 472
     assert participation["localized_plasticity_settlement_ordinal"] == 470
     assert participation["localized_gradient_settlement_ordinal"] == 471
 

@@ -2692,7 +2692,6 @@ def _same_transition_affective_body_participation(
             or not isinstance(causal_motor, dict)
             or not isinstance(affective_motor, dict)
             or not isinstance(changed_contact, dict)
-            or affective_cause.get("motor_organism_tick") != motor_ordinal
             or affective_cause.get("action", {}).get(
                 "causal_intent_receipt_sha256"
             )
@@ -2720,6 +2719,7 @@ def _same_transition_affective_body_participation(
     if direct_affective_path:
         if not isinstance(affective_cause, dict):
             return None
+        affective_motor_ordinal = motor_ordinal
         affective_lineages = (affective_cause.get("affective_neuron_lineage"),)
         gradient_ordinal = affective_cause.get(
             "localized_gradient_settlement_organism_tick"
@@ -2746,10 +2746,13 @@ def _same_transition_affective_body_participation(
             changed_contact["left_lineage"],
             changed_contact["right_lineage"],
         )
+        affective_motor_ordinal = affective_cause.get("motor_organism_tick")
         gradient_ordinal = None
         plasticity_ordinal = changed_contact.get("change_organism_tick")
         trajectory_receipt = None
-        if not isinstance(plasticity_ordinal, int):
+        if not isinstance(affective_motor_ordinal, int) or not isinstance(
+            plasticity_ordinal, int
+        ):
             return None
     complete = tuple(
         trajectory
@@ -2768,8 +2771,8 @@ def _same_transition_affective_body_participation(
             or trajectory[5][0] == gradient_ordinal
         )
         and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
-        and trajectory[5][0] < motor_ordinal
-        and trajectory[6][0] < motor_ordinal
+        and trajectory[5][0] < affective_motor_ordinal
+        and trajectory[6][0] < affective_motor_ordinal
         and trajectory[6][0] == trajectory[3][0]
         and trajectory[6][0] == trajectory[4][0]
         and (
@@ -2785,6 +2788,7 @@ def _same_transition_affective_body_participation(
         formation_receipt,
         reassembly_ordinal,
         motor_ordinal,
+        affective_motor_ordinal,
         tuple(causal.get("directed_physical_transfers", ())),
         lineage,
         association,
@@ -2801,6 +2805,8 @@ def _same_transition_affective_body_participation(
         "association_transfer_receipt_sha256": _receipt(association[1]),
         "body_influence_ordinal": body[0],
         "body_transfer_receipt_sha256": _receipt(body[1]),
+        "affective_motor_organism_tick": affective_motor_ordinal,
+        "retained_formation_motor_organism_tick": motor_ordinal,
         "localized_gradient_settlement_ordinal": gradient[0],
         "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
         "localized_plasticity_settlement_ordinal": plasticity[0],

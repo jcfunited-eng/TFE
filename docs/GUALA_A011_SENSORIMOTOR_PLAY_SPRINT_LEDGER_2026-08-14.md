@@ -1474,3 +1474,34 @@ second persistence authority remain out of scope and must not be extended.
   exact task-1077 native module. A new immutable production release and one
   bounded reciprocal four-turn witness remain required before A-011.6 can be
   called Live-Closed. A-011.7 remains the immediate next item.
+
+#### Task 1078 live population-action result and final observer correction
+
+- The motor-population convergence observer deployed in one production attempt
+  as task `dsf-ai-task:1078`, commit
+  `9a5c3f911e92deb42b543855bb52eb9524dfbf5e`, image
+  `sha256:8704c149ef1801400eaebddaf0ac7615cad8851c02f179157dfc481ceff7568a`.
+  Exact cold restore preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; one healthy process remained with
+  zero failed or pending tasks and zero Python cognition callbacks.
+- One bounded reciprocal exchange produced four physically ordered turns. The
+  participant invitation and return each committed once despite the known
+  upstream timeout; read-back proved world revisions through `5475`, the
+  participant's exact positions, and Guala's intervening actions. The public
+  result remained `reciprocal_social_play_unproved`, so A-011.6 was not closed.
+- Live tick `113171` exposed the remaining false constraint. The changed-contact
+  affective branch discharged at motor ordinal `113163`; the retained-formation
+  branch discharged at `113166`; both carried the same exact causal action
+  receipt and contributed to the same whole-organism action and sensed
+  consequence. One embodied population action is not one motor-neuron ordinal.
+- The bounded observer therefore preserves each branch's own exact causal
+  ordering and requires the same exact causal action receipt, but no longer
+  requires both motor-neuron discharges to have the same ordinal. Changed local
+  contact, association/body participation, retained plasticity, later gradient
+  settlement, retained-formation causation, body consequence, and zero overload
+  remain mandatory. The observer adds no physics, state, persistence, scan,
+  score, semantic label, owner, lock, database, DSF change, or action authority.
+- The corrected observer compiles and the exact causal/play/public suite passes
+  `36/36`. One immutable production release and one bounded reciprocal witness
+  remain before A-011.6 can be Live-Closed. A-011.7 remains the immediate next
+  item and will not be skipped.
