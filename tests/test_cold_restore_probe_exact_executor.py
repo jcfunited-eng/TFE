@@ -168,6 +168,17 @@ def test_probe_rejects_noncanonical_artifact_coordinates_before_restore(
         probe.main()
 
 
+def test_contact_route_match_is_direction_independent_and_requires_transfer() -> None:
+    contact = frozenset({("01" * 16, "02" * 16, 3)})
+    zero_route = ("02" * 16, 4, 9, "01" * 16, 5, 7, 3, 0)
+    used_route = ("02" * 16, 4, 9, "01" * 16, 5, 7, 3, -11)
+
+    assert probe._first_nonzero_route_on_contacts((zero_route,), contact) is None
+    assert probe._first_nonzero_route_on_contacts(
+        (zero_route, used_route), contact
+    ) == used_route
+
+
 def test_probe_reads_saves_and_reobserves_without_advancing_state(
     monkeypatch,
     capsys,
@@ -182,6 +193,10 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "a0116_contact_state_sha256": "b" * 64,
         "a0116_successor_state_sha256": "c" * 64,
         "a0116_cold_restore_exact": True,
+        "a0116_contact_later_causal_use_rehearsed": True,
+        "a0116_contact_later_interval_ordinal": 2,
+        "a0116_later_causal_contact_sha256": "d" * 64,
+        "a0116_later_outward_whole_carriers": 1,
     }
     capital_proof = {
         "c024_cognitive_capital_rehearsed": True,

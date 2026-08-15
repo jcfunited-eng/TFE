@@ -725,6 +725,7 @@ if proof.get("python_callback_count") != 0:
 if (
     proof.get("a0116_contact_local_junction_rehearsed") is not True
     or proof.get("a0116_cold_restore_exact") is not True
+    or proof.get("a0116_contact_later_causal_use_rehearsed") is not True
     or not isinstance(proof.get("a0116_contact_local_interval_ordinal"), int)
     or isinstance(proof.get("a0116_contact_local_interval_ordinal"), bool)
     or not 1 <= proof["a0116_contact_local_interval_ordinal"] <= 250
@@ -732,8 +733,21 @@ if (
     or proof["a0116_contact_count"] <= 0
     or not isinstance(proof.get("a0116_changed_contact_count"), int)
     or not 0 < proof["a0116_changed_contact_count"] <= proof["a0116_contact_count"]
+    or not isinstance(proof.get("a0116_contact_later_interval_ordinal"), int)
+    or isinstance(proof.get("a0116_contact_later_interval_ordinal"), bool)
+    or not proof["a0116_contact_local_interval_ordinal"]
+    < proof["a0116_contact_later_interval_ordinal"]
+    <= 250
+    or not isinstance(proof.get("a0116_later_outward_whole_carriers"), int)
+    or isinstance(proof.get("a0116_later_outward_whole_carriers"), bool)
+    or proof["a0116_later_outward_whole_carriers"] == 0
+    or not re.fullmatch(
+        r"[0-9a-f]{64}", proof.get("a0116_later_causal_contact_sha256", "")
+    )
 ):
-    raise SystemExit("A-011.6 contact-local rehearsal did not prove retained change")
+    raise SystemExit(
+        "A-011.6 contact-local rehearsal did not prove retained causal use"
+    )
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

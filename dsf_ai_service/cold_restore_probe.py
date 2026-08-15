@@ -986,6 +986,29 @@ def _rehearse_articulation_and_self_hearing(
     }
 
 
+def _stable_contact_key(
+    first_lineage: str,
+    second_lineage: str,
+    parallel_ordinal: int,
+) -> tuple[str, str, int]:
+    if first_lineage < second_lineage:
+        return first_lineage, second_lineage, parallel_ordinal
+    return second_lineage, first_lineage, parallel_ordinal
+
+
+def _first_nonzero_route_on_contacts(
+    routes: tuple[tuple[object, ...], ...],
+    contact_keys: frozenset[tuple[str, str, int]],
+) -> tuple[object, ...] | None:
+    for route in routes:
+        if len(route) != 8:
+            raise RuntimeError("A-011.6 physical frontier route shape changed")
+        key = _stable_contact_key(str(route[0]), str(route[3]), int(route[6]))
+        if key in contact_keys and int(route[7]) != 0:
+            return route
+    return None
+
+
 def _rehearse_contact_local_junction(
     current_envelope: bytes,
     *,
@@ -1044,6 +1067,32 @@ def _rehearse_contact_local_junction(
         raise RuntimeError(
             "A-011.6 real vestibular source produced no retained contact change"
         )
+    changed_contact_keys = frozenset(
+        _stable_contact_key(str(before[0]), str(before[1]), int(before[2]))
+        for before, _after in changed
+    )
+    later_route: tuple[object, ...] | None = None
+    later_interval_ordinal = 0
+    for later_interval_ordinal, signed_step in enumerate(
+        steps[interval_ordinal:], interval_ordinal + 1
+    ):
+        candidate = organism.prepare_vestibular_tick(heading, signed_step)
+        later_route = _first_nonzero_route_on_contacts(
+            tuple(candidate.physical_frontier_routes),
+            changed_contact_keys,
+        )
+        organism.commit(candidate.token)
+        heading = (heading + signed_step) % 360_000
+        if later_route is not None:
+            break
+    if later_route is None:
+        raise RuntimeError(
+            "A-011.6 changed contact produced no later whole-carrier causal reach"
+        )
+    later_contact_key = _stable_contact_key(
+        str(later_route[0]), str(later_route[3]), int(later_route[6])
+    )
+    later_outward_whole_carriers = int(later_route[7])
     successor_envelope = bytes(organism.save())
     cold = restore_native_resident_organism(
         current_envelope=successor_envelope,
@@ -1066,6 +1115,12 @@ def _rehearse_contact_local_junction(
         ).hexdigest(),
         "a0116_successor_state_sha256": cold.readiness().state_sha256,
         "a0116_cold_restore_exact": True,
+        "a0116_contact_later_causal_use_rehearsed": True,
+        "a0116_contact_later_interval_ordinal": later_interval_ordinal,
+        "a0116_later_causal_contact_sha256": hashlib.sha256(
+            _canonical(later_contact_key)
+        ).hexdigest(),
+        "a0116_later_outward_whole_carriers": later_outward_whole_carriers,
     }
 
 

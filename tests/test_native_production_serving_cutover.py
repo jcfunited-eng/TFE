@@ -338,6 +338,10 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
             "a0116_contact_state_sha256": "b" * 64,
             "a0116_successor_state_sha256": "c" * 64,
             "a0116_cold_restore_exact": True,
+            "a0116_contact_later_causal_use_rehearsed": True,
+            "a0116_contact_later_interval_ordinal": 2,
+            "a0116_later_causal_contact_sha256": "d" * 64,
+            "a0116_later_outward_whole_carriers": 1,
         },
     )
     monkeypatch.setattr(

@@ -1272,3 +1272,66 @@ second persistence authority remain out of scope and must not be extended.
   Python deployment/cold-boundary suite passes 65/65; one initial invocation
   had only a test-harness `PYTHONPATH` shape mismatch and passed unchanged when
   rerun with the candidate wheel as one inherited path.
+
+#### Task 1073 live contact-local junction result
+
+- Production attempt 3 deployed exact commit
+  `cbe0122418c991f6430c06e0b1d3586aecbfdf15` as task
+  `dsf-ai-task:1073`, image
+  `sha256:7fb44908417b6d0181389dda965a5fd9dcee01ad9025e0cf69bb43e176d09d79`.
+  The deployment ran from `2026-08-15T17:59:42Z` through
+  `2026-08-15T18:23:52Z` (24 minutes 10 seconds).
+- The discarded-current-state rehearsal restored the authenticated production
+  predecessor exactly, changed 117 of 1,824 reached contact states on the
+  first qualifying vestibular interval, and cold-restored the resulting
+  successor exactly. The final pre-release suites passed 18/18 focused native,
+  421/421 complete native, and 65/65 selected Python deployment/cold-boundary
+  tests.
+- ECS settled at one desired/running healthy process, zero pending tasks, and
+  rollout state `COMPLETED`. The live task ARN ends
+  `ed98bc2bb5324903be19b77a0895ef57`. Migration remained disabled and organism
+  identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- Live unattended processing advanced from the rehearsal baseline tick 111845
+  to tick 111915. The observed state was 58,470,789 bytes with SHA-256
+  `ed7ee0d86c8e7ec76b30eabb2038324edc9ea2d76b6ca0bde5cc2ea01056aade`.
+  Complete-neuron and cognition mounts remained available and Python cognition
+  callbacks remained zero.
+- This live-closes only the approved contact-local state, settlement,
+  persistence, and next-interval conductance constitution. A-011.6 remains
+  open because live evidence has not yet shown that one changed contact altered
+  a later sparse whole-carrier causal reach during reciprocal activity.
+
+#### Active next item after task 1073
+
+- **Production predecessor:** task `dsf-ai-task:1073`, commit and image above.
+- **Frozen input:** one retained non-genesis contact state produced by the live
+  task-1073 junction law, followed by that same contact's next ordinary causal
+  interval.
+- **Single acceptance condition:** prove that the retained channel population
+  is the predecessor used by `settle_sparse_electrical_transfers`, and that its
+  derived conductance changes the later exact current or whole-carrier causal
+  reach. If the existing bounded native evidence already proves this, add no
+  physics. If the decisive fact is trapped behind the native observation
+  boundary, add only the smallest read-only reached-contact witness.
+- **Unchanged and out of scope:** DSF, contact constitution, gradient-direction
+  law, neuron state, formation law, reward/joy meaning, action selection,
+  curriculum, UI, owners, locks, databases, and any whole-organism scan.
+- **Current source trace:** retained local and fabric contact states are rebuilt
+  into `compact_predecessor`; `settle_contact` derives current from
+  `anatomy.effective_conductance(&predecessor)`; settled successor states are
+  written back to their exact local or fabric origin. The remaining gap is
+  direct live evidence of the later functional consequence, not a missing
+  conductance connection in source.
+- **Translation-boundary review:** no new native or Python transport field is
+  required. The existing read-only channel-state projection supplies stable
+  contact identity and retained population; the existing prepared-transition
+  projection supplies that contact's exact signed whole-carrier route. The
+  discarded rehearsal will correlate those two existing facts and fail closed
+  unless a changed contact is used by a later committed interval. This adds no
+  physics, persisted state, meaning, scan, owner, lock, or database authority.
+- **Focused pre-release result:** the route correlation and existing deployment,
+  cold-restore, isolation, migration, storage, and preflight boundaries pass
+  74/74 using the task-1073 candidate native wheel. A broader historical test
+  selection exposed five pre-existing stale-contract failures in unrelated
+  legacy/UI fixtures; none intersects this rehearsal-only diff and none was
+  patched or added to this sprint.
