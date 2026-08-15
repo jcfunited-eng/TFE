@@ -2634,13 +2634,12 @@ def _same_transition_affective_body_participation(
 ) -> dict[str, object] | None:
     """Bind one causal occurrence to its localized affect/body trajectory.
 
-    The native path lawfully spans adjacent intervals: the retained formation
-    reassembles while association and body transfers reach one layer-10 cell;
-    that cell's local gradient settles afterward; motor settlement follows.
-    Requiring a separate higher-formation relation here confuses two distinct
-    physical scales and, in live operation, discards this exact causal order.
-    The projection retains only exact clocks and receipts; it neither selects
-    an action nor calls the trajectory positive, preferred, rewarding, or fun.
+    The retained formation and one complete layer-10 affect/body trajectory
+    must each propagate by exact whole-carrier transfers to the same layer-12
+    motor discharge. Temporal proximity alone is not causal participation.
+    The projection retains only exact paths, clocks, and receipts; it neither
+    selects an action nor calls the trajectory positive, preferred, rewarding,
+    joyful, good, or fun.
     """
 
     formation_receipt = causal.get("formation_receipt_sha256")
@@ -2652,30 +2651,74 @@ def _same_transition_affective_body_participation(
     motor_ordinal = causal.get("motor_organism_tick")
     if not isinstance(motor_ordinal, int) or motor_ordinal <= reassembly_ordinal:
         return None
+    affective_cause = evidence.get("affective_motor_causal_use")
+    causal_motor = causal.get("motor_unit_recruitment")
+    affective_motor = (
+        affective_cause.get("motor_unit_recruitment")
+        if isinstance(affective_cause, dict)
+        else None
+    )
+    if (
+        not isinstance(affective_cause, dict)
+        or not isinstance(causal_motor, dict)
+        or not isinstance(affective_motor, dict)
+        or affective_cause.get("motor_organism_tick") != motor_ordinal
+        or affective_motor.get("motor_lineage") != causal_motor.get("motor_lineage")
+        or affective_cause.get("action", {}).get(
+            "causal_intent_receipt_sha256"
+        )
+        != causal.get("action", {}).get("causal_intent_receipt_sha256")
+    ):
+        return None
+    affective_lineage = affective_cause.get("affective_neuron_lineage")
+    gradient_ordinal = affective_cause.get(
+        "localized_gradient_settlement_organism_tick"
+    )
+    plasticity_ordinal = affective_cause.get(
+        "localized_plasticity_settlement_organism_tick"
+    )
+    trajectory_receipt = affective_cause.get(
+        "affective_trajectory_receipt_sha256"
+    )
+    if (
+        not isinstance(affective_lineage, str)
+        or not isinstance(gradient_ordinal, int)
+        or not isinstance(plasticity_ordinal, int)
+        or not isinstance(trajectory_receipt, str)
+    ):
+        return None
     complete = tuple(
         trajectory
         for trajectory in tuple(evidence.get("affective_balance_trajectories", ()))
         if isinstance(trajectory, (list, tuple))
-        and len(trajectory) == 6
+        and len(trajectory) == 7
+        and trajectory[0] == affective_lineage
         and trajectory[3] is not None
         and trajectory[4] is not None
         and trajectory[5] is not None
-        and trajectory[3][0] == reassembly_ordinal
-        and trajectory[4][0] == reassembly_ordinal
-        and reassembly_ordinal < trajectory[5][0] <= motor_ordinal
+        and _retained_local_plasticity(trajectory[6])
+        and trajectory[5][0] == gradient_ordinal
+        and trajectory[6][0] == plasticity_ordinal
+        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+        and trajectory[5][0] < motor_ordinal
+        and trajectory[6][0] < motor_ordinal
+        and _receipt(tuple(trajectory)) == trajectory_receipt
     )
     if not complete:
         return None
     trajectory = min(complete, key=lambda candidate: candidate[0])
-    lineage, layer, topology, association, body, gradient = trajectory
+    lineage, layer, topology, association, body, gradient, plasticity = trajectory
     occurrence_binding = (
         formation_receipt,
         reassembly_ordinal,
         motor_ordinal,
+        tuple(causal.get("directed_physical_transfers", ())),
         lineage,
         association,
         body,
         gradient,
+        plasticity,
+        tuple(affective_cause.get("directed_physical_transfers", ())),
     )
     return {
         "affective_neuron_layer": layer,
@@ -2687,9 +2730,17 @@ def _same_transition_affective_body_participation(
         "body_transfer_receipt_sha256": _receipt(body[1]),
         "localized_gradient_settlement_ordinal": gradient[0],
         "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
+        "localized_plasticity_settlement_ordinal": plasticity[0],
+        "localized_plasticity_settlement_receipt_sha256": _receipt(plasticity),
+        "affective_motor_path_receipt_sha256": _receipt(
+            tuple(affective_cause.get("directed_physical_transfers", ()))
+        ),
+        "retained_formation_motor_path_receipt_sha256": _receipt(
+            tuple(causal.get("directed_physical_transfers", ()))
+        ),
         "whole_episode_binding_receipt_sha256": _receipt(occurrence_binding),
         "trajectory_receipt_sha256": _receipt(
-            (lineage, layer, topology, association, body, gradient)
+            (lineage, layer, topology, association, body, gradient, plasticity)
         ),
     }
 
@@ -3142,11 +3193,15 @@ def _reciprocal_social_joy_section() -> dict[str, object]:
         True,
         "reciprocal_social_positive_engagement_observed",
         "an authenticated other body acted, Guala responded through her own "
-        "retained formation and affect/body physics, the other body returned, "
-        "and Guala voluntarily returned again; this is behavioral social-joy "
-        "evidence without a named emotion or claim about the other participant",
+        "retained formation and localized body/fluid/plastic physics, the other "
+        "body returned, and Guala voluntarily returned again; this is reinforced "
+        "reciprocal engagement evidence, not joy, goodness, or the other "
+        "participant's state",
         **evidence,
-        behavioral_evidence_only=True,
+        behavioral_evidence_only=False,
+        localized_physical_reinforcement_evidence=True,
+        goodness_authority=False,
+        joy_authority=False,
         named_emotion_authority=False,
         other_participant_enjoyment_authority=False,
         reward_authority=False,
@@ -3548,10 +3603,14 @@ def _affective_balance_record() -> dict[str, object]:
         (
             trajectory
             for trajectory in trajectories
-            if trajectory[3] is not None
+            if isinstance(trajectory, (list, tuple))
+            and len(trajectory) == 7
+            and trajectory[3] is not None
             and trajectory[4] is not None
             and trajectory[5] is not None
             and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+            and _retained_local_plasticity(trajectory[6])
+            and trajectory[6][0] > max(trajectory[3][0], trajectory[4][0])
         ),
         None,
     )
@@ -3568,7 +3627,8 @@ def _affective_balance_record() -> dict[str, object]:
             "layer-7 association, layer-8 body regulation, layer-10 junction, "
             "and localized membrane-gradient recovery are mounted, but this "
             "process has not yet observed both physical influences followed "
-            "by a later nonzero local gradient settlement on the same cell",
+            "by a later nonzero local gradient and retained plastic settlement "
+            "on the same cell",
             evidence_scope=(
                 "latest_tested_physical_event"
                 if retained_test is not None
@@ -3576,7 +3636,7 @@ def _affective_balance_record() -> dict[str, object]:
             ),
             **authority,
         )
-    lineage, layer, topology, association, body, gradient = complete
+    lineage, layer, topology, association, body, gradient, plasticity = complete
 
     def transfer_record(
         timed: tuple[int, tuple[str, str, int, int]], source_layer: int
@@ -3596,11 +3656,12 @@ def _affective_balance_record() -> dict[str, object]:
 
     return _section(
         True,
-        "body_association_perturbation_followed_by_local_gradient_recovery",
+        "body_association_perturbation_followed_by_local_gradient_and_plastic_return",
         "the same physical layer-10 cell received exact association and body "
         "contact consequences and, at a strictly later cognitive ordinal, "
         "its own localized recovery-fluid compartment moved its retained "
-        "membrane gradient; this is affective-balance physics, not a named "
+        "membrane gradient and plastic support geometry; this is affective-"
+        "balance physics, not a named "
         "emotion, preference, reward, or score",
         evidence_scope=(
             "latest_tested_physical_event"
@@ -3630,6 +3691,30 @@ def _affective_balance_record() -> dict[str, object]:
                 ),
                 "environment_heat_exported_zeptojoules": rational_record(
                     gradient[9]
+                ),
+            },
+            "localized_plasticity_settlement": {
+                "cognitive_ordinal": plasticity[0],
+                "incident_catalyst_quanta": plasticity[1],
+                "reaction_extent": plasticity[2],
+                "delivered_energy_zeptojoules": rational_record(plasticity[3]),
+                "predecessor_gate_work_residue_zeptojoules": rational_record(
+                    plasticity[4]
+                ),
+                "successor_gate_work_residue_zeptojoules": rational_record(
+                    plasticity[5]
+                ),
+                "predecessor_plastic_rest_length_nanometres": rational_record(
+                    plasticity[6]
+                ),
+                "successor_plastic_rest_length_nanometres": rational_record(
+                    plasticity[7]
+                ),
+                "predecessor_reservoir": tuple(
+                    rational_record(value) for value in plasticity[8]
+                ),
+                "successor_reservoir": tuple(
+                    rational_record(value) for value in plasticity[9]
                 ),
             },
         },
@@ -6787,6 +6872,76 @@ def _advance_bounded_prediction_evidence(
     return next_alternatives, next_consequence
 
 
+def _retained_local_plasticity(plasticity: Any) -> bool:
+    """Validate one bounded native local-fluid/plastic return observation."""
+
+    if not isinstance(plasticity, (list, tuple)) or len(plasticity) != 10:
+        return False
+    (
+        ordinal,
+        incident_catalyst,
+        reaction_extent,
+        delivered,
+        _predecessor_residue,
+        _successor_residue,
+        predecessor_rest,
+        successor_rest,
+        predecessor_reservoir,
+        successor_reservoir,
+    ) = plasticity
+    def positive_count(value: Any) -> bool:
+        return (
+            isinstance(value, int)
+            and not isinstance(value, bool)
+            and value > 0
+        ) or (
+            isinstance(value, str)
+            and value.isdigit()
+            and int(value) > 0
+        )
+
+    if (
+        not isinstance(ordinal, int)
+        or ordinal < 0
+        or not positive_count(incident_catalyst)
+        or not positive_count(reaction_extent)
+        or predecessor_rest == successor_rest
+    ):
+        return False
+
+    def exact(value: Any) -> Fraction | None:
+        if (
+            not isinstance(value, (list, tuple))
+            or len(value) != 2
+            or not isinstance(value[0], int)
+            or not isinstance(value[1], int)
+            or value[1] <= 0
+        ):
+            return None
+        return Fraction(value[0], value[1])
+
+    if (
+        not isinstance(predecessor_reservoir, (list, tuple))
+        or len(predecessor_reservoir) != 3
+        or not isinstance(successor_reservoir, (list, tuple))
+        or len(successor_reservoir) != 3
+    ):
+        return False
+    delivered_energy = exact(delivered)
+    predecessor = tuple(exact(value) for value in predecessor_reservoir)
+    successor = tuple(exact(value) for value in successor_reservoir)
+    return (
+        delivered_energy is not None
+        and delivered_energy > 0
+        and len(predecessor) == 3
+        and len(successor) == 3
+        and all(value is not None for value in predecessor + successor)
+        and predecessor[0] - successor[0] == delivered_energy
+        and successor[1] - predecessor[1] == delivered_energy
+        and predecessor[2] == successor[2]
+    )
+
+
 def _advance_bounded_affective_balance_evidence(
     retained: tuple[tuple[Any, ...], ...],
     hop: dict[str, Any],
@@ -6795,15 +6950,27 @@ def _advance_bounded_affective_balance_evidence(
 
     by_lineage = {entry[0]: entry for entry in retained}
     for observed in tuple(hop["affective_balance_trajectories"]):
-        lineage, layer, topology, association, body, gradient = observed
+        if not isinstance(observed, (list, tuple)) or len(observed) != 7:
+            continue
+        lineage, layer, topology, association, body, gradient, plasticity = observed
         prior = by_lineage.get(lineage)
         if prior is not None:
-            _, prior_layer, prior_topology, prior_association, prior_body, prior_gradient = prior
+            (
+                _,
+                prior_layer,
+                prior_topology,
+                prior_association,
+                prior_body,
+                prior_gradient,
+                prior_plasticity,
+            ) = prior
             if (layer, topology) != (prior_layer, prior_topology):
                 raise RuntimeError("affective-balance lineage changed physical place")
             association = prior_association or association
             body = prior_body or body
             gradient = prior_gradient or gradient
+            if not _retained_local_plasticity(plasticity):
+                plasticity = prior_plasticity
         influence_ordinal = (
             max(association[0], body[0])
             if association is not None and body is not None
@@ -6825,6 +6992,12 @@ def _advance_bounded_affective_balance_evidence(
             )
         ):
             gradient = observed_gradient
+        observed_plasticity = observed[6]
+        if (
+            not _retained_local_plasticity(plasticity)
+            and _retained_local_plasticity(observed_plasticity)
+        ):
+            plasticity = observed_plasticity
         by_lineage[lineage] = (
             lineage,
             layer,
@@ -6832,6 +7005,7 @@ def _advance_bounded_affective_balance_evidence(
             association,
             body,
             gradient,
+            plasticity,
         )
     return tuple(by_lineage[lineage] for lineage in sorted(by_lineage))
 
@@ -6904,13 +7078,17 @@ def _advance_causal_motor_traces(
 
     Every prepared hop must represent exactly one physical interval; otherwise
     the Python boundary cannot observe the intervening frontiers and makes no
-    causal claim. Neither a retained formation nor a new neuronal impression
-    becomes settlement authority: this observer follows only whole-carrier
-    transfers already present in the native active frontier. Both origin kinds
-    share one union query per hop.
+    causal claim. Neither a retained formation, a new neuronal impression, nor
+    an affective trajectory becomes settlement authority: this observer follows
+    only whole-carrier transfers already present in the native active frontier.
+    All origin kinds share one union query per hop.
     """
 
-    origin_kinds = ("retained_formation", "new_neuronal_fractal")
+    origin_kinds = (
+        "retained_formation",
+        "new_neuronal_fractal",
+        "affective_gradient",
+    )
     if all(kind in completed for kind in origin_kinds):
         return active, completed
     predecessor_tick = int(hop["predecessor_organism_tick"])
@@ -7022,6 +7200,23 @@ def _advance_causal_motor_traces(
                         internal_cue_lineages=origin_lineages,
                         recurrence_organism_tick=origin_tick,
                     )
+                elif origin_kind == "affective_gradient":
+                    proof["motor_unit_recruitment"][
+                        "matched_preparation_transfer"
+                    ] = (
+                        sender,
+                        sender_layer,
+                        receiver,
+                        receiver_layer,
+                        ordinal,
+                        carriers,
+                    )
+                    proof.update(
+                        affective_neuron_lineage=origin_lineages[0],
+                        affective_trajectory_receipt_sha256=origin_receipt,
+                        localized_gradient_settlement_organism_tick=origin_tick,
+                        localized_plasticity_settlement_organism_tick=origin_tick,
+                    )
                 else:
                     proof["motor_unit_recruitment"][
                         "matched_preparation_transfer"
@@ -7067,6 +7262,41 @@ def _advance_causal_motor_traces(
         if emitted:
             key = ("new_neuronal_fractal", "", emitted, organism_tick)
             advanced.setdefault(key, {lineage: () for lineage in emitted})
+    if "affective_gradient" not in next_completed:
+        for trajectory in tuple(hop.get("affective_balance_trajectories", ())):
+            if not isinstance(trajectory, (list, tuple)) or len(trajectory) != 7:
+                continue
+            (
+                lineage,
+                layer,
+                _topology,
+                association,
+                body,
+                gradient,
+                plasticity,
+            ) = trajectory
+            if (
+                layer != 10
+                or not isinstance(lineage, str)
+                or not isinstance(association, (list, tuple))
+                or not isinstance(body, (list, tuple))
+                or not isinstance(gradient, (list, tuple))
+                or len(association) != 2
+                or len(body) != 2
+                or len(gradient) != 10
+                or gradient[0] != organism_tick
+                or gradient[0] <= max(association[0], body[0])
+                or not _retained_local_plasticity(plasticity)
+                or plasticity[0] != organism_tick
+            ):
+                continue
+            key = (
+                "affective_gradient",
+                _receipt(tuple(trajectory)),
+                (lineage,),
+                organism_tick,
+            )
+            advanced.setdefault(key, {lineage: ()})
     return advanced, next_completed
 
 
@@ -7903,6 +8133,9 @@ def _perform_admitted_intake_locked(
                 "new_neuronal_fractal_motor_path": (
                     completed_causal_motor_traces.get("new_neuronal_fractal")
                 ),
+                "affective_gradient_motor_path": (
+                    completed_causal_motor_traces.get("affective_gradient")
+                ),
                 "sensory_consequence": action_consequence,
             }
             _last_self_moved = dict(motor_action)
@@ -7935,6 +8168,9 @@ def _perform_admitted_intake_locked(
     )
     new_neuronal_fractal_motor_path = completed_causal_motor_traces.get(
         "new_neuronal_fractal"
+    )
+    affective_motor_path = completed_causal_motor_traces.get(
+        "affective_gradient"
     )
     causal_cross_context_use: dict[str, Any] | None = None
     if motor_action is not None and internally_reassembled_motor_path is not None:
@@ -7992,6 +8228,34 @@ def _perform_admitted_intake_locked(
                 "successor_state_sha256": last_hop["state_sha256"],
             },
         }
+    affective_motor_causal_use: dict[str, Any] | None = None
+    if motor_action is not None and affective_motor_path is not None:
+        affective_motor_causal_use = {
+            **affective_motor_path,
+            "action": {
+                "causal_intent_receipt_sha256": motor_action[
+                    "causal_intent_receipt_sha256"
+                ],
+                "command_sha256": motor_action["command_sha256"],
+                "observed_world_revision": motor_action[
+                    "observed_world_revision"
+                ],
+                "world_state_after_sha256": motor_action[
+                    "world_state_after_sha256"
+                ],
+                "world_state_before_sha256": motor_action[
+                    "world_state_before_sha256"
+                ],
+            },
+            "sensed_consequence": {
+                "vestibular_tick_count": motor_action["vestibular_tick_count"],
+                "externally_perturbed_body_receptor_count": last_hop[
+                    "externally_perturbed_body_receptor_count"
+                ],
+                "successor_organism_tick": last_hop["organism_tick"],
+                "successor_state_sha256": last_hop["state_sha256"],
+            },
+        }
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
@@ -8000,6 +8264,7 @@ def _perform_admitted_intake_locked(
         "motor_action": motor_action,
         "causal_cross_context_use": causal_cross_context_use,
         "new_impression_causal_use": new_impression_causal_use,
+        "affective_motor_causal_use": affective_motor_causal_use,
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,
@@ -8098,10 +8363,13 @@ def _perform_admitted_intake_locked(
     complete_affective_balance = tuple(
         trajectory
         for trajectory in affective_balance_trajectories
-        if trajectory[3] is not None
+        if len(trajectory) == 7
+        and trajectory[3] is not None
         and trajectory[4] is not None
         and trajectory[5] is not None
         and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
+        and _retained_local_plasticity(trajectory[6])
+        and trajectory[6][0] > max(trajectory[3][0], trajectory[4][0])
     )
     if complete_affective_balance:
         _last_tested_affective_balance_evidence = {

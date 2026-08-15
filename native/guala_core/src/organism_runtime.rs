@@ -152,6 +152,26 @@ type LocalAffectiveGradientSettlementProjection = (
     ExactRationalProjection,
     ExactRationalProjection,
 );
+type LocalAffectivePlasticitySettlementProjection = (
+    u64,
+    String,
+    String,
+    ExactRationalProjection,
+    ExactRationalProjection,
+    ExactRationalProjection,
+    ExactRationalProjection,
+    ExactRationalProjection,
+    (
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+    ),
+    (
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+    ),
+);
 type AffectiveBalanceTrajectoryProjection = (
     String,
     u32,
@@ -159,6 +179,7 @@ type AffectiveBalanceTrajectoryProjection = (
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<LocalAffectiveGradientSettlementProjection>,
+    Option<LocalAffectivePlasticitySettlementProjection>,
 );
 type LocalizedFluidChemistryProjection = (
     String,
@@ -4663,6 +4684,28 @@ fn project_affective_balance_trajectories(
                         rational(gradient.membrane_gradient_work_zeptojoules),
                         rational(gradient.environment_energy_delivered_zeptojoules),
                         rational(gradient.environment_heat_exported_zeptojoules),
+                    )
+                }),
+                trajectory.localized_plasticity_settlement.map(|plasticity| {
+                    (
+                        plasticity.cognitive_ordinal,
+                        plasticity.incident_catalyst_quanta.to_string(),
+                        plasticity.reaction_extent.to_string(),
+                        rational(plasticity.delivered_energy_zeptojoules),
+                        rational(plasticity.predecessor_gate_work_residue_zeptojoules),
+                        rational(plasticity.successor_gate_work_residue_zeptojoules),
+                        rational(plasticity.predecessor_plastic_rest_length_nanometres),
+                        rational(plasticity.successor_plastic_rest_length_nanometres),
+                        (
+                            rational(plasticity.predecessor_reservoir.0),
+                            rational(plasticity.predecessor_reservoir.1),
+                            rational(plasticity.predecessor_reservoir.2),
+                        ),
+                        (
+                            rational(plasticity.successor_reservoir.0),
+                            rational(plasticity.successor_reservoir.1),
+                            rational(plasticity.successor_reservoir.2),
+                        ),
                     )
                 }),
             )

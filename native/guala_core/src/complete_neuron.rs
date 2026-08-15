@@ -1233,13 +1233,15 @@ pub(crate) struct NeuronPhysicalState {
     pub(crate) recovery: RecoveryState,
     pub(crate) dna_expression: DnaExpressionState,
     pub(crate) plastic: PlasticSupportState,
-    /// Retained receptor transduction residue (2026-08-05 ratified quantized
-    /// delivery law, extended to sound by the 2026-08-06 auditory design):
-    /// the exact-rational remainder of the continuous transduced-energy
-    /// integral — `2·L·T` for light, `K·∫s²dt` for sound — not yet delivered
-    /// on the receiving gate's own dissipation lattice.  ONE field per site,
-    /// because a site belongs to exactly one sense.  Same retained-residue
-    /// discipline as the charge-carrier phases.
+    /// Retained local gate-work residue. For a receptor cell this is the
+    /// exact-rational remainder of its continuous transduced-energy integral
+    /// — `2·L·T` for light, `K·∫s²dt` for sound — not yet delivered on the
+    /// receiving gate's own dissipation lattice. For an intrinsic cell it may
+    /// also retain exact local fluid work whose reaction was catalysed by real
+    /// incident contact carriers. Both sources use this ONE physical energy
+    /// accumulator and the same gate-energy lattice; no second eligibility,
+    /// reward, or semantic state exists. Same retained-residue discipline as
+    /// the charge-carrier phases.
     ///
     /// BOUND (re-measured 2026-08-06; the previous comment here claimed
     /// `[0, gate dissipation quantum)` and was STALE — it described the law
@@ -5924,6 +5926,64 @@ mod tests {
 
     fn physical_fixtures<const N: usize>() -> [Fixture; N] {
         std::array::from_fn(|index| physical_fixture_at(index as u32))
+    }
+
+    #[test]
+    fn retained_plastic_geometry_changes_later_gate_free_energy() {
+        let shared = shared_field();
+        let fixture = physical_fixture();
+        let perspective = bind_isolated_neuron_perspective(&shared, 1).unwrap();
+        let delivered =
+            settle_shared_dsf_mathloom(perspective, fixture.anatomy.mathloom).unwrap();
+        let psi = settle_psi_krimelack(
+            &fixture.anatomy.psi,
+            &fixture.state.psi,
+            &delivered,
+        )
+        .unwrap();
+        let zero_work = GateWorkOccurrence::new(Exact::zero());
+        let genesis_barrier = gate_open_minus_closed_free_energy(
+            &fixture.anatomy.gate,
+            &fixture.anatomy.plastic,
+            &fixture.state.plastic,
+            fixture.state.membrane,
+            fixture.anatomy.capacitance,
+            &psi.successor,
+            &zero_work,
+        )
+        .unwrap();
+        let mut retained = fixture.state.clone();
+        retained.plastic =
+            PlasticSupportState::from_physical_parts(r(4, 3), 0, r(0, 1)).unwrap();
+        let retained_barrier = gate_open_minus_closed_free_energy(
+            &fixture.anatomy.gate,
+            &fixture.anatomy.plastic,
+            &retained.plastic,
+            retained.membrane,
+            fixture.anatomy.capacitance,
+            &psi.successor,
+            &zero_work,
+        )
+        .unwrap();
+
+        assert_ne!(genesis_barrier, retained_barrier);
+        let genesis_window = gate_opening_quantum_window(
+            &fixture.anatomy,
+            &fixture.state,
+            bind_isolated_neuron_perspective(&shared, 1).unwrap(),
+        )
+        .unwrap();
+        let retained_window = gate_opening_quantum_window(
+            &fixture.anatomy,
+            &retained,
+            bind_isolated_neuron_perspective(&shared, 1).unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            genesis_window.opening_threshold_quanta,
+            retained_window.opening_threshold_quanta
+        );
     }
 
     #[test]

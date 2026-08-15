@@ -95,14 +95,16 @@ use crate::reached_neuron_cohort::{
     legacy_receptor_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     settle_reached_cohort_dark_rest, settle_reached_cohort_interval,
-    settle_reached_cohort_membrane_pumps, widen_reached_cohort_state_contacts,
-    LocalizedFluidChemistrySettlement, ReachedCohortAnatomy, ReachedCohortEnergyState,
-    ReachedCohortError, ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
-    ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement, ReachedCohortState,
-    ReachedNeuronGenesisCell, ReachedNeuronMount, RestReachedCohortState,
+    settle_reached_cohort_membrane_pumps, settle_contact_modulated_gate_energy,
+    widen_reached_cohort_state_contacts, LocalizedFluidChemistrySettlement,
+    ReachedCohortAnatomy, ReachedCohortEnergyState, ReachedCohortError,
+    ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
+    ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement,
+    ReachedCohortState, ReachedNeuronGenesisCell, ReachedNeuronMount, RestReachedCohortState,
 };
 use crate::receptor_quantum_delivery::{
-    big_to_exact_rational, quantize_population_receptor_delivery,
+    big_to_exact_rational, exact_rational_to_big, quantize_population_receptor_delivery,
+    quantize_receptor_delivery, ReceptorDeliveryError,
 };
 use crate::resident_electrical_fabric::ResidentElectricalFabric;
 use crate::resident_receptor_transition::ResidentVestibularIngress;
@@ -585,6 +587,25 @@ pub(crate) struct LocalAffectiveGradientSettlementObservation {
     pub(crate) environment_heat_exported_zeptojoules: ExactRational,
 }
 
+/// One exact pathway-local physiological modulation. Incident whole carriers
+/// provide catalyst to the already-mounted gate fluid contact; the finite
+/// recovery reservoir supplies the energy; the ordinary gate and plastic
+/// return map decide whether anything is retained. This is neither reward nor
+/// named chemistry.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct LocalAffectivePlasticitySettlementObservation {
+    pub(crate) cognitive_ordinal: u64,
+    pub(crate) incident_catalyst_quanta: u128,
+    pub(crate) reaction_extent: u128,
+    pub(crate) delivered_energy_zeptojoules: ExactRational,
+    pub(crate) predecessor_gate_work_residue_zeptojoules: ExactRational,
+    pub(crate) successor_gate_work_residue_zeptojoules: ExactRational,
+    pub(crate) predecessor_plastic_rest_length_nanometres: ExactRational,
+    pub(crate) successor_plastic_rest_length_nanometres: ExactRational,
+    pub(crate) predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) successor_reservoir: (ExactRational, ExactRational, ExactRational),
+}
+
 /// A bounded read-only trajectory witness for one physical layer-10 cell.
 /// Association, body, and local recovery facts may arrive in different
 /// causal intervals and are merged only by the same stable lineage outside
@@ -596,6 +617,8 @@ pub(crate) struct AffectiveBalanceTrajectoryObservation {
     pub(crate) association_influence: Option<TimedDirectedPhysicalTransferObservation>,
     pub(crate) body_influence: Option<TimedDirectedPhysicalTransferObservation>,
     pub(crate) localized_gradient_settlement: Option<LocalAffectiveGradientSettlementObservation>,
+    pub(crate) localized_plasticity_settlement:
+        Option<LocalAffectivePlasticitySettlementObservation>,
 }
 
 /// One exact local recovery-fluid/membrane settlement mapped back to its
@@ -9116,6 +9139,20 @@ struct ReachedLayerTenGradientSettlement {
     metabolic: ReachedCohortMetabolicObservation,
 }
 
+#[derive(Clone)]
+struct PendingLayerTenPlasticitySettlement {
+    neuron_lineage: [u8; 16],
+    cognitive_ordinal: u64,
+    incident_catalyst_quanta: u128,
+    reaction_extent: u128,
+    delivered_energy_zeptojoules: ExactRational,
+    predecessor_gate_work_residue_zeptojoules: ExactRational,
+    successor_gate_work_residue_zeptojoules: ExactRational,
+    predecessor_plastic_rest_length_nanometres: ExactRational,
+    predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
+    successor_reservoir: (ExactRational, ExactRational, ExactRational),
+}
+
 fn stable_bond_for_next_edge(
     edges: &[ResidentContactEdge],
     first: [u8; 16],
@@ -9544,6 +9581,58 @@ fn settle_internal_contact_interval(
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
 
+    // Preserve exact pathway-local contact activity before the endpoint
+    // consequences are applied. A layer-10 cell qualifies for local fluid
+    // modulation only when this same interval physically reaches it from
+    // both its association (layer 7) and body-regulation (layer 8) contacts.
+    // Magnitudes are catalyst quanta; direction is preserved separately by
+    // the settled transfer evidence and is not converted into valence.
+    let mut layer_ten_contact_activity =
+        Vec::<([u8; 16], u128, u128)>::new();
+    for (transition, (left_flat, right_flat)) in settled
+        .transitions
+        .iter()
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
+        let magnitude = transition
+            .outward_elementary_charges_from_left
+            .unsigned_abs();
+        if magnitude == 0 {
+            continue;
+        }
+        for (candidate_flat, adjacent_flat) in
+            [(left_flat, right_flat), (right_flat, left_flat)]
+        {
+            let candidate = flat_locations[candidate_flat].2;
+            if layer_of(candidate) != Some(10) {
+                continue;
+            }
+            let adjacent_layer = layer_of(flat_locations[adjacent_flat].2);
+            if !matches!(adjacent_layer, Some(7 | 8)) {
+                continue;
+            }
+            let index = match layer_ten_contact_activity
+                .iter()
+                .position(|(lineage, _, _)| *lineage == candidate)
+            {
+                Some(index) => index,
+                None => {
+                    layer_ten_contact_activity.push((candidate, 0, 0));
+                    layer_ten_contact_activity.len() - 1
+                }
+            };
+            let target = if adjacent_layer == Some(7) {
+                &mut layer_ten_contact_activity[index].1
+            } else {
+                &mut layer_ten_contact_activity[index].2
+            };
+            *target = target
+                .checked_add(magnitude)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+        }
+    }
+    layer_ten_contact_activity.sort_unstable_by_key(|(lineage, _, _)| *lineage);
+
     let mut pre_field = Vec::with_capacity(selected.len());
     let mut post_field = Vec::with_capacity(selected.len());
     let mut coordinate_bounds = Vec::with_capacity(selected.len());
@@ -9784,6 +9873,7 @@ fn settle_internal_contact_interval(
                 Vec<MotorUnitRecruitment>,
                 Vec<ArticulatoryUnitRecruitment>,
                 Vec<EmittedNeuronFractal>,
+                Vec<PendingLayerTenPlasticitySettlement>,
             )>,
             FormationError,
         > {
@@ -9857,22 +9947,6 @@ fn settle_internal_contact_interval(
                         vec![0; anatomy.recovery_anatomy().psi_lane_count()].into_boxed_slice()
                     })
             .collect::<Vec<Box<[u128]>>>();
-        let inputs = selected_members
-            .iter()
-            .map(|(coordinate, neuron_index)| {
-                let perspective = bind_neuron_perspective(&shared, *coordinate, 0)
-                    .map_err(FormationError::JointFieldUnavailable)?;
-                Ok(NeuronIntervalInput {
-                    perspective,
-                    gate_work: GateWorkOccurrence::new(BigRational::zero()),
-                    interval_microseconds,
-                    recovery: RecoveryContact::new(&catalysts[*neuron_index], 0, 0),
-                    dna_expression: DnaExpressionContact::new(0),
-                    receptor_successor_residue: None,
-                    prepared_psi: None,
-                })
-            })
-            .collect::<Result<Vec<_>, FormationError>>()?;
         let resident_indices = selected_members
             .iter()
             .map(|(_, neuron_index)| *neuron_index)
@@ -9883,6 +9957,113 @@ fn settle_internal_contact_interval(
                         settled.outward_elementary_charges_by_neuron[*coordinate]
                     })
             .collect::<Vec<_>>();
+        let mut settlement_predecessor = cohort.state.clone();
+        let mut inputs = Vec::with_capacity(selected_members.len());
+        let mut pending_layer_ten_plasticity = Vec::new();
+        for (coordinate, neuron_index) in selected_members.iter().copied() {
+            let perspective = bind_neuron_perspective(&shared, coordinate, 0)
+                .map_err(FormationError::JointFieldUnavailable)?;
+            let prepared_psi = cohort.anatomy.neuron_anatomies()[neuron_index]
+                .prepare_psi_settlement(
+                    &settlement_predecessor.neurons()[neuron_index],
+                    perspective,
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })?;
+            let lineage = cohort.anatomy.neuron_lineages()[neuron_index];
+            let convergent_activity = match layer_ten_contact_activity
+                .binary_search_by_key(&lineage, |(candidate, _, _)| *candidate)
+            {
+                Ok(index) => {
+                    let (_, association, body) = layer_ten_contact_activity[index];
+                    if association != 0 && body != 0 {
+                        Some(
+                            association
+                                .checked_add(body)
+                                .ok_or(FormationError::ArithmeticOverflow)?,
+                        )
+                    } else {
+                        None
+                    }
+                }
+                Err(_) => None,
+            };
+            let gradient_changed = reached_layer_ten_gradient_settlements.iter().any(
+                |gradient| gradient.neuron_lineage == lineage && gradient.metabolic.changed(),
+            );
+            let (gate_work, receptor_successor_residue) = if cohort
+                .anatomy
+                .mounts()[neuron_index]
+                .place()
+                .layer()
+                == 10
+                && gradient_changed
+                && convergent_activity.is_some()
+            {
+                let predecessor_neuron = &settlement_predecessor.neurons()[neuron_index];
+                let incident_catalyst_quanta = convergent_activity
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let energetic = settle_contact_modulated_gate_energy(
+                    &cohort.anatomy,
+                    &settlement_predecessor,
+                    neuron_index,
+                    incident_catalyst_quanta,
+                )
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                let window = gate_opening_quantum_window_with_psi(
+                    &cohort.anatomy.neuron_anatomies()[neuron_index],
+                    predecessor_neuron,
+                    &prepared_psi,
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })?;
+                let delivery = quantize_receptor_delivery(
+                    &exact_rational_to_big(energetic.delivered_energy_zeptojoules),
+                    predecessor_neuron.receptor_quantum_residue,
+                    cohort.anatomy.neuron_anatomies()[neuron_index]
+                        .gate_dissipation_quantum_zeptojoules(),
+                    window.opening_threshold_quanta,
+                    window.window_cap_quanta,
+                )
+                .map_err(FormationError::LocalGateWorkUnavailable)?;
+                pending_layer_ten_plasticity.push(PendingLayerTenPlasticitySettlement {
+                    neuron_lineage: lineage,
+                    cognitive_ordinal,
+                    incident_catalyst_quanta: energetic.incident_catalyst_quanta,
+                    reaction_extent: energetic.reaction_extent,
+                    delivered_energy_zeptojoules: energetic.delivered_energy_zeptojoules,
+                    predecessor_gate_work_residue_zeptojoules: predecessor_neuron
+                        .receptor_quantum_residue,
+                    successor_gate_work_residue_zeptojoules: delivery.successor_residue,
+                    predecessor_plastic_rest_length_nanometres: predecessor_neuron
+                        .plastic
+                        .rest_length_nanometres(),
+                    predecessor_reservoir: energetic.predecessor_reservoir,
+                    successor_reservoir: energetic.successor_reservoir,
+                });
+                settlement_predecessor = energetic.successor;
+                (delivery.gate_work, Some(delivery.successor_residue))
+            } else {
+                (GateWorkOccurrence::new(BigRational::zero()), None)
+            };
+            inputs.push(NeuronIntervalInput {
+                perspective,
+                gate_work,
+                interval_microseconds,
+                recovery: RecoveryContact::new(&catalysts[neuron_index], 0, 0),
+                dna_expression: DnaExpressionContact::new(0),
+                receptor_successor_residue,
+                prepared_psi: Some(prepared_psi),
+            });
+        }
         // A layer-12 motor cell emits through its exact outward membrane
         // carrier discharge. Gate conformation is upstream channel anatomy;
         // requiring a newly opened local gate made an already-conducting
@@ -9979,7 +10160,11 @@ fn settle_internal_contact_interval(
         // a later exact neuron-local quiescent interval. Cross-cohort current
         // therefore cannot bypass the post-quiescence fractal law.
                 let settlement =
-                    settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
+                    settle_reached_cohort_interval(
+                        &cohort.anatomy,
+                        &settlement_predecessor,
+                        input,
+                    )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
         let retained_change_this_interval = interval_predecessor_state
             .neurons()
@@ -10088,6 +10273,7 @@ fn settle_internal_contact_interval(
             motor_unit_recruitments,
             articulatory_unit_recruitments,
             cohort_fractals,
+            pending_layer_ten_plasticity,
         )))
             },
         )
@@ -10096,12 +10282,14 @@ fn settle_internal_contact_interval(
     let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
     let mut transition_predecessors = Vec::new();
+    let mut layer_ten_plasticity_settlements = Vec::new();
     for result in cohort_results {
         if let Some((
             changed_predecessors,
             cohort_motor_recruitments,
             cohort_articulatory_recruitments,
             cohort_fractals,
+            cohort_layer_ten_plasticity,
         )) = result?
         {
             for predecessor in changed_predecessors {
@@ -10114,6 +10302,7 @@ fn settle_internal_contact_interval(
             motor_unit_recruitments.extend(cohort_motor_recruitments);
             articulatory_unit_recruitments.extend(cohort_articulatory_recruitments);
             emitted_neuron_fractals.extend(cohort_fractals);
+            layer_ten_plasticity_settlements.extend(cohort_layer_ten_plasticity);
         }
     }
     let mut affective_balance_trajectories = Vec::new();
@@ -10173,6 +10362,36 @@ fn settle_internal_contact_interval(
         }
         association_influences.sort_unstable();
         body_influences.sort_unstable();
+        let localized_plasticity_settlement = layer_ten_plasticity_settlements
+            .iter()
+            .find(|settlement| settlement.neuron_lineage == gradient.neuron_lineage)
+            .map(|settlement| {
+                let successor_plastic_rest_length_nanometres = flat_locations
+                    .iter()
+                    .find(|(_, _, lineage)| *lineage == settlement.neuron_lineage)
+                    .map(|(cohort_index, neuron_index, _)| {
+                        cohorts[*cohort_index].state.neurons()[*neuron_index]
+                            .plastic
+                            .rest_length_nanometres()
+                    })
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                Ok(LocalAffectivePlasticitySettlementObservation {
+                    cognitive_ordinal: settlement.cognitive_ordinal,
+                    incident_catalyst_quanta: settlement.incident_catalyst_quanta,
+                    reaction_extent: settlement.reaction_extent,
+                    delivered_energy_zeptojoules: settlement.delivered_energy_zeptojoules,
+                    predecessor_gate_work_residue_zeptojoules: settlement
+                        .predecessor_gate_work_residue_zeptojoules,
+                    successor_gate_work_residue_zeptojoules: settlement
+                        .successor_gate_work_residue_zeptojoules,
+                    predecessor_plastic_rest_length_nanometres: settlement
+                        .predecessor_plastic_rest_length_nanometres,
+                    successor_plastic_rest_length_nanometres,
+                    predecessor_reservoir: settlement.predecessor_reservoir,
+                    successor_reservoir: settlement.successor_reservoir,
+                })
+            })
+            .transpose()?;
         affective_balance_trajectories.push(AffectiveBalanceTrajectoryObservation {
             neuron_lineage: gradient.neuron_lineage,
             neuron_place: gradient.neuron_place,
@@ -10200,6 +10419,7 @@ fn settle_internal_contact_interval(
                         .environment_heat_exported_zeptojoules,
                 },
             ),
+            localized_plasticity_settlement,
         });
     }
     affective_balance_trajectories.sort_unstable_by_key(|entry| entry.neuron_lineage);
@@ -10888,6 +11108,7 @@ pub(crate) enum FormationError {
     TactileWorkUnavailable(TactileReceptorWorkError),
     ChemicalWorkUnavailable(ChemicalReceptorWorkError),
     ArticulatoryWorkUnavailable(ArticulatoryReceptorWorkError),
+    LocalGateWorkUnavailable(ReceptorDeliveryError),
     PhysicalSettlementUnavailable(ReachedCohortError),
     ResidentElectricalUnavailable(SparseElectricalError),
     InternalMembraneUnavailable(MembraneChargeError),
@@ -10960,6 +11181,9 @@ impl fmt::Display for FormationError {
                 output,
                 "exact articulatory body receptor work is unavailable: {error:?}"
             ),
+            Self::LocalGateWorkUnavailable(error) => {
+                write!(output, "exact local gate work is unavailable: {error:?}")
+            }
             Self::PhysicalSettlementUnavailable(error) => {
                 write!(output, "resident physical neuron settlement is unavailable: {error:?}")
             }
@@ -13659,6 +13883,149 @@ mod tests {
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
             resting_before - 1
+        );
+    }
+
+    #[test]
+    fn reached_affective_cell_exposes_its_existing_local_plastic_consequence() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[association, regulation],
+        )
+        .unwrap();
+        let affective = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find(|(mount, _)| mount.place().layer() == 10)
+            .map(|(_, lineage)| *lineage)
+            .unwrap();
+        let plastic = |cohorts: &[ResidentReachedCohort]| {
+            cohorts
+                .iter()
+                .flat_map(|cohort| {
+                    cohort
+                        .state
+                        .neurons()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                })
+                .find(|(_, lineage)| **lineage == affective)
+                .map(|(neuron, _)| neuron.plastic.physical_parts())
+                .unwrap()
+        };
+        let predecessor = plastic(&cohorts);
+        let participant_plastic = |lineage: [u8; 16], cohorts: &[ResidentReachedCohort]| {
+            cohorts
+                .iter()
+                .flat_map(|cohort| {
+                    cohort
+                        .state
+                        .neurons()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                })
+                .find(|(_, candidate)| **candidate == lineage)
+                .map(|(neuron, _)| neuron.plastic.physical_parts())
+                .unwrap()
+        };
+        let association_predecessor = participant_plastic(association, &cohorts);
+        let regulation_predecessor = participant_plastic(regulation, &cohorts);
+        let mut transitioned = Vec::new();
+        let mut retained_settlement = None;
+        for ordinal in 1..=128 {
+            let observation = settle_internal_contact_interval(
+                &mut cohorts,
+                &mut fabric,
+                &[association, regulation],
+                &[association, regulation],
+                &mut transitioned,
+                ordinal,
+                0,
+            )
+            .unwrap();
+            if let Some(plasticity) = observation
+                .affective_balance_trajectories
+                .iter()
+                .find(|trajectory| trajectory.neuron_lineage == affective)
+                .and_then(|trajectory| trajectory.localized_plasticity_settlement)
+            {
+                assert!(plasticity.incident_catalyst_quanta > 0);
+                assert!(plasticity.reaction_extent > 0);
+                assert_eq!(
+                    plasticity
+                        .predecessor_reservoir
+                        .0
+                        .checked_sub(plasticity.successor_reservoir.0)
+                        .unwrap(),
+                    plasticity.delivered_energy_zeptojoules
+                );
+                assert_eq!(
+                    plasticity
+                        .successor_reservoir
+                        .1
+                        .checked_sub(plasticity.predecessor_reservoir.1)
+                        .unwrap(),
+                    plasticity.delivered_energy_zeptojoules
+                );
+                assert_eq!(
+                    plasticity.predecessor_reservoir.2,
+                    plasticity.successor_reservoir.2
+                );
+                if plasticity.predecessor_plastic_rest_length_nanometres
+                    != plasticity.successor_plastic_rest_length_nanometres
+                {
+                    retained_settlement = Some(plasticity);
+                }
+            }
+            if retained_settlement.is_some() {
+                break;
+            }
+        }
+        let successor = plastic(&cohorts);
+        let retained_settlement = retained_settlement.expect("local plastic return did not settle");
+        assert_eq!(
+            retained_settlement.predecessor_plastic_rest_length_nanometres,
+            predecessor.0
+        );
+        assert_eq!(
+            retained_settlement.successor_plastic_rest_length_nanometres,
+            successor.0
+        );
+        assert_ne!(predecessor, successor);
+        assert_eq!(
+            participant_plastic(association, &cohorts),
+            association_predecessor
+        );
+        assert_eq!(
+            participant_plastic(regulation, &cohorts),
+            regulation_predecessor
         );
     }
 

@@ -5,6 +5,21 @@ from __future__ import annotations
 from dsf_ai_service import native_production_app as production
 
 
+def _plasticity(ordinal: int) -> tuple[object, ...]:
+    return (
+        ordinal,
+        "2",
+        "2",
+        (1, 8),
+        (7, 8),
+        (0, 1),
+        (1, 1),
+        (4, 3),
+        ((1, 1), (0, 1), (0, 1)),
+        ((7, 8), (1, 8), (0, 1)),
+    )
+
+
 class _FrontierObserver:
     def __init__(self) -> None:
         self.transfers: tuple[tuple[str, str, int, int, str], ...] = ()
@@ -110,6 +125,68 @@ def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
     assert observer.filters == [(impression, cue)]
 
 
+def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> None:
+    affective = "0a" * 16
+    ordering = "0b" * 16
+    motor = "0c" * 16
+    trajectory = (
+        affective,
+        10,
+        2,
+        (30, ("07" * 16, affective, 0, 11)),
+        (30, (affective, "08" * 16, 0, 7)),
+        (31, -9, -7, -8, 2, 2, 0, (3, 1), (5, 1), (1, 1)),
+        _plasticity(31),
+    )
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        {
+            **_hop(30),
+            "affective_balance_trajectories": (trajectory,),
+        },
+    )
+    assert completed == {}
+    assert observer.filters == []
+
+    first = (affective, ordering, 0, 13)
+    observer.transfers = ((*first, ordering),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(31),
+    )
+    assert completed == {}
+
+    second = (ordering, motor, 0, 5)
+    observer.transfers = ()
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            32,
+            motors=((motor, 3, 5, ((ordering, 11, motor, 12, 0, 5),)),),
+        ),
+    )
+
+    proof = completed["affective_gradient"]
+    assert proof["affective_neuron_lineage"] == affective
+    assert proof["localized_gradient_settlement_organism_tick"] == 31
+    assert proof["localized_plasticity_settlement_organism_tick"] == 31
+    assert proof["motor_organism_tick"] == 33
+    assert proof["directed_physical_transfers"] == (first, second)
+    assert proof["motor_unit_recruitment"]["motor_lineage"] == motor
+    assert proof["affective_trajectory_receipt_sha256"] == production._receipt(
+        trajectory
+    )
+    assert observer.filters == [(affective,), (ordering,)]
+
+
 def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
     source = "01" * 16
     shared = "02" * 16
@@ -127,7 +204,7 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
     gradient = (2, 0, 0, 0, 0, 1, 0, (0, 1), (0, 1), (0, 1))
     transition = {
         "affective_balance_trajectories": (
-            (shared, 10, 1, association, body, gradient),
+            (shared, 10, 1, association, body, gradient, _plasticity(2)),
         ),
         "intake": "continuous-environment:test",
         "new_impression_causal_use": {

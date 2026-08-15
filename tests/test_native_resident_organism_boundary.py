@@ -427,10 +427,22 @@ def test_affective_balance_trajectory_preserves_exact_local_physics() -> None:
         ("13", "2"),
         ("1", "1"),
     )
+    plasticity = (
+        9,
+        "2",
+        "2",
+        ("1", "8"),
+        ("7", "8"),
+        ("0", "1"),
+        ("1", "1"),
+        ("4", "3"),
+        (("1", "1"), ("0", "1"), ("0", "1")),
+        (("7", "8"), ("1", "8"), ("0", "1")),
+    )
     observation = replace(
         _active(),
         affective_balance_trajectories=(
-            (lineage, 10, 4, association, body, gradient),
+            (lineage, 10, 4, association, body, gradient, plasticity),
         ),
     )
 
@@ -443,6 +455,18 @@ def test_affective_balance_trajectory_preserves_exact_local_physics() -> None:
         (7, ("07" * 16, lineage, 0, 3)),
         (8, ("08" * 16, lineage, 0, 2)),
         (9, -5, -3, -4, 2, 2, 0, (11, 2), (13, 2), (1, 1)),
+        (
+            9,
+            2,
+            2,
+            (1, 8),
+            (7, 8),
+            (0, 1),
+            (1, 1),
+            (4, 3),
+            ((1, 1), (0, 1), (0, 1)),
+            ((7, 8), (1, 8), (0, 1)),
+        ),
     ),)
     assert observation.affective_balance_trajectories in boundary._observation_signature(
         observation

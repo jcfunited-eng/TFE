@@ -13,6 +13,21 @@ def _gradient(ordinal: int):
     return (ordinal, -5, -3, -4, 2, 2, 0, (11, 2), (13, 2), (1, 1))
 
 
+def _plasticity(ordinal: int):
+    return (
+        ordinal,
+        2,
+        2,
+        (1, 8),
+        (7, 8),
+        (0, 1),
+        (1, 1),
+        (4, 3),
+        ((1, 1), (0, 1), (0, 1)),
+        ((7, 8), (1, 8), (0, 1)),
+    )
+
+
 def test_same_interval_recovery_is_not_a_later_consequence() -> None:
     lineage = "10" * 16
     observed = (
@@ -22,6 +37,7 @@ def test_same_interval_recovery_is_not_a_later_consequence() -> None:
         (7, _transfer("07" * 16, lineage, 3)),
         (7, _transfer("08" * 16, lineage, 2)),
         _gradient(7),
+        _plasticity(7),
     )
 
     retained = production._advance_bounded_affective_balance_evidence(
@@ -41,8 +57,9 @@ def test_later_local_recovery_completes_one_bounded_cell_trajectory() -> None:
         (7, _transfer("07" * 16, lineage, 3)),
         (8, _transfer("08" * 16, lineage, 2)),
         None,
+        None,
     )
-    recovery = (lineage, 10, 4, None, None, _gradient(9))
+    recovery = (lineage, 10, 4, None, None, _gradient(9), _plasticity(9))
 
     retained = production._advance_bounded_affective_balance_evidence(
         (), {"affective_balance_trajectories": (influence,)}
@@ -58,4 +75,5 @@ def test_later_local_recovery_completes_one_bounded_cell_trajectory() -> None:
         influence[3],
         influence[4],
         recovery[5],
+        recovery[6],
     ),)

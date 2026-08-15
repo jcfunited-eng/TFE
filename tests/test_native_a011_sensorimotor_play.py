@@ -20,6 +20,21 @@ SHARED_AFFECTIVE_LINEAGE = "02" * 16
 BODY_RECEPTOR_LINEAGE = "05" * 16
 
 
+def _plasticity(ordinal: int) -> tuple[object, ...]:
+    return (
+        ordinal,
+        "2",
+        "2",
+        (1, 8),
+        (7, 8),
+        (0, 1),
+        (1, 1),
+        (4, 3),
+        ((1, 1), (0, 1), (0, 1)),
+        ((7, 8), (1, 8), (0, 1)),
+    )
+
+
 def _transition(
     *,
     action_receipt: str,
@@ -60,28 +75,51 @@ def _transition(
         "recurrence_organism_tick": origin_tick,
         "sensed_consequence": consequence,
     }
-    transition = {
-        "affective_balance_trajectories": (
-            (
-                SHARED_AFFECTIVE_LINEAGE,
-                10,
-                4,
-                (origin_tick, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
-                (origin_tick, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
-                (
-                    origin_tick + 1,
-                    -5,
-                    -3,
-                    -4,
-                    2,
-                    2,
-                    0,
-                    (11, 2),
-                    (13, 2),
-                    (1, 1),
-                ),
-            ),
+    affective_trajectory = (
+        SHARED_AFFECTIVE_LINEAGE,
+        10,
+        4,
+        (origin_tick, ("07" * 16, SHARED_AFFECTIVE_LINEAGE, 0, 3)),
+        (origin_tick, (SHARED_AFFECTIVE_LINEAGE, "08" * 16, 0, 2)),
+        (
+            origin_tick + 1,
+            -5,
+            -3,
+            -4,
+            2,
+            2,
+            0,
+            (11, 2),
+            (13, 2),
+            (1, 1),
         ),
+        _plasticity(origin_tick + 1),
+    )
+    transition = {
+        "affective_balance_trajectories": (affective_trajectory,),
+        "affective_motor_causal_use": {
+            "action": causal_action,
+            "affective_neuron_lineage": SHARED_AFFECTIVE_LINEAGE,
+            "affective_trajectory_receipt_sha256": production._receipt(
+                affective_trajectory
+            ),
+            "directed_physical_transfers": (
+                (SHARED_AFFECTIVE_LINEAGE, "03" * 16, 0, 4),
+                ("03" * 16, "04" * 16, 0, 3),
+            ),
+            "localized_gradient_settlement_organism_tick": origin_tick + 1,
+            "localized_plasticity_settlement_organism_tick": origin_tick + 1,
+            "motor_organism_tick": motor_tick,
+            "motor_unit_recruitment": {
+                "motor_layer": 12,
+                "motor_lineage": "04" * 16,
+                "motor_topology_index": 1,
+                "outward_elementary_carriers": abs(yaw),
+            },
+            "origin_kind": "affective_gradient",
+            "origin_lineages": (SHARED_AFFECTIVE_LINEAGE,),
+            "origin_organism_tick": origin_tick + 1,
+        },
         "causal_cross_context_use": causal,
         "dissipation_capacity_energy_zeptojoules": (100, 1),
         "hop_count": 4,
@@ -604,6 +642,25 @@ def test_affective_trajectory_from_another_ordinal_cannot_be_bound_to_play() -> 
         transition,
         choice,
         "continuous-environment:unshared",
+    )
+
+    assert episode is not None
+    assert "affective_body_participation" not in episode
+
+
+def test_affective_timing_without_a_carrier_path_cannot_be_bound_to_play() -> None:
+    transition, choice = _transition(
+        action_receipt="e" * 64,
+        origin_tick=450,
+        yaw=23,
+        world_revision=45,
+    )
+    transition["affective_motor_causal_use"] = None
+
+    episode = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:timing-only",
     )
 
     assert episode is not None

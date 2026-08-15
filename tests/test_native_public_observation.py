@@ -663,12 +663,24 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
     association = (7, ("07" * 16, lineage, 0, 3))
     body = (8, ("08" * 16, lineage, 0, 2))
     gradient = (9, -5, -3, -4, 2, 2, 0, (11, 2), (13, 2), (1, 1))
+    plasticity = (
+        9,
+        2,
+        2,
+        (1, 8),
+        (7, 8),
+        (0, 1),
+        (1, 1),
+        (4, 3),
+        ((1, 1), (0, 1), (0, 1)),
+        ((7, 8), (1, 8), (0, 1)),
+    )
     monkeypatch.setattr(
         serving,
         "_last_tested_affective_balance_evidence",
         {
             "affective_balance_trajectories": (
-                (lineage, 10, 4, association, body, gradient),
+                (lineage, 10, 4, association, body, gradient, plasticity),
             ),
             "intake": "unattended-world",
             "organism_tick": 42,
@@ -681,7 +693,7 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
 
     assert value["available"] is True
     assert value["status"] == (
-        "body_association_perturbation_followed_by_local_gradient_recovery"
+        "body_association_perturbation_followed_by_local_gradient_and_plastic_return"
     )
     assert value["trajectory"]["neuron_layer"] == 10
     assert value["trajectory"]["association_influence"]["source_layer"] == 7
@@ -689,6 +701,9 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
     assert value["trajectory"]["localized_gradient_settlement"][
         "cognitive_ordinal"
     ] == 9
+    assert value["trajectory"]["localized_plasticity_settlement"][
+        "successor_plastic_rest_length_nanometres"
+    ] == {"numerator": 4, "denominator": 3}
     assert value["named_emotion_authority"] is False
     assert value["python_decision_authority"] is False
 

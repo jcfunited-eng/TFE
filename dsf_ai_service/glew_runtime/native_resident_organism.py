@@ -33,6 +33,18 @@ LocalAffectiveGradientSettlementEvidence = tuple[
     ExactRationalEvidence,
     ExactRationalEvidence,
 ]
+LocalAffectivePlasticitySettlementEvidence = tuple[
+    int,
+    int,
+    int,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+    tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+]
 AffectiveBalanceTrajectoryEvidence = tuple[
     str,
     int,
@@ -40,6 +52,7 @@ AffectiveBalanceTrajectoryEvidence = tuple[
     TimedDirectedPhysicalTransferEvidence | None,
     TimedDirectedPhysicalTransferEvidence | None,
     LocalAffectiveGradientSettlementEvidence | None,
+    LocalAffectivePlasticitySettlementEvidence | None,
 ]
 LocalizedFluidChemistryEvidence = tuple[
     str,
@@ -218,6 +231,19 @@ class NativeResidentObservationView(Protocol):
                 tuple[str, str],
                 tuple[str, str],
                 tuple[str, str],
+            ]
+            | None,
+            tuple[
+                int,
+                str,
+                str,
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[tuple[str, str], tuple[str, str], tuple[str, str]],
+                tuple[tuple[str, str], tuple[str, str], tuple[str, str]],
             ]
             | None,
         ]
@@ -703,7 +729,7 @@ def _affective_balance_trajectory_evidence(
         raise RuntimeError("resident organism affective-balance trajectory changed format")
     trajectories: list[AffectiveBalanceTrajectoryEvidence] = []
     for raw in value:
-        if not isinstance(raw, tuple) or len(raw) != 6:
+        if not isinstance(raw, tuple) or len(raw) != 7:
             raise RuntimeError(
                 "resident organism affective-balance trajectory changed format"
             )
@@ -751,7 +777,60 @@ def _affective_balance_trajectory_evidence(
                 ),
                 _exact_rational_evidence(raw[5][9], "affective-balance heat export"),
             )
-        trajectories.append((lineage, layer, topology, association, body, gradient))
+        plasticity = None
+        if raw[6] is not None:
+            if not isinstance(raw[6], tuple) or len(raw[6]) != 10:
+                raise RuntimeError(
+                    "resident organism affective-balance plasticity changed format"
+                )
+            predecessor_reservoir = raw[6][8]
+            successor_reservoir = raw[6][9]
+            if (
+                not isinstance(predecessor_reservoir, tuple)
+                or len(predecessor_reservoir) != 3
+                or not isinstance(successor_reservoir, tuple)
+                or len(successor_reservoir) != 3
+            ):
+                raise RuntimeError(
+                    "resident organism affective-balance plastic reservoir changed format"
+                )
+            plasticity = (
+                _nonnegative_integer(raw[6][0], "affective-balance plastic ordinal"),
+                _positive_decimal_integer(
+                    raw[6][1], "affective-balance incident catalyst"
+                ),
+                _positive_decimal_integer(
+                    raw[6][2], "affective-balance reaction extent"
+                ),
+                _exact_rational_evidence(raw[6][3], "affective-balance delivered work"),
+                _exact_rational_evidence(
+                    raw[6][4], "affective-balance predecessor gate residue"
+                ),
+                _exact_rational_evidence(
+                    raw[6][5], "affective-balance successor gate residue"
+                ),
+                _exact_rational_evidence(
+                    raw[6][6], "affective-balance predecessor plastic rest"
+                ),
+                _exact_rational_evidence(
+                    raw[6][7], "affective-balance successor plastic rest"
+                ),
+                tuple(
+                    _exact_rational_evidence(
+                        item, "affective-balance predecessor plastic reservoir"
+                    )
+                    for item in predecessor_reservoir
+                ),
+                tuple(
+                    _exact_rational_evidence(
+                        item, "affective-balance successor plastic reservoir"
+                    )
+                    for item in successor_reservoir
+                ),
+            )
+        trajectories.append(
+            (lineage, layer, topology, association, body, gradient, plasticity)
+        )
     if tuple(item[0] for item in trajectories) != tuple(
         sorted({item[0] for item in trajectories})
     ):

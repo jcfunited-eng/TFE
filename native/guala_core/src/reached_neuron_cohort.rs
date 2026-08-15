@@ -32,17 +32,18 @@ use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, decode_neuron_source_site, encode_neuron_source_site,
     NeuronSourceAnchorError, NeuronSourceSite,
 };
-#[cfg(test)]
-use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
 use crate::recovery_fluid_contact::{
     decode_reached_recovery_fluid_anatomy, decode_reached_recovery_fluid_state,
     encode_legacy_exhausted_recovery_fluid_state, encode_legacy_reached_recovery_fluid_anatomy,
     encode_reached_recovery_fluid_anatomy, encode_reached_recovery_fluid_state,
     expand_reached_recovery_fluid_state, extend_reached_recovery_fluid_state,
-    is_legacy_recovery_fluid_state, settle_powered_environment_exchange,
-    settle_resident_gate_recovery_before_interval, ReachedRecoveryFluidAnatomy, RecoveryFluidError,
-    RecoveryFluidReservoirState,
+    is_legacy_recovery_fluid_state, recovery_exchange_extent_is_representable,
+    settle_powered_environment_exchange, settle_resident_gate_recovery_before_interval,
+    whole_extents_carried, whole_extents_carried_difference, ReachedRecoveryFluidAnatomy,
+    RecoveryFluidError, RecoveryFluidReservoirState,
 };
+#[cfg(test)]
+use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
 use crate::sha256::sha256;
 use crate::sparse_electrical_contact::{
     decode_sparse_electrical_cell, encode_sparse_electrical_cell, encode_sparse_electrical_cell_v1,
@@ -356,6 +357,110 @@ impl ReachedCohortState {
         }
         Some(total)
     }
+}
+
+/// Exact local fluid work made available when real contact activity supplies
+/// catalyst to one already-mounted gate lane. The work is not a reward or a
+/// valence: it is available reservoir energy converted to spent material at
+/// the lane's existing stoichiometry. The receiving neuron still decides its
+/// gate and plastic successor through its ordinary free-energy settlement.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ContactModulatedGateEnergySettlement {
+    pub(crate) successor: ReachedCohortState,
+    pub(crate) incident_catalyst_quanta: u128,
+    pub(crate) reaction_extent: u128,
+    pub(crate) delivered_energy_zeptojoules: ExactRational,
+    pub(crate) predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
+    pub(crate) successor_reservoir: (ExactRational, ExactRational, ExactRational),
+}
+
+/// Convert bounded incident whole-carrier activity into local gate-lane work.
+///
+/// One transferred elementary carrier is one physical catalyst quantum. The
+/// already-authored gate-lane catalyst stoichiometry, mounted fluid-contact
+/// capacity, recovery-energy quantum, and finite reservoir jointly determine
+/// the exact reaction extent. No coefficient, score, threshold, label, or
+/// additional retained coordinate is introduced.
+pub(crate) fn settle_contact_modulated_gate_energy(
+    anatomy: &ReachedCohortAnatomy,
+    predecessor: &ReachedCohortState,
+    neuron_index: usize,
+    incident_catalyst_quanta: u128,
+) -> Result<ContactModulatedGateEnergySettlement, ReachedCohortError> {
+    let neuron_anatomy = anatomy
+        .neurons
+        .get(neuron_index)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let lane_anatomy = neuron_anatomy
+        .recovery_anatomy()
+        .lane(RecoveryLaneAddress::Gate)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let (catalyst_per_extent, _, _, _) = lane_anatomy.stoichiometry();
+    let contact = anatomy
+        .recovery_fluid
+        .mounted_contact(neuron_index, RecoveryLaneAddress::Gate)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let (contact_catalyst_capacity, _, _, _) = contact.parts();
+    let energy_per_extent = neuron_anatomy
+        .recovery_energy_per_extent_zeptojoules(RecoveryLaneAddress::Gate)
+        .map_err(|error| ReachedCohortError::Neuron {
+            neuron_index,
+            error,
+        })?;
+    let reservoir_anatomy = anatomy.recovery_fluid.reservoir_anatomy();
+    let predecessor_reservoir = predecessor.recovery_fluid;
+    let (_, spent_capacity, _) = reservoir_anatomy.capacities();
+    let (available, spent, thermal) = predecessor_reservoir.physical_parts();
+    let reaction_extent = (incident_catalyst_quanta / catalyst_per_extent)
+        .min(contact_catalyst_capacity / catalyst_per_extent)
+        .min(whole_extents_carried(available, energy_per_extent)?)
+        .min(whole_extents_carried_difference(
+            spent_capacity,
+            spent,
+            energy_per_extent,
+        )?);
+    let reaction_extent = if recovery_exchange_extent_is_representable(
+        predecessor_reservoir,
+        energy_per_extent,
+        reaction_extent,
+    ) {
+        reaction_extent
+    } else {
+        0
+    };
+    let delivered_energy_zeptojoules = energy_per_extent
+        .checked_mul_unsigned(reaction_extent)
+        .map_err(|_| ReachedCohortError::MaterialArithmetic(
+            "contact-modulated gate work overflow",
+        ))?;
+    let successor_reservoir = RecoveryFluidReservoirState::new(
+        reservoir_anatomy,
+        available
+            .checked_sub(delivered_energy_zeptojoules)
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "contact-modulated available-energy overflow",
+            ))?,
+        spent
+            .checked_add(delivered_energy_zeptojoules)
+            .map_err(|_| ReachedCohortError::MaterialArithmetic(
+                "contact-modulated spent-energy overflow",
+            ))?,
+        thermal,
+    )?;
+    let successor = ReachedCohortState::from_mounted_parts(
+        anatomy,
+        predecessor.neurons.to_vec(),
+        predecessor.electrical.clone(),
+        successor_reservoir,
+    )?;
+    Ok(ContactModulatedGateEnergySettlement {
+        successor,
+        incident_catalyst_quanta,
+        reaction_extent,
+        delivered_energy_zeptojoules,
+        predecessor_reservoir: predecessor_reservoir.physical_parts(),
+        successor_reservoir: successor_reservoir.physical_parts(),
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

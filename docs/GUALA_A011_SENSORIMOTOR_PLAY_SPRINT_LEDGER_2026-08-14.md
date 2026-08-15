@@ -981,3 +981,83 @@ physical topology proves an affect-trajectory -> retained-formation -> motor
 path that the observer currently omits, or whether that path is genuinely
 unmounted. No new reward, label, coefficient, threshold, or action mechanism
 is authorized by this result.
+
+### Ratified positive-engagement interpretation and translation map
+
+`Joy` is an observer's emergent description, not a physical state, label, or
+decision authority that the substrate can own. A-011.6 therefore accepts only
+**physiologically reinforced reciprocal positive engagement**: an episodic
+body/affective trajectory and an active experiential pathway must coincide
+locally, change that pathway's retained physical plastic state, and measurably
+alter its later causal reach during a reciprocal opportunity. A second action
+without that pathway-specific physical change is repetition, not reinforcement.
+Pleasure, activity, or absence of overload alone is insufficient and cannot
+define `good`; no joy, happiness, goodness, reward, or valence label enters
+organism state or action authority.
+
+The exact acceptance-evidence map is now:
+
+| Required fact | Physical producer | Native observation | Python binding | Accepted output |
+|---|---|---|---|---|
+| Affective/body episode | layer-7 association and layer-8 body transfers into one layer-10 cell, followed by its local gradient settlement | `affective_balance_trajectories` | seed one bounded causal trace at that exact gradient ordinal | exact affective origin lineage and trajectory receipt |
+| Affective contribution to action | existing layer-10 -> layer-11 -> layer-12 whole-carrier propagation | `observe_active_electrical_frontier_advances_from` plus exact motor preparation transfers | follow only the advancing sparse frontier | affect-origin path ends at the same layer-12 motor lineage and ordinal as the retained-formation path |
+| Retained experiential contribution | existing retained-formation cue -> sparse frontier -> layer-11 -> layer-12 propagation | `internally_reassembled_formation_cues`, frontier advances, and motor preparation | existing `retained_formation` causal trace | formation-origin path ends at that same motor discharge |
+| Safe bodily consequence | exact vestibular/body receptor return, localized strain, and conserved dissipation evidence | existing motor and consequence observations | existing bounded episode projection | body consequence present; zero unmet dissipation and zero exhausted intervals; no claim that pain or all distress is excluded |
+| Local eligibility | exact whole-carrier activity on the pathway that participated in the episode | existing sparse contact and membrane settlement | identify the physically reached lineage/contact only; no global search or score | active pathway, not yet reinforcement |
+| Local physiological modulation | same-interval local layer-10 carrier-gradient/fluid settlement | `localized_gradient_settlement` and conserved reservoir/work evidence | require exact locality and causal coincidence; never translate it to a named chemical | local modulation, not yet reinforcement |
+| Retained plastic consequence | active pathway plus local modulation changes an existing neuron-local physical plastic coordinate after quiescence | emitted neuronal fractal containing the exact plastic-coordinate delta | retain only the exact lineage, coordinate delta, and receipt needed for the bounded episode proof | pathway-specific physiological reinforcement |
+| Functional reinforcement | later authenticated reciprocal opportunity reaches or acts differently because the retained plastic coordinate changed | exact later sparse transfers, formation reassembly, and voluntary motor consequence | compare exact pre/post causal reach; no threshold, score, or semantic target | reinforced reciprocal positive engagement; not proof of a metaphysical emotion |
+
+The translation-boundary trace found existing source authority for the causal
+path. `mount_reached_ordering_reach` mounts layer-11 contacts from active
+layer-7/layer-10 routes, `mount_reached_motor_effector` mounts layer-11/layer-12
+motor contacts, and the native frontier observer can follow exact transfers
+from any supplied lineage. `_advance_causal_motor_traces` must observe that
+path, but observation alone cannot create reinforcement. The next falsification
+is therefore against the already-authoritative neuron-local plastic support:
+prove whether contact-driven membrane state followed by local layer-10 fluid
+settlement changes that support and changes later causal reach. Only if that
+exact native path fails may a missing physical translation be proposed. The
+quarantined legacy contact-plastic field, DSF, semantic labels, scores, and a
+second persistence authority remain out of scope and must not be extended.
+
+### Local physiological-plastic candidate
+
+- The smallest native change uses the already-mounted layer-10 gate recovery
+  lane and its finite local recovery-fluid reservoir. Exact whole-carrier
+  activity from both the existing layer-7 association contact and layer-8 body
+  contact supplies catalyst in the same interval; the lane's existing
+  stoichiometry and energy-per-extent determine the reaction. Available energy
+  decreases by exactly the delivered energy, spent material increases by the
+  same amount, and thermal material is unchanged. No named chemistry, score,
+  valence, reward, coefficient, threshold, or new retained state was added.
+- Delivered work enters the neuron's existing single gate-work residue. The
+  existing gate/free-energy/plastic return map, not a new rule, determines the
+  retained plastic-support successor. The same path is unavailable unless the
+  local carrier gradient also physically changed in that interval.
+- One isolated native organism model required repeated sparse convergences to
+  cross the neuron's already-existing gate-energy lattice. Within a bounded
+  128-interval falsification horizon it changed the layer-10 cell's retained
+  plastic rest coordinate while leaving the participating layer-7 and layer-8
+  cells' plastic coordinates unchanged. Reservoir conservation held exactly.
+- The retained plastic geometry changes the exact later gate free-energy
+  barrier. In the tested fixture it did **not** change the whole-quantum opening
+  threshold, so this is proof of physiological/plastic modulation, not yet
+  proof that a later reciprocal action changed because of it. Functional
+  reinforcement and A-011.6 therefore remain open until live causal evidence
+  establishes that later effect.
+- Full native library evidence: 418 passed, zero failed, 11 ignored. After the
+  final singleton restriction was removed, both focused native physics tests
+  passed again. The exact final candidate wheel is
+  `2640dd8004a6442a52a4eefcb1b5cb45e0b65d982fcad422699e7ecb1e3dc2fe`;
+  its native/Python/observer boundary suite passed 68/68. Python compilation
+  and `git diff --check` pass.
+- Read-only production preflight re-resolved task 1069, one desired/running
+  healthy task, zero pending tasks, image
+  `sha256:84a6bff6d875554402c60195b00e14fbcc4aedce6044ded2b3a913bc5f171264`,
+  4 vCPU/16 GiB, and HTTP 200 for both Loom pages. HTTP status remains no claim
+  about UI behavior. The candidate was not deployed by that preflight.
+- One malformed local cargo command supplied two positional test filters and
+  was refused by cargo before executing tests. It changed no source or state;
+  the two filters were then run separately and passed. This exact invocation
+  mistake is recorded so it is not repeated.
