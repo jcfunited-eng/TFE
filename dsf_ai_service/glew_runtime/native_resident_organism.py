@@ -54,6 +54,15 @@ LocalizedFluidChemistryEvidence = tuple[
         ExactRationalEvidence,
     ],
 ]
+LocalizedMetabolicStrainEvidence = tuple[
+    str,
+    int,
+    int,
+    int,
+    tuple[int, ...],
+    int,
+    int,
+]
 
 _FACTORY_AUTHORITY = object()
 
@@ -216,6 +225,14 @@ class NativeResidentObservationView(Protocol):
 
     @property
     def localized_fluid_chemistry(self) -> list[tuple[object, ...]]: ...
+
+    @property
+    def localized_metabolic_strain_evaluated_body_receptor_lineages(
+        self,
+    ) -> list[str]: ...
+
+    @property
+    def localized_metabolic_strain(self) -> list[tuple[object, ...]]: ...
 
     @property
     def organic_mosaic_relations(
@@ -408,6 +425,10 @@ class ResidentPrepareEvidence:
         AffectiveBalanceTrajectoryEvidence, ...
     ] = ()
     localized_fluid_chemistry: tuple[LocalizedFluidChemistryEvidence, ...] = ()
+    localized_metabolic_strain_evaluated_body_receptor_lineages: tuple[
+        str, ...
+    ] = ()
+    localized_metabolic_strain: tuple[LocalizedMetabolicStrainEvidence, ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -816,6 +837,70 @@ def _localized_fluid_chemistry_evidence(
     return tuple(settlements)
 
 
+def _localized_metabolic_strain_evidence(
+    evaluated_lineages: object,
+    value: object,
+) -> tuple[tuple[str, ...], tuple[LocalizedMetabolicStrainEvidence, ...]]:
+    if not isinstance(evaluated_lineages, list):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain lineage evidence changed format"
+        )
+    evaluated = tuple(
+        _canonical_lineage_hex(lineage, "localized metabolic-strain evaluated lineage")
+        for lineage in evaluated_lineages
+    )
+    if evaluated != tuple(sorted(set(evaluated))):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain evaluated lineages are not canonical"
+        )
+    if not isinstance(value, list) or len(value) > len(evaluated):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain evidence changed format"
+        )
+    observations: list[LocalizedMetabolicStrainEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain evidence changed format"
+            )
+        lineage = _canonical_lineage_hex(raw[0], "localized metabolic-strain lineage")
+        layer = _nonnegative_integer(raw[1], "localized metabolic-strain layer")
+        topology = _nonnegative_integer(raw[2], "localized metabolic-strain topology")
+        ordinal = _positive_integer(raw[3], "localized metabolic-strain cognitive ordinal")
+        if lineage not in evaluated or layer != 5:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain source identity changed"
+            )
+        if not isinstance(raw[4], list):
+            raise RuntimeError(
+                "resident organism localized metabolic-strain Psi lanes changed format"
+            )
+        psi = tuple(
+            _nonnegative_decimal_integer(
+                quanta, "localized metabolic-strain Psi dissipation"
+            )
+            for quanta in raw[4]
+        )
+        gate = _nonnegative_decimal_integer(
+            raw[5], "localized metabolic-strain gate dissipation"
+        )
+        plastic = _nonnegative_decimal_integer(
+            raw[6], "localized metabolic-strain plastic dissipation"
+        )
+        if not any(psi) and gate == 0 and plastic == 0:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain sparse evidence retained zero"
+            )
+        observations.append((lineage, layer, topology, ordinal, psi, gate, plastic))
+    if tuple(item[0] for item in observations) != tuple(
+        sorted({item[0] for item in observations})
+    ):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain observations are not canonical"
+        )
+    return evaluated, tuple(observations)
+
+
 def _validated_causal_intervals(
     maximum_causal_intervals: object,
 ) -> list[tuple[int, int]]:
@@ -920,6 +1005,10 @@ def _observation_signature(
         tuple(observation.body_consequence_transfers),
         tuple(observation.affective_balance_trajectories),
         tuple(observation.localized_fluid_chemistry),
+        tuple(
+            observation.localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        tuple(observation.localized_metabolic_strain),
         tuple(
             (
                 tuple(receipts),
@@ -1609,6 +1698,13 @@ class NativeResidentOrganism:
         localized_fluid_chemistry = _localized_fluid_chemistry_evidence(
             candidate.localized_fluid_chemistry
         )
+        (
+            localized_metabolic_strain_evaluated_body_receptor_lineages,
+            localized_metabolic_strain,
+        ) = _localized_metabolic_strain_evidence(
+            candidate.localized_metabolic_strain_evaluated_body_receptor_lineages,
+            candidate.localized_metabolic_strain,
+        )
         raw_organic_mosaic_relations = candidate.organic_mosaic_relations
         if not isinstance(raw_organic_mosaic_relations, list):
             raise RuntimeError("organic mosaic-relation evidence changed format")
@@ -2198,6 +2294,10 @@ class NativeResidentOrganism:
             body_consequence_transfers=body_consequence_transfers,
             affective_balance_trajectories=affective_balance_trajectories,
             localized_fluid_chemistry=localized_fluid_chemistry,
+            localized_metabolic_strain_evaluated_body_receptor_lineages=(
+                localized_metabolic_strain_evaluated_body_receptor_lineages
+            ),
+            localized_metabolic_strain=localized_metabolic_strain,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
         )
 

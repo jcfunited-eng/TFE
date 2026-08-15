@@ -2762,6 +2762,100 @@ def _same_transition_metabolic_overload_exclusion(
     }
 
 
+def _same_transition_localized_metabolic_strain(
+    evidence: dict[str, Any],
+    affective_participation: dict[str, object] | None,
+) -> dict[str, object] | None:
+    """Project one reached body receptor's exact retained dissipation state.
+
+    The neuron already owns this state.  This function neither creates an
+    interoceptor nor translates local metabolic strain into pain, distress,
+    valence, reward, or action.
+    """
+
+    if affective_participation is None:
+        return None
+    evaluated = tuple(
+        evidence.get(
+            "localized_metabolic_strain_evaluated_body_receptor_lineages", ()
+        )
+    )
+    observed = tuple(evidence.get("localized_metabolic_strain", ()))
+    if not evaluated or not all(
+        isinstance(lineage, str) and re.fullmatch(r"[0-9a-f]{32}", lineage)
+        for lineage in evaluated
+    ):
+        return None
+    records: list[dict[str, object]] = []
+    for entry in observed:
+        if not isinstance(entry, (list, tuple)) or len(entry) != 7:
+            return None
+        lineage, layer, topology, ordinal, psi, gate, plastic = entry
+        if (
+            lineage not in evaluated
+            or layer != 5
+            or not isinstance(topology, int)
+            or not isinstance(ordinal, int)
+            or not isinstance(psi, (list, tuple))
+        ):
+            return None
+        try:
+            psi_quanta = tuple(int(value) for value in psi)
+            gate_quanta = int(gate)
+            plastic_quanta = int(plastic)
+        except (TypeError, ValueError):
+            return None
+        if (
+            any(value < 0 for value in psi_quanta)
+            or gate_quanta < 0
+            or plastic_quanta < 0
+            or (
+                not any(psi_quanta)
+                and gate_quanta == 0
+                and plastic_quanta == 0
+            )
+        ):
+            return None
+        records.append(
+            {
+                "body_receptor_lineage": lineage,
+                "body_receptor_layer": layer,
+                "body_receptor_topology_index": topology,
+                "cognitive_ordinal": ordinal,
+                "psi_dissipation_quanta": psi_quanta,
+                "gate_dissipation_quanta": gate_quanta,
+                "plastic_dissipation_quanta": plastic_quanta,
+            }
+        )
+    facts = (
+        tuple(sorted(evaluated)),
+        tuple(
+            (
+                record["body_receptor_lineage"],
+                record["body_receptor_topology_index"],
+                record["cognitive_ordinal"],
+                record["psi_dissipation_quanta"],
+                record["gate_dissipation_quanta"],
+                record["plastic_dissipation_quanta"],
+            )
+            for record in records
+        ),
+        affective_participation["trajectory_receipt_sha256"],
+    )
+    return {
+        "evaluated_body_receptor_count": len(evaluated),
+        "evaluated_body_receptor_lineages": tuple(sorted(evaluated)),
+        "localized_nonzero_strain_count": len(records),
+        "localized_nonzero_strain": tuple(records),
+        "affective_trajectory_receipt_sha256": affective_participation[
+            "trajectory_receipt_sha256"
+        ],
+        "witness_receipt_sha256": _receipt(facts),
+        "organism_sensing_authority": False,
+        "pain_authority": False,
+    }
+
+
 def _sensorimotor_play_episode_from_transition(
     evidence: dict[str, Any],
     physical_choice: dict[str, Any] | None,
@@ -2841,6 +2935,12 @@ def _sensorimotor_play_episode_from_transition(
     )
     if affective_participation is not None:
         episode["affective_body_participation"] = affective_participation
+    localized_metabolic_strain = _same_transition_localized_metabolic_strain(
+        evidence,
+        affective_participation,
+    )
+    if localized_metabolic_strain is not None:
+        episode["localized_metabolic_strain"] = localized_metabolic_strain
     overload_exclusion = _same_transition_metabolic_overload_exclusion(evidence)
     if overload_exclusion is not None:
         episode["metabolic_overload_exclusion"] = overload_exclusion
@@ -2945,6 +3045,13 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 "no completed varied play witness is available to test for "
                 "zero unmet dissipation and zero exhausted intervals",
             ),
+            localized_metabolic_strain=_section(
+                False,
+                "localized_metabolic_strain_path_unproved",
+                "no completed varied play witness is available to test exact "
+                "layer-5 body-receptor dissipation",
+                pain_authority=False,
+            ),
             distress_exclusion=_section(
                 False,
                 "localized_distress_path_unmounted",
@@ -2976,6 +3083,19 @@ def _sensorimotor_play_record() -> dict[str, object]:
     )
     overload_excluded = isinstance(first_overload, dict) and isinstance(
         return_overload, dict
+    )
+    first_localized_strain = _last_sensorimotor_play_evidence["first_episode"].get(
+        "localized_metabolic_strain"
+    )
+    return_localized_strain = _last_sensorimotor_play_evidence[
+        "return_episode"
+    ].get("localized_metabolic_strain")
+    localized_strain_path_available = isinstance(
+        first_localized_strain, dict
+    ) and isinstance(return_localized_strain, dict)
+    localized_strain_observed = localized_strain_path_available and (
+        int(first_localized_strain["localized_nonzero_strain_count"]) > 0
+        or int(return_localized_strain["localized_nonzero_strain_count"]) > 0
     )
     return _section(
         True,
@@ -3048,11 +3168,62 @@ def _sensorimotor_play_record() -> dict[str, object]:
             ),
             organism_sensing_authority=False,
         ),
+        localized_metabolic_strain=_section(
+            localized_strain_path_available,
+            (
+                "localized_metabolic_strain_observed"
+                if localized_strain_observed
+                else "localized_metabolic_strain_path_evaluated_at_zero"
+                if localized_strain_path_available
+                else "localized_metabolic_strain_path_incomplete"
+            ),
+            (
+                "one or both autonomous play transactions retained exact "
+                "nonzero lane-separated dissipation in a reached layer-5 "
+                "body receptor; this is metabolic strain, not a pain or "
+                "named-distress claim"
+                if localized_strain_observed
+                else "both autonomous play transactions evaluated their "
+                "reached layer-5 body-receptor paths at exact zero retained "
+                "dissipation"
+                if localized_strain_path_available
+                else "one or both play transactions lacked exact localized "
+                "body-receptor strain evidence"
+            ),
+            first_witness_receipt_sha256=(
+                first_localized_strain.get("witness_receipt_sha256")
+                if isinstance(first_localized_strain, dict)
+                else None
+            ),
+            return_witness_receipt_sha256=(
+                return_localized_strain.get("witness_receipt_sha256")
+                if isinstance(return_localized_strain, dict)
+                else None
+            ),
+            pain_authority=False,
+            organism_sensing_authority=False,
+        ),
         distress_exclusion=_section(
-            False,
-            "localized_distress_path_unmounted",
-            "metabolic headroom does not exclude pain or other distress; no "
-            "localized nociceptive or aversive body pathway is mounted",
+            localized_strain_path_available and not localized_strain_observed,
+            (
+                "localized_metabolic_strain_absent_on_both_play_transactions"
+                if localized_strain_path_available and not localized_strain_observed
+                else "localized_metabolic_strain_observed"
+                if localized_strain_observed
+                else "localized_distress_path_incomplete"
+            ),
+            (
+                "both play transactions evaluated the mounted localized "
+                "metabolic-strain class at exact zero; this excludes only "
+                "that one strain class, not pain or every form of distress"
+                if localized_strain_path_available and not localized_strain_observed
+                else "localized metabolic strain was present, so this narrow "
+                "distress exclusion is refused"
+                if localized_strain_observed
+                else "metabolic headroom alone cannot exclude pain or other "
+                "distress; localized body-receptor evidence is incomplete"
+            ),
+            exclusion_scope="localized_metabolic_strain_only",
             organism_sensing_authority=False,
         ),
         fun=_section(
@@ -6103,6 +6274,10 @@ def _commit_admitted_hop(
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
+        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+            evidence.localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        "localized_metabolic_strain": evidence.localized_metabolic_strain,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -6203,6 +6378,10 @@ def _commit_vestibular_tick(
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
+        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+            evidence.localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        "localized_metabolic_strain": evidence.localized_metabolic_strain,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -6303,6 +6482,10 @@ def _commit_vestibular_trajectory(
         "body_consequence_transfers": evidence.body_consequence_transfers,
         "affective_balance_trajectories": evidence.affective_balance_trajectories,
         "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
+        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+            evidence.localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        "localized_metabolic_strain": evidence.localized_metabolic_strain,
         "organic_mosaic_relations": tuple(
             {
                 "predecessor_organism_tick": evidence.predecessor_organism_tick,
@@ -6478,6 +6661,30 @@ def _advance_bounded_localized_fluid_chemistry_evidence(
         observed[0] if observed else None,
     )
     return (witness,) if witness is not None else retained
+
+
+def _advance_bounded_localized_metabolic_strain_evidence(
+    evaluated_lineages: tuple[str, ...],
+    retained: tuple[tuple[Any, ...], ...],
+    hop: dict[str, Any],
+) -> tuple[tuple[str, ...], tuple[tuple[Any, ...], ...]]:
+    """Keep only each evaluated body receptor's latest exact local state."""
+
+    observed_evaluated = tuple(
+        hop["localized_metabolic_strain_evaluated_body_receptor_lineages"]
+    )
+    by_lineage = {entry[0]: entry for entry in retained}
+    observed_by_lineage = {
+        entry[0]: entry for entry in tuple(hop["localized_metabolic_strain"])
+    }
+    for lineage in observed_evaluated:
+        by_lineage.pop(lineage, None)
+        if lineage in observed_by_lineage:
+            by_lineage[lineage] = observed_by_lineage[lineage]
+    return (
+        tuple(sorted(set(evaluated_lineages).union(observed_evaluated))),
+        tuple(by_lineage[lineage] for lineage in sorted(by_lineage)),
+    )
 
 
 def _advance_causal_motor_traces(
@@ -6933,6 +7140,8 @@ def _perform_admitted_intake_locked(
     body_consequence_transfers: tuple[tuple[Any, ...], ...] = ()
     affective_balance_trajectories: tuple[tuple[Any, ...], ...] = ()
     localized_fluid_chemistry: tuple[tuple[Any, ...], ...] = ()
+    localized_metabolic_strain_evaluated_body_receptor_lineages: tuple[str, ...] = ()
+    localized_metabolic_strain: tuple[tuple[Any, ...], ...] = ()
     active_causal_motor_traces: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
@@ -6998,6 +7207,14 @@ def _perform_admitted_intake_locked(
                     last_hop,
                 )
             )
+            (
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+            ) = _advance_bounded_localized_metabolic_strain_evidence(
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+                last_hop,
+            )
             committed_vestibular_tick_count = len(signed_steps)
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
@@ -7062,6 +7279,14 @@ def _perform_admitted_intake_locked(
                     localized_fluid_chemistry,
                     last_hop,
                 )
+            )
+            (
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+            ) = _advance_bounded_localized_metabolic_strain_evidence(
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+                last_hop,
             )
             committed_hop_count += 1
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
@@ -7292,6 +7517,14 @@ def _perform_admitted_intake_locked(
                         consequence_hop,
                     )
                 )
+                (
+                    localized_metabolic_strain_evaluated_body_receptor_lineages,
+                    localized_metabolic_strain,
+                ) = _advance_bounded_localized_metabolic_strain_evidence(
+                    localized_metabolic_strain_evaluated_body_receptor_lineages,
+                    localized_metabolic_strain,
+                    consequence_hop,
+                )
                 committed_hop_count += 1
                 emitted_neuron_fractals.extend(
                     consequence_hop["emitted_neuron_fractals"]
@@ -7390,6 +7623,14 @@ def _perform_admitted_intake_locked(
                         localized_fluid_chemistry,
                         last_hop,
                     )
+                )
+                (
+                    localized_metabolic_strain_evaluated_body_receptor_lineages,
+                    localized_metabolic_strain,
+                ) = _advance_bounded_localized_metabolic_strain_evidence(
+                    localized_metabolic_strain_evaluated_body_receptor_lineages,
+                    localized_metabolic_strain,
+                    last_hop,
                 )
                 committed_vestibular_tick_count += len(trajectory)
                 emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
@@ -7575,6 +7816,10 @@ def _perform_admitted_intake_locked(
         "body_consequence_transfers": body_consequence_transfers,
         "affective_balance_trajectories": affective_balance_trajectories,
         "localized_fluid_chemistry": localized_fluid_chemistry,
+        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+            localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        "localized_metabolic_strain": localized_metabolic_strain,
         "organic_mosaic_relations": tuple(organic_mosaic_relations),
         "predecessor_state_sha256": predecessor.state_sha256,
         "receptor_ingress": receptor_ingress,

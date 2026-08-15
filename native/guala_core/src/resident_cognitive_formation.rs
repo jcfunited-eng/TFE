@@ -37,7 +37,8 @@ use crate::complete_neuron::{
     gate_population_opening_schedule_with_psi, sparse_physical_state_delta,
     sparse_retained_physical_state_delta, DnaExpressionContact, ExactPhysicalStateDelta,
     ExactSignedDelta, GateWorkOccurrence, NeuronIntervalInput, NeuronPhysicalAnatomy,
-    NeuronPhysicalState, PhysicalStateDeltaEntry, RecoveryContact, SparsePhysicalStateDelta,
+    NeuronPhysicalState, PhysicalStateDeltaEntry, RecoveryContact, RecoveryLaneAddress,
+    SparsePhysicalStateDelta,
 };
 use crate::declared_geometric_anatomy::{declared_neuron_territory, DeclaredNeuronPlace};
 use crate::developmental_electrical_anatomy::{
@@ -625,6 +626,61 @@ pub(crate) struct LocalizedFluidChemistryObservation {
     pub(crate) membrane_gradient_work_zeptojoules: ExactRational,
 }
 
+/// The exact retained dissipation of one locally evaluated body-receptor
+/// neuron after its ordinary physical interval.  The three lane families stay
+/// separate: this is not a strain score, pain label, or action authority.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct LocalizedMetabolicStrainObservation {
+    pub(crate) cognitive_ordinal: u64,
+    pub(crate) neuron_lineage: [u8; 16],
+    pub(crate) neuron_place: DeclaredNeuronPlace,
+    pub(crate) psi_dissipation_quanta: Box<[u128]>,
+    pub(crate) gate_dissipation_quanta: u128,
+    pub(crate) plastic_dissipation_quanta: u128,
+}
+
+fn retain_latest_localized_metabolic_strain(
+    evaluated_lineages: &mut Vec<[u8; 16]>,
+    retained: &mut Vec<LocalizedMetabolicStrainObservation>,
+    cognitive_ordinal: u64,
+    neuron_lineage: [u8; 16],
+    neuron_place: DeclaredNeuronPlace,
+    neuron: &NeuronPhysicalState,
+) -> Result<(), FormationError> {
+    if !evaluated_lineages.contains(&neuron_lineage) {
+        evaluated_lineages.push(neuron_lineage);
+    }
+    retained.retain(|entry| entry.neuron_lineage != neuron_lineage);
+    let psi_dissipation_quanta = neuron
+        .psi_state()
+        .rings()
+        .iter()
+        .map(|ring| ring.dissipated_quanta())
+        .collect::<Vec<_>>();
+    let gate_dissipation_quanta = neuron
+        .lane_dissipated_quanta(RecoveryLaneAddress::Gate)
+        .ok_or(FormationError::NoncanonicalState)?;
+    let plastic_dissipation_quanta = neuron
+        .lane_dissipated_quanta(RecoveryLaneAddress::Plastic)
+        .ok_or(FormationError::NoncanonicalState)?;
+    if gate_dissipation_quanta != 0
+        || plastic_dissipation_quanta != 0
+        || psi_dissipation_quanta.iter().any(|value| *value != 0)
+    {
+        retained.push(LocalizedMetabolicStrainObservation {
+            cognitive_ordinal,
+            neuron_lineage,
+            neuron_place,
+            psi_dissipation_quanta: psi_dissipation_quanta.into_boxed_slice(),
+            gate_dissipation_quanta,
+            plastic_dissipation_quanta,
+        });
+    }
+    evaluated_lineages.sort_unstable();
+    retained.sort_unstable_by_key(|entry| entry.neuron_lineage);
+    Ok(())
+}
+
 impl OrderedPhysicalPathObservation {
     pub(crate) fn directed_transfers(
         &self,
@@ -795,6 +851,15 @@ pub(crate) struct CognitiveFormationObservation {
     /// Exact per-target fluid/contact settlements from the already-reached
     /// sparse frontier. No cohort aggregate may substitute for these records.
     pub(crate) localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
+    /// Stable lineages of layer-5 source-site body receptors whose own local
+    /// dissipation state was evaluated in this transition.  This remains
+    /// separate from the sparse nonzero records so exact zero is distinguishable
+    /// from an absent pathway without materializing a zero-state body.
+    pub(crate) localized_metabolic_strain_evaluated_body_receptor_lineages:
+        Vec<[u8; 16]>,
+    /// Latest nonzero, lane-separated dissipation for the evaluated body
+    /// receptors.  The causative state remains in each complete neuron.
+    pub(crate) localized_metabolic_strain: Vec<LocalizedMetabolicStrainObservation>,
     /// Transient connected frontiers among recurrent mosaics physically
     /// reached by this transition, with at least one fully reassembled. No
     /// relation object, count, hierarchy, or history is retained in the
@@ -3247,6 +3312,10 @@ impl ResidentCognitiveFormationState {
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         let mut physically_transitioned_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
+        let mut localized_metabolic_strain_evaluated_body_receptor_lineages =
+            Vec::<[u8; 16]>::new();
+        let mut localized_metabolic_strain =
+            Vec::<LocalizedMetabolicStrainObservation>::new();
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_perturbed_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_energized_neuron_lineages = Vec::<[u8; 16]>::new();
@@ -4099,6 +4168,19 @@ impl ResidentCognitiveFormationState {
                         let gate_work_perturbed_neurons = input
                             .resident_gate_work_bits(&cohort.anatomy)
                             .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                        let reached_body_receptor_indices = gate_work_perturbed_neurons
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(neuron_index, perturbed)| {
+                                let mount = &cohort.anatomy.mounts()[neuron_index];
+                                (*perturbed
+                                    && mount.source_site().is_some()
+                                    && mount.place().layer() == 5)
+                                    .then_some(neuron_index)
+                            })
+                            .collect::<Vec<_>>();
+                        let local_dark_recovery_settled =
+                            exogenous_receptor_energy == Some(false);
                         for (perturbed, lineage) in gate_work_perturbed_neurons
                             .iter()
                             .zip(cohort.anatomy.neuron_lineages())
@@ -4132,6 +4214,31 @@ impl ResidentCognitiveFormationState {
                             max_encoded_bytes,
                             source_generation,
                         )?;
+                        for (neuron_index, (successor, lineage)) in cohort
+                            .state
+                            .neurons()
+                            .iter()
+                            .zip(cohort.anatomy.neuron_lineages())
+                            .enumerate()
+                        {
+                            let mount = &cohort.anatomy.mounts()[neuron_index];
+                            if mount.source_site().is_some()
+                                && mount.place().layer() == 5
+                                && (local_dark_recovery_settled
+                                    || reached_body_receptor_indices
+                                        .binary_search(&neuron_index)
+                                        .is_ok())
+                            {
+                                retain_latest_localized_metabolic_strain(
+                                    &mut localized_metabolic_strain_evaluated_body_receptor_lineages,
+                                    &mut localized_metabolic_strain,
+                                    source_generation,
+                                    *lineage,
+                                    mount.place(),
+                                    successor,
+                                )?;
+                            }
+                        }
                         if outcome.metabolic.changed() {
                             for (neuron_index, ((predecessor, successor), lineage)) in
                                 interval_predecessor_neurons
@@ -4543,6 +4650,8 @@ impl ResidentCognitiveFormationState {
                 body_consequence_transfers,
                 affective_balance_trajectories: internal_contact.affective_balance_trajectories,
                 localized_fluid_chemistry: internal_contact.localized_fluid_chemistry,
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 articulatory_unit_recruitments: internal_contact.articulatory_unit_recruitments,
@@ -4921,6 +5030,8 @@ impl ResidentCognitiveFormationState {
                 body_consequence_transfers: Vec::new(),
                 affective_balance_trajectories: Vec::new(),
                 localized_fluid_chemistry: Vec::new(),
+                localized_metabolic_strain_evaluated_body_receptor_lineages: Vec::new(),
+                localized_metabolic_strain: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 articulatory_unit_recruitments: Vec::new(),
@@ -12914,6 +13025,24 @@ mod tests {
         assert!(
             observation.metabolically_perturbed_body_receptor_count
                 <= observation.physically_transitioned_neuron_count
+        );
+        assert_eq!(
+            observation
+                .localized_metabolic_strain_evaluated_body_receptor_lineages
+                .len(),
+            1
+        );
+        assert_eq!(observation.localized_metabolic_strain.len(), 1);
+        let strain = &observation.localized_metabolic_strain[0];
+        assert_eq!(strain.neuron_place.layer(), 5);
+        assert_eq!(
+            strain.neuron_lineage,
+            observation.localized_metabolic_strain_evaluated_body_receptor_lineages[0]
+        );
+        assert!(
+            strain.psi_dissipation_quanta.iter().any(|quanta| *quanta != 0)
+                || strain.gate_dissipation_quanta != 0
+                || strain.plastic_dissipation_quanta != 0
         );
 
         let encoded = state.encode(16_000_000).unwrap();

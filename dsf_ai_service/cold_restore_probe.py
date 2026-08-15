@@ -730,6 +730,16 @@ def _rehearse_sparse_attention_frontier(
     replay_localized_fluid_chemistry = tuple(
         replay_prepared.localized_fluid_chemistry
     )
+    localized_metabolic_strain_evaluated_lineages = tuple(
+        prepared.localized_metabolic_strain_evaluated_body_receptor_lineages
+    )
+    replay_localized_metabolic_strain_evaluated_lineages = tuple(
+        replay_prepared.localized_metabolic_strain_evaluated_body_receptor_lineages
+    )
+    localized_metabolic_strain = tuple(prepared.localized_metabolic_strain)
+    replay_localized_metabolic_strain = tuple(
+        replay_prepared.localized_metabolic_strain
+    )
     route_sets = (
         reached_and_foregone_routes,
         current_routes,
@@ -759,6 +769,9 @@ def _rehearse_sparse_attention_frontier(
         or replay_affective_balance_trajectories
         != affective_balance_trajectories
         or replay_localized_fluid_chemistry != localized_fluid_chemistry
+        or replay_localized_metabolic_strain_evaluated_lineages
+        != localized_metabolic_strain_evaluated_lineages
+        or replay_localized_metabolic_strain != localized_metabolic_strain
         or replay_successor != successor
         or replay_articulation != articulation
         or replay_before.state_sha256 != before.state_sha256
@@ -808,6 +821,19 @@ def _rehearse_sparse_attention_frontier(
         "localized_fluid_reached_unreached_witness_count": len(
             localized_fluid_witnesses
         ),
+        "localized_metabolic_strain_cold_replay_exact": True,
+        "localized_metabolic_strain_evaluated_lineage_count": len(
+            localized_metabolic_strain_evaluated_lineages
+        ),
+        "localized_metabolic_strain_evaluated_lineages_sha256": hashlib.sha256(
+            _canonical(localized_metabolic_strain_evaluated_lineages)
+        ).hexdigest(),
+        "localized_metabolic_strain_nonzero_count": len(
+            localized_metabolic_strain
+        ),
+        "localized_metabolic_strain_sha256": hashlib.sha256(
+            _canonical(localized_metabolic_strain)
+        ).hexdigest(),
         "sparse_attention_cold_replay_exact": True,
         "native_articulation": articulation,
         "native_articulation_cold_replay_exact": True,

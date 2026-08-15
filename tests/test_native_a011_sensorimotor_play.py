@@ -7,6 +7,7 @@ from dsf_ai_service import native_production_app as production
 
 FORMATION = "f" * 64
 SHARED_AFFECTIVE_LINEAGE = "02" * 16
+BODY_RECEPTOR_LINEAGE = "05" * 16
 ORGANIC_RELATION = "9" * 64
 
 
@@ -75,6 +76,10 @@ def _transition(
         "causal_cross_context_use": causal,
         "dissipation_capacity_energy_zeptojoules": (100, 1),
         "hop_count": 4,
+        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+            BODY_RECEPTOR_LINEAGE,
+        ),
+        "localized_metabolic_strain": (),
         "organic_mosaic_relations": (
             {
                 "active_physical_bonds": (
@@ -175,6 +180,9 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     assert completed["return_episode"]["metabolic_overload_exclusion"][
         "energy_exhausted_interval_count"
     ] == 0
+    assert completed["first_episode"]["localized_metabolic_strain"][
+        "localized_nonzero_strain_count"
+    ] == 0
     assert len(completed["evidence_receipt_sha256"]) == 64
 
 
@@ -255,7 +263,14 @@ def test_public_record_does_not_inflate_play_into_fun_or_laughter(monkeypatch) -
     assert observed["affective_engagement"]["available"] is True
     assert observed["affective_engagement"]["named_emotion_authority"] is False
     assert observed["overload_exclusion"]["available"] is True
-    assert observed["distress_exclusion"]["available"] is False
+    assert observed["localized_metabolic_strain"]["available"] is True
+    assert observed["localized_metabolic_strain"]["status"] == (
+        "localized_metabolic_strain_path_evaluated_at_zero"
+    )
+    assert observed["distress_exclusion"]["available"] is True
+    assert observed["distress_exclusion"]["exclusion_scope"] == (
+        "localized_metabolic_strain_only"
+    )
     assert observed["fun"]["available"] is False
     assert observed["social_joy"]["available"] is False
     assert observed["laughter"]["available"] is False
@@ -301,3 +316,82 @@ def test_unmet_dissipation_refuses_overload_exclusion() -> None:
 
     assert episode is not None
     assert "metabolic_overload_exclusion" not in episode
+
+
+def test_nonzero_localized_metabolic_strain_refuses_narrow_exclusion(
+    monkeypatch,
+) -> None:
+    first, first_choice = _transition(
+        action_receipt="a" * 64,
+        origin_tick=600,
+        yaw=-23,
+        world_revision=60,
+    )
+    first["localized_metabolic_strain"] = (
+        (BODY_RECEPTOR_LINEAGE, 5, 2, 600, (0, 4, 0), "3", "0"),
+    )
+    candidate, _ = production._advance_bounded_sensorimotor_play_evidence(
+        None,
+        None,
+        first,
+        first_choice,
+        "continuous-environment:first",
+    )
+    second, second_choice = _transition(
+        action_receipt="b" * 64,
+        origin_tick=614,
+        yaw=-17,
+        world_revision=61,
+    )
+    _, completed = production._advance_bounded_sensorimotor_play_evidence(
+        candidate,
+        None,
+        second,
+        second_choice,
+        "continuous-environment:second",
+    )
+    monkeypatch.setattr(production, "_last_sensorimotor_play_evidence", completed)
+
+    observed = production._sensorimotor_play_record()
+
+    assert observed["localized_metabolic_strain"]["available"] is True
+    assert observed["localized_metabolic_strain"]["status"] == (
+        "localized_metabolic_strain_observed"
+    )
+    assert observed["distress_exclusion"]["available"] is False
+    assert observed["distress_exclusion"]["status"] == (
+        "localized_metabolic_strain_observed"
+    )
+    assert observed["fun"]["available"] is False
+
+
+def test_later_zero_evaluation_clears_prior_sparse_strain_without_summing() -> None:
+    evaluated, retained = (
+        production._advance_bounded_localized_metabolic_strain_evidence(
+            (),
+            (),
+            {
+                "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+                    BODY_RECEPTOR_LINEAGE,
+                ),
+                "localized_metabolic_strain": (
+                    (BODY_RECEPTOR_LINEAGE, 5, 2, 700, (2,), "1", "0"),
+                ),
+            },
+        )
+    )
+    evaluated, retained = (
+        production._advance_bounded_localized_metabolic_strain_evidence(
+            evaluated,
+            retained,
+            {
+                "localized_metabolic_strain_evaluated_body_receptor_lineages": (
+                    BODY_RECEPTOR_LINEAGE,
+                ),
+                "localized_metabolic_strain": (),
+            },
+        )
+    )
+
+    assert evaluated == (BODY_RECEPTOR_LINEAGE,)
+    assert retained == ()

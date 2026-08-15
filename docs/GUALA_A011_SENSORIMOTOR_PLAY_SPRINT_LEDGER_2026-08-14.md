@@ -477,3 +477,137 @@ owner, lock, validation pass, or Python cognition callback.
 
 **A-011.3 is Live-Closed.** The wider A-011 objective and the overall Guala
 project remain open.
+
+## A-011.4 localized metabolic-strain increment
+
+### Frozen scope and production predecessor
+
+- Immediate predecessor: A-011.3, live-closed on production task
+  `dsf-ai-task:1061`, commit
+  `9d1719c80dc11a696bf42f83e38a9807497c6f3a`, image
+  `sha256:3fa2eeadbf8f0ccd31743dbe684496c32cac22c0d4bba8d9de16a5c8731ccd8d`.
+- **Input:** the exact lane-separated dissipation already retained by each
+  layer-5 source-site body-receptor neuron after its ordinary physical
+  interval, plus the existing stable lineage, place, causal transaction, and
+  already-qualified affect/body play trajectory.
+- **Process:** while the ordinary interval already visits that receptor,
+  project its current Psi-, gate-, and plastic-lane dissipation without
+  changing it. Retain only the latest value per stable lineage in the bounded
+  native/runtime/transaction observation. A later exact evaluation replaces
+  the earlier value; zero removes the nonzero sparse record while preserving
+  that the mounted path was evaluated.
+- **Output:** one read-only per-play-episode witness distinguishing (a) no
+  evaluated localized metabolic strain, (b) exact nonzero localized metabolic
+  strain, and (c) pathway absent. The witness is bound to the already-proved
+  affect/body trajectory but cannot cause action, recovery, affect, or memory.
+- **Refusal:** no reached or locally recovered layer-5 source-site receptor,
+  no complete affect/body participation, malformed lineage/place, or any
+  record inconsistent with the evaluated lineage set refuses the episode
+  witness.
+- This increment proves one aversive **metabolic-strain class** only. It does
+  not claim literal nociception, tissue damage, pain, named distress, positive
+  valence, preference, fun, social joy, humor, or laughter.
+
+### Architecture honesty gate
+
+1. Requested architecture: one localized, physically caused body-strain path
+   inside the same organism and play transaction, with no pain label, reward
+   score, threshold, or scripted behavior.
+2. Current code reality: the complete neuron already retains exact
+   lane-separated dissipation, and layer-5 body receptors already connect into
+   the body/affective organism path. Current observation discards the local
+   identity into an organism-wide total.
+3. Conflict: yes. The detached Python `tissue_integrity`/`nociceptive_load`
+   model is bookkeeping outside the live native organism and is not an
+   admissible implementation.
+4. Mechanisms not extended: the detached Python body model, global
+   fuel/readiness projections, semantic pain or distress fields, authored
+   thresholds, rewards, owners, locks, databases, queues, whole-organism
+   polling, or retained event histories.
+5. Single exact item: preserve the reached/recovered layer-5 receptor's
+   existing dissipation state by stable lineage, carry it through the current
+   bounded observation path, and expose zero/nonzero evidence on each
+   qualified play episode.
+6. DSF scope: unchanged full joint L0-L4 remains upstream and authoritative;
+   A-011.4 neither evaluates nor reduces DSF.
+7. Lost DSF structure: none.
+
+### Exact change-impact ledger
+
+| Boundary | Exact input | Function/file path | State transformation | Expected output |
+|---|---|---|---|---|
+| Complete neuron | Existing Psi-, gate-, and plastic-lane dissipated quanta | `native/guala_core/src/complete_neuron.rs` | Read exact current lane state; no mutation | Lane-separated nonnegative quantities |
+| Resident interval | Reached gate-work body receptor or body receptor included in exact local dark recovery | `native/guala_core/src/resident_cognitive_formation.rs` | Replace latest transient value for that stable lineage; omit zero from sparse nonzero records | Evaluated lineage set plus sparse nonzero local records |
+| Runtime/FFI | Resident local records and evaluated lineages | `native/guala_core/src/organism_runtime.rs` | Preserve latest-by-lineage across the already-bounded trajectory and project exact integers | Native-to-Python stable lineage/place/lane evidence |
+| Transaction | Ordered committed hops | `dsf_ai_service/native_production_app.py` | Replace a lineage only when a later hop evaluates it; never sum standing state | Final transaction-local evaluated set and sparse strain state |
+| Play witness | Qualified play episode plus complete affect/body participation | `dsf_ai_service/native_production_app.py` | Bind read-only local strain evidence to that episode | Path absent, evaluated zero, or exact nonzero metabolic strain |
+| Public observer | Completed two-episode play witness | `_sensorimotor_play_record` | Report exact narrow scope without semantic inflation | Truthful localized strain/distress-scope status; fun remains unavailable |
+
+### Lifecycle and boundedness
+
+| Branch | Required behavior |
+|---|---|
+| Path not mounted/reached/recovered | Report unavailable; never infer zero. |
+| Evaluated receptor at exact zero | Preserve only its stable evaluated lineage; emit no zero strain body. |
+| Evaluated receptor with nonzero lane state | Emit one sparse lane-separated record for that lineage. |
+| Same lineage evaluated later | Replace its prior transient record; never add or sum standing state. |
+| Repeated API read | Perform no settlement and change no evidence. |
+| Cold restart | Organism state restores unchanged; transient play/strain witness must be re-observed. |
+| Malformed or cross-episode evidence | Refuse the witness without fallback. |
+
+The implementation adds no retained neuron field, persistence schema, codec,
+new physical transition, source occurrence, owner, lock, callback, database,
+or scan. Work is constant per already-visited body receptor and storage is
+bounded by the actual evaluated body-receptor frontier in the current
+transaction.
+
+### Production acceptance
+
+A-011.4 is accepted only when one immutable image is healthy in production
+and ordinary unattended activity provides a new completed play witness whose
+two episodes each expose:
+
+1. complete existing affect/body participation;
+2. a nonempty exact evaluated layer-5 body-receptor lineage set;
+3. either no sparse local strain at exact zero or exact lane-separated
+   nonzero strain for a member of that set;
+4. a compact witness receipt and explicit `organism_sensing_authority=false`;
+5. unchanged organism identity, zero Python cognition callbacks, exact cold
+   restore, one healthy process, and no immediate CPU/RAM/storage/payload
+   runaway.
+
+Even if both episodes are exact zero for this strain class, fun remains
+unproved because one metabolic pathway cannot exclude every aversive or
+coercive condition.
+
+### Attempt ledger
+
+- The first resume attempt found the exact branch but the development-container
+  filesystem mount failed before any source edit. Joseph rebuilt the container.
+- The recovered worktree `/tmp/guala-a0114-resumed` is clean at documentation
+  closure `22b7b724`; A-011.4 had no source edit before recovery.
+- Read-only production preflight re-resolved task 1061, the image above, one
+  healthy task, 4 vCPU/16 GiB, and HTTP 200 on both Loom pages. HTTP status is
+  not UI behavior proof.
+- Source tracing rejected a duplicate stored gradient or new nociception model.
+  The exact required quantity already exists as each complete neuron's
+  lane-separated dissipated material. No retained-state migration is required.
+- The implementation preserves evaluated layer-5 body-receptor lineages and
+  sparse nonzero Psi/gate/plastic dissipation through resident formation,
+  native runtime, Python resident boundary, committed transaction, play
+  episode, and public observation. A later exact zero replaces and removes a
+  prior nonzero record; standing dissipation is never summed.
+- `cargo test --lib` executed 427 native tests: 416 passed, zero failed, and 11
+  explicitly ignored historical/fixture-dependent cases. The focused physical
+  body-receptor test executed one test and passed.
+- The freshly built candidate extension exported both new observation fields.
+  Focused play plus adjacent native/Python boundary tests executed 47 tests and
+  all passed. A separate release-adjacent run executed 56 tests: 54 passed and
+  two pre-existing C-024 mocked cold-probe cases failed because their fake
+  restored body was not installed into the production observer they invoke;
+  neither failure entered the A-011.4 path and production code was not weakened
+  to accommodate the stale mocks.
+- Read-only live baseline re-resolved task 1061 at one desired/running and zero
+  pending tasks. Unattended activity was advancing, native play was available,
+  and the current public observer still truthfully reported the A-011.3
+  `localized_distress_path_unmounted` state before this release.

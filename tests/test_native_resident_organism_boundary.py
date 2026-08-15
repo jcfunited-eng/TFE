@@ -77,6 +77,8 @@ class _NativeResidentOrganismObservation:
         ...,
     ] = ()
     localized_fluid_chemistry: tuple[tuple[object, ...], ...] = ()
+    localized_metabolic_strain_evaluated_body_receptor_lineages: tuple[str, ...] = ()
+    localized_metabolic_strain: tuple[tuple[object, ...], ...] = ()
     organic_mosaic_relations: tuple[
         tuple[
             tuple[str, ...],
@@ -194,6 +196,8 @@ class _NativeResidentOrganismPrepare:
     body_consequence_transfers: list[tuple[str, str, int, str]] | None = None
     affective_balance_trajectories: list[tuple[object, ...]] | None = None
     localized_fluid_chemistry: list[tuple[object, ...]] | None = None
+    localized_metabolic_strain_evaluated_body_receptor_lineages: list[str] | None = None
+    localized_metabolic_strain: list[tuple[object, ...]] | None = None
     organic_mosaic_relations: list[
         tuple[
             list[str],
@@ -238,6 +242,10 @@ class _NativeResidentOrganismPrepare:
             self.affective_balance_trajectories = []
         if self.localized_fluid_chemistry is None:
             self.localized_fluid_chemistry = []
+        if self.localized_metabolic_strain_evaluated_body_receptor_lineages is None:
+            self.localized_metabolic_strain_evaluated_body_receptor_lineages = []
+        if self.localized_metabolic_strain is None:
+            self.localized_metabolic_strain = []
         if self.organic_mosaic_relations is None:
             self.organic_mosaic_relations = []
         if self.internally_reassembled_formation_cues is None:
