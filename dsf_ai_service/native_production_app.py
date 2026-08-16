@@ -123,6 +123,10 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
+class _ExactArticulatoryAntagonistCancellation(RuntimeError):
+    """One native vocal antagonist pair settled to exact physical rest."""
+
+
 APP_SCHEMA = "guala.native_production_http.v1"
 PUBLIC_OBSERVATION_SCHEMA = "guala.native.public_observation.v1"
 COGNITIVE_CAPITAL_SCHEMA = "guala.cognitive_capital.evidence.v1"
@@ -7911,23 +7915,28 @@ def _perform_admitted_intake_locked(
                 "receptor_ingress_quiescent_count"
             ]
         if articulatory_unit_recruitments:
-            (
-                sample_rate_hz,
-                pressure_pcm,
-                articulatory_body_trajectories,
-                peak_breath_flow_pcm,
-                glottal_open_samples_at_apex,
-                mouth_area_square_millimetres_at_apex,
-                perioral_area_displacement_square_millimetres,
-                applied_motor_quanta,
-                stalled_motor_quanta,
-                relaxation_sample_count,
-            ) = exact_articulatory_unit_trajectory(
-                recruitments=tuple(
-                    (topology, carriers)
-                    for _, topology, carriers, _ in articulatory_unit_recruitments
+            try:
+                (
+                    sample_rate_hz,
+                    pressure_pcm,
+                    articulatory_body_trajectories,
+                    peak_breath_flow_pcm,
+                    glottal_open_samples_at_apex,
+                    mouth_area_square_millimetres_at_apex,
+                    perioral_area_displacement_square_millimetres,
+                    applied_motor_quanta,
+                    stalled_motor_quanta,
+                    relaxation_sample_count,
+                ) = exact_articulatory_unit_trajectory(
+                    recruitments=tuple(
+                        (topology, carriers)
+                        for _, topology, carriers, _ in articulatory_unit_recruitments
+                    )
                 )
-            )
+            except ValueError as error:
+                if error.args != ("CancelledRecruitment",):
+                    raise
+                raise _ExactArticulatoryAntagonistCancellation from None
             self_hearing_hop_count = 0
             self_hearing_transitioned_neuron_count = 0
             self_hearing_fractal_count = 0
@@ -8037,6 +8046,8 @@ def _perform_admitted_intake_locked(
                     deferred_recurrent_articulation_count
                 ),
             }
+    except _ExactArticulatoryAntagonistCancellation:
+        pass
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if last_hop is None or (

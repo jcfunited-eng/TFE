@@ -1747,3 +1747,64 @@ second persistence authority remain out of scope and must not be extended.
   loading the task-1082-capable native module from
   `/tmp/guala-a0116-native.1IuTlI/python`. No native organism, DSF, codec,
   persistence, world, selection, or curriculum source changed.
+
+### A-011.6 task-1083 live reciprocal-witness route
+
+- **Production baseline:** task `dsf-ai-task:1083`, commit `74befe47`, image
+  digest `38b9b30e...`, one healthy process. The immutable rehearsal proved 103
+  changed contacts, later causal use, exact cold restore, and zero Python
+  cognition callbacks. This deployed the approved contact-reinforcement
+  observer correction; it did not by itself close A-011.6.
+- **Live blocker:** Guala is at `(2300,4500)` facing `356109` mdeg and the
+  participant is at `(3600,7000)`. The direct move to `(3000,4800)` is lawfully
+  refused because its straight path intersects the rug's current floor disc.
+  This is world geometry, not a deployment or cognition failure.
+- **Rejected expansion:** do not add object-name exceptions or change the world
+  persistence schema merely to make the witness easy. Existing floor geometry
+  leaves a narrow lawful route between the rug and sofa.
+- **Exact input:** nine participant moves through `(3010,6760)`, `(2870,6670)`,
+  `(2760,6570)`, `(2630,6380)`, `(2560,6170)`, `(2550,6040)`, `(2550,5880)`,
+  `(2610,5670)`, and `(3000,4800)`, retaining heading `180000` mdeg.
+- **Function/path:** `world_other_body_move` -> `prepare_port_command` -> exact
+  world collision transition -> `_action_consequence_episode` -> persisted
+  world successor -> ordinary admitted organism intake.
+- **Expected output:** every segment applies once; the final successor changes
+  Guala's retinal state and begins the bounded reciprocal social-play witness.
+- **Observed non-committing production evidence:** all nine exact segments apply
+  from persisted revision 5594 in a disposable process; the final segment
+  changes 11 retinal receptors. No production state was written by this proof.
+- **Production acceptance still required:** execute each segment once through
+  the real endpoint with revision/successor checks, then observe the required
+  other/Guala/other/Guala causal exchange. A-011.6 remains open until that
+  exchange produces the already-ratified retained-contact and later-action
+  evidence in production.
+
+#### Live route result and exact antagonist-translation correction
+
+- Four route segments completed with exact world receipts and six admitted
+  organism hops each. The fifth segment persisted the participant at
+  `(2560,6170)` and changed one retinal receptor, but its organism intake
+  refused after two committed hops with native `CancelledRecruitment`. The
+  move must not be repeated; the later route remains unexecuted.
+- Native `virtual_articulatory_body` reports `CancelledRecruitment` only when
+  equal-and-opposite layer-13 whole-carrier recruitment settles to zero. That
+  is exact antagonist cancellation: no vocal act occurred. It is not a failed
+  sensory experience. The isolated rehearsal already translated this exact
+  result as no articulation; production did not.
+- **Single correction:** at the production native/Python translation boundary,
+  convert only the exact `ValueError("CancelledRecruitment")` from the virtual
+  articulatory settlement call into a no-vocal-act outcome. Preserve and
+  publish the already-admitted sensory hops. Every other native articulation
+  error remains a refusal. No source is retried and no pressure, sound, body
+  motion, reward, meaning, state, persistence, DSF, or neuron physics is
+  invented.
+- **Observed local evidence:** the exact cancellation publishes one admitted
+  hop with `articulation=None`; a non-cancellation arithmetic error remains a
+  refusal; successful native articulation/self-hearing remains unchanged. The
+  complete adjacent A-006, A-011, public-observation, and formation/transaction
+  suite passes `47/47` while loading the task-1083-capable native module. Python
+  compilation and `git diff --check` pass.
+- **Live acceptance still required:** immutable rehearsal, task-1083-successor
+  deployment, exact cold restore, then continuation from the persisted
+  `(2560,6170)` participant position without repeating the refused experience.
+  A-011.6 remains open.

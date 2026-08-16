@@ -290,6 +290,139 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     assert retained_observation["organism_tick"] == 12
 
 
+def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
+    monkeypatch,
+) -> None:
+    """Equal vocal antagonists do not invalidate their admitted experience."""
+
+    monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
+    monkeypatch.setattr(production, "_last_transition_evidence", None)
+    cancelled = _hop(11, ())
+    cancelled["articulatory_unit_recruitments"] = (
+        (
+            "13" * 16,
+            0,
+            5,
+            (("12" * 16, 12, "13" * 16, 13, 0, 5),),
+        ),
+        (
+            "14" * 16,
+            1,
+            5,
+            (("12" * 16, 12, "14" * 16, 13, 0, 5),),
+        ),
+    )
+    organism = object()
+    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    monkeypatch.setattr(
+        production,
+        "_runtime",
+        lambda: (
+            SimpleNamespace(organism=organism, pointer=predecessor),
+            SimpleNamespace(),
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_commit_admitted_hop",
+        lambda *_args: cancelled,
+    )
+
+    def exact_cancellation(**_kwargs):
+        raise ValueError("CancelledRecruitment")
+
+    monkeypatch.setattr(
+        production,
+        "exact_articulatory_unit_trajectory",
+        exact_cancellation,
+    )
+    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
+    monkeypatch.setattr(
+        production,
+        "_publish_committed_organism",
+        lambda *_args: SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=11,
+                state_bytes=100,
+                state_sha256="bb" * 32,
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_refresh_public_observation_cache",
+        lambda: None,
+    )
+
+    result = production._perform_admitted_intake_locked(
+        [(object(), [])],
+        "exact-antagonist-cancellation-test",
+    )
+
+    assert result["observation"]["organism_tick"] == 11
+    assert result["observation"]["articulation"] is None
+    assert result["observation"]["hop_count"] == 1
+
+
+def test_non_cancellation_articulation_error_still_refuses_intake(
+    monkeypatch,
+) -> None:
+    failed = _hop(11, ())
+    failed["articulatory_unit_recruitments"] = (
+        ("13" * 16, 0, 5, ()),
+    )
+    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    monkeypatch.setattr(
+        production,
+        "_runtime",
+        lambda: (
+            SimpleNamespace(organism=object(), pointer=predecessor),
+            SimpleNamespace(),
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_commit_admitted_hop",
+        lambda *_args: failed,
+    )
+
+    def arithmetic_failure(**_kwargs):
+        raise ValueError("ArithmeticWidth")
+
+    monkeypatch.setattr(
+        production,
+        "exact_articulatory_unit_trajectory",
+        arithmetic_failure,
+    )
+    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
+    monkeypatch.setattr(
+        production,
+        "_publish_committed_organism",
+        lambda *_args: SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=11,
+                state_bytes=100,
+                state_sha256="bb" * 32,
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_refresh_public_observation_cache",
+        lambda: None,
+    )
+
+    try:
+        production._perform_admitted_intake_locked(
+            [(object(), [])],
+            "non-cancellation-articulation-error-test",
+        )
+    except ValueError as error:
+        assert str(error).startswith("ArithmeticWidth [1 hop(s)")
+    else:
+        raise AssertionError("non-cancellation articulation failure was hidden")
+
+
 def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
     monkeypatch,
 ) -> None:
@@ -386,6 +519,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         receptor_ingress_quiescent_count=0,
         motor_unit_recruitments=(),
         articulatory_unit_recruitments=(),
+        changed_contact_channel_states=(),
         physical_frontier_routes=(),
         preceding_distinct_physical_frontier_routes=(),
         reached_and_foregone_physical_frontier_routes=(),
