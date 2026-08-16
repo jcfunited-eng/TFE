@@ -2420,3 +2420,55 @@ second persistence authority remain out of scope and must not be extended.
   unchanged. A-011.6 is not Live-Closed until one immutable release and the
   complete bounded live reciprocal exchange prove both participant-caused
   responses and sensed consequences. A-011.7 remains untouched.
+
+#### Task 1091 immutable release, live wiring proof, and time-box result
+
+- **Immutable release:** commit
+  `3eacc6cd5191b7251d68ea0fd38f114304a340c5` deployed once as
+  `dsf-ai-task:1091`, image
+  `sha256:f2b89ced901ac79e4a8a940253f1e410e4955b235660e361261110d801aa3831`.
+  Rehearsal restored the exact current body, preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, `313` complete neurons,
+  `196416` developmental resting neurons, `1824` contacts, later causal use,
+  and zero Python cognition callbacks/workers. The one cutover completed at
+  `2026-08-16T09:34:46Z`; task 1091 became the sole healthy production process.
+- **First live participant-caused response:** one participant move from
+  `(2610,5670)` to `(3000,4800)`, heading `170000`, signed yaw `-10000`,
+  changed ten retinal receptors and committed once with intent receipt
+  `7a9f92b3d5b5e67a267518388e9759ccc98918265919f3cd2208bd57a6445bc7`.
+  Its two-interval sensory trajectory ended at organism tick `119027`. The
+  next ordinary trajectory proved the same receipt at origin tick `119025`,
+  an exact four-transfer receptor-to-layer-12-motor path at motor tick
+  `119029`, Guala action receipt
+  `ff88fcf3e5e8edfd3b991ef43bfd893d59f34d4387c5e60129c2cc3398b4c476`,
+  signed yaw `-63`, and sensed consequence returned by tick `119041`. This is
+  direct live proof that the corrected one-seal participant-sensory wiring and
+  receipt continuity work; it is only the first Guala turn, not reciprocal
+  closure.
+- **Bounded returns:** the exact return to `(2610,5670)` committed once with
+  participant receipt
+  `685404a5349d713d3e8c3b6a2018064765ef41242bc93b9f58e29ef225f30331`,
+  changed ten retinal receptors, and settled six intervals at tick `119062`.
+  Two complete ordinary successors carried no participant-to-motor causal use,
+  so the action was not repeated and no closure was claimed. A later request
+  whose client observation window expired was read back before any retry: the
+  participant was at `(2800,5200,160000)` and the service access log proved one
+  HTTP 200 commit. Its distinct return to `(2900,5000,150000)` committed once,
+  changed six retinal receptors, and carried receipt
+  `06761d8c2ee1925c51f69b44ee70f6fb4df1839ac752ce5f8e884a74bc264350`;
+  the next complete ordinary successor again carried no participant causal
+  motor use. One final distinct invitation to `(2300,5150,170000)` committed
+  once, changed six retinal receptors, and carried receipt
+  `8e249f39e794eed023e405d3c2e094c8ca5763ab3d0132afe0cdd842e1022837`;
+  its next complete ordinary successor also carried no participant causal
+  motor use. No stimulus was duplicated.
+- **Time-box decision:** the wiring correction is delivered and live-proven,
+  but the required second participant-caused voluntary Guala response did not
+  occur in one bounded four-turn exchange. `play.social_joy` therefore remains
+  truthfully `reciprocal_social_play_unproved`; **A-011.6 is not Live-Closed**.
+  Extending the Python observer to preserve a semantic social receipt after an
+  exact physical frontier has settled would make receipt bookkeeping substitute
+  for organism causation and would add Python around the brain. That mechanism
+  is rejected. Per the creator's explicit time-box instruction, A-011.6 is
+  deferred unresolved; A-011.7 remains untouched; independent work may proceed
+  at A-012 without representing A-011.6 or A-011 as complete.
