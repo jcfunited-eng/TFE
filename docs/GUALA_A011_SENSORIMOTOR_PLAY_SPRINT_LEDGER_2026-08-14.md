@@ -2311,3 +2311,41 @@ second persistence authority remain out of scope and must not be extended.
   checkpoint suites passed `123/123` against this worktree and the recorded
   candidate native module. The only output was nine pre-existing framework
   deprecation warnings; no persistence assertion failed.
+
+#### Task 1090 live compact-persistence result and continuity boundary
+
+- Commit `2f1d64e4525c677c7cdded8c7fb89462b40222d6`, image
+  `sha256:30263abf50006a43b33d35f64ea5e9c22b05a3a5ed54b7e6f67ffac7bfda6603`,
+  and task `dsf-ai-task:1090` deployed in one cutover. Deployment ran from
+  `2026-08-16T07:52:30Z` through `2026-08-16T08:12:39Z`; no failed cutover,
+  retry, or rollback occurred.
+- Rehearsal cold-restored the exact predecessor identity and state, retained
+  `313` complete neurons and `196416` developmental resting neurons, and
+  reported zero Python cognition callbacks. ECS settled at
+  desired/running/pending `1/1/0` with rollout `COMPLETED` and one healthy
+  container.
+- Independent live resolution at `2026-08-16T08:22:27Z` proved the same image,
+  commit, task, and organism identity at tick `117264`; canonical raw state was
+  `58444749` bytes with SHA
+  `8fb980c5da8c4926367263e22ad5a0044c32c5344c588fcf86da0c3c8d32c770`,
+  complete-neuron and cognition mounts were available, and Python cognition
+  callbacks remained zero.
+- The canonical raw GLORUN body remains byte/SHA authority while ordinary
+  physical storage is the deterministic lossless compact representation. The
+  exact local production-body proof measured a current-plus-stage peak of
+  `203553` physical bytes and removed the second native organism/save from
+  ordinary publication.
+- Live unattended observation advanced `117054 -> 117068` after roughly 24
+  seconds. Compact persistence is therefore live-corrected, but the complete
+  mutation cadence remains slower than the desired continuous-experience
+  budget. This observation does not reopen the already-corrected repeated-seal,
+  read-blocking, or persistence paths.
+- The historical versioned S3 archive is legacy debris. Production
+  `_S3ObjectStore.delete_if_exact` already resolves and deletes the exact
+  `VersionId`; task 1090 does not add hidden deleted versions. Archive cleanup
+  is outside this sprint and must not replace the behavioral acceptance.
+- **A-011.6 remains open.** The single next action is one bounded live
+  participant/Guala/participant/Guala exchange against task 1090, with
+  successor read-back before any retry, followed by inspection of the exact
+  participant-sensory -> retained-contact/formation -> endogenous choice/motor
+  -> sensed-consequence path. `A-011.7` has not begun.
