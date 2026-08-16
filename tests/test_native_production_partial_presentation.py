@@ -50,7 +50,23 @@ def lean_app(monkeypatch, tmp_path):
 
 
 def _teach(card_id: str, presentation: str | None = None) -> tuple[int, dict]:
-    payload: dict[str, object] = {"card_id": card_id}
+    invitation = {
+        "schema": production.CURRICULUM_INVITATION_SCHEMA,
+        "card_id": card_id,
+        "outcome": "attended",
+        "presentation_eligible": True,
+        "participant_action_causal_intent_receipt_sha256": "22" * 32,
+        "reason": "test fixture exact causal continuation",
+        "status": "participant_causal_continuation_observed",
+    }
+    invitation["invitation_receipt_sha256"] = production._receipt(invitation)
+    production._curriculum_invitation = invitation
+    payload: dict[str, object] = {
+        "card_id": card_id,
+        "invitation_receipt_sha256": invitation[
+            "invitation_receipt_sha256"
+        ],
+    }
     if presentation is not None:
         payload["presentation"] = presentation
     response = production.teach_card(payload)

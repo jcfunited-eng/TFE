@@ -19,7 +19,25 @@ def test_disposable_experience_exposes_exact_post_settlement_evidence(
     production._last_transition_evidence = None
 
     production._startup()
-    response = production.teach_card({"card_id": "alphabet-a"})
+    invitation = {
+        "schema": production.CURRICULUM_INVITATION_SCHEMA,
+        "card_id": "alphabet-a",
+        "outcome": "attended",
+        "presentation_eligible": True,
+        "participant_action_causal_intent_receipt_sha256": "33" * 32,
+        "reason": "test fixture exact causal continuation",
+        "status": "participant_causal_continuation_observed",
+    }
+    invitation["invitation_receipt_sha256"] = production._receipt(invitation)
+    production._curriculum_invitation = invitation
+    response = production.teach_card(
+        {
+            "card_id": "alphabet-a",
+            "invitation_receipt_sha256": invitation[
+                "invitation_receipt_sha256"
+            ],
+        }
+    )
     result = json.loads(response.body)
     evidence = result["observation"]["emitted_neuron_fractals"]
 

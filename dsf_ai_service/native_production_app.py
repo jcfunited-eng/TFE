@@ -11,10 +11,13 @@ outside cognition.
 Mounted native intake is limited to the admitted transitions below; every
 other sense and actuator keeps its honest ``not_mounted`` refusal:
 
-- ``POST /api/v1/curriculum/teach-card`` delivers one approved curriculum
-  card (its physical surface luminance and its tutor audio pressure) as one
-  admitted native episode.  The card's letter or number identity is never
-  written into the organism; only the physical media samples are delivered.
+- ``POST /api/v1/curriculum/invite-card`` first moves the participant body in
+  Guala's persistent world.  ``POST /api/v1/curriculum/teach-card`` can then
+  deliver one matching approved card only when that exact approach's retinal
+  perturbation produced a later directed neuronal continuation.  The card's
+  letter or number identity remains transport metadata outside the organism;
+  only the physical surface, pressure, contact, chemistry, and body samples
+  are delivered.
 - ``POST /api/v1/visual/live-frames`` (and the legacy ``/sight_frame``
   mount point) delivers batches of real browser camera frames as admitted
   native episodes: one frame per 250 ms hop on the same 27-receptor
@@ -194,6 +197,8 @@ PERSISTENCE_SCHEMA = "guala.native_organism_binary_store.v1"
 CARD_LESSON_RECEIPT_SCHEMA = "guala.card_lesson_observation_receipt.v1"
 CARD_LESSON_RECEIPT_FILE = "LATEST_CARD_LESSON_RECEIPT.json"
 CARD_LESSON_RECEIPT_MAX_BYTES = 32_768
+CURRICULUM_INVITATION_SCHEMA = "guala.embodied_curriculum_invitation.v1"
+CURRICULUM_INVITE_ENDPOINT = "/api/v1/curriculum/invite-card"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
@@ -1416,6 +1421,11 @@ _active_external_participant_causal_motor_traces: dict[
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ] = {}
+# One bounded process observation of the latest embodied tutoring invitation.
+# It is transport evidence only: it does not survive restart, enter organism
+# state, select a card, or cause acceptance.  The participant action's own
+# exact receptor-to-motor path is the only presentation gate.
+_curriculum_invitation: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -2079,6 +2089,36 @@ def _require_manifest_media(
                 raise ValueError(f"curriculum media is absent: {media_path}")
 
 
+def _curriculum_invitation_record() -> dict[str, object]:
+    if _curriculum_invitation is None:
+        return _section(
+            False,
+            "no_embodied_invitation_this_process",
+            "no participant body has physically invited Guala to a card "
+            "presentation in this process",
+            presentation_eligible=False,
+            python_attention_authority=False,
+            scripted_acceptance_authority=False,
+            semantic_command_authority=False,
+            transport_metadata_only=True,
+        )
+    facts = {
+        key: value
+        for key, value in _curriculum_invitation.items()
+        if key not in {"available", "reason", "status"}
+    }
+    return _section(
+        True,
+        str(_curriculum_invitation["status"]),
+        str(_curriculum_invitation["reason"]),
+        **facts,
+        python_attention_authority=False,
+        scripted_acceptance_authority=False,
+        semantic_command_authority=False,
+        transport_metadata_only=True,
+    )
+
+
 def _curriculum_media_record() -> dict[str, object]:
     try:
         cards = _manifest_experiences(
@@ -2121,6 +2161,8 @@ def _curriculum_media_record() -> dict[str, object]:
             internal_identity_authority=False,
             internal_meaning_authority=False,
             manifest_path="/curriculum/card_experience_manifest-v1.json",
+            invitation=_curriculum_invitation_record(),
+            invitation_endpoint=CURRICULUM_INVITE_ENDPOINT,
             teach_card_endpoint="/api/v1/curriculum/teach-card",
             tutoring_transition_available=True,
         )
@@ -2145,9 +2187,10 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
                 if live_sight["available"]
                 else "curriculum_card_surface_transition_mounted"
             ),
-            "approved curriculum card surfaces reach the resident organism "
-            "as admitted 27-receptor luminance occurrences via "
-            "/api/v1/curriculum/teach-card; the live camera transition is "
+            "approved curriculum card surfaces can reach the resident organism "
+            "as admitted 27-receptor luminance occurrences only after an "
+            "embodied participant invitation produces an exact retinal-to-"
+            "motor causal path; the live camera transition is "
             "reported mounted only from a real committed live-sight "
             "transition (see live_camera)",
             live_camera=live_sight,
@@ -5357,11 +5400,16 @@ def _build_public_observation_from_snapshot(
                     else "mounted_audiovisual"
                 ),
             },
-            "curriculum": _mounted_capability(
-                "/api/v1/curriculum/teach-card",
-                "one approved card surface and its tutor audio reach the "
-                "resident organism as one admitted native episode",
-            ),
+            "curriculum": {
+                **_mounted_capability(
+                    CURRICULUM_INVITE_ENDPOINT,
+                    "the participant body first approaches in Guala's "
+                    "persistent world; only her exact receptor-to-motor "
+                    "causal path opens one bounded card presentation",
+                ),
+                "invitation": _curriculum_invitation_record(),
+                "presentation_endpoint": "/api/v1/curriculum/teach-card",
+            },
             # A card taught in the voice of whoever is present.  Unlike the
             # standalone microphone this asks NOTHING of the camera: the
             # card's own light and its tactile footprint are in the SAME
@@ -10771,12 +10819,57 @@ def _card_lesson_receipt_record() -> dict[str, object]:
     )
 
 
+class _CurriculumInvitationRefusal(RuntimeError):
+    def __init__(self, status_code: int, reason: str) -> None:
+        super().__init__(reason)
+        self.status_code = status_code
+
+
+def _validated_curriculum_invitation(
+    card_id: str,
+    invitation_receipt_sha256: object,
+) -> dict[str, Any]:
+    if not isinstance(invitation_receipt_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", invitation_receipt_sha256
+    ):
+        raise _CurriculumInvitationRefusal(
+            422,
+            "a card presentation requires its exact embodied invitation receipt",
+        )
+    invitation = _curriculum_invitation
+    if invitation is None:
+        raise _CurriculumInvitationRefusal(
+            409,
+            "no embodied invitation exists in this process; no card was admitted",
+        )
+    if invitation.get("invitation_receipt_sha256") != invitation_receipt_sha256:
+        raise _CurriculumInvitationRefusal(
+            409,
+            "the invitation receipt is not the current embodied invitation",
+        )
+    if invitation.get("card_id") != card_id:
+        raise _CurriculumInvitationRefusal(
+            409,
+            "the invited physical card and requested card differ",
+        )
+    if invitation.get("outcome") != "attended" or not invitation.get(
+        "presentation_eligible"
+    ):
+        raise _CurriculumInvitationRefusal(
+            409,
+            "Guala's exact invitation-caused frontier has not continued; "
+            "no card was admitted",
+        )
+    return invitation
+
+
 def _perform_card_lesson_intake(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
     card_id: str,
     experience: dict[str, Any],
     presentation: str,
+    invitation_receipt_sha256: str,
 ) -> dict[str, Any]:
     """One card lesson: admitted intake plus truth-coupled tactile evidence.
 
@@ -10791,8 +10884,23 @@ def _perform_card_lesson_intake(
 
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
     global _touch_evidence
+    global _curriculum_invitation
 
     with _transition_lock:
+        invitation = _validated_curriculum_invitation(
+            card_id,
+            invitation_receipt_sha256,
+        )
+        _curriculum_invitation = {
+            **invitation,
+            "outcome": "presentation_attempted",
+            "presentation_eligible": False,
+            "reason": (
+                "the one eligible invitation is being consumed by one "
+                "bounded physical presentation"
+            ),
+            "status": "card_presentation_in_progress",
+        }
         result = _perform_admitted_intake_locked(episodes, intake)
         occupancy = _committed_card_occupancy(experience, presentation)
         if occupancy is not None:
@@ -10809,6 +10917,7 @@ def _perform_card_lesson_intake(
         receipt: dict[str, Any] = {
             "schema": CARD_LESSON_RECEIPT_SCHEMA,
             "card_id": card_id,
+            "invitation_receipt_sha256": invitation_receipt_sha256,
             "presentation": presentation,
             "transport_metadata_only": True,
             "surface_sha256": (
@@ -10843,6 +10952,23 @@ def _perform_card_lesson_intake(
             _last_card_lesson_receipt = receipt
             _last_card_lesson_receipt_error = None
             result["durable_receipt"] = _card_lesson_receipt_record()
+        _curriculum_invitation = {
+            **_curriculum_invitation,
+            "outcome": "presented",
+            "presented_successor_organism_tick": result["persisted"][
+                "organism_tick"
+            ],
+            "presented_successor_state_sha256": result["persisted"][
+                "state_sha256"
+            ],
+            "presentation_eligible": False,
+            "reason": (
+                "one physical card presentation committed after the exact "
+                "invitation-caused neuronal continuation; the receipt is "
+                "consumed and cannot admit a duplicate"
+            ),
+            "status": "invited_card_presentation_committed",
+        }
         _refresh_public_observation_cache()
         return result
 
@@ -10964,6 +11090,7 @@ def _startup() -> None:
     _reciprocal_social_play_candidate = None
     _last_reciprocal_social_play_evidence = None
     _active_external_participant_causal_motor_traces = {}
+    _curriculum_invitation = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
@@ -11173,6 +11300,16 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    invitation_receipt = (
+        payload.get("invitation_receipt_sha256")
+        if isinstance(payload, dict)
+        else None
+    )
+    try:
+        with _transition_lock:
+            _validated_curriculum_invitation(card_id, invitation_receipt)
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     try:
         episodes = _card_lesson_hop_episodes(card_id, experience, presentation)
     except HTTPException:
@@ -11186,7 +11323,10 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             card_id,
             experience,
             presentation,
+            invitation_receipt,
         )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
@@ -11661,6 +11801,72 @@ def world_observation() -> JSONResponse:
     )
 
 
+def _nearest_ratio_integer(numerator: int, denominator: int) -> int:
+    """Exact nearest integer, with half values away from zero."""
+
+    if denominator <= 0:
+        raise ValueError("physical ratio denominator must be positive")
+    sign = -1 if numerator < 0 else 1
+    quotient, remainder = divmod(abs(numerator), denominator)
+    if remainder * 2 >= denominator:
+        quotient += 1
+    return sign * quotient
+
+
+def _curriculum_participant_approach_payload() -> dict[str, int]:
+    """One exact collision-free approach toward Guala's current body pose."""
+
+    from dsf_ai_service.substrate.embodiment_world import SECOND_BODY_PORT_ID
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        _atan2_millidegrees,
+        _wrap_heading_delta,
+    )
+
+    snapshot = _world().observation_snapshot()
+    her = next(item for item in snapshot.bodies if item.body_id == snapshot.self_body_id)
+    other_port = next(
+        item for item in _world().actor_ports if item.port_id == SECOND_BODY_PORT_ID
+    )
+    other = next(
+        item for item in snapshot.bodies if item.body_id == other_port.actor_body_id
+    )
+    radial_x = other.pose.position.x - her.pose.position.x
+    radial_y = other.pose.position.y - her.pose.position.y
+    distance = math.isqrt(radial_x * radial_x + radial_y * radial_y)
+    separation = her.radius_mm + other.radius_mm + 2
+    if distance <= separation:
+        raise _CurriculumInvitationRefusal(
+            409,
+            "the participant body is already adjacent to Guala; another "
+            "approach would fabricate a new physical invitation",
+        )
+    target_x = her.pose.position.x + _nearest_ratio_integer(
+        radial_x * separation,
+        distance,
+    )
+    target_y = her.pose.position.y + _nearest_ratio_integer(
+        radial_y * separation,
+        distance,
+    )
+    target_dx = her.pose.position.x - target_x
+    target_dy = her.pose.position.y - target_y
+    if target_dx * target_dx + target_dy * target_dy <= (
+        her.radius_mm + other.radius_mm
+    ) ** 2:
+        raise RuntimeError("exact participant approach lost its collision gap")
+    heading = _atan2_millidegrees(target_dy, target_dx) % 360_000
+    signed_yaw = _wrap_heading_delta(
+        heading,
+        other.pose.heading_millidegrees,
+    )
+    return {
+        "heading_millidegrees": heading,
+        "signed_yaw_millidegrees": signed_yaw,
+        "x_mm": target_x,
+        "y_mm": target_y,
+    }
+
+
 @app.post(WORLD_OTHER_BODY_MOVE_ENDPOINT)
 def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Let an external participant move only its own authenticated world body."""
@@ -11879,6 +12085,119 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 "social_play_opportunity_reached_vision": visual_changed > 0,
             },
         )
+
+
+@app.post(
+    CURRICULUM_INVITE_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Approach in the persistent world; observe, never choose, her response."""
+
+    global _curriculum_invitation
+    if not isinstance(payload, dict):
+        return _refusal(422, "a curriculum invitation requires a JSON body")
+    card_id = payload.get("card_id")
+    if not isinstance(card_id, str) or not card_id:
+        return _refusal(422, "a curriculum invitation requires an approved card_id")
+    try:
+        experience = _read_manifest_card(card_id)
+    except KeyError:
+        return _refusal(
+            404,
+            f"card {card_id!r} is not in the approved curriculum manifest",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    surface = experience.get("surface")
+    surface_sha256 = surface.get("sha256") if isinstance(surface, dict) else None
+    if not isinstance(surface_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", surface_sha256
+    ):
+        return _refusal(503, "approved curriculum surface receipt is unavailable")
+    try:
+        with _transition_lock:
+            approach = _curriculum_participant_approach_payload()
+            movement = world_other_body_move(approach)
+            movement_body = json.loads(movement.body)
+            if movement.status_code != 200 or movement_body.get("ok") is not True:
+                return movement
+            action = movement_body.get("action")
+            if not isinstance(action, dict):
+                return _refusal(503, "participant approach lost its action receipt")
+            action_receipt = action.get("causal_intent_receipt_sha256")
+            if not isinstance(action_receipt, str) or not re.fullmatch(
+                r"[0-9a-f]{64}", action_receipt
+            ):
+                return _refusal(503, "participant approach receipt is invalid")
+            causal = (_last_transition_evidence or {}).get(
+                "participant_sensory_causal_use"
+            )
+            transfers = (
+                tuple(causal.get("directed_physical_transfers", ()))
+                if isinstance(causal, dict)
+                and causal.get(
+                    "participant_action_causal_intent_receipt_sha256"
+                )
+                == action_receipt
+                else ()
+            )
+            attended = bool(transfers)
+            invitation = {
+                "schema": CURRICULUM_INVITATION_SCHEMA,
+                "card_id": card_id,
+                "surface_sha256": surface_sha256,
+                "participant_action_causal_intent_receipt_sha256": (
+                    action_receipt
+                ),
+                "participant_action_evidence_receipt_sha256": action[
+                    "evidence_receipt_sha256"
+                ],
+                "world_revision_before": action["world_revision_before"],
+                "world_revision_after": action["world_revision_after"],
+                "approach_x_mm": action["x_mm"],
+                "approach_y_mm": action["y_mm"],
+                "causal_directed_transfer_count": len(transfers),
+                "observed_at_organism_tick": movement_body[
+                    "sensory_delivery"
+                ]["organism_tick"],
+                "observed_state_sha256": movement_body[
+                    "sensory_delivery"
+                ]["state_sha256"],
+                "outcome": "attended" if attended else "declined",
+                "presentation_eligible": attended,
+                "reason": (
+                    "the approach-caused retinal frontier reached Guala's "
+                    "own motor preparation through exact directed transfers"
+                    if attended
+                    else "the participant approached and reached her retina, "
+                    "but no exact receptor-to-motor continuation completed; "
+                    "no card was admitted"
+                ),
+                "status": (
+                    "participant_causal_path_reached_motor"
+                    if attended
+                    else "participant_causal_path_did_not_reach_motor"
+                ),
+            }
+            invitation["invitation_receipt_sha256"] = _receipt(invitation)
+            _curriculum_invitation = invitation
+            _refresh_public_observation_cache()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "accepted": True,
+                    "ok": True,
+                    "schema": CURRICULUM_INVITATION_SCHEMA,
+                    "invitation": _curriculum_invitation_record(),
+                    "participant_action": action,
+                    "sensory_delivery": movement_body["sensory_delivery"],
+                },
+            )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"embodied curriculum invitation refused: {error}")
 
 
 @app.post(WORLD_MOVE_ENDPOINT)
@@ -12210,6 +12529,12 @@ def teach_card_spoken(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    invitation_receipt = payload.get("invitation_receipt_sha256")
+    try:
+        with _transition_lock:
+            _validated_curriculum_invitation(card_id, invitation_receipt)
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     try:
         episodes = _card_lesson_hop_episodes(
             card_id,
@@ -12228,7 +12553,10 @@ def teach_card_spoken(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             card_id,
             experience,
             "full",
+            invitation_receipt,
         )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:

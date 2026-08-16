@@ -138,7 +138,11 @@ def test_material_and_curriculum_controls_are_capability_gated() -> None:
     ):
         assert shelf in source
     assert 'capability("curriculum")' in source
-    assert 'schema:"guala.native.curriculum_control.v1"' in source
+    assert "Invite her to look" in source
+    assert "presentation_endpoint" in source
+    assert "invitation_receipt_sha256" in source
+    assert "no word understanding is inferred" in source
+    assert "she recognised" not in source
     assert source.count("async function requestShelf(id,mode)") == 1
     assert "input.disabled=!cap.available" in source
 

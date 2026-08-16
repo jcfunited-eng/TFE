@@ -55,12 +55,24 @@ def test_latest_card_receipt_is_exact_bounded_and_survives_later_transition(
         "surface": {"sha256": "99" * 32},
         "tutor_audio": {"sha256": "77" * 32},
     }
+    invitation = {
+        "schema": production.CURRICULUM_INVITATION_SCHEMA,
+        "card_id": "number-07",
+        "outcome": "attended",
+        "presentation_eligible": True,
+        "participant_action_causal_intent_receipt_sha256": "44" * 32,
+        "reason": "test fixture exact causal continuation",
+        "status": "participant_causal_continuation_observed",
+    }
+    invitation["invitation_receipt_sha256"] = production._receipt(invitation)
+    production._curriculum_invitation = invitation
     result = production._perform_card_lesson_intake(
         [],
         "curriculum-card:number-07:full",
         "number-07",
         experience,
         "full",
+        invitation["invitation_receipt_sha256"],
     )
 
     path = tmp_path / production.CARD_LESSON_RECEIPT_FILE
@@ -70,6 +82,9 @@ def test_latest_card_receipt_is_exact_bounded_and_survives_later_transition(
     stored = json.loads(path.read_bytes())
     assert stored["card_id"] == "number-07"
     assert stored["surface_sha256"] == "99" * 32
+    assert stored["invitation_receipt_sha256"] == invitation[
+        "invitation_receipt_sha256"
+    ]
     assert stored["successor_state_sha256"] == first_successor
     assert stored["transport_metadata_only"] is True
     assert production._card_lesson_receipt_digest(stored) == stored["receipt_sha256"]
@@ -85,4 +100,3 @@ def test_latest_card_receipt_is_exact_bounded_and_survives_later_transition(
     # Process restart reloads exactly the same fixed record from disk.
     production._last_card_lesson_receipt = None
     assert production._load_card_lesson_receipt() == stored
-
