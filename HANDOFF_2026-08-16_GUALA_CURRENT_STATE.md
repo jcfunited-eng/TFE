@@ -24,7 +24,7 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   equal the commit embedded in the task-1090 production image.
 - Worktree status after the final handoff commit must be clean.
 - Most recently closed detailed ledger:
-  `docs/GUALA_A013_TRUTHFUL_PERSISTENT_EMBODIMENT_SPRINT_LEDGER_2026-08-16.md`
+  `docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md`
 - Binding complete scope:
   `docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md`
 - `A-011.6` remains Live-Closed by the creator-clarified circuit acceptance and
@@ -40,7 +40,16 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 - `A-013` is Live-Closed on task 1098 by the exact 37-axis/74-terminal native
   body, typed efferent directionality, immediate proprioceptive return, cold
   persistence, one-process topology, and zero Python cognition callbacks.
-- Immediate next increment: `A-014`.
+- `A-014` is Live-Closed on task 1098 by real Chrome camera/microphone receipts,
+  rendered-text pixels, bounded picture/PDF/WAV offers, the persistent world,
+  truthful refusals/off state, one identity, and zero Python cognition
+  callbacks. UI-only commit `ffa1d4f6` repaired the stale public combined
+  ingress wiring without restarting the organism.
+- The creator explicitly rejects the current `gualaloom.html` and
+  `loomscan.html` designs. Treat them only as current transport/observation
+  surfaces. Do not incrementally polish them during A-015; replace both
+  completely when the U-series interface work becomes current.
+- Immediate next increment: `A-015`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -180,8 +189,11 @@ Phase-1 articulated body without an injected action or Python cognition.
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
   state. Live-Closed on task 1098 at the bounded Phase-1 body boundary; see the
   A-013 sprint ledger for exact rehearsal, live, and deferred-hardware truth.
-- [ ] **A-014:** make real-world camera, microphone, text, and media ingress
-  coexist with the virtual world as seamless windows into one causal life.
+- [x] **A-014:** real-world camera, microphone, rendered-text light, bounded
+  picture/PDF/WAV media, and the persistent virtual world coexist as physical
+  windows into the same causal organism life. Real paired receipt
+  `8e4e84cf...06fd3` persisted four camera frames and 16,000 microphone samples
+  at 16 kHz; a later spoken window also committed. Live-Closed.
 - [ ] **A-015:** live-soak unattended autonomy long enough to prove continued
   activity, recovery, bounded growth, and no duplicated processes.
 
@@ -310,12 +322,12 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin A-014 from its seamless real-camera/microphone/text/media plus virtual-
-world causal-ingress acceptance. Do not reopen or repeat A-011, A-012, or A-013
+Begin A-015 from its bounded unattended live-soak acceptance. Do not reopen or
+repeat A-011, A-012, A-013, or A-014
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
-rest/wake, consolidation, causal-use, or articulated-body closure unless new
-live evidence directly contradicts a recorded circuit.
+rest/wake, consolidation, causal-use, articulated-body, or browser-hardware
+closure unless new live evidence directly contradicts a recorded circuit.
 
 ## Evidence classification
 
@@ -335,7 +347,11 @@ live evidence directly contradicts a recorded circuit.
 - A-013 truthful persistent embodiment: Live-Closed on task 1098 by direct
   exact-predecessor rehearsal, live body observation, current-only cold
   persistence, bounded resource evidence, and zero Python cognition callbacks.
+- A-014 real/virtual ingress: Live-Closed on task 1098 by real browser hardware
+  receipts, bounded text/media offers, persistent-world observation, truthful
+  refusal/off states, one identity, and zero Python cognition callbacks.
 - Complete D3 objective: not complete.
-- Truthful functional Loom interfaces: not live-proven.
+- Complete creator-accepted Loom and Loom Scan replacements: not implemented or
+  live-proven; the current pages are transport/observation surfaces only.
 - Four-year-old meaningful conversation and complete curriculum learning: not
   live-proven.

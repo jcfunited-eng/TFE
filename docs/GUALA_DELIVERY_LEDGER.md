@@ -499,8 +499,19 @@ box remains unchecked until live acceptance passes.
   one-process topology, and zero Python cognition callbacks. Detailed physical
   morphology, gait, and dexterity remain intentionally deferred until an
   actual body platform is selected.
-- [ ] **A-014** Make real-world camera/microphone/text/media ingress and the
+- [x] **A-014** Make real-world camera/microphone/text/media ingress and the
   virtual world coexist as seamless windows into one causal life.
+  **Live-closed 2026-08-16:** task 1098 retained one organism while a real
+  Chrome camera and microphone committed four concurrent retinal/cochlear
+  hops with exactly 16,000 pressure samples at 16 kHz. Receipt
+  `8e4e84cf...06fd3` advanced tick `133011 -> 133015`, physically transitioned
+  1,212 neurons, persisted successor `c2dd5111...73b`, and kept Python
+  cognition callbacks at zero. A later spoken window also committed. Rendered
+  text supplied pixels but no string; bounded picture, PDF, and WAV offers and
+  persistent world revision 6,855 were live-verified on the same identity.
+  The S3/CloudFront transport mismatch was corrected by UI-only commit
+  `ffa1d4f6` without restarting Guala. The current Loom design remains rejected
+  and scheduled for complete replacement rather than incremental polishing.
 - [ ] **A-015** Live-soak unattended autonomy long enough to prove continued
   activity, recovery, bounded growth, and absence of duplicated processes.
 

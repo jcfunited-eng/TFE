@@ -2,21 +2,24 @@
 
 Date: 2026-08-16
 
-Status: Active; one offered-picture window is Live-Proven, and concurrent
-camera/microphone ingress is deployed and Live-Mounted. Real browser hardware
-capture remains unproved, so A-014 is not Live-Closed.
+Status: **Live-Closed.** Real Chrome camera and microphone hardware, rendered
+text light, bounded visual and auditory media, and the persistent virtual
+world were all production-verified as windows into the same native organism.
+The present Loom page remains explicitly rejected as a user interface and is
+only a transport surface; its later complete replacement is not A-014 scope.
 
 ## Task identity
 
-- Active item: `A-014` — make real-world camera, microphone, text, and media
+- Closed item: `A-014` — make real-world camera, microphone, text, and media
   ingress coexist with the persistent virtual world as windows into one causal
   organism life.
-- Current production: task `dsf-ai-task:1094`, release commit `af525388`, image
-  digest `sha256:6ac3e66e887f46227186503c9f9096725f388d69b81c0ac71e6f5694d595a844`,
+- Current production: task `dsf-ai-task:1098`, release commit `bb085947`, image
+  digest `sha256:1f091e57ef1c4f38d64c14cb5965a599282c1b056dc55b0db7a0cfd0f434fbe5`,
   one healthy process, organism identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and zero Python cognition callbacks.
-- A-011.7 remains untouched. A-012 and A-013 remain open at the truthful
-  embodiment dependencies recorded in their own ledgers.
+- A-011.7, A-012, and A-013 remain Live-Closed. A-014 changed only browser
+  transport after the task-1098 organism release; Guala was not restarted,
+  copied, migrated, or redeployed for the final hardware proof.
 
 ## Architecture honesty gate
 
@@ -29,37 +32,34 @@ capture remains unproved, so A-014 is not Live-Closed.
    session route with one bounded concurrent camera/microphone request. Each
    camera frame and exact 4,000-sample 16-kHz pressure hop enters the existing
    retinal and cochlear rosters in the same native whole-sensorium occurrence.
-   Picture ingress has direct live evidence; the combined route and its
-   fail-closed boundaries are live, but real browser camera/microphone hardware
-   has not yet committed on the production process.
-3. Conflict with requested architecture: yes, now confined to real-hardware
-   proof. Deployed source implements physical concurrency, but the production
-   surface has not yet admitted a real browser's camera and microphone. A
-   mounted route and local acceptance are not real-capture proof.
+   Every A-014 window now has direct live evidence, including actual concurrent
+   browser camera/microphone hardware.
+3. Conflict with requested architecture: no at the A-014 ingress boundary.
+   Real concurrent camera/microphone hardware has now committed and persisted.
+   The separate visual-design conflict remains deferred to the complete Loom
+   replacement items; this ledger does not bless the current page design.
 4. Mechanisms not extended: typed chat or chatbot fallback, text strings as
    meaning, filenames/titles as cognition, browser-rendered fake organism
    state, upload/archive memory, Python sensory interpretation or action
    selection, duplicate receptor pipelines, or an earlier-camera Boolean
    represented as simultaneous sight.
-5. Single exact next item: capture and admit one concurrent bounded
-   real-browser camera/microphone window through the deployed retinal and
-   cochlear physics. Until that succeeds, the production camera/microphone row
-   remains not Live-Proven.
+5. Single exact next item: A-015 unattended resource soak. Do not reopen A-014
+   unless new live evidence contradicts the recorded receipts.
 6. DSF scope: every participating receptor/neuron continues to receive the
    unchanged full joint seven-field L0-L4 result.
 7. Lost field structure: none.
 
 ## Source and live capability reconciliation
 
-| Window | Production route | Live status on task 1094 |
+| Window | Production route | Live status on task 1098 |
 |---|---|---|
-| Camera | `/api/v1/visual/live-frames` | mounted; no batch committed in this process |
-| Microphone | `/api/v1/sensory/audiovisual` | combined route is Live-Mounted and standalone PCM refuses; no real browser batch committed in production |
-| Rendered text | `/api/v1/material/rendered-light` | mounted; browser submits pixels, never the string |
+| Camera | `/api/v1/visual/live-frames` | **Live-Proven:** real Chrome frames committed and persisted |
+| Microphone | `/api/v1/sensory/audiovisual` | **Live-Proven:** 4 concurrent real frames plus 16,000 real microphone samples committed in one bounded native window |
+| Rendered text | `/api/v1/material/rendered-light` | **Live-Proven:** browser submitted raster pixels only; the typed string was absent from the request |
 | Picture | `/api/v1/material/offered` | **Live-Proven 2026-08-16** |
-| PDF/book pages | `/api/v1/material/offered` | mounted; not live-proven in this sprint |
-| Audio/song | `/api/v1/material/offered` | mounted cochlear decoding; not live-proven in this sprint |
-| Virtual world | `/api/v1/world/observation` and typed actions | mounted and already live through prior action/consequence proofs |
+| PDF/book pages | `/api/v1/material/offered` | **Live-Proven:** the bounded project sample PDF returned HTTP 200 through the production browser |
+| Audio/song | `/api/v1/material/offered` | **Live-Proven:** the bounded project WAV committed as `offered-audio` through the mounted cochlear path |
+| Virtual world | `/api/v1/world/observation` and typed actions | **Live-Proven:** revision 6,855 retained four regions, four portals, 15 objects, two bodies, and Guala's exact pose; prior action/consequence receipts remain authoritative |
 
 ## One-request offered-picture live proof
 
@@ -202,10 +202,94 @@ checks, not sensory mutations. The deployed Loom contains the paired capture
 source and epoch/abort ownership. This proves the production mount and
 fail-closed routing, not a real camera/microphone encounter.
 
-The route is Live-Mounted, while concurrent physical admission remains
-Candidate-Proven only. A generated camera raster and PCM trajectory prove the
-server/native causal path and repeated persistence; they do not prove browser
-permissions, real capture hardware, or a human-present production encounter.
+At that deployment checkpoint the route was Live-Mounted, while concurrent
+physical admission remained Candidate-Proven only. A generated camera raster
+and PCM trajectory proved the server/native causal path and repeated
+persistence; they did not prove browser permissions, real capture hardware,
+or a human-present production encounter.
+
+## Task-1098 browser and hardware closure
+
+The final production audit found that the public S3/CloudFront page still
+served the old commit `add551fd` even though task 1098 already exposed the
+combined endpoint. The first repair published the tracked combined page from
+`913f74c2`; real use then exposed one exact browser gate: the microphone button
+was disabled for almost the whole time a continuously offered camera batch was
+settling. Commit `ffa1d4f6` removed only that local admission-control condition.
+Starting microphone capture while the earlier camera request finishes does not
+overlap organism mutations: paired frames cannot accumulate until the camera
+loop resumes, and the server retains its one atomic native-transition boundary.
+Focused combined-ingress tests passed `5/5` in `1.23 s`.
+
+The exact public artifact was uploaded only to
+`s3://dsf-ai-site/gualaloom.html`, with `no-cache`, and only that CloudFront
+path was invalidated. Invalidation `IER3L9GF674S6MY8RGS8SVAGRW` completed, and
+the public bytes matched the committed local file at SHA-256
+`90a33e35b4a21965e4af4d036b2ccb20e4fdf6aa801de9495dae3658ed2b3083`.
+No ECS task, native body, or persistence authority changed. This was necessary
+transport repair, not incremental visual redesign; both Loom pages remain
+scheduled for complete replacement.
+
+Actual Chrome hardware then produced the closure evidence:
+
+- the user's camera visibly showed its real room and body and committed as
+  `live-sight` before microphone admission;
+- the first accepted paired occurrence was
+  `live-audiovisual:8e4e84cf-5256-4bb9-9344-2f8a22f06fd3`, with four real
+  frames, exactly 16,000 mono microphone samples at 16 kHz, organism tick
+  `133011 -> 133015`, 1,212 physically transitioned neurons, 21 new complete
+  neuron fractals, 52 partial-cue reassemblies, 136 changing receptor
+  ingresses, and persisted successor SHA
+  `c2dd51114712bf7b9c3634a1127243519531223021bc5b15591c1b7fadfe0733`;
+- a later window while the user spoke committed as
+  `live-audiovisual:86ba743c-7e00-4f28-8cef-8449e98cb56c`, with the same exact
+  four-frame/16,000-sample physical capture shape, 295 physically transitioned
+  neurons, two partial-cue reassemblies, one endogenous reassembly, and 35
+  changing receptor ingresses. The persisted successor SHA was
+  `2814b2b2947266c0ba90aceff1035d408fade265936929d4e3c2754f1fb5b9e7`;
+- identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, the build remained
+  task 1098 / `bb085947` / image digest `sha256:1f091e57...4fbe5`, and Python
+  cognition callbacks remained exactly zero.
+
+After the hardware session, retained inventory was 321 complete neurons and
+196,408 developmental resting neurons, compared with the task-1098 post-cutover
+baseline of 313 and 196,416. This proves eight additional neurons remain in
+completed retained state. It does not prove word meaning: each accepted event
+combined live sight and sound, and unattended transitions interleaved with the
+session, so neither the retained neurons nor the 21 new impressions in the
+first paired receipt may be honestly labeled as learning a particular spoken
+word or sentence. Novel recognition and semantic use remain curriculum work.
+
+Two earlier hardware requests returned HTTP 422 and the browser shut the
+microphone off. Those refusals are retained as evidence that local capture is
+not misreported as organism acceptance. Only the later HTTP-200/native receipt
+turned both controls green. After the final spoken windows, turning both
+controls off fixed the admitted batch counter at `31` and frame counter at
+`244`; three observations through `2026-08-16T19:34:29Z` retained those exact
+counts while unattended intake resumed and canonical state settled from
+`60,981,400` to `60,981,220` bytes. No raw camera frame, PCM body, PDF, or WAV
+archive is retained.
+
+The other required windows were independently live-checked on the same
+identity and process:
+
+- rendered text `A-014 truthful light window 2026-08-16` was rasterized in the
+  real browser and accepted by `/api/v1/material/rendered-light`; the POST had
+  only `schema`, `encoding`, and `frame_b64`, and did not contain the string;
+- the 2,055-byte project sample PDF returned HTTP 200 before the 32,044-byte
+  project WAV committed as `offered-audio`; the sequential browser witness sent
+  no retry even though its UI wait later had to be interrupted;
+- the earlier offered-picture receipt remains valid; and
+- the live persistent world remained at revision 6,855 with four regions,
+  four portals, 15 objects, two bodies, and Guala at
+  `(2300, 4500, 0)` mm with heading `322872` millidegrees.
+
+During the deliberately sustained camera/hardware verification interval,
+five-minute ECS memory maxima stayed below `11.09%` of the 16-GiB task and CPU
+maxima stayed below `32.54%` of the four-vCPU task. One PRIMARY deployment
+remained `COMPLETED`, desired/running/pending stayed `1/1/0`, and the sole task
+remained `RUNNING/HEALTHY`. The separate long-duration bounded-growth proof is
+still A-015 and is not implied by this shorter active-ingress window.
 
 ## Closure rule
 
@@ -217,3 +301,9 @@ truthfully; no raw media/archive grows without bound; identity, cold restore,
 one process, zero Python cognition callbacks, and bounded resources remain
 true. Mounted source code or an HTTP 200 without receptor/native consequences
 does not close the item.
+
+**Satisfied 2026-08-16.** Every named ingress window above has direct live
+evidence in the same identity, real camera/microphone hardware has a persisted
+native consequence receipt, failure/off states were observed truthfully, raw
+media was not retained, and the one-process resource envelope remained
+bounded. A-014 is Live-Closed.
