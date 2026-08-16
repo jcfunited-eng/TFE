@@ -2120,7 +2120,7 @@ def _curriculum_invitation_record() -> dict[str, object]:
 
 
 def _settle_pending_curriculum_invitation(
-    participant_causal_use: dict[str, Any] | None,
+    participant_attention: dict[str, Any] | None,
     *,
     organism_tick: int,
     state_sha256: str,
@@ -2136,8 +2136,8 @@ def _settle_pending_curriculum_invitation(
         key[0] == "external_participant_sensory" and key[1] == action_receipt
         for key in _active_external_participant_causal_motor_traces
     )
-    matched = isinstance(participant_causal_use, dict) and (
-        participant_causal_use.get(
+    matched = isinstance(participant_attention, dict) and (
+        participant_attention.get(
             "participant_action_causal_intent_receipt_sha256"
         ) == action_receipt
     )
@@ -2149,16 +2149,17 @@ def _settle_pending_curriculum_invitation(
         if key != "invitation_receipt_sha256"
     }
     if matched:
-        transfers = tuple(participant_causal_use["directed_physical_transfers"])
+        transfers = tuple(participant_attention["directed_physical_transfers"])
         successor.update(
             causal_directed_transfer_count=len(transfers),
             outcome="attended",
             presentation_eligible=True,
             reason=(
-                "the approach-caused retinal frontier reached Guala's own "
-                "motor preparation through exact directed transfers"
+                "the approach-caused retinal frontier entered Guala's own "
+                "changed reached-versus-foregone sparse route event through "
+                "exact directed transfers"
             ),
-            status="participant_causal_path_reached_motor",
+            status="participant_causal_path_entered_native_attention",
         )
     else:
         successor.update(
@@ -2166,10 +2167,10 @@ def _settle_pending_curriculum_invitation(
             presentation_eligible=False,
             reason=(
                 "the participant changed her retina, but that exact physical "
-                "frontier expired without reaching motor preparation; no "
-                "card was admitted"
+                "frontier expired without entering her changed reached-versus-"
+                "foregone sparse route event; no card was admitted"
             ),
-            status="participant_causal_path_expired_before_motor",
+            status="participant_causal_path_expired_before_native_attention",
         )
     successor.update(
         observed_at_organism_tick=organism_tick,
@@ -2502,10 +2503,15 @@ def _unmounted_stage(status: str, reason: str) -> dict[str, object]:
     return _stage(False, status, reason, reason)
 
 
-def _sparse_attention_route_facts(
+def _qualifying_sparse_attention_routes(
     evidence: dict[str, Any] | None,
-) -> dict[str, object] | None:
-    """Project exact reached/foregone route change without selecting a winner."""
+) -> tuple[
+    str,
+    tuple[tuple[Any, ...], ...],
+    tuple[tuple[Any, ...], ...],
+    tuple[tuple[Any, ...], ...],
+] | None:
+    """Return the one exact changed reached/foregone route observation."""
 
     if evidence is None:
         return None
@@ -2518,8 +2524,6 @@ def _sparse_attention_route_facts(
     )
     if not preceding or current == preceding:
         return None
-    qualifying_phase = None
-    qualifying: tuple[tuple[Any, ...], ...] | None = None
     for phase, routes in (
         ("qualifying_interval", reached_and_foregone),
         ("current", current),
@@ -2530,11 +2534,19 @@ def _sparse_attention_route_facts(
             and any(route[7] == 0 for route in routes)
             and any(route[7] != 0 for route in routes)
         ):
-            qualifying_phase = phase
-            qualifying = routes
-            break
-    if qualifying is None:
+            return phase, routes, current, preceding
+    return None
+
+
+def _sparse_attention_route_facts(
+    evidence: dict[str, Any] | None,
+) -> dict[str, object] | None:
+    """Project exact reached/foregone route change without selecting a winner."""
+
+    observation = _qualifying_sparse_attention_routes(evidence)
+    if observation is None:
         return None
+    qualifying_phase, qualifying, current, preceding = observation
     reached = tuple(route for route in qualifying if route[7] != 0)
     foregone = tuple(route for route in qualifying if route[7] == 0)
     return {
@@ -7813,6 +7825,96 @@ def _complete_local_affective_balance_trajectory(trajectory: Any) -> bool:
     )
 
 
+def _retain_external_participant_path_witness(
+    witness: dict[str, Any],
+    active: dict[
+        tuple[str, str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+) -> None:
+    """Retain only the latest reached participant frontier for this transaction."""
+
+    candidates = tuple(
+        (key, paths)
+        for key, paths in active.items()
+        if key[0] == "external_participant_sensory" and paths
+    )
+    if not candidates:
+        return
+    key, paths = min(candidates, key=lambda item: item[0][1:])
+    _kind, action_receipt, origin_lineages, origin_tick = key
+    witness.clear()
+    witness.update({
+        "participant_action_causal_intent_receipt_sha256": action_receipt,
+        "origin_lineages": origin_lineages,
+        "origin_organism_tick": origin_tick,
+        "paths": tuple(
+            (lineage, tuple(paths[lineage])) for lineage in sorted(paths)
+        ),
+    })
+
+
+def _external_participant_attention_from_path_witness(
+    witness: dict[str, Any],
+    hop: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Bind participant-caused transport to her native sparse attention event."""
+
+    observation = _qualifying_sparse_attention_routes(hop)
+    if observation is None or not witness:
+        return None
+    qualifying_phase, routes, _current, _preceding = observation
+    transported: dict[tuple[str, str, int, int], tuple[Any, ...]] = {}
+    for route in routes:
+        if len(route) != 8:
+            return None
+        signed_carriers = int(route[7])
+        if signed_carriers > 0:
+            transfer = (str(route[0]), str(route[3]), int(route[6]), signed_carriers)
+        elif signed_carriers < 0:
+            transfer = (str(route[3]), str(route[0]), int(route[6]), -signed_carriers)
+        else:
+            continue
+        transported[transfer] = tuple(route)
+    matches: list[
+        tuple[
+            int,
+            tuple[tuple[str, str, int, int], ...],
+            tuple[str, str, int, int],
+            tuple[Any, ...],
+        ]
+    ] = []
+    for _frontier_lineage, raw_path in tuple(witness.get("paths", ())):
+        path = tuple(raw_path)
+        for index, transfer in enumerate(path):
+            route = transported.get(tuple(transfer))
+            if route is not None:
+                matches.append((index + 1, path, tuple(transfer), route))
+    if not matches:
+        return None
+    path_extent, path, matched_transfer, matched_route = min(
+        matches,
+        key=lambda item: (item[0], item[1], item[2]),
+    )
+    attention = _sparse_attention_route_facts(hop)
+    if attention is None:
+        return None
+    return {
+        "origin_kind": "external_participant_sensory",
+        "participant_action_causal_intent_receipt_sha256": witness[
+            "participant_action_causal_intent_receipt_sha256"
+        ],
+        "perturbed_receptor_lineages": witness["origin_lineages"],
+        "receptor_settlement_organism_tick": witness["origin_organism_tick"],
+        "attention_organism_tick": int(hop["organism_tick"]),
+        "attention": attention,
+        "attention_qualifying_phase": qualifying_phase,
+        "directed_physical_transfers": path[:path_extent],
+        "matched_attention_transfer": matched_transfer,
+        "matched_attention_route": matched_route,
+    }
+
+
 def _advance_causal_motor_traces(
     organism: Any,
     active: dict[
@@ -7825,6 +7927,7 @@ def _advance_causal_motor_traces(
         tuple[Any, ...], ...
     ] | None = None,
     external_participant_action_receipt: str | None = None,
+    participant_path_witness: dict[str, Any] | None = None,
 ) -> tuple[
     dict[
         tuple[str, str, tuple[str, ...], int],
@@ -7846,6 +7949,8 @@ def _advance_causal_motor_traces(
         external_participant_action_receipt = hop.get(
             "external_participant_action_receipt"
         )
+    if participant_path_witness is None:
+        participant_path_witness = {}
     causal_intervals = tuple(hop.get("causal_interval_evidence", ()))
     if causal_intervals:
         next_active = active
@@ -7858,6 +7963,15 @@ def _advance_causal_motor_traces(
                 interval,
                 transaction_affective_balance_trajectories,
                 external_participant_action_receipt,
+                participant_path_witness,
+            )
+        participant_attention = _external_participant_attention_from_path_witness(
+            participant_path_witness,
+            hop,
+        )
+        if participant_attention is not None:
+            next_completed["external_participant_attention"] = (
+                participant_attention
             )
         return next_active, next_completed
     origin_kinds = (
@@ -8177,6 +8291,16 @@ def _advance_causal_motor_traces(
                 organism_tick,
             )
             advanced[key] = {lineage: () for lineage in perturbed}
+    _retain_external_participant_path_witness(
+        participant_path_witness,
+        {**next_active, **advanced},
+    )
+    participant_attention = _external_participant_attention_from_path_witness(
+        participant_path_witness,
+        hop,
+    )
+    if participant_attention is not None:
+        next_completed["external_participant_attention"] = participant_attention
     return advanced, next_completed
 
 
@@ -8909,6 +9033,9 @@ def _perform_admitted_intake_locked(
     external_participant_motor_path = completed_causal_motor_traces.get(
         "external_participant_sensory"
     )
+    external_participant_attention_path = completed_causal_motor_traces.get(
+        "external_participant_attention"
+    )
     motor_action_projection: dict[str, Any] | None = None
     motor_sensed_consequence: dict[str, Any] | None = None
     if motor_action is not None:
@@ -8965,6 +9092,9 @@ def _perform_admitted_intake_locked(
             "action": dict(motor_action_projection),
             "sensed_consequence": dict(motor_sensed_consequence),
         }
+    participant_sensory_attention: dict[str, Any] | None = None
+    if external_participant_attention_path is not None:
+        participant_sensory_attention = dict(external_participant_attention_path)
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
@@ -8975,6 +9105,7 @@ def _perform_admitted_intake_locked(
         "new_impression_causal_use": new_impression_causal_use,
         "affective_motor_causal_use": affective_motor_causal_use,
         "participant_sensory_causal_use": participant_sensory_causal_use,
+        "participant_sensory_attention": participant_sensory_attention,
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,
@@ -9001,7 +9132,7 @@ def _perform_admitted_intake_locked(
         "totals": dict(totals),
     }
     _settle_pending_curriculum_invitation(
-        participant_sensory_causal_use,
+        participant_sensory_attention,
         organism_tick=int(last_hop["organism_tick"]),
         state_sha256=str(last_hop["state_sha256"]),
     )
@@ -12235,7 +12366,7 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 return _refusal(503, "participant approach receipt is invalid")
             reached_retina = int(action["visual_changed_receptor_count"]) > 0
             causal = (_last_transition_evidence or {}).get(
-                "participant_sensory_causal_use"
+                "participant_sensory_attention"
             )
             transfers = (
                 tuple(causal.get("directed_physical_transfers", ()))
@@ -12254,10 +12385,11 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             attended = reached_retina and bool(transfers)
             if attended:
                 outcome = "attended"
-                status = "participant_causal_path_reached_motor"
+                status = "participant_causal_path_entered_native_attention"
                 reason = (
-                    "the approach-caused retinal frontier reached Guala's "
-                    "own motor preparation through exact directed transfers"
+                    "the approach-caused retinal frontier entered Guala's own "
+                    "changed reached-versus-foregone sparse route event "
+                    "through exact directed transfers"
                 )
             elif reached_retina and pending:
                 outcome = "observing"
@@ -12269,11 +12401,14 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 )
             elif reached_retina:
                 outcome = "declined"
-                status = "participant_causal_path_expired_before_motor"
+                status = (
+                    "participant_causal_path_expired_before_native_attention"
+                )
                 reason = (
                     "the participant changed her retina, but that exact "
-                    "physical frontier expired without reaching motor "
-                    "preparation; no card was admitted"
+                    "physical frontier expired without entering her changed "
+                    "reached-versus-foregone sparse route event; no card was "
+                    "admitted"
                 )
             else:
                 outcome = "not_reached"

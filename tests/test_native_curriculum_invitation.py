@@ -79,7 +79,7 @@ def test_direct_card_button_cannot_admit_without_embodied_invitation(
     assert built is False
 
 
-def test_pending_invitation_attends_only_when_its_frontier_reaches_motor() -> None:
+def test_pending_invitation_attends_only_for_its_exact_causal_receipt() -> None:
     action_receipt = "55" * 32
     production._curriculum_invitation = {
         "outcome": "observing",
@@ -91,7 +91,7 @@ def test_pending_invitation_attends_only_when_its_frontier_reaches_motor() -> No
     production._settle_pending_curriculum_invitation(
         {
             "participant_action_causal_intent_receipt_sha256": action_receipt,
-            "directed_physical_transfers": (("retina", "motor", 0, 1),),
+            "directed_physical_transfers": (("retina", "attention", 0, 1),),
         },
         organism_tick=21,
         state_sha256="77" * 32,
@@ -100,6 +100,94 @@ def test_pending_invitation_attends_only_when_its_frontier_reaches_motor() -> No
     assert production._curriculum_invitation["outcome"] == "attended"
     assert production._curriculum_invitation["presentation_eligible"] is True
     assert production._curriculum_invitation["causal_directed_transfer_count"] == 1
+
+
+def test_participant_path_enters_native_attention_without_motor_requirement() -> None:
+    receptor = "01" * 16
+    ordering = "02" * 16
+    reached = "03" * 16
+    foregone = "04" * 16
+    action_receipt = "55" * 32
+    first = (receptor, ordering, 0, 5)
+    selected = (ordering, reached, 0, 3)
+    def interval(predecessor_tick, *, perturbed=(), frontier=()):
+        return {
+            "predecessor_organism_tick": predecessor_tick,
+            "organism_tick": predecessor_tick + 1,
+            "externally_perturbed_neuron_lineages": perturbed,
+            "internally_reassembled_formation_cues": (),
+            "motor_unit_recruitments": (),
+            "emitted_neuron_fractals": (),
+            "changed_contact_channel_states": (),
+            "affective_balance_trajectories": (),
+            "causal_frontier_advances": frontier,
+        }
+    hop = {
+        "predecessor_organism_tick": 19,
+        "organism_tick": 22,
+        "causal_interval_evidence": (
+            interval(19, perturbed=(receptor,)),
+            interval(20, frontier=((*first, ordering),)),
+            interval(21, frontier=((*selected, reached),)),
+        ),
+        "physical_frontier_routes": (
+            (ordering, 11, 0, reached, 9, 1, 0, 3),
+        ),
+        "preceding_distinct_physical_frontier_routes": (
+            (ordering, 11, 0, foregone, 9, 2, 0, 0),
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            (ordering, 11, 0, reached, 9, 1, 0, 3),
+            (ordering, 11, 0, foregone, 9, 2, 0, 0),
+        ),
+    }
+
+    _active, completed = production._advance_causal_motor_traces(
+        object(),
+        {},
+        {},
+        hop,
+        external_participant_action_receipt=action_receipt,
+    )
+    proof = completed["external_participant_attention"]
+
+    assert proof is not None
+    assert proof["participant_action_causal_intent_receipt_sha256"] == action_receipt
+    assert proof["directed_physical_transfers"] == (first, selected)
+    assert proof["matched_attention_transfer"] == selected
+    assert "motor_unit_recruitment" not in proof
+
+
+def test_unrelated_sparse_attention_cannot_accept_participant_invitation() -> None:
+    receptor = "01" * 16
+    participant_route = "02" * 16
+    unrelated = "03" * 16
+    reached = "04" * 16
+    foregone = "05" * 16
+    witness = {
+        "participant_action_causal_intent_receipt_sha256": "55" * 32,
+        "origin_lineages": (receptor,),
+        "origin_organism_tick": 20,
+        "paths": ((participant_route, ((receptor, participant_route, 0, 5),)),),
+    }
+    hop = {
+        "organism_tick": 22,
+        "physical_frontier_routes": (
+            (unrelated, 11, 0, reached, 9, 1, 0, 3),
+        ),
+        "preceding_distinct_physical_frontier_routes": (
+            (unrelated, 11, 0, foregone, 9, 2, 0, 0),
+        ),
+        "reached_and_foregone_physical_frontier_routes": (
+            (unrelated, 11, 0, reached, 9, 1, 0, 3),
+            (unrelated, 11, 0, foregone, 9, 2, 0, 0),
+        ),
+    }
+
+    assert production._external_participant_attention_from_path_witness(
+        witness,
+        hop,
+    ) is None
 
 
 @pytest.mark.parametrize(
@@ -160,10 +248,10 @@ def test_invite_route_binds_card_to_exact_world_action_and_trace(
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
     production._last_transition_evidence = (
         {
-            "participant_sensory_causal_use": {
+            "participant_sensory_attention": {
                 "participant_action_causal_intent_receipt_sha256": action_receipt,
                 "directed_physical_transfers": (
-                    ("retinal-lineage", "motor-lineage", 0, 2),
+                    ("retinal-lineage", "attention-route-lineage", 0, 2),
                 ),
             }
         }
