@@ -211,6 +211,7 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
         active,
         completed,
         _hop(31),
+        (trajectory,),
     )
     assert completed == {}
 
@@ -224,12 +225,13 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
             32,
             motors=((motor, 3, 5, ((ordering, 11, motor, 12, 0, 5),)),),
         ),
+        (trajectory,),
     )
 
     proof = completed["affective_gradient"]
     assert proof["affective_neuron_lineage"] == affective
     assert proof["localized_gradient_settlement_organism_tick"] == 31
-    assert proof["localized_plasticity_settlement_organism_tick"] == 31
+    assert proof["localized_plasticity_settlement_organism_tick"] == 30
     assert proof["motor_organism_tick"] == 33
     assert proof["directed_physical_transfers"] == (first, second)
     assert proof["motor_unit_recruitment"]["motor_lineage"] == motor
@@ -237,6 +239,96 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
         trajectory
     )
     assert observer.filters == [(affective,), (ordering,)]
+
+
+def test_transaction_assembled_affective_trajectory_reaches_motor() -> None:
+    affective = "0a" * 16
+    ordering = "0b" * 16
+    motor = "0c" * 16
+    association = (31, ("07" * 16, affective, 0, 11))
+    body = (31, (affective, "08" * 16, 0, 7))
+    gradient = (32, -9, -7, -8, 2, 2, 0, (3, 1), (5, 1), (1, 1))
+    plasticity = _plasticity(31)
+    association_hop = {
+        **_hop(30),
+        "affective_balance_trajectories": (
+            (affective, 10, 2, association, body, None, plasticity),
+        ),
+    }
+    gradient_hop = {
+        **_hop(31),
+        "affective_balance_trajectories": (
+            (affective, 10, 2, None, None, gradient, None),
+        ),
+    }
+    observer = _FrontierObserver()
+    retained = production._advance_bounded_affective_balance_evidence(
+        (), association_hop
+    )
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        association_hop,
+        retained,
+    )
+    assert active == {}
+
+    retained = production._advance_bounded_affective_balance_evidence(
+        retained, gradient_hop
+    )
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        gradient_hop,
+        retained,
+    )
+    assert len(active) == 1
+
+    first = (affective, ordering, 0, 13)
+    observer.transfers = ((*first, ordering),)
+    propagation_hop = {
+        **_hop(32),
+        "affective_balance_trajectories": (),
+    }
+    retained = production._advance_bounded_affective_balance_evidence(
+        retained, propagation_hop
+    )
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        propagation_hop,
+        retained,
+    )
+
+    observer.transfers = ()
+    motor_hop = {
+        **_hop(
+            33,
+            motors=((motor, 3, 5, ((ordering, 11, motor, 12, 0, 5),)),),
+        ),
+        "affective_balance_trajectories": (),
+    }
+    retained = production._advance_bounded_affective_balance_evidence(
+        retained, motor_hop
+    )
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        motor_hop,
+        retained,
+    )
+
+    proof = completed["affective_gradient"]
+    assert proof["localized_gradient_settlement_organism_tick"] == 32
+    assert proof["localized_plasticity_settlement_organism_tick"] == 31
+    assert proof["directed_physical_transfers"] == (
+        first,
+        (ordering, motor, 0, 5),
+    )
 
 
 def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:

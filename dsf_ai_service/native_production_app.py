@@ -7171,6 +7171,28 @@ def _advance_bounded_localized_metabolic_strain_evidence(
     )
 
 
+def _complete_local_affective_balance_trajectory(trajectory: Any) -> bool:
+    """Recognize the one ratified native ordering without adding authority."""
+
+    if not isinstance(trajectory, (list, tuple)) or len(trajectory) != 7:
+        return False
+    lineage, layer, _topology, association, body, gradient, plasticity = trajectory
+    return (
+        layer == 10
+        and isinstance(lineage, str)
+        and isinstance(association, (list, tuple))
+        and isinstance(body, (list, tuple))
+        and isinstance(gradient, (list, tuple))
+        and len(association) == 2
+        and len(body) == 2
+        and len(gradient) == 10
+        and gradient[0] > max(association[0], body[0])
+        and _retained_local_plasticity(plasticity)
+        and plasticity[0] == association[0]
+        and plasticity[0] == body[0]
+    )
+
+
 def _advance_causal_motor_traces(
     organism: Any,
     active: dict[
@@ -7179,6 +7201,9 @@ def _advance_causal_motor_traces(
     ],
     completed: dict[str, dict[str, Any]],
     hop: dict[str, Any],
+    transaction_affective_balance_trajectories: tuple[
+        tuple[Any, ...], ...
+    ] | None = None,
 ) -> tuple[
     dict[
         tuple[str, str, tuple[str, ...], int],
@@ -7269,6 +7294,16 @@ def _advance_causal_motor_traces(
     proofs: dict[str, list[dict[str, Any]]] = {
         kind: [] for kind in origin_kinds if kind not in completed
     }
+    observed_affective_trajectories = tuple(
+        transaction_affective_balance_trajectories
+        if transaction_affective_balance_trajectories is not None
+        else hop.get("affective_balance_trajectories", ())
+    )
+    affective_trajectory_by_receipt = {
+        _receipt(tuple(trajectory)): trajectory
+        for trajectory in observed_affective_trajectories
+        if _complete_local_affective_balance_trajectory(trajectory)
+    }
     for (
         origin_kind,
         origin_receipt,
@@ -7341,6 +7376,11 @@ def _advance_causal_motor_traces(
                         recurrence_organism_tick=origin_tick,
                     )
                 elif origin_kind == "affective_gradient":
+                    affective_trajectory = affective_trajectory_by_receipt.get(
+                        origin_receipt
+                    )
+                    if affective_trajectory is None:
+                        continue
                     proof["motor_unit_recruitment"][
                         "matched_preparation_transfer"
                     ] = (
@@ -7354,8 +7394,12 @@ def _advance_causal_motor_traces(
                     proof.update(
                         affective_neuron_lineage=origin_lineages[0],
                         affective_trajectory_receipt_sha256=origin_receipt,
-                        localized_gradient_settlement_organism_tick=origin_tick,
-                        localized_plasticity_settlement_organism_tick=origin_tick,
+                        localized_gradient_settlement_organism_tick=(
+                            affective_trajectory[5][0]
+                        ),
+                        localized_plasticity_settlement_organism_tick=(
+                            affective_trajectory[6][0]
+                        ),
                     )
                 else:
                     proof["motor_unit_recruitment"][
@@ -7410,8 +7454,12 @@ def _advance_causal_motor_traces(
             key = ("new_neuronal_fractal", "", emitted, organism_tick)
             advanced.setdefault(key, {lineage: () for lineage in emitted})
     if "affective_gradient" not in next_completed:
-        for trajectory in tuple(hop.get("affective_balance_trajectories", ())):
-            if not isinstance(trajectory, (list, tuple)) or len(trajectory) != 7:
+        for trajectory in tuple(
+            transaction_affective_balance_trajectories
+            if transaction_affective_balance_trajectories is not None
+            else hop.get("affective_balance_trajectories", ())
+        ):
+            if not _complete_local_affective_balance_trajectory(trajectory):
                 continue
             (
                 lineage,
@@ -7422,21 +7470,7 @@ def _advance_causal_motor_traces(
                 gradient,
                 plasticity,
             ) = trajectory
-            if (
-                layer != 10
-                or not isinstance(lineage, str)
-                or not isinstance(association, (list, tuple))
-                or not isinstance(body, (list, tuple))
-                or not isinstance(gradient, (list, tuple))
-                or len(association) != 2
-                or len(body) != 2
-                or len(gradient) != 10
-                or gradient[0] != organism_tick
-                or gradient[0] <= max(association[0], body[0])
-                or not _retained_local_plasticity(plasticity)
-                or plasticity[0] != association[0]
-                or plasticity[0] != body[0]
-            ):
+            if gradient[0] != organism_tick:
                 continue
             key = (
                 "affective_gradient",
@@ -7734,6 +7768,12 @@ def _perform_admitted_intake_locked(
                 heading,
                 signed_steps,
             )
+            affective_balance_trajectories = (
+                _advance_bounded_affective_balance_evidence(
+                    affective_balance_trajectories,
+                    last_hop,
+                )
+            )
             (
                 active_causal_motor_traces,
                 completed_causal_motor_traces,
@@ -7742,6 +7782,7 @@ def _perform_admitted_intake_locked(
                 active_causal_motor_traces,
                 completed_causal_motor_traces,
                 last_hop,
+                affective_balance_trajectories,
             )
             (
                 physical_frontier_routes,
@@ -7772,12 +7813,6 @@ def _perform_admitted_intake_locked(
                 physical_prediction_alternatives,
                 body_consequence_transfers,
                 last_hop,
-            )
-            affective_balance_trajectories = (
-                _advance_bounded_affective_balance_evidence(
-                    affective_balance_trajectories,
-                    last_hop,
-                )
             )
             localized_fluid_chemistry = (
                 _advance_bounded_localized_fluid_chemistry_evidence(
@@ -7807,6 +7842,12 @@ def _perform_admitted_intake_locked(
             last_hop = _commit_admitted_hop(
                 organism, episode, admissions
             )
+            affective_balance_trajectories = (
+                _advance_bounded_affective_balance_evidence(
+                    affective_balance_trajectories,
+                    last_hop,
+                )
+            )
             (
                 active_causal_motor_traces,
                 completed_causal_motor_traces,
@@ -7815,6 +7856,7 @@ def _perform_admitted_intake_locked(
                 active_causal_motor_traces,
                 completed_causal_motor_traces,
                 last_hop,
+                affective_balance_trajectories,
             )
             (
                 physical_frontier_routes,
@@ -7845,12 +7887,6 @@ def _perform_admitted_intake_locked(
                 physical_prediction_alternatives,
                 body_consequence_transfers,
                 last_hop,
-            )
-            affective_balance_trajectories = (
-                _advance_bounded_affective_balance_evidence(
-                    affective_balance_trajectories,
-                    last_hop,
-                )
             )
             localized_fluid_chemistry = (
                 _advance_bounded_localized_fluid_chemistry_evidence(
@@ -7921,6 +7957,12 @@ def _perform_admitted_intake_locked(
                 last_hop = _commit_admitted_hop(
                     organism, self_hearing_episode, admissions
                 )
+                affective_balance_trajectories = (
+                    _advance_bounded_affective_balance_evidence(
+                        affective_balance_trajectories,
+                        last_hop,
+                    )
+                )
                 (
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
@@ -7929,6 +7971,7 @@ def _perform_admitted_intake_locked(
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
                     last_hop,
+                    affective_balance_trajectories,
                 )
                 self_hearing_hop_count += 1
                 committed_hop_count += 1
@@ -8044,6 +8087,12 @@ def _perform_admitted_intake_locked(
                     consequence_episode,
                     consequence_admissions,
                 )
+                affective_balance_trajectories = (
+                    _advance_bounded_affective_balance_evidence(
+                        affective_balance_trajectories,
+                        consequence_hop,
+                    )
+                )
                 (
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
@@ -8052,6 +8101,7 @@ def _perform_admitted_intake_locked(
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
                     consequence_hop,
+                    affective_balance_trajectories,
                 )
                 (
                     physical_frontier_routes,
@@ -8082,12 +8132,6 @@ def _perform_admitted_intake_locked(
                     physical_prediction_alternatives,
                     body_consequence_transfers,
                     consequence_hop,
-                )
-                affective_balance_trajectories = (
-                    _advance_bounded_affective_balance_evidence(
-                        affective_balance_trajectories,
-                        consequence_hop,
-                    )
                 )
                 localized_fluid_chemistry = (
                     _advance_bounded_localized_fluid_chemistry_evidence(
@@ -8151,6 +8195,12 @@ def _perform_admitted_intake_locked(
                     predecessor_heading,
                     trajectory,
                 )
+                affective_balance_trajectories = (
+                    _advance_bounded_affective_balance_evidence(
+                        affective_balance_trajectories,
+                        last_hop,
+                    )
+                )
                 (
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
@@ -8159,6 +8209,7 @@ def _perform_admitted_intake_locked(
                     active_causal_motor_traces,
                     completed_causal_motor_traces,
                     last_hop,
+                    affective_balance_trajectories,
                 )
                 (
                     physical_frontier_routes,
@@ -8189,12 +8240,6 @@ def _perform_admitted_intake_locked(
                     physical_prediction_alternatives,
                     body_consequence_transfers,
                     last_hop,
-                )
-                affective_balance_trajectories = (
-                    _advance_bounded_affective_balance_evidence(
-                        affective_balance_trajectories,
-                        last_hop,
-                    )
                 )
                 localized_fluid_chemistry = (
                     _advance_bounded_localized_fluid_chemistry_evidence(
@@ -8517,13 +8562,7 @@ def _perform_admitted_intake_locked(
     complete_affective_balance = tuple(
         trajectory
         for trajectory in affective_balance_trajectories
-        if len(trajectory) == 7
-        and trajectory[3] is not None
-        and trajectory[4] is not None
-        and trajectory[5] is not None
-        and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
-        and _retained_local_plasticity(trajectory[6])
-        and trajectory[6][0] > max(trajectory[3][0], trajectory[4][0])
+        if _complete_local_affective_balance_trajectory(trajectory)
     )
     if complete_affective_balance:
         _last_tested_affective_balance_evidence = {

@@ -1583,3 +1583,48 @@ second persistence authority remain out of scope and must not be extended.
   closed on the older temporary native build and on a duplicated test
   `PYTHONPATH`; neither failure changed source or scope. `git diff --check` and
   Python compilation pass.
+
+#### Task 1081 deployment, live reciprocal result, and exact acceptance defect
+
+- The transaction-wide physical-choice correction deployed through the full
+  controller as task `dsf-ai-task:1081`, commit
+  `9f206832ae4a3bcef0848608ce9207c57cd744e5`, image
+  `sha256:d6c9fc904f9cd5649004da12a8052ce6c611c954b9b2771ab6aefb9568c5e98b`.
+  The controller ran from `2026-08-15T23:24:04Z` to `23:47:51Z`, performed one
+  verified cutover, cold-restored identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` exactly, and left one healthy process
+  with zero failed or pending tasks and zero Python cognition callbacks.
+- Live tick `113871` proved the corrected choice boundary: 36 exact
+  attention-route matches settled a nonzero `-64` millidegree action without a
+  Python, random, score, goal, or semantic-command authority. One invitation
+  and one return were then committed exactly once despite their known upstream
+  504 responses; read-back proved the participant's two positions and Guala's
+  two causally later autonomous responses through world revision `5533`.
+- The exchange did not Live-Close A-011.6. Production retained basic
+  sensorimotor play and exact physical choice, but reciprocal social play,
+  affective/body convergence, and localized strain remained unproved. No
+  participant request was repeated after read-back, and observation stopped
+  after two further autonomous actions rather than waiting without bound.
+- Live generation `113983` makes the exact acceptance defect observable. The
+  latest committed transition contains complete layer-10 trajectories with
+  association, body influence, and retained plastic settlement at tick
+  `113970`, followed by localized gradient settlement at tick `113971`.
+  Nevertheless the public affective surface reports that no complete trajectory
+  exists, and the causal motor trace does not seed that trajectory. The native
+  evidence is present; two Python views are stale: the causal tracer reads each
+  partial hop before the transaction accumulator assembles it, while the public
+  test still requires plastic settlement after association/body instead of at
+  their exact shared tick.
+- The single correction moves the existing bounded affective accumulator ahead
+  of the read-only causal observation on every transaction hop, supplies that
+  accumulated tuple without copying the hop, and gives the tracer and public
+  surface one shared exact ordering predicate. It also reports the actual
+  plastic and gradient ticks separately. No native physics, state, persistence,
+  schema, DSF, selection, reward, label, owner, lock, database, or action
+  authority changes.
+- The focused multi-hop causal/play/public path passes `39/39`, including a new
+  regression that presents association/body/plasticity and the later gradient
+  on separate hops before propagation to motor discharge. This is local
+  evidence only. A-011.6 remains open until the immutable release passes the
+  production-shaped rehearsal, deploys, and satisfies the live reciprocal
+  acceptance. A-011.7 remains the immediate next item.
