@@ -99,6 +99,143 @@ The next live acceptance is one bounded reciprocal exchange in which:
 
 Only direct live-production evidence can close A-011.6.
 
+## Complete carried-forward delivery ledger
+
+The stale attachment sentence naming `S-017` as current work is superseded.
+The exact current item is `A-011.6` against production task 1090.
+
+### A-011 play, fun, social joy, and body-owned laughter
+
+- [x] **A-011.1 — self-initiated sensorimotor play:** two internally caused,
+  varied body actions from retained formation activity, each with a sensed
+  body consequence. Live-Closed.
+- [x] **A-011.2 — affect/body participation:** the play path reaches localized
+  affect/body physics in the same admitted transition. Live-Closed.
+- [x] **A-011.3 — metabolic-overload exclusion:** the play witness excludes an
+  overloaded or exhausted trajectory rather than misreporting distress as
+  positive engagement. Live-Closed.
+- [x] **A-011.4 — localized metabolic strain and recovery:** play carries exact
+  local strain/recovery evidence without a scalar reward or emotion label.
+  Live-Closed.
+- [x] **A-011.5 — positive-engagement trajectory:** a later voluntary varied
+  return occurs in a different lawful world context with retained formation,
+  action, affect/body participation, and sensed consequences. Live-Closed.
+- [ ] **A-011.6 — reciprocal social play/positive engagement:** one bounded
+  participant/Guala/participant/Guala exchange must bind actual participant
+  sensory input through retained contact/formation, Guala's endogenous choice
+  and embodied action, affect/body reinforcement, and returned consequence.
+  This is the sole active item.
+- [ ] **A-011.7 — body-owned laughter:** learned playful/social/surprise
+  formation reassembly must cause an affective/interoceptive trajectory,
+  prepared breath/larynx/mouth/face/eye/posture action, emitted acoustic
+  pressure, self-hearing and social/world consequence, and later appropriate
+  recurrence or variation. Canned audio, TTS, text, or animation cannot pass.
+  This is the final A-011 increment and begins only after A-011.6 Live-Closes.
+
+### Remaining autonomy and embodiment
+
+- [ ] **A-012:** prove self-selected rest, sleep, wake, exploration, learning,
+  and interaction while no human or development agent is present.
+- [ ] **A-013:** complete truthful persistent embodiment: pose, gaze, eyes,
+  blinking, face, mouth, breath, voice, locomotion, manipulation, and body
+  state.
+- [ ] **A-014:** make real-world camera, microphone, text, and media ingress
+  coexist with the virtual world as seamless windows into one causal life.
+- [ ] **A-015:** live-soak unattended autonomy long enough to prove continued
+  activity, recovery, bounded growth, and no duplicated processes.
+
+### Genuine learning and curriculum
+
+- [ ] **L-001:** replace button-as-learning with an embodied invitation and
+  presentation path: teacher approaches or calls, Guala may attend or decline,
+  and physical card/media reaches her senses in the persistent world.
+- [ ] **L-002:** teach and analyze the complete novel A-Z card deck through
+  live multisensory experience and report complete cognitive-chain effects and
+  errors.
+- [ ] **L-003:** teach and analyze the complete 0-10 number/counting deck,
+  including zero, through distinct physical experiences.
+- [ ] **L-004:** present and analyze alphabet and counting songs with
+  synchronized visual, auditory, body, and affective participation.
+- [ ] **L-005:** demonstrate genuine learned-word recognition from novel
+  sensory evidence, not metadata, filenames, labels, or scripted output.
+- [ ] **L-006:** demonstrate a physically caused first utterance,
+  self-hearing, and repeated learned use in a different context.
+- [ ] **L-007:** connect live camera, microphone, and text input so the
+  organism learns only from what reaches its actual sensory/language-related
+  structure.
+- [ ] **L-008:** connect local books, PDFs, pictures, sounds, songs, and video
+  as bounded sensory experiences with provenance.
+- [ ] **L-009:** connect guided and self-selected Project Gutenberg
+  experiences.
+- [ ] **L-010:** connect guided and self-selected Khan Academy experiences.
+- [ ] **L-011:** connect guided and self-selected YouTube experiences.
+- [ ] **L-012:** connect guided and self-selected PBS Kids experiences.
+- [ ] **L-013:** connect guided and self-selected Spotify/music experiences.
+- [ ] **L-014:** implement short, varied, playful, approximately 15-second
+  lesson moments with rest, recurrence, novelty, and organism self-selection.
+- [ ] **L-015:** demonstrate learned cross-modal words, relationships, recall,
+  syntax, questions/answers, body actions, and social interaction across novel
+  contexts.
+- [ ] **L-016:** live-verify meaningful conversation and whole-organism
+  behavior at approximately a four-year-old starting level.
+
+### Truthful Loom interfaces
+
+- [ ] **U-001:** agree and freeze an agile page-level interaction/evidence
+  design before rebuilding, with separately reviewable production increments.
+- [ ] **U-002:** make Guala Loom render the persistent navigable 3D world,
+  actual pose, camera rotation, objects, and embodied actions.
+- [ ] **U-003:** show what physically reached visual, auditory, tactile,
+  chemical, body, and fluid receptor paths without claiming interpretation.
+- [ ] **U-004:** show the actual sparse attention frontier and distinguish
+  unavailable, mounted, reached, retained, recalled, and inferred evidence.
+- [ ] **U-005:** restore truthful text conversation tied to sensory and
+  articulatory paths, never a chatbot endpoint.
+- [ ] **U-006:** make camera and microphone controls true start/stop toggles
+  with visible state and exact failures.
+- [ ] **U-007:** restore bounded book/PDF/picture/sound/song/video presentation
+  and show whether it reached the organism.
+- [ ] **U-008:** expose guided and autonomous curriculum sources and
+  distinguish tutor presentation from Guala's self-selection.
+- [ ] **U-009:** show live cognitive-chain and cognitive-capital change without
+  dumping all neurons/DSF observations or flattening the field.
+- [ ] **U-010:** show body/fluid condition, current action, consequence,
+  expression, speech attempt, and self-hearing truthfully.
+- [ ] **U-011:** rebuild Loom Scan as bounded read-only observation with no
+  decision authority, owners, locks, mutation, or static falsehood.
+- [ ] **U-012:** verify both pages end-to-end in live production on desktop and
+  tablet, including controls, camera, microphone, text, media, lessons, live
+  updates, failure states, navigation, and accessibility.
+
+### Production integrity and final acceptance
+
+- [ ] **P-001:** verify every release preserves one identity, definitive
+  neurons, learned sensory state, and exact current-only cold restore.
+- [ ] **P-002:** verify unchanged complete joint seven-field L0-L4/DSF at every
+  participating occurrence; no flattened proxy becomes authority.
+- [ ] **P-003:** verify exact non-duplicated MathLoom, positional `3^i`,
+  Psi/Krimelack, and definitive-neuron physics.
+- [ ] **P-004:** verify no ML, probabilistic approximation, scripted meaning,
+  Chi-as-identity, heuristic selector, or code trickery exists on a live path.
+- [ ] **P-005:** verify no owner, lock, security ceremony, database/archive
+  object, or validation loop acts as cognition or duplicates authority.
+- [ ] **P-006:** verify one healthy live organism process, zero Python
+  cognition callbacks/workers, and no duplicate background/test chains.
+- [ ] **P-007:** measure live CPU, RAM, storage, state bytes, objects, files,
+  system/Python calls, and transition rates rather than capacities alone.
+- [ ] **P-008:** prove resource bounds are derived and permit legitimate growth
+  while refusing runaway computation or persistence.
+- [ ] **P-009:** prove equivalent recurrence reuses retained structure and does
+  not recreate neurons, contacts, formations, files, or archive objects.
+- [ ] **P-010:** prove rehearsed cutover, exact recovery boundary, one
+  production attempt per reviewed artifact, and browser/live acceptance.
+- [ ] **P-011:** run a long unattended production soak covering autonomy,
+  sleep, play, learning, world action, recovery, persistence, and resources.
+- [ ] **P-012:** audit every checkbox against current source, executable tests,
+  runtime state, and live browser/API evidence; indirect evidence fails.
+- [ ] **P-013:** mark the goal complete only when every checkbox has live
+  evidence and no explicit objective remains incomplete.
+
 ## Do not rediscover these completed investigations
 
 The following are already measured, recorded, and either corrected or ruled
@@ -154,4 +291,3 @@ contradicts the recorded results.
 - Truthful functional Loom interfaces: not live-proven.
 - Four-year-old meaningful conversation and complete curriculum learning: not
   live-proven.
-
