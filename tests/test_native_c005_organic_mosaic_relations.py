@@ -178,15 +178,15 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
             SimpleNamespace(),
         ),
     )
-    first_hop = _hop(11, (relation,))
-    first_hop["rest_recovered_neuron_count"] = 2
-    second_hop = _hop(12, ())
-    second_hop["rest_recovered_neuron_count"] = 3
-    hops = iter((first_hop, second_hop))
+    trajectory_hop = _hop(12, (relation,))
+    trajectory_hop["rest_recovered_neuron_count"] = 5
+    received = []
     monkeypatch.setattr(
         production,
         "_commit_admitted_hop",
-        lambda *_args: next(hops),
+        lambda _organism, episodes, intervals, **_kwargs: (
+            received.append((episodes, intervals)) or trajectory_hop
+        ),
     )
     monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
@@ -212,6 +212,9 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
     assert result["totals"]["rest_recovered_neuron_count"] == 5
     assert "unmet_dissipation_quanta" not in result["totals"]
     assert result["observation"]["unmet_dissipation_quanta"] == 0
+    assert len(received) == 1
+    assert len(received[0][0]) == 2
+    assert len(received[0][1]) == 2
 
 
 def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
@@ -245,7 +248,11 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
         ),
     )
     hops = iter((first, heard))
-    monkeypatch.setattr(production, "_commit_admitted_hop", lambda *_: next(hops))
+    monkeypatch.setattr(
+        production,
+        "_commit_admitted_hop",
+        lambda *_args, **_kwargs: next(hops),
+    )
     monkeypatch.setattr(
         production,
         "_mono_pcm_hop_episodes",
@@ -325,7 +332,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
     monkeypatch.setattr(
         production,
         "_commit_admitted_hop",
-        lambda *_args: cancelled,
+        lambda *_args, **_kwargs: cancelled,
     )
 
     def exact_cancellation(**_kwargs):
@@ -383,7 +390,7 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
     monkeypatch.setattr(
         production,
         "_commit_admitted_hop",
-        lambda *_args: failed,
+        lambda *_args, **_kwargs: failed,
     )
 
     def arithmetic_failure(**_kwargs):
@@ -514,6 +521,7 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         rest_drained_dissipation_quanta=11,
         unmet_dissipation_quanta=0,
         externally_perturbed_body_receptor_count=0,
+        externally_perturbed_neuron_lineages=(),
         receptor_ingress_sense_counts=(0,) * len(production.SENSE_ORDER),
         receptor_ingress_changing_count=0,
         receptor_ingress_quiescent_count=0,

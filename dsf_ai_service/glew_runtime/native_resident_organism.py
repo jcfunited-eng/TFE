@@ -1581,6 +1581,43 @@ class NativeResidentOrganism:
             candidate, source_port_count, active_before
         )
 
+    def prepare_admitted_trajectory(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Prepare ordered admitted sensory intervals and seal only once."""
+
+        if not isinstance(sources, tuple) or not sources:
+            raise TypeError("admitted trajectory sources must be a nonempty tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_admitted_trajectory(
+            list(sources), [list(value) for value in intervals]
+        )
+        return self._validated_prepare_evidence(
+            candidate,
+            source_port_count,
+            active_before,
+            causal_interval_count=len(sources),
+        )
+
     def prepare_vestibular_tick(
         self,
         predecessor_heading_millidegrees: int,

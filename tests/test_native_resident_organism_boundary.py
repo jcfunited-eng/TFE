@@ -158,6 +158,7 @@ class _NativeResidentOrganismPrepare:
     rest_drained_dissipation_quanta: int = 0
     unmet_dissipation_quanta: int = 0
     externally_perturbed_body_receptor_count: int = 0
+    externally_perturbed_neuron_lineages: list[str] | None = None
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         96,
         0,
@@ -177,6 +178,7 @@ class _NativeResidentOrganismPrepare:
         ]
     ] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
+    changed_contact_channel_states: list[tuple[object, ...]] | None = None
     physical_frontier_routes: list[
         tuple[str, int, int, str, int, int, int, int]
     ] | None = None
@@ -224,6 +226,8 @@ class _NativeResidentOrganismPrepare:
             self.motor_unit_recruitments = []
         if self.active_physical_bonds is None:
             self.active_physical_bonds = []
+        if self.changed_contact_channel_states is None:
+            self.changed_contact_channel_states = []
         if self.physical_frontier_routes is None:
             self.physical_frontier_routes = []
         if self.preceding_distinct_physical_frontier_routes is None:
@@ -250,6 +254,8 @@ class _NativeResidentOrganismPrepare:
             self.organic_mosaic_relations = []
         if self.internally_reassembled_formation_cues is None:
             self.internally_reassembled_formation_cues = []
+        if self.externally_perturbed_neuron_lineages is None:
+            self.externally_perturbed_neuron_lineages = []
 
     @property
     def token_hex(self) -> str:

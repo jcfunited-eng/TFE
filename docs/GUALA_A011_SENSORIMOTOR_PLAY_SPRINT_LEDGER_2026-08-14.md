@@ -1975,3 +1975,103 @@ second persistence authority remain out of scope and must not be extended.
   authenticated predecessor rehearsal and live proof remain pending.
 - **Deployment clock:** candidate release preparation began
   `2026-08-16T04:58:13Z`; no cutover has yet been attempted.
+
+#### Task 1087 live causal-reciprocity result and bounded-locality correction
+
+- **Production baseline:** task `dsf-ai-task:1087`, commit
+  `86903c62d461b545c0fe38f6738eabaa89d7fd29`, image
+  `sha256:2b5ad3f84a8e80b13b625055dd6921aa073ac7dbf09dd31e2a9650c74d66faff`.
+  The deployment completed in one cutover. Its rehearsal cold-restored the
+  exact predecessor at tick `115885`, preserved identity, restored `313`
+  complete neurons and `196416` developmental resting neurons, and started
+  zero Python cognition callbacks.
+- **Live behavioral result:** one participant move to `(3000,5000,170000)`
+  committed exactly once despite the HTTP 504. Read-back proved the successor,
+  so the request was not repeated. The public observer remained
+  `reciprocal_social_play_unproved`: the corrected observer refused temporal
+  proximity because no participant-receptor-to-motor path reached a response.
+  A-011.6 therefore remains open.
+- **Contradictory runtime evidence:** the production body advances one nominal
+  `250 ms` hop in roughly one wall-clock second locally, and the live process
+  advances a nominal interval in several wall-clock seconds. An exact local
+  production-body trial with one changed retinal receptor overlapped the
+  ordinary eight-hop continuous interval, which separately prepared and
+  sealed each hop at approximately one second each before final publication.
+  The participant transition itself was already one native transition; its
+  delay included waiting behind this continuous transaction. The compact developmental resting
+  population is not scanned; the repeated cost is whole-successor sealing at
+  each Python-issued hop.
+- **Frozen input:** one already-bounded ordered list of admitted sensory source
+  episodes belonging to one causal occurrence.
+- **Exact path:** Python `_perform_admitted_intake_locked` currently loops over
+  `_commit_admitted_hop`; each call reaches PyO3 `prepare_admitted`, Rust
+  `ResidentOrganismRuntime::prepare_typed`, and a complete successor encode.
+- **Single correction:** use the native trajectory constitution already proven
+  by vestibular motion: advance every admitted source episode in exact order in
+  native memory, preserve the bounded combined causal observation, and encode
+  and seal only the final successor. Python transports one native occurrence
+  result and publishes it once.
+- **Expected output and invariants:** the organism advances by the exact episode
+  count; all reached physics, full DSF delivery, retained changes, causal
+  evidence, identity, and final bytes remain exact; `successor_seal_count=1`;
+  one Python prepare/commit pair replaces the repeated pair. No owner, lock,
+  queue, database, threshold, scheduler, semantic state, DSF change, neuron
+  change, persistence schema, or new cognitive authority is introduced.
+- **Acceptance:** on an exact production-body copy, the ordinary eight-hop
+  continuous sensory transaction must use one native prepare/commit pair and
+  one successor seal, preserve exact final bytes and bounded causal evidence,
+  cold-restore its final successor exactly, and materially reduce wall time and
+  temporary whole-state work. A visually effective participant occurrence must
+  remain one exact native transition and must no longer wait behind eight
+  repeated seals. The immutable candidate must then deploy and repeat the same
+  bounded facts in production before this correction is called delivered.
+- **Falsified paths:** `196416` resting neurons do not explain the delay; they
+  are compact declared state. Local file read, cold restore, and final save are
+  also not the principal repeated cost. Do not add a population cap, another
+  lock, asynchronous queue, timeout, retry, or sparse database to conceal the
+  repeated seal.
+- **Authenticated-predecessor rehearsal:** with task `1087` process-fixed
+  anatomy exported before import, exact body
+  `058797f6...0c420b` cold-restored into both paths. Eight ordinary sensory
+  episodes took `8.420895 s` and eight seals through the predecessor path;
+  the candidate took `5.698864 s` and one seal. Both advanced exactly eight
+  ticks and produced byte-identical successor
+  `03fd9484...caf875`; candidate evidence retained `13` neuronal fractals,
+  `2473` physical neuron transitions, and zero Python cognition callbacks.
+  This is a `1.478x` measured improvement, not a claim that remaining native
+  settlement is millisecond-fast.
+- **Translation and focused proof:** the candidate wheel loaded from
+  `/tmp/guala-locality-python-final/guala_core`; the exported native trajectory
+  symbol is present. Native exact-equivalence test `1/1`; A-011,
+  unattended-time, action/consequence, organic-relation, and resident-boundary
+  suites `68/68`; Python compilation and `git diff --check` pass. The stale
+  resident-boundary mock was brought to task1087's already-live observation
+  shape; no production fallback was added.
+- **Applicable recurrence evidence:** RF-001 exact worktree import; RF-002 exact
+  task1087 anatomy before import (the local-default rehearsal was refused and
+  then corrected without a code workaround); RF-003/RF-036 fresh candidate
+  wheel and symbol provenance; RF-004 authenticated recurrent body; RF-005 and
+  RF-028 exact aggregate evidence path; RF-006 valid resource ordering; RF-008
+  one transaction rather than repeated committed prefixes; RF-010 final-byte
+  equality, with fresh-successor cold-start still required; RF-014 mock parity;
+  RF-016 A-011.6 remains the only active item; RF-017 constructors/getters/
+  wrapper/aggregate census; RF-018 nonfinal evidence preservation; RF-030 tick
+  horizon derived from exact episode count; RF-033 live target re-resolved;
+  RF-036 no wheel cache; RF-044 cardinality reduced from eight seals to one;
+  RF-046 participant, vestibular, self-hearing, and ordinary producers remain
+  enumerated. Immutable-image rehearsal and live proof remain pending.
+- **Cold-successor recurrence result:** the first fresh-candidate successor
+  saved as `60039610` exact bytes at `03fd9484...caf875` and cold-restored with
+  identical SHA and tick in `0.841316 s`. Its next ordinary eight-hop interval
+  initially exposed RF-041: repeated hop-local fractals from the same neuron
+  were appended twice at the new trajectory aggregate. The aggregate now calls
+  the already-existing exact sparse-delta composition law used within a single
+  transition; equal coordinates add with sign and exact cancellation removes
+  zero. No new fractal, recognition, or state authority was introduced. The
+  corrected next interval completed in `5.682825 s`, sealed once, advanced
+  eight ticks, exported `27` fractals with `27` unique lineages, retained zero
+  Python cognition callbacks, and produced distinct successor
+  `7eea0198...b84d89`.
+- **Post-correction suites:** full native release suite `422 passed / 0 failed /
+  11 intentionally ignored`; focused Python translation and adjacent behavior
+  suites `68/68`; `git diff --check` passes.

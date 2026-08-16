@@ -37,7 +37,8 @@ use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
-    has_reached_and_foregone_frontier_routes, AffectiveBalanceTrajectoryObservation,
+    coalesce_emitted_neuron_fractals, has_reached_and_foregone_frontier_routes,
+    AffectiveBalanceTrajectoryObservation,
     ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CausalFrontierTransferObservation,
     ChangedContactChannelStateObservation, CognitiveFormationObservation,
     CognitiveFormationSummary, DirectedPhysicalTransferObservation, EmittedNeuronFractal,
@@ -2046,6 +2047,189 @@ fn retain_localized_metabolic_strain_evidence(
     retained.sort_unstable_by_key(|entry| entry.neuron_lineage);
 }
 
+fn retain_cognitive_trajectory_observation(
+    aggregate: &mut Option<CognitiveFormationObservation>,
+    observation: CognitiveFormationObservation,
+) -> Result<(), RuntimeError> {
+    let Some(total) = aggregate.as_mut() else {
+        let mut initial = observation;
+        initial.settled_working_frontier.clear();
+        initial.body_consequence_transfers.clear();
+        for trajectory in &mut initial.affective_balance_trajectories {
+            if trajectory
+                .localized_gradient_settlement
+                .zip(trajectory.association_influence)
+                .is_some_and(|(gradient, influence)| {
+                    gradient.cognitive_ordinal <= influence.cognitive_ordinal
+                })
+                || trajectory
+                    .localized_gradient_settlement
+                    .zip(trajectory.body_influence)
+                    .is_some_and(|(gradient, influence)| {
+                        gradient.cognitive_ordinal <= influence.cognitive_ordinal
+                    })
+            {
+                trajectory.localized_gradient_settlement = None;
+            }
+        }
+        *aggregate = Some(initial);
+        return Ok(());
+    };
+
+    total.trace_formed |= observation.trace_formed;
+    if observation.mosaic_formed.is_some() {
+        total.mosaic_formed = observation.mosaic_formed;
+    }
+    total.activations.extend(observation.activations.iter().cloned());
+    total.dsf_delivery_count = total
+        .dsf_delivery_count
+        .checked_add(observation.dsf_delivery_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.physically_transitioned_neuron_count = total
+        .physically_transitioned_neuron_count
+        .checked_add(observation.physically_transitioned_neuron_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.metabolically_perturbed_body_receptor_count = total
+        .metabolically_perturbed_body_receptor_count
+        .checked_add(observation.metabolically_perturbed_body_receptor_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.externally_perturbed_body_receptor_count = total
+        .externally_perturbed_body_receptor_count
+        .checked_add(observation.externally_perturbed_body_receptor_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    for lineage in &observation.externally_perturbed_neuron_lineages {
+        if !total.externally_perturbed_neuron_lineages.contains(lineage) {
+            total.externally_perturbed_neuron_lineages.push(*lineage);
+        }
+    }
+    total
+        .emitted_neuron_fractals
+        .extend(observation.emitted_neuron_fractals.iter().cloned());
+    total.emitted_neuron_fractals = coalesce_emitted_neuron_fractals(
+        std::mem::take(&mut total.emitted_neuron_fractals),
+    )
+    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    total.complete_neuron_fractal_count = total.emitted_neuron_fractals.len();
+    for change in &observation.changed_contact_channel_states {
+        if !total
+            .changed_contact_channel_states
+            .iter()
+            .any(|retained| retained.bond == change.bond)
+        {
+            total.changed_contact_channel_states.push(*change);
+        }
+    }
+    total
+        .motor_unit_recruitments
+        .extend(observation.motor_unit_recruitments.iter().cloned());
+    total
+        .articulatory_unit_recruitments
+        .extend(observation.articulatory_unit_recruitments.iter().cloned());
+    if observation.physical_frontier_routes != total.physical_frontier_routes {
+        total.preceding_distinct_physical_frontier_routes =
+            total.physical_frontier_routes.clone();
+        total.physical_frontier_routes = observation.physical_frontier_routes.clone();
+    }
+    if total
+        .reached_and_foregone_physical_frontier_routes
+        .is_empty()
+        && has_reached_and_foregone_frontier_routes(&observation.physical_frontier_routes)
+    {
+        total.reached_and_foregone_physical_frontier_routes =
+            observation.physical_frontier_routes.clone();
+    }
+    let selected_continuation_now = total.working_causal_continuations.is_empty()
+        && !observation.working_causal_continuations.is_empty();
+    if selected_continuation_now {
+        total.working_causal_continuations = observation.working_causal_continuations.clone();
+    }
+    if !selected_continuation_now && total.settled_working_frontier.is_empty() {
+        if let Some(path) = total.working_causal_continuations.first() {
+            let [_, continued_transfer] = path.directed_transfers();
+            let sent_onward = observation
+                .physical_frontier_routes
+                .iter()
+                .any(|route| route.directed_sender() == Some(continued_transfer.1));
+            if !sent_onward {
+                total.settled_working_frontier = vec![DirectedPhysicalTransferObservation {
+                    sender: continued_transfer.0,
+                    receiver: continued_transfer.1,
+                    bond: continued_transfer.2,
+                    transferred_whole_carriers: continued_transfer.3,
+                }];
+            }
+        }
+    }
+    let prediction_preceded_this_interval = !total.physical_prediction_alternatives.is_empty();
+    if total.physical_prediction_alternatives.is_empty()
+        && !observation.physical_prediction_alternatives.is_empty()
+    {
+        total.physical_prediction_alternatives =
+            observation.physical_prediction_alternatives.clone();
+    }
+    if prediction_preceded_this_interval
+        && total.body_consequence_transfers.is_empty()
+        && !observation.body_consequence_transfers.is_empty()
+    {
+        total.body_consequence_transfers = observation.body_consequence_transfers.clone();
+    }
+    retain_affective_balance_trajectory_evidence(
+        &mut total.affective_balance_trajectories,
+        &observation.affective_balance_trajectories,
+    );
+    retain_localized_fluid_chemistry_evidence(
+        &mut total.localized_fluid_chemistry,
+        &observation.localized_fluid_chemistry,
+    );
+    retain_localized_metabolic_strain_evidence(
+        &mut total.localized_metabolic_strain_evaluated_body_receptor_lineages,
+        &mut total.localized_metabolic_strain,
+        &observation.localized_metabolic_strain_evaluated_body_receptor_lineages,
+        &observation.localized_metabolic_strain,
+    );
+    retain_trajectory_relation_witnesses(
+        &mut total.organic_mosaic_relations,
+        &observation.organic_mosaic_relations,
+    );
+    total.partial_cue_reassembly_count = total
+        .partial_cue_reassembly_count
+        .checked_add(observation.partial_cue_reassembly_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.endogenous_partial_cue_reassembly_count = total
+        .endogenous_partial_cue_reassembly_count
+        .checked_add(observation.endogenous_partial_cue_reassembly_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    for cue in &observation.internally_reassembled_formation_cues {
+        if !total.internally_reassembled_formation_cues.contains(cue) {
+            total.internally_reassembled_formation_cues.push(cue.clone());
+        }
+    }
+    total.rest_recovered_neuron_count = total
+        .rest_recovered_neuron_count
+        .checked_add(observation.rest_recovered_neuron_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.rest_drained_dissipation_quanta = total
+        .rest_drained_dissipation_quanta
+        .checked_add(observation.rest_drained_dissipation_quanta)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.unmet_dissipation_quanta = total
+        .unmet_dissipation_quanta
+        .checked_add(observation.unmet_dissipation_quanta)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
+    total.cognitive_ordinal = observation.cognitive_ordinal;
+    total.trace_count = observation.trace_count;
+    total.mosaic_count = observation.mosaic_count;
+    total.complete_neuron_count = observation.complete_neuron_count;
+    total.resting_neuron_count = observation.resting_neuron_count;
+    total.mosaic_of_mosaics_count = observation.mosaic_of_mosaics_count;
+    total.energy = observation.energy;
+    total.membrane_returned_elementary_charges =
+        observation.membrane_returned_elementary_charges;
+    total.membrane_unreturned_elementary_charges =
+        observation.membrane_unreturned_elementary_charges;
+    Ok(())
+}
+
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
@@ -2115,6 +2299,143 @@ impl ResidentOrganismRuntime {
         self.prepare_typed(source, None, Some(&ingress))
     }
 
+    fn prepare_admitted_trajectory(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if episodes.is_empty() {
+            return Err(RuntimeError::CognitiveFormation(
+                "admitted trajectory must contain at least one episode".into(),
+            ));
+        }
+        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let derived_budget = self.budget.derive()?;
+        let predecessor = self.active.observation.clone();
+        let interval_count = u64::try_from(episodes.len())
+            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+        let organism_tick = predecessor
+            .organism_tick
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::OrganismTickOverflow)?;
+        let fabric_generation = predecessor
+            .fabric_generation
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::FabricGenerationOverflow)?;
+        let joint_state =
+            encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+        let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+        let mut cognitive = self.active.cognitive.clone();
+        let mut aggregate = None;
+        let mut receptor_ingress = ResidentReceptorIngressObservation::default();
+        let mut source_port_count = 0usize;
+        let mut source_occurrence_count = 0usize;
+        for (source, intervals) in episodes {
+            let admitted = admitted_episode_with_authored_intervals(source, intervals)
+                .map_err(RuntimeError::CognitiveFormation)?;
+            receptor_ingress = receptor_ingress
+                .checked_merge(observe_canonical_receptor_ingress(source))
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            source_port_count = source_port_count
+                .checked_add(source.joint_source_ports().len())
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            source_occurrence_count = source_occurrence_count
+                .checked_add(source.joint_source_occurrences().len())
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            let (successor, observation) = cognitive
+                .advance_admitted_transition(&admitted, cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            cognitive = successor;
+            retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
+        }
+        let cognitive_observation = aggregate.ok_or_else(|| {
+            RuntimeError::CognitiveFormation(
+                "admitted trajectory carried no cognitive interval".into(),
+            )
+        })?;
+        let (mounted, _) = restore_resident_mounted_state(
+            &joint_state,
+            derived_budget.max_joint_state_bytes,
+            derived_budget.max_joint_working_bytes,
+        )
+        .map_err(RuntimeError::MountedTransition)?;
+        let cognitive_state = cognitive
+            .encode(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let fabric = encode_fabric(
+            fabric_generation,
+            &joint_state,
+            &cognitive_state,
+            &self.active.vestibular,
+            self.budget,
+        )?;
+        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+        let trajectory_authority = admitted_trajectory_authority(episodes)?;
+        let transition = MountedJointDsfTransition {
+            joint_field_count: source_occurrence_count,
+            joint_neuron_count: 0,
+            l0_l4_evaluation_count: source_occurrence_count,
+            dsf_delivery_count: cognitive_observation.dsf_delivery_count,
+            recurrent_dsf_delivery_count: 0,
+            transition_receipt: None,
+            episode_relation_candidate_receipt: None,
+        };
+        let observation = make_step_observation(
+            &envelope,
+            predecessor.identity,
+            predecessor.organism_tick,
+            organism_tick,
+            predecessor.fabric_generation,
+            fabric_generation,
+            predecessor.mounted_generation,
+            cognitive_observation.cognitive_ordinal,
+            &fabric,
+            trajectory_authority,
+            transition,
+            source_occurrence_count,
+            derived_budget,
+            predecessor.state_receipt,
+            &cognitive_observation,
+        );
+        let next_prepare_ordinal = self
+            .next_prepare_ordinal
+            .checked_add(1)
+            .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
+        let token = prepare_token(
+            predecessor.state_receipt,
+            observation.state_receipt,
+            trajectory_authority,
+            self.next_prepare_ordinal,
+        );
+        self.pending = Some(PendingResidentOrganismState {
+            token,
+            envelope,
+            mounted,
+            cognitive,
+            vestibular: self.active.vestibular.clone(),
+            observation: observation.clone(),
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(ResidentPrepareReceipt {
+            token,
+            observation,
+            phase_counts: MountedTransitionPhaseCounts {
+                predecessor_authentication_count: 0,
+                predecessor_decode_count: 0,
+                predecessor_rebuilt_field_count: 0,
+                retained_neuron_index_entry_count: predecessor.complete_neuron_count,
+                reached_neuron_lookup_count: source_port_count,
+                current_cohort_evaluation_count: source_occurrence_count,
+                successor_seal_count: 1,
+            },
+            receptor_ingress,
+            motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
+            articulatory_unit_recruitments: cognitive_observation
+                .articulatory_unit_recruitments,
+        })
+    }
+
     fn prepare_vestibular_trajectory(
         &mut self,
         predecessor_heading_millidegrees: u32,
@@ -2168,207 +2489,7 @@ impl ResidentOrganismRuntime {
                     .ok_or(RuntimeError::OrganismTickOverflow)?,
             };
             heading = (i64::from(heading) + i64::from(signed_step)).rem_euclid(360_000) as u32;
-            if let Some(total) = aggregate.as_mut() {
-                total.trace_formed |= observation.trace_formed;
-                if observation.mosaic_formed.is_some() {
-                    total.mosaic_formed = observation.mosaic_formed;
-                }
-                total
-                    .activations
-                    .extend(observation.activations.iter().cloned());
-                total.dsf_delivery_count = total
-                    .dsf_delivery_count
-                    .checked_add(observation.dsf_delivery_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.physically_transitioned_neuron_count = total
-                    .physically_transitioned_neuron_count
-                    .checked_add(observation.physically_transitioned_neuron_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.metabolically_perturbed_body_receptor_count = total
-                    .metabolically_perturbed_body_receptor_count
-                    .checked_add(observation.metabolically_perturbed_body_receptor_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.externally_perturbed_body_receptor_count = total
-                    .externally_perturbed_body_receptor_count
-                    .checked_add(observation.externally_perturbed_body_receptor_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                for lineage in &observation.externally_perturbed_neuron_lineages {
-                    if !total.externally_perturbed_neuron_lineages.contains(lineage) {
-                        total.externally_perturbed_neuron_lineages.push(*lineage);
-                    }
-                }
-                total.complete_neuron_fractal_count = total
-                    .complete_neuron_fractal_count
-                    .checked_add(observation.complete_neuron_fractal_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total
-                    .emitted_neuron_fractals
-                    .extend(observation.emitted_neuron_fractals.iter().cloned());
-                for change in &observation.changed_contact_channel_states {
-                    if !total
-                        .changed_contact_channel_states
-                        .iter()
-                        .any(|retained| retained.bond == change.bond)
-                    {
-                        total.changed_contact_channel_states.push(*change);
-                    }
-                }
-                total
-                    .motor_unit_recruitments
-                    .extend(observation.motor_unit_recruitments.iter().cloned());
-                total
-                    .articulatory_unit_recruitments
-                    .extend(observation.articulatory_unit_recruitments.iter().cloned());
-                if observation.physical_frontier_routes != total.physical_frontier_routes {
-                    total.preceding_distinct_physical_frontier_routes =
-                        total.physical_frontier_routes.clone();
-                    total.physical_frontier_routes = observation.physical_frontier_routes.clone();
-                }
-                if total
-                    .reached_and_foregone_physical_frontier_routes
-                    .is_empty()
-                    && has_reached_and_foregone_frontier_routes(
-                        &observation.physical_frontier_routes,
-                    )
-                {
-                    total.reached_and_foregone_physical_frontier_routes =
-                        observation.physical_frontier_routes.clone();
-                }
-                let selected_continuation_now = total.working_causal_continuations.is_empty()
-                    && !observation.working_causal_continuations.is_empty();
-                if selected_continuation_now {
-                    total.working_causal_continuations =
-                        observation.working_causal_continuations.clone();
-                }
-                if !selected_continuation_now && total.settled_working_frontier.is_empty() {
-                    if let Some(path) = total.working_causal_continuations.first() {
-                        let [_, continued_transfer] = path.directed_transfers();
-                        let sent_onward = observation
-                            .physical_frontier_routes
-                            .iter()
-                            .any(|route| route.directed_sender() == Some(continued_transfer.1));
-                        if !sent_onward {
-                            total.settled_working_frontier =
-                                vec![DirectedPhysicalTransferObservation {
-                                    sender: continued_transfer.0,
-                                    receiver: continued_transfer.1,
-                                    bond: continued_transfer.2,
-                                    transferred_whole_carriers: continued_transfer.3,
-                                }];
-                        }
-                    }
-                }
-                let prediction_preceded_this_interval =
-                    !total.physical_prediction_alternatives.is_empty();
-                if total.physical_prediction_alternatives.is_empty()
-                    && !observation.physical_prediction_alternatives.is_empty()
-                {
-                    total.physical_prediction_alternatives =
-                        observation.physical_prediction_alternatives.clone();
-                }
-                if prediction_preceded_this_interval
-                    && total.body_consequence_transfers.is_empty()
-                    && !observation.body_consequence_transfers.is_empty()
-                {
-                    total.body_consequence_transfers =
-                        observation.body_consequence_transfers.clone();
-                }
-                retain_affective_balance_trajectory_evidence(
-                    &mut total.affective_balance_trajectories,
-                    &observation.affective_balance_trajectories,
-                );
-                retain_localized_fluid_chemistry_evidence(
-                    &mut total.localized_fluid_chemistry,
-                    &observation.localized_fluid_chemistry,
-                );
-                retain_localized_metabolic_strain_evidence(
-                    &mut total
-                        .localized_metabolic_strain_evaluated_body_receptor_lineages,
-                    &mut total.localized_metabolic_strain,
-                    &observation
-                        .localized_metabolic_strain_evaluated_body_receptor_lineages,
-                    &observation.localized_metabolic_strain,
-                );
-                // A trajectory is one bounded transaction over ordered
-                // one-millisecond intervals. Keep the latest relation state
-                // and one earliest exact ordered witness for each stable
-                // structural relation. The first
-                // interval commonly observes the relation before a two-edge
-                // continuation exists; leaving that empty projection in
-                // place would discard the later physical path at this
-                // aggregation boundary. Later witnesses are not accumulated
-                // into an event history.
-                retain_trajectory_relation_witnesses(
-                    &mut total.organic_mosaic_relations,
-                    &observation.organic_mosaic_relations,
-                );
-                total.partial_cue_reassembly_count = total
-                    .partial_cue_reassembly_count
-                    .checked_add(observation.partial_cue_reassembly_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.endogenous_partial_cue_reassembly_count = total
-                    .endogenous_partial_cue_reassembly_count
-                    .checked_add(observation.endogenous_partial_cue_reassembly_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                for cue in &observation.internally_reassembled_formation_cues {
-                    if !total.internally_reassembled_formation_cues.contains(cue) {
-                        total
-                            .internally_reassembled_formation_cues
-                            .push(cue.clone());
-                    }
-                }
-                total.rest_recovered_neuron_count = total
-                    .rest_recovered_neuron_count
-                    .checked_add(observation.rest_recovered_neuron_count)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.rest_drained_dissipation_quanta = total
-                    .rest_drained_dissipation_quanta
-                    .checked_add(observation.rest_drained_dissipation_quanta)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.unmet_dissipation_quanta = total
-                    .unmet_dissipation_quanta
-                    .checked_add(observation.unmet_dissipation_quanta)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?;
-                total.cognitive_ordinal = observation.cognitive_ordinal;
-                total.trace_count = observation.trace_count;
-                total.mosaic_count = observation.mosaic_count;
-                total.complete_neuron_count = observation.complete_neuron_count;
-                total.resting_neuron_count = observation.resting_neuron_count;
-                total.mosaic_of_mosaics_count = observation.mosaic_of_mosaics_count;
-                total.energy = observation.energy;
-                total.membrane_returned_elementary_charges =
-                    observation.membrane_returned_elementary_charges;
-                total.membrane_unreturned_elementary_charges =
-                    observation.membrane_unreturned_elementary_charges;
-            } else {
-                // A settlement observed before this trajectory has selected
-                // its first exact continuation cannot settle that selected
-                // cause.  Do not let an earlier, unrelated expired transfer
-                // occupy the trajectory's single bounded settlement slot.
-                // Once a continuation is selected above, only its exact
-                // second transfer may fill this slot in a later interval.
-                let mut initial = observation;
-                initial.settled_working_frontier.clear();
-                initial.body_consequence_transfers.clear();
-                for trajectory in &mut initial.affective_balance_trajectories {
-                    if trajectory
-                        .localized_gradient_settlement
-                        .zip(trajectory.association_influence)
-                        .is_some_and(|(gradient, influence)| {
-                            gradient.cognitive_ordinal <= influence.cognitive_ordinal
-                        })
-                        || trajectory
-                            .localized_gradient_settlement
-                            .zip(trajectory.body_influence)
-                            .is_some_and(|(gradient, influence)| {
-                                gradient.cognitive_ordinal <= influence.cognitive_ordinal
-                            })
-                    {
-                        trajectory.localized_gradient_settlement = None;
-                    }
-                }
-                aggregate = Some(initial);
-            }
+            retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
         }
         let cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
@@ -2813,6 +2934,27 @@ fn vestibular_trajectory_authority(
     sha256(&body)
 }
 
+fn admitted_trajectory_authority(
+    episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+) -> Result<[u8; 32], RuntimeError> {
+    let episode_count = u32::try_from(episodes.len())
+        .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+    let mut body = Vec::with_capacity(12 + episodes.len() * 36);
+    body.extend_from_slice(b"GLADTRJ1");
+    body.extend_from_slice(&episode_count.to_le_bytes());
+    for (source, intervals) in episodes {
+        body.extend_from_slice(&source.joint_source_authority_receipt());
+        let interval_count = u32::try_from(intervals.len())
+            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+        body.extend_from_slice(&interval_count.to_le_bytes());
+        for (numerator, denominator) in intervals {
+            body.extend_from_slice(&numerator.to_le_bytes());
+            body.extend_from_slice(&denominator.to_le_bytes());
+        }
+    }
+    Ok(sha256(&body))
+}
+
 fn exact_token(value: Vec<u8>) -> Result<[u8; 32], PyErr> {
     value
         .try_into()
@@ -2939,6 +3081,38 @@ impl NativeResidentOrganismRuntime {
                     .map_err(|error| error.to_string())
             })
             .map_err(PyValueError::new_err)?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+        })
+    }
+
+    /// Prepare ordered admitted sensory intervals as one causal occurrence.
+    /// Every source settles in native causal order; only the final organism
+    /// successor is encoded and sealed.
+    fn prepare_admitted_trajectory(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "admitted trajectory source and interval counts differ",
+            ));
+        }
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| self.runtime.prepare_admitted_trajectory(&episodes))
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
             observation: prepared.observation,
@@ -5396,6 +5570,56 @@ mod tests {
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
         assert_eq!(candidate.active.cognitive, reference.active.cognitive);
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
+    }
+
+    #[test]
+    fn admitted_trajectory_is_byte_exact_and_seals_once() {
+        let sources = vec![source("admitted-trajectory-1"), source("admitted-trajectory-2")];
+
+        let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        for source in &sources {
+            let prepared = reference.prepare_with_store(source).unwrap();
+            reference.commit(prepared.token).unwrap();
+        }
+
+        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let episodes = sources
+            .iter()
+            .cloned()
+            .map(|source| {
+                let interval_count = source.joint_source_occurrences().len();
+                (source, vec![(5, 1); interval_count])
+            })
+            .collect::<Vec<_>>();
+        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
+        assert_eq!(prepared.phase_counts.successor_seal_count, 1);
+        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 4);
+        assert_eq!(prepared.receptor_ingress.field_count(), 4);
+        assert_eq!(prepared.receptor_ingress.witness_count(), 4);
+        assert_eq!(prepared.observation.organism_tick, 2);
+        candidate.commit(prepared.token).unwrap();
+
+        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
+        assert_eq!(candidate.active.vestibular, reference.active.vestibular);
+
+        for source in &sources {
+            let prepared = reference.prepare_with_store(source).unwrap();
+            reference.commit(prepared.token).unwrap();
+        }
+        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
+        let emitted_lineages = prepared
+            .observation
+            .emitted_neuron_fractals
+            .iter()
+            .map(|fractal| fractal.neuron_lineage)
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            emitted_lineages.len(),
+            prepared.observation.emitted_neuron_fractals.len()
+        );
+        candidate.commit(prepared.token).unwrap();
+        assert_eq!(candidate.active_envelope(), reference.active_envelope());
     }
 
     #[test]

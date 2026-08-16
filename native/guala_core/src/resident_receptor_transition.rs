@@ -237,6 +237,26 @@ pub(crate) struct ResidentReceptorIngressObservation {
 }
 
 impl ResidentReceptorIngressObservation {
+    pub(crate) fn checked_merge(self, observed: Self) -> Option<Self> {
+        let mut sense_counts = [0usize; TYPED_SENSE_COUNT];
+        for (index, value) in sense_counts.iter_mut().enumerate() {
+            *value = self.sense_counts[index].checked_add(observed.sense_counts[index])?;
+        }
+        Some(Self {
+            field_count: self.field_count.checked_add(observed.field_count)?,
+            witness_count: self.witness_count.checked_add(observed.witness_count)?,
+            sense_counts,
+            changing_count: self.changing_count.checked_add(observed.changing_count)?,
+            quiescent_count: self.quiescent_count.checked_add(observed.quiescent_count)?,
+            reached_neuron_visit_count: self
+                .reached_neuron_visit_count
+                .checked_add(observed.reached_neuron_visit_count)?,
+            witness_construction_count: self
+                .witness_construction_count
+                .checked_add(observed.witness_construction_count)?,
+        })
+    }
+
     pub(crate) fn field_count(self) -> usize {
         self.field_count
     }

@@ -6573,21 +6573,27 @@ def _perform_genesis(admission: NativeResidentResourceAdmission) -> None:
 def _commit_admitted_hop(
     organism: Any,
     episode: Any,
-    maximum_causal_intervals: list[tuple[int, int]],
+    maximum_causal_intervals: Any,
     *,
     external_participant_action_receipt: str | None = None,
 ) -> dict[str, Any]:
-    """Prepare and commit one admitted hop on the in-process organism only.
+    """Prepare and commit one admitted hop or one ordered native trajectory.
 
     No persistence happens here.  The caller holds ``_transition_lock`` and
     must durably publish the committed body before any observation surface
     reports it.  Returns only what the native observation actually says.
     """
 
-    evidence: ResidentPrepareEvidence = organism.prepare_admitted(
-        episode,
-        maximum_causal_intervals,
-    )
+    if isinstance(episode, tuple):
+        evidence: ResidentPrepareEvidence = organism.prepare_admitted_trajectory(
+            episode,
+            tuple(maximum_causal_intervals),
+        )
+    else:
+        evidence = organism.prepare_admitted(
+            episode,
+            maximum_causal_intervals,
+        )
     observed = organism.commit(evidence.token)
     ingress_sense_counts = {
         sense.value: count
@@ -7928,7 +7934,13 @@ def _perform_admitted_intake_locked(
             )
             for key in totals:
                 totals[key] += last_hop[key]
-        for episode, admissions in episodes:
+        admitted_trajectory = (
+            (
+                tuple(episode for episode, _ in episodes),
+                tuple(tuple(admissions) for _, admissions in episodes),
+            ),
+        ) if episodes else ()
+        for episode, admissions in admitted_trajectory:
             last_hop = _commit_admitted_hop(
                 organism,
                 episode,
@@ -7997,7 +8009,7 @@ def _perform_admitted_intake_locked(
                 localized_metabolic_strain,
                 last_hop,
             )
-            committed_hop_count += 1
+            committed_hop_count += len(episode)
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]

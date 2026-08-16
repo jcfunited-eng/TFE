@@ -1003,7 +1003,7 @@ pub(crate) struct EmittedNeuronFractal {
 /// connected internal contact in sequence. If the same neuron reaches retained
 /// rest at both boundaries, compose those exact changes into its one sparse
 /// transition impression instead of exporting the lineage twice.
-fn coalesce_emitted_neuron_fractals(
+pub(crate) fn coalesce_emitted_neuron_fractals(
     mut emitted: Vec<EmittedNeuronFractal>,
 ) -> Result<Vec<EmittedNeuronFractal>, FormationError> {
     emitted.sort_unstable_by_key(|fractal| fractal.neuron_lineage);
@@ -4758,6 +4758,29 @@ impl ResidentCognitiveFormationState {
             predecessor_hippocampal,
             &admitted_source,
             Some(ingress),
+            max_encoded_bytes,
+            false,
+        )?;
+        Ok((prepared.successor, prepared.observation))
+    }
+
+    pub(crate) fn advance_admitted_transition(
+        self,
+        admitted_source: &AdmittedJointSourceEpisode,
+        max_encoded_bytes: usize,
+    ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
+        let predecessor_generation = self.generation;
+        let predecessor_hippocampal = self.hippocampal;
+        let retired = self.retire_aliased_local_integrators()?;
+        let expanded = retired
+            .unwrap_or(self)
+            .into_expanded_legacy_receptor_channel_populations()?;
+        let prepared = Self::prepare_typed_admitted_transition_from_owned(
+            expanded,
+            predecessor_generation,
+            predecessor_hippocampal,
+            admitted_source,
+            None,
             max_encoded_bytes,
             false,
         )?;
