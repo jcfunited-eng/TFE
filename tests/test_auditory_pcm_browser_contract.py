@@ -13,8 +13,9 @@ def _page() -> str:
 
 def test_browser_audio_is_transport_not_recognition_or_meaning() -> None:
     page = _page()
-    assert 'schema:"guala.native.browser_audio_chunk.v1"' in page
-    assert "audio_b64:bytesToBase64(bytes)" in page
+    assert 'schema:"guala.live_audiovisual_capture.v1"' in page
+    assert "pcm_s16le_base64:bytesToBase64(pcmS16leBytes(pcm))" in page
+    assert "frames,sample_rate_hz:MIC_RATE" in page
     assert "recognized_form" not in page
     assert "spoken_word_recognition" not in page
     assert "replying to:" not in page
@@ -23,8 +24,8 @@ def test_browser_audio_is_transport_not_recognition_or_meaning() -> None:
 
 def test_local_capture_and_organism_acceptance_are_distinct_states() -> None:
     page = _page()
-    assert "Local microphone active · no organism acceptance yet" in page
-    assert "Local microphone active · organism accepted generation" in page
+    assert "Local camera+microphone active · no organism acceptance yet" in page
+    assert "Local camera+microphone active · organism accepted generation" in page
     assert "microphoneAccepted=true" in page
     assert "microphoneAccepted=false" in page
 

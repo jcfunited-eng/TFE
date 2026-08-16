@@ -37,7 +37,6 @@ def lean_app(monkeypatch, tmp_path):
     production._public_observation_body = None
     production._public_observation_etag = None
     production._last_transition_evidence = None
-    production._pcm_sessions.clear()
 
 
 def _teach(card_id: str) -> tuple[int, dict]:
@@ -203,25 +202,24 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
 async def test_standalone_sound_intake_is_suspended_by_doctrine(
     lean_app,
 ) -> None:
-    """Ratified two-real-signal doctrine (Joe, 2026-08-05): standalone
-    hearing is suspended with an honest refusal until a live visual
-    source mounts; the organism must remain completely untouched."""
+    """Standalone sound refuses without cochlear anatomy and cannot mutate."""
 
     production._startup()
     before = production._restored.organism.readiness()
     sound = await production.sound_frame(_Request(_tone_wav()))
     assert sound.status_code == 503
-    assert b"two senses delivering real signal" in sound.body
+    assert b"cochlear ear anatomy is not authorized" in sound.body
     assert production.pcm_open({"sample_rate_hz": 16_000}).status_code == 503
     assert production.pcm_close({"session_id": "any"}).status_code == 503
     after = production._restored.organism.readiness()
     assert after.organism_tick == before.organism_tick
     assert after.state_sha256 == before.state_sha256
-    # The suspended implementations remain intact for reactivation the
-    # moment the camera mounts.
-    assert callable(production._suspended_sound_frame)
-    assert callable(production._suspended_pcm_open)
-    assert callable(production._suspended_pcm_close)
+    # There is no dormant audio-only implementation to reactivate from an
+    # earlier camera receipt; live microphone pressure is accepted only by
+    # the co-captured audiovisual route.
+    assert production.LIVE_AUDIOVISUAL_INTAKE_ENDPOINT in {
+        route.path for route in production.app.routes
+    }
 
 
 @pytest.mark.asyncio

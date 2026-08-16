@@ -231,7 +231,6 @@ def genesis_rehearsal_root(monkeypatch, tmp_path):
     production._public_observation_body = None
     production._public_observation_etag = None
     production._last_transition_evidence = None
-    production._pcm_sessions.clear()
 
 
 def test_genesis_rehearsal_refuses_a_root_with_a_current_organism(

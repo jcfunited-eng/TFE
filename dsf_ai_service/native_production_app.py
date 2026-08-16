@@ -21,20 +21,13 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   retinal roster the cards use (Pillow BOX area-averaged luminance), with
   true 0.0 silence at both ears (a lawful state; audio is never
   fabricated) and honest caller-declared live-camera provenance.
-- ``POST /sound_frame`` and the mono ``/api/v1/auditory/pcm`` session are
-  LIVE, behind exactly two stated conditions (``_standalone_hearing_refusal``).
-  Under the DEFAULT ear roster they refuse because the ears have no
-  transduction law at all, so admitting live sound would fabricate a
-  sensation.  Under an AUTHORIZED cochlear roster (``GUALA_COCHLEAR_EARS``,
-  see the ear anatomy section below) they transduce, and standalone hearing
-  stays refused under the two-real-signal doctrine until live sight is
-  proven IN THIS PROCESS.  Their intake construction (whole mounted
-  sensorium; the declared ear roster plus all 27 card-surface receptor sites
-  at their true dark 0.0 luminance; ratified 2026-08-05: no single-sense
-  experiences) is why: with no committed camera batch those 27 samples would
-  be invented, and sound alone is not an experience.  Both conditions hold
-  exactly when someone has shown her something and then speaks to her.  The
-  refusal names WHICH condition is unmet, so a caller is never left guessing.
+- ``POST /api/v1/sensory/audiovisual`` accepts an AUTHORIZED cochlear roster's
+  live microphone pressure only alongside co-captured live camera frames.
+  Each frame pairs with exactly one 250 ms PCM hop in the same native
+  whole-sensorium occurrence; neither signal is interpolated or invented.
+  The older ``/sound_frame`` and mono ``/api/v1/auditory/pcm`` route names
+  remain honest refusals and retain no sessions. A prior camera receipt is
+  bookkeeping, not present light, and can never unlock audio-only intake.
 - UNATTENDED TIME (autonomy increment 1, 2026-08-06): when no external
   intake is in flight, a background loop grants the organism genuinely
   dark, silent, unattended intervals — the same lawful construction as a
@@ -1139,7 +1132,6 @@ AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS = 500
 # ambient auditory settlement is bounded to this many seconds, and the same
 # bound is the caller-authored maximum causal interval for ambient intake.
 AMBIENT_INTAKE_MAX_SECONDS = 30
-PCM_SESSION_MAX_SAMPLES = 16_000 * AMBIENT_INTAKE_MAX_SECONDS
 # One presentation is delivered as successive short occurrences ("hops") on
 # this app's declared 250 ms capture interval (the same sampling interval the
 # visual capture contract below declares).  Longer single occurrences
@@ -1356,6 +1348,9 @@ LIVE_SIGHT_MAX_FRAMES = PARTIAL_PRESENTATION_ENDED_HOP_COUNT
 LIVE_SIGHT_SOURCE = "live-camera"
 LIVE_SIGHT_SCHEMA = "guala.live_sight_capture.v1"
 LIVE_SIGHT_INTAKE_ENDPOINT = "/api/v1/visual/live-frames"
+LIVE_AUDIOVISUAL_SOURCE = "live-camera-microphone"
+LIVE_AUDIOVISUAL_SCHEMA = "guala.live_audiovisual_capture.v1"
+LIVE_AUDIOVISUAL_INTAKE_ENDPOINT = "/api/v1/sensory/audiovisual"
 
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
@@ -1428,12 +1423,9 @@ _mounted_lesson_anatomy: Any | None = None
 # on the SAME thread — every read inside a transition — passes straight
 # through, which a plain lock could not do.
 _transition_lock = threading.RLock()
-_pcm_sessions: dict[str, dict[str, Any]] = {}
-PCM_SESSION_CONCURRENT_BOUND = 4
 _live_sight_evidence: dict[str, Any] | None = None
-# Truth-coupling for standalone hearing: written ONLY after a standalone
-# sound intake (pcm session or sound-frame) has really committed and
-# persisted, under the same lock, exactly as live sight is (2026-08-07).
+# Truth-coupling for live hearing: written ONLY after a concurrent audiovisual
+# intake has really committed and persisted, under the same lock as sight.
 _live_hearing_evidence: dict[str, Any] | None = None
 # The last displacement her body actually committed, or None while she
 # has not moved in this process.  A step fact under its own name, never
@@ -4959,27 +4951,22 @@ def _build_public_observation_from_snapshot(
                 "available": COCHLEAR_EARS_AUTHORIZED,
                 "committed_in_process": _live_hearing_evidence is not None,
                 "endpoint": (
-                    "/api/v1/auditory/pcm/open" if COCHLEAR_EARS_AUTHORIZED else None
+                    LIVE_AUDIOVISUAL_INTAKE_ENDPOINT
+                    if COCHLEAR_EARS_AUTHORIZED
+                    else None
                 ),
-                "live_sight_committed": _live_sight_evidence is not None,
+                "requires_concurrent_camera": True,
                 "reason": (
                     (
                         "the cochlear roster physically transduces pressure "
                         "(measured by severing: 529->305 transitioned "
                         "neurons, 41->9 new impressions on one identical "
-                        "lesson), so a PCM session admits real sound as "
-                        "whole-sensorium episodes"
+                        "lesson); the mounted intake accepts only camera "
+                        "frames co-captured with the PCM in the same bounded "
+                        "whole-sensorium occurrences"
                         + (
-                            "; live sight has committed, so the two-real-"
-                            "signal precondition is met"
-                            if _live_sight_evidence is not None
-                            else "; the two-real-signal doctrine still "
-                            "requires a real visual signal first — open her "
-                            "eye, then speak, so sound never reaches her "
-                            "while she sees nothing"
-                        )
-                        + (
-                            "; standalone sound has committed in this process "
+                            "; a co-captured audiovisual window has committed "
+                            "in this process "
                             f"({_live_hearing_evidence['intake']})"
                             if _live_hearing_evidence is not None
                             else ""
@@ -4995,9 +4982,7 @@ def _build_public_observation_from_snapshot(
                 "status": (
                     "not_mounted"
                     if not COCHLEAR_EARS_AUTHORIZED
-                    else "mounted"
-                    if _live_sight_evidence is not None
-                    else "mounted_awaiting_live_sight"
+                    else "mounted_audiovisual"
                 ),
             },
             "curriculum": _mounted_capability(
@@ -10279,22 +10264,6 @@ def _mono_pcm_hop_episodes(
     return episodes
 
 
-def _parse_wav_body(body: bytes) -> tuple[int, tuple[int, ...]]:
-    with wave.open(io.BytesIO(body), "rb") as stream:
-        if stream.getnchannels() != 1 or stream.getsampwidth() != 2:
-            raise ValueError("sound intake requires mono pcm_s16le WAV")
-        sample_rate = stream.getframerate()
-        if not 1 <= sample_rate <= 48_000:
-            raise ValueError("sound intake sample rate is outside 1..48000 Hz")
-        frame_count = stream.getnframes()
-        if frame_count > sample_rate * AMBIENT_INTAKE_MAX_SECONDS:
-            raise ValueError(
-                "sound intake exceeds the declared ambient intake window"
-            )
-        frames = stream.readframes(frame_count)
-    return sample_rate, struct.unpack(f"<{frame_count}h", frames)
-
-
 def _parse_live_sight_batch(
     payload: object,
 ) -> tuple[list[tuple[float, ...]], dict[str, Any]]:
@@ -10402,10 +10371,118 @@ def _live_sight_hop_episodes(
     ]
 
 
+def _parse_live_audiovisual_capture(
+    payload: object,
+) -> tuple[
+    list[tuple[float, ...]],
+    tuple[int, ...],
+    int,
+    dict[str, Any],
+]:
+    """Validate one co-captured camera/microphone transport window.
+
+    The browser supplies one real camera frame for every 250 ms of mono PCM.
+    Cardinality is exact: no frame is repeated, no acoustic hop is paired with
+    invented darkness, and no resampling is performed.
+    """
+
+    if not isinstance(payload, dict):
+        raise ValueError("live audiovisual intake requires a JSON object body")
+    if payload.get("schema") != LIVE_AUDIOVISUAL_SCHEMA:
+        raise ValueError(
+            f'live audiovisual schema must be "{LIVE_AUDIOVISUAL_SCHEMA}"'
+        )
+    if payload.get("source") != LIVE_AUDIOVISUAL_SOURCE:
+        raise ValueError(
+            "live audiovisual intake requires declared provenance: "
+            f'source must be "{LIVE_AUDIOVISUAL_SOURCE}"'
+        )
+    sight_payload = dict(payload)
+    sight_payload["source"] = LIVE_SIGHT_SOURCE
+    rosters, provenance = _parse_live_sight_batch(sight_payload)
+    sample_rate = payload.get("sample_rate_hz")
+    if sample_rate != COCHLEAR_SAMPLE_RATE_HZ:
+        raise ValueError(
+            "live audiovisual intake requires native 16000 Hz mono PCM; "
+            "resampling is not performed"
+        )
+    encoded = payload.get("pcm_s16le_base64")
+    if not isinstance(encoded, str) or not encoded:
+        raise ValueError("live audiovisual intake requires pcm_s16le_base64")
+    samples_per_hop = sample_rate * INTAKE_HOP_MILLISECONDS // 1000
+    expected_sample_count = len(rosters) * samples_per_hop
+    expected_body_bytes = expected_sample_count * 2
+    expected_base64_characters = 4 * ((expected_body_bytes + 2) // 3)
+    if len(encoded) != expected_base64_characters:
+        raise ValueError(
+            "live audiovisual intake requires exactly one camera frame per "
+            f"{INTAKE_HOP_MILLISECONDS} ms PCM hop: expected "
+            f"{expected_sample_count} samples"
+        )
+    try:
+        body = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise ValueError(
+            "live audiovisual PCM is not canonical base64"
+        ) from error
+    if len(body) % 2:
+        raise ValueError("live audiovisual PCM has a partial int16 sample")
+    samples = struct.unpack(f"<{len(body) // 2}h", body)
+    if len(samples) != expected_sample_count:
+        raise ValueError(
+            "live audiovisual intake requires exactly one camera frame per "
+            f"{INTAKE_HOP_MILLISECONDS} ms PCM hop: received "
+            f"{len(rosters)} frames and {len(samples)} samples, expected "
+            f"{expected_sample_count} samples"
+        )
+    return (
+        rosters,
+        samples,
+        sample_rate,
+        {
+            **provenance,
+            "audio_sample_count": len(samples),
+            "audio_sample_rate_hz": sample_rate,
+            "source": LIVE_AUDIOVISUAL_SOURCE,
+        },
+    )
+
+
+def _live_audiovisual_hop_episodes(
+    capture_id: str,
+    rosters: list[tuple[float, ...]],
+    samples: tuple[int, ...],
+    sample_rate_hz: int,
+) -> list[tuple[Any, list[tuple[int, int]]]]:
+    """Place co-captured light and pressure in the same native occurrences."""
+
+    pressure_hops = _pcm_hops(samples, sample_rate_hz)
+    cochlear_hops = _cochlear_hops(samples, sample_rate_hz)
+    if not (
+        len(rosters) == len(pressure_hops) == len(cochlear_hops)
+    ):
+        raise ValueError("live audiovisual hop cardinality changed")
+    return [
+        (
+            _whole_roster_hop_episode(
+                f"live-audiovisual-{capture_id}-hop-{hop_index}",
+                times,
+                rosters[hop_index],
+                pressure,
+                cochlear_hops[hop_index],
+            ),
+            [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
+        )
+        for hop_index, (times, pressure) in enumerate(pressure_hops)
+    ]
+
+
 def _perform_live_sight_intake(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
     provenance: dict[str, Any],
+    *,
+    includes_live_hearing: bool = False,
 ) -> dict[str, Any]:
     """One live-sight batch: admitted intake plus truth-coupled evidence.
 
@@ -10418,7 +10495,7 @@ def _perform_live_sight_intake(
     a live camera commit that did not fully happen.
     """
 
-    global _live_sight_evidence
+    global _live_sight_evidence, _live_hearing_evidence
 
     with _transition_lock:
         result = _perform_admitted_intake_locked(episodes, intake)
@@ -10435,6 +10512,11 @@ def _perform_live_sight_intake(
             "last_intake": intake,
             "last_state_sha256": result["observation"]["state_sha256"],
         }
+        if includes_live_hearing:
+            _live_hearing_evidence = {
+                "intake": intake,
+                "generation": result.get("generation"),
+            }
         _refresh_public_observation_cache()
         return result
 
@@ -12026,6 +12108,42 @@ def development_retinal_lattice() -> JSONResponse:
     return JSONResponse(status_code=200, content=result)
 
 
+@app.post(LIVE_AUDIOVISUAL_INTAKE_ENDPOINT)
+def live_audiovisual_capture(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Admit one bounded co-captured camera/microphone window."""
+
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return _refusal(503, _SOUND_SUSPENSION_REASON)
+    try:
+        rosters, samples, sample_rate, provenance = (
+            _parse_live_audiovisual_capture(payload)
+        )
+        capture_id = str(uuid.uuid4())
+        episodes = _live_audiovisual_hop_episodes(
+            capture_id,
+            rosters,
+            samples,
+            sample_rate,
+        )
+        result = _perform_live_sight_intake(
+            episodes,
+            f"live-audiovisual:{capture_id}",
+            provenance,
+            includes_live_hearing=True,
+        )
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(
+            422,
+            f"live audiovisual intake refused: {error}",
+        )
+    return JSONResponse(
+        status_code=200,
+        content={"capture": provenance, **result},
+    )
+
+
 @app.post(LIVE_SIGHT_INTAKE_ENDPOINT)
 def live_sight_frames(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Deliver one batch of real live camera frames as admitted episodes.
@@ -12065,12 +12183,10 @@ def sight_frame(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
 @app.post("/sound_frame")
 async def sound_frame(request: Request) -> JSONResponse:
-    # Honest refusal BEFORE reading the body: no standalone-hearing
-    # experience may reach the organism while either condition is unmet.
-    refusal = _standalone_hearing_refusal()
-    if refusal is not None:
-        return refusal
-    return await _live_sound_frame(request)
+    """Retained route name; standalone sound always refuses before reading."""
+
+    del request
+    return _standalone_hearing_refusal()
 
 
 _SOUND_SUSPENSION_REASON = (
@@ -12087,16 +12203,15 @@ _SOUND_SUSPENSION_REASON = (
 
 _SOUND_WITHOUT_SIGHT_REASON = (
     "standalone hearing is refused under the two-real-signal doctrine "
-    "(ratified 2026-08-05: no single-sense experiences): the ears now "
-    "transduce, but no live camera batch has committed in this process, so "
-    "this would be sound reaching her while she sees nothing — one real "
-    "signal and 27 lawfully dark receptor sites, which is a single-sense "
-    "experience wearing two names; show her something first, then speak"
+    "(ratified 2026-08-05: no single-sense experiences): a prior camera "
+    "receipt does not prove present sight. Use the bounded audiovisual "
+    "intake so real camera frames and microphone pressure occupy the same "
+    "native whole-sensorium occurrences"
 )
 
 
-def _standalone_hearing_refusal() -> JSONResponse | None:
-    """Why live sound may not reach her yet, or None when it may.
+def _standalone_hearing_refusal() -> JSONResponse:
+    """Why a standalone live-sound route cannot reach the organism.
 
     TWO conditions, and the refusal says WHICH one is unmet rather than a
     flat 503 that a reader has to guess at:
@@ -12104,191 +12219,33 @@ def _standalone_hearing_refusal() -> JSONResponse | None:
       1. The ears must physically transduce.  Without the authorized cochlear
          roster, pressure amplitude has zero measured effect on her body, so
          admitting sound would fabricate a sensation.
-      2. Live sight must already be proven IN THIS PROCESS.  An auditory
-         intake carries her whole mounted sensorium, so it must declare all
-         27 card-surface receptor sites too.  With no committed camera batch
-         those samples would be invented.  Sound alone is not an experience.
-
-    What is actually enforced: sight must have committed at least once in
-    THIS process.  True simultaneity (eye open while speaking) is enforced
-    by the interaction page, not here; a sound admitted without a
-    concurrent camera declares her 27 optical sites as true darkness.
-    Tightening this to a physical concurrency check is queued design work,
-    and this text refuses to claim it early.
+      2. The same request must carry co-captured live camera frames.  A prior
+         camera receipt is bookkeeping, not current optical energy.  These
+         standalone routes therefore stay refused; the combined route binds
+         light and pressure into the existing whole-roster native episodes.
     """
 
     if not COCHLEAR_EARS_AUTHORIZED:
         return _refusal(503, _SOUND_SUSPENSION_REASON)
-    if _live_sight_evidence is None:
-        return _refusal(503, _SOUND_WITHOUT_SIGHT_REASON)
-    if len(_pcm_sessions) >= PCM_SESSION_CONCURRENT_BOUND:
-        # 2026-08-07 leanness repair: abandoned sessions accumulated
-        # without bound.  One speaker at a time is the physical reality
-        # of the interaction surface; a small fixed bound refuses the
-        # runaway class without inventing an expiry clock.
-        return _refusal(
-            429,
-            f"{len(_pcm_sessions)} pcm sessions are already open "
-            f"(bound {PCM_SESSION_CONCURRENT_BOUND}); close one before "
-            "opening another",
-        )
-    return None
-
-
-async def _live_sound_frame(request: Request) -> JSONResponse:
-    try:
-        body = await request.body()
-    except BaseException:
-        return _refusal(422, "sound intake requires a mono pcm_s16le WAV body")
-    if not body:
-        return _refusal(422, "sound intake requires a mono pcm_s16le WAV body")
-    try:
-        sample_rate, samples = _parse_wav_body(body)
-        episodes = _mono_pcm_hop_episodes(
-            assembly_prefix=f"sound-frame-{uuid.uuid4()}",
-            samples=samples,
-            sample_rate_hz=sample_rate,
-        )
-    except (EOFError, ValueError, wave.Error) as error:
-        return _refusal(422, f"sound intake refused: {error}")
-    try:
-        result = _perform_admitted_intake(episodes, "sound-frame")
-    except HTTPException:
-        raise
-    except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"admitted auditory transition refused: {error}")
-    global _live_hearing_evidence
-    with _transition_lock:
-        _live_hearing_evidence = {
-            "intake": "sound-frame",
-            "generation": result.get("generation"),
-        }
-        _refresh_public_observation_cache()
-    return JSONResponse(status_code=200, content=result)
+    return _refusal(503, _SOUND_WITHOUT_SIGHT_REASON)
 
 
 @app.post("/api/v1/auditory/pcm/open")
 def pcm_open(payload: dict[str, Any] | None = Body(default=None)) -> JSONResponse:
-    refusal = _standalone_hearing_refusal()
-    if refusal is not None:
-        return refusal
-    return _live_pcm_open(payload)
-
-
-def _live_pcm_open(payload: dict[str, Any] | None = None) -> JSONResponse:
-    sample_rate = 16_000
-    if isinstance(payload, dict) and "sample_rate_hz" in payload:
-        candidate = payload["sample_rate_hz"]
-        if (
-            isinstance(candidate, bool)
-            or not isinstance(candidate, int)
-            or not 1 <= candidate <= 48_000
-        ):
-            return _refusal(422, "pcm open sample_rate_hz is outside 1..48000")
-        sample_rate = candidate
-    session_id = str(uuid.uuid4())
-    with _transition_lock:
-        _pcm_sessions[session_id] = {
-            "sample_rate_hz": sample_rate,
-            "samples": bytearray(),
-        }
-    return JSONResponse(
-        status_code=200,
-        content={
-            "accepted": True,
-            "ok": True,
-            "sample_rate_hz": sample_rate,
-            "schema": "guala.native_pcm_session.v1",
-            "session_id": session_id,
-        },
-    )
+    del payload
+    return _standalone_hearing_refusal()
 
 
 @app.post("/api/v1/auditory/pcm/chunk")
 def pcm_chunk(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    session_id = payload.get("session_id")
-    encoded = payload.get("pcm_s16le_base64")
-    if not isinstance(session_id, str) or not isinstance(encoded, str):
-        return _refusal(422, "pcm chunk requires session_id and pcm_s16le_base64")
-    try:
-        chunk = base64.b64decode(encoded, validate=True)
-    except (binascii.Error, ValueError):
-        return _refusal(422, "pcm chunk is not canonical base64")
-    if len(chunk) % 2 != 0:
-        return _refusal(422, "pcm chunk is not whole pcm_s16le samples")
-    with _transition_lock:
-        session = _pcm_sessions.get(session_id)
-        if session is None:
-            return _refusal(404, "pcm session is unknown or already closed")
-        retained = session["samples"]
-        if (len(retained) + len(chunk)) // 2 > PCM_SESSION_MAX_SAMPLES:
-            return _refusal(
-                422, "pcm session exceeds the declared ambient intake window"
-            )
-        retained.extend(chunk)
-        sample_count = len(retained) // 2
-    return JSONResponse(
-        status_code=200,
-        content={
-            "accepted": True,
-            "ok": True,
-            "retained_sample_count": sample_count,
-            "schema": "guala.native_pcm_session.v1",
-            "session_id": session_id,
-        },
-    )
+    del payload
+    return _standalone_hearing_refusal()
 
 
 @app.post("/api/v1/auditory/pcm/close")
 def pcm_close(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    # A session can only exist if open() passed the same gate, but re-check:
-    # the roster is fixed for the process, and sight cannot un-prove itself,
-    # so this can only ever agree with open() -- it is here so no route
-    # reaches the organism without stating its conditions.
-    refusal = _standalone_hearing_refusal()
-    if refusal is not None:
-        return refusal
-    return _live_pcm_close(payload)
-
-
-def _live_pcm_close(payload: dict[str, Any]) -> JSONResponse:
-    session_id = payload.get("session_id") if isinstance(payload, dict) else None
-    if not isinstance(session_id, str):
-        return _refusal(422, "pcm close requires session_id")
-    with _transition_lock:
-        session = _pcm_sessions.pop(session_id, None)
-    if session is None:
-        return _refusal(404, "pcm session is unknown or already closed")
-    body = bytes(session["samples"])
-    if len(body) < 4:
-        return _refusal(422, "pcm session closed without at least two samples")
-    samples = struct.unpack(f"<{len(body) // 2}h", body)
-    try:
-        episodes = _mono_pcm_hop_episodes(
-            assembly_prefix=f"pcm-session-{session_id}",
-            samples=samples,
-            sample_rate_hz=session["sample_rate_hz"],
-        )
-    except ValueError as error:
-        return _refusal(422, f"pcm session intake refused: {error}")
-    try:
-        result = _perform_admitted_intake(
-            episodes, f"pcm-session:{session_id}"
-        )
-    except HTTPException:
-        raise
-    except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"admitted auditory transition refused: {error}")
-    global _live_hearing_evidence
-    with _transition_lock:
-        _live_hearing_evidence = {
-            "intake": f"pcm-session:{session_id}",
-            "generation": result.get("generation"),
-        }
-        _refresh_public_observation_cache()
-    return JSONResponse(
-        status_code=200, content={"session_id": session_id, **result}
-    )
+    del payload
+    return _standalone_hearing_refusal()
 
 
 @app.post("/api/v1/auditory/binaural-pcm/open")

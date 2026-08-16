@@ -2,7 +2,8 @@
 
 Date: 2026-08-16
 
-Status: Active; one offered-picture window is Live-Proven. A-014 is not
+Status: Active; one offered-picture window is Live-Proven and concurrent
+camera/microphone ingress is Candidate-Proven locally. A-014 is not
 Live-Closed.
 
 ## Task identity
@@ -22,25 +23,26 @@ Live-Closed.
    pages, sound, songs, and the virtual world must enter one persistent native
    organism only through authenticated physical receptor episodes.
 2. Current code reality: the production interaction surface exposes mounted
-   camera, mono microphone, rendered-light, picture, PDF/book, audio/song, and
-   virtual-world routes. They converge on the same 27 retinal, 34 cochlear,
-   tactile, chemical, and body rosters. Camera and microphone have not
-   committed in the current process. Picture ingress now has direct live
-   evidence.
-3. Conflict with requested architecture: yes, limited but material. The
-   microphone gate proves only that a camera batch committed earlier in the
-   process, not that concurrent real visual input accompanied the sound. The
-   source states this limitation explicitly. Therefore camera/microphone
-   coexistence is not yet proven.
+   camera, rendered-light, picture, PDF/book, audio/song, and virtual-world
+   routes. Candidate source replaces the microphone's earlier audio-only
+   session route with one bounded concurrent camera/microphone request. Each
+   camera frame and exact 4,000-sample 16-kHz pressure hop enters the existing
+   retinal and cochlear rosters in the same native whole-sensorium occurrence.
+   Picture ingress has direct live evidence; real browser camera/microphone
+   hardware has not yet committed on the production process.
+3. Conflict with requested architecture: yes, now confined to delivery and
+   live proof. Candidate source implements physical concurrency, but the
+   deployed production surface has not yet been proven with a real browser's
+   camera and microphone. Source and local acceptance are not Live proof.
 4. Mechanisms not extended: typed chat or chatbot fallback, text strings as
    meaning, filenames/titles as cognition, browser-rendered fake organism
    state, upload/archive memory, Python sensory interpretation or action
    selection, duplicate receptor pipelines, or an earlier-camera Boolean
    represented as simultaneous sight.
-5. Single exact next item: capture and admit one concurrent bounded browser
-   camera/microphone occurrence through the existing retinal and cochlear
-   physics, or keep microphone coexistence unavailable; do not promote prior
-   process-local camera evidence into concurrency.
+5. Single exact next item: deploy the candidate, then capture and admit one
+   concurrent bounded real-browser camera/microphone window through the
+   existing retinal and cochlear physics. Until that succeeds, the production
+   camera/microphone row remains not Live-Proven.
 6. DSF scope: every participating receptor/neuron continues to receive the
    unchanged full joint seven-field L0-L4 result.
 7. Lost field structure: none.
@@ -50,7 +52,7 @@ Live-Closed.
 | Window | Production route | Live status on task 1091 |
 |---|---|---|
 | Camera | `/api/v1/visual/live-frames` | mounted; no batch committed in this process |
-| Microphone | `/api/v1/auditory/pcm/*` | cochlear path mounted; awaiting camera precondition; no batch committed |
+| Microphone | candidate `/api/v1/sensory/audiovisual`; deployed `/api/v1/auditory/pcm/*` until cutover | concurrent candidate is locally proven; no real browser batch committed in production |
 | Rendered text | `/api/v1/material/rendered-light` | mounted; browser submits pixels, never the string |
 | Picture | `/api/v1/material/offered` | **Live-Proven 2026-08-16** |
 | PDF/book pages | `/api/v1/material/offered` | mounted; not live-proven in this sprint |
@@ -86,6 +88,54 @@ public observation was 334,162 bytes because both project extensive transient
 causal evidence. This is not retained-brain growth, but it is transport/UI
 bloat to audit under U-009/U-011 and P-007; it is not hidden as acceptable
 merely because the request succeeded.
+
+## Concurrent camera/microphone candidate proof
+
+Candidate source removes the process-local earlier-camera receipt as a sound
+admission authority. The browser keeps one camera stream open, co-captures
+four to eight frames with exactly one 4,000-sample microphone hop per frame,
+and sends one bounded request. Standalone `/sound_frame` and
+`/api/v1/auditory/pcm/*` routes now refuse directly and retain no session
+dictionary. The server rejects any source/schema mismatch, non-16-kHz PCM,
+partial samples, or frame/sample cardinality mismatch before native intake.
+
+One disposable newborn organism, using the freshly built production native
+extension and authorized cochlear anatomy, accepted six consecutive changing
+visual windows with the exact same acoustic trajectory:
+
+- six HTTP 200 responses and `accepted=true`, with four physical hops each;
+- exact organism ticks `4, 8, 12, 16, 20, 24` and a distinct persisted state
+  receipt at every window;
+- final reached inventory `132`, retained mosaic count `4`, canonical state
+  bytes `25,199,794`, and zero Python cognition callbacks;
+- no production organism copy or full-brain scan: the proof used one temporary
+  newborn root and the current native extension.
+
+That repeated probe exposed a native cold-bookkeeping ambiguity: topology
+alone cannot identify one retained formation's layer-9 endpoint after a
+later, nested formation grows contacts to the same members. The correction
+persists the exact endpoint that the formation physically grew and validates
+its mounted layer and member contacts on restore. It also refuses to invent a
+retention endpoint for transient mosaics that fail the retained-neuron
+predicate. Historical bare and `GLMRC01` state bodies retain their prior
+decode path; current retained formations use bounded `GLMRC02` metadata of
+one 16-byte lineage plus the existing two counts. No neuron, DSF field,
+formation body, or sensory state is flattened or duplicated.
+
+Verification after the final correction:
+
+- native Rust: `423` unit tests passed, `11` retired fixtures ignored; the six
+  native integration groups added `153` further passes, for `576` active
+  passes and zero failures;
+- directly relevant Python transport, persistence, packaging, and serving:
+  `44` passed;
+- full-field authority remains unchanged and Python cognition callback count
+  remains zero.
+
+This is Candidate-Proven only. A generated camera raster and PCM trajectory
+prove the server/native causal path and repeated persistence; they do not
+prove browser permissions, real capture hardware, deployed routing, or a
+human-present production encounter.
 
 ## Closure rule
 

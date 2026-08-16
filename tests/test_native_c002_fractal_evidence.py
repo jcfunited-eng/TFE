@@ -17,7 +17,6 @@ def test_disposable_experience_exposes_exact_post_settlement_evidence(
     production._public_observation_body = None
     production._public_observation_etag = None
     production._last_transition_evidence = None
-    production._pcm_sessions.clear()
 
     production._startup()
     response = production.teach_card({"card_id": "alphabet-a"})
@@ -43,4 +42,3 @@ def test_disposable_experience_exposes_exact_post_settlement_evidence(
 
     public = json.loads(production._public_observation_body)
     assert public["fractals"]["formed_evidence_in_last_experience"] == evidence
-

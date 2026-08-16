@@ -47,7 +47,6 @@ def lean_app(monkeypatch, tmp_path):
     production._public_observation_etag = None
     production._runtime_proof_body = None
     production._last_transition_evidence = None
-    production._pcm_sessions.clear()
 
 
 def _teach(card_id: str, presentation: str | None = None) -> tuple[int, dict]:
