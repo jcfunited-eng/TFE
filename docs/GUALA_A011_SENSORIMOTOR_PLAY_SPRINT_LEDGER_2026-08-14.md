@@ -1808,3 +1808,35 @@ second persistence authority remain out of scope and must not be extended.
   deployment, exact cold restore, then continuation from the persisted
   `(2560,6170)` participant position without repeating the refused experience.
   A-011.6 remains open.
+
+#### Task 1084 route completion and mature-contact acceptance correction
+
+- The exact antagonist-cancellation translation deployed in one production
+  cutover as task `dsf-ai-task:1084`, commit `76e3e94248d6e2365eed2c845b3453abdff932f2`,
+  image `sha256:ed489aab828feb450746d0376d642ae3c13e37a122ad1ca6a365d5d73e363687`.
+  Exact cold restore preserved organism identity and state; one healthy process
+  remained with zero failed or pending tasks and zero Python cognition callbacks.
+- The remaining route resumed from `(2560,6170)` without repeating the committed
+  predecessor. Every move returned HTTP 200 with admitted sensory settlement.
+  The participant reached `(3000,4800)`, eleven retinal receptors changed on the
+  final approach, and Guala produced later internally caused actions. This proves
+  the task-1084 cancellation correction in production; reciprocal social positive
+  engagement remained unproved.
+- The exact task-1084 transitions falsified one observer requirement. Mature
+  active contacts retained their conducting population and conductance while
+  their transition-work phase changed during the same causal action. Requiring a
+  fresh conductance change on every response incorrectly requires relearning on
+  every use. The current action still carries an authenticated unequal contact
+  predecessor/successor on the exact affective motor path, ordered association,
+  body, gradient, retained-formation, choice, motor, and sensed-consequence facts.
+- **Single correction:** treat that unequal same-path contact state as current
+  physical participation, including phase-only activity, while refusing an
+  unchanged or off-path contact. Rename the bounded evidence from reinforcement
+  to active-contact participation; make no learning or reward claim. No neuron,
+  contact, DSF, persistence, action, world, or resource physics changes.
+- Both captured production transitions at ticks `115039` and `115053` satisfy
+  the corrected observer in exact local replay: affect/body participation,
+  localized strain, payable settlement, and complete engagement are all present.
+  The focused A-006/A-011/public/formation suite passes `47/47`. A new immutable
+  deployment and fresh four-turn production witness remain required before
+  A-011.6 can be Live-Closed.

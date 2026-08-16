@@ -2694,7 +2694,7 @@ def _same_transition_affective_body_participation(
                 "causal_intent_receipt_sha256"
             )
             != causal_action_receipt
-            or not _retained_contact_channel_reinforcement(changed_contact)
+            or not _exact_contact_state_participation(changed_contact)
         ):
             continue
         changed_left = changed_contact.get("left_lineage")
@@ -2782,17 +2782,17 @@ def _same_transition_affective_body_participation(
         "retained_formation_motor_organism_tick": motor_ordinal,
         "localized_gradient_settlement_ordinal": gradient[0],
         "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
-        "contact_reinforcement_organism_tick": contact_ordinal,
-        "contact_reinforcement_receipt_sha256": _receipt(changed_contact),
-        "contact_reinforcement_left_lineage": changed_contact["left_lineage"],
-        "contact_reinforcement_right_lineage": changed_contact["right_lineage"],
-        "contact_reinforcement_parallel_ordinal": changed_contact[
+        "active_contact_organism_tick": contact_ordinal,
+        "active_contact_receipt_sha256": _receipt(changed_contact),
+        "active_contact_left_lineage": changed_contact["left_lineage"],
+        "active_contact_right_lineage": changed_contact["right_lineage"],
+        "active_contact_parallel_ordinal": changed_contact[
             "parallel_ordinal"
         ],
-        "contact_reinforcement_predecessor_state": changed_contact[
+        "active_contact_predecessor_state": changed_contact[
             "predecessor_state"
         ],
-        "contact_reinforcement_successor_state": changed_contact[
+        "active_contact_successor_state": changed_contact[
             "successor_state"
         ],
         "affective_motor_path_receipt_sha256": _receipt(
@@ -3262,7 +3262,7 @@ def _reciprocal_social_joy_section() -> dict[str, object]:
         "participant's state",
         **evidence,
         behavioral_evidence_only=False,
-        localized_physical_reinforcement_evidence=True,
+        localized_physical_participation_evidence=True,
         goodness_authority=False,
         joy_authority=False,
         named_emotion_authority=False,
@@ -6951,12 +6951,14 @@ def _advance_bounded_prediction_evidence(
     return next_alternatives, next_consequence
 
 
-def _retained_contact_channel_reinforcement(change: Any) -> bool:
-    """Validate one retained contact change that alters later conductance.
+def _exact_contact_state_participation(change: Any) -> bool:
+    """Validate one exact active-contact state change in this causal path.
 
-    The native boundary has already authenticated unequal predecessor and
-    successor states. This observer additionally refuses a phase-only residue:
-    A-011.6 requires the conducting population or exact conductance to change.
+    The native boundary has already authenticated the stable contact identity,
+    predecessor, and successor.  A changed transition-work phase is current
+    physical participation, even when a mature contact's conducting population
+    remains stable.  This observer does not call participation reinforcement or
+    learning; an exactly unchanged contact remains insufficient.
     """
 
     if not isinstance(change, dict):
@@ -6971,10 +6973,7 @@ def _retained_contact_channel_reinforcement(change: Any) -> bool:
         or predecessor == successor
     ):
         return False
-    return (
-        predecessor[0] != successor[0]
-        or predecessor[2] != successor[2]
-    )
+    return True
 
 
 def _retained_local_plasticity(plasticity: Any) -> bool:

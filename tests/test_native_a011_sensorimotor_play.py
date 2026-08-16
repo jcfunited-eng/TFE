@@ -723,13 +723,13 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
     assert participation["affective_neuron_lineage"] == SHARED_AFFECTIVE_LINEAGE
     assert participation["affective_motor_organism_tick"] == 473
     assert participation["retained_formation_motor_organism_tick"] == 472
-    assert participation["contact_reinforcement_organism_tick"] == 470
-    assert participation["contact_reinforcement_predecessor_state"] == (
+    assert participation["active_contact_organism_tick"] == 470
+    assert participation["active_contact_predecessor_state"] == (
         50,
         (0, 1),
         (1, 1),
     )
-    assert participation["contact_reinforcement_successor_state"] == (
+    assert participation["active_contact_successor_state"] == (
         51,
         (0, 1),
         (51, 50),
@@ -761,7 +761,12 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
         "continuous-environment:phase-only",
     )
     assert phase_only is not None
-    assert "affective_body_participation" not in phase_only
+    assert "affective_body_participation" in phase_only
+    assert phase_only["affective_body_participation"][
+        "active_contact_predecessor_state"
+    ] != phase_only["affective_body_participation"][
+        "active_contact_successor_state"
+    ]
 
     unchanged = new_impression["changed_contact_channel_state"]
     unchanged["successor_state"] = unchanged["predecessor_state"]
