@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 
 import pytest
 
@@ -63,6 +64,36 @@ def _migration_task(mode: str) -> dict[str, object]:
         expected_identity=IDENTITY,
         expected_tick=23_723_846,
     )
+
+
+def test_only_exact_same_digest_registry_absence_is_retryable() -> None:
+    failure = {
+        "stoppedReason": (
+            "CannotPullContainerError: failed to resolve repo/candidate@"
+            + IMAGE
+            + ": not found"
+        ),
+        "containers": [{"name": "dsf-ai"}],
+    }
+    assert runner._retryable_same_digest_pull_absence(failure, IMAGE) is True
+    assert (
+        runner._retryable_same_digest_pull_absence(failure, "sha256:" + "d" * 64)
+        is False
+    )
+    assert runner._retryable_same_digest_pull_absence(
+        {**failure, "stoppedReason": "CannotPullContainerError: access denied"},
+        IMAGE,
+    ) is False
+    assert runner._retryable_same_digest_pull_absence(
+        {**failure, "containers": [{"exitCode": 1}]}, IMAGE
+    ) is False
+
+
+def test_registry_race_reuses_one_definition_at_most_once() -> None:
+    source = inspect.getsource(runner.main)
+    assert source.count("ecs.register_task_definition") == 1
+    assert "for launch_attempt in range(2):" in source
+    assert "taskDefinition=task_definition_arn" in source
 
 
 def test_rehearsal_is_read_only_and_publication_is_the_only_writer() -> None:

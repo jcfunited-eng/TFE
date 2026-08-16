@@ -933,6 +933,25 @@ def _proof_from_logs(logs, *, group: str, stream: str, schema: str) -> object:
     return proofs[0]
 
 
+def _retryable_same_digest_pull_absence(
+    task: dict[str, object], expected_digest: str
+) -> bool:
+    """Whether Fargate raced publication of only the reviewed ECR digest."""
+
+    reason = task.get("stoppedReason")
+    containers = task.get("containers")
+    return (
+        isinstance(reason, str)
+        and "CannotPullContainerError" in reason
+        and expected_digest in reason
+        and "not found" in reason
+        and isinstance(containers, list)
+        and len(containers) == 1
+        and isinstance(containers[0], dict)
+        and containers[0].get("exitCode") is None
+    )
+
+
 def main() -> int:
     values = _arguments()
     if values.mode in {"rehearse", "publish"} and (
@@ -982,33 +1001,40 @@ def main() -> int:
     )
     registered = ecs.register_task_definition(**task_input)["taskDefinition"]
     task_definition_arn = registered["taskDefinitionArn"]
-    task_arn = None
+    task_arns: list[str] = []
     try:
         service = ecs.describe_services(
             cluster=values.cluster,
             services=[values.service],
         )["services"][0]
-        response = ecs.run_task(
-            cluster=values.cluster,
-            taskDefinition=task_definition_arn,
-            launchType="FARGATE",
-            networkConfiguration=service["networkConfiguration"],
-            count=1,
-        )
-        if response.get("failures") or len(response.get("tasks", [])) != 1:
-            raise RuntimeError("native candidate task failed admission")
-        task_arn = response["tasks"][0]["taskArn"]
-        ecs.get_waiter("tasks_stopped").wait(
-            cluster=values.cluster,
-            tasks=[task_arn],
-            WaiterConfig={"Delay": 5, "MaxAttempts": 180},
-        )
-        task = ecs.describe_tasks(
-            cluster=values.cluster,
-            tasks=[task_arn],
-        )["tasks"][0]
-        containers = task.get("containers", [])
-        if len(containers) != 1 or containers[0].get("exitCode") != 0:
+        for launch_attempt in range(2):
+            response = ecs.run_task(
+                cluster=values.cluster,
+                taskDefinition=task_definition_arn,
+                launchType="FARGATE",
+                networkConfiguration=service["networkConfiguration"],
+                count=1,
+            )
+            if response.get("failures") or len(response.get("tasks", [])) != 1:
+                raise RuntimeError("native candidate task failed admission")
+            task_arn = response["tasks"][0]["taskArn"]
+            task_arns.append(task_arn)
+            ecs.get_waiter("tasks_stopped").wait(
+                cluster=values.cluster,
+                tasks=[task_arn],
+                WaiterConfig={"Delay": 5, "MaxAttempts": 180},
+            )
+            task = ecs.describe_tasks(
+                cluster=values.cluster,
+                tasks=[task_arn],
+            )["tasks"][0]
+            containers = task.get("containers", [])
+            if len(containers) == 1 and containers[0].get("exitCode") == 0:
+                break
+            if launch_attempt == 0 and _retryable_same_digest_pull_absence(
+                task, values.candidate_image_digest
+            ):
+                continue
             raise RuntimeError(
                 "native candidate task failed: "
                 + json.dumps(task.get("stoppedReason"), sort_keys=True)
@@ -1073,7 +1099,7 @@ def main() -> int:
         print(_canonical(validated).decode("ascii"))
         return 0
     finally:
-        if task_arn is not None:
+        for task_arn in task_arns:
             try:
                 ecs.stop_task(
                     cluster=values.cluster,

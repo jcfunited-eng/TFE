@@ -63,13 +63,26 @@ def test_candidate_is_digest_pinned_and_legacy_environment_is_removed() -> None:
 
 def test_preflight_and_rehearsal_precede_cutover() -> None:
     preflight = SCRIPT.index("python3 tools/preflight_guala_production.py")
+    pullable_manifest = SCRIPT.index("aws ecr batch-get-image")
+    register = SCRIPT.index("aws ecs register-task-definition")
     rehearsal = SCRIPT.index(
         "python3 tools/run_guala_candidate_rehearsal_task.py"
     )
     update = SCRIPT.index("aws ecs update-service")
     live_proof = SCRIPT.index("CURRENT_RUNNING_TASK=$(verify_live_organism")
     pin = SCRIPT.index("image-tag production-current")
-    assert preflight < rehearsal < update < live_proof < pin
+    assert pullable_manifest < register < preflight < rehearsal
+    assert rehearsal < update < live_proof < pin
+
+
+def test_controller_requires_the_exact_digest_pull_manifest() -> None:
+    assert '--image-ids "imageDigest=${IMAGE_DIGEST}"' in SCRIPT
+    assert "built digest did not become pullable from ECR" in SCRIPT
+    assert 'PINNED_IMAGE_URI="${ECR_URI}@${IMAGE_DIGEST}"' in SCRIPT
+    assert "production-current" not in SCRIPT[
+        SCRIPT.index("aws ecr batch-get-image"):
+        SCRIPT.index("echo \"[4/7]")
+    ]
 
 
 def test_live_proof_is_native_resident_not_old_storage_cutover() -> None:

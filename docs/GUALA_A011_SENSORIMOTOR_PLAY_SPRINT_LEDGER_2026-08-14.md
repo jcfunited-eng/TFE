@@ -1664,3 +1664,40 @@ second persistence authority remain out of scope and must not be extended.
   exact registry-publication race required a manual rerun of the same immutable
   candidate. This must be corrected before the next release rather than
   rediscovered.
+
+#### RF-047 same-digest registry-readiness correction
+
+- **Active ledger item:** A-011.6 continues; this infrastructure correction
+  neither reopens its closed prerequisites nor advances to A-011.7. Production
+  baseline is task 1082, runtime commit `57c7585f`, digest `7cf416a4...`, one
+  healthy process, preserved organism identity, and zero Python cognition.
+- **Exact input:** one CodeBuild-successful immutable image tag and its
+  `sha256` digest.
+- **Current path:** `tools/deploy_dsf_ai.sh` reads the tag with ECR
+  `describe-images`, registers a digest-pinned task definition, and invokes
+  `tools/run_guala_candidate_rehearsal_task.py`; the runner starts one Fargate
+  task and treats every nonzero/absent exit as final. Task 1082 proved that
+  `describe-images` can precede registry-manifest pull availability.
+- **Required output:** before task registration, ECR must return the exact
+  digest's pull manifest. If Fargate nevertheless returns the exact
+  `CannotPullContainerError` + same digest + `not found` condition, the runner
+  may start the same registered rehearsal definition exactly once more. No
+  rebuild, new digest, alternate image, fallback task definition, or production
+  cutover occurs before a successful rehearsal.
+- **Acceptance evidence:** focused tests must prove manifest readiness precedes
+  task registration; only the exact same-digest pull-absence result is
+  retryable; unrelated pull, admission, container, proof, and runtime failures
+  remain final; and at most two rehearsal tasks can be admitted. The complete
+  diff must contain no cognition, state, DSF, schema, owner, lock, database, or
+  rollback change.
+- **Rejected paths:** rebuilding after a registry race, accepting generic
+  container failure, retrying with `production-current`, or weakening rehearsal
+  proof. These either waste the immutable build or permit the wrong artifact.
+- **Observed local evidence:** shell syntax, Python compilation, and the focused
+  controller suite pass (`30 passed`). The adjacent release/rehearsal suites
+  produced `28 passed, 1 failed`; the sole failure occurs before this controller
+  path because the container's previously installed `guala_core` lacks
+  `settle_native_joint_source_episode`. That is the already-registered stale
+  native-module provenance class RF-003/RF-036, not evidence about this
+  deployment-race correction. It remains explicitly unresolved here rather
+  than triggering a native rebuild or expanding A-011.6.

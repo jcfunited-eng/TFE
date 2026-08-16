@@ -210,6 +210,32 @@ if not re.fullmatch(r"sha256:[0-9a-f]{64}", value):
 '
 PINNED_IMAGE_URI="${ECR_URI}@${IMAGE_DIGEST}"
 
+# ECR's image-detail index can expose a newly pushed digest before the registry
+# manifest used by Fargate is readable.  Prove the exact digest's pull surface
+# before registering a task definition; never rebuild or substitute a tag to
+# route around registry publication.
+IMAGE_MANIFEST=""
+for manifest_attempt in $(seq 1 30); do
+    IMAGE_MANIFEST=$(aws ecr batch-get-image \
+        --region "${AWS_REGION}" \
+        --repository-name "${ECR_REPOSITORY}" \
+        --image-ids "imageDigest=${IMAGE_DIGEST}" \
+        --query 'images[0].imageManifest' \
+        --output text)
+    if [ -n "${IMAGE_MANIFEST}" ] && [ "${IMAGE_MANIFEST}" != "None" ]; then
+        printf '%s' "${IMAGE_MANIFEST}" | python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+if not isinstance(value, dict) or not value.get("schemaVersion"):
+    raise SystemExit("registry returned no pullable image manifest")
+'
+        break
+    fi
+    [ "${manifest_attempt}" -lt 30 ] || fail \
+        "built digest did not become pullable from ECR"
+    sleep 2
+done
+
 echo "[4/7] Registering one digest-pinned candidate task definition."
 BASE_TASK_JSON=$(aws ecs describe-task-definition \
     --region "${AWS_REGION}" \
