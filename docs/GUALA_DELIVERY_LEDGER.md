@@ -480,12 +480,25 @@ box remains unchecked until live acceptance passes.
   Python process accumulated 63.6 CPU seconds inside the four-vCPU envelope.
   Public observations remained 155,610--179,820 bytes. A-015 retains the
   separate long-soak acceptance requirement.
-- [ ] **A-011** Prove genuine self-selected play, fun, social joy, and
+- [x] **A-011** Prove genuine self-selected play, fun, social joy, and
   body-owned laughter rather than a scripted animation or response.
-- [ ] **A-012** Prove self-selected rest, sleep, wake, exploration, learning,
+  **Live-closed 2026-08-16:** all bounded A-011.1--A-011.7 increments are
+  closed; task 1091 supplies the participant-to-Guala physical circuit and
+  task 1095 supplies the body-owned laughter receipt `8d1b7bfe...de32aa`.
+- [x] **A-012** Prove self-selected rest, sleep, wake, exploration, learning,
   and interaction can occur while no human or development agent is present.
-- [ ] **A-013** Complete truthful persistent embodiment: pose, gaze, eyes,
-  blinking, face, mouth, breath, voice, locomotion, manipulation, and body state.
+  **Live-closed 2026-08-16:** task 1095 preserved the composed physical
+  rest/wake, internal consolidation, later causal body use, unattended
+  interaction, and changed-world exploration circuit with zero Python
+  cognition callbacks.
+- [x] **A-013** Complete truthful persistent embodiment: pose, gaze, eyes,
+  blinking, face, mouth, breath, voice, locomotion, manipulation, and body
+  state. **Live-closed 2026-08-16:** task 1098, commit `bb085947`, and image
+  `sha256:1f091e57...4fbe5` live-prove the bounded Phase-1 37-axis,
+  74-terminal, 195-byte body, exact proprioceptive return, cold persistence,
+  one-process topology, and zero Python cognition callbacks. Detailed physical
+  morphology, gait, and dexterity remain intentionally deferred until an
+  actual body platform is selected.
 - [ ] **A-014** Make real-world camera/microphone/text/media ingress and the
   virtual world coexist as seamless windows into one causal life.
 - [ ] **A-015** Live-soak unattended autonomy long enough to prove continued

@@ -18,13 +18,13 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 
 - Validated Guala worktree: `/tmp/guala-a0114-resumed`
 - Live implementation commit:
-  `d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0`
+  `bb085947a24f820888cb75fa79921653641a0dc7`
 - The worktree tip also contains documentation-only handoff commits. Resolve
   its exact current HEAD with `git rev-parse HEAD`; do not expect that tip to
   equal the commit embedded in the task-1090 production image.
 - Worktree status after the final handoff commit must be clean.
 - Most recently closed detailed ledger:
-  `docs/GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md`
+  `docs/GUALA_A013_TRUTHFUL_PERSISTENT_EMBODIMENT_SPRINT_LEDGER_2026-08-16.md`
 - Binding complete scope:
   `docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md`
 - `A-011.6` remains Live-Closed by the creator-clarified circuit acceptance and
@@ -37,7 +37,10 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   use, A-010 repeated unattended interaction, and A-011 self-directed
   exploration in changed world context. No organism code or deployment was
   required.
-- Immediate next increment: `A-013`.
+- `A-013` is Live-Closed on task 1098 by the exact 37-axis/74-terminal native
+  body, typed efferent directionality, immediate proprioceptive return, cold
+  persistence, one-process topology, and zero Python cognition callbacks.
+- Immediate next increment: `A-014`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -45,14 +48,14 @@ worktree with the Guala project-truth root check before acting.
 ## Exact live-production state
 
 Current override after the original task-1090 snapshot: production is one
-healthy settled `dsf-ai-task:1095` process, commit
-`d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0`, image
-`sha256:123448f1d945225da4e07c9687ab19b1dd9cf8adaa4fb702db88685e4899cb7d`,
-and the same organism identity. A later independent observation reached
-generation `125032`, state bytes `59,533,576`, retained the exact
-`internally_simulated` formation used by the causal body and play witnesses,
-and reported zero Python cognition callbacks. The task-1090 facts below remain
-the historical starting snapshot, not the current task identity.
+healthy settled `dsf-ai-task:1098` process, commit
+`bb085947a24f820888cb75fa79921653641a0dc7`, image
+`sha256:1f091e57ef1c4f38d64c14cb5965a599282c1b056dc55b0db7a0cfd0f434fbe5`,
+and the same organism identity. Independent post-cutover readiness reached
+tick `132021`, state bytes `59,557,026`, retained 313 complete neurons and
+196,416 developmental resting neurons, exposed the exact initialized 37-axis
+body, and reported zero Python cognition callbacks. The task-1090 facts below
+remain the historical starting snapshot, not the current task identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
 
@@ -133,9 +136,9 @@ unproved and was not relabeled.
 ## Complete carried-forward delivery ledger
 
 The stale attachment sentence naming `S-017` as current work is superseded.
-All A-011 increments are now Live-Closed. Current production is task 1095; its
-exact cold rehearsal preserved the task-1091 A-011.6 circuit authority, and
-ordinary live recurrence closed A-011.7 without an injected action.
+All A-011 increments, A-012, and A-013 are now Live-Closed. Current production
+is task 1098; it preserves the earlier circuits and adds the exact bounded
+Phase-1 articulated body without an injected action or Python cognition.
 
 ### A-011 play, fun, social joy, and body-owned laughter
 
@@ -173,9 +176,10 @@ ordinary live recurrence closed A-011.7 without an injected action.
   exploration, learning, and world interaction are Live-Closed by the composed
   physical C-021/C-022/C-023 and A-010/A-011 circuit plus direct task-1095
   observation. Complete locomotion/manipulation remains A-013.
-- [ ] **A-013:** complete truthful persistent embodiment: pose, gaze, eyes,
+- [x] **A-013:** complete truthful persistent embodiment: pose, gaze, eyes,
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
-  state.
+  state. Live-Closed on task 1098 at the bounded Phase-1 body boundary; see the
+  A-013 sprint ledger for exact rehearsal, live, and deferred-hardware truth.
 - [ ] **A-014:** make real-world camera, microphone, text, and media ingress
   coexist with the virtual world as seamless windows into one causal life.
 - [ ] **A-015:** live-soak unattended autonomy long enough to prove continued
@@ -306,11 +310,12 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin A-013 from its truthful persistent-embodiment acceptance. Do not reopen or
-repeat A-011 or A-012 persistence, readiness, archive cleanup, resting-neuron
+Begin A-014 from its seamless real-camera/microphone/text/media plus virtual-
+world causal-ingress acceptance. Do not reopen or repeat A-011, A-012, or A-013
+persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
-rest/wake, consolidation, or causal-use closure unless new live evidence
-directly contradicts a recorded circuit.
+rest/wake, consolidation, causal-use, or articulated-body closure unless new
+live evidence directly contradicts a recorded circuit.
 
 ## Evidence classification
 
@@ -327,6 +332,9 @@ directly contradicts a recorded circuit.
   rest -> internal consolidation -> later body/world use circuit, current
   retained `internally_simulated` formation provenance, repeated changed-world
   exploration, learning evidence, and zero Python cognition callbacks.
+- A-013 truthful persistent embodiment: Live-Closed on task 1098 by direct
+  exact-predecessor rehearsal, live body observation, current-only cold
+  persistence, bounded resource evidence, and zero Python cognition callbacks.
 - Complete D3 objective: not complete.
 - Truthful functional Loom interfaces: not live-proven.
 - Four-year-old meaningful conversation and complete curriculum learning: not
