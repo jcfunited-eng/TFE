@@ -2714,3 +2714,60 @@ before any broader edit.
   and passed all 77 tests with zero failures and nine inherited deprecation
   warnings. These two harness mistakes did not mutate candidate or production
   state and are not counted as behavioral evidence.
+
+### A-011.7 immutable release and live closure
+
+- **Reviewed implementation commit:**
+  `d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0`.
+- **Deployment:** the one production controller run packaged that clean commit,
+  built immutable digest
+  `sha256:123448f1d945225da4e07c9687ab19b1dd9cf8adaa4fb702db88685e4899cb7d`,
+  registered `dsf-ai-task:1095`, and completed one verified cutover at
+  `2026-08-16T13:41:56Z` with automatic legacy rollback disabled.
+- **Exact cold rehearsal:** current-only restore was exact and read-only at
+  live-source tick `124668`; the candidate observed later tick `124682`,
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, `59,532,204` canonical
+  bytes, `313` reached neurons, `196,416` compact developmental resting
+  neurons, zero Python cognition callbacks/workers, and preserved the direct
+  A-011.6 circuit proof.
+- **Settled owner:** ECS reported desired/running/pending `1/1/0`, one completed
+  PRIMARY deployment, one healthy running task, 4 vCPU / 16 GiB, and the exact
+  task-1095 digest above. Both public pages returned HTTP 200; this remains
+  reachability evidence only and is not promoted into a page-completeness
+  claim.
+- **Ordinary live recurrence:** no participant request, tutoring call, replay,
+  or observer act was sent. By tick `124794`, task 1095 had autonomously
+  re-established the completed sensorimotor-play witness and one complete
+  laughter candidate. At tick `124808`, a later ordinary occurrence of the
+  same retained formation completed the body-owned-laughter witness.
+- **Exact learned source:** both episodes name retained formation
+  `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`
+  and causal motor lineage `474c4e4c494e4531000000000000008d`, with distinct
+  causal-intent receipts.
+- **Exact physical episodes:** origin/consequence ticks were `124784/124794`
+  and `124798/124808`; each joined four exact motor-to-articulator lineages,
+  four nonquiescent articulatory body ports, breath flow `4000`, glottal-open
+  apex `144`, mouth area `305`, perioral displacement `40`, `16,000` emitted
+  pressure samples, four self-hearing hops, `1,194` then `1,195` transitioned
+  self-hearing neurons, 27 visual returns, one vestibular return, and exact
+  localized affect/body trajectory receipts.
+- **World and variation:** world revisions advanced `6343 -> 6344` through
+  chained before/after world-state receipts; body/head yaw varied from `-34`
+  to `-2` millidegrees. The pressure receipt happened to recur unchanged, so
+  `varied_acoustic_pressure` truthfully remains false while later recurrence
+  and body orientation variation are proved.
+- **Public closure receipt:** `play.laughter.available=true`, status
+  `body_owned_laughter_recurred`, receipt
+  `8d1b7bfe34331f078a2f5852f65bafa610a389a68fcc4eba5058f91bc3de32aa`.
+  The public record explicitly reports canned-audio, TTS, animation, semantic
+  label causation, named-emotion, reward, and Python-cognition authority as
+  false.
+- A post-cutover invocation of candidate preflight truthfully refused because
+  the candidate task definition was already live. This is the designed
+  preflight boundary, not a live defect; the deployment controller had already
+  passed preflight before cutover and independently verified the settled live
+  task afterward.
+
+**A-011.7 is Live-Closed. A-011 is complete.** The next incomplete item in the
+carried-forward delivery ledger is A-012. No A-012 implementation is claimed by
+this closure.
