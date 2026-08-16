@@ -2075,3 +2075,29 @@ second persistence authority remain out of scope and must not be extended.
 - **Post-correction suites:** full native release suite `422 passed / 0 failed /
   11 intentionally ignored`; focused Python translation and adjacent behavior
   suites `68/68`; `git diff --check` passes.
+- **Live release result (2026-08-16):** commit
+  `80dfc2306b9b6ca72698defa2e504327c9f63e8a`, image
+  `sha256:9413a63d71f9571161cf18979847b8aa87df8dde4a8e70ecf3a62b64c8b225a7`,
+  and task `dsf-ai-task:1088` deployed in one candidate build, one discarded
+  cold-restore rehearsal, and one cutover. The controller ran from
+  `06:17:24Z` through `06:40:53Z`; it performed no retry and no rollback. The
+  rehearsal restored exact state `3304bbff...f609ec` at tick `116354`, retained
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and reported zero Python
+  cognition callbacks. ECS then settled at desired/running/pending `1/1/0`
+  with one healthy container and one mounted body.
+- **Independent live recurrence:** two authenticated post-cutover observations
+  advanced from tick `116410` to `116424` without human input. Both named the
+  exact task, commit, image, and organism identity; Python cognition callbacks
+  remained zero. The state body changed from `58444982` to `58444600` bytes,
+  a decrease of `382` bytes rather than monotonic growth. Both public Loom
+  pages returned HTTP 200 and the direct application health surface returned
+  `{"status":"ok"}`.
+- **Remaining locality defect:** the one-seal native interval is live, but an
+  authenticated read-only readiness request can still wait behind the outer
+  Python transition boundary far longer than the measured `5.7 s` native
+  interval. This release therefore delivers repeated-seal removal but does not
+  prove millisecond-scale continuous experience or close A-011.6. The next
+  locality sprint must remove that outer whole-transaction exclusion from
+  read-only observation and identify any remaining publication work held
+  inside it; it must not add a queue, timeout, retry, owner, lock, database, or
+  second cognitive path.
