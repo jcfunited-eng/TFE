@@ -17,8 +17,12 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 ## Exact repository state
 
 - Validated Guala worktree: `/tmp/guala-a0114-resumed`
-- HEAD: `2f1d64e4525c677c7cdded8c7fb89462b40222d6`
-- Worktree status at handoff creation: clean
+- Live implementation ancestor:
+  `2f1d64e4525c677c7cdded8c7fb89462b40222d6`
+- The worktree tip also contains documentation-only handoff commits. Resolve
+  its exact current HEAD with `git rev-parse HEAD`; do not expect that tip to
+  equal the commit embedded in the task-1090 production image.
+- Worktree status after the final handoff commit must be clean.
 - Active detailed ledger:
   `docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md`
 - Binding complete scope:
