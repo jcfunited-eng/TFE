@@ -45,11 +45,15 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   truthful refusals/off state, one identity, and zero Python cognition
   callbacks. UI-only commit `ffa1d4f6` repaired the stale public combined
   ingress wiring without restarting the organism.
+- `A-015` is Live-Closed by two independent production windows. The fresh
+  task-1098 bracket advanced 276 generations in 658 unattended seconds with
+  recovery in every sample, non-monotonic bounded state, unchanged persistent
+  storage/file count, one organism process, and zero Python cognition callbacks.
 - The creator explicitly rejects the current `gualaloom.html` and
   `loomscan.html` designs. Treat them only as current transport/observation
-  surfaces. Do not incrementally polish them during A-015; replace both
+  surfaces. Do not incrementally polish them during L-series work; replace both
   completely when the U-series interface work becomes current.
-- Immediate next increment: `A-015`.
+- Immediate next increment: `L-001`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -194,8 +198,9 @@ Phase-1 articulated body without an injected action or Python cognition.
   windows into the same causal organism life. Real paired receipt
   `8e4e84cf...06fd3` persisted four camera frames and 16,000 microphone samples
   at 16 kHz; a later spoken window also committed. Live-Closed.
-- [ ] **A-015:** live-soak unattended autonomy long enough to prove continued
-  activity, recovery, bounded growth, and no duplicated processes.
+- [x] **A-015:** live-soak unattended autonomy long enough to prove continued
+  activity, recovery, bounded growth, and no duplicated processes. Live-Closed
+  by independent task-1093/task-1098 intervals; P-011 remains separately open.
 
 ### Genuine learning and curriculum
 
@@ -322,8 +327,8 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin A-015 from its bounded unattended live-soak acceptance. Do not reopen or
-repeat A-011, A-012, A-013, or A-014
+Begin L-001 from its embodied invitation and physical-presentation acceptance.
+Do not reopen or repeat A-011, A-012, A-013, A-014, or A-015
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
 rest/wake, consolidation, causal-use, articulated-body, or browser-hardware
@@ -350,6 +355,11 @@ closure unless new live evidence directly contradicts a recorded circuit.
 - A-014 real/virtual ingress: Live-Closed on task 1098 by real browser hardware
   receipts, bounded text/media offers, persistent-world observation, truthful
   refusal/off states, one identity, and zero Python cognition callbacks.
+- A-015 unattended resource soak: Live-Closed by two independent production
+  windows, including a 658-second post-hardware task-1098 bracket with continued
+  persisted activity, physical recovery, bounded non-monotonic state, unchanged
+  storage, one organism process, and zero Python cognition callbacks. P-011 is
+  not implied and remains open.
 - Complete D3 objective: not complete.
 - Complete creator-accepted Loom and Loom Scan replacements: not implemented or
   live-proven; the current pages are transport/observation surfaces only.

@@ -512,8 +512,16 @@ box remains unchecked until live acceptance passes.
   The S3/CloudFront transport mismatch was corrected by UI-only commit
   `ffa1d4f6` without restarting Guala. The current Loom design remains rejected
   and scheduled for complete replacement rather than incremental polishing.
-- [ ] **A-015** Live-soak unattended autonomy long enough to prove continued
+- [x] **A-015** Live-soak unattended autonomy long enough to prove continued
   activity, recovery, bounded growth, and absence of duplicated processes.
+  **Live-closed 2026-08-16:** independent task-1093 and task-1098 windows each
+  exceeded ten unattended minutes. The fresh 658-second task-1098 bracket
+  advanced 276 committed generations, recovered 22–23 neurons in every sampled
+  transition, ended 1,890 state bytes below its start, kept persistent storage
+  exact at 183,348 KiB / 11 files, and retained one ten-thread organism-serving
+  process with zero Python cognition callbacks. Current memory fell 27.96 MB;
+  CPU remained flat at about 1.09 of four vCPUs. P-011 remains the separate
+  comprehensive final soak.
 
 ## Genuine learning and curriculum
 
