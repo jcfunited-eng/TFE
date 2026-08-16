@@ -62,11 +62,18 @@ def test_direct_card_button_cannot_admit_without_embodied_invitation(
 
 
 @pytest.mark.parametrize(
-    ("causal_path_completed", "expected_outcome"),
-    ((True, "attended"), (False, "declined")),
+    ("reached_retina", "causal_path_completed", "expected_outcome"),
+    (
+        (True, True, "attended"),
+        (True, False, "declined"),
+        (False, False, "not_reached"),
+    ),
 )
 def test_invite_route_binds_card_to_exact_world_action_and_trace(
-    monkeypatch, causal_path_completed: bool, expected_outcome: str
+    monkeypatch,
+    reached_retina: bool,
+    causal_path_completed: bool,
+    expected_outcome: str,
 ) -> None:
     action_receipt = "55" * 32
     action = {
@@ -74,6 +81,7 @@ def test_invite_route_binds_card_to_exact_world_action_and_trace(
         "evidence_receipt_sha256": "66" * 32,
         "world_revision_before": 7,
         "world_revision_after": 8,
+        "visual_changed_receptor_count": 1 if reached_retina else 0,
         "x_mm": 2_300,
         "y_mm": 5_001,
     }

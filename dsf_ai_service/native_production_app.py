@@ -11801,22 +11801,13 @@ def world_observation() -> JSONResponse:
     )
 
 
-def _nearest_ratio_integer(numerator: int, denominator: int) -> int:
-    """Exact nearest integer, with half values away from zero."""
-
-    if denominator <= 0:
-        raise ValueError("physical ratio denominator must be positive")
-    sign = -1 if numerator < 0 else 1
-    quotient, remainder = divmod(abs(numerator), denominator)
-    if remainder * 2 >= denominator:
-        quotient += 1
-    return sign * quotient
-
-
 def _curriculum_participant_approach_payload() -> dict[str, int]:
     """One exact collision-free approach toward Guala's current body pose."""
 
     from dsf_ai_service.substrate.embodiment_world import SECOND_BODY_PORT_ID
+    from dsf_ai_service.substrate.exact_lattice_rotation import (
+        rotate_lattice_offset,
+    )
     from dsf_ai_service.substrate.w1_physical_receptors import (
         _atan2_millidegrees,
         _wrap_heading_delta,
@@ -11830,24 +11821,23 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
     other = next(
         item for item in snapshot.bodies if item.body_id == other_port.actor_body_id
     )
-    radial_x = other.pose.position.x - her.pose.position.x
-    radial_y = other.pose.position.y - her.pose.position.y
-    distance = math.isqrt(radial_x * radial_x + radial_y * radial_y)
     separation = her.radius_mm + other.radius_mm + 2
-    if distance <= separation:
+    offset_x, offset_y = rotate_lattice_offset(
+        separation,
+        0,
+        her.pose.heading_millidegrees,
+    )
+    target_x = her.pose.position.x + offset_x
+    target_y = her.pose.position.y + offset_y
+    if (
+        target_x == other.pose.position.x
+        and target_y == other.pose.position.y
+    ):
         raise _CurriculumInvitationRefusal(
             409,
-            "the participant body is already adjacent to Guala; another "
-            "approach would fabricate a new physical invitation",
+            "the participant body is already at the exact invitation point "
+            "in front of Guala; repeating it would fabricate a new event",
         )
-    target_x = her.pose.position.x + _nearest_ratio_integer(
-        radial_x * separation,
-        distance,
-    )
-    target_y = her.pose.position.y + _nearest_ratio_integer(
-        radial_y * separation,
-        distance,
-    )
     target_dx = her.pose.position.x - target_x
     target_dy = her.pose.position.y - target_y
     if target_dx * target_dx + target_dy * target_dy <= (
@@ -12130,6 +12120,7 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 r"[0-9a-f]{64}", action_receipt
             ):
                 return _refusal(503, "participant approach receipt is invalid")
+            reached_retina = int(action["visual_changed_receptor_count"]) > 0
             causal = (_last_transition_evidence or {}).get(
                 "participant_sensory_causal_use"
             )
@@ -12142,7 +12133,30 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 == action_receipt
                 else ()
             )
-            attended = bool(transfers)
+            attended = reached_retina and bool(transfers)
+            if attended:
+                outcome = "attended"
+                status = "participant_causal_path_reached_motor"
+                reason = (
+                    "the approach-caused retinal frontier reached Guala's "
+                    "own motor preparation through exact directed transfers"
+                )
+            elif reached_retina:
+                outcome = "declined"
+                status = "participant_causal_path_did_not_reach_motor"
+                reason = (
+                    "the participant approached and changed her retina, but "
+                    "no exact receptor-to-motor continuation completed; no "
+                    "card was admitted"
+                )
+            else:
+                outcome = "not_reached"
+                status = "participant_did_not_reach_retina"
+                reason = (
+                    "the participant moved, but the movement changed no "
+                    "retinal receptor; no invitation or card admission is "
+                    "claimed"
+                )
             invitation = {
                 "schema": CURRICULUM_INVITATION_SCHEMA,
                 "card_id": card_id,
@@ -12164,21 +12178,10 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 "observed_state_sha256": movement_body[
                     "sensory_delivery"
                 ]["state_sha256"],
-                "outcome": "attended" if attended else "declined",
+                "outcome": outcome,
                 "presentation_eligible": attended,
-                "reason": (
-                    "the approach-caused retinal frontier reached Guala's "
-                    "own motor preparation through exact directed transfers"
-                    if attended
-                    else "the participant approached and reached her retina, "
-                    "but no exact receptor-to-motor continuation completed; "
-                    "no card was admitted"
-                ),
-                "status": (
-                    "participant_causal_path_reached_motor"
-                    if attended
-                    else "participant_causal_path_did_not_reach_motor"
-                ),
+                "reason": reason,
+                "status": status,
             }
             invitation["invitation_receipt_sha256"] = _receipt(invitation)
             _curriculum_invitation = invitation
