@@ -45,6 +45,7 @@ def lean_app(monkeypatch, tmp_path):
     production._boot_error = None
     production._public_observation_body = None
     production._public_observation_etag = None
+    production._runtime_proof_body = None
     production._last_transition_evidence = None
     production._pcm_sessions.clear()
 
@@ -242,8 +243,11 @@ def test_failed_persist_keeps_current_and_poisons_the_runtime(
     # The surface degrades honestly instead of serving unpersisted state.
     assert production._restored is None
     assert production._public_observation_body is None
+    assert production._runtime_proof_body is None
     with pytest.raises(HTTPException):
         production.native_observation()
+    with pytest.raises(HTTPException):
+        production.ready_guala()
 
     # Restart-consistency: the durable body is still the pre-lesson body, so
     # a crash mid-lesson loses only the un-persisted lesson tail.  Only the

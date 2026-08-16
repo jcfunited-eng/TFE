@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
+import threading
 
 from dsf_ai_service import native_production_app as serving
 
@@ -188,6 +189,52 @@ def test_public_observation_is_cached_and_conditional(monkeypatch) -> None:
 
     again = serving.native_observation()
     assert again.body == first.body
+    assert restored.organism.readiness_calls == 1
+
+
+def test_runtime_proof_is_the_same_committed_snapshot_and_never_borrows_cognition(
+    monkeypatch,
+) -> None:
+    restored = _mount(monkeypatch)
+    expected = json.loads(serving._runtime_proof_body)
+
+    def forbidden_native_read():
+        raise AssertionError("read-only runtime proof borrowed native cognition")
+
+    monkeypatch.setattr(restored.organism, "readiness", forbidden_native_read)
+    monkeypatch.setattr(
+        restored.organism,
+        "observe_retained_formations",
+        forbidden_native_read,
+    )
+
+    responses: list[object] = []
+    failures: list[BaseException] = []
+
+    def read_while_transition_boundary_is_held() -> None:
+        try:
+            responses.append(serving.ready_guala())
+        except BaseException as error:
+            failures.append(error)
+
+    reader = threading.Thread(
+        target=read_while_transition_boundary_is_held,
+        daemon=True,
+    )
+    with serving._transition_lock:
+        reader.start()
+        reader.join(timeout=0.5)
+        assert not reader.is_alive()
+
+    assert failures == []
+    assert len(responses) == 1
+    ready = responses[0]
+    assert ready.status_code == 200
+    assert json.loads(ready.body) == expected
+    assert ready.headers["cache-control"] == "private, no-store"
+
+    proof = serving.runtime_proof()
+    assert proof.body == ready.body
     assert restored.organism.readiness_calls == 1
 
 

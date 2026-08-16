@@ -2101,3 +2101,87 @@ second persistence authority remain out of scope and must not be extended.
   read-only observation and identify any remaining publication work held
   inside it; it must not add a queue, timeout, retry, owner, lock, database, or
   second cognitive path.
+
+#### Task 1088 immutable-read locality sprint
+
+- **Task identity:** `A-011.6` continues; it is not Live-Closed and this does
+  not begin `A-011.7`. `A-011.5` remains Live-Closed. The active acceptance
+  remains an exact participant-sensory-to-Guala-motor causal path and bounded
+  reciprocal four-turn behavior; this sprint corrects the observation latency
+  that currently obstructs truthful live inspection of that path.
+- **Live predecessor:** `dsf-ai-task:1088`, commit
+  `80dfc2306b9b6ca72698defa2e504327c9f63e8a`, image
+  `sha256:9413a63d71f9571161cf18979847b8aa87df8dde4a8e70ecf3a62b64c8b225a7`,
+  one healthy process, exact identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Process-fixed sensory switches are
+  cochlear `1`, touch `1`, chemoreception `1`, interoception `0`, vestibular
+  `1`, world `1`, current-format migration `0`.
+- **Frozen input:** one authenticated read-only `/ready/guala` or
+  `/api/v1/deployment/runtime-proof` request while an ordinary continuous
+  native organism transition is in flight.
+- **Current path:** route -> `_transition_lock` -> `_readiness` ->
+  `_native_record` -> mutable native runtime borrow. The request waits behind
+  the complete sensory settlement and publication even though it must report
+  only the last persisted `CURRENT` successor.
+- **Existing lawful path:** every committed mutation calls
+  `_publish_committed_organism` first, installs the returned persisted pointer
+  in `_restored`, constructs bounded observer evidence, and only then calls
+  `_refresh_public_observation_cache`. The public native observation route
+  already serves that immutable cache without borrowing cognition.
+- **Single correction:** at the existing post-persistence cache refresh, read
+  native state once and build both public observation and authenticated
+  readiness from that same exact persisted snapshot. Retain readiness as one
+  constant-size canonical response body and serve both authenticated routes
+  directly from it. Clear both caches if startup or publication fails.
+- **Not extended:** the transaction-local mutation boundary, organism/native
+  state, persistence format, cognition, DSF, world, scheduler, queues, owners,
+  databases, retries, timeouts, or semantic state. No publication operation is
+  moved until direct measurement proves it is independently unnecessary.
+- **Acceptance-evidence map:** persisted `CURRENT` pointer -> `_restored` ->
+  one `_native_record` plus one retained-impression observation -> canonical
+  readiness bytes -> authenticated HTTP response. While a separate thread
+  deliberately holds the mutation boundary, the route must return the prior
+  cached persisted state without invoking native readiness; after a successful
+  publication/cache refresh it must return the exact successor tick/SHA. A
+  failed publication must make the response unavailable, never stale-ready.
+- **Production acceptance:** at least ten authenticated readiness samples
+  during unattended production must each complete below one second, name task,
+  image, commit, identity and a valid persisted state SHA, and show zero Python
+  cognition callbacks. Ticks must continue advancing and state bytes must
+  remain bounded. A-011.6 remains open regardless of this infrastructure result.
+- **Translation/cardinality review:** one native readiness observation and one
+  retained-formation observation per post-persistence cache refresh; zero
+  native calls, locks, state copies, or cognition callbacks per read request;
+  one bounded canonical readiness body replaces repeated live reconstruction.
+- **Applicable recurrence gates:** RF-001 exact worktree path; RF-002 exact
+  task1088 environment; RF-003/RF-036 no native rebuild is expected because no
+  native source changes; RF-005 direct persisted-pointer-to-HTTP evidence;
+  RF-010 cached SHA/tick must equal persisted `CURRENT`; RF-011 bounded response;
+  RF-012 timed live behavior rather than HTTP status alone; RF-016/034 only
+  A-011.6 is active; RF-017 every cache clear/refresh/route consumer; RF-025 no
+  state-changing request; RF-028 every refresh producer; RF-033 exact AWS
+  target; RF-044 zero native call cardinality per read; RF-046 no hop producer
+  changes. No candidate evidence exists yet.
+- **DSF:** no field is evaluated, reduced, changed, copied, or lost.
+- **Candidate implementation:** `native_production_app.py` now obtains one
+  native readiness record, one retained-formation observation, and one build
+  identity only after a successful persisted-state installation; it constructs
+  both immutable observer bodies from that same snapshot. The authenticated
+  readiness routes return the retained canonical bytes without taking
+  `_transition_lock`, borrowing the native organism, copying organism state, or
+  invoking cognition. Publication or startup failure clears both bodies and
+  makes readiness return 503 rather than serving stale success.
+- **Candidate evidence:** Python compilation and `git diff --check` pass. The
+  exact cross-thread acceptance holds `_transition_lock` on one thread while a
+  second thread calls readiness: the response completes within the test's
+  0.5-second bound, is byte-identical on both authenticated routes, and the
+  native-read cardinality remains one total at cache construction and zero per
+  request. The serving, unattended-time, public-observation, and deployment
+  preflight suites pass `53/53`; the injected publication-failure and lock-free
+  runtime-proof tests pass `2/2` together. A broader adjacent lesson run passed
+  `34/35`; its sole failure is an existing exact lesson-transition count pin
+  (`209` expected, current unchanged native body produced `564`). This sprint
+  does not touch that lesson/settlement path, so the stale assertion is recorded
+  and not altered or represented as a candidate regression.
+- **Delivery status:** candidate only; not deployed and no production success is
+  claimed yet.

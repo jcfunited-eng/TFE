@@ -1381,6 +1381,7 @@ _admission: NativeResidentResourceAdmission | None = None
 _boot_error: str | None = None
 _public_observation_body: bytes | None = None
 _public_observation_etag: str | None = None
+_runtime_proof_body: bytes | None = None
 _last_transition_evidence: dict[str, Any] | None = None
 # One bounded observation witness, not organism memory.  A tested physical
 # alternative is otherwise visible only until the next unattended interval,
@@ -4850,8 +4851,11 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
     )
 
 
-def _build_public_observation() -> dict[str, Any]:
-    native = _native_record()
+def _build_public_observation_from_snapshot(
+    native: dict[str, Any],
+    retained_impressions: int | None,
+    build_identity: dict[str, str],
+) -> dict[str, Any]:
     last = _last_transition_record()
     last_fractal_evidence = (
         _last_transition_evidence.get("emitted_neuron_fractals", ())
@@ -4864,7 +4868,6 @@ def _build_public_observation() -> dict[str, Any]:
     # otherwise a final quiet hop reports zero beside the fractals emitted by
     # earlier hops of the same experience.
     last_fractal_count = len(last_fractal_evidence)
-    retained_impressions = _retained_impression_neuron_count()
     record: dict[str, Any] = {
         "schema": PUBLIC_OBSERVATION_SCHEMA,
         "generation": native["organism_tick"],
@@ -4878,7 +4881,7 @@ def _build_public_observation() -> dict[str, Any]:
             True,
             "restored_native_identity",
             "identity is read from raw CURRENT native state",
-            build=_build_identity(),
+            build=build_identity,
             continuity="one raw native CURRENT lineage",
             value=native["identity"],
         ),
@@ -5326,15 +5329,50 @@ def _build_public_observation() -> dict[str, Any]:
     return record
 
 
+def _build_public_observation() -> dict[str, Any]:
+    return _build_public_observation_from_snapshot(
+        _native_record(),
+        _retained_impression_neuron_count(),
+        _build_identity(),
+    )
+
+
 def _refresh_public_observation_cache() -> None:
-    global _public_observation_body, _public_observation_etag
-    body = _canonical(_build_public_observation())
+    global _public_observation_body, _public_observation_etag, _runtime_proof_body
+
+    try:
+        native = _native_record()
+        retained_impressions = _retained_impression_neuron_count()
+        build_identity = _build_identity()
+        body = _canonical(
+            _build_public_observation_from_snapshot(
+                native,
+                retained_impressions,
+                build_identity,
+            )
+        )
+        runtime_proof_body = _canonical(
+            _readiness_from_snapshot(
+                native,
+                retained_impressions,
+                build_identity,
+            )
+        )
+    except BaseException:
+        _public_observation_body = None
+        _public_observation_etag = None
+        _runtime_proof_body = None
+        raise
     _public_observation_body = body
     _public_observation_etag = f'"{hashlib.sha256(body).hexdigest()}"'
+    _runtime_proof_body = runtime_proof_body
 
 
-def _readiness() -> dict[str, Any]:
-    native = _native_record()
+def _readiness_from_snapshot(
+    native: dict[str, Any],
+    retained_impressions: int | None,
+    build_identity: dict[str, str],
+) -> dict[str, Any]:
     cognition_present = bool(
         native["cognitive_ordinal"]
         or native["cognitive_trace_count"]
@@ -5353,7 +5391,7 @@ def _readiness() -> dict[str, Any]:
             # interval — the exact defect b2ac863b fixed elsewhere).  It
             # now reports BODY state: neurons holding retained impressions.
             "genuine_neuronal_fractal_available": bool(
-                (_retained_impression_neuron_count() or 0) > 0
+                (retained_impressions or 0) > 0
             ),
             "cognition_available": cognition_present,
             "energy_available": not native["energy_exhausted"],
@@ -5367,8 +5405,16 @@ def _readiness() -> dict[str, Any]:
         "native_state": True,
         "ready": True,
         "ready_scope": "http_native_current_and_admitted_sensory_transitions",
-        **_build_identity(),
+        **build_identity,
     }
+
+
+def _readiness() -> dict[str, Any]:
+    return _readiness_from_snapshot(
+        _native_record(),
+        _retained_impression_neuron_count(),
+        _build_identity(),
+    )
 
 
 def _unavailable(name: str) -> JSONResponse:
@@ -7629,7 +7675,7 @@ def _publish_committed_organism(
     """
 
     global _restored, _boot_error
-    global _public_observation_body, _public_observation_etag
+    global _public_observation_body, _public_observation_etag, _runtime_proof_body
 
     try:
         staged = stage_active_native_organism(
@@ -7653,6 +7699,7 @@ def _publish_committed_organism(
         )
         _public_observation_body = None
         _public_observation_etag = None
+        _runtime_proof_body = None
         raise HTTPException(status_code=503, detail=_boot_error) from error
 
 
@@ -10573,7 +10620,7 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
 def _startup() -> None:
     global _restored, _admission, _boot_error
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
-    global _public_observation_body, _public_observation_etag
+    global _public_observation_body, _public_observation_etag, _runtime_proof_body
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
@@ -10689,6 +10736,7 @@ def _startup() -> None:
         _admission = None
         _public_observation_body = None
         _public_observation_etag = None
+        _runtime_proof_body = None
         _boot_error = f"{type(error).__name__}: {error}"
         raise
 
@@ -10711,23 +10759,31 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _cached_runtime_proof_response() -> Response:
+    body = _runtime_proof_body
+    if body is None:
+        raise HTTPException(
+            status_code=503,
+            detail=_boot_error or "native runtime proof is unavailable",
+        )
+    return Response(
+        content=body,
+        headers={"Cache-Control": "private, no-store"},
+        media_type="application/json",
+    )
+
+
 @app.get("/ready/guala", dependencies=[Depends(_require_secret)])
-def ready_guala() -> dict[str, Any]:
-    # Readiness reads the live organism, so it must never observe committed
-    # hops whose lesson has not persisted yet: the transition lock is held
-    # for a whole lesson (commit hops in-memory, persist once), and taking
-    # it here means readiness serves only persisted state.
-    with _transition_lock:
-        return _readiness()
+def ready_guala() -> Response:
+    return _cached_runtime_proof_response()
 
 
 @app.get(
     "/api/v1/deployment/runtime-proof",
     dependencies=[Depends(_require_secret)],
 )
-def runtime_proof() -> dict[str, Any]:
-    with _transition_lock:
-        return _readiness()
+def runtime_proof() -> Response:
+    return _cached_runtime_proof_response()
 
 
 @app.get("/api/v1/guala/native-observation")
