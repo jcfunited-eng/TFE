@@ -1407,6 +1407,13 @@ _last_sensorimotor_play_evidence: dict[str, Any] | None = None
 # predecessor/successor world receipts are the only relation between them.
 _reciprocal_social_play_candidate: dict[str, Any] | None = None
 _last_reciprocal_social_play_evidence: dict[str, Any] | None = None
+# One transient, bounded physical frontier from the latest external
+# participant stimulus. It is observation only, does not survive restart, and
+# cannot choose or retain anything for the organism.
+_active_external_participant_causal_motor_traces: dict[
+    tuple[str, str, tuple[str, ...], int],
+    dict[str, tuple[tuple[str, str, int, int], ...]],
+] = {}
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
@@ -3064,6 +3071,9 @@ def _sensorimotor_play_episode_from_transition(
     overload_exclusion = _same_transition_metabolic_overload_exclusion(evidence)
     if overload_exclusion is not None:
         episode["metabolic_overload_exclusion"] = overload_exclusion
+    participant_causal_use = evidence.get("participant_sensory_causal_use")
+    if isinstance(participant_causal_use, dict):
+        episode["participant_sensory_causal_use"] = participant_causal_use
     return episode
 
 
@@ -3180,6 +3190,36 @@ def _advance_social_play_on_other_body_action(
     return {"invitation": action, "stage": "awaiting_guala_response"}
 
 
+def _participant_stimulus_caused_episode(
+    episode: dict[str, Any],
+    participant_action: dict[str, Any],
+) -> bool:
+    """Require an exact participant receptor-to-motor physical path."""
+
+    causal = episode.get("participant_sensory_causal_use")
+    if not isinstance(causal, dict):
+        return False
+    action = causal.get("action")
+    transfers = causal.get("directed_physical_transfers")
+    lineages = causal.get("perturbed_receptor_lineages")
+    return (
+        causal.get("origin_kind") == "external_participant_sensory"
+        and causal.get(
+            "participant_action_causal_intent_receipt_sha256"
+        )
+        == participant_action.get("causal_intent_receipt_sha256")
+        and isinstance(action, dict)
+        and action.get("causal_intent_receipt_sha256")
+        == episode.get("action_causal_intent_receipt_sha256")
+        and isinstance(transfers, (list, tuple))
+        and len(transfers) > 0
+        and isinstance(lineages, (list, tuple))
+        and len(lineages) > 0
+        and int(causal.get("receptor_settlement_organism_tick", 0))
+        < int(causal.get("motor_organism_tick", 0))
+    )
+
+
 def _advance_bounded_reciprocal_social_play_evidence(
     candidate: dict[str, Any] | None,
     completed: dict[str, Any] | None,
@@ -3206,7 +3246,10 @@ def _advance_bounded_reciprocal_social_play_evidence(
             invitation["world_revision_after"]
         ):
             return candidate, completed
-        if not _complete_positive_engagement_episode(episode):
+        if (
+            not _participant_stimulus_caused_episode(episode, invitation)
+            or not _complete_positive_engagement_episode(episode)
+        ):
             return candidate, completed
         return {
             **candidate,
@@ -3225,6 +3268,7 @@ def _advance_bounded_reciprocal_social_play_evidence(
         or episode["origin_organism_tick"] <= first["consequence_organism_tick"]
         or episode["signed_yaw_millidegrees"]
         == first["signed_yaw_millidegrees"]
+        or not _participant_stimulus_caused_episode(episode, other_return)
         or not _complete_positive_engagement_episode(episode)
     ):
         return candidate, completed
@@ -6530,6 +6574,8 @@ def _commit_admitted_hop(
     organism: Any,
     episode: Any,
     maximum_causal_intervals: list[tuple[int, int]],
+    *,
+    external_participant_action_receipt: str | None = None,
 ) -> dict[str, Any]:
     """Prepare and commit one admitted hop on the in-process organism only.
 
@@ -6604,6 +6650,12 @@ def _commit_admitted_hop(
         ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
+        ),
+        "externally_perturbed_neuron_lineages": tuple(
+            evidence.externally_perturbed_neuron_lineages
+        ),
+        "external_participant_action_receipt": (
+            external_participant_action_receipt
         ),
         "receptor_ingress_sense_counts": ingress_sense_counts,
         "receptor_ingress_changing_count": (
@@ -7197,6 +7249,7 @@ def _advance_causal_motor_traces(
     transaction_affective_balance_trajectories: tuple[
         tuple[Any, ...], ...
     ] | None = None,
+    external_participant_action_receipt: str | None = None,
 ) -> tuple[
     dict[
         tuple[str, str, tuple[str, ...], int],
@@ -7214,10 +7267,15 @@ def _advance_causal_motor_traces(
     All origin kinds share one union query per hop.
     """
 
+    if external_participant_action_receipt is None:
+        external_participant_action_receipt = hop.get(
+            "external_participant_action_receipt"
+        )
     origin_kinds = (
         "retained_formation",
         "new_neuronal_fractal",
         "affective_gradient",
+        "external_participant_sensory",
     )
     if all(kind in completed for kind in origin_kinds):
         return active, completed
@@ -7395,6 +7453,24 @@ def _advance_causal_motor_traces(
                         proof[
                             "localized_recovery_settlement_organism_tick"
                         ] = affective_trajectory[6][0]
+                elif origin_kind == "external_participant_sensory":
+                    proof["motor_unit_recruitment"][
+                        "matched_preparation_transfer"
+                    ] = (
+                        sender,
+                        sender_layer,
+                        receiver,
+                        receiver_layer,
+                        ordinal,
+                        carriers,
+                    )
+                    proof.update(
+                        participant_action_causal_intent_receipt_sha256=(
+                            origin_receipt
+                        ),
+                        perturbed_receptor_lineages=origin_lineages,
+                        receptor_settlement_organism_tick=origin_tick,
+                    )
                 else:
                     proof["motor_unit_recruitment"][
                         "matched_preparation_transfer"
@@ -7473,6 +7549,24 @@ def _advance_causal_motor_traces(
                 organism_tick,
             )
             advanced.setdefault(key, {lineage: ()})
+    if (
+        "external_participant_sensory" not in next_completed
+        and external_participant_action_receipt is not None
+        and not any(
+            key[0] == "external_participant_sensory" for key in advanced
+        )
+    ):
+        perturbed = tuple(
+            sorted(set(hop.get("externally_perturbed_neuron_lineages", ())))
+        )
+        if perturbed:
+            key = (
+                "external_participant_sensory",
+                external_participant_action_receipt,
+                perturbed,
+                organism_tick,
+            )
+            advanced[key] = {lineage: () for lineage in perturbed}
     return advanced, next_completed
 
 
@@ -7675,6 +7769,7 @@ def _perform_admitted_intake_locked(
     intake: str,
     *,
     vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
+    external_participant_action_receipt: str | None = None,
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
@@ -7689,6 +7784,7 @@ def _perform_admitted_intake_locked(
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
+    global _active_external_participant_causal_motor_traces
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -7751,7 +7847,7 @@ def _perform_admitted_intake_locked(
     active_causal_motor_traces: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
-    ] = {}
+    ] = dict(_active_external_participant_causal_motor_traces)
     completed_causal_motor_traces: dict[str, dict[str, Any]] = {}
     intake_error: Exception | None = None
     try:
@@ -7834,7 +7930,12 @@ def _perform_admitted_intake_locked(
                 totals[key] += last_hop[key]
         for episode, admissions in episodes:
             last_hop = _commit_admitted_hop(
-                organism, episode, admissions
+                organism,
+                episode,
+                admissions,
+                external_participant_action_receipt=(
+                    external_participant_action_receipt
+                ),
             )
             affective_balance_trajectories = (
                 _advance_bounded_affective_balance_evidence(
@@ -8351,6 +8452,11 @@ def _perform_admitted_intake_locked(
     _restored = RestoredNativeOrganism(
         organism=organism, pointer=published.pointer
     )
+    _active_external_participant_causal_motor_traces = {
+        key: paths
+        for key, paths in active_causal_motor_traces.items()
+        if key[0] == "external_participant_sensory"
+    }
     receptor_ingress = {
         "changing_count": receptor_ingress_changing_count,
         "quiescent_count": receptor_ingress_quiescent_count,
@@ -8365,6 +8471,9 @@ def _perform_admitted_intake_locked(
     )
     affective_motor_path = completed_causal_motor_traces.get(
         "affective_gradient"
+    )
+    external_participant_motor_path = completed_causal_motor_traces.get(
+        "external_participant_sensory"
     )
     causal_cross_context_use: dict[str, Any] | None = None
     if motor_action is not None and internally_reassembled_motor_path is not None:
@@ -8450,6 +8559,34 @@ def _perform_admitted_intake_locked(
                 "successor_state_sha256": last_hop["state_sha256"],
             },
         }
+    participant_sensory_causal_use: dict[str, Any] | None = None
+    if motor_action is not None and external_participant_motor_path is not None:
+        participant_sensory_causal_use = {
+            **external_participant_motor_path,
+            "action": {
+                "causal_intent_receipt_sha256": motor_action[
+                    "causal_intent_receipt_sha256"
+                ],
+                "command_sha256": motor_action["command_sha256"],
+                "observed_world_revision": motor_action[
+                    "observed_world_revision"
+                ],
+                "world_state_after_sha256": motor_action[
+                    "world_state_after_sha256"
+                ],
+                "world_state_before_sha256": motor_action[
+                    "world_state_before_sha256"
+                ],
+            },
+            "sensed_consequence": {
+                "vestibular_tick_count": motor_action["vestibular_tick_count"],
+                "externally_perturbed_body_receptor_count": last_hop[
+                    "externally_perturbed_body_receptor_count"
+                ],
+                "successor_organism_tick": last_hop["organism_tick"],
+                "successor_state_sha256": last_hop["state_sha256"],
+            },
+        }
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
@@ -8459,6 +8596,7 @@ def _perform_admitted_intake_locked(
         "causal_cross_context_use": causal_cross_context_use,
         "new_impression_causal_use": new_impression_causal_use,
         "affective_motor_causal_use": affective_motor_causal_use,
+        "participant_sensory_causal_use": participant_sensory_causal_use,
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,
@@ -10433,6 +10571,7 @@ def _startup() -> None:
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
+    global _active_external_participant_causal_motor_traces
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
@@ -10444,6 +10583,7 @@ def _startup() -> None:
     _last_sensorimotor_play_evidence = None
     _reciprocal_social_play_candidate = None
     _last_reciprocal_social_play_evidence = None
+    _active_external_participant_causal_motor_traces = {}
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
@@ -11137,6 +11277,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Let an external participant move only its own authenticated world body."""
 
     global _reciprocal_social_play_candidate
+    global _active_external_participant_causal_motor_traces
     if not WORLD_AUTHORIZED:
         return _refusal(503, "no persistent world is mounted")
     if not isinstance(payload, dict):
@@ -11287,6 +11428,10 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "y_mm": y,
         }
         action["evidence_receipt_sha256"] = _receipt(action)
+        prior_social_candidate = _reciprocal_social_play_candidate
+        prior_external_participant_traces = dict(
+            _active_external_participant_causal_motor_traces
+        )
         if visual_changed > 0:
             _reciprocal_social_play_candidate = (
                 _advance_social_play_on_other_body_action(
@@ -11294,12 +11439,23 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     action,
                 )
             )
+            # A later participant stimulus supersedes any still-propagating
+            # prior participant frontier. This clears observation only; it
+            # does not alter the organism or its retained experience.
+            _active_external_participant_causal_motor_traces = {}
         try:
             sensory_result = _perform_admitted_intake_locked(
                 [(consequence_episode, consequence_admissions)],
                 f"external-participant-world-action:{intent}",
+                external_participant_action_receipt=(
+                    intent if visual_changed > 0 else None
+                ),
             )
         except (RuntimeError, TypeError, ValueError) as error:
+            _reciprocal_social_play_candidate = prior_social_candidate
+            _active_external_participant_causal_motor_traces = (
+                prior_external_participant_traces
+            )
             _refresh_public_observation_cache()
             return JSONResponse(
                 status_code=503,

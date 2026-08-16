@@ -464,6 +464,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) physically_transitioned_neuron_count: usize,
     pub(crate) metabolically_perturbed_body_receptor_count: usize,
     pub(crate) externally_perturbed_body_receptor_count: usize,
+    pub(crate) externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
     pub(crate) complete_neuron_fractal_count: usize,
     pub(crate) emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     pub(crate) active_physical_bonds: Vec<StablePhysicalBondReference>,
@@ -1129,6 +1130,15 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn externally_perturbed_neuron_lineages(&self) -> Vec<String> {
+        self.observation
+            .externally_perturbed_neuron_lineages
+            .iter()
+            .map(|lineage| hex_bytes(lineage))
+            .collect()
+    }
+
+    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
     }
@@ -1667,6 +1677,15 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn externally_perturbed_neuron_lineages(&self) -> Vec<String> {
+        self.observation
+            .externally_perturbed_neuron_lineages
+            .iter()
+            .map(|lineage| hex_bytes(lineage))
+            .collect()
+    }
+
+    #[getter]
     fn membrane_returned_elementary_charges(&self) -> i128 {
         self.observation.membrane_returned_elementary_charges
     }
@@ -2173,6 +2192,11 @@ impl ResidentOrganismRuntime {
                     .externally_perturbed_body_receptor_count
                     .checked_add(observation.externally_perturbed_body_receptor_count)
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
+                for lineage in &observation.externally_perturbed_neuron_lineages {
+                    if !total.externally_perturbed_neuron_lineages.contains(lineage) {
+                        total.externally_perturbed_neuron_lineages.push(*lineage);
+                    }
+                }
                 total.complete_neuron_fractal_count = total
                     .complete_neuron_fractal_count
                     .checked_add(observation.complete_neuron_fractal_count)
@@ -4329,6 +4353,7 @@ fn make_restored_observation(
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
         externally_perturbed_body_receptor_count: 0,
+        externally_perturbed_neuron_lineages: Vec::new(),
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),
@@ -4415,6 +4440,9 @@ fn make_step_observation(
             .metabolically_perturbed_body_receptor_count,
         externally_perturbed_body_receptor_count: cognitive
             .externally_perturbed_body_receptor_count,
+        externally_perturbed_neuron_lineages: cognitive
+            .externally_perturbed_neuron_lineages
+            .clone(),
         complete_neuron_fractal_count: cognitive.complete_neuron_fractal_count,
         emitted_neuron_fractals: cognitive.emitted_neuron_fractals.clone(),
         active_physical_bonds: cognitive.active_physical_bonds.clone(),
@@ -4505,6 +4533,7 @@ fn make_authored_contact_observation(
         physically_transitioned_neuron_count: 0,
         metabolically_perturbed_body_receptor_count: 0,
         externally_perturbed_body_receptor_count: 0,
+        externally_perturbed_neuron_lineages: Vec::new(),
         complete_neuron_fractal_count: 0,
         emitted_neuron_fractals: Vec::new(),
         active_physical_bonds: Vec::new(),

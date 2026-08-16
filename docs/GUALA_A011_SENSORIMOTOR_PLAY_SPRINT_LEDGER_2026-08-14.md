@@ -1870,3 +1870,108 @@ second persistence authority remain out of scope and must not be extended.
   participate across turns. Preserve both exact formation receipts separately;
   do not merge, relabel, or require equality. No organism cognition, neuron,
   contact, DSF, persistence, world, action, or resource law changes.
+
+#### Task 1086 live causal-reciprocity falsification
+
+- **Task identity:** A-011.6 remains the sole active item; A-011.5 remains
+  Live-Closed and A-011.7 has not started. Production is task
+  `dsf-ai-task:1086`, commit `5ffa77acf6eb94193cbb2492a8d9b39619df1224`,
+  image `sha256:fd7f00cadf721f4512f9e720034658e6b58c3a4d728bddf6febbc144228e2951`.
+- **Closed prerequisite:** task 1086 lawfully removed the false requirement
+  that both Guala turns use the same retained formation. Its immutable release
+  cold-restored the current organism and deployed in one cutover. That
+  correction remains closed and is not reopened.
+- **Frozen input:** the already-committed participant invitation at world
+  revision `5670`, Guala response `c7b5d78d...`, already-committed participant
+  return at revision `5673`, and the ordinary unattended successors. Neither
+  participant action may be repeated.
+- **Observed production sequence:** after the participant return, action
+  `0ae301ab...` carried no complete observed internal motor origin; actions
+  `6adb2c08...` and `23005559...` carried affective-gradient origin only. A
+  later action `e5646dc3...` at observed world revision `5676` carried retained
+  formation `bda19caf...`, localized affect/body participation, physical
+  choice, signed yaw `+6`, and sensed consequence. The observer then reported
+  `reciprocal_social_positive_engagement_observed` with receipt `d364a92a...`.
+- **Falsified claim:** the reported reciprocal result proves causal order but
+  not causal response to the participant. `_advance_social_play_on_other_body_action`
+  advances the candidate before `_perform_admitted_intake_locked` proves the
+  sensory successor. `_advance_bounded_reciprocal_social_play_evidence` later
+  checks world revision, organism order, distinct action/yaw, retained
+  formation, affect/body participation, choice, and consequence, but it does
+  not require a physical path from that participant action's sensory successor
+  to the Guala response.
+- **Decisive contradiction:** the participant return changed eight receptor
+  ingresses and emitted neuronal fractals at lineages `...0011`, `...0012`, and
+  `...0003`. The accepted return response used internally simulated formation
+  `bda19caf...`, cued by body lineages `...0094`, `...00a2`, `...00b0`, and
+  `...00be`. Current evidence carries no directed physical transfer chain from
+  the participant-caused receptor frontier to that formation or action.
+  Temporal proximity and receipt order cannot supply the missing causality.
+- **Current source reality:** native settlement already computes exact
+  `externally_perturbed_neuron_lineages`, but `CognitiveFormationObservation`,
+  `RuntimeObservation`, PyO3, and `_commit_admitted_hop` expose only the count.
+  Transaction-local `_advance_causal_motor_traces` is reset at every ordinary
+  intake, so it cannot observe a lawful sparse stimulus path that crosses
+  consecutive committed intervals.
+- **Single correction:** expose the existing perturbed lineages as transient
+  read-only evidence; seed one bounded exact causal frontier only after the
+  participant sensory successor commits; carry that observer frontier across
+  adjacent ordinary intervals while native whole-carrier transfers continue;
+  and require its exact action receipt before either participant/Guala turn can
+  qualify. The frontier must expire on physical settlement/discontinuity and
+  has no route into cognition, choice, reward, world action, or persistence.
+- **Translation map:** participant world receipt -> `_action_consequence_episode`
+  -> native `externally_perturbed_neuron_lineages` -> runtime/PyO3 projection ->
+  `_commit_admitted_hop` -> bounded continuing sparse transfer frontier -> same
+  retained-formation/affect/attention/motor action receipt -> sensed consequence
+  -> read-only reciprocal observation.
+- **Acceptance:** reject task 1086's captured temporal-only sequence; reject an
+  action caused by an unrelated formation even when it is later and otherwise
+  complete; accept only an exact source-to-consequence chain for each already
+  accepted participant sensory transition. Prove a recurrent cross-transaction
+  path, candidate-process boundedness, exact cold restore, zero cognition
+  callbacks, and live production behavior before A-011.6 can be Live-Closed.
+- **DSF:** no DSF field is evaluated, reduced, modified, copied, or lost.
+
+#### Task 1086 causal-reciprocity correction candidate
+
+- **Implementation:** the already-computed exact externally perturbed neuron
+  lineages now cross `CognitiveFormationObservation` -> `RuntimeObservation`
+  -> PyO3 -> `ResidentPrepareEvidence` -> the committed-hop projection. No
+  retained organism member, codec, schema, or persisted byte changed.
+- **Bounded observer:** at most the latest participant stimulus seeds the
+  existing union causal-frontier observer. It survives only consecutive exact
+  physical advances, expires at settlement or clock discontinuity, resets on
+  process restart, and has no route into cognition, memory, choice, reward,
+  world action, persistence, or cognitive capital. It adds no second native
+  frontier query.
+- **Acceptance correction:** both Guala responses now require a nonempty exact
+  receptor-to-motor carrier path whose participant intent receipt matches the
+  corresponding invitation or return and whose Guala action receipt matches
+  the accepted motor episode. Temporal order alone is refused.
+- **Translation proof:** a real one-millisecond 109-port multisensory action
+  produces a nonempty, unique set of exact perturbed receptor identities through
+  the rebuilt candidate extension. Both new PyO3 getters are present at the
+  loaded isolated path `/tmp/guala-a0116-native.JwBPRL/guala_core`.
+- **Focused evidence:** 33/33 adjacent causal/action/social/unattended tests
+  pass; the explicit temporal-coincidence negative and cross-interval exact
+  receptor-to-motor positive both pass. Full native release suite: 421 passed,
+  0 failed, 11 ignored. Python compilation and `git diff --check` pass.
+- **Cardinality:** the changed path exports only the already-reached perturbed
+  lineage set, joins it into the single existing per-hop frontier query, retains
+  one latest participant root, and keeps one shortest exact completed path. It
+  creates no occurrence, gate, cohort, neuron, contact, topology lane, Python
+  cognition callback, database record, owner, or lock.
+- **Production baseline re-resolved at 2026-08-16T04:58:13Z:** one healthy task,
+  `dsf-ai-task:1086`, image `sha256:fd7f00ca...228e2951`, desired/running/pending
+  `1/1/0`; both public pages return HTTP 200. This is target evidence, not
+  behavior acceptance.
+- **Applicable recurrence checks:** RF-001 exact worktree import, RF-003/RF-036
+  fresh native provenance, RF-005 complete translation map, RF-010 unchanged
+  current-only codec, RF-011 bounded observer, RF-012 live behavioral proof,
+  RF-014 typed wrapper parity, RF-017/RF-028 constructor and aggregate census,
+  RF-029 no blind live retry, RF-033 exact AWS target, RF-044 changed-path
+  cardinality, and RF-046 all shared hop producers. All source/local checks pass;
+  authenticated predecessor rehearsal and live proof remain pending.
+- **Deployment clock:** candidate release preparation began
+  `2026-08-16T04:58:13Z`; no cutover has yet been attempted.

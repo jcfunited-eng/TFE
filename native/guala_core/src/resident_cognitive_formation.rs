@@ -852,6 +852,11 @@ pub(crate) struct CognitiveFormationObservation {
     /// Receptor cells on the body projection whose own exact local source
     /// delivered nonzero gate work in this transition. Observation only.
     pub(crate) externally_perturbed_body_receptor_count: usize,
+    /// Exact receptor lineages whose own local source delivered nonzero gate
+    /// work in this transition. This is transient observation only; the
+    /// lineages already exist in the retained organism and this projection
+    /// creates no second state authority.
+    pub(crate) externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
     /// Reached layer-5 body receptors whose separated membrane charge changed
     /// during this transition's exact local recovery-fluid settlement. This
     /// is local causal evidence, never a projection of body-wide ledgers.
@@ -4675,6 +4680,8 @@ impl ResidentCognitiveFormationState {
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count,
                 externally_perturbed_body_receptor_count,
+                externally_perturbed_neuron_lineages:
+                    externally_perturbed_neuron_lineages.iter().copied().collect(),
                 metabolically_perturbed_body_receptor_count:
                     metabolically_perturbed_body_receptor_lineages.len(),
                 complete_neuron_fractal_count,
@@ -5153,6 +5160,7 @@ impl ResidentCognitiveFormationState {
                 resting_neuron_count: summary.resting_neuron_count,
                 physically_transitioned_neuron_count: 0,
                 externally_perturbed_body_receptor_count: 0,
+                externally_perturbed_neuron_lineages: Vec::new(),
                 metabolically_perturbed_body_receptor_count: 0,
                 complete_neuron_fractal_count: 0,
                 emitted_neuron_fractals: Vec::new(),

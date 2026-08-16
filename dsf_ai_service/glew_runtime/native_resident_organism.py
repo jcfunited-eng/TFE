@@ -146,6 +146,9 @@ class NativeResidentObservationView(Protocol):
     def externally_perturbed_body_receptor_count(self) -> int: ...
 
     @property
+    def externally_perturbed_neuron_lineages(self) -> list[str]: ...
+
+    @property
     def cold_restore_authentication_count(self) -> int: ...
 
     @property
@@ -393,6 +396,7 @@ class ResidentPrepareEvidence:
     rest_drained_dissipation_quanta: int = 0
     unmet_dissipation_quanta: int = 0
     externally_perturbed_body_receptor_count: int = 0
+    externally_perturbed_neuron_lineages: tuple[str, ...] = ()
     receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
         0,
         0,
@@ -2089,6 +2093,22 @@ class NativeResidentOrganism:
             candidate.externally_perturbed_body_receptor_count,
             "externally perturbed body receptor count",
         )
+        raw_externally_perturbed_neuron_lineages = (
+            candidate.externally_perturbed_neuron_lineages
+        )
+        if not isinstance(raw_externally_perturbed_neuron_lineages, list):
+            raise RuntimeError("externally perturbed neuron lineages changed format")
+        externally_perturbed_neuron_lineages = tuple(
+            _canonical_lineage_hex(lineage, "externally perturbed neuron lineage")
+            for lineage in raw_externally_perturbed_neuron_lineages
+        )
+        if (
+            len(set(externally_perturbed_neuron_lineages))
+            != len(externally_perturbed_neuron_lineages)
+            or externally_perturbed_body_receptor_count
+            > len(externally_perturbed_neuron_lineages)
+        ):
+            raise RuntimeError("externally perturbed neuron lineages are inconsistent")
         raw_ingress_sense_counts = candidate.receptor_ingress_sense_counts
         if (
             not isinstance(raw_ingress_sense_counts, tuple)
@@ -2410,6 +2430,9 @@ class NativeResidentOrganism:
             unmet_dissipation_quanta=unmet_dissipation_quanta,
             externally_perturbed_body_receptor_count=(
                 externally_perturbed_body_receptor_count
+            ),
+            externally_perturbed_neuron_lineages=(
+                externally_perturbed_neuron_lineages
             ),
             receptor_ingress_sense_counts=receptor_ingress_sense_counts,
             receptor_ingress_changing_count=receptor_ingress_changing_count,

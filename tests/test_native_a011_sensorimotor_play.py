@@ -41,6 +41,7 @@ def _transition(
     origin_tick: int,
     yaw: int,
     world_revision: int,
+    participant_action_receipt: str | None = None,
 ) -> tuple[dict[str, object], dict[str, object]]:
     motor_tick = origin_tick + 2
     consequence_tick = motor_tick + 1
@@ -151,6 +152,30 @@ def _transition(
             "rest_drained_dissipation_quanta": 7,
         },
     }
+    if participant_action_receipt is not None:
+        transition["participant_sensory_causal_use"] = {
+            "action": causal_action,
+            "directed_physical_transfers": (
+                ("09" * 16, "03" * 16, 0, 5),
+                ("03" * 16, "04" * 16, 0, 3),
+            ),
+            "motor_organism_tick": motor_tick,
+            "motor_unit_recruitment": {
+                "motor_layer": 12,
+                "motor_lineage": "04" * 16,
+                "motor_topology_index": 1,
+                "outward_elementary_carriers": abs(yaw),
+            },
+            "origin_kind": "external_participant_sensory",
+            "origin_lineages": ("09" * 16,),
+            "origin_organism_tick": origin_tick - 1,
+            "participant_action_causal_intent_receipt_sha256": (
+                participant_action_receipt
+            ),
+            "perturbed_receptor_lineages": ("09" * 16,),
+            "receptor_settlement_organism_tick": origin_tick - 1,
+            "sensed_consequence": consequence,
+        }
     choice = {
         "causal_intent_receipt_sha256": action_receipt,
         "formation_receipt_sha256": FORMATION,
@@ -249,17 +274,21 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
 def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     monkeypatch,
 ) -> None:
+    invitation_receipt = "1" * 64
+    return_receipt = "3" * 64
     first, first_choice = _transition(
         action_receipt="a" * 64,
         origin_tick=800,
         yaw=-31,
         world_revision=80,
+        participant_action_receipt=invitation_receipt,
     )
     second, second_choice = _transition(
         action_receipt="b" * 64,
         origin_tick=814,
         yaw=-17,
         world_revision=82,
+        participant_action_receipt=return_receipt,
     )
     return_formation = "f" * 64
     second["causal_cross_context_use"]["formation_receipt_sha256"] = (
@@ -269,6 +298,7 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     invitation = {
         "actor_body_id": "person-body-1",
         "authority_receipt_sha256": "1" * 64,
+        "causal_intent_receipt_sha256": invitation_receipt,
         "evidence_receipt_sha256": "2" * 64,
         "world_revision_after": 80,
         "world_revision_before": 79,
@@ -278,6 +308,7 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     other_return = {
         "actor_body_id": "person-body-1",
         "authority_receipt_sha256": "3" * 64,
+        "causal_intent_receipt_sha256": return_receipt,
         "evidence_receipt_sha256": "4" * 64,
         "world_revision_after": 82,
         "world_revision_before": 81,
@@ -367,20 +398,25 @@ def test_social_play_waits_when_a_guala_episode_predates_the_invitation() -> Non
 
 
 def test_social_play_allows_gualas_own_intervening_world_actions() -> None:
+    invitation_receipt = "6" * 64
+    return_receipt = "7" * 64
     first, first_choice = _transition(
         action_receipt="d" * 64,
         origin_tick=1_000,
         yaw=-23,
         world_revision=102,
+        participant_action_receipt=invitation_receipt,
     )
     second, second_choice = _transition(
         action_receipt="e" * 64,
         origin_tick=1_014,
         yaw=-11,
         world_revision=106,
+        participant_action_receipt=return_receipt,
     )
     invitation = {
         "actor_body_id": "person-body-1",
+        "causal_intent_receipt_sha256": invitation_receipt,
         "world_revision_before": 99,
         "world_revision_after": 100,
         "world_state_before_sha256": f"{99:064x}",
@@ -388,6 +424,7 @@ def test_social_play_allows_gualas_own_intervening_world_actions() -> None:
     }
     other_return = {
         "actor_body_id": "person-body-1",
+        "causal_intent_receipt_sha256": return_receipt,
         "world_revision_before": 104,
         "world_revision_after": 105,
         "world_state_before_sha256": f"{104:064x}",
@@ -428,6 +465,38 @@ def test_social_play_allows_gualas_own_intervening_world_actions() -> None:
     assert completed is not None
     assert completed["first_guala_episode"]["world_revision"] == 102
     assert completed["return_guala_episode"]["world_revision"] == 106
+
+
+def test_temporal_proximity_without_participant_circuit_path_is_rejected() -> None:
+    transition, choice = _transition(
+        action_receipt="8" * 64,
+        origin_tick=1_100,
+        yaw=-19,
+        world_revision=111,
+    )
+    invitation = {
+        "actor_body_id": "person-body-1",
+        "causal_intent_receipt_sha256": "9" * 64,
+        "world_revision_before": 110,
+        "world_revision_after": 111,
+    }
+    candidate = production._advance_social_play_on_other_body_action(
+        None,
+        invitation,
+    )
+
+    candidate_after, completed = (
+        production._advance_bounded_reciprocal_social_play_evidence(
+            candidate,
+            None,
+            transition,
+            choice,
+            "continuous-environment:temporal-coincidence",
+        )
+    )
+
+    assert candidate_after == candidate
+    assert completed is None
 
 
 def test_other_participant_moves_only_its_authenticated_world_body(

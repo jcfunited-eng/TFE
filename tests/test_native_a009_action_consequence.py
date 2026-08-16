@@ -78,6 +78,7 @@ print(json.dumps({
     "episode_ports": episode.port_count,
     "episode_samples": episode.source_sample_count,
     "external_body": hop["externally_perturbed_body_receptor_count"],
+    "external_lineages": hop["externally_perturbed_neuron_lineages"],
     "ingress": hop["receptor_ingress_sense_counts"],
     "internal_body": hop["metabolically_perturbed_body_receptor_count"],
     "organism_tick": hop["organism_tick"],
@@ -116,6 +117,10 @@ print(json.dumps({
         "touch": 27,
     }
     assert evidence["external_body"] == 0
+    assert 0 < len(evidence["external_lineages"]) <= 27
+    assert len(set(evidence["external_lineages"])) == len(
+        evidence["external_lineages"]
+    )
     assert evidence["internal_body"] == 4
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
