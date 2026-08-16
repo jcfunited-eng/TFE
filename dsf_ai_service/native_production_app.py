@@ -2119,6 +2119,66 @@ def _curriculum_invitation_record() -> dict[str, object]:
     )
 
 
+def _settle_pending_curriculum_invitation(
+    participant_causal_use: dict[str, Any] | None,
+    *,
+    organism_tick: int,
+    state_sha256: str,
+) -> None:
+    """Observe one pending retinal frontier complete or physically expire."""
+
+    global _curriculum_invitation
+    invitation = _curriculum_invitation
+    if invitation is None or invitation.get("outcome") != "observing":
+        return
+    action_receipt = invitation["participant_action_causal_intent_receipt_sha256"]
+    pending = any(
+        key[0] == "external_participant_sensory" and key[1] == action_receipt
+        for key in _active_external_participant_causal_motor_traces
+    )
+    matched = isinstance(participant_causal_use, dict) and (
+        participant_causal_use.get(
+            "participant_action_causal_intent_receipt_sha256"
+        ) == action_receipt
+    )
+    if not matched and pending:
+        return
+    successor = {
+        key: value
+        for key, value in invitation.items()
+        if key != "invitation_receipt_sha256"
+    }
+    if matched:
+        transfers = tuple(participant_causal_use["directed_physical_transfers"])
+        successor.update(
+            causal_directed_transfer_count=len(transfers),
+            outcome="attended",
+            presentation_eligible=True,
+            reason=(
+                "the approach-caused retinal frontier reached Guala's own "
+                "motor preparation through exact directed transfers"
+            ),
+            status="participant_causal_path_reached_motor",
+        )
+    else:
+        successor.update(
+            outcome="declined",
+            presentation_eligible=False,
+            reason=(
+                "the participant changed her retina, but that exact physical "
+                "frontier expired without reaching motor preparation; no "
+                "card was admitted"
+            ),
+            status="participant_causal_path_expired_before_motor",
+        )
+    successor.update(
+        observed_at_organism_tick=organism_tick,
+        observed_state_sha256=state_sha256,
+    )
+    successor["invitation_receipt_sha256"] = _receipt(successor)
+    _curriculum_invitation = successor
+
+
 def _curriculum_media_record() -> dict[str, object]:
     try:
         cards = _manifest_experiences(
@@ -8940,6 +9000,11 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
+    _settle_pending_curriculum_invitation(
+        participant_sensory_causal_use,
+        organism_tick=int(last_hop["organism_tick"]),
+        state_sha256=str(last_hop["state_sha256"]),
+    )
     # A route-set change is knowable only after a later hop supplies the
     # distinct comparison frontier.  Re-evaluate once at the completed
     # transaction boundary so an exact motor-preparation transfer observed in
@@ -12181,6 +12246,11 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 == action_receipt
                 else ()
             )
+            pending = any(
+                key[0] == "external_participant_sensory"
+                and key[1] == action_receipt
+                for key in _active_external_participant_causal_motor_traces
+            )
             attended = reached_retina and bool(transfers)
             if attended:
                 outcome = "attended"
@@ -12189,13 +12259,21 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     "the approach-caused retinal frontier reached Guala's "
                     "own motor preparation through exact directed transfers"
                 )
+            elif reached_retina and pending:
+                outcome = "observing"
+                status = "participant_causal_path_still_active"
+                reason = (
+                    "the participant changed her retina and that exact "
+                    "physical frontier remains active; her following native "
+                    "activity will settle attendance or decline"
+                )
             elif reached_retina:
                 outcome = "declined"
-                status = "participant_causal_path_did_not_reach_motor"
+                status = "participant_causal_path_expired_before_motor"
                 reason = (
-                    "the participant approached and changed her retina, but "
-                    "no exact receptor-to-motor continuation completed; no "
-                    "card was admitted"
+                    "the participant changed her retina, but that exact "
+                    "physical frontier expired without reaching motor "
+                    "preparation; no card was admitted"
                 )
             else:
                 outcome = "not_reached"

@@ -79,6 +79,29 @@ def test_direct_card_button_cannot_admit_without_embodied_invitation(
     assert built is False
 
 
+def test_pending_invitation_attends_only_when_its_frontier_reaches_motor() -> None:
+    action_receipt = "55" * 32
+    production._curriculum_invitation = {
+        "outcome": "observing",
+        "participant_action_causal_intent_receipt_sha256": action_receipt,
+        "presentation_eligible": False,
+    }
+    production._active_external_participant_causal_motor_traces = {}
+
+    production._settle_pending_curriculum_invitation(
+        {
+            "participant_action_causal_intent_receipt_sha256": action_receipt,
+            "directed_physical_transfers": (("retina", "motor", 0, 1),),
+        },
+        organism_tick=21,
+        state_sha256="77" * 32,
+    )
+
+    assert production._curriculum_invitation["outcome"] == "attended"
+    assert production._curriculum_invitation["presentation_eligible"] is True
+    assert production._curriculum_invitation["causal_directed_transfer_count"] == 1
+
+
 @pytest.mark.parametrize(
     ("reached_retina", "causal_path_completed", "expected_outcome"),
     (
